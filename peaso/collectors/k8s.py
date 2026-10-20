@@ -267,11 +267,9 @@ def _component_config(value):
 
 def validate_inline_kubeconfig(data, context=None):
     """Tenant-uploaded data cannot invoke helpers or dereference local paths."""
-    import yaml
     if isinstance(data, str):
-        if len(data.encode()) > 2_000_000:
-            raise ValueError("inline kubeconfig exceeds size limit")
-        data = yaml.safe_load(data)
+        from peaso.auth.documents import credential_document
+        data = credential_document(data)
     if not isinstance(data, dict):
         raise ValueError("inline kubeconfig must be an object")
     for section in ("users", "clusters", "contexts"):
@@ -282,12 +280,18 @@ def validate_inline_kubeconfig(data, context=None):
             raise ValueError("duplicate kubeconfig names")
     for entry in data["users"]:
         user = entry.get("user")
-        if not isinstance(user, dict) or any(field in user for field in ("exec", "auth-provider", "tokenFile", "client-certificate", "client-key", "username", "password")):
+        if not isinstance(user, dict) or set(user) - {"token", "client-certificate-data", "client-key-data"}:
             raise ValueError("inline kubeconfig cannot execute helpers or read files")
+        if any(not isinstance(value, str) or not value or len(value) > 1_000_000 for value in user.values()):
+            raise ValueError("kubeconfig requires embedded token or certificate strings")
     for entry in data["clusters"]:
         cluster = entry.get("cluster")
-        if not isinstance(cluster, dict) or any(field in cluster for field in ("certificate-authority", "proxy-url")) or cluster.get("insecure-skip-tls-verify"):
+        if (not isinstance(cluster, dict) or set(cluster) - {"server", "certificate-authority-data", "tls-server-name", "insecure-skip-tls-verify"}
+                or cluster.get("insecure-skip-tls-verify") not in (None, False)):
             raise ValueError("inline kubeconfig requires verified TLS and inline CA")
+        if any(not isinstance(value, str) or not value or len(value) > 1_000_000
+               for key, value in cluster.items() if key != 'insecure-skip-tls-verify'):
+            raise ValueError("invalid embedded kubeconfig cluster settings")
         parsed = urlsplit(cluster.get("server", ""))
         if parsed.scheme != "https" or not parsed.netloc or parsed.username or parsed.query or parsed.fragment:
             raise ValueError("inline kubeconfig server must use HTTPS")
@@ -302,7 +306,24 @@ def validate_inline_kubeconfig(data, context=None):
     return {"server": cluster["server"], "token": user.get("token"),
             "ca_cert_data": cluster.get("certificate-authority-data"),
             "client_cert_data": user.get("client-certificate-data"),
-            "client_key_data": user.get("client-key-data"), "context": selected}
+            "client_key_data": user.get("client-key-data"), "context": selected,
+            "tls_server_name": cluster.get("tls-server-name")}
+
+
+def hosted_auth(auth):
+    """Hosted probes and scans use only explicit tenant-owned inline material."""
+    method = auth.get('method', 'auto')
+    if method not in {'auto', 'token', 'certificate', 'client-cert', 'direct', 'kubeconfig', 'context', 'inline'}:
+        raise ValueError('hosted Kubernetes cannot use ambient authentication')
+    if any(key in auth for key in ('kubeconfig', 'token_file', 'ca_cert', 'client_cert', 'client_key', 'in_cluster')):
+        raise ValueError('hosted Kubernetes cannot read local credential files')
+    if method in {'kubeconfig', 'context', 'inline'} and auth.get('kubeconfig_data') is None:
+        raise ValueError('hosted kubeconfig selection requires inline material')
+    selected = validate_inline_kubeconfig(auth['kubeconfig_data'], auth.get('context')) if auth.get('kubeconfig_data') is not None else dict(auth)
+    if (not selected.get('server') or not (selected.get('token') or
+            (selected.get('client_cert_data') and selected.get('client_key_data')))):
+        raise ValueError('hosted Kubernetes requires an explicit server and embedded credentials')
+    return dict(selected, **({'cluster_id': auth['cluster_id']} if auth.get('cluster_id') else {}), method='direct', _hosted=True)
 
 
 def _public_server(server):
@@ -435,6 +456,8 @@ def _wrap_client(api_client, source_server=None):
 
 
 def _new_api(auth):
+    if auth.get('_hosted'):
+        auth = hosted_auth(auth)
     from kubernetes import client, config
     from bluepeass.k8s import KubernetesApi
     method = auth.get("method", "auto")
@@ -448,6 +471,18 @@ def _new_api(auth):
         raise ValueError("selected direct authentication requires server")
     if method in ("auto", "kubeconfig", "context") and auth.get("kubeconfig_data") is not None:
         auth = {**auth, **validate_inline_kubeconfig(auth["kubeconfig_data"], auth.get("context"))}
+        method = 'direct'
+    elif method in ('kubeconfig', 'context') or (method == 'auto' and not auth.get('server')
+            and not auth.get('in_cluster') and not os.getenv('KUBERNETES_SERVICE_HOST')):
+        # Parse local files as data too. Never call the SDK kubeconfig loader,
+        # which can execute exec/auth-provider helpers and read referenced files.
+        path = auth.get('kubeconfig') or os.getenv('KUBECONFIG') or os.path.expanduser('~/.kube/config')
+        if not isinstance(path, str) or os.pathsep in path:
+            raise ValueError('use one data-only kubeconfig file')
+        with open(path, encoding='utf-8') as stream:
+            raw = stream.read(2_000_001)
+        auth = {**auth, **validate_inline_kubeconfig(raw, auth.get('context'))}
+        method = 'direct'
     direct = None if method in ("in_cluster", "in-cluster") or (method in ("kubeconfig", "context") and auth.get("kubeconfig_data") is None) else auth.get("server")
     if direct:
         parsed = urlsplit(direct)
@@ -456,14 +491,17 @@ def _new_api(auth):
         configuration = client.Configuration()
         configuration.host = direct.rstrip("/")
         configuration.verify_ssl = True
+        if auth.get('tls_server_name'):
+            configuration.tls_server_name = auth['tls_server_name']
+            configuration.assert_hostname = auth['tls_server_name']
         if auth.get("_disable_proxy") is True:
             configuration.proxy = None
             configuration.proxy_headers = None
             configuration.no_proxy = None
         if auth.get("_hosted"):
             configuration.host, hostname = _public_server(direct)
-            configuration.tls_server_name = hostname
-            configuration.assert_hostname = hostname
+            configuration.tls_server_name = auth.get('tls_server_name') or hostname
+            configuration.assert_hostname = auth.get('tls_server_name') or hostname
         if auth.get("ca_cert"):
             configuration.ssl_ca_cert = auth["ca_cert"]
         certificate_mode = method in ("certificate", "client-cert")
@@ -525,9 +563,7 @@ def _new_api(auth):
         config.load_incluster_config(client_configuration=configuration)
         api_client = client.ApiClient(configuration)
     else:
-        # The official loader supports embedded certificates, current context,
-        # and EKS/GKE/AKS exec credential helpers without persisting token refreshes.
-        api_client = config.new_client_from_config(config_file=auth.get("kubeconfig"), context=auth.get("context"), persist_config=False)
+        raise ValueError('Kubernetes requires explicit credentials or a data-only kubeconfig')
     try:
         return _wrap_client(api_client)
     except Exception:
@@ -1390,16 +1426,13 @@ def collect(connector, requirements=None, *, api=None):
     cluster = auth.get("cluster_id")
     try:
         if options.get("hosted"):
-            if any(auth.get(field) for field in ("kubeconfig", "token_file", "ca_cert", "client_cert", "client_key", "in_cluster")) or auth.get("method") in ("in_cluster", "in-cluster"):
-                raise ValueError("hosted Kubernetes requires tenant inline credentials")
-            if not auth.get("server") and auth.get("kubeconfig_data") is None:
-                raise ValueError("hosted Kubernetes requires an explicit API server")
-            if auth.get("method") in ("kubeconfig", "context", "inline") and auth.get("kubeconfig_data") is None:
-                raise ValueError("hosted kubeconfig selection requires inline material")
-            auth = {**auth, "_hosted": True}
+            auth = hosted_auth(auth)
         if owned:
             api = _new_api(auth)
         cluster = _cluster_id(api, auth)
+        from peaso.ai.access import k8s as capture_ai_access
+        capture_ai_access(getattr(getattr(api, "api_client", None), "configuration", None),
+                          cluster_id=cluster, namespaces=scopes)
         jobs = []
         coverage_input = options.get("metadata_evidence_coverage")
         component_manifest = (isinstance(coverage_input, dict) and "component_configuration" in coverage_input

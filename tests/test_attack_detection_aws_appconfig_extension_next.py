@@ -37,15 +37,15 @@ def _hits(event: dict) -> list[str]:
 
 def test_content_hook_requires_accepted_lambda_action_and_role() -> None:
     action = {"name": "observe-canary",
-        "uri": "arn:aws:lambda:us-east-1:947247140022:function:peasso-canary",
-        "roleArn": "arn:aws:iam::947247140022:role/peasso-canary"}
+        "uri": "arn:aws:lambda:us-east-1:222233334444:function:peasso-canary",
+        "roleArn": "arn:aws:iam::222233334444:role/peasso-canary"}
     actions = {"PRE_CREATE_HOSTED_CONFIGURATION_VERSION": [action]}
     event = {"eventSource": "appconfig.amazonaws.com", "eventName": "CreateExtension",
         "eventCategory": "Management", "eventType": "AwsApiCall", "managementEvent": True,
-        "readOnly": False, "awsRegion": "us-east-1", "recipientAccountId": "947247140022",
+        "readOnly": False, "awsRegion": "us-east-1", "recipientAccountId": "222233334444",
         "requestParameters": {"name": "peasso-canary", "actions": actions},
         "responseElements": {"id": "otp58kd", "versionNumber": 1,
-            "arn": "arn:aws:appconfig:us-east-1:947247140022:extension/otp58kd/1", "actions": actions}}
+            "arn": "arn:aws:appconfig:us-east-1:222233334444:extension/otp58kd/1", "actions": actions}}
     assert _hits(event) == [HOOK.technique_id]
     for change in ("notify", "foreign_role", "failed", "mismatch", "wrong_arn", "data_event"):
         item = deepcopy(event)
@@ -54,7 +54,7 @@ def test_content_hook_requires_accepted_lambda_action_and_role() -> None:
             item["requestParameters"]["actions"]["ON_DEPLOYMENT_START"] = action_list
             item["responseElements"]["actions"] = item["requestParameters"]["actions"]
         if change == "foreign_role":
-            item["requestParameters"]["actions"]["PRE_CREATE_HOSTED_CONFIGURATION_VERSION"][0]["roleArn"] = "arn:aws:iam::202533532952:role/other"
+            item["requestParameters"]["actions"]["PRE_CREATE_HOSTED_CONFIGURATION_VERSION"][0]["roleArn"] = "arn:aws:iam::111122223333:role/other"
             item["responseElements"]["actions"] = item["requestParameters"]["actions"]
         if change == "failed": item["errorCode"] = "BadRequestException"
         if change == "mismatch": item["responseElements"]["actions"] = {}
@@ -64,14 +64,14 @@ def test_content_hook_requires_accepted_lambda_action_and_role() -> None:
 
 
 def test_application_association_requires_response_confirmation() -> None:
-    extension = "arn:aws:appconfig:us-east-1:947247140022:extension/otp58kd/1"
-    application = "arn:aws:appconfig:us-east-1:947247140022:application/dc7mzfi"
+    extension = "arn:aws:appconfig:us-east-1:222233334444:extension/otp58kd/1"
+    application = "arn:aws:appconfig:us-east-1:222233334444:application/dc7mzfi"
     event = {"eventSource": "appconfig.amazonaws.com", "eventName": "CreateExtensionAssociation",
         "eventCategory": "Management", "eventType": "AwsApiCall", "managementEvent": True,
-        "readOnly": False, "awsRegion": "us-east-1", "recipientAccountId": "947247140022",
+        "readOnly": False, "awsRegion": "us-east-1", "recipientAccountId": "222233334444",
         "requestParameters": {"extensionIdentifier": "otp58kd", "resourceIdentifier": application},
         "responseElements": {"id": "lib88w5", "extensionArn": extension, "resourceArn": application,
-            "arn": "arn:aws:appconfig:us-east-1:947247140022:extensionassociation/lib88w5",
+            "arn": "arn:aws:appconfig:us-east-1:222233334444:extensionassociation/lib88w5",
             "extensionVersionNumber": 1}}
     assert _hits(event) == [ASSOC.technique_id]
     for change in ("profile", "wrong_extension", "wrong_resource", "failed"):
@@ -86,11 +86,11 @@ def test_application_association_requires_response_confirmation() -> None:
 
 
 def test_secret_profile_and_deployment_require_matching_accepted_response() -> None:
-    role = "arn:aws:iam::947247140022:role/peasso-canary"
+    role = "arn:aws:iam::222233334444:role/peasso-canary"
     location = "secretsmanager://peasso-canary"
     base = {"eventSource": "appconfig.amazonaws.com", "eventCategory": "Management",
         "eventType": "AwsApiCall", "managementEvent": True, "readOnly": False,
-        "awsRegion": "us-east-1", "recipientAccountId": "947247140022"}
+        "awsRegion": "us-east-1", "recipientAccountId": "222233334444"}
     profile = {**base, "eventName": "CreateConfigurationProfile",
         "requestParameters": {"applicationId": "umvxf7b", "name": "reader",
             "locationUri": location, "retrievalRoleArn": role, "type": "AWS.Freeform"},
@@ -126,7 +126,7 @@ def test_secret_profile_and_deployment_require_matching_accepted_response() -> N
 def test_experiment_requires_enabled_treatment_and_positive_exposure() -> None:
     base = {"eventSource": "appconfig.amazonaws.com", "eventCategory": "Management",
         "eventType": "AwsApiCall", "managementEvent": True, "readOnly": False,
-        "awsRegion": "us-east-1", "recipientAccountId": "947247140022"}
+        "awsRegion": "us-east-1", "recipientAccountId": "222233334444"}
     treatment = {"weight": 100.0, "flagValue": {"enabled": True}}
     control = {"weight": 0.0, "flagValue": {"enabled": False}}
     created = {**base, "eventName": "CreateExperimentDefinition",

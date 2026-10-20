@@ -244,6 +244,97 @@ def _request(request):
     if "scopes" in connector:
         _string_list(connector["scopes"], "scopes")
     _selection(connector["provider"], request.get("categories"), request.get("checks"), request.get("frameworks"))
+    content_options = connector.get('options', {})
+    if (connector['provider'] == 'gcp' and content_options.get('content_secret_scans') is True
+            and 'gcp.review.artifactregistry.selected_file_secret_indicators' in (request.get('checks') or [])):
+        from .collectors.gcp_artifact_file_secret_indicators import normalize_selection, KIND as ARTIFACT_FILE_KIND, Incomplete as ArtifactFileIncomplete
+        try:
+            normalize_selection({**content_options, '_content_secret_scan_kinds': [ARTIFACT_FILE_KIND]}, connector.get('scopes', []))
+        except ArtifactFileIncomplete:
+            raise ValueError('Artifact file inspection requires exact scoped file names, expected SHA256 and supported formats') from None
+    if (connector['provider'] == 'gcp' and content_options.get('content_secret_scans') is True
+            and 'gcp.review.gke_workload.literal_configuration_secret_indicators' in (request.get('checks') or [])):
+        from types import SimpleNamespace
+        from .collectors.gcp_gke_literal_secret_indicators import selected as gke_selected, KIND as GKE_KIND
+        try:
+            requested_scopes = connector.get('scopes', [])
+            gke_selected(SimpleNamespace(options={**content_options, '_content_secret_scan_kinds': [GKE_KIND]},
+                requested_scopes=requested_scopes), (requested_scopes or [''])[0])
+        except Exception:
+            raise ValueError('GKE content inspection requires exact scoped cluster selections and optional namespace mapping') from None
+    if (connector['provider'] == 'gcp' and content_options.get('content_secret_scans') is True
+            and 'gcp.review.dataform.selected_file_secret_indicators' in (request.get('checks') or [])):
+        from .collectors.gcp_dataform_secret_indicators import selected_targets as dataform_targets, KIND as DATAFORM_KIND, Incomplete as DataformIncomplete
+        try:
+            dataform_targets({**content_options, '_content_secret_scan_kinds': [DATAFORM_KIND]}, connector.get('scopes', []))
+        except DataformIncomplete:
+            raise ValueError('Selected Dataform inspection requires exact scoped repository/file and commit SHA or explicit workspace targets') from None
+    if (connector['provider'] == 'gcp' and 'content_secret_scans' in content_options
+            and type(content_options['content_secret_scans']) is not bool):
+        raise ValueError('content_secret_scans must be a boolean')
+    if (connector['provider'] == 'gcp' and content_options.get('content_secret_scans') is True
+            and 'gcp.review.storage.selected_archive_secret_indicators' in (request.get('checks') or [])):
+        from .collectors.gcp_selected_archive_secret_indicators import normalize_selection, KIND
+        try:
+            normalize_selection({**content_options, '_content_secret_scan_kinds': [KIND]}, connector.get('scopes', []))
+            if len(content_options.get('selected_gcs_objects', [])) + len(content_options.get('selected_gcs_archives', [])) > 10:
+                raise ValueError('combined target limit')
+        except Exception:
+            raise ValueError('Selected archive inspection requires exact scoped object generations, supported formats and at most 10 combined object/archive targets') from None
+    if (connector['provider'] == 'gcp' and content_options.get('content_secret_scans') is True
+            and 'gcp.review.storage.selected_object_secret_indicators' in (request.get('checks') or [])):
+        from .collectors.gcp_selected_object_secret_indicators import selected_targets, KIND, Incomplete
+        try:
+            selected_targets({**content_options, '_content_secret_scan_kinds': [KIND]}, connector.get('scopes', []))
+        except Incomplete:
+            raise ValueError('Selected object inspection requires exact project, bucket, object and generation targets in the requested project scopes') from None
+    image_options = connector.get('options', {})
+    if (connector['provider'] == 'gcp' and content_options.get('content_secret_scans') is True
+            and 'gcp.review.cloudbuild.stored_log_secret_indicators' in (request.get('checks') or [])):
+        from .collectors.gcp_cloudbuild_log_secret_indicators import selected_builds, KIND, Incomplete
+        try:
+            selected_builds({**content_options, '_content_secret_scan_kinds': [KIND]}, connector.get('scopes', []))
+        except Incomplete:
+            raise ValueError('Cloud Build log inspection requires bounded exact same-project Build names') from None
+    if (connector['provider'] == 'gcp' and content_options.get('content_secret_scans') is True
+            and 'gcp.review.sourcerepo.selected_file_secret_indicators' in (request.get('checks') or [])):
+        from .collectors.gcp_sourcerepo_secret_indicators import selected_targets, KIND, Incomplete
+        try:
+            selected_targets({**content_options, '_content_secret_scan_kinds': [KIND]}, connector.get('scopes', []))
+        except Incomplete:
+            raise ValueError('Source Repository inspection requires one exact project, repository, commit and bounded file selection') from None
+    if (connector['provider'] == 'gcp' and content_options.get('content_secret_scans') is True
+            and 'gcp.review.clouddeploy.release_source_secret_indicators' in (request.get('checks') or [])):
+        from .collectors.gcp_clouddeploy_source_secret_indicators import selected_releases, KIND, Incomplete
+        try:
+            selected_releases({**content_options, '_content_secret_scan_kinds': [KIND]}, connector.get('scopes', []))
+        except Incomplete:
+            raise ValueError('Cloud Deploy source inspection requires bounded exact same-project Release names') from None
+    if (connector['provider'] == 'gcp' and content_options.get('content_secret_scans') is True
+            and 'gcp.review.cloudbuild.artifact_secret_indicators' in (request.get('checks') or [])):
+        from .collectors.gcp_cloudbuild_artifact_secret_indicators import selected_builds, KIND, Incomplete
+        try:
+            selected_builds({**content_options, '_content_secret_scan_kinds': [KIND]}, connector.get('scopes', []))
+        except Incomplete:
+            raise ValueError('Cloud Build artifact inspection requires bounded exact same-project Build names') from None
+    if (connector['provider'] == 'gcp' and content_options.get('content_secret_scans') is True
+            and 'gcp.review.appengine.deployment_source_secret_indicators' in (request.get('checks') or [])):
+        from .collectors.gcp_appengine_source_secret_indicators import selected_versions, KIND, Incomplete
+        try:
+            selected_versions({**content_options, '_content_secret_scan_kinds': [KIND]}, connector.get('scopes', []))
+        except Incomplete:
+            raise ValueError('App Engine source inspection requires bounded exact same-project Version names') from None
+    if (connector['provider'] == 'gcp' and image_options.get('content_secret_scans') is True
+            and 'gcp.review.artifact_image.content_secret_indicators' in (request.get('checks') or [])):
+        from .collectors.gcp_image_secret_indicators import normalize_selected
+        image_scopes = connector.get('scopes', [])
+        if len(image_scopes) != 1 or not image_scopes[0].startswith('projects/'):
+            raise ValueError('selected image inspection requires one explicit project scope')
+        if 'selected_cloudrun_services' in image_options:
+            from .collectors.gcp_cloudrun_image_inspection import validate_selection
+            validate_selection(image_options['selected_cloudrun_services'], image_scopes)
+        if 'selected_artifact_images' in image_options or 'selected_cloudrun_services' not in image_options:
+            normalize_selected(image_options.get('selected_artifact_images'), image_scopes[0])
     return copy.deepcopy(connector)
 
 
@@ -280,6 +371,71 @@ def collect_snapshot(request):
         _, selected = _selection("aws", request.get("categories"), request.get("checks"), request.get("frameworks"))
         connector.setdefault("options", {})["_ecr_latest_scan_requested"] = any(
             check.id == "aws.c2b.ecr.latest_image_no_medium_plus_findings" for check in selected)
+        connector.setdefault('options', {})['_ec2_clock_metric_requested'] = any(
+            check.id == 'aws_ec2_instance_time_offset_monitored' for check in selected)
+        usage_report_checks = {
+            'aws.claude_a.iam.user_long_lived_keys_only_iam_sts',
+            'aws.claude_a.iam.user_bedrock_access_not_stale',
+            'aws.claude_a.iam.user_sagemaker_access_not_stale',
+            'aws.claude_a.iam.role_bedrock_access_not_stale',
+        }
+        credential_report = any(check.kind == 'iam_credential_report' or
+                                'iam_credential_report' in check.dependencies for check in selected)
+        usage_report = any(check.id in usage_report_checks for check in selected)
+        connector['options']['_iam_report_generation_requested'] = credential_report or usage_report
+        connector['options']['_iam_credential_report_generation_requested'] = credential_report
+        connector['options']['_iam_service_access_reports_requested'] = usage_report
+        # Content inspection needs both the opt-in option and named check IDs.
+        # Category/framework/all-check selection must never read application data.
+        content_kinds = {
+            'aws_cis_ec2_userdata_embedded_secrets': 'instance',
+            'aws.review.codecommit.default_commit_secret_indicators': 'codecommit_repository',
+            'aws.review.cloudwatch.sampled_log_secret_indicators': 'log_group',
+            'aws.review.lambda_function.package_content_secret_indicators': 'lambda_function',
+            'aws.review.lambda_layer_version.package_content_secret_indicators': 'lambda_layer_version',
+            'aws.review.ecr_repository.package_content_secret_indicators': 'ecr_repository',
+        }
+        named = set(request.get('checks') or [])
+        connector.setdefault('options', {})['_content_secret_scan_kinds'] = sorted({
+            content_kinds[c.id] for c in selected if c.id in named and c.id in content_kinds})
+    if connector["provider"] == "gcp":
+        _, selected = _selection("gcp", request.get("categories"), request.get("checks"), request.get("frameworks"))
+        content_kinds = {
+            'gcp.review.function.literal_environment_secret_indicators': 'function',
+            'gcp.review.function.resolved_source_archive_secret_indicators': 'function_source_archive',
+            'gcp.review.gke_workload.literal_configuration_secret_indicators': 'gke_workload_literal',
+            'gcp.review.composer_environment.literal_configuration_secret_indicators': 'composer_environment',
+            'gcp.review.workbench_instance.literal_configuration_secret_indicators': 'workbench_instance',
+            'gcp.review.artifactregistry.selected_file_secret_indicators': 'artifact_selected_file',
+            'gcp.review.dataform.selected_file_secret_indicators': 'dataform_selected_file',
+            'gcp.review.composer.dag_source_secret_indicators': 'composer_dag_source',
+            'gcp.review.cloudbuild.stored_log_secret_indicators': 'cloudbuild_log_source',
+            'gcp.review.sourcerepo.selected_file_secret_indicators': 'source_repository_file',
+            'gcp.review.clouddeploy.release_source_secret_indicators': 'clouddeploy_release_source',
+            'gcp.review.cloudbuild.artifact_secret_indicators': 'cloudbuild_artifact_source',
+            'gcp.review.appengine.deployment_source_secret_indicators': 'appengine_deployment_source',
+            'gcp.review.dataflow_job.literal_configuration_secret_indicators': 'dataflow_job',
+            'gcp.review.batch_job.literal_configuration_secret_indicators': 'batch_job',
+            'gcp.review.dataproc_cluster.literal_configuration_secret_indicators': 'dataproc_cluster',
+            'gcp.review.dataproc_job.literal_configuration_secret_indicators': 'dataproc_job',
+            'gcp.review.scheduler_job.literal_target_secret_indicators': 'scheduler_job',
+            'gcp.review.app_engine_version.literal_environment_secret_indicators': 'app_engine_version_secret',
+            'gcp.review.workflow.deployed_source_secret_indicators': 'workflow_source',
+            'gcp.review.artifact_image.content_secret_indicators': 'artifact_image',
+            'gcp.review.storage.selected_object_secret_indicators': 'gcs_selected_object',
+            'gcp.review.storage.selected_archive_secret_indicators': 'gcs_selected_archive',
+            'gcp.review.logging.application_log_secret_indicators': 'log_secret_sample',
+            'gcp.review.instance.literal_configuration_secret_indicators': 'instance',
+            'gcp.review.instance_template.literal_configuration_secret_indicators': 'instance_template',
+            'gcp.review.project.literal_configuration_secret_indicators': 'project',
+            'gcp.review.cloudrun_service.literal_configuration_secret_indicators': 'cloudrun_service',
+            'gcp.review.cloudrun_job.literal_configuration_secret_indicators': 'cloudrun_job',
+            'gcp.review.cloudbuild_trigger.literal_configuration_secret_indicators': 'cloudbuild_trigger',
+            'gcp.review.cloudbuild_build.literal_configuration_secret_indicators': 'cloudbuild_build',
+        }
+        named = set(request.get('checks') or [])
+        connector.setdefault('options', {})['_content_secret_scan_kinds'] = sorted({
+            content_kinds[c.id] for c in selected if c.id in named and c.id in content_kinds})
     if connector["provider"] == "azure":
         _, selected = _selection("azure", request.get("categories"), request.get("checks"), request.get("frameworks"))
         connector.setdefault("options", {})["_azure_database_native_requested"] = any(
@@ -312,7 +468,7 @@ def _analysis_selection(provider, categories, checks, frameworks):
 # only on explicit request (options.inventories, or collect_all) or when a selected check declares them.
 BULK_STREAM_TYPES = {
     "azure": frozenset({"activity_log", "directory_audit", "sign_in_log", "directory_sign_in"}),
-    "gcp": frozenset({"activity", "log_entry", "audit_log_entry"}),
+    "gcp": frozenset({"activity", "log_entry", "audit_log_entry", "log_secret_sample", "app_engine_version_secret", "workflow_source", "gke_workload_literal", "function_source_archive", "artifact_selected_file", "composer_dag_source", "cloudbuild_log_source", "source_repository_file", "clouddeploy_release_source", "cloudbuild_artifact_source", "appengine_deployment_source", "gcs_selected_object", "gcs_selected_archive", "dataform_selected_file", "dataflow_job", "batch_job", "dataproc_job"}),
     "aws": frozenset({"cloudtrail_event", "cloudtrail_lookup_event"}),
     "k8s": frozenset({"event", "audit_event"}),
 }
@@ -411,8 +567,12 @@ def _index(snapshot, inventory):
 
 
 def _finding(check, provider, scope, rid, service, status, evidence, frameworks=None):
+    from .finding_types import type_for
     from .finding_priority import effective_priority
+    from .check_services import service_for_check
+    service = service_for_check(check.id, provider, check.kind, service)
     current = {"id": digest([provider, scope, rid, check.id]), "category": check.category, "check_id": check.id,
+        "finding_type": type_for(check.id),
         "title": check.title, "provider": provider, "service": service, "resource_id": rid, "scope": scope,
         "severity": effective_priority(check.id, check.severity), "status": status, "frameworks": list(check.frameworks if frameworks is None else frameworks),
         "evidence": evidence, "remediation": check.remediation}
@@ -793,8 +953,9 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
         retirement = _retired_collection_evidence(provider, snapshot, collection)
         psp_absence = _psp_resource_absence_evidence(provider, snapshot, collection)
         coverage_status = "unknown" if retirement and retirement[0] == "unknown" else "not_applicable" if psp_absence else collection["status"]
+        from .check_services import service_for
         coverage.append({"level": "collection", "type": collection["type"], "scope": collection["scope"],
-            "service": collection.get("service", collection["type"]), "status": coverage_status,
+            "service": service_for(provider, collection["type"], collection.get("service")), "status": coverage_status,
             "resource_count": len(collection["items"]), "reason": retirement[1]["reason"] if retirement else psp_absence["reason"] if psp_absence else
                 _unknown_coverage_reason(collection_status=collection["status"])
                 if collection["status"] not in ("collected", "empty") else ""})
@@ -817,6 +978,13 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
             if not account or not re.fullmatch(r"[0-9]{12}", account):
                 account = None
             def relevant(collection):
+                # An exact scope cannot authenticate contradictory AWS global
+                # provenance. Missing legacy markers remain unknown, not invented.
+                if provider == "aws" and account and collection.get("global") is True:
+                    if (collection.get("account_id") not in (None, account)
+                            or any(item.get("AccountId") not in (None, account)
+                                   for item in collection["items"])):
+                        return False
                 if (provider == 'azure' and collection.get('service') == 'Microsoft.Graph'
                         and scope.lower().startswith('/subscriptions/')):
                     from .checks.facts import azure_directory_join_authorized
@@ -908,6 +1076,12 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
             collections = [{"type": check.kind, "scope": scope, "service": check.kind, "status": "not_collected", "items": []} for scope in missing_scopes]
         for collection in collections:
             scope, collection_status = collection["scope"], collection["status"]
+            scope_account = scope.split("/", 1)[0]
+            global_binding_conflict = bool(provider == "aws" and collection.get("global") is True
+                and re.fullmatch(r"[0-9]{12}", scope_account)
+                and (collection.get("account_id") not in (None, scope_account)
+                     or any(item.get("AccountId") not in (None, scope_account)
+                            for item in collection["items"])))
             retirement = _retired_collection_evidence(provider, snapshot, collection)
             psp_absence = (_psp_resource_absence_evidence(provider, snapshot, collection)
                 if check.id in _PSP_RESOURCE_CHECK_IDS and check.kind == "podsecuritypolicy"
@@ -918,6 +1092,8 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
                 scoped = scoped_index(scope)
                 try:
                     # Sealed native data is a read-only view: checks share it instead of deep-copying it.
+                    if global_binding_conflict:
+                        raise ValueError("contradictory AWS global account provenance")
                     status, evidence = check.evaluate(resource["data"], scoped)
                     if status not in ("PASS", "FAIL", "UNKNOWN", "DENIED", "EMPTY", "MANUAL", "NOT_APPLICABLE") or not isinstance(evidence, dict):
                         raise ValueError("invalid check result")
@@ -1068,7 +1244,8 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
     if snapshot.get("metadata", {}).get("intentional_partial") is True or (isinstance(scope_coverage, dict) and scope_coverage.get("status") not in (None, "collected", "complete")):
         coverage.append({"level": "scope", "scope": "requested_scopes", "status": "partial" if snapshot.get("metadata", {}).get("intentional_partial") else "unknown",
             "reason": scope_coverage.get("reason", "Explicit scope limit or incomplete discovery") if isinstance(scope_coverage, dict) else "Malformed scope coverage metadata"})
-    findings = normalize_unknown_reasons(findings)
+    from .secret_findings import deduplicate_secret_findings
+    findings = deduplicate_secret_findings(normalize_unknown_reasons(findings))
     selected_framework_versions = automated_frameworks(selected_framework_versions)
     counts = Counter(f["status"] for f in findings)
     aggregates = collapse.result()
@@ -1154,6 +1331,7 @@ def finding_frameworks(finding, check_frameworks):
 
 
 CHECK_META_FIELDS = ("title", "remediation", "service", "category", "severity",
+                     "finding_type",
                      "description", "evaluated", "pass_when", "fail_when", "not_applicable_when", "rationale", "clarity_evaluation_contract")
 CHECK_META_ENCODING = {"version": 1, "per_check_marker": "_derived",
                        "r": "description", "m": "remediation_templates.summary"}

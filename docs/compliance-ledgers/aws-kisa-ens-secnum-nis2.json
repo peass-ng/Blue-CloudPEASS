@@ -4522,9 +4522,10 @@
             "aws.claude_a.ec2.ebs_encryption_by_default_with_volumes",
             "aws.claude_a.iam.server_certificate_not_expired_now",
             "aws.gap.s3.bucket_policy_denies_insecure_transport",
-            "aws.rds.cluster_encryption"
+            "aws.rds.cluster_encryption",
+            "aws_cis_ec2_userdata_embedded_secrets"
           ],
-          "reason": "Indexed checks test EBS volume encryption is enabled; RDS instance storage encryption is enabled; and 1 other indexed checks. They do not establish documented ownership, approval, periodic review and non-AWS implementation of the named control required for Application of Encryption Policy.",
+          "reason": "Indexed checks test EBS volume encryption is enabled; RDS instance storage encryption is enabled; and 1 other indexed checks. They do not establish documented ownership, approval, periodic review and non-AWS implementation of the named control required for Application of Encryption Policy. Explicit source-association disposition: EC2 user-data secret detection does not demonstrate application of an approved encryption policy.",
           "evidence": [
             "peaso/checks/aws.py:8",
             "peaso/checks/aws.py:9",
@@ -5063,7 +5064,8 @@
           "decision": "PARTIAL",
           "native_checks": [
             "aws.a.iam.user_no_direct_policies",
-            "aws.iam.console_mfa"
+            "aws.iam.console_mfa",
+            "aws_cis_ec2_userdata_embedded_secrets"
           ],
           "removed_checks": [
             "aws.a.accessanalyzer.region_active",
@@ -5522,10 +5524,11 @@
             "aws.sns.kms_encryption",
             "aws.sqs.encryption"
           ],
-          "reason": "Indexed checks test IAM user has no direct inline or managed policies; Console users have MFA configured. They do not establish documented ownership, approval, periodic review and non-AWS implementation of the named control required for Cloud Security.",
+          "reason": "Indexed checks test IAM user has no direct inline or managed policies; Console users have MFA configured. They do not establish documented ownership, approval, periodic review and non-AWS implementation of the named control required for Cloud Security. Additional bounded native signal: The exact KISA cloud-security leaf includes configuration errors exposing sensitive information. Selected user-data indicators contribute one narrow cloud configuration signal; documented controls, administrator access and complete workload scope remain unverified.",
           "evidence": [
             "peaso/checks/aws_a_iam_lifecycle.py:75",
-            "peaso/checks/__init__.py:228"
+            "peaso/checks/__init__.py:228",
+            "peaso/collectors/aws_user_data_secret_indicators.py"
           ],
           "new_checks": []
         },
@@ -7271,9 +7274,10 @@
             "aws.claude_a.ec2.ebs_encryption_by_default_with_volumes",
             "aws.claude_a.iam.server_certificate_not_expired_now",
             "aws.gap.s3.bucket_policy_denies_insecure_transport",
-            "aws.rds.cluster_encryption"
+            "aws.rds.cluster_encryption",
+            "aws_cis_ec2_userdata_embedded_secrets"
           ],
-          "reason": "Indexed checks test EBS volume encryption is enabled; RDS instance storage encryption is enabled; and 1 other indexed checks. They do not establish documented ownership, approval, periodic review and non-AWS implementation of the named control required for 암호정책 적용.",
+          "reason": "Indexed checks test EBS volume encryption is enabled; RDS instance storage encryption is enabled; and 1 other indexed checks. They do not establish documented ownership, approval, periodic review and non-AWS implementation of the named control required for 암호정책 적용. Explicit source-association disposition: EC2 user-data secret detection does not demonstrate application of an approved encryption policy.",
           "evidence": [
             "peaso/checks/aws.py:8",
             "peaso/checks/aws.py:9",
@@ -7807,7 +7811,8 @@
           "decision": "PARTIAL",
           "native_checks": [
             "aws.a.iam.user_no_direct_policies",
-            "aws.iam.console_mfa"
+            "aws.iam.console_mfa",
+            "aws_cis_ec2_userdata_embedded_secrets"
           ],
           "removed_checks": [
             "aws.a.accessanalyzer.region_active",
@@ -8266,10 +8271,11 @@
             "aws.sns.kms_encryption",
             "aws.sqs.encryption"
           ],
-          "reason": "Indexed checks test IAM user has no direct inline or managed policies; Console users have MFA configured. They do not establish documented ownership, approval, periodic review and non-AWS implementation of the named control required for 클라우드 보안.",
+          "reason": "Indexed checks test IAM user has no direct inline or managed policies; Console users have MFA configured. They do not establish documented ownership, approval, periodic review and non-AWS implementation of the named control required for 클라우드 보안. Additional bounded native signal: The exact KISA cloud-security leaf includes configuration errors exposing sensitive information. Selected user-data indicators contribute one narrow cloud configuration signal; documented controls, administrator access and complete workload scope remain unverified.",
           "evidence": [
             "peaso/checks/aws_a_iam_lifecycle.py:75",
-            "peaso/checks/__init__.py:228"
+            "peaso/checks/__init__.py:228",
+            "peaso/collectors/aws_user_data_secret_indicators.py"
           ],
           "new_checks": []
         },
@@ -9682,9 +9688,10 @@
           "native_checks": [],
           "removed_checks": [
             "aws.cb.route53.domain_privacy_protection",
-            "aws.cb.secretsmanager.policy_not_public"
+            "aws.cb.secretsmanager.policy_not_public",
+            "aws_cis_ec2_userdata_embedded_secrets"
           ],
-          "reason": "Requires incident procedure, case tickets, response timeline and lessons-learned records demonstrating with the Computer Security Incident Response Teams (CSIRTs) or, where applicable, the competent authorities, related to incident notification; AWS configuration alone cannot establish this documented activity.",
+          "reason": "Requires incident procedure, case tickets, response timeline and lessons-learned records demonstrating with the Computer Security Incident Response Teams (CSIRTs) or, where applicable, the competent authorities, related to incident notification; AWS configuration alone cannot establish this documented activity. Explicit source-association disposition: EC2 user-data secret detection cannot demonstrate the required CSIRT/authority incident-notification coordination.",
           "evidence": [
             "prowler/compliance/aws/nis2_aws.json"
           ],
@@ -11762,10 +11769,11 @@
             "aws.claude_a.kms.prowler_cmk_used",
             "aws.claude_a.kms.prowler_key_not_public",
             "aws.kms.no_pending_key_deletion",
-            "aws.secretsmanager.rotation"
+            "aws.secretsmanager.rotation",
+            "aws_cis_ec2_userdata_embedded_secrets"
           ],
           "removed_checks": [],
-          "reason": "Indexed checks test Secret was accessed within the last 90 days (prowler); Secret resource policy does not allow public access (prowler); and 6 other indexed checks. They do not establish all covered systems and operators, approved procedure and evidence of ongoing execution required for Gestion des secrets.",
+          "reason": "Indexed checks test Secret was accessed within the last 90 days (prowler); Secret resource policy does not allow public access (prowler); and 6 other indexed checks. They do not establish all covered systems and operators, approved procedure and evidence of ongoing execution required for Gestion des secrets. Additional bounded native signal: User-data secret indicators support secure storage of secrets; generation, distribution, rotation and destruction remain unverified.",
           "evidence": [
             "peaso/checks/claude_aws_b_security.py:549",
             "peaso/checks/claude_aws_b_security.py:575",
@@ -11774,7 +11782,8 @@
             "peaso/checks/claude_aws_a_security.py:369",
             "peaso/checks/claude_aws_a_security.py:408",
             "peaso/checks/aws_extended.py:226",
-            "peaso/checks/aws.py:19"
+            "peaso/checks/aws.py:19",
+            "peaso/collectors/aws_user_data_secret_indicators.py"
           ],
           "new_checks": []
         },

@@ -273,7 +273,7 @@ ROWS = json.loads(r'''
   "aws.cb.rds.instance_in_backup_selection_or_tag": {
     "description_base_sha256": "d31a697d377c94ea1a5bf55fda7a850dec1980acdc9b5ed5a22f5f40f71c1a09",
     "description_fields": {
-      "description": "Matches the instance ARN or any instance tag key against AWS Backup selections."
+      "description": "Matches the instance ARN or exact tag key and value against collected AWS Backup selections."
     },
     "remediation_base_sha256": "3683fec68087ecfabeb87ac8e2455d68a5711e06122f2843df1d33f908572404",
     "remediation_fields": {
@@ -282,17 +282,17 @@ ROWS = json.loads(r'''
         "Verify the database\u2019s effective backup selection and tag conditions, then add coverage if needed."
       ],
       "caveats": [
-        "This profile compares tag keys, not their values or complete AWS Backup selection semantics.",
-        "The source compares tag keys only, not tag values or the full selection condition; a matching key may not actually select the instance. Verify AWS Backup effective selection and completed recovery points separately."
+        "Tag conditions require an exact key and value; unsupported exclusions or conditions remain unknown.",
+        "A matching selection does not prove that a backup completed or that recovery works."
       ]
     },
-    "static_observed_sentence": "Neither the database ARN nor its tag keys match a collected backup selection.",
+    "static_observed_sentence": "Neither the database ARN nor an exact tag key and value matches a collected backup selection.",
     "reviewed_source_severity": "medium",
     "reviewed_severity": "medium",
     "reviewed_binding": {
       "kind": "rds_instance",
       "predicate_qualname": "instance_in_plan",
-      "predicate_source_sha256": "a9e67cd1b5dc41237a8650de7e9e4e5435940e4c614d4ed22465c24bf189cf45"
+      "predicate_source_sha256": "15833bcb2774d99f9778089de0aaf17f1a1e12c407e33e1bbc9387e7f1bfd4af"
     }
   },
   "aws.cb.rds.aurora_postgres_postgresql_log_export": {
@@ -393,7 +393,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "rds_instance",
       "predicate_qualname": "_param_check.<locals>.evaluate",
-      "predicate_source_sha256": "34a9eeaf6fcb3eed9d7615132e7838a9354948b6c7337a396d446fa1f630828b"
+      "predicate_source_sha256": "b013e45921f68f2690411cb46ac335a3b08b8bee244d3035926be57670fa1089"
     }
   },
   "aws.cb.rds.mariadb_require_secure_transport": {
@@ -419,7 +419,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "rds_instance",
       "predicate_qualname": "_param_check.<locals>.evaluate",
-      "predicate_source_sha256": "34a9eeaf6fcb3eed9d7615132e7838a9354948b6c7337a396d446fa1f630828b"
+      "predicate_source_sha256": "b013e45921f68f2690411cb46ac335a3b08b8bee244d3035926be57670fa1089"
     }
   },
   "aws.cb.rds.sqlserver_force_ssl_parameter": {
@@ -444,7 +444,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "rds_instance",
       "predicate_qualname": "_param_check.<locals>.evaluate",
-      "predicate_source_sha256": "34a9eeaf6fcb3eed9d7615132e7838a9354948b6c7337a396d446fa1f630828b"
+      "predicate_source_sha256": "b013e45921f68f2690411cb46ac335a3b08b8bee244d3035926be57670fa1089"
     }
   },
   "aws.cb.rds.mariadb_log_exports": {
@@ -1429,7 +1429,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "redshift_cluster",
       "predicate_qualname": "rs_ssl",
-      "predicate_source_sha256": "9a1e0b57bd8f7bdb30ddba5f185776f960050227079ac99acef6204ba953ff27"
+      "predicate_source_sha256": "98d0a384d849fce9970399397856e404102f5554b66e086caedfdc2ae9b65c37"
     }
   },
   "aws.cb.redshift.has_snapshot": {

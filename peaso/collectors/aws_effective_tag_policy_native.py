@@ -74,6 +74,11 @@ def project_response(response):
                               parse_constant=lambda _: _invalid())
     except (ValueError, TypeError, RecursionError):
         _invalid()
+    # Organizations returns an empty JSON object for an effective TAG_POLICY
+    # with no tag constraints. This is observed native policy data, not missing
+    # or malformed collection; preserve it as a complete empty assignment set.
+    if document == {}:
+        document = {'tags': {}}
     if not isinstance(document, dict) or set(document) != {'tags'} or not isinstance(document['tags'], dict):
         _invalid()
     if len(document['tags']) > 10000:

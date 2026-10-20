@@ -145,6 +145,90 @@ def test_default_s3_encryption_absence_does_not_become_failure():
     assert "existing object encryption was not collected" in evidence["semantics"]
 
 
+# The four core AWS priorities were reviewed after the AWS native admissions,
+# before the subsequent GCP admissions in 15842280dfb336f356497451d94ec46b2ba5d4ee.
+# The accepted GCP hooks have independent tests/test_gcp_*_review_20261019.py
+# coverage and docs/gcp-review/native-extension-integration.{json,md} provenance.
+# Remove this EXACT appended block only; the original whole-file SHA256 below
+# still binds all AWS callbacks, registration, severities and public metadata.
+# Never split on an import marker alone: that would silently admit any new tail.
+_REVIEWED_GCP_ADMISSIONS = """from . import gcp_workbench_review_20261019  # Native, policy-independent Workbench settings.
+gcp_workbench_review_20261019.install()
+from . import gcp_function_secret_review_20261019
+gcp_function_secret_review_20261019.install()
+
+from . import gcp_configuration_secret_review_20261019
+gcp_configuration_secret_review_20261019.install()
+
+from . import gcp_log_secret_review_20261019
+gcp_log_secret_review_20261019.install()
+
+from . import gcp_selected_object_secret_review_20261019
+gcp_selected_object_secret_review_20261019.install()
+
+from . import gcp_image_secret_review_20261019
+gcp_image_secret_review_20261019.install()
+
+from . import gcp_selected_archive_secret_review_20261019
+gcp_selected_archive_secret_review_20261019.install()
+from . import gcp_additional_literal_secret_review_20261019
+gcp_additional_literal_secret_review_20261019.install()
+
+from . import gcp_dataform_secret_review_20261019
+gcp_dataform_secret_review_20261019.install()
+from . import gcp_job_literal_secret_review_20261019
+gcp_job_literal_secret_review_20261019.install()
+from . import gcp_gke_literal_secret_review_20261019
+gcp_gke_literal_secret_review_20261019.install()
+from . import gcp_notebook_airflow_secret_review_20261019
+gcp_notebook_airflow_secret_review_20261019.install()
+from . import gcp_function_source_secret_review_20261019
+gcp_function_source_secret_review_20261019.install()
+from . import gcp_artifact_file_secret_review_20261019
+gcp_artifact_file_secret_review_20261019.install()
+from . import gcp_composer_source_secret_review_20261019
+gcp_composer_source_secret_review_20261019.install()
+from . import gcp_os_security_update_review_20261019
+gcp_os_security_update_review_20261019.install()
+from . import gcp_cloudsql_backup_alert_native
+gcp_cloudsql_backup_alert_native.install_fixtures()
+from . import gcp_cloudbuild_log_secret_review_20261019
+gcp_cloudbuild_log_secret_review_20261019.install()
+
+from . import gcp_appengine_source_secret_review_20261019
+gcp_appengine_source_secret_review_20261019.install()
+
+from . import gcp_cloudbuild_artifact_secret_review_20261019
+gcp_cloudbuild_artifact_secret_review_20261019.install()
+
+from . import gcp_clouddeploy_source_secret_review_20261019
+gcp_clouddeploy_source_secret_review_20261019.install()
+
+from . import gcp_sourcerepo_secret_review_20261019
+gcp_sourcerepo_secret_review_20261019.install()
+"""
+
+
+# The separately accepted managed-default integrity correction is reversed
+# exactly for the historical AWS priority source receipt, never repinned.
+_MANAGED_VERSION_SUCCESSOR = 'def aws_documents(item):\n    documents, unresolved = [], 0\n    try:\n        direct = optional(item, "PolicyDocument", None)\n        if "PolicyDocument" in item:\n            documents.append(direct)\n    except (Unavailable, ValueError):\n        unresolved += 1\n    if "PolicyVersionList" in item or "DefaultVersionId" in item:\n        try:\n            default_id = get(item, "DefaultVersionId", str)\n            versions = list_of_objects(get(item, "PolicyVersionList", list))\n            version_ids = [get(version, "VersionId", str) for version in versions]\n            flags = [get(version, "IsDefaultVersion", bool) for version in versions]\n            if (not default_id.strip() or any(not ident.strip() for ident in version_ids)\n                    or len(version_ids) != len(set(version_ids))):\n                raise Unavailable("managed policy version identity is incomplete or duplicated")\n            selected = [version for version, flag in zip(versions, flags) if flag]\n            if len(selected) != 1 or get(selected[0], "VersionId", str) != default_id:\n                raise Unavailable("managed policy default version is inconsistent")\n            # Do not consume any managed document until all version identities\n            # and flags agree with the policy\'s selected native default.\n            documents.append(get(selected[0], "Document"))\n        except (Unavailable, ValueError):\n            unresolved += 1\n    for key in ("UserPolicyList", "RolePolicyList", "GroupPolicyList"):\n        try:\n            policies = list_of_objects(optional(item, key, [], list))\n        except (Unavailable, ValueError):\n            unresolved += 1\n            continue\n        for policy in policies:\n            try:\n                documents.append(get(policy, "PolicyDocument"))\n            except (Unavailable, ValueError):\n                unresolved += 1\n    return documents, unresolved\n'
+_MANAGED_VERSION_PREDECESSOR = 'def aws_documents(item):\n    documents, unresolved = [], 0\n    try:\n        direct = optional(item, "PolicyDocument", None)\n        if "PolicyDocument" in item:\n            documents.append(direct)\n    except (Unavailable, ValueError):\n        unresolved += 1\n    try:\n        versions = list_of_objects(optional(item, "PolicyVersionList", [], list))\n    except (Unavailable, ValueError):\n        versions, unresolved = [], unresolved + 1\n    for version in versions:\n        try:\n            if get(version, "IsDefaultVersion", bool):\n                documents.append(get(version, "Document"))\n        except (Unavailable, ValueError):\n            unresolved += 1\n    for key in ("UserPolicyList", "RolePolicyList", "GroupPolicyList"):\n        try:\n            policies = list_of_objects(optional(item, key, [], list))\n        except (Unavailable, ValueError):\n            unresolved += 1\n            continue\n        for policy in policies:\n            try:\n                documents.append(get(policy, "PolicyDocument"))\n            except (Unavailable, ValueError):\n                unresolved += 1\n    return documents, unresolved\n'
+_MANAGED_VERSION_SUCCESSOR_SHA256 = '8815ab5071a819f27ff1d00fd57dde6dd9c416dd5c93e1ac10da54b3c26efe40'
+
+
+def _reviewed_priority_source(source):
+    text = (PACK.parents[1] / source["file"]).read_bytes()
+    if source["file"] == "peaso/checks/__init__.py":
+        successor = _MANAGED_VERSION_SUCCESSOR.encode()
+        assert hashlib.sha256(successor).hexdigest() == _MANAGED_VERSION_SUCCESSOR_SHA256
+        assert text.count(successor) == 1
+        text = text.replace(successor, _MANAGED_VERSION_PREDECESSOR.encode(), 1)
+        suffix = _REVIEWED_GCP_ADMISSIONS.encode()
+        assert text.count(suffix) == 1 and text.endswith(suffix)
+        text = text[:-len(suffix)]
+    return text
+
+
 def test_priority_proposals_are_bound_to_the_actual_unchanged_sources():
     assert set(SEVERITY_REVIEW) == set(SEVERITY_SOURCE_REVIEW) == set(ROWS) | {cid for cid in PREVIOUS if cid.startswith("aws.")}
     for cid, proposal in SEVERITY_REVIEW.items():
@@ -152,7 +236,7 @@ def test_priority_proposals_are_bound_to_the_actual_unchanged_sources():
         assert proposal["recommended"] in {"info", "low", "medium", "high", "critical"}
         assert proposal["reason"]
         source = SEVERITY_SOURCE_REVIEW[cid]
-        assert hashlib.sha256((PACK.parents[1] / source["file"]).read_bytes()).hexdigest() == source["sha256"]
+        assert hashlib.sha256(_reviewed_priority_source(source)).hexdigest() == source["sha256"]
 
 
 def test_priority_review_keeps_administrative_ports_and_public_data_serious():

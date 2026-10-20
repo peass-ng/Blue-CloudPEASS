@@ -6,6 +6,7 @@ const findings: Finding[] = [
     id: "demo-f1",
     category: "hardening",
     check_id: "fixture.storage.encryption",
+    finding_type: "encryption",
     title: "Storage encryption requires review",
     provider: "aws",
     service: "s3",
@@ -32,6 +33,7 @@ const findings: Finding[] = [
     id: "demo-f2",
     category: "exposure",
     check_id: "fixture.network.ingress",
+    finding_type: "network",
     title: "Broad network ingress observed",
     description: "This illustrative check reads an ingress rule that declares a world-open IPv4 source; it does not determine whether the workload is reachable from the internet.",
     evaluated: ["Security group ingress source CIDR", "Allowed protocol and port", "Attached workload context"],
@@ -60,6 +62,7 @@ const findings: Finding[] = [
     id: "demo-f3",
     category: "least_privilege",
     check_id: "fixture.iam.permissions",
+    finding_type: "permissions",
     title: "Role permissions need a scope review",
     provider: "aws",
     service: "iam",
@@ -87,6 +90,7 @@ const findings: Finding[] = [
     id: "demo-f4",
     category: "hardening",
     check_id: "fixture.storage.logging",
+    finding_type: "logging",
     title: "Storage audit configuration present",
     provider: "aws",
     service: "s3",
@@ -277,16 +281,24 @@ export function demoRequest(path: string, init: RequestInit): unknown {
   if (path.endsWith("/summary")) return report;
   if (path.includes("/findings")) {
     const params = new URLSearchParams(query);
-    const selected = findings.filter((finding) =>
-      (["categories", "severity", "service", "status"] as const).every((key) => {
+    const matches = (finding: Finding, includeStatus: boolean) =>
+      (["categories", "severity", "service", "status", "finding_type"] as const).every((key) => {
+        if (key === "status" && !includeStatus) return true;
         const expected = params.get(key);
         if (!expected) return true;
         const field = key === "categories" ? finding.category : finding[key];
-        return expected.toLowerCase().split(",").includes(field.toLowerCase());
+        return expected.toLowerCase().split(",").includes((field || "unclassified").toLowerCase());
       }) &&
       (!params.get("search") || JSON.stringify(finding).toLowerCase().includes(params.get("search")!.toLowerCase())) &&
-      (!params.get("framework") || finding.frameworks.includes(params.get("framework")!)),
-    ).map((finding) => ({ ...finding, account: finding.scope.split("/", 1)[0] }));
+      (!params.get("framework") || finding.frameworks.includes(params.get("framework")!));
+    const statusCandidates = findings.filter(finding => matches(finding, false));
+    const statusKey = (finding: Finding) => params.get("aggregation") === "check"
+      ? `${finding.provider}\0${finding.check_id}` : finding.id;
+    const statusSelections = ["FAIL", "PASS", "UNKNOWN,MANUAL", "DENIED", "NOT_APPLICABLE,EMPTY"];
+    const statusFilterCounts = Object.fromEntries(statusSelections.map(selection => [selection,
+      new Set(statusCandidates.filter(finding => selection.split(",").includes(finding.status)).map(statusKey)).size]));
+    const selected = statusCandidates.filter(finding => matches(finding, true))
+      .map((finding) => ({ ...finding, account: finding.scope.split("/", 1)[0] }));
     const sortBy = params.get("sort_by");
     const order = params.get("sort_order") === "desc" ? -1 : 1;
     const rank: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3, info: 4 };
@@ -303,6 +315,8 @@ export function demoRequest(path: string, init: RequestInit): unknown {
     const limit = Number(params.get("limit") || 500);
     const items = selected.slice(offset, offset + limit);
     return { items, offset, limit, total: selected.length,
+      status_filter_total: new Set(statusCandidates.map(statusKey)).size,
+      status_filter_counts: statusFilterCounts,
       next_offset: offset + items.length < selected.length ? offset + items.length : null,
       facets: { services: [...new Set(findings.map((f) => f.service))],
         statuses: [...new Set(findings.map((f) => f.status))],

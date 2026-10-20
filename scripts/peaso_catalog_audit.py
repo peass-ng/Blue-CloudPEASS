@@ -27,6 +27,30 @@ COMPLIANCE_FILES = ("compliance_requirements.json", "check_descriptions.json", "
 HACKTRICKS = "HackTricks Cloud Best Practices"
 
 
+def reviewed_correction_matches(check_id, correction):
+    """Recognize exact admitted errata, never an arbitrary new format/version.
+
+    The runtime and materializer already validate these successors against their
+    original signed proposals. Their provenance formats differ from the first
+    generic erratum format; require the complete same spec and proof here too.
+    """
+    from peaso.checks import (aws_apigateway_logging_source_correction,
+                              aws_ecr_source_correction,
+                              aws_pci_iam_scoped_source_correction)
+    for module in (aws_apigateway_logging_source_correction,
+                   aws_ecr_source_correction, aws_pci_iam_scoped_source_correction):
+        if check_id == module.CHECK_ID:
+            module.validate_prior_spec()
+            return correction == {"spec": module.CORRECTED_SPEC,
+                                  "provenance": module.correction_provenance()}
+    if check_id == "gcp.apikeys.active_service_restrictions":
+        from peaso.checks.gcp_api_key_service_names_native import (
+            PRIOR_SPEC_SHA256, source_correction)
+        spec, provenance = source_correction(PRIOR_SPEC_SHA256)
+        return correction == {"spec": spec, "provenance": provenance}
+    return None
+
+
 def audit_documents(documents):
     """Return deterministic evidence and errors for one captured catalog set."""
     issues = []
@@ -158,8 +182,13 @@ def audit_documents(documents):
         cid = check["id"]
         if check["provider"] not in PROVIDERS:
             issue("unsupported_native_provider", native_id=cid)
-        if HACKTRICKS not in check.get("frameworks", []):
+        from peaso.checks.hacktricks_scope import includes, review
+        if cid not in review()["checks"]:
+            issue("unreviewed_hacktricks_membership", native_id=cid)
+        if includes(cid) and HACKTRICKS not in check.get("frameworks", []):
             issue("missing_hacktricks_mapping", native_id=cid)
+        if not includes(cid) and (HACKTRICKS in check.get("frameworks", []) or HACKTRICKS in check.get("mapping", {})):
+            issue("unexpected_hacktricks_mapping", native_id=cid)
         if check.get("expected_cost", {}).get("cloud_calls") != 0:
             issue("native_evaluation_requires_cloud_calls", native_id=cid)
         if not check.get("dependencies"):
@@ -245,6 +274,11 @@ def audit_documents(documents):
                          and provenance.get("current_predicate_sha256") == predicate_digest
                          and isinstance(provenance.get("source_url"), str) and provenance["source_url"].startswith("https://")
                          and native[cid].get("source_correction") == provenance)
+                admitted = reviewed_correction_matches(cid, correction)
+                if admitted is not None:
+                    valid = (admitted and provenance.get("prior_frozen_signed_spec_sha256") ==
+                             expected_provenance["signed_spec_sha256"] and
+                             native[cid].get("source_correction", native[cid].get("proposal_provenance", {}).get("source_correction")) == provenance)
                 if not valid:
                     issue("invalid_source_correction_provenance", native_id=cid)
                 else:

@@ -1,0 +1,221 @@
+{
+  "source_sha256": "0e464039be1558bbf3a35ca31492992478bb380f14c3449426eeede1aa166a30",
+  "check_id": "aws_cis_aws_resource_policy_unrestricted_principal",
+  "cases": {
+    "FAIL": {
+      "evidence": {
+        "resource_arn": "arn:aws:s3:us-east-1:123456789012:bucket/example",
+        "unrestricted_statements": [
+          "one"
+        ]
+      },
+      "index": {
+        "aws_resource_policy": [
+          {
+            "data": {
+              "Policy": {
+                "Statement": [
+                  {
+                    "Action": "s3:GetObject",
+                    "Condition": {
+                      "Bool": {
+                        "aws:SecureTransport": "true"
+                      }
+                    },
+                    "Effect": "Allow",
+                    "Principal": "*",
+                    "Resource": "arn:aws:s3:us-east-1:123456789012:bucket/example",
+                    "Sid": "one"
+                  }
+                ]
+              },
+              "ResourceArn": "arn:aws:s3:us-east-1:123456789012:bucket/example"
+            },
+            "scope": "123456789012/us-east-1",
+            "type": "aws_resource_policy"
+          }
+        ],
+        "collections": {
+          "aws_resource_policy": [
+            {
+              "items": [
+                {
+                  "Policy": {
+                    "Statement": [
+                      {
+                        "Action": "s3:GetObject",
+                        "Condition": {
+                          "Bool": {
+                            "aws:SecureTransport": "true"
+                          }
+                        },
+                        "Effect": "Allow",
+                        "Principal": "*",
+                        "Resource": "arn:aws:s3:us-east-1:123456789012:bucket/example",
+                        "Sid": "one"
+                      }
+                    ]
+                  },
+                  "ResourceArn": "arn:aws:s3:us-east-1:123456789012:bucket/example"
+                }
+              ],
+              "scope": "123456789012/us-east-1",
+              "status": "collected",
+              "type": "aws_resource_policy"
+            }
+          ]
+        },
+        "context": {
+          "metadata": {
+            "compliance_policy": {
+              "scope": "123456789012/us-east-1",
+              "status": "collected"
+            }
+          },
+          "provider": "aws",
+          "scope": "123456789012/us-east-1"
+        }
+      },
+      "item": {
+        "Policy": {
+          "Statement": [
+            {
+              "Action": "s3:GetObject",
+              "Condition": {
+                "Bool": {
+                  "aws:SecureTransport": "true"
+                }
+              },
+              "Effect": "Allow",
+              "Principal": "*",
+              "Resource": "arn:aws:s3:us-east-1:123456789012:bucket/example",
+              "Sid": "one"
+            }
+          ]
+        },
+        "ResourceArn": "arn:aws:s3:us-east-1:123456789012:bucket/example"
+      }
+    },
+    "PASS": {
+      "evidence": {
+        "resource_arn": "arn:aws:s3:us-east-1:123456789012:bucket/example",
+        "unrestricted_statements": []
+      },
+      "index": {
+        "aws_resource_policy": [
+          {
+            "data": {
+              "Policy": {
+                "Statement": [
+                  {
+                    "Action": "s3:GetObject",
+                    "Condition": {
+                      "StringEquals": {
+                        "aws:PrincipalOrgID": "o-approved"
+                      }
+                    },
+                    "Effect": "Allow",
+                    "Principal": "*",
+                    "Resource": "arn:aws:s3:us-east-1:123456789012:bucket/example",
+                    "Sid": "one"
+                  }
+                ]
+              },
+              "ResourceArn": "arn:aws:s3:us-east-1:123456789012:bucket/example"
+            },
+            "scope": "123456789012/us-east-1",
+            "type": "aws_resource_policy"
+          }
+        ],
+        "collections": {
+          "aws_resource_policy": [
+            {
+              "items": [
+                {
+                  "Policy": {
+                    "Statement": [
+                      {
+                        "Action": "s3:GetObject",
+                        "Condition": {
+                          "StringEquals": {
+                            "aws:PrincipalOrgID": "o-approved"
+                          }
+                        },
+                        "Effect": "Allow",
+                        "Principal": "*",
+                        "Resource": "arn:aws:s3:us-east-1:123456789012:bucket/example",
+                        "Sid": "one"
+                      }
+                    ]
+                  },
+                  "ResourceArn": "arn:aws:s3:us-east-1:123456789012:bucket/example"
+                }
+              ],
+              "scope": "123456789012/us-east-1",
+              "status": "collected",
+              "type": "aws_resource_policy"
+            }
+          ]
+        },
+        "context": {
+          "metadata": {
+            "compliance_policy": {
+              "scope": "123456789012/us-east-1",
+              "status": "collected"
+            }
+          },
+          "provider": "aws",
+          "scope": "123456789012/us-east-1"
+        }
+      },
+      "item": {
+        "Policy": {
+          "Statement": [
+            {
+              "Action": "s3:GetObject",
+              "Condition": {
+                "StringEquals": {
+                  "aws:PrincipalOrgID": "o-approved"
+                }
+              },
+              "Effect": "Allow",
+              "Principal": "*",
+              "Resource": "arn:aws:s3:us-east-1:123456789012:bucket/example",
+              "Sid": "one"
+            }
+          ]
+        },
+        "ResourceArn": "arn:aws:s3:us-east-1:123456789012:bucket/example"
+      }
+    },
+    "UNKNOWN": {
+      "evidence": {
+        "reason": "malformed fact: items"
+      },
+      "index": {
+        "aws_resource_policy": [],
+        "collections": {
+          "aws_resource_policy": [
+            {
+              "items": "malformed",
+              "scope": "123456789012/us-east-1",
+              "status": "empty",
+              "type": "aws_resource_policy"
+            }
+          ]
+        },
+        "context": {
+          "metadata": {
+            "compliance_policy": {
+              "scope": "123456789012/us-east-1",
+              "status": "collected"
+            }
+          },
+          "provider": "aws",
+          "scope": "123456789012/us-east-1"
+        }
+      },
+      "item": {}
+    }
+  }
+}

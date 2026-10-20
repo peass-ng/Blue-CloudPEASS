@@ -7,6 +7,7 @@ pretending the new checks remain unregistered. Current compiler/materializer
 tests still verify the complete successor artifacts.
 """
 import copy
+import base64
 from functools import lru_cache
 import hashlib
 import gzip
@@ -18,12 +19,6 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 BULK = json.loads((ROOT / "peaso/checks/bulk_pending.json").read_text())
 BULK_IDS = frozenset(BULK["checks"])
-POST_BASELINE_IDS = frozenset({
-    "aws.route53resolver.query_log_config_delivery_ready",
-    "aws.organizations.resource_tag_policy_compliance",
-    "aws.organizations.effective_tag_policy_values",
-    "azure.vm.iaas_antimalware_extension_minor_version_selection",
-})
 ANCESTOR_MANIFEST = "db02091367b0067b5c4db3439d9fa13805877bb933e7e2dfab37113c1ffcaac8"
 VIEWS_SHA256 = "149b54a78e6811c1ec4d639e5912d5c7f4fe6a7aba16a2e6e2ee3550d995d41e"
 PUBLISHED_SPRINT_ARCHIVE = ROOT / "infra/aws/build/peaso-source-414e037b411d4e5abd0a214fc67b4b8bd96aede52dc843cf23748054f4dfbe6d.zip"
@@ -35,16 +30,79 @@ SOURCE414_NATIVE_BASELINE = "tests/fixtures/post_dfaf_integration/source414-nati
 SOURCE414_NATIVE_BASELINE_PACKED_SHA256 = "69eae1edceb1b8a5cf689a88289d0861361a7cb1675d07e8e7926618e83318fd"
 SOURCE414_NATIVE_BASE_SHA256 = "53e49812f0afd4fd9a1d30ca7ceb6c5ea27bf575d269233c691a3a84173a270b"
 SOURCE414_NATIVE_SHA256 = "9007b31199e3cbe2f9866057d6ac46c04c62e7c83a3ee78c61a70ffb30c1fbba"
+PRE_REVIEW_LEDGER_BUNDLE = "tests/fixtures/post_dfaf_integration/pre_review_ledger_inputs.json.gz"
+PRE_REVIEW_LEDGER_BUNDLE_SHA256 = "0a5dd6f4b192da6c2c0b5a9c2bbd92e982f6ce33b99282ea2aeeff4188011108"
+PRE_REVIEW_MANIFEST_SHA256 = "ffb564cedbf575c3d1f94a158c4565f198c14919f93236207e02177855de5879"
+REVIEWED_SUCCESSOR_MANIFEST_SHA256 = "2b6e09aa867063ec82de2df146ac085e08b09bc8e7bc8b6b9fdd3ae18325e399"
+REVIEWED_CLOUDSQL_FIXTURE_SHA256 = "d03f19c384786999ded6a9a9a462cf52c72a098bf0de697a57f506ceaad274d6"
+# Exact signed predecessor from commit 15842280dfb336f356497451d94ec46b2ba5d4ee.
+# The current ledger includes four accepted Workbench mapping rejections.
+PRE_REVIEW_GCP_PCI = 'tests/fixtures/post_dfaf_integration/pre_review_gcp_pci.json.gz'
+PRE_REVIEW_GCP_PCI_PACKED_SHA256 = '5f28c8335a2d008497ce1090960f9660684312d3caab70ca636d20d390a8068e'
+PRE_REVIEW_GCP_PCI_SHA256 = "8ebb75fdd0950e3689d3b531509140b020e4f9fdecca4114ccd8a50f48a686c2"
+
+
+def assert_reviewed_central_fixture_successor(cases, original):
+    """Keep the 203 original cases exact and admit one reviewed GCP fixture."""
+    assert set(cases) == set(original)
+    changed = {cid for cid in original if cases[cid] != original[cid]}
+    assert changed == {"gcp_cloudsql_backup_failure_alert"}
+    successor = cases["gcp_cloudsql_backup_failure_alert"]
+    digest = hashlib.sha256(json.dumps(successor, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    assert digest == REVIEWED_CLOUDSQL_FIXTURE_SHA256
+
+
+def retained_ledger_inputs():
+    """Read exact public pre-review ledger bytes from a whole-bundle pin."""
+    packed = (ROOT / PRE_REVIEW_LEDGER_BUNDLE).read_bytes()
+    if hashlib.sha256(packed).hexdigest() != PRE_REVIEW_LEDGER_BUNDLE_SHA256:
+        raise ValueError("Historical ledger input bundle digest differs")
+    payload = json.loads(gzip.decompress(packed))
+    expected = {"manifest.json", "aws-cis.json", "aws-fsbp-wellarch-ftr.json",
+                "aws-kisa-ens-secnum-nis2.json", "aws-nist-ffiec-nydfs.json",
+                "aws-other.json", "aws-pci.json",
+                "descriptions/implemented-new-checks.json"}
+    if payload.get("schema") != "pre-review-ledger-inputs-v1" or set(payload.get("files", {})) != expected:
+        raise ValueError("Historical ledger input bundle shape differs")
+    result = {}
+    for name, entry in payload["files"].items():
+        raw = base64.b64decode(entry["content_b64"], validate=True)
+        if hashlib.sha256(raw).hexdigest() != entry["sha256"]:
+            raise ValueError("Historical ledger input member digest differs")
+        result[name] = raw
+    if hashlib.sha256(result["manifest.json"]).hexdigest() != PRE_REVIEW_MANIFEST_SHA256:
+        raise ValueError("Historical ledger manifest digest differs")
+    manifest = json.loads(result["manifest.json"])
+    if hashlib.sha256(result["descriptions/implemented-new-checks.json"]).hexdigest() != manifest["new_descriptions"]["sha256"]:
+        raise ValueError("Historical supplemental descriptions digest differs")
+    for entry in manifest["slices"].values():
+        if entry["path"] in result and hashlib.sha256(result[entry["path"]]).hexdigest() != entry["sha256"]:
+            raise ValueError("Historical ledger slice digest differs")
+    packed_gcp = (ROOT / PRE_REVIEW_GCP_PCI).read_bytes()
+    if hashlib.sha256(packed_gcp).hexdigest() != PRE_REVIEW_GCP_PCI_PACKED_SHA256:
+        raise ValueError("Historical GCP PCI packed digest differs")
+    raw_gcp = gzip.decompress(packed_gcp)
+    if hashlib.sha256(raw_gcp).hexdigest() != PRE_REVIEW_GCP_PCI_SHA256:
+        raise ValueError("Historical GCP PCI source digest differs")
+    expected_gcp = next(entry for entry in manifest["slices"].values() if entry["path"] == "gcp-pci.json")
+    if expected_gcp["sha256"] != PRE_REVIEW_GCP_PCI_SHA256:
+        raise ValueError("Historical GCP PCI manifest binding differs")
+    result["gcp-pci.json"] = raw_gcp
+    return result
 
 
 def registered_before_bulk(checks):
     ids = [check.id for check in checks]
     assert len(ids) == len(set(ids))
     assert BULK_IDS <= set(ids) and len(BULK_IDS) == 552
-    # Post-baseline draft checks may be intentionally unregistered until
-    # their catalog admission is signed. Historical membership is unaffected.
-    old = [check for check in checks if check.id not in BULK_IDS | POST_BASELINE_IDS]
-    assert len(old) == BULK["baseline_native_checks"] == 3434
+    # Bind the cohort to the retained, digest-verified historical catalog.
+    # Later native admissions must not silently enter the old conservation view.
+    signed = json.loads(historical_bytes(PUBLISHED_SPRINT_ARCHIVE, SOURCE414_NATIVE_MEMBER))
+    expected = {row["id"] for row in signed["checks"]} - BULK_IDS
+    assert len(expected) == BULK["baseline_native_checks"] == 3434
+    assert expected <= set(ids)
+    old = [check for check in checks if check.id in expected]
+    assert len(old) == 3434
     return old
 
 
@@ -65,8 +123,9 @@ def _history():
     from scripts.peaso_compliance_compile import compile_verified, matrix_from, lookup_index
 
     ledger = ROOT / "docs/compliance-ledgers"
-    manifest = json.loads((ledger / "manifest.json").read_text())
-    supplemental = json.loads((ledger / "descriptions/implemented-new-checks.json").read_text())
+    retained = retained_ledger_inputs()
+    manifest = json.loads(retained["manifest.json"])
+    supplemental = json.loads(retained["descriptions/implemented-new-checks.json"])
     assert BULK_IDS <= supplemental.keys()
     supplemental = {key: row for key, row in supplemental.items() if key not in BULK_IDS}
     assert len(supplemental) == 329
@@ -94,14 +153,23 @@ def _history():
     assert len(native["checks"]) == 3434
     with tempfile.TemporaryDirectory(prefix="peaso-admission-history-") as folder:
         target = Path(folder)
-        # Reconstruct only the two changed inputs; every retained slice stays exact.
-        for path in ledger.rglob("*.json"):
-            rel = path.relative_to(ledger)
-            if ".work" in rel.parts or rel.as_posix() in ("manifest.json", "descriptions/implemented-new-checks.json"):
-                continue
+        # Use only original manifest members. Today's extra ledgers and
+        # successor revisions cannot enter the historical compiler view.
+        entries = list(manifest["slices"].values()) + list(manifest["descriptions"].values())
+        for entry in entries:
+            rel = entry["path"]
+            source = retained[rel] if rel in retained else (ledger / rel).read_bytes()
+            if hashlib.sha256(source).hexdigest() != entry["sha256"]:
+                raise ValueError("Historical ledger source digest differs")
             output = target / rel
             output.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(path, output)
+            output.write_bytes(source)
+        index = ledger / "inputs/check-index.json"
+        if hashlib.sha256(index.read_bytes()).hexdigest() != manifest["check_index_sha256"]:
+            raise ValueError("Historical check index digest differs")
+        # The signed input snapshots are unchanged; the compiler validates
+        # their individual hashes against the original manifest.
+        shutil.copytree(ledger / "inputs", target / "inputs")
         (target / "manifest.json").write_bytes(encoded(manifest))
         (target / "descriptions/implemented-new-checks.json").write_bytes(encoded(supplemental))
         requirements, descriptions = compile_verified(target, matrix_from(ROOT / "docs/compliance-ledgers/inputs/compliance-requirements-matrix.json.gz"), native)
@@ -217,6 +285,9 @@ def historical_release(path):
 # frozen baseline byte-for-byte. This is not a current-source repin.
 _IAM_HISTORICAL_BASELINE_SHA256 = "2002c02d63715d2b878d6405ca2bd7df87d02d7832e424b5bd1964c113a96423"
 _IAM_EVIDENCE_SUCCESSOR_SHA256 = "d94768357e6b0681e0b438490bfdec1383f0228636d32c0d79ca54504631ccf4"
+_IAM_SECURITY_SUCCESSOR_SHA256 = "671b51dad0a630377080f1f74a41eb6b0afa481fae9bd29c4c7da5c6d9dc8eaf"
+_IAM_RETAINED_PREDECESSOR = "tests/fixtures/post_dfaf_integration/iam_evidence_pre_security_review.py.gz"
+_IAM_RETAINED_PREDECESSOR_PACKED_SHA256 = "3e3d598692b530113b37c90a795d86a866da82c728e8a1677a715d06d8f60c37"
 _IAM_EVIDENCE_ONLY_REVERSE_HUNKS = (('        matched = set()\n'
   '        def count_and_describe(rows):\n'
   '            hits = count_rows(rows, matcher, resource_ok)\n'
@@ -244,8 +315,18 @@ _IAM_EVIDENCE_ONLY_REVERSE_HUNKS = (('        matched = set()\n'
 
 def _source414_reviewed_baseline(member, baseline, expected_sha256):
     if (member != "peaso/checks/claude_aws_a_iam.py" or
-            expected_sha256 != _IAM_HISTORICAL_BASELINE_SHA256 or
-            hashlib.sha256(baseline).hexdigest() != _IAM_EVIDENCE_SUCCESSOR_SHA256):
+            expected_sha256 != _IAM_HISTORICAL_BASELINE_SHA256):
+        raise ValueError("Historical source baseline digest differs")
+    current_sha = hashlib.sha256(baseline).hexdigest()
+    if current_sha == _IAM_SECURITY_SUCCESSOR_SHA256:
+        # This reviewed semantic fix follows the evidence-only successor.
+        # Recover the exact pinned predecessor rather than reverting live code.
+        packed = (ROOT / _IAM_RETAINED_PREDECESSOR).read_bytes()
+        if hashlib.sha256(packed).hexdigest() != _IAM_RETAINED_PREDECESSOR_PACKED_SHA256:
+            raise ValueError("Historical IAM retained predecessor digest differs")
+        baseline = gzip.decompress(packed)
+        current_sha = hashlib.sha256(baseline).hexdigest()
+    if current_sha != _IAM_EVIDENCE_SUCCESSOR_SHA256:
         raise ValueError("Historical source baseline digest differs")
     source = baseline.decode()
     for enriched, original in _IAM_EVIDENCE_ONLY_REVERSE_HUNKS:
@@ -276,9 +357,14 @@ def historical_bytes(path, member):
         patch = payload["member_patches"][release["source_version"]][member]
         baseline = (ROOT / member).read_bytes()
         if hashlib.sha256(baseline).hexdigest() != patch["baseline_sha256"]:
-            if release["source_version"] != SOURCE414_VERSION:
+            if (member == "docs/compliance-ledgers/manifest.json" and
+                    patch["baseline_sha256"] == PRE_REVIEW_MANIFEST_SHA256 and
+                    hashlib.sha256(baseline).hexdigest() == REVIEWED_SUCCESSOR_MANIFEST_SHA256):
+                baseline = retained_ledger_inputs()["manifest.json"]
+            elif release["source_version"] == SOURCE414_VERSION:
+                baseline = _source414_reviewed_baseline(member, baseline, patch["baseline_sha256"])
+            else:
                 raise ValueError("Historical source baseline digest differs")
-            baseline = _source414_reviewed_baseline(member, baseline, patch["baseline_sha256"])
         if "select_keys" in patch:
             value = json.loads(baseline)
             raw = (json.dumps({key: value[key] for key in patch["select_keys"]}, sort_keys=True, separators=(",", ":"), ensure_ascii=False) + "\n").encode()

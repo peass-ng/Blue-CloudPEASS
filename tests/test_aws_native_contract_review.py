@@ -1,0 +1,52 @@
+"""Audit accounting and incomplete-data contracts; no cloud credentials used."""
+from copy import deepcopy
+from pathlib import Path
+
+import pytest
+
+from scripts.audit_aws_native_contracts import active_ids, producer_contracts, registry, source_ref
+from tests.test_peaso_checks import CASES
+
+CHECKS = registry()
+
+
+def test_active_aws_registry_has_resolvable_collectors_and_real_evaluators():
+    active = active_ids()
+    assert active <= {check.id for check in CHECKS}
+    producers = producer_contracts()
+    for check in CHECKS:
+        ref = source_ref(check.evaluate)
+        assert Path(ref['file']).is_file() and ref['line'] > 0
+        assert ref['file'].startswith('peaso/checks/')
+        if check.id in active:
+            assert all(producers[kind]['producer_found'] for kind in check.dependencies), check.id
+
+
+@pytest.mark.parametrize('check', CHECKS, ids=lambda c: c.id)
+def test_explicit_partial_resource_never_passes(check):
+    cases = CASES[check.id]
+    item = deepcopy(cases.get('pass', {}))
+    item['collection_status'] = 'partial'
+    index = deepcopy(cases.get('pass_index', cases.get('case_indices', {}).get('pass', cases.get('index', {}))))
+    assert check.evaluate(item, index)[0] == 'UNKNOWN'
+
+
+@pytest.mark.parametrize('check', [check for check in CHECKS if check.target == 'scope'], ids=lambda c: c.id)
+def test_scope_partial_dependencies_cannot_prove_pass(check):
+    cases = CASES[check.id]
+    if 'pass' not in cases:
+        pytest.skip('no positive shared scope fixture; absence is explicit')
+    item = deepcopy(cases['pass'])
+    index = deepcopy(cases.get('pass_index', cases.get('case_indices', {}).get('pass', cases.get('index', {}))))
+    changed = 0
+    for kind in check.dependencies:
+        for envelope in index.get('collections', {}).get(kind, []):
+            envelope['status'] = 'partial'
+            changed += 1
+    if not changed:
+        # Legacy examples can predate a native dependency (for example the
+        # account-global Config proof). They must remain unresolved, rather
+        # than silently skipping this incomplete-evidence contract.
+        assert check.evaluate(item, index)[0] != 'PASS', check.id
+        return
+    assert check.evaluate(item, index)[0] != 'PASS', check.id

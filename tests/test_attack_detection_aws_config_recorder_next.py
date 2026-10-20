@@ -18,7 +18,7 @@ AUTO = Rule(id="auto", title="Automatic remediation", level="medium", descriptio
 def test_config_recorder_stop_and_negative_variants() -> None:
     event = {"eventSource": "config.amazonaws.com", "eventName": "StopConfigurationRecorder",
         "eventCategory": "Management", "eventType": "AwsApiCall", "managementEvent": True,
-        "readOnly": False, "recipientAccountId": "947247140022", "awsRegion": "us-east-1",
+        "readOnly": False, "recipientAccountId": "222233334444", "awsRegion": "us-east-1",
         "requestParameters": {"configurationRecorderName": "peasso-detect-config-40b8a00380"},
         "responseElements": None}
     def hits(value: dict) -> list[str]:
@@ -37,7 +37,7 @@ def test_config_recorder_stop_and_negative_variants() -> None:
 def test_automatic_ssm_remediation_and_negative_variants() -> None:
     event = {"eventSource": "config.amazonaws.com", "eventName": "PutRemediationConfigurations",
         "eventCategory": "Management", "eventType": "AwsApiCall", "managementEvent": True,
-        "readOnly": False, "recipientAccountId": "947247140022", "awsRegion": "us-east-1",
+        "readOnly": False, "recipientAccountId": "222233334444", "awsRegion": "us-east-1",
         "requestParameters": {"remediationConfigurations": [{"configRuleName": "httest-rule",
             "targetType": "SSM_DOCUMENT", "targetId": "httest-privesc-doc",
             "parameters": "HIDDEN_DUE_TO_SECURITY_REASONS", "automatic": True}]},

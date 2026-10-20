@@ -19,11 +19,11 @@ def test_template_lambda_notification_and_clear() -> None:
         "eventSource": "s3.amazonaws.com", "eventName": "PutBucketNotification",
         "eventCategory": "Management", "eventType": "AwsApiCall",
         "managementEvent": True, "readOnly": False, "eventID": "synthetic",
-        "recipientAccountId": "947247140022",
+        "recipientAccountId": "222233334444",
         "requestParameters": {
             "bucketName": "cf-templates-synthetic-test",
             "NotificationConfiguration": {"CloudFunctionConfiguration": {
-                "CloudFunction": "arn:aws:lambda:us-east-1:947247140022:function:synthetic",
+                "CloudFunction": "arn:aws:lambda:us-east-1:222233334444:function:synthetic",
                 "Event": "s3:ObjectCreated:*"}}},
     }
     assert [d.technique_id for d in detect_aws_events([event], [RULE])] == [RULE.technique_id]

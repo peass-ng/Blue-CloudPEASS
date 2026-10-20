@@ -29,9 +29,9 @@ def _event(source: str, name: str, request: dict, response: dict) -> dict:
         "eventType": "AwsApiCall", "managementEvent": True, "readOnly": False,
         "eventID": "a3daf387-f9c2-4131-96bf-eda69ded3a5c",
         "eventTime": "2026-10-19T09:08:21Z", "awsRegion": "us-east-1",
-        "recipientAccountId": "947247140022",
-        "userIdentity": {"type": "IAMUser", "accountId": "947247140022",
-                         "arn": "arn:aws:iam::947247140022:user/testenv"},
+        "recipientAccountId": "222233334444",
+        "userIdentity": {"type": "IAMUser", "accountId": "222233334444",
+                         "arn": "arn:aws:iam::222233334444:user/testenv"},
         "requestParameters": request, "responseElements": response,
     }
 
@@ -46,7 +46,7 @@ def test_ecr_template_update_and_benign_creation() -> None:
               "Action": ["ecr:BatchGetImage", "ecr:GetDownloadUrlForLayer"]}]}
     row = _event("ecr.amazonaws.com", "UpdateRepositoryCreationTemplate",
                  {"prefix": prefix, "repositoryPolicy": json.dumps(policy)},
-                 {"registryId": "947247140022", "repositoryCreationTemplate": {
+                 {"registryId": "222233334444", "repositoryCreationTemplate": {
                      "prefix": prefix, "repositoryPolicy": json.dumps(policy)}})
     assert _hits(row) == [TEMPLATE.technique_id]
     benign = deepcopy(row)
@@ -66,9 +66,9 @@ def test_ecr_template_update_and_benign_creation() -> None:
 
 
 def test_secret_self_read_and_describe_only() -> None:
-    arn = "arn:aws:secretsmanager:us-east-1:947247140022:secret:peasso-detect-self-secret-8977f76e50-qlvM1z"
+    arn = "arn:aws:secretsmanager:us-east-1:222233334444:secret:peasso-detect-self-secret-8977f76e50-qlvM1z"
     policy = {"Version": "2012-10-17", "Statement": [{"Effect": "Allow",
-              "Principal": {"AWS": "arn:aws:iam::947247140022:user/testenv"},
+              "Principal": {"AWS": "arn:aws:iam::222233334444:user/testenv"},
               "Action": "secretsmanager:GetSecretValue", "Resource": arn}]}
     row = _event("secretsmanager.amazonaws.com", "PutResourcePolicy",
                  {"secretId": arn, "resourcePolicy": json.dumps(policy), "blockPublicPolicy": True},
@@ -78,7 +78,7 @@ def test_secret_self_read_and_describe_only() -> None:
         item = deepcopy(row)
         p = deepcopy(policy)
         if edit == "describe_only": p["Statement"][0]["Action"] = "secretsmanager:DescribeSecret"
-        if edit == "other_principal": p["Statement"][0]["Principal"]["AWS"] = "arn:aws:iam::947247140022:user/other"
+        if edit == "other_principal": p["Statement"][0]["Principal"]["AWS"] = "arn:aws:iam::222233334444:user/other"
         if edit == "conditional": p["Statement"][0]["Condition"] = {"StringEquals": {"aws:PrincipalTag/team": "backup"}}
         if edit == "wrong_secret": item["responseElements"]["arn"] = arn.replace("qlvM1z", "000000")
         if edit == "denied": item["errorCode"] = "AccessDeniedException"

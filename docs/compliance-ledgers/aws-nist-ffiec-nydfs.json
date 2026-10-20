@@ -14164,13 +14164,14 @@
           "native_checks": [
             "aws.cb.rds.cluster_snapshot_not_public_prowler",
             "aws.cb.rds.instance_snapshot_not_public_prowler",
-            "aws.claude_a.ebs.snapshot_not_public",
-            "aws.claude_a.s3.prowler_policy_public_write",
-            "aws.claude_a.s3.prowler_public_access",
             "aws.claude2_a.logs.log_group_not_public_via_resource_policy",
+            "aws.claude_a.ebs.snapshot_not_public",
             "aws.claude_a.ec2.ami_not_public",
             "aws.claude_a.ec2.snapshot_block_public_access",
-            "aws.claude_a.s3.prowler_public_write_acl"
+            "aws.claude_a.s3.prowler_policy_public_write",
+            "aws.claude_a.s3.prowler_public_access",
+            "aws.claude_a.s3.prowler_public_write_acl",
+            "aws_cis_ec2_userdata_embedded_secrets"
           ],
           "removed_checks": [
             "aws.a.cloudtrail.joined_bucket_declared_public_grants",
@@ -14183,7 +14184,7 @@
             "aws.claude_a.vpc.sg_no_world_all_traffic",
             "aws.cloudtrail.kms_encryption"
           ],
-          "reason": "The retained checks restrict public sharing for selected snapshots, AMIs, log groups, and S3 buckets. Data classification, private exfiltration paths, and DLP response remain unverified. Required remainder: data classification and egress policy, DLP or equivalent enforcement, exposure reviews, and leak-response records. The corresponding NIST CSF version uses the same control text and the same narrow AWS evaluator coverage.",
+          "reason": "The retained checks restrict public sharing for selected snapshots, AMIs, log groups, and S3 buckets. Data classification, private exfiltration paths, and DLP response remain unverified. Required remainder: data classification and egress policy, DLP or equivalent enforcement, exposure reviews, and leak-response records. The corresponding NIST CSF version uses the same control text and the same narrow AWS evaluator coverage. Additional bounded native signal: Embedded-secret indicators support the data-leak topic; DLP enforcement, exfiltration paths and leak-response records remain unverified.",
           "evidence": [
             "peaso/checks/claude_aws_b_db.py:659",
             "peaso/checks/claude_aws_b_db.py:659",
@@ -14193,7 +14194,8 @@
             "peaso/checks/claude2_aws_a_misc.py:47",
             "peaso/checks/claude_aws_a_ec2.py:295",
             "peaso/checks/claude_aws_a_ec2.py:238",
-            "peaso/checks/claude_aws_a_s3.py:425"
+            "peaso/checks/claude_aws_a_s3.py:425",
+            "peaso/collectors/aws_user_data_secret_indicators.py"
           ],
           "new_checks": []
         },
@@ -36805,9 +36807,9 @@
     "requirements_total": 2041,
     "mapped_verified": 1167,
     "mapping_fixed": 19,
-    "partial": 327,
+    "partial": 328,
     "manual": 511,
     "not_applicable": 4,
-    "new_check": 13
+    "new_check": 12
   }
 }

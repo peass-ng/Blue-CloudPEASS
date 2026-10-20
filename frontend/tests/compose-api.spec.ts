@@ -77,7 +77,7 @@ test("Compose live AWS report populates every UI section", async ({ page }) => {
   await expect(page.getByRole("region", { name: "Findings table" }).getByRole("table")).toBeVisible();
   for (const [label, slug] of [["Hardening Findings", "findings"], ["Exposure", "exposure"], ["Least Privilege", "least-privilege"]]) {
     await visit(label, slug);
-    if (label === "Exposure") await page.locator(".service-group-button").first().click();
+    if (label === "Exposure" || label === "Hardening Findings") await page.locator(".service-group-button").first().click();
     await expect(page.locator(".finding-title").first()).toBeVisible();
     sections[label].rows = await page.locator(".finding-title").count();
     await expect(page.getByLabel("Group findings")).toHaveValue("service");
@@ -87,6 +87,7 @@ test("Compose live AWS report populates every UI section", async ({ page }) => {
       const first = await framework.locator("option").nth(1).getAttribute("value") || await framework.locator("option").nth(1).textContent();
       expect(first).toBeTruthy();
       await framework.selectOption(first!);
+      await page.locator('.service-group-button[aria-expanded="false"]').first().click();
       await expect(page.locator(".finding-title").first()).toBeVisible();
       await page.screenshot({ path: join(evidence, "findings-framework-filter.png"), fullPage: true });
       await page.getByRole("button", { name: "Reset filters", exact: true }).click();

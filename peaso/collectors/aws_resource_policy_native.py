@@ -1,7 +1,7 @@
-"""Scoped resource-policy documents for SNS, SQS, Lambda and private ECR.
+"""Scoped resource-policy documents, with explicit AWS policy-family discovery.
 
-Only existing configuration reads are used. This is a bounded four-service
-inventory, not an account-wide proof that every AWS resource policy was read.
+The original four collectors retain their exact SDK contracts; the extended
+recipes add service and nested-resource coverage. Unread policies remain gaps.
 """
 from __future__ import annotations
 import json,re
@@ -11,7 +11,7 @@ NATIVE_IDS={'aws_resource_policy':'ResourceArn'}
 READ_ACTIONS={(s,o)for s,ops in {'sns':('list_topics','get_topic_attributes'),'sqs':('list_queues','get_queue_attributes'),'lambda':('list_functions','get_policy'),'ecr':('describe_repositories','get_repository_policy')}.items()for o in ops}
 OK=('collected','empty')
 
-def policies(requests,session,region,account):
+def base_policies(requests,session,region,account):
  from .aws import ReadResult
  partition=session.get_partition_for_region(region);rows=[];failures=[];seen=set()
  def fail(status='malformed',code='resource_policy_identity_or_document_invalid'):
@@ -78,4 +78,19 @@ def policies(requests,session,region,account):
  if failures:
   status,code=failures[0];return ReadResult(rows,'partial'if rows else status,{'code':code})
  return ReadResult(rows,'collected'if rows else'empty')
+from .aws_resource_policy_families import READ_ACTIONS as EXTENDED_ACTIONS, collect as extended_policies
+READ_ACTIONS.update(EXTENDED_ACTIONS)
+
+
+def policies(requests, session, region, account):
+ from .aws import ReadResult
+ base = base_policies(requests, session, region, account)
+ extra = extended_policies(requests, session, region, account)
+ rows = base.items + extra.items
+ failures = [read for read in (base, extra) if read.status not in OK]
+ if failures:
+  return ReadResult(rows, 'partial' if rows else failures[0].status,
+      {'code': 'resource_policy_coverage_incomplete', 'details': [read.error for read in failures]})
+ return ReadResult(rows, 'collected' if rows else 'empty')
+
 FETCHERS={'aws_resource_policy':policies}

@@ -65,6 +65,17 @@ def _target_session(auth, options, role_arn, region, scopes=None):
             raise LogAccessError("platform_account_forbidden")
         entry = next(t for t in targets if (t if isinstance(t, str) else t.get("role_arn")) == role_arn)
         external = (entry.get("external_id") if isinstance(entry, dict) else None) or auth.get("external_id")
+        if hosted:
+            from peaso.auth.aws_trust import require_external_id_boundary, UnsafeRoleTrust
+            def probe(probe_external):
+                params = {"RoleArn": role_arn, "RoleSessionName": "hacktricks-cspm-log-review", "DurationSeconds": 3600}
+                if probe_external is not None:
+                    params["ExternalId"] = probe_external
+                return session.client("sts", region_name=region, config=_CONFIG).assume_role(**params)
+            try:
+                require_external_id_boundary(probe, external)
+            except UnsafeRoleTrust:
+                raise LogAccessError("external_id_trust_unverified") from None
         session = _assume(session, role_arn, external, region)
     elif hosted or (allowed and not options.get("include_source_account", True)):
         raise LogAccessError("select_connector_role")

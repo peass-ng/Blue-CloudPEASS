@@ -13,6 +13,7 @@ import subprocess
 import sys
 import time
 import zipfile
+from peaso import deployment
 
 try:
     import peaso_deploy_current_update as current_update
@@ -31,7 +32,7 @@ ROOT = Path(__file__).resolve().parents[1]
 INFRA = ROOT / "infra" / "aws"
 BUILD = INFRA / "build"
 TF = os.environ.get("PEASO_TERRAFORM", "terraform")
-ACCOUNT = "202533532952"
+ACCOUNT = deployment.value("account_id")
 REPOSITORY = f"{ACCOUNT}.dkr.ecr.us-east-1.amazonaws.com/hacktricks-cspm-worker"
 ZERO_IMAGE = REPOSITORY + "@sha256:" + "0" * 64
 CUSTOMER_ROLE_DOWNLOAD_KEY = "aws/customer-role.json"
@@ -42,6 +43,13 @@ REPRODUCTION_INPUT_PATTERNS = (
     "scripts/audit_observed_evidence.py", "scripts/sync_evidence_explanation_copy.py",
     "tests/test_gcp_evidence_explanations_review.py",
     "tests/test_attack_detection*.py",
+    "tests/test_attack_history_worker_s3.py",
+    "tests/test_aws_identity_sdk_closure_review.py", "docs/aws-review/identity-closure-review.json",
+    "docs/aws-review/identity-sdk-closure-review.json",
+    "tests/test_gcp_source_parity_review.py", "scripts/audit_gcp_source_parity.py",
+    "docs/gcp-review/source-parity.json", "tests/fixtures/gcp-workbench-source-parity.json.gz",
+    "tests/test_principal_exposure.py", "tests/test_privesc_grant_evidence.py",
+    "docs/ai-review/*.md", "docs/security-review-2026-10-19.md",
     "tests/fixtures/aws_evidence_review.json.gz", "tests/fixtures/azure_evidence_review.json.gz",
     "tests/fixtures/gcp-reviewed-evidence.json", "tests/fixtures/shared_evidence_review.json",
     "docs/compliance-ledgers/*.json", "docs/compliance-ledgers/*.md",
@@ -52,6 +60,9 @@ REPRODUCTION_INPUT_PATTERNS = (
     "docs/collectors/azure-certificate-issuance-native.md",
     "docs/cli-iam.md", "docs/permission-severity-policy.md", "docs/permission-categorization-sync.md",
     "tests/fixtures/native-kind-network-v27.json",
+    "tests/fixtures/aws-region-customer-policy-history.json",
+    "tests/customer_policy_history.py",
+    "tests/fixtures/aws-customer-policy-history-synthetic.json.gz",
     "tests/fixtures/aws_bulk_clarity_reviewed.json.gz",
     "tests/fixtures/aws_final_clarity_reviewed.json.gz",
     "tests/fixtures/azure_bulk_clarity_reviewed.json.gz",
@@ -98,8 +109,7 @@ RECOVERY_FAILED_PLAN_SHA256 = "6abd03527bca42c00cb9ea2ebf8b0c43e912270f9e317c9a0
 RECOVERY_FAILED_JSON_SHA256 = "f9f99e434927dae2683cc286af761d2e507874e1bd343ad8f194264db7ea6141"
 RECOVERY_ENRICHMENT_SHA256 = "15c0fb3193c6ac22299802c6866ff689a85f7af374a483d169dcc4a00cfb9c71"
 RECOVERY_ENRICHMENT_APPROVAL = "msg_89daa0d2fb65"
-RECOVERY_BACKEND = {"bucket": "terraform-state-hacktricks-wiki", "key": "cspm/terraform.tfstate",
-                    "region": "us-east-1", "encrypt": True, "use_lockfile": True}
+RECOVERY_BACKEND = deployment.backend()
 RECOVERY_MISSING = {"aws_cloudfront_distribution.cspm", "aws_s3_bucket_policy.frontend",
                     'aws_route53_record.cspm["A"]', 'aws_route53_record.cspm["AAAA"]'}
 RECOVERY_ACTIONS = {
@@ -114,12 +124,15 @@ RECOVERY_ACTIONS = {
 # requires reviewing that contract, not silently deferring additional values.
 RUNTIME_CONFIG_SHA256 = {
     "outputs.tf": "e83fb597d6cb6f4b42e57b44480a1bd7eb7acfce961102c4504640ab0ac8b54d",
-    "storage.tf": "3111ecc01f83ce0c18db03f0d9e6abee2a8158f4394edc3d742ab84a79707312",
-    "iam.tf": "cef549cb4ed105ba1e3f938196b9c93621993df5c868c3ee2624efae8554d40e",
-    "api.tf": "097836750e780a7ffb53412e658e17088c9a4bcae630e1773ebb3b06a3c60630",
-    "workflow.tf": "ea2dfdd8c2db23ad0f3bae77c750fa8c745ae28f020c6a34d9ea4449c3ce8512",
-    "variables.tf": "6068cb0ab96d4dec23d8220c4991ee0bb0793383f8bc7e76cdc9a2a6fa35717c",
-    "versions.tf": "74b39a076ba00ab16a834c1d0b0d40c9d258e2c908428c9519033718f20c248b",
+    "storage.tf": "40b53dbd1a592d35e5ca264e7d7f11171634a4e77e2e0e8ebbceca2d2cd08a9a",
+    "iam.tf": "119086927a14a48dc52f0180eb10a75f0d6355a848de200b8028a1325d268e39",
+    "api.tf": "2aa21dd0eb8ac74da5aff471ddfb38074e26b25c62c866ee2ac266fc0be54898",
+    "workflow.tf": "879b1cb41f0ff81feea8ffef07797e2f8efbab18f4a8d5664dab41136d0467fa",
+    "variables.tf": "2824bc1ff26a1cb2bdc97109bd911d301ee1df29688253d5c2cd22236b928a58",
+    "versions.tf": "2b3b22273e0f514fd6b66be276cc47d20598f68e45ccd8537ee17e2cdbd2efff",
+    "network.tf": "9b9b839d185551282d2e771bd779c069678099690740b7ef0b4d26acb6cee34e",
+    "ai_runtime.tf": "508df40e7e0d35fd4ce4e114718322561443918b8f0166f4d2edf9901f7d6a7a",
+    "ai_network.tf": "e180dee4032309d52455d23a59062a536dd231caa874a78b17057b7115308eab",
 }
 ALLOWED_RESOURCES = set("""
 aws_cloudwatch_log_group.api aws_cloudwatch_log_group.scheduler aws_apigatewayv2_stage.api
@@ -147,23 +160,27 @@ aws_secretsmanager_secret_version.credentials aws_vpc_endpoint.s3 aws_ecr_reposi
 aws_route_table_association.tasks aws_apigatewayv2_route.api aws_lambda_permission.schedules
 aws_iam_role_policy.collector aws_ecr_lifecycle_policy.worker aws_iam_role.api
 aws_iam_role.customer_trust aws_iam_role_policy.customer_trust
+random_bytes.ai_key aws_kms_key.ai aws_secretsmanager_secret.ai aws_secretsmanager_secret_version.ai
+aws_s3_bucket.ai_transport aws_s3_bucket_public_access_block.ai_transport
+aws_s3_bucket_server_side_encryption_configuration.ai_transport aws_s3_bucket_lifecycle_configuration.ai_transport
+aws_s3_bucket_policy.ai_transport aws_ecs_task_definition.ai aws_iam_role_policy.ai_dispatch
+aws_subnet.ai aws_route_table_association.ai aws_security_group.ai aws_network_acl.ai
 """.split())
 
-# The hosted Python 3.12 manylinux package has 4,671 members after optional
-# installer markers are removed. Historical approval contracts retain their
-# own 4,600-member limit; this bound applies to the current package build.
-CURRENT_API_MEMBER_LIMIT = 4900  # Current reviewed package adds the AWS detection normalizers.
-# Current complete API expands to ~231 MB. Lambda permits 250 MiB including
-# layers (these functions declare none); keep >17 MB of service-quota margin.
+# The verified Python 3.12 manylinux package contains 5,704 members after
+# optional installer markers are removed. Historical approval limits stay intact.
+CURRENT_API_MEMBER_LIMIT = 6000
+# Current complete API expands to 239.2 MB. Lambda permits 250 MiB including
+# layers (these functions declare none); keep >22 MB of service-quota margin.
 # Historical artifact-update approvals retain their original byte limits.
 # https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html
 CURRENT_API_UNCOMPRESSED_LIMIT = 245_000_000
 # Current corresponding source has grown beyond the historical artifact-update
 # contract. Keep these bounds aligned with the GitHub Actions release reviewer;
 # historical artifact-update approvals retain their original measured limits.
-CURRENT_SOURCE_MEMBER_LIMIT = 2850  # Includes the AWS detection-rule replay tests.
-CURRENT_SOURCE_UNCOMPRESSED_LIMIT = 290_000_000
-CURRENT_SOURCE_ARCHIVE_LIMIT = 38_000_000  # Bounds the reviewed evidence ledgers; historical contracts stay at 32 MB.
+CURRENT_SOURCE_MEMBER_LIMIT = 3300  # Reviewed current source: 3,108 members including detection and history tests.
+CURRENT_SOURCE_UNCOMPRESSED_LIMIT = 310_000_000
+CURRENT_SOURCE_ARCHIVE_LIMIT = 44_000_000  # Current source ZIP measures 41.1 MB; historical contracts retain their limits.
 
 
 def checked_member(root, name):
@@ -324,7 +341,7 @@ def freeze_release(release_source=None):
                 raise RuntimeError("Source archive cannot include symlinks or external files")
             if path.is_file():
                 files.add(path)
-    for pattern in ["infra/aws/*.tf", "infra/aws/Dockerfile.worker", "infra/aws/customer-role.json", "infra/aws/customer-role-d7f7b815628bb270f4bd40f985d70de7ba1bbd50cefa4f429031ea0a74e08bcd.json", "infra/aws/customer-role-7e6fc610eee9021025ffd498c8dc924d740975a34c56f291bc7317a7db182dbe.json", "infra/aws/customer-role-04fbe795580c205cb86e6ad71a73c52935628bd43c5d5ee398b4333b2155748a.json", "infra/aws/customer-role-25b895c00a3fad47f390e4946c83f6e47487c8e52e8342cf136d1a1eb1c1ea17.json", "infra/aws/customer-role-9254e0c0c0a7519c7a0a0c128e9d147d799dba3ca9cf9ff76902fcb4cd5ab08f.json", "infra/aws/customer-role-ccd97a3b24443ee6556e59f23ab0d3bf42b7b2013481047b5c586932d0570c14.json", "infra/aws/customer-role-6d31b087d5542e740af07fa1e05ede2c7faca0b712ffdb8dba43c19d2cb2ce21.json", "infra/aws/customer-role-95e70cc9e033643bb3d7e0a400246f7ee392c5d3301319027482bc4350c09a25.json", "infra/aws/customer-role-e2b8788e174bba78779421bb13b2c5d12ae1dd2599715653e7ea62f4463bcc0d.json", "infra/aws/customer-role-f46db717efb93db136ec5893e819904b0fb931f4ba512f52d6cdb907a6e6a04c.json", "infra/aws/customer-role-2204d577d48f10958947199b840d0989b88bbeee4e4b396193cc427b59f39ccf.json", "infra/aws/customer-role-a57cdf166f64c9ad96a367a48fb62e54754a58a89ed767119f9dc46c05e46980.json", "infra/aws/customer-role-0eeba5694a23a8fd93013b1c15dd2bfbc3f0ec4de7554a9a9405b0306b611e6d.json", "infra/aws/customer-role-2b6825b57ea8d5a443b35e5fda86bc97eda6324721dcfd002b52a8cf356cd92f.json", "infra/aws/customer-role-7da8ecb219db8799e87cab5b4a632f6d40c7e4d6f5cb5c4cd1eea1a6fbdd2fe6.json", "infra/aws/customer-role-a4c004efe171a0c94977fefc31fbc30c0d879b7c4e98875862aa498aa4d7a873.json", "infra/aws/customer-role-0484deedf711ac855f691e08531561c5b29abff7e46fa16320b79a32465eb6b2.json", "infra/aws/customer-role-fef2efcc028af51f48a4fa6d883b4ce959dba3691b0b9de3872971a9aac94c82.json", "infra/aws/customer-role-3e692bf06dc4af76517d6838f28fc5bcdbd890fd2029045b33a2262570cf13ee.json", "infra/aws/customer-role-1d8b49e45753dc7cba7069d772ad5286b5d033b294dacf6bea3a4ffd1c2aa2b1.json", "infra/aws/customer-role-96369f6236d3d2d803c75f8c982e9828c6ce5eda4697d5c39f91451478350cb2.json", "infra/aws/customer-role-c6549e16bbd36c1a7bd66aaf2a620906832097af64b244e6d999d456c594baed.json", "infra/aws/customer-role-4ea77d8e8f9ec707db8536313086cac740a37083280085054de0cf93b8420794.json", "infra/aws/customer-role-a33c84bde052ee1dd9ff393cfa702f56bbfa76db954c4f9f18a5e64150f72d02.json", "infra/aws/customer-role-b3ba1910f63def680269a6877ae106fd6a7001c00f9d9d6e0b07d9600ae21535.json",
+    for pattern in ["infra/aws/*.tf", "infra/aws/Dockerfile.worker", "infra/aws/customer-role.json", "infra/aws/customer-policy-allocation.json",
                     "infra/aws/.terraform.lock.hcl", "infra/aws/sdk-constraints.txt", "scripts/peaso*.py", "scripts/peaso_test_resources/*.py",
                     "docs/peaso*.md", "docs/checks/*.md", "docs/privesc-ledgers/*.md", "tests/test_peaso*.py", "frontend/package*.json", "frontend/*config*",
                     "frontend/index.html", "scripts/sync_hacktricks_permissions.py",
@@ -336,11 +353,21 @@ def freeze_release(release_source=None):
                     # shipped compiler/tests read; .work drafts stay excluded.
                     *REPRODUCTION_INPUT_PATTERNS]:
         files.update(release_root.glob(pattern))
+    # Only the current generic template may accompany its immutable filename.
+    # Older operator-bound templates live outside public source.
+    template = release_root / "infra/aws/customer-role.json"
+    if template.is_file():
+        content = template.read_bytes()
+        current_template = release_root / ("infra/aws/customer-role-" + hashlib.sha256(content).hexdigest() + ".json")
+        if current_template.is_file():
+            if current_template.read_bytes() != content:
+                raise RuntimeError("Current customer template archive differs from its content hash")
+            files.add(current_template)
     files.update(release_root / name for name in ["bluepeass/__init__.py", "bluepeass/k8s.py", "bluepeass/k8s_risks.py", "scripts/cloud_permission_risks.py"])
     files.update(release_root / f for f in ["LICENSE", "README.md", "pyproject.toml", "Dockerfile.peaso",
                                          "docker-compose.yml", ".dockerignore", ".env.example"])
     paths = {str(path.relative_to(release_root)): path for path in files}
-    for pattern in ["infra/aws/*.tf", "infra/aws/Dockerfile.worker", "infra/aws/customer-role.json", "infra/aws/customer-role-d7f7b815628bb270f4bd40f985d70de7ba1bbd50cefa4f429031ea0a74e08bcd.json", "infra/aws/customer-role-7e6fc610eee9021025ffd498c8dc924d740975a34c56f291bc7317a7db182dbe.json", "infra/aws/customer-role-04fbe795580c205cb86e6ad71a73c52935628bd43c5d5ee398b4333b2155748a.json", "infra/aws/customer-role-25b895c00a3fad47f390e4946c83f6e47487c8e52e8342cf136d1a1eb1c1ea17.json", "infra/aws/customer-role-9254e0c0c0a7519c7a0a0c128e9d147d799dba3ca9cf9ff76902fcb4cd5ab08f.json", "infra/aws/customer-role-ccd97a3b24443ee6556e59f23ab0d3bf42b7b2013481047b5c586932d0570c14.json", "infra/aws/customer-role-6d31b087d5542e740af07fa1e05ede2c7faca0b712ffdb8dba43c19d2cb2ce21.json", "infra/aws/customer-role-95e70cc9e033643bb3d7e0a400246f7ee392c5d3301319027482bc4350c09a25.json", "infra/aws/customer-role-e2b8788e174bba78779421bb13b2c5d12ae1dd2599715653e7ea62f4463bcc0d.json", "infra/aws/customer-role-f46db717efb93db136ec5893e819904b0fb931f4ba512f52d6cdb907a6e6a04c.json", "infra/aws/customer-role-2204d577d48f10958947199b840d0989b88bbeee4e4b396193cc427b59f39ccf.json", "infra/aws/customer-role-a57cdf166f64c9ad96a367a48fb62e54754a58a89ed767119f9dc46c05e46980.json", "infra/aws/customer-role-0eeba5694a23a8fd93013b1c15dd2bfbc3f0ec4de7554a9a9405b0306b611e6d.json", "infra/aws/customer-role-2b6825b57ea8d5a443b35e5fda86bc97eda6324721dcfd002b52a8cf356cd92f.json", "infra/aws/customer-role-7da8ecb219db8799e87cab5b4a632f6d40c7e4d6f5cb5c4cd1eea1a6fbdd2fe6.json", "infra/aws/customer-role-a4c004efe171a0c94977fefc31fbc30c0d879b7c4e98875862aa498aa4d7a873.json", "infra/aws/customer-role-0484deedf711ac855f691e08531561c5b29abff7e46fa16320b79a32465eb6b2.json", "infra/aws/customer-role-fef2efcc028af51f48a4fa6d883b4ce959dba3691b0b9de3872971a9aac94c82.json", "infra/aws/customer-role-3e692bf06dc4af76517d6838f28fc5bcdbd890fd2029045b33a2262570cf13ee.json", "infra/aws/customer-role-1d8b49e45753dc7cba7069d772ad5286b5d033b294dacf6bea3a4ffd1c2aa2b1.json", "infra/aws/customer-role-96369f6236d3d2d803c75f8c982e9828c6ce5eda4697d5c39f91451478350cb2.json", "infra/aws/customer-role-c6549e16bbd36c1a7bd66aaf2a620906832097af64b244e6d999d456c594baed.json", "infra/aws/customer-role-4ea77d8e8f9ec707db8536313086cac740a37083280085054de0cf93b8420794.json", "infra/aws/customer-role-a33c84bde052ee1dd9ff393cfa702f56bbfa76db954c4f9f18a5e64150f72d02.json", "infra/aws/customer-role-b3ba1910f63def680269a6877ae106fd6a7001c00f9d9d6e0b07d9600ae21535.json",
+    for pattern in ["infra/aws/*.tf", "infra/aws/Dockerfile.worker", "infra/aws/customer-role.json", "infra/aws/customer-policy-allocation.json",
                     "infra/aws/.terraform.lock.hcl", "infra/aws/sdk-constraints.txt", "scripts/peaso_deploy*.py", "docs/peaso-aws.md"]:
         for path in ROOT.glob(pattern):
             paths[str(path.relative_to(ROOT))] = path
@@ -375,6 +402,14 @@ def freeze_release(release_source=None):
                 raise RuntimeError(f"Source Python changing or invalid: {relative}; retry after its owner finishes") from error
         source[str(relative)] = content
     _omit_verified_duplicate_manifest(source, release_root)
+    identifier_file = deployment.value("private_identifiers_file")
+    if deployment.configuration() and not identifier_file:
+        raise RuntimeError("Private deployment configuration requires private_identifiers_file for release auditing")
+    if identifier_file:
+        from peaso.public_audit import check_sources
+        if Path(identifier_file).resolve().is_relative_to(release_root):
+            raise RuntimeError("The private identifier list must remain outside public source")
+        check_sources(source, identifier_file)
     manifest = {name: hashlib.sha256(value).hexdigest() for name, value in source.items()}
     version = hashlib.sha256(json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     release = {"source_version": version, "source_url": f"https://cspm.hacktricks.wiki/source/peaso-source-{version}.zip",
@@ -475,8 +510,9 @@ def verify_backend():
         raise RuntimeError("Initialize the dedicated CSPM backend before deployment")
     backend = json.loads(metadata.read_text()).get("backend", {})
     config = backend.get("config", {})
-    expected = {"bucket": "terraform-state-hacktricks-wiki", "key": "cspm/terraform.tfstate",
-                "region": "us-east-1", "encrypt": True, "use_lockfile": True}
+    expected = deployment.backend()
+    if not expected or not re.fullmatch(r"[0-9]{12}", ACCOUNT):
+        raise RuntimeError("Set PEASO_DEPLOY_CONFIG to the private deployment configuration")
     if backend.get("type") != "s3" or any(config.get(k) != v for k, v in expected.items()):
         raise RuntimeError("Deployment requires the encrypted, locked cspm/terraform.tfstate backend")
 
@@ -491,7 +527,7 @@ def aws_identity():
     session = boto3.Session(region_name="us-east-1")
     identity = session.client("sts").get_caller_identity()
     if identity["Account"] != ACCOUNT:
-        raise RuntimeError("Deployment requires the existing wiki account 202533532952")
+        raise RuntimeError("Deployment requires the configured deployment account")
     print(f"Verified wiki account {identity['Account']}; caller {identity['Arn']}")
     return session
 
@@ -527,7 +563,7 @@ def package_api():
          "--platform", "manylinux2014_x86_64", "--implementation", "cp",
          "--python-version", "3.12", "--abi", "cp312", "--only-binary=:all:",
          "fastapi>=0.115", "uvicorn>=0.30", "cryptography>=43", "PyYAML>=6",
-         "PyJWT[crypto]>=2.10", "mangum>=0.19", "boto3==1.43.38", "requests>=2"])
+         "PyJWT[crypto]>=2.10", "mangum>=0.19", "boto3==1.43.38", "requests>=2", "tzdata>=2024.1"])
     # Reject installer-created links before copying any source into its tree.
     omitted = omit_empty_api_installation_markers(target)
     if omitted:
@@ -619,6 +655,13 @@ def write_vars(image, api_zip):
     if existing.exists():
         variables.update({k: v for k, v in json.loads(existing.read_text()).items()
                           if k in {"enable_public_customer_role_template", "gcp_platform_sa_secret_arn", "worker_resources", "scan_runtime_limits", "budget_email", "monthly_budget_usd"}})
+    integration_keys = ("account_id", "cognito_pool_id", "cognito_client_id", "stripe_secret_arn", "stripe_price_id",
+                        "codex_token_secret_arn", "codex_token_kms_key_arn", "gcp_platform_project", "gcp_platform_email", "platform_account_ids", "budget_email", "archived_customer_role_templates", "gcp_platform_sa_secret_arn")
+    for key in integration_keys:
+        configured = deployment.value(key)
+        if configured != "":
+            variables[key] = ({digest: os.path.relpath(filename, INFRA) for digest, filename in configured.items()}
+                              if key == "archived_customer_role_templates" else configured)
     if "worker_resources" in variables:
         verify_worker_resources(variables["worker_resources"])
     existing.write_text(json.dumps(variables, indent=2) + "\n")
@@ -661,7 +704,7 @@ def deployment_expectations(data, plan):
     for key in ("worker_image", "source_version", "api_zip"):
         if current.get(key) != variables.get(key):
             raise RuntimeError(f"Saved {key} variable differs from reviewed deployment variables")
-    for key in ("enable_public_customer_role_template", "worker_resources", "scan_runtime_limits"):
+    for key in ("enable_public_customer_role_template", "worker_resources", "scan_runtime_limits", "codex_token_secret_arn", "codex_token_kms_key_arn", "account_id", "cognito_pool_id", "cognito_client_id", "stripe_secret_arn", "stripe_price_id", "archived_customer_role_templates"):
         if key in current and current[key] != variables.get(key):
             raise RuntimeError(f"Saved {key} variable differs from reviewed deployment variables")
     tf_files = {Path(name).name: digest for name, digest in release["files"].items()
@@ -693,9 +736,23 @@ def deployment_expectations(data, plan):
     template_sha256 = hashlib.sha256((INFRA / "customer-role.json").read_bytes()).hexdigest()
     public_template_url = (f"https://hacktricks-cspm-templates-{ACCOUNT}.s3.us-east-1.amazonaws.com/customer-role-{template_sha256}.json"
                            if public_template_enabled else "")
+    if variables.get("account_id") != ACCOUNT:
+        raise RuntimeError("Saved deployment account differs from private configuration")
+    for key in ("cognito_pool_id", "cognito_client_id", "stripe_secret_arn", "stripe_price_id", "codex_token_secret_arn"):
+        if variables.get(key, "") != deployment.value(key):
+            raise RuntimeError("Saved integration inputs differ from private configuration")
+    expected_archives = {digest: os.path.relpath(filename, INFRA) for digest, filename in (deployment.value("archived_customer_role_templates") or {}).items()}
+    if variables.get("archived_customer_role_templates", {}) != expected_archives:
+        raise RuntimeError("Saved template archives differ from private configuration")
     common = {
-        "PEASO_AUTH_MODE": "cognito", "PEASO_COGNITO_ISSUER": "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_7rbhezdKX",
-        "PEASO_COGNITO_CLIENT_ID": "3g2u5ilb7kbte92lra40ji2ht0", "PEASO_STORAGE": "dynamodb",
+        "PEASO_AI_CREDENTIAL_SECRET_ARN": {"arn_pattern": f"arn:aws:secretsmanager:us-east-1:{ACCOUNT}:secret:hacktricks-cspm-ai-key-[A-Za-z0-9]{{6}}"},
+        "CODEX_TOKEN_SECRET_ARN": variables.get("codex_token_secret_arn", ""),
+        "PEASO_AWS_COLLECTOR_ROLE_ARN": f"arn:aws:iam::{ACCOUNT}:role/HackTricks-CSPM",
+        "PEASO_PLATFORM_ACCOUNT_IDS": ",".join(dict.fromkeys([ACCOUNT] + variables.get("platform_account_ids", []))),
+        "PEASO_GCP_PLATFORM_PROJECT": variables.get("gcp_platform_project", ""),
+        "PEASO_GCP_PLATFORM_EMAIL": variables.get("gcp_platform_email", ""),
+        "PEASO_AUTH_MODE": "cognito", "PEASO_COGNITO_ISSUER": f"https://cognito-idp.us-east-1.amazonaws.com/{variables['cognito_pool_id']}",
+        "PEASO_COGNITO_CLIENT_ID": variables["cognito_client_id"], "PEASO_STORAGE": "dynamodb",
         "PEASO_DYNAMODB_TABLE": "hacktricks-cspm", "PEASO_ARTIFACT_BUCKET": f"hacktricks-cspm-artifacts-{ACCOUNT}",
         "PEASO_SCAN_TIMEOUT_SECONDS": str(limits["workflow_seconds"]),
         "PEASO_STATE_DIR": "/tmp/peaso/state", "PEASO_IDENTITY_DIR": "/tmp/peaso/identity",
@@ -708,8 +765,8 @@ def deployment_expectations(data, plan):
     api = dict(common, PEASO_CREDENTIAL_SECRET_ARN=secret,
                PEASO_PUBLIC_CUSTOMER_ROLE_TEMPLATE_URL=public_template_url,
                PEASO_WORKFLOW_ARN=f"arn:aws:states:us-east-1:{ACCOUNT}:stateMachine:hacktricks-cspm",
-               PEASO_STRIPE_SECRET_ARN="arn:aws:secretsmanager:us-east-1:202533532952:secret:hacktricks-tools-stripe-secret-key-zoewPl",
-               PEASO_STRIPE_PRICE_ID="price_1TLm63Io7pPswHK23F4vZFvW", PEASO_ALLOWED_ORIGINS="https://cspm.hacktricks.wiki",
+               PEASO_STRIPE_SECRET_ARN=variables["stripe_secret_arn"],
+               PEASO_STRIPE_PRICE_ID=variables["stripe_price_id"], PEASO_ALLOWED_ORIGINS="https://cspm.hacktricks.wiki",
                PEASO_SOURCE_URL=f"https://cspm.hacktricks.wiki/source/peaso-source-{source}.zip")
     workers = {stage: dict(common, AWS_DEFAULT_REGION="us-east-1", PEASO_TASK_VCPU=str(size["cpu"] / 1024),
                            PEASO_TASK_MEMORY_GIB=str(size["memory"] / 1024)) for stage, size in sizes.items()}

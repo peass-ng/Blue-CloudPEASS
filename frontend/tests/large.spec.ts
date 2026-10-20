@@ -91,6 +91,7 @@ test("actual large Azure snapshot uses summaries, complete server filters and bo
   expect(laterPage.total).toBeGreaterThan(1000);
   const target = laterPage.items[0];
   await page.getByLabel("Search findings").fill(target.resource_id);
+  await page.getByLabel("Group findings").selectOption("check_id");
   await expect(page.locator(".finding-title").first()).toBeVisible();
   await page.locator(".finding-title").first().click();
   await expect(page.getByRole("dialog")).toContainText("Observed evidence");

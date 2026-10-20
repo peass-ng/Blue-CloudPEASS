@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "checks": {
+    "gcp.compute.restrict_internet_ingress": {
+      "prior_sha256": "feb9fcf973cf5dbf92790d05fb85a7b958b69758909fe7cc0e556ef1fd9d3f91",
+      "replacement_sha256": "5b9ccf774ddb161fab2963fedf2def1608f93564653161a4dcb20bd84396b2ec",
+      "description": {
+        "description": "Reviews declared GCP VPC firewall rules. An enabled ingress allow with a prefix-zero IPv4 or IPv6 source yields FAIL; additional source tags or service accounts do not remove the broad source alternative. This does not establish effective rule priority, routing, target attachment or actual internet reachability.",
+        "evaluated": [
+          "allowed",
+          "allowed[].IPProtocol",
+          "denied",
+          "direction",
+          "disabled",
+          "sourceRanges",
+          "sourceServiceAccounts",
+          "sourceTags"
+        ],
+        "pass_when": "PASS when complete readable applicable facts establish no broad source alternative for the declared allow rule. Unavailable or ambiguous facts produce UNKNOWN unless an independent readable broad-source allow establishes FAIL.",
+        "fail_when": "FAIL when a readable enabled ingress allow and a prefix-zero source are observed. The documented omitted-source default applies when no source selector is specified; an explicitly empty source list without another selector is not treated as safe.",
+        "not_applicable_when": "Firewall rule is disabled, not ingress, or declares denied rules."
+      },
+      "reviewed_source_commit": "32f8bc1cefdc3092d622b607246bb2d0af535b26",
+      "reason": "Preserve the already-reviewed and published source414e correction over the immutable original signed prose; recompilation must reproduce the accepted runtime description without changing evaluator semantics."
+    },
+    "azure.iam.no_full_custom_role": {
+      "prior_sha256": "f62c8ca2dbfc1117d0f97af6e0050e2a71078654a2a49f7f8caa1fa3d3bef09c",
+      "replacement_sha256": "d5ee03edae96dbec425025da0018c4cfd4a7c7c01e4ad26f08966174d616f554",
+      "description": {
+        "description": "Reviews declared custom-role permission blocks. A wildcard with no exclusions in its own permission plane yields FAIL, even when a separate block or the other plane contains exclusions. This does not establish an assigned principal or effective authorization.",
+        "evaluated": [
+          "properties.type",
+          "properties.permissions[].actions",
+          "properties.permissions[].dataActions",
+          "properties.permissions[].notActions",
+          "properties.permissions[].notDataActions"
+        ],
+        "pass_when": "PASS when complete readable permission blocks contain no wildcard actions or dataActions. Wildcards with corresponding exclusions require MANUAL review; unavailable relevant facts produce UNKNOWN.",
+        "fail_when": "FAIL when any readable block declares actions=[*] without notActions exclusions, or dataActions=[*] without notDataActions exclusions. Exclusions in a different block or permission plane do not remove that finding.",
+        "not_applicable_when": "NOT_APPLICABLE when the role is built in."
+      },
+      "reviewed_source_commit": "32f8bc1cefdc3092d622b607246bb2d0af535b26",
+      "reason": "Preserve the already-reviewed and published source414e correction over the immutable original signed prose; recompilation must reproduce the accepted runtime description without changing evaluator semantics."
+    }
+  }
+}

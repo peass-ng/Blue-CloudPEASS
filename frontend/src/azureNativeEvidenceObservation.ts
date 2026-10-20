@@ -12,7 +12,7 @@ type Rule = {
   values?: Record<string, string>;
   list_counts?: Record<string, string>;
   formatter?: string;
-  detail?: { field: string; kind: string; label: string };
+  plural_words?: Record<string, { count: string; one: string; many: string }>;
 };
 const rules = nativeRules as unknown as Record<string, Rule[]>;
 const object = (v: unknown): v is ObjectValue => v !== null && typeof v === 'object' && !Array.isArray(v);
@@ -43,11 +43,12 @@ export function explainAzureNativeEvidenceObservation(checkId: string, evidence:
   for (const rule of rules[checkId] || []) {
     if (rule.status !== status || !matches(evidence, rule.evidence)) continue;
     let observation = rule.observation;
+    const values: Record<string, unknown> = {};
     for (const [name, field] of Object.entries(rule.values || {})) {
-      observation = observation.replaceAll(`{${name}}`, String(evidence[field]));
+      values[name] = evidence[field];
     }
     for (const [name, field] of Object.entries(rule.list_counts || {})) {
-      observation = observation.replaceAll(`{${name}}`, String((evidence[field] as unknown[]).length));
+      values[name] = (evidence[field] as unknown[]).length;
     }
     if (rule.formatter === 'rsa_bits') {
       const outcomes = evidence.outcomes;
@@ -55,20 +56,13 @@ export function explainAzureNativeEvidenceObservation(checkId: string, evidence:
         && typeof item.measured_rsa_modulus_bits === 'number' && Number.isInteger(item.measured_rsa_modulus_bits)
         && item.measured_rsa_modulus_bits > 0 && item.measured_rsa_modulus_bits < 2048) : undefined;
       if (!failed) continue;
-      observation = observation.replaceAll('{bits}', String((failed as ObjectValue).measured_rsa_modulus_bits));
+      values.bits = (failed as ObjectValue).measured_rsa_modulus_bits;
     }
-    const detail = rule.detail;
-    if (detail) {
-      const value = evidence[detail.field];
-      let phrase: string;
-      if (detail.kind === 'count') phrase = `${(value as unknown[]).length} ${detail.label}`;
-      else if (detail.kind === 'strings') {
-        const values = value as string[];
-        if (values.some(v => typeof v !== 'string' || v.length > 80 || /[\u0000-\u001f]/.test(v))) return undefined;
-        phrase = `${detail.label}: ${values.slice(0, 3).join(', ')}${values.length > 3 ? ` and ${values.length - 3} more` : ''}`;
-      } else if (detail.kind === 'version') phrase = `${detail.label}: ${(value as number[]).join('.')}`;
-      else phrase = `${detail.label}: ${typeof value === 'boolean' ? value ? 'enabled' : 'disabled' : value}`;
-      observation = `${observation.replace(/\.+$/, '')} (${phrase}).`;
+    for (const [name, words] of Object.entries(rule.plural_words || {})) {
+      values[name] = values[words.count] === 1 ? words.one : words.many;
+    }
+    for (const [name, value] of Object.entries(values)) {
+      observation = observation.replaceAll(`{${name}}`, String(value));
     }
     return observation;
   }

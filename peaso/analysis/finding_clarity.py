@@ -126,7 +126,7 @@ def evidence_summary(finding):
         if isinstance(usage,dict) and usage.get('inactive_observation') is True:
             window=usage.get('window')
             interval=(' from '+window['start']+' to '+window['end']) if isinstance(window,dict) and _text(window.get('start'),50) and _text(window.get('end'),50) else ' in the recorded window'
-            return 'Zero identity activity was recorded'+interval+'; incomplete telemetry can miss use, so this does not establish that access is unnecessary.'
+            return 'No activity was recorded for this identity'+interval+'; telemetry can miss use, so the identity may still be needed.'
     if cid=='analysis.grant_review' and isinstance(e.get('grants'),list) and e['grants']:
         grants=e['grants']
         if not all(isinstance(g,dict) and g.get('allowed_declaration') is True
@@ -164,6 +164,8 @@ def evidence_summary(finding):
                         (f' and {extra} other action'+('s' if extra!=1 else '') if extra>0 else '')) if actions else 'the listed actions'
             target='this Lambda function' if finding.get('service') in ('lambda','lambda_function') else 'this IAM role' if finding.get('service')=='iam_role' else 'the resources covered by the statement'
             observation=f'Principal “*” (anyone) is allowed {permission} on {target}.'
+            if finding.get('service')=='iam_role' and actions==['sts:AssumeRole']:
+                observation='Principal “*” (anyone) is allowed to assume this IAM role.'
             if finding.get('service') in ('lambda','lambda_function') and actions==['lambda:InvokeFunction']:
                 observation='Principal “*” (anyone) is allowed to invoke this Lambda function.'
             if all(constrained):
@@ -203,9 +205,9 @@ def evidence_summary(finding):
             if 'cognito_unauthenticated' in codes and not any('unauthenticated' in v for v in claim('amr')):return None
             if not codes and not claim('aud' if cognito else 'sub'):return None
             for code in codes:
-                if code=='no_sub_condition' and oidc:messages.append('The OIDC trust for '+issuer+' has no positive subject restriction.')
+                if code=='no_sub_condition' and oidc:messages.append('The OIDC trust for '+issuer+' does not restrict which token subjects it accepts.')
                 elif code=='wildcard_sub' and oidc:messages.append('The OIDC subject pattern leaves the tenant or repository owner unrestricted.')
-                elif code=='no_aud_condition' and oidc:messages.append('The OIDC trust has no positive audience restriction.')
+                elif code=='no_aud_condition' and oidc:messages.append('The OIDC trust does not restrict the token audience.')
                 elif code=='cognito_no_aud' and cognito:messages.append('The Cognito trust does not pin an identity-pool audience.')
                 elif code=='cognito_unauthenticated' and cognito:messages.append('The trust condition includes unauthenticated Cognito identities.')
                 else:return None
@@ -227,7 +229,9 @@ def _strings(value):
 
 
 def _items(values):
-    return ', '.join(values[:2])+(f' and {len(values)-2} others' if len(values)>2 else '')
+    if len(values)==1:return values[0]
+    if len(values)==2:return values[0]+' and '+values[1]
+    return ', '.join(values[:2])+f' and {len(values)-2} other '+('item' if len(values)==3 else 'items')
 
 
 def _network_details(rows):
@@ -269,31 +273,40 @@ def _grant_summary(finding,grants):
                 if not _strings(actions) or not actions:return None
                 label='all actions except '+_items(actions)
             elif _strings(actions) and actions:
-                label='all actions (*)' if '*' in actions else _items(actions)
+                label='all actions' if '*' in actions else _items(actions)
             else:return None
             resources=native.get('Resource');resources=[resources] if isinstance(resources,str) else resources
             if resources is not None and not _strings(resources):return None
-            if resources:label+=' on '+('all resources (*)' if '*' in resources else _items(resources))
+            if resources:label+=' on '+('all resources' if '*' in resources else _items(resources))
             examples.append(label)
         elif provider=='gcp':
             if isinstance(native,str) and _text(native):examples.append(native)
             elif isinstance(native,dict) and _text(native.get('role')):
                 members=native.get('members')
                 if not _strings(members) or not members:return None
-                examples.append(native['role']+' for '+_items(members))
+                role={'roles/owner':'the Owner role','roles/editor':'the Editor role','roles/viewer':'the Viewer role'}.get(native['role'],'role '+native['role'])
+                people=[{'allUsers':'anyone, including anonymous users','allAuthenticatedUsers':'any authenticated Google identity'}.get(m,m) for m in members]
+                examples.append(role+' to '+_items(people))
             else:return None
         elif provider=='azure':
             if not isinstance(native,dict):return None
             actions=native.get('actions',[]);data=native.get('dataActions',[])
             if not _strings(actions) or not _strings(data) or not actions+data:return None
-            examples.append(_items(actions+data))
+            labels=[]
+            if actions:labels.append('all management actions' if '*' in actions else _items(actions))
+            if data:labels.append('all data actions' if '*' in data else _items(data))
+            description=_items(labels)
+            if native.get('notActions') or native.get('notDataActions'):description+=', subject to the recorded exclusions'
+            examples.append(description)
         elif provider=='k8s':
             if not isinstance(native,dict) or not _strings(native.get('verbs')) or not native['verbs']:return None
             targets=native.get('resources',native.get('nonResourceURLs'))
             if not _strings(targets) or not targets:return None
-            examples.append(_items(native['verbs'])+' on '+_items(targets))
+            verbs='every action' if '*' in native['verbs'] else _items(native['verbs'])
+            resources='every Kubernetes resource in the declared API groups' if '*' in targets else _items(targets)
+            examples.append(verbs+' on '+resources)
         else:return None
-    prefix='The declaration permits '+_items(list(dict.fromkeys(examples)))+'.'
+    prefix=('The policy assigns ' if provider=='gcp' else 'The role permits ' if provider in ('azure','k8s') else 'The policy allows ')+_items(list(dict.fromkeys(examples)))+'.'
     assignment=finding['evidence'].get('assignment')
     if provider=='azure' and isinstance(assignment,dict) and _text(assignment.get('principalId')):
         prefix='The assigned role for '+assignment['principalId']+' permits '+_items(list(dict.fromkeys(examples)))+'.'
@@ -321,13 +334,19 @@ def _coverage_summary(e):
         return 'The permission catalog could not classify '+str(len(e['unclassified_grants']))+' recorded grants; their security impact remains undetermined.'
     gaps=e.get('gaps')
     if not isinstance(gaps,list) or not gaps:return None
-    labels=[]
+    absent=[];denied=[]
     for gap in gaps:
         if not isinstance(gap,dict) or not _text(gap.get('type'),80):return None
         status=gap.get('status');label=_INVENTORY_LABELS.get(gap['type'],gap['type'].replace('_',' '))
         if status not in ('not_collected','denied','partial','missing','failed','error','unsupported','unknown'):return None
-        labels.append(label+' ('+{'not_collected':'not collected','denied':'read denied','partial':'partial inventory'}.get(status,status)+')')
-    return 'Required inventory is incomplete: '+_items(labels)+'. These gaps can hide grants or principals, so the assessment cannot establish complete access coverage.'
+        (denied if status=='denied' else absent).append(label)
+    def names(values):
+        remaining = len(values)-2
+        return _items(values[:2])+(f' and {remaining} other required '+('inventory' if remaining == 1 else 'inventories') if remaining > 0 else '')
+    clauses=[]
+    if absent:clauses.append('The scan lacks complete inventory for '+names(absent))
+    if denied:clauses.append(('reads were denied for ' if clauses else 'The scan was denied access to ')+names(denied))
+    return '; '.join(clauses)+'. Missing records can hide grants or principals, so full access cannot be assessed.'
 
 
 def _aws_principal_summary(finding,entries):
@@ -381,7 +400,7 @@ def _internet_summary(finding):
         blocked=e.get('blocked_by')
         path=e.get('path')
         if kind=='function_url' and e.get('authenticated_endpoint')is True and isinstance(path,list) and any(isinstance(p,dict) and p.get('layer')=='authorization' and p.get('auth_type')=='AWS_IAM' for p in path):
-            return 'The Lambda function URL requires AWS_IAM signed requests, limiting anonymous invocation. Effective caller permissions and runtime behavior were not tested.'
+            return 'The Lambda function URL requires signed AWS requests, limiting anonymous invocation. Effective caller permissions and runtime behavior were not tested.'
         if blocked is None and e.get('exposed_ports')==[] and isinstance(path,list) and path:
             return 'The path model records no exposed ports; its deciding blocking layer was not stored. Live access was not tested.'
         if not _text(blocked,80) or not isinstance(path,list) or not any(isinstance(p,dict) and p.get('layer')==blocked and p.get('decision')=='block' for p in path):return None
@@ -401,4 +420,4 @@ def _internet_summary(finding):
     services=(' on '+_items(ports)) if ports else ''
     limit=' Authentication still governs application access; no connection was attempted.' if e.get('authenticated_endpoint')is True else ' This can admit internet callers; no connection was attempted.'
     if isinstance(e.get('unresolved'),list) and e['unresolved']:limit=' Some path layers remain unresolved, so usable access is not established.'
-    return 'The configured '+label+target+' admits internet sources'+services+'.'+limit
+    return 'The '+label+target+' is configured to accept internet traffic'+services+'.'+limit

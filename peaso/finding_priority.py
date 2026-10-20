@@ -1,5 +1,7 @@
 """Reviewed finding priorities, separate from immutable source benchmark ratings."""
 from functools import lru_cache
+import json
+from pathlib import Path
 
 VERSION = "finding-priority-20261019-v1"
 
@@ -25,6 +27,14 @@ def reviews():
     output["gcp.ports.sql_private_ip_assignments"] = {
         "current": "medium", "recommended": "medium",
         "reason": "Incoming public SQL IP declaration; outbound OUTGOING addresses are not public incoming endpoints, and reachability is not established."}
+    # Source-reviewed successor checks retain their registered priorities.
+    # The review records exact callback module, kind, and title so future
+    # registration changes require a new decision rather than silent reuse.
+    source_reviews = json.loads((Path(__file__).parent / "checks/reviewed_release_priorities_20261020.json").read_text())
+    for cid, row in source_reviews.items():
+        if cid in output:
+            raise ValueError("Duplicate reviewed priority: " + cid)
+        output[cid] = {key: row[key] for key in ("current", "recommended", "reason")}
     allowed = {"critical", "high", "medium", "low", "info"}
     for cid, row in output.items():
         if row["current"] not in allowed or row["recommended"] not in allowed or not row.get("reason"):

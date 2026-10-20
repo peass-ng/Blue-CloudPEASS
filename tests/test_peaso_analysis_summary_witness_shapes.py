@@ -14,7 +14,7 @@ def test_malformed_projection_entries_do_not_make_access_claims(cid,field,values
 def test_actual_grant_shape_keeps_declared_and_effective_access_distinct():
     g={'native_grant':{'Effect':'Allow','Action':'*','Resource':'*'},'allowed_declaration':True,'severity':'high','broad':True}
     f={'provider':'aws','check_id':'analysis.grant_review','status':'MANUAL','evidence':{'grants':[g]}}
-    assert evidence_summary(f)=='The declaration permits all actions (*) on all resources (*). These broad or high-impact grants can widen control; other policies still affect usable access.'
+    assert evidence_summary(f)=='The policy allows all actions on all resources. These broad or high-impact grants can widen control; other policies still affect usable access.'
     for patch in [{'allowed_declaration':False},{'broad':False,'severity':'low'}]:
         f['evidence']['grants']=[dict(g,**patch)]
         assert evidence_summary(f) is None
@@ -111,7 +111,7 @@ def test_wildcard_conditions_do_not_claim_to_restrict_a_public_grant():
 def test_oidc_problem_code_requires_matching_native_issuer_and_principal():
     t={'issuer':'token.actions.githubusercontent.com','federated_principal':'arn:aws:iam::111122223333:oidc-provider/token.actions.githubusercontent.com','problems':[{'code':'no_sub_condition'}]}
     f={'provider':'aws','check_id':'analysis.federated_trust','status':'FAIL','evidence':{'federated_trusts':[t]}}
-    assert evidence_summary(f)=='The OIDC trust for token.actions.githubusercontent.com has no positive subject restriction. This may admit unintended token holders; other trust and session controls still affect access.'
+    assert evidence_summary(f)=='The OIDC trust for token.actions.githubusercontent.com does not restrict which token subjects it accepts. This may admit unintended token holders; other trust and session controls still affect access.'
     t['federated_principal']='arn:aws:iam::111122223333:saml-provider/example'
     assert evidence_summary(f) is None
     t['federated_principal']='arn:aws:iam::111122223333:oidc-provider/different.example'

@@ -64,7 +64,9 @@ _WAFREGIONAL_RESOURCE_TYPES = ("APPLICATION_LOAD_BALANCER", "API_GATEWAY")
 # A resource type this region's WAF does not support is not an association.
 _UNSUPPORTED_TYPE = ("WAFInvalidParameterException", "WAFInvalidOperationException")
 _BEANSTALK_OPTIONS = {("aws:elasticbeanstalk:cloudwatch:logs", "StreamLogs"), ("aws:elasticbeanstalk:managedactions", "ManagedActionsEnabled"),
-                      ("aws:elasticbeanstalk:healthreporting:system", "SystemType")}
+                      ("aws:elasticbeanstalk:healthreporting:system", "SystemType"),
+                      ("aws:elasticbeanstalk:hostmanager", "LogPublicationControl"),
+                      ("aws:elasticbeanstalk:environment", "LoadBalancerType")}
 _SECRET_KEYS = {"authKey", "customerRouterConfig", "macSecKeys", "LockToken", "UserData"}
 
 
@@ -149,6 +151,10 @@ def _ecs_services(requests, session, region):
             missing = [f["arn"] for f in failures]
             for row in rows:
                 service_arn = row.get("serviceArn")
+                if isinstance(service_arn, str) and service_arn in seen:
+                    # A duplicate detail makes this subject ambiguous; retaining
+                    # the first row would allow a resource PASS beside UNKNOWN.
+                    services[:] = [kept for kept in services if kept.get("serviceArn") != service_arn]
                 if (not isinstance(service_arn, str) or service_arn not in requested or
                         service_arn in seen or row.get("clusterArn") != cluster):
                     failed = failed or _result([], "malformed", {"code": "describe_services_identity_mismatch"})
@@ -237,12 +243,14 @@ def _beanstalk_configuration(requests, session, region, items):
             item["Configuration"] = {"collection_status": response.get("collection_status"), "error": response.get("error", {})}
         else:
             # Only the named options: other namespaces carry environment properties.
-            item["Configuration"] = {"collection_status": "collected", "ConfigurationSettings": [
+            item["Configuration"] = {"collection_status": "collected",
+                "AdditionalSecretIndicators": copy.deepcopy(response.get("AdditionalSecretIndicators")), "ConfigurationSettings": [
                 {**_pick(setting, ("ApplicationName", "EnvironmentName", "SolutionStackName", "PlatformArn")),
                  "OptionSettings": [_pick(option, ("Namespace", "OptionName", "Value")) for option in setting.get("OptionSettings") or []
                                     if isinstance(option, dict) and (option.get("Namespace"), option.get("OptionName")) in _BEANSTALK_OPTIONS]}
                 for setting in response.get("ConfigurationSettings") or [] if isinstance(setting, dict)]}
-        output.append(item)
+        from .aws_beanstalk_runtime_metadata import enrich_environment
+        output.append(enrich_environment(requests, session, region, item, response))
     return output
 
 
@@ -320,8 +328,14 @@ def _eks_vpc_cni(requests, session, region, items):
         item = copy.deepcopy(item)
         response = requests.detail(session, "eks", region, "describe_addon", clusterName=item["name"], addonName="vpc-cni", absent=("ResourceNotFoundException",))
         if response.get("collection_status") == "collected":
-            item["VpcCniAddon"] = {"collection_status": "collected",
-                                   "addon": _pick(response.get("addon") or {}, ("addonName", "addonVersion", "status", "configurationValues"))}
+            addon = response.get("addon")
+            if (not isinstance(addon, dict) or addon.get("clusterName") != item["name"]
+                    or addon.get("addonName") != "vpc-cni"):
+                item["VpcCniAddon"] = {"collection_status": "malformed",
+                                       "error": {"code": "eks_addon_subject_identity_mismatch"}}
+            else:
+                item["VpcCniAddon"] = {"collection_status": "collected",
+                                       "addon": _pick(addon, ("addonName", "addonVersion", "status", "configurationValues"))}
         else:
             item["VpcCniAddon"] = response
         output.append(item)
@@ -377,6 +391,11 @@ def _rest_api(requests, session, region, items):
         api = item["id"]
         item["Authorizers"] = _child(requests.pages(session, "apigateway", region, "get_authorizers", "items", restApiId=api),
                                      lambda a: _pick(a, ("id", "name", "type", "authType", "providerARNs", "authorizerUri", "identitySource", "identityValidationExpression", "authorizerResultTtlInSeconds")))
+        if "items" in item["Authorizers"]:
+            identities = [row.get("id") for row in item["Authorizers"]["items"]]
+            if (any(not isinstance(value, str) or not value for value in identities)
+                    or len(set(identities)) != len(identities)):
+                item["Authorizers"] = {"collection_status": "malformed", "error": {"code": "authorizer_identity_incomplete_or_duplicate"}}
         item["Resources"] = _child(requests.pages(session, "apigateway", region, "get_resources", "items", restApiId=api, embed=["methods"]), _rest_api_method)
         if "items" in item["Resources"]:
             item["Methods"] = [{"resourceId": r.get("id"), "path": r.get("path"), **method}
@@ -492,10 +511,13 @@ def _cloudfront_acl_resources(requests, session, region, acl_arn):
     return {"collection_status": "collected", "ResourceArns": [d["ARN"] for d in read.items if isinstance(d, dict) and isinstance(d.get("ARN"), str)]}
 
 
-def _detail_member(requests, session, region, service, operation, member, **arguments):
+def _detail_member(requests, session, region, service, operation, member, *, expected_identity=None, **arguments):
     response = requests.detail(session, service, region, operation, **arguments)
     if response.get("collection_status") == "collected" and isinstance(response.get(member), dict):
-        return _strip(response[member])
+        body = response[member]
+        if expected_identity and any(body.get(key) != value for key, value in expected_identity.items()):
+            return {"collection_status": "malformed", "error": {"code": "detail_identity_mismatch"}}
+        return _strip(body)
     return {"collection_status": response.get("collection_status"), "error": response.get("error", {})}
 
 
@@ -514,7 +536,7 @@ def _wafv2(kind):
                 row = {**_strip(summary), "Scope": scope}
                 ids = {"Name": summary["Name"], "Scope": scope, "Id": summary["Id"]}
                 if kind == "wafv2_web_acl":
-                    row["WebACL"] = _detail_member(requests, session, region, "wafv2", "get_web_acl", "WebACL", **ids)
+                    row["WebACL"] = _detail_member(requests, session, region, "wafv2", "get_web_acl", "WebACL", expected_identity={"ARN": summary["ARN"], "Id": summary["Id"], "Name": summary["Name"]}, **ids)
                     row["LoggingConfiguration"] = requests.detail(session, "wafv2", region, "get_logging_configuration", ResourceArn=summary["ARN"], absent=_WAF_ABSENT)
                     row["ResourceArns"] = (_cloudfront_acl_resources(requests, session, region, summary["ARN"]) if scope == "CLOUDFRONT"
                                            else _resource_arns(requests, session, region, "wafv2", _WAFV2_RESOURCE_TYPES, WebACLArn=summary["ARN"]))

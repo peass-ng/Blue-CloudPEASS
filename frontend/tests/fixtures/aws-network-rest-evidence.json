@@ -865,7 +865,7 @@
     "case": "missing",
     "status": "UNKNOWN",
     "evidence": {
-      "reason": "missing fact: Routes"
+      "reason": "missing fact: RouteTableId"
     }
   },
   {

@@ -4,6 +4,7 @@ Preview is offline. Create/verify/delete require the reviewed manifest SHA and
 an AWS session for the exact CSPM account. Never runs a scan or creates a
 connector, artifact, quota, lock, schedule, workflow, or compute resource.
 """
+from peaso import deployment
 import argparse
 import hashlib
 import json
@@ -13,7 +14,7 @@ import secrets
 import time
 
 
-ACCOUNT = "202533532952"
+ACCOUNT = deployment.value("account_id")
 REGION = "us-east-1"
 TABLE = "hacktricks-cspm"
 OWN_TENANT = "d48824c8-5021-7029-7c47-9c55bf99e58f"

@@ -344,6 +344,13 @@ def _project(keys):
 
 
 @_each
+def _bedrock_agent(requests, session, region, item):
+    from .aws_bedrock_security_metadata import agent_metadata
+    summary = _pick(item, ["agentId", "agentName", "agentStatus", "latestAgentVersion", "updatedAt", "guardrailConfiguration"])
+    return agent_metadata(requests, session, region, summary)
+
+
+@_each
 def _athena(requests, session, region, item):
     item = _metadata(item)
     item["WorkGroup"] = _detail(requests, session, region, "athena", "get_work_group", WorkGroup=item["Name"])
@@ -595,7 +602,9 @@ def _builds(requests, session, region, name):
     items = [_pick(rows[i], ["id", "buildNumber", "buildStatus", "startTime", "endTime"]) for i in ids if i in rows]
     out = {"collection_status": "collected" if items else "empty", "items": items,
         "_provenance": {"source_operation": "list_builds_for_project/batch_get_builds", "order": "DESCENDING", "newest": len(ids)}}
-    missing = [i for i in ids if i not in rows and i not in builds.get("buildsNotFound", [])]
+    # Every enumerated build needs details. buildsNotFound proves a raced/deleted
+    # build exists in the listing, not that the project was never invoked.
+    missing = [i for i in ids if i not in rows]
     if missing:
         out = {"collection_status": "partial", "items": items, "error": {"code": "batch_get_incomplete"}}
     return out
@@ -633,7 +642,7 @@ def _cloudformation_stack(requests, session, region, item):
     # Parameters and Outputs can carry secrets: only CDKToolkit BootstrapVersion is kept.
     outputs = item.get("Outputs")
     kept = _pick(item, ["StackName", "StackId", "StackStatus", "CreationTime", "LastUpdatedTime", "NotificationARNs", "DisableRollback",
-        "EnableTerminationProtection", "DriftInformation", "ParentId", "RootId", "RoleARN"])
+        "EnableTerminationProtection", "DriftInformation", "ParentId", "RootId", "RoleARN", "ConfigurationSecretIndicators"])
     if item.get("StackName") == "CDKToolkit" and isinstance(outputs, list):
         kept["Outputs"] = [_pick(o, ["OutputKey", "OutputValue"]) for o in outputs if isinstance(o, dict) and o.get("OutputKey") == "BootstrapVersion"]
     return kept
@@ -812,7 +821,7 @@ ENRICHERS = {
     "directory_service_directory": _directory,
     "fms_policy": _fms_policy,
     "bedrock_guardrail": _guardrail,
-    "bedrock_agent": _project(["agentId", "agentName", "agentStatus", "latestAgentVersion", "updatedAt", "guardrailConfiguration"]),
+    "bedrock_agent": _bedrock_agent,
     "bedrock_custom_model": _custom_model,
     "bedrock_prompt": _prompt,
     "bedrock_knowledge_base": _knowledge_base,

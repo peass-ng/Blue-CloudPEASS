@@ -3,7 +3,7 @@ variable "region" {
   default = "us-east-1"
   validation {
     condition     = var.region == "us-east-1"
-    error_message = "The existing wiki identity and CloudFront certificate are in us-east-1."
+    error_message = "This stack requires its identity and CloudFront certificate in us-east-1."
   }
 }
 variable "api_zip" {
@@ -23,8 +23,8 @@ variable "worker_image" {
   type        = string
   description = "Published CSPM-only collector/analyzer image pinned by sha256 digest."
   validation {
-    condition     = can(regex("^202533532952\\.dkr\\.ecr\\.us-east-1\\.amazonaws\\.com/hacktricks-cspm-worker@sha256:[a-f0-9]{64}$", var.worker_image))
-    error_message = "Use the dedicated wiki-account ECR repository and an immutable digest."
+    condition     = can(regex("^[0-9]{12}\\.dkr\\.ecr\\.us-east-1\\.amazonaws\\.com/hacktricks-cspm-worker@sha256:[a-f0-9]{64}$", var.worker_image))
+    error_message = "Use the dedicated CSPM ECR repository and an immutable digest."
   }
 }
 variable "enable_public_customer_role_template" {
@@ -37,7 +37,7 @@ variable "gcp_platform_sa_secret_arn" {
   default     = ""
   description = "Existing Secrets Manager secret ARN containing the HackTricks CSPM GCP service account JSON. The value never enters Terraform state."
   validation {
-    condition     = var.gcp_platform_sa_secret_arn == "" || can(regex("^arn:aws:secretsmanager:us-east-1:202533532952:secret:[A-Za-z0-9/_+=.@-]+$", var.gcp_platform_sa_secret_arn))
+    condition     = var.gcp_platform_sa_secret_arn == "" || can(regex("^arn:aws:secretsmanager:us-east-1:[0-9]{12}:secret:[A-Za-z0-9/_+=.@-]+$", var.gcp_platform_sa_secret_arn))
     error_message = "Use a secret in the dedicated CSPM AWS account and region."
   }
 }
@@ -80,7 +80,6 @@ variable "scan_runtime_limits" {
 variable "budget_email" {
   type        = string
   description = "Address receiving CSPM budget alerts."
-  default     = "carlospolop@gmail.com"
 }
 variable "monthly_budget_usd" {
   type    = number
@@ -88,5 +87,70 @@ variable "monthly_budget_usd" {
   validation {
     condition     = var.monthly_budget_usd >= 1 && var.monthly_budget_usd <= 100
     error_message = "Keep the dedicated CSPM monthly budget within $1-$100."
+  }
+}
+
+variable "codex_token_secret_arn" {
+  type        = string
+  default     = ""
+  description = "Optional runtime Secrets Manager ARN holding a plain Codex token or JSON access_token. Values are never read by Terraform."
+  validation {
+    condition     = var.codex_token_secret_arn == "" || can(regex("^arn:aws:secretsmanager:[a-z0-9-]+:[0-9]{12}:secret:[A-Za-z0-9/_+=.@-]+$", var.codex_token_secret_arn))
+    error_message = "Provide a Secrets Manager secret ARN or leave empty for personal sign-in."
+  }
+}
+variable "codex_token_kms_key_arn" {
+  type        = string
+  default     = ""
+  description = "Optional customer-managed KMS key used by the configured Codex secret."
+}
+
+variable "account_id" {
+  type        = string
+  description = "Explicit deployment account; the provider rejects other accounts."
+  validation {
+    condition     = can(regex("^[0-9]{12}$", var.account_id))
+    error_message = "Provide the deployment AWS account ID."
+  }
+}
+variable "cognito_pool_id" {
+  type        = string
+  description = "Existing user pool supplied by private deployment configuration."
+}
+variable "cognito_client_id" {
+  type        = string
+  description = "Existing Cognito app client supplied by private deployment configuration."
+}
+variable "stripe_secret_arn" {
+  type        = string
+  description = "Existing billing secret ARN. Only runtime reads its value."
+}
+variable "stripe_price_id" {
+  type        = string
+  description = "Subscription price accepted by the hosted application."
+}
+variable "gcp_platform_project" {
+  type        = string
+  default     = ""
+  description = "Project owning the optional hosted GCP service account."
+}
+variable "gcp_platform_email" {
+  type        = string
+  default     = ""
+  description = "Optional hosted GCP service-account email."
+}
+variable "platform_account_ids" {
+  type        = list(string)
+  default     = []
+  description = "Additional operator-owned AWS accounts excluded from customer connectors."
+}
+
+variable "archived_customer_role_templates" {
+  type        = map(string)
+  default     = {}
+  description = "Private paths to prior immutable customer templates, keyed by original SHA256. Retain existing keys when upgrading a deployed stack."
+  validation {
+    condition     = alltrue([for digest, path in var.archived_customer_role_templates : can(regex("^[a-f0-9]{64}$", digest)) && filesha256(path) == digest])
+    error_message = "Every private archive path must match its original SHA256 key."
   }
 }

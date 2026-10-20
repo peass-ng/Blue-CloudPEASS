@@ -20,15 +20,15 @@ def _hits(event: dict) -> list[str]:
 
 def test_external_read_and_negative_policy_variants() -> None:
     policy = {"Version": "2012-10-17", "Statement": [{"Effect": "Allow",
-        "Principal": {"AWS": "arn:aws:iam::202533532952:root"},
+        "Principal": {"AWS": "arn:aws:iam::111122223333:root"},
         "Action": ["codeartifact:ReadFromRepository", "codeartifact:GetPackageVersionAsset"],
         "Resource": "*"}]}
-    arn = "arn:aws:codeartifact:us-east-1:947247140022:repository/peasso-detect-ca95410751/test-repo"
+    arn = "arn:aws:codeartifact:us-east-1:222233334444:repository/peasso-detect-ca95410751/test-repo"
     event = {"eventSource": "codeartifact.amazonaws.com",
              "eventName": "PutRepositoryPermissionsPolicy", "awsRegion": "us-east-1",
              "eventCategory": "Management", "eventType": "AwsApiCall",
              "managementEvent": True, "readOnly": False,
-             "recipientAccountId": "947247140022",
+             "recipientAccountId": "222233334444",
              "requestParameters": {"domain": "peasso-detect-ca95410751", "repository": "test-repo",
                                    "policyDocument": json.dumps(policy)},
              "responseElements": {"policy": {"resourceArn": arn, "document": json.dumps(policy)}}}
@@ -37,7 +37,7 @@ def test_external_read_and_negative_policy_variants() -> None:
         item = deepcopy(event)
         changed = deepcopy(policy)
         if variant == "same_account":
-            changed["Statement"][0]["Principal"]["AWS"] = "arn:aws:iam::947247140022:root"
+            changed["Statement"][0]["Principal"]["AWS"] = "arn:aws:iam::222233334444:root"
         if variant == "no_package_access":
             changed["Statement"][0]["Action"] = ["codeartifact:DescribeRepository"]
         if variant == "conditional":

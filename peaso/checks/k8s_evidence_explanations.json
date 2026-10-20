@@ -3,7 +3,7 @@
     "field": "observed_pod_pids_limit",
     "format": "scalar",
     "label": "Supplied per-Pod process limit",
-    "limit": "The supplied declaration does not verify runtime behavior or all-node coverage.",
+    "limit": "Runtime settings and all-node coverage were not verified.",
     "nullable": false,
     "purpose": "A positive process limit can help prevent one Pod exhausting node process capacity.",
     "reason": "Selected source branch has no independent read-only-provider PASS path. Component PID declaration helper requires operator-supplied metadata provenance",
@@ -547,7 +547,7 @@
     "field": "configured_rotation_gate",
     "format": "scalar",
     "label": "Supplied kubelet serving-certificate rotation gate",
-    "limit": "The supplied declaration does not verify runtime behavior or all-node coverage.",
+    "limit": "Runtime settings and all-node coverage were not verified.",
     "nullable": false,
     "purpose": "Serving-certificate rotation helps replace credentials before they expire.",
     "reason": "Selected source branch has no independent read-only-provider PASS path. Kubelet declaration helper requires operator-supplied metadata provenance, outside read-only Kubernetes API",
@@ -677,7 +677,7 @@
     "field": "address",
     "format": "scalar",
     "label": "Declared kube-proxy metrics address",
-    "limit": "The supplied declaration does not verify runtime behavior or all-node coverage.",
+    "limit": "Runtime settings and all-node coverage were not verified.",
     "nullable": false,
     "purpose": "Binding metrics to loopback restricts direct access to the local host.",
     "reason": "Selected source branch has no independent read-only-provider PASS path. Selected kube-proxy branch requires attested pod coverage before port verdict",
@@ -698,9 +698,9 @@
     "field": "configured_seccomp_default",
     "format": "scalar",
     "label": "Supplied kubelet default seccomp",
-    "limit": "The supplied declaration does not verify runtime behavior or all-node coverage.",
+    "limit": "Runtime settings and all-node coverage were not verified.",
     "nullable": false,
-    "purpose": "Default seccomp can restrict system calls for containers without an overriding profile.",
+    "purpose": "System-call filters limit kernel operations available to containers without overrides.",
     "reason": "Current check depends on an operator declaration outside Kubernetes provider API capture.",
     "renderer": "external",
     "source": "peaso/checks/compliance_new_k8s_component.py::kubelet_seccomp_default:133",
@@ -849,9 +849,9 @@
     "field": "client_ca_file",
     "format": "scalar",
     "label": "Supplied kubelet client CA file",
-    "limit": "The supplied declaration does not verify runtime behavior or all-node coverage.",
+    "limit": "Runtime settings and all-node coverage were not verified.",
     "nullable": true,
-    "purpose": "A client CA supports authentication of clients presenting trusted certificates.",
+    "purpose": "A trusted client CA enables certificate-based client authentication.",
     "reason": "Mandatory external policy or attestation: kubelet_rule evaluates supplied kubelet configuration and returns MANUAL when the setting is absent; current source is operator-supplied metadata.",
     "renderer": "external",
     "source": "peaso/checks/claude_gcp_k8s_k8s.py::kubelet_rule",
@@ -861,7 +861,7 @@
     "field": "streaming_connection_idle_timeout",
     "format": "scalar",
     "label": "Supplied kubelet streaming idle timeout",
-    "limit": "The supplied declaration does not verify runtime behavior or all-node coverage.",
+    "limit": "Runtime settings and all-node coverage were not verified.",
     "nullable": false,
     "purpose": "Idle timeouts limit how long unused streaming connections remain open.",
     "reason": "Mandatory external policy or attestation: kubelet_rule evaluates supplied kubelet configuration and returns MANUAL when the setting is absent; current source is operator-supplied metadata.",
@@ -1459,7 +1459,7 @@
       "source_qualname": "_register.<locals>.decorator.<locals>.apply.<locals>.evaluate"
     },
     "limit": "PSP availability, bindings and live admission were not verified.",
-    "purpose": "Legacy PodSecurityPolicy declarations describe restrictions on admitted Pods.",
+    "purpose": "Default system-call filters limit the kernel operations available to new containers.",
     "renderer": "native"
   },
   "k8s.claude.podsecuritypolicy.security_services_hardening": {
@@ -1472,7 +1472,7 @@
       "source_qualname": "_register.<locals>.decorator.<locals>.apply.<locals>.evaluate"
     },
     "limit": "PSP availability, bindings and live admission were not verified.",
-    "purpose": "Legacy PodSecurityPolicy declarations describe restrictions on admitted Pods.",
+    "purpose": "SELinux labels help separate container access to host resources.",
     "renderer": "native"
   },
   "k8s.claude.podtemplate.dashboard_not_deployed": {
@@ -2650,9 +2650,9 @@
     "field": "configured",
     "format": "scalar",
     "label": "Supplied kubelet authorization mode",
-    "limit": "The supplied declaration does not verify runtime behavior or all-node coverage.",
+    "limit": "Runtime settings and all-node coverage were not verified.",
     "nullable": false,
-    "purpose": "Authorization modes determine whether kubelet requests must pass a permission check.",
+    "purpose": "Permission checks help prevent clients accessing unauthorized node operations.",
     "reason": "Mandatory external policy or attestation: The evaluator reads supplied component_configuration; collector source is operator metadata rather than Kubernetes API effective kubelet configuration.",
     "renderer": "external",
     "source": "peaso/checks/k8s_ports_reference_config.py::configuration",
@@ -2662,9 +2662,9 @@
     "field": "configured",
     "format": "scalar",
     "label": "Supplied kubelet anonymous authentication",
-    "limit": "The supplied declaration does not verify runtime behavior or all-node coverage.",
+    "limit": "Runtime settings and all-node coverage were not verified.",
     "nullable": false,
-    "purpose": "Anonymous authentication permits requests without user credentials.",
+    "purpose": "Unauthenticated kubelet requests can expose node and workload information.",
     "reason": "Mandatory external policy or attestation: The evaluator reads supplied component_configuration; collector source is operator metadata rather than Kubernetes API effective kubelet configuration.",
     "renderer": "external",
     "source": "peaso/checks/k8s_ports_reference_config.py::configuration",
@@ -2674,9 +2674,9 @@
     "field": "configured",
     "format": "scalar",
     "label": "Supplied kubelet read-only port",
-    "limit": "The supplied declaration does not verify runtime behavior or all-node coverage.",
+    "limit": "Runtime settings and all-node coverage were not verified.",
     "nullable": false,
-    "purpose": "A nonzero read-only port exposes a kubelet listener without authentication.",
+    "purpose": "Read-only kubelet endpoints can disclose node and workload information.",
     "reason": "Mandatory external policy or attestation: The evaluator reads supplied component_configuration; collector source is operator metadata rather than Kubernetes API effective kubelet configuration.",
     "renderer": "external",
     "source": "peaso/checks/k8s_ports_reference_config.py::configuration",
@@ -2686,7 +2686,7 @@
     "field": "configured",
     "format": "scalar",
     "label": "Supplied kubelet iptables utility-chain management",
-    "limit": "The supplied declaration does not verify runtime behavior or all-node coverage.",
+    "limit": "Runtime settings and all-node coverage were not verified.",
     "nullable": false,
     "purpose": "Utility-chain management supports the kubelet network configuration.",
     "reason": "Mandatory external policy or attestation: The evaluator reads supplied component_configuration; collector source is operator metadata rather than Kubernetes API effective kubelet configuration.",
@@ -2698,9 +2698,9 @@
     "field": "configured",
     "format": "scalar",
     "label": "Supplied kubelet client-certificate rotation",
-    "limit": "The supplied declaration does not verify runtime behavior or all-node coverage.",
+    "limit": "Runtime settings and all-node coverage were not verified.",
     "nullable": false,
-    "purpose": "Certificate rotation helps replace kubelet client credentials before they expire.",
+    "purpose": "Rotating client credentials reduces disruption from expired certificates.",
     "reason": "Mandatory external policy or attestation: The evaluator reads supplied component_configuration; collector source is operator metadata rather than Kubernetes API effective kubelet configuration.",
     "renderer": "external",
     "source": "peaso/checks/k8s_ports_reference_config.py::configuration",
@@ -2864,7 +2864,7 @@
       "pod_spec_path": "spec.jobTemplate.spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "An allow-all authorization mode skips permission checks.",
     "renderer": "native"
   },
   "k8s.ports.cronjob.container_argument_authorization_mode_node": {
@@ -2879,7 +2879,7 @@
       "pod_spec_path": "spec.jobTemplate.spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "Node authorization restricts kubelet access to resources associated with its node.",
     "renderer": "native"
   },
   "k8s.ports.cronjob.container_argument_authorization_mode_rbac": {
@@ -2894,7 +2894,7 @@
       "pod_spec_path": "spec.jobTemplate.spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "Role-based authorization checks API requests against the identity\u2019s assigned roles.",
     "renderer": "native"
   },
   "k8s.ports.cronjob.container_argument_etcd_auto_tls_disabled": {
@@ -3168,7 +3168,7 @@
       "pod_spec_path": "spec.jobTemplate.spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "An allow-all authorization mode skips permission checks.",
     "renderer": "native"
   },
   "k8s.ports.cronjob.container_argument_kubelet_client_ca_file_configured": {
@@ -3352,7 +3352,7 @@
       "pod_spec_path": "spec.jobTemplate.spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "The gate permits kubelet serving-certificate rotation.",
+    "purpose": "Rotation can replace kubelet serving certificates before expiry.",
     "renderer": "native"
   },
   "k8s.ports.cronjob.container_argument_secure_port_not_0": {
@@ -3385,7 +3385,7 @@
       "pod_spec_path": "spec.jobTemplate.spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Legacy admission plugins can reject Pod declarations outside their security policies.",
+    "purpose": "Legacy Pod admission checks can reject unsafe container settings.",
     "renderer": "native"
   },
   "k8s.ports.cronjob.container_argument_service_account_enabled": {
@@ -3573,7 +3573,7 @@
       "pod_spec_path": "spec.jobTemplate.spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Cipher selection affects the strength of negotiated TLS encryption.",
+    "purpose": "Approved cipher suites reduce weak TLS negotiation options.",
     "renderer": "native"
   },
   "k8s.ports.cronjob.container_strong_kubelet_cryptographic_ciphers": {
@@ -3595,7 +3595,7 @@
       "pod_spec_path": "spec.jobTemplate.spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Cipher selection affects the strength of negotiated TLS encryption.",
+    "purpose": "Approved cipher suites reduce weak TLS negotiation options.",
     "renderer": "native"
   },
   "k8s.ports.cronjob.container_token_auth_file_not_configured": {
@@ -4007,7 +4007,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "An allow-all authorization mode skips permission checks.",
     "renderer": "native"
   },
   "k8s.ports.daemonset.container_argument_authorization_mode_node": {
@@ -4022,7 +4022,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "Node authorization restricts kubelet access to resources associated with its node.",
     "renderer": "native"
   },
   "k8s.ports.daemonset.container_argument_authorization_mode_rbac": {
@@ -4037,7 +4037,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "Role-based authorization checks API requests against the identity\u2019s assigned roles.",
     "renderer": "native"
   },
   "k8s.ports.daemonset.container_argument_etcd_auto_tls_disabled": {
@@ -4311,7 +4311,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "An allow-all authorization mode skips permission checks.",
     "renderer": "native"
   },
   "k8s.ports.daemonset.container_argument_kubelet_client_ca_file_configured": {
@@ -4495,7 +4495,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "The gate permits kubelet serving-certificate rotation.",
+    "purpose": "Rotation can replace kubelet serving certificates before expiry.",
     "renderer": "native"
   },
   "k8s.ports.daemonset.container_argument_secure_port_not_0": {
@@ -4528,7 +4528,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Legacy admission plugins can reject Pod declarations outside their security policies.",
+    "purpose": "Legacy Pod admission checks can reject unsafe container settings.",
     "renderer": "native"
   },
   "k8s.ports.daemonset.container_argument_service_account_enabled": {
@@ -4716,7 +4716,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Cipher selection affects the strength of negotiated TLS encryption.",
+    "purpose": "Approved cipher suites reduce weak TLS negotiation options.",
     "renderer": "native"
   },
   "k8s.ports.daemonset.container_strong_kubelet_cryptographic_ciphers": {
@@ -4738,7 +4738,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Cipher selection affects the strength of negotiated TLS encryption.",
+    "purpose": "Approved cipher suites reduce weak TLS negotiation options.",
     "renderer": "native"
   },
   "k8s.ports.daemonset.container_token_auth_file_not_configured": {
@@ -5155,7 +5155,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "An allow-all authorization mode skips permission checks.",
     "renderer": "native"
   },
   "k8s.ports.deployment.container_argument_authorization_mode_node": {
@@ -5170,7 +5170,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "Node authorization restricts kubelet access to resources associated with its node.",
     "renderer": "native"
   },
   "k8s.ports.deployment.container_argument_authorization_mode_rbac": {
@@ -5185,7 +5185,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "Role-based authorization checks API requests against the identity\u2019s assigned roles.",
     "renderer": "native"
   },
   "k8s.ports.deployment.container_argument_etcd_auto_tls_disabled": {
@@ -5459,7 +5459,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "An allow-all authorization mode skips permission checks.",
     "renderer": "native"
   },
   "k8s.ports.deployment.container_argument_kubelet_client_ca_file_configured": {
@@ -5643,7 +5643,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "The gate permits kubelet serving-certificate rotation.",
+    "purpose": "Rotation can replace kubelet serving certificates before expiry.",
     "renderer": "native"
   },
   "k8s.ports.deployment.container_argument_secure_port_not_0": {
@@ -5676,7 +5676,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Legacy admission plugins can reject Pod declarations outside their security policies.",
+    "purpose": "Legacy Pod admission checks can reject unsafe container settings.",
     "renderer": "native"
   },
   "k8s.ports.deployment.container_argument_service_account_enabled": {
@@ -5864,7 +5864,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Cipher selection affects the strength of negotiated TLS encryption.",
+    "purpose": "Approved cipher suites reduce weak TLS negotiation options.",
     "renderer": "native"
   },
   "k8s.ports.deployment.container_strong_kubelet_cryptographic_ciphers": {
@@ -5886,7 +5886,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Cipher selection affects the strength of negotiated TLS encryption.",
+    "purpose": "Approved cipher suites reduce weak TLS negotiation options.",
     "renderer": "native"
   },
   "k8s.ports.deployment.container_token_auth_file_not_configured": {
@@ -6345,7 +6345,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "An allow-all authorization mode skips permission checks.",
     "renderer": "native"
   },
   "k8s.ports.job.container_argument_authorization_mode_node": {
@@ -6360,7 +6360,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "Node authorization restricts kubelet access to resources associated with its node.",
     "renderer": "native"
   },
   "k8s.ports.job.container_argument_authorization_mode_rbac": {
@@ -6375,7 +6375,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "Role-based authorization checks API requests against the identity\u2019s assigned roles.",
     "renderer": "native"
   },
   "k8s.ports.job.container_argument_etcd_auto_tls_disabled": {
@@ -6649,7 +6649,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "An allow-all authorization mode skips permission checks.",
     "renderer": "native"
   },
   "k8s.ports.job.container_argument_kubelet_client_ca_file_configured": {
@@ -6833,7 +6833,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "The gate permits kubelet serving-certificate rotation.",
+    "purpose": "Rotation can replace kubelet serving certificates before expiry.",
     "renderer": "native"
   },
   "k8s.ports.job.container_argument_secure_port_not_0": {
@@ -6866,7 +6866,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Legacy admission plugins can reject Pod declarations outside their security policies.",
+    "purpose": "Legacy Pod admission checks can reject unsafe container settings.",
     "renderer": "native"
   },
   "k8s.ports.job.container_argument_service_account_enabled": {
@@ -7054,7 +7054,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Cipher selection affects the strength of negotiated TLS encryption.",
+    "purpose": "Approved cipher suites reduce weak TLS negotiation options.",
     "renderer": "native"
   },
   "k8s.ports.job.container_strong_kubelet_cryptographic_ciphers": {
@@ -7076,7 +7076,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Cipher selection affects the strength of negotiated TLS encryption.",
+    "purpose": "Approved cipher suites reduce weak TLS negotiation options.",
     "renderer": "native"
   },
   "k8s.ports.job.container_token_auth_file_not_configured": {
@@ -7699,7 +7699,7 @@
       "pod_spec_path": "spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "An allow-all authorization mode skips permission checks.",
     "renderer": "native"
   },
   "k8s.ports.pod.container_argument_authorization_mode_node": {
@@ -7714,7 +7714,7 @@
       "pod_spec_path": "spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "Node authorization restricts kubelet access to resources associated with its node.",
     "renderer": "native"
   },
   "k8s.ports.pod.container_argument_authorization_mode_rbac": {
@@ -7729,7 +7729,7 @@
       "pod_spec_path": "spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "Role-based authorization checks API requests against the identity\u2019s assigned roles.",
     "renderer": "native"
   },
   "k8s.ports.pod.container_argument_etcd_auto_tls_disabled": {
@@ -8003,7 +8003,7 @@
       "pod_spec_path": "spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "An allow-all authorization mode skips permission checks.",
     "renderer": "native"
   },
   "k8s.ports.pod.container_argument_kubelet_client_ca_file_configured": {
@@ -8187,7 +8187,7 @@
       "pod_spec_path": "spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "The gate permits kubelet serving-certificate rotation.",
+    "purpose": "Rotation can replace kubelet serving certificates before expiry.",
     "renderer": "native"
   },
   "k8s.ports.pod.container_argument_secure_port_not_0": {
@@ -8220,7 +8220,7 @@
       "pod_spec_path": "spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Legacy admission plugins can reject Pod declarations outside their security policies.",
+    "purpose": "Legacy Pod admission checks can reject unsafe container settings.",
     "renderer": "native"
   },
   "k8s.ports.pod.container_argument_service_account_enabled": {
@@ -8392,7 +8392,7 @@
       "pod_spec_path": "spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Cipher selection affects the strength of negotiated TLS encryption.",
+    "purpose": "Approved cipher suites reduce weak TLS negotiation options.",
     "renderer": "native"
   },
   "k8s.ports.pod.container_strong_kubelet_cryptographic_ciphers": {
@@ -8414,7 +8414,7 @@
       "pod_spec_path": "spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Cipher selection affects the strength of negotiated TLS encryption.",
+    "purpose": "Approved cipher suites reduce weak TLS negotiation options.",
     "renderer": "native"
   },
   "k8s.ports.pod.container_token_auth_file_not_configured": {
@@ -9033,7 +9033,7 @@
       "pod_spec_path": "template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "An allow-all authorization mode skips permission checks.",
     "renderer": "native"
   },
   "k8s.ports.podtemplate.container_argument_authorization_mode_node": {
@@ -9048,7 +9048,7 @@
       "pod_spec_path": "template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "Node authorization restricts kubelet access to resources associated with its node.",
     "renderer": "native"
   },
   "k8s.ports.podtemplate.container_argument_authorization_mode_rbac": {
@@ -9063,7 +9063,7 @@
       "pod_spec_path": "template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "Role-based authorization checks API requests against the identity\u2019s assigned roles.",
     "renderer": "native"
   },
   "k8s.ports.podtemplate.container_argument_etcd_auto_tls_disabled": {
@@ -9337,7 +9337,7 @@
       "pod_spec_path": "template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "An allow-all authorization mode skips permission checks.",
     "renderer": "native"
   },
   "k8s.ports.podtemplate.container_argument_kubelet_client_ca_file_configured": {
@@ -9521,7 +9521,7 @@
       "pod_spec_path": "template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "The gate permits kubelet serving-certificate rotation.",
+    "purpose": "Rotation can replace kubelet serving certificates before expiry.",
     "renderer": "native"
   },
   "k8s.ports.podtemplate.container_argument_secure_port_not_0": {
@@ -9554,7 +9554,7 @@
       "pod_spec_path": "template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Legacy admission plugins can reject Pod declarations outside their security policies.",
+    "purpose": "Legacy Pod admission checks can reject unsafe container settings.",
     "renderer": "native"
   },
   "k8s.ports.podtemplate.container_argument_service_account_enabled": {
@@ -9742,7 +9742,7 @@
       "pod_spec_path": "template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Cipher selection affects the strength of negotiated TLS encryption.",
+    "purpose": "Approved cipher suites reduce weak TLS negotiation options.",
     "renderer": "native"
   },
   "k8s.ports.podtemplate.container_strong_kubelet_cryptographic_ciphers": {
@@ -9764,7 +9764,7 @@
       "pod_spec_path": "template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Cipher selection affects the strength of negotiated TLS encryption.",
+    "purpose": "Approved cipher suites reduce weak TLS negotiation options.",
     "renderer": "native"
   },
   "k8s.ports.podtemplate.container_token_auth_file_not_configured": {
@@ -10206,7 +10206,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "An allow-all authorization mode skips permission checks.",
     "renderer": "native"
   },
   "k8s.ports.replicaset.container_argument_authorization_mode_node": {
@@ -10221,7 +10221,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "Node authorization restricts kubelet access to resources associated with its node.",
     "renderer": "native"
   },
   "k8s.ports.replicaset.container_argument_authorization_mode_rbac": {
@@ -10236,7 +10236,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "Role-based authorization checks API requests against the identity\u2019s assigned roles.",
     "renderer": "native"
   },
   "k8s.ports.replicaset.container_argument_etcd_auto_tls_disabled": {
@@ -10510,7 +10510,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "An allow-all authorization mode skips permission checks.",
     "renderer": "native"
   },
   "k8s.ports.replicaset.container_argument_kubelet_client_ca_file_configured": {
@@ -10694,7 +10694,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "The gate permits kubelet serving-certificate rotation.",
+    "purpose": "Rotation can replace kubelet serving certificates before expiry.",
     "renderer": "native"
   },
   "k8s.ports.replicaset.container_argument_secure_port_not_0": {
@@ -10727,7 +10727,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Legacy admission plugins can reject Pod declarations outside their security policies.",
+    "purpose": "Legacy Pod admission checks can reject unsafe container settings.",
     "renderer": "native"
   },
   "k8s.ports.replicaset.container_argument_service_account_enabled": {
@@ -10915,7 +10915,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Cipher selection affects the strength of negotiated TLS encryption.",
+    "purpose": "Approved cipher suites reduce weak TLS negotiation options.",
     "renderer": "native"
   },
   "k8s.ports.replicaset.container_strong_kubelet_cryptographic_ciphers": {
@@ -10937,7 +10937,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Cipher selection affects the strength of negotiated TLS encryption.",
+    "purpose": "Approved cipher suites reduce weak TLS negotiation options.",
     "renderer": "native"
   },
   "k8s.ports.replicaset.container_token_auth_file_not_configured": {
@@ -11354,7 +11354,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "An allow-all authorization mode skips permission checks.",
     "renderer": "native"
   },
   "k8s.ports.replicationcontroller.container_argument_authorization_mode_node": {
@@ -11369,7 +11369,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "Node authorization restricts kubelet access to resources associated with its node.",
     "renderer": "native"
   },
   "k8s.ports.replicationcontroller.container_argument_authorization_mode_rbac": {
@@ -11384,7 +11384,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "Role-based authorization checks API requests against the identity\u2019s assigned roles.",
     "renderer": "native"
   },
   "k8s.ports.replicationcontroller.container_argument_etcd_auto_tls_disabled": {
@@ -11658,7 +11658,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "An allow-all authorization mode skips permission checks.",
     "renderer": "native"
   },
   "k8s.ports.replicationcontroller.container_argument_kubelet_client_ca_file_configured": {
@@ -11842,7 +11842,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "The gate permits kubelet serving-certificate rotation.",
+    "purpose": "Rotation can replace kubelet serving certificates before expiry.",
     "renderer": "native"
   },
   "k8s.ports.replicationcontroller.container_argument_secure_port_not_0": {
@@ -11875,7 +11875,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Legacy admission plugins can reject Pod declarations outside their security policies.",
+    "purpose": "Legacy Pod admission checks can reject unsafe container settings.",
     "renderer": "native"
   },
   "k8s.ports.replicationcontroller.container_argument_service_account_enabled": {
@@ -12063,7 +12063,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Cipher selection affects the strength of negotiated TLS encryption.",
+    "purpose": "Approved cipher suites reduce weak TLS negotiation options.",
     "renderer": "native"
   },
   "k8s.ports.replicationcontroller.container_strong_kubelet_cryptographic_ciphers": {
@@ -12085,7 +12085,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Cipher selection affects the strength of negotiated TLS encryption.",
+    "purpose": "Approved cipher suites reduce weak TLS negotiation options.",
     "renderer": "native"
   },
   "k8s.ports.replicationcontroller.container_token_auth_file_not_configured": {
@@ -12640,7 +12640,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "An allow-all authorization mode skips permission checks.",
     "renderer": "native"
   },
   "k8s.ports.statefulset.container_argument_authorization_mode_node": {
@@ -12655,7 +12655,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "Node authorization restricts kubelet access to resources associated with its node.",
     "renderer": "native"
   },
   "k8s.ports.statefulset.container_argument_authorization_mode_rbac": {
@@ -12670,7 +12670,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "Role-based authorization checks API requests against the identity\u2019s assigned roles.",
     "renderer": "native"
   },
   "k8s.ports.statefulset.container_argument_etcd_auto_tls_disabled": {
@@ -12944,7 +12944,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Authorization modes determine how the API server decides whether requests are allowed.",
+    "purpose": "An allow-all authorization mode skips permission checks.",
     "renderer": "native"
   },
   "k8s.ports.statefulset.container_argument_kubelet_client_ca_file_configured": {
@@ -13128,7 +13128,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "The gate permits kubelet serving-certificate rotation.",
+    "purpose": "Rotation can replace kubelet serving certificates before expiry.",
     "renderer": "native"
   },
   "k8s.ports.statefulset.container_argument_secure_port_not_0": {
@@ -13161,7 +13161,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Legacy admission plugins can reject Pod declarations outside their security policies.",
+    "purpose": "Legacy Pod admission checks can reject unsafe container settings.",
     "renderer": "native"
   },
   "k8s.ports.statefulset.container_argument_service_account_enabled": {
@@ -13349,7 +13349,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Cipher selection affects the strength of negotiated TLS encryption.",
+    "purpose": "Approved cipher suites reduce weak TLS negotiation options.",
     "renderer": "native"
   },
   "k8s.ports.statefulset.container_strong_kubelet_cryptographic_ciphers": {
@@ -13371,7 +13371,7 @@
       "pod_spec_path": "spec.template.spec"
     },
     "limit": "Live component behavior was not tested.",
-    "purpose": "Cipher selection affects the strength of negotiated TLS encryption.",
+    "purpose": "Approved cipher suites reduce weak TLS negotiation options.",
     "renderer": "native"
   },
   "k8s.ports.statefulset.container_token_auth_file_not_configured": {

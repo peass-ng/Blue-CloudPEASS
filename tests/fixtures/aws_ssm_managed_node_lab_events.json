@@ -1,0 +1,205 @@
+[
+  {
+    "eventID": "a53ab7f7-c9fd-486d-9edc-f57a515f2457",
+    "eventTime": "2026-10-19T19:35:17Z",
+    "eventSource": "ssm.amazonaws.com",
+    "eventName": "SendCommand",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "userIdentity": {
+      "arn": "arn:aws:sts::222233334444:assumed-role/example-ssm-node-98576ace-reader/example-ssm-node"
+    },
+    "requestParameters": {},
+    "responseElements": null,
+    "errorCode": "AccessDenied"
+  },
+  {
+    "eventID": "f447800a-88e7-4c2d-920c-6c6516a8eb96",
+    "eventTime": "2026-10-19T19:35:17Z",
+    "eventSource": "ssm.amazonaws.com",
+    "eventName": "SendCommand",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    },
+    "requestParameters": {
+      "documentName": "AWS-RunShellScript",
+      "instanceIds": [
+        "i-02775546b920d9035"
+      ]
+    },
+    "responseElements": null
+  },
+  {
+    "eventID": "ba26910e-4fac-4ec2-9e91-231395e23931",
+    "eventTime": "2026-10-19T19:35:20Z",
+    "eventSource": "ssm.amazonaws.com",
+    "eventName": "ListCommandInvocations",
+    "awsRegion": "us-east-1",
+    "readOnly": true,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "userIdentity": {
+      "arn": "arn:aws:sts::222233334444:assumed-role/example-ssm-node-98576ace-reader/example-ssm-node"
+    },
+    "requestParameters": {
+      "details": true,
+      "commandId": "d7ed5951-f92b-4c5d-9d08-ac477fa291a1"
+    },
+    "responseElements": null
+  },
+  {
+    "eventID": "f26b6569-0b21-4f0b-b196-acdf8ac49af6",
+    "eventTime": "2026-10-19T19:35:20Z",
+    "eventSource": "ssm.amazonaws.com",
+    "eventName": "ListCommands",
+    "awsRegion": "us-east-1",
+    "readOnly": true,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "userIdentity": {
+      "arn": "arn:aws:sts::222233334444:assumed-role/example-ssm-node-98576ace-reader/example-ssm-node"
+    },
+    "requestParameters": {
+      "commandId": "d7ed5951-f92b-4c5d-9d08-ac477fa291a1"
+    },
+    "responseElements": null
+  },
+  {
+    "eventID": "222a00ac-7c59-44cd-96ae-5a9198d85a22",
+    "eventTime": "2026-10-19T19:35:21Z",
+    "eventSource": "ssm.amazonaws.com",
+    "eventName": "GetCommandInvocation",
+    "awsRegion": "us-east-1",
+    "readOnly": true,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "userIdentity": {
+      "arn": "arn:aws:sts::222233334444:assumed-role/example-ssm-node-98576ace-reader/example-ssm-node"
+    },
+    "requestParameters": {
+      "instanceId": "i-02775546b920d9035",
+      "commandId": "d7ed5951-f92b-4c5d-9d08-ac477fa291a1"
+    },
+    "responseElements": null
+  },
+  {
+    "eventID": "518df590-72c1-49f9-8a27-14972cbbce94",
+    "eventTime": "2026-10-19T19:35:21Z",
+    "eventSource": "ssm.amazonaws.com",
+    "eventName": "TerminateSession",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    },
+    "requestParameters": {
+      "sessionId": "example-ssm-node-b4thy4ch7tht7oadeg4r4ufadq"
+    },
+    "responseElements": null
+  },
+  {
+    "eventID": "ccd79d63-bec6-43d8-980f-7652dc3fd24a",
+    "eventTime": "2026-10-19T19:35:21Z",
+    "eventSource": "ssm.amazonaws.com",
+    "eventName": "StartSession",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "userIdentity": {
+      "arn": "arn:aws:sts::222233334444:assumed-role/example-ssm-node-98576ace-session/example-ssm-node"
+    },
+    "requestParameters": {
+      "target": "i-02775546b920d9035"
+    },
+    "responseElements": {
+      "sessionId": "example-ssm-node-b4thy4ch7tht7oadeg4r4ufadq"
+    }
+  },
+  {
+    "eventID": "01bd54ff-165b-4cbe-8329-4c52ea1682a2",
+    "eventTime": "2026-10-19T19:35:22Z",
+    "eventSource": "ssm.amazonaws.com",
+    "eventName": "CreateAssociation",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    },
+    "requestParameters": {
+      "applyOnlyAtCronInterval": true,
+      "associationName": "example-ssm-node-98576ace",
+      "name": "example-ssm-node-98576ace-doc"
+    },
+    "responseElements": null
+  },
+  {
+    "eventID": "0f776721-60b9-41a1-9fed-bbea67950c34",
+    "eventTime": "2026-10-19T19:35:22Z",
+    "eventSource": "ssm.amazonaws.com",
+    "eventName": "SendCommand",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "userIdentity": {
+      "arn": "arn:aws:sts::222233334444:assumed-role/AWSServiceRoleForAmazonSSM/StateManagerService"
+    },
+    "requestParameters": {
+      "documentName": "example-ssm-node-98576ace-doc",
+      "instanceIds": [
+        "i-02775546b920d9035"
+      ]
+    },
+    "responseElements": null
+  },
+  {
+    "eventID": "6b833587-b96d-4808-a79d-48c57a306870",
+    "eventTime": "2026-10-19T19:35:22Z",
+    "eventSource": "ssm.amazonaws.com",
+    "eventName": "StartAssociationsOnce",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    },
+    "requestParameters": {
+      "associationIds": [
+        "a2e7646b-16ff-4a2b-a7b2-830a53c83787"
+      ]
+    },
+    "responseElements": null
+  }
+]

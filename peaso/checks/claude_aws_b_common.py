@@ -281,6 +281,41 @@ def _lower_block(condition, operator):
     return {str(k).lower(): v for k, v in block.items()}
 
 
+def _condition_pattern_is_bounded(value, key, operator):
+    """A wildcard match is not itself an account, organization or network boundary.
+
+    Corrects the pinned Prowler helper's acceptance of Like("*"). Concrete
+    patterns retain its contract; an ARN resource glob is bounded when its
+    account is concrete (or its S3 bucket is concrete). Other partial patterns
+    are unsupported, so callers return UNKNOWN instead of claiming restriction.
+    StringEquals treats wildcard characters literally; ArnEquals, like ArnLike,
+    supports ARN wildcards according to the IAM condition-operator contract.
+    """
+    if not isinstance(value, str) or not value:
+        raise Unavailable("malformed restricting condition value")
+    if "${" in value:
+        raise Unavailable("policy-variable condition restriction unresolved")
+    if operator not in ("StringLike", "ArnLike", "ArnEquals") or not any(c in value for c in "*?"):
+        return True
+    if set(value) == {"*"}:
+        return False
+    if key in ("aws:sourcearn", "aws:principalarn"):
+        parts = value.split(":", 5)
+        if len(parts) == 6 and parts[0] == "arn":
+            account = parts[4]
+            if len(account) == 12 and account.isdigit():
+                return True
+            # S3 bucket ARNs have no account component. A named bucket still
+            # bounds SourceArn; a wildcard bucket does not establish ownership.
+            if key == "aws:sourcearn" and parts[2] == "s3" and account == "":
+                bucket = parts[5].split("/", 1)[0]
+                if bucket and not any(c in bucket for c in "*?"):
+                    return True
+            if account == "*" and parts[5] in ("*", "role/*", "user/*"):
+                return False
+    raise Unavailable("partial wildcard condition has no proven restriction boundary")
+
+
 def is_condition_block_restrictive(condition, source_account="", is_cross_account_allowed=False):
     valid = False
     for operator, keys in _VALID_OPTIONS.items():
@@ -291,6 +326,14 @@ def is_condition_block_restrictive(condition, source_account="", is_cross_accoun
             if key not in block:
                 continue
             value = block[key]
+            values = value if isinstance(value, list) else [value]
+            if not values:
+                raise Unavailable("empty restricting condition alternatives")
+            bounded = [_condition_pattern_is_bounded(entry, key, operator) for entry in values]
+            # Values under one key are alternatives; one unbounded alternative
+            # means that key cannot prove a restriction.
+            if not all(bounded):
+                continue
             if isinstance(value, list):
                 restrictive = True
                 if not is_cross_account_allowed:
@@ -468,6 +511,8 @@ def selection_resources(index):
             raise Unavailable("backup selections unavailable")
         for selection in list_of_objects(selections.get("items", [])):
             body = get(selection, "Selection.BackupSelection", dict)
+            if optional(body, "NotResources", [], list) or optional(body, "Conditions", {}, dict):
+                raise Unavailable("backup selection exclusions or conditions require separate matching proof")
             resources = optional(body, "Resources", [], list)
             out.extend(strings(resources, "BackupSelection.Resources"))
     return out

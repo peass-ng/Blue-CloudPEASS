@@ -1,0 +1,498 @@
+[
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:23:54Z",
+    "eventSource": "ecs.amazonaws.com",
+    "eventName": "CreateCluster",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "clusterName": "example-ecs-0655da15",
+      "tags": [
+        {
+          "key": "example-lab",
+          "value": "temporary"
+        }
+      ],
+      "settings": [
+        {
+          "name": "containerInsights",
+          "value": "enabled"
+        }
+      ]
+    },
+    "responseElements": {
+      "cluster": {
+        "clusterArn": "arn:aws:ecs:us-east-1:222233334444:cluster/example-ecs-0655da15",
+        "clusterName": "example-ecs-0655da15",
+        "status": "ACTIVE",
+        "settings": [
+          {
+            "name": "containerInsights",
+            "value": "enabled"
+          }
+        ]
+      }
+    },
+    "requestID": "046ab5fe-f28d-4292-9e61-0c71df6848e0",
+    "eventID": "01edf338-fc78-403d-84f0-3a60fd55c789",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:23:55Z",
+    "eventSource": "ecs.amazonaws.com",
+    "eventName": "RegisterTaskDefinition",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "family": "example-ecs-0655da15",
+      "taskRoleArn": "arn:aws:iam::222233334444:role/example-ecs-0655da15",
+      "networkMode": "awsvpc",
+      "containerDefinitions": [
+        {
+          "name": "app",
+          "image": "public.ecr.aws/docker/library/alpine:3.20",
+          "cpu": 0,
+          "essential": true,
+          "command": [
+            "sh",
+            "-c",
+            "sleep 180"
+          ]
+        },
+        {
+          "name": "canary-sidecar",
+          "image": "public.ecr.aws/docker/library/alpine:3.20",
+          "cpu": 0,
+          "essential": false,
+          "command": [
+            "sh",
+            "-c",
+            "echo example-canary && sleep 180"
+          ]
+        }
+      ],
+      "requiresCompatibilities": [
+        "FARGATE"
+      ],
+      "cpu": "256",
+      "memory": "512",
+      "tags": [
+        {
+          "key": "example-lab",
+          "value": "temporary"
+        }
+      ],
+      "dryrun": false
+    },
+    "responseElements": {
+      "taskDefinition": {
+        "taskDefinitionArn": "arn:aws:ecs:us-east-1:222233334444:task-definition/example-ecs-0655da15:2",
+        "family": "example-ecs-0655da15",
+        "revision": 2,
+        "taskRoleArn": "arn:aws:iam::222233334444:role/example-ecs-0655da15",
+        "status": "ACTIVE",
+        "containerDefinitions": [
+          {
+            "name": "app",
+            "image": "public.ecr.aws/docker/library/alpine:3.20",
+            "cpu": 0,
+            "portMappings": [],
+            "essential": true,
+            "command": [
+              "sh",
+              "-c",
+              "sleep 180"
+            ],
+            "environment": "HIDDEN_DUE_TO_SECURITY_REASONS",
+            "mountPoints": [],
+            "volumesFrom": [],
+            "systemControls": []
+          },
+          {
+            "name": "canary-sidecar",
+            "image": "public.ecr.aws/docker/library/alpine:3.20",
+            "cpu": 0,
+            "portMappings": [],
+            "essential": false,
+            "command": [
+              "sh",
+              "-c",
+              "echo example-canary && sleep 180"
+            ],
+            "environment": "HIDDEN_DUE_TO_SECURITY_REASONS",
+            "mountPoints": [],
+            "volumesFrom": [],
+            "systemControls": []
+          }
+        ]
+      }
+    },
+    "requestID": "5c811455-3adc-4309-9816-be6b5cc89342",
+    "eventID": "2040eb77-e8f5-481b-8e95-4d7d32c05ddb",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:23:55Z",
+    "eventSource": "ecs.amazonaws.com",
+    "eventName": "RegisterTaskDefinition",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "family": "example-ecs-0655da15",
+      "taskRoleArn": "arn:aws:iam::222233334444:role/example-ecs-0655da15",
+      "networkMode": "awsvpc",
+      "containerDefinitions": [
+        {
+          "name": "app",
+          "image": "public.ecr.aws/docker/library/alpine:3.20",
+          "cpu": 0,
+          "essential": true,
+          "command": [
+            "sh",
+            "-c",
+            "sleep 180"
+          ]
+        }
+      ],
+      "requiresCompatibilities": [
+        "FARGATE"
+      ],
+      "cpu": "256",
+      "memory": "512",
+      "tags": [
+        {
+          "key": "example-lab",
+          "value": "temporary"
+        }
+      ],
+      "dryrun": false
+    },
+    "responseElements": {
+      "taskDefinition": {
+        "taskDefinitionArn": "arn:aws:ecs:us-east-1:222233334444:task-definition/example-ecs-0655da15:1",
+        "family": "example-ecs-0655da15",
+        "revision": 1,
+        "taskRoleArn": "arn:aws:iam::222233334444:role/example-ecs-0655da15",
+        "status": "ACTIVE",
+        "containerDefinitions": [
+          {
+            "name": "app",
+            "image": "public.ecr.aws/docker/library/alpine:3.20",
+            "cpu": 0,
+            "portMappings": [],
+            "essential": true,
+            "command": [
+              "sh",
+              "-c",
+              "sleep 180"
+            ],
+            "environment": "HIDDEN_DUE_TO_SECURITY_REASONS",
+            "mountPoints": [],
+            "volumesFrom": [],
+            "systemControls": []
+          }
+        ]
+      }
+    },
+    "requestID": "b6d96b0c-e66b-439e-ad7a-f6e1ec078392",
+    "eventID": "6ffdc67f-821d-447b-9e30-d0c2b2a08ea1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:23:55Z",
+    "eventSource": "ecs.amazonaws.com",
+    "eventName": "UpdateClusterSettings",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "cluster": "arn:aws:ecs:us-east-1:222233334444:cluster/example-ecs-0655da15",
+      "settings": [
+        {
+          "name": "containerInsights",
+          "value": "disabled"
+        }
+      ]
+    },
+    "responseElements": {
+      "cluster": {
+        "clusterArn": "arn:aws:ecs:us-east-1:222233334444:cluster/example-ecs-0655da15",
+        "clusterName": "example-ecs-0655da15",
+        "status": "ACTIVE",
+        "settings": [
+          {
+            "name": "containerInsights",
+            "value": "disabled"
+          }
+        ]
+      }
+    },
+    "requestID": "954c2382-0761-4cd6-a6d5-ce64cf48b130",
+    "eventID": "b5cd4fae-23f2-481f-a83f-30d89ee27955",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:23:56Z",
+    "eventSource": "ecs.amazonaws.com",
+    "eventName": "CreateService",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "cluster": "arn:aws:ecs:us-east-1:222233334444:cluster/example-ecs-0655da15",
+      "serviceName": "example-ecs-0655da15",
+      "taskDefinition": "arn:aws:ecs:us-east-1:222233334444:task-definition/example-ecs-0655da15:1",
+      "desiredCount": 0,
+      "launchType": "FARGATE",
+      "networkConfiguration": {
+        "awsvpcConfiguration": {
+          "subnets": [
+            "subnet-dff704d1"
+          ],
+          "securityGroups": [
+            "sg-8ecd47dd"
+          ],
+          "assignPublicIp": "ENABLED"
+        }
+      },
+      "enableECSManagedTags": false,
+      "enableExecuteCommand": false,
+      "dryrun": false
+    },
+    "responseElements": {
+      "service": {
+        "serviceArn": "arn:aws:ecs:us-east-1:222233334444:service/example-ecs-0655da15/example-ecs-0655da15",
+        "serviceName": "example-ecs-0655da15",
+        "clusterArn": "arn:aws:ecs:us-east-1:222233334444:cluster/example-ecs-0655da15",
+        "status": "ACTIVE",
+        "desiredCount": 0,
+        "taskDefinition": "arn:aws:ecs:us-east-1:222233334444:task-definition/example-ecs-0655da15:1"
+      }
+    },
+    "requestID": "7428664a-806c-418b-8d6e-fb55de4a5182",
+    "eventID": "3011aae1-2745-4c44-985b-2cf781aca4de",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:23:57Z",
+    "eventSource": "ecs.amazonaws.com",
+    "eventName": "UpdateService",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "cluster": "arn:aws:ecs:us-east-1:222233334444:cluster/example-ecs-0655da15",
+      "service": "example-ecs-0655da15",
+      "desiredCount": 1,
+      "taskDefinition": "arn:aws:ecs:us-east-1:222233334444:task-definition/example-ecs-0655da15:2",
+      "forceNewDeployment": false,
+      "dryrun": false
+    },
+    "responseElements": {
+      "service": {
+        "serviceArn": "arn:aws:ecs:us-east-1:222233334444:service/example-ecs-0655da15/example-ecs-0655da15",
+        "serviceName": "example-ecs-0655da15",
+        "clusterArn": "arn:aws:ecs:us-east-1:222233334444:cluster/example-ecs-0655da15",
+        "status": "ACTIVE",
+        "desiredCount": 1,
+        "taskDefinition": "arn:aws:ecs:us-east-1:222233334444:task-definition/example-ecs-0655da15:2"
+      }
+    },
+    "requestID": "35193813-beec-4a6c-982c-0554b65010cf",
+    "eventID": "e6553d86-11b8-4e2e-a67e-06e4195ed050",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:24:34Z",
+    "eventSource": "ecs.amazonaws.com",
+    "eventName": "UpdateTaskProtection",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "cluster": "arn:aws:ecs:us-east-1:222233334444:cluster/example-ecs-0655da15",
+      "tasks": [
+        "arn:aws:ecs:us-east-1:222233334444:task/example-ecs-0655da15/52bea5cd03d04e6cb445feeff41d6a32"
+      ],
+      "protectionEnabled": true,
+      "expiresInMinutes": 5
+    },
+    "responseElements": {
+      "protectedTasks": [
+        {
+          "taskArn": "arn:aws:ecs:us-east-1:222233334444:task/52bea5cd03d04e6cb445feeff41d6a32",
+          "protectionEnabled": true,
+          "expirationDate": "2026-10-19T17:29:34Z"
+        }
+      ],
+      "failures": []
+    },
+    "requestID": "7a497884-5f38-45d8-976f-a4ca698e9e70",
+    "eventID": "2da8817c-50c6-4265-b7ed-1e577bc88ff5",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:24:34Z",
+    "eventSource": "ecs.amazonaws.com",
+    "eventName": "UpdateTaskProtection",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "cluster": "arn:aws:ecs:us-east-1:222233334444:cluster/example-ecs-0655da15",
+      "tasks": [
+        "arn:aws:ecs:us-east-1:222233334444:task/example-ecs-0655da15/52bea5cd03d04e6cb445feeff41d6a32"
+      ],
+      "protectionEnabled": false
+    },
+    "responseElements": {
+      "protectedTasks": [
+        {
+          "taskArn": "arn:aws:ecs:us-east-1:222233334444:task/52bea5cd03d04e6cb445feeff41d6a32",
+          "protectionEnabled": false
+        }
+      ],
+      "failures": []
+    },
+    "requestID": "ce67c629-f3b2-44db-9a14-d5ab34b09abd",
+    "eventID": "8422624c-a71e-475d-b4d9-44fdda858e0a",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:24:35Z",
+    "eventSource": "ecs.amazonaws.com",
+    "eventName": "DeleteService",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "cluster": "arn:aws:ecs:us-east-1:222233334444:cluster/example-ecs-0655da15",
+      "service": "example-ecs-0655da15",
+      "force": true
+    },
+    "responseElements": {
+      "service": {
+        "serviceArn": "arn:aws:ecs:us-east-1:222233334444:service/example-ecs-0655da15/example-ecs-0655da15",
+        "serviceName": "example-ecs-0655da15",
+        "clusterArn": "arn:aws:ecs:us-east-1:222233334444:cluster/example-ecs-0655da15",
+        "status": "DRAINING",
+        "desiredCount": 0,
+        "taskDefinition": "arn:aws:ecs:us-east-1:222233334444:task-definition/example-ecs-0655da15:2"
+      }
+    },
+    "requestID": "38a1fbb5-e279-4a58-8fae-7fed05a13fca",
+    "eventID": "08dd9ca5-6e8f-4fd5-8b03-05c15039749a",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:24:35Z",
+    "eventSource": "ecs.amazonaws.com",
+    "eventName": "UpdateService",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "cluster": "arn:aws:ecs:us-east-1:222233334444:cluster/example-ecs-0655da15",
+      "service": "example-ecs-0655da15",
+      "desiredCount": 0,
+      "forceNewDeployment": false,
+      "dryrun": false
+    },
+    "responseElements": {
+      "service": {
+        "serviceArn": "arn:aws:ecs:us-east-1:222233334444:service/example-ecs-0655da15/example-ecs-0655da15",
+        "serviceName": "example-ecs-0655da15",
+        "clusterArn": "arn:aws:ecs:us-east-1:222233334444:cluster/example-ecs-0655da15",
+        "status": "ACTIVE",
+        "desiredCount": 0,
+        "taskDefinition": "arn:aws:ecs:us-east-1:222233334444:task-definition/example-ecs-0655da15:2"
+      }
+    },
+    "requestID": "3aae68a9-b121-40e3-bd7f-a28074577218",
+    "eventID": "26962d29-8fba-45bd-821a-aba858474fbf",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  }
+]

@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 import gzip
 import hashlib
 import json
+from peaso import deployment
 from pathlib import Path
 import secrets
 import time
@@ -20,8 +21,8 @@ from peaso_deploy import ACCOUNT, ROOT
 DIRECTORY = ROOT / ".cache/hosted-deploy/acceptance"
 LEDGER = DIRECTORY / "ledger.json"
 SESSION = DIRECTORY / "private-session.json"
-POOL = "us-east-1_7rbhezdKX"
-CLIENT = "3g2u5ilb7kbte92lra40ji2ht0"
+POOL = deployment.value("cognito_pool_id")
+CLIENT = deployment.value("cognito_client_id")
 HOST = "https://cspm.hacktricks.wiki"
 
 
@@ -41,7 +42,7 @@ def aws():
     session = boto3.Session(region_name="us-east-1")
     identity = session.client("sts").get_caller_identity()
     if identity["Account"] != ACCOUNT:
-        raise RuntimeError("Acceptance requires wiki account 202533532952")
+        raise RuntimeError((("Acceptance requires wiki account DEPLOYMENT_ACCOUNT_ID").replace("DEPLOYMENT_ACCOUNT_ID", deployment.value("account_id"))))
     return session, identity
 
 
@@ -63,6 +64,7 @@ def prepare(session, identity, preview=False):
     # hosted collection, so no permanent platform role allow-list update is needed.
     source_role = identity["Arn"].replace("arn:aws:sts::", "arn:aws:iam::").replace(":assumed-role/", ":role/").rsplit("/", 1)[0]
     role["AssumeRolePolicyDocument"]["Statement"][0]["Principal"] = {"AWS": source_role}
+    template["Parameters"].pop("CollectorRoleArn", None)
     role["PermissionsBoundary"] = {"Ref": "FixtureBoundary"}
     role["Tags"] = [{"Key": "FixtureOwner", "Value": "peaso-hosted-acceptance"}]
     resources = template["Resources"]

@@ -1,0 +1,259 @@
+[
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T20:03:43Z",
+    "eventSource": "rds.amazonaws.com",
+    "eventName": "CreateDBInstance",
+    "awsRegion": "us-east-1",
+    "eventID": "b0f9bf69-5da3-4f1b-9d95-5349c81ca927",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "dBInstanceIdentifier": "example-rds-677633cc",
+      "allocatedStorage": 20,
+      "dBInstanceClass": "db.t4g.micro",
+      "engine": "postgres",
+      "publiclyAccessible": false
+    },
+    "responseElements": {
+      "dBInstanceIdentifier": "example-rds-677633cc",
+      "dBInstanceStatus": "creating"
+    }
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T20:08:34Z",
+    "eventSource": "rds.amazonaws.com",
+    "eventName": "CreateDBSnapshot",
+    "awsRegion": "us-east-1",
+    "eventID": "40b19363-6d72-4169-9d02-62d68d3fa606",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "dBInstanceIdentifier": "example-rds-677633cc",
+      "dBSnapshotIdentifier": "example-rds-677633cc-snap"
+    },
+    "responseElements": {
+      "dBSnapshotIdentifier": "example-rds-677633cc-snap",
+      "status": "creating"
+    }
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T20:08:34Z",
+    "eventSource": "rds.amazonaws.com",
+    "eventName": "DownloadDBLogFilePortion",
+    "awsRegion": "us-east-1",
+    "eventID": "bfea0272-d59f-4047-98f2-ee729c387e50",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": true,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "dBInstanceIdentifier": "example-rds-677633cc",
+      "logFileName": "error/postgres.log",
+      "numberOfLines": 10
+    },
+    "responseElements": {}
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T20:09:46Z",
+    "eventSource": "rds.amazonaws.com",
+    "eventName": "ModifyDBSnapshotAttribute",
+    "awsRegion": "us-east-1",
+    "eventID": "547203d6-6c42-4dac-9ef3-d3ae0116b966",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "dBSnapshotIdentifier": "example-rds-677633cc-snap",
+      "attributeName": "restore",
+      "valuesToAdd": [
+        "all"
+      ]
+    },
+    "responseElements": {
+      "dBSnapshotIdentifier": "example-rds-677633cc-snap",
+      "dBSnapshotAttributes": [
+        {
+          "attributeName": "restore",
+          "attributeValues": [
+            "all"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T20:09:47Z",
+    "eventSource": "rds.amazonaws.com",
+    "eventName": "ModifyDBSnapshotAttribute",
+    "awsRegion": "us-east-1",
+    "eventID": "f6b39953-d625-493f-b682-99a57accb309",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "dBSnapshotIdentifier": "example-rds-677633cc-snap",
+      "attributeName": "restore",
+      "valuesToRemove": [
+        "all"
+      ]
+    },
+    "responseElements": {
+      "dBSnapshotIdentifier": "example-rds-677633cc-snap",
+      "dBSnapshotAttributes": [
+        {
+          "attributeName": "restore",
+          "attributeValues": []
+        }
+      ]
+    }
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T20:09:48Z",
+    "eventSource": "rds.amazonaws.com",
+    "eventName": "ModifyDBInstance",
+    "awsRegion": "us-east-1",
+    "eventID": "517d3fca-4eee-4800-b630-f6c115989a90",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "dBInstanceIdentifier": "example-rds-677633cc",
+      "applyImmediately": true,
+      "publiclyAccessible": true
+    },
+    "responseElements": {
+      "dBInstanceIdentifier": "example-rds-677633cc",
+      "dBInstanceStatus": "available",
+      "publiclyAccessible": false
+    }
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T20:09:49Z",
+    "eventSource": "rds.amazonaws.com",
+    "eventName": "ModifyDBInstance",
+    "awsRegion": "us-east-1",
+    "eventID": "1b246177-2fa3-4807-9aa4-2178d1dc855e",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "dBInstanceIdentifier": "example-rds-677633cc",
+      "applyImmediately": true,
+      "publiclyAccessible": false
+    },
+    "responseElements": {
+      "dBInstanceIdentifier": "example-rds-677633cc",
+      "dBInstanceStatus": "available",
+      "publiclyAccessible": false
+    }
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T20:09:49Z",
+    "eventSource": "rds.amazonaws.com",
+    "eventName": "DeleteDBSnapshot",
+    "awsRegion": "us-east-1",
+    "eventID": "8aec3361-b535-4469-ae7e-286cdd4a9084",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "dBSnapshotIdentifier": "example-rds-677633cc-snap"
+    },
+    "responseElements": {
+      "dBSnapshotIdentifier": "example-rds-677633cc-snap",
+      "status": "deleted"
+    }
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T20:09:50Z",
+    "eventSource": "rds.amazonaws.com",
+    "eventName": "DeleteDBInstance",
+    "awsRegion": "us-east-1",
+    "eventID": "e389f3fe-e06f-467f-9b2d-9f1deebb33a0",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "dBInstanceIdentifier": "example-rds-677633cc",
+      "skipFinalSnapshot": true,
+      "deleteAutomatedBackups": true
+    },
+    "responseElements": {
+      "dBInstanceIdentifier": "example-rds-677633cc",
+      "dBInstanceStatus": "deleting"
+    }
+  }
+]

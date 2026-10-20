@@ -5,6 +5,7 @@ aliases and IAM namespace mappings are validated against a pinned AWS-published
 action reference. New operations fail closed until their mapping is reviewed.
 """
 from __future__ import annotations
+from peaso import deployment
 import hashlib
 import json
 from functools import lru_cache
@@ -115,6 +116,40 @@ IAM_ROLE_POLICY_METADATA_REFERENCES = {
     "iam:ListRolePolicies": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListRolePolicies.html",
 }
 VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(IAM_ROLE_POLICY_METADATA_REFERENCES)
+# Enclave applicability uses aliases as configuration metadata; no cryptographic
+# operation or key material is exposed by this read.
+KMS_ALIAS_METADATA_REFERENCE = (
+    "kms:ListAliases", "https://docs.aws.amazon.com/kms/latest/APIReference/API_ListAliases.html")
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | {KMS_ALIAS_METADATA_REFERENCE[0]}
+BEDROCK_DRAFT_ROLE_METADATA_REFERENCE = (
+    "bedrock:GetAgent", "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent_GetAgent.html")
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | {BEDROCK_DRAFT_ROLE_METADATA_REFERENCE[0]}
+S3_ACL_SAMPLE_METADATA_REFERENCES = {
+    "s3:ListBucket": "https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectsV2.html",
+    "s3:GetObjectAcl": "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObjectAcl.html",
+}
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(S3_ACL_SAMPLE_METADATA_REFERENCES)
+CONFIGURATION_PAYLOAD_READ_REFERENCES = {
+    "ssm:GetDocument": "https://docs.aws.amazon.com/systems-manager/latest/APIReference/API_GetDocument.html",
+    "sagemaker:DescribeNotebookInstanceLifecycleConfig": "https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_DescribeNotebookInstanceLifecycleConfig.html",
+    "datapipeline:ListPipelines": "https://docs.aws.amazon.com/datapipeline/latest/APIReference/API_ListPipelines.html",
+    "datapipeline:GetPipelineDefinition": "https://docs.aws.amazon.com/datapipeline/latest/APIReference/API_GetPipelineDefinition.html",
+}
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(CONFIGURATION_PAYLOAD_READ_REFERENCES)
+LAUNCH_TEMPLATE_INSTANCE_READ_REFERENCES = {
+    "ec2:GetLaunchTemplateData": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetLaunchTemplateData.html",
+    "ec2:DescribeSpotInstanceRequests": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetLaunchTemplateData.html",
+    "ec2:DescribeInstanceCreditSpecifications": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetLaunchTemplateData.html",
+}
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(LAUNCH_TEMPLATE_INSTANCE_READ_REFERENCES)
+CLOCK_METRIC_READ_REFERENCE = (
+    "cloudwatch:GetMetricStatistics", "https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_GetMetricStatistics.html")
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | {CLOCK_METRIC_READ_REFERENCE[0]}
+BEANSTALK_RUNTIME_READ_REFERENCE = (
+    "elasticbeanstalk:DescribeEnvironmentResources",
+    "https://docs.aws.amazon.com/elasticbeanstalk/latest/api/API_DescribeEnvironmentResources.html")
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | {BEANSTALK_RUNTIME_READ_REFERENCE[0]}
+PROJECTED_CONFIGURATION_OPERATIONS = frozenset({("ssm", "get_document")})
 # Exact read-only native Budgets API/IAM mapping; no execution grant.
 BUDGET_STOP_REFERENCE = (
     "https://docs.aws.amazon.com/service-authorization/latest/reference/list_budgets.html",
@@ -158,6 +193,7 @@ SERVICE_PREFIXES['resourcegroupstaggingapi'] = 'tag'
 ACTION_ALIASES = {('s3', 'list_buckets'): 's3:ListAllMyBuckets', ('s3', 'get_public_access_block'): 's3:GetBucketPublicAccessBlock', ('s3', 'get_bucket_encryption'): 's3:GetEncryptionConfiguration', ('s3control', 'get_public_access_block'): 's3:GetAccountPublicAccessBlock', ('s3', 'get_bucket_lifecycle_configuration'): 's3:GetLifecycleConfiguration', ('s3', 'get_object_lock_configuration'): 's3:GetBucketObjectLockConfiguration', ('s3', 'get_bucket_notification_configuration'): 's3:GetBucketNotification', ('s3', 'get_bucket_replication'): 's3:GetReplicationConfiguration', ('s3', 'list_directory_buckets'): 's3express:ListAllMyDirectoryBuckets', ('accessanalyzer', 'list_findings_v2'): 'access-analyzer:ListFindings', ('accessanalyzer', 'get_finding_v2'): 'access-analyzer:GetFinding'}
 
 # S3Control's Outposts list uses a distinct IAM service namespace.
+ACTION_ALIASES[('s3', 'list_objects_v2')] = 's3:ListBucket'
 ACTION_ALIASES[('s3control', 'list_regional_buckets')] = 's3-outposts:ListRegionalBuckets'
 
 GATEWAY_PATHS = {
@@ -175,6 +211,9 @@ GATEWAY_PATHS = {
 }
 # Reviewed companion permissions AWS documents for one SDK call (reference-verified like any action).
 DEPENDENT_ACTIONS = {("wafv2", "get_web_acl_for_resource"): ("cognito-idp:GetWebACLForResource",)}
+DEPENDENT_ACTIONS[("ec2", "get_launch_template_data")] = (
+    "ec2:DescribeSpotInstanceRequests", "ec2:DescribeInstanceCreditSpecifications",
+    "ec2:DescribeVolumes", "ec2:DescribeInstanceAttribute")
 
 FORBIDDEN_OPERATIONS = frozenset({
     "get_secret_value", "batch_get_secret_value", "get_parameter", "get_parameters", "get_parameters_by_path",
@@ -189,18 +228,39 @@ UNGRANTED_CREDENTIAL_OPERATIONS = frozenset({("lightsail", "get_bucket_access_ke
 # Explicit opt-in artifact content reads require a separate repository-scoped
 # companion grant; never add them to the default metadata-only customer role.
 UNGRANTED_CONTENT_OPERATIONS = frozenset({('ecr','list_image_referrers'),
-    ('ecr','batch_get_image'),('ecr','get_download_url_for_layer')})
+    ('ecr','batch_get_image'),('ecr','get_download_url_for_layer'),
+    ('lambda','get_function'),('lambda','get_layer_version'),
+    ('codecommit','get_repository'),('codecommit','get_branch'),('codecommit','get_folder'),
+    ('codecommit','get_file'),('logs','filter_log_events')})
 ECR_CONTENT_IAM_ACTIONS = frozenset({'ecr:BatchGetImage','ecr:GetDownloadUrlForLayer'})
 VERIFIED_ACTIONS = VERIFIED_ACTIONS | ECR_CONTENT_IAM_ACTIONS
 ACTION_ALIASES[('ecr','list_image_referrers')] = 'ecr:BatchGetImage'
+
+# Exact metadata-only grants reviewed against the AWS programmatic policy
+# reference. Keep the receipt alongside the finite discovery recipes.
+RESOURCE_POLICY_REFERENCE = json.loads((Path(__file__).resolve().parents[1] /
+    "peaso/collectors/aws_resource_policy_permissions.json").read_text())
+for _pair, _action in RESOURCE_POLICY_REFERENCE["mappings"].items():
+    ACTION_ALIASES[tuple(_pair.split("/", 1))] = _action
+for _pair, _actions in RESOURCE_POLICY_REFERENCE["additional_actions"].items():
+    DEPENDENT_ACTIONS[tuple(_pair.split("/", 1))] = tuple(_actions)
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | set(RESOURCE_POLICY_REFERENCE["mappings"].values()) | {
+    action for actions in RESOURCE_POLICY_REFERENCE["additional_actions"].values() for action in actions}
 
 IAM_INLINE_ROLE_LIMIT = 10240
 IAM_MANAGED_POLICY_LIMIT = 6144
 IAM_MANAGED_POLICIES_PER_ROLE = 10  # default IAM quota for attached managed policies
 MANAGED_POLICY_PREFIX = "CspmConfigurationReadOnly"
-REVIEWED_ROLE_SHA256 = "9254e0c0c0a7519c7a0a0c128e9d147d799dba3ca9cf9ff76902fcb4cd5ab08f"
-REVIEWED_ROLE_PATH = Path(__file__).resolve().parents[1] / "infra/aws" / f"customer-role-{REVIEWED_ROLE_SHA256}.json"
+REVIEWED_ROLE_SHA256 = "0ce4fa48e6c0e625520303644e4f7c465772a4dec90d0fa8f46b07726a2f7e5a"
+REVIEWED_ROLE_PATH = Path(__file__).resolve().parents[1] / "infra/aws" / "customer-policy-allocation.json"
 EVIDENCE_OPERATION = ("iam", "generate_credential_report")
+# AWS service authorization explicitly classifies these report APIs as Read.
+# They create report results, not IAM configuration or credentials.
+IAM_REPORT_READ_REFERENCES = {
+    "iam:GenerateCredentialReport": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_iam.html",
+    "iam:GenerateServiceLastAccessedDetails": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_iam.html",
+}
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(IAM_REPORT_READ_REFERENCES)
 # Reviewed non-Get/List names that only read or create an access-report job; both are in
 # the AWS managed SecurityAudit policy (iam:GenerateServiceLastAccessedDetails explicitly).
 READ_OPERATION_EXCEPTIONS = frozenset({("cloudtrail", "lookup_events"), ("iam", "generate_service_last_accessed_details"),
@@ -219,7 +279,7 @@ def iam_action(service, operation):
     """Resolve only a reviewed metadata API; never derive an unverified grant."""
     if (service, operation) in UNGRANTED_CREDENTIAL_OPERATIONS:
         raise ValueError("Credential API prohibited: " + service + "/" + operation)
-    if operation in FORBIDDEN_OPERATIONS:
+    if operation in FORBIDDEN_OPERATIONS and (service, operation) not in PROJECTED_CONFIGURATION_OPERATIONS:
         raise ValueError("Value/content/credential API prohibited: " + service + "/" + operation)
     if (service, operation) == EVIDENCE_OPERATION:
         return "iam:GenerateCredentialReport"
@@ -230,9 +290,10 @@ def iam_action(service, operation):
     if (service, operation) not in READ_OPERATION_EXCEPTIONS and not operation.startswith(("list_", "get_", "describe_", "batch_get_")):
         raise ValueError("Mutation outside metadata policy: " + service + "/" + operation)
     if service in {"apigateway", "apigatewayv2"}:
-        if (service, operation) not in GATEWAY_PATHS:
+        if (service, operation) in GATEWAY_PATHS:
+            return "apigateway:GET"
+        if service + "/" + operation not in RESOURCE_POLICY_REFERENCE["mappings"]:
             raise ValueError("API Gateway path mapping requires reference review")
-        return "apigateway:GET"
     names = _sdk_operation_names(service)
     if operation not in names:
         raise ValueError("Unknown SDK operation: " + service + "/" + operation)
@@ -410,12 +471,14 @@ CONTROLTOWER_ACTIONS = frozenset(action for rows in CONTROLTOWER_STATEMENTS.valu
 VERIFIED_ACTIONS = VERIFIED_ACTIONS | WAF_ASSOCIATION_ACTIONS | NATIVE_METADATA_ACTIONS | CONTROLTOWER_ACTIONS
 
 
-def build_policy(read_actions=None, *, include_credential_report_generation=False,
+def build_policy(read_actions=None, *, include_credential_report_generation=None,
                  include_waf_association_companions=True):
     if read_actions is None:
         from peaso.collectors.aws import READ_ACTIONS
         read_actions = READ_ACTIONS | PRESERVED_TEMPLATE_READ_ACTIONS
     read_actions = set(read_actions)
+    if include_credential_report_generation is None:
+        include_credential_report_generation = EVIDENCE_OPERATION in read_actions
     actions = set()
     gateway_paths = set()
     for service, operation in sorted(read_actions):
@@ -625,10 +688,10 @@ def split_policy(policy):
     return documents
 
 
-def refresh(root: Path):
+def refresh(root: Path, *, read_actions=None, include_credential_report_generation=None):
     import sys
     sys.path.insert(0, str(root))
-    policy = build_policy()
+    policy = build_policy(read_actions, include_credential_report_generation=include_credential_report_generation)
     documents = split_policy(policy)
     path = root / "infra/aws/customer-role.json"
     template = json.loads(path.read_text())
@@ -637,8 +700,11 @@ def refresh(root: Path):
     role = resources["AuditRole"]["Properties"]
     # New customer templates must trust the dedicated broker, never the ECS
     # task role that also holds platform storage permissions.
-    role["AssumeRolePolicyDocument"]["Statement"][0]["Principal"]["AWS"] = (
-        "arn:aws:iam::202533532952:role/HackTricks-CSPM")
+    template["Parameters"]["CollectorRoleArn"] = {
+        "Type": "String", "AllowedPattern": "arn:aws:iam::[0-9]{12}:role/[A-Za-z0-9+=,.@_/-]+",
+        "Description": "Collector role ARN shown by the CSPM connector setup",
+    }
+    role["AssumeRolePolicyDocument"]["Statement"][0]["Principal"]["AWS"] = {"Ref": "CollectorRoleArn"}
     # Pre-existing customer inline policies are preserved and still bounded by the inline aggregate limit.
     inline = [item for item in role.get("Policies", []) if item.get("PolicyName") != MANAGED_POLICY_PREFIX]
     aggregate = sum(policy_size(item["PolicyDocument"]) for item in inline)
@@ -714,6 +780,24 @@ def refresh(root: Path):
             "Sources": IAM_ROLE_POLICY_METADATA_REFERENCES,
             "Boundary": "Read IAM role policy names and documents for CloudTrail delivery-role configuration; no IAM writes.",
         }
+    report_actions = sorted({action for statement in policy["Statement"]
+                             for action in ([statement["Action"]] if isinstance(statement["Action"], str) else statement["Action"])
+                             if action in IAM_REPORT_READ_REFERENCES})
+    if report_actions:
+        template["Metadata"]["PeasoIamReportReadReference"] = {
+            "Actions": report_actions,
+            "Sources": {action: IAM_REPORT_READ_REFERENCES[action] for action in report_actions},
+            "AccessLevel": "Read",
+            "Boundary": "Selection-gated metadata reports; no IAM identity, credential or permission changes.",
+        }
+    template["Metadata"]["PeasoResourcePolicyMetadataReference"] = {
+        "Source": RESOURCE_POLICY_REFERENCE["source_url"],
+        "SHA256": RESOURCE_POLICY_REFERENCE["source_sha256"],
+        "CapturedDate": RESOURCE_POLICY_REFERENCE["reviewed_on"],
+        "Actions": sorted(set(RESOURCE_POLICY_REFERENCE["mappings"].values()) | {
+            action for actions in RESOURCE_POLICY_REFERENCE["additional_actions"].values() for action in actions}),
+        "Boundary": "Explicit policy and resource inventory reads only; no resource writes or secret values.",
+    }
     # Compact new templates to preserve source export budgets. Archived versions
     # are never reformatted or overwritten; CloudFormation parses the same JSON.
     path.write_text(json.dumps(template, separators=(",", ":"), ensure_ascii=True) + "\n")

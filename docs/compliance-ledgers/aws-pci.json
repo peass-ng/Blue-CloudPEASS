@@ -3745,7 +3745,7 @@
           "removed_checks": [
             "aws.claude_a.vpc.sg_no_world_any_port_on_customer_enis"
           ],
-          "reason": "The mapped evaluator tests attachment to AWS-managed ENIs, not whether open ports belong to an approved list.",
+          "reason": "The current _world evaluator compares IPv4/IPv6 world ingress TCP/UDP ranges against supplied approved_ports; all-protocol ingress fails and unavailable approval input remains unknown. This automates comparison with a supplied policy, while approval provenance is an external input.",
           "evidence": [
             "prowler/compliance/aws/pci_4.0_aws.json"
           ],
@@ -4410,7 +4410,7 @@
           "removed_checks": [
             "aws.claude_a.vpc.sg_no_world_any_port_on_customer_enis"
           ],
-          "reason": "The mapped evaluator tests attachment to AWS-managed ENIs, not whether open ports belong to an approved list.",
+          "reason": "The current _world evaluator compares IPv4/IPv6 world ingress TCP/UDP ranges against supplied approved_ports; all-protocol ingress fails and unavailable approval input remains unknown. This automates comparison with a supplied policy, while approval provenance is an external input.",
           "evidence": [
             "prowler/compliance/aws/pci_4.0_aws.json"
           ],
@@ -5217,7 +5217,7 @@
           "removed_checks": [
             "aws.claude_a.vpc.sg_no_world_any_port_on_customer_enis"
           ],
-          "reason": "The mapped evaluator tests attachment to AWS-managed ENIs, not whether open ports belong to an approved list.",
+          "reason": "The current _world evaluator compares IPv4/IPv6 world ingress TCP/UDP ranges against supplied approved_ports; all-protocol ingress fails and unavailable approval input remains unknown. This automates comparison with a supplied policy, while approval provenance is an external input.",
           "evidence": [
             "prowler/compliance/aws/pci_4.0_aws.json"
           ],
@@ -6052,7 +6052,7 @@
           "removed_checks": [
             "aws.claude_a.vpc.sg_no_world_any_port_on_customer_enis"
           ],
-          "reason": "The mapped evaluator tests attachment to AWS-managed ENIs, not whether open ports belong to an approved list.",
+          "reason": "The current _world evaluator compares IPv4/IPv6 world ingress TCP/UDP ranges against supplied approved_ports; all-protocol ingress fails and unavailable approval input remains unknown. This automates comparison with a supplied policy, while approval provenance is an external input.",
           "evidence": [
             "prowler/compliance/aws/pci_4.0_aws.json"
           ],
@@ -7034,7 +7034,7 @@
           "removed_checks": [
             "aws.claude_a.vpc.sg_no_world_any_port_on_customer_enis"
           ],
-          "reason": "The mapped evaluator tests attachment to AWS-managed ENIs, not whether open ports belong to an approved list.",
+          "reason": "The current _world evaluator compares IPv4/IPv6 world ingress TCP/UDP ranges against supplied approved_ports; all-protocol ingress fails and unavailable approval input remains unknown. This automates comparison with a supplied policy, while approval provenance is an external input.",
           "evidence": [
             "prowler/compliance/aws/pci_4.0_aws.json"
           ],
@@ -8033,7 +8033,7 @@
           "removed_checks": [
             "aws.claude_a.vpc.sg_no_world_any_port_on_customer_enis"
           ],
-          "reason": "The mapped evaluator tests attachment to AWS-managed ENIs, not whether open ports belong to an approved list.",
+          "reason": "The current _world evaluator compares IPv4/IPv6 world ingress TCP/UDP ranges against supplied approved_ports; all-protocol ingress fails and unavailable approval input remains unknown. This automates comparison with a supplied policy, while approval provenance is an external input.",
           "evidence": [
             "prowler/compliance/aws/pci_4.0_aws.json"
           ],
@@ -16264,7 +16264,7 @@
           "removed_checks": [
             "aws.claude_a.vpc.sg_no_world_any_port_on_customer_enis"
           ],
-          "reason": "The mapped evaluator tests attachment to AWS-managed ENIs, not whether open ports belong to an approved list.",
+          "reason": "The current _world evaluator compares IPv4/IPv6 world ingress TCP/UDP ranges against supplied approved_ports; all-protocol ingress fails and unavailable approval input remains unknown. This automates comparison with a supplied policy, while approval provenance is an external input.",
           "evidence": [
             "prowler/compliance/aws/pci_4.0_aws.json"
           ],
@@ -21770,8 +21770,10 @@
           "native_checks": [
             "aws.b.codebuild.nonprivileged"
           ],
-          "removed_checks": [],
-          "reason": "Checks if an AWS CodeBuild project environment has privileged mode enabled. The evaluator tests CodeBuild project disables privileged environment mode (fields: environment.privilegedMode, logsConfig, status), using the resource's collected configuration fields.",
+          "removed_checks": [
+            "aws.review.codebuild_project.configuration_secret_indicators"
+          ],
+          "reason": "Checks if an AWS CodeBuild project environment has privileged mode enabled. The evaluator tests CodeBuild project disables privileged environment mode (fields: environment.privilegedMode, logsConfig, status), using the resource's collected configuration fields. Explicit source-association disposition: CodeBuild secret-content detection does not evaluate the named privileged-environment setting; the existing privileged-mode predicate is retained.",
           "evidence": [
             "peaso/checks/aws_b_compute.py:98"
           ],
@@ -22290,8 +22292,10 @@
           "native_checks": [
             "aws.b.codebuild.nonprivileged"
           ],
-          "removed_checks": [],
-          "reason": "Checks if an AWS CodeBuild project environment has privileged mode enabled. The evaluator tests CodeBuild project disables privileged environment mode (fields: environment.privilegedMode, logsConfig, status), using the resource's collected configuration fields.",
+          "removed_checks": [
+            "aws.review.codebuild_project.configuration_secret_indicators"
+          ],
+          "reason": "Checks if an AWS CodeBuild project environment has privileged mode enabled. The evaluator tests CodeBuild project disables privileged environment mode (fields: environment.privilegedMode, logsConfig, status), using the resource's collected configuration fields. Explicit source-association disposition: CodeBuild secret-content detection does not evaluate the named privileged-environment setting; the existing privileged-mode predicate is retained.",
           "evidence": [
             "peaso/checks/aws_b_compute.py:98"
           ],
@@ -22757,8 +22761,10 @@
           "native_checks": [
             "aws.b.codebuild.nonprivileged"
           ],
-          "removed_checks": [],
-          "reason": "Checks if an AWS CodeBuild project environment has privileged mode enabled. The evaluator tests CodeBuild project disables privileged environment mode (fields: environment.privilegedMode, logsConfig, status), using the resource's collected configuration fields.",
+          "removed_checks": [
+            "aws.review.codebuild_project.configuration_secret_indicators"
+          ],
+          "reason": "Checks if an AWS CodeBuild project environment has privileged mode enabled. The evaluator tests CodeBuild project disables privileged environment mode (fields: environment.privilegedMode, logsConfig, status), using the resource's collected configuration fields. Explicit source-association disposition: CodeBuild secret-content detection does not evaluate the named privileged-environment setting; the existing privileged-mode predicate is retained.",
           "evidence": [
             "peaso/checks/aws_b_compute.py:98"
           ],
@@ -28786,7 +28792,7 @@
           "removed_checks": [
             "aws.claude_a.vpc.sg_no_world_any_port_on_customer_enis"
           ],
-          "reason": "The mapped evaluator tests attachment to AWS-managed ENIs, not whether open ports belong to an approved list.",
+          "reason": "The current _world evaluator compares IPv4/IPv6 world ingress TCP/UDP ranges against supplied approved_ports; all-protocol ingress fails and unavailable approval input remains unknown. This automates comparison with a supplied policy, while approval provenance is an external input.",
           "evidence": [
             "prowler/compliance/aws/pci_4.0_aws.json"
           ],

@@ -2,7 +2,7 @@
 
 `peaso.collectors.gcp.collect(connector, requirements=None)` returns the engine's
 sealed schema 1.0 snapshot. It reads GCP REST APIs directly using `google-auth`
-and `requests`; it needs neither a container nor an external scanner runtime.
+and `requests`; ordinary configuration checks need no external scanner runtime.
 Install the project's `cloud` extra for live collection.
 
 The collector never enables APIs, creates fixtures, changes IAM, or accesses
@@ -11,6 +11,152 @@ transport permits HTTPS requests to an explicit Google API host list, refuses
 redirects and accepts only GET and the read-only POST operations `getIamPolicy`,
 `getAncestry` and Logging `entries:list`. Credential libraries can separately
 exchange credentials and mint short-lived impersonation tokens.
+
+## Optional secret inspection
+
+Secret inspection is off by default. Enable `content_secret_scans` and explicitly
+name each content check; selecting all checks, a category or a framework does not
+enable inspection. Kingfisher 1.4.0 and TruffleHog 3.92.5 run offline with credential
+verification disabled. Install `.[cloud,secrets]` and make the pinned TruffleHog executable available on `PATH`; unavailable or different versions remain UNKNOWN. Only redacted fingerprints, detector names and locations
+are retained, and the same value produces one finding across both detectors.
+Unavailable detectors, denied reads or incomplete scans remain UNKNOWN.
+
+The check `gcp.review.function.literal_environment_secret_indicators` inspects
+Cloud Functions v2 runtime and build literal environment values before transport
+sanitization or caching. It never resolves Secret Manager references. A clean
+result applies only to those returned values, rather than all source code or
+deployed image layers.
+
+Locally integrated optional checks use these exact IDs:
+
+| Content | Check ID |
+| --- | --- |
+| Functions runtime/build environment | `gcp.review.function.literal_environment_secret_indicators` |
+| VM metadata and startup/shutdown scripts | `gcp.review.instance.literal_configuration_secret_indicators` |
+| Instance-template metadata | `gcp.review.instance_template.literal_configuration_secret_indicators` |
+| Project common metadata | `gcp.review.project.literal_configuration_secret_indicators` |
+| Cloud Run service literals | `gcp.review.cloudrun_service.literal_configuration_secret_indicators` |
+| Cloud Run job literals | `gcp.review.cloudrun_job.literal_configuration_secret_indicators` |
+| Inline Cloud Build triggers | `gcp.review.cloudbuild_trigger.literal_configuration_secret_indicators` |
+| Returned Cloud Build configuration | `gcp.review.cloudbuild_build.literal_configuration_secret_indicators` |
+| Bounded application log sample | `gcp.review.logging.application_log_secret_indicators` |
+| Explicit Cloud Storage text objects | `gcp.review.storage.selected_object_secret_indicators` |
+| Explicit Cloud Storage archives | `gcp.review.storage.selected_archive_secret_indicators` |
+| Explicit immutable Artifact Registry images, including native GCR URLs | `gcp.review.artifact_image.content_secret_indicators` |
+| Scheduler target literals | `gcp.review.scheduler_job.literal_target_secret_indicators` |
+| App Engine deployed source files | `gcp.review.appengine.deployment_source_secret_indicators` |
+| Cloud Build produced GCS artifacts | `gcp.review.cloudbuild.artifact_secret_indicators` |
+| Cloud Deploy release source archive | `gcp.review.clouddeploy.release_source_secret_indicators` |
+| Selected Cloud Source Repository files | `gcp.review.sourcerepo.selected_file_secret_indicators` |
+| Cloud Build stored GCS logs | `gcp.review.cloudbuild.stored_log_secret_indicators` |
+| App Engine version environments | `gcp.review.app_engine_version.literal_environment_secret_indicators` |
+| Deployed Workflows source | `gcp.review.workflow.deployed_source_secret_indicators` |
+| Explicit Dataform files | `gcp.review.dataform.selected_file_secret_indicators` |
+| Functions resolved source archive | `gcp.review.function.resolved_source_archive_secret_indicators` |
+| Composer DAG source files | `gcp.review.composer.dag_source_secret_indicators` |
+| Explicit Artifact Registry package files | `gcp.review.artifactregistry.selected_file_secret_indicators` |
+| Dataflow job environments | `gcp.review.dataflow_job.literal_configuration_secret_indicators` |
+| Batch task configuration | `gcp.review.batch_job.literal_configuration_secret_indicators` |
+| Dataproc cluster properties/metadata | `gcp.review.dataproc_cluster.literal_configuration_secret_indicators` |
+| Dataproc job literals | `gcp.review.dataproc_job.literal_configuration_secret_indicators` |
+| GKE ConfigMap/Pod literals | `gcp.review.gke_workload.literal_configuration_secret_indicators` |
+| Composer environment/Airflow configuration | `gcp.review.composer_environment.literal_configuration_secret_indicators` |
+| Workbench metadata/scripts | `gcp.review.workbench_instance.literal_configuration_secret_indicators` |
+
+Configuration checks inspect returned literal values before sanitization. They
+never follow script URLs, pull repository files or dereference managed-secret
+references. Logs cover a bounded 15-minute project query and retain query/window
+and message ordinals; they do not claim durable log-entry identifiers or a clean
+history. Object inspection needs `selected_gcs_objects`, for example:
+
+```json
+{
+  "content_secret_scans": true,
+  "selected_gcs_objects": [{
+    "project_scope": "projects/YOUR_PROJECT",
+    "bucket": "YOUR_BUCKET",
+    "object": "config/settings.env",
+    "generation": "123456789"
+  }]
+}
+```
+
+Include the exact project in scan scopes and select the object check. It requires
+native project/bucket ownership evidence and `storage.objects.get`. Only the
+explicit generations are read; no object enumeration occurs. Current limits are
+10 combined text-object/archive selections, 1 MiB per stored object, 8 MiB per collection
+and a shared 30-second deadline. Unsupported binary or unreadable selections remain UNKNOWN.
+Use `selected_gcs_archives` with the same fields plus `format` (`zip`, `tar` or
+`tar.gz`) and the archive check to inspect bounded regular UTF-8 members without
+extracting files; nested archives, links, encryption or exceeded expansion limits
+remain UNKNOWN. Object owner
+IDs are opaque references to the private selection because paths can contain
+secrets.
+
+Image scans require `selected_artifact_images`: 1–4 immutable
+`LOCATION-docker.pkg.dev/PROJECT/REPOSITORY/IMAGE@sha256:DIGEST` references in one
+explicit project scope. Only supported verified manifests, configurations and
+bounded layers are inspected; unsupported registries or image layouts remain UNKNOWN.
+No image is started or extracted to disk.
+
+Package-file scans require `selected_artifact_files`: 1–8 objects containing
+`project_scope`, canonical full File `name`, expected lowercase hex `sha256`, and
+`format` (`utf8`, `zip`, `tar` or `tar.gz`). The selected digest must match both
+native File metadata and downloaded bytes. Files are not installed or extracted
+to disk. Only standard supported package repositories in the authorized project
+are accepted; container images use the separate immutable image selector.
+
+Functions source scans follow only the native immutable resolved Storage source
+of a complete supported Functions v2 record, with independent project/bucket
+ownership and generation proof. Composer source scans list only its native DAG
+prefix and read observed immutable text-file generations. Both reuse bounded GCS
+readers, preserve the owning service, and leave unsupported or incomplete source
+relationships UNKNOWN; neither proves absence throughout deployed runtime code.
+
+Dataform scans require `selected_dataform_files`, each with `project_scope`, full
+`repository` name, exact relative `path` and either a 40-character `commit_sha` or
+an explicit full `workspace` name (optionally with a `revision` SHA). This is a
+selected-file read, not repository traversal. A workspace read without a revision
+is an observation at collection time, not immutable history.
+
+Generic object/archive selection can inspect a known source archive, DAG or build
+artifact. It does not automatically discover every service-to-object relationship,
+fetch Git repositories, or claim to cover every source deployment. Permissions
+and complete reads are required independently for each selected target.
+
+Dataflow, Batch and Dataproc scans require 1–5 explicit regions through
+`dataflow_regions`, `batch_regions` and `dataproc_regions`, or a supported explicit
+common `regions` list. They inspect returned literal configuration, not referenced
+scripts, JARs or datasets. Dataflow requires the full detail read for each listed
+job; its summary alone cannot establish a clean configuration.
+
+GKE requires `selected_gke_clusters`: 1–3 exact
+`projects/PROJECT/locations/LOCATION/clusters/CLUSTER` names in the requested
+project scopes. Optional `selected_gke_namespaces` maps every selected cluster to
+1–5 exact namespace names; otherwise bounded namespace discovery must complete.
+The bridge needs both the Google cluster read and Kubernetes RBAC list access to
+ConfigMaps/Pods (plus namespaces for discovery). It uses the native public IPv4
+endpoint, native CA and existing Google token, without kubeconfig, Secret reads,
+exec or mutation. Private-only/inaccessible clusters and native 401/403 remain
+UNKNOWN; metadata IAM access alone does not demonstrate workload access.
+
+Composer and Workbench inspect their returned literal maps and inline scripts.
+Package specifications and script URLs are inspected as text only; no dependency,
+DAG, script URL or notebook file is downloaded by those configuration checks.
+
+With `content-options.json` containing `{"content_secret_scans":true}`:
+
+```sh
+hacktricks-cspm scan --provider gcp --scopes projects/YOUR_PROJECT \
+  --options-file content-options.json \
+  --checks gcp.review.function.literal_environment_secret_indicators \
+  --output function-secret-report.json
+```
+
+Read-only function metadata permissions must include the relevant Functions
+list/get operations. Additional GCP configuration and content surfaces are being
+tracked in [the secret-surface review](gcp-review/secret-surfaces.md); a planned
+adapter is not implemented coverage.
 
 ## Selection and scopes
 
@@ -240,7 +386,7 @@ restriction/ancestry/Shared VPC boundaries, native service coverage, hydration
 gaps and secret-value suppression. They never create cloud resources.
 
 On 2026-10-10, a real read-only attempt selected the current gcloud account and
-project `gcp-labs-ly3gvnn7`, requesting only global network metadata with
+project `example-audit-project`, requesting only global network metadata with
 `max_calls=2`, `max_pages=1`, `retries=0`, `timeout=5`, `concurrency=1` and
 inheritance disabled. The attempt produced `denied/gcloud_auth_failed` because
 the selected CLI login required reauthentication; provenance recorded zero HTTP
@@ -345,3 +491,69 @@ Coverage is explicitly limited to the owner-approved service subset; it never im
 ### Shared hosted identity: explicit projects only
 
 The shared HackTricks service account requires exact customer project IDs. Empty scopes, wildcards, `all_projects`, `discover_projects`, and hierarchy discovery are rejected by hosted validation and the native collector. Access checks also reject discovery before loading shared credentials. Each selected project must carry this connector's generated approval label; permission checks preserve and verify that label. Discovery remains available with customer-supplied credentials and respects project restriction lists.
+
+Native `gcr.io`, `us.gcr.io`, `eu.gcr.io` and `asia.gcr.io` URLs are supported by the selected image check when Artifact Registry returns the exact image URI and matching native repository/project identity. The reader verifies original-host manifest/config/layer digests. It does not infer aliases or reconstruct legacy storage images; unsupported redirects/challenges remain UNKNOWN.
+
+### Selected Cloud Run service images
+
+With `content_secret_scans: true`, select the exact image secret check and provide `selected_cloudrun_services`, for example `["projects/YOUR_PROJECT/locations/us-central1/services/YOUR_SERVICE"]`. Use one matching explicit project ID scope. You can select up to four services; every positive-traffic and tagged revision is resolved, and the combined explicit/resolved image limit is four. Native service metadata is reread after inspection. Denied, changing or multi-container revisions remain UNKNOWN. No runtime/mounted content or historical revision completeness is claimed.
+
+## Selected Cloud Build stored logs and App Engine deployment files
+
+Both readers require `content_secret_scans: true`, the exact named check from the table,
+and one explicit project scope. Supply one to four native names in collector options:
+
+```json
+{
+  "content_secret_scans": true,
+  "selected_cloudbuild_builds": [
+    "projects/YOUR_PROJECT/locations/us-central1/builds/YOUR_BUILD_ID"
+  ],
+  "selected_appengine_versions": [
+    "apps/YOUR_PROJECT/services/default/versions/YOUR_VERSION"
+  ]
+}
+```
+
+You can select either reader independently. Cloud Build reads a terminal build's
+native GCS log object at its observed generation; this does not prove complete
+historical logs or cover a Cloud Logging-only backend. App Engine reads only a
+supported standard-environment `deployment.files` manifest and scans files after
+their bytes match the native SHA1 values. It does not assess generated artifacts
+or runtime contents. Both bind source buckets to the selected project and keep
+signed source URLs out of cache and evidence. Missing bindings, unsupported
+content, denied reads or exceeded budgets remain UNKNOWN.
+
+For output artifacts, select `gcp.review.cloudbuild.artifact_secret_indicators` and
+provide `selected_cloudbuild_artifact_builds`: one or two exact regional Build
+names, using the same name format as stored logs. The reader scans only supported
+records in the observed native output manifest and their pinned GCS generations;
+it does not scan build inputs or infer outputs from requested path globs.
+
+For Cloud Deploy source configuration, select
+`gcp.review.clouddeploy.release_source_secret_indicators` and provide
+`selected_clouddeploy_releases`, containing one to four exact names such as
+`projects/YOUR_PROJECT/locations/us-central1/deliveryPipelines/YOUR_PIPELINE/releases/YOUR_RELEASE`.
+It inspects the observed native GCS source tar.gz archive, without rendering or
+deploying it. Neither reader attests historical build/release bytes. Both require
+content opt-in, one explicit project and native bucket ownership; incomplete,
+unsupported or denied reads remain UNKNOWN.
+
+## Selected Cloud Source Repository files
+
+Select `gcp.review.sourcerepo.selected_file_secret_indicators`, one explicit project ID, and these connector options:
+
+```json
+{
+  "content_secret_scans": true,
+  "selected_source_repository_files": [{
+    "repository": "projects/PROJECT_ID/repos/REPOSITORY",
+    "commit": "0123456789abcdef0123456789abcdef01234567",
+    "paths": ["config/example.txt"]
+  }]
+}
+```
+
+The commit must be advertised by the repository. The reader checks the native repository identity, reads Git smart HTTP from the fixed Google host, and inspects only the selected regular UTF8 files with offline Kingfisher and TruffleHog. Matching leaks are deduplicated and values remain hidden. No credential validation is performed.
+
+This is read-only: Git uses GET advertisement and POST `git-upload-pack` to fetch objects; it never pushes. Git traffic is capped at 8 MiB, native repository metadata separately at 16 KiB, with one shared 60-second deadline. At most eight files, 256 KiB each and 2 MiB combined, are inspected. Missing, denied, unsupported, partial or failed reads remain UNKNOWN. A negative result says nothing about unselected files or repository history. Current live-provider authentication compatibility has not been tested.

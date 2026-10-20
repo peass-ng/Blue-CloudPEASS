@@ -79,14 +79,17 @@ def test_only_two_signed_declarations_are_active_with_every_control_tag():
 
 def test_fake_node_api_collection_and_real_engine_preserve_local_provenance():
     api = NodeAPI()
+    # Collection may run long after this module was imported by a full-suite
+    # worker. Capture fresh evidence without weakening the 600-second limit.
+    observed_at = datetime.now(timezone.utc).isoformat()
     request = {"provider": "k8s", "auth": {"cluster_id": "fixture"}, "options": {
         "inventories": ["component_configuration"],
         "metadata_evidence": {"component_configuration": [
             {"component": "kubelet", "node_name": "node-a", "node_uid": "uid-a",
-             "observed_at": NOW, "configuration": {"podPidsLimit": 4096, "seccompDefault": True}}]},
+             "observed_at": observed_at, "configuration": {"podPidsLimit": 4096, "seccompDefault": True}}]},
         "component_metadata_policy": {"max_age_seconds": 600},
         "metadata_evidence_coverage": {"component_configuration": {
-            "status": "complete", "cluster_id": "fixture", "observed_at": NOW,
+            "status": "complete", "cluster_id": "fixture", "observed_at": observed_at,
             "nodes": [{"name": "node-a", "uid": "uid-a"}]}}}}
     collected = collect(request, api=api)
     assert api.calls == ["/api/v1/nodes"]

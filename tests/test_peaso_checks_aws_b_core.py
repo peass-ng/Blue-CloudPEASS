@@ -1,4 +1,5 @@
 """AWS-B source semantics and immutable positive/negative metadata facts."""
+from peaso.checks.hacktricks_scope import includes
 import copy
 import pytest
 from peaso.checks import CHECKS, HACKTRICKS
@@ -21,7 +22,7 @@ def test_first_wave_native_predicates(cid):
         assert item == original
     for bad in ({}, None, {"collection_status": "denied"}, {"_coverage": []}):
         assert check.evaluate(bad, {})[0] == "UNKNOWN"
-    assert HACKTRICKS in check.frameworks
+    assert (HACKTRICKS in check.frameworks) == includes(check.id)
 
 
 def test_eks_version_default_encryption_and_pre_128_requirements():

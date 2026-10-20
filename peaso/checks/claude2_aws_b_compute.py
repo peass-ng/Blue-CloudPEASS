@@ -494,7 +494,12 @@ def _ci(**fields):
 
 
 def _cluster_instances(index, arn):
-    return [r for r in complete_items(index, "ecs_container_instance") if get(r, "clusterArn", str) == arn]
+    rows = [r for r in complete_items(index, "ecs_container_instance") if get(r, "clusterArn", str) == arn]
+    # Both callers invoke this only after a positive registered-instance count.
+    # A concurrent list returning no hosts cannot establish agent/volume safety.
+    if not rows:
+        raise Unavailable("registered ECS container instances missing from inventory")
+    return rows
 
 
 @install("aws.c2b.ecs.container_instance_agents_connected", "ecs_cluster", "Active container instances of the ECS cluster have a connected agent",

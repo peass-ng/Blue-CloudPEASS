@@ -78,7 +78,7 @@ def test_rejects_platform_project_and_out_of_scope_before_credentials(monkeypatc
     calls = setup(monkeypatch, [])
     with pytest.raises(GcpLogAccessError, match="platform_project_forbidden"):
         check_gcp_source({}, ["*"], {"all_projects": True}, SETTINGS,
-                         source(project="billing-static-info-no-delete"))
+                         source(project="example-platform-project"))
     with pytest.raises(GcpLogAccessError, match="project_outside_connector_scope"):
         check_gcp_source({}, ["projects/other-project-123"], {}, SETTINGS, source())
     with pytest.raises(GcpLogAccessError, match="project_outside_connector_scope"):

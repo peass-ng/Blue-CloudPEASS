@@ -7,8 +7,8 @@ import rules from '../../peaso/checks/azure_native_evidence_observations.json' w
 type Case = { status: string; evidence: Record<string, unknown> };
 const cases = JSON.parse(gunzipSync(readFileSync(new URL('../../tests/fixtures/azure_evidence_review.json.gz', import.meta.url))).toString()) as Record<string, Case[]>;
 
-test('all 325 native Azure interpreters cover every replayed conclusive witness', () => {
-  expect(Object.keys(rules)).toHaveLength(325);
+test('all 477 native Azure interpreters cover every replayed conclusive witness', () => {
+  expect(Object.keys(rules)).toHaveLength(477);
   for (const checkId of Object.keys(rules)) {
     for (const row of cases[checkId]) {
       const observation = explainAzureNativeEvidenceObservation(checkId, row.evidence, row.status);
@@ -32,7 +32,7 @@ test('every native interpreter rejects unrelated witnesses and uncertain statuse
 
 test('counts retain missing deciding details without inventing settings', () => {
   expect(explainAzureNativeEvidenceObservation('azure.gap.asset_inventory_required_metadata', { evaluated: 7 }, 'PASS'))
-    .toBe('The result records 7 assessed resources; individual inventory tags were not stored.');
+    .toBe('The check assessed 7 resources; individual inventory tags were not retained.');
 });
 
 test('bulk-native observations render actual RSA bits and SSH key counts', () => {
@@ -47,5 +47,24 @@ test('bulk-native observations render actual RSA bits and SSH key counts', () =>
   const ssh = structuredClone(cases[sshId].find(row => row.status === 'FAIL')!);
   ssh.evidence.configured_bootstrap_ssh_public_key_count = 19;
   expect(explainAzureNativeEvidenceObservation(sshId, ssh.evidence, 'FAIL'))
-    .toBe('Bootstrap SSH public keys declared by the Linux VM: 19.');
+    .toBe('The Linux VM launch settings declare 19 bootstrap SSH keys.');
+});
+
+test('native Azure observations explain settings without raw flag or policy-code dumps', () => {
+  for (const checkId of Object.keys(rules)) {
+    for (const row of cases[checkId]) {
+      if (!['PASS', 'FAIL'].includes(row.status)) continue;
+      const observed = explainAzureNativeEvidenceObservation(checkId, row.evidence, row.status)!;
+      expect(observed, checkId).not.toMatch(/\b\w+_\w+\b|\b(?:True|False|NonCompliant|Compliant)\b/);
+      expect(observed, checkId).not.toMatch(/\b(?:present|enabled|configured|password|mfa)\s*:\s*[01]\b/i);
+      expect(observed, checkId).not.toMatch(/\([^)]*:\s*(?:\d+|enabled|disabled)\)/);
+    }
+  }
+});
+
+test('boolean settings are written as sentences and numeric stand-ins stay unclaimed', () => {
+  const checkId = 'azure.claude.keyvault_audit_and_alllogs_groups';
+  expect(explainAzureNativeEvidenceObservation(checkId, { all_logs_group: 0, audit_group: 0 }, 'FAIL')).toBeUndefined();
+  expect(explainAzureNativeEvidenceObservation(checkId, { all_logs_group: false, audit_group: false }, 'FAIL'))
+    .toBe('The vault disables both the required audit-log and complete-log category groups.');
 });

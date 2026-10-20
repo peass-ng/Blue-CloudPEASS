@@ -59,6 +59,7 @@ class Check:
         return [self.kind]
 
     def public(self):
+        from peaso.finding_types import type_for
         from .catalog import description_for, provenance_for, proposal_provenance_for, requirement_tags_for
         from .facts import FIELD_SPECS
         from .batch import scalar_sql
@@ -67,6 +68,7 @@ class Check:
         from peaso.finding_presentation import evaluator_contract_fingerprint
         detail = details_for(self.id, provider=self.provider)
         result = {"id": self.id, "provider": self.provider, "category": self.category, "type": self.kind,
+                "finding_type": type_for(self.id),
                 "title": self.title, "severity": effective_priority(self.id, self.severity), "frameworks": self.frameworks,
                 "framework_ids": self.framework_ids,
                 "mapping": self.mapping, "remediation": detail["summary"] if detail else self.remediation,
@@ -210,14 +212,21 @@ def aws_documents(item):
             documents.append(direct)
     except (Unavailable, ValueError):
         unresolved += 1
-    try:
-        versions = list_of_objects(optional(item, "PolicyVersionList", [], list))
-    except (Unavailable, ValueError):
-        versions, unresolved = [], unresolved + 1
-    for version in versions:
+    if "PolicyVersionList" in item or "DefaultVersionId" in item:
         try:
-            if get(version, "IsDefaultVersion", bool):
-                documents.append(get(version, "Document"))
+            default_id = get(item, "DefaultVersionId", str)
+            versions = list_of_objects(get(item, "PolicyVersionList", list))
+            version_ids = [get(version, "VersionId", str) for version in versions]
+            flags = [get(version, "IsDefaultVersion", bool) for version in versions]
+            if (not default_id.strip() or any(not ident.strip() for ident in version_ids)
+                    or len(version_ids) != len(set(version_ids))):
+                raise Unavailable("managed policy version identity is incomplete or duplicated")
+            selected = [version for version, flag in zip(versions, flags) if flag]
+            if len(selected) != 1 or get(selected[0], "VersionId", str) != default_id:
+                raise Unavailable("managed policy default version is inconsistent")
+            # Do not consume any managed document until all version identities
+            # and flags agree with the policy's selected native default.
+            documents.append(get(selected[0], "Document"))
         except (Unavailable, ValueError):
             unresolved += 1
     for key in ("UserPolicyList", "RolePolicyList", "GroupPolicyList"):
@@ -1427,3 +1436,62 @@ from . import native_storage_compute  # Complete native EFS/EMR/SQL joins.
 # One signed bulk admission; prior callbacks and aliases remain immutable.
 from . import bulk_pending  # noqa: E402,F401
 bulk_pending.install()
+
+from . import aws_review_20261019  # Reviewed read-only AWS security extensions.
+aws_review_20261019.install()
+from . import aws_resource_policy_scope  # Complete native resource-policy declaration review.
+aws_resource_policy_scope.install()
+from . import gcp_workbench_review_20261019  # Native, policy-independent Workbench settings.
+gcp_workbench_review_20261019.install()
+from . import gcp_function_secret_review_20261019
+gcp_function_secret_review_20261019.install()
+
+from . import gcp_configuration_secret_review_20261019
+gcp_configuration_secret_review_20261019.install()
+
+from . import gcp_log_secret_review_20261019
+gcp_log_secret_review_20261019.install()
+
+from . import gcp_selected_object_secret_review_20261019
+gcp_selected_object_secret_review_20261019.install()
+
+from . import gcp_image_secret_review_20261019
+gcp_image_secret_review_20261019.install()
+
+from . import gcp_selected_archive_secret_review_20261019
+gcp_selected_archive_secret_review_20261019.install()
+from . import gcp_additional_literal_secret_review_20261019
+gcp_additional_literal_secret_review_20261019.install()
+
+from . import gcp_dataform_secret_review_20261019
+gcp_dataform_secret_review_20261019.install()
+from . import gcp_job_literal_secret_review_20261019
+gcp_job_literal_secret_review_20261019.install()
+from . import gcp_gke_literal_secret_review_20261019
+gcp_gke_literal_secret_review_20261019.install()
+from . import gcp_notebook_airflow_secret_review_20261019
+gcp_notebook_airflow_secret_review_20261019.install()
+from . import gcp_function_source_secret_review_20261019
+gcp_function_source_secret_review_20261019.install()
+from . import gcp_artifact_file_secret_review_20261019
+gcp_artifact_file_secret_review_20261019.install()
+from . import gcp_composer_source_secret_review_20261019
+gcp_composer_source_secret_review_20261019.install()
+from . import gcp_os_security_update_review_20261019
+gcp_os_security_update_review_20261019.install()
+from . import gcp_cloudsql_backup_alert_native
+gcp_cloudsql_backup_alert_native.install_fixtures()
+from . import gcp_cloudbuild_log_secret_review_20261019
+gcp_cloudbuild_log_secret_review_20261019.install()
+
+from . import gcp_appengine_source_secret_review_20261019
+gcp_appengine_source_secret_review_20261019.install()
+
+from . import gcp_cloudbuild_artifact_secret_review_20261019
+gcp_cloudbuild_artifact_secret_review_20261019.install()
+
+from . import gcp_clouddeploy_source_secret_review_20261019
+gcp_clouddeploy_source_secret_review_20261019.install()
+
+from . import gcp_sourcerepo_secret_review_20261019
+gcp_sourcerepo_secret_review_20261019.install()

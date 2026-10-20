@@ -81,6 +81,10 @@ def _scalar_observation(check_id, evidence):
 
 def _observation(finding):
     """Reuse exact native evidence interpreters before adding explanatory copy."""
+    from .azure_native_evidence_observations import evidence_summary as native
+    observed = native(finding)
+    if observed:
+        return observed
     from .provider_scope_observed_evidence import provider_scope
     from .azure_bulk_observed_evidence import evidence_summary as bulk_pass
     from .azure_bulk_finding_summary import evidence_summary as bulk_fail
@@ -116,8 +120,7 @@ def _observation(finding):
         if isinstance(role, str) and role:
             return ('The declared assignment grants the Owner role.' if role.rsplit('/',1)[-1].lower() == '8e3af657-a8ff-443c-a75c-2fe8c4bcb635'
                     else 'The declared assignment grants a role other than Owner.')
-    from .azure_native_evidence_observations import evidence_summary as native
-    return native(finding)
+    return None
 
 
 def evidence_summary(finding):

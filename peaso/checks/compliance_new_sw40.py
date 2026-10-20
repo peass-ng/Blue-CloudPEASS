@@ -13,7 +13,7 @@ from urllib.parse import unquote
 
 from . import CHECKS, register, result, unknown
 from .aws_all_policies import scan as _customer_policy_scan
-from .facts import Unavailable, complete_items, get, optional
+from .facts import Unavailable, complete_items, get, optional, list_of_objects
 
 _ACCOUNT = re.compile(r"^[0-9]{12}$")
 _ARN = re.compile(r"^arn:(aws(?:-[a-z0-9-]+)?):iam::([0-9]{12}|aws):policy/.+$")
@@ -116,10 +116,10 @@ def _managed_document(row, account):
     match = _ARN.fullmatch(arn)
     if match is None or match.group(2) not in {account, "aws"}:
         raise Unavailable("foreign or malformed managed-policy ARN")
-    versions = get(row, "PolicyVersionList", list)
-    defaults = [v for v in versions if isinstance(v, dict) and get(v, "IsDefaultVersion", bool)]
-    if len(defaults) != 1:
-        raise Unavailable("exactly one default policy version required")
+    versions = list_of_objects(get(row, "PolicyVersionList", list)); version_id = get(row, "DefaultVersionId", str)
+    version_ids = [get(v, "VersionId", str) for v in versions]; defaults = [v for v in versions if get(v, "IsDefaultVersion", bool)]
+    if not version_id or any(not v for v in version_ids) or len(set(version_ids)) != len(version_ids) or len(defaults) != 1 or get(defaults[0], "VersionId", str) != version_id:
+        raise Unavailable("exactly one matching default policy version required")
     return arn, _document(get(defaults[0], "Document"))
 
 

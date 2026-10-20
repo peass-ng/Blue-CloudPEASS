@@ -559,24 +559,8 @@ def metric_alert(name, patterns):
          dependencies=["project", "logging_metric", "monitoring_alert_policy"],
          remediation="Create a log-based metric with the reference filter and an enabled Cloud Monitoring alert policy on it.")
     def evaluate(item, index):
-        prefixes = project_prefixes(item)
-        metric_types = []
-        for metric in complete_items(index, "logging_metric"):
-            if not in_project(get(metric, "name", str), prefixes) or optional(metric, "disabled", False, bool):
-                continue
-            if any(re.search(p, get(metric, "filter", str)) for p in patterns):
-                metric_types.append(get(metric, "metricDescriptor.type", str))
-        alerted = []
-        for alert in complete_items(index, "monitoring_alert_policy"):
-            if not in_project(get(alert, "name", str), prefixes) or not get(alert, "enabled", bool):
-                continue
-            filters = alert_filters(alert)
-            for metric_type in metric_types:
-                if any(re.search(r'metric\.type\s*=\s*"' + re.escape(metric_type) + '"', f) for f in filters):
-                    alerted.append({"alert": alert["name"], "metric_type": metric_type})
-        return result(not alerted, matching_metrics=metric_types, alerting=alerted,
-                      semantics="Same-project metric and enabled alert declarations; cross-project metrics scopes and "
-                                "notification delivery are not evaluated")
+        from .gcp_metric_alert_native import evaluate_metric_alert_native
+        return evaluate_metric_alert_native(item, index, SAMPLE_FILTERS[name])
     cid = track(gid(slug))
     METRIC_IDS[name] = cid
     metric = {"name": "projects/p/metrics/m", "filter": SAMPLE_FILTERS[name],
@@ -1158,11 +1142,35 @@ cases(track(gid("gke.network_no_untargeted_public_ingress")), {"networkConfig": 
      severity="high", control="SC-7", category="network",
      remediation="Enable master authorized networks with specific CIDR blocks (or use a private endpoint).")
 def gke_man(item, index):
-    config = optional(item, "masterAuthorizedNetworksConfig", None, dict)
-    if config is None or not optional(config, "enabled", False, bool):
+    from ipaddress import ip_network
+
+    endpoints = optional(optional(item, "controlPlaneEndpointsConfig", {}, dict), "ipEndpointsConfig", {}, dict)
+    if optional(endpoints, "enabled", None, bool) is False:
+        return "NOT_APPLICABLE", {"reason": "IP control-plane endpoints are disabled; DNS endpoint authorization is separate"}
+    legacy = optional(item, "masterAuthorizedNetworksConfig", None, dict)
+    current = optional(endpoints, "authorizedNetworksConfig", None, dict)
+
+    def declaration(config):
+        enabled = optional(config, "enabled", False, bool)
+        blocks = [get(b, "cidrBlock", str) for b in list_of_objects(optional(config, "cidrBlocks", [], list))]
+        if any("/" not in block for block in blocks):
+            raise Unavailable("authorized network must use CIDR notation")
+        normalized = sorted({str(ip_network(block, strict=False)) for block in blocks})
+        cloud_access = optional(config, "gcpPublicCidrsAccessEnabled", False, bool)
+        private_enforcement = optional(config, "privateEndpointEnforcementEnabled", False, bool)
+        return enabled, normalized, cloud_access, private_enforcement
+
+    previous = declaration(legacy) if legacy is not None else None
+    modern = declaration(current) if current is not None else None
+    if previous is not None and modern is not None and previous != modern:
+        return unknown("conflicting legacy and current authorized network declarations")
+    config = modern if modern is not None else previous
+    if config is None or not config[0]:
         return result(True, enabled=False)
-    blocks = [get(b, "cidrBlock", str) for b in list_of_objects(optional(config, "cidrBlocks", [], list))]
-    return result(any(b in ("0.0.0.0/0", "::/0") for b in blocks), cidr_blocks=blocks)
+    _, blocks, cloud_access, private_enforcement = config
+    return result(any(ip_network(block).prefixlen == 0 for block in blocks), cidr_blocks=blocks,
+                  gcp_public_cidrs_access=cloud_access, private_endpoint_enforcement=private_enforcement,
+                  semantics="Authorized-network declarations only; DNS endpoint authorization and effective access are separate")
 
 
 cases(track(gid("gke.master_authorized_networks_restricted")),

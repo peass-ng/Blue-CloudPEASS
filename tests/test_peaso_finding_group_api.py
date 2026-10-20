@@ -18,11 +18,12 @@ def fixture_report():
     for number in range(125):
         region = ("us-east-1", "eu-north-1")[number % 2]
         rows.append(dict(id=f"member-{number:04d}", provider="aws", category="hardening", check_id="fixture.retention",
-            title="Log retention", severity="medium", status="FAIL" if number < 120 else "PASS", scope="123456789012/" + region,
+            finding_type="logging",
+            title="Log retention", service="logs", severity="medium", status="FAIL" if number < 120 else "PASS", scope="123456789012/" + region,
             region=region, resource_id=f"stable-{number}", native_resource_id=f"arn:aws:logs:{region}:123456789012:log-group:log-{number}", resource_name=f"log-{number}",
             frameworks=["Reviewed"], evidence={"retention_days": 7 if number < 120 else 365},
             evidence_summary=f"log-{number} retains logs for {7 if number < 120 else 365} days.", remediation="Set retention to 365 days."))
-    rows.append(dict(rows[0], id="guard-1", check_id="fixture.guardduty", title="GuardDuty", resource_id="scope:123456789012/us-east-1"))
+    rows.append(dict(rows[0], id="guard-1", finding_type="threat_detection", check_id="fixture.guardduty", title="GuardDuty", service="guardduty", resource_id="scope:123456789012/us-east-1"))
     return dict(schema_version="1.0", snapshot_id="fixture", provider="aws", scopes=["123456789012/us-east-1", "123456789012/eu-north-1"], created_at="2026-10-19T00:00:00Z",
         findings=rows, coverage=[], resources=[], graphs={}, stats={"finding_count": 126, "by_status": {"FAIL": 121, "PASS": 5}, "by_severity": {"medium": 121}})
 
@@ -52,6 +53,107 @@ def test_one_card_per_check_before_pagination_and_legacy_observations_are_retain
     assert second["total"] == 2 and second["next_offset"] is None
     assert data["items"][0]["check_id"] != second["items"][0]["check_id"]
     assert client.get(path).json()["total"] == 126
+
+
+def test_service_groups_cover_all_filtered_check_cards_before_pagination(live):
+    client, scan, _ = live
+    path = f"/api/scans/{scan}/findings"
+    first = client.get(path, params={"aggregation": "check", "group_by": "service", "limit": 1}).json()
+    assert first["total"] == 2 and len(first["items"]) == 1
+    assert first["service_groups"] == [
+        {"service": "guardduty", "count": 1, "status_counts": {"FAIL": 1}},
+        {"service": "logs", "count": 1, "status_counts": {"FAIL": 1}},
+    ]
+    selected = client.get(path, params={"aggregation": "check", "group_by": "service", "service": "logs", "limit": 1}).json()
+    assert selected["service_groups"] == [{"service": "logs", "count": 1, "status_counts": {"FAIL": 1}}]
+    passed = client.get(path, params={"aggregation": "check", "group_by": "service", "status": "PASS", "limit": 1}).json()
+    assert passed["service_groups"] == [{"service": "logs", "count": 1, "status_counts": {"PASS": 1}}]
+
+
+def test_type_groups_count_all_checks_before_paging_and_filter_member_evidence(live):
+    client, scan, _ = live
+    path = f"/api/scans/{scan}/findings"
+    response = client.get(path, params={"aggregation": "check", "group_by": "finding_type", "limit": 1})
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert data["total"] == 2 and len(data["items"]) == 1
+    assert data["type_groups"] == [
+        {"finding_type": "logging", "label": "Logging", "count": 1, "status_counts": {"FAIL": 1}},
+        {"finding_type": "threat_detection", "label": "Threat detection", "count": 1, "status_counts": {"FAIL": 1}},
+    ]
+    filtered = client.get(path, params={"aggregation": "check", "group_by": "finding_type", "finding_type": "logging", "status": "PASS"}).json()
+    assert filtered["total"] == 1 and filtered["items"][0]["finding_type"] == "logging"
+    assert filtered["items"][0]["member_filters"] == {"status": "PASS", "finding_type": "logging"}
+    item = filtered["items"][0]
+    members = client.get(f"/api/scans/{scan}/finding-groups/{item['id']}", params=item["member_filters"]).json()
+    assert members["members_total"] == 5
+    assert all(member["status"] == "PASS" for member in members["members"])
+
+
+def test_raw_type_filter_and_unknown_archived_ids(live):
+    client, scan, _ = live
+    path = f"/api/scans/{scan}/findings"
+    assert client.get(path, params={"finding_type": "logging"}).json()["total"] == 125
+    assert client.get(path, params={"finding_type": "unknown"}).json()["total"] == 0
+
+
+def test_status_filter_counts_cover_all_grouped_checks_and_survive_selection(live):
+    client, scan, _ = live
+    path = f"/api/scans/{scan}/findings"
+    first = client.get(path, params={"aggregation": "check", "categories": "hardening", "limit": 1}).json()
+    assert first["total"] == 2 and first["status_filter_total"] == 2
+    assert first["status_filter_counts"] == {"FAIL": 2, "PASS": 1, "UNKNOWN,MANUAL": 0,
+                                             "DENIED": 0, "NOT_APPLICABLE,EMPTY": 0}
+    passed = client.get(path, params={"aggregation": "check", "categories": "hardening", "status": "PASS", "limit": 1}).json()
+    assert passed["total"] == 1 and passed["status_filter_total"] == 2
+    assert passed["status_filter_counts"] == first["status_filter_counts"]
+    logs = client.get(path, params={"aggregation": "check", "service": "logs", "status": "PASS"}).json()
+    assert logs["status_filter_total"] == 1
+    assert logs["status_filter_counts"]["FAIL"] == logs["status_filter_counts"]["PASS"] == 1
+    raw = client.get(path, params={"aggregation": "none", "limit": 1}).json()
+    assert raw["status_filter_total"] == 126
+    assert raw["status_filter_counts"]["FAIL"] == 121
+    assert raw["status_filter_counts"]["PASS"] == 5
+
+
+@pytest.mark.parametrize("chunked", [False, True], ids=["inline-old-report", "chunked-bundle"])
+def test_internet_exposure_assets_do_not_become_one_mislabeled_service_card(tmp_path, chunked):
+    store, artifacts = SQLiteStore(tmp_path / "state"), FileArtifacts(tmp_path / "artifacts")
+    connector = store.add_connector("alice", {"provider": "aws", "name": "fixture"}, "encrypted")
+    job = store.enqueue("alice", {"connector_id": connector["id"]})
+    report = fixture_report()
+    base = report["findings"][0]
+    report["findings"] = []
+    for number, service, title, kind in [
+        (1, "apigateway", "Internet access to an API endpoint", "api"),
+        (2, "s3", "Public stored-data access", "data_share"),
+        (3, "lambda", "Internet access to a Lambda URL", "function_url"),
+    ]:
+        item = deepcopy(base)
+        item.update(id=f"exposure-{number}", category="exposure", check_id="analysis.internet_exposure",
+                    service=service, title=title, resource_id=f"asset-{number}", native_resource_id=f"asset-{number}",
+                    evidence={"exposure_kind": kind}, evidence_summary=f"{service} observation")
+        report["findings"].append(item)
+    report["stats"] = {"finding_count": 3, "by_status": {"FAIL": 3}}
+    reference = publish_report(artifacts, "alice", job["id"], report) if chunked else artifacts.put("alice", job["id"], "report", report)
+    with store.transaction() as db:
+        db.execute("UPDATE jobs SET status='completed',report=? WHERE id=?", (reference, job["id"]))
+    app = create_app(Settings(state_dir=tmp_path / "settings", identity_dir=tmp_path / "identity"), store=store,
+                     artifacts=artifacts, authenticator=TestIdentities())
+    with TestClient(app, base_url="http://127.0.0.1:8000", headers={"Authorization": "Bearer alice"}) as client:
+        path = f"/api/scans/{job['id']}/findings"
+        data = client.get(path, params={"aggregation": "check", "categories": "exposure", "limit": 1}).json()
+        assert data["total"] == data["status_filter_total"] == 3
+        assert data["status_filter_counts"]["FAIL"] == 3
+        assert [(group["service"], group["count"]) for group in data["service_groups"]] == [
+            ("apigateway", 1), ("lambda", 1), ("s3", 1)]
+        selected = client.get(path, params={"aggregation": "check", "service": "s3"}).json()
+        assert selected["total"] == 1
+        assert selected["items"][0]["title"] == "Public stored-data access"
+        assert selected["items"][0]["service"] == "s3"
+        assert not selected["items"][0].get("grouped")
+        assert client.get(f"/api/scans/{job['id']}/finding-groups/{group_id('aws', 'analysis.internet_exposure')}").status_code == 404
+        assert client.get(f"/api/scans/{job['id']}/summary?aggregation=check").json()["finding_count"] == 3
 
 
 def test_member_pages_retain_exact_evidence_status_native_asset_and_location(live):

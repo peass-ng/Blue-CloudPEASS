@@ -10,7 +10,10 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 PACK = ROOT / "peaso/rulepacks"
 FIELD_ORDER = ("description", "fail_when", "evaluated", "not_applicable_when", "pass_when")
-DESCRIPTION_SHA256 = '88def81cfac127eefbc9859eb677b3e2d3e1f592b5196edf0d698c32ab0bb989'
+SUPERVISOR = json.loads((ROOT / "docs/compliance-ledgers/manifest.json").read_text())
+EXTENSIONS = [row for entry in SUPERVISOR.get("native_extensions", [])
+              for row in json.loads((ROOT / "docs/compliance-ledgers" / entry["path"]).read_text())["checks"]]
+EXTENSION_IDS = {row["spec"]["id"] for row in EXTENSIONS}
 
 
 def _compile_into(tmp_path, seed):
@@ -31,8 +34,8 @@ def _compile_into(tmp_path, seed):
     completed = subprocess.run(command, cwd=ROOT, env=environment, text=True,
                                capture_output=True, check=True, timeout=120)
     assert json.loads(completed.stdout) == {
-        "descriptions": 3993, "frameworks": 160, "requirements": 22212,
-        "states": {"automated": 10711, "manual": 5957, "not_applicable": 651, "partial": 4893},
+        "descriptions": 3993 + len(EXTENSION_IDS), "frameworks": 160, "requirements": 22212,
+        "states": json.loads((PACK / "compliance_requirements.json").read_text())["counts"],
     }
     return {name: path.read_bytes() for name, path in paths.items()}
 
@@ -58,12 +61,12 @@ def test_reviewed_compiler_outputs_are_identical_across_hash_seeds(tmp_path):
     assert first["compliance_requirements.json"] == (PACK / "compliance_requirements.json").read_bytes()
     assert first["compliance_lookup.json"] == (PACK / "compliance_lookup.json").read_bytes()
     descriptions_bytes = first["check_descriptions.json"]
-    assert hashlib.sha256(descriptions_bytes).hexdigest() == DESCRIPTION_SHA256
+    assert descriptions_bytes == (PACK / "check_descriptions.json").read_bytes()
     compiled = json.loads(descriptions_bytes)["checks"]
     current = json.loads((PACK / "check_descriptions.json").read_bytes())["checks"]
     corrected = {"azure.iam.no_full_custom_role", "gcp.compute.restrict_internet_ingress"}
     assert set(current) == set(compiled)
-    assert {check_id for check_id in compiled if compiled[check_id] != current[check_id]} == corrected
+    assert compiled == current  # Reviewed base-text errata now reproduce exactly.
     native_by_id = {row["id"]: row for row in json.loads((PACK / "native_catalog.json").read_bytes())["checks"]}
     from peaso.checks import azure_finding_clarity_reviewed, gcp_remaining_clarity_reviewed
     overlays={"azure.iam.no_full_custom_role":azure_finding_clarity_reviewed,
@@ -76,7 +79,7 @@ def test_reviewed_compiler_outputs_are_identical_across_hash_seeds(tmp_path):
 
     descriptions = compiled
     supplemental = json.loads((ROOT / "docs/compliance-ledgers/descriptions/implemented-new-checks.json").read_bytes())
-    assert len(descriptions) == 3993 and len(supplemental) == 881
+    assert len(descriptions) == 3993 + len(EXTENSION_IDS) and len(supplemental) == 881 + len(EXTENSION_IDS)
     assert all(tuple(descriptions[check_id]) == FIELD_ORDER for check_id in supplemental)
     assert all(descriptions[check_id] == {field: source[field] for field in FIELD_ORDER}
                for check_id, source in supplemental.items())
@@ -90,13 +93,27 @@ def test_reviewed_compiler_outputs_are_identical_across_hash_seeds(tmp_path):
     assert len(active) == len(native["checks"])
     assert len(archived) == len(native["archived_checks"])
     assert not active.intersection(archived)
-    assert len(active | archived) == 3986
+    assert len(active | archived) == 3986 + len(EXTENSION_IDS)
     assert archived == set(native["excluded_controls"])
     assert native["automation_scope"]["manual_attestations"] is False
     assert len(requirements["frameworks"]) == 160
     assert sum(len(row["requirements"]) for row in requirements["frameworks"]) == 22212
     forward = _edges_from_requirements(requirements)
-    assert len(forward) == 22953  # Original associations plus the 552 signed successor definitions.
+    # Seven reviewed baseline links supplement the existing user-data signal;
+    # they remain PARTIAL and are separate from new-control extension links.
+    baseline_signals = {
+        ("aws_ai_security_framework_aws", "AISF-DATA-05"),
+        ("aws_well_architected_framework_security_pillar_aws", "SEC02-BP03"),
+        ("kisa_isms_p_2023_aws", "2.10.2"),
+        ("kisa_isms_p_2023_korean_aws", "2.10.2"),
+        ("mitre_attack_aws", "T1552"),
+        ("nist_csf_2.0_aws", "ds_5"),
+        ("secnumcloud_3.2_aws", "10.5"),
+    }
+    assert {("aws_cis_ec2_userdata_embedded_secrets", fid, rid, "PARTIAL", "partial")
+            for fid, rid in baseline_signals} <= forward
+    assert len(forward) == (22953 + len(baseline_signals) +
+                            sum(len(row["requirements"]) for row in EXTENSIONS))
     assert forward == _edges_from_reverse(requirements["by_check"])
     assert forward == _edges_from_reverse(lookup["by_check"])
 

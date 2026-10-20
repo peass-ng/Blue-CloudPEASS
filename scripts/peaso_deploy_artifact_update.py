@@ -5,6 +5,7 @@ is deliberately outside frozen source 496eef8c pending coordinator review.
 """
 from __future__ import annotations
 
+from peaso import deployment
 from collections import Counter
 from copy import deepcopy
 import base64
@@ -19,7 +20,7 @@ from scripts import peaso_deploy_current_update as current
 from scripts import peaso_deploy_successor_update as old_successor
 
 
-ACCOUNT = "202533532952"
+ACCOUNT = deployment.value("account_id")
 BACKEND = current.BACKEND
 LINEAGE = "07a58930-bf9f-7350-17e9-5e4d275a308a"
 SERIAL = 29
@@ -32,8 +33,8 @@ SOURCE_RELEASE_SHA = "394d03b29242ad309df155b79efee9e903714232becfd97ac22a9c0ee1
 SOURCE_ZIP_SHA = "9ef901874da33452d14e6991dbe9783e665716c678dbcb8f0d1683ad03033fa1"
 SOURCE_API_SHA = "4e2f4a4c778cd6600a6a00f053d579298cb498f2deef86019b8038eee271c4d6"
 SOURCE_FRONTEND_SHA = "23995811a3fe69916f6103bb1fbe8e0ff359a3d2b3ac748086f30cd289088646"
-SOURCE_IMAGE = ("202533532952.dkr.ecr.us-east-1.amazonaws.com/hacktricks-cspm-worker"
-                "@sha256:084d16c716c8d7a322fab8ad5ae24b9cabe93ed5fca2db30491056e5f28dca54")
+SOURCE_IMAGE = ((("DEPLOYMENT_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/hacktricks-cspm-worker"
+                "@sha256:084d16c716c8d7a322fab8ad5ae24b9cabe93ed5fca2db30491056e5f28dca54").replace("DEPLOYMENT_ACCOUNT_ID", deployment.value("account_id"))))
 TARGET_CHECK = ("resource", "aws_s3_object.customer_role_template")
 SIX_ACTIONS = old_successor.UPDATE_ACTIONS
 PARENT_POLICY = {"aws_iam_role.api", "aws_iam_role.workflow", "aws_s3_bucket.templates[0]"}
@@ -2840,7 +2841,7 @@ def check_publish_target(output):
     """Reject a different S3/CloudFront target before any publication write."""
     if (not isinstance(output, dict) or
             (output.get("frontend_bucket") or {}).get("value") !=
-            "hacktricks-cspm-frontend-202533532952" or
+            (("hacktricks-cspm-frontend-DEPLOYMENT_ACCOUNT_ID").replace("DEPLOYMENT_ACCOUNT_ID", deployment.value("account_id"))) or
             (output.get("cloudfront_distribution_id") or {}).get("value") !=
             "E24KDR2EDPKSBS"):
         raise RuntimeError("Artifact update publication target differs from epoch-29 state")

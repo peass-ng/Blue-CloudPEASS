@@ -86,6 +86,14 @@ test("network ACL inspector shows ordered stateless deny, with raw facts collaps
   await expect(dialog).toContainText("100");
   await expect(dialog).toContainText("deny");
   await expect(dialog).toContainText("stateless");
+  await expect(dialog.locator(".network-resource-heading")).toContainText("network acl");
+  const metadata = dialog.locator("details.network-resource-details");
+  await expect(metadata).not.toHaveAttribute("open");
+  await expect(metadata.getByText("Resource ID", { exact: true })).not.toBeVisible();
+  await metadata.getByText("Resource details", { exact: true }).click();
+  await expect(metadata.getByText("Resource ID", { exact: true })).toBeVisible();
+  await expect(metadata.getByText("Type", { exact: true })).toHaveCount(0);
+  await metadata.getByText("Resource details", { exact: true }).click();
   await expect(dialog.getByText("Collected technical fields")).toBeVisible();
   await dialog.getByText("Collected technical fields").click();
   await expect(dialog.locator("pre.network-raw")).toHaveCount(0);
@@ -689,6 +697,53 @@ test("failed native configuration read keeps CIDR unknown", async ({page}) => {
   await page.locator('.react-flow__node[data-id="network:vpc-alpha"] .network-node-heading').click();
   await expect(page.getByRole("alert").filter({hasText:"Native network configuration could not be loaded"})).toBeVisible();
   await expect(page.locator(".network-header-stats")).toContainText("Unknown CIDR");
+});
+
+test("subnets expand independently inside the VPC with compact labels and full tooltips", async ({page}) => {
+  const graph = manySubnetsFixture(3);
+  graph.nodes.find(node=>node.id==="eni-000")!.label = "production-interface-long-name";
+  await serve(page, graph);
+  const node = (id:string)=>page.locator(`.react-flow__node[data-id="${id}"]`);
+  const heading = (id:string)=>node(id).locator(".network-node-heading");
+  await heading("network:vpc-many").click();
+  await heading("area:subnet-000").click();
+  await expect(node("asset:eni-000")).toBeVisible();
+  await expect(node("asset:eni-000").locator("strong")).toHaveText("production");
+  await expect(node("asset:eni-000").locator(".network-node")).toHaveAttribute("title", /^production-interface-long-name ·/);
+  await expect(heading("asset:eni-000")).toHaveAccessibleName("Inspect production-interface-long-name");
+  for (const id of ["network:vpc-many","area:subnet-001","area:subnet-002"]) await expect(node(id)).toBeVisible();
+  await heading("area:subnet-001").click();
+  await expect(node("asset:eni-000")).toBeVisible();
+  await expect(node("asset:eni-001")).toBeVisible();
+  for (const suffix of ["000","001"]) {
+    await expect(heading(`area:subnet-${suffix}`)).toHaveAttribute("aria-expanded","true");
+    await expect.poll(() => page.evaluate((expandedSuffix) => {
+      const rect = (id:string) => document.querySelector<HTMLElement>(`.react-flow__node[data-id="${id}"]`)?.getBoundingClientRect();
+      // Read all three boxes in one layout frame while React Flow finishes fitView.
+      const root = rect("network:vpc-many");
+      const subnet = rect(`area:subnet-${expandedSuffix}`);
+      const asset = rect(`asset:eni-${expandedSuffix}`);
+      if (!root || !subnet || !asset) return ["missing node"];
+      const violations:string[] = [];
+      if (subnet.left < root.left) violations.push("subnet left of VPC");
+      if (subnet.top < root.top) violations.push("subnet above VPC");
+      if (subnet.right > root.right + 1) violations.push("subnet right of VPC");
+      if (subnet.bottom > root.bottom + 1) violations.push("subnet below VPC");
+      if (asset.left < subnet.left) violations.push("asset left of subnet");
+      if (asset.top < subnet.top) violations.push("asset above subnet");
+      if (asset.right > subnet.right + 1) violations.push("asset right of subnet");
+      if (asset.bottom > subnet.bottom + 1) violations.push("asset below subnet");
+      return violations;
+    }, suffix), {message:`subnet ${suffix} and its asset remain inside their parents`}).toEqual([]);
+  }
+  await page.screenshot({path:"evidence/network-expanded-sibling-subnets.png",fullPage:true});
+  await heading("area:subnet-000").click();
+  await expect(node("asset:eni-000")).toHaveCount(0);
+  await expect(node("asset:eni-001")).toBeVisible();
+  await expect(heading("area:subnet-000")).toHaveAttribute("aria-expanded","false");
+  await heading("area:subnet-001").click();
+  await expect(node("asset:eni-001")).toHaveCount(0);
+  for (const id of ["network:vpc-many","area:subnet-000","area:subnet-001","area:subnet-002"]) await expect(node(id)).toBeVisible();
 });
 
 test("every subnet beyond the initial area page is reachable from both pager and table", async ({page}) => {

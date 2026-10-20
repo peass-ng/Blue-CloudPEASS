@@ -88,7 +88,7 @@ def test_server_scan_group_joins_cluster_and_cloud_scans_including_scheduled(tmp
     app = create_app(settings, authenticator=Paid())
 
     def run(client, connector_id):
-        response = client.post("/api/scans", json={"connector_id": connector_id, "categories": ["privesc"]})
+        response = client.post("/api/scans", json={"ai_enabled": False, "connector_id": connector_id, "categories": ["privesc"]})
         assert response.status_code == 201, response.text
         ident = response.json()["id"]
         assert Worker("collector", settings).run_once() and Worker("analyzer", settings).run_once()
@@ -110,7 +110,7 @@ def test_server_scan_group_joins_cluster_and_cloud_scans_including_scheduled(tmp
         cluster_id = connector("cluster c1", cluster)
         cluster_scan = run(client, cluster_id)
         # A scheduled re-scan of the project joins the tenant's latest cluster snapshot.
-        client.post("/api/schedules", json={"connector_id": gcp_id, "categories": ["privesc"], "next_run_at": "2020-01-01T00:00:00+00:00"})
+        client.post("/api/schedules", json={"ai_enabled": False, "connector_id": gcp_id, "categories": ["privesc"], "next_run_at": "2020-01-01T00:00:00+00:00"})
         store = app.state.store
         triggered = store.trigger_schedule(store.due_schedules()[0], limit=10)
         assert Worker("collector", settings).run_once() and Worker("analyzer", settings).run_once()

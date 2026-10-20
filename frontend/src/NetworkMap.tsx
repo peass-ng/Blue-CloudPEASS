@@ -43,7 +43,7 @@ function Asset({ data }: NodeProps<N>) {
   const isGroup = item.id.startsWith("network:") || item.id.startsWith("area:");
   return <div className={`network-node ${isGroup ? "network-compound" : ""} ${item.id.startsWith("network:") ? "network-root" : ""}`} style={{ width: item.width, height: item.height }} data-kind={item.kind} data-hidden={item.hidden} title={`${item.title} · ${item.subtitle}`}>
     <Handle type="target" position={Position.Left} />
-    <button type="button" className="network-node-heading" aria-label={`${isGroup ? "Open" : "Inspect"} ${item.title}`}><Icon size={16} aria-label={`${item.kind.replaceAll("_", " ")} icon`} /><span className="network-node-label"><strong>{item.title}</strong></span>{isGroup && (data.expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />)}</button>
+    <button type="button" className="network-node-heading" aria-expanded={isGroup ? data.expanded : undefined} aria-label={`${isGroup ? "Open" : "Inspect"} ${item.title}`}><Icon size={16} aria-label={`${item.kind.replaceAll("_", " ")} icon`} /><span className="network-node-label"><strong>{Array.from(item.title).slice(0,10).join("")}</strong></span>{isGroup && (data.expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />)}</button>
     {isGroup && (data.internalResults?.length ? <button type="button" className="network-node-meta network-node-internal" onClick={event=>{event.stopPropagation();data.onInspectInternal?.(data.internalResults!);}}>{data.internalResults.length.toLocaleString()} assessed internal pairs · inspect</button>
       : null)}
     <Handle type="source" position={Position.Right} />
@@ -147,7 +147,9 @@ function ResourceDetail({ n, graph }: { n: GraphNode; graph: Graph }) {
   const last = Math.min(refs.length, first + pageSize);
   useEffect(() => setPage(0), [n.id]);
   return <>
-    <div className="network-facts">{nativeDetails(n).map(x => <div key={x.name}><dt>{x.name}</dt><dd>{x.value}</dd></div>)}</div>
+    <details className="network-resource-details"><summary>Resource details</summary>
+      <dl className="network-facts">{nativeDetails(n).filter(x => x.name !== "Name" && x.name !== "Type").map(x => <div key={x.name}><dt>{x.name}</dt><dd>{x.value}</dd></div>)}</dl>
+    </details>
     {!observed(n) && <p className="notice">Referenced resource was not collected in this scope. Its configuration and attachment are unknown.</p>}
     <h3>Loaded attachment records · {refs.length}</h3>
     <p>{represented.toLocaleString()} represented attachment{represented===1?"":"s"} · {loaded.toLocaleString()} loaded individual record{loaded===1?"":"s"} · {unresolved.toLocaleString()} underlying record{unresolved===1?"":"s"} not loaded.</p>
@@ -256,6 +258,7 @@ export function NetworkMap({ scanId, demo }: { scanId: string; demo: boolean }) 
   const [provider, setProvider] = useState("");
   const [networkId, setNetworkId] = useState("");
   const [areaId, setAreaId] = useState("");
+  const [expandedAreas, setExpandedAreas] = useState<Set<string>>(() => new Set());
   const [search, setSearch] = useState("");
   const [mode, setMode] = useState<"map" | "table">("map");
   const [connection, setConnection] = useState(false);
@@ -294,7 +297,7 @@ export function NetworkMap({ scanId, demo }: { scanId: string; demo: boolean }) 
     window.addEventListener("resize", refit);
     return () => window.removeEventListener("resize", refit);
   }, []);
-  useEffect(() => { batchRun.current += 1; setProvider(""); setNetworkId(""); setAreaId(""); setExpansion(""); setInventoryEnabled(false); setFlowResult(undefined); setBatchSource(""); setBatchResults([]); setBatchPageResults([]); setBatchError(""); setBatchPending(false); setPage(0); }, [scanId,demo]);
+  useEffect(() => { batchRun.current += 1; setProvider(""); setNetworkId(""); setAreaId(""); setExpandedAreas(new Set()); setExpansion(""); setInventoryEnabled(false); setFlowResult(undefined); setBatchSource(""); setBatchResults([]); setBatchPageResults([]); setBatchError(""); setBatchPending(false); setPage(0); }, [scanId,demo]);
   const currentProvider = model.providers.includes(provider) ? provider : model.providers[0] || "";
   useEffect(() => setMatrixPage(0), [scanId, demo, currentProvider, networkId, areaId, page]);
   const flowQuery = flowResult?.query && typeof flowResult.query === "object" ? flowResult.query as Record<string, unknown> : {};
@@ -316,7 +319,7 @@ export function NetworkMap({ scanId, demo }: { scanId: string; demo: boolean }) 
     ...graph.nodes.filter(node => node.provider === currentProvider && typeof node.resource_id === "string" && batchFocusIds.includes(node.resource_id)).map(node => node.id),
   ].filter((id): id is string => !!id))];
   const focusNetworks = focusAssets.map(id => model.owner.get(id)).filter((id): id is string => !!id);
-  const view = useMemo(() => networkView(model, currentProvider, networkId, areaId, search, page, focusNetworks, focusAssets), [model, currentProvider, networkId, areaId, search, page, focusNetworks.join("|"), focusAssets.join("|")]);
+  const view = useMemo(() => networkView(model, currentProvider, networkId, areaId, search, page, focusNetworks, focusAssets, [...expandedAreas]), [model, currentProvider, networkId, areaId, search, page, focusNetworks.join("|"), focusAssets.join("|"), expandedAreas]);
   const matrixCandidates = useMemo(() => {
     const interfacesByMachine = new Map<string, Set<string>>();
     for (const edge of graph.edges) {
@@ -574,7 +577,7 @@ export function NetworkMap({ scanId, demo }: { scanId: string; demo: boolean }) 
       };
       for (const item of positionedItems) {
         const pos = positions.get(item.id) || {x:0,y:0};
-        positioned.push({ id:item.id, type:"networkAsset", parentId:item.parentId, extent:item.parentId ? "parent" : undefined, position:pos, zIndex:item.parentId ? 4 : 2, data:{ item, expanded: item.id === `network:${networkId}` || item.id === `area:${areaId}`, internalResults:internalMatrixGroups.get(item.id), onInspectInternal:setMatrixInspect }, width:item.width,height:item.height,style:{ width:item.width,height:item.height }, sourcePosition:Position.Right,targetPosition:Position.Left, draggable:false });
+        positioned.push({ id:item.id, type:"networkAsset", parentId:item.parentId, extent:item.parentId ? "parent" : undefined, position:pos, zIndex:item.parentId ? 4 : 2, data:{ item, expanded: item.id === `network:${networkId}` || item.id === `area:${areaId}` || !!item.node && expandedAreas.has(item.node.id), internalResults:internalMatrixGroups.get(item.id), onInspectInternal:setMatrixInspect }, width:item.width,height:item.height,style:{ width:item.width,height:item.height }, sourcePosition:Position.Right,targetPosition:Position.Left, draggable:false });
       }
       const sections = new Map([...localSections].map(([id,route])=>{
         const origin = route.parentId ? absolute(route.parentId) : {x:0,y:0};
@@ -608,14 +611,23 @@ export function NetworkMap({ scanId, demo }: { scanId: string; demo: boolean }) 
       requestAnimationFrame(()=>void flow.current?.fitView({padding:0.18,maxZoom:1.1}));
     }).catch(error => { if (live) setLayoutError(error instanceof Error ? error.message : "Layout failed"); });
     return () => { live=false; };
-  }, [view, networkId, areaId, flowEdge, batchEdges, matrixEdges, internalMatrixGroups]);
+  }, [view, networkId, areaId, expandedAreas, flowEdge, batchEdges, matrixEdges, internalMatrixGroups]);
   function open(item: VisibleItem) {
     if (item.id.startsWith("network:")) { setNetworkId(item.group?.id || ""); setAreaId(""); setSearch(""); setPage(0); }
     else if (item.id.startsWith("area:")) {
       const owner = item.node && model.owner.get(item.node.id);
       if (owner) setNetworkId(owner);
       if (item.aggregate && !demo) { setExpansion(item.node?.id || ""); setAreaId(""); }
-      else setAreaId(item.node?.id || "");
+      else {
+        const id = item.node?.id || "";
+        const collapse = areaId === id || expandedAreas.has(id);
+        setExpandedAreas(previous => {
+          const next = new Set(previous);
+          if (collapse) next.delete(id); else next.add(id);
+          return next;
+        });
+        if (!collapse || areaId === id) setAreaId(collapse ? "" : id);
+      }
       setSearch("");
       setPage(0);
     }
@@ -763,7 +775,7 @@ export function NetworkMap({ scanId, demo }: { scanId: string; demo: boolean }) 
       {(expanded.isPending && expansion || inventoryEnabled && pages.isFetching) && <p role="status" className="network-load">Loading bounded network evidence…</p>}
       {(expanded.error || pages.error) && <p role="alert" className="network-load">Additional network evidence could not be loaded. The current map remains available.</p>}
     </Panel>
-    {inspect && <Inspector title={"records" in inspect ? "Observed relationship" : "Network resource"} onClose={()=>setInspect(undefined)}><h3>{"records" in inspect ? inspect.type : inspect.title}</h3>{"records" in inspect ? <RelationshipDetail edge={view.edges.find(edge => edge.id === inspect.id) || inspect} graph={graph} scanId={scanId} demo={demo} /> : <>{inspect.group && <><p>{inspect.group.count} resources · {inspect.group.unresolvedCount} unresolved references.</p><button className="button primary" onClick={()=>{open(inspect);setInspect(undefined);}}>Open network</button></>}{inspect.id.startsWith("area:") && <button className="button primary" onClick={()=>{open(inspect);setInspect(undefined);}}>{inspect.kind==="namespace"?"Open workloads":"Open subnet"}</button>}{needsNative && native.isPending && <p role="status">Loading collected configuration…</p>}{native.error && <p role="alert">Native configuration could not be loaded; graph identifiers and attachments remain available.</p>}{inspect.node && typeof inspect.node.resource_id === "string" && flowEndpointTypes[String(inspect.node.provider)]?.includes(kind(inspect.node)) && !demo && <div className="button-row"><button className="button" onClick={()=>{setAssessSource(String(inspect.node?.resource_id));setInspect(undefined);setConnection(true);}}>Assess from this resource</button><button className="button" onClick={()=>{setAssessTarget(String(inspect.node?.resource_id));setInspect(undefined);setConnection(true);}}>Assess to this resource</button><button className="button" onClick={()=>{const selectedSource=String(inspect.node?.resource_id);batchRun.current+=1;setBatchSource(selectedSource);setBatchResults([]);setBatchPageResults([]);setBatchError("");setBatchPending(false);setInspect(undefined);void assessLoadedConnections(0,selectedSource);}}>Assess connections from this resource</button></div>}{detailedNode && <ResourceDetail n={detailedNode} graph={graph} />}{inspect.aggregate && !demo && <button className="button" onClick={()=>{setExpansion(inspect.node?.id||"");setInspect(undefined);}}>Expand supplied resource group</button>}</>}</Inspector>}
+    {inspect && <Inspector title={"records" in inspect ? "Observed relationship" : "Network resource"} onClose={()=>setInspect(undefined)}>{"records" in inspect ? <h3>{inspect.type}</h3> : <div className="network-resource-heading"><h3>{inspect.title}</h3><span className="count-pill">{inspect.kind.replaceAll("_", " ")}</span></div>}{"records" in inspect ? <RelationshipDetail edge={view.edges.find(edge => edge.id === inspect.id) || inspect} graph={graph} scanId={scanId} demo={demo} /> : <>{inspect.group && <><p>{inspect.group.count} resources · {inspect.group.unresolvedCount} unresolved references.</p><button className="button primary" onClick={()=>{open(inspect);setInspect(undefined);}}>Open network</button></>}{inspect.id.startsWith("area:") && <button className="button primary" onClick={()=>{open(inspect);setInspect(undefined);}}>{inspect.kind==="namespace"?"Open workloads":"Open subnet"}</button>}{needsNative && native.isPending && <p role="status">Loading collected configuration…</p>}{native.error && <p role="alert">Native configuration could not be loaded; graph identifiers and attachments remain available.</p>}{inspect.node && typeof inspect.node.resource_id === "string" && flowEndpointTypes[String(inspect.node.provider)]?.includes(kind(inspect.node)) && !demo && <div className="button-row"><button className="button" onClick={()=>{setAssessSource(String(inspect.node?.resource_id));setInspect(undefined);setConnection(true);}}>Assess from this resource</button><button className="button" onClick={()=>{setAssessTarget(String(inspect.node?.resource_id));setInspect(undefined);setConnection(true);}}>Assess to this resource</button><button className="button" onClick={()=>{const selectedSource=String(inspect.node?.resource_id);batchRun.current+=1;setBatchSource(selectedSource);setBatchResults([]);setBatchPageResults([]);setBatchError("");setBatchPending(false);setInspect(undefined);void assessLoadedConnections(0,selectedSource);}}>Assess connections from this resource</button></div>}{detailedNode && <ResourceDetail key={detailedNode.id} n={detailedNode} graph={graph} />}{inspect.aggregate && !demo && <button className="button" onClick={()=>{setExpansion(inspect.node?.id||"");setInspect(undefined);}}>Expand supplied resource group</button>}</>}</Inspector>}
     {flowInspect && flowResult && <Inspector title="Assessed configuration path" onClose={()=>setFlowInspect(false)}><h3>{flowResult.decision.toUpperCase()} · {flowFamily} {String(flowQuery.protocol || "TCP").toUpperCase()}/{flowQuery.source_port ? `${flowQuery.source_port}→` : ""}{String(flowQuery.destination_port || "?")}</h3><p>{sourceNode ? label(sourceNode) : String(flowQuery.source_resource_id)} → {targetNode ? label(targetNode) : String(flowQuery.destination_resource_id)}</p><p>Configuration decision from this snapshot. Application listening and actual traffic were not measured.</p><Evidence data={{routes:flowResult.routes,policy_decisions:flowResult.policy_decisions,unresolved_dependencies:flowResult.unresolved_dependencies,evidence_refs:flowResult.evidence_refs}} /></Inspector>}
     {batchInspect && <Inspector title="Assessed configuration paths" onClose={()=>setBatchInspect(undefined)}><h3>{batchInspect.length} selected endpoint pair{batchInspect.length===1?"":"s"}</h3><p>Each result applies only to its named endpoints and ports. Application listening and actual traffic were not measured.</p>{batchInspect.map((result,index)=>{const query=result.query as Record<string,unknown>;const source=graph.nodes.find(node=>node.resource_id===query.source_resource_id);const target=graph.nodes.find(node=>node.resource_id===query.destination_resource_id);return <details key={index} open={batchInspect.length===1}><summary>{source?label(source):String(query.source_resource_id)} → {target?label(target):String(query.destination_resource_id)} · {`${addressFamilyLabel(query.address_family)} ${String(query.protocol).toUpperCase()}/${query.source_port ? `${query.source_port}→` : ""}${String(query.destination_port)}`} · {result.decision.toUpperCase()}</summary><Evidence data={{routes:result.routes,policy_decisions:result.policy_decisions,unresolved_dependencies:result.unresolved_dependencies,evidence_refs:result.evidence_refs}} /></details>;})}</Inspector>}
     {matrixInspect && <Inspector title="Automatically assessed flows" onClose={()=>setMatrixInspect(undefined)}><h3>{matrixInspect.length} directed TCP/54321→443 IPv4 pair{matrixInspect.length===1?"":"s"}</h3><p>Each result applies only to its named endpoints and ports. Application listening and actual traffic were not measured.</p>{matrixInspect.map((result,index)=>{const query=result.query as Record<string,unknown>;const source=graph.nodes.find(node=>node.resource_id===query.source_resource_id);const target=graph.nodes.find(node=>node.resource_id===query.destination_resource_id);return <details key={index}><summary>{source?label(source):String(query.source_resource_id)} → {target?label(target):String(query.destination_resource_id)} · {result.decision.toUpperCase()}</summary><Evidence data={{routes:result.routes,policy_decisions:result.policy_decisions,unresolved_dependencies:result.unresolved_dependencies,evidence_refs:result.evidence_refs}} /></details>;})}</Inspector>}

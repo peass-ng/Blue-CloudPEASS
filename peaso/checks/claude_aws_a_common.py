@@ -613,26 +613,54 @@ def _rule_ranges(rule):
     return v4, v6
 
 
-def prowler_sg_open(rule, protocol, ports=None, any_address=False, all_ports=False):
-    """Faithful prowler ec2/lib/security_groups.check_security_group over one IpPermission."""
-    ports = ports or []
-    proto = get(rule, "IpProtocol", str)
-    v4, v6 = _rule_ranges(rule)
+def _sg_protocol(value):
+    """EC2 accepts protocol names and their IANA numbers in IpPermission."""
+    names = {"tcp": "6", "udp": "17", "icmp": "1", "icmpv6": "58"}
+    if value in names:
+        return names[value]
+    if value == "-1" or (value.isascii() and value.isdecimal() and 0 <= int(value) <= 255):
+        return str(int(value))
+    raise Unavailable("unrecognized security-group protocol")
+
+
+def _sg_bounds(rule, proto):
+    # EC2 ignores port fields for all-protocol permissions. ICMP fields are
+    # independent type/code values, not an ordered TCP/UDP port interval.
     if proto == "-1":
-        for cidr in v4 + v6:
-            if is_cidr_public(cidr, any_address):
-                return True
-    if proto != "-1" and protocol != "-1" and proto != protocol:
-        return False
-    if "FromPort" in rule:
+        return None
+    if proto in ("6", "17", "1", "58"):
         low, high = get(rule, "FromPort", int), get(rule, "ToPort", int)
-        span = set(range(low, high + 1)) if low != high else {low}
-        for cidr in v4 + v6:
-            if is_cidr_public(cidr, any_address):
-                for port in ports:
-                    if port in span and (proto == protocol or protocol == "-1"):
-                        return True
-                return len(span) == 65536 or (all_ports and not ports)
+        valid = (0 <= low <= high <= 65535) if proto in ("6", "17") else (-1 <= low <= 255 and -1 <= high <= 255)
+        if not valid or (proto in ("1", "58") and low == -1 and high != -1):
+            raise Unavailable("invalid security-group port or ICMP type/code")
+        return low, high
+    # Other protocol numbers have no TCP/UDP port interval in the API.
+    return None
+
+
+def prowler_sg_open(rule, protocol, ports=None, any_address=False, all_ports=False):
+    """Prowler declaration predicate, with native EC2 protocol/range validation."""
+    ports = ports or []
+    proto = _sg_protocol(get(rule, "IpProtocol", str))
+    requested = _sg_protocol(protocol)
+    bounds = _sg_bounds(rule, proto)
+    v4, v6 = _rule_ranges(rule)
+    for version, ranges in ((4, v4), (6, v6)):
+        for cidr in ranges:
+            try:
+                if ip_network(cidr).version != version:
+                    raise ValueError("address family mismatch")
+            except ValueError as exc:
+                raise Unavailable("malformed security-group CIDR") from exc
+    public = any(is_cidr_public(cidr, any_address) for cidr in v4 + v6)
+    if proto == "-1":
+        return public
+    if requested != "-1" and proto != requested:
+        return False
+    if bounds is not None:
+        low, high = bounds
+        return public and (any(low <= port <= high for port in ports) or
+                           (low == 0 and high == 65535) or (all_ports and not ports))
     return False
 
 
@@ -762,8 +790,46 @@ def security_groups(index, ids):
 # ---------------------------------------------------------------------------
 # Network ACL: prowler ec2/lib/network_acls.check_network_acl.
 # ---------------------------------------------------------------------------
+def _validate_nacl_rule(rule):
+    """Validate native entry facts before treating a non-match as a safe rule."""
+    get(rule, "Egress", bool)
+    number = get(rule, "RuleNumber", int)
+    if not 1 <= number <= 32767:
+        raise Unavailable("invalid network ACL rule number")
+    if get(rule, "RuleAction", str) not in ("allow", "deny"):
+        raise Unavailable("unrecognized network ACL action")
+    protocol = get(rule, "Protocol", str)
+    if protocol != "-1" and not (protocol.isascii() and protocol.isdecimal() and 0 <= int(protocol) <= 255):
+        raise Unavailable("unrecognized network ACL protocol")
+    protocol = str(int(protocol))
+    families = 0
+    for field, version in (("CidrBlock", 4), ("Ipv6CidrBlock", 6)):
+        cidr = optional(rule, field, None, str)
+        if cidr is None:
+            continue
+        families += 1
+        try:
+            if ip_network(cidr).version != version:
+                raise ValueError("address family mismatch")
+        except ValueError as exc:
+            raise Unavailable("malformed network ACL CIDR") from exc
+    if families != 1:
+        raise Unavailable("network ACL entry needs exactly one address family")
+    bounds = optional(rule, "PortRange", None, dict)
+    if protocol in ("6", "17") or bounds is not None:
+        low, high = get(rule, "PortRange.From", int), get(rule, "PortRange.To", int)
+        if not 0 <= low <= high <= 65535:
+            raise Unavailable("invalid network ACL port interval")
+    icmp = optional(rule, "IcmpTypeCode", None, dict)
+    if icmp is not None:
+        typ, code = get(icmp, "Type", int), get(icmp, "Code", int)
+        if not (-1 <= typ <= 255 and -1 <= code <= 255) or (typ == -1 and code != -1):
+            raise Unavailable("invalid network ACL ICMP type/code")
+    return protocol
+
+
 def _nacl_match(rule, protocol, port):
-    proto = get(rule, "Protocol", str)
+    proto = _validate_nacl_rule(rule)
     if proto == "-1":
         return True
     if proto != protocol:
@@ -775,9 +841,7 @@ def _nacl_match(rule, protocol, port):
 def prowler_nacl_open(entries, protocol, port):
     entries = list_of_objects(entries)
     for rule in entries:
-        get(rule, "Egress", bool)
-        get(rule, "RuleNumber", int)
-        get(rule, "RuleAction", str)
+        _validate_nacl_rule(rule)
     v6 = sorted([r for r in entries if r.get("CidrBlock") is None and not r["Egress"]], key=lambda r: r["RuleNumber"])
     for rule in v6:
         if rule.get("Ipv6CidrBlock") == "::/0" and _nacl_match(rule, protocol, port):

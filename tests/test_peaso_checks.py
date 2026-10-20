@@ -20,6 +20,17 @@ _bulk_cases['aws_fedramp_iam_all_policies_no_admin_star'] = copy.deepcopy(
     _customer_cases['aws.nist.all_iam_policies_no_star_star'])
 _bulk_cases['aws_fedramp_iam_all_policies_no_service_wildcard'] = copy.deepcopy(
     _customer_cases['aws.nist.all_managed_policies_no_service_wildcard'])
+# The historical resource-policy PASS used o-approved, which is not a valid
+# AWS Organizations ID. Correct the synthetic caller boundary and both index
+# projections; preserve the archived input and the TLS-only FAIL unchanged.
+_resource_policy_case = _bulk_cases['aws_cis_aws_resource_policy_unrestricted_principal']
+for _policy_item in (
+    _resource_policy_case['pass'],
+    _resource_policy_case['pass_index']['collections']['aws_resource_policy'][0]['items'][0],
+    _resource_policy_case['pass_index']['aws_resource_policy'][0]['data'],
+):
+    _policy_item['Policy']['Statement'][0]['Condition']['StringEquals']['aws:PrincipalOrgID'] = 'o-1234567890'
+del _resource_policy_case, _policy_item
 CASES.update(_bulk_cases)
 
 
@@ -117,12 +128,25 @@ STALE_FAIL_CASES = {
 }
 
 
+_gcp_native_cases = {}
+for _native_case in json.loads((Path(__file__).parent /
+        'fixtures/gcp-native-review-behavior.json').read_text())['cases']:
+    _branch = {'PASS': 'pass', 'FAIL': 'fail', 'UNKNOWN': 'unknown'}[_native_case['expected_status']]
+    _current = _gcp_native_cases.setdefault(_native_case['check_id'], {})
+    _current.setdefault(_branch, _native_case['item'])
+    _current.setdefault(_branch + '_index', _native_case['index'])
+
+
 @pytest.mark.parametrize("check", CHECKS, ids=lambda c: c.id)
 def test_every_check_has_behavior_fixtures(check):
     assert check.id in CASES, "registered checks cannot claim support without fixtures"
-    cases = CASES[check.id]
+    # Keep the historical release fixtures intact. Current behavior uses the
+    # complete native producer cases after the customer/ancestor binding fixes.
+    cases = _gcp_native_cases.get(check.id, CASES[check.id])
     index = cases.get("index", {})
     source_bound_unknown_fails = {
+        # An unbound HTTP probe does not establish ownership or bucket existence.
+        "aws.c2b.cloudfront.s3_origin_bucket_exists",
         "aws.claude_a.networkfirewall.in_vpc",
         "aws.c2b.ecs.container_instance_in_vpc",
         "aws.c2b.eks.cluster_security_group_present",
@@ -149,7 +173,8 @@ def test_every_check_has_behavior_fixtures(check):
     assert check.evaluate(cases.get("missing", {}), index)[0] == "UNKNOWN"
     assert check.evaluate(cases.get("malformed", None), index)[0] == "UNKNOWN"
     assert check.evaluate({"collection_status": "denied"}, index)[0] == "UNKNOWN"
-    assert HACKTRICKS in check.frameworks
+    from peaso.checks.hacktricks_scope import includes
+    assert (HACKTRICKS in check.frameworks) == includes(check.id)
 
 
 @pytest.mark.parametrize("check", CHECKS, ids=lambda c: c.id)
@@ -312,6 +337,6 @@ def test_runtime_catalog_does_not_load_pending_audit_definitions(monkeypatch):
     catalog_module._mappings.cache_clear()
     result = get_catalog()
     assert result["checks"]
-    assert result["upstream_coverage"]["runtime_scope_upstream_total"] == 5844
+    assert result["upstream_coverage"]["runtime_scope_upstream_total"] == 5846
     assert result["manual_requirements"] == []
     assert catalog_module.manual_requirements()  # Retained source references, outside scan scope.

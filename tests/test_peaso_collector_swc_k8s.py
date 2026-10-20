@@ -24,6 +24,21 @@ POLICY = {
 }
 
 
+@pytest.fixture(autouse=True)
+def current_test_evidence_time(monkeypatch):
+    # Keep the declared 600-second policy meaningful even when this module
+    # waits behind other files in the full parallel suite.
+    fixed = datetime.fromisoformat(NOW)
+
+    class EvidenceDateTime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return fixed.astimezone(tz) if tz else fixed.replace(tzinfo=None)
+
+    monkeypatch.setattr(k8s, "datetime", EvidenceDateTime)
+    monkeypatch.setitem(globals(), "datetime", EvidenceDateTime)
+
+
 def node(i):
     return {'metadata': {'name': f'node-{i}', 'uid': f'n-{i}'}}
 

@@ -275,14 +275,64 @@ def _role(item,index):
 
 
 def _admin(item,index):
+    from fnmatch import fnmatchcase
+    from .aws_a_facts import api_optional
+    from .aws_bedrock_review_20261019 import _documents, _policy_document
+    from .aws_lambda_role_policy_review_20261019 import _attached_defaults, _iam_inventory
+    from .facts import optional
+
     arn,role=_role(item,index)
-    # This fact must be derived from complete identity policy documents, boundaries,
-    # session/SCP constraints and explicit Deny, not merely attachment names.
-    analysis=get(role,'EffectiveAdminAccess',dict)
-    if get(analysis,'collection_status',str)!='collected' or get(analysis,'role_arn',str)!=get(role,'Arn',str) or get(analysis,'complete',bool) is not True:
-        raise Unavailable('effective role policy analysis incomplete')
-    admin=get(analysis,'unconditional_action_resource_star',bool)
-    return result(admin,function_arn=arn,role_arn=get(role,'Arn',str), unconditional_admin=admin)
+    account=_scope(index).split('/')[0]
+    partition=arn.split(':')[1]
+    role_arn=get(role,'Arn',str)
+    if not role_arn.startswith('arn:'+partition+':iam::'+account+':role/'):
+        raise Unavailable('execution role partition mismatch')
+    _iam_inventory(index,'iam_role',account)
+    operation='iam:GetAccountAuthorizationDetails'
+    attachments=_objects(api_optional(role,'AttachedManagedPolicies',list,[],operation=operation))
+    attached_arns=[get(policy,'PolicyArn',str) for policy in attachments]
+    if len(attached_arns)!=len(set(attached_arns)) or any(
+            re.fullmatch(r'arn:'+re.escape(partition)+r':iam::(?:aws|'+account+r'):policy/.+',value) is None
+            for value in attached_arns):
+        raise Unavailable('managed policy attachment identity unresolved')
+    # The signed predicate has an explicit AdministratorAccess attachment OR.
+    # This branch observes that declaration, not its effective permission set.
+    admin_arn='arn:'+partition+':iam::aws:policy/AdministratorAccess'
+    if admin_arn in attached_arns:
+        return result(True,function_arn=arn,role_arn=role_arn,administrator_access_attached=True,
+            branch='exact_aws_administratoraccess_attachment',
+            observed='Execution role has the exact AWS AdministratorAccess policy attached; effective permissions remain unassessed.')
+    if attached_arns:
+        policies=_iam_inventory(index,'iam_policy',account)
+        _attached_defaults(role,policies,account,partition)
+    documents=_documents(role,index,account,'RolePolicyList')
+    could_create_role=False
+    for document in documents:
+        statements=get(_policy_document(document),'Statement')
+        for statement in _objects([statements] if isinstance(statements,dict) else statements):
+            effect=get(statement,'Effect',str)
+            # Conditions/resources can only narrow a statement; ignoring them
+            # here deliberately overestimates whether this action is possible.
+            optional(statement,'Condition',None,dict)
+            for field in ('Resource','NotResource'):
+                optional(statement,field,None)
+            action=optional(statement,'Action',None)
+            not_action=optional(statement,'NotAction',None)
+            values=_actions(action if action is not None else not_action)
+            if any(re.fullmatch(r'(?:\*|[A-Za-z0-9*?-]+:[A-Za-z0-9*?]+)',value) is None for value in values):
+                raise Unavailable('unsupported IAM action pattern')
+            matches=any(fnmatchcase('iam:createrole',value.lower()) for value in values)
+            if effect=='Allow' and (matches if action is not None else not matches):
+                could_create_role=True
+    if could_create_role:
+        return unknown('identity policies might allow iam:CreateRole; full effective administrator access requires additional evidence',
+            function_arn=arn,role_arn=role_arn,branch='effective_access_unresolved',
+            observed='Role policies could allow iam:CreateRole; boundaries, SCPs and other effective-access constraints are unassessed.')
+    # IAM CreateRole has no resource-based grants. Without an identity Allow
+    # for this necessary action, this role cannot have all direct actions.
+    # This says nothing about transitive assumption or privilege escalation.
+    return result(False,function_arn=arn,role_arn=role_arn,branch='necessary_direct_action_not_allowed',
+        observed='Complete role policies cannot Allow iam:CreateRole, ruling out full direct administrator access; escalation is unassessed.')
 
 
 def _secrets(item,index):
@@ -502,7 +552,7 @@ EVALUATORS = {
 DEPENDENCIES = {
  'aws_cis_lambda_config_recorded':['lambda_function','config_recorder'],
  'aws_cis_lambda_database_secrets_manager':['lambda_function','iam_role','secret'],
- 'aws_cis_lambda_execution_role_no_admin':['lambda_function','iam_role'],
+ 'aws_cis_lambda_execution_role_no_admin':['lambda_function','iam_role','iam_policy'],
  'aws.pci.vpc.approved_egress':['security_group'],
  'aws.pci.vpc.world_ingress_authorized_ports':['security_group'],
  'aws.nist.emr_master_nodes_no_public_ip':['emr_cluster','instance'],

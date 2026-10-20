@@ -1,0 +1,141 @@
+[
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:06:28Z",
+    "eventSource": "ses.amazonaws.com",
+    "eventName": "CreateReceiptRule",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "rule": {
+        "name": "canary",
+        "enabled": true,
+        "scanEnabled": false,
+        "actions": [
+          {
+            "s3Action": {
+              "objectKeyPrefix": "canary/",
+              "bucketName": "example-ses-synthetic-0ec8a7ff1f"
+            }
+          }
+        ]
+      },
+      "ruleSetName": "example-ses-1dfec5637e"
+    },
+    "responseElements": null,
+    "requestID": "c8fe6d72-1555-426a-bc47-860b6bdedaf6",
+    "eventID": "9a33c0c4-4954-45d2-bff4-d980f5f5373a",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:06:30Z",
+    "eventSource": "ses.amazonaws.com",
+    "eventName": "UpdateReceiptRule",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "ruleSetName": "example-ses-1dfec5637e",
+      "rule": {
+        "name": "canary",
+        "enabled": true,
+        "scanEnabled": true,
+        "actions": [
+          {
+            "s3Action": {
+              "objectKeyPrefix": "canary/",
+              "bucketName": "example-ses-synthetic-0ec8a7ff1f"
+            }
+          }
+        ]
+      }
+    },
+    "responseElements": null,
+    "requestID": "fe5ee776-7053-45b0-8174-580826752a50",
+    "eventID": "f43531ad-c9f3-4db4-9892-3d3b72ce6b96",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:06:31Z",
+    "eventSource": "ses.amazonaws.com",
+    "eventName": "SetActiveReceiptRuleSet",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "ruleSetName": "example-ses-1dfec5637e"
+    },
+    "responseElements": null,
+    "requestID": "d6cd7b94-cd6e-41a6-8759-4a9215ae16e4",
+    "eventID": "240bf819-fc74-49f9-b62f-804bf051106d",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:06:33Z",
+    "eventSource": "ses.amazonaws.com",
+    "eventName": "SetActiveReceiptRuleSet",
+    "awsRegion": "us-east-1",
+    "requestParameters": null,
+    "responseElements": null,
+    "requestID": "8e79c618-ff37-42e8-ae3c-3bc7ed8a09f3",
+    "eventID": "a8e21f7d-c25e-4f01-b46d-54f3067a063d",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:06:34Z",
+    "eventSource": "ses.amazonaws.com",
+    "eventName": "DeleteReceiptRuleSet",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "ruleSetName": "example-ses-1dfec5637e"
+    },
+    "responseElements": null,
+    "requestID": "7910818f-bcbb-4a5f-a510-81c199b5ab63",
+    "eventID": "94d8920f-06df-4eee-bbab-25c6b5477ffe",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  }
+]

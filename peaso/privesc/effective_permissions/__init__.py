@@ -35,10 +35,36 @@ class Grant:
         self.confidence = confidence
         self.refs = tuple(refs)[:MAX_REFS]
         self.conditions = tuple(dict.fromkeys(conditions))
-        self.permission_refs = tuple(permission_refs)[:MAX_REFS]
+        self.permission_refs = tuple(permission_refs)  # Keep every satisfied requirement; native source refs remain bounded.
 
     def __repr__(self):
         return f"Grant({self.confidence}, {len(self.refs)} refs, {self.conditions})"
+
+
+def permission_match(grant, raw, resource=None):
+    """Keep the checked requirement beside its granting refs without changing those refs."""
+    if grant is None:
+        return None
+    permission = next((str(raw[key]) for key in (
+        "action", "permission", "data_action", "entra_permission", "entra_role",
+        "graph_app_permission", "verb", "verb_prefix", "intune_permission",
+    ) if raw.get(key)), None)
+    if not permission:
+        return grant
+    if raw.get("resource") and (raw.get("verb") or raw.get("verb_prefix")):
+        permission += " " + str(raw["resource"])
+    if any(pair.get("permission") == permission and pair.get("requirement") == raw for pair in grant.permission_refs):
+        return grant
+    pairs = list(grant.permission_refs)
+    for ref in grant.refs:
+        if not isinstance(ref, dict) or str(ref.get("effect", "Allow")).lower() == "deny" or any(key in ref for key in ("deny_policy", "bound_resource", "shared_resource")):
+            continue
+        pair = {"permission": permission, "grant": ref, "requirement": dict(raw)}
+        if isinstance(resource, str):
+            pair["evaluated_resource"] = resource
+        if pair not in pairs:
+            pairs.append(pair)
+    return Grant(grant.confidence, grant.refs, grant.conditions, pairs)
 
 
 def combine(*grants):
@@ -319,7 +345,7 @@ class Model:
         refs, floor = self.resolve_for(template, principal, target)
         grant = None
         for ref in refs:
-            grant = best(grant, self.cached_check(principal, req, ref))
+            grant = best(grant, permission_match(self.cached_check(principal, req, ref), req, ref))
         if grant is None:
             return None
         return downgrade(grant, floor[0], floor[1]) if floor else grant
@@ -358,7 +384,7 @@ class Model:
                     grants.append(got)
                 else:
                     got = combine(*grants)
-                    winner = best(winner, Grant(got.confidence, ({"shared_resource": value},) + got.refs, got.conditions))
+                    winner = best(winner, Grant(got.confidence, ({"shared_resource": value},) + got.refs, got.conditions, got.permission_refs))
             if winner is not None:
                 result[target.id] = winner
         return result
@@ -379,7 +405,7 @@ class Model:
                 refs, floor = self.resolve(template, principal, target)
             grant = None
             for ref in refs:
-                grant = best(grant, self.cached_check(principal, req, ref))
+                grant = best(grant, permission_match(self.cached_check(principal, req, ref), req, ref))
             if grant is not None:
                 result[target.id] = downgrade(grant, floor[0], floor[1]) if floor else grant
         return result

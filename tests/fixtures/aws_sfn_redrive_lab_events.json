@@ -1,0 +1,50 @@
+[
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T19:58:46Z",
+    "eventSource": "states.amazonaws.com",
+    "eventName": "StartExecution",
+    "awsRegion": "us-east-1",
+    "eventID": "0ad4e22a-5a64-4ec8-91db-1098a21e63fa",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "stateMachineArn": "arn:aws:states:us-east-1:222233334444:stateMachine:example-sfn-redrive-b4d345b6"
+    },
+    "responseElements": {
+      "executionArn": "arn:aws:states:us-east-1:222233334444:execution:example-sfn-redrive-b4d345b6:030e1fec-4917-4e6e-b363-68f455369649"
+    }
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T19:58:48Z",
+    "eventSource": "states.amazonaws.com",
+    "eventName": "RedriveExecution",
+    "awsRegion": "us-east-1",
+    "eventID": "93308e2f-a254-4261-900d-3c47b8e73022",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "executionArn": "arn:aws:states:us-east-1:222233334444:execution:example-sfn-redrive-b4d345b6:030e1fec-4917-4e6e-b363-68f455369649"
+    },
+    "responseElements": {
+      "redriveDate": "2026-10-19T19:58:48Z"
+    }
+  }
+]

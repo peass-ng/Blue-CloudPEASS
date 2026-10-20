@@ -1,0 +1,75 @@
+[
+  {
+    "eventTime": "2026-10-19T16:42:14Z",
+    "eventSource": "supportauthz.amazonaws.com",
+    "eventName": "CreateSupportPermit",
+    "awsRegion": "us-east-1",
+    "eventID": "dc33318a-a33d-4be2-917e-4fc8a085d878",
+    "eventType": "AwsApiCall",
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "requestParameters": {
+      "name": "PeassoSupport7f6c630d7e",
+      "permit": {
+        "actions": {
+          "allActions": {}
+        },
+        "resources": {
+          "allResourcesInRegion": {}
+        }
+      },
+      "signingKeyInfo": {
+        "kmsKey": "arn:aws:kms:us-east-1:222233334444:key/ec794637-486c-41fb-bcd5-5c714d596303"
+      }
+    },
+    "responseElements": {
+      "name": "PeassoSupport7f6c630d7e",
+      "permit": {
+        "actions": {
+          "allActions": {}
+        },
+        "resources": {
+          "allResourcesInRegion": {}
+        }
+      },
+      "arn": "arn:aws:supportauthz:us-east-1:222233334444:supportpermit/ea8328fa-58d3-4928-8dea-bfeea0741424",
+      "status": "ACTIVE"
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventTime": "2026-10-19T16:42:15Z",
+    "eventSource": "supportauthz.amazonaws.com",
+    "eventName": "DeleteSupportPermit",
+    "awsRegion": "us-east-1",
+    "eventID": "82fa89f9-a0e3-4d08-8179-63d29bc654dd",
+    "eventType": "AwsApiCall",
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "requestParameters": {
+      "supportPermitIdentifier": "arn%3Aaws%3Asupportauthz%3Aus-east-1%3A222233334444%3Asupportpermit%2Fea8328fa-58d3-4928-8dea-bfeea0741424"
+    },
+    "responseElements": {
+      "name": "PeassoSupport7f6c630d7e",
+      "permit": {
+        "actions": {
+          "allActions": {}
+        },
+        "resources": {
+          "allResourcesInRegion": {}
+        }
+      },
+      "arn": "arn:aws:supportauthz:us-east-1:222233334444:supportpermit/ea8328fa-58d3-4928-8dea-bfeea0741424",
+      "status": "DELETING"
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  }
+]

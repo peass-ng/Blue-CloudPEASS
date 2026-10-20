@@ -157,7 +157,7 @@ def _eks():
 def test_eks_vpc_cni_addon_collected_and_absent(sdk):
     session, add = sdk
     stub = add("eks")
-    stub.add_response("describe_addon", {"addon": {"addonName": "vpc-cni", "addonVersion": "v1.18.0-eksbuild.1", "configurationValues": '{"enableNetworkPolicy": "true"}'}},
+    stub.add_response("describe_addon", {"addon": {"clusterName": "k", "addonName": "vpc-cni", "addonVersion": "v1.18.0-eksbuild.1", "configurationValues": '{"enableNetworkPolicy": "true"}'}},
                       {"clusterName": "k", "addonName": "vpc-cni"})
     stub.add_client_error("describe_addon", "ResourceNotFoundException", "none", expected_params={"clusterName": "k2", "addonName": "vpc-cni"})
     assert status("aws.c2b.eks.vpc_cni_network_policy", _eks()) == "UNKNOWN"

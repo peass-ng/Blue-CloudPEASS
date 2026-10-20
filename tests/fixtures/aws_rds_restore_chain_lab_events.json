@@ -1,0 +1,166 @@
+[
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T20:18:32Z",
+    "eventSource": "rds.amazonaws.com",
+    "eventName": "ModifyDBInstance",
+    "awsRegion": "us-east-1",
+    "eventID": "e87f94ce-cb40-4f7d-807a-d6fcc79c36b8",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "dBInstanceIdentifier": "example-rds-restore-8c0a7e4a-src",
+      "applyImmediately": true,
+      "allowMajorVersionUpgrade": false,
+      "deletionProtection": false
+    },
+    "responseElements": {
+      "dBInstanceIdentifier": "example-rds-restore-8c0a7e4a-src",
+      "dBInstanceStatus": "available"
+    }
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T20:18:33Z",
+    "eventSource": "rds.amazonaws.com",
+    "eventName": "CreateDBSnapshot",
+    "awsRegion": "us-east-1",
+    "eventID": "8f5c76ef-63d3-410f-8058-99c9eb70bf24",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "dBInstanceIdentifier": "example-rds-restore-8c0a7e4a-src",
+      "dBSnapshotIdentifier": "example-rds-restore-8c0a7e4a-snap"
+    },
+    "responseElements": {
+      "dBSnapshotIdentifier": "example-rds-restore-8c0a7e4a-snap",
+      "status": "creating"
+    }
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T20:19:47Z",
+    "eventSource": "rds.amazonaws.com",
+    "eventName": "RestoreDBInstanceFromDBSnapshot",
+    "awsRegion": "us-east-1",
+    "eventID": "cf25c3db-540e-4eff-8051-73273bba87da",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "dBInstanceIdentifier": "example-rds-restore-8c0a7e4a-clone",
+      "dBSnapshotIdentifier": "example-rds-restore-8c0a7e4a-snap",
+      "dBInstanceClass": "db.t4g.micro",
+      "publiclyAccessible": true,
+      "vpcSecurityGroupIds": [
+        "sg-0b192f1ef4da082da"
+      ]
+    },
+    "responseElements": {
+      "dBInstanceIdentifier": "example-rds-restore-8c0a7e4a-clone",
+      "dBInstanceStatus": "creating",
+      "publiclyAccessible": true
+    }
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T20:25:24Z",
+    "eventSource": "rds.amazonaws.com",
+    "eventName": "StopDBInstance",
+    "awsRegion": "us-east-1",
+    "eventID": "4f744036-5a42-4569-9091-c2f5afe6ffb0",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "dBInstanceIdentifier": "example-rds-restore-8c0a7e4a-clone"
+    },
+    "responseElements": {
+      "dBInstanceIdentifier": "example-rds-restore-8c0a7e4a-clone",
+      "dBInstanceStatus": "stopping"
+    }
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T20:25:24Z",
+    "eventSource": "rds.amazonaws.com",
+    "eventName": "ModifyDBInstance",
+    "awsRegion": "us-east-1",
+    "eventID": "df698427-dcbf-4dc6-b2cc-6212d140b63b",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "dBInstanceIdentifier": "example-rds-restore-8c0a7e4a-clone",
+      "applyImmediately": true,
+      "allowMajorVersionUpgrade": false,
+      "masterUserPassword": "HIDDEN_DUE_TO_SECURITY_REASONS"
+    },
+    "responseElements": {
+      "dBInstanceIdentifier": "example-rds-restore-8c0a7e4a-clone",
+      "dBInstanceStatus": "available"
+    }
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T20:31:48Z",
+    "eventSource": "rds.amazonaws.com",
+    "eventName": "StartDBInstance",
+    "awsRegion": "us-east-1",
+    "eventID": "7a0a88c4-516f-472f-9e9f-f03be030dcb8",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "dBInstanceIdentifier": "example-rds-restore-8c0a7e4a-clone"
+    },
+    "responseElements": {
+      "dBInstanceIdentifier": "example-rds-restore-8c0a7e4a-clone",
+      "dBInstanceStatus": "starting"
+    }
+  }
+]

@@ -5,7 +5,7 @@ import { explainObservedEvidence } from "../src/observedEvidenceExplanation";
 const base: Finding = {
   id: "finding-1", category: "identity", check_id: "aws.iam.console_mfa",
   title: "Console MFA", provider: "aws", service: "iam", resource_id: "user/test",
-  scope: "891377361887/us-east-2", severity: "high", status: "FAIL",
+  scope: "555566667777/us-east-2", severity: "high", status: "FAIL",
   frameworks: [], evidence: { mfa_enabled: false }, remediation: "Enable MFA.",
 };
 
@@ -30,6 +30,16 @@ test("historical and already explained public grants keep their access limits", 
   expect(explainObservedEvidence(publicGrant, summary)).toBe(summary);
 });
 
+test("complete root explanations are displayed without the old generic appendix", () => {
+  for (const [check_id, summary] of [
+    ["aws.a.iam.root_summary_no_keys", "No access keys are configured for the root account, so there are no root keys to remove."],
+    ["aws.claude_a.iam.root_console_has_mfa", "The root account has no console password, so this password sign-in check does not require an MFA device."],
+  ]) {
+    const finding: Finding = { ...base, check_id, evidence_summary: summary, evidence_summary_format: "natural-language-v2" };
+    expect(explainObservedEvidence(finding, summary)).toBe(summary);
+  }
+});
+
 test("evidence from each provider includes the observed fact and its security purpose", async ({ page }) => {
   const findings = [
     { ...base, evidence_summary: "The console user has no MFA device." },
@@ -39,6 +49,10 @@ test("evidence from each provider includes the observed fact and its security pu
       title: "VM backup protection", evidence_summary: "The VM has no matching backup-protection record." },
     { ...base, id: "k8s", provider: "k8s", check_id: "k8s.ports.pod.declared_nonroot", category: "hardening",
       title: "Run containers as nonroot", evidence_summary: "The container explicitly runs as user 0." },
+    { ...base, id: "root-keys", check_id: "aws.a.iam.root_summary_no_keys", title: "Root access keys", status: "PASS",
+      evidence_summary: "No access keys are configured for the root account, so there are no root keys to remove.", evidence_summary_format: "natural-language-v2" },
+    { ...base, id: "root-password", check_id: "aws.claude_a.iam.root_console_has_mfa", title: "Root password and MFA", status: "PASS",
+      evidence_summary: "The root account has no console password, so this password sign-in check does not require an MFA device.", evidence_summary_format: "natural-language-v2" },
   ];
   await page.route("**/api/**", async route => {
     const path = new URL(route.request().url()).pathname;
@@ -52,7 +66,8 @@ test("evidence from each provider includes the observed fact and its security pu
     await route.fulfill({ json });
   });
   await page.goto("/#Hardening%20Findings");
-  for (const [index, purpose] of ["second sign-in check", "protects stored Kubernetes Secrets", "reduce data loss", "Running without root"].entries()) {
+  await page.getByRole("button", { name: /iam 6 findings/ }).click();
+  for (const [index, purpose] of ["second sign-in check", "protects stored Kubernetes Secrets", "reduce data loss", "Running without root", "no root keys to remove", "does not require an MFA device"].entries()) {
     const finding = findings[index];
     await page.getByRole("button", { name: `${finding.title} ${finding.check_id}`, exact: true }).click();
     const dialog = page.getByRole("dialog");
@@ -64,6 +79,10 @@ test("evidence from each provider includes the observed fact and its security pu
       element.getBoundingClientRect().height / Number.parseFloat(getComputedStyle(element).lineHeight));
     expect(lines).toBeLessThanOrEqual(3.05);
     if (index === 0) await page.screenshot({ path: "/tmp/observed-evidence-explanation.png" });
+    if (index === 4) {
+      await expect(observation).not.toContainText("Account access keys present");
+      await page.screenshot({ path: "/tmp/root-access-keys-natural-evidence.png" });
+    }
     await dialog.getByRole("button", { name: /close/i }).click();
   }
 });

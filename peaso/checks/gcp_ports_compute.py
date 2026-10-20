@@ -175,15 +175,12 @@ firewall_port("compute_firewall_rule_rdp_access_restricted", 3389)
 
 
 def sql_ssl(item, index):
-    mode = get(item, "settings.ipConfiguration.sslMode", str)
-    if mode not in ("ALLOW_UNENCRYPTED_AND_ENCRYPTED", "ENCRYPTED_ONLY", "TRUSTED_CLIENT_CERTIFICATE_REQUIRED"):
-        return unknown("unrecognized SQL TLS mode")
-    return result(mode == "ALLOW_UNENCRYPTED_AND_ENCRYPTED", sslMode=mode,
-        semantics="Encrypted-only and trusted-client-certificate modes both require encrypted client connections")
+    from .gcp_sql_transport_native import sql_transport
+    return sql_transport(item, index)
 
 
 rule("sql_instance_require_ssl_enabled", "sql_instance", "SQL metadata requires encrypted client connections", sql_ssl,
-    {"settings": {"ipConfiguration": {"sslMode": "TRUSTED_CLIENT_CERTIFICATE_REQUIRED"}}},
+    {"databaseVersion": "POSTGRES_16", "settings": {"ipConfiguration": {"sslMode": "TRUSTED_CLIENT_CERTIFICATE_REQUIRED"}}},
     {"settings": {"ipConfiguration": {"sslMode": "ALLOW_UNENCRYPTED_AND_ENCRYPTED"}}})
 
 

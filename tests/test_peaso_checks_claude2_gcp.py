@@ -1,4 +1,5 @@
 """claude2_gcp partition: shard integrity, fixture outcomes and log-metric false-positive semantics."""
+from peaso.checks.hacktricks_scope import includes
 import copy
 import json
 from pathlib import Path
@@ -66,7 +67,7 @@ def test_every_predicate_is_claimed():
 @pytest.mark.parametrize("check_id", CHECK_IDS)
 def test_predicate_contract_and_fixtures(check_id):
     check = REGISTRY[check_id]
-    assert check.provider == "gcp" and HACKTRICKS in check.frameworks and check.remediation and check.dependencies
+    assert check.provider == "gcp" and (HACKTRICKS in check.frameworks) == includes(check.id) and check.remediation and check.dependencies
     cases = CASES[check_id]
     assert "pass" in cases and "fail" in cases and ("unknown" in cases or "malformed" in cases)
     for name, expected in (("pass", "PASS"), ("fail", "FAIL"), ("manual", "MANUAL"), ("unknown", "UNKNOWN"),

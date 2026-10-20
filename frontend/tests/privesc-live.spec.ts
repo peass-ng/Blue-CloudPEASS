@@ -122,7 +122,7 @@ test("live privesc map: readable view, admin query, shortest path and principal 
     .click();
   expect((await pathResponse).status()).toBe(200);
   await expect(page.locator(".pe-chip.hl")).toContainText("Path ");
-  await expect(page.locator(".pe-canvas .react-flow__edge.is-hl").first()).toBeAttached();
+  await expect(page.locator(".pe-canvas .react-flow__edge.is-hl, .pe-canvas .react-flow__edge.is-dim")).toHaveCount(0);
   expect(await zoom(page)).toBeGreaterThanOrEqual(0.6);
 
   // Shortest path between two searchable selects.
@@ -133,7 +133,7 @@ test("live privesc map: readable view, admin query, shortest path and principal 
   await page.getByRole("listbox", { name: "Path target" }).getByRole("option").first().click();
   await page.getByRole("button", { name: "Find shortest path" }).click();
   await expect(sidebar.locator(".pe-paths")).toContainText(`${deep.distance} hop`);
-  await expect(page.locator(".pe-canvas .react-flow__edge.is-hl")).not.toHaveCount(0);
+  await expect(page.locator(".pe-canvas .react-flow__edge.is-hl, .pe-canvas .react-flow__edge.is-dim")).toHaveCount(0);
 
   // Principal card for the traced principal.
   const cardResponse = page.waitForResponse((r) => r.url().includes("/privesc/principals/"));

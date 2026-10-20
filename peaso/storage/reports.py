@@ -20,8 +20,12 @@ def chunks(items):
 
 
 def finding_summary(finding):
-    fields = {"id", "category", "check_id", "title", "provider", "service", "resource_id", "native_resource_id", "resource_name", "scope", "region", "severity", "status", "frameworks", "remediation", "automated"}
+    fields = {"id", "category", "check_id", "title", "provider", "service", "resource_id", "native_resource_id", "resource_name", "scope", "region", "severity", "status", "frameworks", "remediation", "automated", "secret_fingerprint", "linked_check_ids"}
+    if finding.get("secret_fingerprint"):
+        fields.add("evidence_summary")
     value = {k: v for k, v in finding.items() if k in fields}
+    if "finding_type" in finding:
+        value["finding_type"] = finding["finding_type"]
     for key, item in list(value.items()):
         maximum = {"title": 400, "resource_id": 1000, "scope": 500, "remediation": 1000, "service": 100, "check_id": 200, "category": 100, "provider": 30}.get(key, 2000)
         if isinstance(item, str) and len(item) > maximum:
@@ -92,6 +96,9 @@ def publish_report(artifacts, tenant, ident, report, snapshot=None):
                 "summary": {k: v for k, v in report.items() if k not in {"resources", "findings", "coverage", "graphs", "snapshot", "check_frameworks", "check_meta", "check_meta_encoding", "remediation_templates"}},
                 "finding_chunks": [], "coverage_chunks": [], "coverage_chunk_counts": [],
                 "graphs": {}, "finding_count": len(report.get("findings", [])), "finding_group_count": len(presented.get("findings", [])), "observation_count": len(report.get("findings", [])), "coverage_count": len(report.get("coverage", []))}
+    if isinstance(report.get("ai"), dict):
+        manifest["ai_review"] = artifacts.put(tenant, ident, "ai-review", report["ai"])
+        manifest["summary"]["ai"] = {key: report["ai"][key] for key in ("status", "reason", "coverage", "auth_source") if key in report["ai"]}
     # Bind future technique-card lookups to the exact report catalog and the
     # tenant-scoped artifact. Old manifests have no binding and use an explicit
     # legacy-unversioned lookup status instead of today's catalog semantics.
@@ -134,7 +141,7 @@ def publish_report(artifacts, tenant, ident, report, snapshot=None):
         manifest["resource_chunks"] = resource_chunks(artifacts, tenant, ident, report, snapshot)
         from peaso.least_privilege import project as project_least_privilege
         from peaso.snapshot import resources as snapshot_resources
-        projection = project_least_privilege(report["provider"], snapshot_resources(snapshot))
+        projection = project_least_privilege(report["provider"], snapshot_resources(snapshot), snapshot=snapshot)
         manifest["least_privilege"] = artifacts.put(tenant, ident, "least-privilege", projection)
     for kind in ("network", "iam"):
         graph = report.get("graphs", {}).get(kind, {"nodes": [], "edges": []})

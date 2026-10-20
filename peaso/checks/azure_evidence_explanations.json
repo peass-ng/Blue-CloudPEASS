@@ -1164,91 +1164,91 @@
     "purpose": "Password controls reduce guessing risks.",
     "limit": "Settings do not prove existing password strength.",
     "review_group": "password",
-    "label": "Linux VM has no local accounts without passwords (PasswordPolicy_msid232)",
-    "missing_observation": "Evidence is incomplete for Linux VM has no local accounts without passwords (PasswordPolicy_msid232).",
-    "manual_observation": "Owner review is required for Linux VM has no local accounts without passwords (PasswordPolicy_msid232).",
-    "not_applicable_observation": "This check does not apply: Linux VM has no local accounts without passwords (PasswordPolicy_msid232)."
+    "label": "Password requirements for local Linux accounts",
+    "missing_observation": "Evidence is incomplete for Password requirements for local Linux accounts.",
+    "manual_observation": "Owner review is required for Password requirements for local Linux accounts.",
+    "not_applicable_observation": "This check does not apply: Password requirements for local Linux accounts."
   },
   "azure.claude.vm_linux_remote_requires_password": {
     "purpose": "Password controls reduce guessing risks.",
     "limit": "Settings do not prove existing password strength.",
     "review_group": "password",
-    "label": "Linux VM blocks remote connections from accounts without passwords (PasswordPolicy_msid110)",
-    "missing_observation": "Evidence is incomplete for Linux VM blocks remote connections from accounts without passwords (PasswordPolicy_msid110).",
-    "manual_observation": "Owner review is required for Linux VM blocks remote connections from accounts without passwords (PasswordPolicy_msid110).",
-    "not_applicable_observation": "This check does not apply: Linux VM blocks remote connections from accounts without passwords (PasswordPolicy_msid110)."
+    "label": "Passwordless remote Linux access restrictions",
+    "missing_observation": "Evidence is incomplete for Passwordless remote Linux access restrictions.",
+    "manual_observation": "Owner review is required for Passwordless remote Linux access restrictions.",
+    "not_applicable_observation": "This check does not apply: Passwordless remote Linux access restrictions."
   },
   "azure.claude.vm_windows_max_password_age": {
     "purpose": "Password controls reduce guessing risks.",
     "limit": "Settings do not prove existing password strength.",
     "review_group": "password",
-    "label": "Windows VM maximum password age is 70 days (MaximumPasswordAge)",
-    "missing_observation": "Evidence is incomplete for Windows VM maximum password age is 70 days (MaximumPasswordAge).",
-    "manual_observation": "Owner review is required for Windows VM maximum password age is 70 days (MaximumPasswordAge).",
-    "not_applicable_observation": "This check does not apply: Windows VM maximum password age is 70 days (MaximumPasswordAge)."
+    "label": "Maximum Windows password age",
+    "missing_observation": "Evidence is incomplete for Maximum Windows password age.",
+    "manual_observation": "Owner review is required for Maximum Windows password age.",
+    "not_applicable_observation": "This check does not apply: Maximum Windows password age."
   },
   "azure.claude.vm_windows_min_password_age": {
     "purpose": "Password controls reduce guessing risks.",
     "limit": "Settings do not prove existing password strength.",
     "review_group": "password",
-    "label": "Windows VM minimum password age is 1 day (MinimumPasswordAge)",
-    "missing_observation": "Evidence is incomplete for Windows VM minimum password age is 1 day (MinimumPasswordAge).",
-    "manual_observation": "Owner review is required for Windows VM minimum password age is 1 day (MinimumPasswordAge).",
-    "not_applicable_observation": "This check does not apply: Windows VM minimum password age is 1 day (MinimumPasswordAge)."
+    "label": "Minimum Windows password age",
+    "missing_observation": "Evidence is incomplete for Minimum Windows password age.",
+    "manual_observation": "Owner review is required for Minimum Windows password age.",
+    "not_applicable_observation": "This check does not apply: Minimum Windows password age."
   },
   "azure.claude.vm_windows_min_password_length": {
     "purpose": "Password controls reduce guessing risks.",
     "limit": "Settings do not prove existing password strength.",
     "review_group": "password",
-    "label": "Windows VM minimum password length is 14 (MinimumPasswordLength)",
-    "missing_observation": "Evidence is incomplete for Windows VM minimum password length is 14 (MinimumPasswordLength).",
-    "manual_observation": "Owner review is required for Windows VM minimum password length is 14 (MinimumPasswordLength).",
-    "not_applicable_observation": "This check does not apply: Windows VM minimum password length is 14 (MinimumPasswordLength)."
+    "label": "Minimum Windows password length",
+    "missing_observation": "Evidence is incomplete for Minimum Windows password length.",
+    "manual_observation": "Owner review is required for Minimum Windows password length.",
+    "not_applicable_observation": "This check does not apply: Minimum Windows password length."
   },
   "azure.claude.vm_windows_password_complexity": {
     "purpose": "Password controls reduce guessing risks.",
     "limit": "Settings do not prove existing password strength.",
     "review_group": "password",
-    "label": "Windows VM enforces password complexity (PasswordMustMeetComplexityRequirements)",
-    "missing_observation": "Evidence is incomplete for Windows VM enforces password complexity (PasswordMustMeetComplexityRequirements).",
-    "manual_observation": "Owner review is required for Windows VM enforces password complexity (PasswordMustMeetComplexityRequirements).",
-    "not_applicable_observation": "This check does not apply: Windows VM enforces password complexity (PasswordMustMeetComplexityRequirements)."
+    "label": "Windows password-complexity requirements",
+    "missing_observation": "Evidence is incomplete for Windows password-complexity requirements.",
+    "manual_observation": "Owner review is required for Windows password-complexity requirements.",
+    "not_applicable_observation": "This check does not apply: Windows password-complexity requirements."
   },
   "azure.claude.vm_windows_no_reversible_password_encryption": {
     "purpose": "Avoiding reversible storage protects passwords.",
     "limit": "Guest reports do not inspect every application.",
     "review_group": "specific",
-    "label": "Windows VM does not store passwords with reversible encryption",
-    "missing_observation": "Evidence is incomplete for Windows VM does not store passwords with reversible encryption.",
-    "manual_observation": "Owner review is required for Windows VM does not store passwords with reversible encryption.",
-    "not_applicable_observation": "This check does not apply: Windows VM does not store passwords with reversible encryption."
+    "label": "Restrictions on reversible Windows password storage",
+    "missing_observation": "Evidence is incomplete for Restrictions on reversible Windows password storage.",
+    "manual_observation": "Owner review is required for Restrictions on reversible Windows password storage.",
+    "not_applicable_observation": "This check does not apply: Restrictions on reversible Windows password storage."
   },
   "azure.claude.vm_windows_password_history": {
     "purpose": "Password controls reduce guessing risks.",
     "limit": "Settings do not prove existing password strength.",
     "review_group": "password",
-    "label": "Windows VM prevents reuse of the previous 24 passwords (EnforcePasswordHistory)",
-    "missing_observation": "Evidence is incomplete for Windows VM prevents reuse of the previous 24 passwords (EnforcePasswordHistory).",
-    "manual_observation": "Owner review is required for Windows VM prevents reuse of the previous 24 passwords (EnforcePasswordHistory).",
-    "not_applicable_observation": "This check does not apply: Windows VM prevents reuse of the previous 24 passwords (EnforcePasswordHistory)."
+    "label": "Windows password-reuse protection",
+    "missing_observation": "Evidence is incomplete for Windows password-reuse protection.",
+    "manual_observation": "Owner review is required for Windows password-reuse protection.",
+    "not_applicable_observation": "This check does not apply: Windows password-reuse protection."
   },
   "azure.claude.vm_windows_exploit_guard": {
     "purpose": "Security monitoring helps identify threats.",
     "limit": "Enabled features do not prove runtime coverage.",
     "review_group": "defender",
-    "label": "Windows VM has Windows Defender Exploit Guard enabled (WindowsDefenderExploitGuard)",
-    "missing_observation": "Evidence is incomplete for Windows VM has Windows Defender Exploit Guard enabled (WindowsDefenderExploitGuard).",
-    "manual_observation": "Owner review is required for Windows VM has Windows Defender Exploit Guard enabled (WindowsDefenderExploitGuard).",
-    "not_applicable_observation": "This check does not apply: Windows VM has Windows Defender Exploit Guard enabled (WindowsDefenderExploitGuard)."
+    "label": "Windows Exploit Guard protection",
+    "missing_observation": "Evidence is incomplete for Windows Exploit Guard protection.",
+    "manual_observation": "Owner review is required for Windows Exploit Guard protection.",
+    "not_applicable_observation": "This check does not apply: Windows Exploit Guard protection."
   },
   "azure.claude.vm_windows_secure_protocol_tls13": {
     "purpose": "Encrypted protocols protect traffic.",
     "limit": "Settings alone do not prove trusted connectivity.",
     "review_group": "tls",
-    "label": "Windows VM web servers require TLS 1.3 (AuditSecureProtocol MinimumTLSVersion 1.3)",
-    "missing_observation": "Evidence is incomplete for Windows VM web servers require TLS 1.3 (AuditSecureProtocol MinimumTLSVersion 1.3).",
-    "manual_observation": "Owner review is required for Windows VM web servers require TLS 1.3 (AuditSecureProtocol MinimumTLSVersion 1.3).",
-    "not_applicable_observation": "This check does not apply: Windows VM web servers require TLS 1.3 (AuditSecureProtocol MinimumTLSVersion 1.3)."
+    "label": "TLS 1.3 requirements for Windows web servers",
+    "missing_observation": "Evidence is incomplete for TLS 1.3 requirements for Windows web servers.",
+    "manual_observation": "Owner review is required for TLS 1.3 requirements for Windows web servers.",
+    "not_applicable_observation": "This check does not apply: TLS 1.3 requirements for Windows web servers."
   },
   "azure.claude.vm_os_managed_disk": {
     "purpose": "Managed disk bindings support consistent storage control.",
@@ -4422,10 +4422,10 @@
     "purpose": "Password controls reduce guessing risks.",
     "limit": "Settings do not prove existing password strength.",
     "review_group": "password",
-    "label": "Linux VM is Compliant with the LinuxNoPasswordForSSH machine configuration",
-    "missing_observation": "Evidence is incomplete for Linux VM is Compliant with the LinuxNoPasswordForSSH machine configuration.",
-    "manual_observation": "Owner review is required for Linux VM is Compliant with the LinuxNoPasswordForSSH machine configuration.",
-    "not_applicable_observation": "This check does not apply: Linux VM is Compliant with the LinuxNoPasswordForSSH machine configuration."
+    "label": "Linux SSH password-authentication restrictions",
+    "missing_observation": "Evidence is incomplete for Linux SSH password-authentication restrictions.",
+    "manual_observation": "Owner review is required for Linux SSH password-authentication restrictions.",
+    "not_applicable_observation": "This check does not apply: Linux SSH password-authentication restrictions."
   },
   "azure.claude2.vm_trusted_launch_secure_boot_vtpm": {
     "purpose": "Integrity controls help prevent tampering.",
@@ -4575,19 +4575,19 @@
     "purpose": "Approved identity sources limit unintended sign-ins.",
     "limit": "Trust declarations do not prove successful sign-in.",
     "review_group": "federation",
-    "label": "Application federated credential does not trust GitHub pull_request workflows",
-    "missing_observation": "Evidence is incomplete for Application federated credential does not trust GitHub pull_request workflows.",
-    "manual_observation": "Owner review is required for Application federated credential does not trust GitHub pull_request workflows.",
-    "not_applicable_observation": "This check does not apply: Application federated credential does not trust GitHub pull_request workflows."
+    "label": "Application trust in GitHub pull-request workflows",
+    "missing_observation": "Evidence is incomplete for Application trust in GitHub pull-request workflows.",
+    "manual_observation": "Owner review is required for Application trust in GitHub pull-request workflows.",
+    "not_applicable_observation": "This check does not apply: Application trust in GitHub pull-request workflows."
   },
   "azure.htbp.managed_identity.fic_github_not_pull_request": {
     "purpose": "Approved identity sources limit unintended sign-ins.",
     "limit": "Trust declarations do not prove successful sign-in.",
     "review_group": "federation",
-    "label": "Managed identity federated credential does not trust GitHub pull_request workflows",
-    "missing_observation": "Evidence is incomplete for Managed identity federated credential does not trust GitHub pull_request workflows.",
-    "manual_observation": "Owner review is required for Managed identity federated credential does not trust GitHub pull_request workflows.",
-    "not_applicable_observation": "This check does not apply: Managed identity federated credential does not trust GitHub pull_request workflows."
+    "label": "Managed identity trust in GitHub pull-request workflows",
+    "missing_observation": "Evidence is incomplete for Managed identity trust in GitHub pull-request workflows.",
+    "manual_observation": "Owner review is required for Managed identity trust in GitHub pull-request workflows.",
+    "not_applicable_observation": "This check does not apply: Managed identity trust in GitHub pull-request workflows."
   },
   "azure.htbp.automation.webhook_expiry_bounded": {
     "purpose": "Bounded webhook lifetimes reduce reuse of leaked invocation URLs.",
@@ -4692,10 +4692,10 @@
     "purpose": "Logs support investigation and accountability.",
     "limit": "Export settings do not prove delivery.",
     "review_group": "logging",
-    "label": "PostgreSQL Flexible Server log_duration parameter is on",
-    "missing_observation": "Evidence is incomplete for PostgreSQL Flexible Server log_duration parameter is on.",
-    "manual_observation": "Owner review is required for PostgreSQL Flexible Server log_duration parameter is on.",
-    "not_applicable_observation": "This check does not apply: PostgreSQL Flexible Server log_duration parameter is on."
+    "label": "PostgreSQL statement-duration logging",
+    "missing_observation": "Evidence is incomplete for PostgreSQL statement-duration logging.",
+    "manual_observation": "Owner review is required for PostgreSQL statement-duration logging.",
+    "not_applicable_observation": "This check does not apply: PostgreSQL statement-duration logging."
   },
   "azure_search_service_3_5_1_19_a3c75c0": {
     "purpose": "Customer keys give owners control over key access.",
@@ -4809,28 +4809,28 @@
     "purpose": "Logs support investigation and accountability.",
     "limit": "Export settings do not prove delivery.",
     "review_group": "logging",
-    "label": "Ensure server parameter 'audit_log_enabled' is set to 'ON' for MySQL Database Server",
-    "missing_observation": "Evidence is incomplete for Ensure server parameter 'audit_log_enabled' is set to 'ON' for MySQL Database Server.",
-    "manual_observation": "Owner review is required for Ensure server parameter 'audit_log_enabled' is set to 'ON' for MySQL Database Server.",
-    "not_applicable_observation": "This check does not apply: Ensure server parameter 'audit_log_enabled' is set to 'ON' for MySQL Database Server."
+    "label": "MySQL audit-log generation",
+    "missing_observation": "Evidence is incomplete for MySQL audit-log generation.",
+    "manual_observation": "Owner review is required for MySQL audit-log generation.",
+    "not_applicable_observation": "This check does not apply: MySQL audit-log generation."
   },
   "azure.cis.postgresql_single_connection_throttling": {
     "purpose": "Request limits reduce abuse and resource exhaustion.",
     "limit": "Declared limits do not prove path coverage.",
     "review_group": "rate_limit",
-    "label": "Ensure server parameter 'connection_throttling' is set to 'ON' for PostgreSQL Database Server",
-    "missing_observation": "Evidence is incomplete for Ensure server parameter 'connection_throttling' is set to 'ON' for PostgreSQL Database Server.",
-    "manual_observation": "Owner review is required for Ensure server parameter 'connection_throttling' is set to 'ON' for PostgreSQL Database Server.",
-    "not_applicable_observation": "This check does not apply: Ensure server parameter 'connection_throttling' is set to 'ON' for PostgreSQL Database Server."
+    "label": "PostgreSQL repeated-connection throttling",
+    "missing_observation": "Evidence is incomplete for PostgreSQL repeated-connection throttling.",
+    "manual_observation": "Owner review is required for PostgreSQL repeated-connection throttling.",
+    "not_applicable_observation": "This check does not apply: PostgreSQL repeated-connection throttling."
   },
   "azure.cis.postgresql_single_log_checkpoints": {
     "purpose": "Logs support investigation and accountability.",
     "limit": "Export settings do not prove delivery.",
     "review_group": "logging",
-    "label": "Ensure Server Parameter 'log_checkpoints' is set to 'ON' for PostgreSQL Database Server",
-    "missing_observation": "Evidence is incomplete for Ensure Server Parameter 'log_checkpoints' is set to 'ON' for PostgreSQL Database Server.",
-    "manual_observation": "Owner review is required for Ensure Server Parameter 'log_checkpoints' is set to 'ON' for PostgreSQL Database Server.",
-    "not_applicable_observation": "This check does not apply: Ensure Server Parameter 'log_checkpoints' is set to 'ON' for PostgreSQL Database Server."
+    "label": "PostgreSQL checkpoint logging",
+    "missing_observation": "Evidence is incomplete for PostgreSQL checkpoint logging.",
+    "manual_observation": "Owner review is required for PostgreSQL checkpoint logging.",
+    "not_applicable_observation": "This check does not apply: PostgreSQL checkpoint logging."
   },
   "azure.cis.postgresql_single_log_connections": {
     "purpose": "Logs support investigation and accountability.",
@@ -4863,10 +4863,10 @@
     "purpose": "Retention preserves records for later use.",
     "limit": "Settings do not prove record completeness.",
     "review_group": "retention",
-    "label": "Ensure Server Parameter 'log_retention_days' is greater than 3 days for PostgreSQL Database Server",
-    "missing_observation": "Evidence is incomplete for Ensure Server Parameter 'log_retention_days' is greater than 3 days for PostgreSQL Database Server.",
-    "manual_observation": "Owner review is required for Ensure Server Parameter 'log_retention_days' is greater than 3 days for PostgreSQL Database Server.",
-    "not_applicable_observation": "This check does not apply: Ensure Server Parameter 'log_retention_days' is greater than 3 days for PostgreSQL Database Server."
+    "label": "PostgreSQL server-log retention above three days",
+    "missing_observation": "Evidence is incomplete for PostgreSQL server-log retention above three days.",
+    "manual_observation": "Owner review is required for PostgreSQL server-log retention above three days.",
+    "not_applicable_observation": "This check does not apply: PostgreSQL server-log retention above three days."
   },
   "azure.cis.postgresql_single_ssl_enforcement": {
     "purpose": "Encrypted protocols protect traffic.",
@@ -7563,10 +7563,10 @@
     "purpose": "Managed identities avoid embedded credentials.",
     "limit": "Identity presence does not prove least privilege.",
     "review_group": "managed_identity",
-    "label": "Search service declares precisely SystemAssigned identity",
-    "missing_observation": "Evidence is incomplete for Search service declares precisely SystemAssigned identity.",
-    "manual_observation": "Owner review is required for Search service declares precisely SystemAssigned identity.",
-    "not_applicable_observation": "This check does not apply: Search service declares precisely SystemAssigned identity."
+    "label": "Search service system-assigned identity",
+    "missing_observation": "Evidence is incomplete for the Search service system-assigned identity.",
+    "manual_observation": "Owner review is required for the Search service system-assigned identity.",
+    "not_applicable_observation": "The Search service system-assigned identity check does not apply."
   },
   "azure.claude.vm_dependency_agent_linux": {
     "purpose": "Logs support investigation and accountability.",
@@ -7626,19 +7626,19 @@
     "purpose": "Guest reports identify host baseline gaps.",
     "limit": "Reports cover the assessed machines and time.",
     "review_group": "guest_config",
-    "label": "Linux VM meets the Azure compute security baseline (AzureLinuxBaseline)",
-    "missing_observation": "Evidence is incomplete for Linux VM meets the Azure compute security baseline (AzureLinuxBaseline).",
-    "manual_observation": "Owner review is required for Linux VM meets the Azure compute security baseline (AzureLinuxBaseline).",
-    "not_applicable_observation": "This check does not apply: Linux VM meets the Azure compute security baseline (AzureLinuxBaseline)."
+    "label": "Linux guest security-baseline requirements",
+    "missing_observation": "Evidence is incomplete for Linux guest security-baseline requirements.",
+    "manual_observation": "Owner review is required for Linux guest security-baseline requirements.",
+    "not_applicable_observation": "This check does not apply: Linux guest security-baseline requirements."
   },
   "azure.claude.vm_windows_security_baseline": {
     "purpose": "Guest reports identify host baseline gaps.",
     "limit": "Reports cover the assessed machines and time.",
     "review_group": "guest_config",
-    "label": "Windows VM meets the Azure compute security baseline (AzureWindowsBaseline)",
-    "missing_observation": "Evidence is incomplete for Windows VM meets the Azure compute security baseline (AzureWindowsBaseline).",
-    "manual_observation": "Owner review is required for Windows VM meets the Azure compute security baseline (AzureWindowsBaseline).",
-    "not_applicable_observation": "This check does not apply: Windows VM meets the Azure compute security baseline (AzureWindowsBaseline)."
+    "label": "Windows guest security-baseline requirements",
+    "missing_observation": "Evidence is incomplete for Windows guest security-baseline requirements.",
+    "manual_observation": "Owner review is required for Windows guest security-baseline requirements.",
+    "not_applicable_observation": "This check does not apply: Windows guest security-baseline requirements."
   },
   "azure.gap.compute_vm_with_no_specified_certificates_in_trusted_root_windows": {
     "purpose": "Guest reports identify host baseline gaps.",
@@ -7722,7 +7722,7 @@
     "not_applicable_observation": "This check does not apply: Named App Service secret settings use Key Vault references."
   },
   "azure.port.storage_account_trusted_microsoft_services_enabled": {
-    "purpose": "The bypass permits selected trusted Azure services through the network filter.",
+    "purpose": "The bypass permits selected Azure service integrations.",
     "limit": "It does not bypass data authorization or cover every Azure service.",
     "review_group": "specific",
     "label": "Storage network bypass declares trusted Azure services",
@@ -7758,7 +7758,7 @@
     "not_applicable_observation": "This check does not apply: PostgreSQL flexible server does not allow access from all Azure services."
   },
   "azure.claude.storage_trusted_azure_services_bypass": {
-    "purpose": "The bypass permits selected trusted Azure services through the network filter.",
+    "purpose": "The bypass permits selected Azure service integrations.",
     "limit": "It does not bypass data authorization or cover every Azure service.",
     "review_group": "specific",
     "label": "Storage network rules let trusted Azure services bypass",

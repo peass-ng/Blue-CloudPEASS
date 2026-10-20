@@ -2496,14 +2496,41 @@
             "items": [
               {
                 "Arn": "arn:aws:iam::123456789012:role/r",
-                "EffectiveAdminAccess": {
-                  "collection_status": "collected",
-                  "complete": true,
-                  "role_arn": "arn:aws:iam::123456789012:role/r",
-                  "unconditional_action_resource_star": false
+                "RoleName": "r",
+                "AccountId": "123456789012",
+                "RolePolicyList": [
+                  {
+                    "PolicyName": "narrow",
+                    "PolicyDocument": {
+                      "Statement": [
+                        {
+                          "Effect": "Allow",
+                          "Action": "logs:CreateLogStream",
+                          "Resource": "*"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "AttachedManagedPolicies": [],
+                "_provenance": {
+                  "operation": "iam:GetAccountAuthorizationDetails",
+                  "native_response_complete": true
                 }
               }
-            ]
+            ],
+            "global": true,
+            "account_id": "123456789012"
+          }
+        ],
+        "iam_policy": [
+          {
+            "type": "iam_policy",
+            "scope": "123456789012/global",
+            "global": true,
+            "account_id": "123456789012",
+            "status": "empty",
+            "items": []
           }
         ]
       },
@@ -2533,15 +2560,31 @@
           "scope": "123456789012/global",
           "data": {
             "Arn": "arn:aws:iam::123456789012:role/r",
-            "EffectiveAdminAccess": {
-              "collection_status": "collected",
-              "complete": true,
-              "role_arn": "arn:aws:iam::123456789012:role/r",
-              "unconditional_action_resource_star": false
+            "RoleName": "r",
+            "AccountId": "123456789012",
+            "RolePolicyList": [
+              {
+                "PolicyName": "narrow",
+                "PolicyDocument": {
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Action": "logs:CreateLogStream",
+                      "Resource": "*"
+                    }
+                  ]
+                }
+              }
+            ],
+            "AttachedManagedPolicies": [],
+            "_provenance": {
+              "operation": "iam:GetAccountAuthorizationDetails",
+              "native_response_complete": true
             }
           }
         }
-      ]
+      ],
+      "iam_policy": []
     },
     "fail": {
       "FunctionArn": "arn:aws:lambda:us-east-1:123456789012:function:fn",
@@ -2597,14 +2640,33 @@
             "items": [
               {
                 "Arn": "arn:aws:iam::123456789012:role/r",
-                "EffectiveAdminAccess": {
-                  "collection_status": "collected",
-                  "complete": true,
-                  "role_arn": "arn:aws:iam::123456789012:role/r",
-                  "unconditional_action_resource_star": true
+                "RoleName": "r",
+                "AccountId": "123456789012",
+                "RolePolicyList": [],
+                "AttachedManagedPolicies": [
+                  {
+                    "PolicyArn": "arn:aws:iam::aws:policy/AdministratorAccess",
+                    "PolicyName": "AdministratorAccess"
+                  }
+                ],
+                "_provenance": {
+                  "operation": "iam:GetAccountAuthorizationDetails",
+                  "native_response_complete": true
                 }
               }
-            ]
+            ],
+            "global": true,
+            "account_id": "123456789012"
+          }
+        ],
+        "iam_policy": [
+          {
+            "type": "iam_policy",
+            "scope": "123456789012/global",
+            "global": true,
+            "account_id": "123456789012",
+            "status": "empty",
+            "items": []
           }
         ]
       },
@@ -2634,15 +2696,23 @@
           "scope": "123456789012/global",
           "data": {
             "Arn": "arn:aws:iam::123456789012:role/r",
-            "EffectiveAdminAccess": {
-              "collection_status": "collected",
-              "complete": true,
-              "role_arn": "arn:aws:iam::123456789012:role/r",
-              "unconditional_action_resource_star": true
+            "RoleName": "r",
+            "AccountId": "123456789012",
+            "RolePolicyList": [],
+            "AttachedManagedPolicies": [
+              {
+                "PolicyArn": "arn:aws:iam::aws:policy/AdministratorAccess",
+                "PolicyName": "AdministratorAccess"
+              }
+            ],
+            "_provenance": {
+              "operation": "iam:GetAccountAuthorizationDetails",
+              "native_response_complete": true
             }
           }
         }
-      ]
+      ],
+      "iam_policy": []
     }
   },
   "aws_ebs_snapshot_trusted_accounts": {

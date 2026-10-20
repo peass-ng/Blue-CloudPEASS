@@ -1,4 +1,5 @@
 """Bind the exact temporary audit role to the server-generated connector ID."""
+from peaso import deployment
 import argparse
 import copy
 import re
@@ -27,7 +28,7 @@ def main():
     if len(statements) != 1:
         raise RuntimeError("Unexpected trust statement")
     stmt = statements[0]
-    if stmt.get("Effect") != "Allow" or stmt.get("Action") != "sts:AssumeRole" or stmt.get("Principal") != {"AWS": "arn:aws:iam::202533532952:root"}:
+    if stmt.get("Effect") != "Allow" or stmt.get("Action") != "sts:AssumeRole" or stmt.get("Principal") != {"AWS": (("arn:aws:iam::DEPLOYMENT_ACCOUNT_ID:root").replace("DEPLOYMENT_ACCOUNT_ID", deployment.value("account_id")))}:
         raise RuntimeError("Unexpected trust principal/action")
     expected = {"ArnEquals": {"aws:PrincipalArn": row["trusted_collector"]}, "StringEquals": {"sts:ExternalId": row["external_id"]}}
     if stmt.get("Condition") != expected:

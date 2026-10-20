@@ -6,6 +6,7 @@ Only this tool's ledger records authorize deletion; no wildcard deletion exists.
 """
 from __future__ import annotations
 
+from peaso import deployment
 import argparse
 from datetime import datetime, timedelta, timezone
 import json
@@ -17,9 +18,9 @@ import sys
 import uuid
 
 TASK = "task_02a312b5ac1f"
-AWS_ACCOUNT = "947247140022"
-AZ_SUBSCRIPTION = "cfbcdcf4-cb4f-4e4e-9f3e-a6b3b3abadfc"
-AZ_TENANT = "fdd066e1-ee37-49bc-b08f-d0e152119b04"
+AWS_ACCOUNT = deployment.value("test_aws_account_id")
+AZ_SUBSCRIPTION = deployment.value("test_azure_subscription")
+AZ_TENANT = deployment.value("test_azure_tenant")
 
 
 def now():
@@ -61,7 +62,7 @@ class Session:
         os.chmod(self.path, 0o600)
 
     def aws(self, *args, absent=()):
-        return call(["aws", "--profile", "naxusai-admin", "--region", "us-east-1", *args, "--output", "json"], absent=absent)
+        return call(["aws", "--profile", deployment.value("test_aws_profile"), "--region", "us-east-1", *args, "--output", "json"], absent=absent)
 
     def az(self, *args, absent=()):
         return call(["az", *args, "--subscription", AZ_SUBSCRIPTION, "--output", "json"], absent=absent)
@@ -150,9 +151,9 @@ class Session:
                 raise OperationError("Role name now exists; refusing reuse")
             name = reuse_name
         external_id = "peaso-" + uuid.uuid4().hex
-        collector = "arn:aws:iam::202533532952:role/HackTricks-CSPM"
+        collector = (("arn:aws:iam::DEPLOYMENT_ACCOUNT_ID:role/HackTricks-CSPM").replace("DEPLOYMENT_ACCOUNT_ID", deployment.value("account_id")))
         trust = {"Version": "2012-10-17", "Statement": [{"Effect": "Allow", "Action": "sts:AssumeRole",
-            "Principal": {"AWS": "arn:aws:iam::202533532952:root"},
+            "Principal": {"AWS": (("arn:aws:iam::DEPLOYMENT_ACCOUNT_ID:root").replace("DEPLOYMENT_ACCOUNT_ID", deployment.value("account_id")))},
             "Condition": {"ArnEquals": {"aws:PrincipalArn": collector}, "StringEquals": {"sts:ExternalId": external_id}}}]}
         policy = "arn:aws:iam::aws:policy/SecurityAudit"
         row = self.record("aws", "iam_role", name, "detach exact SecurityAudit managed policy then delete exact role",

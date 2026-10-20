@@ -25,12 +25,24 @@ def projected(entry,confidence='derived'):
         0 if confidence=='unknown' else 1,entry,entry.get('blockers',[]),edge_ids=['edge-id'])
 
 
+
+def admin_projected(provider,confidence='derived'):
+    source=Node('source-id','user',provider,'scope','alice')
+    target={'id':'administrator-id','label':'scope administrator','kind':'entity','type':'scope_owner','underlying_count':0 if confidence=='unknown' else 1}
+    grant=Grant(confidence,[{'effect':'Allow','policy':'admin-policy'}],['condition_unverified'] if confidence=='conditional' else ['facts_missing'] if confidence=='unknown' else [])
+    return GraphBuilder(SimpleNamespace(provider=provider))._finding('admin-finding','admin-equivalent','Administrative control',source,'iam','high','',grant,[target],0 if confidence=='unknown' else 1,None,[])
+
+
 def test_browser_line_measurement_fixture_matches_current_projectors():
     rows=[]
     for entry in ENTRIES:
         for confidence in ['derived','conditional','unknown']:
             finding=projected(entry,confidence)
             rows.append(dict(id=entry['id'],provider=entry['provider'],status=finding['status'],summary=evidence_summary(finding)))
+    for provider in ['aws','gcp','azure','k8s']:
+        for confidence in ['derived','conditional','unknown']:
+            finding=admin_projected(provider,confidence)
+            rows.append(dict(id='admin-equivalent',provider=provider,status=finding['status'],summary=evidence_summary(finding)))
     for row in json.loads((ROOT/'docs/evidence-reviews/analysis.json').read_text())['checks'].values():
         for example in row['examples']:
             rows.append(dict(id=row['check_id'],provider=row['provider'],status=example['status'],summary=example['example']))
@@ -120,3 +132,37 @@ def test_long_complete_identity_labels_use_structural_references_without_clippin
     assert source not in text and target not in text
     assert '...' not in text and '…' not in text
     assert finding==before
+
+
+@pytest.mark.parametrize('provider',['aws','gcp','azure','k8s'])
+@pytest.mark.parametrize('confidence',['derived','conditional','unknown'])
+def test_generated_admin_summary_distinguishes_existing_grants_from_unresolved_control(provider,confidence):
+    finding=admin_projected(provider,confidence);before=deepcopy(finding)
+    text=evidence_summary(finding)
+    assert text and len(text)<=240
+    assert 'alice' in text
+    assert 'execution was not tested' in text.lower() or 'No operation was attempted' in text
+    if confidence=='derived':assert 'already represent administrative control' in text
+    else:
+        assert 'has administrative grants' not in text
+        assert 'already represent' not in text
+    assert finding==before
+
+
+def test_zero_unresolved_target_count_is_not_reported_as_no_possible_access():
+    finding=projected(ENTRIES[0],'unknown')
+    assert finding['evidence']['target_count']==0
+    text=evidence_summary(finding)
+    assert 'unresolved targets' in text
+    assert '0 targets' not in text and 'no possible access' not in text.lower()
+    assert 'No operation was attempted' in text
+
+
+@pytest.mark.parametrize('entry',ENTRIES,ids=lambda e:e['id'])
+def test_projected_prose_does_not_dump_internal_condition_or_confidence_codes(entry):
+    for confidence in ('derived','conditional','unknown'):
+        text=evidence_summary(projected(entry,confidence))
+        assert text and 'Recorded grants link' not in text
+        assert 'runtime_condition_not_evaluated' not in text
+        assert 'target_inventory_missing' not in text
+        assert 'confidence:' not in text

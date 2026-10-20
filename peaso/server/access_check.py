@@ -185,12 +185,17 @@ def _aws(auth, scopes, options, issues, principals):
             if role_arn:
                 external = (target.get("external_id") if isinstance(target, dict) else None) or auth.get("external_id")
                 if hosted:
+                    from peaso.auth.aws_trust import require_external_id_boundary
+                    def probe(probe_external):
+                        params = {"RoleArn": role_arn, "RoleSessionName": "hacktricks-cspm-access-check", "DurationSeconds": 3600}
+                        if probe_external is not None:
+                            params["ExternalId"] = probe_external
+                        return session.client("sts", config=config).assume_role(**params)
                     try:
-                        session.client("sts", config=config).assume_role(RoleArn=role_arn, RoleSessionName="hacktricks-cspm-trust-check", DurationSeconds=3600)
+                        require_external_id_boundary(probe, external)
                     except Exception:
-                        pass
-                    else:
-                        _issue(issues, "critical", scope, "Target role can be assumed without this connector's External ID; require sts:ExternalId in the trust policy.")
+                        _issue(issues, "critical", scope, "Target role trust must reject absent and unrelated External IDs. Require an exact sts:ExternalId condition for this workspace; no account reads were performed.")
+                        continue
                 active = assume(session, role_arn, external)
             identity = active.client("sts", config=config).get_caller_identity()
             if hosted and identity["Account"] in PLATFORM_ACCOUNT_IDS:
@@ -204,6 +209,8 @@ def _aws(auth, scopes, options, issues, principals):
         except Exception:
             _issue(issues, "critical", scope, "Could not authenticate or assume this target role with the configured trust and External ID.")
             continue
+        from .aws_access_requirements import check_policy_requirements
+        check_policy_requirements(active.client("iam", config=config), identity, scope, issues)
         try:
             active.client("iam", config=config).get_account_authorization_details(Filter=["Role"], MaxItems=1)
         except Exception:
@@ -482,6 +489,8 @@ def _scope_report(provider, selected, issues, principals):
 
 def check_access(provider, auth, scopes, options, settings, *, credential_expires_at=None):
     issues, principals = [], []
+    if provider == 'k8s' and settings.auth_mode == 'cognito':
+        auth = dict(auth, _hosted=True)
     selected = [scope for scope in scopes if scope != "*"]
     _check_lifetime(auth, credential_expires_at, issues)
     if not any(item["severity"] == "critical" for item in issues):
@@ -501,4 +510,5 @@ def check_access(provider, auth, scopes, options, settings, *, credential_expire
     principals.sort(key=lambda item: (item["scope"], item["principal"]))
     status = "blocked" if any(item["severity"] == "critical" for item in issues) else "warning" if issues else "pass"
     return {"status": status, "issues": issues, "principals": principals,
+            "requires_warning_acknowledgement": status == "warning",
             **_scope_report(provider, selected, issues, principals)}

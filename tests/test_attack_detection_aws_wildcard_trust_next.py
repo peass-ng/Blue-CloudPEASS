@@ -33,9 +33,9 @@ def _record() -> dict:
         "managementEvent": True, "readOnly": False,
         "eventID": "d2f6eb09-0d2b-41ed-bb6e-6be0a72ac614",
         "eventTime": "2026-10-18T16:57:42Z", "awsRegion": "us-east-1",
-        "recipientAccountId": "947247140022",
-        "userIdentity": {"type": "IAMUser", "accountId": "947247140022",
-                         "arn": "arn:aws:iam::947247140022:user/lab"},
+        "recipientAccountId": "222233334444",
+        "userIdentity": {"type": "IAMUser", "accountId": "222233334444",
+                         "arn": "arn:aws:iam::222233334444:user/lab"},
         "requestParameters": {"roleName": "disposable-proof-role",
                               "policyDocument": json.dumps(_policy())},
         "responseElements": None,
@@ -52,7 +52,7 @@ def test_live_shaped_unconditional_wildcard_matches_without_raw_policy() -> None
     row = _record()
     event = normalize_aws_wildcard_role_trust(row)
     assert event is not None
-    assert event["target.id"] == "iam-role:947247140022:disposable-proof-role"
+    assert event["target.id"] == "iam-role:222233334444:disposable-proof-role"
     assert event["actor.id"] == row["userIdentity"]["arn"]
     assert event["event.id"] == row["eventID"]
     assert event["event.time"] == row["eventTime"]

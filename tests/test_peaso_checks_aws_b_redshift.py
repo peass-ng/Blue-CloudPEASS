@@ -1,4 +1,5 @@
 """Redshift predicates preserve exact flags/thresholds and unknown dependencies."""
+from peaso.checks.hacktricks_scope import includes
 import copy
 import json
 from pathlib import Path
@@ -22,7 +23,7 @@ def test_native_settings_pass_fail_missing_denied_malformed(cid):
         assert data == before
     for data in ({}, None, {"collection_status": "denied"}, {"_coverage": []}):
         assert c.evaluate(data, {})[0] == "UNKNOWN"
-    assert HACKTRICKS in c.frameworks
+    assert (HACKTRICKS in c.frameworks) == includes(c.id)
 
 
 def test_kms_reference_is_not_customer_managed_classification_and_absence_needs_complete_identity():

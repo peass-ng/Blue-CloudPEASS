@@ -187,3 +187,47 @@ def test_unhashable_identifiers_and_reason_payloads_do_not_crash():
     cid = 'k8s.cis.configure_image_provenance_using_imagepolicywebhook_admission_controller'
     for reason in ([], {}, True, None):
         assert evidence_summary({'provider': 'k8s', 'check_id': cid, 'status': 'FAIL', 'evidence': {'reason': reason}}) is None
+
+
+@pytest.mark.parametrize('cid', sorted(K8S))
+def test_observations_are_sentences_not_raw_field_label_tables(cid):
+    import re
+    for state, finding in observations_for(cid):
+        text = evidence_summary(finding)
+        assert not re.match(r'^(?:Supplied|Imported|Unrestricted)[^.“”]+:\s*(?:[-0-9]|enabled|disabled)', text), (cid, state, text)
+        for internal in ('runAsNonRoot=true', 'feature-gate declaration', 'authorization-mode list', 'cipher-suite declaration', 'IPAddressDeny='):
+            assert internal not in text, (cid, state, text)
+
+
+@pytest.mark.parametrize('cid,field,good,bad,good_words,bad_words', [
+    ('k8s.ports.configuration.kubelet_disable_anonymous_auth', 'configured', False, True, 'disables anonymous authentication', 'allows unauthenticated requests'),
+    ('k8s.ports.configuration.kubelet_disable_read_only_port', 'configured', 0, 10255, 'disables its unauthenticated read-only listener', 'on port 10255'),
+    ('k8s.cis.the_seccomp_default_parameter_is_set_to_true', 'configured_seccomp_default', True, False, 'enables default seccomp filtering', 'disables default seccomp filtering'),
+])
+def test_boolean_and_zero_port_meanings_are_written_as_plain_sentences(cid, field, good, bad, good_words, bad_words):
+    for value, expected, status in ((good, good_words, 'PASS'), (bad, bad_words, 'FAIL')):
+        text = evidence_summary({'provider': 'k8s', 'check_id': cid, 'status': status, 'evidence': {field: value}})
+        assert expected in text
+        assert ': 0' not in text and ': 1' not in text
+    assert evidence_summary({'provider': 'k8s', 'check_id': cid, 'status': 'FAIL', 'evidence': {}}) is None
+
+
+def test_unset_automount_never_turns_into_disabled_automount():
+    cid = 'k8s.pod.restrict_token_automount'
+    status, evidence = K8S[cid].evaluate({'spec': {}}, {})
+    assert status == 'UNKNOWN'
+    text = evidence_summary({'provider': 'k8s', 'check_id': cid, 'status': status, 'evidence': evidence})
+    assert 'disabled' not in text and 'disables' not in text
+    status, evidence = K8S[cid].evaluate({'spec': {'automountServiceAccountToken': False}}, {})
+    assert status == 'PASS'
+    assert 'disables' in evidence_summary({'provider': 'k8s', 'check_id': cid, 'status': status, 'evidence': evidence})
+
+
+def test_supplied_permission_bits_and_duration_are_explained():
+    cid = 'k8s.claude.file_metadata.kubelet_conf_permissions'
+    for mode, words in (('0o600', 'allows only the owner to read and write'), ('0o644', 'allows everyone to read and only the owner to write')):
+        text = evidence_summary({'provider': 'k8s', 'check_id': cid, 'status': 'FAIL', 'evidence': {'path': '/etc/kubernetes/kubelet.conf', 'mode': mode}})
+        assert words in text
+    cid = 'k8s.claude.configuration.kubelet_streaming_timeout'
+    text = evidence_summary({'provider': 'k8s', 'check_id': cid, 'status': 'PASS', 'evidence': {'streaming_connection_idle_timeout': '4h0m0s'}})
+    assert '4 hours' in text and '4h0m0s' not in text

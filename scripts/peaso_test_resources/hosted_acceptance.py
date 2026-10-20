@@ -1,4 +1,5 @@
 """Bounded hosted acceptance using only owned free identities and audit role."""
+from peaso import deployment
 import argparse
 from datetime import datetime, timedelta, timezone
 import hashlib
@@ -14,7 +15,7 @@ import uuid
 import httpx
 
 ORIGIN = "https://cspm.hacktricks.wiki"
-BUCKET = "hacktricks-cspm-artifacts-202533532952"
+BUCKET = (("hacktricks-cspm-artifacts-DEPLOYMENT_ACCOUNT_ID").replace("DEPLOYMENT_ACCOUNT_ID", deployment.value("account_id")))
 
 
 class HostedQA:
@@ -23,7 +24,7 @@ class HostedQA:
         identities = json.loads((self.root / "hosted-test-identities.json").read_text())
         owned = json.loads((self.root / "cognito-ledger.json").read_text())
         self.users = identities["users"]
-        expected = {r["sub"] for r in owned["resources"] if r["creation_status"] == "created" and r["account"] == "202533532952"}
+        expected = {r["sub"] for r in owned["resources"] if r["creation_status"] == "created" and r["account"] == deployment.value("account_id")}
         if {u["sub"] for u in self.users} != expected:
             raise RuntimeError("Private identity/ledger subjects differ")
         self.role = next(r for r in json.loads((self.root / "audit-role-ledger.json").read_text())["resources"] if r["kind"] == "iam_role" and r["creation_status"] == "created")
@@ -35,7 +36,7 @@ class HostedQA:
         self.summary = {"origin": ORIGIN, "gates": {}}
         for user in self.users:
             if not any(r.get("tenant") == user["sub"] for r in self.data["resources"]):
-                self.data["resources"].append({"provider": "hosted-tenant-data", "account": "202533532952", "project": "hacktricks-cspm", "subscription": None,
+                self.data["resources"].append({"provider": "hosted-tenant-data", "account": deployment.value("account_id"), "project": "hacktricks-cspm", "subscription": None,
                     "region": "us-east-1", "id": user["sub"], "name": "peaso-test-tenant-" + user["sub"], "tenant": user["sub"],
                     "creation_status": "planned", "delete_operation": "delete only exact tenant PK rows and exact owned scan artifact keys after jobs terminal",
                     "verification": "pending", "api_objects": [], "dynamodb_table": "hacktricks-cspm", "artifact_bucket": BUCKET})
@@ -76,7 +77,7 @@ class HostedQA:
 
     def aws_connector(self, index):
         value = self.create(index, "connectors", {"name": "peaso-test-hosted-aws-" + uuid.uuid4().hex[:10], "provider": "aws",
-            "scopes": ["947247140022"], "auth": {"method": "assume_role", "role_arn": self.role["id"]},
+            "scopes": [deployment.value("test_aws_account_id")], "auth": {"method": "assume_role", "role_arn": self.role["id"]},
             "options": {"regions": ["us-east-1"], "max_calls": 300, "max_pages": 3, "max_resources": 10000}})
         external = value["onboarding"]["external_id"]
         script = Path(__file__).with_name("update_audit_trust.py")
@@ -85,8 +86,8 @@ class HostedQA:
         return value
 
     def azure_connector(self, index):
-        subscription = "cfbcdcf4-cb4f-4e4e-9f3e-a6b3b3abadfc"
-        tenant = "fdd066e1-ee37-49bc-b08f-d0e152119b04"
+        subscription = deployment.value("test_azure_subscription")
+        tenant = deployment.value("test_azure_tenant")
         selected = json.loads(subprocess.check_output(["az", "account", "show", "--subscription", subscription, "-o", "json"], text=True))
         if selected["id"] != subscription or selected["tenantId"] != tenant:
             raise RuntimeError("Azure customer identity scope changed")

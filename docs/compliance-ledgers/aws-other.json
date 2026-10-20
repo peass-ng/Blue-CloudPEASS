@@ -1367,12 +1367,14 @@
           "name": "No Hardcoded Secrets in AI Workloads",
           "decision": "PARTIAL",
           "native_checks": [
-            "aws.a.cloudwatch.agentcore_data_protection"
+            "aws.a.cloudwatch.agentcore_data_protection",
+            "aws_cis_ec2_userdata_embedded_secrets"
           ],
           "removed_checks": [],
-          "reason": "Native checks test only the listed AWS configuration or activity signals. Uncovered remainder: Ensure no secrets or credentials are hardcoded in Lambda functions, ECS task definitions, or EC2 instances used as part of AI application architectures.",
+          "reason": "Native checks test only the listed AWS configuration or activity signals. Uncovered remainder: Ensure no secrets or credentials are hardcoded in Lambda functions, ECS task definitions, or EC2 instances used as part of AI application architectures. Additional bounded native signal: Hardcoded-secret detection is directly relevant to the named EC2 AI workload surface; selected indicators do not cover Lambda/ECS, every secret, or prove AI-workload inventory.",
           "evidence": [
-            "peaso/checks/aws_a_cloudwatch.py:83"
+            "peaso/checks/aws_a_cloudwatch.py:83",
+            "peaso/collectors/aws_user_data_secret_indicators.py"
           ],
           "new_checks": []
         },
@@ -10060,8 +10062,10 @@
             "aws.lambda.vpc_configuration",
             "aws.rds.vpc_configuration"
           ],
-          "removed_checks": [],
-          "reason": "Native checks test only the listed AWS configuration or activity signals. Uncovered remainder: Networks and network devices should be secured, managed and controlled to protect information in systems and applications.",
+          "removed_checks": [
+            "aws_cis_ec2_userdata_embedded_secrets"
+          ],
+          "reason": "Native checks test only the listed AWS configuration or activity signals. Uncovered remainder: Networks and network devices should be secured, managed and controlled to protect information in systems and applications. Explicit source-association disposition: EC2 user-data secret detection is a source topic association, not evidence of the named network management, service-security or segregation requirement.",
           "evidence": [
             "peaso/checks/claude2_aws_b_identity.py:801",
             "peaso/checks/claude_aws_b_compute.py:71",
@@ -10199,8 +10203,10 @@
             "aws.lambda.vpc_configuration",
             "aws.rds.vpc_configuration"
           ],
-          "removed_checks": [],
-          "reason": "Native checks test only the listed AWS configuration or activity signals. Uncovered remainder: Security mechanisms, service levels and service requirements of network services should be identified, implemented and monitored.",
+          "removed_checks": [
+            "aws_cis_ec2_userdata_embedded_secrets"
+          ],
+          "reason": "Native checks test only the listed AWS configuration or activity signals. Uncovered remainder: Security mechanisms, service levels and service requirements of network services should be identified, implemented and monitored. Explicit source-association disposition: EC2 user-data secret detection is a source topic association, not evidence of the named network management, service-security or segregation requirement.",
           "evidence": [
             "peaso/checks/claude2_aws_b_identity.py:801",
             "peaso/checks/claude_aws_b_compute.py:71",
@@ -10337,8 +10343,10 @@
             "aws.lambda.vpc_configuration",
             "aws.rds.vpc_configuration"
           ],
-          "removed_checks": [],
-          "reason": "Native checks test only the listed AWS configuration or activity signals. Uncovered remainder: Security mechanisms, service levels and service requirements of network services should be identified, implemented and monitored.",
+          "removed_checks": [
+            "aws_cis_ec2_userdata_embedded_secrets"
+          ],
+          "reason": "Native checks test only the listed AWS configuration or activity signals. Uncovered remainder: Security mechanisms, service levels and service requirements of network services should be identified, implemented and monitored. Explicit source-association disposition: EC2 user-data secret detection is a source topic association, not evidence of the named network management, service-security or segregation requirement.",
           "evidence": [
             "peaso/checks/claude2_aws_b_identity.py:801",
             "peaso/checks/claude_aws_b_compute.py:71",
@@ -11270,17 +11278,19 @@
             "aws.cb.macie.enabled_where_buckets",
             "aws.claude_a.ec2.enclave_host_imdsv2",
             "aws.claude_a.ec2.instance_imdsv2_or_disabled",
-            "aws.secretsmanager.rotation"
+            "aws.secretsmanager.rotation",
+            "aws_cis_ec2_userdata_embedded_secrets"
           ],
           "removed_checks": [],
-          "reason": "Native checks test only the listed AWS configuration or activity signals. Uncovered remainder: Adversaries may search compromised systems to find and obtain insecurely stored credentials. These credentials can be stored and/or misplaced in many locations on a system, including plaintext files (e.g. Bash History), operating system or application-specific repositories (e.g. Credentials in Registry), or other specialized files/artifacts (e.g. Private Keys).",
+          "reason": "Native checks test only the listed AWS configuration or activity signals. Uncovered remainder: Adversaries may search compromised systems to find and obtain insecurely stored credentials. These credentials can be stored and/or misplaced in many locations on a system, including plaintext files (e.g. Bash History), operating system or application-specific repositories (e.g. Credentials in Registry), or other specialized files/artifacts (e.g. Private Keys). Additional bounded native signal: Observed user-data secrets are directly relevant to insecurely stored credentials; filesystem repositories, private keys and other credential locations remain outside this bounded scan.",
           "evidence": [
             "peaso/checks/aws_a_regional.py:16",
             "peaso/checks/claude2_aws_b_compute.py:696",
             "peaso/checks/claude_aws_b_security.py:258",
             "peaso/checks/claude_aws_a_ec2.py:802",
             "peaso/checks/claude_aws_a_ec2.py:536",
-            "peaso/checks/claude_aws_b_security.py:458"
+            "peaso/checks/claude_aws_b_security.py:458",
+            "peaso/collectors/aws_user_data_secret_indicators.py"
           ],
           "new_checks": []
         },

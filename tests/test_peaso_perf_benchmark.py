@@ -31,8 +31,12 @@ PROFILES = {
 # (Apple Silicon, Python 3.13, host load average ~40): 1x cpu 0.6 s, wall 1.1 s, 118 MB, 4.5 MB report;
 # 10x cpu 8.8-43 s, wall 11-217 s, 288-507 MB, 37.6 MB report (privesc evaluation dominates 10x CPU).
 # Budgets leave ~2-4x headroom for slower or loaded CI hosts.
+# The October 2026 catalog has 1,556 controls and emits 20,681 findings here.
+# Fresh-process measurements: Linux/3.12 3.93 CPU s, 313 MB; macOS/3.13
+# 2.57 CPU s, 340 MB. Rebaseline the small profile for that catalog growth;
+# keep the 10x limits and per-finding/report bounds unchanged.
 BUDGETS = {
-    "1x": {"cpu_sec": 4, "wall_sec": 60, "maxrss_mb": 300},
+    "1x": {"cpu_sec": 6, "wall_sec": 60, "maxrss_mb": 400},
     "10x": {"cpu_sec": 90, "wall_sec": 600, "maxrss_mb": 1000},
 }
 # Report size is budgeted on principle instead of as a fixed constant. The old fixed 12 MB came from a

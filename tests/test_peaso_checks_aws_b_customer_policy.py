@@ -4,6 +4,7 @@ import hashlib
 from pathlib import Path
 import pytest
 import scripts.peaso_deploy_customer_policy as policy_module
+from tests.customer_policy_history import historical_role_bytes, historical_role_template, historical_derivative_sha256
 from scripts.peaso_deploy_customer_policy import (
     ACTION_ALIASES, SERVICE_PREFIXES, VERIFIED_ACTIONS, REFERENCE_URL,
     UNGRANTED_CREDENTIAL_OPERATIONS,
@@ -49,7 +50,7 @@ def test_sdk_aliases_are_real_reviewed_iam_permissions(service, operation, expec
 
 @pytest.mark.parametrize("service,operation", [
     ("secretsmanager", "get_secret_value"), ("secretsmanager", "batch_get_secret_value"),
-    ("ssm", "get_parameter"), ("ssm", "get_parameters_by_path"), ("ssm", "get_document"),
+    ("ssm", "get_parameter"), ("ssm", "get_parameters_by_path"),
     ("s3", "get_object"), ("lambda", "get_function"), ("ecr", "get_authorization_token"),
     ("logs", "get_log_events"), ("acm", "export_certificate"),
     ("iam", "create_role"), ("iam", "put_role_policy"), ("ec2", "run_instances"),
@@ -66,9 +67,9 @@ def test_current_declared_read_actions_are_verified_and_sts_not_granted():
     actions = {action for statement in policy["Statement"] for action in ([statement["Action"]] if isinstance(statement["Action"], str) else statement["Action"])}
     assert actions.issubset(VERIFIED_ACTIONS)
     assert "sts:AssumeRole" not in actions and "sts:GetCallerIdentity" not in actions
-    assert "iam:GenerateCredentialReport" not in actions
-    assert "iam:GenerateServiceLastAccessedDetails" not in actions
-    for action in actions - {"apigateway:GET", "cloudtrail:LookupEvents", "iam:SimulatePrincipalPolicy", "ec2:SearchTransitGatewayRoutes"}:
+    assert "iam:GenerateCredentialReport" in actions
+    assert "iam:GenerateServiceLastAccessedDetails" in actions
+    for action in actions - {"apigateway:GET", "cloudtrail:LookupEvents", "iam:SimulatePrincipalPolicy", "ec2:SearchTransitGatewayRoutes", "iam:GenerateCredentialReport", "iam:GenerateServiceLastAccessedDetails"}:
         assert action.split(":", 1)[1].startswith(("Get", "List", "Describe", "BatchGet"))
     documents = split_policy(policy)
     assert len(documents) <= IAM_MANAGED_POLICIES_PER_ROLE
@@ -145,10 +146,11 @@ def _grants(statements):
 
 def test_current_role_adds_only_reviewed_cloudtrail_delivery_policy_reads():
     role_root = Path(__file__).resolve().parents[1] / "infra/aws"
-    previous = json.loads((role_root / "customer-role-a33c84bde052ee1dd9ff393cfa702f56bbfa76db954c4f9f18a5e64150f72d02.json").read_text())
-    active_bytes = (role_root / "customer-role.json").read_bytes()
-    digest = hashlib.sha256(active_bytes).hexdigest()
-    assert (role_root / f"customer-role-{digest}.json").read_bytes() == active_bytes
+    previous = historical_role_template("a33c84bde052ee1dd9ff393cfa702f56bbfa76db954c4f9f18a5e64150f72d02")
+    # Freeze this historical transition; current-role additions are tested below.
+    active_bytes = historical_role_bytes("b3ba1910f63def680269a6877ae106fd6a7001c00f9d9d6e0b07d9600ae21535")
+    assert hashlib.sha256(active_bytes).hexdigest() == historical_derivative_sha256(
+        "b3ba1910f63def680269a6877ae106fd6a7001c00f9d9d6e0b07d9600ae21535")
     active = json.loads(active_bytes)
     assert active["Parameters"] == previous["Parameters"]
     assert active["Outputs"] == previous["Outputs"]
@@ -173,6 +175,13 @@ def test_current_role_adds_only_reviewed_cloudtrail_delivery_policy_reads():
 # These SDK reads were introduced after all four archived templates below.
 # Keep their captured input universe fixed; current-role grants are tested separately.
 _POST_HISTORICAL_METADATA_READS = {
+    ('elasticbeanstalk', 'describe_environment_resources'),
+    ('ec2', 'get_launch_template_data'), ('ec2', 'describe_spot_instance_requests'),
+    ('ec2', 'describe_instance_credit_specifications'), ('cloudwatch', 'get_metric_statistics'),
+    ('kms', 'list_aliases'), ('bedrock-agent', 'get_agent'),
+    ('s3', 'list_objects_v2'), ('s3', 'get_object_acl'),
+    ('ssm', 'get_document'), ('sagemaker', 'describe_notebook_instance_lifecycle_config'),
+    ('datapipeline', 'list_pipelines'), ('datapipeline', 'get_pipeline_definition'),
     ('bedrock-agent', 'list_agent_aliases'),
     ('bedrock-agent', 'get_agent_alias'),
     ('bedrock-agent', 'get_agent_version'),
@@ -221,18 +230,34 @@ _POST_HISTORICAL_METADATA_READS = {
     ('securityhub', 'get_finding_history'),
 }
 
+# Resource-policy discovery extends the live input universe. These historical
+# transition tests continue to reproduce the SDK operations available then.
+_POST_HISTORICAL_METADATA_READS.update(tuple(pair.split("/", 1)) for pair in
+    policy_module.RESOURCE_POLICY_REFERENCE["added_operations"])
+
+
+def _build_historical_policy(*args, **kwargs):
+    # Resource-policy companion IAM actions were absent when these immutable
+    # archives were signed. Reconstruct that dependency table only in this
+    # test context; live generation retains every reviewed companion read.
+    with pytest.MonkeyPatch.context() as patch:
+        historical_dependencies = dict(policy_module.DEPENDENT_ACTIONS)
+        for pair in policy_module.RESOURCE_POLICY_REFERENCE["additional_actions"]:
+            historical_dependencies.pop(tuple(pair.split("/", 1)), None)
+        patch.setattr(policy_module, "DEPENDENT_ACTIONS", historical_dependencies)
+        return build_policy(*args, **kwargs)
+
 
 def test_generated_template_matches_policy_without_live_changes():
     role_root = Path(__file__).resolve().parents[1] / "infra/aws"
-    current_bytes = (role_root / "customer-role-e2b8788e174bba78779421bb13b2c5d12ae1dd2599715653e7ea62f4463bcc0d.json").read_bytes()
+    current_bytes = historical_role_bytes("e2b8788e174bba78779421bb13b2c5d12ae1dd2599715653e7ea62f4463bcc0d")
     signed_hash = 'e2b8788e174bba78779421bb13b2c5d12ae1dd2599715653e7ea62f4463bcc0d'
-    assert hashlib.sha256(current_bytes).hexdigest() == signed_hash
-    assert current_bytes == (role_root / f"customer-role-{signed_hash}.json").read_bytes()
+    assert hashlib.sha256(current_bytes).hexdigest() == historical_derivative_sha256(signed_hash)
     template = json.loads(current_bytes)
     managed = [resource for name, resource in sorted(template["Resources"].items()) if resource["Type"] == "AWS::IAM::ManagedPolicy"]
     documents = [resource["Properties"]["PolicyDocument"] for resource in managed]
     from peaso.collectors.aws import READ_ACTIONS
-    historical_policy = build_policy((READ_ACTIONS | policy_module.PRESERVED_TEMPLATE_READ_ACTIONS) - {
+    historical_policy = _build_historical_policy((READ_ACTIONS | policy_module.PRESERVED_TEMPLATE_READ_ACTIONS) - {
         ("wafv2", "list_ip_sets"), ("wafv2", "get_ip_set"),
         ('organizations', 'describe_resource_policy'), ('cloudwatch', 'list_metrics'), ('apigateway', 'get_deployment'),
         ('identitystore', 'describe_user'), ('identitystore', 'list_group_memberships')} - _POST_HISTORICAL_METADATA_READS
@@ -242,7 +267,7 @@ def test_generated_template_matches_policy_without_live_changes():
     assert documents == prospective
     assert len(documents) == 3
     assert [policy_size(document) for document in documents] == [6136, 6129, 5215]
-    prior = json.loads((role_root / "customer-role-9254e0c0c0a7519c7a0a0c128e9d147d799dba3ca9cf9ff76902fcb4cd5ab08f.json").read_text())
+    prior = historical_role_template("9254e0c0c0a7519c7a0a0c128e9d147d799dba3ca9cf9ff76902fcb4cd5ab08f")
     assert template["Resources"]["AuditRole"] == prior["Resources"]["AuditRole"]
     assert documents[:2] == [prior["Resources"][f"CspmConfigurationReadOnly{number}"]["Properties"]["PolicyDocument"] for number in (1, 2)]
     signed_grants = _grants(statement for number in (1, 2, 3) for statement in prior["Resources"][f"CspmConfigurationReadOnly{number}"]["Properties"]["PolicyDocument"]["Statement"])
@@ -333,8 +358,8 @@ def test_each_signed_template_transition_adds_only_reviewed_reads():
     )
     templates = []
     for digest in hashes:
-        frozen = (root / f"customer-role-{digest}.json").read_bytes()
-        assert hashlib.sha256(frozen).hexdigest() == digest
+        frozen = historical_role_bytes(digest)
+        assert hashlib.sha256(frozen).hexdigest() == historical_derivative_sha256(digest)
         templates.append(json.loads(frozen))
     assert hashes[-1] == "e2b8788e174bba78779421bb13b2c5d12ae1dd2599715653e7ea62f4463bcc0d"
 
@@ -394,7 +419,7 @@ def test_each_signed_template_transition_adds_only_reviewed_reads():
             assert before_template['Metadata'] == after_template['Metadata']
         before, after = before_template["Resources"], after_template["Resources"]
         assert before.keys() == after.keys()
-        assert before["AuditRole"] == after["AuditRole"]  # Trust and ExternalId stay byte-frozen.
+        assert before["AuditRole"] == after["AuditRole"]  # Synthetic trust and ExternalId structure stay unchanged.
         assert {key for key in before if before[key] != after[key]} == changed
         previous, present = actions(before), actions(after)
         assert set(present) - set(previous) == added
@@ -458,10 +483,9 @@ def test_existing_inline_policies_are_preserved_beside_managed_policies(tmp_path
 def test_waf_ip_set_template_adds_only_two_reviewed_configuration_reads():
     root = Path(__file__).resolve().parents[1] / "infra/aws"
     digest = "f46db717efb93db136ec5893e819904b0fb931f4ba512f52d6cdb907a6e6a04c"
-    source = (root / f"customer-role-{digest}.json").read_bytes()
-    assert hashlib.sha256(source).hexdigest() == digest
-    assert source == (root / f"customer-role-{digest}.json").read_bytes()
-    before = json.loads((root / "customer-role-e2b8788e174bba78779421bb13b2c5d12ae1dd2599715653e7ea62f4463bcc0d.json").read_bytes())
+    source = historical_role_bytes(digest)
+    assert hashlib.sha256(source).hexdigest() == historical_derivative_sha256(digest)
+    before = historical_role_template("e2b8788e174bba78779421bb13b2c5d12ae1dd2599715653e7ea62f4463bcc0d")
     after = json.loads(source)
     assert before.keys() == after.keys()
     assert before["Parameters"] == after["Parameters"] and before["Outputs"] == after["Outputs"]
@@ -473,7 +497,7 @@ def test_waf_ip_set_template_adds_only_two_reviewed_configuration_reads():
     historical_actions = READ_ACTIONS | policy_module.PRESERVED_TEMPLATE_READ_ACTIONS
     historical_actions -= {('organizations', 'describe_resource_policy'), ('cloudwatch', 'list_metrics'), ('apigateway', 'get_deployment'),
                            ('identitystore', 'describe_user'), ('identitystore', 'list_group_memberships')} | _POST_HISTORICAL_METADATA_READS
-    assert documents == split_policy(build_policy(
+    assert documents == split_policy(_build_historical_policy(
         historical_actions | {('iam', 'generate_service_last_accessed_details')},
         include_credential_report_generation=True, include_waf_association_companions=False))
     assert [policy_size(doc) for doc in documents] == [6136, 6129, 5325]
@@ -491,10 +515,9 @@ def test_waf_ip_set_template_adds_only_two_reviewed_configuration_reads():
 def test_native_batch_role_adds_only_reviewed_metadata_and_scoped_deployment_read():
     root = Path(__file__).resolve().parents[1] / 'infra/aws'
     digest = '2204d577d48f10958947199b840d0989b88bbeee4e4b396193cc427b59f39ccf'
-    source = (root / f'customer-role-{digest}.json').read_bytes()
-    assert hashlib.sha256(source).hexdigest() == digest
-    assert source == (root / f'customer-role-{digest}.json').read_bytes()
-    before = json.loads((root / 'customer-role-f46db717efb93db136ec5893e819904b0fb931f4ba512f52d6cdb907a6e6a04c.json').read_bytes())
+    source = historical_role_bytes(digest)
+    assert hashlib.sha256(source).hexdigest() == historical_derivative_sha256(digest)
+    before = historical_role_template("f46db717efb93db136ec5893e819904b0fb931f4ba512f52d6cdb907a6e6a04c")
     after = json.loads(source)
     assert before.keys() == after.keys()
     assert before['Parameters'] == after['Parameters'] and before['Outputs'] == after['Outputs']
@@ -505,7 +528,7 @@ def test_native_batch_role_adds_only_reviewed_metadata_and_scoped_deployment_rea
     from peaso.collectors.aws import READ_ACTIONS
     historical_actions = (READ_ACTIONS | policy_module.PRESERVED_TEMPLATE_READ_ACTIONS) - {
         ('identitystore', 'describe_user'), ('identitystore', 'list_group_memberships')} - _POST_HISTORICAL_METADATA_READS
-    assert documents == split_policy(build_policy(
+    assert documents == split_policy(_build_historical_policy(
         historical_actions | {('iam', 'generate_service_last_accessed_details')},
         include_credential_report_generation=True, include_waf_association_companions=False))
     assert [policy_size(document) for document in documents] == [6136, 6129, 5663]
@@ -523,11 +546,10 @@ def test_native_batch_role_adds_only_reviewed_metadata_and_scoped_deployment_rea
 
 def test_identity_center_role_adds_only_two_status_and_membership_reads():
     root = Path(__file__).resolve().parents[1] / 'infra/aws'
-    source = (root / 'customer-role-a57cdf166f64c9ad96a367a48fb62e54754a58a89ed767119f9dc46c05e46980.json').read_bytes()
+    source = historical_role_bytes("a57cdf166f64c9ad96a367a48fb62e54754a58a89ed767119f9dc46c05e46980")
     digest = 'a57cdf166f64c9ad96a367a48fb62e54754a58a89ed767119f9dc46c05e46980'
-    assert hashlib.sha256(source).hexdigest() == digest
-    assert source == (root / f'customer-role-{digest}.json').read_bytes()
-    before = json.loads((root / 'customer-role-2204d577d48f10958947199b840d0989b88bbeee4e4b396193cc427b59f39ccf.json').read_bytes())
+    assert hashlib.sha256(source).hexdigest() == historical_derivative_sha256(digest)
+    before = historical_role_template("2204d577d48f10958947199b840d0989b88bbeee4e4b396193cc427b59f39ccf")
     after = json.loads(source)
     assert before.keys() == after.keys()
     assert before['Parameters'] == after['Parameters'] and before['Outputs'] == after['Outputs']
@@ -537,7 +559,7 @@ def test_identity_center_role_adds_only_two_status_and_membership_reads():
     prior = [before['Resources'][f'CspmConfigurationReadOnly{i}']['Properties']['PolicyDocument'] for i in (1, 2, 3)]
     from peaso.collectors.aws import READ_ACTIONS
     historical_actions = (READ_ACTIONS | policy_module.PRESERVED_TEMPLATE_READ_ACTIONS) - _POST_HISTORICAL_METADATA_READS
-    assert documents == split_policy(build_policy(
+    assert documents == split_policy(_build_historical_policy(
         historical_actions | {('iam', 'generate_service_last_accessed_details')},
         include_credential_report_generation=True, include_waf_association_companions=False))
     assert documents[:2] == prior[:2]
@@ -550,3 +572,31 @@ def test_identity_center_role_adds_only_two_status_and_membership_reads():
     assert metadata == before['Metadata']
     assert reference['Actions'] == sorted(policy_module.IDENTITY_CENTER_ACTIONS)
     assert reference['SHA256'] == policy_module.IDENTITY_CENTER_REFERENCE_SHA256
+
+
+def test_aws_review_role_exact_configuration_read_delta():
+    root = Path(__file__).resolve().parents[1] / 'infra/aws'
+    previous = historical_role_template("b3ba1910f63def680269a6877ae106fd6a7001c00f9d9d6e0b07d9600ae21535")
+    # Freeze this historical transition; resource-policy expansion has its own delta test.
+    active_bytes = historical_role_bytes("ae1b7534ceca1ddf593d1ba9cb04fd8baacf68eebc3bdc891a23d39d915a9893")
+    assert hashlib.sha256(active_bytes).hexdigest() == historical_derivative_sha256(
+        "ae1b7534ceca1ddf593d1ba9cb04fd8baacf68eebc3bdc891a23d39d915a9893")
+    active = json.loads(active_bytes)
+    for key in ('Parameters', 'Outputs', 'Metadata'):
+        assert active[key] == previous[key]
+    assert active['Resources']['AuditRole'] == previous['Resources']['AuditRole']
+    def grants(template):
+        return _grants(s for r in template['Resources'].values() if r['Type'] == 'AWS::IAM::ManagedPolicy'
+                       for s in r['Properties']['PolicyDocument']['Statement'])
+    expected = {'bedrock:GetAgent', 'kms:ListAliases', 's3:GetObjectAcl', 's3:ListBucket',
+                'ssm:GetDocument', 'sagemaker:DescribeNotebookInstanceLifecycleConfig',
+                'datapipeline:ListPipelines', 'datapipeline:GetPipelineDefinition',
+                'ec2:GetLaunchTemplateData', 'ec2:DescribeSpotInstanceRequests',
+                'ec2:DescribeInstanceCreditSpecifications', 'cloudwatch:GetMetricStatistics',
+                'elasticbeanstalk:DescribeEnvironmentResources'}
+    assert grants(active) - grants(previous) == {('Allow', a, json.dumps('*')) for a in expected}
+    assert not grants(previous) - grants(active)
+    for operation in policy_module.UNGRANTED_CONTENT_OPERATIONS:
+        with pytest.raises(ValueError, match='No reviewed metadata permissions selected'):
+            build_policy({operation}, include_credential_report_generation=False)
+    assert iam_action('ssm', 'get_document') == 'ssm:GetDocument'

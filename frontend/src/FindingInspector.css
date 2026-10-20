@@ -222,6 +222,15 @@
   overflow-wrap: anywhere;
 }
 
+.finding-inspector .evidence-fields {
+  margin: 4px 0 12px;
+}
+
+.finding-inspector .evidence-field dt,
+.finding-inspector .evidence-field dd {
+  margin: 0;
+}
+
 .finding-detail-metadata {
   display: grid;
   grid-template-columns: minmax(100px, 135px) minmax(0, 1fr);

@@ -208,6 +208,12 @@ def test_initial_twenty_frontend_examples_are_exact_native_evaluator_outputs():
         status, evidence = REGISTRY[row["id"]].evaluate(
             deepcopy(fixture[name]), deepcopy(fixture.get(name + "_index", fixture.get("index", {}))))
         assert (row["status"], row["evidence"]) == (status, evidence)
+        if row["id"] == "aws.c2b.cloudfront.s3_origin_bucket_exists":
+            # Accepted native review: absence from owned inventory and bare
+            # HeadBucket codes cannot establish external bucket nonexistence.
+            # docs/aws-review/network-cross-service-sdk-review.md
+            assert status == "UNKNOWN"
+            assert evidence == {"reason": "origin bucket existence not resolvable", "buckets": ["gone"]}
 
 
 def test_frontend_identity_examples_are_exact_native_evaluator_outputs():
@@ -223,6 +229,11 @@ def test_frontend_identity_examples_are_exact_native_evaluator_outputs():
         status, evidence = REGISTRY[row["id"]].evaluate(
             deepcopy(fixture[name]), deepcopy(fixture.get(name + "_index", fixture.get("index", {}))))
         assert (row["status"], row["evidence"]) == (status, evidence)
+        if row["id"] == "aws.claude_a.iam.access_keys_rotated_90" and name == "missing":
+            # The accepted identity review requires both active flags before
+            # interpreting credential dates, including sentinel values.
+            assert status == "UNKNOWN"
+            assert evidence == {"reason": "missing fact: access_key_1_active"}
 
 
 def test_policy_membership_evidence_is_computed_from_collected_assignments():
@@ -264,6 +275,11 @@ def test_final_policy_and_network_examples_are_exact_native_outputs(filename, co
         status, evidence = REGISTRY[row["id"]].evaluate(
             deepcopy(fixture[name]), deepcopy(fixture.get(name + "_index", fixture.get("index", {}))))
         assert (row["status"], row["evidence"]) == (status, evidence)
+        if row["id"] == "aws.claude_a.vpc.route_table_no_default_igw_route" and name == "missing":
+            # Native absence handling needs the route table's own identity
+            # before an omitted Routes list can carry configuration meaning.
+            assert status == "UNKNOWN"
+            assert evidence == {"reason": "missing fact: RouteTableId"}
 
 
 @pytest.mark.parametrize("cid, key", [

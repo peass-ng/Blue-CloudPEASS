@@ -1,4 +1,5 @@
 """Shard integrity for the claude2_azure partition, validated in memory without regenerating central artifacts."""
+from peaso.checks.hacktricks_scope import includes
 import copy
 import json
 from pathlib import Path
@@ -94,7 +95,7 @@ def test_no_predicate_iterates_builtin_role_definitions_per_subscription():
 @pytest.mark.parametrize("cid", CHECK_IDS)
 def test_predicate_contract(cid):
     check = REGISTRY[cid]
-    assert check.provider == "azure" and HACKTRICKS in check.frameworks
+    assert check.provider == "azure" and (HACKTRICKS in check.frameworks) == includes(check.id)
     assert check.remediation and check.dependencies
     cases = CASES[cid]
     assert "pass" in cases and "fail" in cases

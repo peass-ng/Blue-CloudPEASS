@@ -441,13 +441,23 @@ def _profile(item):
     return absent_or(item, "InstanceId", "IamInstanceProfile", None, dict)
 
 
+def _validated_profile(item):
+    profile = _profile(item)
+    if profile is not None:
+        # A retained empty/malformed attachment object cannot establish a
+        # profile. Native DescribeInstances attachments carry both identifiers.
+        if not get(profile, "Arn", str) or not get(profile, "Id", str):
+            raise Unavailable("instance profile identifiers unavailable")
+    return profile
+
+
 @install("aws.claude_a.ec2.instance_profile_attached", "instance", "EC2 instance has an IAM instance profile",
     INST, w(INST, IamInstanceProfile=DROP),
     rows=[C + "ec2_instance_iam_profile_attached", C + "ec2_instance_using_iam_instance_role"], severity="medium", category="least_privilege", control="AC-6",
     remediation="Attach an IAM instance profile with a least-privilege role instead of storing credentials on the instance.",
     docs=[EC2_API + "API_IamInstanceProfile.html"], note="IamInstanceProfile carries both Id and Arn; the two compliance queries differ only in which column they null-test.")
 def inst_profile(item, index):
-    profile = _profile(item)
+    profile = _validated_profile(item)
     return result(profile is None, instance_profile=(profile or {}).get("Arn"))
 
 
@@ -459,7 +469,7 @@ def inst_profile_live(item, index):
     na = _not_terminated(item)
     if na:
         return na
-    profile = _profile(item)
+    profile = _validated_profile(item)
     return result(profile is None, instance_profile=(profile or {}).get("Arn"))
 
 
@@ -507,7 +517,7 @@ def inst_public_profile(item, index):
     ip = _public_ip(item)
     if ip is None:
         return "NOT_APPLICABLE", {"reason": "instance has no public IPv4"}
-    return result(_profile(item) is None, public_ip=ip)
+    return result(_validated_profile(item) is None, public_ip=ip)
 
 
 @install("aws.claude_a.ec2.internet_facing_without_profile", "instance", "Internet-facing EC2 instance has no IAM instance profile",
@@ -869,18 +879,25 @@ def enclave_public(item, index):
 
 
 def _world_range(rule, protocols):
-    v4 = [r.get("CidrIp") for r in list_of_objects(get(rule, "IpRanges", list))]
-    v6 = [r.get("CidrIpv6") for r in list_of_objects(get(rule, "Ipv6Ranges", list))]
-    if not any(isinstance(c, str) and is_cidr_public(c) for c in v4 + v6):
+    from .claude_aws_a_common import _sg_protocol, _sg_bounds, _rule_ranges
+    from ipaddress import ip_network
+    v4, v6 = _rule_ranges(rule)
+    for version, ranges in ((4, v4), (6, v6)):
+        for cidr in ranges:
+            try:
+                if ip_network(cidr).version != version:
+                    raise ValueError("address family mismatch")
+            except ValueError as exc:
+                raise Unavailable("malformed enclave security-group CIDR") from exc
+    if not any(is_cidr_public(c) for c in v4 + v6):
         return None
-    proto = get(rule, "IpProtocol", str)
+    proto = _sg_protocol(get(rule, "IpProtocol", str))
+    bounds = _sg_bounds(rule, proto)
     if proto == "-1":
         return "all"
-    if proto not in protocols:
+    if proto not in {_sg_protocol(value) for value in protocols}:
         return None
-    low, high = rule.get("FromPort"), rule.get("ToPort")
-    if low is None or high is None:
-        return None
+    low, high = bounds
     if low == 0 and high == 65535:
         return "all"
     return (low, high)
@@ -1082,13 +1099,17 @@ def lt_public_ip(item, index):
 
 
 LT_INST = w(INST, Tags=[{"Key": "aws:ec2launchtemplate:id", "Value": "lt-1"}],
-            LaunchTemplateData={"NetworkInterfaces": [{"DeviceIndex": 0, "AssociatePublicIpAddress": False}]})
+            LaunchTemplateData={"NetworkInterfaces": [{"AssociatePublicIpAddress": False}],
+                "InstanceId": INST["InstanceId"], "collection_status": "collected", "NetworkInterfacesComplete": True,
+                "_provenance": {"profile": "aws-launch-template-instance-network-metadata-v1",
+                    "source_operation": "ec2:GetLaunchTemplateData", "region": REGION, "read_only": True}})
 
 
 @install("aws.claude_a.ec2.launch_template_instances_no_public_ip", "ec2_launch_template", "Instances launched from the launch template do not associate public IPs",
     LT, w(LT, LaunchTemplateId="lt-2"),
     index=idx(instance=[LT_INST, w(LT_INST, InstanceId="i-2", Tags=[{"Key": "aws:ec2launchtemplate:id", "Value": "lt-2"}],
-                                   LaunchTemplateData={"NetworkInterfaces": [{"DeviceIndex": 0, "AssociatePublicIpAddress": True}]})]),
+                                   LaunchTemplateData__InstanceId="i-2",
+                                   LaunchTemplateData__NetworkInterfaces=[{"AssociatePublicIpAddress": True}])]),
     rows=[C + "ec2_launch_template_not_publicly_accessible", C + "foundational_security_ec2_25"], severity="high", category="exposure", control="SC-7",
     remediation="Launch instances from templates whose network interfaces do not set AssociatePublicIpAddress.",
     docs=[EC2_API + "API_GetLaunchTemplateData.html"], dependencies=["ec2_launch_template", "instance"],
@@ -1099,11 +1120,32 @@ def lt_instances_public(item, index):
     tagged = [i for i in items(index, "instance") if tags(i).get("aws:ec2launchtemplate:id") == lt_id]
     if not tagged:
         return "NOT_APPLICABLE", {"reason": "no instance launched from this template"}
+    incomplete = False
     for inst in tagged:
-        data = get(inst, "LaunchTemplateData", dict)
-        for nic in list_of_objects(optional(data, "NetworkInterfaces", [], list)):
-            if nic.get("AssociatePublicIpAddress") is True:
+        try:
+            data = get(inst, "LaunchTemplateData", dict)
+            proof = get(data, "_provenance", dict)
+            if (get(data, "collection_status", str) != "collected"
+                    or get(data, "InstanceId", str) != get(inst, "InstanceId", str)
+                    or get(proof, "profile", str) != "aws-launch-template-instance-network-metadata-v1"
+                    or get(proof, "source_operation", str) != "ec2:GetLaunchTemplateData"
+                    or get(proof, "region", str) != region(index) or get(proof, "read_only", bool) is not True):
+                raise Unavailable("instance launch template data source binding unavailable")
+            nics = list_of_objects(get(data, "NetworkInterfaces", list))
+            flags = []
+            for nic in nics:
+                try:
+                    flags.append(get(nic, "AssociatePublicIpAddress", bool))
+                except Unavailable:
+                    incomplete = True
+            if any(flags):
                 return result(True, instance=inst.get("InstanceId"))
+            if get(data, "NetworkInterfacesComplete", bool) is not True:
+                incomplete = True
+        except Unavailable:
+            incomplete = True
+    if incomplete:
+        raise Unavailable("instance launch template network metadata incomplete")
     return result(False, instances=len(tagged))
 
 
@@ -1138,6 +1180,8 @@ def eni_public(item, index):
     remediation="Delete unattached ENIs that are no longer needed.", docs=[EC2_API + "API_NetworkInterface.html"])
 def eni_unused(item, index):
     status = get(item, "Status", str)
+    if status not in ("available", "associated", "attaching", "in-use", "detaching"):
+        raise Unavailable("unrecognized network interface status")
     attached = absent_or(item, "NetworkInterfaceId", "Attachment.InstanceId", None, str)
     return result(status == "available" and attached is None, status=status, attached_instance=attached)
 

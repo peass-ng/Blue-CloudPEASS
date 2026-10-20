@@ -103,6 +103,19 @@ def status(snap,cid):
     return findings[0]['status']
 
 
+def test_native_backup_envelopes_use_exact_recovery_services_lineage(monkeypatch):
+    snap=captured(monkeypatch,MONITOR)
+    native={env['type']:env for env in snap['collections'] if env['type'] in
+            {'recovery_vault','backup_protected_item','backup_job'}}
+    assert set(native)=={'recovery_vault','backup_protected_item','backup_job'}
+    assert all(env['service']=='Microsoft.RecoveryServices' and env['scope']==SCOPE and
+               env['status']=='collected' for env in native.values())
+    assert status(supplied_monitor(snap),MONITOR)=='PASS'
+    wrong=supplied_monitor(snap)
+    next(env for env in wrong['collections'] if env['type']=='backup_job')['service']='azure'
+    assert status(reseal(wrong),MONITOR)=='UNKNOWN'
+
+
 def test_c5_restore_reference_only_records_never_demonstrate_usable_data(monkeypatch):
     assert status(supplied_restore(captured(monkeypatch,RESTORE),False,True),RESTORE)=='UNKNOWN',status.last_findings
     assert status(supplied_monitor(captured(monkeypatch,MONITOR),False),MONITOR)=='UNKNOWN',status.last_findings

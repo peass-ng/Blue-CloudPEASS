@@ -81,14 +81,15 @@ test("full AWS report: every section renders with counts that match the API", as
   await page.getByRole("button", { name: "Reset filters" }).click();
   await expect(frameworks).toHaveValue("");
   await expect(footer(page)).toContainText(`of ${counts.hardening} matching findings`);
-  // Group by service: rows are ordered by service and labelled per group.
+  // Group by service: each service has an expandable section.
   await page.getByLabel("Group findings").selectOption("service");
   const first = await api<Page1>(page, "/findings?categories=hardening&limit=1&group_by=service");
-  await expect(page.locator(".group-label").first()).toHaveText(first.items[0].service);
+  await expect(page.locator(".service-group-button").first()).toContainText(first.items[0].service);
   await page.getByLabel("Service", { exact: true }).selectOption("rds");
   await expect(footer(page)).toContainText(
     `of ${await total(page, "categories=hardening&service=rds")} matching findings`,
   );
+  await page.locator('.service-group-button[aria-expanded="false"]').first().click();
   await page.locator(".finding-title").first().click();
   await expect(page.getByRole("dialog")).toContainText("Observed evidence");
   await expect(page.getByRole("dialog")).toContainText("HackTricks Cloud Best Practices");

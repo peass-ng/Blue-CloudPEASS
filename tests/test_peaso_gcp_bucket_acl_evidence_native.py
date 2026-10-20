@@ -18,7 +18,7 @@ from tests.test_peaso_gcp_api_key_alias_native import (
 )
 
 CHECK = 'gcp_pci_bucket_157fb0c69361'
-KINDS = ['bucket', 'bucket_acl', 'object_acl']
+KINDS = ['bucket', 'bucket_acl', 'bucket_effective_iam', 'iam_policy', 'object_acl', 'project']
 
 
 class EmptyACLAPI(API):
@@ -100,7 +100,8 @@ def test_public_object_acl_fails_without_exposing_object_identity(monkeypatch):
 
 def test_uniform_bucket_behavior_needs_no_acl_envelopes(monkeypatch):
     api, _, collections, bucket, status = capture(monkeypatch, 'complete', kinds=['bucket'])
-    assert status == 'PASS'
+    # Local policy absence cannot settle inherited public-read permissions.
+    assert status == 'UNKNOWN'
     assert 'bucketAccessControls' not in bucket and 'objectAccessControls' not in bucket
     assert 'bucket_acl' not in collections and 'object_acl' not in collections
     assert not any(urlsplit(url).path.endswith(('/acl', '/o')) for _, url, _ in api.requests)
@@ -158,7 +159,7 @@ def test_exact_single_check_plan_collects_acl_evidence_and_fails_public_grant(mo
     connector = {'provider': 'gcp', 'scopes': [SCOPE],
                  'options': {'resource_iam': False, 'metrics_scopes': False}}
     kinds = plan_collection({'connector': connector, 'checks': [CHECK]})
-    assert kinds == ['bucket', 'bucket_acl', 'object_acl']
+    assert kinds == KINDS
     api = API('acl_public_read')
     monkeypatch.setattr(gcp, 'Credentials', lambda *args, **kwargs: None)
     monkeypatch.setattr(gcp, 'Transport', lambda *args, **kwargs: api)

@@ -1,4 +1,5 @@
 """Run the exact default CLI gate in one frozen build with phase-only instrumentation."""
+from peaso import deployment
 import argparse
 from collections import Counter
 import hashlib
@@ -10,7 +11,7 @@ import subprocess
 import time
 
 
-INSTRUMENTATION = '''
+INSTRUMENTATION = (('''
 import atexit,json,os,time
 from datetime import datetime,timezone
 from pathlib import Path
@@ -36,7 +37,7 @@ def client(session,service_name,*args,**kwargs):
     if service_name=='iam':
         def before(**kwargs):
             caller=original(session,'sts',region_name='us-east-1').get_caller_identity()
-            if caller['Account']!='947247140022':raise RuntimeError('Unapproved credential report write account')
+            if caller['Account']!='PRIVATE_TEST_AWS_ACCOUNT_ID':raise RuntimeError('Unapproved credential report write account')
             audit.append({'account':caller['Account'],'principal':caller['Arn'],'operation':'iam:GenerateCredentialReport',
                 'purpose':'User directive6 metadata evidence only','verification':'caller_verified_before_write',
                 'at':datetime.now(timezone.utc).isoformat(),'delete_operation':'No IAM report deletion API; authorized account metadata generation'})
@@ -51,7 +52,7 @@ def save():
     private(root/'phase-timings.json',timings)
     private(root/'account-metadata-write-audit.json',audit)
 atexit.register(save)
-'''
+''').replace("PRIVATE_TEST_AWS_ACCOUNT_ID", deployment.value("test_aws_account_id")))
 
 
 def main():
@@ -88,7 +89,7 @@ def main():
     environment = {**os.environ, "PATH": str(source / ".venv" / "bin") + os.pathsep + os.environ["PATH"],
         "PYTHONPATH": str(hooks) + os.pathsep + str(build), "PEASO_QA_TIMING_DIR": str(root)}
     snapshot_path, report_path = root / "aws-snap.json", root / "aws-report.json"
-    command = ["python3", "-m", "peaso", "scan", "--provider", "aws", "--profile", "naxusai-admin", "--snapshot-output", str(snapshot_path), "-o", str(report_path)]
+    command = ["python3", "-m", "peaso", "scan", "--provider", "aws", "--profile", deployment.value("test_aws_profile"), "--snapshot-output", str(snapshot_path), "-o", str(report_path)]
     started = time.perf_counter()
     result = subprocess.run(command, cwd=build, env=environment)
     wall = time.perf_counter() - started

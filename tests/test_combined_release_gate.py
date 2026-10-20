@@ -358,5 +358,5 @@ def test_materializer_check_mode_is_current_and_writes_nothing():
     run = subprocess.run([sys.executable, "scripts/peaso_compliance_materialize.py"], cwd=ROOT, env=env,
                          capture_output=True, text=True, timeout=600)
     assert run.returncode == 0, run.stdout + run.stderr
-    assert json.loads(run.stdout) == {"stale": [], "checked": 5}
+    assert json.loads(run.stdout) == {"stale": [], "checked": 6}
     assert {path: hashlib.sha256(path.read_bytes()).hexdigest() for path in watched} == before

@@ -74,7 +74,7 @@ def fixture_index(cid,scope,stamp):
     metadata.update(capture,tenant_verified=True)
     collections={};index={'context':{'provider':'azure','scope':scope,'created_at':stamp,'metadata':metadata},'collections':collections}
     for kind,values in rows.items():
-        service='Microsoft.RecoveryServices' if kind=='recovery_vault' else 'azure' if kind in ('backup_job','backup_protected_item') else 'external:audit'
+        service='Microsoft.RecoveryServices' if kind in ('recovery_vault','backup_job','backup_protected_item') else 'external:audit'
         collections[kind]=[{'type':kind,'scope':scope,'service':service,'status':'collected','items':values,
             '_provenance':{k:capture[k] for k in ('credential_context_id','customer_context_id')}}]
         index[kind]=[{'type':kind,'provider':'azure','scope':scope,'data':value} for value in values]

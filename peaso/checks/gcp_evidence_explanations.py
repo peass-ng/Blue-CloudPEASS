@@ -14,7 +14,8 @@ def reviewed_explanation(check_id, observation, status):
     if not row or not isinstance(observation, str) or not observation.strip():
         return None
     purpose = row['purpose']
-    observation = observation.strip()
+    from .gcp_natural_evidence import polish_observation
+    observation = polish_observation(observation.strip())
     return observation if purpose in observation else observation + ' ' + purpose
 
 
@@ -30,6 +31,167 @@ def _values(values):
 
 def _observation(cid, e):
     spec = CATALOG[cid]
+    if cid == 'gcp.review.sourcerepo.selected_file_secret_indicators':
+        if (e.get('coverage') != 'selected_files_at_advertised_commit_only'
+                or e.get('complete') is not True or not isinstance(e.get('secret_leaks'), list)
+                or e.get('credential_validation') != 'not_attempted'):
+            return None
+        return ('A likely secret was detected in the selected repository files at the advertised commit.'
+                if e['secret_leaks'] else
+                'Both offline detectors finished without finding a supported secret in the selected repository files at the advertised commit.')
+    if cid in ('gcp.ports.sql_instance_require_ssl_enabled', 'gcp.ports.reference_sql_ssl_connections'):
+        mode = e.get('sslMode', e.get('ssl_mode'))
+        if mode == 'ENCRYPTED_ONLY':
+            return 'SQL connections require encryption.'
+        if mode == 'TRUSTED_CLIENT_CERTIFICATE_REQUIRED':
+            return 'SQL connections require encryption and a trusted client certificate.'
+        if mode == 'ALLOW_UNENCRYPTED_AND_ENCRYPTED':
+            return 'SQL permits both encrypted and unencrypted connections.'
+        if e.get('deciding_field') == 'settings.ipConfiguration.requireSsl' and type(e.get('legacy_require_ssl')) is bool:
+            return ('The legacy SQL setting requires encrypted client connections.' if e['legacy_require_ssl'] else
+                    'The legacy SQL setting does not require encrypted client connections.')
+    if cid in ('gcp.review.cloudbuild.artifact_secret_indicators', 'gcp.review.clouddeploy.release_source_secret_indicators'):
+        artifact = cid == 'gcp.review.cloudbuild.artifact_secret_indicators'
+        expected = 'observed_manifest_generations_only' if artifact else 'observed_object_generation_only'
+        if (not isinstance(e.get('secret_leaks'), list) or e.get('coverage') != expected
+                or e.get('credential_validation') != 'not_attempted'
+                or e.get('historical_build_bytes' if artifact else 'historical_release_bytes') != 'not_established'):
+            return None
+        subject = 'the pinned artifacts in the observed Cloud Build output manifest' if artifact else 'the observed Cloud Deploy source archive generation'
+        return ('A likely secret was detected in ' + subject + '.' if e['secret_leaks'] else
+                'Both offline detectors finished without finding a supported secret in ' + subject + '.')
+    if cid == 'gcp.review.appengine.deployment_source_secret_indicators':
+        if (not isinstance(e.get('secret_leaks'), list)
+                or e.get('coverage') != 'complete_native_deployment_files_manifest_only'
+                or type(e.get('files')) is not int or e['files'] < 1):
+            return None
+        return ('A likely secret was detected in the hash-matched App Engine deployment source files.'
+                if e['secret_leaks'] else
+                'Both offline detectors finished without finding a supported secret in the hash-matched App Engine deployment source files.')
+    if cid == 'gcp.review.cloudbuild.stored_log_secret_indicators':
+        if (not isinstance(e.get('secret_leaks'), list) or e.get('complete') is not True
+                or e.get('coverage') != 'observed_object_generation_only'
+                or e.get('historical_build_log_completion') != 'not_established'):
+            return None
+        return ('A likely secret was detected in the observed Cloud Build stored log generation.'
+                if e['secret_leaks'] else
+                'Both offline detectors finished without finding a supported secret in the observed Cloud Build stored log generation.')
+    if cid == 'gcp.compute.os_config_fixable_vulnerabilities':
+        count, assessed = e.get('fixable_finding_count'), e.get('assessment_time')
+        if type(count) is not int or count < 0 or not _text(assessed):
+            return None
+        return f'The OS Config assessment at {assessed} reports {count} fixable known vulnerability findings for this VM.'
+    content_labels = {
+        'gcp.review.function.resolved_source_archive_secret_indicators': 'the function’s resolved source archive',
+        'gcp.review.artifactregistry.selected_file_secret_indicators': 'the selected Artifact Registry package file',
+        'gcp.review.composer.dag_source_secret_indicators': 'the observed Composer DAG source file generations',
+    }
+    if cid in content_labels:
+        if not isinstance(e.get('secret_leaks'), list) or e.get('credential_validation') != 'not_attempted':
+            return None
+        return ('A likely secret was detected in ' + content_labels[cid] + '.' if e['secret_leaks'] else
+                'Both offline detectors finished without finding a supported secret in ' + content_labels[cid] + '.')
+    if cid == 'gcp.review.dataform.selected_file_secret_indicators':
+        if e.get('complete') is not True or not isinstance(e.get('secret_leaks'), list):
+            return None
+        return ('A likely secret was detected in the explicitly selected Dataform file.'
+                if e['secret_leaks'] else
+                'Both offline detectors finished without finding a supported secret in the returned selected Dataform file.')
+    extra_secret_labels = {
+        'gcp.review.scheduler_job.literal_target_secret_indicators': 'returned Scheduler target literals',
+        'gcp.review.app_engine_version.literal_environment_secret_indicators': 'returned App Engine environment values',
+        'gcp.review.workflow.deployed_source_secret_indicators': 'returned deployed workflow source',
+    }
+    if cid in extra_secret_labels:
+        if (not isinstance(e.get('secret_leaks'), list) or not isinstance(e.get('surfaces'), list)
+                or not e['surfaces'] or e.get('credential_validation') != 'not_attempted'):
+            return None
+        return ('A likely secret was detected in the ' + extra_secret_labels[cid] + '.' if e['secret_leaks'] else
+                'Both offline detectors finished without finding a supported secret in the ' + extra_secret_labels[cid] + '.')
+    if cid == 'gcp.review.storage.selected_archive_secret_indicators':
+        if e.get('complete') is not True or not isinstance(e.get('secret_leaks'), list):
+            return None
+        return ('A likely secret was detected in a text member of the selected Cloud Storage archive.'
+                if e['secret_leaks'] else
+                'Both offline detectors finished on every regular text member of the complete selected archive without finding a supported secret.')
+    if cid == 'gcp.review.artifact_image.content_secret_indicators':
+        if (e.get('complete') is not True or not isinstance(e.get('secret_leaks'), list)
+                or e.get('credential_validation') != 'not_attempted'):
+            return None
+        return ('A likely secret was detected in the selected immutable image configuration or a layer.'
+                if e['secret_leaks'] else
+                'Both offline detectors finished without finding a supported secret in the inspected image configuration and layers.')
+    if cid == 'gcp.review.storage.selected_object_secret_indicators':
+        if e.get('complete') is not True or not isinstance(e.get('secret_leaks'), list):
+            return None
+        return ('A likely secret was detected in an explicitly selected Cloud Storage text object.'
+                if e['secret_leaks'] else
+                'Both offline detectors finished without finding a supported secret in the complete selected text object.')
+    if cid == 'gcp.review.logging.application_log_secret_indicators':
+        sample = e.get('sample')
+        if (not isinstance(sample, dict) or not isinstance(sample.get('scans'), list)
+                or not sample['scans'] or not isinstance(e.get('secret_leaks'), list)):
+            return None
+        return ('A likely secret was detected in the sampled application log messages.'
+                if e['secret_leaks'] else
+                'Both offline detectors finished without finding a supported secret in the sampled application log messages.')
+    if cid == 'gcp.review.gke_workload.literal_configuration_secret_indicators':
+        if (not isinstance(e.get('secret_leaks'), list) or not isinstance(e.get('surfaces'), list)
+                or e.get('credential_validation') != 'not_attempted'):
+            return None
+        return ('A likely secret was detected in the returned GKE ConfigMap or Pod literal values.'
+                if e['secret_leaks'] else
+                'Both offline detectors finished without finding a supported secret in the returned GKE ConfigMap or Pod literal values.')
+    if cid.startswith('gcp.review.') and cid.endswith('.literal_configuration_secret_indicators'):
+        if e.get('complete') is not True or not isinstance(e.get('secret_leaks'), list):
+            return None
+        labels = {
+            'instance': 'VM metadata and startup scripts',
+            'instance_template': 'instance-template metadata', 'project': 'project common metadata',
+            'cloudrun_service': 'Cloud Run service literals', 'cloudrun_job': 'Cloud Run job literals',
+            'cloudbuild_trigger': 'inline Cloud Build trigger configuration',
+            'cloudbuild_build': 'returned Cloud Build configuration',
+            'dataflow_job': 'returned Dataflow job environment', 'batch_job': 'returned Batch task literals',
+            'dataproc_cluster': 'Dataproc cluster properties and metadata',
+            'dataproc_job': 'returned Dataproc job literals',
+            'composer_environment': 'Composer environment and Airflow configuration literals',
+            'workbench_instance': 'Workbench metadata literals',
+        }
+        label = labels.get(cid.split('.')[2], 'returned literal configuration')
+        return ('A likely secret was detected in the ' + label + '.' if e['secret_leaks'] else
+                'Both offline detectors finished without finding a supported secret in the ' + label + '.')
+    if cid == 'gcp.review.function.literal_environment_secret_indicators':
+        if e.get('complete') is not True or not isinstance(e.get('secret_leaks'), list):
+            return None
+        return ('A likely secret was detected in the function’s literal environment values.'
+                if e['secret_leaks'] else
+                'Both offline detectors finished without finding a supported secret in the returned runtime and build environment values.')
+    if cid == 'gcp.identity.non_service_account_mfa':
+        enrolled, enforced = e.get('isEnrolledIn2Sv'), e.get('isEnforcedIn2Sv')
+        if type(enrolled) is bool and type(enforced) is bool:
+            return ('Two-step verification enrollment is ' + ('enabled' if enrolled else 'disabled')
+                    + ' and enforcement is ' + ('enabled.' if enforced else 'disabled.'))
+        return None
+    if cid == 'gcp_pci_bucket_157fb0c69361':
+        inherited = e.get('inherited_public_read_grants')
+        if isinstance(inherited, list) and inherited and all(
+                isinstance(row, dict) and _text(row.get('scope')) and _text(row.get('role')) for row in inherited):
+            return 'An ancestor IAM policy grants public read access to this bucket.'
+        scopes = e.get('policy_scopes')
+        if isinstance(scopes, list) and scopes and all(_text(scope) for scope in scopes):
+            return 'No public read grant was found in the collected bucket ACLs and IAM hierarchy.'
+    if cid in {'gcp.review.workbench.public_ip_disabled', 'gcp.review.workbench.root_access_disabled'}:
+        if type(e.get('disabled')) is not bool:
+            return None
+        if cid.endswith('public_ip_disabled') and e.get('setting') == 'gceSetup.disablePublicIp':
+            return ('The Workbench instance disables public IP assignment.' if e['disabled'] else
+                    'The Workbench instance permits public IP assignment.')
+        if cid.endswith('root_access_disabled') and e.get('setting') == 'gceSetup.metadata.notebook-disable-root':
+            return 'Workbench notebook root access is ' + ('disabled.' if e['disabled'] else 'enabled.')
+        return None
+    from .gcp_natural_evidence import natural_observation, natural_extra
+    prose = natural_extra(cid,e) or natural_observation(cid,e,spec)
+    if prose:return prose
     if cid == 'gcp.ports.compute_network_dns_logging_scoped' and _text(e.get('network_reference')):
         reference = e['network_reference']
         prefix = 'https://www.googleapis.com/compute/v1/'
@@ -38,7 +200,8 @@ def _observation(cid, e):
     if cid == 'gcp.appengine.service_version_count':
         keys = ('installed_versions', 'serving_versions', 'approved_installed_maximum', 'approved_serving_maximum')
         if all(type(e.get(k)) is int and e[k] >= 0 for k in keys):
-            return f'The service has {e[keys[0]]} installed and {e[keys[1]]} serving versions; approved maxima are {e[keys[2]]} and {e[keys[3]]}.'
+            installed, serving, installed_limit, serving_limit = (e[k] for k in keys)
+            return f'The service has {installed} installed '+('version' if installed == 1 else 'versions')+f' (limit {installed_limit}) and {serving} serving '+('version' if serving == 1 else 'versions')+f' (limit {serving_limit}).'
     if cid in {'gcp_pci_iam_policy_ca1281da7ab2', 'gcp_pci_iam_policy_9a8ce875703d'}:
         missing, exempt, enabled = e.get('missing_types'), e.get('exempted_required'), _values(e.get('enabled_types'))
         if _values(exempt):
@@ -123,9 +286,12 @@ def _observation(cid, e):
     custom = spec.get('observation')
     if custom:
         mode, field, label = custom
+        if mode in ('list','value') and spec.get('prose'):return None
         v = e.get(field)
         if mode == 'count' and isinstance(v, list):
-            return f'{len(v)} {label} were recorded.'
+            if not v:return 'No '+label+' were recorded.'
+            singular={'qualifying age-based artifact deletion policies':'qualifying age-based artifact deletion policy','deviations from the approved network topology':'deviation from the approved network topology','unapproved IAM bindings':'unapproved IAM binding','unregistered installed packages':'unregistered installed package','unapproved installed packages':'unapproved installed package','IAM grants overdue for removal':'IAM grant overdue for removal','IAM bindings missing required contextual attributes':'IAM binding missing required contextual attributes','IAM grants missing required expiry conditions':'IAM grant missing a required expiry condition','missing required PSC endpoint or private DNS declarations':'missing required PSC endpoint or private DNS declaration'}
+            return f'The assessment found {len(v)} '+(singular.get(label,label) if len(v)==1 else label)+'.'
         if mode == 'list':
             values = _values(v)
             if values is not None:

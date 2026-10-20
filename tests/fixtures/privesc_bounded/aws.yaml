@@ -1,0 +1,1540 @@
+- id: aws-audit-create-scheduled-query-to-exfiltrate-role-readable-secrets
+  provider: aws
+  service: timestream
+  title: Create scheduled query to exfiltrate role-readable secrets
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-timestream-privesc/README.md#timestreamcreatescheduledquery--iampassrole--run-sql-and-downstream-writes-as-a-scheduled-query-role
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: The source can
+    read sensitive rows through role and write to readable target/error report only
+    when the exact target and prerequisites are verified. No IAM identity, credential,
+    scope control or subsequent permissions are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: timestream:CreateScheduledQuery
+      resource: '{target.arn}'
+    - action: timestream:DescribeEndpoints
+      resource: '{target.arn}'
+    - action: iam:PassRole
+      resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-audit-create-scheduled-query-to-exfiltrate-role-readable-secrets
+    scope: same_account
+    aggregate_as: Bounded aws-audit-create-scheduled-query-to-exfiltrate-role-readable-secrets
+      on {target.arn}
+    outcome: bounded_authority
+  conditions:
+  - id: exact_verified_prerequisites
+    description: 'Evidence must bind the source, exact target, and these prerequisites:
+      Execution role trusts timestream.amazonaws.com and can Select source, WriteRecords
+      target, Publish notification, write S3 error report; selected output readable
+      by source; KMS/TagResource conditional; query name satisfies trust SourceArn.'
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the listed permissions to approved operators and review the
+    exact target configuration.
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+  references:
+  - https://cloud.hacktricks.wiki/pentesting-cloud/aws-security/aws-privilege-escalation/aws-timestream-privesc/
+- id: aws-audit-enable-centralized-root-sessions-then-call-assumeroot
+  provider: aws
+  service: organizations
+  title: Enable centralized root sessions then call AssumeRoot
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-sts-privesc/README.md#enabling-the-feature-yourself-management-account
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: The source can
+    gain one selected root task capability only when the exact target and prerequisites
+    are verified. No IAM identity, credential, scope control or subsequent permissions
+    are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: organizations:EnableAWSServiceAccess
+      resource: '{target.arn}'
+    - action: iam:EnableOrganizationsRootCredentialsManagement
+      resource: '{target.arn}'
+    - action: iam:EnableOrganizationsRootSessions
+      resource: '{target.arn}'
+    - action: sts:AssumeRoot
+      resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-audit-enable-centralized-root-sessions-then-call-assumeroot
+    scope: same_account
+    aggregate_as: Bounded aws-audit-enable-centralized-root-sessions-then-call-assumeroot
+      on {target.arn}
+    outcome: bounded_authority
+  conditions:
+  - id: exact_verified_prerequisites
+    description: 'Evidence must bind the source, exact target, and these prerequisites:
+      Source in Organizations management account; feature initially disabled; IAM
+      trusted access enabled; root credentials management enabled; RootSessions enabled;
+      sts:AssumeRoot allowed for member and task policy; registration optional if
+      delegated to another account.'
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the listed permissions to approved operators and review the
+    exact target configuration.
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+  references:
+  - https://cloud.hacktricks.wiki/pentesting-cloud/aws-security/aws-privilege-escalation/aws-sts-privesc/
+- id: aws-audit-enable-permission-sets-then-create-admin-assignment
+  provider: aws
+  service: sso
+  title: Enable permission sets then create admin assignment
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-sso-and-identitystore-privesc/README.md#aws-identity-center--aws-sso
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: The source can
+    turn application-only instance into account-access path and assign admin only
+    when the exact target and prerequisites are verified. No IAM identity, credential,
+    scope control or subsequent permissions are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: sso:UpdateInstance
+      resource: '{target.arn}'
+    - action: sso:CreatePermissionSet
+      resource: '{target.arn}'
+    - action: sso:AttachManagedPolicyToPermissionSet
+      resource: '{target.arn}'
+    - action: sso:CreateAccountAssignment
+      resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-audit-enable-permission-sets-then-create-admin-assignment
+    scope: same_account
+    aggregate_as: Bounded aws-audit-enable-permission-sets-then-create-admin-assignment
+      on {target.arn}
+    outcome: bounded_authority
+  conditions:
+  - id: exact_verified_prerequisites
+    description: 'Evidence must bind source, exact target, and these prerequisites:
+      Organization instance starts with PermissionSetsEnabled=false; UpdateInstance
+      enables it; source can create/attach/assign a new admin set to controlled user;
+      management/delegated-admin account restrictions apply.'
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the listed actions to approved operators and review the exact
+    target configuration.
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+  references:
+  - https://cloud.hacktricks.wiki/pentesting-cloud/aws-security/aws-privilege-escalation/aws-sso-and-identitystore-privesc/
+- id: aws-audit-lf-register-an-s3-location-under-a-privileged-384933ea
+  provider: aws
+  service: lakeformation
+  title: Register S3 location under passed privileged role
+  source: src/pentesting-cloud/aws-security/aws-post-exploitation/aws-lakeformation-post-exploitation/README.md#register-an-s3-location-under-a-privileged-role
+  summary: 'Evidence-bound operation on the exact affected resource: LF data-location
+    grant and scoped access to data reachable by registration role No IAM identity,
+    credential, scope control or subsequent permissions are granted by this terminal
+    effect.'
+  requires:
+    all_of:
+    - action: lakeformation:RegisterResource
+      resource: '{target.arn}'
+    - action: lakeformation:RegisterResourceWithPrivilegedAccess
+      resource: '{target.arn}'
+    - action: iam:PassRole
+      resource: '{target.arn}'
+    - action: iam:GetRole
+      resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-audit-lf-register-an-s3-location-under-a-privileged-384933ea
+    scope: same_account
+    aggregate_as: Bounded aws-audit-lf-register-an-s3-location-under-a-privileged-384933ea
+      on {target.arn}
+    outcome: bounded_authority
+  conditions:
+  - id: exact_verified_prerequisites
+    description: Unregistered S3 prefix; role trusts lakeformation.amazonaws.com and
+      reaches S3/KMS; catalog/table control and GetDataAccess plus engine rights for
+      bytes.
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the stated action to approved principals and exact resources.
+  source_revision: 0b36331
+  references:
+  - https://github.com/HackTricks-wiki/hacktricks-cloud/blob/0b36331/src/pentesting-cloud/aws-security/aws-post-exploitation/aws-lakeformation-post-exploitation/README.md
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: aws-audit-site-grant-yourself-access-to-a-legacy-sitewi-ec31fb70
+  provider: aws
+  service: iotsitewise
+  title: Widen existing SiteWise Monitor policy
+  source: src/pentesting-cloud/aws-security/aws-post-exploitation/aws-iot-sitewise-post-exploitation/README.md#grant-yourself-access-to-a-legacy-sitewise-monitor-portal
+  summary: 'Evidence-bound operation on the exact affected resource: SiteWise Monitor
+    portal or project ADMINISTRATOR access No IAM identity, credential, scope control
+    or subsequent permissions are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: iotsitewise:UpdateAccessPolicy
+      resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-audit-site-grant-yourself-access-to-a-legacy-sitewi-ec31fb70
+    scope: same_account
+    aggregate_as: Bounded aws-audit-site-grant-yourself-access-to-a-legacy-sitewi-ec31fb70
+      on {target.arn}
+    outcome: bounded_authority
+  conditions:
+  - id: exact_verified_prerequisites
+    description: Legacy enrolled account, existing portal/project policy, controlled
+      identity, administrator grant.
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the stated action to approved principals and exact resources.
+  source_revision: 0b36331
+  references:
+  - https://github.com/HackTricks-wiki/hacktricks-cloud/blob/0b36331/src/pentesting-cloud/aws-security/aws-post-exploitation/aws-iot-sitewise-post-exploitation/README.md
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: aws-audit-start-stored-state-manager-association
+  provider: aws
+  service: ssm
+  title: Start stored State Manager association
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ssm-privesc/README.md#ssmstartassociationsonce--run-a-stored-association-on-its-fixed-targets
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: The source can
+    invoke a privileged fixed document under the node identity only when the exact
+    target and prerequisites are verified. No IAM identity, credential, scope control
+    or subsequent permissions are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: ssm:StartAssociationsOnce
+      resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-audit-start-stored-state-manager-association
+    scope: same_account
+    aggregate_as: Bounded aws-audit-start-stored-state-manager-association on {target.arn}
+    outcome: bounded_authority
+  conditions:
+  - id: exact_verified_prerequisites
+    description: 'Evidence must bind the source, exact target, and these prerequisites:
+      Association ID is authorized; document, parameters, targets and their role are
+      fixed; existing steps must have an attacker-useful privileged side effect or
+      controllable input.'
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the listed permissions to approved operators and review the
+    exact target configuration.
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+  references:
+  - https://cloud.hacktricks.wiki/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ssm-privesc/
+- id: aws-audit-trigger-privileged-existing-canary
+  provider: aws
+  service: synthetics
+  title: Trigger privileged existing canary
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-synthetics-privesc/README.md#syntheticsstartcanary--run-unchanged-canary-code-under-its-stored-role
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: The source can
+    cause attacker-useful privileged effect under stored role only when the exact
+    target and prerequisites are verified. No IAM identity, credential, scope control
+    or subsequent permissions are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: synthetics:StartCanary
+      resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-audit-trigger-privileged-existing-canary
+    scope: same_account
+    aggregate_as: Bounded aws-audit-trigger-privileged-existing-canary on {target.arn}
+    outcome: bounded_authority
+  conditions:
+  - id: exact_verified_prerequisites
+    description: 'Evidence must bind the source, exact target, and these prerequisites:
+      Stopped canary known and StartCanary permission covers exact ARN; code is fixed;
+      only flag if code has sensitive side effect or exposes role-only data to caller.'
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the listed permissions to approved operators and review the
+    exact target configuration.
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+  references:
+  - https://cloud.hacktricks.wiki/pentesting-cloud/aws-security/aws-privilege-escalation/aws-synthetics-privesc/
+- id: aws-audit2-appconfig-2
+  provider: aws
+  service: appconfig
+  title: AppConfig Data — read the deployed configuration
+  source: src/pentesting-cloud/aws-security/aws-post-exploitation/aws-appconfig-post-exploitation/README.md#appconfig-data--read-the-deployed-configuration
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: Under exact prerequisites,
+    the source obtains deployed bytes, including content fetched by AppConfig retrieval
+    role. No IAM identity, credential, scope control or subsequent permissions are
+    granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: appconfig:StartConfigurationSession
+      resource: '{target.arn}'
+    - action: appconfig:GetLatestConfiguration
+      resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-audit2-appconfig-2
+    scope: same_account
+    aggregate_as: Bounded aws-audit2-appconfig-2 on {target.arn}
+    outcome: bounded_authority
+  conditions:
+  - id: exact_verified_prerequisites
+    description: Both actions on exact configuration ARN. Deployment exists; customer
+      KMS may require kms:Decrypt; no cross-account AppConfig Data read. Evidence
+      must bind exact source, target and resource; missing evidence is unknown.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the listed actions and verify exact resource and downstream
+    authority.
+  references:
+  - https://docs.aws.amazon.com/appconfig/latest/userguide/what-is-appconfig.html
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: aws-billing-enable-dormant-iam-console-access
+  provider: aws
+  service: billing
+  title: Enable dormant Billing console grants
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-invoicing-and-billing-privesc/README.md#enable-previously-granted-legacy-billing-permissions
+  summary: 'Evidence-bound operation on the exact affected resource: The source can
+    enable account Billing console IAM access, activating previously masked permissions
+    for itself or another identity. No IAM identity, credential, scope control or
+    subsequent permissions are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: billing:UpdateIAMAccessPreference
+      resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-billing-enable-dormant-iam-console-access
+    scope: same_account
+    outcome: bounded_authority
+    aggregate_as: Bounded aws-billing-enable-dormant-iam-console-access on {target.arn}
+  severity: high
+  mitigation: Restrict billing:UpdateIAMAccessPreference and review masked Billing
+    console grants.
+  references:
+  - https://docs.aws.amazon.com/service-authorization/latest/reference/list_billing.html
+  - https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/control-access-billing.html
+  confidence: conditional
+  conditions:
+  - id: dormant_grant
+    description: Allow IAM Access is disabled and the exact source has an applicable
+      Billing console policy grant that becomes effective when enabled.
+  - id: verified_collector_fact
+    description: The requested collector fact must bind the source, exact resource,
+      newly reachable authority and all runtime prerequisites; without it the result
+      is UNKNOWN.
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: aws-chime-rtmp-publisher-key-read
+  provider: aws
+  service: chime
+  title: Read live connector RTMP publishing key
+  source: src/pentesting-cloud/aws-security/aws-services/aws-chime-sdk-enum.md#media-pipelines
+  summary: 'Evidence-bound operation on the exact affected resource: GetMediaPipeline
+    returns the complete RTMP destination URL including its stream key. No IAM identity,
+    credential, scope control or subsequent permissions are granted by this terminal
+    effect.'
+  requires:
+    all_of:
+    - action: chime:GetMediaPipeline
+      resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-chime-rtmp-publisher-key-read
+    scope: same_account
+    aggregate_as: Bounded aws-chime-rtmp-publisher-key-read on {target.arn}
+    outcome: bounded_authority
+  conditions:
+  - id: exact_verified_prerequisites
+    description: The selected pipeline must be a live connector with a nonempty RTMP(S)
+      stream key; the destination must still accept that key.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: medium
+  mitigation: Restrict the exact read permission and protect returned credentials.
+  references:
+  - https://docs.aws.amazon.com/chime-sdk/latest/APIReference/API_media-pipelines_GetMediaPipeline.html
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: aws-codeconnections-installation-consumer
+  provider: aws
+  service: codeconnections
+  title: Replace connection installation feeding a privileged deployment
+  source: src/pentesting-cloud/aws-security/aws-post-exploitation/aws-codeconnections-post-exploitation/README.md#complete-or-replace-a-connection-installation
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: Replace connection
+    installation feeding a privileged deployment when exact source-to-target authority
+    is verified. No IAM identity, credential, scope control or subsequent permissions
+    are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: codeconnections:UpdateConnectionInstallation
+      resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-codeconnections-installation-consumer
+    scope: any
+    outcome: bounded_authority
+    aggregate_as: Bounded aws-codeconnections-installation-consumer on {target.arn}
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the source permission and verify downstream authority.
+  references:
+  - src/pentesting-cloud/aws-security/aws-post-exploitation/aws-codeconnections-post-exploitation/README.md#complete-or-replace-a-connection-installation
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+  conditions:
+  - A provider installation changes source access, but privileged role execution requires
+    a controlled repository revision consumed by an exact deployment.
+- id: aws-controltower-preventive-scp-disable
+  provider: aws
+  service: controltower
+  title: Disable a preventive Control Tower control that enforces an SCP deny
+  source: src/pentesting-cloud/aws-security/aws-post-exploitation/aws-control-tower-post-exploitation/README.md#enable--disable-controls
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: Disable a preventive
+    Control Tower control that enforces an SCP deny when exact source-to-target authority
+    is verified. No IAM identity, credential, scope control or subsequent permissions
+    are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: controltower:DisableControl
+      resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-controltower-preventive-scp-disable
+    scope: same_account
+    outcome: bounded_authority
+    aggregate_as: Bounded aws-controltower-preventive-scp-disable on {target.arn}
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the source permission and verify downstream authority.
+  references:
+  - src/pentesting-cloud/aws-security/aws-post-exploitation/aws-control-tower-post-exploitation/README.md#enable--disable-controls
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+  conditions:
+  - Only a preventive control that actually enforces an SCP Deny can activate a pre-existing
+    Allow; detective controls do not.
+- id: aws-dynamodb-deleteresourcepolicy-guardrail
+  provider: aws
+  service: dynamodb
+  title: Delete DynamoDB resource policy to lift a Deny
+  summary: 'Evidence-bound operation on the exact affected resource: Previously denied
+    DynamoDB table action becomes effective for the source. No IAM identity, credential,
+    scope control or subsequent permissions are granted by this terminal effect.'
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-dynamodb-privesc/README.md#dynamodbputresourcepolicy-and-optionally-dynamodbgetresourcepolicy
+  source_revision: 0b36331
+  requires:
+    all_of:
+    - action: dynamodb:DeleteResourcePolicy
+      resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-dynamodb-deleteresourcepolicy-guardrail
+    scope: same_account
+    outcome: bounded_authority
+    aggregate_as: Bounded aws-dynamodb-deleteresourcepolicy-guardrail on {target.arn}
+  conditions:
+  - id: condition_1
+    description: Existing table policy has a Deny that blocks a source-controlled
+      principal's independently allowed table action.
+  - id: condition_2
+    description: Deletion removes the entire resource policy, not only the Deny; recompute
+      effective IAM after the deletion and do not assume access when no underlying
+      allow exists.
+  - id: verified_collector_fact
+    description: The requested collector fact must bind the source, exact resource,
+      newly reachable authority and all runtime prerequisites; without it the result
+      is UNKNOWN.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the required actions to reviewed resources and principals.
+  references: []
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: aws-payment-cryptography-crossaccount-key-policy
+  provider: aws
+  service: payment-cryptography
+  title: Grant a controlled external principal payment-key operations
+  source: src/pentesting-cloud/aws-security/aws-services/aws-payment-cryptography-enum.md#resource-and-authorization-model
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: A primary-key
+    policy editor can give a controlled external IAM principal compatible operations
+    on the exact payment key. No IAM identity, credential, scope control or subsequent
+    permissions are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: payment-cryptography:PutResourcePolicy
+      resource: '{target.resource_arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-payment-cryptography-crossaccount-key-policy
+    scope: any
+    outcome: bounded_authority
+    aggregate_as: Bounded aws-payment-cryptography-crossaccount-key-policy on {target.arn}
+  conditions:
+  - id: exact_external_principal
+    description: The evidence must identify a source-controlled external IAM principal
+      with its own effective identity allow for the chosen key action.
+  - id: compatible_key_and_policy
+    description: The primary key must be enabled and compatible with the selected
+      action, and the policy and all effective guardrails must permit it.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict PutResourcePolicy on primary keys and review cross-account
+    policy principals and operations.
+  references:
+  - https://docs.aws.amazon.com/payment-cryptography/latest/userguide/security_iam_resource-based-policies.html
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: aws-payment-cryptography-sameaccount-key-policy
+  provider: aws
+  service: payment-cryptography
+  title: Grant the source new operations on a primary payment key
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-payment-cryptography-privesc/README.md#payment-cryptographyputresourcepolicy
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: A policy editor
+    can grant its own same-account IAM identity compatible operations on an exact
+    primary payment key. No IAM identity, credential, scope control or subsequent
+    permissions are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: payment-cryptography:PutResourcePolicy
+      resource: '{target.resource_arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-payment-cryptography-sameaccount-key-policy
+    scope: same_account
+    outcome: bounded_authority
+    aggregate_as: Bounded aws-payment-cryptography-sameaccount-key-policy on {target.arn}
+  conditions:
+  - id: exact_key_and_operation
+    description: Evidence must bind source identity, primary key ARN, chosen compatible
+      operation and absence of effective explicit denies; export also requires exportability
+      and wrapping setup.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict PutResourcePolicy on primary keys and review new same-account
+    principal grants.
+  references:
+  - https://docs.aws.amazon.com/payment-cryptography/latest/userguide/security_iam_resource-based-policies.html
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: aws-peaso-add-an-external-engagement-member-for-permanent-snapshot-access
+  provider: aws
+  service: partnercentral
+  title: Invite controlled Partner into Engagement
+  source: src/pentesting-cloud/aws-security/aws-persistence/aws-partner-central-selling-persistence/README.md#add-an-external-engagement-member-for-permanent-snapshot-access
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: external Partner
+    membership and shared snapshot-read authority; the exact source, resource, controlled
+    recipient and effective prerequisites must be verified. No IAM identity, credential,
+    scope control or subsequent permissions are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: partnercentral:CreateEngagementInvitation
+      resource: '{target.arn}'
+    - action: partnercentral:GetEngagement
+      resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-peaso-add-an-external-engagement-member-for-permanent-snapshot-access
+    scope: same_account
+    aggregate_as: Bounded aws-peaso-add-an-external-engagement-member-for-permanent-snapshot-access
+      on {target.arn}
+    outcome: bounded_authority
+  conditions:
+  - id: exact_verified_prerequisites
+    description: Sender is an Engagement member; connected eligible Partner accepts
+      through documented task workflow and gains membership and snapshot permissions.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict partnercentral:CreateEngagementInvitation to approved operators
+    and review exact resource policies and recipients.
+  references:
+  - https://docs.aws.amazon.com/partner-central/latest/developer-guide/working-with-multi-partner-opportunities.html
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: aws-peaso-backdoor-a-workspace-with-its-resource-policy
+  provider: aws
+  service: aps
+  title: Grant controlled principal AMP workspace data access
+  source: src/pentesting-cloud/aws-security/aws-persistence/aws-managed-prometheus-persistence/README.md#backdoor-a-workspace-with-its-resource-policy
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: AMP workspace
+    QueryMetrics/GetLabels/GetSeries/RemoteWrite authority; the exact source, resource,
+    controlled recipient and effective prerequisites must be verified. No IAM identity,
+    credential, scope control or subsequent permissions are granted by this terminal
+    effect.'
+  requires:
+    all_of:
+    - action: aps:PutResourcePolicy
+      resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-peaso-backdoor-a-workspace-with-its-resource-policy
+    scope: same_account
+    aggregate_as: Bounded aws-peaso-backdoor-a-workspace-with-its-resource-policy
+      on {target.arn}
+    outcome: bounded_authority
+  conditions:
+  - id: exact_verified_prerequisites
+    description: Exact workspace policy is ACTIVE and grants a controlled principal
+      supported Prometheus actions; cross-account use also has identity allow and
+      any required KMS/network access.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict aps:PutResourcePolicy to approved operators and review exact
+    resource policies and recipients.
+  references:
+  - https://docs.aws.amazon.com/prometheus/latest/userguide/security_iam_resource-based-policy-examples.html
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: aws-peaso-cross-account-cluster-access-with-kafkaputclusterpolicy
+  provider: aws
+  service: kafka
+  title: Grant controlled account MSK data access
+  source: src/pentesting-cloud/aws-security/aws-persistence/aws-msk-policy-persistence/README.md#cross-account-cluster-access-with-kafkaputclusterpolicy
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: external Kafka
+    cluster/topic/group authority; the exact source, resource, controlled recipient
+    and effective prerequisites must be verified. No IAM identity, credential, scope
+    control or subsequent permissions are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: kafka:PutClusterPolicy
+      resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-peaso-cross-account-cluster-access-with-kafkaputclusterpolicy
+    scope: same_account
+    aggregate_as: Bounded aws-peaso-cross-account-cluster-access-with-kafkaputclusterpolicy
+      on {target.arn}
+    outcome: bounded_authority
+  conditions:
+  - id: exact_verified_prerequisites
+    description: Exact cluster policy covers cluster, topic and group ARNs; multi-VPC
+      private connectivity and broker authentication work; external identity policy
+      allows matching actions.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict kafka:PutClusterPolicy to approved operators and review exact
+    resource policies and recipients.
+  references:
+  - https://docs.aws.amazon.com/msk/latest/developerguide/what-is-msk.html
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: aws-peaso-cross-account-data-accessor-persistence
+  provider: aws
+  service: qbusiness
+  title: Create Q Business cross-account data accessor
+  source: src/pentesting-cloud/aws-security/aws-persistence/aws-q-business-persistence/README.md#cross-account-data-accessor-persistence
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: supported ISV
+    tenant SearchRelevantContent authority; the exact source, resource, controlled
+    recipient and effective prerequisites must be verified. No IAM identity, credential,
+    scope control or subsequent permissions are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: qbusiness:CreateDataAccessor
+      resource: '{target.arn}'
+    - action: qbusiness:AssociatePermission
+      resource: '{target.arn}'
+    - action: qbusiness:PutResourcePolicy
+      resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-peaso-cross-account-data-accessor-persistence
+    scope: same_account
+    aggregate_as: Bounded aws-peaso-cross-account-data-accessor-persistence on {target.arn}
+    outcome: bounded_authority
+  conditions:
+  - id: exact_verified_prerequisites
+    description: Supported registered ISV tenant is controlled; accessor, application
+      resource policy and Identity Center assignment are effective; end-user ACLs
+      allow the requested documents.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict qbusiness:CreateDataAccessor to approved operators and review
+    exact resource policies and recipients.
+  references:
+  - https://docs.aws.amazon.com/amazonq/latest/qbusiness-ug/doc-history.html
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: aws-peaso-grant-a-cross-account-flow-entitlement
+  provider: aws
+  service: mediaconnect
+  title: Grant controlled account MediaConnect flow entitlement
+  source: src/pentesting-cloud/aws-security/aws-persistence/aws-mediaconnect-persistence/README.md#grant-a-cross-account-flow-entitlement
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: cross-account
+    subscription authority to a victim transport stream; the exact source, resource,
+    controlled recipient and effective prerequisites must be verified. No IAM identity,
+    credential, scope control or subsequent permissions are granted by this terminal
+    effect.'
+  requires:
+    all_of:
+    - action: mediaconnect:GrantFlowEntitlements
+      resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-peaso-grant-a-cross-account-flow-entitlement
+    scope: same_account
+    aggregate_as: Bounded aws-peaso-grant-a-cross-account-flow-entitlement on {target.arn}
+    outcome: bounded_authority
+  conditions:
+  - id: exact_verified_prerequisites
+    description: GrantFlowEntitlements covers parent flow and prospective entitlement;
+      enabled entitlement lists a controlled account, which has its own CreateFlow
+      authority.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict mediaconnect:GrantFlowEntitlements to approved operators and
+    review exact resource policies and recipients.
+  references:
+  - https://docs.aws.amazon.com/mediaconnect/latest/ug/entitlements.html
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: aws-peaso-grant-external-ingest-mediapackagev2putchannelpolicy
+  provider: aws
+  service: mediapackagev2
+  title: Grant anonymous MediaPackage channel ingest
+  source: src/pentesting-cloud/aws-security/aws-persistence/aws-mediapackage-v2-policy-persistence/README.md#grant-external-ingest--mediapackagev2putchannelpolicy
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: unauthenticated
+    PutObject ingest authority; the exact source, resource, controlled recipient and
+    effective prerequisites must be verified. No IAM identity, credential, scope control
+    or subsequent permissions are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: mediapackagev2:PutChannelPolicy
+      resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-peaso-grant-external-ingest-mediapackagev2putchannelpolicy
+    scope: same_account
+    aggregate_as: Bounded aws-peaso-grant-external-ingest-mediapackagev2putchannelpolicy
+      on {target.arn}
+    outcome: bounded_authority
+  conditions:
+  - id: exact_verified_prerequisites
+    description: Exact channel policy permits Principal:* PutObject under attacker-satisfiable
+      source IP and channel ingest endpoint accepts it.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict mediapackagev2:PutChannelPolicy to approved operators and review
+    exact resource policies and recipients.
+  references:
+  - https://docs.aws.amazon.com/service-authorization/latest/reference/list_awselementalmediapackagev2.html
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: aws-peaso-persist-cross-account-key-access-with-a-resource-policy
+  provider: aws
+  service: payment-cryptography
+  title: Grant controlled role Payment Cryptography key use
+  source: src/pentesting-cloud/aws-security/aws-persistence/aws-payment-cryptography-persistence/README.md#persist-cross-account-key-access-with-a-resource-policy
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: cross-account
+    cryptographic operation authority on exact primary key; the exact source, resource,
+    controlled recipient and effective prerequisites must be verified. No IAM identity,
+    credential, scope control or subsequent permissions are granted by this terminal
+    effect.'
+  requires:
+    all_of:
+    - action: payment-cryptography:PutResourcePolicy
+      resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-peaso-persist-cross-account-key-access-with-a-resource-policy
+    scope: same_account
+    aggregate_as: Bounded aws-peaso-persist-cross-account-key-access-with-a-resource-policy
+      on {target.arn}
+    outcome: bounded_authority
+  conditions:
+  - id: exact_verified_prerequisites
+    description: Primary key policy grants a controlled role a supported action; recipient
+      identity policy allows the same action and key attributes/state permit it.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict payment-cryptography:PutResourcePolicy to approved operators
+    and review exact resource policies and recipients.
+  references:
+  - https://docs.aws.amazon.com/payment-cryptography/latest/userguide/security_iam_resource-based-policies.html
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: aws-peaso-publish-a-private-origin-endpoint-mediapackagev2putoriginendpointpolicy
+  provider: aws
+  service: mediapackagev2
+  title: Grant anonymous MediaPackage origin read
+  source: src/pentesting-cloud/aws-security/aws-persistence/aws-mediapackage-v2-policy-persistence/README.md#publish-a-private-origin-endpoint--mediapackagev2putoriginendpointpolicy
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: unauthenticated
+    GetObject/GetHeadObject origin authority; the exact source, resource, controlled
+    recipient and effective prerequisites must be verified. No IAM identity, credential,
+    scope control or subsequent permissions are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: mediapackagev2:PutOriginEndpointPolicy
+      resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-peaso-publish-a-private-origin-endpoint-mediapackagev2putoriginendpointpolicy
+    scope: same_account
+    aggregate_as: Bounded aws-peaso-publish-a-private-origin-endpoint-mediapackagev2putoriginendpointpolicy
+      on {target.arn}
+    outcome: bounded_authority
+  conditions:
+  - id: exact_verified_prerequisites
+    description: Exact endpoint policy permits Principal:* reads and endpoint is reachable.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict mediapackagev2:PutOriginEndpointPolicy to approved operators
+    and review exact resource policies and recipients.
+  references:
+  - https://docs.aws.amazon.com/service-authorization/latest/reference/list_awselementalmediapackagev2.html
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: aws-peaso-share-a-core-network-with-an-external-account-through-aws-ram
+  provider: aws
+  service: ram
+  title: Share Cloud WAN core network with controlled account
+  source: src/pentesting-cloud/aws-security/aws-persistence/aws-network-manager-persistence/README.md#share-a-core-network-with-an-external-account-through-aws-ram
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: cross-account
+    Cloud WAN attachment creation authority; the exact source, resource, controlled
+    recipient and effective prerequisites must be verified. No IAM identity, credential,
+    scope control or subsequent permissions are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: ram:CreateResourceShare
+      resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-peaso-share-a-core-network-with-an-external-account-through-aws-ram
+    scope: same_account
+    aggregate_as: Bounded aws-peaso-share-a-core-network-with-an-external-account-through-aws-ram
+      on {target.arn}
+    outcome: bounded_authority
+  conditions:
+  - id: exact_verified_prerequisites
+    description: Core-network share permits external principals, invitation is accepted
+      or org-shared, and live managed permission grants the particular attachment
+      action.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict ram:CreateResourceShare to approved operators and review exact
+    resource policies and recipients.
+  references:
+  - https://docs.aws.amazon.com/network-manager/latest/cloudwan/cloudwan-share-network.html
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: aws-qbusiness-crossaccount-data-accessor
+  provider: aws
+  service: qbusiness
+  title: Grant a controlled ISV accessor Q Business retrieval authority
+  source: src/pentesting-cloud/aws-security/aws-services/aws-q-business-enum.md#data-accessors-and-resource-policies
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: An application
+    administrator can authorize a controlled registered ISV accessor to retrieve documents
+    allowed to assigned end users. No IAM identity, credential, scope control or subsequent
+    permissions are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: qbusiness:CreateDataAccessor
+      resource: '{target.resource_arn}'
+    - action: qbusiness:AssociatePermission
+      resource: '{target.resource_arn}'
+    - action: qbusiness:PutResourcePolicy
+      resource: '{target.resource_arn}'
+    - action: sso:PutApplicationAssignmentConfiguration
+      resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-qbusiness-crossaccount-data-accessor
+    scope: any
+    outcome: bounded_authority
+    aggregate_as: Bounded aws-qbusiness-crossaccount-data-accessor on {target.arn}
+  conditions:
+  - id: exact_isv_assignment_and_acl
+    description: Evidence must bind a controlled registered ISV tenant, the application
+      policy, Identity Center assignment, propagated end user and document ACL.
+  - id: tti_variant
+    description: TTI access also requires qbusiness:CreateDataAccessorWithTti; the
+      base entry covers the standard CreateDataAccessor flow only.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict accessor creation, resource-policy writes and Identity Center
+    assignments; audit ISV tenant IDs and data-source filters.
+  references:
+  - https://docs.aws.amazon.com/amazonq/latest/qbusiness-ug/data-accessors.html
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: aws-s05-06-lambda-addpermission
+  provider: aws
+  service: lambda
+  title: '`lambda:AddPermission`'
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-lambda-privesc/README.md#lambdaaddpermission
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: Conditional gain:
+    privileged handler invocation. No IAM identity, credential, scope control or subsequent
+    permissions are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: lambda:AddPermission
+      resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-s05-06-lambda-addpermission
+    scope: same_account
+    outcome: bounded_authority
+    aggregate_as: Bounded aws-s05-06-lambda-addpermission on {target.arn}
+  conditions:
+  - id: exact_verified_prerequisites
+    description: Existing handler accepts controlled input and performs privileged
+      action.
+  - id: verified_collector_fact
+    description: The requested collector fact must bind the source, exact resource,
+      newly reachable authority and all runtime prerequisites; without it the result
+      is UNKNOWN.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the listed action to approved principals and exact resources.
+  references: []
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: aws-s05-07-expose-a-pre-existing-authtype-none-function-url
+  provider: aws
+  service: lambda
+  title: Expose a pre-existing `AuthType=NONE` Function URL
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-lambda-privesc/README.md#expose-a-pre-existing-authtypenone-function-url
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: Conditional gain:
+    unauthenticated privileged handler access. No IAM identity, credential, scope
+    control or subsequent permissions are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: lambda:AddPermission
+      resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-s05-07-expose-a-pre-existing-authtype-none-function-url
+    scope: same_account
+    outcome: bounded_authority
+    aggregate_as: Bounded aws-s05-07-expose-a-pre-existing-authtype-none-function-url
+      on {target.arn}
+  conditions:
+  - id: exact_verified_prerequisites
+    description: Known existing NONE Function URL; add public InvokeFunctionUrl and
+      InvokeFunction grants; handler is security sensitive.
+  - id: verified_collector_fact
+    description: The requested collector fact must bind the source, exact resource,
+      newly reachable authority and all runtime prerequisites; without it the result
+      is UNKNOWN.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the listed action to approved principals and exact resources.
+  references: []
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: aws-s05-08-lambda-addlayerversionpermission
+  provider: aws
+  service: lambda
+  title: '`lambda:AddLayerVersionPermission`'
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-lambda-privesc/README.md#lambdaaddlayerversionpermission
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: Conditional gain:
+    embedded credential. No IAM identity, credential, scope control or subsequent
+    permissions are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: lambda:AddLayerVersionPermission
+      resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-s05-08-lambda-addlayerversionpermission
+    scope: same_account
+    outcome: bounded_authority
+    aggregate_as: Bounded aws-s05-08-lambda-addlayerversionpermission on {target.arn}
+  conditions:
+  - id: exact_verified_prerequisites
+    description: Layer contains embedded credential; caller can obtain the newly granted
+      GetLayerVersion response.
+  - id: verified_collector_fact
+    description: The requested collector fact must bind the source, exact resource,
+      newly reachable authority and all runtime prerequisites; without it the result
+      is UNKNOWN.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the listed action to approved principals and exact resources.
+  references: []
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: aws-s05-83-pca-connector-ad-createtemplategroupaccesscontrolentry
+  provider: aws
+  service: pca-connector-ad
+  title: '`pca-connector-ad:CreateTemplateGroupAccessControlEntry` — grant enrollment
+    to an attacker-chosen AD group'
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-pca-connector-ad-privesc/README.md#pca-connector-adcreatetemplategroupaccesscontrolentry--grant-enrollment-to-an-attacker-chosen-ad-group
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: Conditional gain:
+    certificate as chosen AD principal. No IAM identity, credential, scope control
+    or subsequent permissions are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: pca-connector-ad:CreateTemplateGroupAccessControlEntry
+      resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-s05-83-pca-connector-ad-createtemplategroupaccesscontrolentry
+    scope: same_account
+    outcome: bounded_authority
+    aggregate_as: Bounded aws-s05-83-pca-connector-ad-createtemplategroupaccesscontrolentry
+      on {target.arn}
+  conditions:
+  - id: exact_verified_prerequisites
+    description: Existing unsafe client-auth template with enrollee-controlled identity;
+      attacker controls AD group; enrollment and PKINIT/Schannel available.
+  - id: verified_collector_fact
+    description: The requested collector fact must bind the source, exact resource,
+      newly reachable authority and all runtime prerequisites; without it the result
+      is UNKNOWN.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the listed action to approved principals and exact resources.
+  references: []
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: aws-s05-connector-remote-directory-move-and-delete-capability-pivot
+  provider: aws
+  service: transfer
+  title: Connector remote-directory, move, and delete capability pivot
+  source: src/pentesting-cloud/aws-security/aws-post-exploitation/aws-transfer-family-post-exploitation/README.md#connector-remote-directory-move-and-delete-capability-pivot
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: The source may
+    obtain Remote SFTP connector identity and its authorized remote directory capability
+    when the exact documented prerequisite is verified. No IAM identity, credential,
+    scope control or subsequent permissions are granted by this terminal effect.'
+  requires:
+    any_of:
+    - - action: transfer:StartDirectoryListing
+        resource: '{target.arn}'
+    - - action: transfer:StartRemoteMove
+        resource: '{target.arn}'
+    - - action: transfer:StartRemoteDelete
+        resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-s05-connector-remote-directory-move-and-delete-capability-pivot
+    scope: same_account
+    aggregate_as: Bounded aws-s05-connector-remote-directory-move-and-delete-capability-pivot
+      on {target.arn}
+    outcome: bounded_authority
+  conditions:
+  - id: exact_verified_prerequisites
+    description: Existing connector and stored credential, reachable remote path;
+      listing also needs connector-role S3 output and attacker read access to result.
+      StartRemoteMove and StartRemoteDelete are independent alternatives on the exact
+      connector ARN. Missing or unverified evidence is UNKNOWN and must not emit a
+      definite edge.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the listed action on the exact resource and remove unnecessary
+    access.
+  references:
+  - https://docs.aws.amazon.com/transfer/latest/userguide/custom-lambda-idp.html
+  - https://docs.aws.amazon.com/transfer/latest/userguide/authentication-api-gateway.html
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: aws-s05-delete-or-corrupt-the-authorization-store
+  provider: aws
+  service: verifiedpermissions
+  title: Delete or corrupt the authorization store
+  source: src/pentesting-cloud/aws-security/aws-post-exploitation/aws-verified-permissions-post-exploitation/README.md#delete-or-corrupt-the-authorization-store
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: The source may
+    obtain Application action authorized by a proven fail-open integration when the
+    exact documented prerequisite is verified. No IAM identity, credential, scope
+    control or subsequent permissions are granted by this terminal effect.'
+  requires:
+    any_of:
+    - - action: verifiedpermissions:DeletePolicy
+        resource: '{target.arn}'
+    - - action: verifiedpermissions:DeletePolicyStore
+        resource: '{target.arn}'
+    - - action: verifiedpermissions:UpdatePolicy
+        resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-s05-delete-or-corrupt-the-authorization-store
+    scope: same_account
+    aggregate_as: Bounded aws-s05-delete-or-corrupt-the-authorization-store on {target.arn}
+    outcome: bounded_authority
+  conditions:
+  - id: exact_verified_prerequisites
+    description: Specific policy/template/schema/identity-source mutation and a confirmed
+      application integration that treats the resulting denial/evaluation error as
+      allow. Default Verified Permissions decision remains deny; no edge without fail-open
+      proof. Missing or unverified evidence is UNKNOWN and must not emit a definite
+      edge.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the listed action on the exact resource and remove unnecessary
+    access.
+  references:
+  - https://docs.aws.amazon.com/verifiedpermissions/latest/apireference/API_Operations.html
+  - https://docs.aws.amazon.com/verifiedpermissions/latest/userguide/monitoring-cloudtrail.html
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: aws-s05-ec2applysecuritygroupstoclientvpntargetnetwork-rebind-client-vpn-to-a
+  provider: aws
+  service: ec2
+  title: '`ec2:ApplySecurityGroupsToClientVpnTargetNetwork` — rebind Client VPN to
+    a trusted security group'
+  source: src/pentesting-cloud/aws-security/aws-post-exploitation/aws-vpn-post-exploitation/README.md#ec2applysecuritygroupstoclientvpntargetnetwork--rebind-client-vpn-to-a-trusted-security-group
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: The source may
+    obtain Trusted network path through selected Client VPN security group when the
+    exact documented prerequisite is verified. No IAM identity, credential, scope
+    control or subsequent permissions are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: ec2:ApplySecurityGroupsToClientVpnTargetNetwork
+      resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-s05-ec2applysecuritygroupstoclientvpntargetnetwork-rebind-client-vpn-to-a
+    scope: same_account
+    aggregate_as: Bounded aws-s05-ec2applysecuritygroupstoclientvpntargetnetwork-rebind-client-vpn-to-a
+      on {target.arn}
+    outcome: bounded_authority
+  conditions:
+  - id: exact_verified_prerequisites
+    description: Existing accepted VPN client identity plus matching endpoint association,
+      authorization rule, route, security path and application access. This mutation
+      expands network authorization but does not grant AWS IAM; existing exclusion
+      wrongly uses only AWS-principal criterion. Missing or unverified evidence is
+      UNKNOWN and must not emit a definite edge.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the listed action on the exact resource and remove unnecessary
+    access.
+  references:
+  - https://docs.aws.amazon.com/vpn/latest/s2svpn/SetUpVPNConnections.html
+  - https://docs.aws.amazon.com/vpn/latest/s2svpn/customer-gateway-device-windows.html
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: aws-s05-ec2associateclientvpntargetnetwork-ec2createclientvpnroute-attach-clie
+  provider: aws
+  service: ec2
+  title: '`ec2:AssociateClientVpnTargetNetwork` + `ec2:CreateClientVpnRoute` — attach
+    Client VPN to a VPC and extend reachable networks'
+  source: src/pentesting-cloud/aws-security/aws-post-exploitation/aws-vpn-post-exploitation/README.md#ec2associateclientvpntargetnetwork--ec2createclientvpnroute--attach-client-vpn-to-a-vpc-and-extend-reachable-networks
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: The source may
+    obtain VPC or routed-CIDR reachability for existing VPN client when the exact
+    documented prerequisite is verified. No IAM identity, credential, scope control
+    or subsequent permissions are granted by this terminal effect.'
+  requires:
+    any_of:
+    - - action: ec2:AssociateClientVpnTargetNetwork
+        resource: '{target.arn}'
+    - - action: ec2:CreateClientVpnRoute
+        resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-s05-ec2associateclientvpntargetnetwork-ec2createclientvpnroute-attach-clie
+    scope: same_account
+    aggregate_as: Bounded aws-s05-ec2associateclientvpntargetnetwork-ec2createclientvpnroute-attach-clie
+      on {target.arn}
+    outcome: bounded_authority
+  conditions:
+  - id: exact_verified_prerequisites
+    description: Existing accepted VPN client identity plus matching endpoint association,
+      authorization rule, route, security path and application access. This mutation
+      expands network authorization but does not grant AWS IAM; existing exclusion
+      wrongly uses only AWS-principal criterion. Missing or unverified evidence is
+      UNKNOWN and must not emit a definite edge.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the listed action on the exact resource and remove unnecessary
+    access.
+  references:
+  - https://docs.aws.amazon.com/vpn/latest/s2svpn/SetUpVPNConnections.html
+  - https://docs.aws.amazon.com/vpn/latest/s2svpn/customer-gateway-device-windows.html
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: aws-s05-ec2authorizeclientvpningress-broaden-an-authenticated-vpn-clients-netw
+  provider: aws
+  service: ec2
+  title: '`ec2:AuthorizeClientVpnIngress` — broaden an authenticated VPN client''s
+    network access'
+  source: src/pentesting-cloud/aws-security/aws-post-exploitation/aws-vpn-post-exploitation/README.md#ec2authorizeclientvpningress--broaden-an-authenticated-vpn-clients-network-access
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: The source may
+    obtain Private CIDR reachability for existing VPN client when the exact documented
+    prerequisite is verified. No IAM identity, credential, scope control or subsequent
+    permissions are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: ec2:AuthorizeClientVpnIngress
+      resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-s05-ec2authorizeclientvpningress-broaden-an-authenticated-vpn-clients-netw
+    scope: same_account
+    aggregate_as: Bounded aws-s05-ec2authorizeclientvpningress-broaden-an-authenticated-vpn-clients-netw
+      on {target.arn}
+    outcome: bounded_authority
+  conditions:
+  - id: exact_verified_prerequisites
+    description: Existing accepted VPN client identity plus matching endpoint association,
+      authorization rule, route, security path and application access. This mutation
+      expands network authorization but does not grant AWS IAM; existing exclusion
+      wrongly uses only AWS-principal criterion. Missing or unverified evidence is
+      UNKNOWN and must not emit a definite edge.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the listed action on the exact resource and remove unnecessary
+    access.
+  references:
+  - https://docs.aws.amazon.com/vpn/latest/s2svpn/SetUpVPNConnections.html
+  - https://docs.aws.amazon.com/vpn/latest/s2svpn/customer-gateway-device-windows.html
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: aws-s05-vpc-latticecreateservicenetworkvpcassociation-obtain-network-reachabil
+  provider: aws
+  service: vpc-lattice
+  title: '`vpc-lattice:CreateServiceNetworkVpcAssociation` — obtain network reachability
+    into a service network'
+  source: src/pentesting-cloud/aws-security/aws-post-exploitation/aws-vpc-lattice-post-exploitation/README.md#vpc-latticecreateservicenetworkvpcassociation--obtain-network-reachability-into-a-service-network
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: The source may
+    obtain Network reachability from associated VPC into exact Lattice service network
+    when the exact documented prerequisite is verified. No IAM identity, credential,
+    scope control or subsequent permissions are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: vpc-lattice:CreateServiceNetworkVpcAssociation
+      resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-s05-vpc-latticecreateservicenetworkvpcassociation-obtain-network-reachabil
+    scope: same_account
+    aggregate_as: Bounded aws-s05-vpc-latticecreateservicenetworkvpcassociation-obtain-network-reachabil
+      on {target.arn}
+    outcome: bounded_authority
+  conditions:
+  - id: exact_verified_prerequisites
+    description: Attacker controls compute in a VPC that can be associated; service/network
+      IAM auth policy, vpc-lattice-svcs:Invoke, and application auth still gate requests.
+      Existing exclusion ignores the gained network-plane authorization. Missing or
+      unverified evidence is UNKNOWN and must not emit a definite edge.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the listed action on the exact resource and remove unnecessary
+    access.
+  references:
+  - https://docs.aws.amazon.com/vpc-lattice/latest/ug/what-is-vpc-lattice.html
+  - https://docs.aws.amazon.com/vpc-lattice/latest/APIReference/API_PutAuthPolicy.html
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: aws-s05-wafv2tagresource-wafv2untagresource
+  provider: aws
+  service: waf
+  title: '**`wafv2:TagResource`, `wafv2:UntagResource`**'
+  source: src/pentesting-cloud/aws-security/aws-post-exploitation/aws-waf-post-exploitation/README.md#wafv2tagresource-wafv2untagresource
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: The source may
+    obtain Additional WAF administration allowed by tag-conditioned policy when the
+    exact documented prerequisite is verified. No IAM identity, credential, scope
+    control or subsequent permissions are granted by this terminal effect.'
+  requires:
+    any_of:
+    - - action: wafv2:TagResource
+        resource: '{target.arn}'
+    - - action: wafv2:UntagResource
+        resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-s05-wafv2tagresource-wafv2untagresource
+    scope: same_account
+    aggregate_as: Bounded aws-s05-wafv2tagresource-wafv2untagresource on {target.arn}
+    outcome: bounded_authority
+  conditions:
+  - id: exact_verified_prerequisites
+    description: Only when a policy or automation actually gates a stronger WAF action
+      on mutable tags. Existing exclusion treats all tagging as harmless despite page
+      warning that tags can gate access; absent ABAC evidence there is no edge. Missing
+      or unverified evidence is UNKNOWN and must not emit a definite edge.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the listed action on the exact resource and remove unnecessary
+    access.
+  references:
+  - https://docs.aws.amazon.com/waf/latest/APIReference/API_DeleteWebACL.html
+  - https://docs.aws.amazon.com/waf/latest/developerguide/logging-fields.html
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: aws-verifiedpermissions-alias-rebind
+  provider: aws
+  service: verifiedpermissions
+  title: Rebind a production alias to a permissive policy store
+  source: src/pentesting-cloud/aws-security/aws-services/aws-verified-permissions-enum.md#enumerate-stores-and-aliases
+  summary: 'Evidence-bound operation on the exact affected resource: Deleting and
+    recreating a policy-store alias can cause an application to use a different store
+    that permits attacker actions. No IAM identity, credential, scope control or subsequent
+    permissions are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: verifiedpermissions:DeletePolicyStoreAlias
+      resource: '{target.arn}'
+    - action: verifiedpermissions:CreatePolicyStoreAlias
+      resource: '{target.arn}'
+    - action: verifiedpermissions:CreatePolicyStoreAlias
+      resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-verifiedpermissions-alias-rebind
+    scope: same_account
+    aggregate_as: Bounded aws-verifiedpermissions-alias-rebind on {target.arn}
+    outcome: bounded_authority
+  conditions:
+  - id: exact_verified_prerequisites
+    description: DeletePolicyStoreAlias on alias and CreatePolicyStoreAlias on alias
+      and destination store; optional CreatePolicyStore/policy writes if destination
+      must be built. Evidence must bind this IAM source, exact target and usable privilege;
+      absent evidence remains UNKNOWN.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict verifiedpermissions:DeletePolicyStoreAlias to trusted administrators
+    at the exact resource scope.
+  references:
+  - https://docs.aws.amazon.com/verifiedpermissions/latest/userguide/policy-store-aliases-using.html
+  - https://docs.aws.amazon.com/service-authorization/latest/reference/list_verifiedpermissions.html
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: aws-verifiedpermissions-policy-app-admin
+  provider: aws
+  service: verifiedpermissions
+  title: Grant application privileges through a Cedar policy
+  source: src/pentesting-cloud/aws-security/aws-services/aws-verified-permissions-enum.md#exact-iam-boundaries
+  summary: 'Evidence-bound operation on the exact affected resource: A policy or template
+    writer can add a Cedar permit for an attacker-controlled application principal
+    where a consuming application honors that decision. No IAM identity, credential,
+    scope control or subsequent permissions are granted by this terminal effect.'
+  requires:
+    any_of:
+    - - action: verifiedpermissions:CreatePolicy
+        resource: '{target.arn}'
+    - - action: verifiedpermissions:UpdatePolicy
+        resource: '{target.arn}'
+    - - action: verifiedpermissions:UpdatePolicyTemplate
+        resource: '{target.arn}'
+    - - action: verifiedpermissions:CreatePolicyTemplate
+        resource: '{target.arn}'
+      - action: verifiedpermissions:CreatePolicy
+        resource: '{target.arn}'
+  target:
+    kind: aws_verified_authority
+    selector:
+      aws_challenge_fact: aws-verifiedpermissions-policy-app-admin
+    scope: same_account
+    aggregate_as: Bounded aws-verifiedpermissions-policy-app-admin on {target.arn}
+    outcome: bounded_authority
+  conditions:
+  - id: exact_verified_prerequisites
+    description: CreatePolicy or UpdatePolicy on exact store; UpdatePolicyTemplate
+      for existing linked policies; CreatePolicyTemplate plus CreatePolicy for a new
+      linked policy. Evidence must bind this IAM source, exact target and usable privilege;
+      absent evidence remains UNKNOWN.
+  blockers:
+  - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict verifiedpermissions:CreatePolicy to trusted administrators
+    at the exact resource scope.
+  references:
+  - https://docs.aws.amazon.com/verifiedpermissions/latest/userguide/policies-create.html
+  - https://docs.aws.amazon.com/service-authorization/latest/reference/list_verifiedpermissions.html
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.

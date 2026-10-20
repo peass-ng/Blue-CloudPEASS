@@ -17,15 +17,15 @@ RULE = Rule(
 
 def test_external_replication_grant_and_rejected_variants() -> None:
     policy = {"Version": "2012-10-17", "Statement": [{"Effect": "Allow",
-        "Principal": {"AWS": "arn:aws:iam::202533532952:root"},
+        "Principal": {"AWS": "arn:aws:iam::111122223333:root"},
         "Action": ["ecr:ReplicateImage", "ecr:CreateRepository"],
-        "Resource": ["arn:aws:ecr:us-east-1:947247140022:repository/canary/*"]}]}
+        "Resource": ["arn:aws:ecr:us-east-1:222233334444:repository/canary/*"]}]}
     event = {"eventSource": "ecr.amazonaws.com", "eventName": "PutRegistryPolicy",
              "eventCategory": "Management", "eventType": "AwsApiCall",
              "managementEvent": True, "readOnly": False,
-             "recipientAccountId": "947247140022",
+             "recipientAccountId": "222233334444",
              "requestParameters": {"policyText": json.dumps(policy)},
-             "responseElements": {"registryId": "947247140022", "policyText": json.dumps(policy)}}
+             "responseElements": {"registryId": "222233334444", "policyText": json.dumps(policy)}}
     assert [x.technique_id for x in detect_aws_events([event], [RULE])] == [RULE.technique_id]
     canonicalized = deepcopy(event)
     normalized = deepcopy(policy)
@@ -36,7 +36,7 @@ def test_external_replication_grant_and_rejected_variants() -> None:
         item = deepcopy(event)
         document = deepcopy(policy)
         if variant == "same_account":
-            document["Statement"][0]["Principal"]["AWS"] = "arn:aws:iam::947247140022:root"
+            document["Statement"][0]["Principal"]["AWS"] = "arn:aws:iam::222233334444:root"
         if variant == "no_replication": document["Statement"][0]["Action"] = ["ecr:DescribeRepositories"]
         if variant == "conditional":
             document["Statement"][0]["Condition"] = {"StringEquals": {"aws:PrincipalOrgID": "o-canary"}}

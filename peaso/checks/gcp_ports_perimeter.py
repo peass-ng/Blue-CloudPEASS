@@ -106,18 +106,13 @@ REFERENCE_SPECS["cloud_sql_not_publicly_accessible"] = "gcp.sql.no_public_ip"
 
 
 def sql_ssl(item, index):
-    config = get(item, "settings.ipConfiguration", dict)
-    mode = optional(config, "sslMode", "SSL_MODE_UNSPECIFIED", str)
-    if mode not in ("SSL_MODE_UNSPECIFIED", "ALLOW_UNENCRYPTED_AND_ENCRYPTED", "ENCRYPTED_ONLY", "TRUSTED_CLIENT_CERTIFICATE_REQUIRED"):
-        return unknown("unrecognized SQL SSL mode")
-    legacy = optional(config, "requireSsl", False, bool)
-    return result(mode == "ALLOW_UNENCRYPTED_AND_ENCRYPTED" or mode == "SSL_MODE_UNSPECIFIED" and not legacy,
-        ssl_mode=mode, legacy_require_ssl=legacy, semantics="Exact source mode/fallback policy; client certificate authentication is separate")
+    from .gcp_sql_transport_native import sql_transport
+    return sql_transport(item, index)
 
 
 rule("reference_sql_ssl_connections", "sql_instance", sql_ssl,
     {"settings": {"ipConfiguration": {"sslMode": "SSL_MODE_UNSPECIFIED", "requireSsl": True}}},
-    {"settings": {"ipConfiguration": {"sslMode": "ALLOW_UNENCRYPTED_AND_ENCRYPTED", "requireSsl": True}}})
+    {"settings": {"ipConfiguration": {"sslMode": "ALLOW_UNENCRYPTED_AND_ENCRYPTED", "requireSsl": False}}})
 
 
 def meaningful_restrictions(item, index):
@@ -173,10 +168,16 @@ def iap_sources(query, allowed_ranges):
         ranges = optional(item, "sourceRanges", [], list)
         if any(not isinstance(value, str) for value in ranges):
             raise Unavailable("malformed firewall source range")
+        selectors = [value for field in ("sourceTags", "sourceServiceAccounts")
+                     for value in optional(item, field, [], list)]
+        if any(not isinstance(value, str) or not value.strip() for value in selectors):
+            raise Unavailable("malformed firewall source selector")
         networks = [ip_network(value, strict=False) for value in ranges]
         trusted = [ip_network(value) for value in allowed_ranges]
         narrow = bool(networks) and all(any(value.version == parent.version and value.subnet_of(parent) for parent in trusted) for value in networks)
-        return result(not narrow, declared_source_ranges=ranges, approved_proxy_ranges=allowed_ranges,
+        # Google combines source ranges and source tags/accounts by OR.
+        return result(not narrow or bool(selectors), declared_source_ranges=ranges,
+            source_selectors=selectors, approved_proxy_ranges=allowed_ranges,
             semantics="Explicit proxy-source restriction policy only; no effective firewall rule ordering, IAP identity or endpoint reachability inference")
     rule(query, "firewall", evaluate,
         {"direction": "INGRESS", "allowed": [{"IPProtocol": "tcp", "ports": ["22"]}], "sourceRanges": allowed_ranges},

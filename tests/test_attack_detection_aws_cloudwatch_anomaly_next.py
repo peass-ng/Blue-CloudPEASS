@@ -21,7 +21,7 @@ def _event(name: str, request: dict) -> dict:
     return {"eventSource": "monitoring.amazonaws.com", "eventName": name,
             "eventCategory": "Management", "eventType": "AwsApiCall",
             "managementEvent": True, "readOnly": False,
-            "eventTime": "2026-10-19T10:00:00Z", "recipientAccountId": "947247140022",
+            "eventTime": "2026-10-19T10:00:00Z", "recipientAccountId": "222233334444",
             "requestParameters": {"namespace": "Synthetic", "metricName": "Metric", "stat": "Sum", **request},
             "responseElements": None}
 

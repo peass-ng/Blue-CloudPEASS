@@ -130,6 +130,7 @@ h1 { font: 600 40px/1.05 'Chakra Petch', sans-serif; color: #eef7f6; letter-spac
 .badge, .count-pill { padding: 3px 8px; border-color: rgba(166,227,212,.25); color: #c4d1d4; background: rgba(166,227,212,.06); font: 500 10.5px 'JetBrains Mono', monospace; }
 .badge.critical, .badge.fail, .badge.failed, .badge.denied { color: #f2a597; background: rgba(232,112,95,.08); border-color: rgba(232,112,95,.35); }
 .badge.high { color: #e0a06a; background: rgba(224,160,106,.08); border-color: rgba(224,160,106,.35); }
+.badge.access_denied { color: #f2b985; background: rgba(230,149,76,.08); border-color: rgba(230,149,76,.38); }
 .badge.medium, .badge.review, .badge.partial, .badge.manual { color: #e6c98f; background: rgba(217,183,122,.08); border-color: rgba(217,183,122,.35); }
 .badge.low { color: #8fb3e0; background: rgba(143,179,224,.08); border-color: rgba(143,179,224,.35); }
 .badge.info { color: #8a9aa3; background: rgba(138,154,163,.08); border-color: rgba(138,154,163,.35); }

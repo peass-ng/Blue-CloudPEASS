@@ -18,7 +18,7 @@ from scripts import peaso_deploy as deploy
 from scripts import peaso_deploy_current_update as update
 
 
-POOL = f"arn:aws:cognito-idp:us-east-1:{update.ACCOUNT}:userpool/us-east-1_7rbhezdKX"
+POOL = f"arn:aws:cognito-idp:us-east-1:{update.ACCOUNT}:userpool/us-east-1_example"
 CALLER_ROLE = f"arn:aws:sts::{update.ACCOUNT}:assumed-role/LabManagementOutOfScope/"
 
 
@@ -63,8 +63,8 @@ def fixture():
                   "policy": policy(["cognito-idp:AdminGetUser", "cognito-idp:DescribeUserPoolClient"])}
     api_after = dict(api_before, policy=policy([
         "cognito-idp:AdminGetUser", "cognito-idp:ListUserPoolClients", "cognito-idp:DescribeUserPoolClient"]))
-    bucket = {"id": "hacktricks-cspm-templates-202533532952",
-              "arn": "arn:aws:s3:::hacktricks-cspm-templates-202533532952"}
+    bucket = {"id": "hacktricks-cspm-templates-111122223333",
+              "arn": "arn:aws:s3:::hacktricks-cspm-templates-111122223333"}
     state = {"lineage": "07a58930-bf9f-7350-17e9-5e4d275a308a", "serial": 23, "resources": [
         {"mode": "managed", "type": "aws_iam_role_policy", "name": "api",
          "instances": [{"attributes": api_before}]},
@@ -218,7 +218,7 @@ class CurrentUpdateFieldPolicies(unittest.TestCase):
             update.check_lambda(old, new)
 
     def test_template_policy_adds_only_three_signed_object_arns(self):
-        bucket_arn = "arn:aws:s3:::hacktricks-cspm-templates-202533532952"
+        bucket_arn = "arn:aws:s3:::hacktricks-cspm-templates-111122223333"
         old_arns = [bucket_arn + "/customer-role-old-a.json", bucket_arn + "/customer-role-old-b.json"]
         statements = [{"Sid": "PublicReadOnlyCustomerRoleTemplate", "Effect": "Allow",
                        "Principal": "*", "Action": "s3:GetObject", "Resource": old_arns},
@@ -241,11 +241,17 @@ class CurrentUpdateFieldPolicies(unittest.TestCase):
         historical_infra = tempfile.TemporaryDirectory()
         self.addCleanup(historical_infra.cleanup)
         infra = Path(historical_infra.name)
-        for digest in update.TEMPLATE_HASHES:
-            archived = (source_infra / f"customer-role-{digest}.json").read_bytes()
-            name = "customer-role.json" if digest == update.TEMPLATE_HASHES[-1] else f"customer-role-{digest}.json"
+        synthetic = [json.dumps({"fixture_template": index}).encode() for index in range(len(update.TEMPLATE_HASHES))]
+        hashes = tuple(hashlib.sha256(content).hexdigest() for content in synthetic)
+        self.enterContext(patch.object(update, "TEMPLATE_HASHES", hashes))
+        self.enterContext(patch.object(update, "TEMPLATE_ADDRESSES", {
+            f'aws_s3_object.customer_role_template["{digest}"]': digest for digest in hashes}))
+        self.enterContext(patch.object(update, "UPDATE_ACTIONS", dict(update.UPDATE_ACTIONS, **{
+            f'aws_s3_object.customer_role_template["{digest}"]': ["create"] for digest in hashes})))
+        for digest, archived in zip(hashes, synthetic):
+            name = "customer-role.json" if digest == hashes[-1] else f"customer-role-{digest}.json"
             (infra / name).write_bytes(archived)
-        bucket = "hacktricks-cspm-templates-202533532952"
+        bucket = "hacktricks-cspm-templates-111122223333"
         resources = {"aws_s3_bucket.templates[0]": {"id": bucket},
                      "aws_s3_bucket_ownership_controls.templates[0]": {
                          "bucket": bucket, "rule": [{"object_ownership": "BucketOwnerEnforced"}]},
@@ -325,7 +331,7 @@ class CurrentUpdateFieldPolicies(unittest.TestCase):
         def workflow_iam(arns):
             return {"Version": "2012-10-17", "Statement": [{"Effect": "Allow", "Action": "ecs:RunTask",
                     "Resource": [arns["collector"], arns["analyzer"]]}]}
-        bucket = "arn:aws:s3:::hacktricks-cspm-templates-202533532952"
+        bucket = "arn:aws:s3:::hacktricks-cspm-templates-111122223333"
         old_objects = [bucket + "/customer-role-old-a.json", bucket + "/customer-role-old-b.json"]
         new_objects = old_objects + [bucket + "/customer-role-" + item + ".json" for item in update.TEMPLATE_HASHES]
         template = lambda objects: {"Version": "2012-10-17", "Statement": [

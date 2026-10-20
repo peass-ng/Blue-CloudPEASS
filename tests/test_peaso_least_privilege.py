@@ -94,6 +94,7 @@ def test_principal_page_reads_tenant_owned_projection_and_filters(tmp_path):
     projection = project("gcp", [{"type": "recommendation", "scope": "projects/example", "data": {
         "stateInfo": {"state": "ACTIVE"}, "name": "recommendations/one", "content": {"overview": {
             "member": "user:alice@example.com", "removedRole": "roles/editor"}}}}])
+    projection["items"][0]["exposures"] = [{"kind": "internet_workload", "state": "unknown"}]
     manifest["least_privilege"] = artifacts.put("alice", job["id"], "least-privilege", projection)
     (artifacts.root / reference).write_text(__import__("json").dumps(manifest))
     store.finish(job["id"], analyzer["owner"], "completed", reference)
@@ -110,5 +111,9 @@ def test_principal_page_reads_tenant_owned_projection_and_filters(tmp_path):
         assert response.json()["total"] == 1
         assert response.json()["items"][0]["suggestions"][0]["value"] == "roles/editor"
         assert client.get(route, params={"search": "missing"}).json()["total"] == 0
+        assert client.get(route, params={"exposure": "internet"}).json()["total"] == 1
+        assert client.get(route, params={"exposure": "external"}).json()["total"] == 0
+        assert client.get(route, params={"exposure": "unresolved"}).json()["total"] == 1
+        assert client.get(route, params={"exposure": "invalid"}).status_code == 422
         client.headers["Authorization"] = "Bearer bob"
         assert client.get(route).status_code == 404

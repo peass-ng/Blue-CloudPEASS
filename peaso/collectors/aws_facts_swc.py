@@ -264,7 +264,7 @@ def _lb(requests, session, region, item):
 def _client(requests, session, region, item):
     item["ClientDetail"] = _detail(requests, session, region, "cognito-idp", "describe_user_pool_client",
         UserPoolId=item["UserPoolId"], ClientId=item["ClientId"],
-        keys=[("UserPoolClient", ["UserPoolId", "ClientId", "AccessTokenValidity", "IdTokenValidity", "RefreshTokenValidity", "TokenValidityUnits", "ExplicitAuthFlows", "AllowedOAuthScopes", "SupportedIdentityProviders", "ClientSecretPresent"])])
+        keys=[("UserPoolClient", ["UserPoolId", "ClientId", "AccessTokenValidity", "IdTokenValidity", "RefreshTokenValidity", "TokenValidityUnits", "ExplicitAuthFlows", "AllowedOAuthScopes", "SupportedIdentityProviders", "ClientSecretPresent", "RefreshTokenRotation"])])
     # Documented Cognito defaults for omitted units; missing lifetimes stay UNKNOWN.
     detail = item["ClientDetail"]
     client = detail.get("UserPoolClient")
@@ -355,7 +355,7 @@ def _lambda(requests, session, region, item):
 
 @_each
 def _lightsail(requests, session, region, item):
-    item = _pick(item, ["name", "arn", "accessLogConfig", "resourcesReceivingAccess"])
+    item = _pick(item, ["name", "arn", "accessRules", "accessLogConfig", "resourcesReceivingAccess"])
     # AWS returns resource records; evaluator requires their ARN strings.
     resources = item.get("resourcesReceivingAccess")
     if isinstance(resources, list):
@@ -419,7 +419,7 @@ _LOG = [("logConfiguration", ["logDriver", ("options", ["awslogs-group"])])]
 
 @_each
 def _job(requests, session, region, item):
-    return _provenance(_pick(item, ["jobDefinitionArn", "status", ("containerProperties", _LOG),
+    return _provenance(_pick(item, ["jobDefinitionArn", "status", "AdditionalSecretIndicators", ("containerProperties", _LOG),
         ("nodeProperties", [("nodeRangeProperties", [("container", _LOG)])]),
         ("ecsProperties", [("taskProperties", [("containers", _LOG)])])]), "describe_job_definitions")
 

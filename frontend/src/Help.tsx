@@ -11,7 +11,7 @@ export function Help({ onNavigate }: { onNavigate: (page: string) => void }) {
       </ol>
     </Panel>
     <Panel title="AWS role access" kicker="CUSTOMER ACCOUNTS">
-      <p>For a hosted AWS connector, create a role in each customer account that trusts <code>arn:aws:iam::202533532952:role/HackTricks-CSPM</code> and requires the unique External ID shown in Connectors.</p>
+      <p>For a hosted AWS connector, create a role in each customer account that trusts the collector role shown in Connectors and requires the unique External ID shown in Connectors.</p>
       <button className="button" onClick={() => onNavigate("Connectors")}>Open AWS setup guide</button>
     </Panel>
     <Panel title="Read the results" kicker="EVIDENCE AND COVERAGE">

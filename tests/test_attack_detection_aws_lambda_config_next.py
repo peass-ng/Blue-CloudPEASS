@@ -28,7 +28,7 @@ def _event(name: str, request: dict) -> dict:
     return {"eventSource": "lambda.amazonaws.com", "eventName": name,
             "eventCategory": "Management", "eventType": "AwsApiCall",
             "managementEvent": True, "readOnly": False,
-            "recipientAccountId": "947247140022", "requestParameters": request}
+            "recipientAccountId": "222233334444", "requestParameters": request}
 
 
 def _hits(event: dict) -> list[str]:
@@ -38,7 +38,7 @@ def _hits(event: dict) -> list[str]:
 def test_external_layer_differs_from_local_layer() -> None:
     event = _event("UpdateFunctionConfiguration20150331v2", {
         "functionName": "synthetic", "environment": {},
-        "layers": ["arn:aws:lambda:us-east-1:947247140022:layer:synthetic:1"]})
+        "layers": ["arn:aws:lambda:us-east-1:222233334444:layer:synthetic:1"]})
     assert _hits(event) == []
     event["requestParameters"]["layers"][0] = "arn:aws:lambda:us-east-1:111122223333:layer:synthetic:1"
     assert _hits(event) == ["aws-lambda-external-layer-attached"]
@@ -59,7 +59,7 @@ def test_small_alias_weight_and_reset() -> None:
 def test_external_async_destination_and_failed_request() -> None:
     event = _event("PutFunctionEventInvokeConfig", {"functionName": "synthetic",
                    "destinationConfig": {"onSuccess": {"destination":
-                       "arn:aws:sqs:us-east-1:947247140022:synthetic"}}})
+                       "arn:aws:sqs:us-east-1:222233334444:synthetic"}}})
     assert _hits(event) == []
     event["requestParameters"]["destinationConfig"]["onSuccess"]["destination"] = (
         "arn:aws:sqs:us-east-1:111122223333:synthetic")

@@ -1,4 +1,4 @@
-"""Durable collector/scheduler and offline analyzer with fenced, cancellable jobs."""
+"""Durable collection and analysis with optional post-scan AI and fenced jobs."""
 import argparse
 import json
 import logging
@@ -22,6 +22,7 @@ LOGGER = logging.getLogger(__name__)
 _ROLE_ARN = re.compile(r"arn:(?:aws|aws-us-gov|aws-cn):iam::[0-9]{12}:role/[A-Za-z0-9+=,.@_/-]{1,512}\Z")
 _TARGET_MESSAGES = {
     "external_id_not_required_by_trust": "trust policy does not require External ID; add the sts:ExternalId condition shown in onboarding.",
+    "external_id_trust_unverified": "the role's External ID boundary could not be verified; require an exact workspace External ID and retry.",
     "platform_owned_account": "this platform account cannot be a customer scan target.",
     "role_target_limit": "the hosted scan limit of 50 role targets was reached.",
 }
@@ -83,6 +84,9 @@ def _process(role, request, connection):
         os.dup2(sink.fileno(), 1)
         os.dup2(sink.fileno(), 2)
     failure_reasons = []
+    def stop_child(*_):
+        raise SystemExit()
+    signal.signal(signal.SIGTERM, stop_child)
     try:
         config = request.pop("artifact_config")
         artifacts = FileArtifacts(Path(config["root"])) if config["mode"] == "file" else S3Artifacts(config["bucket"], kms_key=config.get("kms_key"))
@@ -94,9 +98,27 @@ def _process(role, request, connection):
             if (role == "collector" and connector.get("provider") == "gcp"
                     and connector.get("auth", {}).get("method") == "platform-service-account"):
                 from peaso.gcp_platform import load_service_account
-                from peaso.server.config import Settings
                 connector["auth"]["sa_json"] = load_service_account(Settings().gcp_platform_sa_secret_arn)
-            snapshot = collect_snapshot(request)
+            from peaso.ai import access as ai_access
+            if request.get("ai_enabled", True):
+                # A shared collector identity can read other customers' projects.
+                # Assigned scope labels do not downscope its bearer token.
+                shared_identity = (connector.get("provider") == "gcp" and
+                                   connector.get("auth", {}).get("method") == "platform-service-account")
+                ai_access.begin(allow_live=not shared_identity)
+            try:
+                snapshot = collect_snapshot(request)
+            finally:
+                ai_credentials = ai_access.finish()
+            if request.get("ai_enabled", True) and ai_credentials:
+                try:
+                    ai_credentials = ai_access.bind_targets(ai_credentials, snapshot)
+                    from peaso.ai.crypto import AICipher
+                    access_reference = artifacts.put(tenant, ident, "ai-access", {"sealed": AICipher(Path(request.get("ai_context", {}).get("identity_dir") or Settings().identity_dir)).encrypt({"entries": ai_credentials})})
+                    snapshot.setdefault("metadata", {})["ai_access_reference"] = access_reference
+                except Exception:
+                    snapshot.setdefault("metadata", {})["ai_access_status"] = "unavailable"
+            del ai_credentials
             from peaso.snapshot import nothing_readable
             if nothing_readable(snapshot):
                 # Every read failed (expired/wrong credentials): fail the scan instead of publishing an empty assessment.
@@ -127,6 +149,10 @@ def _process(role, request, connection):
             value["input_mode"] = snapshot.get("metadata", {}).get("input_mode", "live")
             from peaso.storage.cost import runtime_estimate
             value["runtime"] = runtime_estimate(request["timeline"])
+            from peaso.ai.pipeline import review_scan
+            value["ai"] = review_scan(value, snapshot, selectors, tenant=tenant, artifacts=artifacts, deadline=request.get("deadline"), context=request.get("ai_context"))
+            from peaso.ai.network import with_findings
+            value = with_findings(value, value["ai"].get("network", {}).get("findings", []))
             from peaso.storage.reports import publish_report
             reference = publish_report(artifacts, tenant, ident, value, snapshot)
         # Large evidence/report objects never cross the supervisor process pipe.
@@ -213,6 +239,10 @@ class Worker:
         results = []
         for row in self.store.due_schedules(now):
             try:
+                selectors = json.loads(row['data'])
+                if selectors.get('ai_enabled', True):
+                    from peaso.ai.auth import require_local_codex
+                    require_local_codex(self.settings, self.store, selectors.get('ai_user_id', row['tenant']))
                 paid = self.authenticator.is_paid(row["tenant"])
             except HTTPException as exc:
                 if exc.status_code == 401:
@@ -245,13 +275,11 @@ class Worker:
                         connector["auth"]["method"] = "access_keys" if connector["auth"].get("aws_access_key_id") else "task_role"
                 elif connector["provider"] == "aws" and connector["auth"].get("method") == "assume_role":
                     connector["auth"]["method"] = "profile" if connector["auth"].get("profile") else "access_keys" if connector["auth"].get("aws_access_key_id") else "default"
-                if connector["provider"] == "k8s":
-                    aliases = {"inline": "kubeconfig", "client-cert": "cert"}
-                    connector["auth"]["method"] = aliases.get(connector["auth"].get("method"), connector["auth"].get("method", "auto"))
                 request = dict(selectors, connector=connector)
             else:
                 request = {"snapshot_ref": job["snapshot"], "selectors": selectors, "related": related_snapshot_refs(self.store, job)}
-            request.update(tenant_id=job["tenant"], scan_id=job["id"], artifact_config={"mode": "file", "root": str(self.artifacts.root)} if isinstance(self.artifacts, FileArtifacts) else {"mode": "s3", "bucket": self.artifacts.bucket, "kms_key": self.artifacts.kms_key})
+            request.update(tenant_id=job["tenant"], scan_id=job["id"], deadline=job["deadline"], artifact_config={"mode": "file", "root": str(self.artifacts.root)} if isinstance(self.artifacts, FileArtifacts) else {"mode": "s3", "bucket": self.artifacts.bucket, "kms_key": self.artifacts.kms_key})
+            request["ai_context"] = {"state_dir": str(self.settings.state_dir), "identity_dir": str(self.settings.identity_dir)}
             request["timeline"] = self.store.public_job(job)["timeline"]
             context = multiprocessing.get_context("spawn")
             parent, child = context.Pipe(duplex=False)
@@ -314,25 +342,47 @@ class Worker:
                 child.close()
 
     def run(self):
-        while not self.stopping.is_set():
-            try:
-                self.schedule_tick()
-                if not self.run_once():
-                    self.stopping.wait(1)
-            except Exception:
-                # Do not serialize exceptions: SDK errors can embed auth material.
-                self.stopping.wait(2)
+        def schedule_loop():
+            while not self.stopping.is_set():
+                try:
+                    self.schedule_tick()
+                except Exception:
+                    # A transient scheduler failure is retried without logging credentials.
+                    pass
+                self.stopping.wait(30)
+        scheduler = threading.Thread(target=schedule_loop, name='scan-scheduler', daemon=True) if self.role == 'collector' else None
+        if scheduler:
+            scheduler.start()
+        try:
+            while not self.stopping.is_set():
+                try:
+                    if not self.run_once():
+                        self.stopping.wait(1)
+                except Exception:
+                    # Do not serialize exceptions: SDK errors can embed auth material.
+                    self.stopping.wait(2)
+        finally:
+            self.stopping.set()
+            if scheduler:
+                scheduler.join(timeout=5)
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("role", choices=("collector", "analyzer"))
     parser.add_argument("--once", action="store_true")
+    parser.add_argument("--ai-smoke", action="store_true", help="Run the isolated live AI deployment acceptance check")
     parser.add_argument("--tenant-id")
     parser.add_argument("--scan-id")
     args = parser.parse_args()
     if bool(args.tenant_id) != bool(args.scan_id):
         parser.error("--tenant-id and --scan-id must be supplied together")
+    if args.ai_smoke:
+        if args.role != "analyzer" or args.once or args.tenant_id or args.scan_id:
+            parser.error("--ai-smoke requires the analyzer role without scan selectors")
+        from .ai.smoke import main as ai_smoke
+        ai_smoke()
+        return
     worker = Worker(args.role)
     for sig in (signal.SIGTERM, signal.SIGINT):
         signal.signal(sig, lambda *_: worker.stopping.set())

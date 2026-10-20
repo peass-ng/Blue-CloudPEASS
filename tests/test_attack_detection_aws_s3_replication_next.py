@@ -17,9 +17,9 @@ def test_explicit_external_owner_and_same_account_negative() -> None:
     event = {
         "eventSource": "s3.amazonaws.com", "eventName": "PutBucketReplication",
         "eventCategory": "Management", "eventType": "AwsApiCall",
-        "managementEvent": True, "readOnly": False, "recipientAccountId": "947247140022",
+        "managementEvent": True, "readOnly": False, "recipientAccountId": "222233334444",
         "requestParameters": {"bucketName": "synthetic-source-bucket",
-            "ReplicationConfiguration": {"Role": "arn:aws:iam::947247140022:role/synthetic",
+            "ReplicationConfiguration": {"Role": "arn:aws:iam::222233334444:role/synthetic",
                 "Rule": {"Status": "Enabled", "Destination": {
                     "Bucket": "arn:aws:s3:::synthetic-destination-bucket",
                     "Account": "111122223333", "AccessControlTranslation": {"Owner": "Destination"}}}}},
@@ -29,7 +29,7 @@ def test_explicit_external_owner_and_same_account_negative() -> None:
         item = deepcopy(event)
         destination = item["requestParameters"]["ReplicationConfiguration"]["Rule"]["Destination"]
         if variant == "same_account":
-            destination["Account"] = "947247140022"
+            destination["Account"] = "222233334444"
         if variant == "owner_absent":
             destination.pop("Account")
         if variant == "disabled":

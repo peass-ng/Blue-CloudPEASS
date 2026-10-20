@@ -1,4 +1,5 @@
 """Run actual metadata collection and save private repeatability/timing evidence."""
+from peaso import deployment
 import argparse
 from collections import Counter
 import json
@@ -29,12 +30,12 @@ def main():
     if (source / "peaso" / "privesc").exists() or "_run_privesc" in (source / "peaso" / "engine.py").read_text():
         raise RuntimeError("Live QA requires the defensive-only exported build")
     connectors = {
-        "aws": {"provider": "aws", "auth": {"method": "profile", "profile": "naxusai-admin"}, "scopes": ["947247140022"],
+        "aws": {"provider": "aws", "auth": {"method": "profile", "profile": deployment.value("test_aws_profile")}, "scopes": [deployment.value("test_aws_account_id")],
                 "options": {"regions": ["us-east-1"], "max_calls": 500, "max_pages": 3, "max_resources": 1500}},
-        "azure": {"provider": "azure", "auth": {"method": "az-cli", "tenant_id": "fdd066e1-ee37-49bc-b08f-d0e152119b04"},
-                  "scopes": ["cfbcdcf4-cb4f-4e4e-9f3e-a6b3b3abadfc"], "options": {"max_calls": 300, "max_pages": 3, "max_resources": 1500, "retries": 0}},
-        "gcp": {"provider": "gcp", "auth": {"method": "gcloud", "account": "carlos@hacktricks-training.com"},
-                "scopes": ["gcp-labs-ly3gvnn7"], "options": {"max_calls": 300, "max_pages": 3, "max_resources": 1500}},
+        "azure": {"provider": "azure", "auth": {"method": "az-cli", "tenant_id": deployment.value("test_azure_tenant")},
+                  "scopes": [deployment.value("test_azure_subscription")], "options": {"max_calls": 300, "max_pages": 3, "max_resources": 1500, "retries": 0}},
+        "gcp": {"provider": "gcp", "auth": {"method": "gcloud", "account": deployment.value("test_gcp_account")},
+                "scopes": [deployment.value("test_gcp_project")], "options": {"max_calls": 300, "max_pages": 3, "max_resources": 1500}},
         "k8s": {"provider": "k8s", "auth": {"method": "kubeconfig", "kubeconfig": args.kubeconfig},
                 "scopes": ["peaso-test"], "options": {"max_calls": 200, "max_pages": 3, "max_resources": 1500}},
     }

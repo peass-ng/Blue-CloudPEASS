@@ -19,7 +19,7 @@ from peaso.collectors import aws_policy
 from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot, validate
 
-from tests.release_successor_history import (ancestor_json, ancestor_bytes, ancestor_sha, registered_before_bulk, registry_source_before_bulk)
+from tests.release_successor_history import (ancestor_json, ancestor_bytes, ancestor_sha, registered_before_bulk, registry_source_before_bulk, retained_ledger_inputs)
 
 CHECKS = registered_before_bulk(CHECKS)
 
@@ -225,9 +225,11 @@ def test_signed_rows_embed_one_spec_and_no_duplicate_association():
 
 def test_manifest_and_supplement_bind_the_admitted_spec():
     manifest = ancestor_json(LEDGER / "manifest.json")
+    retained = retained_ledger_inputs()
     for section in ("slices", "descriptions"):
         for row in manifest[section].values():
-            assert row["sha256"] == sha((LEDGER / row["path"]).read_bytes())
+            original = retained[row["path"]] if row["path"] in retained else (LEDGER / row["path"]).read_bytes()
+            assert row["sha256"] == sha(original)
     assert manifest["new_descriptions"]["checks"] == 329
     assert manifest["new_descriptions"]["sha256"] == sha(ancestor_bytes(LEDGER / manifest["new_descriptions"]["path"]))
     supplement = ancestor_json(LEDGER / "descriptions/implemented-new-checks.json")
@@ -242,7 +244,7 @@ def test_framework_links_are_exactly_the_same_control_rows_plus_hacktricks():
     assert len(tags) == 17 and {t["runtime_status"] for t in tags} == {"partial"} and {t["decision"] for t in tags} == {"PARTIAL"}
     assert {t["requirement_id"] for t in tags} == {"aws-compliance.control.backup_plan_min_retention_35_days"}
     frameworks = check().frameworks
-    assert frameworks == names_for_ids(STEAMPIPE_FRAMEWORKS) and frameworks[0] == "HackTricks Cloud Best Practices"
+    assert frameworks == names_for_ids(STEAMPIPE_FRAMEWORKS, check_id=CID) and frameworks[0] == "HackTricks Cloud Best Practices"
 
 
 def test_compiled_pack_conserves_status_counts_and_keeps_held_rows_pending():

@@ -94,11 +94,26 @@ def is_asset(finding):
 
 
 def group_findings(findings, *, observations=False):
+    from peaso.check_services import finding_service
     grouped = defaultdict(list)
     for row in findings:
-        grouped[(row.get("provider", ""), row.get("check_id", ""))].append(row)
+        service = finding_service(row)
+        if service and service != row.get("service"):
+            row = dict(row, service=service)
+        grouped[(row.get("provider", ""), row.get("check_id", ""), row.get("secret_fingerprint", ""))].append(row)
     result = []
-    for (provider, cid), rows in sorted(grouped.items()):
+    for (provider, cid, secret), rows in sorted(grouped.items()):
+        if cid == "analysis.internet_exposure":
+            # This analyzer emits one finding per exposed asset/path. Its title,
+            # service and evidence describe that asset, so a check-wide card
+            # would mislabel unrelated API, Lambda and storage exposures.
+            for row in sorted(rows, key=lambda item: str(item.get("id", ""))):
+                result.append(dict(row, **({"observations": [row]} if observations else {})))
+            continue
+        if secret:
+            # The analyzer already merged this secret across checks and assets.
+            result.append(dict(rows[0], **({"observations": rows} if observations else {})))
+            continue
         # Stable ordering makes grouping independent of collector completion order.
         rows.sort(key=lambda row: (STATUS_ORDER.get(row.get("status"), 1),
             SEVERITY_ORDER.get(row.get("severity"), 4), str(row.get("scope", "")), str(row.get("resource_id", "")), row.get("id", "")))

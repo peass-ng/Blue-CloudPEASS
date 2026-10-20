@@ -167,7 +167,7 @@ def _component(finding,binding):
         if field=='audit-log-maxage':return prefix+f'with audit-log retention of {value} days.'
         if field=='audit-log-maxbackup':return prefix+f'with at most {value} rotated audit-log files.'
         if field=='audit-log-maxsize':return prefix+f'with an audit-log rotation size of {value} MB.'
-        if field=='terminated-pod-gc-threshold':return prefix+f'with a terminated-Pod garbage-collection threshold of {value} Pods.'
+        if field=='terminated-pod-gc-threshold':return prefix+f'with a terminated-Pod garbage-collection threshold of {value} '+('Pod.' if str(value)=='1' else 'Pods.')
         if field=='event-qps':return prefix+f'with an event rate limit of {value} events per second.'
         if field=='streaming-connection-idle-timeout':return prefix+f'with a streaming connection idle timeout of {value}.'
         if field=='bind-address':return prefix+f'listening on the declared address {value}.'

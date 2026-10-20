@@ -81,12 +81,12 @@ def test_unexpected_exception_logs_safe_metadata_without_exception_or_request_co
     standard = set(logging.LogRecord("", 0, "", 0, "", (), None).__dict__)
     request_ids = []
     for record in records:
-        assert record.getMessage().startswith("requestfailed type=RuntimeError source=peaso/server/app.py:")
+        assert record.getMessage().startswith("requestfailed type=RuntimeError source=" + record.source_file + ":")
         assert record.exc_info is None
         assert record.exc_text is None
         assert record.exception_type == "RuntimeError"
-        assert record.source_file == "peaso/server/app.py"
-        assert record.source_function == "protect"
+        assert (record.source_file, record.source_function) in {
+            ("peaso/server/app.py", "protect"), ("peaso/server/body_limit.py", "__call__")}
         assert isinstance(record.source_line, int) and record.source_line > 0
         custom = set(record.__dict__) - standard - {"message", "asctime"}
         assert custom == {"method", "route", "request_id", "exception_type", "source_file", "source_function", "source_line"}
@@ -98,8 +98,8 @@ def test_unexpected_exception_logs_safe_metadata_without_exception_or_request_co
         assert all(marker not in metadata for marker in markers.values())
     assert len(set(request_ids)) == 2
     assert "type=RuntimeError" in caplog.text
-    assert "source=peaso/server/app.py:" in caplog.text
-    assert "function=protect" in caplog.text
+    assert all("source=" + record.source_file + ":" in caplog.text for record in records)
+    assert all("function=" + record.source_function in caplog.text for record in records)
     assert "Traceback" not in caplog.text
     assert "raised_failure" not in caplog.text
     assert all(marker not in caplog.text for marker in markers.values())

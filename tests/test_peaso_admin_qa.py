@@ -15,7 +15,7 @@ POOL = "us-east-1_reviewedpool"
 CLIENT = "reviewedclient"
 SUB = "subject-1"
 EMAIL = "qa@example.test"
-ACTOR = "arn:aws:sts::202533532952:assumed-role/reviewed-operator/session"
+ACTOR = "arn:aws:sts::111122223333:assumed-role/reviewed-operator/session"
 
 
 def grant(**updates):
@@ -193,11 +193,11 @@ def test_operator_manifest_preimage_and_live_account_email_guards(tmp_path):
     import hashlib
     import json
     from scripts.peaso_test_resources.hosted_admin_qa_grant import load_manifest, live_identity
-    value = {"account": "202533532952", "region": "us-east-1", "table": "hacktricks-cspm",
+    value = {"account": "111122223333", "region": "us-east-1", "table": "hacktricks-cspm",
              "pool_id": POOL, "client_id": CLIENT, "cognito_username": "qa-user",
              "subject": SUB, "verified_email": EMAIL, "reason": "bounded acceptance run",
              "audit_id": "e" * 32, "issued_at": NOW, "hard_expires_at": NOW + 3600,
-             "operator_role_prefix": "arn:aws:sts::202533532952:assumed-role/reviewed-operator/",
+             "operator_role_prefix": "arn:aws:sts::111122223333:assumed-role/reviewed-operator/",
              "ledger_dir": str(tmp_path / "private")}
     path = tmp_path / "operator.private.json"
     path.write_text(json.dumps(value))
@@ -213,7 +213,7 @@ def test_operator_manifest_preimage_and_live_account_email_guards(tmp_path):
     session = Mock()
     sts, cognito = Mock(), Mock()
     session.client.side_effect = lambda name: {"sts": sts, "cognito-idp": cognito}[name]
-    sts.get_caller_identity.return_value = {"Account": "202533532952", "Arn": ACTOR}
+    sts.get_caller_identity.return_value = {"Account": "111122223333", "Arn": ACTOR}
     cognito.admin_get_user.return_value = {"Enabled": True, "UserAttributes": [
         {"Name": "sub", "Value": SUB}, {"Name": "email", "Value": EMAIL},
         {"Name": "email_verified", "Value": "true"}]}
@@ -223,7 +223,7 @@ def test_operator_manifest_preimage_and_live_account_email_guards(tmp_path):
     sts.get_caller_identity.return_value["Account"] = "000000000000"
     with pytest.raises(RuntimeError):
         live_identity(session, value)
-    sts.get_caller_identity.return_value["Account"] = "202533532952"
+    sts.get_caller_identity.return_value["Account"] = "111122223333"
     cognito.admin_get_user.return_value["UserAttributes"][1]["Value"] = "other@example.test"
     with pytest.raises(RuntimeError):
         live_identity(session, value)
@@ -298,11 +298,11 @@ def test_operator_revoke_rejects_unreviewed_preimage_without_write(tmp_path, mon
     import json
     import sys
     from scripts.peaso_test_resources import hosted_admin_qa_grant as operator
-    value = {"account": "202533532952", "region": "us-east-1", "table": "hacktricks-cspm",
+    value = {"account": "111122223333", "region": "us-east-1", "table": "hacktricks-cspm",
              "pool_id": POOL, "client_id": CLIENT, "cognito_username": "qa-user",
              "subject": SUB, "verified_email": EMAIL, "reason": "bounded acceptance run",
              "audit_id": "a" * 32, "issued_at": NOW, "hard_expires_at": NOW + 3600,
-             "operator_role_prefix": "arn:aws:sts::202533532952:assumed-role/reviewed-operator/",
+             "operator_role_prefix": "arn:aws:sts::111122223333:assumed-role/reviewed-operator/",
              "ledger_dir": str(tmp_path / ".cache" / "private")}
     path = tmp_path / "operator.private.json"
     path.write_text(json.dumps(value))

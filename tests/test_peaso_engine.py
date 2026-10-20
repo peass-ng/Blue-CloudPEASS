@@ -134,11 +134,12 @@ def test_cli_scan_evaluate_report_diff(tmp_path):
     assert json.loads(diff.read_text())["stats"] == {"added": 0, "removed": 0, "changed": 0}
 
 
-def test_catalog_all_native_checks_have_hacktricks_and_provider():
+def test_catalog_checks_have_reviewed_hacktricks_membership_and_provider():
     catalog = get_catalog()
     assert len(catalog["checks"]) >= 29
     for check in catalog["checks"]:
-        assert "HackTricks Cloud Best Practices" in check["frameworks"]
+        from peaso.checks.hacktricks_scope import includes
+        assert ("HackTricks Cloud Best Practices" in check["frameworks"]) == includes(check["id"])
         assert check["provider"] in catalog["providers"] + ["all"]
 
 

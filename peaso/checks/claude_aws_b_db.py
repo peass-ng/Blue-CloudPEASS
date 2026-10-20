@@ -270,7 +270,7 @@ def instance_protected(item, index):
 
 
 def _tag_plan_index(resources, tag_keys):
-    return inventory("backup_plan", [{"BackupPlanId": "p", "Selections": {"collection_status": "collected", "items": [{"SelectionId": "s", "Selection": {"BackupSelection": {"Resources": resources, "ListOfTags": [{"ConditionType": "STRINGEQUALS", "ConditionKey": k, "ConditionValue": "v"} for k in tag_keys]}}}]}}])
+    return inventory("backup_plan", [{"BackupPlanId": "p", "Selections": {"collection_status": "collected", "items": [{"SelectionId": "s", "Selection": {"BackupSelection": {"Resources": resources, "ListOfTags": [{"ConditionType": "STRINGEQUALS", "ConditionKey": k, "ConditionValue": "yes"} for k in tag_keys]}}}]}}])
 
 
 @install("aws.cb.rds.instance_in_backup_selection_or_tag", "rds_instance", "RDS instance is in a backup selection by ARN or tag key",
@@ -281,18 +281,29 @@ def _tag_plan_index(resources, tag_keys):
     note="Source: selection Resources contains the instance ARN exactly, or any ListOfTags ConditionKey is one of the instance tag keys.")
 def instance_in_plan(item, index):
     arn = get(item, "DBInstanceArn", str)
-    tags = {get(t, "Key", str) for t in list_of_objects(absent_or(item, "DBInstanceArn", "TagList", [], list))}
-    resources, keys = [], set()
+    tags = {}
+    for tag in list_of_objects(absent_or(item, "DBInstanceArn", "TagList", [], list)):
+        key, value = get(tag, "Key", str), get(tag, "Value", str)
+        if key in tags:
+            raise Unavailable("ambiguous duplicate RDS resource tag")
+        tags[key] = value
+    resources, selected_tags = [], []
     for plan in complete_items(index, "backup_plan"):
         selections = get(plan, "Selections", dict)
         if selections.get("collection_status") not in ("collected", "empty"):
             raise Unavailable("backup selections unavailable")
         for selection in list_of_objects(selections.get("items", [])):
             body = get(selection, "Selection.BackupSelection", dict)
+            if optional(body, "NotResources", [], list) or optional(body, "Conditions", {}, dict):
+                raise Unavailable("backup selection exclusions or conditions require separate matching proof")
             resources += strings(optional(body, "Resources", [], list))
-            keys |= {get(t, "ConditionKey", str) for t in list_of_objects(optional(body, "ListOfTags", [], list))}
-    hit = arn in resources or bool(tags & keys)
-    return result(not hit, resource_arn=arn, selection_or_tag_key_match=hit, matched_tag_keys=sorted(tags & keys))
+            for condition in list_of_objects(optional(body, "ListOfTags", [], list)):
+                if get(condition, "ConditionType", str) != "STRINGEQUALS":
+                    raise Unavailable("unsupported backup ListOfTags condition")
+                selected_tags.append((get(condition, "ConditionKey", str), get(condition, "ConditionValue", str)))
+    matched = sorted({key for key, value in selected_tags if key in tags and tags[key] == value})
+    hit = arn in resources or bool(matched)
+    return result(not hit, resource_arn=arn, selection_or_tag_key_match=hit, matched_tag_keys=matched)
 
 
 @install("aws.cb.rds.cluster_cmk_encryption", "rds_cluster", "RDS cluster storage is encrypted with a customer managed KMS key",
@@ -469,7 +480,10 @@ for _cid, _row, _test, _param, _rem in (
             if cid == "aws.cb.rds.mariadb_require_secure_transport":
                 enabled, value = _rds_binary_parameter(values, param)
                 return result(not enabled, parameter=param, value=value)
-            return result(values.get(param) != "1", parameter=param, value=values.get(param))
+            value = _rds_parameter_text(values, param)
+            if value not in {"0", "1"}:
+                raise Unavailable("unrecognized RDS force_ssl parameter")
+            return result(value != "1", parameter=param, value=value)
     _param_check(_cid, _row, _test, _param, _rem)
 
 
@@ -1115,8 +1129,10 @@ def rs_enc_logging(item, index):
     note="Needs ParameterGroupValues (DescribeClusterParameters for the cluster's parameter group, allowlisted require_ssl).")
 def rs_ssl(item, index):
     values = get(item, "ParameterGroupValues", dict)
-    value = values.get("require_ssl")
-    return result(not (isinstance(value, str) and value.lower() == "true"), require_ssl=value)
+    value = get(values, "require_ssl", str)
+    if value.lower() not in {"true", "false"}:
+        raise Unavailable("unrecognized Redshift require_ssl parameter")
+    return result(value.lower() != "true", require_ssl=value)
 
 
 def _rs_snaps(rows):

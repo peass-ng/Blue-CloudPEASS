@@ -4,18 +4,42 @@ import pytest
 from peaso.checks import CHECKS,evaluate_check
 from peaso.collectors import bulk_evidence
 from peaso.snapshot import make_snapshot
+from scripts.peaso_compliance_compile import verified_file
+from tests.release_successor_history import registered_before_bulk
 
-MANIFEST=json.loads(Path('peaso/checks/bulk_pending.json').read_text())
+ROOT=Path(__file__).resolve().parents[1]
+MANIFEST=json.loads((ROOT/'peaso/checks/bulk_pending.json').read_text())
 # Reviewed native collection successors preserve the frozen authoring manifest.
 DEPENDENCY_SUCCESSORS = {
  'aws_log_archive_immutable': (['s3_bucket', 'cloudtrail'], ['s3_bucket', 'cloudtrail_account_inventory']),
  'aws_nist_apigateway_stage_logging_enabled': (['http_api_stage', 'rest_api_stage'], ['http_api_stage', 'rest_api_stage', 'rest_api_method']),
  'aws_nist_cloudtrail_trail_integrated_with_logs': (['cloudtrail_account_inventory', 'log_group', 'cloudtrail_delivery_role_scope'], ['cloudtrail_account_inventory', 'log_group']),
+ # Native managed-policy documents join by ARN; delivery metadata is retained
+ # on the account trail inventory rather than a generic bucket projection.
+ 'aws_cis_lambda_execution_role_no_admin': (['lambda_function', 'iam_role'], ['lambda_function', 'iam_role', 'iam_policy']),
+ 'aws_cloudtrail_s3_siem_delivery': (['cloudtrail_account_inventory', 'bucket'], ['cloudtrail_account_inventory']),
 }
 
 def test_all_signed_pending_ids_are_unique_and_registered_once():
  ids=[c.id for c in CHECKS];assert len(ids)==len(set(ids))
  baseline=MANIFEST['baseline_native_checks']
+ original={c.id for c in registered_before_bulk(CHECKS)}
+ bulk=set(MANIFEST['checks'])
+ assert len(original)==baseline==3434 and len(bulk)==552
+ ledger=ROOT/'docs/compliance-ledgers'
+ supervisor=json.loads((ledger/'manifest.json').read_bytes())
+ extension_ids=[]
+ extension_paths=[]
+ for entry in supervisor['native_extensions']:
+  # Check the supervisor's approval and exact file hash before using its IDs.
+  document,_=verified_file(ledger,entry,prefix='native-extensions/')
+  assert document['schema_version']==1
+  extension_paths.append(entry['path'])
+  extension_ids.extend(row['spec']['id'] for row in document['checks'])
+ assert len(extension_paths)==len(set(extension_paths))
+ assert len(extension_ids)==len(set(extension_ids))
+ extensions=set(extension_ids)
+ assert not original & bulk and not (original|bulk) & extensions
  held={
   'aws.route53resolver.query_log_config_delivery_ready',
   'aws.organizations.resource_tag_policy_compliance',
@@ -23,9 +47,10 @@ def test_all_signed_pending_ids_are_unique_and_registered_once():
   'azure.vm.iaas_antimalware_extension_minor_version_selection',
  }
  assert not held.intersection(ids)
- assert len(ids)==baseline+len(MANIFEST['checks'])
- assert set(ids[baseline:])==set(MANIFEST['checks'])
- assert set(MANIFEST['checks'])<=set(ids)
+ assert set(ids[:baseline])==original
+ assert len(ids)==3434+552+len(extensions)
+ assert set(ids[baseline:])==bulk|extensions
+ assert set(ids)==original|bulk|extensions
  for c in CHECKS:
   if c.id in MANIFEST['checks']:
    r=MANIFEST['checks'][c.id]

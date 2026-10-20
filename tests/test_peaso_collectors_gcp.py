@@ -373,11 +373,57 @@ def test_kms_enumerates_locations_and_hydrates_key_iam():
     assert collection(result, "kms_key")["items"][0]["iamPolicy"]["bindings"] == []
 
 
+CONTENT_ONLY_TYPES = {
+    "composer_dag_source", "log_secret_sample", "gcs_selected_object", "gcs_selected_archive",
+    "dataform_selected_file", "app_engine_version_secret", "workflow_source", "dataflow_job",
+    "batch_job", "dataproc_job", "gke_workload_literal", "function_source_archive", "artifact_selected_file",
+    "appengine_deployment_source", "cloudbuild_artifact_source", "cloudbuild_log_source",
+    "clouddeploy_release_source", "source_repository_file",
+}
+
+
+def test_content_only_inventories_are_excluded_by_default():
+    collector = gcp.GCPCollector({'provider': 'gcp', 'scopes': ['projects/p-one'],
+        'options': {'include_inherited': False}}, transport=FixtureTransport(lambda request: {}))
+    try:
+        assert CONTENT_ONLY_TYPES <= gcp.SUPPORTED_TYPES
+        assert not CONTENT_ONLY_TYPES & collector.wanted
+    finally:
+        collector.hydration_pool.shutdown(wait=True)
+
+
+@pytest.mark.parametrize('kind', sorted(CONTENT_ONLY_TYPES))
+def test_explicit_disabled_content_inventory_cannot_claim_collected_or_clean(kind):
+    result, transport = snapshot([kind], lambda request: {}, content_secret_scans=False)
+    envelope = collection(result, kind)
+    # Disabled inspection is unavailable evidence, never a complete empty
+    # inventory. The envelope must reject it before invoking a content fetcher.
+    assert envelope['status'] == 'unknown'
+    assert envelope['coverage_status'] in {'unavailable', 'not_collected', 'unsupported'}
+    assert envelope['items'] == []
+    assert envelope.get('error', {}).get('code') != 'collector_error'
+    from peaso.checks import CHECKS
+    checks = [check for check in CHECKS if check.kind == kind and check.provider == 'gcp']
+    assert checks
+    index = {'context': {'provider': 'gcp', 'scope': 'projects/p-one'}, 'collections': {kind: [envelope]}}
+    assert all(check.evaluate({}, index)[0] == 'UNKNOWN' for check in checks)
+    assert not any('workflows.googleapis.com' in request['url'] for request in transport.requests)
+
+
 def test_native_service_coverage_and_configuration_fixture():
     def resolve(request):
         url = request["url"]
         if url == 'https://cloudresourcemanager.googleapis.com/v3/projects/p-one':
-            return {'name': 'projects/123456789012', 'projectId': 'p-one'}
+            return {'name': 'projects/123456789012', 'projectId': 'p-one', 'parent': 'organizations/123'}
+        if url == 'https://cloudresourcemanager.googleapis.com/v3/organizations/123':
+            return {'name': 'organizations/123', 'directoryCustomerId': 'Cfixture'}
+        if url == 'https://admin.googleapis.com/admin/directory/v1/users':
+            assert request['params']['customer'] == 'Cfixture'
+            assert request['params']['projection'] == 'full'
+            return {'users': []}
+        if url in {'https://admin.googleapis.com/admin/directory/v1/customer/Cfixture/roles',
+                   'https://admin.googleapis.com/admin/directory/v1/customer/Cfixture/roleassignments'}:
+            return {'items': []}
         if url == 'https://compute.googleapis.com/compute/v1/projects/p-one':
             return {'kind': 'compute#project', 'name': 'p-one', 'xpnProjectStatus': 'HOST'}
         if ':getEffectivePolicy' in url:
@@ -398,7 +444,8 @@ def test_native_service_coverage_and_configuration_fixture():
                 "networkInterfaces": [{"subnetwork": "projects/host/regions/r/subnetworks/s", "accessConfigs": [{"natIP": "203.0.113.1"}]}],
                 "shieldedInstanceConfig": {"enableSecureBoot": True}}]}}}
         if url.endswith("/clusters"):
-            return {"clusters": [{"name": "gke", "privateClusterConfig": {"enablePrivateNodes": True},
+            return {"clusters": [{"name": "gke", "location": "europe-west1",
+                "selfLink": "https://container.googleapis.com/v1/projects/p-one/locations/europe-west1/clusters/gke", "privateClusterConfig": {"enablePrivateNodes": True},
                 "masterAuth": {"clientCertificate": "do-not-store", "clientKey": "do-not-store", "password": "do-not-store"}}]}
         if url.endswith("/backupRuns"):
             return {"items": []}
@@ -434,12 +481,15 @@ def test_native_service_coverage_and_configuration_fixture():
     # PAB policy ownership is organization-level, so it is exercised in the
     # dedicated org-scope fixture rather than asserted as an empty project API.
     # Perimeters need project ancestry (include_inherited), tested separately.
-    kinds = sorted(gcp.SUPPORTED_TYPES - {"project", "organization", "folder", "workforce_pool", "workforce_provider", "kms_key", "kms_key_ring", "activity", "principal_access_boundary_policy", "firewall_policy_association", "service_perimeter", "audit_log", "scc_finding", "scc_notification_config", "provider_access_event", "asset_previous", "asset_audit_log", "deployed_image", "effective_firewall"})
+    # Content-only inventories require a separately named, opted-in request.
+    kinds = sorted(gcp.SUPPORTED_TYPES - CONTENT_ONLY_TYPES - {"project", "organization", "folder", "workforce_pool", "workforce_provider", "kms_key", "kms_key_ring", "activity", "principal_access_boundary_policy", "firewall_policy_association", "service_perimeter", "audit_log", "scc_finding", "scc_notification_config", "provider_access_event", "asset_previous", "asset_audit_log", "deployed_image", "effective_firewall"})
     result, transport = snapshot(kinds, resolve, cloud_identity_customers=["Cfixture"], regions=["r"],
         sw51_policy={'scope': 'projects/p-one', 'status': 'collected', 'approved_asset_types': ['compute.googleapis.com/Instance']})
     assert {c["type"] for c in result["collections"]} == set(kinds)
     assert collection(result, "shared_vpc")["status"] == "collected"
     assert not any(c["status"] in ("malformed", "unknown") for c in result["collections"])
+    assert not any("workflows.googleapis.com" in r["url"] for r in transport.requests)
+    assert collection(result, "gke_cluster")["status"] == "collected"
     assert "do-not-store" not in json.dumps(result)
     assert collection(result, "workload_identity_provider")["items"][0]["attributeCondition"]
     assert collection(result, "asset")["items"][0]["assetType"] == "run.googleapis.com/Service"

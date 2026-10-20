@@ -1,6 +1,195 @@
 import { expect, test } from "@playwright/test";
 import { explainFindingEvidence } from "../src/findingExplanation";
 
+test("service overview lists every service and pages one expanded service", async ({ page }) => {
+  const findings = Array.from({ length: 80 }, (_, index) => ({
+    id: `finding-${index}`, category: "hardening", provider: "aws", scope: "123456789012/us-east-1",
+    service: index < 20 ? "iam" : "s3", status: index < 20 ? "PASS" : "FAIL",
+    check_id: `check-${index}`, title: `Finding ${index}`, severity: "medium",
+    resource_id: `resource-${index}`, frameworks: [],
+  }));
+  const requests: URL[] = [];
+  await page.route("**/api/**", async route => {
+    const url = new URL(route.request().url());
+    const path = url.pathname;
+    let json: unknown = { items: [] };
+    if (path.endsWith("/me")) json = { tenant_id: "test", plan: "free" };
+    if (path.endsWith("/scans")) json = { items: [{ id: "scan-1", status: "completed", created_at: "2026-01-01", categories: ["hardening"] }] };
+    if (path.endsWith("/summary")) json = { provider: "aws", resources: [], findings: [], coverage: [], stats: {} };
+    if (path.endsWith("/findings")) {
+      requests.push(url);
+      const service = url.searchParams.get("service");
+      const offset = Number(url.searchParams.get("offset"));
+      const selected = service ? findings.filter(finding => finding.service === service) : findings;
+      const limit = service ? 50 : 1;
+      json = { items: selected.slice(offset, offset + limit), total: selected.length,
+        next_offset: offset + limit < selected.length ? offset + limit : null,
+        service_groups: service ? [] : [
+          { service: "iam", count: 20, status_counts: { PASS: 20 } },
+          { service: "s3", count: 60, status_counts: { FAIL: 60 } },
+        ] };
+    }
+    await route.fulfill({ json });
+  });
+  await page.goto("/#Hardening%20Findings");
+  await expect(page.getByText("80 findings across 2 services")).toBeVisible();
+  await expect(page.locator(".service-group-button")).toHaveCount(2);
+  await expect(page.locator(".finding-title")).toHaveCount(0);
+  expect(requests.length).toBeGreaterThanOrEqual(1);
+  expect(requests.every(url => url.searchParams.get("service") === null)).toBe(true);
+  await page.getByRole("button", { name: /s3 60 findings/ }).click();
+  await expect(page.locator(".finding-title")).toHaveCount(50);
+  expect(requests.at(-1)?.searchParams.get("service")).toBe("s3");
+  expect(requests.at(-1)?.searchParams.get("limit")).toBe("50");
+  await page.getByRole("button", { name: "Next page" }).click();
+  await expect(page.locator(".finding-title")).toHaveCount(10);
+  expect(requests.at(-1)?.searchParams.get("offset")).toBe("50");
+  await page.getByRole("button", { name: "Previous page" }).click();
+  await expect(page.locator(".finding-title")).toHaveCount(50);
+  await page.getByRole("columnheader", { name: "Status" }).getByRole("button").click();
+  await expect(page.getByRole("button", { name: /s3 60 findings/ })).toHaveAttribute("aria-expanded", "true");
+  await expect.poll(() => requests.at(-1)?.searchParams.get("sort_by")).toBe("status");
+  await page.getByRole("button", { name: /iam 20 findings/ }).click();
+  await expect(page.locator(".finding-title")).toHaveCount(20);
+  expect(requests.at(-1)?.searchParams.get("service")).toBe("iam");
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+});
+
+test("Hardening groups findings by service and keeps Check as the flat view", async ({ page }) => {
+  const findings = [
+    { id: "iam-one", service: "iam", check_id: "check-1", title: "IAM check one", status: "FAIL" },
+    { id: "iam-two", service: "iam", check_id: "check-2", title: "IAM check two", status: "PASS" },
+    { id: "s3-one", service: "s3", check_id: "check-3", title: "S3 check", status: "DENIED" },
+  ].map(finding => ({ ...finding, category: "hardening", provider: "aws", scope: "123456789012/us-east-1",
+    resource_id: finding.id, severity: "medium", frameworks: [] }));
+  await page.route("**/api/**", async route => {
+    const path = new URL(route.request().url()).pathname;
+    const json = path.endsWith("/me") ? { tenant_id: "test", plan: "free" }
+      : path.endsWith("/scans") ? { items: [{ id: "scan-1", status: "completed", created_at: "2026-01-01", categories: ["hardening"] }] }
+      : path.endsWith("/summary") ? { provider: "aws", resources: [], findings: [], coverage: [], stats: {} }
+      : path.endsWith("/findings") ? { items: findings, total: findings.length, next_offset: null }
+      : { items: [] };
+    await route.fulfill({ json });
+  });
+  await page.goto("/#Hardening%20Findings");
+  const group = page.getByRole("combobox", { name: "Group findings" });
+  await expect(group.locator("option")).toHaveText(["Service", "Check", "Type"]);
+  await expect(page.locator(".service-group-button")).toHaveCount(2);
+  await expect(page.locator(".finding-title")).toHaveCount(0);
+  await page.getByRole("button", { name: /iam 2 findings/ }).click();
+  await expect(page.locator(".finding-title")).toHaveText([/IAM check one/, /IAM check two/]);
+  await expect(page.getByRole("button", { name: /s3 1 findings/ })).toBeVisible();
+  await group.selectOption("check_id");
+  await expect(page.locator(".service-group-button")).toHaveCount(0);
+  await expect(page.locator(".finding-title")).toHaveCount(3);
+  await group.selectOption("service");
+  await expect(page.locator(".service-group-button")).toHaveCount(2);
+});
+
+test("finding statuses group equivalent results while preserving access denied", async ({ page }) => {
+  const statuses = ["FAIL", "PASS", "UNKNOWN", "DENIED", "MANUAL", "NOT_APPLICABLE", "EMPTY"];
+  const findings = statuses.map((status, index) => ({
+    id: `status-${index}`, category: "hardening", provider: "aws", scope: "123456789012/us-east-1",
+    severity: "medium", service: "iam", resource_id: `resource-${index}`,
+    check_id: `check-${index}`, title: `Finding ${index}`, status, frameworks: [],
+  }));
+  const requestedStatuses: string[] = [];
+  await page.route("**/api/**", async route => {
+    const url = new URL(route.request().url());
+    const path = url.pathname;
+    let json: unknown = { items: [] };
+    if (path.endsWith("/me")) json = { tenant_id: "test", plan: "free" };
+    if (path.endsWith("/scans")) json = { items: [{ id: "scan-1", status: "completed", created_at: "2026-01-01", categories: ["hardening"] }] };
+    if (path.endsWith("/summary")) json = { provider: "aws", resources: [], findings: [], coverage: [], stats: {} };
+    if (path.endsWith("/findings")) {
+      const selected = url.searchParams.get("status") || "";
+      requestedStatuses.push(selected);
+      const matching = selected ? findings.filter(finding => selected.split(",").includes(finding.status)) : findings;
+      json = { items: matching, total: matching.length, next_offset: null,
+        status_filter_total: findings.length,
+        status_filter_counts: { FAIL: 1, PASS: 1, "UNKNOWN,MANUAL": 2,
+          DENIED: 1, "NOT_APPLICABLE,EMPTY": 2 } };
+    }
+    await route.fulfill({ json });
+  });
+  await page.goto("/#Hardening%20Findings");
+  await page.getByLabel("Group findings").selectOption("check_id");
+  const status = page.getByRole("combobox", { name: "Status", exact: true });
+  await expect(status.locator("option")).toHaveText(["All statuses (7)", "Failed (1)", "Passed (1)", "Needs review (2)", "Access denied (1)", "Not applicable (2)"]);
+  await expect(status).toHaveValue("FAIL");
+  await expect(page.locator(".findings-table tbody .finding-title")).toHaveCount(1);
+  expect(requestedStatuses[0]).toBe("FAIL");
+  await status.selectOption("");
+  await expect(page.locator(".findings-table tbody .finding-title")).toHaveCount(7);
+  await status.selectOption({ value: "UNKNOWN,MANUAL" });
+  await expect(status.locator("option")).toHaveText(["All statuses (7)", "Failed (1)", "Passed (1)", "Needs review (2)", "Access denied (1)", "Not applicable (2)"]);
+  await expect(page.locator(".findings-table tbody .finding-title")).toHaveCount(2);
+  await expect(page.locator(".findings-table tbody .badge.review")).toHaveCount(2);
+  expect(requestedStatuses.at(-1)).toBe("UNKNOWN,MANUAL");
+  await status.selectOption({ value: "DENIED" });
+  await expect(page.locator(".findings-table tbody .finding-title")).toHaveCount(1);
+  await expect(page.locator(".findings-table tbody .badge.access_denied")).toHaveText(["Access denied"]);
+  expect(requestedStatuses.at(-1)).toBe("DENIED");
+  await status.selectOption({ value: "NOT_APPLICABLE,EMPTY" });
+  await expect(page.locator(".findings-table tbody .finding-title")).toHaveCount(2);
+  await expect(page.locator(".findings-table tbody .badge.not_applicable")).toHaveCount(2);
+  expect(requestedStatuses.at(-1)).toBe("NOT_APPLICABLE,EMPTY");
+  await page.getByRole("button", { name: "Reset filters", exact: true }).click();
+  await expect(status).toHaveValue("FAIL");
+  await status.selectOption("PASS");
+  await page.getByRole("navigation").getByRole("button", { name: "Exposure", exact: true }).click();
+  await expect(status).toHaveValue("FAIL");
+  await status.selectOption("PASS");
+  await page.getByRole("navigation").getByRole("button", { name: "Hardening Findings", exact: true }).click();
+  await expect(status).toHaveValue("FAIL");
+});
+
+test("nested federated trust evidence keeps full-width values", async ({ page }) => {
+  const finding = {
+    id: "federated-trust", category: "hardening", provider: "aws", scope: "555566667777/us-east-2",
+    severity: "high", service: "iam", resource_id: "role/example", check_id: "fixture.federated_trust",
+    title: "Federated trust review", status: "FAIL", frameworks: [],
+    evidence: { federated_trusts: [{
+      statement: "AssumeRolePolicyDocument.Statement[0]",
+      federated_principal: "arn:aws:iam::555566667777:oidc-provider/cognito-idp.us-east-2.amazonaws.com/us-east-2_zCc4BSZAu",
+      issuer: "cognito-idp.us-east-2.amazonaws.com/us-east-2_zCc4BSZAu",
+      multi_tenant_issuer: false,
+      conditions: { StringEquals: {
+        "cognito-idp.us-east-2.amazonaws.com/us-east-2_zCc4BSZAu:aud": "37huinnh8v40psb29l72r812ff",
+      }, "ForAnyValue:StringLike": {
+        "cognito-idp.us-east-2.amazonaws.com/us-east-2_zCc4BSZAu:cognito:groups": "madmin-operators",
+      } },
+      problems: [{ reason: "Review trust condition" }],
+    }] },
+  };
+  await page.route("**/api/**", async route => {
+    const path = new URL(route.request().url()).pathname;
+    const json = path.endsWith("/me") ? { tenant_id: "test", plan: "free" }
+      : path.endsWith("/scans") ? { items: [{ id: "scan-1", status: "completed", created_at: "2026-01-01", categories: ["hardening"] }] }
+      : path.endsWith("/summary") ? { provider: "aws", resources: [], findings: [], coverage: [], stats: {} }
+      : path.endsWith("/findings") ? { items: [finding], total: 1, next_offset: null }
+      : path.endsWith("/findings/federated-trust") ? finding : { items: [] };
+    await route.fulfill({ json });
+  });
+  await page.goto("/#Hardening%20Findings");
+  await page.getByRole("button", { name: /iam 1 findings/ }).click();
+  await page.getByRole("button", { name: /Federated trust review/ }).click();
+  const dialog = page.getByRole("dialog");
+  const evidence = dialog.locator('details:has(> summary:text-is("Technical evidence details"))');
+  await evidence.locator("summary").click();
+  await evidence.getByRole("button", { name: "Show 6 supplied fields" }).click();
+  await evidence.locator('.evidence-field:has(> dt:text-is("Conditions")) > dd > button').click();
+  await evidence.locator('.evidence-field:has(> dt:text-is("String Equals")) > dd > button').click();
+  const aud = evidence.getByText("37huinnh8v40psb29l72r812ff", { exact: true });
+  await expect(aud).toBeVisible();
+  const valueWidth = () => aud.evaluate(element => element.closest("dd")!.getBoundingClientRect().width);
+  expect(await valueWidth()).toBeGreaterThan(250);
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await valueWidth()).toBeGreaterThan(160);
+  expect(await dialog.evaluate(element => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
+});
+
 test("Exposure groups findings by expandable service and explains the public path", async ({ page }) => {
   const base = {
     category: "exposure", provider: "aws", scope: "123456789012/eu-west-1",
@@ -38,6 +227,7 @@ test("Exposure groups findings by expandable service and explains the public pat
     await route.fulfill({ json });
   });
   await page.goto("/#Exposure");
+  await page.getByRole("button", { name: "Load more findings" }).click();
   await expect(page.locator(".service-group-button")).toHaveCount(2);
   await expect(page.locator(".finding-title")).toHaveCount(0);
   await page.getByRole("button", { name: /ec2 2 findings/ }).click();
@@ -76,6 +266,7 @@ test("nested observed scalar facts are concise without claiming an insecure stat
     await route.fulfill({ json });
   });
   await page.goto("/#Hardening%20Findings");
+  await page.getByLabel("Group findings").selectOption("check_id");
   await page.getByRole("button", { name: "Review queue encryption key aws.cb.sqs.cmk_encryption" }).click();
   const dialog = page.getByRole("dialog");
   const observed = dialog.getByRole("heading", { name: "Observed evidence" }).locator("xpath=following-sibling::p[1]");
@@ -113,6 +304,7 @@ test("encoded policy and array evidence stay factual without JSON in the summary
     await route.fulfill({ json });
   });
   await page.goto("/#Hardening%20Findings");
+  await page.getByLabel("Group findings").selectOption("check_id");
   await page.getByRole("button", { name: "Inspect supplied policy aws.cb.sqs.cmk_encryption" }).click();
   const observed = page.getByRole("dialog").getByRole("heading", { name: "Observed evidence" }).locator("xpath=following-sibling::p[1]");
   await expect(observed).toContainText("Policy Version is 2012-10-17");
@@ -172,6 +364,7 @@ test("signed large finding shows reviewed remediation without forwarding bearer 
     await route.fulfill({ headers: { "Access-Control-Allow-Origin": "*" }, json: { ...finding, evidence: { native: "Complete large evidence", missing: null, placeholder: "Not supplied", enabled: false, rule_count: 0 } } });
   });
   await page.goto("/#Hardening%20Findings");
+  await page.getByLabel("Group findings").selectOption("check_id");
   await page.getByRole("button", { name: "Broad ingress aws.gap.vpc.sg_world_any_common_ports" }).click();
   const dialog = page.getByRole("dialog");
   await dialog.getByText("Technical evidence details").click();
@@ -245,6 +438,7 @@ test("catalog choices survive empty results and evidence is concise, escaped and
   });
   await page.goto("/#Hardening%20Findings");
   const frameworks = page.getByLabel("Compliance framework");
+  await page.getByLabel("Group findings").selectOption("check_id");
   await expect(frameworks.locator("option")).toContainText(["All compliance frameworks", "CIS", "HackTricks Cloud Best Practices"]);
   await frameworks.selectOption("CIS");
   await expect(page.getByRole("heading", { name: "No findings match these filters" })).toBeVisible();
@@ -303,6 +497,7 @@ test("coverage is in completed Scan details and all finding columns sort", async
     await route.fulfill({ json });
   });
   await page.goto("/#Hardening%20Findings");
+  await page.getByLabel("Group findings").selectOption("check_id");
   await expect(page.getByRole("columnheader", { name: "Account" })).toBeVisible();
   for (const account of ["123456789012", "actual-project", "sub-123", "cluster-a"])
     await expect(page.getByRole("cell", { name: account, exact: true })).toBeVisible();

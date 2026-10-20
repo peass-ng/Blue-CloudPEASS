@@ -50,10 +50,16 @@ def is_aws_managed(policy):
 
 
 def default_document(policy):
+    version_id = get(policy, "DefaultVersionId", str)
+    if not version_id:
+        raise Unavailable("default policy version ID empty")
     versions = list_of_objects(get(policy, "PolicyVersionList", list))
+    version_ids = [get(v, "VersionId", str) for v in versions]
+    if any(not v for v in version_ids) or len(set(version_ids)) != len(version_ids):
+        raise Unavailable("policy version IDs empty or duplicated")
     defaults = [v for v in versions if get(v, "IsDefaultVersion", bool)]
-    if len(defaults) != 1:
-        raise Unavailable("exactly one default policy version required")
+    if len(defaults) != 1 or get(defaults[0], "VersionId", str) != version_id:
+        raise Unavailable("exactly one matching default policy version required")
     return get(defaults[0], "Document")
 
 
@@ -512,9 +518,16 @@ from . import result  # noqa: E402
     severity="medium", category="least_privilege", control="AC-6", remediation="Grant role assumption through reviewed managed policies and scoped trust policies.",
     docs=[GAAD], note="Source matches the case-sensitive text 'AssumeRole' anywhere in each inline policy JSON (name or document).")
 def user_assume_role_text(item, index):
-    hits = [p for p in inline_policies(item, "iam_user")
-            if "AssumeRole" in json.dumps({"PolicyDocument": p.get("PolicyDocument"), "PolicyName": p.get("PolicyName")})]
-    return result(bool(hits), policies=[p.get("PolicyName") for p in hits])
+    hits = []
+    for policy in inline_policies(item, "iam_user"):
+        name = get(policy, "PolicyName", str)
+        document = get(policy, "PolicyDocument")
+        if not name:
+            raise Unavailable("inline policy name unavailable")
+        policy_document(document)  # Missing/denied/malformed documents are not negative text evidence.
+        if "AssumeRole" in json.dumps({"PolicyDocument": document, "PolicyName": name}):
+            hits.append(name)
+    return result(bool(hits), policies=hits)
 
 
 @install("aws.claude_a.iam.user_in_group", "iam_user", "IAM user is a member of at least one group",
@@ -757,13 +770,12 @@ def prowler_console_45(item, index):
     extra={"pass_no_keys": w(ROW, access_key_1_last_rotated="N/A", access_key_1_active="false")},
     note="Includes the root row; (now - last_rotated).days > 90 for an active key fails.")
 def keys_rotated_90(item, index):
-    if get(item, "access_key_1_last_rotated", str) == "N/A" and get(item, "access_key_2_last_rotated", str) == "N/A":
-        return result(False, keys=0)
+    active = {n: flag(item, "access_key_%d_active" % n) for n in (1, 2)}
     old = []
     for n in (1, 2):
-        rotated = get(item, "access_key_%d_last_rotated" % n, str)
-        if rotated != "N/A" and get(item, "access_key_%d_active" % n, str) == "true":
-            if (now(item, index) - parse_time(rotated)).days > 90:
+        if active[n]:
+            rotated = _credential_age_date(item, "access_key_%d_last_rotated" % n)
+            if (now(item, index) - rotated).days > 90:
                 old.append(n)
     return result(bool(old), stale_keys=old)
 
@@ -774,11 +786,12 @@ def keys_rotated_90(item, index):
     extra={"pass_never_used_recent": w(ROW, access_key_1_last_used_date="N/A", access_key_1_last_rotated="2025-12-30T00:00:00+00:00")},
     note="Never-used active keys are evaluated against their creation/rotation age.")
 def keys_used_45(item, index):
-    if get(item, "access_key_1_active", str) != "true" and get(item, "access_key_2_active", str) != "true":
+    active = {n: flag(item, "access_key_%d_active" % n) for n in (1, 2)}
+    if not any(active.values()):
         return result(False, active_keys=0)
     old = []
     for n in (1, 2):
-        if get(item, "access_key_%d_active" % n, str) == "true":
+        if active[n]:
             used = get(item, "access_key_%d_last_used_date" % n, str)
             if (now(item, index) - (_credential_age_date(item, "access_key_%d_last_rotated" % n) if used == "N/A" else parse_time(used))).days > 45:
                 old.append(n)
@@ -790,7 +803,8 @@ def keys_used_45(item, index):
     remediation="Delete access keys created at user setup that were never used.", docs=[CRED])
 def no_initial_key(item, index):
     pw = get(item, "password_enabled", str) == "true"
-    bad = [n for n in (1, 2) if get(item, "access_key_%d_active" % n, str) == "true"
+    active = {n: flag(item, "access_key_%d_active" % n) for n in (1, 2)}
+    bad = [n for n in (1, 2) if active[n]
            and get(item, "access_key_%d_last_used_date" % n, str) == "N/A" and pw]
     return result(bool(bad), never_used_keys=bad)
 
@@ -799,7 +813,8 @@ def no_initial_key(item, index):
     ROW, w(ROW, access_key_2_active="true"), rows=[P + "iam_user_two_active_access_key"], severity="medium", control="IA-5",
     remediation="Deactivate one of the two active access keys after rotation.", docs=[CRED])
 def two_active(item, index):
-    both = get(item, "access_key_1_active", str) == "true" and get(item, "access_key_2_active", str) == "true"
+    active = [flag(item, "access_key_%d_active" % n) for n in (1, 2)]
+    both = all(active)
     return result(both, both_active=both)
 
 
@@ -952,12 +967,17 @@ def admin_group_mfa(item, index):
     admin = "arn:%s:iam::aws:policy/AdministratorAccess" % get(item, "Arn", str).split(":")[1]
     if admin not in attached_arns(item, "iam_group"):
         return result(False, administrator_access=False)
-    rows = {get(r, "user", str): r for r in items(index, "iam_credential_report")}
+    rows = {}
+    for row in items(index, "iam_credential_report"):
+        name = get(row, "user", str)
+        if not name or name in rows:
+            raise Unavailable("credential report username empty or duplicated")
+        rows[name] = row
     without = []
     for member in group_members(index, get(item, "GroupName", str)):
         if member not in rows:
             raise Unavailable("group member missing from credential report")
-        if get(rows[member], "mfa_active", str) == "false":
+        if not flag(rows[member], "mfa_active"):
             without.append(member)
     return result(bool(without), members_without_mfa=without)
 

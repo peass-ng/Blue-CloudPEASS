@@ -372,10 +372,10 @@ def _bucket_name(origin):
          remediation="Recreate the bucket in an account you own or repoint/remove the origin so the bucket name cannot be claimed by someone else.",
          docs=[D_CF_ORIGIN, D_HEAD],
          extra={"index": inventory("bucket", [{"Name": "site"}]), "not_applicable": _cf(Origins=_origins_of(_custom())),
-                "cross_account_pass": {**_cf(Origins=_origins_of(_s3o(bucket="partner"))), "OriginBucketProbes": {"collection_status": "collected", "results": [{"Bucket": "partner", "HttpStatusCode": 403}]}},
+                "fail_expect": "UNKNOWN", "cross_account_unknown_expect": "UNKNOWN", "cross_account_unknown": {**_cf(Origins=_origins_of(_s3o(bucket="partner"))), "OriginBucketProbes": {"collection_status": "collected", "results": [{"Bucket": "partner", "HttpStatusCode": 403}]}},
                 "unprobed": _cf(Origins=_origins_of(_s3o(bucket="partner"))), "unprobed_expect": "UNKNOWN"},
          note="S3 origins are those with S3OriginConfig (prowler) or a '.s3.' domain (steampipe); the bucket is the domain prefix before '.s3'. A bucket in the account inventory exists; otherwise "
-              "the HeadBucket probe decides (404 = missing, 200/301/403 = exists). Corrected for steampipe, which alarms on any bucket owned by another account.")
+              "external origin existence remains UNKNOWN. Bare HeadBucket HTTP error codes cannot distinguish missing buckets from inaccessible buckets, and this collector has no bound origin-probe producer.")
 def cf_s3_bucket(item, index):
     names = [name for name in (_bucket_name(row) for row in _origins(_cfg(item))) if name is not None]
     if not names:
@@ -384,24 +384,10 @@ def cf_s3_bucket(item, index):
         owned = {get(row, "Name", str) for row in complete_items(index, "bucket")}
     except Unavailable:
         owned = set()
-    probes = None
-    missing, unresolved = [], []
-    for name in names:
-        if name in owned:
-            continue
-        if probes is None:
-            try:
-                found = detail(item, "OriginBucketProbes")
-                probes = {get(row, "Bucket", str): get(row, "HttpStatusCode", int) for row in list_of_objects(get(found or {"results": []}, "results", list))}
-            except Unavailable:
-                probes = {}
-        code = probes.get(name)
-        if code == 404:
-            missing.append(name)
-        elif code not in (200, 301, 403):
-            unresolved.append(name)
-    if missing:
-        return result(True, missing_buckets=missing)
+    # There is no collector-produced, request-bound origin probe contract.
+    # HeadBucket 400/403/404 are ambiguous errors, and a synthetic status code
+    # (including 200/301) cannot bind a native observation to this origin.
+    unresolved = [name for name in names if name not in owned]
     if unresolved:
         return unknown("origin bucket existence not resolvable", buckets=unresolved)
     return result(False, buckets=names)

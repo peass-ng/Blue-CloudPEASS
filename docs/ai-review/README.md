@@ -1,0 +1,153 @@
+Hosted runtime: [role-free Fargate isolation, deployment wiring and live smoke](hosted-isolation.md).
+
+# Post-scan Chack review
+
+Shell-enabled hosted reviews use the role-free Fargate isolation backend. A configured Codex token and the deployed isolation runtime are required. See [hosted isolation and deployment acceptance](hosted-isolation.md) for the credential boundary and live verification steps.
+
+## What runs
+
+AI defaults to `true` in `ScanCreate` and schedules. The launch form can disable it. Existing schedules without a flag inherit `true`.
+
+After deterministic analysis, Chack reviews failed Hardening and Exposure findings and runs a holistic Network agent in the same bounded parallel pool, then produces up to 15 prioritized actions. Priorities runs alone after all three types finish, receiving their final verdicts and new network findings. It starts with a complete compact `platform.json` decision brief and uses `context.py` for indexed lookups in `context.sqlite`. Its full evidence covers all security areas; the Network agent gets a separate network-only database and topology catalog. Each Hardening/Exposure verifier receives one `findings.json`: `scan` holds the scan identity/time and `items` contains only its assigned failed checks. Each check retains its evidence and has `supporting_resources` containing only native resource records explicitly referenced by that check. There is no separate evidence file. Verifiers receive no full report, inventory, graphs, least-privilege projection or other review batches. Credentials are selected by provider and referenced accounts, projects, subscriptions or cluster. Target lists narrow the handoff and instructions, not the provider permissions of the captured token. Agents do not need a platform administrator API token.
+
+Both selection and the file-writing boundary enforce that findings.json contains only FAIL checks in the assigned category. Passed, unresolved, denied, manual, empty and inapplicable checks are excluded.
+
+Reviews run in batches of 40 so every failed observation gets a result without fitting the entire finding list into one prompt. A bounded pool overlaps Hardening and Exposure batches, alternating the two categories when dispatching so one cannot consume the whole queue first. `PEASO_AI_MAX_CONCURRENCY` defaults to 2 and accepts 1–4. Only active slots are submitted; results retain their original category and finding order even when completion order differs. Exact duplicate reviews still run once. A shared 600-second hosted budget, bounded by the scan deadline, limits the total AI phase. A failed or unprocessed batch gets explicit `UNKNOWN` results. The prioritizer waits for all active review processes to finish and clean up; it runs alone. A fifth of the remaining AI budget, up to 60 seconds, is reserved for priorities. The budget includes input-file preparation as well as the agent subprocess. Timeouts, unavailable credentials or invalid output preserve the deterministic report and record `partial` or `unavailable` AI status.
+
+Exposure is deduplicated only when its check ID, resource ID and scope exactly match a Hardening observation. Sharing an account or resource alone is not enough. A duplicate reuses the original review under its own finding ID. Distinct controls continue through the Exposure reviewer.
+
+Original FAILs stay intact. Each AI review contains only `finding_id`, `verdict` and `reason`. Verdict uses the existing finding statuses: `PASS`, `FAIL`, `UNKNOWN`, `DENIED`, `MANUAL`, `NOT_APPLICABLE` or `EMPTY`. Reason must be exactly empty for confirmed FAILs. Every assigned failed check must still appear exactly once, including confirmed FAILs. Other verdicts require a nonempty reason of at most 500 characters explaining the decisive facts and any likely check defect. A check that was correct at collection time but now passes is distinguished from a check defect in the reason. Top 15 Recommended Actions displays both verification results and the action table, with concise rationale, resource/finding references, implementation steps and verification. Reviews paginate in groups of 50. Complete results remain in the downloadable report; routine summaries carry only compact AI status and counts.
+
+## Local review files
+
+- [Hardening Chack YAML](../../peaso/ai/agents/hardening.yaml)
+- [Exposure Chack YAML](../../peaso/ai/agents/exposure.yaml)
+- [Network Chack YAML](../../peaso/ai/agents/network.yaml)
+- [Network output JSON Schema](../../peaso/ai/network.schema.json)
+- [Prioritization Chack YAML](../../peaso/ai/agents/priorities.yaml)
+- [Per-invocation access instruction builder](../../peaso/ai/prompting.py)
+- [Review JSON Schema](../../peaso/ai/reviews.schema.json)
+- [Action-table JSON Schema](../../peaso/ai/recommendations.schema.json)
+- [Illustrative result](example-result.json), using synthetic IDs and evidence
+
+Each task prompt follows the sectioned style of the existing FactChecker verifier, Trip Planner administrator and organization-recon Chack prompts: PERSONALITY, GOAL, INPUTS, GUIDELINES, WORKFLOW, OUTPUT and EXAMPLES. The user prompt has an AVAILABLE ACCESS section populated only from that invocation's credential entries. Instructions use natural language with good and bad examples. Pydantic validates output shape and cross references: exact review coverage, distinct IDs, supported verdicts and 500-character reasons, existing resource/finding references, consecutive ranks, at most 15 actions, and brief rationale/steps/verification fields. Findings reviewed as PASS, NOT_APPLICABLE or EMPTY cannot be recommended as outstanding remediation. The agents do not execute the proposed changes.
+
+Recommendations use seven fields per action: `rank`, `title`, `resource_ids`, `finding_ids`, `rationale`, `steps` and `verification`. Rationale combines decisive facts, expected benefit and action-specific uncertainty (1000 characters maximum). There are at most five steps of 500 characters each and a 700-character verification instruction. Necessary prerequisites and rollout cautions belong in steps; common limitations stay at the top level. Rank supplies the ordering, and resource/finding references identify affected targets. Separate priority, scope, provider, impact, effort, owner, dependency, rollback and evidence fields are no longer requested.
+
+The pool runs inside the existing analyzer process/task, without extra ECS tasks or CodeBuild projects. It checks host-available RAM and Linux cgroup v1/v2 remaining memory before admitting more work, reserving 128 MiB of free headroom plus an estimated 512 MiB per new agent. This is an admission estimate, not a hard per-agent memory cap or a production capacity measurement. If no slot fits, unscheduled checks become UNKNOWN and priorities are skipped when headroom is still insufficient. Each concurrent invocation keeps separate private credential files and process cleanup.
+
+The existing hosted analyzer stays at 0.5 vCPU / 4 GiB, and the collector at 1 vCPU / 6 GiB. These settings also cover deterministic analysis/collection; this change does not increase them or assume they can safely be reduced. Overlapping network-bound work aims to shorten billed task duration. Actual savings and safe lower sizing require representative live scan memory/CPU measurements; parallelism does not reduce model tokens or total cloud API calls by itself.
+
+## Compact priorities input
+
+### Network review
+
+The Network agent explains the collected architecture in at most 1000 characters, distinguishing observed configuration from inferred design intent. It suggests concrete segmentation, firewall/SG/NSG/ACL, routing, peering, private-endpoint and Kubernetes policy improvements where supported. It must preserve required connectivity and describe dependency checks and safe verification. Unknown business intent produces MANUAL advice; missing configuration produces UNKNOWN; FAIL requires evidence of the claimed configuration weakness. An allow declaration alone does not establish reachable traffic.
+
+Its `topology.json` contains every collected boundary plus complete node/relationship group catalogs with explicit example samples. Its separate `platform.json` covers network rule candidates and existing network signals; `context.sqlite` holds their original records and scoped native network properties. Workload data is projected to network fields, omitting user data, environment variables and unrelated configuration. Secret-bearing VPN/authentication fields are excluded. IAM, privilege-escalation and least-privilege records are not supplied. The YAML INPUTS section documents every input and the bounded local reader, including `list ... --all` for structural records.
+
+Network output has `explanation`, `findings` and `limitations`. Each proposed finding has title, description, rationale, affected resource, severity/status, structured evidence, remediation and verification. The backend validates references and assigns stable IDs, network category, provider/scope/service and explicit `ai_network_review` provenance, without inventing compliance mappings. New findings appear in the ordinary Findings UI/report and on the paginated Network Findings page below Network Map; original scanner observations remain intact. Priorities receives the final network explanation/limitations and these findings, including MANUAL/UNKNOWN recommendations whose assumptions it must preserve. A failed network review records unavailability and does not discard the other reviews or block priorities from using available evidence. The same concurrency, memory admission, timeout, credential-file and process-cleanup rules apply.
+
+### Prioritization brief
+
+For Hardening and Exposure, priorities receives only original FAIL checks whose final rechecker verdict is FAIL. PASS, UNKNOWN, DENIED, MANUAL, NOT_APPLICABLE, EMPTY and unreviewed checks are excluded before writing the decision brief and the underlying lookup database. Other security areas retain their own uncertainty states. Full original scanner findings and all review results remain available in the platform report and UI.
+
+`briefing.py` stores original records in a mode-0600 local SQLite file. `decision_brief.py` creates one complete decision catalog in `platform.json`, replacing the former four-previews-per-domain approach. Every decision group is represented across five sections: findings, least privilege, privilege escalation, IAM and network. The agent compares these sections before fetching original evidence. Large sections can be paginated through the same local helper, without omitting candidates.
+
+The brief has `version`, `scan`, `review_counts`, `counts`, `coverage`, `sections` and `reading_notes`. Every case has `id`, `signal`, `state`, `severity`, `count`, `unit`, `facts`, `example` and `related`. The priorities YAML INPUTS section explains each field and each section's facts, the distinction between case IDs and output references, the credential JSON, and all lookup response shapes. The action output remains the existing seven-field schema.
+
+Repeated findings share a control/verdict group; Hardening and Exposure groups contain only finally confirmed FAILs. Least-privilege suggestions stay separate by kind, provider source and confidence. Escalation edges preserve technique/confidence combinations and show source/target counts, aggregate size, conditions and mitigation samples. IAM cases summarize declared-grant risk, severity counts and restrictions without claiming effective access. Network grouping preserves rule type, ports, protocol, source and reachability; unsupported rule shapes remain distinct. Risk-marked IAM edges and network nodes are also represented. Samples and differing member details are explicit, with complete retained source records still accessible.
+
+`related` precomputes counts of cases in other sections sharing exact resource/identity references within two reference hops. This lets the agent spot a control associated with exposure, escalation and excessive access without first traversing the full graphs. It does not infer reachability, federation or an attack chain. Ambiguous references remain unjoined. `example` points directly to an original record; `members` retrieves the underlying group and `related_cases` retrieves the cases counted in `related`.
+
+The read-only `context.py` helper includes `focus decision_SECTION CASE_ID --limit 2`. This returns a highest-severity member and a member with broad cross-domain reference context, original decision facts and concrete related-case witnesses. Least-privilege suggestions are filtered to that case’s confidence/kind/source; unrelated suggestions on the same principal are excluded. Escalation outcomes retain inferred/catalog labeling, and native IAM permission samples preserve field semantics such as Action versus NotAction. Correlations use reference-bearing fields and qualified identifiers, rather than arbitrary scalar values matching resource names.
+
+The read-only `context.py` helper returns bounded JSON with `total`, `offset`, `next_offset` and `items`. `get --path` selects original nested fields using JSON Pointer. Long strings support explicit character windows. The helper reduces page size or returns guidance rather than silently truncating evidence. No platform API or administrator token is needed. The agent expands only proposed leading actions, materially differing members and uncertain relationships, rather than reading all raw inventory and topology.
+
+Start with `python context.py focus decision_findings CASE_ID --limit 2`. Fallback examples: `python context.py members decision_findings CASE_ID --limit 4`, `python context.py related_cases decision_findings CASE_ID --limit 4`, and `python context.py get findings FINDING_ID --path /finding/evidence`. Case IDs are lookup keys; action references use original findings or platform resource IDs.
+
+A separate local synthetic size check condensed 5,000 findings into 100 complete cases (38,961 bytes) in approximately 0.22 seconds. The smaller 60-finding fixture is approximately 1.3 MB as a full input and roughly 5 KB as a complete six-case brief. This is a synthetic initial-reading comparison, not a live quality, token-cost or deployed-performance result. [Example decision brief](example-priorities-input.json).
+
+## Runtime dependency
+
+CSPM pins the public Chack source to `7e258d0602b9aa065bfa2d06aa53be5fe525531f`. The adjacent Chack checkout contains additional uncommitted work; it was not copied or changed. The pinned package was installed and its actual configuration constructors were checked locally.
+
+## Chack syntax used
+
+Each agent has its task instructions, good/bad examples, model/backend, limits, tools and schema reference in a native Chack YAML. For example:
+
+```yaml
+system_prompt: |
+  Review only the failed Hardening checks in findings.json.
+  Each item includes its evidence and supporting_resources for that check.
+user_prompt: |
+  {access_instructions}
+
+  Review the supplied task files and return only the requested JSON.
+agent:
+  primary: OPENAI_BEST_QUALITY
+  provider: codex
+  api_key_type: codex
+  main_action: cspm
+  sub_action: hardening
+  output_schema_file: ../reviews.schema.json
+```
+
+The runner uses Chack's `load_config()` and passes generated access guidance through `prompt_variables_override={"access_instructions": ...}` to `Chack.run()`. The instructions describe only the entries actually in that invocation's credential file: an AWS agent receives only AWS session guidance, and an Azure agent receives guidance only for the audiences present. No cloud credential values are interpolated into prompts. If no access is supplied, the agent receives an explicit evidence-only instruction instead of credential tutorials.
+
+Current Chack YAML uses a flat `agent` section; legacy top-level `model` and `session` sections are rejected. The Codex subscription token is injected into the loaded configuration by the runner from its private file; it is not a cloud credential and is not stored in YAML.
+
+## Personal sign-in and platform default
+
+Settings starts a device-code login, displays the fixed OpenAI verification link and code, and polls until sign-in finishes. Login state and tokens are encrypted; neither access nor refresh tokens return to the browser. State is durable in SQLite or DynamoDB, so requests do not need the same API process. Conditional writes coordinate polling, disconnects and refresh-token rotation.
+
+A scan records its authenticated initiating user server-side. Personal Codex auth overrides the platform default for that user's scans and schedules. Shared-workspace schedules retain their initiating user; AI refuses to use that user's connection after their write/admin membership is removed. An expired or broken personal connection does not silently charge the platform account. Disconnecting restores platform-default selection.
+
+The device flow mirrors `codex-rs/login/src/device_code_auth.rs` and the fixed Codex client ID in the local Codex source. OpenAI documents device sign-in and its prerequisite in [Codex authentication](https://learn.chatgpt.com/docs/auth#login-on-headless-devices). This protocol is version-sensitive; a real end-to-end sign-in remains a live acceptance check.
+
+Platform authentication uses `CODEX_ACCESS_TOKEN` or an explicitly configured `CODEX_TOKEN_SECRET_ARN`. A secret contains a plain access token or JSON with an `access_token` field. The runtime fetches it with `secretsmanager:GetSecretValue`; grant access to that ARN only, plus `kms:Decrypt` on its key if needed. Token refresh/publication belongs to the operator. CSPM has no built-in table, login, secret name or account lookup. Personal Settings sign-in remains available and takes precedence. Local installs never query AWS for a token without a configured secret ARN. Supply an AWS runtime identity separately when using a secret locally; Compose does not mount host AWS credentials automatically.
+
+Local AI launch requires usable Codex access. The launch/schedule checkbox is disabled and unchecked until `/api/ai/codex` reports access available. Local API requests with AI enabled (including the default when omitted) return HTTP 409 before enqueueing or saving an AI schedule if token resolution or personal refresh fails. Requests with `ai_enabled: false` remain available. Schedules recheck access before dispatching each occurrence. Compose passes the configured token to the API, scheduler/collector and analyzer so they use the same configuration.
+
+## Cloud credential handoff
+
+Collection captures the successfully resolved authentication context, after the existing provider-specific authentication logic. It does not reconstruct authentication independently or select another credential chain.
+
+| Provider | What the temporary JSON file contains |
+| --- | --- |
+| AWS | A frozen STS session per successfully scanned account, account ID and caller ARN. Permanent IAM keys are exchanged through `GetSessionToken`; if that exchange is unavailable, permanent keys are never exported. Role chains, hosted broker roles and organization targets reuse their actual resolved account sessions. |
+| GCP | The OAuth bearer token used by the collector, with its API audience and expiration when available. This covers ADC, service accounts, gcloud, federation, impersonation, metadata and explicit tokens after the collector resolves them. Source service-account private keys and refresh configuration are not exported. |
+| Azure | Separate resolved bearer entries for ARM, Microsoft Graph, Vault, Storage and other audiences actually accessed by collection. Client secrets, certificate private keys, managed-identity metadata and source federation tokens are not exported. Missing audiences are explicitly unavailable. |
+| Kubernetes | A self-contained kubeconfig with the resolved API server, CA/TLS server name and current authentication. Exec helpers and source file paths are replaced with the current token or embedded client-certificate material. |
+
+The version-2 file includes provider, credential-context scope, format, capture time and expiry when known, plus explicit `target_scopes`. AWS entries identify their account and selected regions, including account-global reads. One GCP token can list many project, folder or organization scopes; separate transport identities remain separate even with the same audience. GCP capture happens at the final API transport, so impersonation source tokens are not exported. Azure entries retain tenant, audience, subscription IDs and captured API origins, including resource-specific Vault and Storage endpoints. Kubernetes entries retain cluster ID and assigned namespaces, with a separate client per cluster. Refreshes update the token without dropping previously captured targets. Lists are not truncated. Quota/billing projects remain distinct from GCP target projects. The per-invocation prompt explains only the credential formats and API audiences actually supplied to that agent and how to match those accesses. Missing or expired access is a limitation, never permission to discover another chain.
+
+The agent handoff accepts many credential contexts and targets. The existing Kubernetes connector still selects one cluster per scan, with multiple namespaces; this change does not add multi-cluster scan orchestration. Ambiguous namespace-only findings cannot select a credential when multiple clusters are supplied.
+
+There is no universal way to mint a newly expiring credential for arbitrary supplied Kubernetes client certificates or opaque provider tokens. Kubernetes certificate authentication retains its existing certificate lifetime; it is materialized in a temporary private file. Unknown expiry is recorded as null. The implementation guarantees an ephemeral file, not a newly shortened provider lifetime for every authentication method. AWS IAM keys are never exported as permanent credentials.
+
+Captured access is encrypted at rest with an AI-only envelope key. The analyzer still cannot decrypt source connector credentials, read the platform GCP service-account secret or assume customer roles. Each agent runs in a new process with a clean environment, private HOME/CODEX_HOME, a mode-0700 directory and mode-0600 credential files. Credentials do not enter prompts, command arguments or inherited cloud environment variables. Output is schema-checked and credential values are redacted before publication. Cancellation/timeouts kill the child process tree and remove temporary files.
+
+Chack's pinned Codex backend invokes the CLI with sandbox bypass. A clean environment and file permissions prevent accidental handoff; they are not an OS sandbox against a malicious same-UID process. Do not interpret the prompt's read-only instruction as an IAM permission boundary: live calls retain the effective rights of the supplied sessions. Existing scan accounts should use the documented read-only scan roles. The integration does not automatically create new roles or change permissions.
+
+## Local setup and infrastructure
+
+Install `.[ai]` for native use and install the Codex CLI. Dockerfiles install pinned `@openai/codex@0.147.0` and the pinned Chack dependency. Sign in through Settings, launch an AI-enabled scan, and open Top 15 Recommended Actions or Network Findings. Both navigation entries appear only when personal Codex access or a platform token is configured.
+
+Compose now gives the analyzer network access for Codex and cloud verification. It mounts only the separate AI-key volume, not the source connector-key volume. The API initializes the shared AI key before workers start. `PEASO_AI_TIMEOUT_SECONDS` defaults to 300. The scan's existing deadline remains authoritative.
+
+Hosted Terraform adds an independent KMS key and Secrets Manager secret for AI envelopes, wires the configured runtime token secret and keeps the connector-key deny for the analyzer. The release source-hash contract and environment checks were updated explicitly for these additions; historical plans/approval artifacts were not modified. No Terraform plan/apply or workflow dispatch was performed.
+
+## Verification
+
+- AI backend tests cover schemas, exact duplicate handling, complete review coverage, cross-account references, rank/dependency validation, opt-out, partial failures, personal-auth isolation, encryption, conditional writes, account-session export, clean subprocess environments, redaction and tenant-scoped result pagination.
+- Credential scale tests cover 50 AWS sessions, one GCP token over 50 projects, 30 separate GCP identities, two Azure tenants with separate API audiences across 50 subscriptions, and 20 Kubernetes contexts with 30 namespaces each. Tests exercise actual GCP/Azure capture, Kubernetes SDK loading and the private JSON handoff.
+- Latest credential/collector regression run: 316 passed, with `test_native_service_coverage_and_configuration_fixture` excluded. That fixture fails on `log_secret_sample` returning `log_sample_not_enabled`; its transport does not exercise the changed credential capture.
+- Existing scan/API/cloud-collector tests passed: 422 tests. Worker/calendar/large-response tests passed separately: 60 tests.
+- Release guard tests passed: 58 tests and 197 subtests.
+- Chromium checks passed: scan toggle and schedule default, personal sign-in/cancel, action table and unresolved exposure.
+- Frontend production build passed. Existing large-bundle warning remains.
+- Terraform 1.14.3 initialization and validation passed in a temporary directory with the backend disabled. No cloud credentials were used. The system Terraform is older than this repository's requirement.
+- Pinned Chack dependency installation and typed configuration constructor checks passed without invoking an agent.
+
+Live acceptance still needs a real personal device login, the hosted shared-token read under the deployed analyzer role, a Docker image build (the local daemon is not running), and one AI-enabled scan per provider including multi-account AWS and Kubernetes certificate auth. The UI screenshot and JSON example use mocked evidence; they are not live security conclusions.

@@ -22,7 +22,7 @@ def test_broad_update_policy_and_rejected_variants() -> None:
     event = {"eventSource": "cloudformation.amazonaws.com", "eventName": "SetStackPolicy",
              "eventCategory": "Management", "eventType": "AwsApiCall",
              "managementEvent": True, "readOnly": False,
-             "recipientAccountId": "947247140022",
+             "recipientAccountId": "222233334444",
              "requestParameters": {"stackName": "synthetic-stack", "stackPolicyBody": json.dumps(policy)},
              "responseElements": None}
     assert _hits(event) == [RULE.technique_id]

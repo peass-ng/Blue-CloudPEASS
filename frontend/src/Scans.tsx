@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   CalendarClock,
   Download,
+  LoaderCircle,
   Play,
   Square,
   Trash2,
@@ -17,6 +18,8 @@ import { Badge, date, Evidence, humanError, Inspector, Panel, State } from "./ui
 import { CoverageView } from "./Dashboard";
 import { scanDuration } from "./scanDuration";
 import { scanNames } from "./scanNames";
+import { defaultRule, ScheduleRules, scheduleDescription, nextScheduleDate } from "./ScheduleRules";
+import type { ScheduleRule } from "./types";
 type FrameworkChoice = { value: string; label: string; group: "family" | "version" };
 function frameworkChoices(catalog: Catalog | undefined, provider: Connector["provider"] | undefined): FrameworkChoice[] {
   if (!provider) return [];
@@ -156,7 +159,8 @@ export function Scans({
               <div
                 className={`scan-symbol ${s.status === "completed" ? "done" : ""}`}
               >
-                <Play size={16} />
+                {terminalStatuses.includes(s.status) ? <Play size={16} />
+                  : <LoaderCircle size={16} className="spin" aria-label="Scan in progress" />}
               </div>
               <div className="grow">
                 <button
@@ -256,8 +260,8 @@ export function Scans({
                         s.id}
                     </button>
                     <p>
-                      Every {s.interval_hours} hours · Next{" "}
-                      {date(s.next_run_at)}
+                      {scheduleDescription(s)} · Next{" "}
+                      {nextScheduleDate(s)}
                     </p>
                   </div>
                   <button
@@ -397,7 +401,10 @@ export function LaunchForm({
   const [selected, setSelected] = useState<string[]>(
     schedule?.categories || categories.map((c) => c.id),
   );
-  const [checks, setChecks] = useState("");
+  const [aiEnabled, setAiEnabled] = useState(schedule?.ai_enabled ?? true);
+  const codex = useApi<{ available: boolean; isolation_available?: boolean }>("/ai/codex", demo);
+  const aiAvailable = !demo && codex.data?.available === true;
+  const [checks, setChecks] = useState(schedule?.checks?.join(", ") || "");
   const [frameworks, setFrameworks] = useState<string[]>(schedule?.frameworks || []);
   const [frameworkSearch, setFrameworkSearch] = useState("");
   const frameworkPicker = useRef<HTMLDetailsElement>(null);
@@ -405,7 +412,8 @@ export function LaunchForm({
   const availableFrameworks = frameworkChoices(catalog.data, selectedConnector?.provider);
   const matchingFrameworks = availableFrameworks.filter((choice) =>
     !frameworks.includes(choice.value) && `${choice.label} ${choice.value}`.toLocaleLowerCase().includes(frameworkSearch.trim().toLocaleLowerCase()));
-  const [hours, setHours] = useState(schedule?.interval_hours || 168);
+  const [rules, setRules] = useState<ScheduleRule[]>(schedule?.rules || [defaultRule()]);
+  const [scheduleTimezone, setScheduleTimezone] = useState(schedule?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC");
   const [error, setError] = useState("");
   const isSchedule = schedule !== undefined;
   const mutation = useMutation({
@@ -434,10 +442,11 @@ export function LaunchForm({
     if (!connector) return setError("Choose a connector first.");
     if (!selected.length)
       return setError("Select at least one assessment category.");
-    if (isSchedule && (!Number.isFinite(hours) || hours < 1))
-      return setError("Schedule interval must be at least one hour.");
+    if (isSchedule && rules.some(rule => !rule.time || (rule.frequency === "weekly" && !rule.weekdays?.length)))
+      return setError("Choose a time for each rule and at least one weekday for every weekly rule.");
     mutation.mutate({
       connector_id: connector,
+      ai_enabled: aiAvailable && aiEnabled,
       categories: selected,
       checks: checks
         .split(",")
@@ -445,7 +454,7 @@ export function LaunchForm({
         .filter(Boolean),
       frameworks,
       ...(isSchedule
-        ? { interval_hours: hours, enabled: schedule?.enabled ?? true }
+        ? { rules, timezone: scheduleTimezone, enabled: schedule?.enabled ?? true }
         : {}),
     });
   }
@@ -475,6 +484,8 @@ export function LaunchForm({
         {!connectors.length && (
           <p className="form-error">Add a connector before launching a scan.</p>
         )}
+        <label className="checkbox"><input type="checkbox" checked={aiAvailable && aiEnabled} disabled={!aiAvailable} onChange={event => setAiEnabled(event.target.checked)} />Use AI to verify failed findings and prioritize security actions</label>
+        {!aiAvailable && <p className="muted small">{codex.isPending ? "Checking Codex access…" : codex.data?.isolation_available === false ? "AI checks are unavailable until the platform administrator configures isolated agent execution." : "Connect Codex in Settings or configure a usable CODEX_ACCESS_TOKEN to enable AI checks."}</p>}
         <fieldset>
           <legend>Assessment categories <span className="category-count">{selected.length} / {categories.length} selected</span></legend>
           <div className="assessment-category-grid">
@@ -538,17 +549,10 @@ export function LaunchForm({
           </div>
         </details>
         {isSchedule && (
-          <label>
-            Interval in hours
-            <input
-              type="number"
-              min={1}
-              max={8760}
-              required
-              value={hours}
-              onChange={(e) => setHours(Number(e.target.value))}
-            />
-          </label>
+          <>
+            {schedule && !schedule.rules?.length && <p className="muted small">This schedule currently runs every {schedule.interval_hours || 168} hours. Saving replaces that interval with the calendar rules below.</p>}
+            <ScheduleRules rules={rules} timezone={scheduleTimezone} onRules={setRules} onTimezone={setScheduleTimezone} />
+          </>
         )}
         {(error || mutation.error) && (
           <p className="form-error" role="alert">

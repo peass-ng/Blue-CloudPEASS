@@ -29,7 +29,7 @@ DISASSOC_RULE = Rule(id="waf-api-detached", title="API WAF detached", level="hig
     description="detach", technique_id="aws-waf-api-stage-disassociated", product="aws",
     selection={"event.source": "wafv2.amazonaws.com", "event.name": "DisassociateWebACL",
                "event.outcome": "success", "request.waf_api_stage_disassociated": True})
-ARN = "arn:aws:wafv2:us-east-1:947247140022:regional/webacl/test-acl/a4fceb6d-1195-4087-9b83-4709e869a14c"
+ARN = "arn:aws:wafv2:us-east-1:222233334444:regional/webacl/test-acl/a4fceb6d-1195-4087-9b83-4709e869a14c"
 
 
 def _hits(event: dict) -> list[str]:
@@ -42,7 +42,7 @@ def test_default_drop_and_rejected_variants() -> None:
     event = {"eventSource": "wafv2.amazonaws.com", "eventName": "PutLoggingConfiguration",
              "eventCategory": "Management", "eventType": "AwsApiCall",
              "managementEvent": True, "readOnly": False,
-             "recipientAccountId": "947247140022",
+             "recipientAccountId": "222233334444",
              "requestParameters": {"loggingConfiguration": deepcopy(config)},
              "responseElements": {"loggingConfiguration": deepcopy(config)}}
     assert _hits(event) == [RULE.technique_id]
@@ -66,7 +66,7 @@ def test_uri_path_redacted_and_header_only_negative() -> None:
     event = {"eventSource": "wafv2.amazonaws.com", "eventName": "PutLoggingConfiguration",
              "eventCategory": "Management", "eventType": "AwsApiCall",
              "managementEvent": True, "readOnly": False,
-             "recipientAccountId": "947247140022",
+             "recipientAccountId": "222233334444",
              "requestParameters": {"loggingConfiguration": deepcopy(config)},
              "responseElements": {"loggingConfiguration": deepcopy(config)}}
     assert [x.technique_id for x in detect_aws_events([event], [REDACTION_RULE])] == [REDACTION_RULE.technique_id]
@@ -86,7 +86,7 @@ def test_uri_path_redacted_and_header_only_negative() -> None:
 def test_waf_deletion_events_require_valid_target_and_success() -> None:
     base = {"eventSource": "wafv2.amazonaws.com", "eventCategory": "Management",
             "eventType": "AwsApiCall", "managementEvent": True, "readOnly": False,
-            "recipientAccountId": "947247140022", "responseElements": None}
+            "recipientAccountId": "222233334444", "responseElements": None}
     for name, request, technique in (
         ("DeleteLoggingConfiguration", {"resourceArn": ARN},
          "aws-waf-logging-configuration-deleted"),
@@ -108,7 +108,7 @@ def test_waf_api_gateway_stage_disassociation() -> None:
     event = {"eventSource": "wafv2.amazonaws.com", "eventName": "DisassociateWebACL",
              "eventCategory": "Management", "eventType": "AwsApiCall",
              "managementEvent": True, "readOnly": False,
-             "recipientAccountId": "947247140022",
+             "recipientAccountId": "222233334444",
              "requestParameters": {"resourceArn": "arn:aws:apigateway:us-east-1::/restapis/t8ltthq1h4/stages/test"},
              "responseElements": None}
     assert [x.technique_id for x in detect_aws_events([event], [DISASSOC_RULE])] == [DISASSOC_RULE.technique_id]

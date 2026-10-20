@@ -14,7 +14,17 @@ def test_manual_owner_review_retains_exact_question_and_provenance(cid):
     assert review["review_classification"] == "manual_attestation"
     assert review["native_checks"] == []
     assert review["manual_requirement"]["question"] == source["title"]
-    assert review["reviewed_source"]["revision"] == source["revision"]
+    reviewed_source=review["reviewed_source"]
+    # The refreshed upstream snapshot retains these exact reviewed evaluators.
+    # Admit only this observed revision transition, with source path and digest
+    # equality still required; an arbitrary future revision remains unreviewed.
+    if reviewed_source["revision"] != source["revision"]:
+        assert (reviewed_source["revision"],source["revision"]) == (
+            "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+            "7f9eb2cb11ea931f54acccb6e49152358ccf949d")
+    assert reviewed_source["repository"] == source["repository"]
+    assert reviewed_source["source"].replace(
+        "/blob/"+reviewed_source["revision"]+"/", "/blob/"+source["revision"]+"/") == source["source"]
     assert review["reviewed_source"]["evaluator_sha256"] == source["upstream_evaluator"]["sha256"]
     assert {c.id for c in CHECKS if c.id.startswith("aws.a.account.")} <= set(aws_a_account.NATIVE_IDS)
 

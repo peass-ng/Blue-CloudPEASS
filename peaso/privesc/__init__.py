@@ -107,6 +107,8 @@ def _analyze(snapshot, catalog_dir=None, *, entries=None, include_unknown=False,
     if related:
         builder.add_cross(model)
     graph = builder.result()
+    from peaso.principal_exposure import annotate_privesc
+    annotate_privesc(snapshot, graph, builder.findings, model)
     t_graph = time.perf_counter() - t0
     coverage.extend(_dedupe(model.coverage))
     by_conf = {"derived": 0, "conditional": 0, "unknown": 0}

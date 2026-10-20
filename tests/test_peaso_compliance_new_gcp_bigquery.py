@@ -18,7 +18,7 @@ def test_only_exact_all_users_reader_pair_fails():
     assert evaluate(dataset(access=[{"specialGroup": "allUsers", "role": "READER"}]))[0] == "FAIL"
     assert evaluate(dataset(access=[{"specialGroup": "allUsers", "role": "WRITER"}]))[0] == "PASS"
     assert evaluate(dataset(access=[{"specialGroup": "allAuthenticatedUsers", "role": "READER"}]))[0] == "PASS"
-    assert evaluate(dataset(access=[{"iamMember": "allUsers", "role": "READER"}]))[0] == "PASS"
+    assert evaluate(dataset(access=[{"iamMember": "allUsers", "role": "READER"}]))[0] == "FAIL"
     assert evaluate(dataset(access=[{"userByEmail": "owner@example.invalid", "role": "OWNER"}]))[0] == "PASS"
     assert evaluate(dataset())[0] == "PASS"
     assert evaluate(dataset(access=[{"view": {"projectId": "pci-inert", "datasetId": "views", "tableId": "v1"}},

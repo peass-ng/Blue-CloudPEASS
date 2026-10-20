@@ -60,6 +60,24 @@ def _value(value, allowed):
 def _specific_observation(finding):
     """Decisive native shapes that cannot be summarized as generic field counts."""
     cid, e = finding['check_id'], finding['evidence']
+    if cid == 'aws.review.cognito.app_client_refresh_token_rotation' and e.get('refresh_token_rotation') in ('ENABLED', 'DISABLED'):
+        return 'Refresh token rotation is '+('enabled.' if e['refresh_token_rotation'] == 'ENABLED' else 'disabled.')
+    if cid.startswith('aws.review.') and 'secret_indicators' in cid:
+        categories = e.get('matched_categories')
+        if isinstance(categories, list) and all(isinstance(value, str) for value in categories):
+            return ('Possible passwords or credentials were found in the checked configuration.' if categories else
+                    'No signs of secrets were found in the checked configuration.')
+        leaks = e.get('secret_leaks')
+        if isinstance(leaks, list) and type(e.get('source_complete')) is bool:
+            if leaks:
+                return 'Possible credentials were found in the inspected package contents.'
+            return ('No signs of secrets were found in the inspected package contents.' if e['source_complete'] else
+                    'The package scan was incomplete, so exposed secrets could not be ruled out.')
+    if cid == 'aws.review.lambda.execution_role_policy_admin_grants':
+        patterns = e.get('declared_admin_patterns')
+        if isinstance(patterns, list) and all(isinstance(value, dict) for value in patterns):
+            return ('The function’s role policies include a grant of every action on every resource; other policies can still restrict access.' if patterns else
+                    'The function’s role policies contain no explicit grant of every action on every resource.')
     if cid == 'aws.cb.kafka.cmk_encryption_at_rest' and _text(e.get('data_volume_kms_key_id')):
         return 'MSK volume-encryption key: ' + e['data_volume_kms_key_id'] + '.'
     if cid == 'aws.claude_a.guardduty.ecs_runtime_agent_management' and type(e.get('enabled')) is bool:
@@ -242,7 +260,12 @@ def evidence_summary(finding):
     if status not in {'PASS', 'FAIL', 'UNKNOWN', 'DENIED', 'MANUAL', 'NOT_APPLICABLE', 'EMPTY'}:
         return None
     observed_finding = dict(finding, check_id=row['alias_of']) if row.get('alias_of') else finding
+    from .aws_natural_evidence import complete_explanation, natural_observation
+    complete = complete_explanation(observed_finding)
+    if complete and status in {'PASS', 'FAIL', 'UNKNOWN', 'DENIED'}:
+        return complete
     observation = _observation(observed_finding, row) if e else None
+    observation = natural_observation(observed_finding, row, observation)
     if observation is None:
         if status == 'NOT_APPLICABLE':
             observation = 'This resource is outside the control’s applicability.'

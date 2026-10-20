@@ -38,12 +38,12 @@
         {
           "requirement_id": "1.11",
           "name": "Do not setup access keys during initial user setup for all IAM users that have a console password",
-          "decision": "MAPPED",
+          "decision": "PARTIAL",
           "native_checks": [
             "aws.claude_a.iam.no_unused_initial_access_key"
           ],
           "removed_checks": [],
-          "reason": "The requirement demands Do not setup access keys during initial user setup for all IAM users that have a console password. The existing evaluator tests Console users have no never-used active access key (Prowler) (reads password_enabled, true).",
+          "reason": "Never-used active keys for console users are an observed hygiene signal. A key created at initial user setup can later be used and pass this predicate; initial-setup timing and historical deleted keys need lifecycle evidence.",
           "evidence": [
             "peaso/checks/claude_aws_a_iam.py:674"
           ],
@@ -885,12 +885,12 @@
         {
           "requirement_id": "1.11",
           "name": "Do not setup access keys during initial user setup for all IAM users that have a console password",
-          "decision": "MAPPED",
+          "decision": "PARTIAL",
           "native_checks": [
             "aws.claude_a.iam.no_unused_initial_access_key"
           ],
           "removed_checks": [],
-          "reason": "The requirement demands Do not setup access keys during initial user setup for all IAM users that have a console password. The existing evaluator tests Console users have no never-used active access key (Prowler) (reads password_enabled, true).",
+          "reason": "Never-used active keys for console users are an observed hygiene signal. A key created at initial user setup can later be used and pass this predicate; initial-setup timing and historical deleted keys need lifecycle evidence.",
           "evidence": [
             "peaso/checks/claude_aws_a_iam.py:674"
           ],
@@ -1805,12 +1805,12 @@
         {
           "requirement_id": "1.11",
           "name": "Do not setup access keys during initial user setup for all IAM users that have a console password",
-          "decision": "MAPPED",
+          "decision": "PARTIAL",
           "native_checks": [
             "aws.claude_a.iam.no_unused_initial_access_key"
           ],
           "removed_checks": [],
-          "reason": "The requirement demands Do not setup access keys during initial user setup for all IAM users that have a console password. The existing evaluator tests Console users have no never-used active access key (Prowler) (reads password_enabled, true).",
+          "reason": "Never-used active keys for console users are an observed hygiene signal. A key created at initial user setup can later be used and pass this predicate; initial-setup timing and historical deleted keys need lifecycle evidence.",
           "evidence": [
             "peaso/checks/claude_aws_a_iam.py:674"
           ],
@@ -2743,12 +2743,12 @@
         {
           "requirement_id": "1.11",
           "name": "Do not setup access keys during initial user setup for all IAM users that have a console password",
-          "decision": "MAPPED",
+          "decision": "PARTIAL",
           "native_checks": [
             "aws.claude_a.iam.no_unused_initial_access_key"
           ],
           "removed_checks": [],
-          "reason": "The requirement demands Do not setup access keys during initial user setup for all IAM users that have a console password. The existing evaluator tests Console users have no never-used active access key (Prowler) (reads password_enabled, true).",
+          "reason": "Never-used active keys for console users are an observed hygiene signal. A key created at initial user setup can later be used and pass this predicate; initial-setup timing and historical deleted keys need lifecycle evidence.",
           "evidence": [
             "peaso/checks/claude_aws_a_iam.py:674"
           ],
@@ -3764,12 +3764,12 @@
         {
           "requirement_id": "1.11",
           "name": "Do not create access keys during initial setup for IAM users with a console password",
-          "decision": "MAPPED",
+          "decision": "PARTIAL",
           "native_checks": [
             "aws.claude_a.iam.no_unused_initial_access_key"
           ],
           "removed_checks": [],
-          "reason": "The requirement demands Do not create access keys during initial setup for IAM users with a console password. The existing evaluator tests Console users have no never-used active access key (Prowler) (reads password_enabled, true).",
+          "reason": "Never-used active keys for console users are an observed hygiene signal. A key created at initial user setup can later be used and pass this predicate; initial-setup timing and historical deleted keys need lifecycle evidence.",
           "evidence": [
             "peaso/checks/claude_aws_a_iam.py:674"
           ],
@@ -4687,12 +4687,12 @@
         {
           "requirement_id": "1.10",
           "name": "Do not create access keys during initial setup for IAM users with a console password",
-          "decision": "MAPPED",
+          "decision": "PARTIAL",
           "native_checks": [
             "aws.claude_a.iam.no_unused_initial_access_key"
           ],
           "removed_checks": [],
-          "reason": "The requirement demands Do not create access keys during initial setup for IAM users with a console password. The existing evaluator tests Console users have no never-used active access key (Prowler) (reads password_enabled, true).",
+          "reason": "Never-used active keys for console users are an observed hygiene signal. A key created at initial user setup can later be used and pass this predicate; initial-setup timing and historical deleted keys need lifecycle evidence.",
           "evidence": [
             "peaso/checks/claude_aws_a_iam.py:674"
           ],
@@ -5610,12 +5610,12 @@
         {
           "requirement_id": "2.10",
           "name": "Do not create access keys during initial setup for IAM users with a console password",
-          "decision": "MAPPED",
+          "decision": "PARTIAL",
           "native_checks": [
             "aws.claude_a.iam.no_unused_initial_access_key"
           ],
           "removed_checks": [],
-          "reason": "The requirement demands Do not create access keys during initial setup for IAM users with a console password. The existing evaluator tests Console users have no never-used active access key (Prowler) (reads password_enabled, true).",
+          "reason": "Never-used active keys for console users are an observed hygiene signal. A key created at initial user setup can later be used and pass this predicate; initial-setup timing and historical deleted keys need lifecycle evidence.",
           "evidence": [
             "peaso/checks/claude_aws_a_iam.py:674"
           ],
@@ -11182,12 +11182,12 @@
         {
           "requirement_id": "aws-compliance.control.cis_v130_1_7",
           "name": "1.7 Eliminate use of the root user for administrative and daily tasks",
-          "decision": "MAPPED",
+          "decision": "PARTIAL",
           "native_checks": [
             "aws.gap.iam.root_not_used_90_days"
           ],
           "removed_checks": [],
-          "reason": "The requirement demands 1.7 Eliminate use of the root user for administrative and daily tasks. The existing evaluator tests Root user password and access keys were not used in the last 90 days (evaluator evaluate).",
+          "reason": "Ninety-day root inactivity is a bounded signal. It does not establish the ongoing practice of eliminating root administration or document exceptional root use; retain owner/process review as in adjacent CIS versions.",
           "evidence": [
             "peaso/checks/aws_gap_core.py:487"
           ],
@@ -19904,9 +19904,9 @@
   ],
   "summary": {
     "requirements_total": 1326,
-    "mapped_verified": 1056,
+    "mapped_verified": 1048,
     "mapping_fixed": 47,
-    "partial": 193,
+    "partial": 201,
     "manual": 18,
     "not_applicable": 0,
     "new_check": 12

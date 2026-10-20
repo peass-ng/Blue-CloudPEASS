@@ -146,7 +146,7 @@ def run_failure(workflow, stage, failure, lock, terminal=None, *, terminal_race=
     from peaso.storage.dynamodb import attrs, row
     private = "fixture-private-provider-cause"
     data = {"tenant_id": "alice", "scan_id": "fixture"}
-    execution = "arn:aws:states:us-east-1:202533532952:execution:hacktricks-cspm:fixture"
+    execution = "arn:aws:states:us-east-1:111122223333:execution:hacktricks-cspm:fixture"
     states = workflow["States"]
     state_name = "Collect" if stage == "collector" else "Analyze"
     visited = []

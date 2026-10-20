@@ -1250,12 +1250,14 @@ def _load_50():
             return result(True, bucket=name, grants=grants)
         if unknown_role:
             return unknown('public IAM role read permission unresolved')
-        return result(False, bucket=name, inspected_iam_bindings=len(bindings), uniform_bucket_access=uniform)
+        from .gcp_public_read_native import inherited_read
+        return inherited_read(item, index)
     _EVALUATORS = {**{key: lambda item, index, cid=key: _audit_check(cid, item, index) for key in SPECS if key.startswith('gcp_logging_detect_')}, 'gcp_c5_deletion_recoverability': _deletion, 'gcp_c5_log_retention': _log_retention, 'gcp_gcs_replication_status': _replication, 'gcp_pci_bucket_157fb0c69361': _pci}
     for _id, (_kind, _category, _severity, _title, _sha) in SPECS.items():
         _accepted = _category if _category in {'hardening', 'exposure', 'least_privilege', 'iam_graph', 'network'} else 'hardening'
 
-        @register(_id, 'gcp', _accepted, _kind, _title, _severity, 'CM-6', 'Review the signed proposed specification and remediate the observed grant or event.', dependencies=[_kind])
+        @register(_id, 'gcp', _accepted, _kind, _title, _severity, 'CM-6', 'Review the signed proposed specification and remediate the observed grant or event.', dependencies=([_kind, 'bucket_acl', 'object_acl', 'bucket_effective_iam', 'project', 'iam_policy']
+                          if _id == 'gcp_pci_bucket_157fb0c69361' else [_kind]))
         def _evaluate(item, index, cid=_id):
             return _EVALUATORS[cid](item, index)
         if _accepted != _category:
@@ -1859,59 +1861,132 @@ def _load_52():
             return default
         raise Unavailable('missing field without full representation: ' + field)
 
+    def _directory_user(item, index):
+        """Validate the CRM customer join and the narrowly selected native user fields."""
+        _member(item, index, 'workspace_user')
+        scope = _scope(index)
+        binding = get(item, '_directoryBinding', dict)
+        if get(binding, 'status', str) != 'collected' or get(binding, 'scope', str) != scope:
+            raise Unavailable('independent project Directory customer binding unavailable')
+        customer = get(binding, 'customer', str)
+        if (not re.fullmatch('C[A-Za-z0-9_-]+', customer) or get(item, 'customerId', str) != customer
+                or get(item, 'directoryCustomer', str) != customer):
+            raise Unavailable('Directory user belongs to a different customer')
+        chain = _list(binding, 'chain')
+        ledger = _list(index, 'context.metadata.source_requests')
+        def read_proof(ref, url):
+            matches = [row for row in ledger if row.get('id') == ref]
+            if (len(matches) != 1 or matches[0].get('method') != 'GET'
+                    or matches[0].get('url') != url or matches[0].get('status') != 'collected'):
+                raise Unavailable('Directory native source request unavailable or foreign')
+        current, seen = scope, set()
+        if not chain or len(chain) > 32:
+            raise Unavailable('Directory hierarchy chain unavailable')
+        for position, row in enumerate(chain):
+            if row.get('requested') != current or current in seen:
+                raise Unavailable('Directory hierarchy chain inconsistent')
+            seen.add(current)
+            read_proof(get(row, 'source_request', str), 'https://cloudresourcemanager.googleapis.com/v3/' + current)
+            name = get(row, 'name', str)
+            if position == 0:
+                if (not re.fullmatch('projects/[1-9][0-9]*', name)
+                        or scope not in (name, 'projects/' + str(row.get('projectId', '')))):
+                    raise Unavailable('Directory project identity inconsistent')
+            elif name != current:
+                raise Unavailable('Directory ancestor identity inconsistent')
+            if position == len(chain) - 1:
+                if (not re.fullmatch('organizations/[1-9][0-9]*', current)
+                        or row.get('directoryCustomerId') != customer or binding.get('organization') != current):
+                    raise Unavailable('Directory organization customer binding inconsistent')
+            else:
+                current = get(row, 'parent', str)
+                if not re.fullmatch('(?:folders|organizations)/[1-9][0-9]*', current):
+                    raise Unavailable('Directory parent unavailable')
+        projection = get(item, '_coverage.directoryProjection', dict)
+        if (get(projection, 'status', str) != 'collected' or projection.get('projection') != 'full'
+                or projection.get('viewType') != 'admin_view'):
+            raise Unavailable('Directory user field projection unavailable')
+        refs = get(projection, 'source_requests', list)
+        if not refs:
+            raise Unavailable('Directory user source request unavailable')
+        for ref in refs:
+            read_proof(ref, 'https://admin.googleapis.com/admin/directory/v1/users')
+        return customer, projection
+
     @register('gcp.identity.non_service_account_mfa', ['workspace_user', 'iam_policy'])
     def non_service_account_mfa(item, index):
-        _member(item, index, 'workspace_user')
+        customer, projection = _directory_user(item, index)
         email = get(item, 'primaryEmail', str).lower()
-        if not email or get(item, 'suspended', bool):
-            return ('NOT_APPLICABLE', {'reason': 'suspended or no active human identity'})
-        if get(item, 'identityProvider', str) != 'workspace' or not get(item, 'inDomain', bool):
-            return unknown('external or unsupported identity provider')
+        if not re.fullmatch(r'[^@\s]+@[^@\s]+', email):
+            raise Unavailable('Directory user email unavailable')
+        if get(item, 'suspended', bool) or get(item, 'archived', bool):
+            return ('NOT_APPLICABLE', {'reason': 'suspended or archived Directory identity'})
         policies = _rows(index, 'iam_policy')
-        principals = set()
-        for policy in policies:
-            for binding in _bindings(policy):
-                principals.update(_iam_members(binding))
+        principals = {member for policy in policies for binding in _bindings(policy) for member in _iam_members(binding)}
         if 'user:' + email not in principals:
-            if not _policy(index, 'principal_expansion_complete', bool):
-                return unknown('human IAM principal expansion incomplete')
-            expanded = _policy(index, 'effective_iam_user_emails')
-            if email not in expanded:
-                return ('NOT_APPLICABLE', {'reason': 'user has no Cloud IAM access in complete principal expansion'})
+            return unknown('direct Cloud IAM human principal not observed; group or external identity access unresolved')
+        if not {'isEnrolledIn2Sv', 'isEnforcedIn2Sv'} <= set(get(projection, 'fields', list)):
+            raise Unavailable('Directory two-step verification fields were not selected')
         enrolled = get(item, 'isEnrolledIn2Sv', bool)
-        return result(not enrolled, principal=email, isEnrolledIn2Sv=enrolled)
+        enforced = get(item, 'isEnforcedIn2Sv', bool)
+        return result(not (enrolled and enforced), principal=email, isEnrolledIn2Sv=enrolled,
+                      isEnforcedIn2Sv=enforced, directory_customer=customer,
+                      semantics='Native Directory enrollment and enforcement configuration for a directly observed IAM user')
 
     @register('gcp.identity.super_admin_recovery_group', ['workspace_user', 'workspace_role', 'workspace_role_assignment', 'group', 'group_membership'])
     def super_admin_recovery_group(item, index):
-        _member(item, index, 'workspace_user')
+        customer, projection = _directory_user(item, index)
         email = get(item, 'primaryEmail', str).lower()
-        if get(item, 'suspended', bool) or get(item, 'id', str) not in _super_admin_ids(index):
-            return ('NOT_APPLICABLE', {'reason': 'user is not an active assigned super admin'})
-        recovery_value = _full_omitted(item, 'recoveryEmail', '')
-        if not isinstance(recovery_value, str):
-            return unknown('malformed recovery email')
-        recovery = recovery_value.lower()
+        if get(item, 'suspended', bool) or get(item, 'archived', bool):
+            return ('NOT_APPLICABLE', {'reason': 'suspended or archived Directory identity'})
+        roles = _rows(index, 'workspace_role')
+        assignments = _rows(index, 'workspace_role_assignment')
+        if any(get(row, 'directoryCustomer', str) != customer for row in roles + assignments):
+            raise Unavailable('Directory role or assignment belongs to another customer')
+        if get(item, 'id', str) not in _super_admin_ids(index):
+            return ('NOT_APPLICABLE', {'reason': 'user is not an assigned super administrator'})
+        if 'recoveryEmail' not in get(projection, 'fields', list):
+            raise Unavailable('Directory recovery email was not selected')
+        # Only this selected field has omission authority; the user is not globally full.
+        recovery = get(item, 'recoveryEmail', str).lower() if 'recoveryEmail' in item or 'recoveryEmail' in item.get('_coverage', {}) else ''
         groups = _rows(index, 'group')
         members = _rows(index, 'group_membership')
-        matched = [group for group in groups if get(group, 'email', str).lower() == recovery]
+        matched = [group for group in groups if get(group, 'groupKey.id', str).lower() == recovery]
         if not recovery or not matched:
             return result(True, principal=email, recovery_email=recovery, reason='missing or non-group recovery address')
-        if len(matched) != 1:
-            return unknown('ambiguous Directory group identity')
-        group_id = get(matched[0], 'id', str)
-        active = set()
+        if len(matched) != 1 or get(matched[0], 'parent', str) != 'customers/' + customer:
+            raise Unavailable('recovery group customer identity ambiguous or foreign')
+        group_name = get(matched[0], 'name', str)
+        if not re.fullmatch('groups/[A-Za-z0-9_-]+', group_name):
+            raise Unavailable('recovery group identity unavailable')
+        users = _rows(index, 'workspace_user')
+        active, observed = set(), set()
         for member in members:
-            if get(member, 'groupId', str) != group_id:
+            if get(member, 'group', str) != group_name or get(member, 'membershipKind', str) != 'direct':
                 continue
-            status = get(member, 'status', str)
-            if status not in ('ACTIVE', 'INACTIVE', 'SUSPENDED'):
-                return unknown('unrecognized Directory group member status')
-            if status == 'ACTIVE':
-                member_email = get(member, 'email', str).lower()
-                if not member_email or member_email in active:
-                    return unknown('malformed or duplicate active group member')
-                active.add(member_email)
-        return result(len(active) < 2, principal=email, recovery_email=recovery, active_member_count=len(active))
+            membership_roles = _list(member, 'roles')
+            if (not membership_roles or any(get(role, 'name', str) not in ('MEMBER', 'MANAGER', 'OWNER') for role in membership_roles)
+                    or len({role['name'] for role in membership_roles}) != len(membership_roles)):
+                raise Unavailable('recovery membership roles unavailable or contradictory')
+            for role in membership_roles:
+                if 'expiryDetail' in role:
+                    expiry = datetime.fromisoformat(get(role, 'expiryDetail.expireTime', str).replace('Z', '+00:00'))
+                    captured = datetime.fromisoformat(get(index, 'context.created_at', str).replace('Z', '+00:00'))
+                    if expiry.tzinfo is None or captured.tzinfo is None or expiry <= captured:
+                        raise Unavailable('recovery membership is expired or its expiry is unresolved')
+            address = get(member, 'preferredMemberKey.id', str).lower()
+            if address in observed:
+                raise Unavailable('duplicate recovery group member')
+            observed.add(address)
+            candidates = [user for user in users if get(user, 'primaryEmail', str).lower() == address]
+            if len(candidates) != 1:
+                raise Unavailable('nested or external recovery group member unresolved')
+            user = candidates[0]
+            _directory_user(user, index)
+            if not get(user, 'suspended', bool) and not get(user, 'archived', bool):
+                active.add(get(user, 'id', str))
+        return result(len(active) < 2, principal=email, recovery_email=recovery, active_member_count=len(active),
+                      semantics='Direct Cloud Identity members joined to active same-customer Directory users; nested or external members remain unresolved')
 
     @register('gcp.identity.super_admin_separation', ['workspace_role_assignment', 'workspace_role', 'workspace_user', 'iam_policy', 'group', 'group_membership'])
     def super_admin_separation(item, index):
@@ -2655,38 +2730,12 @@ def _load_53():
         _, scope = _ctx(index)
         if ident != scope:
             raise Unavailable('project identity differs from scope')
-        metrics = _rows(index, 'logging_metric')
-        alerts = _rows(index, 'monitoring_alert_policy')
-        names = set()
-        for metric in metrics:
-            metric_id = get(metric, 'metricId', str)
-            get(metric, 'filter', str)
-            if get(metric, 'name', str) != scope + '/metrics/' + metric_id:
-                raise Unavailable('foreign logging metric identity')
-            if not metric_id or '/' in metric_id:
-                raise Unavailable('malformed logging metric identity')
-            if get(metric, 'filterMatchesFailedCloudSqlBackupRun', bool) and (not get(metric, 'disabled', bool)):
-                names.add('logging.googleapis.com/user/' + metric_id)
-        active = []
-        for alert in alerts:
-            if not get(alert, 'enabled', bool):
-                continue
-            for condition in get(alert, 'conditions', list):
-                expression = get(condition, 'conditionThreshold.filter', str)
-                clauses = [part.strip() for part in expression.split(' AND ')]
-                matches = []
-                for clause in clauses:
-                    metric_ref = re.fullmatch('metric\\.type\\s*=\\s*"([^"]+)"', clause)
-                    resource_ref = re.fullmatch('resource\\.type\\s*=\\s*"([^"]+)"', clause)
-                    if metric_ref:
-                        matches.append(metric_ref.group(1))
-                    elif not resource_ref:
-                        raise Unavailable('alert filter semantics unavailable')
-                if len(matches) != 1:
-                    raise Unavailable('alert metric reference unavailable or ambiguous')
-                if matches[0] in names:
-                    active.append(get(alert, 'name', str))
-        return result(not active, project=scope, enabled_alert_policies=sorted(set(active)))
+        from .gcp_cloudsql_backup_alert_native import configured_alerts
+        active = configured_alerts(item, scope, _rows(index, 'monitoring_alert_policy'),
+                                   _rows(index, 'logging_metric'))
+        return result(not active, project=scope, enabled_alert_policies=active,
+                      assessed_configuration='local scheduled-backup window failure alert',
+                      notification_delivery_assessed=False)
     EVALUATORS = {'gcp_c5_software_inventory': _software, 'gcp_compute_approved_packages': _approved_packages, 'gcp_c5_malware_telemetry': _malware, 'gcp.compute.os_patch_compliance': lambda i, x: _vulnerabilities(i, x, False, 'approved_patch_grace_hours'), 'gcp_compute_os_patch_compliance': lambda i, x: _vulnerabilities(i, x, True, 'approved_patch_sla_hours'), 'gcp_c5_patch_deployment': _patch_deployment, 'gcp_c5_sql_backup_run': _backup_run, 'gcp_c5_backup_remote_location': _remote, 'gcp_c5_restore_test': _restore_test, 'gcp_c5_restore_destination': _restore_destination, 'gcp_c5_iam_conditions': _conditions, 'gcp_c5_iam_expiry': _expiry, 'gcp_c5_iam_change_timeliness': _timeliness, 'gcp.logging.access_transparency_entries': _transparency, 'gcp_cloudsql_backup_failure_alert': _backup_alert}
     EXTRA = {'gcp_c5_software_inventory': ['os_inventory'], 'gcp_compute_approved_packages': ['os_inventory'], 'gcp_c5_malware_telemetry': ['os_inventory'], 'gcp.compute.os_patch_compliance': ['os_inventory', 'os_vulnerability_report'], 'gcp_compute_os_patch_compliance': ['os_inventory', 'os_vulnerability_report'], 'gcp_c5_patch_deployment': ['os_inventory', 'os_patch_deployment'], 'gcp_c5_sql_backup_run': ['sql_backup_run'], 'gcp_c5_backup_remote_location': ['backup_target'], 'gcp_c5_restore_test': ['sql_operation'], 'gcp_c5_restore_destination': ['sql_operation', 'iam_policy'], 'gcp_c5_iam_conditions': [], 'gcp_c5_iam_expiry': [], 'gcp_c5_iam_change_timeliness': [], 'gcp.logging.access_transparency_entries': ['access_transparency_entry'], 'gcp_cloudsql_backup_failure_alert': ['logging_metric', 'monitoring_alert_policy']}
     for _id, _meta in META.items():

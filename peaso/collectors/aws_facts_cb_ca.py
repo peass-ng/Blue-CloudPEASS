@@ -406,6 +406,8 @@ def _glue_connections(requests, session, region, account):
         if not isinstance(original, dict):
             continue
         item = _pick(original, _GLUE_CONNECTION_KEYS)
+        if "AdditionalSecretIndicators" in original:
+            item["AdditionalSecretIndicators"] = copy.deepcopy(original["AdditionalSecretIndicators"])
         properties = original.get("ConnectionProperties")
         item["ConnectionProperties"] = {key: value for key, value in (properties or {}).items() if key in _GLUE_CONNECTION_PROPERTIES and isinstance(value, str)} if isinstance(properties, dict) or properties is None else {}
         physical = original.get("PhysicalConnectionRequirements")
@@ -896,7 +898,7 @@ _MERGES = {
     "sagemaker_domain": ("sagemaker", "describe_domain", "DomainId", "DomainId", None,
         ("DomainArn", "DomainId", "DomainName", "Status", "AuthMode", "SingleSignOnApplicationArn", "AppNetworkAccessType", "SubnetIds", "VpcId", "KmsKeyId", "CreationTime")),
     "sfn_state_machine": ("stepfunctions", "describe_state_machine", "stateMachineArn", "stateMachineArn", None,
-        ("stateMachineArn", "name", "status", "type", "roleArn", "loggingConfiguration", "tracingConfiguration", "encryptionConfiguration", "creationDate")),
+        ("stateMachineArn", "name", "status", "type", "roleArn", "loggingConfiguration", "tracingConfiguration", "encryptionConfiguration", "creationDate", "PayloadSecretIndicators")),
     "kinesis_stream": ("kinesis", "describe_stream_summary", "StreamName", "StreamName", "StreamDescriptionSummary",
         ("StreamName", "StreamARN", "StreamStatus", "StreamModeDetails", "RetentionPeriodHours", "StreamCreationTimestamp", "EnhancedMonitoring",
          "EncryptionType", "KeyId", "OpenShardCount", "ConsumerCount")),
@@ -940,6 +942,8 @@ def _merge_enricher(kind):
                 _mark(item, response, operation)
             elif not isinstance(body, dict):
                 _mark(item, {"collection_status": "malformed", "error": {"code": "malformed_detail"}}, operation)
+            elif kind == "network_firewall" and body.get("FirewallArn") != item.get("FirewallArn"):
+                _mark(item, {"collection_status": "malformed", "error": {"code": "firewall_identity_mismatch"}}, operation)
             else:
                 item.update(_pick(body, keys))
                 if kind in _NESTED:

@@ -1,5 +1,7 @@
 """Native IAM policy attachment joins must retain evidence gaps."""
 
+import pytest
+
 from peaso.engine import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 
@@ -10,9 +12,9 @@ CHECK = "aws.pci.iam.policy_attached_to_active_principal"
 
 
 def _policy(attachment_count=0):
-    return {"Arn": POLICY_ARN, "AttachmentCount": attachment_count,
+    return {"Arn": POLICY_ARN, "AttachmentCount": attachment_count, "DefaultVersionId": "v1",
             "_provenance": {"operation": "iam:GetAccountAuthorizationDetails", "native_response_complete": True},
-            "PolicyVersionList": [{"IsDefaultVersion": True,
+            "PolicyVersionList": [{"VersionId": "v1", "IsDefaultVersion": True,
                 "Document": {"Statement": [{"Effect": "Allow",
                     "Action": "s3:GetObject", "Resource": "*"}]}}]}
 
@@ -42,6 +44,18 @@ def _result(policy=None, users=(), groups=(), roles=(), overrides=None,
 def test_complete_native_empty_attachments_are_conclusive_failure():
     row = _result()
     assert row["status"] == "FAIL"
+
+
+@pytest.mark.parametrize("mutation", ["missing_default", "missing_version_id", "mismatched_default"])
+def test_native_attachment_requires_bound_default_policy_version(mutation):
+    policy = _policy(1)
+    if mutation == "missing_default":
+        del policy["DefaultVersionId"]
+    elif mutation == "missing_version_id":
+        del policy["PolicyVersionList"][0]["VersionId"]
+    else:
+        policy["DefaultVersionId"] = "v2"
+    assert _result(policy=policy, users=[_user()])["status"] == "UNKNOWN"
 
 
 def _user(*, attached=True, activity=False):

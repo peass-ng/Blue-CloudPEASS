@@ -21,7 +21,7 @@
       "examples": [
         {
           "status": "MANUAL",
-          "example": "The declaration permits all actions (*) on all resources (*). These broad or high-impact grants can widen control; other policies still affect usable access.",
+          "example": "The policy allows all actions on all resources. These broad or high-impact grants can widen control; other policies still affect usable access.",
           "evidence_keys": [
             "criticality_source",
             "effective_access",
@@ -47,7 +47,7 @@
       "examples": [
         {
           "status": "MANUAL",
-          "example": "Zero identity activity was recorded from 2025-12-01 to 2026-01-01; incomplete telemetry can miss use, so this does not establish that access is unnecessary.",
+          "example": "No activity was recorded for this identity from 2025-12-01 to 2026-01-01; telemetry can miss use, so the identity may still be needed.",
           "evidence_keys": [
             "risk_state",
             "source",
@@ -68,7 +68,7 @@
       "examples": [
         {
           "status": "FAIL",
-          "example": "Principal \u201c*\u201d (anyone) is allowed sts:AssumeRole on this IAM role. This may admit unintended callers; other policies may still block requests.",
+          "example": "Principal “*” (anyone) is allowed sts:AssumeRole on the resources covered by the statement. This may admit unintended callers; other policies may still block requests.",
           "evidence_keys": [
             "default_trusted_scopes",
             "effective_access",
@@ -117,7 +117,7 @@
       "examples": [
         {
           "status": "UNKNOWN",
-          "example": "Required inventory is incomplete: IAM users (not collected), IAM groups (not collected) and 1 others. These gaps can hide grants or principals, so the assessment cannot establish complete access coverage.",
+          "example": "The scan lacks complete inventory for access analyzer and ecs service and 15 other required inventories. Missing records can hide grants or principals, so full access cannot be assessed.",
           "evidence_keys": [
             "gaps",
             "risk_state"
@@ -137,7 +137,7 @@
       "examples": [
         {
           "status": "FAIL",
-          "example": "The OIDC trust for token.actions.githubusercontent.com has no positive subject restriction. This may admit unintended token holders; other trust and session controls still affect access.",
+          "example": "The OIDC trust for token.actions.githubusercontent.com does not restrict which token subjects it accepts. This may admit unintended token holders; other trust and session controls still affect access.",
           "evidence_keys": [
             "federated_trusts",
             "risk_state",
@@ -159,7 +159,7 @@
       "examples": [
         {
           "status": "FAIL",
-          "example": "The configured API endpoint at https://a.execute-api.us-east-1.amazonaws.com admits internet sources on tcp/443. This can admit internet callers; no connection was attempted.",
+          "example": "The API endpoint at https://a.execute-api.us-east-1.amazonaws.com is configured to accept internet traffic on tcp/443. This can admit internet callers; no connection was attempted.",
           "evidence_keys": [
             "authenticated_endpoint",
             "blocked_by",
@@ -192,7 +192,7 @@
       "examples": [
         {
           "status": "MANUAL",
-          "example": "The declaration permits roles/editor for allUsers. These broad or high-impact grants can widen control; other policies still affect usable access.",
+          "example": "The policy assigns the Editor role to anyone, including anonymous users. These broad or high-impact grants can widen control; other policies still affect usable access.",
           "evidence_keys": [
             "criticality_source",
             "effective_access",
@@ -218,7 +218,7 @@
       "examples": [
         {
           "status": "MANUAL",
-          "example": "Zero identity activity was recorded from 2025-12-01 to 2026-01-01; incomplete telemetry can miss use, so this does not establish that access is unnecessary.",
+          "example": "No activity was recorded for this identity from 2025-12-01 to 2026-01-01; telemetry can miss use, so the identity may still be needed.",
           "evidence_keys": [
             "risk_state",
             "source",
@@ -302,7 +302,7 @@
       "examples": [
         {
           "status": "UNKNOWN",
-          "example": "Required inventory is incomplete: service accounts (not collected), IAM roles (not collected) and 2 others. These gaps can hide grants or principals, so the assessment cannot establish complete access coverage.",
+          "example": "The scan lacks complete inventory for firewall policy and function and 7 other required inventories. Missing records can hide grants or principals, so full access cannot be assessed.",
           "evidence_keys": [
             "gaps",
             "risk_state"
@@ -346,7 +346,7 @@
       "examples": [
         {
           "status": "FAIL",
-          "example": "The configured serverless endpoint at https://web.run.app admits internet sources on tcp/443. This can admit internet callers; no connection was attempted.",
+          "example": "The serverless endpoint at https://web.run.app is configured to accept internet traffic on tcp/443. This can admit internet callers; no connection was attempted.",
           "evidence_keys": [
             "authenticated_endpoint",
             "blocked_by",
@@ -379,7 +379,7 @@
       "examples": [
         {
           "status": "MANUAL",
-          "example": "The assigned role for 44444444-4444-4444-4444-444444444444 permits *. These broad or high-impact grants can widen control; other policies still affect usable access.",
+          "example": "The assigned role for 44444444-4444-4444-4444-444444444444 permits all management actions. These broad or high-impact grants can widen control; other policies still affect usable access.",
           "evidence_keys": [
             "assignment",
             "criticality_source",
@@ -407,7 +407,7 @@
       "examples": [
         {
           "status": "MANUAL",
-          "example": "Zero identity activity was recorded from 2025-12-01 to 2026-01-01; incomplete telemetry can miss use, so this does not establish that access is unnecessary.",
+          "example": "No activity was recorded for this identity from 2025-12-01 to 2026-01-01; telemetry can miss use, so the identity may still be needed.",
           "evidence_keys": [
             "risk_state",
             "source",
@@ -477,7 +477,7 @@
       "examples": [
         {
           "status": "UNKNOWN",
-          "example": "Required inventory is incomplete: directory users (not collected), directory groups (not collected) and 1 others. These gaps can hide grants or principals, so the assessment cannot establish complete access coverage.",
+          "example": "The scan lacks complete inventory for container group and directory applications and 12 other required inventories. Missing records can hide grants or principals, so full access cannot be assessed.",
           "evidence_keys": [
             "gaps",
             "risk_state"
@@ -497,7 +497,7 @@
       "examples": [
         {
           "status": "PASS",
-          "example": "The credential trusts subject \u201crepo:acme/app:ref:refs/heads/main\u201d from https://token.actions.githubusercontent.com. This limits declared token identity; audience and assigned permissions still affect access.",
+          "example": "The credential trusts subject “repo:acme/app:ref:refs/heads/main” from https://token.actions.githubusercontent.com. This limits declared token identity; audience and assigned permissions still affect access.",
           "evidence_keys": [
             "audiences",
             "claims_matching_expression",
@@ -520,7 +520,7 @@
       "examples": [
         {
           "status": "FAIL",
-          "example": "The configured web application endpoint at demo.azurewebsites.net admits internet sources on tcp/443. This can admit internet callers; no connection was attempted.",
+          "example": "The web application endpoint at demo.azurewebsites.net is configured to accept internet traffic on tcp/443. This can admit internet callers; no connection was attempted.",
           "evidence_keys": [
             "authenticated_endpoint",
             "blocked_by",
@@ -553,7 +553,7 @@
       "examples": [
         {
           "status": "MANUAL",
-          "example": "The declaration permits * on *. These broad or high-impact grants can widen control; other policies still affect usable access.",
+          "example": "The role permits every action on every Kubernetes resource in the declared API groups. These broad or high-impact grants can widen control; other policies still affect usable access.",
           "evidence_keys": [
             "criticality_source",
             "effective_access",
@@ -579,7 +579,7 @@
       "examples": [
         {
           "status": "MANUAL",
-          "example": "Zero identity activity was recorded from 2025-12-01 to 2026-01-01; incomplete telemetry can miss use, so this does not establish that access is unnecessary.",
+          "example": "No activity was recorded for this identity from 2025-12-01 to 2026-01-01; telemetry can miss use, so the identity may still be needed.",
           "evidence_keys": [
             "risk_state",
             "source",
@@ -649,7 +649,7 @@
       "examples": [
         {
           "status": "UNKNOWN",
-          "example": "Required inventory is incomplete: namespace roles (not collected), namespace role bindings (not collected) and 1 others. These gaps can hide grants or principals, so the assessment cannot establish complete access coverage.",
+          "example": "The scan lacks complete inventory for endpointslice and ingress and 5 other required inventories. Missing records can hide grants or principals, so full access cannot be assessed.",
           "evidence_keys": [
             "gaps",
             "risk_state"
@@ -669,7 +669,7 @@
       "examples": [
         {
           "status": "FAIL",
-          "example": "The configured Kubernetes service at 8.8.8.8 admits internet sources on tcp/443. This can admit internet callers; no connection was attempted.",
+          "example": "The Kubernetes service at 8.8.8.8 is configured to accept internet traffic on tcp/443. This can admit internet callers; no connection was attempted.",
           "evidence_keys": [
             "authenticated_endpoint",
             "blocked_by",
@@ -817,5 +817,31 @@
       "recorded_provider_statuses": []
     }
   },
-  "limits": "Configuration and recorded claims only; no traffic, IAM request, role assumption or token exchange is performed."
+  "limits": "Configuration and recorded claims only; no traffic, IAM request, role assumption or token exchange is performed.",
+  "plain_language_reaudit": {
+    "applicable_provider_pairs": 27,
+    "native_baseline_examples": 28,
+    "corrections": [
+      "Wildcard management and Kubernetes actions are explained in words.",
+      "Public GCP identities and basic roles are explained instead of displaying member codes.",
+      "Missing and denied inventories are described as scan limitations.",
+      "Internet paths remain configuration observations, not successful connections."
+    ],
+    "native_test_file": "tests/test_peaso_analysis_provider_observations.py",
+    "unreviewed_provider_pairs": [],
+    "verification": {
+      "test_files": [
+        "tests/test_peaso_analysis_provider_observations.py",
+        "tests/test_peaso_analysis_finding_clarity.py",
+        "tests/test_peaso_analysis_trust.py",
+        "tests/test_peaso_analysis_internet_exposure.py",
+        "tests/test_peaso_privesc_finding_explanations_review.py"
+      ],
+      "passing_tests": 2711,
+      "log": "/tmp/shared-natural-review-tests.log",
+      "shared_fixture": "tests/fixtures/shared_evidence_review.json",
+      "shared_fixture_examples": 1939,
+      "maximum_shared_example_characters": 236
+    }
+  }
 }

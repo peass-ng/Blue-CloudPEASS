@@ -1,0 +1,355 @@
+[
+  {
+    "eventID": "d3d3b845-df75-4ab8-803b-af69ff8bf71d",
+    "eventTime": "2026-10-19T18:20:10Z",
+    "eventSource": "kinesisvideo.amazonaws.com",
+    "eventName": "GetSignalingChannelEndpoint",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "channelARN": "arn:aws:kinesisvideo:us-east-1:222233334444:channel/example-kvs-6f9f8275-channel/1792433994303",
+      "singleMasterChannelEndpointConfiguration": {
+        "protocols": [
+          "HTTPS",
+          "WSS"
+        ],
+        "role": "VIEWER"
+      }
+    },
+    "responseElements": null,
+    "readOnly": true,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventID": "fabbfe11-1046-48bd-8a24-c4987525f815",
+    "eventTime": "2026-10-19T18:20:11Z",
+    "eventSource": "kinesisvideo.amazonaws.com",
+    "eventName": "UpdateMediaStorageConfiguration",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "channelARN": "arn:aws:kinesisvideo:us-east-1:222233334444:channel/example-kvs-6f9f8275-channel/1792433994303",
+      "mediaStorageConfiguration": {
+        "streamARN": "arn:aws:kinesisvideo:us-east-1:222233334444:stream/example-kvs-6f9f8275-stream/1792433993908",
+        "status": "ENABLED"
+      }
+    },
+    "responseElements": null,
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventID": "577f401f-08a4-4300-ac14-2fd8eacab757",
+    "eventTime": "2026-10-19T18:20:12Z",
+    "eventSource": "kinesisvideo.amazonaws.com",
+    "eventName": "GetDataEndpoint",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "streamARN": "arn:aws:kinesisvideo:us-east-1:222233334444:stream/example-kvs-6f9f8275-stream/1792433993908",
+      "aPIName": "PUT_MEDIA"
+    },
+    "responseElements": null,
+    "readOnly": true,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventID": "6118d6a3-f4d6-4339-b263-4ae7308c29ed",
+    "eventTime": "2026-10-19T18:20:12Z",
+    "eventSource": "kinesisvideo.amazonaws.com",
+    "eventName": "GetDataEndpoint",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "streamARN": "arn:aws:kinesisvideo:us-east-1:222233334444:stream/example-kvs-6f9f8275-stream/1792433993908",
+      "aPIName": "GET_HLS_STREAMING_SESSION_URL"
+    },
+    "responseElements": null,
+    "readOnly": true,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventID": "b9cb6c99-01f7-4c7f-83b6-ddf9a94eaedc",
+    "eventTime": "2026-10-19T18:20:12Z",
+    "eventSource": "kinesisvideo.amazonaws.com",
+    "eventName": "GetDataEndpoint",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "streamARN": "arn:aws:kinesisvideo:us-east-1:222233334444:stream/example-kvs-6f9f8275-stream/1792433993908",
+      "aPIName": "GET_MEDIA"
+    },
+    "responseElements": null,
+    "readOnly": true,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventID": "00c540d3-eb29-4faf-af65-5d5d4b57a151",
+    "eventTime": "2026-10-19T18:20:12Z",
+    "eventSource": "kinesisvideo.amazonaws.com",
+    "eventName": "UpdateMediaStorageConfiguration",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "channelARN": "arn:aws:kinesisvideo:us-east-1:222233334444:channel/example-kvs-6f9f8275-channel/1792433994303",
+      "mediaStorageConfiguration": {
+        "status": "DISABLED"
+      }
+    },
+    "responseElements": null,
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventID": "d2b46be5-076d-4444-a29d-be91c7027cb2",
+    "eventTime": "2026-10-19T18:20:13Z",
+    "eventSource": "kinesisvideo.amazonaws.com",
+    "eventName": "GetDataEndpoint",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "streamARN": "arn:aws:kinesisvideo:us-east-1:222233334444:stream/example-kvs-6f9f8275-stream/1792433993908",
+      "aPIName": "GET_DASH_STREAMING_SESSION_URL"
+    },
+    "responseElements": null,
+    "readOnly": true,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventID": "8df9d001-0d44-45d0-a46a-7c8e30121d4d",
+    "eventTime": "2026-10-19T18:20:13Z",
+    "eventSource": "kinesisvideo.amazonaws.com",
+    "eventName": "UpdateNotificationConfiguration",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "streamARN": "arn:aws:kinesisvideo:us-east-1:222233334444:stream/example-kvs-6f9f8275-stream/1792433993908",
+      "notificationConfiguration": {
+        "status": "ENABLED",
+        "destinationConfig": {
+          "uri": "arn:aws:sns:us-east-1:222233334444:example-kvs-6f9f8275-topic"
+        }
+      }
+    },
+    "responseElements": null,
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventID": "8671efb7-07ea-4fd7-931f-a923a43e7d26",
+    "eventTime": "2026-10-19T18:20:14Z",
+    "eventSource": "kinesisvideo.amazonaws.com",
+    "eventName": "UpdateDataRetention",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "streamARN": "arn:aws:kinesisvideo:us-east-1:222233334444:stream/example-kvs-6f9f8275-stream/1792433993908",
+      "currentVersion": "LPIGakb93q0yOC9CeqxX",
+      "operation": "DECREASE_DATA_RETENTION",
+      "dataRetentionChangeInHours": 1
+    },
+    "responseElements": null,
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventID": "6a93be4e-5343-4123-8b84-aea78c974722",
+    "eventTime": "2026-10-19T18:20:14Z",
+    "eventSource": "kinesisvideo.amazonaws.com",
+    "eventName": "UpdateImageGenerationConfiguration",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "streamARN": "arn:aws:kinesisvideo:us-east-1:222233334444:stream/example-kvs-6f9f8275-stream/1792433993908",
+      "imageGenerationConfiguration": {
+        "status": "ENABLED",
+        "imageSelectorType": "PRODUCER_TIMESTAMP",
+        "destinationConfig": {
+          "uri": "s3://example-kvs-6f9f8275-222233334444/images/",
+          "destinationRegion": "us-east-1"
+        },
+        "samplingInterval": 200,
+        "format": "JPEG",
+        "formatConfig": {
+          "JPEGQuality": "80"
+        },
+        "widthPixels": 320,
+        "heightPixels": 240
+      }
+    },
+    "responseElements": null,
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventID": "ecd91399-ed79-4c92-a96d-fa3400d55daf",
+    "eventTime": "2026-10-19T18:20:14Z",
+    "eventSource": "kinesisvideo.amazonaws.com",
+    "eventName": "UpdateNotificationConfiguration",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "streamARN": "arn:aws:kinesisvideo:us-east-1:222233334444:stream/example-kvs-6f9f8275-stream/1792433993908",
+      "notificationConfiguration": {
+        "status": "DISABLED",
+        "destinationConfig": {
+          "uri": "arn:aws:sns:us-east-1:222233334444:example-kvs-6f9f8275-topic"
+        }
+      }
+    },
+    "responseElements": null,
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventID": "50bc6f43-75d0-4f01-8058-9228c988696f",
+    "eventTime": "2026-10-19T18:20:15Z",
+    "eventSource": "kinesisvideo.amazonaws.com",
+    "eventName": "DeleteSignalingChannel",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "channelARN": "arn:aws:kinesisvideo:us-east-1:222233334444:channel/example-kvs-6f9f8275-channel/1792433994303"
+    },
+    "responseElements": null,
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventID": "645355d9-4a55-4c19-b161-b73bc0b0bcbe",
+    "eventTime": "2026-10-19T18:20:15Z",
+    "eventSource": "kinesisvideo.amazonaws.com",
+    "eventName": "DeleteStream",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "streamARN": "arn:aws:kinesisvideo:us-east-1:222233334444:stream/example-kvs-6f9f8275-stream/1792433993908"
+    },
+    "responseElements": null,
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventID": "0a66d273-04ef-4c02-8ec4-ae9761d1f5ed",
+    "eventTime": "2026-10-19T18:20:15Z",
+    "eventSource": "kinesisvideo.amazonaws.com",
+    "eventName": "UpdateStream",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "streamARN": "arn:aws:kinesisvideo:us-east-1:222233334444:stream/example-kvs-6f9f8275-stream/1792433993908",
+      "currentVersion": "Rdi0OaZbiev4z24uAJRj",
+      "deviceName": "synthetic-camera-updated",
+      "mediaType": "video/h264"
+    },
+    "responseElements": null,
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventID": "3aafd6d3-1938-44c3-925b-ae80ac85ab90",
+    "eventTime": "2026-10-19T18:21:55Z",
+    "eventSource": "kinesisvideo.amazonaws.com",
+    "eventName": "UpdateImageGenerationConfiguration",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "streamARN": "arn:aws:kinesisvideo:us-east-1:222233334444:stream/example-kvs-image-9afe9080/1792434115616",
+      "imageGenerationConfiguration": {
+        "status": "ENABLED",
+        "imageSelectorType": "PRODUCER_TIMESTAMP",
+        "destinationConfig": {
+          "uri": "s3://example-kvs-image-9afe9080-222233334444/images/",
+          "destinationRegion": "us-east-1"
+        },
+        "samplingInterval": 200,
+        "format": "JPEG",
+        "formatConfig": {
+          "JPEGQuality": "80"
+        },
+        "widthPixels": 320,
+        "heightPixels": 240
+      }
+    },
+    "responseElements": null,
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventID": "5372f3e4-b5ef-4e40-ae31-d3087ff7166b",
+    "eventTime": "2026-10-19T18:21:56Z",
+    "eventSource": "kinesisvideo.amazonaws.com",
+    "eventName": "DeleteStream",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "streamARN": "arn:aws:kinesisvideo:us-east-1:222233334444:stream/example-kvs-image-9afe9080/1792434115616"
+    },
+    "responseElements": null,
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventID": "85a3ca30-19e2-4b6a-afb2-842f5a8b076b",
+    "eventTime": "2026-10-19T18:21:56Z",
+    "eventSource": "kinesisvideo.amazonaws.com",
+    "eventName": "UpdateImageGenerationConfiguration",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "streamARN": "arn:aws:kinesisvideo:us-east-1:222233334444:stream/example-kvs-image-9afe9080/1792434115616",
+      "imageGenerationConfiguration": {
+        "status": "DISABLED",
+        "imageSelectorType": "PRODUCER_TIMESTAMP",
+        "destinationConfig": {
+          "uri": "s3://example-kvs-image-9afe9080-222233334444/images/",
+          "destinationRegion": "us-east-1"
+        },
+        "samplingInterval": 200,
+        "format": "JPEG",
+        "formatConfig": {
+          "JPEGQuality": "80"
+        },
+        "widthPixels": 320,
+        "heightPixels": 240
+      }
+    },
+    "responseElements": null,
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  }
+]

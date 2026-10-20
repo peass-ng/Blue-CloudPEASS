@@ -93,6 +93,14 @@ def description_for(check_id):
                    gcp_remaining_clarity_reviewed, aws_database_clarity_reviewed, azure_bulk_clarity_reviewed, aws_remaining_clarity_reviewed, aws_final_clarity_reviewed, aws_bulk_clarity_reviewed, aws_compute_storage_clarity_reviewed):
         if check_id in overlay.ROWS:
             original = overlay.description(check_id, original)
+    if check_id == "aws_cis_aws_resource_policy_unrestricted_principal":
+        original = {
+            "description": "Reviews collected AWS resource-policy documents for wildcard-principal Allow statements without a recognized positive caller or network boundary. Services and nested resources are enumerated by explicit read-only discovery recipes. Missing/denied policies remain collection gaps; a readable unrestricted grant can fail even when another family could not be read.",
+            "evaluated": ["aws_resource_policy.ResourceArn", "aws_resource_policy.Policy.Statement[]", "Statement.Principal/NotPrincipal, Effect, Action/NotAction, Resource/NotResource and Condition", "collector account, Region and home-endpoint provenance"],
+            "pass_when": "The observed policy has no unrestricted wildcard Allow, or a covering unconditional Deny prevents that Allow.",
+            "fail_when": "An observed wildcard-principal Allow lacks a positive, non-tautological caller/network boundary and no relevant Deny can constrain it.",
+            "not_applicable_when": None,
+        }
     return original
 
 
@@ -268,10 +276,13 @@ def raw_mappings(data):
 
 def mappings_for(check_id, category, control):
     from . import HACKTRICKS, HACKTRICKS_URL
+    from .hacktricks_scope import includes
     from .hacktricks_bp_common import hacktricks_references
     pages = hacktricks_references(check_id)
     result = {HACKTRICKS: {"control": category, "reference": pages[0] if pages else HACKTRICKS_URL, "assurance": "thematic",
                            **({"references": pages, "assurance": "derived from the referenced HackTricks Cloud technique"} if pages else {})}}
+    if not includes(check_id):
+        result = {}
     display = framework_display_names()
     if _compliance() is not None:
         for tag in requirement_tags_for(check_id):
@@ -350,23 +361,26 @@ def expand_framework_selectors(values):
     return expanded
 
 
-def names_for_ids(ids, display=None):
+def names_for_ids(ids, display=None, *, check_id=None):
     from . import HACKTRICKS
+    from .hacktricks_scope import includes
     display = framework_display_names() if display is None else display
-    return [HACKTRICKS] + sorted({display.get(fid, fid) for fid in ids} - {HACKTRICKS})
+    return ([HACKTRICKS] if check_id is not None and includes(check_id) else []) + sorted({display.get(fid, fid) for fid in ids} - {HACKTRICKS})
 
 
 @lru_cache(maxsize=None)
 def _names_for(check_id):
-    return tuple(names_for_ids(framework_ids_for(check_id)))
+    return tuple(names_for_ids(framework_ids_for(check_id), check_id=check_id))
 
 
 def framework_names_for(check_id):
-    """HackTricks plus one canonical display name per mapped framework version (never a family slug)."""
+    """Reviewed checklist membership plus canonical upstream framework names."""
     return list(_names_for(check_id))
 
 
 def clear_caches():
+    from .hacktricks_scope import review
+    review.cache_clear()
     for cached in (_compliance, full_requirements, _proposals, manifest, _mappings, _runtime, _raw_catalog_rows, framework_display_names, framework_selector_index, _names_for):
         cached.cache_clear()
 
@@ -405,10 +419,10 @@ def provenance_for(check_id):
     return [{key: row[key] for key in ("check_id", "repository", "source", "revision", "license", "disposition")} for row in _mappings().get(check_id, [])]
 
 
-def framework_catalog():
+def framework_catalog(source=None):
     """Source checklist/version selectors; availability is explicit per entry."""
-    runtime = _runtime()
-    rows = deepcopy(runtime["frameworks"]) if runtime is not None else raw_framework_catalog(manifest())
+    runtime = _runtime() if source is None else None
+    rows = deepcopy(runtime["frameworks"]) if runtime is not None else raw_framework_catalog(manifest() if source is None else source)
     packed = _compliance()
     if packed is None:
         from .native_only import automated_frameworks
@@ -477,7 +491,7 @@ def runtime_metadata(data):
     lookup = {}
     for cid, rows in mappings.items():
         ids = sorted({mapping["framework_id"] for row in rows for mapping in row["frameworks"]})
-        lookup[cid] = {"names": names_for_ids(ids, display), "ids": ids}
+        lookup[cid] = {"names": names_for_ids(ids, display, check_id=cid), "ids": ids}
     manual = manual_requirements(data)
     return {"schema_version": "1.1", "mappings": mappings, "framework_lookup": lookup, "frameworks": frameworks, "manual_requirements": manual,
         "coverage": {"native_checks": len(CHECKS), "upstream_total": len(data["checks"]),

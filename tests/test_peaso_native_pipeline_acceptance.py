@@ -42,7 +42,7 @@ def test_native_pipeline_publishes_and_isolates_reports(tmp_path, provider, sele
             "auth": {}, "scopes": ["fixture"], "options": {"snapshot": native_snapshot(provider)}})
         assert connector.status_code == 201, connector.text
         # Empty selectors exercise the production API default, including all analyses.
-        scan = client.post("/api/scans", json={"connector_id": connector.json()["id"], **selectors})
+        scan = client.post("/api/scans", json={"ai_enabled": False, "connector_id": connector.json()["id"], **selectors})
         assert scan.status_code == 201, scan.text
         ident = scan.json()["id"]
         assert Worker("collector", settings).run_once()

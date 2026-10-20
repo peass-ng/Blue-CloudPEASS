@@ -95,7 +95,7 @@ def test_native_legacy_identifiers_follow_actual_predicate_instead_of_the_title(
 
 def test_all_new_native_shape_rules_replay_both_interpretable_statuses_and_remain_source_bound():
     from peaso.checks.azure_native_evidence_observations import ROWS as NATIVE_ROWS
-    assert len(NATIVE_ROWS) == 325
+    assert len(NATIVE_ROWS) == 477
     for cid, rules in NATIVE_ROWS.items():
         encoded = json.dumps(rules, sort_keys=True, separators=(',', ':')).encode()
         assert hashlib.sha256(encoded).hexdigest() == LEDGER[cid]['native_observation_rules_sha256']
@@ -108,7 +108,7 @@ def test_all_new_native_shape_rules_replay_both_interpretable_statuses_and_remai
 def test_count_only_success_reports_its_evidence_limit_instead_of_inventing_configuration():
     finding = {'provider': 'azure', 'check_id': 'azure.gap.asset_inventory_required_metadata', 'status': 'PASS', 'evidence': {'evaluated': 7}}
     observed = native_observation(finding)
-    assert observed == 'The result records 7 assessed resources; individual inventory tags were not stored.'
+    assert observed == 'The check assessed 7 resources; individual inventory tags were not retained.'
     finding['evidence']['evaluated'] = True
     assert native_observation(finding) is None
 
@@ -150,3 +150,24 @@ def test_rsa_observation_uses_actual_weak_modulus_and_rejects_a_nonweak_failure_
             row['measured_rsa_modulus_bits'] = 4096
     assert native_observation(finding) is None
     assert evidence_summary(finding) is None
+
+
+def test_native_explanations_are_sentences_instead_of_field_codes_and_flag_dumps():
+    from peaso.checks.azure_native_evidence_observations import ROWS as NATIVE_ROWS
+    for cid in NATIVE_ROWS:
+        for case in CASES[cid]:
+            if case['status'] not in {'PASS', 'FAIL'}:
+                continue
+            observed = native_observation(dict(case, provider='azure', check_id=cid))
+            assert observed and observed.endswith('.'), (cid, observed)
+            assert not re.search(r'\b\w+_\w+\b|\b(?:True|False|NonCompliant|Compliant)\b', observed), (cid, observed)
+            assert not re.search(r'\b(?:present|enabled|configured|password|mfa)\s*:\s*[01]\b', observed, re.I), (cid, observed)
+            assert not re.search(r'\([^)]*:\s*(?:\d+|enabled|disabled)\)', observed), (cid, observed)
+
+
+def test_numeric_boolean_flags_are_not_reinterpreted_as_observed_settings():
+    finding = {'provider': 'azure', 'check_id': 'azure.claude.keyvault_audit_and_alllogs_groups',
+               'status': 'FAIL', 'evidence': {'all_logs_group': 0, 'audit_group': 0}}
+    assert native_observation(finding) is None
+    finding['evidence'] = {'all_logs_group': False, 'audit_group': False}
+    assert native_observation(finding) == 'The vault disables both the required audit-log and complete-log category groups.'

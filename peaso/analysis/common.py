@@ -16,6 +16,13 @@ from functools import lru_cache, wraps
 from peaso.snapshot import FrozenDict, FrozenList, digest
 
 FRAMEWORKS = ["HackTricks Cloud Best Practices"]
+
+
+def frameworks_for(check_id):
+    from peaso.checks.hacktricks_scope import includes
+    return list(FRAMEWORKS) if includes(check_id) else []
+
+
 RANK = {"critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4}
 _CONTEXT = ContextVar("peaso_analysis_context", default=None)
 
@@ -102,14 +109,17 @@ def source(snapshot, resource, path):
 
 
 def finding(snapshot, resource, category, check, title, severity, evidence, *, status="MANUAL"):
+    from peaso.finding_types import type_for
+    from peaso.check_services import service_for
     from .finding_clarity import HOW, ACTION, evidence_summary, network_priority
     if check == "analysis.network_review":
         severity = network_priority(evidence, severity)
     result = {"id": stable_id(category, check, node_id(resource)),
             "category": category, "check_id": check, "title": title,
-            "provider": resource["provider"], "service": resource.get("service", resource["type"]),
+            "finding_type": type_for(check),
+            "provider": resource["provider"], "service": service_for(resource["provider"], resource["type"], resource.get("service")),
             "resource_id": resource.get("id", native_id(resource)), "scope": resource["scope"], "severity": severity,
-            "status": status, "frameworks": list(FRAMEWORKS), "evidence": _share(evidence),
+            "status": status, "frameworks": frameworks_for(check), "evidence": _share(evidence),
             "remediation": ACTION.get(check, "Review the recorded access declaration before changing it.")}
     if check in HOW:
         result["description"] = HOW[check]

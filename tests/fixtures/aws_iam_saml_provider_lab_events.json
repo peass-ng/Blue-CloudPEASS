@@ -1,0 +1,25 @@
+[
+  {
+    "eventTime": "2026-10-19T16:45:49Z",
+    "eventSource": "iam.amazonaws.com",
+    "eventName": "UpdateSAMLProvider",
+    "awsRegion": "us-east-1",
+    "eventID": "c957be76-ef4c-4891-8ef2-7066497f19b3",
+    "eventType": "AwsApiCall",
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "requestParameters": {
+      "sAMLProviderArn": "arn:aws:iam::222233334444:saml-provider/example-saml-68506f7eb9",
+      "sAMLMetadataDocument": "REDACTED_PUBLIC_SAML_METADATA"
+    },
+    "responseElements": {
+      "sAMLProviderArn": "arn:aws:iam::222233334444:saml-provider/example-saml-68506f7eb9"
+    },
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  }
+]

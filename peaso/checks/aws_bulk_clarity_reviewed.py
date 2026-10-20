@@ -92,22 +92,22 @@ ROWS=json.loads(r'''
         "peaso.checks._bulk_pending_compliance_new_sw35._bucket:106": "e493342d52113857ba0d0af8ddd5f32503d2944564dc0051a3554de726460ccc",
         "peaso.checks._bulk_pending_compliance_new_sw35._bucket_logging:113": "68fc91ccd885bd01b93f958ea79dd31166c6af13c042d6770923cd2ca019aaa0",
         "peaso.checks._bulk_pending_compliance_new_sw35._buckets:95": "227115d6eb587786a120a21452bc2f26db85062029a81d9f4ad1158a7bab8d8b",
-        "peaso.checks._bulk_pending_compliance_new_sw35._cloudtrail:206": "cb920c1e51ee65b09c0a2e4af0d3a5c430d17ab02ad8b450bbecf8b4f0f68c42",
+        "peaso.checks._bulk_pending_compliance_new_sw35._cloudtrail:206": "7fc7f38f518800a5a237de0a0c8b4937dcdf8c6ca2e10d180f0e5337f75b16ba",
         "peaso.checks._bulk_pending_compliance_new_sw35._cmk:167": "96e40d1857f7bb7cb2660935c2e41b65c401e24c3cb3b516e384e178ce1aa3b9",
         "peaso.checks._bulk_pending_compliance_new_sw35._context:18": "48b3eff2b783841a7478854de3ef23f3c9600d0b262b1794a8582bc34b330809",
-        "peaso.checks._bulk_pending_compliance_new_sw35._evaluate:541": "db6c233dce944c8523f68ebf521fbf5bdfa8a548e3ea4b098f3373cc2bd71944",
+        "peaso.checks._bulk_pending_compliance_new_sw35._evaluate:571": "db6c233dce944c8523f68ebf521fbf5bdfa8a548e3ea4b098f3373cc2bd71944",
         "peaso.checks._bulk_pending_compliance_new_sw35._fresh:199": "9cdf65b158b6f51314e700fefa8857746f70b9f0287e7aabed574b1fb078cddb",
         "peaso.checks._bulk_pending_compliance_new_sw35._keys:155": "b5ce980ad26baadef5b7298e7ec5d315b91962928303c5b94d059ccf6e59f538",
         "peaso.checks._bulk_pending_compliance_new_sw35._log_group:141": "d9daab07009418426d93241d4368f389c07d6cdcce215e3919bd12e5fcf8718e",
         "peaso.checks._bulk_pending_compliance_new_sw35._log_groups:129": "641b90e97047905dd88770f7df2172cea89b1c98fa63561da9e2eb5700ff59f7",
         "peaso.checks._bulk_pending_compliance_new_sw35._logging_trails:86": "bd9ce49432fd6c17fd2dd9fc90940c119a3b72129ee39f3823cd16dcfc70ffd0",
-        "peaso.checks._bulk_pending_compliance_new_sw35._policy:424": "e452be311f5a85f4efe2ece666384392fdbedd6ad6fde9a6fcc855f5c34fa881",
-        "peaso.checks._bulk_pending_compliance_new_sw35._registered:556": "0b9679c5acb0a2c3d4d45db82a7142195783c971b43ac1b6a32e30874dd41d7e",
+        "peaso.checks._bulk_pending_compliance_new_sw35._policy:454": "e452be311f5a85f4efe2ece666384392fdbedd6ad6fde9a6fcc855f5c34fa881",
+        "peaso.checks._bulk_pending_compliance_new_sw35._registered:586": "0b9679c5acb0a2c3d4d45db82a7142195783c971b43ac1b6a32e30874dd41d7e",
         "peaso.checks._bulk_pending_compliance_new_sw35._rows:27": "21633a64b94ae91fc79c7b380b07edc77a245adcb678b19112a3bd43ac0085b3",
-        "peaso.checks._bulk_pending_compliance_new_sw35._ssm:452": "e5813f4c7b7a39967a90b4b2cf87b5aacaef0883016be87d60241c2c2d7637b1",
+        "peaso.checks._bulk_pending_compliance_new_sw35._ssm:482": "e5813f4c7b7a39967a90b4b2cf87b5aacaef0883016be87d60241c2c2d7637b1",
         "peaso.checks._bulk_pending_compliance_new_sw35._time:187": "5784d81b10523f17207ad7111a67f6f185f2737a625cb9ed54cd01eadac1cdcb",
         "peaso.checks._bulk_pending_compliance_new_sw35._trails:54": "f1daede05c5e264575b3ddd0844fb83c3a1df06eebd07ec719f1223e889bfb25",
-        "peaso.checks._bulk_pending_compliance_new_sw35._versions_at_least:441": "6ffde1815a868afa5d9dfa65e34edb92a5ddc9bfcc6d28d1794b4530b9b959f8"
+        "peaso.checks._bulk_pending_compliance_new_sw35._versions_at_least:471": "6ffde1815a868afa5d9dfa65e34edb92a5ddc9bfcc6d28d1794b4530b9b959f8"
       },
       "source_qualname": "_registered"
     },
@@ -147,11 +147,7 @@ ROWS=json.loads(r'''
       "summary": "Restrict only unnecessary ingress sources, ports or listeners on the identified path."
     },
     "reviewed_binding": {
-      "kind": "ec2_instance",
-      "module": "peaso.checks._bulk_pending_compliance_new_sw37",
-      "source_qualname": "nist_reach",
       "closure": {},
-      "defaults": null,
       "constants": {
         "peaso.checks._bulk_pending_compliance_new_sw37._rows:58::GLOBAL_KINDS": [
           "cloudfront_distribution",
@@ -168,6 +164,9 @@ ROWS=json.loads(r'''
           "shield_subscription"
         ]
       },
+      "defaults": null,
+      "kind": "ec2_instance",
+      "module": "peaso.checks._bulk_pending_compliance_new_sw37",
       "predicate_sources": {
         "peaso.checks._bulk_pending_compliance_new_sw37._account:110": "0557de7589935ca7b17b5b8dc886a28467bd2215fbea66e5f56b4a1d2b9cc0a3",
         "peaso.checks._bulk_pending_compliance_new_sw37._account_arn:118": "cbe535c81de20cad9dfe261f71512b3fbf0dd31e80f22074851df19136624e09",
@@ -177,7 +176,8 @@ ROWS=json.loads(r'''
         "peaso.checks._bulk_pending_compliance_new_sw37._rows:58": "8f7abdaf6cebf992749e3e83418d8091f5891d38bb9c1bd1bbe61277d5daf8c3",
         "peaso.checks._bulk_pending_compliance_new_sw37._scope:49": "9af44f1b2451ca6be4b5bf54996ddc2943adac973d2722464f7d18e54302b501",
         "peaso.checks._bulk_pending_compliance_new_sw37.nist_reach:475": "b33a8b0ff9cc8416e162375ec23e4935106cc7fd10a0a3525a6425895c2576bf"
-      }
+      },
+      "source_qualname": "nist_reach"
     },
     "reviewed_severity": "medium",
     "reviewed_source_severity": "medium",
@@ -299,7 +299,7 @@ ROWS=json.loads(r'''
   "aws.pci.classic_elb.predefined_ssl_policy": {
     "description_base_sha256": "3bf48cd8e3a289d655adc67775138b4d0c98e6151a55ed812c98637ecf577d9c",
     "description_fields": {
-      "description": "Compares each HTTPS/SSL listener’s policy name, type and attributes with the native predefined policy catalog."
+      "description": "Compares each HTTPS/SSL listener\u2019s policy name, type and attributes with the native predefined policy catalog."
     },
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
@@ -505,7 +505,7 @@ ROWS=json.loads(r'''
       "predicate_sources": {
         "peaso.checks._bulk_pending_compliance_new_sw40._context:35": "24a3c8c283d7e2dfbeafd355205c183825acd121eaf5fdf0fa2bae69b6fbcd4d",
         "peaso.checks._bulk_pending_compliance_new_sw40._document:67": "443dbbf716af6733c37d3ae2e8571caf84ee580049ad297693a60a9d53d2b938",
-        "peaso.checks._bulk_pending_compliance_new_sw40._managed_document:114": "1cc91d504ae556180a871779574b22e5ef7f695b046d417fb55b1b1fa921bfe5",
+        "peaso.checks._bulk_pending_compliance_new_sw40._managed_document:114": "e14f3335c4b709fb4993bd3a1af08aba587f7c41b87eeac45b0bd3b8de729094",
         "peaso.checks._bulk_pending_compliance_new_sw40._nonconsole_mfa:470": "c668145b412de5faf632486dd8024826446f1a96e75bb1a3ea527fd06215f0f3",
         "peaso.checks._bulk_pending_compliance_new_sw40._one_policy:199": "6ee380ad5a0b2960cebbffa47092548f43b2eb0de3833993e630d04ca8281d69",
         "peaso.checks._bulk_pending_compliance_new_sw40._rows:46": "71e3728469f5a6dc199c8eafcdbedfd62ba427a00c7d102d47bb64e881bc2811",
@@ -516,7 +516,7 @@ ROWS=json.loads(r'''
     },
     "reviewed_severity": "high",
     "reviewed_source_severity": "high",
-    "static_observed_sentence": "An administrator wildcard statement lacks this profile’s explicit MFA-present condition."
+    "static_observed_sentence": "An administrator wildcard statement lacks this profile\u2019s explicit MFA-present condition."
   },
   "aws.pci.iam.policy_attached_to_active_principal": {
     "description_base_sha256": "8c0a822c26a0300ee6851a4cd507ac58d3a7da2a1ffd223de6fb6b4e31bdb32d",
@@ -551,39 +551,39 @@ ROWS=json.loads(r'''
       "summary": "Remove unused policies or attach only where required after reviewing actual usage."
     },
     "reviewed_binding": {
-      "kind": "iam_policy",
-      "module": "peaso.checks._bulk_pending_compliance_new_sw40",
-      "source_qualname": "_policy_attachment",
       "closure": {},
-      "defaults": null,
       "constants": {
         "peaso.checks._bulk_pending_compliance_new_sw40._context:35::_ACCOUNT": {
-          "regex": "^[0-9]{12}$",
-          "flags": 32
-        },
-        "peaso.checks._bulk_pending_compliance_new_sw40._native_policy_attachment:233::_ARN": {
-          "regex": "^arn:(aws(?:-[a-z0-9-]+)?):iam::([0-9]{12}|aws):policy/.+$",
-          "flags": 32
+          "flags": 32,
+          "regex": "^[0-9]{12}$"
         },
         "peaso.checks._bulk_pending_compliance_new_sw40._managed_document:114::_ARN": {
-          "regex": "^arn:(aws(?:-[a-z0-9-]+)?):iam::([0-9]{12}|aws):policy/.+$",
-          "flags": 32
+          "flags": 32,
+          "regex": "^arn:(aws(?:-[a-z0-9-]+)?):iam::([0-9]{12}|aws):policy/.+$"
+        },
+        "peaso.checks._bulk_pending_compliance_new_sw40._native_policy_attachment:233::_ARN": {
+          "flags": 32,
+          "regex": "^arn:(aws(?:-[a-z0-9-]+)?):iam::([0-9]{12}|aws):policy/.+$"
         }
       },
+      "defaults": null,
+      "kind": "iam_policy",
+      "module": "peaso.checks._bulk_pending_compliance_new_sw40",
       "predicate_sources": {
         "peaso.checks._bulk_pending_compliance_new_sw40._context:35": "24a3c8c283d7e2dfbeafd355205c183825acd121eaf5fdf0fa2bae69b6fbcd4d",
         "peaso.checks._bulk_pending_compliance_new_sw40._declared_role_trust:378": "42340d84284104aa79293cd08e7629f61c91c0ff129d4f5693181075caab79ac",
         "peaso.checks._bulk_pending_compliance_new_sw40._document:67": "443dbbf716af6733c37d3ae2e8571caf84ee580049ad297693a60a9d53d2b938",
-        "peaso.checks._bulk_pending_compliance_new_sw40._managed_document:114": "1cc91d504ae556180a871779574b22e5ef7f695b046d417fb55b1b1fa921bfe5",
+        "peaso.checks._bulk_pending_compliance_new_sw40._managed_document:114": "e14f3335c4b709fb4993bd3a1af08aba587f7c41b87eeac45b0bd3b8de729094",
         "peaso.checks._bulk_pending_compliance_new_sw40._native_policy_attachment:233": "a5b87fc74d8e4f40f988152706bf8d3a5b866263aff5bb49665672be982db81a",
         "peaso.checks._bulk_pending_compliance_new_sw40._one_policy:199": "6ee380ad5a0b2960cebbffa47092548f43b2eb0de3833993e630d04ca8281d69",
         "peaso.checks._bulk_pending_compliance_new_sw40._policy_attachment:417": "c23ca6c480aabdd58eff36a2502c84adcc3201cfa0fec0978cc3f2d7b2a3bb2c",
         "peaso.checks._bulk_pending_compliance_new_sw40._rows:46": "71e3728469f5a6dc199c8eafcdbedfd62ba427a00c7d102d47bb64e881bc2811"
-      }
+      },
+      "source_qualname": "_policy_attachment"
     },
     "reviewed_severity": "info",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "The policy lacks an attachment satisfying this source’s principal and trust criteria."
+    "static_observed_sentence": "The policy lacks an attachment satisfying this source\u2019s principal and trust criteria."
   },
   "aws.pci.shield.protection_all_internet_resources": {
     "description_base_sha256": "be2413e6a1eaaacc87b2e8ef4a04418370d4a487217361f3d119787744bad363",
@@ -930,22 +930,10 @@ ROWS=json.loads(r'''
       "summary": "Confirm the detected credential, rotate it if real and move authentication out of user data."
     },
     "reviewed_binding": {
-      "kind": "autoscaling_launch_configuration",
-      "module": "peaso.checks._bulk_pending_compliance_new_sw48",
-      "source_qualname": "_install.<locals>.check",
       "closure": {
         "identifier": "aws_autoscaling_userdata_plaintext_aws_key"
       },
-      "defaults": null,
       "constants": {
-        "peaso.checks._bulk_pending_compliance_new_sw48._inventory:34::_SCOPE": {
-          "regex": "^[0-9]{12}/[a-z0-9-]+$",
-          "flags": 32
-        },
-        "peaso.checks._bulk_pending_compliance_new_sw48._inventory:34::_ARN": {
-          "regex": "^arn:aws(?:-[a-z0-9-]+)?:[^:]+:[a-z0-9-]*:[0-9]{12}:.+$",
-          "flags": 32
-        },
         "peaso.checks._bulk_pending_compliance_new_sw48._install.<locals>.check:811::EVALUATORS": {
           "aws.nist.sc_36_coverage": {
             "callable": "peaso.checks._bulk_pending_compliance_new_sw48._recovery"
@@ -992,13 +980,25 @@ ROWS=json.loads(r'''
           "aws_vpn_tunnel_encryption_configuration": {
             "callable": "peaso.checks._bulk_pending_compliance_new_sw48._vpn"
           }
+        },
+        "peaso.checks._bulk_pending_compliance_new_sw48._inventory:34::_ARN": {
+          "flags": 32,
+          "regex": "^arn:aws(?:-[a-z0-9-]+)?:[^:]+:[a-z0-9-]*:[0-9]{12}:.+$"
+        },
+        "peaso.checks._bulk_pending_compliance_new_sw48._inventory:34::_SCOPE": {
+          "flags": 32,
+          "regex": "^[0-9]{12}/[a-z0-9-]+$"
         }
       },
+      "defaults": null,
+      "kind": "autoscaling_launch_configuration",
+      "module": "peaso.checks._bulk_pending_compliance_new_sw48",
       "predicate_sources": {
         "peaso.checks._bulk_pending_compliance_new_sw48._install.<locals>.check:811": "ae35cf3acf73d2d9b595a8f64672eba95725a8530d896346dfb770b772644588",
         "peaso.checks._bulk_pending_compliance_new_sw48._inventory:34": "28c7fa38621503a88a0564acb5b0abd82e7036874d3c1edd271d85c2aecb2d9e",
         "peaso.checks._bulk_pending_compliance_new_sw48._userdata:691": "7f17e4839c2352be0a68c3596c21ece5af57c7533f13557e07603faa9ebb898d"
-      }
+      },
+      "source_qualname": "_install.<locals>.check"
     },
     "reviewed_severity": "high",
     "reviewed_source_severity": "high",
@@ -1046,7 +1046,7 @@ ROWS=json.loads(r'''
         "peaso.checks._bulk_pending_compliance_new_sw42._rows:63": "849fde7ce1d4d00e72606efd399c2fd3f200edca6864a9c492ae5d57034d198b",
         "peaso.checks._bulk_pending_compliance_new_sw42._scope:53": "d54ebef4ffc206be4869114911f42814e9060cd7dd84b2f04843e84d6ccb80f8",
         "peaso.checks._bulk_pending_compliance_new_sw42._timestamp:125": "e0cb541c5d63dd170fd5aca7c8d6af24f81d5b4d82c84cfd0835056c241406c8",
-        "peaso.checks._bulk_pending_compliance_new_sw42.backup_recent_restore_test:705": "b910b4b875305ffcc203d5132b9d4d5e30de95458d33106a2075e041f9de348b"
+        "peaso.checks._bulk_pending_compliance_new_sw42.backup_recent_restore_test:679": "b910b4b875305ffcc203d5132b9d4d5e30de95458d33106a2075e041f9de348b"
       },
       "source_qualname": "backup_recent_restore_test"
     },
@@ -1057,7 +1057,7 @@ ROWS=json.loads(r'''
   "aws_cis_aws_resource_policy_unrestricted_principal": {
     "description_base_sha256": "86a9d3a7b1d73e839e90fe6a52dbad6606780f97a54d7d5f43fc01b6356ded89",
     "description_fields": {
-      "description": "Finds wildcard-principal Allow statements without a supported restricting condition; explicit Deny interactions remain UNKNOWN."
+      "description": "Finds wildcard-principal grants without supported account, organization or network boundaries; covering Denies are considered, and unresolved policy interactions remain UNKNOWN."
     },
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
@@ -1067,8 +1067,8 @@ ROWS=json.loads(r'''
       "cli": [],
       "field_binding": {
         "fields": [
-          "existing resource policy documents plus read-only s3:GetBucketPolicy Policy, lambda:GetPolicy Policy, events:DescribeEventBus Policy, secretsmanager:GetResourcePolicy ResourcePolicy, sns:GetTopicAttributes Policy, sqs:GetQueueAttributes Policy, kms:GetKeyPolicy Policy, apigateway:GetRestApi policy",
-          "Complete inventories: aws_resource_policy"
+          "aws_resource_policy.ResourceArn, Policy.Statement[].Effect, Principal, NotPrincipal, Action, NotAction, Resource, NotResource, Condition; read-only recipe provenance",
+          "Complete inventories: aws_resource_policy; incomplete collections retain confirmed unrestricted grants"
         ],
         "kind": "aws_resource_policy",
         "target": "resource"
@@ -1087,26 +1087,19 @@ ROWS=json.loads(r'''
     },
     "reviewed_binding": {
       "closure": {},
-      "constants": {
-        "peaso.checks._bulk_pending_compliance_new_sw39._restricted:469::_BOUND_KEYS": [
-          "aws:principalarn",
-          "aws:principalorgid",
-          "aws:sourceaccount",
-          "aws:sourcearn"
-        ]
-      },
+      "constants": {},
       "defaults": null,
       "kind": "aws_resource_policy",
-      "module": "peaso.checks._bulk_pending_compliance_new_sw39",
+      "module": "peaso.checks.aws_resource_policy_scope",
       "predicate_sources": {
-        "peaso.checks._bulk_pending_compliance_new_sw39._arn_scope:113": "330f3e33d1d20980e4c418ac5ad0ba25ec5197e16a6787674078aa3e7b6f0a7a",
-        "peaso.checks._bulk_pending_compliance_new_sw39._item:73": "bfb5da8658d714038370d20892a3e5c2e30122b50e98ca2e3ccf949352292128",
-        "peaso.checks._bulk_pending_compliance_new_sw39._restricted:469": "d6b779272fa7051fe89fc85e9a81532b07aff7ad010459c53001fb8ca5690656",
-        "peaso.checks._bulk_pending_compliance_new_sw39._rows:53": "3a2a7cab83381143eb3887a72bca8de6612e454f71370bffeb1f21a439526a86",
-        "peaso.checks._bulk_pending_compliance_new_sw39._scope:43": "d54ebef4ffc206be4869114911f42814e9060cd7dd84b2f04843e84d6ccb80f8",
-        "peaso.checks._bulk_pending_compliance_new_sw39.unrestricted_policy:490": "b2e75c03e16a9151dbb5fb67470cef95dd87b0d91f8987775997cc776d580369"
+        "peaso.checks.aws_resource_policy_scope.boundary:21": "1f334d5aa13894d2de4be038ab7cd37065da834a7effac41e955b10cc4228702",
+        "peaso.checks.aws_resource_policy_scope.evaluate:242": "6245ad771e3d648a1490c7689a84253272ce7b147429beea63ae1668de7ce47f",
+        "peaso.checks.aws_resource_policy_scope.principal_values:112": "d595ee47d9abacb7c622dd625cf5b42fb58ad9c5d94bbdbc0b9e5aa4fe86b4c7",
+        "peaso.checks.aws_resource_policy_scope.public_principal:103": "28636f5d545145ef276774b629e59996ceb47bd0a7a0bd87b1a6683839a7ed61",
+        "peaso.checks.aws_resource_policy_scope.review_document:122": "a2097da86433b353f6f4139ddb5899af15c3b3e9503b3f172e005a7e7128bad0",
+        "peaso.checks.aws_resource_policy_scope.strings:14": "2c45d9d20c0a590ec34c3f99d287ee597b7ee4772ef376f56d1895d8a647fbef"
       },
-      "source_qualname": "unrestricted_policy"
+      "source_qualname": "evaluate"
     },
     "reviewed_severity": "high",
     "reviewed_source_severity": "high",
@@ -1151,11 +1144,10 @@ ROWS=json.loads(r'''
       "module": "peaso.checks._bulk_pending_compliance_new_sw42",
       "predicate_sources": {
         "peaso.checks._bulk_pending_compliance_new_sw42._arn_scope:100": "518b8c9bc4295ae8abe707706c5c781da024195632a3de19d9090c7fa77b8652",
-        "peaso.checks._bulk_pending_compliance_new_sw42._child:137": "fd87692bf3e63e7b21bcb376ad9805b37b79bf472080676a016e7c46dc897242",
         "peaso.checks._bulk_pending_compliance_new_sw42._item:91": "9d982a09093381f5b3e0c96e00f59e44c72b7d7079b3a95ee80613872d455cbe",
         "peaso.checks._bulk_pending_compliance_new_sw42._rows:63": "849fde7ce1d4d00e72606efd399c2fd3f200edca6864a9c492ae5d57034d198b",
         "peaso.checks._bulk_pending_compliance_new_sw42._scope:53": "d54ebef4ffc206be4869114911f42814e9060cd7dd84b2f04843e84d6ccb80f8",
-        "peaso.checks._bulk_pending_compliance_new_sw42.lightsail_bucket_private:293": "c53226a30755908930895fd1f294defd2fb7811ff3ff71665a90cfc7c89af6e4"
+        "peaso.checks._bulk_pending_compliance_new_sw42.lightsail_bucket_private:293": "5598062e7ad6d17f35f81dc0217dc9f6a0ff045958e83764c0290fc4dba135e4"
       },
       "source_qualname": "lightsail_bucket_private"
     },
@@ -1190,9 +1182,9 @@ ROWS=json.loads(r'''
       ],
       "review_status": "approved",
       "steps": [
-        "Delegate policy management only where the organization’s administration model requires it."
+        "Delegate policy management only where the organization\u2019s administration model requires it."
       ],
-      "summary": "Delegate policy management only where the organization’s administration model requires it."
+      "summary": "Delegate policy management only where the organization\u2019s administration model requires it."
     },
     "reviewed_binding": {
       "closure": {},
@@ -1310,22 +1302,22 @@ ROWS=json.loads(r'''
         "peaso.checks._bulk_pending_compliance_new_sw35._bucket:106": "e493342d52113857ba0d0af8ddd5f32503d2944564dc0051a3554de726460ccc",
         "peaso.checks._bulk_pending_compliance_new_sw35._bucket_logging:113": "68fc91ccd885bd01b93f958ea79dd31166c6af13c042d6770923cd2ca019aaa0",
         "peaso.checks._bulk_pending_compliance_new_sw35._buckets:95": "227115d6eb587786a120a21452bc2f26db85062029a81d9f4ad1158a7bab8d8b",
-        "peaso.checks._bulk_pending_compliance_new_sw35._cloudtrail:206": "cb920c1e51ee65b09c0a2e4af0d3a5c430d17ab02ad8b450bbecf8b4f0f68c42",
+        "peaso.checks._bulk_pending_compliance_new_sw35._cloudtrail:206": "7fc7f38f518800a5a237de0a0c8b4937dcdf8c6ca2e10d180f0e5337f75b16ba",
         "peaso.checks._bulk_pending_compliance_new_sw35._cmk:167": "96e40d1857f7bb7cb2660935c2e41b65c401e24c3cb3b516e384e178ce1aa3b9",
         "peaso.checks._bulk_pending_compliance_new_sw35._context:18": "48b3eff2b783841a7478854de3ef23f3c9600d0b262b1794a8582bc34b330809",
-        "peaso.checks._bulk_pending_compliance_new_sw35._evaluate:541": "db6c233dce944c8523f68ebf521fbf5bdfa8a548e3ea4b098f3373cc2bd71944",
+        "peaso.checks._bulk_pending_compliance_new_sw35._evaluate:571": "db6c233dce944c8523f68ebf521fbf5bdfa8a548e3ea4b098f3373cc2bd71944",
         "peaso.checks._bulk_pending_compliance_new_sw35._fresh:199": "9cdf65b158b6f51314e700fefa8857746f70b9f0287e7aabed574b1fb078cddb",
         "peaso.checks._bulk_pending_compliance_new_sw35._keys:155": "b5ce980ad26baadef5b7298e7ec5d315b91962928303c5b94d059ccf6e59f538",
         "peaso.checks._bulk_pending_compliance_new_sw35._log_group:141": "d9daab07009418426d93241d4368f389c07d6cdcce215e3919bd12e5fcf8718e",
         "peaso.checks._bulk_pending_compliance_new_sw35._log_groups:129": "641b90e97047905dd88770f7df2172cea89b1c98fa63561da9e2eb5700ff59f7",
         "peaso.checks._bulk_pending_compliance_new_sw35._logging_trails:86": "bd9ce49432fd6c17fd2dd9fc90940c119a3b72129ee39f3823cd16dcfc70ffd0",
-        "peaso.checks._bulk_pending_compliance_new_sw35._policy:424": "e452be311f5a85f4efe2ece666384392fdbedd6ad6fde9a6fcc855f5c34fa881",
-        "peaso.checks._bulk_pending_compliance_new_sw35._registered:556": "0b9679c5acb0a2c3d4d45db82a7142195783c971b43ac1b6a32e30874dd41d7e",
+        "peaso.checks._bulk_pending_compliance_new_sw35._policy:454": "e452be311f5a85f4efe2ece666384392fdbedd6ad6fde9a6fcc855f5c34fa881",
+        "peaso.checks._bulk_pending_compliance_new_sw35._registered:586": "0b9679c5acb0a2c3d4d45db82a7142195783c971b43ac1b6a32e30874dd41d7e",
         "peaso.checks._bulk_pending_compliance_new_sw35._rows:27": "21633a64b94ae91fc79c7b380b07edc77a245adcb678b19112a3bd43ac0085b3",
-        "peaso.checks._bulk_pending_compliance_new_sw35._ssm:452": "e5813f4c7b7a39967a90b4b2cf87b5aacaef0883016be87d60241c2c2d7637b1",
+        "peaso.checks._bulk_pending_compliance_new_sw35._ssm:482": "e5813f4c7b7a39967a90b4b2cf87b5aacaef0883016be87d60241c2c2d7637b1",
         "peaso.checks._bulk_pending_compliance_new_sw35._time:187": "5784d81b10523f17207ad7111a67f6f185f2737a625cb9ed54cd01eadac1cdcb",
         "peaso.checks._bulk_pending_compliance_new_sw35._trails:54": "f1daede05c5e264575b3ddd0844fb83c3a1df06eebd07ec719f1223e889bfb25",
-        "peaso.checks._bulk_pending_compliance_new_sw35._versions_at_least:441": "6ffde1815a868afa5d9dfa65e34edb92a5ddc9bfcc6d28d1794b4530b9b959f8"
+        "peaso.checks._bulk_pending_compliance_new_sw35._versions_at_least:471": "6ffde1815a868afa5d9dfa65e34edb92a5ddc9bfcc6d28d1794b4530b9b959f8"
       },
       "source_qualname": "_registered"
     },
@@ -1336,7 +1328,7 @@ ROWS=json.loads(r'''
   "aws_cloudtrail_s3_siem_delivery": {
     "description_base_sha256": "2b7741f4d2cd41d32a3de93215a99b0c328e97cf2811ba47a6e8e9cb4a3d7e6f",
     "description_fields": {
-      "description": "Checks organization trails for recent error-free S3 delivery and a fresh object under the trail’s AWSLogs prefix."
+      "description": "Checks organization trails for recent error-free S3 delivery and a fresh object under the trail\u2019s AWSLogs prefix."
     },
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
@@ -1416,22 +1408,22 @@ ROWS=json.loads(r'''
         "peaso.checks._bulk_pending_compliance_new_sw35._bucket:106": "e493342d52113857ba0d0af8ddd5f32503d2944564dc0051a3554de726460ccc",
         "peaso.checks._bulk_pending_compliance_new_sw35._bucket_logging:113": "68fc91ccd885bd01b93f958ea79dd31166c6af13c042d6770923cd2ca019aaa0",
         "peaso.checks._bulk_pending_compliance_new_sw35._buckets:95": "227115d6eb587786a120a21452bc2f26db85062029a81d9f4ad1158a7bab8d8b",
-        "peaso.checks._bulk_pending_compliance_new_sw35._cloudtrail:206": "cb920c1e51ee65b09c0a2e4af0d3a5c430d17ab02ad8b450bbecf8b4f0f68c42",
+        "peaso.checks._bulk_pending_compliance_new_sw35._cloudtrail:206": "7fc7f38f518800a5a237de0a0c8b4937dcdf8c6ca2e10d180f0e5337f75b16ba",
         "peaso.checks._bulk_pending_compliance_new_sw35._cmk:167": "96e40d1857f7bb7cb2660935c2e41b65c401e24c3cb3b516e384e178ce1aa3b9",
         "peaso.checks._bulk_pending_compliance_new_sw35._context:18": "48b3eff2b783841a7478854de3ef23f3c9600d0b262b1794a8582bc34b330809",
-        "peaso.checks._bulk_pending_compliance_new_sw35._evaluate:541": "db6c233dce944c8523f68ebf521fbf5bdfa8a548e3ea4b098f3373cc2bd71944",
+        "peaso.checks._bulk_pending_compliance_new_sw35._evaluate:571": "db6c233dce944c8523f68ebf521fbf5bdfa8a548e3ea4b098f3373cc2bd71944",
         "peaso.checks._bulk_pending_compliance_new_sw35._fresh:199": "9cdf65b158b6f51314e700fefa8857746f70b9f0287e7aabed574b1fb078cddb",
         "peaso.checks._bulk_pending_compliance_new_sw35._keys:155": "b5ce980ad26baadef5b7298e7ec5d315b91962928303c5b94d059ccf6e59f538",
         "peaso.checks._bulk_pending_compliance_new_sw35._log_group:141": "d9daab07009418426d93241d4368f389c07d6cdcce215e3919bd12e5fcf8718e",
         "peaso.checks._bulk_pending_compliance_new_sw35._log_groups:129": "641b90e97047905dd88770f7df2172cea89b1c98fa63561da9e2eb5700ff59f7",
         "peaso.checks._bulk_pending_compliance_new_sw35._logging_trails:86": "bd9ce49432fd6c17fd2dd9fc90940c119a3b72129ee39f3823cd16dcfc70ffd0",
-        "peaso.checks._bulk_pending_compliance_new_sw35._policy:424": "e452be311f5a85f4efe2ece666384392fdbedd6ad6fde9a6fcc855f5c34fa881",
-        "peaso.checks._bulk_pending_compliance_new_sw35._registered:556": "0b9679c5acb0a2c3d4d45db82a7142195783c971b43ac1b6a32e30874dd41d7e",
+        "peaso.checks._bulk_pending_compliance_new_sw35._policy:454": "e452be311f5a85f4efe2ece666384392fdbedd6ad6fde9a6fcc855f5c34fa881",
+        "peaso.checks._bulk_pending_compliance_new_sw35._registered:586": "0b9679c5acb0a2c3d4d45db82a7142195783c971b43ac1b6a32e30874dd41d7e",
         "peaso.checks._bulk_pending_compliance_new_sw35._rows:27": "21633a64b94ae91fc79c7b380b07edc77a245adcb678b19112a3bd43ac0085b3",
-        "peaso.checks._bulk_pending_compliance_new_sw35._ssm:452": "e5813f4c7b7a39967a90b4b2cf87b5aacaef0883016be87d60241c2c2d7637b1",
+        "peaso.checks._bulk_pending_compliance_new_sw35._ssm:482": "e5813f4c7b7a39967a90b4b2cf87b5aacaef0883016be87d60241c2c2d7637b1",
         "peaso.checks._bulk_pending_compliance_new_sw35._time:187": "5784d81b10523f17207ad7111a67f6f185f2737a625cb9ed54cd01eadac1cdcb",
         "peaso.checks._bulk_pending_compliance_new_sw35._trails:54": "f1daede05c5e264575b3ddd0844fb83c3a1df06eebd07ec719f1223e889bfb25",
-        "peaso.checks._bulk_pending_compliance_new_sw35._versions_at_least:441": "6ffde1815a868afa5d9dfa65e34edb92a5ddc9bfcc6d28d1794b4530b9b959f8"
+        "peaso.checks._bulk_pending_compliance_new_sw35._versions_at_least:471": "6ffde1815a868afa5d9dfa65e34edb92a5ddc9bfcc6d28d1794b4530b9b959f8"
       },
       "source_qualname": "_registered"
     },
@@ -1466,9 +1458,9 @@ ROWS=json.loads(r'''
       ],
       "review_status": "approved",
       "steps": [
-        "Shorten stickiness if the application’s session-routing requirements permit it."
+        "Shorten stickiness if the application\u2019s session-routing requirements permit it."
       ],
-      "summary": "Shorten stickiness if the application’s session-routing requirements permit it."
+      "summary": "Shorten stickiness if the application\u2019s session-routing requirements permit it."
     },
     "reviewed_binding": {
       "closure": {},
@@ -1480,12 +1472,12 @@ ROWS=json.loads(r'''
         "peaso.checks._bulk_pending_compliance_new_sw42._arn_scope:100": "518b8c9bc4295ae8abe707706c5c781da024195632a3de19d9090c7fa77b8652",
         "peaso.checks._bulk_pending_compliance_new_sw42._child:137": "fd87692bf3e63e7b21bcb376ad9805b37b79bf472080676a016e7c46dc897242",
         "peaso.checks._bulk_pending_compliance_new_sw42._item:91": "9d982a09093381f5b3e0c96e00f59e44c72b7d7079b3a95ee80613872d455cbe",
-        "peaso.checks._bulk_pending_compliance_new_sw42._lb:408": "1eb411cff35f465083c9a478352fb48cd1bd614ea74749152415fbed8c146b54",
+        "peaso.checks._bulk_pending_compliance_new_sw42._lb:382": "1eb411cff35f465083c9a478352fb48cd1bd614ea74749152415fbed8c146b54",
         "peaso.checks._bulk_pending_compliance_new_sw42._rows:63": "849fde7ce1d4d00e72606efd399c2fd3f200edca6864a9c492ae5d57034d198b",
         "peaso.checks._bulk_pending_compliance_new_sw42._scope:53": "d54ebef4ffc206be4869114911f42814e9060cd7dd84b2f04843e84d6ccb80f8",
         "peaso.checks._bulk_pending_compliance_new_sw42._strings:119": "e782dad9f877bd54cfec4a92763e21690814cd62b17c2d706965c4e1d4638932",
-        "peaso.checks._bulk_pending_compliance_new_sw42._target_groups:459": "1cbdd96f6ffa3be075cefadfc01f3367223f9a6e7f0409e8c7260a13b81a968b",
-        "peaso.checks._bulk_pending_compliance_new_sw42.elbv2_stickiness:479": "288e4e61abb0f5cb7ebfafaa201f752b04cf962ed68558bc7d61fe8704c38353"
+        "peaso.checks._bulk_pending_compliance_new_sw42._target_groups:433": "1cbdd96f6ffa3be075cefadfc01f3367223f9a6e7f0409e8c7260a13b81a968b",
+        "peaso.checks._bulk_pending_compliance_new_sw42.elbv2_stickiness:453": "288e4e61abb0f5cb7ebfafaa201f752b04cf962ed68558bc7d61fe8704c38353"
       },
       "source_qualname": "elbv2_stickiness"
     },
@@ -1525,16 +1517,16 @@ ROWS=json.loads(r'''
       "summary": "Configure the missing destination or delivery-role permissions needed by the trail."
     },
     "reviewed_binding": {
-      "kind": "cloudtrail_trail",
-      "module": "peaso.checks._bulk_pending_compliance_new_sw47",
-      "source_qualname": "_evaluate",
       "closure": {},
-      "defaults": [
-        {
-          "callable": "peaso.checks._bulk_pending_compliance_new_sw47._cloudwatch_integration"
-        }
-      ],
       "constants": {
+        "peaso.checks._bulk_pending_compliance_new_sw47._arn:153::_ARN": {
+          "flags": 32,
+          "regex": "^arn:(aws(?:-[a-z0-9-]+)?):([^:]+):([^:]*):([0-9]{12}):(.+)$"
+        },
+        "peaso.checks._bulk_pending_compliance_new_sw47._context:143::_SCOPE": {
+          "flags": 32,
+          "regex": "^[0-9]{12}/[a-z]{2}(?:-[a-z]+)+-[0-9]$"
+        },
         "peaso.checks._bulk_pending_compliance_new_sw47._rows:162::_IDS": {
           "backup_recovery_point": "RecoveryPointArn",
           "backup_vault": "BackupVaultArn",
@@ -1551,10 +1543,6 @@ ROWS=json.loads(r'''
           "k8s_admission_policy": "cluster_arn",
           "kms_key": "KeyArn"
         },
-        "peaso.checks._bulk_pending_compliance_new_sw47._arn:153::_ARN": {
-          "regex": "^arn:(aws(?:-[a-z0-9-]+)?):([^:]+):([^:]*):([0-9]{12}):(.+)$",
-          "flags": 32
-        },
         "peaso.checks._bulk_pending_compliance_new_sw47._subject:195::_IDS": {
           "backup_recovery_point": "RecoveryPointArn",
           "backup_vault": "BackupVaultArn",
@@ -1570,12 +1558,15 @@ ROWS=json.loads(r'''
           "iam_role": "Arn",
           "k8s_admission_policy": "cluster_arn",
           "kms_key": "KeyArn"
-        },
-        "peaso.checks._bulk_pending_compliance_new_sw47._context:143::_SCOPE": {
-          "regex": "^[0-9]{12}/[a-z]{2}(?:-[a-z]+)+-[0-9]$",
-          "flags": 32
         }
       },
+      "defaults": [
+        {
+          "callable": "peaso.checks._bulk_pending_compliance_new_sw47._cloudwatch_integration"
+        }
+      ],
+      "kind": "cloudtrail_trail",
+      "module": "peaso.checks._bulk_pending_compliance_new_sw47",
       "predicate_sources": {
         "peaso.checks._bulk_pending_compliance_new_sw47._arn:153": "bdb87f5416ecd5919e4ada7124bd335ada2977617a05a135f1dcc473a3927eb3",
         "peaso.checks._bulk_pending_compliance_new_sw47._cloudwatch_integration:379": "91cc38e4f2c1ccd59e072ada8c89c393a18062b08eda55a446053a55d773abca",
@@ -1585,7 +1576,8 @@ ROWS=json.loads(r'''
         "peaso.checks._bulk_pending_compliance_new_sw47._rows:162": "c9d3f7c33713c0eabea34df7098e0f2d11ee9174ed8ec911a081ef62af7eec26",
         "peaso.checks._bulk_pending_compliance_new_sw47._subject:195": "267076456b4804b7b80f24325a64c65536bfa2729c172e8ced675fd19b753956",
         "peaso.checks._bulk_pending_compliance_new_sw47._trail_status:304": "db0819d9cf3e30ec96e23ca7bbcf44bd04cc9cba3cbaa8a2cee6a71e66fbcabe"
-      }
+      },
+      "source_qualname": "_evaluate"
     },
     "reviewed_severity": "medium",
     "reviewed_source_severity": "medium",
@@ -1623,11 +1615,7 @@ ROWS=json.loads(r'''
       "summary": "Restrict only unnecessary ingress sources, ports or listeners on the identified path."
     },
     "reviewed_binding": {
-      "kind": "ec2_instance",
-      "module": "peaso.checks._bulk_pending_compliance_new_sw37",
-      "source_qualname": "fedramp_reach",
       "closure": {},
-      "defaults": null,
       "constants": {
         "peaso.checks._bulk_pending_compliance_new_sw37._rows:58::GLOBAL_KINDS": [
           "cloudfront_distribution",
@@ -1644,6 +1632,9 @@ ROWS=json.loads(r'''
           "shield_subscription"
         ]
       },
+      "defaults": null,
+      "kind": "ec2_instance",
+      "module": "peaso.checks._bulk_pending_compliance_new_sw37",
       "predicate_sources": {
         "peaso.checks._bulk_pending_compliance_new_sw37._account:110": "0557de7589935ca7b17b5b8dc886a28467bd2215fbea66e5f56b4a1d2b9cc0a3",
         "peaso.checks._bulk_pending_compliance_new_sw37._account_arn:118": "cbe535c81de20cad9dfe261f71512b3fbf0dd31e80f22074851df19136624e09",
@@ -1653,7 +1644,8 @@ ROWS=json.loads(r'''
         "peaso.checks._bulk_pending_compliance_new_sw37._rows:58": "8f7abdaf6cebf992749e3e83418d8091f5891d38bb9c1bd1bbe61277d5daf8c3",
         "peaso.checks._bulk_pending_compliance_new_sw37._scope:49": "9af44f1b2451ca6be4b5bf54996ddc2943adac973d2722464f7d18e54302b501",
         "peaso.checks._bulk_pending_compliance_new_sw37.fedramp_reach:479": "04919e19b4fd4deb85140758da46d1784cb4d76d008645e1c20c9f3635212bdb"
-      }
+      },
+      "source_qualname": "fedramp_reach"
     },
     "reviewed_severity": "medium",
     "reviewed_source_severity": "medium",
@@ -1752,7 +1744,7 @@ ROWS=json.loads(r'''
   "aws_g6_api_stage_effective_waf_acl": {
     "description_base_sha256": "1987ee1255ec900d653136e3fa607a1aaabe2fdd5d9003f117de8f1e77ff99a9",
     "description_fields": {
-      "description": "Compares the stage’s declared ACL with its unique native association and complete WAFv2 ACL inventory."
+      "description": "Compares the stage\u2019s declared ACL with its unique native association and complete WAFv2 ACL inventory."
     },
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
@@ -1973,22 +1965,22 @@ ROWS=json.loads(r'''
       "summary": "Configure appropriate Identity Center account assignments if centralized SSO is required."
     },
     "reviewed_binding": {
-      "kind": "identity_center",
-      "module": "peaso.checks._bulk_pending_compliance_new_sw44",
-      "source_qualname": "identity_center",
       "closure": {},
-      "defaults": null,
       "constants": {
         "peaso.checks._bulk_pending_compliance_new_sw44._inventory:37::_SCOPE": {
-          "regex": "^([0-9]{12})/([a-z]{2}(?:-[a-z0-9]+)+-[0-9])$",
-          "flags": 32
+          "flags": 32,
+          "regex": "^([0-9]{12})/([a-z]{2}(?:-[a-z0-9]+)+-[0-9])$"
         }
       },
+      "defaults": null,
+      "kind": "identity_center",
+      "module": "peaso.checks._bulk_pending_compliance_new_sw44",
       "predicate_sources": {
         "peaso.checks._bulk_pending_compliance_new_sw44._inventory:37": "1ca26c1109be269b1f41477cba4821a2735aa6472fa41dfd8147ecb10b1fcff7",
         "peaso.checks._bulk_pending_compliance_new_sw44._nonempty:94": "02de01ce8c9c420fbc6ae2a651497039dfa6e588da7e5315296141e3ed62ef75",
         "peaso.checks._bulk_pending_compliance_new_sw44.identity_center:196": "ccece33a8206c3634ed49d291e9c6460a9e9ef19dc53145d7eda0a09e73b2e1f"
-      }
+      },
+      "source_qualname": "identity_center"
     },
     "reviewed_severity": "low",
     "reviewed_source_severity": "medium",
@@ -2292,7 +2284,7 @@ ROWS=json.loads(r'''
   "aws_nist_apigateway_stage_logging_enabled": {
     "description_base_sha256": "324c5e1e1102e433abe5c0ea53dff70b6f2bf6b092642a8348e5808163e6a17f",
     "description_fields": {
-      "description": "Checks deployed REST methods’ effective logging settings and validates WebSocket stage logging; HTTP APIs have no execution-logging applicability."
+      "description": "Checks deployed REST methods\u2019 effective logging settings and validates WebSocket stage logging; HTTP APIs have no execution-logging applicability."
     },
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
@@ -2367,13 +2359,13 @@ ROWS=json.loads(r'''
       "module": "peaso.checks._bulk_pending_compliance_new_sw43",
       "predicate_sources": {
         "peaso.checks._bulk_pending_compliance_new_sw43._context:149": "1aa5b2041689f81b99598c362ff562486a2dd4b76a014de0d22fb2d22de950f5",
-        "peaso.checks._bulk_pending_compliance_new_sw43._evaluate:844": "ee842f8a3599092126ec189037cbc6fc57a65b3af746985a2dca092ab9f7f4cc",
+        "peaso.checks._bulk_pending_compliance_new_sw43._evaluate:843": "ee842f8a3599092126ec189037cbc6fc57a65b3af746985a2dca092ab9f7f4cc",
         "peaso.checks._bulk_pending_compliance_new_sw43._inventory:160": "4250f56d50686a39dd8d4ecc949fc56746f71ddf4f63a040b356d0ec1e385f5e",
-        "peaso.checks._bulk_pending_compliance_new_sw43._logging_level:338": "78627e1fd7fe82524c8dec18d215fc2d945de345d377927ca889b2e2c4b8b350",
-        "peaso.checks._bulk_pending_compliance_new_sw43._rest_stage:368": "8cd8302dff569dc2bf09f7396aee714e98fe7b4538a652335b3bc5707813930a",
-        "peaso.checks._bulk_pending_compliance_new_sw43._stage_bound:347": "d336da2cd61325fa6e1b2280978be1acba5b5a80e85351851fd3225ae54e9595",
-        "peaso.checks._bulk_pending_compliance_new_sw43._stage_logging:454": "da1e8370e21b3d9ed530c894a9b85420384461062cb10c1d325ee52969f8fb84",
-        "peaso.checks._bulk_pending_compliance_new_sw43._websocket_stage:430": "caf4db134d2e3f543caf75cce79841e5225420e4ce842ad18fd59c444645fa7a"
+        "peaso.checks._bulk_pending_compliance_new_sw43._logging_level:337": "78627e1fd7fe82524c8dec18d215fc2d945de345d377927ca889b2e2c4b8b350",
+        "peaso.checks._bulk_pending_compliance_new_sw43._rest_stage:367": "8cd8302dff569dc2bf09f7396aee714e98fe7b4538a652335b3bc5707813930a",
+        "peaso.checks._bulk_pending_compliance_new_sw43._stage_bound:346": "d336da2cd61325fa6e1b2280978be1acba5b5a80e85351851fd3225ae54e9595",
+        "peaso.checks._bulk_pending_compliance_new_sw43._stage_logging:453": "da1e8370e21b3d9ed530c894a9b85420384461062cb10c1d325ee52969f8fb84",
+        "peaso.checks._bulk_pending_compliance_new_sw43._websocket_stage:429": "caf4db134d2e3f543caf75cce79841e5225420e4ce842ad18fd59c444645fa7a"
       },
       "source_qualname": "_evaluate"
     },
@@ -2384,7 +2376,7 @@ ROWS=json.loads(r'''
   "aws_nist_cloudtrail_trail_integrated_with_logs": {
     "description_base_sha256": "cd778832bb976f1864a430ce225c1cea5dbd8f3c78c13cd05d80fdd92c564edf",
     "description_fields": {
-      "description": "Checks logging trails’ CloudWatch destinations, delivery-role trust and bounded native stream permission proofs."
+      "description": "Checks logging trails\u2019 CloudWatch destinations, delivery-role trust and bounded native stream permission proofs."
     },
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
@@ -2464,22 +2456,22 @@ ROWS=json.loads(r'''
         "peaso.checks._bulk_pending_compliance_new_sw35._bucket:106": "e493342d52113857ba0d0af8ddd5f32503d2944564dc0051a3554de726460ccc",
         "peaso.checks._bulk_pending_compliance_new_sw35._bucket_logging:113": "68fc91ccd885bd01b93f958ea79dd31166c6af13c042d6770923cd2ca019aaa0",
         "peaso.checks._bulk_pending_compliance_new_sw35._buckets:95": "227115d6eb587786a120a21452bc2f26db85062029a81d9f4ad1158a7bab8d8b",
-        "peaso.checks._bulk_pending_compliance_new_sw35._cloudtrail:206": "cb920c1e51ee65b09c0a2e4af0d3a5c430d17ab02ad8b450bbecf8b4f0f68c42",
+        "peaso.checks._bulk_pending_compliance_new_sw35._cloudtrail:206": "7fc7f38f518800a5a237de0a0c8b4937dcdf8c6ca2e10d180f0e5337f75b16ba",
         "peaso.checks._bulk_pending_compliance_new_sw35._cmk:167": "96e40d1857f7bb7cb2660935c2e41b65c401e24c3cb3b516e384e178ce1aa3b9",
         "peaso.checks._bulk_pending_compliance_new_sw35._context:18": "48b3eff2b783841a7478854de3ef23f3c9600d0b262b1794a8582bc34b330809",
-        "peaso.checks._bulk_pending_compliance_new_sw35._evaluate:541": "db6c233dce944c8523f68ebf521fbf5bdfa8a548e3ea4b098f3373cc2bd71944",
+        "peaso.checks._bulk_pending_compliance_new_sw35._evaluate:571": "db6c233dce944c8523f68ebf521fbf5bdfa8a548e3ea4b098f3373cc2bd71944",
         "peaso.checks._bulk_pending_compliance_new_sw35._fresh:199": "9cdf65b158b6f51314e700fefa8857746f70b9f0287e7aabed574b1fb078cddb",
         "peaso.checks._bulk_pending_compliance_new_sw35._keys:155": "b5ce980ad26baadef5b7298e7ec5d315b91962928303c5b94d059ccf6e59f538",
         "peaso.checks._bulk_pending_compliance_new_sw35._log_group:141": "d9daab07009418426d93241d4368f389c07d6cdcce215e3919bd12e5fcf8718e",
         "peaso.checks._bulk_pending_compliance_new_sw35._log_groups:129": "641b90e97047905dd88770f7df2172cea89b1c98fa63561da9e2eb5700ff59f7",
         "peaso.checks._bulk_pending_compliance_new_sw35._logging_trails:86": "bd9ce49432fd6c17fd2dd9fc90940c119a3b72129ee39f3823cd16dcfc70ffd0",
-        "peaso.checks._bulk_pending_compliance_new_sw35._policy:424": "e452be311f5a85f4efe2ece666384392fdbedd6ad6fde9a6fcc855f5c34fa881",
-        "peaso.checks._bulk_pending_compliance_new_sw35._registered:556": "0b9679c5acb0a2c3d4d45db82a7142195783c971b43ac1b6a32e30874dd41d7e",
+        "peaso.checks._bulk_pending_compliance_new_sw35._policy:454": "e452be311f5a85f4efe2ece666384392fdbedd6ad6fde9a6fcc855f5c34fa881",
+        "peaso.checks._bulk_pending_compliance_new_sw35._registered:586": "0b9679c5acb0a2c3d4d45db82a7142195783c971b43ac1b6a32e30874dd41d7e",
         "peaso.checks._bulk_pending_compliance_new_sw35._rows:27": "21633a64b94ae91fc79c7b380b07edc77a245adcb678b19112a3bd43ac0085b3",
-        "peaso.checks._bulk_pending_compliance_new_sw35._ssm:452": "e5813f4c7b7a39967a90b4b2cf87b5aacaef0883016be87d60241c2c2d7637b1",
+        "peaso.checks._bulk_pending_compliance_new_sw35._ssm:482": "e5813f4c7b7a39967a90b4b2cf87b5aacaef0883016be87d60241c2c2d7637b1",
         "peaso.checks._bulk_pending_compliance_new_sw35._time:187": "5784d81b10523f17207ad7111a67f6f185f2737a625cb9ed54cd01eadac1cdcb",
         "peaso.checks._bulk_pending_compliance_new_sw35._trails:54": "f1daede05c5e264575b3ddd0844fb83c3a1df06eebd07ec719f1223e889bfb25",
-        "peaso.checks._bulk_pending_compliance_new_sw35._versions_at_least:441": "6ffde1815a868afa5d9dfa65e34edb92a5ddc9bfcc6d28d1794b4530b9b959f8"
+        "peaso.checks._bulk_pending_compliance_new_sw35._versions_at_least:471": "6ffde1815a868afa5d9dfa65e34edb92a5ddc9bfcc6d28d1794b4530b9b959f8"
       },
       "source_qualname": "_registered"
     },
@@ -2633,12 +2625,12 @@ ROWS=json.loads(r'''
       "predicate_sources": {
         "peaso.checks._bulk_pending_compliance_new_sw42._arn_scope:100": "518b8c9bc4295ae8abe707706c5c781da024195632a3de19d9090c7fa77b8652",
         "peaso.checks._bulk_pending_compliance_new_sw42._item:91": "9d982a09093381f5b3e0c96e00f59e44c72b7d7079b3a95ee80613872d455cbe",
-        "peaso.checks._bulk_pending_compliance_new_sw42._lb:408": "1eb411cff35f465083c9a478352fb48cd1bd614ea74749152415fbed8c146b54",
+        "peaso.checks._bulk_pending_compliance_new_sw42._lb:382": "1eb411cff35f465083c9a478352fb48cd1bd614ea74749152415fbed8c146b54",
         "peaso.checks._bulk_pending_compliance_new_sw42._rows:63": "849fde7ce1d4d00e72606efd399c2fd3f200edca6864a9c492ae5d57034d198b",
         "peaso.checks._bulk_pending_compliance_new_sw42._scope:53": "d54ebef4ffc206be4869114911f42814e9060cd7dd84b2f04843e84d6ccb80f8",
         "peaso.checks._bulk_pending_compliance_new_sw42._strings:119": "e782dad9f877bd54cfec4a92763e21690814cd62b17c2d706965c4e1d4638932",
-        "peaso.checks._bulk_pending_compliance_new_sw42._target_groups:459": "1cbdd96f6ffa3be075cefadfc01f3367223f9a6e7f0409e8c7260a13b81a968b",
-        "peaso.checks._bulk_pending_compliance_new_sw42.elbv2_healthy_targets_multi_az:523": "0630002855f90eb98d9f0f6a2b299039cc409db3d05356b85c3ed2a22d98088b"
+        "peaso.checks._bulk_pending_compliance_new_sw42._target_groups:433": "1cbdd96f6ffa3be075cefadfc01f3367223f9a6e7f0409e8c7260a13b81a968b",
+        "peaso.checks._bulk_pending_compliance_new_sw42.elbv2_healthy_targets_multi_az:497": "0630002855f90eb98d9f0f6a2b299039cc409db3d05356b85c3ed2a22d98088b"
       },
       "source_qualname": "elbv2_healthy_targets_multi_az"
     },
@@ -2740,9 +2732,9 @@ ROWS=json.loads(r'''
       "kind": "rds_cluster",
       "module": "peaso.checks._bulk_pending_compliance_new_sw43",
       "predicate_sources": {
-        "peaso.checks._bulk_pending_compliance_new_sw43._backtracking:275": "d85df16e07e54acefd48dc5e89dac8c6cf50add0ccac3629112f2ef7946863e0",
+        "peaso.checks._bulk_pending_compliance_new_sw43._backtracking:275": "9234aa04f3c833db7ca95d90b607e48d8dc23792f0ed0b7d0de64f95196802ec",
         "peaso.checks._bulk_pending_compliance_new_sw43._context:149": "1aa5b2041689f81b99598c362ff562486a2dd4b76a014de0d22fb2d22de950f5",
-        "peaso.checks._bulk_pending_compliance_new_sw43._evaluate:844": "ee842f8a3599092126ec189037cbc6fc57a65b3af746985a2dca092ab9f7f4cc",
+        "peaso.checks._bulk_pending_compliance_new_sw43._evaluate:843": "ee842f8a3599092126ec189037cbc6fc57a65b3af746985a2dca092ab9f7f4cc",
         "peaso.checks._bulk_pending_compliance_new_sw43._inventory:160": "4250f56d50686a39dd8d4ecc949fc56746f71ddf4f63a040b356d0ec1e385f5e",
         "peaso.checks._bulk_pending_compliance_new_sw43._subject:193": "17a0dc6ebd0c801af657c9d23794a870b1fcbfa70b9e77688c185566192d0720"
       },
@@ -2787,22 +2779,10 @@ ROWS=json.loads(r'''
       "summary": "Configure the required rotation schedule and method if automatic rotation is appropriate."
     },
     "reviewed_binding": {
-      "kind": "secret",
-      "module": "peaso.checks._bulk_pending_compliance_new_sw48",
-      "source_qualname": "_install.<locals>.check",
       "closure": {
         "identifier": "aws_nist_secretsmanager_secret_automatic_rotation_enabled"
       },
-      "defaults": null,
       "constants": {
-        "peaso.checks._bulk_pending_compliance_new_sw48._inventory:34::_SCOPE": {
-          "regex": "^[0-9]{12}/[a-z0-9-]+$",
-          "flags": 32
-        },
-        "peaso.checks._bulk_pending_compliance_new_sw48._inventory:34::_ARN": {
-          "regex": "^arn:aws(?:-[a-z0-9-]+)?:[^:]+:[a-z0-9-]*:[0-9]{12}:.+$",
-          "flags": 32
-        },
         "peaso.checks._bulk_pending_compliance_new_sw48._install.<locals>.check:811::EVALUATORS": {
           "aws.nist.sc_36_coverage": {
             "callable": "peaso.checks._bulk_pending_compliance_new_sw48._recovery"
@@ -2849,15 +2829,27 @@ ROWS=json.loads(r'''
           "aws_vpn_tunnel_encryption_configuration": {
             "callable": "peaso.checks._bulk_pending_compliance_new_sw48._vpn"
           }
+        },
+        "peaso.checks._bulk_pending_compliance_new_sw48._inventory:34::_ARN": {
+          "flags": 32,
+          "regex": "^arn:aws(?:-[a-z0-9-]+)?:[^:]+:[a-z0-9-]*:[0-9]{12}:.+$"
+        },
+        "peaso.checks._bulk_pending_compliance_new_sw48._inventory:34::_SCOPE": {
+          "flags": 32,
+          "regex": "^[0-9]{12}/[a-z0-9-]+$"
         }
       },
+      "defaults": null,
+      "kind": "secret",
+      "module": "peaso.checks._bulk_pending_compliance_new_sw48",
       "predicate_sources": {
         "peaso.checks._bulk_pending_compliance_new_sw48._install.<locals>.check:811": "ae35cf3acf73d2d9b595a8f64672eba95725a8530d896346dfb770b772644588",
         "peaso.checks._bulk_pending_compliance_new_sw48._inventory:34": "28c7fa38621503a88a0564acb5b0abd82e7036874d3c1edd271d85c2aecb2d9e",
         "peaso.checks._bulk_pending_compliance_new_sw48._positive_int:71": "de07747c00353dda877ce4b36eecc9d03f7694a69b9fa35deb025a9c1c072141",
         "peaso.checks._bulk_pending_compliance_new_sw48._rotation:255": "3d0afc1b3c2bc448ca41c5adb038708115c411a64c29f04225b3a3aca758309f",
         "peaso.checks._bulk_pending_compliance_new_sw48._valid_rotation_schedule:186": "40050b7cb74c0707d4c426b9355bc16362d9118c174ca2e055537952def1e448"
-      }
+      },
+      "source_qualname": "_install.<locals>.check"
     },
     "reviewed_severity": "medium",
     "reviewed_source_severity": "medium",

@@ -16,7 +16,7 @@ def _event(name: str, activate: bool) -> dict:
     return {"eventSource": "guardduty.amazonaws.com", "eventName": name,
             "eventCategory": "Management", "eventType": "AwsApiCall",
             "managementEvent": True, "readOnly": False,
-            "recipientAccountId": "947247140022",
+            "recipientAccountId": "222233334444",
             "requestParameters": {"detectorId": "a" * 32, "ipSetId": "b" * 32,
                                   "location": "https://synthetic.s3.amazonaws.com/list.txt",
                                   "activate": activate}}

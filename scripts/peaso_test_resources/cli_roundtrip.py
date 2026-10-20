@@ -1,4 +1,5 @@
 """Fresh real CLI scan followed by immutable offline JSON/Markdown verification."""
+from peaso import deployment
 import argparse
 from collections import Counter
 import json
@@ -43,9 +44,9 @@ def main():
         raise RuntimeError("Source changed repeatedly while freezing CLI build")
     cloud_environment = {**os.environ, "PYTHONPATH": str(build)}
     auth, scopes = {
-        "aws": ({"method": "profile", "profile": "naxusai-admin"}, ["947247140022"]),
-        "azure": ({"method": "az-cli", "tenant_id": "fdd066e1-ee37-49bc-b08f-d0e152119b04"}, ["cfbcdcf4-cb4f-4e4e-9f3e-a6b3b3abadfc"]),
-        "gcp": ({"method": "gcloud", "account": "carlos@hacktricks-training.com"}, ["gcp-labs-ly3gvnn7"]),
+        "aws": ({"method": "profile", "profile": deployment.value("test_aws_profile")}, [deployment.value("test_aws_account_id")]),
+        "azure": ({"method": "az-cli", "tenant_id": deployment.value("test_azure_tenant")}, [deployment.value("test_azure_subscription")]),
+        "gcp": ({"method": "gcloud", "account": deployment.value("test_gcp_account")}, [deployment.value("test_gcp_project")]),
     }[args.provider]
     options = {"collect_all": True, "max_calls": 500, "max_resources": 20000, "max_pages": 3, "retries": 0}
     if args.provider == "aws":

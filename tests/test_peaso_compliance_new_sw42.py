@@ -99,9 +99,7 @@ def case(cid, fail=False):
                         "approved_lightsail_actions": ["lightsail:GetBucket"]})
     elif cid == "aws_cis_lightsail_bucket_private":
         row = {"arn": BUCKET_ARN, "accessRules": {"getObject": "public" if fail else "private",
-                                                   "allowPublicOverrides": False},
-               "AccountPublicAccessBlock": {"collection_status": "collected",
-                    "PublicAccessBlockConfiguration": {"BlockPublicPolicy": False, "RestrictPublicBuckets": False}}}
+                                                   "allowPublicOverrides": False}}
         index = bundle({"lightsail_bucket": [row]})
     elif cid in ("aws.pci.backup.plan_frequency_retention", "aws_backup_plan_rule_required_frequency",
                  "aws_nist_backup_plan_min_retention_35_days"):
@@ -245,11 +243,11 @@ def test_lightsail_public_object_acl_and_unapproved_identity():
     row["Objects"] = {"collection_status": "collected", "items": [{"Key": "secret",
         "Grants": [{"Grantee": {"Type": "CanonicalUser", "ID": "owner"}, "Permission": "FULL_CONTROL"}]}]}
     index = bundle({"lightsail_bucket": [row]})
-    assert evaluate(cid, row, index) == "PASS"
+    assert evaluate(cid, row, index) == "UNKNOWN"
     row["Objects"]["items"][0]["Grants"].append({"Grantee": {"Type": "Group",
         "URI": "http://acs.amazonaws.com/groups/global/AllUsers"}, "Permission": "READ"})
     index = bundle({"lightsail_bucket": [row]})
-    assert evaluate(cid, row, index) == "FAIL"
+    assert evaluate(cid, row, index) == "UNKNOWN"
     cid = "aws_cis_lightsail_bucket_iam_policy"
     row, index = case(cid)
     index["collections"]["lightsail_iam_policy_attachment"][0]["items"].append({

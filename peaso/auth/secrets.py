@@ -67,30 +67,43 @@ def secret_values(value):
 PUBLIC_AUTH_FIELDS = {"provider", "method", "profile", "context", "region_name", "role_arn", "external_id", "target_principal", "impersonate_service_account", "tenant_id", "client_id", "account", "quota_project", "server", "cluster_id", "in_cluster", "session_name", "role_session_name", "token_uri", "client_email", "type", "project_id", "private_key_id", "auth_uri", "auth_provider_x509_cert_url", "client_x509_cert_url", "universe_domain", "name", "namespace", "current-context", "apiVersion", "kind"}
 
 
-def credential_values(value):
+def credential_values(value, *, _seen=None, _depth=0):
     """Extract credentials without treating provider/method/identity names as secrets."""
+    if _seen is None:
+        _seen = set()
+    if isinstance(value, (dict, list)):
+        identity = id(value)
+        if identity in _seen:
+            return
+        if _depth > 64 or len(_seen) >= 20_000:
+            raise ValueError('credential document structure exceeds limits')
+        _seen.add(identity)
     if isinstance(value, dict):
         for key, item in value.items():
             if key in PUBLIC_AUTH_FIELDS:
                 continue
             if isinstance(item, (dict, list)):
-                yield from credential_values(item)
+                yield from credential_values(item, _seen=_seen, _depth=_depth + 1)
             elif key in {"sa_json", "external_account_json", "kubeconfig_data"} and isinstance(item, str):
                 try:
                     parsed = json.loads(item)
                 except (ValueError, TypeError):
-                    import yaml
+                    from .documents import credential_document
                     try:
-                        parsed = yaml.safe_load(item)
+                        parsed = credential_document(item)
                     except Exception:
                         parsed = None
                 if parsed is not None:
-                    yield from credential_values(parsed)
+                    # Keep the parsed document alive during traversal: object
+                    # IDs in _seen must not be reused by another document.
+                    yield from credential_values(parsed, _depth=_depth + 1)
             elif isinstance(item, str) and item:
                 yield item
     elif isinstance(value, list):
         for item in value:
-            yield from credential_values(item)
+            yield from credential_values(item, _seen=_seen, _depth=_depth + 1)
+    elif isinstance(value, str) and value:
+        yield value
 
 
 def redact(value, secrets=()):

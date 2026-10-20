@@ -25,9 +25,11 @@ flowchart LR
     E --> F[Web investigation and JSON / Markdown reports]
 ```
 
-Collection and evaluation are separate: a saved snapshot can be evaluated again without cloud calls. Reports identify their snapshot and preserve collection gaps. The web application adds authenticated workspaces, connector validation, queued workers, schedules, pagination and report storage. Local storage and hosted AWS services wrap the same engine. In the local container deployment, the analyzer has no network access or connector credentials.
+Collection and evaluation are separate: a saved snapshot can be evaluated again without cloud calls. Reports identify their snapshot and preserve collection gaps. The web application adds authenticated workspaces, connector validation, queued workers, schedules, pagination and report storage. Local storage and hosted AWS services wrap the same engine. AI review defaults on for scans and schedules. After deterministic analysis, Chack agents verify failed findings and recommend up to 15 security actions. The analyzer uses network access and captured sessions for this optional phase; it cannot decrypt source connector credentials. See [AI review setup, prompts and schemas](docs/ai-review/README.md).
 
 See [local architecture and API](docs/peaso-local.md), [hosted AWS deployment](docs/peaso-aws.md), [the web interface](docs/peaso-ui.md) and [engine contracts](docs/peaso-engine-contract.md).
+
+The [AWS review index](docs/aws-review/README.md) links the complete per-control checklist, Prowler/Steampipe coverage decisions, numbered compliance mappings, test receipts and limits of live validation.
 
 ## Install the CLI
 
@@ -41,6 +43,8 @@ source .venv/bin/activate
 python -m pip install -e '.[cloud]'
 peaso --help
 ```
+
+See [CLI checks, JSON output and connector authentication](docs/peaso-cli.md) for checklist, exposure and principal-level least-privilege scans. No server or Codex token is required.
 
 `peaso`, `hacktricks-cspm` and `python -m peaso` invoke the same native CLI. The historical package and command alias remain available for compatibility.
 
@@ -124,15 +128,15 @@ docker compose up --build -d --wait
 docker compose exec api cat /var/lib/peaso/identity/local.token
 ```
 
-Open **http://127.0.0.1:8000** and enter the local token in Settings. API, collector and offline analyzer run separately. Named volumes preserve state and encrypted credentials between restarts; `docker compose down -v` deletes persisted data.
+Open **http://127.0.0.1:8000** and enter the local token in Settings. API, collector and analyzer run separately. Connect your Codex account in Settings or configure a platform token; use the scan toggle to disable AI review. Named volumes preserve state and encrypted credentials between restarts; `docker compose down -v` deletes persisted data.
 
 Follow the [local deployment guide](docs/peaso-local.md) for native Python startup, credential mounts, backup/restore and API endpoints, and the [UI guide](docs/peaso-ui.md) for frontend development. Production uses the reviewed GitHub Actions plan/apply workflow described in the [AWS guide](docs/peaso-aws.md).
 
 ## Read-only scope
 
-Native collectors do not apply remediation, create resources, enable APIs, generate IAM credential reports or create Access Analyzers. Missing permissions, unavailable services and collection limits remain visible in coverage.
+Native collectors do not apply remediation, enable APIs or retrieve secret values through credential/secret-value APIs. Selected configuration values are inspected in memory for secret indicators and discarded before caching or storing the snapshot. Missing permissions, unavailable services and collection limits remain visible in coverage.
 
-The **legacy AWS IAM script** has optional Access Analyzer provisioning. Pass `--no-access-analyzer` for a strictly read-only audit with that script. Native `peaso` collection does not provision analyzers.
+AWS Access Analyzer evidence is an explicit exception: native collection can provision temporary scan-owned analyzers, wait for evidence and clean them up. Unused analyzers can incur AWS charges, and incomplete analysis stays partial. See the [AWS collection guide](docs/peaso-aws-collector.md) for permissions and cleanup limits. The legacy AWS IAM script reads existing analyzers only.
 
 Azure ARM Reader does not grant Graph directory access. GCP requires corresponding API and resource read access. Kubernetes reads selected resource metadata and excludes Secret values, Pod exec/logs and writes. Each provider guide and check describes its evidence requirements.
 

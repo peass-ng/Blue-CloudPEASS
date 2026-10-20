@@ -5,6 +5,7 @@ import { ApiError, request, tokenKey, useApi } from "./api";
 import type { Me } from "./types";
 import { Badge, Inspector, Panel, State, humanError } from "./ui";
 import { ApiKeys } from "./ApiKeys";
+import { CodexSettings } from "./CodexSettings";
 import { Workspaces } from "./Workspaces";
 import { authLink } from "./authLinks";
 
@@ -92,6 +93,7 @@ export function Settings({ demo, workspaceId = "personal", onWorkspaceCreated = 
           </div>
         )}
       </Panel>
+      {showWorkspaceTools && <CodexSettings />}
       {showWorkspaceTools && <ApiKeys />}
       {showWorkspaceTools && (workspaceId === "personal" || workspaces.data?.items.some(workspace => workspace.id === workspaceId && workspace.role === "admin")) && <Panel title="Delete workspace data" kicker="DATA">
         <p className="muted small">Permanently remove all scans, evidence, connectors, stored cloud credentials and schedules in this workspace. Your account, membership, API keys and billing stay in place. Cloud resources are not changed.</p>
@@ -102,10 +104,12 @@ export function Settings({ demo, workspaceId = "personal", onWorkspaceCreated = 
       {showWorkspaceTools && <div className="settings-column"><Workspaces me={me.data} workspaceId={workspaceId} onWorkspaceCreated={onWorkspaceCreated} /></div>}
       </div>
       {deleteDialog && <Inspector title="Delete workspace data" onClose={() => { if (!cleanup.isPending) setDeleteDialog(false); }}>
+        <div className="form">
         <p>This permanently deletes the selected workspace’s scans, evidence, connectors, stored cloud credentials and schedules. It cannot be undone. Cancel active scans first.</p>
         <label>Type DELETE to confirm<input aria-label="Type DELETE to confirm" value={confirmation} disabled={cleanup.isPending} onChange={event => setConfirmation(event.target.value)} /></label>
         {cleanup.error && <p role="alert">{humanError(cleanup.error)} Some completed deletions may already have taken effect; you can retry.</p>}
         <button className="button danger" disabled={confirmation !== "DELETE" || cleanup.isPending} onClick={() => cleanup.mutate()}>{cleanup.isPending ? "Deleting workspace data…" : "Permanently delete workspace data"}</button>
+        </div>
       </Inspector>}
       {tokenDialog && localMode && !demo && <Inspector title="Local API authentication" onClose={() => setTokenDialog(false)}>
         <form className="form" onSubmit={(event) => { event.preventDefault(); save(); }}>

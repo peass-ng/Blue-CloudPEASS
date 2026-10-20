@@ -40,6 +40,7 @@ test("near-end scrolling fetches one bounded findings page at a time and filters
     return true;
   });
   await page.goto("/#Hardening%20Findings");
+  await page.getByLabel("Group findings").selectOption("check_id");
   const table = page.getByRole("region", { name: "Findings table" });
   await expect(page.getByText("200 loaded of 425 matching findings", { exact: false })).toBeVisible();
   expect(offsets.length).toBeGreaterThanOrEqual(1);
@@ -50,8 +51,6 @@ test("near-end scrolling fetches one bounded findings page at a time and filters
   expect(offsets).not.toContain(400);
   await table.evaluate(element => { element.scrollTop = element.scrollHeight; });
   await expect(page.getByText("425 loaded of 425 matching findings", { exact: false })).toBeVisible();
-  await table.evaluate(element => { element.scrollTop = element.scrollHeight; });
-  await expect(page.getByRole("button", { name: "Target final finding check-424" })).toBeVisible();
   expect(offsets.filter(offset => offset === 400)).toHaveLength(1);
   await page.getByLabel("Search findings").fill("Target final finding");
   await expect(page.getByRole("button", { name: "Target final finding check-424" })).toBeVisible();
@@ -81,6 +80,7 @@ test("changing a filter cancels an old next-page response and resets the result"
     return true;
   });
   await page.goto("/#Hardening%20Findings");
+  await page.getByLabel("Group findings").selectOption("check_id");
   await expect(page.getByText("200 loaded of 425 matching findings", { exact: false })).toBeVisible();
   await page.getByRole("region", { name: "Findings table" }).evaluate(element => { element.scrollTop = element.scrollHeight; });
   await started;

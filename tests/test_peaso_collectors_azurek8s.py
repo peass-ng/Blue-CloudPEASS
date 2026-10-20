@@ -685,12 +685,15 @@ def test_k8s_direct_tls_token_file_and_certificate(monkeypatch, tmp_path):
         k8s._new_api({"server": "http://cluster.example", "token": "fake-token"})
 
 
-def test_k8s_context_exec_loader_and_incluster_reuse(monkeypatch):
+def test_k8s_data_only_context_and_incluster_reuse(monkeypatch, tmp_path):
     from kubernetes import client, config
     calls = []
-    monkeypatch.setattr(config, "new_client_from_config", lambda **kwargs: calls.append(kwargs) or _offline_k8s_client(client.Configuration()))
-    k8s._new_api({"kubeconfig": "/fake/config", "context": "eks-cluster"})
-    assert calls == [{"config_file": "/fake/config", "context": "eks-cluster", "persist_config": False}]
+    path = tmp_path / 'config'
+    path.write_text(json.dumps(inline_config()))
+    monkeypatch.setattr(config, "new_client_from_config", lambda **kwargs: pytest.fail('SDK credential helpers are prohibited'))
+    monkeypatch.setattr(client, "ApiClient", lambda cfg: calls.append(cfg) or _offline_k8s_client(cfg))
+    k8s._new_api({"kubeconfig": str(path), "context": "selected"})
+    assert calls[0].host == 'https://cluster.example' and calls[0].api_key['authorization'] == 'fake-token'
     monkeypatch.setattr(config, "load_incluster_config", lambda **kwargs: calls.append(kwargs))
     monkeypatch.setattr(client, "ApiClient", lambda cfg: _offline_k8s_client(cfg))
     k8s._new_api({"in_cluster": True})
@@ -812,12 +815,15 @@ def test_k8s_selected_direct_mode_never_falls_back_to_kubeconfig(monkeypatch):
         k8s._new_api({"method": "token", "token": "fake-token"})
 
 
-def test_k8s_selected_context_ignores_stale_direct_server(monkeypatch):
+def test_k8s_selected_context_ignores_stale_direct_server(monkeypatch, tmp_path):
     from kubernetes import client, config
     calls = []
-    monkeypatch.setattr(config, "new_client_from_config", lambda **kwargs: calls.append(kwargs) or _offline_k8s_client(client.Configuration()))
-    k8s._new_api({"method": "kubeconfig", "context": "selected", "server": "https://stale.example", "token": "stale-token"})
-    assert calls[0]["context"] == "selected"
+    path = tmp_path / 'config'
+    path.write_text(json.dumps(inline_config()))
+    monkeypatch.setattr(config, "new_client_from_config", lambda **kwargs: pytest.fail('SDK credential helpers are prohibited'))
+    monkeypatch.setattr(client, "ApiClient", lambda cfg: calls.append(cfg) or _offline_k8s_client(cfg))
+    k8s._new_api({"method": "kubeconfig", "kubeconfig": str(path), "context": "selected", "server": "https://stale.example", "token": "stale-token"})
+    assert calls[0].host == 'https://cluster.example' and calls[0].api_key['authorization'] == 'fake-token'
 
 
 def test_k8s_certificate_mode_ignores_stale_bearer(monkeypatch):

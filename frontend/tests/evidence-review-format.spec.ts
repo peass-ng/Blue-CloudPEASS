@@ -42,9 +42,19 @@ function samples(): Sample[] {
 
 test("every registered check has reviewed prose and browser fallback coverage", () => {
   const rows = samples();
-  for (const [provider, count] of [["aws", 1521], ["gcp", 491], ["azure", 969], ["k8s", 1005]] as const) {
+  const coverage = json("docs/evidence-reviews/native-coverage.json").providers;
+  const nativeIds = {
+    aws: Object.keys(JSON.parse(gunzipSync(readFileSync(rootFile("tests/fixtures/aws_evidence_review.json.gz"))).toString())),
+    gcp: Object.entries(json("docs/evidence-reviews/gcp.json").checks)
+      .filter(([, row]) => !(row as { alias_of?: string }).alias_of).map(([id]) => id),
+    azure: Object.keys(JSON.parse(gunzipSync(readFileSync(rootFile("tests/fixtures/azure_evidence_review.json.gz"))).toString())),
+    k8s: Object.keys(json("docs/evidence-reviews/k8s.json").checks),
+  };
+  for (const provider of ["aws", "gcp", "azure", "k8s"] as const) {
     const checked = rows.filter(row => row.provider === provider);
-    expect(new Set(checked.map(row => row.id)).size, provider).toBeGreaterThanOrEqual(count);
+    const renderedIds = new Set(checked.map(row => row.id));
+    expect(nativeIds[provider].length, provider).toBe(coverage[provider].registered_checks);
+    expect(nativeIds[provider].filter(id => !renderedIds.has(id)), provider).toEqual([]);
     expect(checked.every(row => row.summary && !row.summary.includes("{\"")), provider).toBeTruthy();
   }
   writeFileSync("/tmp/all-provider-reviewed-browser-summaries.json", JSON.stringify(rows));

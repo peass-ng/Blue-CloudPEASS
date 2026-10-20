@@ -16,6 +16,22 @@ LEDGER = json.loads((ROOT / 'docs/evidence-reviews/gcp.json').read_text())
 LABELS = ('pass', 'fail', 'unknown', 'missing', 'malformed', 'manual', 'not_applicable', 'empty', 'denied')
 
 
+def test_enrollment_alone_does_not_explain_enforced_mfa():
+    summary = evidence_summary({'provider': 'gcp', 'check_id': 'gcp.identity.non_service_account_mfa',
+                                'status': 'FAIL', 'evidence': {'isEnrolledIn2Sv': True, 'isEnforcedIn2Sv': False}})
+    assert 'enrollment is enabled and enforcement is disabled' in summary
+    assert evidence_summary({'provider': 'gcp', 'check_id': 'gcp.identity.non_service_account_mfa',
+                             'status': 'PASS', 'evidence': {'isEnrolledIn2Sv': True}}).startswith(
+                                 CATALOG['gcp.identity.non_service_account_mfa']['missing_observation'])
+
+
+def test_inherited_bucket_read_grant_is_explained_directly():
+    summary = evidence_summary({'provider': 'gcp', 'check_id': 'gcp_pci_bucket_157fb0c69361',
+                                'status': 'FAIL', 'evidence': {'inherited_public_read_grants': [
+                                    {'scope': 'organizations/123', 'role': 'roles/storage.objectViewer'}]}})
+    assert summary.startswith('An ancestor IAM policy grants public read access to this bucket.')
+
+
 def findings():
     for cid, check in CHECK_BY_ID.items():
         case = CASES.get(cid, {})
@@ -31,7 +47,7 @@ def test_catalog_and_ledger_account_for_every_native_and_retired_alias():
     aliases = {old: new for old, new in CHECK_ALIASES.items() if old.startswith('gcp')}
     assert set(CATALOG) == set(CHECK_BY_ID) | set(aliases)
     assert set(LEDGER['checks']) == set(CATALOG)
-    assert LEDGER['registered_check_count'] == len(CHECK_BY_ID) == 491
+    assert LEDGER['registered_check_count'] == len(CHECK_BY_ID) == 525
     for cid in CHECK_BY_ID:
         assert CASES.get(cid) or SUPPLEMENTAL.get(cid), cid
         assert LEDGER['checks'][cid]['branch_coverage'], cid

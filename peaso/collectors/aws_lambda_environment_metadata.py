@@ -29,8 +29,12 @@ def _configuration(value, operation):
     if not isinstance(value, dict):
         from .aws import ReadFailure
         raise ReadFailure('malformed', 'lambda_configuration_metadata_invalid')
-    return {key: _environment(child, operation) if key == 'Environment' else deepcopy(child)
-            for key, child in value.items()}
+    from .aws_configuration_secret_indicators import lambda_indicators
+    indicator = lambda_indicators(value, operation)
+    result = {key: _environment(child, operation) if key == 'Environment' else deepcopy(child)
+              for key, child in value.items() if key != 'ConfigurationSecretIndicators'}
+    result['ConfigurationSecretIndicators'] = indicator
+    return result
 
 
 def project_response(response, operation):

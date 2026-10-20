@@ -1,0 +1,86 @@
+[
+  {
+    "eventSource": "cognito-idp.amazonaws.com",
+    "eventName": "AdminSetUserMFAPreference",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "eventID": "be89ee3a-11e0-4d48-b3fe-28af981772e8",
+    "eventTime": "2026-10-19T15:51:03Z",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "userPoolId": "us-east-1_MXjxePge1",
+      "softwareTokenMfaSettings": {
+        "enabled": true,
+        "preferredMfa": true
+      }
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventSource": "cognito-idp.amazonaws.com",
+    "eventName": "AdminSetUserMFAPreference",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "eventID": "a55f61be-bfd9-42f1-961b-ee332fadc8a9",
+    "eventTime": "2026-10-19T15:51:02Z",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "userPoolId": "us-east-1_MXjxePge1",
+      "softwareTokenMfaSettings": {
+        "enabled": false,
+        "preferredMfa": false
+      }
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventSource": "cognito-idp.amazonaws.com",
+    "eventName": "AdminSetUserMFAPreference",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "eventID": "e6be174e-b466-4027-a295-6a1b9a7d6a56",
+    "eventTime": "2026-10-19T15:51:01Z",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "userPoolId": "us-east-1_MXjxePge1",
+      "softwareTokenMfaSettings": {
+        "enabled": true,
+        "preferredMfa": true
+      }
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventSource": "cognito-idp.amazonaws.com",
+    "eventName": "AdminDeleteSoftwareToken",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "eventID": "c00e1fe2-7a64-41b8-9b15-4ed2a6162c2f",
+    "eventTime": "2026-10-19T15:51:03Z",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "userPoolId": "us-east-1_MXjxePge1"
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  }
+]

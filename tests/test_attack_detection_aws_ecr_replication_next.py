@@ -14,13 +14,13 @@ RULE = Rule(
 
 
 def test_external_destination_and_cleanup_negative() -> None:
-    config = {"rules": [{"destinations": [{"region": "us-west-2", "registryId": "947247140022"},
-                                        {"region": "us-west-2", "registryId": "202533532952"}],
+    config = {"rules": [{"destinations": [{"region": "us-west-2", "registryId": "222233334444"},
+                                        {"region": "us-west-2", "registryId": "111122223333"}],
                          "repositoryFilters": [{"filter": "canary", "filterType": "PREFIX_MATCH"}]}]}
     event = {"eventSource": "ecr.amazonaws.com", "eventName": "PutReplicationConfiguration",
              "eventCategory": "Management", "eventType": "AwsApiCall",
              "managementEvent": True, "readOnly": False,
-             "recipientAccountId": "947247140022",
+             "recipientAccountId": "222233334444",
              "requestParameters": {"replicationConfiguration": config},
              "responseElements": {"replicationConfiguration": deepcopy(config)}}
     assert [d.technique_id for d in detect_aws_events([event], [RULE])] == [RULE.technique_id]

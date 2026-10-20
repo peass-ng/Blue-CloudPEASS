@@ -125,3 +125,25 @@ def test_projection_never_overrides_collection_or_wrapper_authority(runtime_chec
         native.KIND: [{'type': native.KIND, 'scope': envelope_scope,
             'provider': 'azure' if mode == 'foreign_wrapper' else 'aws', 'data': row}]}
     assert evaluate_check(CHECK, {'scope': SCOPE}, index)[0] == 'UNKNOWN'
+
+
+@pytest.mark.parametrize('content', ['{}', '{"tags": {}}'])
+def test_native_empty_effective_policy_is_collected_and_lacks_requested_constraints(runtime_check, content):
+    """Live Organizations can return {}; absence of constraints is not malformed."""
+    import boto3
+    from botocore.stub import Stubber
+    raw = response()
+    raw['EffectivePolicy']['PolicyContent'] = content
+    client = boto3.client('organizations', region_name='us-east-1',
+                          aws_access_key_id='testing', aws_secret_access_key='testing')
+    requests = aws.Requests({'retry_attempts': 1})
+    requests.client = lambda *args: client
+    with Stubber(client) as stub:
+        stub.add_response('describe_effective_policy', raw, {'PolicyType': 'TAG_POLICY', 'TargetId': ACCOUNT})
+        read = native.collect(requests, object(), 'us-east-1', ACCOUNT)
+        stub.assert_no_pending_responses()
+    assert read.status == 'collected' and len(read.items) == 1
+    row = read.items[0]
+    assert row['PolicyPresent'] is True and row['AssignmentsComplete'] is True
+    assert row['TagAssignments'] == [] and 'PolicyContent' not in row
+    assert verdict(row)['status'] == 'FAIL'

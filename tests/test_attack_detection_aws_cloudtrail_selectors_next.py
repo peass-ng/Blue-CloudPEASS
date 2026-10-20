@@ -21,7 +21,7 @@ def _event(name: str, request: dict) -> dict:
     return {"eventSource": "cloudtrail.amazonaws.com", "eventName": name,
             "eventCategory": "Management", "eventType": "AwsApiCall",
             "managementEvent": True, "readOnly": False,
-            "recipientAccountId": "947247140022", "requestParameters": {"trailName": "synthetic", **request}}
+            "recipientAccountId": "222233334444", "requestParameters": {"trailName": "synthetic", **request}}
 
 
 def _hits(event: dict) -> list[str]:

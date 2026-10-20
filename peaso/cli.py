@@ -13,7 +13,8 @@ from .snapshot import nothing_readable
 
 
 def _load(path):
-    with open(path, encoding="utf-8") as stream:
+    from contextlib import nullcontext
+    with (nullcontext(sys.stdin) if str(path) == "-" else open(path, encoding="utf-8")) as stream:
         if str(path).endswith((".yaml", ".yml")):
             import yaml
             value = yaml.safe_load(stream)
@@ -79,11 +80,11 @@ def build_parser():
     commands = parser.add_subparsers(dest="command", required=True)
     for name in ("scan", "collect"):
         command = commands.add_parser(name)
-        command.add_argument("--request", help="JSON/YAML scan request containing connector")
+        command.add_argument("--request", help="JSON/YAML scan request containing connector; - reads JSON from stdin")
         command.add_argument("--provider", choices=("aws", "gcp", "azure", "k8s"))
         command.add_argument("--name", default="cli")
         command.add_argument("--scopes", nargs="+", help="account/project/subscription or cluster namespace selection")
-        command.add_argument("--auth-file", help="private JSON/YAML provider auth object; SDK default credentials when omitted")
+        command.add_argument("--auth-file", help="private JSON/YAML connector auth object; - reads JSON from stdin; SDK default credentials when omitted")
         command.add_argument("--options-file", help="JSON/YAML collection settings and optional explicit limits")
         command.add_argument("--profile", help="AWS profile")
         command.add_argument("--context", help="Kubernetes kubeconfig context")
@@ -141,6 +142,9 @@ def _execute(args, selectors):
             auth["context"] = args.context
         if args.demo:
             options["demo"] = True
+        if connector.get("provider") == "gcp" and auth.get("method") == "platform-service-account" and not (args.demo or args.snapshot):
+            from .gcp_platform import load_service_account
+            auth["sa_json"] = load_service_account(os.getenv("PEASO_GCP_PLATFORM_SA_SECRET_ARN", ""))
         if args.snapshot:
             snapshot = _load(args.snapshot)
             connector.setdefault("provider", snapshot.get("provider"))
@@ -181,6 +185,10 @@ def _execute(args, selectors):
         value = diff_reports(before, after)
     else:
         value = get_catalog()
+    if args.command in ("scan", "evaluate") and "least_privilege" in value.get("stats", {}).get("categories", []):
+        from .least_privilege import project
+        from .snapshot import resources
+        value["least_privilege"] = project(snapshot["provider"], resources(snapshot), snapshot=snapshot)
     _write(value, args.output, args.format)
     if args.command in ("scan", "collect") and snapshot is not None and nothing_readable(snapshot):
         codes = sorted({str((c.get("error") or {}).get("code")) for c in snapshot.get("collections", []) if c.get("error")})
@@ -194,12 +202,21 @@ def main(argv=None):
     parser = build_parser()
     args = parser.parse_args(argv)
     selectors = {key: getattr(args, key, None) for key in ("categories", "checks", "frameworks")}
+    received = []
     try:
+        from .cancellation import collection_cancellation
         active = args.command in ("scan", "collect", "evaluate")
-        with ProgressReporter(quiet=not active or getattr(args, "quiet", False), provider=getattr(args, "provider", None)):
-            return _execute(args, selectors)
-    except (OSError, ValueError, TypeError, KeyError) as exc:
-        print(f"hacktricks-cspm: {type(exc).__name__}: {exc}", file=sys.stderr)
+        with collection_cancellation() as received, ProgressReporter(quiet=not active or getattr(args, "quiet", False), provider=getattr(args, "provider", None)):
+            code = _execute(args, selectors)
+            return 128 + received[0] if received else code
+    except KeyboardInterrupt:
+        print("hacktricks-cspm: scan cancelled; provider cleanup completed.", file=sys.stderr)
+        return 128 + received[0] if received else 130
+    except Exception as exc:
+        message = "unable to process the request; check input files, selectors and credentials."
+        if isinstance(exc, ValueError) and str(exc).startswith("check requires external policy or manual evidence"):
+            message = "selected check requires external policy or manual evidence and cannot run automatically."
+        print(f"hacktricks-cspm: {type(exc).__name__}: {message}", file=sys.stderr)
         return 2
 
 

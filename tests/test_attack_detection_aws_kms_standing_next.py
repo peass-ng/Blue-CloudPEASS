@@ -24,14 +24,14 @@ RULES = [
          selection={"event.source": "kms.amazonaws.com", "event.name": "DisableKey",
                     "event.outcome": "success", "request.kms_key_disabled": True}),
 ]
-KEY = "arn:aws:kms:us-east-1:947247140022:key/11111111-2222-3333-4444-555555555555"
+KEY = "arn:aws:kms:us-east-1:222233334444:key/11111111-2222-3333-4444-555555555555"
 
 
 def _event(name: str, request: dict, response: dict | None = None) -> dict:
     return {"eventSource": "kms.amazonaws.com", "eventName": name,
             "eventCategory": "Management", "eventType": "AwsApiCall",
             "managementEvent": True, "readOnly": False,
-            "recipientAccountId": "947247140022", "requestParameters": {"keyId": KEY, **request},
+            "recipientAccountId": "222233334444", "requestParameters": {"keyId": KEY, **request},
             "responseElements": response}
 
 
@@ -40,7 +40,7 @@ def _hits(event: dict) -> list[str]:
 
 
 def test_create_grant_delegation_and_limited_grant() -> None:
-    event = _event("CreateGrant", {"granteePrincipal": "arn:aws:iam::947247140022:role/synthetic",
+    event = _event("CreateGrant", {"granteePrincipal": "arn:aws:iam::222233334444:role/synthetic",
              "operations": ["CreateGrant", "Decrypt"]}, {"grantId": "synthetic-grant", "keyId": KEY})
     assert _hits(event) == ["aws-kms-grantee-can-create-grants"]
     uuid_request = deepcopy(event)
@@ -63,7 +63,7 @@ def test_external_policy_and_same_account_negative() -> None:
     for variant in ("same_account", "conditional", "no_sensitive_action", "failed"):
         item = deepcopy(event)
         p = deepcopy(policy)
-        if variant == "same_account": p["Statement"][0]["Principal"]["AWS"] = "arn:aws:iam::947247140022:root"
+        if variant == "same_account": p["Statement"][0]["Principal"]["AWS"] = "arn:aws:iam::222233334444:root"
         if variant == "conditional": p["Statement"][0]["Condition"] = {"StringEquals": {"aws:PrincipalOrgID": "o-example"}}
         if variant == "no_sensitive_action": p["Statement"][0]["Action"] = ["kms:DescribeKey"]
         if variant == "failed": item["errorCode"] = "MalformedPolicyDocumentException"

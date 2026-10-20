@@ -13,12 +13,12 @@ RULE = Rule(id="archive", title="Indefinite archive", level="medium", descriptio
 
 def test_indefinite_archive_and_negative_variants() -> None:
     archive = "peasso-detect-archive-bda4b68eba"
-    arn = f"arn:aws:events:us-east-1:947247140022:archive/{archive}"
+    arn = f"arn:aws:events:us-east-1:222233334444:archive/{archive}"
     event = {"eventSource": "events.amazonaws.com", "eventName": "CreateArchive",
         "eventCategory": "Management", "eventType": "AwsApiCall", "managementEvent": True,
-        "readOnly": False, "awsRegion": "us-east-1", "recipientAccountId": "947247140022",
+        "readOnly": False, "awsRegion": "us-east-1", "recipientAccountId": "222233334444",
         "requestParameters": {"archiveName": archive, "retentionDays": 0,
-            "eventSourceArn": "arn:aws:events:us-east-1:947247140022:event-bus/peasso-detect-archive-bus-bda4b68eba"},
+            "eventSourceArn": "arn:aws:events:us-east-1:222233334444:event-bus/peasso-detect-archive-bus-bda4b68eba"},
         "responseElements": {"archiveArn": arn, "state": "ENABLED"}}
     def hits(value: dict) -> list[str]:
         return [x.technique_id for x in detect_aws_events([value], [RULE])]
@@ -35,7 +35,7 @@ def test_indefinite_archive_and_negative_variants() -> None:
         if change == "one_day": item["requestParameters"]["retentionDays"] = 1
         if change == "failed": item["errorCode"] = "AccessDeniedException"
         if change == "wrong_arn": item["responseElements"]["archiveArn"] += "-other"
-        if change == "foreign_bus": item["requestParameters"]["eventSourceArn"] = "arn:aws:events:us-east-1:202533532952:event-bus/foreign"
+        if change == "foreign_bus": item["requestParameters"]["eventSourceArn"] = "arn:aws:events:us-east-1:111122223333:event-bus/foreign"
         if change == "delete": item["eventName"] = "DeleteArchive"
         if change == "missing_retention_update": item["requestParameters"].pop("retentionDays")
         assert hits(item) == [], change

@@ -39,7 +39,7 @@ def _base(name: str, request: dict, response: dict) -> dict:
     return {"eventSource": "elasticfilesystem.amazonaws.com", "eventName": name,
             "eventCategory": "Management", "eventType": "AwsApiCall",
             "managementEvent": True, "readOnly": False,
-            "recipientAccountId": "947247140022", "requestParameters": request,
+            "recipientAccountId": "222233334444", "requestParameters": request,
             "responseElements": response}
 
 
@@ -68,14 +68,14 @@ def test_wildcard_client_root_policy_and_limited_negative() -> None:
     policy = {"Version": "2012-10-17", "Statement": [{"Effect": "Allow",
         "Principal": {"AWS": "*"},
         "Action": ["elasticfilesystem:ClientMount", "elasticfilesystem:ClientRootAccess"],
-        "Resource": f"arn:aws:elasticfilesystem:us-east-1:947247140022:file-system/{fs}"}]}
+        "Resource": f"arn:aws:elasticfilesystem:us-east-1:222233334444:file-system/{fs}"}]}
     event = _base("PutFileSystemPolicy", {"fileSystemId": fs, "policy": json.dumps(policy)},
                   {"fileSystemId": fs, "policy": json.dumps(policy)})
     assert _hits(event) == ["aws-efs-wildcard-client-root-policy"]
     for variant in ("restricted", "no_root", "conditional", "failed", "response_limited"):
         item = deepcopy(event)
         p = deepcopy(policy)
-        if variant == "restricted": p["Statement"][0]["Principal"]["AWS"] = "arn:aws:iam::947247140022:root"
+        if variant == "restricted": p["Statement"][0]["Principal"]["AWS"] = "arn:aws:iam::222233334444:root"
         if variant == "no_root": p["Statement"][0]["Action"] = ["elasticfilesystem:ClientMount"]
         if variant == "conditional":
             p["Statement"][0]["Condition"] = {"Bool": {"elasticfilesystem:AccessedViaMountTarget": "true"}}

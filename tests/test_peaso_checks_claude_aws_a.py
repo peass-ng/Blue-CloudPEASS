@@ -1,4 +1,5 @@
 """Behaviour tests for the claude_aws_a native ports (AWS services ebs..vpc)."""
+from peaso.checks.hacktricks_scope import includes
 import copy
 import importlib
 import json
@@ -59,7 +60,7 @@ def test_pass_fail_unknown(cid):
     assert _run(cid, {"collection_status": "denied"}, base) == "UNKNOWN"
     if "not_applicable" in cases:
         assert _evaluate(cid, "not_applicable") == "NOT_APPLICABLE"
-    assert HACKTRICKS in check.frameworks
+    assert (HACKTRICKS in check.frameworks) == includes(check.id)
     assert ROWS[cid]
 
 

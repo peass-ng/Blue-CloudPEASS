@@ -22,11 +22,15 @@ LEDGER = ROOT / "docs/compliance-ledgers"
 def render_documents() -> dict[Path, bytes]:
     from peaso.analysis import ANALYSIS_CHECKS
     from peaso.checks import CHECKS
+    from peaso.checks.hacktricks_scope import validate_review
+    validate_review([check.id for check in CHECKS] + [check["id"] for check in ANALYSIS_CHECKS])
+    from peaso.finding_types import validate_review as validate_types
+    validate_types([check.id for check in CHECKS] + [check["id"] for check in ANALYSIS_CHECKS])
     from peaso.checks.catalog import (_compliance, clear_caches, framework_catalog,
                                       full_requirements, manifest, proposal_provenance_for, runtime_metadata)
     from peaso.collectors import supported_types
-    from peaso.server.catalog_view import frameworks_view
-    from scripts.peaso_compliance_compile import lookup_index, spec_digest
+    from peaso.server.catalog_view import frameworks_view_from_catalog
+    from scripts.peaso_compliance_compile import lookup_index, spec_digest, verified_file
 
     clear_caches()
     packed = _compliance()
@@ -77,8 +81,15 @@ def render_documents() -> dict[Path, bytes]:
             declared = collected | declared_types(check.provider)
             if check.id not in bulk_manifest['checks'] or not set(check.dependencies+[check.kind]) <= declared:
                 raise ValueError("New check kind or dependency is not collected: " + check.id)
+    supervisor = json.loads((LEDGER / "manifest.json").read_text())
+    thematic_extensions = set()
+    for entry in supervisor.get("native_extensions", []):
+        extension, _ = verified_file(LEDGER, entry, prefix="native-extensions/")
+        for row in extension["checks"]:
+            if row["requirements"] == []:
+                thematic_extensions.add(row["spec"]["id"])
     for cid, tags in requirements["by_check"].items():
-        if cid not in native_ids | analysis_ids or not tags:
+        if cid not in native_ids | analysis_ids or (not tags and cid not in thematic_extensions):
             raise ValueError("Requirement map contains an absent or untagged check")
 
     source = manifest()
@@ -86,7 +97,7 @@ def render_documents() -> dict[Path, bytes]:
     runtime["compliance"] = {"schema_version": requirements["schema_version"],
                              "source_manifest_sha256": signed,
                              "requirements_total": sum(requirements["counts"].values())}
-    framework_rows = framework_catalog()
+    framework_rows = framework_catalog(source)
     from peaso.checks.native_only import automated_checks, scope as automation_scope, exclusions
     active = automated_checks(CHECKS)
     from peaso.checks import azure_vm_ssh_source_correction, gcp_cloudsql_lockout_source_correction
@@ -143,8 +154,7 @@ def render_documents() -> dict[Path, bytes]:
     has_evidence_gaps = any(row['unavailable_projections'] for row in inventory_coverage.values())
     summary = {**runtime["coverage"], "active_native_checks": len(active), "automation_scope": automation_scope(), "inventory_coverage": inventory_coverage,
                "phase": "expansion_in_progress" if runtime["coverage"]["upstream"]["pending"] or has_evidence_gaps else "review_complete"}
-    frameworks_view.cache_clear()
-    frontend = frameworks_view()
+    frontend = frameworks_view_from_catalog(public, framework_rows, runtime["coverage"])
     fixture = {key: frontend[key] for key in ("schema_version", "providers", "frameworks", "framework_versions", "limitations")}
     in_scope = {"aws", "azure", "gcp", "k8s", "all"}
     fixture["framework_versions"] = [row for row in frontend["framework_versions"]
@@ -173,12 +183,13 @@ def render_documents() -> dict[Path, bytes]:
             PACK / "framework_catalog.json": encoded({"schema_version": "1.0", "compliance_source_manifest_sha256": signed,
                                                        "frameworks": framework_rows}),
             PACK / "catalog_summary.json": encoded(summary),
+            PACK / "manual_catalog.json": encoded({"schema_version": "1.1", "requirements": runtime["manual_requirements"]}),
             FRONTEND: encoded(fixture, compact=True)}
 
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--write", action="store_true", help="Write the five reviewed views after all checks pass")
+    parser.add_argument("--write", action="store_true", help="Write the reviewed catalog views after all checks pass")
     args = parser.parse_args(argv)
     outputs = render_documents()
     stale = [path for path, payload in outputs.items() if not path.is_file() or path.read_bytes() != payload]

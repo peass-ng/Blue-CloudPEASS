@@ -32,6 +32,13 @@ resource "aws_security_group" "tasks" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  # Self-managed Kubernetes APIs commonly use their standard secure port.
+  egress {
+    from_port   = 6443
+    to_port     = 6443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 resource "aws_vpc_endpoint" "s3" {
   vpc_id            = aws_vpc.cspm.id
@@ -41,7 +48,11 @@ resource "aws_vpc_endpoint" "s3" {
   policy = jsonencode({ Version = "2012-10-17", Statement = [
     {
       Effect   = "Allow", Principal = "*", Action = ["s3:GetObject", "s3:PutObject", "s3:ListBucket"],
-      Resource = [aws_s3_bucket.artifacts.arn, "${aws_s3_bucket.artifacts.arn}/*", "arn:aws:s3:::prod-${var.region}-starport-layer-bucket/*"]
+      Resource = [aws_s3_bucket.artifacts.arn, "${aws_s3_bucket.artifacts.arn}/*", aws_s3_bucket.ai_transport.arn, "${aws_s3_bucket.ai_transport.arn}/*", "arn:aws:s3:::prod-${var.region}-starport-layer-bucket/*"]
+    },
+    {
+      Effect   = "Allow", Principal = "*", Action = ["s3:DeleteObject"],
+      Resource = "${aws_s3_bucket.ai_transport.arn}/invocations/*"
     },
     {
       # Customer roles still control authorization. Endpoint routing allows

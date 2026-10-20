@@ -10,7 +10,7 @@ import { Search, SlidersHorizontal, ChevronRight } from "lucide-react";
 import type { Catalog, Finding, Report } from "./types";
 import { Badge, Evidence, Inspector, Panel, State } from "./ui";
 import { catalogFrameworksPath, items, request, useApi } from "./api";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { explainExposureAction, explainFindingEvidence, explainInternetExposure } from "./findingExplanation";
 import { explainAzureFindingEvidence } from "./azureFindingEvidence";
 import { explainAzureNativeEvidenceObservation } from "./azureNativeEvidenceObservation";
@@ -19,14 +19,22 @@ import { explainExposureCheck } from "./exposureCheckExplanation";
 import { explainObservedEvidence } from "./observedEvidenceExplanation";
 import { Remediation } from "./Remediation";
 import { GroupedFindingEvidence, findingGroupPath } from "./GroupedFindingEvidence";
+import { FindingStatusBadge, findingStatusCounts, findingStatusOptions, matchesFindingStatus } from "./findingStatus";
 import "./FindingInspector.css";
+import findingTypes from "./findingTypes.json";
+const findingTypeLabel = (id?: string) => findingTypes.find(type => type.id === id)?.label || "Unclassified";
 type FindingPage = {
   items: Finding[];
   total?: number;
   next_offset?: number | null;
   offset?: number;
   facets?: { services?: string[]; statuses?: string[]; frameworks?: string[] };
+  service_groups?: ServiceSummary[];
+  type_groups?: { finding_type: string; label: string; count: number; status_counts: Record<string, number> }[];
+  status_filter_counts?: Record<string, number>;
+  status_filter_total?: number;
 };
+type ServiceSummary = { service: string; label?: string; count: number; status_counts: Record<string, number> };
 const col = createColumnHelper<Finding>();
 const assetLabel = (finding: Finding) =>
   finding.grouped ? (finding.affected_asset_count ? `${finding.affected_asset_count.toLocaleString()} assets` : `${(finding.member_count || 0).toLocaleString()} observations`)
@@ -66,6 +74,81 @@ function accountLabel(finding: Finding): string {
     return resource.match(/^k8s:\/\/([^/]+)/)?.[1] || "Unknown";
   return scope.split("/")[0] || "Unknown";
 }
+
+const SERVICE_PAGE_SIZE = 50;
+function ServiceSection({ summary, groupBy, scanId, category, demo, search, severity, status, framework, sort,
+  expanded, onToggle, onInspect }: {
+  summary: ServiceSummary;
+  groupBy: "service" | "finding_type";
+  scanId: string;
+  category: string;
+  demo: boolean;
+  search: string;
+  severity: string;
+  status: string;
+  framework: string;
+  sort?: { field: SortField; order: "asc" | "desc" };
+  expanded: boolean;
+  onToggle: () => void;
+  onInspect: (finding: Finding) => void;
+}) {
+  const [offset, setOffset] = useState(0);
+  const query = useQuery({
+    queryKey: [demo ? "demo" : "live", "service-findings", scanId, category, search, severity,
+      status, framework, groupBy, summary.service, sort, offset],
+    queryFn: ({ signal }) => {
+      const params = new URLSearchParams({
+        limit: String(SERVICE_PAGE_SIZE), offset: String(offset), group_by: groupBy,
+        aggregation: "check", [groupBy]: summary.service || ",",
+      });
+      for (const [key, value] of Object.entries({ categories: category, search, severity, status, framework }))
+        if (value) params.set(key, value);
+      if (sort) {
+        params.set("sort_by", sort.field);
+        params.set("sort_order", sort.order);
+      }
+      return request<FindingPage>(`/scans/${encodeURIComponent(scanId)}/findings?${params}`, { signal }, demo);
+    },
+    enabled: expanded,
+    retry: 1,
+  });
+  const findings = query.data ? items(query.data) : [];
+  return <>
+    <tr className="service-group-row"><td colSpan={6}>
+      <button type="button" className="service-group-button" aria-expanded={expanded} onClick={onToggle}>
+        <ChevronRight size={16} className={expanded ? "expanded" : ""} />
+        <strong>{summary.label || summary.service || "Unknown service"}</strong>
+        <span>{summary.count.toLocaleString()} findings</span>
+        {findingStatusCounts(summary.status_counts).map(({ label, count }) =>
+          <span key={label}>{count.toLocaleString()} {label.toLowerCase()}</span>)}
+      </button>
+    </td></tr>
+    {expanded && (query.isPending || query.error) && <tr><td colSpan={6} className="service-group-message">
+      {query.isPending ? "Loading findings…" : <span role="alert">This group could not be loaded. <button type="button" className="text-button" onClick={() => void query.refetch()}>Retry</button></span>}
+    </td></tr>}
+    {expanded && findings.map(finding => <tr key={finding.id}>
+      <td><Badge value={finding.severity} /></td>
+      <td><button className="finding-title" onClick={() => onInspect(finding)}>{finding.title}<span>{finding.check_id}</span></button></td>
+      <td><span className="service-cell" title={finding.service}>{finding.service}</span></td>
+      <td><div className="asset-cell">
+        <span title={assetLabel(finding)} className="truncate">{assetLabel(finding)}</span>
+        {finding.resource_name && finding.native_resource_id && <span className="native-asset-id" title={finding.native_resource_id}>{finding.native_resource_id}</span>}
+        {finding.resource_id?.startsWith("inventory:") && finding.scope && <span className="native-asset-id" title={finding.scope}>{finding.scope}</span>}
+      </div></td>
+      <td>{accountLabel(finding)}</td>
+      <td><FindingStatusBadge status={finding.status} /></td>
+    </tr>)}
+    {expanded && query.data && summary.count > SERVICE_PAGE_SIZE && <tr><td colSpan={6}>
+      <div className="service-page-controls">
+        <span>{offset + 1}–{offset + findings.length} of {summary.count.toLocaleString()} findings</span>
+        <button type="button" className="text-button" disabled={offset === 0 || query.isFetching}
+          onClick={() => setOffset(Math.max(0, offset - SERVICE_PAGE_SIZE))}>Previous page</button>
+        <button type="button" className="text-button" disabled={offset + findings.length >= summary.count || query.isFetching}
+          onClick={() => setOffset(offset + SERVICE_PAGE_SIZE)}>Next page</button>
+      </div>
+    </td></tr>}
+  </>;
+}
 export function Findings({
   scanId,
   category,
@@ -77,7 +160,7 @@ export function Findings({
 }) {
   const [search, setSearch] = useState("");
   const [severity, setSeverity] = useState("");
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState("FAIL");
   const [service, setService] = useState("");
   const [framework, setFramework] = useState("");
   const [sort, setSort] = useState<{ field: SortField; order: "asc" | "desc" }>();
@@ -92,6 +175,7 @@ export function Findings({
   );
   const [group, setGroup] = useState("service");
   const [expandedServices, setExpandedServices] = useState<Set<string>>(new Set());
+  const [expandedService, setExpandedService] = useState<string>();
   const [inspect, setInspect] = useState<Finding>();
   const [debouncedSearch, setDebouncedSearch] = useState("");
   useEffect(() => {
@@ -151,7 +235,13 @@ export function Findings({
     [query.data],
   );
   const serverFiltered = typeof firstPage?.total === "number";
+  const serviceGroups = serverFiltered
+    ? group === "service" ? firstPage?.service_groups
+      : group === "finding_type" ? firstPage?.type_groups?.map(row => ({ ...row, service: row.finding_type })) : undefined
+    : undefined;
   const facets = firstPage?.facets;
+  const statusFilterCounts = firstPage?.status_filter_counts;
+  const statusFilterTotal = firstPage?.status_filter_total;
   const frameworkOptions = useMemo(
     () =>
       Array.from(
@@ -179,7 +269,7 @@ export function Findings({
             serverFiltered ||
             ((!category || f.category === category) &&
               (!severity || f.severity === severity) &&
-              (!status || f.status === status) &&
+              matchesFindingStatus(f.status, status) &&
               (!service || f.service === service) &&
               (!framework || (selectedChecklist
                 ? f.framework_ids?.includes(framework) ||
@@ -210,8 +300,8 @@ export function Findings({
               (sort.order === "asc" ? 1 : -1);
           }
           if (sort && serverFiltered) return 0;
-          return String(a[group as keyof Finding]).localeCompare(
-            String(b[group as keyof Finding]),
+          return (group === "finding_type" ? findingTypeLabel(a.finding_type) : String(a[group as keyof Finding])).localeCompare(
+            group === "finding_type" ? findingTypeLabel(b.finding_type) : String(b[group as keyof Finding]),
           );
         }),
     [
@@ -288,7 +378,7 @@ export function Findings({
       }),
       col.accessor("status", {
         header: "Status",
-        cell: (i) => <Badge value={i.getValue()} />,
+        cell: (i) => <FindingStatusBadge status={i.getValue()} />,
       }),
     ],
     [],
@@ -299,20 +389,21 @@ export function Findings({
     getCoreRowModel: getCoreRowModel(),
   });
   const rows = table.getRowModel().rows;
-  const groupedServices = category === "exposure" && group === "service";
+  const groupedServices = group === "service" || group === "finding_type";
   const visibleRows = useMemo(() => {
+    if (serviceGroups) return [];
     if (!groupedServices) return rows.map((row) => ({ kind: "finding" as const, row }));
     const services = new Map<string, typeof rows>();
     for (const row of rows) {
-      const name = row.original.service || "Unknown service";
+      const name = group === "finding_type" ? findingTypeLabel(row.original.finding_type) : row.original.service || "Unknown service";
       if (!services.has(name)) services.set(name, []);
       services.get(name)!.push(row);
     }
-    return [...services].flatMap(([name, findings]) => [
+    return [...services].sort(([left], [right]) => left.localeCompare(right)).flatMap(([name, findings]) => [
       { kind: "service" as const, name, findings },
       ...(expandedServices.has(name) ? findings.map((row) => ({ kind: "finding" as const, row })) : []),
     ]);
-  }, [rows, groupedServices, expandedServices]);
+  }, [rows, group, groupedServices, expandedServices, serviceGroups]);
   const sortableColumns: Record<string, SortField> = {
     severity: "severity", title: "title", service: "service",
     resource_id: "resource_id", account: "account", status: "status",
@@ -326,14 +417,16 @@ export function Findings({
   });
   const lastVisible = virtual.getVirtualItems().at(-1)?.index ?? -1;
   const browsingKey = JSON.stringify([scanId, category, debouncedSearch, severity, status, service, framework, group, sort]);
+  const serviceScopeKey = JSON.stringify([scanId, category, debouncedSearch, severity, status, service, framework, group]);
   useEffect(() => setExpandedServices(new Set()), [browsingKey]);
+  useEffect(() => setExpandedService(undefined), [serviceScopeKey]);
   useEffect(() => {
     if (parent.current) parent.current.scrollTop = 0;
     virtual.scrollToOffset(0);
   }, [browsingKey]);
   useEffect(() => {
     if (!serverFiltered || !query.hasNextPage || query.isFetching || query.isFetchNextPageError ||
-        (!groupedServices && (all.length < 20 || lastVisible < visibleRows.length - 20))) return;
+        groupedServices || all.length < 20 || lastVisible < visibleRows.length - 20) return;
     void query.fetchNextPage({ cancelRefetch: false });
   }, [serverFiltered, query.hasNextPage, query.isFetching, query.isFetchNextPageError, groupedServices, all.length, visibleRows.length, lastVisible, query.fetchNextPage]);
   return (
@@ -341,10 +434,9 @@ export function Findings({
       <div className="section-top">
         <p>Configuration findings, grounded in collected evidence.</p>
         <span className="count-pill">
-          {filtered.length} /{" "}
-          {firstPage?.total ??
-            all.filter((f) => !category || f.category === category).length}{" "}
-          findings
+          {serviceGroups
+            ? `${firstPage?.total || 0} findings across ${serviceGroups.length} ${group === "finding_type" ? "types" : "services"}`
+            : `${filtered.length} / ${firstPage?.total ?? all.filter((f) => !category || f.category === category).length} findings`}
         </span>
       </div>
       {selectedChecklist && (
@@ -383,28 +475,10 @@ export function Findings({
             value={status}
             onChange={(e) => setStatus(e.target.value)}
           >
-            <option value="">All statuses</option>
-            {Array.from(
-              new Set([
-                ...(facets?.statuses || []),
-                ...all.map((f) => f.status),
-                ...(demo
-                  ? []
-                  : [
-                      "PASS",
-                      "FAIL",
-                      "UNKNOWN",
-                      "DENIED",
-                      "EMPTY",
-                      "MANUAL",
-                      "NOT_APPLICABLE",
-                    ]),
-              ]),
-            )
-              .sort()
-              .map((s) => (
-                <option key={s}>{s}</option>
-              ))}
+            <option value="">All statuses{statusFilterTotal !== undefined ? ` (${statusFilterTotal.toLocaleString()})` : ""}</option>
+            {findingStatusOptions.map(({ value, label }) => (
+              <option key={value} value={value}>{label}{statusFilterCounts?.[value] !== undefined ? ` (${statusFilterCounts[value].toLocaleString()})` : ""}</option>
+            ))}
           </select>
           <select
             aria-label="Service"
@@ -452,7 +526,7 @@ export function Findings({
             >
               <option value="service">Service</option>
               <option value="check_id">Check</option>
-              <option value="resource_id">Asset</option>
+              <option value="finding_type">Type</option>
             </select>
           </label>
           <button
@@ -460,7 +534,7 @@ export function Findings({
             onClick={() => {
               setSearch("");
               setSeverity("");
-              setStatus("");
+              setStatus("FAIL");
               setService("");
               setFramework("");
             }}
@@ -483,7 +557,7 @@ export function Findings({
               aria-label="Findings table"
               tabIndex={0}
             >
-              <table className="findings-table">
+              <table className={`findings-table${serviceGroups ? " findings-table-service-overview" : ""}`}>
                 <thead>
                   {table.getHeaderGroups().map((g) => (
                     <tr key={g.id}>
@@ -506,6 +580,13 @@ export function Findings({
                   ))}
                 </thead>
                 <tbody>
+                  {serviceGroups?.map(summary => <ServiceSection
+                    key={`${browsingKey}-${summary.service}`} summary={summary} groupBy={group === "finding_type" ? "finding_type" : "service"} scanId={scanId} category={category}
+                    demo={demo} search={debouncedSearch} severity={severity} status={status}
+                    framework={framework} sort={sort} expanded={expandedService === summary.service}
+                    onToggle={() => setExpandedService(current => current === summary.service ? undefined : summary.service)}
+                    onInspect={setInspect}
+                  />)}
                   {virtual.getVirtualItems().length > 0 && (
                     <tr aria-hidden="true">
                       <td
@@ -534,7 +615,7 @@ export function Findings({
                           <ChevronRight size={16} className={expandedServices.has(item.name) ? "expanded" : ""} />
                           <strong>{item.name}</strong>
                           <span>{item.findings.length} findings{query.hasNextPage ? " loaded" : ""}</span>
-                          {Object.entries(counts).map(([status, count]) => <span key={status}>{count} {status}</span>)}
+                          {findingStatusCounts(counts).map(({ label, count }) => <span key={label}>{count} {label.toLowerCase()}</span>)}
                         </button>
                       </td></tr>;
                     }
@@ -554,9 +635,7 @@ export function Findings({
                           <td key={cell.id}>
                             {index === 1 && !groupedServices && !sort && current !== previous && (
                               <span className="group-label">
-                                {group === "resource_id"
-                                  ? assetLabel(row.original)
-                                  : current}
+                                {current}
                               </span>
                             )}
                             {flexRender(
@@ -585,7 +664,7 @@ export function Findings({
                   )}
                 </tbody>
               </table>
-              {!rows.length && (
+              {!(serviceGroups ? serviceGroups.length : rows.length) && (
                 <div className="state">
                   <Search />
                   <h3>
@@ -611,11 +690,13 @@ export function Findings({
                 </div>
               )}
             </div>
-            {serverFiltered && (
+            {serverFiltered && !serviceGroups && (
               <div className="pagination-footer">
                 <span>
                   {all.length} loaded of {firstPage?.total} matching findings ·
-                  Filters search the complete assessment
+                  {groupedServices && query.hasNextPage
+                    ? " Load more to complete service groups"
+                    : " Filters search the complete assessment"}
                 </span>
                 {query.hasNextPage && (
                   <button
@@ -730,7 +811,7 @@ function FindingInspector({
         <header className="finding-detail-hero">
           <div className="inspector-badges">
             <Badge value={observed.severity} />
-            <Badge value={observed.status} />
+            <FindingStatusBadge status={observed.status} />
             <span className="badge service">{observed.service}</span>
           </div>
           <h3>{observed.title}</h3>

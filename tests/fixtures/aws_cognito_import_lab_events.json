@@ -1,0 +1,41 @@
+[
+  {
+    "eventSource": "cognito-idp.amazonaws.com",
+    "eventName": "CreateUserImportJob",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "eventID": "9f93aef8-ca0c-41be-b5c6-24cc1eeb7a85",
+    "eventTime": "2026-10-19T16:05:38Z",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "jobName": "example-cognito-import-9f289fd462",
+      "userPoolId": "us-east-1_d5ydyneDx",
+      "cloudWatchLogsRoleArn": "arn:aws:iam::222233334444:role/example-cognito-import-9f289fd462"
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventSource": "cognito-idp.amazonaws.com",
+    "eventName": "StartUserImportJob",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "eventID": "e2478258-d115-44c5-86f7-203307d457fc",
+    "eventTime": "2026-10-19T16:05:39Z",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "userPoolId": "us-east-1_d5ydyneDx",
+      "jobId": "import-F4vnvIcDgZ"
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  }
+]

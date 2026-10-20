@@ -12,7 +12,7 @@ def test_extended_fact_hydration_projects_native_metadata_with_exact_read_reques
         requests.append(request)
         url, params = request["url"], request.get("params") or {}
         if url.endswith("/metrics"):
-            assert params["fields"] == "metrics(name,filter,disabled,bucketName,labelExtractors,metricDescriptor(type)),nextPageToken"
+            assert params["fields"] == "metrics(name,filter,disabled,bucketName,labelExtractors,metricDescriptor(type,metricKind,valueType)),nextPageToken"
             return {"metrics": [{"name": "event", "filter": 'resource.type="gcs_bucket" AND protoPayload.methodName="storage.setIamPermissions"', "metricDescriptor": {"type": "logging.googleapis.com/user/event"}}]}
         if url.endswith("/alertPolicies"):
             assert "documentation" not in params["fields"] and "conditions" in params["fields"]
@@ -268,10 +268,16 @@ def test_boundary_policies_and_bindings_remain_native_metadata_conditions():
 def test_workspace_directory_reads_only_explicit_metadata_and_paginates_with_selected_identity():
     def resolve(request):
         url, params = request["url"], request["params"]
-        assert request["method"] == "GET" and url.startswith("https://admin.googleapis.com/admin/directory/v1/")
+        assert request["method"] == "GET"
+        if url == "https://cloudresourcemanager.googleapis.com/v3/projects/p-one":
+            return {"name": "projects/123456789012", "projectId": "p-one", "parent": "organizations/123"}
+        if url == "https://cloudresourcemanager.googleapis.com/v3/organizations/123":
+            return {"name": "organizations/123", "directoryCustomerId": "C123"}
+        assert url.startswith("https://admin.googleapis.com/admin/directory/v1/")
         assert "fields" in params and "password" not in params["fields"]
         if url.endswith("/users"):
             assert params["customer"] == "C123" and params["viewType"] == "admin_view"
+            assert params["projection"] == "full"
             if params.get("pageToken"):
                 return {"users": [{"id": "2", "customerId": "C123", "primaryEmail": "b@example.org", "isAdmin": False, "isDelegatedAdmin": True}]}
             return {"users": [{"id": "1", "customerId": "C123", "primaryEmail": "a@example.org", "isAdmin": True, "isDelegatedAdmin": False}], "nextPageToken": "next"}
@@ -287,7 +293,16 @@ def test_workspace_directory_reads_only_explicit_metadata_and_paginates_with_sel
     assert len(users) == 2 and users[0]["isAdmin"] is True and users[1]["isDelegatedAdmin"] is True
     assert collection(result, "workspace_role")["items"][0]["rolePrivileges"][0]["privilegeName"] == "USERS_RETRIEVE"
     assert collection(result, "workspace_role_assignment")["items"][0]["condition"]
-    assert len(reader.requests) == 4
+    binding = users[0]["_directoryBinding"]
+    assert binding["status"] == "collected" and binding["customer"] == "C123"
+    assert [row["requested"] for row in binding["chain"]] == ["projects/p-one", "organizations/123"]
+    assert len(reader.requests) == 6
+    assert {request["url"] for request in reader.requests} == {
+        "https://cloudresourcemanager.googleapis.com/v3/projects/p-one",
+        "https://cloudresourcemanager.googleapis.com/v3/organizations/123",
+        "https://admin.googleapis.com/admin/directory/v1/users",
+        "https://admin.googleapis.com/admin/directory/v1/customer/C123/roles",
+        "https://admin.googleapis.com/admin/directory/v1/customer/C123/roleassignments"}
 
 
 def test_workspace_api_denial_stays_denied_without_enablement_or_consent():

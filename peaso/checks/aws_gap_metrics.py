@@ -336,7 +336,7 @@ def _same_dimensions(alarm_dims, filter_keys):
     return True if not keys else None
 
 
-def _metric_identity(alarm, name, namespace, filter_keys=frozenset()):
+def _metric_identity(alarm, name, namespace, filter_keys=frozenset(), *, account=None):
     """True: alarm watches exactly this metric; None: references it in a form not modelled; False otherwise."""
     if "MetricName" in alarm or "MetricName" in alarm.get("_coverage", {}):
         if get(alarm, "MetricName", str) != name or get(alarm, "Namespace", str) != namespace:
@@ -346,6 +346,14 @@ def _metric_identity(alarm, name, namespace, filter_keys=frozenset()):
     hits = []
     returned = []
     for query in queries:
+        watched_account = optional(query, "AccountId", account, str)
+        if watched_account is not None:
+            if re.fullmatch(r"[0-9]{12}", watched_account) is None:
+                raise Unavailable("malformed alarm metric account")
+            if account is None:
+                raise Unavailable("alarm metric account identity unverified")
+            if watched_account != account:
+                continue
         direct = "Metric" in query or "Metric" in query.get("_coverage", {})
         expression = optional(query, "ExpressionPresent", False, bool)
         watched = None
@@ -429,7 +437,7 @@ def _log_group_covered(row, region, account, group, probes, strict):
                 continue
             for alarm in alarms:
                 try:
-                    watches = _metric_identity(alarm, name, namespace, filter_keys)
+                    watches = _metric_identity(alarm, name, namespace, filter_keys, account=account)
                 except Unavailable as exc:
                     unknown.append(str(exc))
                     continue

@@ -22,7 +22,7 @@ def _report():
             "id": f"finding-{index}", "provider": "aws", "check_id": "aws.example.ingress",
             "status": "FAIL", "title": "Review ingress", "category": "exposure", "severity": "high",
             "resource_id": resource_id, "native_resource_id": resource_id,
-            "resource_name": f"group-{index}", "scope": "947247140022/us-east-1",
+            "resource_name": f"group-{index}", "scope": "222233334444/us-east-1",
             "frameworks": ["CIS", f"Framework-{index}"], "description": "Reads declared ingress rules; reachability requires separate evidence.",
             "evaluated": ["IpPermissions[].IpRanges[].CidrIp"],
             "pass_when": "No matching ingress rule is declared.",
@@ -31,11 +31,11 @@ def _report():
             "remediation": "Review this ingress rule.", "message": f"Rule {index} needs review.",
             "evidence": {"group_id": resource_id, "rule_index": index},
         })
-        resources.append({"id": resource_id, "type": "aws.ec2.security_group", "scope": "947247140022/us-east-1", "name": f"group-{index}"})
+        resources.append({"id": resource_id, "type": "aws.ec2.security_group", "scope": "222233334444/us-east-1", "name": f"group-{index}"})
     return {
         "provider": "aws", "snapshot_id": "sha256:synthetic", "created_at": "2026-10-12T22:00:00Z",
-        "scopes": ["947247140022/us-east-1"], "stats": {"resources": 40, "findings": 40},
-        "coverage": [{"level": "check", "check_id": "aws.example.ingress", "scope": "947247140022/us-east-1", "status": "evaluated", "reason": "native evidence"}],
+        "scopes": ["222233334444/us-east-1"], "stats": {"resources": 40, "findings": 40},
+        "coverage": [{"level": "check", "check_id": "aws.example.ingress", "scope": "222233334444/us-east-1", "status": "evaluated", "reason": "native evidence"}],
         "findings": findings, "resources": resources,
         "graphs": {"network": {"nodes": [{"id": "node-1"}], "edges": [{"id": "edge-1"}]}},
         "remediation_templates": {"aws.example.ingress": detail},
@@ -55,7 +55,7 @@ def test_shared_guidance_preserves_each_finding_resource_evidence_and_bound_comm
     assert markdown.count("[reviewed meaning and remediation](#check-guidance-1)") == 40
     assert markdown.count("### FAIL: Review ingress") == 40
     assert markdown.count("- Frameworks: CIS, Framework-") == 40
-    assert markdown.count("- Scope: 947247140022/us-east-1") == 40
+    assert markdown.count("- Scope: 222233334444/us-east-1") == 40
     assert markdown.count("- Severity: high") == 40
     assert markdown.count("- Message: Rule ") == 40
     assert markdown.count("--group-ids sg-") == 40

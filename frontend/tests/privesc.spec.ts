@@ -80,7 +80,7 @@ test("aggregate nodes expand and collapse on click", async ({ page }) => {
   await expect(page.locator(".react-flow__node")).toHaveCount(before);
 });
 
-test("who can reach admin lists principals and highlights a path", async ({
+test("who can reach admin lists principals and highlights a selected path", async ({
   page,
 }) => {
   await openDemoMap(page);
@@ -93,10 +93,11 @@ test("who can reach admin lists principals and highlights a path", async ({
   await results.getByRole("button", { name: /^alice/ }).click();
   await expect(page.locator(".pe-chip.hl")).toContainText("Path alice");
   // alice -> EC2 roles aggregate -> ec2-app-role (member) -> OrganizationAdmin -> account admin
-  await expect(node(page, "arn:aws:iam::111111111111:role/ec2-app-role").locator(".is-hl")).toBeVisible();
-  await expect(node(page, "aws_account_admin:111111111111").locator(".is-hl")).toBeVisible();
-  await expect(page.locator(".react-flow__edge.is-hl")).toHaveCount(4);
-  await expect(page.locator(".react-flow__node .pe-node.is-dim").first()).toBeAttached();
+  await expect(node(page, "arn:aws:iam::111111111111:role/ec2-app-role")).toBeVisible();
+  await expect(node(page, "aws_account_admin:111111111111")).toBeVisible();
+  await expect(page.locator(".react-flow__edge.is-hl").first()).toBeAttached();
+  await page.getByRole("button", { name: "Clear highlight" }).click();
+  await expect(page.locator(".pe-node.is-hl, .pe-node.is-dim, .react-flow__edge.is-hl, .react-flow__edge.is-dim")).toHaveCount(0);
 });
 
 test("shortest path query between two searchable selects", async ({ page }) => {
@@ -108,10 +109,10 @@ test("shortest path query between two searchable selects", async ({ page }) => {
   await page.getByRole("option", { name: /Owner of organizations\/4242/ }).click();
   await page.getByRole("button", { name: "Find shortest path" }).click();
   await expect(sidebar(page).locator(".pe-paths")).toContainText("3 hops");
-  await expect(page.locator(".react-flow__edge.is-hl")).toHaveCount(3);
-  await expect(
-    node(page, "serviceAccount:terraform@acme-prod.iam.gserviceaccount.com").locator(".is-hl"),
-  ).toBeVisible();
+  await expect(node(page, "serviceAccount:terraform@acme-prod.iam.gserviceaccount.com")).toBeVisible();
+  await expect(page.locator(".react-flow__edge.is-hl").first()).toBeAttached();
+  await page.getByRole("button", { name: "Clear highlight" }).click();
+  await expect(page.locator(".pe-node.is-hl, .pe-node.is-dim, .react-flow__edge.is-hl, .react-flow__edge.is-dim")).toHaveCount(0);
 });
 
 test("principal card shows identity, outgoing and inbound edges", async ({
@@ -419,13 +420,21 @@ test("hovering a relationship isolates its arrow and endpoints without moving th
   await expect(page.locator(".pe-node.is-hl, .pe-node.is-dim, .react-flow__edge.is-hl, .react-flow__edge.is-dim")).toHaveCount(0);
 
   await sidebar(page).getByRole("button", { name: "Who can reach admin" }).click();
-  await expect(page.locator(".react-flow__edge.is-hl").first()).toBeVisible();
-  const pinned = await page.locator(".react-flow__edge.is-hl").evaluateAll((items) => items.map((item) => item.getAttribute("data-id")).sort());
+  await expect(page.locator(".pe-chip.hl")).toContainText("reach admin");
+  await expect(page.locator(".pe-node.is-hl").first()).toBeAttached();
+  await page.getByRole("button", { name: "Clear highlight" }).click();
+  await expect(page.locator(".pe-node.is-hl, .pe-node.is-dim, .react-flow__edge.is-hl, .react-flow__edge.is-dim")).toHaveCount(0);
   await fitAll(page);
+  const principal = node(page, "arn:aws:iam::111111111111:role/lambda-exec-role");
+  await principal.hover();
+  await expect(principal.locator(".pe-node")).toHaveClass(/is-hl/);
+  await expect(page.locator(".react-flow__edge.is-dim").first()).toBeAttached();
+  await page.getByRole("heading", { name: "Privilege Escalation Map" }).hover();
+  await expect(page.locator(".pe-node.is-hl, .pe-node.is-dim, .react-flow__edge.is-hl, .react-flow__edge.is-dim")).toHaveCount(0);
   await edge.locator(".react-flow__edge-textbg").hover();
   await expect(page.locator(".react-flow__edge.is-hl")).toHaveCount(1);
   await page.getByRole("heading", { name: "Privilege Escalation Map" }).hover();
-  await expect.poll(() => page.locator(".react-flow__edge.is-hl").evaluateAll((items) => items.map((item) => item.getAttribute("data-id")).sort())).toEqual(pinned);
+  await expect(page.locator(".pe-node.is-hl, .pe-node.is-dim, .react-flow__edge.is-hl, .react-flow__edge.is-dim")).toHaveCount(0);
 });
 
 test("dragging a node relocates it and its arrows and survives hover and fit", async ({ page }) => {
@@ -433,6 +442,8 @@ test("dragging a node relocates it and its arrows and survives hover and fit", a
   await fitAll(page);
   const movable = node(page, "arn:aws:iam::111111111111:role/lambda-exec-role");
   const edge = page.locator('.react-flow__edge[aria-label^="bob-ci to lambda-exec-role"]');
+  // The fitted canvas can extend below the viewport; pointer input does not auto-scroll.
+  await movable.scrollIntoViewIfNeeded();
   const before = await movable.getAttribute("style");
   const oldPath = await edge.locator(".react-flow__edge-path").getAttribute("d");
   const box = await movable.boundingBox();

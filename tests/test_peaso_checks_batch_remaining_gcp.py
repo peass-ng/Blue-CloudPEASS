@@ -1,5 +1,6 @@
 """Source-bound GCP batch fixtures captured from the prior isolated family tests."""
 import json
+from copy import deepcopy
 from pathlib import Path
 
 import pytest
@@ -12,10 +13,27 @@ from peaso.checks.facts import MemoIndex
 ROOT = Path(__file__).resolve().parents[1]
 DISPOSITION = json.loads((ROOT / "tests/fixtures/batch_remaining_gcp_k8s/full-id-disposition.json").read_text())
 CENTRAL = json.loads((ROOT / "tests/fixtures/batch_remaining_gcp_k8s/central-fixture-fragment.json").read_text())
+# These source-produced native cases supersede unbound historical inputs. The
+# archived CENTRAL fragment remains intact so its loss of authority is tested.
+NATIVE = json.loads((ROOT / "tests/fixtures/gcp-native-review-behavior.json").read_text())
+CURRENT = {row["check_id"]: [] for row in NATIVE["cases"]}
+for row in NATIVE["cases"]:
+    CURRENT[row["check_id"]].append(row)
 FIXTURES = {check_id: {label: {"item": case[label], "index": case.get(label + "_index", case["index"])}
                        for label in ("pass", "fail", "unknown") if label in case}
             for check_id, case in CENTRAL.items()}
 IDS = [row["id"] for row in DISPOSITION["ids"] if row["provider"] == "gcp" and row["disposition"] == "implemented"]
+
+
+def assert_current_native_cases(check_id):
+    cases = CURRENT[check_id]
+    assert {row["expected_status"] for row in cases} == {"PASS", "FAIL", "UNKNOWN"}
+    for row in cases:
+        assert row["source_bound_receipt"]["synthetic_transport"] is True
+        status, evidence = evaluate_check(check_id, deepcopy(row["item"]), MemoIndex(deepcopy(row["index"])))
+        assert status == row["expected_status"], row["id"]
+        # JSON captures serialize native grant tuples as arrays.
+        assert json.loads(json.dumps(evidence)) == row["expected_evidence"], row["id"]
 
 
 @pytest.mark.parametrize("check_id", IDS)
@@ -23,6 +41,9 @@ def test_gcp_native_identity_and_snapshot_outcomes(check_id):
     checks = [check for check in CHECKS if check.id == check_id]
     assert len(checks) == 1
     assert checks[0].provider == "gcp"
+    if check_id in CURRENT:
+        assert_current_native_cases(check_id)
+        return
     if check_id == "gcp_gke_cluster_endpoint_publicly_accessible_ea8dcc0ec97d":
         scope = "projects/test-project"
         def evidence(enabled):
@@ -52,6 +73,20 @@ def test_gcp_unreachable_verdicts_are_not_fabricated():
 @pytest.mark.parametrize("check_id", IDS)
 def test_gcp_central_case_fragment(check_id):
     case = CENTRAL[check_id]
+    if check_id in CURRENT:
+        # Identity verdicts and bucket absence need current binding/coverage.
+        # A directly recorded public ACL still supplies positive failure proof.
+        for label in ("pass", "fail", "unknown", "missing", "malformed"):
+            if label in case:
+                index = case.get(label + "_index", case["index"])
+                status, evidence = evaluate_check(check_id, deepcopy(case[label]), MemoIndex(deepcopy(index)))
+                if check_id == "gcp_pci_bucket_157fb0c69361" and label == "fail":
+                    assert status == "FAIL"
+                    assert json.loads(json.dumps(evidence["grants"])) == [["bucketAccessControls", "allUsers"]]
+                else:
+                    assert status == "UNKNOWN", (check_id, label)
+        assert_current_native_cases(check_id)
+        return
     for label, expected in (("pass", "PASS"), ("fail", "FAIL"), ("unknown", "UNKNOWN"),
                             ("missing", "UNKNOWN"), ("malformed", "UNKNOWN")):
         if label in case:

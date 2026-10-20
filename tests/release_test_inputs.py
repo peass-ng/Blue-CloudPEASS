@@ -2,16 +2,18 @@
 
 The bundle contains synthetic cases and historical check research, never live
 cloud snapshots. Existing files belong to the checkout and are not overwritten.
-Only missing inputs are materialized, and pytest removes those on exit.
+Only missing inputs are materialized atomically and retained as ignored test cache.
 """
 from __future__ import annotations
 
 import lzma
+import os
+import tempfile
 import hashlib
 import json
 from pathlib import Path
 
-BUNDLE_SHA256 = "22a461142de5b0d876f0a8e4e036aea3e9b46d5318f7a49958c1e58f7fd1cd28"
+BUNDLE_SHA256 = "d908ead4fa263a51d39a5310a68771b9ff7fc2a4773fcf587fda6182ca587259"
 MAX_EXPANDED_BYTES = 16_000_000
 
 
@@ -47,9 +49,17 @@ def restore_missing_inputs(root: Path) -> list[Path]:
     try:
         for target, data in pending:
             target.parent.mkdir(parents=True, exist_ok=True)
-            with target.open("xb") as stream:
-                stream.write(data)
-            created.append(target)
+            descriptor, staging = tempfile.mkstemp(prefix=".release-input-", dir=target.parent)
+            try:
+                with os.fdopen(descriptor, "wb") as stream:
+                    stream.write(data)
+                try:
+                    os.link(staging, target)
+                except FileExistsError:
+                    continue  # Another session or the checkout owns this file.
+                created.append(target)
+            finally:
+                os.unlink(staging)
     except BaseException:
         for path in created:
             path.unlink()

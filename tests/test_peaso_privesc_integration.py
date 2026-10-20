@@ -177,7 +177,7 @@ def api(tmp_path):
         connector = client.post("/api/connectors", json={"name": "privesc", "provider": "aws", "auth": {}, "scopes": [SCOPE],
                                                          "options": {"snapshot": privesc_snapshot()}})
         assert connector.status_code == 201, connector.text
-        job = client.post("/api/scans", json={"connector_id": connector.json()["id"], "categories": ["privesc"]})
+        job = client.post("/api/scans", json={"ai_enabled": False, "connector_id": connector.json()["id"], "categories": ["privesc"]})
         assert job.status_code == 201, job.text
         assert Worker("collector", settings).run_once() and Worker("analyzer", settings).run_once()
         assert client.get(f"/api/scans/{job.json()['id']}").json()["status"] == "completed"
@@ -243,7 +243,7 @@ def test_api_privesc_hosted_presigned_graph_and_server_side_queries(tmp_path):
         client.headers["Authorization"] = "Bearer alice"
         connector = client.post("/api/connectors", json={"name": "privesc", "provider": "aws", "auth": {}, "scopes": [SCOPE],
                                                          "options": {"snapshot": privesc_snapshot()}}).json()
-        ident = client.post("/api/scans", json={"connector_id": connector["id"], "categories": ["privesc"]}).json()["id"]
+        ident = client.post("/api/scans", json={"ai_enabled": False, "connector_id": connector["id"], "categories": ["privesc"]}).json()["id"]
         assert Worker("collector", settings).run_once() and Worker("analyzer", settings).run_once()
         signed = client.get(f"/api/scans/{ident}/graphs/privesc").json()
         assert signed["download_url"].startswith("https://signed.invalid/") and "graph-privesc" in signed["download_url"]
@@ -285,6 +285,9 @@ def test_api_principal_card_edges_carry_catalog_technique_details(api):
     assert "conditions" in detail and detail["edge_confidence"] == edge["confidence"]
     assert detail["evidence"] == edge["evidence_refs"] and any(r.get("policy_name") == "alice-inline" for r in detail["evidence"])
     assert card["technique_details"]["aws-ec2-passrole-runinstances"]["title"]
+    assert {p["permission"].lower() for p in detail["granting_permissions"]} >= {"iam:passrole", "ec2:runinstances"}
+    assert all(p["grant"]["statement_document"]["Resource"] == ["*"] for p in detail["granting_permissions"])
+
     role = client.get(f"/api/scans/{ident}/privesc/principals/{ADMIN_ROLE}").json()
     admin_edge = next(e for e in role["outgoing"] if "admin-equivalent" in e["techniques"])
     # Already-admin is a synthetic assessment label, not an escalation entry
@@ -295,3 +298,6 @@ def test_api_principal_card_edges_carry_catalog_technique_details(api):
     assert admin_detail["catalog_lookup_status"] == "exact_strict_privesc"
     assert admin_detail["edge_confidence"] == admin_edge["confidence"]
     assert admin_detail["evidence"] == admin_edge["evidence_refs"]
+    permission = admin_detail["granting_permissions"][0]
+    assert permission["permission"] == "*"
+    assert permission["grant"]["statement_document"] == {"Effect": "Allow", "Action": ["*"], "Resource": ["*"]}

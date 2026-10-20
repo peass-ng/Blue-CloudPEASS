@@ -15,7 +15,9 @@ from peaso.checks import CHECKS
 from peaso.checks.claude_aws_a_ec2 import INSTANCE_PORTS
 from peaso.checks.claude_aws_a_network import ENDPOINT_SERVICES, SG_PORTS
 from peaso.remediation import template
-from tests.release_successor_history import historical_bytes
+from tests.release_successor_history import (historical_bytes, _source414_reviewed_baseline,
+    _IAM_EVIDENCE_ONLY_REVERSE_HUNKS, _IAM_HISTORICAL_BASELINE_SHA256,
+    _IAM_SECURITY_SUCCESSOR_SHA256)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -77,13 +79,11 @@ def test_ids_are_assigned_and_no_approved_template_is_overridden():
     # The accepted helper is pinned independently; the unpublished local
     # 706b archive is not a portable historical-release fixture.
     iam_current=(ROOT / iam_path).read_text()
-    assert hashlib.sha256(iam_current.encode()).hexdigest()=="d94768357e6b0681e0b438490bfdec1383f0228636d32c0d79ca54504631ccf4"
-    # Reverse only the four reviewed evidence enrichments. This reconstructs
-    # the exact historical source bytes; no source criteria/hash is repinned.
-    iam_frozen=iam_current
-    for enriched,original in IAM_EVIDENCE_ONLY_SUCCESSOR:
-        assert iam_frozen.count(enriched)==1
-        iam_frozen=iam_frozen.replace(enriched,original)
+    assert hashlib.sha256(iam_current.encode()).hexdigest()==_IAM_SECURITY_SUCCESSOR_SHA256
+    assert tuple(IAM_EVIDENCE_ONLY_SUCCESSOR)==_IAM_EVIDENCE_ONLY_REVERSE_HUNKS
+    # Reconstruct the exact old source through both pinned successor layers.
+    iam_frozen=_source414_reviewed_baseline(iam_path,iam_current.encode(),
+        _IAM_HISTORICAL_BASELINE_SHA256).decode()
     assert hashlib.sha256(iam_frozen.encode()).hexdigest()=="2002c02d63715d2b878d6405ca2bd7df87d02d7832e424b5bd1964c113a96423"
     assert len(assigned) == 593
     assert central[PREAPPROVED]["review_status"] == "approved"

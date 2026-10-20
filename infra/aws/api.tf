@@ -1,5 +1,11 @@
 locals {
-  runtime_env = {
+  runtime_env = merge(local.ai_runtime_env, {
+    PEASO_AI_CREDENTIAL_SECRET_ARN          = aws_secretsmanager_secret.ai.arn
+    CODEX_TOKEN_SECRET_ARN                  = var.codex_token_secret_arn
+    PEASO_AWS_COLLECTOR_ROLE_ARN            = aws_iam_role.customer_trust.arn
+    PEASO_PLATFORM_ACCOUNT_IDS              = join(",", distinct(concat([var.account_id], var.platform_account_ids)))
+    PEASO_GCP_PLATFORM_PROJECT              = var.gcp_platform_project
+    PEASO_GCP_PLATFORM_EMAIL                = var.gcp_platform_email
     PEASO_AUTH_MODE                         = "cognito"
     PEASO_COGNITO_ISSUER                    = local.issuer
     PEASO_COGNITO_CLIENT_ID                 = local.client_id
@@ -23,7 +29,7 @@ locals {
     PEASO_ANALYZER_MEMORY_GIB               = tostring(var.worker_resources.analyzer.memory / 1024)
     PEASO_STATE_DIR                         = "/tmp/peaso/state"
     PEASO_IDENTITY_DIR                      = "/tmp/peaso/identity"
-  }
+  })
 }
 resource "aws_cloudwatch_log_group" "api" {
   name              = "/aws/lambda/${local.name}-api"
@@ -95,7 +101,7 @@ resource "aws_lambda_permission" "api" {
 }
 resource "aws_cloudwatch_event_rule" "schedules" {
   name                = "${local.name}-schedules"
-  schedule_expression = "rate(15 minutes)"
+  schedule_expression = "rate(1 minute)"
 }
 resource "aws_cloudwatch_event_target" "schedules" {
   rule = aws_cloudwatch_event_rule.schedules.name

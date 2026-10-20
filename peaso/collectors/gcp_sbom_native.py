@@ -14,37 +14,43 @@ def _error(code):
 
 
 def _digest_uri(value):
-    if not isinstance(value, str):
-        raise _error('sbom_image_uri_missing')
-    uri = value.removeprefix('https://')
-    match = re.fullmatch(r'([a-z0-9-]+)-docker\.pkg\.dev/([a-z0-9-]+)/([A-Za-z0-9._-]+)/([A-Za-z0-9._/-]+)@(sha256:[a-f0-9]{64})', uri)
-    if not match or any(p in ('', '.', '..') for p in match.group(4).split('/')):
+    from .gcp_registry_image_uri import parse
+    try:
+        uri, repository, digest, _ = parse(value)
+    except ValueError:
         raise _error('sbom_image_digest_or_repository_unresolved')
-    location, project, repo, image, digest = match.groups()
-    return 'https://' + uri, f'projects/{project}/locations/{location}/repositories/{repo}', digest
+    return uri, repository, digest
 
 
 def _images(collector, scope):
     from .gcp_compliance_wave import complete_parent
     repos = complete_parent(collector, 'artifact_repository', scope)
     seen = set()
+    docker_found = False
+    # Native Repository.format alternatives from the reviewed v1 discovery.
+    # A Python/npm/etc. repository does not make sibling Docker inventory partial.
+    non_docker = {'MAVEN', 'NPM', 'APT', 'YUM', 'GOOGET', 'PYTHON', 'KFP', 'GO', 'GENERIC', 'RUBY', 'CONDA'}
     for repo in repos['items']:
         name = repo.get('name')
         if not isinstance(name, str) or not re.fullmatch(re.escape(scope) + r'/locations/[a-z0-9-]+/repositories/[A-Za-z0-9._-]+', name):
             raise _error('sbom_repository_identity_unresolved')
+        if repo.get('format') in non_docker:
+            continue
         if repo.get('format') != 'DOCKER':
             raise _error('sbom_repository_format_unsupported')
+        docker_found = True
         def keep(row, name=name):
+            from .gcp_registry_image_uri import parse
             uri, actual_repo, digest = _digest_uri(row.get('uri'))
             if (actual_repo != name or not isinstance(row.get('name'), str) or not row['name'].startswith(name + '/dockerImages/')
-                    or unquote(row['name'][len(name + '/dockerImages/'):]) != uri.removeprefix('https://').split('/', 3)[3]
+                    or unquote(row['name'][len(name + '/dockerImages/'):]) != parse(uri)[3]
                     or uri in seen):
                 raise _error('sbom_image_foreign_or_duplicate')
             seen.add(uri)
             return {'name': row['name'], 'repository': name, 'uri': uri, 'digest': digest}
         yield from collector.pages('https://artifactregistry.googleapis.com/v1/' + name + '/dockerImages',
             scope, key='dockerImages', params={'fields': 'dockerImages(name,uri),nextPageToken'}, transform=keep)
-    if not repos['items']:
+    if not docker_found:
         for rid in repos['source_requests']:
             yield [], rid
 

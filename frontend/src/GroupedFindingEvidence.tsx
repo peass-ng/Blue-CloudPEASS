@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useApi } from "./api";
-import { Badge, State } from "./ui";
+import { State } from "./ui";
+import { FindingStatusBadge, findingStatusCounts } from "./findingStatus";
 import { BoundedPager } from "./BoundedPager";
 import type { Finding, FindingGroupDetail, FindingGroupMember } from "./types";
 
@@ -31,15 +32,15 @@ export function GroupedFindingEvidence({ finding, scanId, demo, onInspectMember 
   return <State loading={query.isPending} error={query.error} onRetry={() => void query.refetch()}>
     <p>{detail?.evidence_summary || finding.evidence_summary || `${total.toLocaleString()} observations are recorded for this check. Review each asset’s result below.`}</p>
     {Object.keys(counts).length > 0 && <div className="finding-group-statuses" aria-label="Results by status">
-      {Object.entries(counts).filter(([, count]) => count > 0).map(([status, count]) =>
-        <span key={status}><Badge value={status} /> {count.toLocaleString()}</span>)}
+      {findingStatusCounts(counts).map(({ label, count, tone }) =>
+        <span key={label}><span className={`badge ${tone}`}>{label}</span> {count.toLocaleString()}</span>)}
     </div>}
     <h4>Affected assets and regions</h4>
     <ol className="finding-group-members" aria-label="Individual evidence observations">
       {members.map(member => <li key={member.id}>
         <div className="finding-group-member-heading">
           <button type="button" className="text-button" onClick={() => onInspectMember(member)}>{member.resource_name || member.native_resource_id || member.asset || member.resource_id || member.id}</button>
-          <Badge value={member.status} />
+          <FindingStatusBadge status={member.status} />
         </div>
         <p className="finding-group-member-scope">{member.account && member.region ? `${member.account} · ${member.region}` : member.scope}</p>
         <p>{member.evidence_summary || "The saved observation has no concise evidence summary. Open the asset to review its recorded evidence."}</p>

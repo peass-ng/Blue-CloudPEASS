@@ -107,9 +107,17 @@ def normalize_aws_kms_key_deletion(record: Mapping[str, Any]) -> dict[str, Any] 
     if not isinstance(key, str) or not isinstance(returned, str):
         return None
     same_key = returned == key or returned.endswith(":key/" + key)
+    state = response.get("keyState")
+    deletion_confirmed = (state == "PendingDeletion"
+                          and isinstance(response.get("deletionDate"), str))
+    replica_deletion_confirmed = (
+        state == "PendingReplicaDeletion" and response.get("deletionDate") is None
+        and isinstance(request.get("pendingWindowInDays"), int)
+        and 7 <= request["pendingWindowInDays"] <= 30
+        and response.get("pendingWindowInDays") == request["pendingWindowInDays"]
+    )
     accepted = (not record.get("errorCode") and not record.get("errorMessage")
-                and same_key and response.get("keyState") in {"PendingDeletion", "PendingReplicaDeletion"}
-                and isinstance(response.get("deletionDate"), str))
+                and same_key and (deletion_confirmed or replica_deletion_confirmed))
     identity = record.get("userIdentity")
     identity = identity if isinstance(identity, Mapping) else {}
     return {

@@ -3,6 +3,8 @@ import { ChevronRight, Search, ShieldCheck } from "lucide-react";
 import { useApi } from "./api";
 import { Inspector, Panel, ProviderIcon, State } from "./ui";
 import "./LeastPrivilege.css";
+import { ExposureBadges, ExposureDetails, type PrincipalExposure } from "./PrincipalExposure";
+import { Badge } from "./ui";
 
 type Suggestion = {
   kind: "permission" | "service" | "role" | "role_review";
@@ -22,6 +24,9 @@ type Principal = {
   scopes: string[];
   provider: string;
   recommendation_count: number;
+  severity?: string;
+  base_severity?: string;
+  exposures?: PrincipalExposure[];
   suggestions: Suggestion[];
 };
 type Page = {
@@ -34,8 +39,9 @@ type Page = {
 export function LeastPrivilege({ scanId, demo }: { scanId: string; demo: boolean }) {
   const [search, setSearch] = useState("");
   const [offset, setOffset] = useState(0);
+  const [exposure, setExposure] = useState("");
   const [selected, setSelected] = useState<Principal>();
-  const page = useApi<Page>(`/scans/${encodeURIComponent(scanId)}/least-privilege?search=${encodeURIComponent(search)}&offset=${offset}&limit=100`, demo, !!scanId);
+  const page = useApi<Page>(`/scans/${encodeURIComponent(scanId)}/least-privilege?search=${encodeURIComponent(search)}${exposure ? `&exposure=${exposure}` : ""}&offset=${offset}&limit=100`, demo, !!scanId);
   const rows = page.data?.items || [];
   return <div className="least-page">
     <div className="section-top">
@@ -49,6 +55,13 @@ export function LeastPrivilege({ scanId, demo }: { scanId: string; demo: boolean
           <input aria-label="Search principals" value={search} placeholder="Search principal or scope…"
             onChange={(event) => { setSearch(event.target.value); setOffset(0); }} />
         </label>
+        <select aria-label="Principal exposure filter" value={exposure} onChange={event => { setExposure(event.target.value); setOffset(0); }}>
+          <option value="">All entry points</option>
+          <option value="external">External accounts or identities</option>
+          <option value="federated">Federated identity trust</option>
+          <option value="internet">Internet-facing workload</option>
+          <option value="unresolved">Unresolved exposure</option>
+        </select>
       </div>
       {!scanId ? <State empty title="Select a scan to review identities" /> :
         <State loading={page.isPending} error={page.error} onRetry={() => void page.refetch()}>
@@ -59,7 +72,9 @@ export function LeastPrivilege({ scanId, demo }: { scanId: string; demo: boolean
               <span className="least-identity"><strong>{principal.label || principal.principal.split("/").pop() || principal.principal}</strong><small>{principal.principal} · {principal.scopes.length} scope{principal.scopes.length === 1 ? "" : "s"}</small></span>
               <span className={`least-row-count${principal.recommendation_count ? " recommended" : ""}`}>{principal.recommendation_count
                 ? `${principal.recommendation_count} suggested changes`
-                : `${principal.suggestions.length} grants to review`}</span>
+                : principal.suggestions.length ? `${principal.suggestions.length} grants to review` : "Exposure to review"}</span>
+              <ExposureBadges exposures={principal.exposures} />
+              {principal.severity && <Badge value={principal.severity} />}
               <ChevronRight size={18} aria-hidden="true" />
             </button>)}
           </div> : <div className="least-empty"><ShieldCheck size={24} /><h3>No principal suggestions in this scan</h3>
@@ -79,6 +94,7 @@ export function LeastPrivilege({ scanId, demo }: { scanId: string; demo: boolean
       <div className="least-detail">
         <h2>{selected.label || selected.principal}</h2>
         <p>{selected.label && selected.label !== selected.principal ? `${selected.principal} · ` : ""}{selected.scopes.join(" · ")}</p>
+        <ExposureDetails exposures={selected.exposures} severity={selected.severity} baseSeverity={selected.base_severity} />
         <h3>{selected.recommendation_count ? "Suggested changes" : "Grants to review"}</h3>
         <div className="least-suggestions">{selected.suggestions.map((item, index) => <article key={`${item.scope}-${item.value}-${index}`}>
           <span className="least-source">{item.source}</span>

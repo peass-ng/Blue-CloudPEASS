@@ -45,6 +45,10 @@ export type Connector = {
   created_at?: string;
 };
 export type Finding = {
+  finding_type?: string;
+  secret_fingerprint?: string;
+  linked_check_ids?: string[];
+  evidence_summary_format?: "natural-language-v2";
   id: string;
   category: string;
   check_id: string;
@@ -179,13 +183,23 @@ export type Scan = {
   progress?: number;
   input_mode?: string;
 };
+export type ScheduleRule = {
+  frequency: "daily" | "weekly" | "monthly";
+  time: string;
+  weekdays?: number[];
+  day_of_month?: number;
+};
 export type Schedule = {
+  ai_enabled?: boolean;
   id: string;
   name?: string;
   connector_id: string;
   categories: string[];
   frameworks?: string[];
   interval_hours?: number;
+  rules?: ScheduleRule[];
+  timezone?: string;
+  checks?: string[];
   enabled: boolean;
   next_run_at?: string;
 };
@@ -245,6 +259,8 @@ export const providers: { id: Provider; name: string; detail: string }[] = [
 export type PrivescConfidence = "derived" | "conditional" | "unknown";
 export type PrivescNodeKind = "principal" | "entity" | "aggregate";
 export type PrivescNode = {
+  exposures?: import("./PrincipalExposure").PrincipalExposure[];
+  exposed_member_count?: number;
   id: string;
   label?: string;
   type?: string;
@@ -272,7 +288,7 @@ export type PrivescEdge = {
   confidence: PrivescConfidence;
   evidence_refs?: PrivescEvidenceRef[];
   findings?: string[];
-  technique_details?: { id: string; granting_permissions?: { permission: string; grant: PrivescEvidenceRef }[] }[];
+  technique_details?: { id: string; evidence_refs?: PrivescEvidenceRef[]; conditions?: string[]; finding?: string; severity?: string; base_severity?: string; granting_permissions?: { permission: string; grant: PrivescEvidenceRef; evaluated_resource?: string; requirement?: Record<string, unknown> }[] }[];
   via_aggregate?: string;
 };
 export type PrivescGraph = {
@@ -329,7 +345,7 @@ export type PrivescFindingEvidence = {
   targets?: PrivescNode[];
   target_count?: number;
   granting_statements?: PrivescEvidenceRef[];
-  granting_permissions?: { permission: string; grant: PrivescEvidenceRef }[];
+  granting_permissions?: { permission: string; grant: PrivescEvidenceRef; evaluated_resource?: string; requirement?: Record<string, unknown> }[];
   conditions?: string[];
   confidence?: PrivescConfidence;
   technique_conditions?: { id: string; description?: string }[];

@@ -1,0 +1,171 @@
+{
+  "$defs": {
+    "NetworkEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "summary": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Summary",
+          "type": "string"
+        },
+        "resource_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 50,
+          "minItems": 1,
+          "title": "Resource Ids",
+          "type": "array"
+        },
+        "graph_refs": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 50,
+          "title": "Graph Refs",
+          "type": "array"
+        },
+        "observations": {
+          "items": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 10,
+          "minItems": 1,
+          "title": "Observations",
+          "type": "array"
+        },
+        "limitations": {
+          "items": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 10,
+          "title": "Limitations",
+          "type": "array"
+        }
+      },
+      "required": [
+        "summary",
+        "resource_ids",
+        "graph_refs",
+        "observations",
+        "limitations"
+      ],
+      "title": "NetworkEvidence",
+      "type": "object"
+    },
+    "NetworkFinding": {
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "maxLength": 300,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "description": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "rationale": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Rationale",
+          "type": "string"
+        },
+        "resource_id": {
+          "title": "Resource Id",
+          "type": "string"
+        },
+        "severity": {
+          "enum": [
+            "critical",
+            "high",
+            "medium",
+            "low",
+            "info"
+          ],
+          "title": "Severity",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "FAIL",
+            "MANUAL",
+            "UNKNOWN"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "evidence": {
+          "$ref": "#/$defs/NetworkEvidence"
+        },
+        "remediation": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Remediation",
+          "type": "string"
+        },
+        "verification": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Verification",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "description",
+        "rationale",
+        "resource_id",
+        "severity",
+        "status",
+        "evidence",
+        "remediation",
+        "verification"
+      ],
+      "title": "NetworkFinding",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "explanation": {
+      "maxLength": 1000,
+      "minLength": 1,
+      "title": "Explanation",
+      "type": "string"
+    },
+    "findings": {
+      "items": {
+        "$ref": "#/$defs/NetworkFinding"
+      },
+      "maxItems": 100,
+      "title": "Findings",
+      "type": "array"
+    },
+    "limitations": {
+      "items": {
+        "maxLength": 500,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Limitations",
+      "type": "array"
+    }
+  },
+  "required": [
+    "explanation",
+    "findings",
+    "limitations"
+  ],
+  "title": "NetworkReview",
+  "type": "object"
+}

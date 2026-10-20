@@ -1,4 +1,5 @@
 """Collector-only full AWS evidence; evaluator/analysis imports are forbidden."""
+from peaso import deployment
 import argparse
 from collections import Counter
 from datetime import datetime, timezone
@@ -33,7 +34,7 @@ def child(root):
         if service_name == "iam":
             def before(**kwargs):
                 identity = original(session, "sts", region_name="us-east-1").get_caller_identity()
-                if identity["Account"] != "947247140022":
+                if identity["Account"] != deployment.value("test_aws_account_id"):
                     raise RuntimeError("Unapproved account for credential-report metadata generation")
                 audit.append({"account": identity["Account"], "principal": identity["Arn"], "operation": "iam:GenerateCredentialReport",
                     "purpose": "User directive6 evidence-only account metadata", "verification": "same_session_caller_verified_before_write",
@@ -47,10 +48,10 @@ def child(root):
     import peaso
     if not Path(peaso.__file__).resolve().is_relative_to(root / "collector-build"):
         raise RuntimeError("Collector import escaped frozen allowed sources")
-    own = boto3.session.Session(profile_name="naxusai-admin").client("sts", region_name="us-east-1").get_caller_identity()
-    assert own["Account"] == "947247140022"
+    own = boto3.session.Session(profile_name=deployment.value("test_aws_profile")).client("sts", region_name="us-east-1").get_caller_identity()
+    assert own["Account"] == deployment.value("test_aws_account_id")
     started = time.perf_counter()
-    snapshot = collect({"provider": "aws", "auth": {"method": "profile", "profile": "naxusai-admin"}, "options": {}})
+    snapshot = collect({"provider": "aws", "auth": {"method": "profile", "profile": deployment.value("test_aws_profile")}, "options": {}})
     seconds = time.perf_counter() - started
     inventory = resources(snapshot)
     serial_start = time.perf_counter()

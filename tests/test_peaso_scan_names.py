@@ -54,7 +54,7 @@ def test_opaque_credentials_are_never_used_as_identity_names():
 
 def test_imported_scan_uses_recorded_target_role_not_default_or_source_identity():
     private = {"auth": {"method": "default"}, "options": {"snapshot": {"metadata": {"caller_identities": [
-        {"Account": "202533532952", "Arn": "arn:aws:sts::202533532952:assumed-role/Platform/session"},
+        {"Account": "111122223333", "Arn": "arn:aws:sts::111122223333:assumed-role/Platform/session"},
         {"Account": "123456789098", "Arn": "arn:aws:sts::123456789098:assumed-role/pentest-readonly/session"},
     ]}}}}
     scopes = ["123456789098/us-east-1", "123456789098/eu-west-1"]

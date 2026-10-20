@@ -32,15 +32,15 @@ RULES = [
                     "event.name": "StopReplicationToReplica", "event.outcome": "success",
                     "request.secretsmanager_replica_promoted": True}),
 ]
-ARN = "arn:aws:secretsmanager:us-east-1:947247140022:secret:synthetic-abcdef"
+ARN = "arn:aws:secretsmanager:us-east-1:222233334444:secret:synthetic-abcdef"
 
 
 def _event(name: str) -> dict:
     return {"eventSource": "secretsmanager.amazonaws.com", "eventName": name,
             "eventCategory": "Management", "eventType": "AwsApiCall",
             "managementEvent": True, "readOnly": False,
-            "recipientAccountId": "947247140022", "eventID": "sample-id",
-            "userIdentity": {"arn": "arn:aws:iam::947247140022:user/test"},
+            "recipientAccountId": "222233334444", "eventID": "sample-id",
+            "userIdentity": {"arn": "arn:aws:iam::222233334444:user/test"},
             "requestParameters": {"secretId": ARN, "versionStage": "AWSCURRENT",
                                   "moveToVersionId": "new", "removeFromVersionId": "old"},
             "responseElements": {"arn": ARN}}
@@ -88,7 +88,7 @@ def test_force_delete_and_recoverable_delete() -> None:
 def test_rotation_lambda_binding_and_schedule_only_change() -> None:
     event = _event("RotateSecret")
     event["requestParameters"]["rotationLambdaARN"] = (
-        "arn:aws:lambda:us-east-1:947247140022:function:synthetic-rotation")
+        "arn:aws:lambda:us-east-1:222233334444:function:synthetic-rotation")
     event["requestParameters"]["rotateImmediately"] = False
     assert _hits(event) == ["aws-secretsmanager-rotation-lambda-bound"]
     schedule_only = deepcopy(event)

@@ -150,7 +150,7 @@ def vault_fixture(cid):
         index['context']['metadata'].update(capture, tenant_verified=True)
         for kind in ('recovery_vault', 'backup_protected_item', 'backup_job'):
             env = index['collections'][kind][0]
-            env['service'] = 'Microsoft.RecoveryServices' if kind == 'recovery_vault' else 'azure'
+            env['service'] = 'Microsoft.RecoveryServices'
             env['_provenance'] = {key: capture[key] for key in ('credential_context_id', 'customer_context_id')}
             for wrapped in index[kind]:
                 wrapped['data'].setdefault('_provenance', {}).update(env['_provenance'])

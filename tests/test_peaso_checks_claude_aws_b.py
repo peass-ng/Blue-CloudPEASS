@@ -1,4 +1,5 @@
 """Behaviour tests for the claude_aws_b native ports (AWS services fsx..workspaces)."""
+from peaso.checks.hacktricks_scope import includes
 import copy
 import json
 from pathlib import Path
@@ -39,8 +40,9 @@ def test_pass_fail_unknown(cid):
     assert check.evaluate(None, cases.get("index", {}))[0] == "UNKNOWN"
     assert check.evaluate({"collection_status": "denied"}, cases.get("index", {}))[0] == "UNKNOWN"
     if "not_applicable" in cases:
-        assert _evaluate(cid, "not_applicable") == "NOT_APPLICABLE"
-    assert HACKTRICKS in check.frameworks
+        expected = "UNKNOWN" if cid == "aws.cb.sns.policy_prohibit_public_access_perimeter" else "NOT_APPLICABLE"
+        assert _evaluate(cid, "not_applicable") == expected
+    assert (HACKTRICKS in check.frameworks) == includes(check.id)
     assert ROWS[cid]
 
 
@@ -87,7 +89,27 @@ EXTRAS = [(cid, key) for cid in IDS for key in CASES[cid] if key not in STANDARD
 @pytest.mark.parametrize("cid,key", EXTRAS)
 def test_named_fixtures(cid, key):
     expected = CASES[cid].get(key + "_expect") or ("PASS" if key.endswith("_pass") else EXTRA_EXPECT[key])
+    if key == "no_policy" and cid in {
+        "aws.cb.sns.policy_no_unrestricted_wildcard",
+        "aws.cb.sns.policy_no_public_publish",
+        "aws.cb.sns.policy_no_public_subscribe",
+    }:
+        expected = "UNKNOWN"
     assert _evaluate(cid, key) == expected
+
+
+@pytest.mark.parametrize("cid,key", [
+    ("aws.cb.sns.policy_prohibit_public_access_perimeter", "not_applicable"),
+    ("aws.cb.sns.policy_no_unrestricted_wildcard", "no_policy"),
+    ("aws.cb.sns.policy_no_public_publish", "no_policy"),
+    ("aws.cb.sns.policy_no_public_subscribe", "no_policy"),
+])
+def test_omitted_sns_policy_does_not_prove_absence(cid,key):
+    cases=CASES[cid]
+    item=copy.deepcopy(cases[key]);index=copy.deepcopy(cases.get(key+"_index",cases.get("index",{})))
+    before,before_index=copy.deepcopy(item),copy.deepcopy(index)
+    assert REGISTRY[cid].evaluate(item,index)==("UNKNOWN",{"reason":"missing fact: Policy"})
+    assert item==before and index==before_index
 
 
 def test_shards_match_dispositions():

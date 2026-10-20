@@ -40,8 +40,10 @@ def attached_admin(item, index):
     if managed:
         return "NOT_APPLICABLE", {"reason": "AWS-managed policy is outside the customer-managed source population"}
     versions = list_of_objects(get(item, "PolicyVersionList", list))
+    version_id = get(item, "DefaultVersionId", str)
+    version_ids = [get(version, "VersionId", str) for version in versions]
     default = [version for version in versions if get(version, "IsDefaultVersion", bool)]
-    if len(default) != 1:
+    if not version_id or any(not value for value in version_ids) or len(set(version_ids)) != len(version_ids) or len(default) != 1 or get(default[0], "VersionId", str) != version_id:
         raise Unavailable("exactly one default managed policy version required")
     bad = unresolved = 0
     for statement in statements(get(default[0], "Document")):
@@ -66,9 +68,9 @@ def attached_admin(item, index):
         return unknown("declared policy statement fields unavailable", unresolved_statements=unresolved)
     return result(bool(bad), wildcard_statement_count=bad,
         semantics="Declared source literals including conditioned statements; denies, boundaries and effective access are not simulated")
-POLICY = {"AttachmentCount": 1, "Arn": "arn:aws:iam::123456789012:policy/inert", "PolicyVersionList": [{"IsDefaultVersion": True,
+POLICY = {"AttachmentCount": 1, "Arn": "arn:aws:iam::123456789012:policy/inert", "DefaultVersionId": "v1", "PolicyVersionList": [{"VersionId": "v1", "IsDefaultVersion": True,
     "Document": {"Statement": [{"Effect": "Allow", "Action": "s3:ListAllMyBuckets", "Resource": "*"}]}}]}
-BAD = {**POLICY, "PolicyVersionList": [{"IsDefaultVersion": True, "Document": {"Statement": [{"Effect": "Allow", "Action": "*", "Resource": "*"}]}}]}
+BAD = {**POLICY, "DefaultVersionId": "v1", "PolicyVersionList": [{"VersionId": "v1", "IsDefaultVersion": True, "Document": {"Statement": [{"Effect": "Allow", "Action": "*", "Resource": "*"}]}}]}
 CASES["aws.a.iam.attached_policy_no_star_star"] = {"pass": POLICY, "fail": BAD, "missing": {}, "malformed": None,
     "not_applicable": {"AttachmentCount": 0}, "aws_managed_not_applicable": {**BAD, "Arn": "arn:aws:iam::aws:policy/AdministratorAccess"}}
 NATIVE_IDS.append("aws.a.iam.attached_policy_no_star_star")

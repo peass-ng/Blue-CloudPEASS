@@ -118,6 +118,7 @@ test("real API native snapshot workflow, schedules, downloads, quota and graphs"
   await expect(
     page.getByRole("button", { name: /Reset filters/ }),
   ).toBeVisible();
+  await page.getByLabel("Group findings").selectOption("check_id");
   const finding = page.locator(".finding-title").first();
   await expect(finding).toBeVisible();
   await finding.click();

@@ -15,7 +15,7 @@ def _resource(row):
     return row.get("data", {}) if isinstance(row.get("data"), Mapping) else {}
 
 
-def project(provider, resources):
+def project(provider, resources, snapshot=None):
     resources = list(resources)
     principals = {}
     coverage = {"source": "collected provider evidence", "limitations": []}
@@ -134,7 +134,34 @@ def project(provider, resources):
                     "confidence": "declared_grant_only"}, labels.get(principal.casefold()))
     else:
         coverage["limitations"].append("No provider-backed unused-permission signal is available for this connector.")
-    output = sorted(principals.values(), key=lambda x: (x["label"].casefold(), x["principal"].casefold()))
+    from peaso.principal_exposure import project as exposure_project, canonical, LIMITATIONS, RANK
+    if snapshot is None:
+        # Historical artifacts have no trust metadata. Preserve that uncertainty.
+        collections = [{"type": row["type"], "scope": row.get("scope", ""), "status": "partial", "items": [row.get("data", {})]}
+                       for row in resources]
+        snapshot = {"provider": provider, "scopes": sorted({r.get("scope", "") for r in resources}),
+                    "metadata": {}, "collections": collections}
+    normalized = [{**row, "provider": provider, "id": row.get("id", str(i)), "scope": row.get("scope", ""), "data": _resource(row)} for i, row in enumerate(resources)]
+    exposure_cards = exposure_project(snapshot, normalized)
+    for exposure_key, details in exposure_cards.items():
+        if not details["exposures"] and not details["grant_reviews"]:
+            continue
+        principal = details["principal"]
+        card_key = exposure_key
+        card = principals.setdefault(card_key, {"id": card_key, "principal": principal, "label": details["label"],
+            "scopes": list(details["scopes"]), "provider": provider, "suggestions": []})
+        card["scopes"] = sorted(set(card["scopes"]) | set(details["scopes"]))
+        for grant in details["grant_reviews"]:
+            suggestion = {"kind": "role_review", "value": "high-impact declared access", "scope": grant["scope"],
+                          "source": "Collected principal grant", "evidence_id": grant["resource_id"], "confidence": "declared_grant_only"}
+            if suggestion not in card["suggestions"]:
+                card["suggestions"].append(suggestion)
+    for card in principals.values():
+        details = exposure_cards.get(card["id"] if provider == "k8s" else canonical(provider, card["principal"]), {})
+        card.update(exposures=details.get("exposures", []), severity=details.get("severity", "info"),
+                    base_severity=details.get("base_severity", "info"))
+    coverage["limitations"].extend(LIMITATIONS)
+    output = sorted(principals.values(), key=lambda x: (RANK.get(x["severity"], 4), x["label"].casefold(), x["principal"].casefold()))
     for card in output:
         card["scopes"].sort()
         card["suggestions"].sort(key=lambda x: (x["kind"], x["value"]))

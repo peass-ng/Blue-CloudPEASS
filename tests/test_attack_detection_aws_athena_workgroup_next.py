@@ -22,10 +22,10 @@ def _hits(event: dict) -> list[str]:
 def test_enforced_result_bucket_and_encryption_removal() -> None:
     event = {"eventSource": "athena.amazonaws.com", "eventName": "UpdateWorkGroup",
         "eventCategory": "Management", "eventType": "AwsApiCall", "managementEvent": True,
-        "readOnly": False, "awsRegion": "us-east-1", "recipientAccountId": "947247140022",
+        "readOnly": False, "awsRegion": "us-east-1", "recipientAccountId": "222233334444",
         "requestParameters": {"workGroup": "peasso-detect-athena-aa52691885",
             "configurationUpdates": {"enforceWorkGroupConfiguration": True,
-                "resultConfigurationUpdates": {"outputLocation": "s3://peasso-detect-athena-947247140022/results/"}}},
+                "resultConfigurationUpdates": {"outputLocation": "s3://peasso-detect-athena-222233334444/results/"}}},
         "responseElements": None}
     assert _hits(event) == [OUTPUT.technique_id]
     for change in ("not_enforced", "no_location", "bad_location", "failed", "read"):

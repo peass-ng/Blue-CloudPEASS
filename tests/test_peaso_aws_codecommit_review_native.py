@@ -162,14 +162,23 @@ def test_intake_rejects_invalid_or_foreign_review_before_auth(auth_mode,provider
 def test_mapping_preserves_all_previous_iam_grants():
     from scripts import peaso_deploy_customer_policy as policy
     from peaso.collectors.aws_codecommit_review_native import READ_ACTIONS
+    from tests.customer_policy_history import historical_role_template
     proposed=policy.build_policy(aws.READ_ACTIONS)
     previous=policy.split_policy(policy.build_policy(aws.READ_ACTIONS-READ_ACTIONS))
     updated=policy.split_policy(proposed)
-    assert updated[:3]==previous[:3] and len(updated)==len(previous)==4
+    historical=historical_role_template('a4c004efe171a0c94977fefc31fbc30c0d879b7c4e98875862aa498aa4d7a873')
+    reviewed=[s for r in historical['Resources'].values() if r['Type']=='AWS::IAM::ManagedPolicy'
+              for s in r['Properties']['PolicyDocument']['Statement'] if s['Sid'].startswith('NativeCodeCommit')]
+    statements=[s for d in updated for s in d['Statement']]
+    assert [s for s in statements if s['Sid'].startswith('NativeCodeCommit')]==reviewed
+    # Later metadata reviews may add partitions, but adding these five reads
+    # must preserve every previous document and statement exactly.
+    assert [{**d,'Statement':[s for s in d['Statement'] if s not in reviewed]} for d in updated]==previous
+    assert len(updated)<=policy.IAM_MANAGED_POLICIES_PER_ROLE
     assert all(policy.policy_size(d)<=6144 for d in updated)
     for service,operation in READ_ACTIONS:
         action=policy.iam_action(service,operation)
-        matches=[s for s in updated[3]['Statement'] if s['Action']==action]
+        matches=[s for s in statements if s['Action']==action]
         assert len(matches)==1
         assert matches[0]['Resource']==('*' if operation=='list_repositories' else {'Fn::Sub':'arn:${AWS::Partition}:codecommit:*:${AWS::AccountId}:*'})
 

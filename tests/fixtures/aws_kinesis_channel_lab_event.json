@@ -1,0 +1,72 @@
+{
+  "eventID": "9e879c2d-0e17-4a6b-9e3a-b43441737e53",
+  "eventTime": "2026-10-19T17:57:06Z",
+  "eventSource": "kinesis.amazonaws.com",
+  "eventName": "CreateChannel",
+  "eventCategory": "Management",
+  "eventType": "AwsApiCall",
+  "managementEvent": true,
+  "readOnly": false,
+  "recipientAccountId": "222233334444",
+  "awsRegion": "us-east-1",
+  "requestParameters": {
+    "channelName": "example-channel-749969ed",
+    "serviceExecutionRoleARN": "arn:aws:iam::222233334444:role/example-channel-749969ed-exec",
+    "streamConfigurationList": [
+      {
+        "streamARN": "arn:aws:kinesis:us-east-1:222233334444:stream/example-channel-749969ed-stream",
+        "recordConfiguration": {
+          "recordFormatType": "BYTE_ARRAY"
+        }
+      }
+    ],
+    "s3DestinationConfiguration": {
+      "dataFreshnessInSeconds": 300,
+      "deadLetterQueueS3Configuration": {
+        "bucketARN": "arn:aws:s3:::example-channel-749969ed-222233334444",
+        "expectedBucketOwner": "222233334444",
+        "errorOutputPrefix": "kinesis-channel/errors/example-channel-749969ed/yfy00thnm6c1hvo6h/"
+      },
+      "storageConfiguration": {
+        "bucketARN": "arn:aws:s3:::example-channel-749969ed-222233334444",
+        "expectedBucketOwner": "222233334444",
+        "outputKeyTemplate": "kinesis-channel/!{channel-name}/!{channel-id}/!{yyyy}/!{MM}/!{dd}/!{HH}/!{channel-name}-!{channel-id}-!{yyyy}-!{MM}-!{dd}-!{HH}-!{mm}!{extension}",
+        "storageClass": "STANDARD",
+        "compressionType": "NONE"
+      }
+    }
+  },
+  "responseElements": {
+    "channelDescription": {
+      "channelName": "example-channel-749969ed",
+      "channelARN": "arn:aws:kinesis:us-east-1:222233334444:channel/yfy00thnm6c1hvo6h",
+      "channelId": "yfy00thnm6c1hvo6h",
+      "channelStatus": "CREATING",
+      "serviceExecutionRoleARN": "arn:aws:iam::222233334444:role/example-channel-749969ed-exec",
+      "streamConfigurationList": [
+        {
+          "streamARN": "arn:aws:kinesis:us-east-1:222233334444:stream/example-channel-749969ed-stream",
+          "streamCreationTimestamp": "2026-10-19T17:56:16Z",
+          "recordConfiguration": {
+            "recordFormatType": "BYTE_ARRAY"
+          }
+        }
+      ],
+      "s3DestinationConfiguration": {
+        "dataFreshnessInSeconds": 300,
+        "deadLetterQueueS3Configuration": {
+          "bucketARN": "arn:aws:s3:::example-channel-749969ed-222233334444",
+          "expectedBucketOwner": "222233334444",
+          "errorOutputPrefix": "kinesis-channel/errors/example-channel-749969ed/yfy00thnm6c1hvo6h/"
+        },
+        "storageConfiguration": {
+          "bucketARN": "arn:aws:s3:::example-channel-749969ed-222233334444",
+          "expectedBucketOwner": "222233334444",
+          "outputKeyTemplate": "kinesis-channel/!{channel-name}/!{channel-id}/!{yyyy}/!{MM}/!{dd}/!{HH}/!{channel-name}-!{channel-id}-!{yyyy}-!{MM}-!{dd}-!{HH}-!{mm}!{extension}",
+          "storageClass": "STANDARD",
+          "compressionType": "NONE"
+        }
+      }
+    }
+  }
+}

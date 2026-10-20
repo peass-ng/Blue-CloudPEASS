@@ -64,7 +64,7 @@ def test_sql_authorized_network_ipv6_source_false_clean_and_both_current_modes()
     assert REGISTRY[cid].evaluate(fixture["fail"], {})[0] == "FAIL"
     ssl = REGISTRY[ports.REFERENCE_SPECS["reference_sql_ssl_connections"]]
     for mode in ("ENCRYPTED_ONLY", "TRUSTED_CLIENT_CERTIFICATE_REQUIRED"):
-        assert ssl.evaluate({"settings": {"ipConfiguration": {"sslMode": mode}}}, {})[0] == "PASS"
+        assert ssl.evaluate({"databaseVersion": "POSTGRES_16", "settings": {"ipConfiguration": {"sslMode": mode}}}, {})[0] == "PASS"
     assert ssl.evaluate({"settings": {"ipConfiguration": {"sslMode": "NEW_MODE"}}}, {})[0] == "UNKNOWN"
 
 

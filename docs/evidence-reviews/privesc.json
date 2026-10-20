@@ -17368,7 +17368,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-integration-connectors-privesc.md#connectorsconnectionssetiampolicy--resource-level-self-grant-to-use-a-connection",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "7b4cf16eb2ec3f8ceffc4a3462b11d8a7ca1c62b2d69f9536de124fb60c4fe7a",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to execute a query through the exact connector.",
+      "purpose": "The caller could grant itself permission to execute a query through the exact connector.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -17398,7 +17398,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-compute-privesc/README.md#computemachineimagessetiampolicy",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "4cb8204a233d211c0023ea76e88eac075e14214071c77b2a8ce6dfd6b60ccd0b",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to use the exact machine image read-only.",
+      "purpose": "The caller could grant itself permission to use the exact machine image read-only.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -17428,7 +17428,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-compute-privesc/README.md#computesnapshotssetiampolicy",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "cb9d3284202354bf797f10285cb3521ca634be6ae08af6ca78345018752db861",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to use the exact snapshot read-only.",
+      "purpose": "The caller could grant itself permission to use the exact snapshot read-only.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -17458,7 +17458,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-compute-privesc/README.md#computediskssetiampolicy",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "44fd4cbd894ec44bdc664133783ff978e1a18e9d827c54044371db5e1fb16494",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to use the exact disk read-only.",
+      "purpose": "The caller could grant itself permission to use the exact disk read-only.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -17488,7 +17488,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-container-privesc.md#gkehubmembershipssetiampolicy--self-grant-connect-gateway-access",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "b5a998bfba88a912a2ed99863caa7ec38613994ab08aef24044857ccd955cb52",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to generate gateway credentials for the exact fleet membership.",
+      "purpose": "The caller could grant itself permission to generate gateway credentials for the exact fleet membership.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -17518,7 +17518,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iap-privesc.md#iaptunnelinstancessetiampolicy--iaptunnelzonessetiampolicy",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "1a9738f26473ec8d204487d5e9ceaa69c1e9a200c27c4342d652e63a7b46525c",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to access the exact VM through an IAP tunnel.",
+      "purpose": "The caller could grant itself permission to access the exact VM through an IAP tunnel.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -17548,7 +17548,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iap-privesc.md#iaptunnelinstancessetiampolicy--iaptunnelzonessetiampolicy",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "f537531b2565ad47c717c42d24ed54781dd8fb67dfbde9878f7c399b8a8071f5",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to access VMs only within the exact IAP tunnel zone.",
+      "purpose": "The caller could grant itself permission to access VMs only within the exact IAP tunnel zone.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -17578,7 +17578,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-kms-privesc.md#cloudkmscryptokeyssetiampolicy",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "83367793a267b2cb224560edbd88268331c36c843d6d2a8e3def8343079ab504",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to decrypt with the exact crypto key.",
+      "purpose": "The caller could grant itself permission to decrypt with the exact crypto key.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -17608,7 +17608,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-secretmanager-privesc.md#secretmanagersecretssetiampolicy",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "773bce74af7e53dd8632f7d4a8b955871627aee06778f72316cf9a6b79cab565",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to read a version of the exact secret.",
+      "purpose": "The caller could grant itself permission to read a version of the exact secret.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -17638,7 +17638,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-compute-privesc/README.md#computerecoverablesnapshotssetiampolicy",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "bf6d041978b6e901c411992d49261db61bf540f2daa4618ed9fd25633cd4acc0",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to recover the exact recoverable snapshot.",
+      "purpose": "The caller could grant itself permission to recover the exact recoverable snapshot.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -17668,7 +17668,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-container-analysis-privesc.md#containeranalysisnotessetiampolicy--self-grant-control-of-one-note",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "f4f75d0ee50b3784bd82d95723985a5e5c8148e99b3b0dddc364b9bb5dfe6ff5",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to attach an occurrence to the exact analysis note.",
+      "purpose": "The caller could grant itself permission to attach an occurrence to the exact analysis note.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -17698,7 +17698,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataplex-privesc.md#datacatalogcategoriessetiampolicy--self-grant-fine-grained-access-to-policy-tagged-bigquery-columns",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "61830bb8017667bacf20ae9be857b1d8a201a0756c513c80cdeec1c525845628",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to read data protected by the exact policy tag.",
+      "purpose": "The caller could grant itself permission to read data protected by the exact policy tag.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -17728,7 +17728,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataproc-metastore-privesc.md#metastoreservicessetiampolicy---grant-access-to-grpc-metadata",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "994079af97f467a70ac57f3d84671a5b40e98babdf539e96b01f8267252d9c72",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to use the exact Metastore service.",
+      "purpose": "The caller could grant itself permission to use the exact Metastore service.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -17758,7 +17758,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-analytics-hub-privesc.md#analyticshublistingssetiampolicy--analyticshubdataexchangessetiampolicy--self-grant-subscription-authority",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "073bb640c9ead724eca4299155d52516f67ed80ecdd314910476a04836a5af8f",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to subscribe to the exact Analytics Hub listing.",
+      "purpose": "The caller could grant itself permission to subscribe to the exact Analytics Hub listing.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -17788,7 +17788,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-analytics-hub-privesc.md#analyticshublistingssetiampolicy--analyticshubdataexchangessetiampolicy--self-grant-subscription-authority",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "8be88951a37d0e7b597dec69cec0f78b4affc92df77441b5745cbc3a83f2f2d9",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to subscribe to the exact Analytics Hub exchange.",
+      "purpose": "The caller could grant itself permission to subscribe to the exact Analytics Hub exchange.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -17818,7 +17818,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-biglake-privesc.md#biglakecatalogsnamespacestablessetiampolicy--self-grant-on-a-lakehouse-resource",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "6c5b2c12595492ae548cbce9dbded1d9f151cdb216b977637072ce28edc8f446",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to read the exact BigLake catalog metadata.",
+      "purpose": "The caller could grant itself permission to read the exact BigLake catalog metadata.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -17848,7 +17848,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-biglake-privesc.md#biglakecatalogsnamespacestablessetiampolicy--self-grant-on-a-lakehouse-resource",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "0979bdc2672c9315f8d77809961dfbe408bc1c32ebf76f0856ee116f0b6671e1",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to read the exact BigLake namespace metadata.",
+      "purpose": "The caller could grant itself permission to read the exact BigLake namespace metadata.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -17878,7 +17878,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-biglake-privesc.md#biglakecatalogsnamespacestablessetiampolicy--self-grant-on-a-lakehouse-resource",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "e33a2d8b0098a7f6f51f568bf248b17d156c0c62da3319c2350b1da2364029ff",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to read the exact BigLake table metadata.",
+      "purpose": "The caller could grant itself permission to read the exact BigLake table metadata.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -17908,7 +17908,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#bigquerydatasetsupdate--bigquerydatasetssetiampolicy--self-grant-dataset-access",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "1d64fde5ff797cc3eda8d7a94f51cc7be8ffc120f69335b5226a1e186394751e",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to read table data within the exact dataset.",
+      "purpose": "The caller could grant itself permission to read table data within the exact dataset.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -17938,7 +17938,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#bigquerydatasetsupdate--bigquerydatasetssetiampolicy--self-grant-dataset-access",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "b394220551cef84a8ef63229153d2d9ac40d6d9a0447853ed5394894d2f8a774",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to read table data within the exact dataset ACL scope.",
+      "purpose": "The caller could grant itself permission to read table data within the exact dataset ACL scope.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -17968,7 +17968,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#bigqueryconnectionssetiampolicy--self-grant-connection-use",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "d7070395dc4338b2763664f3e67a7958e2b6fe1a8b853fb4e6314e0eeb6d2b14",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to use the exact BigQuery connection.",
+      "purpose": "The caller could grant itself permission to use the exact BigQuery connection.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -17998,7 +17998,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#datacatalogtaxonomiessetiampolicy--self-grant-fine-grained-reader",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "0ca8f0a0de41314df96461e5b833cf21c96ba7515963f0f72aebf6245e9b872a",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to read data protected by the exact taxonomy.",
+      "purpose": "The caller could grant itself permission to read data protected by the exact taxonomy.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18028,7 +18028,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#bigquerytablessetiampolicy--self-grant-table-access",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "972d02fc4673345a5701a1d0a25e05ff4cdd11114a8f0e864a1ea429d006a37a",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to read data from the exact BigQuery table.",
+      "purpose": "The caller could grant itself permission to read data from the exact BigQuery table.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18058,7 +18058,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigtable-privesc.md#bigtableinstancessetiampolicy--self-grant-across-one-instance",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "ff1238182d5c9d3172f3587569e35a13e65cd3ecee192396b505168015f4897c",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to read rows within the exact Bigtable instance.",
+      "purpose": "The caller could grant itself permission to read rows within the exact Bigtable instance.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18088,7 +18088,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigtable-privesc.md#bigtabletablessetiampolicy--self-grant-on-one-table",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "49b329458ac619db07db15f9f1e9aae2aa85e83ad304eabb7dbb408e89f95d6b",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to read rows from the exact Bigtable table.",
+      "purpose": "The caller could grant itself permission to read rows from the exact Bigtable table.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18118,7 +18118,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigtable-privesc.md#bigtablebackupssetiampolicy--grant-restore-access-to-a-protected-backup",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "ba8a1fd4025f32b822480fa79f4abf08ed17a9862a744b5573807b3e76685f8b",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to restore the exact Bigtable backup.",
+      "purpose": "The caller could grant itself permission to restore the exact Bigtable backup.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18148,7 +18148,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigtable-privesc.md#authorizedmaterialized-view-setiampolicy--self-grant-scoped-data-access",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "6494934d04bd6858b2eb00493e79c9cf20aa2e09d806b849a7c46b2e2218d566",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to read rows through the exact authorized view.",
+      "purpose": "The caller could grant itself permission to read rows through the exact authorized view.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18178,7 +18178,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigtable-privesc.md#authorizedmaterialized-view-setiampolicy--self-grant-scoped-data-access",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "0e3d3c3497ade1c03ce33b9de31413a2fd824b836988aca48ab52c437120ad52",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to read rows through the exact materialized view.",
+      "purpose": "The caller could grant itself permission to read rows through the exact materialized view.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18208,7 +18208,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-discovery-engine-privesc.md#discoveryengineenginesdatastorescollectionssetiampolicy--self-grant-app-or-corpus-access",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "c4b8573f1a61ad626af7d13e45ad53fb3689be6a39ed5091091665b3feb759b4",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to update the exact Discovery Engine engine.",
+      "purpose": "The caller could grant itself permission to update the exact Discovery Engine engine.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18238,7 +18238,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-discovery-engine-privesc.md#discoveryengineenginesdatastorescollectionssetiampolicy--self-grant-app-or-corpus-access",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "e316af9f7898c1449d24b92f0ed51bc24ad08cf451bc5ed385a8b44f310a28e9",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to update the exact Discovery Engine data store.",
+      "purpose": "The caller could grant itself permission to update the exact Discovery Engine data store.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18268,7 +18268,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-discovery-engine-privesc.md#discoveryengineenginesdatastorescollectionssetiampolicy--self-grant-app-or-corpus-access",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "45c24d8e58b1858a1c1374bedcbe1a220b50885adf851704117bd88cea363883",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to read the exact Discovery Engine collection.",
+      "purpose": "The caller could grant itself permission to read the exact Discovery Engine collection.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18298,7 +18298,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-firebase-privesc.md#identitytoolkittenantssetiampolicy--self-grant-control-of-an-identity-platform-tenant",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "0c7bc4eb1f6f70261ea3610e7afd6edb9dc109b9b302363133283803c3f97895",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to update users within the exact Identity Platform tenant.",
+      "purpose": "The caller could grant itself permission to update users within the exact Identity Platform tenant.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18328,7 +18328,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-healthcare-privesc.md#healthcaresetiampolicy--grant-a-clinical-data-role-to-your-principal",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "8230420a589118ccb037316a5c61edf9d7abdd901b890d97df6a29d339b6420b",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to read FHIR resources in the exact Healthcare dataset.",
+      "purpose": "The caller could grant itself permission to read FHIR resources in the exact Healthcare dataset.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18358,7 +18358,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-healthcare-privesc.md#healthcaresetiampolicy--grant-a-clinical-data-role-to-your-principal",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "bd3e98478088876dc0789e37e4819c21bf8725ebd12c48a91d3204da7c261bc9",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to read resources in the exact FHIR store.",
+      "purpose": "The caller could grant itself permission to read resources in the exact FHIR store.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18388,7 +18388,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-healthcare-privesc.md#healthcaresetiampolicy--grant-a-clinical-data-role-to-your-principal",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "f2b709339652f428544f1a61cdd6cbe83849951529ac4a97e2015f48bae5644d",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to read resources in the exact DICOM store.",
+      "purpose": "The caller could grant itself permission to read resources in the exact DICOM store.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18418,7 +18418,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-healthcare-privesc.md#healthcaresetiampolicy--grant-a-clinical-data-role-to-your-principal",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "f0fa3b9fd7775d700a8af3d5eb46cbc3b0dbf96b12ec7bc5927796b9dd977ea6",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to read messages in the exact HL7v2 store.",
+      "purpose": "The caller could grant itself permission to read messages in the exact HL7v2 store.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18448,7 +18448,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-healthcare-privesc.md#healthcaresetiampolicy--grant-a-clinical-data-role-to-your-principal",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "4e49e8951ae44ed2a5ad6c61df9fed16b882f948e49a1add7bc18f544a440bee",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to read consents in the exact consent store.",
+      "purpose": "The caller could grant itself permission to read consents in the exact consent store.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18478,7 +18478,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-network-connectivity-center-privesc.md#resource-iam-self-grants",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "885755fe1648591cfe08f9a83f098f979e10e913e6a2056943df9723f7310988",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to update the exact Network Connectivity hub.",
+      "purpose": "The caller could grant itself permission to update the exact Network Connectivity hub.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18508,7 +18508,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-network-connectivity-center-privesc.md#resource-iam-self-grants",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "cab1243cad8779c2bf05c635ff33f0d25f7f2eea2a0f1afe52c451edfd7df47a",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to use the exact Network Connectivity group.",
+      "purpose": "The caller could grant itself permission to use the exact Network Connectivity group.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18538,7 +18538,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-networksecurity-privesc.md#networksecuritysetiampolicy---self-grant-control-of-one-policy-resource",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "00689289028553a020bef8c37b9c3cf301d0535a42bb2e74d53ccc1d7569f858",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to update the exact network address group.",
+      "purpose": "The caller could grant itself permission to update the exact network address group.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18568,7 +18568,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-networksecurity-privesc.md#networksecuritysetiampolicy---self-grant-control-of-one-policy-resource",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "c70e4f3b27ee5764ee8666c63b4820c94fe1987001019739129e694ad333d8e1",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to update the exact authorization policy.",
+      "purpose": "The caller could grant itself permission to update the exact authorization policy.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18598,7 +18598,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-networksecurity-privesc.md#networksecuritysetiampolicy---self-grant-control-of-one-policy-resource",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "41ab8e9ebc99a0331c5cd37932632bedc64808774a301182163c5e74c1e271bc",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to update the exact authz policy.",
+      "purpose": "The caller could grant itself permission to update the exact authz policy.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18628,7 +18628,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-networksecurity-privesc.md#networksecuritysetiampolicy---self-grant-control-of-one-policy-resource",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "6ffcaf58fe0c6588184d665c496689583b9bfc32a6e7a6058e9d2b4691acac1a",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to update the exact client TLS policy.",
+      "purpose": "The caller could grant itself permission to update the exact client TLS policy.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18658,7 +18658,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-networksecurity-privesc.md#networksecuritysetiampolicy---self-grant-control-of-one-policy-resource",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "2c036b8c6e38d744c8605c6cc6e09fd06519d993a5b0aa147bd37fd21b256cb1",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to update the exact server TLS policy.",
+      "purpose": "The caller could grant itself permission to update the exact server TLS policy.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18688,7 +18688,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-pubsub-privesc.md#pubsubtopicssetiampolicy--pubsubsubscriptionssetiampolicy--self-grant-control-of-one-resource",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "7be569ab4bd981b6523cab12644102eac98ef4bc671e45d92155cdf675c48e3f",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to publish to the exact Pub/Sub topic.",
+      "purpose": "The caller could grant itself permission to publish to the exact Pub/Sub topic.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18718,7 +18718,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-pubsub-privesc.md#pubsubtopicssetiampolicy--pubsubsubscriptionssetiampolicy--self-grant-control-of-one-resource",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "da1209ac2c609a22f8b2db17a7d2f0e3199d25bda552e5def5287302579bbd10",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to consume the exact Pub/Sub subscription.",
+      "purpose": "The caller could grant itself permission to consume the exact Pub/Sub subscription.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18748,7 +18748,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-runtimeconfig-privesc.md#runtimeconfigconfigssetiampolicy--self-grant-administration-of-one-config",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "d54a81f6dc17f20227acb52676977a7683eead39708497bce5657edd68aab4e6",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to read variables from the exact runtime configuration.",
+      "purpose": "The caller could grant itself permission to read variables from the exact runtime configuration.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18778,7 +18778,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-spanner-privesc.md#spannerdatabasessetiampolicy--spannerinstancessetiampolicy--grant-database-access",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "881c7aa12f31b214853224c69ea24a20266901b57df4103bf6bbee9728717b88",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to read the exact Spanner database.",
+      "purpose": "The caller could grant itself permission to read the exact Spanner database.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18808,7 +18808,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-spanner-privesc.md#spannerdatabasessetiampolicy--spannerinstancessetiampolicy--grant-database-access",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "58932430937fc7ba6752d6b086ff73f43a6f03191a0fd040ce9dad54dc1e8e34",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to read databases within the exact Spanner instance.",
+      "purpose": "The caller could grant itself permission to read databases within the exact Spanner instance.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18838,7 +18838,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-vmwareengine-gcve-privesc.md#vmwareengineprivatecloudssetiampolicy--grant-a-credential-reading-role-on-one-private-cloud",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "30f263caf3b2d5c90b069aa4b9365e9140f3b55427f781f6dc39fd6ac2bdbcff",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to read vCenter credentials for the exact private cloud.",
+      "purpose": "The caller could grant itself permission to read vCenter credentials for the exact private cloud.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18868,7 +18868,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-certificate-authority-service-privesc.md#privatecacapoolssetiampolicy--grant-certificate-issuance-on-a-ca-pool",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "49fcdc7a3fe6851c2ebb63a06afcc4d3c57420d063ad42d35fc9542641a19e05",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to create certificates within the exact CA pool.",
+      "purpose": "The caller could grant itself permission to create certificates within the exact CA pool.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18898,7 +18898,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-config-controller-privesc.md#durable-instance-iam-binding-krmapihostingkrmapihostssetiampolicy",
       "source_revision": "a1de13ac34",
       "reviewed_contract_sha256": "15f4ac156cafcc42a818d32a339359b58e52871c771775687592bf51bbfd0292",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to update the exact KRM API host.",
+      "purpose": "The caller could grant itself permission to update the exact KRM API host.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18928,7 +18928,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-compute-privesc/README.md#computeimagessetiampolicy--self-grant-image-use",
       "source_revision": "669e767e95",
       "reviewed_contract_sha256": "2dcea3fe22e2b6c53adfa66ce156c0077e9eaabffa965adf0a621efa2e0eba36",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to use the exact Compute image read-only.",
+      "purpose": "The caller could grant itself permission to use the exact Compute image read-only.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18958,7 +18958,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-logging-privesc.md#change-access-to-a-log-view--loggingviewssetiampolicy",
       "source_revision": "669e767e95",
       "reviewed_contract_sha256": "8030da0cd52565014942550f9a11baa84007038b40d7db218f00dc0c0458e423",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to read the exact log view.",
+      "purpose": "The caller could grant itself permission to read the exact log view.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -18988,7 +18988,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-cloud-domains-privesc.md#domainsregistrationssetiampolicy--registration-scoped-iam-persistence",
       "source_revision": "669e767e95",
       "reviewed_contract_sha256": "94b63fbaca9494859be22716bf4860db703e665b8af9293ad91bbc87b0f997fe",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to change DNS for the exact domain registration.",
+      "purpose": "The caller could grant itself permission to change DNS for the exact domain registration.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -19018,7 +19018,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-service-directory-privesc.md#servicedirectorynamespacesservicessetiampolicy--resource-scoped-iam-persistence",
       "source_revision": "669e767e95",
       "reviewed_contract_sha256": "5e5df80b30b6ccac9f67dd99bc449d07451e9b00ff51aeff6187df83fa3c94b4",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to create services within the exact directory namespace.",
+      "purpose": "The caller could grant itself permission to create services within the exact directory namespace.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -19048,7 +19048,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-service-directory-privesc.md#servicedirectorynamespacesservicessetiampolicy--resource-scoped-iam-persistence",
       "source_revision": "669e767e95",
       "reviewed_contract_sha256": "d63c8170782b7c2cb87b3999e9231b7dad14bc3452b79f79fb961325ff16e6aa",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to update the exact directory service.",
+      "purpose": "The caller could grant itself permission to update the exact directory service.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -19078,7 +19078,7 @@
       "source": "src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-contact-center-insights-privesc.md#authorized-view-iam-self-grant-authorizedviewssetiampolicy",
       "source_revision": "2bb3ac75c0",
       "reviewed_contract_sha256": "51d76de5725cd0365ba48f1e8d44bc491ab15b686a013dfe978296dfd6a765d8",
-      "purpose": "An accepted self-targeted policy change may newly allow the source to read the exact Contact Center authorized view.",
+      "purpose": "The caller could grant itself permission to read the exact Contact Center authorized view.",
       "target_kind": "gcp_verified_authority",
       "requirement_contract": {
         "all_of": [
@@ -25863,5 +25863,29 @@
     ],
     "test_file": "tests/test_peaso_privesc_finding_explanations_review.py",
     "passing_tests": 1919
+  },
+  "plain_language_reaudit": {
+    "catalog_techniques_reviewed": 633,
+    "generated_admin_provider_pairs_reviewed": 4,
+    "catalog_confidence_examples": 1899,
+    "generated_admin_confidence_examples": 12,
+    "wording": "Plain descriptions of possible permission paths and bounded consequences; no condition/confidence codes are dumped. Unknown zero-member target groups mean missing facts, not proof that access is impossible. Administrative control is asserted only for derived evidence.",
+    "unreviewed_techniques": [],
+    "verification": {
+      "test_files": [
+        "tests/test_peaso_analysis_provider_observations.py",
+        "tests/test_peaso_analysis_finding_clarity.py",
+        "tests/test_peaso_analysis_trust.py",
+        "tests/test_peaso_analysis_internet_exposure.py",
+        "tests/test_peaso_privesc_finding_explanations_review.py"
+      ],
+      "passing_tests": 2711,
+      "log": "/tmp/shared-natural-review-tests.log",
+      "shared_fixture": "tests/fixtures/shared_evidence_review.json",
+      "shared_fixture_examples": 1939,
+      "maximum_shared_example_characters": 236
+    },
+    "bounded_self_grant_sentences_simplified": 58,
+    "limits": "Synthetic GraphBuilder projections verify all catalog formatting contracts. Real native snapshots exercise representative paths for each provider. No cloud technique is executed."
   }
 }

@@ -10961,7 +10961,7 @@
     "missing_observation": "The saved result omits the deciding evidence for “RDS instance is an AWS Backup protected resource”."
   },
   "aws.cb.rds.instance_in_backup_selection_or_tag": {
-    "purpose": "Backup records or selections indicate recovery intent; job success, coverage and restore usability are separate checks.",
+    "purpose": "Backup selections match the resource ARN or an exact tag key and value; this does not prove successful backup or recovery.",
     "label": "RDS instance is in a backup selection by ARN or tag key",
     "review_status": "source_reviewed_and_native_replayed",
     "fields": [
@@ -20892,7 +20892,7 @@
     "missing_observation": "The saved result omits the deciding evidence for “Cognito app clients cannot write authorization-like custom attributes”."
   },
   "aws.htbp.eks.access_entries_authentication": {
-    "purpose": "Access entries support centrally managed cluster authentication; mixed or legacy modes require separate grant review.",
+    "purpose": "Review these grants to understand who can access the cluster.",
     "label": "EKS cluster authenticates IAM principals through access entries, not only the aws-auth ConfigMap",
     "review_status": "source_reviewed_and_native_replayed",
     "fields": [
@@ -29593,7 +29593,7 @@
     "missing_observation": "The saved result omits the deciding evidence for “VPN fixed encryption-list and Client VPN declaration checks”."
   },
   "aws_wafv2_baseline_managed_rules": {
-    "purpose": "Baseline managed groups must avoid Count-only overrides to enforce filtering; actual request outcomes were not tested.",
+    "purpose": "These settings support request filtering; actual requests were not tested.",
     "label": "WAFv2 approved baseline managed-group enforcement",
     "review_status": "source_reviewed_and_native_replayed",
     "fields": [
@@ -29888,5 +29888,529 @@
     ],
     "missing_observation": "The saved result omits the deciding evidence for “RDS enhanced-monitoring settings”.",
     "alias_of": "aws.nist.rds_cluster_member_enhanced_monitoring"
+  },
+  "aws.review.kms.enclave_debug_measurements": {
+    "purpose": "Only this observed attestation event is assessed.",
+    "label": "Observed enclave attestations avoid debug-mode measurements",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for Observed enclave attestations avoid debug-mode measurements."
+  },
+  "aws.bedrock.agent_role_not_shared_across_agents": {
+    "purpose": "Observed roles are compared across enabled Regions.",
+    "label": "Bedrock agent execution roles are dedicated across the account",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for Bedrock agent execution roles are dedicated across the account."
+  },
+  "aws.bedrock.agent_role_least_privilege": {
+    "purpose": "Only execution-role policy configuration is assessed.",
+    "label": "Bedrock agent execution role follows least privilege",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for Bedrock agent execution role follows least privilege."
+  },
+  "aws.review.cloudformation.output_secret_indicators": {
+    "purpose": "Only transiently inspected output values are assessed.",
+    "label": "CloudFormation outputs have no observed high-confidence secret indicators",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for CloudFormation outputs have no observed high-confidence secret indicators."
+  },
+  "aws.review.lambda.configuration_secret_indicators": {
+    "purpose": "Values are inspected transiently; only indicator categories remain.",
+    "label": "Lambda environment has no observed high-confidence secret indicators",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for Lambda environment has no observed high-confidence secret indicators."
+  },
+  "aws.review.kms.enclave_deployment_binding": {
+    "purpose": "A binding is configuration, not a trusted-build approval.",
+    "label": "Attested KMS sensitive Allows bind an enclave deployment context",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for Attested KMS sensitive Allows bind an enclave deployment context."
+  },
+  "aws.bedrock.api_key_no_administrative_privileges": {
+    "purpose": "Only direct user policies for the key owner are assessed.",
+    "label": "Bedrock API key owner has no administrative permissions",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for Bedrock API key owner has no administrative permissions."
+  },
+  "aws.review.rolesanywhere.session_policy_constraints": {
+    "purpose": "Only declared role and session-policy permissions are assessed.",
+    "label": "Enabled Roles Anywhere profile scopes sessions on roles with universal identity and boundary grants",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for Enabled Roles Anywhere profile scopes sessions on roles with universal identity and boundary grants."
+  },
+  "aws.review.kms.enclave_no_bypass": {
+    "purpose": "Only declared enclave key policy was evaluated.",
+    "label": "Enclave KMS key policy has no unattested sensitive Allow path",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for Enclave KMS key policy has no unattested sensitive Allow path."
+  },
+  "aws.review.kms.enclave_attestation_enforced": {
+    "purpose": "Only declared enclave key policy was evaluated.",
+    "label": "Enclave KMS key requires attestation on sensitive policy Allows",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for Enclave KMS key requires attestation on sensitive policy Allows."
+  },
+  "aws.review.secretsmanager.explicit_principal_deny": {
+    "purpose": "Exceptions are declared principals, not approved readers.",
+    "label": "Secret policy explicitly denies access except concrete same-account IAM roles or users",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for Secret policy explicitly denies access except concrete same-account IAM roles or users."
+  },
+  "aws.review.amplify_app.configuration_secret_indicators": {
+    "purpose": "Only app environment values were inspected.",
+    "label": "Amplify app environment variable contents have no observed selected secret indicators",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for Amplify app environment variable contents have no observed selected secret indicators."
+  },
+  "aws.review.glue_connection.configuration_secret_indicators": {
+    "purpose": "Only visible nonpassword properties were inspected.",
+    "label": "Glue visible connection property values have no observed selected secret indicators",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for Glue visible connection property values have no observed selected secret indicators."
+  },
+  "aws.review.rest_api_stage.configuration_secret_indicators": {
+    "purpose": "Only stage-variable values were inspected.",
+    "label": "REST API stage variable values have no observed selected secret indicators",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for REST API stage variable values have no observed selected secret indicators."
+  },
+  "aws.review.eks.native_version_supported": {
+    "purpose": "AWS support status does not approve a customer version policy.",
+    "label": "EKS cluster version has native AWS support",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for EKS cluster version has native AWS support."
+  },
+  "aws.review.glue_job.configuration_secret_indicators": {
+    "purpose": "Only job arguments were inspected.",
+    "label": "Glue job default and nonoverridable arguments have no observed selected secret indicators",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for Glue job default and nonoverridable arguments have no observed selected secret indicators."
+  },
+  "aws.review.codebuild_project.configuration_secret_indicators": {
+    "purpose": "Only plaintext configuration variables were inspected.",
+    "label": "CodeBuild plaintext environment variables have no observed selected secret indicators",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for CodeBuild plaintext environment variables have no observed selected secret indicators."
+  },
+  "aws.review.elastic_beanstalk_environment.configuration_secret_indicators": {
+    "purpose": "Only returned option-setting values were inspected.",
+    "label": "Beanstalk configuration option values have no observed selected secret indicators",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for Beanstalk configuration option values have no observed selected secret indicators."
+  },
+  "aws.review.s3.sampled_object_acl_public_grants": {
+    "purpose": "Only sampled current-object ACLs were assessed.",
+    "label": "Sampled S3 current objects have no non-ignored public ACL grants",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for Sampled S3 current objects have no non-ignored public ACL grants."
+  },
+  "aws.review.shield.drt_role_configured": {
+    "purpose": "A configured role does not prove effective support access.",
+    "label": "Active Shield Advanced subscription has a configured DRT role",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for Active Shield Advanced subscription has a configured DRT role."
+  },
+  "aws.review.batch_job_definition.configuration_secret_indicators": {
+    "purpose": "Only classic container environment values were inspected.",
+    "label": "Batch classic container environment entries have no observed selected secret indicators",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for Batch classic container environment entries have no observed selected secret indicators."
+  },
+  "aws.review.ecs_task_definition.configuration_secret_indicators": {
+    "purpose": "Only plaintext task environment values were inspected.",
+    "label": "ECS container plaintext environment entries have no observed selected secret indicators",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for ECS container plaintext environment entries have no observed selected secret indicators."
+  },
+  "aws.review.datapipeline_pipeline.payload_secret_indicators": {
+    "purpose": "Only latest literal pipeline fields and parameters were inspected.",
+    "label": "Data Pipeline latest literal definition values has no observed selected secret indicators",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for Data Pipeline latest literal definition values has no observed selected secret indicators."
+  },
+  "aws.review.sagemaker_notebook_instance.payload_secret_indicators": {
+    "purpose": "Only attached notebook lifecycle scripts were inspected.",
+    "label": "Attached notebook lifecycle scripts has no observed selected secret indicators",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for Attached notebook lifecycle scripts has no observed selected secret indicators."
+  },
+  "aws.review.launch_configuration.payload_secret_indicators": {
+    "purpose": "Only private-key and password indicators in launch user-data were assessed.",
+    "label": "Additional launch-configuration private-key and password indicators has no observed selected secret indicators",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for Additional launch-configuration private-key and password indicators has no observed selected secret indicators."
+  },
+  "aws.review.sfn_state_machine.payload_secret_indicators": {
+    "purpose": "Only the returned state-machine definition was inspected.",
+    "label": "Step Functions current returned definitions has no observed selected secret indicators",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for Step Functions current returned definitions has no observed selected secret indicators."
+  },
+  "aws.review.ssm_document_metadata.payload_secret_indicators": {
+    "purpose": "Only the selected owned document version was inspected.",
+    "label": "Owned SSM document version content has no observed selected secret indicators",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for Owned SSM document version content has no observed selected secret indicators."
+  },
+  "aws.review.ec2_launch_template.payload_secret_indicators": {
+    "purpose": "Only returned template versions, including latest and default, were inspected.",
+    "label": "Launch-template version user data has no observed selected secret indicators",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for Launch-template version user data has no observed selected secret indicators."
+  },
+  "aws.review.cloudwatch.sampled_log_secret_indicators": {
+    "purpose": "Only sampled messages in the stated log window were inspected.",
+    "label": "Sampled log window has no supported secret indicators",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for Sampled log window has no supported secret indicators."
+  },
+  "aws.review.codecommit.default_commit_secret_indicators": {
+    "purpose": "Only bounded files from the default-branch commit were inspected.",
+    "label": "Bounded default-commit files have no supported secret indicators",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for Bounded default-commit files have no supported secret indicators."
+  },
+  "aws.review.ecr_repository.package_content_secret_indicators": {
+    "purpose": "Only the uniquely latest supported image digest was inspected.",
+    "label": "Latest ECR image has no observed selected secret indicators",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for Latest ECR image has no observed selected secret indicators."
+  },
+  "aws.review.lambda_layer_version.package_content_secret_indicators": {
+    "purpose": "Only the listed Lambda layer version archive was inspected.",
+    "label": "Lambda layer ZIP has no observed selected secret indicators",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for Lambda layer ZIP has no observed selected secret indicators."
+  },
+  "aws.review.lambda_function.package_content_secret_indicators": {
+    "purpose": "Only the listed Lambda version deployment archive was inspected.",
+    "label": "Lambda ZIP code has no observed selected secret indicators",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for Lambda ZIP code has no observed selected secret indicators."
+  },
+  "aws.review.lambda.execution_role_policy_admin_grants": {
+    "purpose": "Actual role access was not tested.",
+    "label": "Lambda execution-role policies avoid literal administrator Allow patterns",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "observed",
+        "label": "Observed configuration",
+        "types": [
+          "text"
+        ]
+      }
+    ],
+    "missing_observation": "The saved result omits the deciding evidence for Lambda execution-role policies avoid literal administrator Allow patterns."
+  },
+  "aws.review.cognito.app_client_refresh_token_rotation": {
+    "purpose": "Rotation replaces refresh tokens after use, reducing reuse of a stolen token; application behavior was not tested.",
+    "label": "Cognito app client enables refresh token rotation",
+    "review_status": "source_reviewed_and_native_replayed",
+    "fields": [
+      {
+        "key": "refresh_token_rotation",
+        "label": "Refresh token rotation",
+        "types": [
+          "string"
+        ]
+      }
+    ]
   }
 }

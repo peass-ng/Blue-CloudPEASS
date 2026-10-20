@@ -269,13 +269,19 @@ def _cloudtrail(item, index, check_id):
             if name in failed:
                 continue
             lock = get(bucket, "ObjectLock", dict)
-            if lock.get("collection_status") not in (None, "collected", "empty"):
+            lock_status = get(lock, "collection_status", str)
+            if lock_status not in ("collected", "empty"):
                 raise Unavailable("Object Lock read incomplete")
             absent_lock = (lock.get("collection_status") == "empty" and lock.get("absent") is True and
                            get(lock, "error.code", str) == "ObjectLockConfigurationNotFoundError")
             if absent_lock:
                 uncertain.append(name)
                 continue
+            if lock_status != "collected":
+                raise Unavailable("Object Lock success or absence unproven")
+            # GetObjectLockConfiguration retains its response wrapper in the
+            # bucket collector; denied/malformed coverage remains authoritative.
+            lock = get(lock, "ObjectLockConfiguration", dict)
             lock_enabled = get(lock, "ObjectLockEnabled", str)
             if lock_enabled not in ("Enabled", "Disabled"):
                 raise Unavailable("Object Lock state unrecognized")
@@ -301,29 +307,53 @@ def _cloudtrail(item, index, check_id):
             return unknown("365-day Object Lock default retention not proven", buckets=sorted(set(uncertain)))
         return result(False, retained_buckets=sorted({get(t, "S3BucketName", str) for t in trails}))
     if check_id == "aws_cloudtrail_s3_siem_delivery":
+        from ..collectors.aws_cloudtrail_s3_delivery_metadata import PROFILE, key_prefix, timestamp, valid_key
         trails = [trail for trail in trails if get(trail, "IsOrganizationTrail", bool)]
         if not trails:
             return "NOT_APPLICABLE", {"reason": "no organization trail in home Region"}
-        buckets = _buckets(index, account, scope)
-        failed = []
+        failed, uncertain = [], []
         for trail in trails:
-            name, bucket = _bucket(trail, buckets)
-            error = get(trail, "Status.LatestDeliveryError", str)
-            delivery = get(trail, "Status.LatestDeliveryTime", str)
-            prefix = get(trail, "S3KeyPrefix", str).strip("/")
-            prefix = (prefix + "/" if prefix else "") + "AWSLogs/"
-            objects = get(bucket, "CloudTrailObjectsByPrefix", dict).get(prefix)
-            if (not isinstance(objects, dict) or objects.get("collection_status") not in ("collected", "empty") or
-                    get(objects, "source_operation", str) != "s3:ListObjectsV2" or get(objects, "prefix", str) != prefix):
-                raise Unavailable("CloudTrail S3 object inventory missing or wrong prefix")
-            rows = get(objects, "Contents", list)
-            if objects["collection_status"] == "empty" and rows:
-                raise Unavailable("malformed empty CloudTrail S3 object inventory")
-            if any(not isinstance(row, dict) or not get(row, "Key", str).startswith(prefix) for row in rows):
-                raise Unavailable("CloudTrail S3 object inventory malformed")
-            object_freshness = [_fresh(get(row, "LastModified", str), context) for row in rows]
-            if error or not _fresh(delivery, context) or not any(object_freshness):
-                failed.append(get(trail, "TrailARN", str))
+            arn = get(trail, "TrailARN", str)
+            try:
+                objects = get(trail, "CloudTrailS3DeliveryObjects", dict)
+                proof = get(objects, "_provenance", dict)
+                org = get(objects, "OrganizationId", str)
+                source_prefix = get(trail, "S3KeyPrefix", str)
+                prefix = key_prefix(source_prefix) + "AWSLogs/" + org + "/" + account + "/CloudTrail/" + region + "/"
+                if (get(objects, "collection_status", str) not in ("collected", "empty")
+                        or get(objects, "listing_complete", bool) is not True
+                        or get(objects, "TrailARN", str) != arn or get(objects, "AccountId", str) != account
+                        or get(objects, "HomeRegion", str) != region or get(objects, "ExpectedBucketOwner", str) != account
+                        or get(objects, "Bucket", str) != get(trail, "S3BucketName", str)
+                        or not re.fullmatch(r"[a-z]{2}(?:-[a-z]+)+-[0-9]", get(objects, "BucketRegion", str))
+                        or not re.fullmatch(r"o-[a-z0-9]{10,32}", org)
+                        or get(objects, "S3KeyPrefix", str) != source_prefix or get(objects, "Prefix", str) != prefix
+                        or get(objects, "source_operation", str) != "s3:ListObjectsV2"
+                        or get(proof, "profile", str) != PROFILE or get(proof, "read_only", bool) is not True
+                        or get(proof, "identity_operation", str) != "sts:GetCallerIdentity"
+                        or get(proof, "organization_operation", str) != "organizations:DescribeOrganization"
+                        or get(proof, "describe_operation", str) != "cloudtrail:DescribeTrails"
+                        or get(proof, "native_destination_unique", bool) is not True
+                        or get(proof, "scope", str) != "unique_destination_account_region_object_metadata_correlation"
+                        or get(proof, "siem_receipt_verified", bool) is not False):
+                    raise Unavailable("CloudTrail object metadata binding or completeness unavailable")
+                rows = get(objects, "Contents", list)
+                if ((objects["collection_status"] == "empty") != (not rows)
+                        or len(rows) > 4000 or any(not isinstance(row, dict) for row in rows)):
+                    raise Unavailable("CloudTrail S3 object inventory malformed")
+                keys = [get(row, "Key", str) for row in rows]
+                if len(set(keys)) != len(keys) or any(not valid_key(key, prefix) for key in keys):
+                    raise Unavailable("CloudTrail S3 object paths are foreign or ambiguous")
+                error = get(trail, "Status.LatestDeliveryError", str)
+                delivery = timestamp(get(trail, "Status.LatestDeliveryTime"))
+                object_freshness = [_fresh(timestamp(get(row, "LastModified")), context) for row in rows]
+                if error or not _fresh(delivery, context) or not any(object_freshness):
+                    failed.append(arn)
+            except (Unavailable, ValueError, TypeError):
+                uncertain.append(arn)
+        if uncertain and not failed:
+            return unknown("Complete uniquely correlated CloudTrail S3 delivery metadata unavailable", trails=uncertain,
+                           semantics="S3 object metadata correlation only; SIEM receipt remains manual")
         return result(bool(failed), undelivered_trails=failed, semantics="S3 delivery only; SIEM receipt remains manual")
     if check_id in _INTEGRATION_IDS:
         if check_id == "aws_nist_cloudtrail_trail_integrated_with_logs":
@@ -547,7 +577,7 @@ META = {'aws.nist.all_cloudtrail_destination_bucket_access_logging': {'provider'
 
 for _id, _meta in META.items():
     _deps = ["ssm_managed_instance"] if _meta["resource_kind"] == "ssm_managed_instance" else ["cloudtrail_account_inventory"]
-    if _id in _BUCKET_LOG_IDS or _id == "aws_cloudtrail_bucket_lifecycle_retention_365" or _id == "aws_cloudtrail_s3_siem_delivery":
+    if _id in _BUCKET_LOG_IDS or _id == "aws_cloudtrail_bucket_lifecycle_retention_365":
         _deps.append("bucket")
     if _id in _INTEGRATION_IDS or _id in _KMS_IDS:
         _deps.append("log_group")

@@ -21,7 +21,7 @@ import functools
 import hashlib
 import re
 
-from .effective_permissions import ANY, CONF_RANK, AllTargets, Grant, as_list, best, combine, downgrade, glob_match
+from .effective_permissions import ANY, CONF_RANK, AllTargets, Grant, as_list, best, combine, downgrade, glob_match, permission_match as _tag_permission
 from .schema import (BLOCKER_ALIASES, CHAIN_SOURCE_SELECTORS, EVALUATED_BLOCKERS, FACTS_NEEDED, GENERIC_SELECTORS,
                      GENERIC_SOURCE_SELECTORS, MODEL_BLOCKERS, PRECONDITIONS, expand_requires)
 
@@ -67,28 +67,6 @@ COVERED_BY = {
 }
 LOCALIZING_SELECTORS = {"gcp_sa_in_scope_of_permission", "azure_identity_assignable_in_scope"}
 LOCALIZING_SCOPES = {"same_namespace", "same_project"}
-
-
-def _tag_permission(grant, raw):
-    """Keep the checked requirement beside its granting refs without changing those refs."""
-    if grant is None:
-        return None
-    permission = next((str(raw[key]) for key in (
-        "action", "permission", "data_action", "entra_permission", "entra_role",
-        "graph_app_permission", "verb", "verb_prefix", "intune_permission",
-    ) if raw.get(key)), None)
-    if not permission:
-        return grant
-    if raw.get("resource") and (raw.get("verb") or raw.get("verb_prefix")):
-        permission += " " + str(raw["resource"])
-    pairs = list(grant.permission_refs)
-    for ref in grant.refs:
-        if not isinstance(ref, dict) or str(ref.get("effect", "Allow")).lower() == "deny":
-            continue
-        pair = {"permission": permission, "grant": ref}
-        if pair not in pairs:
-            pairs.append(pair)
-    return Grant(grant.confidence, grant.refs, grant.conditions, pairs)
 
 
 def _tag_result(result, raw):
@@ -873,6 +851,8 @@ class Evaluator:
             got = model.check_bound(source, [r.raw for r in group], [r.template for r in group])
             if got is None:
                 return None
+            for requirement in group:
+                got = _tag_permission(got, requirement.raw)
             grants.append(got)
         for req in static:
             if req.raw.get("bind") and len(bound.get(req.raw["bind"], ())) >= 2:

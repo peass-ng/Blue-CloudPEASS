@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 import json
+from peaso import deployment
 from pathlib import Path
 
 import boto3
@@ -17,10 +18,10 @@ def main():
     session = boto3.Session(region_name="us-east-1")
     identity = session.client("sts").get_caller_identity()
     if identity["Account"] != ACCOUNT:
-        raise RuntimeError("Preflight requires wiki account 202533532952")
+        raise RuntimeError("Preflight requires the configured deployment account")
     facts = {"checked_at": datetime.now(timezone.utc).isoformat(), "account": ACCOUNT,
              "caller_role": identity["Arn"].split("/")[1],
-             "backend": {"bucket": "terraform-state-hacktricks-wiki", "key": "cspm/terraform.tfstate"},
+             "backend": deployment.backend(),
              "errors": {}}
 
     def inspect(label, callback):
@@ -30,7 +31,7 @@ def main():
             facts["errors"][label] = error.response.get("Error", {}).get("Code", "ClientError")
 
     def state():
-        response = session.client("s3").get_object(Bucket="terraform-state-hacktricks-wiki", Key="cspm/terraform.tfstate")
+        response = session.client("s3").get_object(Bucket=deployment.backend()["bucket"], Key=deployment.backend()["key"])
         with response["Body"] as body:
             value = json.loads(body.read())
         return {"serial": value.get("serial"), "managed_resources": [
@@ -45,7 +46,7 @@ def main():
     inspect("cspm_lambda", lambda: {k: v for k, v in session.client("lambda").get_function_configuration(FunctionName="hacktricks-cspm-api").items()
                                    if k in ("FunctionName", "Runtime", "State", "LastUpdateStatus")})
     inspect("shared_client", lambda: {k: v for k, v in session.client("cognito-idp").describe_user_pool_client(
-        UserPoolId="us-east-1_7rbhezdKX", ClientId="3g2u5ilb7kbte92lra40ji2ht0")["UserPoolClient"].items()
+        UserPoolId=deployment.value("cognito_pool_id"), ClientId=deployment.value("cognito_client_id"))["UserPoolClient"].items()
         if k in ("UserPoolId", "ClientId", "ExplicitAuthFlows", "WriteAttributes", "ReadAttributes")})
     inspect("cloudfront", lambda: [{"id": r["Id"], "domain": r["DomainName"], "status": r["Status"], "aliases": r.get("Aliases", {}).get("Items", [])}
         for page in session.client("cloudfront").get_paginator("list_distributions").paginate()

@@ -18,9 +18,9 @@ def test_qualified_account_invoke_grant_variants() -> None:
     event = {
         "eventSource": "lambda.amazonaws.com", "eventName": "AddPermission20150331v2",
         "eventCategory": "Management", "eventType": "AwsApiCall",
-        "managementEvent": True, "readOnly": False, "recipientAccountId": "947247140022",
+        "managementEvent": True, "readOnly": False, "recipientAccountId": "222233334444",
         "requestParameters": {"functionName": "synthetic-function", "qualifier": "synthetic",
-                              "principal": "947247140022", "action": "lambda:InvokeFunction"},
+                              "principal": "222233334444", "action": "lambda:InvokeFunction"},
     }
     assert [d.technique_id for d in detect_aws_events([event], [RULE])] == [RULE.technique_id]
     for variant in ("unqualified", "service", "other_action", "failed", "remove"):

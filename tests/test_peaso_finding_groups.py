@@ -37,6 +37,26 @@ def test_mixed_outcomes_never_hide_failures_or_unknowns_behind_a_pass():
     assert group_findings([row(1, status="DENIED")])[0]["status"] == "DENIED"
 
 
+def test_internet_exposure_keeps_asset_specific_titles_services_and_evidence():
+    findings = []
+    for number, service, title, kind in [
+        (1, "apigateway", "Internet access to an API endpoint", "api"),
+        (2, "s3", "Public stored-data access", "data_share"),
+        (3, "lambda", "Internet access to a Lambda URL", "function_url"),
+    ]:
+        item = row(number, cid="analysis.internet_exposure")
+        item.update(category="exposure", service=service, title=title,
+                    evidence={"exposure_kind": kind}, evidence_summary=f"{service} observation")
+        findings.append(item)
+    grouped = group_findings(findings, observations=True)
+    assert len(grouped) == 3
+    assert [(item["service"], item["title"], item["evidence"]["exposure_kind"])
+            for item in grouped] == [("apigateway", "Internet access to an API endpoint", "api"),
+                                     ("s3", "Public stored-data access", "data_share"),
+                                     ("lambda", "Internet access to a Lambda URL", "function_url")]
+    assert all(not item.get("grouped") and len(item["observations"]) == 1 for item in grouped)
+
+
 def test_resource_ids_are_not_collapsed_across_accounts_and_severity_is_conservative():
     a, b = row(1), row(1, account="210987654321")
     a["severity"] = "high"

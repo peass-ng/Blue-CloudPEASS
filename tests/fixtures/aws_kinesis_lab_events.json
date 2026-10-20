@@ -1,0 +1,365 @@
+[
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:12:02Z",
+    "eventSource": "kinesis.amazonaws.com",
+    "eventName": "IncreaseStreamRetentionPeriod",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "retentionPeriodHours": 48,
+      "streamARN": "arn:aws:kinesis:us-east-1:222233334444:stream/example-kds-18ff097e29"
+    },
+    "responseElements": null,
+    "requestID": "d29ff9fa-a637-f0eb-b1cf-a85830953228",
+    "eventID": "72908156-0c22-49af-8379-8fa0d776b7a2",
+    "readOnly": false,
+    "resources": [
+      {
+        "accountId": "222233334444",
+        "type": "AWS::Kinesis::Stream",
+        "ARN": "arn:aws:kinesis:us-east-1:222233334444:stream/example-kds-18ff097e29"
+      }
+    ],
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:12:07Z",
+    "eventSource": "kinesis.amazonaws.com",
+    "eventName": "DecreaseStreamRetentionPeriod",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "retentionPeriodHours": 24,
+      "streamARN": "arn:aws:kinesis:us-east-1:222233334444:stream/example-kds-18ff097e29"
+    },
+    "responseElements": null,
+    "requestID": "c0663742-5df1-ec34-a336-66e5cb532ef7",
+    "eventID": "2610c3e5-b58f-46f2-9697-d4457e3b1955",
+    "readOnly": false,
+    "resources": [
+      {
+        "accountId": "222233334444",
+        "type": "AWS::Kinesis::Stream",
+        "ARN": "arn:aws:kinesis:us-east-1:222233334444:stream/example-kds-18ff097e29"
+      }
+    ],
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:12:13Z",
+    "eventSource": "kinesis.amazonaws.com",
+    "eventName": "EnableEnhancedMonitoring",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "streamName": "example-kds-18ff097e29",
+      "shardLevelMetrics": [
+        "IncomingBytes"
+      ]
+    },
+    "responseElements": {
+      "streamName": "example-kds-18ff097e29",
+      "currentShardLevelMetrics": [],
+      "desiredShardLevelMetrics": [
+        "IncomingBytes"
+      ],
+      "streamARN": "arn:aws:kinesis:us-east-1:222233334444:stream/example-kds-18ff097e29"
+    },
+    "requestID": "cb05edab-b94a-3818-a855-bc06a5d6cee1",
+    "eventID": "e0028df6-2215-46a2-afb8-6d096edce5e4",
+    "readOnly": false,
+    "resources": [
+      {
+        "accountId": "222233334444",
+        "type": "AWS::Kinesis::Stream",
+        "ARN": "arn:aws:kinesis:us-east-1:222233334444:stream/example-kds-18ff097e29"
+      }
+    ],
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:12:19Z",
+    "eventSource": "kinesis.amazonaws.com",
+    "eventName": "DisableEnhancedMonitoring",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "streamName": "example-kds-18ff097e29",
+      "shardLevelMetrics": [
+        "IncomingBytes"
+      ]
+    },
+    "responseElements": {
+      "streamName": "example-kds-18ff097e29",
+      "currentShardLevelMetrics": [
+        "IncomingBytes"
+      ],
+      "desiredShardLevelMetrics": [],
+      "streamARN": "arn:aws:kinesis:us-east-1:222233334444:stream/example-kds-18ff097e29"
+    },
+    "requestID": "c5827f4f-f611-0025-a6d2-2efdea8df6dc",
+    "eventID": "71e2af49-8c81-4e44-8b02-5ba07a42300e",
+    "readOnly": false,
+    "resources": [
+      {
+        "accountId": "222233334444",
+        "type": "AWS::Kinesis::Stream",
+        "ARN": "arn:aws:kinesis:us-east-1:222233334444:stream/example-kds-18ff097e29"
+      }
+    ],
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:12:24Z",
+    "eventSource": "kinesis.amazonaws.com",
+    "eventName": "PutResourcePolicy",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "resourceARN": "arn:aws:kinesis:us-east-1:222233334444:stream/example-kds-18ff097e29",
+      "policy": "{\"Version\": \"2012-10-17\", \"Statement\": [{\"Effect\": \"Allow\", \"Principal\": {\"AWS\": \"arn:aws:iam::222233334444:root\"}, \"Action\": [\"kinesis:DescribeStreamSummary\", \"kinesis:ListShards\", \"kinesis:GetShardIterator\", \"kinesis:GetRecords\"], \"Resource\": \"arn:aws:kinesis:us-east-1:222233334444:stream/example-kds-18ff097e29\"}]}"
+    },
+    "responseElements": null,
+    "requestID": "da9c33eb-1024-7329-b9cc-62538686b1ea",
+    "eventID": "ec332220-1f7f-4026-bec4-82c2e131d1e8",
+    "readOnly": false,
+    "resources": [
+      {
+        "accountId": "222233334444",
+        "type": "AWS::Kinesis::Stream",
+        "ARN": "arn:aws:kinesis:us-east-1:222233334444:stream/example-kds-18ff097e29"
+      }
+    ],
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:12:25Z",
+    "eventSource": "kinesis.amazonaws.com",
+    "eventName": "RegisterStreamConsumer",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "streamARN": "arn:aws:kinesis:us-east-1:222233334444:stream/example-kds-18ff097e29",
+      "consumerName": "example-reader"
+    },
+    "responseElements": {
+      "consumer": {
+        "consumerName": "example-reader",
+        "consumerARN": "arn:aws:kinesis:us-east-1:222233334444:stream/example-kds-18ff097e29/consumer/example-reader:1792429944",
+        "consumerStatus": "CREATING",
+        "consumerCreationTimestamp": "2026-10-19T17:12:24Z"
+      }
+    },
+    "requestID": "d1a1bd95-516e-5c9c-b2f1-ec2cc7cc9e5f",
+    "eventID": "0f61a616-b333-45c7-951d-f8b5df2f4a72",
+    "readOnly": false,
+    "resources": [
+      {
+        "accountId": "222233334444",
+        "type": "AWS::Kinesis::StreamConsumer",
+        "ARN": "arn:aws:kinesis:us-east-1:222233334444:stream/example-kds-18ff097e29/consumer/example-reader:1792429944"
+      }
+    ],
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:12:32Z",
+    "eventSource": "kinesis.amazonaws.com",
+    "eventName": "DeleteResourcePolicy",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "resourceARN": "arn:aws:kinesis:us-east-1:222233334444:stream/example-kds-18ff097e29"
+    },
+    "responseElements": null,
+    "requestID": "ce0d219c-38cc-63bc-ad5d-705cae6ea17f",
+    "eventID": "32b3dc0e-6d6b-4ec4-b0fd-a03f319bdcac",
+    "readOnly": false,
+    "resources": [
+      {
+        "accountId": "222233334444",
+        "type": "AWS::Kinesis::Stream",
+        "ARN": "arn:aws:kinesis:us-east-1:222233334444:stream/example-kds-18ff097e29"
+      }
+    ],
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:12:32Z",
+    "eventSource": "kinesis.amazonaws.com",
+    "eventName": "DeleteResourcePolicy",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "resourceARN": "arn:aws:kinesis:us-east-1:222233334444:stream/example-kds-18ff097e29/consumer/example-reader:1792429944"
+    },
+    "responseElements": null,
+    "requestID": "f20b4ad4-b3ce-9678-915b-1b14256c54bb",
+    "eventID": "f4819bd8-43eb-42d3-91f2-f4e74b074b97",
+    "readOnly": false,
+    "resources": [
+      {
+        "accountId": "222233334444",
+        "type": "AWS::Kinesis::StreamConsumer",
+        "ARN": "arn:aws:kinesis:us-east-1:222233334444:stream/example-kds-18ff097e29/consumer/example-reader:1792429944"
+      }
+    ],
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:12:32Z",
+    "eventSource": "kinesis.amazonaws.com",
+    "eventName": "DeleteStream",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "enforceConsumerDeletion": true,
+      "streamARN": "arn:aws:kinesis:us-east-1:222233334444:stream/example-kds-18ff097e29"
+    },
+    "responseElements": null,
+    "requestID": "c089bb7f-3e7e-a1f7-a3d9-eabfa8dc6334",
+    "eventID": "5df2cf9e-1d02-40db-9b0d-b70130b47368",
+    "readOnly": false,
+    "resources": [
+      {
+        "accountId": "222233334444",
+        "type": "AWS::Kinesis::Stream",
+        "ARN": "arn:aws:kinesis:us-east-1:222233334444:stream/example-kds-18ff097e29"
+      }
+    ],
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:12:32Z",
+    "eventSource": "kinesis.amazonaws.com",
+    "eventName": "DeregisterStreamConsumer",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "consumerARN": "arn:aws:kinesis:us-east-1:222233334444:stream/example-kds-18ff097e29/consumer/example-reader:1792429944"
+    },
+    "responseElements": null,
+    "requestID": "d20e517e-24b2-cea2-b15e-00beb2100c61",
+    "eventID": "84c7f874-16ec-44ff-921c-836188a054c8",
+    "readOnly": false,
+    "resources": [
+      {
+        "accountId": "222233334444",
+        "type": "AWS::Kinesis::StreamConsumer",
+        "ARN": "arn:aws:kinesis:us-east-1:222233334444:stream/example-kds-18ff097e29/consumer/example-reader:1792429944"
+      }
+    ],
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:12:32Z",
+    "eventSource": "kinesis.amazonaws.com",
+    "eventName": "PutResourcePolicy",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "resourceARN": "arn:aws:kinesis:us-east-1:222233334444:stream/example-kds-18ff097e29/consumer/example-reader:1792429944",
+      "policy": "{\"Version\": \"2012-10-17\", \"Statement\": [{\"Effect\": \"Allow\", \"Principal\": {\"AWS\": \"arn:aws:iam::222233334444:root\"}, \"Action\": [\"kinesis:DescribeStreamConsumer\", \"kinesis:SubscribeToShard\"], \"Resource\": \"arn:aws:kinesis:us-east-1:222233334444:stream/example-kds-18ff097e29/consumer/example-reader:1792429944\"}]}"
+    },
+    "responseElements": null,
+    "requestID": "f921170e-c110-11d8-9a71-46b157b2d31b",
+    "eventID": "81b56b55-f40f-44a3-943d-5decbdbbbb74",
+    "readOnly": false,
+    "resources": [
+      {
+        "accountId": "222233334444",
+        "type": "AWS::Kinesis::StreamConsumer",
+        "ARN": "arn:aws:kinesis:us-east-1:222233334444:stream/example-kds-18ff097e29/consumer/example-reader:1792429944"
+      }
+    ],
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  }
+]

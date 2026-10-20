@@ -116,7 +116,7 @@ def synthetic_candidate_release(extra_files=None, api_extra=(), api_drop=(), dro
     frontend = {"source_version": version,
                 "files": {name: guard.sha(body) for name, body in candidate_frontend_files().items()}}
     frontend_raw = (json.dumps(frontend, indent=2) + "\n").encode()
-    image = ("202533532952.dkr.ecr.us-east-1.amazonaws.com/hacktricks-cspm-worker"
+    image = ("111122223333.dkr.ecr.us-east-1.amazonaws.com/hacktricks-cspm-worker"
              "@sha256:" + "1" * 64)
     candidate = {"source_version": version, "release_json_sha256": guard.sha(release_raw),
                  "source_zip_sha256": guard.sha(source_zip), "api_zip_sha256": guard.sha(api_zip),
@@ -506,7 +506,7 @@ class ArtifactOuterRoute(unittest.TestCase):
         template_policy = json.loads(resources["aws_s3_bucket_policy.templates[0]"]["policy"])
         artifact.check_resolved_documents(resources, rows, workflow, workflow_policy,
                                           api_policy, template_policy, revisions)
-        artifact.check_publish_target({"frontend_bucket": {"value": "hacktricks-cspm-frontend-202533532952"},
+        artifact.check_publish_target({"frontend_bucket": {"value": "hacktricks-cspm-frontend-111122223333"},
                                        "cloudfront_distribution_id": {"value": "E24KDR2EDPKSBS"}})
         with self.assertRaises(RuntimeError):
             artifact.check_publish_target({"frontend_bucket": {"value": "wiki-tools"},
@@ -536,7 +536,7 @@ class ArtifactOuterRoute(unittest.TestCase):
                 "--reviewed-sha256", artifact.sha(self.blobs["plan_binary"]),
                 "--artifact-update-contract", str(self.contract),
                 "--artifact-update-sha256", self.contract_sha]
-        output = {"frontend_bucket": {"value": "hacktricks-cspm-frontend-202533532952"},
+        output = {"frontend_bucket": {"value": "hacktricks-cspm-frontend-111122223333"},
                   "cloudfront_distribution_id": {"value": "E24KDR2EDPKSBS"}}
         def terraform_output(*args, capture=False):
             self.assertEqual(args, ("output", "-json"))
@@ -550,7 +550,7 @@ class ArtifactOuterRoute(unittest.TestCase):
             deploy.main()
             resolved.assert_called_once()
             self.assertEqual(run.call_count, 4)
-            self.assertIn("s3://hacktricks-cspm-frontend-202533532952/", run.call_args_list[0].args[0])
+            self.assertIn("s3://hacktricks-cspm-frontend-111122223333/", run.call_args_list[0].args[0])
             run.reset_mock()
             output["frontend_bucket"]["value"] = "wiki-tools"
             with self.assertRaises(RuntimeError):

@@ -146,6 +146,29 @@ def test_eks_default_envelope_encryption_from_128_and_old_explicit_config(versio
     assert evaluate("aws.eks.secrets_encryption", {"Cluster": {"cluster": cluster}}) == expected
 
 
+# This shard retains its original review pin. The later AWS source admission
+# advanced Prowler's manifest revision without changing any of these 26
+# evaluator digests. Accept only that exact revision/URL substitution; never
+# treat an arbitrary current manifest revision as a new review.
+_PROWLER_REVIEW_REVISION = "61d2cc55c4539a6b48a3cf9f3729d8f2af300882"
+_PROWLER_MANIFEST_REVISION = "7f9eb2cb11ea931f54acccb6e49152358ccf949d"
+
+
+def _assert_reviewed_source_pin(source, reviewed):
+    assert source["repository"] == reviewed["repository"]
+    assert source["upstream_evaluator"]["sha256"] == reviewed["evaluator_sha256"]
+    if reviewed["repository"] == "prowler-cloud/prowler":
+        assert reviewed["revision"] == _PROWLER_REVIEW_REVISION
+        assert source["revision"] == _PROWLER_MANIFEST_REVISION
+    else:
+        assert source["revision"] == reviewed["revision"]
+    assert source["upstream_evaluator"]["version"] == source["revision"]
+    original_prefix = f'https://github.com/{reviewed["repository"]}/blob/{reviewed["revision"]}/'
+    successor_prefix = f'https://github.com/{source["repository"]}/blob/{source["revision"]}/'
+    assert reviewed["source"].startswith(original_prefix)
+    assert source["source"] == reviewed["source"].replace(original_prefix, successor_prefix, 1)
+
+
 def test_reviewed_shard_ids_exist_at_exact_pinned_source_and_all_native_ids_have_fixtures():
     root = Path(__file__).resolve().parents[1]
     shard = json.loads((root / "peaso/rulepacks/reviewed_aws.json").read_text())
@@ -156,8 +179,7 @@ def test_reviewed_shard_ids_exist_at_exact_pinned_source_and_all_native_ids_have
     for source_id, review in shard.items():
         assert source_id in rows
         assert rows[source_id]["provider"] == "aws"
-        assert rows[source_id]["revision"] == review["reviewed_source"]["revision"]
-        assert rows[source_id]["upstream_evaluator"]["sha256"] == review["reviewed_source"]["evaluator_sha256"]
+        _assert_reviewed_source_pin(rows[source_id], review["reviewed_source"])
         assert review["reason"]
         assert review["official_docs"]
         if review["disposition"] in {"ported", "merged"}:
@@ -168,6 +190,32 @@ def test_reviewed_shard_ids_exist_at_exact_pinned_source_and_all_native_ids_have
         else:
             assert review["native_checks"] == []
     assert len(supported_native) >= 30
+
+
+@pytest.mark.parametrize("mutation", ["future_revision", "review_repin", "evaluator_hash", "repository", "source_path", "evaluator_version"])
+def test_reviewed_revision_bridge_rejects_any_other_source_change(mutation):
+    root = Path(__file__).resolve().parents[1]
+    shard = json.loads((root / "peaso/rulepacks/reviewed_aws.json").read_text())
+    manifest = json.loads((root / "peaso/rulepacks/upstream_manifest.json").read_text())
+    cid = "prowler.aws.awslambda_function_inside_vpc"
+    source = next(row for row in manifest["checks"] if row["check_id"] == cid)
+    reviewed = copy.deepcopy(shard[cid]["reviewed_source"])
+    _assert_reviewed_source_pin(source, reviewed)
+    if mutation == "future_revision":
+        source["revision"] = "0" * 40
+    elif mutation == "review_repin":
+        reviewed["revision"] = source["revision"]
+        reviewed["source"] = source["source"]
+    elif mutation == "evaluator_hash":
+        source["upstream_evaluator"]["sha256"] = "0" * 64
+    elif mutation == "repository":
+        source["repository"] = "unreviewed/prowler"
+    elif mutation == "source_path":
+        source["source"] = source["source"].replace("awslambda_function_inside_vpc.metadata.json", "other.metadata.json")
+    else:
+        source["upstream_evaluator"]["version"] = "0" * 40
+    with pytest.raises(AssertionError):
+        _assert_reviewed_source_pin(source, reviewed)
 
 
 @pytest.mark.parametrize("cid", [cid for cid in REGISTRY if cid.startswith("aws.guardduty.")])

@@ -29,7 +29,6 @@ BOOLEAN_FAILURES = {'gcp.claude.backend_service.external_iap': ('iap_enabled', F
  'gcp.htbp.logging.default_sink_not_disabled': ('disabled', True),
  'gcp.htbp.orgpolicy.cross_project_sa_usage_not_disabled': ('enforced', False),
  'gcp.htbp.orgpolicy.default_sa_automatic_grants_disabled': ('enforced', False),
- 'gcp.identity.non_service_account_mfa': ('isEnrolledIn2Sv', False),
  'gcp.ports.app_engine_application_iap_enabled': ('configured', False),
  'gcp.ports.compute_disk_encrypted_with_csk': ('csek_digest_present', False),
  'gcp.ports.kubernetes_cluster_intra_node_visibility_enabled': ('configured', False),
@@ -233,11 +232,38 @@ def evidence_summary(finding):
     if sql is not None:
         return sql
     observed = row['static_observed_sentence']
+    if cid == 'gcp.identity.non_service_account_mfa':
+        enrolled, enforced = evidence.get('isEnrolledIn2Sv'), evidence.get('isEnforcedIn2Sv')
+        return observed if type(enrolled) is bool and type(enforced) is bool and not (enrolled and enforced) else None
+    if cid == 'gcp.identity.super_admin_recovery_group':
+        count = evidence.get('active_member_count')
+        missing = evidence.get('reason') == 'missing or non-group recovery address' and isinstance(evidence.get('recovery_email'), str)
+        return observed if missing or (type(count) is int and 0 <= count < 2) else None
+    if cid == 'gcp_pci_bucket_157fb0c69361':
+        from .gcp_public_read_native import READ_ROLES
+        grants = evidence.get('grants', [])
+        inherited = evidence.get('inherited_public_read_grants', [])
+        local_read = isinstance(grants, list) and any(
+            isinstance(grant, (list, tuple)) and len(grant) == 2 and
+            ((grant[0] == 'iam' and isinstance(grant[1], str) and grant[1] in READ_ROLES) or
+             (grant[0] in ('bucketAccessControls', 'objectAccessControls') and grant[1] in ('allUsers', 'allAuthenticatedUsers')))
+            for grant in grants)
+        ancestor_read = isinstance(inherited, list) and any(
+            isinstance(grant, dict) and isinstance(grant.get('scope'), str) and
+            re.fullmatch(r'(projects|folders|organizations)/[A-Za-z0-9._-]+', grant['scope']) and
+            isinstance(grant.get('role'), str) and grant['role'] in READ_ROLES for grant in inherited)
+        return observed if local_read or ancestor_read else None
     if cid in BOOLEAN_FAILURES:
         field, failed = BOOLEAN_FAILURES[cid]
         return observed if evidence.get(field) is failed else None
     if cid in FILTERED_STRING_OBSERVATIONS:
         return observed if _strings(evidence.get(FILTERED_STRING_OBSERVATIONS[cid]), nonempty=True) else None
+    if cid in ('gcp.ports.sql_instance_require_ssl_enabled', 'gcp.ports.reference_sql_ssl_connections'):
+        mode = evidence.get('sslMode', evidence.get('ssl_mode'))
+        if (mode in (None, 'SSL_MODE_UNSPECIFIED')
+                and evidence.get('deciding_field') == 'settings.ipConfiguration.requireSsl'
+                and evidence.get('legacy_require_ssl') is False):
+            return 'The legacy SQL setting does not require encrypted client connections.'
     if cid in ENUM_FAILURES:
         field, failed = ENUM_FAILURES[cid]
         value = evidence.get(field)

@@ -116,6 +116,7 @@ def normalize_aws_cloudtrail(record: Mapping[str, Any]) -> dict[str, Any] | None
         "request.policy_arn": request.get("policyArn"),
         "request.status": request.get("status"),
         "request.role_name": target_role,
+        "request.max_session_duration": request.get("maxSessionDuration") if isinstance(request.get("maxSessionDuration"), int) and not isinstance(request.get("maxSessionDuration"), bool) else None,
         "request.set_as_default": request.get("setAsDefault") is True or request.get("setAsDefault") == "true",
         "request.unconditional_admin_grant": _unconditional_admin_grant(request.get("policyDocument")),
         "request.self_user": isinstance(actor_user, str) and bool(actor_user) and target_user == actor_user,

@@ -86,11 +86,12 @@ _EXACT_RUNNING_POD_UPDATE = "gcp-container-pods-update-running-ksa"
 
 
 class Role:
-    __slots__ = ("name", "patterns", "exact", "confidence", "universal")
+    __slots__ = ("name", "patterns", "exact", "confidence", "universal", "native_permissions")
 
     def __init__(self, name, permissions, confidence="derived"):
         self.name = name
-        perms = [str(p).lower() for p in permissions]
+        self.native_permissions = tuple(str(p) for p in permissions)
+        perms = [p.lower() for p in self.native_permissions]
         self.exact = {p for p in perms if "*" not in p}
         self.patterns = [p for p in perms if "*" in p]
         self.universal = "*" in perms
@@ -1327,7 +1328,8 @@ class GcpModel(Model):
                 continue
             grant = self.check(principal, {"permission": perm}, node)
             if grant is not None:
-                found[node] = grant
+                found[node] = Grant(grant.confidence, grant.refs, grant.conditions,
+                    [{"permission": perm.replace(".setiampolicy", ".setIamPolicy"), "grant": ref} for ref in grant.refs if "role" in ref])
         # Keep only the top-most scopes.
         top = {n: g for n, g in found.items() if not any(a in found for a in self.ancestors(n)[1:])}
         return [(self.entity(n), g) for n, g in sorted(top.items())]

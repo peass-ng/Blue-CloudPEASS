@@ -35,7 +35,7 @@ DELETE_CREDENTIAL = Rule(
         "request.codebuild_source_credential_deleted": True,
     },
 )
-ARN = "arn:aws:codebuild:us-east-1:947247140022:project/peasso-detection-test-build"
+ARN = "arn:aws:codebuild:us-east-1:222233334444:project/peasso-detection-test-build"
 
 
 def _event(name: str, request: dict) -> dict:
@@ -43,11 +43,11 @@ def _event(name: str, request: dict) -> dict:
         "eventSource": "codebuild.amazonaws.com", "eventName": name,
         "eventCategory": "Management", "eventType": "AwsApiCall",
         "managementEvent": True, "readOnly": False,
-        "awsRegion": "us-east-1", "recipientAccountId": "947247140022",
+        "awsRegion": "us-east-1", "recipientAccountId": "222233334444",
         "eventID": "c5cc4ab9-9776-4d8d-beac-e018bc239cb1",
         "eventTime": "2026-10-19T08:45:31Z",
-        "userIdentity": {"type": "IAMUser", "accountId": "947247140022",
-                         "arn": "arn:aws:iam::947247140022:user/lab"},
+        "userIdentity": {"type": "IAMUser", "accountId": "222233334444",
+                         "arn": "arn:aws:iam::222233334444:user/lab"},
         "requestParameters": request, "responseElements": None,
     }
 
@@ -82,7 +82,7 @@ def test_failed_incomplete_and_foreign_project_events_do_not_match() -> None:
 
 
 def test_source_credential_delete_requires_matching_response_arn() -> None:
-    arn = "arn:aws:codebuild:us-east-1:947247140022:token/bitbucket"
+    arn = "arn:aws:codebuild:us-east-1:222233334444:token/bitbucket"
     row = _event("DeleteSourceCredentials", {"arn": arn})
     row["responseElements"] = {"arn": arn}
     assert [m.technique_id for m in _matches(row)] == [DELETE_CREDENTIAL.technique_id]

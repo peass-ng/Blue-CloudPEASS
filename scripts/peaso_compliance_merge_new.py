@@ -32,6 +32,13 @@ def signed_proposals(ledger_root: Path) -> tuple[dict, dict]:
                     previous = proposed.setdefault(spec["id"], spec)
                     if previous != spec:
                         raise ValueError("Conflicting signed proposal: " + spec["id"])
+    for entry in manifest.get("native_extensions", []):
+        source, _ = verified_file(ledger_root, entry, prefix="native-extensions/")
+        for row in source["checks"]:
+            spec = row["spec"]
+            if spec["id"] in proposed:
+                raise ValueError("Duplicate native extension proposal: " + spec["id"])
+            proposed[spec["id"]] = spec
     return manifest, proposed
 
 

@@ -1,0 +1,2011 @@
+{
+  "reviewed_on": "2026-10-19",
+  "source_index": "https://servicereference.us-east-1.amazonaws.com/v1/service-list.json",
+  "policy_actions": {
+    "acm-pca:GetPolicy": {
+      "resource_types": [
+        "certificate-authority"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/acm-pca/acm-pca.json",
+      "sha256": "5145bf320cefa4b8576c980b07b3fb13a5215563c13c18b15593f0d5e538ac52",
+      "resource_type_review": {
+        "certificate-authority": {
+          "status": "covered",
+          "families": [
+            "private-ca"
+          ]
+        }
+      }
+    },
+    "aiops:GetInvestigationGroupPolicy": {
+      "resource_types": [
+        "investigation-group"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/aiops/aiops.json",
+      "sha256": "21d98a4cbfbf394161bd412c5dff189725dfbe807f7650c772b99e0a8ac61638",
+      "resource_type_review": {
+        "investigation-group": {
+          "status": "covered",
+          "families": [
+            "investigation-groups"
+          ]
+        }
+      }
+    },
+    "apigateway:GetPortalProductSharingPolicy": {
+      "resource_types": [
+        "PortalProduct"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/apigateway/apigateway.json",
+      "sha256": "2f3c7a96541fa247df671600e0fa331084966d795259ca8745f5de9ebf86a2a9",
+      "resource_type_review": {
+        "PortalProduct": {
+          "status": "covered",
+          "families": [
+            "api-portal-products"
+          ]
+        }
+      }
+    },
+    "aps:DescribeResourcePolicy": {
+      "resource_types": [
+        "workspace"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/aps/aps.json",
+      "sha256": "3abbc427083c633502ae1f0d7cf1f0fa5a5d3b1034cd85649c9df5a0656591de",
+      "resource_type_review": {
+        "workspace": {
+          "status": "covered",
+          "families": [
+            "prometheus-workspaces"
+          ]
+        }
+      }
+    },
+    "aws-marketplace:GetResourcePolicy": {
+      "resource_types": [
+        "Entity"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/aws-marketplace/aws-marketplace.json",
+      "sha256": "2aa6deab2d61d9ec2649c56494f02233c46c4f44298be5bfeb6fc83833e737a2",
+      "resource_type_review": {
+        "Entity": {
+          "status": "covered",
+          "families": [
+            "marketplace-AmiProduct",
+            "marketplace-ContainerProduct",
+            "marketplace-DataProduct",
+            "marketplace-SaaSProduct",
+            "marketplace-Offer",
+            "marketplace-ResaleAuthorization",
+            "marketplace-MachineLearningProduct",
+            "marketplace-OfferSet"
+          ]
+        }
+      }
+    },
+    "backup:GetBackupVaultAccessPolicy": {
+      "resource_types": [
+        "backupVault"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/backup/backup.json",
+      "sha256": "333e17890845a90dc7f7b47fda82815289e74cd178047da2966331d4f2fd2f37",
+      "resource_type_review": {
+        "backupVault": {
+          "status": "covered",
+          "families": [
+            "backup-vaults"
+          ]
+        }
+      }
+    },
+    "bcm-dashboards:GetResourcePolicy": {
+      "resource_types": [],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/bcm-dashboards/bcm-dashboards.json",
+      "sha256": "145186ccc093a637b4cc0f51d6fadf251c5f2dc57b99172fb6fe724248f6ce56",
+      "resource_type_review": {},
+      "account_or_wildcard_authorized_families": [
+        "billing-dashboards"
+      ]
+    },
+    "bedrock-agentcore:GetResourcePolicy": {
+      "resource_types": [
+        "gateway",
+        "runtime",
+        "runtime-endpoint"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/bedrock-agentcore/bedrock-agentcore.json",
+      "sha256": "3d03494640e614f546b62c98892bb01e43ffce90f661195b62aee640e791d505",
+      "resource_type_review": {
+        "gateway": {
+          "status": "covered",
+          "families": [
+            "agentcore-gateways"
+          ]
+        },
+        "runtime": {
+          "status": "covered",
+          "families": [
+            "agentcore-runtimes"
+          ]
+        },
+        "runtime-endpoint": {
+          "status": "covered",
+          "families": [
+            "agentcore-runtime-endpoints"
+          ]
+        }
+      }
+    },
+    "bedrock:GetResourcePolicy": {
+      "resource_types": [
+        "custom-model",
+        "guardrail",
+        "guardrail-profile",
+        "knowledge-base"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/bedrock/bedrock.json",
+      "sha256": "79a63efaaf06b4d6ff82432e85beb0912faeff3b69326597566dc18f53a44c06",
+      "resource_type_review": {
+        "custom-model": {
+          "status": "covered",
+          "families": [
+            "bedrock-custom-models"
+          ]
+        },
+        "guardrail": {
+          "status": "covered",
+          "families": [
+            "bedrock-guardrails"
+          ]
+        },
+        "guardrail-profile": {
+          "status": "covered",
+          "families": [
+            "bedrock-guardrail-profiles"
+          ]
+        },
+        "knowledge-base": {
+          "status": "covered",
+          "families": [
+            "bedrock-knowledge-bases"
+          ]
+        }
+      }
+    },
+    "billing:GetResourcePolicy": {
+      "resource_types": [
+        "billingview"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/billing/billing.json",
+      "sha256": "498304def1d8df027a490b5f1b5e71f6cf4bddf85c1bf440b0e1d3ca2308d769",
+      "resource_type_review": {
+        "billingview": {
+          "status": "covered",
+          "families": [
+            "billing-views"
+          ]
+        }
+      }
+    },
+    "cleanrooms-ml:GetConfiguredAudienceModelPolicy": {
+      "resource_types": [
+        "configuredaudiencemodel"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/cleanrooms-ml/cleanrooms-ml.json",
+      "sha256": "cd773cd6f23185b3181e2fb9dd424291d62b7c78aaa7acb845c146efd53614db",
+      "resource_type_review": {
+        "configuredaudiencemodel": {
+          "status": "covered",
+          "families": [
+            "cleanrooms-audience-models"
+          ]
+        }
+      }
+    },
+    "cloudfront:GetResourcePolicy": {
+      "resource_types": [
+        "vpcorigin"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/cloudfront/cloudfront.json",
+      "sha256": "115c53abd7bbade3103601ac089750a5b9531d9c05829b9c17bc048aab86ae04",
+      "resource_type_review": {
+        "vpcorigin": {
+          "status": "covered",
+          "families": [
+            "cloudfront-vpc-origins"
+          ]
+        }
+      }
+    },
+    "cloudhsm:GetResourcePolicy": {
+      "resource_types": [
+        "backup"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/cloudhsm/cloudhsm.json",
+      "sha256": "31f7a1452fa4980999c3ba7ec4471bb63033aaebbcdaa8b37093fe8503eed372",
+      "resource_type_review": {
+        "backup": {
+          "status": "covered",
+          "families": [
+            "cloudhsm-backups"
+          ]
+        }
+      }
+    },
+    "cloudsearch:DescribeServiceAccessPolicies": {
+      "resource_types": [
+        "domain"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/cloudsearch/cloudsearch.json",
+      "sha256": "58094a5e6ba66a4acc30d9da20f4ed8e1cf180b4eb6157273615fe4eec4cd669",
+      "resource_type_review": {
+        "domain": {
+          "status": "covered",
+          "families": [
+            "cloudsearch-domains"
+          ]
+        }
+      }
+    },
+    "cloudtrail:GetResourcePolicy": {
+      "resource_types": [
+        "channel",
+        "dashboard",
+        "eventdatastore"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/cloudtrail/cloudtrail.json",
+      "sha256": "de3ec546bcbf44329a7f66523c527f6cb82c12cba4441376cdb819079d60e65e",
+      "resource_type_review": {
+        "channel": {
+          "status": "covered",
+          "families": [
+            "cloudtrail-channels"
+          ]
+        },
+        "dashboard": {
+          "status": "covered",
+          "families": [
+            "cloudtrail-dashboards"
+          ]
+        },
+        "eventdatastore": {
+          "status": "covered",
+          "families": [
+            "cloudtrail-event-stores"
+          ]
+        }
+      }
+    },
+    "codeartifact:GetDomainPermissionsPolicy": {
+      "resource_types": [
+        "domain"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/codeartifact/codeartifact.json",
+      "sha256": "37464682500da71650baca01e1280664c9c30476ebc90d24bbbad4d5c257fb2b",
+      "resource_type_review": {
+        "domain": {
+          "status": "covered",
+          "families": [
+            "codeartifact-domains"
+          ]
+        }
+      }
+    },
+    "codeartifact:GetRepositoryPermissionsPolicy": {
+      "resource_types": [
+        "repository"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/codeartifact/codeartifact.json",
+      "sha256": "37464682500da71650baca01e1280664c9c30476ebc90d24bbbad4d5c257fb2b",
+      "resource_type_review": {
+        "repository": {
+          "status": "covered",
+          "families": [
+            "codeartifact-repositories"
+          ]
+        }
+      }
+    },
+    "codebuild:GetResourcePolicy": {
+      "resource_types": [
+        "project",
+        "report-group"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/codebuild/codebuild.json",
+      "sha256": "4cbcf0de56c87be604ac7d46e0c7d69d8e5acba8eddeb5fd3eb85c984d572525",
+      "resource_type_review": {
+        "project": {
+          "status": "covered",
+          "families": [
+            "codebuild-projects"
+          ]
+        },
+        "report-group": {
+          "status": "covered",
+          "families": [
+            "codebuild-report-groups"
+          ]
+        }
+      }
+    },
+    "codeguru-profiler:GetPolicy": {
+      "resource_types": [
+        "ProfilingGroup"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/codeguru-profiler/codeguru-profiler.json",
+      "sha256": "c480c8165ac445ef0e836a98ea7ffaf3269960265455903db616c99475a0bf5c",
+      "resource_type_review": {
+        "ProfilingGroup": {
+          "status": "covered",
+          "families": [
+            "profiling-groups"
+          ]
+        }
+      }
+    },
+    "comprehend:DescribeResourcePolicy": {
+      "resource_types": [
+        "document-classifier",
+        "entity-recognizer"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/comprehend/comprehend.json",
+      "sha256": "332d4e6a3d411d074a07ac4a1da53179ca892bf1f28d57bccfbbf07d0edc876a",
+      "resource_type_review": {
+        "document-classifier": {
+          "status": "covered",
+          "families": [
+            "comprehend-classifiers"
+          ]
+        },
+        "entity-recognizer": {
+          "status": "covered",
+          "families": [
+            "comprehend-recognizers"
+          ]
+        }
+      }
+    },
+    "dsql:GetClusterPolicy": {
+      "resource_types": [
+        "Cluster"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/dsql/dsql.json",
+      "sha256": "eaf990792f518aecde7b0387e0af81ddafeb2da3af6660e4b9734032a9ee785b",
+      "resource_type_review": {
+        "Cluster": {
+          "status": "covered",
+          "families": [
+            "dsql-clusters"
+          ]
+        }
+      }
+    },
+    "dynamodb:GetResourcePolicy": {
+      "resource_types": [
+        "stream",
+        "table"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/dynamodb/dynamodb.json",
+      "sha256": "d71a8b607418436853265cb4931470e1c31bd23867eba0f3cb2f9cfeee9b7e2e",
+      "resource_type_review": {
+        "stream": {
+          "status": "covered",
+          "families": [
+            "dynamodb-streams"
+          ]
+        },
+        "table": {
+          "status": "covered",
+          "families": [
+            "dynamodb-tables"
+          ]
+        }
+      }
+    },
+    "ecr-public:GetRepositoryPolicy": {
+      "resource_types": [
+        "repository"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/ecr-public/ecr-public.json",
+      "sha256": "af44d3cd58c9cdedb1d5fda6b9624b61b103529d977ca6de5ecc1cc26c4d7fe3",
+      "resource_type_review": {
+        "repository": {
+          "status": "covered",
+          "families": [
+            "public-ecr-repositories"
+          ]
+        }
+      }
+    },
+    "ecr:GetRegistryPolicy": {
+      "resource_types": [],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/ecr/ecr.json",
+      "sha256": "5cba67a0b6aec12c25cfceb3b043ff3325a2015edc64859b3c44744545e3663d",
+      "resource_type_review": {},
+      "account_or_wildcard_authorized_families": [
+        "ecr-registry"
+      ]
+    },
+    "elasticfilesystem:DescribeFileSystemPolicy": {
+      "resource_types": [
+        "file-system"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/elasticfilesystem/elasticfilesystem.json",
+      "sha256": "f26a131451b25edcb16790904dd85343259c34a208a2041ee12f3cd696e91419",
+      "resource_type_review": {
+        "file-system": {
+          "status": "covered",
+          "families": [
+            "efs-filesystems"
+          ]
+        }
+      }
+    },
+    "elasticloadbalancing:GetResourcePolicy": {
+      "resource_types": [
+        "truststore"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/elasticloadbalancing/elasticloadbalancing.json",
+      "sha256": "e713090e01265b885b043787eed870796d9313138f5a94a3b20daf483e17dd56",
+      "resource_type_review": {
+        "truststore": {
+          "status": "covered",
+          "families": [
+            "elb-trust-stores"
+          ]
+        }
+      }
+    },
+    "entityresolution:GetPolicy": {
+      "resource_types": [],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/entityresolution/entityresolution.json",
+      "sha256": "25c517810b65b39c6c63b431daab663fdd9ce0daa1d518a4e66fa97f1dd1e53a",
+      "resource_type_review": {},
+      "account_or_wildcard_authorized_families": [
+        "entity-id-namespaces",
+        "entity-id-mapping"
+      ]
+    },
+    "events:DescribeEventBus": {
+      "resource_types": [
+        "event-bus",
+        "event-busv2"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/events/events.json",
+      "sha256": "88cee76691686581a7132332c6defc56513e087bf8a03a277fa12d9ced5a2908",
+      "resource_type_review": {
+        "event-bus": {
+          "status": "covered",
+          "families": [
+            "eventbridge-buses"
+          ]
+        },
+        "event-busv2": {
+          "status": "covered",
+          "families": [
+            "eventbridge-buses"
+          ]
+        }
+      }
+    },
+    "glacier:GetVaultAccessPolicy": {
+      "resource_types": [
+        "vault"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/glacier/glacier.json",
+      "sha256": "ea2c29ad0c8972c01e4fb416f20c1c738ee9f90fc0bd08cd23b31397cc1e392e",
+      "resource_type_review": {
+        "vault": {
+          "status": "covered",
+          "families": [
+            "glacier-vaults"
+          ]
+        }
+      }
+    },
+    "imagebuilder:GetComponentPolicy": {
+      "resource_types": [
+        "component"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/imagebuilder/imagebuilder.json",
+      "sha256": "5174cdaf191ec09347af3593707bc8050e11ae0f6453065b4e714444a4132a43",
+      "resource_type_review": {
+        "component": {
+          "status": "covered",
+          "families": [
+            "imagebuilder-components"
+          ]
+        }
+      }
+    },
+    "imagebuilder:GetContainerRecipePolicy": {
+      "resource_types": [
+        "containerRecipe"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/imagebuilder/imagebuilder.json",
+      "sha256": "5174cdaf191ec09347af3593707bc8050e11ae0f6453065b4e714444a4132a43",
+      "resource_type_review": {
+        "containerRecipe": {
+          "status": "covered",
+          "families": [
+            "imagebuilder-container-recipes"
+          ]
+        }
+      }
+    },
+    "imagebuilder:GetImagePolicy": {
+      "resource_types": [
+        "image"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/imagebuilder/imagebuilder.json",
+      "sha256": "5174cdaf191ec09347af3593707bc8050e11ae0f6453065b4e714444a4132a43",
+      "resource_type_review": {
+        "image": {
+          "status": "covered",
+          "families": [
+            "imagebuilder-images"
+          ]
+        }
+      }
+    },
+    "imagebuilder:GetImageRecipePolicy": {
+      "resource_types": [
+        "imageRecipe"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/imagebuilder/imagebuilder.json",
+      "sha256": "5174cdaf191ec09347af3593707bc8050e11ae0f6453065b4e714444a4132a43",
+      "resource_type_review": {
+        "imageRecipe": {
+          "status": "covered",
+          "families": [
+            "imagebuilder-image-recipes"
+          ]
+        }
+      }
+    },
+    "kafka:GetClusterPolicy": {
+      "resource_types": [
+        "cluster"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/kafka/kafka.json",
+      "sha256": "7bc0b9d57f68cc160289039eff149ede8f061ccd6d9e36a0d632122035a8b77f",
+      "resource_type_review": {
+        "cluster": {
+          "status": "covered",
+          "families": [
+            "kafka-clusters"
+          ]
+        }
+      }
+    },
+    "kinesis:GetResourcePolicy": {
+      "resource_types": [
+        "consumer",
+        "stream"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/kinesis/kinesis.json",
+      "sha256": "affa23df102a688016117e255b6fd74564950497d1881ab311729128e6c132fd",
+      "resource_type_review": {
+        "consumer": {
+          "status": "covered",
+          "families": [
+            "kinesis-consumers"
+          ]
+        },
+        "stream": {
+          "status": "covered",
+          "families": [
+            "kinesis-streams"
+          ]
+        }
+      }
+    },
+    "kms:GetKeyPolicy": {
+      "resource_types": [
+        "key"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/kms/kms.json",
+      "sha256": "74b830358c2bfc37765c7918a6655f0aa31f434c1968faeed305359cc930c664",
+      "resource_type_review": {
+        "key": {
+          "status": "covered",
+          "families": [
+            "kms-keys"
+          ]
+        }
+      }
+    },
+    "lambda:GetLayerVersionPolicy": {
+      "resource_types": [
+        "layerVersion"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/lambda/lambda.json",
+      "sha256": "ff515974a2d84bf63604eda3c43d3e422c4e6babfa679c2e5bbb5524aa878ca8",
+      "resource_type_review": {
+        "layerVersion": {
+          "status": "covered",
+          "families": [
+            "lambda-layers"
+          ]
+        }
+      }
+    },
+    "lambda:GetPolicy": {
+      "resource_types": [
+        "function"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/lambda/lambda.json",
+      "sha256": "ff515974a2d84bf63604eda3c43d3e422c4e6babfa679c2e5bbb5524aa878ca8",
+      "resource_type_review": {
+        "function": {
+          "status": "covered",
+          "families": [
+            "lambda-aliases",
+            "lambda-versions"
+          ]
+        }
+      }
+    },
+    "lex:DescribeResourcePolicy": {
+      "resource_types": [
+        "bot",
+        "bot alias"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/lex/lex.json",
+      "sha256": "e2602b103cab1bd1a386fc7838a52c0c7dfbc090283cfdf7742505bede0d99c9",
+      "resource_type_review": {
+        "bot": {
+          "status": "covered",
+          "families": [
+            "lex-bots"
+          ]
+        },
+        "bot alias": {
+          "status": "covered",
+          "families": [
+            "lex-aliases"
+          ]
+        }
+      }
+    },
+    "logs:GetDeliveryDestinationPolicy": {
+      "resource_types": [
+        "delivery-destination"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/logs/logs.json",
+      "sha256": "6c48a9b51d8bc317bc52f081cdd1aedb4573d208b713e28dd22f4664701ca2f9",
+      "resource_type_review": {
+        "delivery-destination": {
+          "status": "covered",
+          "families": [
+            "log-delivery-destinations"
+          ]
+        }
+      }
+    },
+    "lookoutequipment:DescribeResourcePolicy": {
+      "resource_types": [
+        "dataset",
+        "model",
+        "model-version"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/lookoutequipment/lookoutequipment.json",
+      "sha256": "4fd110e1e203774b9ecdec68d135369f71f21c155310d3c0202b25e6eb14a046",
+      "resource_type_review": {
+        "dataset": {
+          "status": "covered",
+          "families": [
+            "lookout-datasets"
+          ]
+        },
+        "model": {
+          "status": "covered",
+          "families": [
+            "lookout-models"
+          ]
+        },
+        "model-version": {
+          "status": "covered",
+          "families": [
+            "lookout-model-versions"
+          ]
+        }
+      }
+    },
+    "mediapackagev2:GetChannelPolicy": {
+      "resource_types": [
+        "Channel",
+        "ChannelGroup",
+        "ChannelPolicy"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/mediapackagev2/mediapackagev2.json",
+      "sha256": "b0742348b722e9720e22d932fc7518d9402f2fb6758b5691bd3d2c07cff110c1",
+      "resource_type_review": {
+        "Channel": {
+          "status": "covered",
+          "families": [
+            "mediapackage-channels"
+          ]
+        },
+        "ChannelGroup": {
+          "status": "authorization_ancestor",
+          "reason": "The policy is attached to the descendant channel/origin endpoint; this ARN is an ancestor authorization requirement, not a separate policy attachment API."
+        },
+        "ChannelPolicy": {
+          "status": "covered",
+          "families": [
+            "mediapackage-channels"
+          ]
+        }
+      }
+    },
+    "mediapackagev2:GetOriginEndpointPolicy": {
+      "resource_types": [
+        "Channel",
+        "ChannelGroup",
+        "OriginEndpoint",
+        "OriginEndpointPolicy"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/mediapackagev2/mediapackagev2.json",
+      "sha256": "b0742348b722e9720e22d932fc7518d9402f2fb6758b5691bd3d2c07cff110c1",
+      "resource_type_review": {
+        "Channel": {
+          "status": "authorization_ancestor",
+          "reason": "The policy is attached to the descendant channel/origin endpoint; this ARN is an ancestor authorization requirement, not a separate policy attachment API."
+        },
+        "ChannelGroup": {
+          "status": "authorization_ancestor",
+          "reason": "The policy is attached to the descendant channel/origin endpoint; this ARN is an ancestor authorization requirement, not a separate policy attachment API."
+        },
+        "OriginEndpoint": {
+          "status": "covered",
+          "families": [
+            "mediapackage-endpoints"
+          ]
+        },
+        "OriginEndpointPolicy": {
+          "status": "covered",
+          "families": [
+            "mediapackage-endpoints"
+          ]
+        }
+      }
+    },
+    "mediastore:GetContainerPolicy": {
+      "resource_types": [
+        "container"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/mediastore/mediastore.json",
+      "sha256": "2b756ed60283f85285454152ef0407214035e78e7fed363e82feba11690b0980",
+      "resource_type_review": {
+        "container": {
+          "status": "covered",
+          "families": [
+            "mediastore-containers"
+          ]
+        }
+      }
+    },
+    "mediatailor:GetChannelPolicy": {
+      "resource_types": [
+        "channel"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/mediatailor/mediatailor.json",
+      "sha256": "1b7adaab8f75f983f81d3b960c8c922aec2a131fcedb45018ef990450ce200eb",
+      "resource_type_review": {
+        "channel": {
+          "status": "covered",
+          "families": [
+            "mediatailor-channels"
+          ]
+        }
+      }
+    },
+    "mpa:GetResourcePolicy": {
+      "resource_types": [],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/mpa/mpa.json",
+      "sha256": "3900649a0cfd670612643663166d779b15bf9fa0d35a50c4a86dc797841db12a",
+      "resource_type_review": {},
+      "account_or_wildcard_authorized_families": [
+        "mpa-approval-teams"
+      ]
+    },
+    "network-firewall:DescribeResourcePolicy": {
+      "resource_types": [
+        "Firewall",
+        "FirewallPolicy",
+        "StatefulRuleGroup",
+        "StatelessRuleGroup"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/network-firewall/network-firewall.json",
+      "sha256": "8a0a5c655e726c070e7b856ed0df07db91b955cb776ce4e5f07ede40379245d3",
+      "resource_type_review": {
+        "Firewall": {
+          "status": "covered",
+          "families": [
+            "network-firewall-firewalls"
+          ]
+        },
+        "FirewallPolicy": {
+          "status": "covered",
+          "families": [
+            "network-firewall-policies"
+          ]
+        },
+        "StatefulRuleGroup": {
+          "status": "covered",
+          "families": [
+            "network-firewall-rule-groups"
+          ]
+        },
+        "StatelessRuleGroup": {
+          "status": "covered",
+          "families": [
+            "network-firewall-rule-groups"
+          ]
+        }
+      }
+    },
+    "networkmanager:GetResourcePolicy": {
+      "resource_types": [
+        "core-network"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/networkmanager/networkmanager.json",
+      "sha256": "bff15e3f309942f39e8118b170c2d31f7873087f3e3cb0636d11191e7b6c0ef6",
+      "resource_type_review": {
+        "core-network": {
+          "status": "covered",
+          "families": [
+            "core-networks"
+          ]
+        }
+      }
+    },
+    "oam:GetSinkPolicy": {
+      "resource_types": [
+        "Sink"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/oam/oam.json",
+      "sha256": "d1c1c0714a131f2fb3afff12ea9d4612d7f4dc6dc19c656f2df749c1a61413b3",
+      "resource_type_review": {
+        "Sink": {
+          "status": "covered",
+          "families": [
+            "observability-sinks"
+          ]
+        }
+      }
+    },
+    "omics:GetS3AccessPolicy": {
+      "resource_types": [
+        "sequenceStore"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/omics/omics.json",
+      "sha256": "5989d5b62b7edce81b08707b324a8876de284f0e95311cf26eec2ad189d6cd4c",
+      "resource_type_review": {
+        "sequenceStore": {
+          "status": "covered",
+          "families": [
+            "omics-store-access"
+          ]
+        }
+      }
+    },
+    "organizations:DescribeResourcePolicy": {
+      "resource_types": [],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/organizations/organizations.json",
+      "sha256": "ce5529d67f4810f7175bed479794619c879a5d1753c458333f9785712b0da5f3",
+      "resource_type_review": {},
+      "account_or_wildcard_authorized_families": [
+        "organization-delegation"
+      ]
+    },
+    "osis:GetResourcePolicy": {
+      "resource_types": [
+        "pipeline"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/osis/osis.json",
+      "sha256": "875386e48d154a7bdfb665b0d4700b06c3c6b41ed5e023486cebc15275722887",
+      "resource_type_review": {
+        "pipeline": {
+          "status": "covered",
+          "families": [
+            "osis-pipelines"
+          ]
+        }
+      }
+    },
+    "payment-cryptography:GetResourcePolicy": {
+      "resource_types": [
+        "key"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/payment-cryptography/payment-cryptography.json",
+      "sha256": "5c73bd3bd1755e0683ae4818fc8ee9944260ca73b74662b531754b9ea9ae7560",
+      "resource_type_review": {
+        "key": {
+          "status": "covered",
+          "families": [
+            "payment-keys"
+          ]
+        }
+      }
+    },
+    "qbusiness:GetPolicy": {
+      "resource_types": [
+        "application"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/qbusiness/qbusiness.json",
+      "sha256": "5968699c10fe97dbddce8f5f040290cca70588b8721110efac7bbded329affca",
+      "resource_type_review": {
+        "application": {
+          "status": "covered",
+          "families": [
+            "qbusiness-applications"
+          ]
+        }
+      }
+    },
+    "ram:GetResourcePolicies": {
+      "resource_types": [],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/ram/ram.json",
+      "sha256": "84e98e2b01fa67363d664b5b8c8c00af006139baa05372288f2e245e4fa3dc6f",
+      "resource_type_review": {},
+      "account_or_wildcard_authorized_families": [
+        "ram-shared-resources"
+      ]
+    },
+    "redshift-serverless:GetResourcePolicy": {
+      "resource_types": [],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/redshift-serverless/redshift-serverless.json",
+      "sha256": "9dd6023394d5fdf19fd3dfa45c6444a4ea2fb4a90914df2ac9d3e4b034257a3e",
+      "resource_type_review": {},
+      "account_or_wildcard_authorized_families": [
+        "redshift-namespaces",
+        "redshift-snapshots"
+      ]
+    },
+    "redshift:GetResourcePolicy": {
+      "resource_types": [
+        "namespace"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/redshift/redshift.json",
+      "sha256": "a77b38418a034a9e94a61d2f839bcb1f198ba50458529a3d9b0f0ea72771cee9",
+      "resource_type_review": {
+        "namespace": {
+          "status": "covered",
+          "families": [
+            "redshift-cluster-namespaces"
+          ]
+        }
+      }
+    },
+    "refactor-spaces:GetResourcePolicy": {
+      "resource_types": [],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/refactor-spaces/refactor-spaces.json",
+      "sha256": "93c93d59dcd2cf680ce106b2d569e89010ca12138f1e4615f091998c7b92f235",
+      "resource_type_review": {},
+      "account_or_wildcard_authorized_families": [
+        "refactor-environments"
+      ]
+    },
+    "route53-recovery-control-config:GetResourcePolicy": {
+      "resource_types": [
+        "cluster"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/route53-recovery-control-config/route53-recovery-control-config.json",
+      "sha256": "ae931e09aa690d229e5313c5dcf453d8000d8896713466feeba388a4cbfcaa43",
+      "resource_type_review": {
+        "cluster": {
+          "status": "covered",
+          "families": [
+            "arc-clusters"
+          ]
+        }
+      }
+    },
+    "route53resolver:GetFirewallRuleGroupPolicy": {
+      "resource_types": [
+        "firewall-rule-group"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/route53resolver/route53resolver.json",
+      "sha256": "c63e0fe605dabc11e149eac77ae7d081c8ba89bb0f109f34a32aed0efc8dfc31",
+      "resource_type_review": {
+        "firewall-rule-group": {
+          "status": "covered",
+          "families": [
+            "resolver-firewall-groups"
+          ]
+        }
+      }
+    },
+    "route53resolver:GetResolverQueryLogConfigPolicy": {
+      "resource_types": [
+        "resolver-query-log-config"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/route53resolver/route53resolver.json",
+      "sha256": "c63e0fe605dabc11e149eac77ae7d081c8ba89bb0f109f34a32aed0efc8dfc31",
+      "resource_type_review": {
+        "resolver-query-log-config": {
+          "status": "covered",
+          "families": [
+            "resolver-query-log-configs"
+          ]
+        }
+      }
+    },
+    "route53resolver:GetResolverRulePolicy": {
+      "resource_types": [
+        "resolver-rule"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/route53resolver/route53resolver.json",
+      "sha256": "c63e0fe605dabc11e149eac77ae7d081c8ba89bb0f109f34a32aed0efc8dfc31",
+      "resource_type_review": {
+        "resolver-rule": {
+          "status": "covered",
+          "families": [
+            "resolver-rules"
+          ]
+        }
+      }
+    },
+    "rum:GetResourcePolicy": {
+      "resource_types": [
+        "AppMonitorResource"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/rum/rum.json",
+      "sha256": "44aadc6c480012410992406a431c041b5276670daaeaf002ea8ac880993291e7",
+      "resource_type_review": {
+        "AppMonitorResource": {
+          "status": "covered",
+          "families": [
+            "rum-monitors"
+          ]
+        }
+      }
+    },
+    "s3-outposts:GetBucketPolicy": {
+      "resource_types": [
+        "bucket"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/s3-outposts/s3-outposts.json",
+      "sha256": "59b4615304eac202413eeb5f00320e17be0a6b906eaf708fcd1cc4e4a34e5e30",
+      "resource_type_review": {
+        "bucket": {
+          "status": "covered",
+          "families": [
+            "s3-outposts-buckets"
+          ]
+        }
+      }
+    },
+    "s3:GetAccessGrantsInstanceResourcePolicy": {
+      "resource_types": [
+        "accessgrantsinstance"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/s3/s3.json",
+      "sha256": "cc1e013ec21e77693336485a3c0bf5c88395bfde40d81315e332640cd34137b2",
+      "resource_type_review": {
+        "accessgrantsinstance": {
+          "status": "covered",
+          "families": [
+            "s3-access-grants"
+          ]
+        }
+      }
+    },
+    "s3:GetAccessPointPolicy": {
+      "resource_types": [
+        "accesspoint"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/s3/s3.json",
+      "sha256": "cc1e013ec21e77693336485a3c0bf5c88395bfde40d81315e332640cd34137b2",
+      "resource_type_review": {
+        "accesspoint": {
+          "status": "covered",
+          "families": [
+            "s3-access-points",
+            "s3-directory-access-points",
+            "s3-outposts-access-points"
+          ]
+        }
+      }
+    },
+    "s3:GetAccessPointPolicyForObjectLambda": {
+      "resource_types": [
+        "objectlambdaaccesspoint"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/s3/s3.json",
+      "sha256": "cc1e013ec21e77693336485a3c0bf5c88395bfde40d81315e332640cd34137b2",
+      "resource_type_review": {
+        "objectlambdaaccesspoint": {
+          "status": "covered",
+          "families": [
+            "s3-object-lambda-access-points"
+          ]
+        }
+      }
+    },
+    "s3:GetBucketPolicy": {
+      "resource_types": [
+        "accesspoint",
+        "bucket"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/s3/s3.json",
+      "sha256": "cc1e013ec21e77693336485a3c0bf5c88395bfde40d81315e332640cd34137b2",
+      "resource_type_review": {
+        "accesspoint": {
+          "status": "covered",
+          "families": [
+            "s3-access-points"
+          ],
+          "equivalent_read": "s3:GetAccessPointPolicy",
+          "reason": "Access-point attachment policies are retrieved by the dedicated S3 Control API rather than by bucket-policy aliases."
+        },
+        "bucket": {
+          "status": "covered",
+          "families": [
+            "s3-buckets"
+          ]
+        }
+      }
+    },
+    "s3:GetMultiRegionAccessPointPolicy": {
+      "resource_types": [
+        "multiregionaccesspoint"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/s3/s3.json",
+      "sha256": "cc1e013ec21e77693336485a3c0bf5c88395bfde40d81315e332640cd34137b2",
+      "resource_type_review": {
+        "multiregionaccesspoint": {
+          "status": "covered",
+          "families": [
+            "s3-multi-region-access-points"
+          ]
+        }
+      }
+    },
+    "s3files:GetFileSystemPolicy": {
+      "resource_types": [
+        "file-system"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/s3files/s3files.json",
+      "sha256": "eabc2baa73056f90c53ac97b93b5bf45060683ecbae334047ac0a3be50e31920",
+      "resource_type_review": {
+        "file-system": {
+          "status": "covered",
+          "families": [
+            "s3-files"
+          ]
+        }
+      }
+    },
+    "s3tables:GetTableBucketPolicy": {
+      "resource_types": [
+        "TableBucket"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/s3tables/s3tables.json",
+      "sha256": "56c965fd755fb3dfe8ac8339109e17b173760d2512c10dd911a3953110432272",
+      "resource_type_review": {
+        "TableBucket": {
+          "status": "covered",
+          "families": [
+            "s3-tables"
+          ]
+        }
+      }
+    },
+    "s3tables:GetTablePolicy": {
+      "resource_types": [
+        "Table"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/s3tables/s3tables.json",
+      "sha256": "56c965fd755fb3dfe8ac8339109e17b173760d2512c10dd911a3953110432272",
+      "resource_type_review": {
+        "Table": {
+          "status": "covered",
+          "families": [
+            "s3-individual-tables"
+          ]
+        }
+      }
+    },
+    "s3vectors:GetVectorBucketPolicy": {
+      "resource_types": [
+        "VectorBucket"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/s3vectors/s3vectors.json",
+      "sha256": "f29d70fedff6a52b71af45046bc8ee1a2ba2b9f6684bc65df06aa31f03d81c2b",
+      "resource_type_review": {
+        "VectorBucket": {
+          "status": "covered",
+          "families": [
+            "s3-vectors"
+          ]
+        }
+      }
+    },
+    "sagemaker:GetLineageGroupPolicy": {
+      "resource_types": [],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/sagemaker/sagemaker.json",
+      "sha256": "f0e2a4a4385ce3ea7c58bf29333e5a72c9c3ceedf6db169cbc63c53f6169fb1c",
+      "resource_type_review": {},
+      "account_or_wildcard_authorized_families": [
+        "sagemaker-lineage-groups"
+      ]
+    },
+    "sagemaker:GetModelPackageGroupPolicy": {
+      "resource_types": [
+        "model-package-group"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/sagemaker/sagemaker.json",
+      "sha256": "f0e2a4a4385ce3ea7c58bf29333e5a72c9c3ceedf6db169cbc63c53f6169fb1c",
+      "resource_type_review": {
+        "model-package-group": {
+          "status": "covered",
+          "families": [
+            "sagemaker-model-groups"
+          ]
+        }
+      }
+    },
+    "schemas:GetResourcePolicy": {
+      "resource_types": [
+        "registry"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/schemas/schemas.json",
+      "sha256": "ffeeeeec6ed0235e2c1838762938c684ec30bff5ec1a3e5de06502f462ca027b",
+      "resource_type_review": {
+        "registry": {
+          "status": "covered",
+          "families": [
+            "eventbridge-schemas"
+          ]
+        }
+      }
+    },
+    "secretsmanager:GetResourcePolicy": {
+      "resource_types": [
+        "Secret"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/secretsmanager/secretsmanager.json",
+      "sha256": "3b00198d5260e0f24d941c7ff70b037d18de2b48ad09db5c89caf0d6fec0cce6",
+      "resource_type_review": {
+        "Secret": {
+          "status": "covered",
+          "families": [
+            "secrets"
+          ]
+        }
+      }
+    },
+    "serverlessrepo:GetApplicationPolicy": {
+      "resource_types": [
+        "applications"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/serverlessrepo/serverlessrepo.json",
+      "sha256": "e87d8da30422cb05f27299c1e33d98689bbf79e373adf42563b2884258c41b8e",
+      "resource_type_review": {
+        "applications": {
+          "status": "covered",
+          "families": [
+            "serverless-applications"
+          ]
+        }
+      }
+    },
+    "ses:GetEmailIdentityPolicies": {
+      "resource_types": [
+        "identity"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/ses/ses.json",
+      "sha256": "56dca0967bcb68da09d9abd36abad8f748860f70cf4d409614cce07c8002dcbc",
+      "resource_type_review": {
+        "identity": {
+          "status": "covered",
+          "families": [
+            "ses-identities"
+          ]
+        }
+      }
+    },
+    "signin:GetResourcePolicy": {
+      "resource_types": [],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/signin/signin.json",
+      "sha256": "e234588daeee5cbc2ef5808d9e4e6ed64aef5448c5335237100eb556bcb9cf64",
+      "resource_type_review": {},
+      "account_or_wildcard_authorized_families": [
+        "sign-in-policy"
+      ]
+    },
+    "sms-voice:GetResourcePolicy": {
+      "resource_types": [
+        "OptOutList",
+        "PhoneNumber",
+        "Pool",
+        "SenderId"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/sms-voice/sms-voice.json",
+      "sha256": "d0355b95b61b3cdb7db9046238df5c2e29e34461ae39524fdc16111629d76d91",
+      "resource_type_review": {
+        "OptOutList": {
+          "status": "covered",
+          "families": [
+            "sms-describe_opt_out_lists"
+          ]
+        },
+        "PhoneNumber": {
+          "status": "covered",
+          "families": [
+            "sms-describe_phone_numbers"
+          ]
+        },
+        "Pool": {
+          "status": "covered",
+          "families": [
+            "sms-describe_pools"
+          ]
+        },
+        "SenderId": {
+          "status": "covered",
+          "families": [
+            "sms-describe_sender_ids"
+          ]
+        }
+      }
+    },
+    "ssm-contacts:GetContactPolicy": {
+      "resource_types": [
+        "contact"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/ssm-contacts/ssm-contacts.json",
+      "sha256": "ed809e95e3b815e161179f6f3cf1711f4d4b66c8b982690e80e1f5a8b3718e0e",
+      "resource_type_review": {
+        "contact": {
+          "status": "covered",
+          "families": [
+            "incident-contacts"
+          ]
+        }
+      }
+    },
+    "ssm-incidents:GetResourcePolicies": {
+      "resource_types": [
+        "response-plan"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/ssm-incidents/ssm-incidents.json",
+      "sha256": "1379ef32626a360b68bdf908924a973dbea48da8ec2215e2a0a40fce0ceb2502",
+      "resource_type_review": {
+        "response-plan": {
+          "status": "covered",
+          "families": [
+            "incident-response-plans"
+          ]
+        }
+      }
+    },
+    "ssm-sap:GetResourcePermission": {
+      "resource_types": [],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/ssm-sap/ssm-sap.json",
+      "sha256": "fab256df7696bdd4b0b0aac605b6503638fccb5e83a2405e074f8589410f9c9c",
+      "resource_type_review": {},
+      "account_or_wildcard_authorized_families": [
+        "sap-databases"
+      ]
+    },
+    "ssm:DescribeDocumentPermission": {
+      "resource_types": [
+        "document"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/ssm/ssm.json",
+      "sha256": "a74ac997668de740d50f74207df79f937314b3f3f2a7283b04a0f0a55b65d1cf",
+      "resource_type_review": {
+        "document": {
+          "status": "covered",
+          "families": [
+            "ssm-documents"
+          ]
+        }
+      }
+    },
+    "ssm:GetResourcePolicies": {
+      "resource_types": [
+        "document",
+        "opsitemgroup",
+        "parameter"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/ssm/ssm.json",
+      "sha256": "a74ac997668de740d50f74207df79f937314b3f3f2a7283b04a0f0a55b65d1cf",
+      "resource_type_review": {
+        "document": {
+          "status": "covered",
+          "families": [
+            "ssm-documents"
+          ],
+          "equivalent_read": "ssm:DescribeDocumentPermission",
+          "reason": "Document sharing is read through the typed Share permission API; its account IDs, including all, are normalized into resource grants."
+        },
+        "opsitemgroup": {
+          "status": "covered",
+          "families": [
+            "ssm-opsitem-groups"
+          ]
+        },
+        "parameter": {
+          "status": "covered",
+          "families": [
+            "ssm-parameters"
+          ]
+        }
+      }
+    },
+    "vpc-lattice:GetAuthPolicy": {
+      "resource_types": [
+        "Service",
+        "ServiceNetwork"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/vpc-lattice/vpc-lattice.json",
+      "sha256": "7905a8e359afcf23dca97336bed84363b7af848f3f6f52b803076f0f5257cc6a",
+      "resource_type_review": {
+        "Service": {
+          "status": "covered",
+          "families": [
+            "lattice-auth-services"
+          ]
+        },
+        "ServiceNetwork": {
+          "status": "covered",
+          "families": [
+            "lattice-auth-networks"
+          ]
+        }
+      }
+    },
+    "vpc-lattice:GetResourcePolicy": {
+      "resource_types": [
+        "ResourceConfiguration",
+        "Service",
+        "ServiceNetwork"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/vpc-lattice/vpc-lattice.json",
+      "sha256": "7905a8e359afcf23dca97336bed84363b7af848f3f6f52b803076f0f5257cc6a",
+      "resource_type_review": {
+        "ResourceConfiguration": {
+          "status": "covered",
+          "families": [
+            "lattice-resources"
+          ]
+        },
+        "Service": {
+          "status": "covered",
+          "families": [
+            "lattice-services"
+          ]
+        },
+        "ServiceNetwork": {
+          "status": "covered",
+          "families": [
+            "lattice-service-networks"
+          ]
+        }
+      }
+    },
+    "waf-regional:GetPermissionPolicy": {
+      "resource_types": [
+        "rulegroup"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/waf-regional/waf-regional.json",
+      "sha256": "02facf57ea6320c66fb56349d0477c49db0ad434a7e91eea5a86bb5425be832a",
+      "resource_type_review": {
+        "rulegroup": {
+          "status": "covered",
+          "families": [
+            "waf-regional-rule-groups"
+          ]
+        }
+      }
+    },
+    "waf:GetPermissionPolicy": {
+      "resource_types": [
+        "rulegroup"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/waf/waf.json",
+      "sha256": "10d9b4347e25f6effb430e3c58a48e333e9209210cd93bf354ed12632760252a",
+      "resource_type_review": {
+        "rulegroup": {
+          "status": "covered",
+          "families": [
+            "waf-rule-groups"
+          ]
+        }
+      }
+    },
+    "wafv2:GetPermissionPolicy": {
+      "resource_types": [
+        "rulegroup"
+      ],
+      "source": "https://servicereference.us-east-1.amazonaws.com/v1/wafv2/wafv2.json",
+      "sha256": "a1f4fb708e154db05a1310d94e7f0d042ea87f6bb56c5069d373433583bb24ee",
+      "resource_type_review": {
+        "rulegroup": {
+          "status": "covered",
+          "families": [
+            "wafv2-regional",
+            "wafv2-cloudfront"
+          ]
+        }
+      }
+    }
+  },
+  "review_scope": "Service authorization action resource types include ancestor authorization resources. Every listed type has an explicit attachment-family mapping or ancestor decision; mappings do not imply SDK availability or live account coverage.",
+  "iam_service_support_review": {
+    "source": "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_aws-services-that-work-with-iam.html",
+    "source_sha256": "9ad3b1bb290691e71f29fc8a9c35b7644436d39d0423c874ff04663cd7f4f0f0",
+    "reviewed_services": {
+      "Amazon API Gateway": {
+        "status": "covered",
+        "sdk_services": [
+          "apigateway",
+          "apigatewayv2"
+        ],
+        "families": [
+          "api-gateway-apis",
+          "api-gateway-domains",
+          "api-gateway-domain-management",
+          "api-portal-products"
+        ]
+      },
+      "AWS Backup": {
+        "status": "covered",
+        "sdk_services": [
+          "backup"
+        ],
+        "families": [
+          "backup-vaults"
+        ]
+      },
+      "AWS Cloud9": {
+        "status": "named_identity_sharing",
+        "reason": "Cloud9 environment memberships require a named identity ARN. This sharing API cannot grant a wildcard Principal; named member permissions require their own least-privilege review.",
+        "source": "https://docs.aws.amazon.com/cloud9/latest/APIReference/API_CreateEnvironmentMembership.html"
+      },
+      "AWS CloudTrail": {
+        "status": "covered",
+        "sdk_services": [
+          "cloudtrail"
+        ],
+        "families": [
+          "cloudtrail-channels",
+          "cloudtrail-event-stores",
+          "cloudtrail-dashboards"
+        ]
+      },
+      "Amazon CloudWatch Logs": {
+        "status": "covered",
+        "sdk_services": [
+          "logs"
+        ],
+        "families": [
+          "logs-policies",
+          "log-delivery-destinations",
+          "logs-resource-policies"
+        ]
+      },
+      "AWS CodeArtifact": {
+        "status": "covered",
+        "sdk_services": [
+          "codeartifact"
+        ],
+        "families": [
+          "codeartifact-domains",
+          "codeartifact-repositories"
+        ]
+      },
+      "AWS CodeBuild": {
+        "status": "covered",
+        "sdk_services": [
+          "codebuild"
+        ],
+        "families": [
+          "codebuild-projects",
+          "codebuild-report-groups"
+        ]
+      },
+      "Amazon DynamoDB": {
+        "status": "covered",
+        "sdk_services": [
+          "dynamodb"
+        ],
+        "families": [
+          "dynamodb-tables",
+          "dynamodb-streams"
+        ]
+      },
+      "Amazon Elastic Container Registry (Amazon ECR)": {
+        "status": "covered",
+        "sdk_services": [
+          "ecr",
+          "ecr-public"
+        ],
+        "families": [
+          "public-ecr-repositories",
+          "ecr-registry",
+          "base-ecr-repositories"
+        ]
+      },
+      "Amazon Elastic File System (Amazon EFS)": {
+        "status": "covered",
+        "sdk_services": [
+          "efs"
+        ],
+        "families": [
+          "efs-filesystems"
+        ]
+      },
+      "AWS Entity Resolution": {
+        "status": "covered",
+        "sdk_services": [
+          "entityresolution"
+        ],
+        "families": [
+          "entity-id-namespaces",
+          "entity-id-mapping"
+        ]
+      },
+      "Amazon EventBridge": {
+        "status": "covered",
+        "sdk_services": [
+          "events"
+        ],
+        "families": [
+          "eventbridge-buses"
+        ]
+      },
+      "Amazon EventBridge Schemas": {
+        "status": "covered",
+        "sdk_services": [
+          "schemas"
+        ],
+        "families": [
+          "eventbridge-schemas"
+        ]
+      },
+      "AWS Glue": {
+        "status": "covered",
+        "sdk_services": [
+          "glue"
+        ],
+        "families": [
+          "glue-catalog"
+        ]
+      },
+      "AWS Identity and Access Management (IAM)": {
+        "status": "covered",
+        "sdk_services": [
+          "iam"
+        ],
+        "families": [
+          "iam-role-trust"
+        ]
+      },
+      "AWS IoT": {
+        "status": "certificate_identity_policies",
+        "reason": "The support-table footnote describes IoT policies attached to authenticated X.509 certificates or Cognito identities. Those policies have no IAM Principal member and are not unrestricted resource Principal grants.",
+        "source": "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_aws-services-that-work-with-iam.html#iot-iam"
+      },
+      "AWS Key Management Service (AWS KMS)": {
+        "status": "covered",
+        "sdk_services": [
+          "kms"
+        ],
+        "families": [
+          "kms-keys"
+        ]
+      },
+      "Amazon Kinesis Data Streams": {
+        "status": "covered",
+        "sdk_services": [
+          "kinesis"
+        ],
+        "families": [
+          "kinesis-streams",
+          "kinesis-consumers"
+        ]
+      },
+      "AWS Lambda": {
+        "status": "covered",
+        "sdk_services": [
+          "lambda"
+        ],
+        "families": [
+          "lambda-aliases",
+          "lambda-versions",
+          "lambda-layers",
+          "base-lambda-functions"
+        ]
+      },
+      "Amazon Lex V2": {
+        "status": "covered",
+        "sdk_services": [
+          "lexv2-models"
+        ],
+        "families": [
+          "lex-bots",
+          "lex-aliases"
+        ]
+      },
+      "Amazon Managed Streaming for Apache Kafka (MSK)": {
+        "status": "covered",
+        "sdk_services": [
+          "kafka"
+        ],
+        "families": [
+          "kafka-clusters"
+        ]
+      },
+      "AWS Migration Hub Refactor Spaces": {
+        "status": "covered",
+        "sdk_services": [
+          "migration-hub-refactor-spaces"
+        ],
+        "families": [
+          "refactor-environments"
+        ]
+      },
+      "Amazon OpenSearch Service": {
+        "status": "covered",
+        "sdk_services": [
+          "opensearch"
+        ],
+        "families": [
+          "opensearch-domains"
+        ]
+      },
+      "AWS Organizations": {
+        "status": "covered",
+        "sdk_services": [
+          "organizations"
+        ],
+        "families": [
+          "organization-delegation"
+        ]
+      },
+      "AWS Private Certificate Authority (AWS Private CA)": {
+        "status": "covered",
+        "sdk_services": [
+          "acm-pca"
+        ],
+        "families": [
+          "private-ca"
+        ]
+      },
+      "Amazon Redshift Serverless": {
+        "status": "covered",
+        "sdk_services": [
+          "redshift-serverless"
+        ],
+        "families": [
+          "redshift-namespaces",
+          "redshift-snapshots"
+        ]
+      },
+      "Amazon Rekognition": {
+        "status": "covered",
+        "sdk_services": [
+          "rekognition"
+        ],
+        "families": [
+          "rekognition-projects"
+        ]
+      },
+      "Amazon S3 Express": {
+        "status": "covered",
+        "sdk_services": [
+          "s3",
+          "s3control"
+        ],
+        "families": [
+          "s3-buckets",
+          "s3-directory-buckets",
+          "s3-access-points",
+          "s3-directory-access-points",
+          "s3-object-lambda-access-points",
+          "s3-multi-region-access-points",
+          "s3-outposts-buckets",
+          "s3-access-grants",
+          "s3-outposts-access-points"
+        ]
+      },
+      "Amazon Glacier": {
+        "status": "covered",
+        "sdk_services": [
+          "glacier"
+        ],
+        "families": [
+          "glacier-vaults"
+        ]
+      },
+      "Amazon S3 Tables": {
+        "status": "covered",
+        "sdk_services": [
+          "s3tables"
+        ],
+        "families": [
+          "s3-tables",
+          "s3-individual-tables"
+        ]
+      },
+      "AWS Secrets Manager": {
+        "status": "covered",
+        "sdk_services": [
+          "secretsmanager"
+        ],
+        "families": [
+          "secrets"
+        ]
+      },
+      "AWS Serverless Application Repository": {
+        "status": "covered",
+        "sdk_services": [
+          "serverlessrepo"
+        ],
+        "families": [
+          "serverless-applications"
+        ]
+      },
+      "AWS Sign-In": {
+        "status": "covered",
+        "sdk_services": [
+          "signin"
+        ],
+        "families": [
+          "sign-in-policy"
+        ]
+      },
+      "Amazon Simple Email Service (Amazon SES) v2": {
+        "status": "covered",
+        "sdk_services": [
+          "sesv2"
+        ],
+        "families": [
+          "ses-identities"
+        ]
+      },
+      "Amazon Simple Notification Service (Amazon SNS)": {
+        "status": "covered",
+        "sdk_services": [
+          "sns"
+        ],
+        "families": [
+          "base-sns-topics"
+        ]
+      },
+      "Amazon Simple Queue Service (Amazon SQS)": {
+        "status": "covered",
+        "sdk_services": [
+          "sqs"
+        ],
+        "families": [
+          "base-sqs-queues"
+        ]
+      },
+      "Amazon Simple Storage Service (Amazon S3)": {
+        "status": "covered",
+        "sdk_services": [
+          "s3",
+          "s3control"
+        ],
+        "families": [
+          "s3-buckets",
+          "s3-directory-buckets",
+          "s3-access-points",
+          "s3-directory-access-points",
+          "s3-object-lambda-access-points",
+          "s3-multi-region-access-points",
+          "s3-outposts-buckets",
+          "s3-access-grants",
+          "s3-outposts-access-points"
+        ]
+      },
+      "Amazon Simple Storage Service (Amazon S3) on AWS Outposts": {
+        "status": "covered",
+        "sdk_services": [
+          "s3control"
+        ],
+        "families": [
+          "s3-access-points",
+          "s3-directory-access-points",
+          "s3-object-lambda-access-points",
+          "s3-multi-region-access-points",
+          "s3-outposts-buckets",
+          "s3-access-grants",
+          "s3-outposts-access-points"
+        ]
+      },
+      "AWS Systems Manager": {
+        "status": "covered",
+        "sdk_services": [
+          "ssm"
+        ],
+        "families": [
+          "ssm-parameters",
+          "ssm-documents",
+          "ssm-opsitem-groups"
+        ]
+      },
+      "AWS Systems Manager Incident Manager": {
+        "status": "covered",
+        "sdk_services": [
+          "ssm-incidents"
+        ],
+        "families": [
+          "incident-response-plans"
+        ]
+      },
+      "AWS Systems Manager Incident Manager Contacts": {
+        "status": "covered",
+        "sdk_services": [
+          "ssm-contacts"
+        ],
+        "families": [
+          "incident-contacts"
+        ]
+      },
+      "Amazon Virtual Private Cloud (Amazon VPC)": {
+        "status": "covered",
+        "sdk_services": [
+          "ec2"
+        ],
+        "families": [
+          "vpc-endpoints",
+          "vpc-endpoint-services"
+        ]
+      }
+    },
+    "scope": "All resource-policy Yes/Partial rows in this IAM support-table snapshot. This table omits some newer supported APIs, which are reviewed separately in policy_actions.",
+    "supported_services": [
+      "Amazon API Gateway",
+      "AWS Backup",
+      "AWS Cloud9",
+      "AWS CloudTrail",
+      "Amazon CloudWatch Logs",
+      "AWS CodeArtifact",
+      "AWS CodeBuild",
+      "Amazon DynamoDB",
+      "Amazon Elastic Container Registry (Amazon ECR)",
+      "Amazon Elastic File System (Amazon EFS)",
+      "AWS Entity Resolution",
+      "Amazon EventBridge",
+      "Amazon EventBridge Schemas",
+      "AWS Glue",
+      "AWS Identity and Access Management (IAM)",
+      "AWS IoT",
+      "AWS Key Management Service (AWS KMS)",
+      "Amazon Kinesis Data Streams",
+      "AWS Lambda",
+      "Amazon Lex V2",
+      "Amazon Managed Streaming for Apache Kafka (MSK)",
+      "AWS Migration Hub Refactor Spaces",
+      "Amazon OpenSearch Service",
+      "AWS Organizations",
+      "AWS Private Certificate Authority (AWS Private CA)",
+      "Amazon Redshift Serverless",
+      "Amazon Rekognition",
+      "Amazon S3 Express",
+      "Amazon Glacier",
+      "Amazon S3 Tables",
+      "AWS Secrets Manager",
+      "AWS Serverless Application Repository",
+      "AWS Sign-In",
+      "Amazon Simple Email Service (Amazon SES) v2",
+      "Amazon Simple Notification Service (Amazon SNS)",
+      "Amazon Simple Queue Service (Amazon SQS)",
+      "Amazon Simple Storage Service (Amazon S3)",
+      "Amazon Simple Storage Service (Amazon S3) on AWS Outposts",
+      "AWS Systems Manager",
+      "AWS Systems Manager Incident Manager",
+      "AWS Systems Manager Incident Manager Contacts",
+      "Amazon Virtual Private Cloud (Amazon VPC)"
+    ]
+  }
+}

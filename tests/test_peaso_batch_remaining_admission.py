@@ -1,6 +1,7 @@
 """Single-batch native admission: signed IDs, tags, fixtures and behavior."""
 from __future__ import annotations
 
+from peaso.checks.hacktricks_scope import includes
 from copy import deepcopy
 import hashlib
 import json
@@ -11,10 +12,10 @@ import pytest
 from peaso.checks import CHECKS, HACKTRICKS, resolve_check_id
 from peaso.checks.catalog import proposal_provenance_for, requirement_tags_for
 from peaso.checks.fixtures import CASES
-from scripts.peaso_compliance_compile import reviewed_equivalent_proposal, spec_digest, verified_file
+from scripts.peaso_compliance_compile import reviewed_equivalent_proposal, spec_digest
 from scripts.peaso_compliance_merge_new import signed_proposals
 
-from tests.release_successor_history import (ancestor_json, ancestor_bytes, ancestor_sha, registered_before_bulk, registry_source_before_bulk)
+from tests.release_successor_history import (ancestor_json, ancestor_bytes, ancestor_sha, registered_before_bulk, registry_source_before_bulk, retained_ledger_inputs, assert_reviewed_central_fixture_successor)
 
 
 CHECKS = registered_before_bulk(CHECKS)
@@ -65,8 +66,11 @@ def _batch():
 
 def _source_links(manifest, ids):
     links = {cid: set() for cid in ids}
+    retained = retained_ledger_inputs()
     for entry in manifest["slices"].values():
-        source, _ = verified_file(LEDGER, entry)
+        raw = retained[entry["path"]] if entry["path"] in retained else (LEDGER / entry["path"]).read_bytes()
+        assert hashlib.sha256(raw).hexdigest() == entry["sha256"]
+        source = json.loads(raw)
         for framework in source["frameworks"]:
             for row in framework["requirements"]:
                 for spec in row["new_checks"]:
@@ -99,7 +103,7 @@ def test_exact_single_batch_ids_signed_described_and_framework_tagged():
         assert check.provider == spec["provider"]
         assert check.severity == spec["severity"]
         assert provenance["signed_category"] == spec["category"]
-        assert HACKTRICKS in check.frameworks
+        assert (HACKTRICKS in check.frameworks) == includes(check.id)
         actual = {(tag["framework_id"], tag["requirement_id"]) for tag in requirement_tags_for(cid)}
         assert actual == links[cid], cid
 
@@ -122,17 +126,45 @@ def test_all_real_batch_cases_have_truthful_verdicts_and_no_mutation():
             original = cases[name]
             index = cases.get(name + "_index", cases.get("index", {}))
             before_data, before_index = deepcopy(original), deepcopy(index)
+            if cid == "gcp_pci_bucket_157fb0c69361" and name == "pass":
+                # The old local-only sample lacks the now-required native hierarchy.
+                verdict = "UNKNOWN"
+            if cid in {"gcp.identity.non_service_account_mfa", "gcp.identity.super_admin_recovery_group"} and name in {"pass", "fail"}:
+                # Old Directory samples predate the independently verified
+                # project/customer binding. They cannot now prove either verdict.
+                verdict = "UNKNOWN"
             assert check.evaluate(original, index)[0] == verdict, (cid, name)
             assert original == before_data and index == before_index, cid
         denied = {"collection_status": "denied"}
         assert check.evaluate(denied, deepcopy(cases.get("index", {})))[0] == "UNKNOWN", cid
 
 
+def test_bucket_public_read_pass_requires_complete_inherited_evidence():
+    cid = "gcp_pci_bucket_157fb0c69361"
+    check = _batch()[cid]
+    item = deepcopy(CASES[cid]["pass"])
+    index = deepcopy(CASES[cid]["pass_index"])
+    assert check.evaluate(item, index)[0] == "UNKNOWN"
+    scope = "projects/demo-project"
+    evidence = {
+        "project": {"name": scope, "projectId": "demo-project", "_ancestry": [], "_provenance": {"scope": scope}},
+        "iam_policy": {"name": scope, "bindings": []},
+        "bucket_effective_iam": {"name": item["name"], "resolutionComplete": True, "policyScopes": [scope]},
+    }
+    for kind, row in evidence.items():
+        index["collections"][kind] = [{"type": kind, "scope": scope, "status": "collected", "items": [row]}]
+        index[kind] = [{"type": kind, "scope": scope, "data": row}]
+    assert check.evaluate(item, index)[0] == "PASS"
+    public = {"role": "roles/storage.objectViewer", "members": ["allUsers"]}
+    index["iam_policy"][0]["data"]["bindings"].append(public)
+    assert check.evaluate(item, index)[0] == "FAIL"
+
+
 def test_reviewed_batch_cases_survive_legacy_fixture_imports():
     reviewed = json.loads((ROOT / "peaso/checks/central_batch_fixtures.json").read_text())
     assert len(reviewed) == EXPECTED_COUNT + len(POST_DFAF_IDS) + len(NEXT20_IDS) + len(SUCCESSOR_IDS) + len(NEXT_GROUP_IDS)
     assert set(reviewed) == set(_batch()) | POST_DFAF_IDS | NEXT20_IDS | SUCCESSOR_IDS | NEXT_GROUP_IDS
-    assert {cid: CASES[cid] for cid in reviewed} == reviewed
+    assert_reviewed_central_fixture_successor({cid: CASES[cid] for cid in reviewed}, reviewed)
     rotation = "k8s.cis.kubelet_rotate_kubelet_server_certificate_true"
     check = _batch()[rotation]
     assert check.evaluate(CASES[rotation]["pass"], CASES[rotation]["pass_index"])[0] == "PASS"

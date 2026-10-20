@@ -5980,6 +5980,38 @@
       "native_alternative": "Service inventory and type are native; the selected identity set is owner supplied.",
       "reason": "Mandatory owner policy controls the pass/fail target; API data alone cannot decide it.",
       "source": "peaso/checks/compliance_new_k8s_owner_policy.py::selected_loadbalancer_type"
+    },
+    "aws_nist_ec2_instance_not_publicly_accessible": {
+      "reason": "The exact signed predicate requires a public path to a listening port and the historical handler requires ListeningPortVerified plus complete listener/target/route/ingress inventories. The available independently validated native model proves only a bounded direct IPv4 configuration allowance, with application_listening=unknown and all_paths_evaluated=false. Neither that positive witness nor its absence settles the old listener contract. PublicReachability assertions in legacy fixtures have no authoritative listener producer. Quarantine this exact historical contract while preserving lineage and keeping the active native configuration alternatives available. This is an unsupported evidence/semantics classification, not an owner-input requirement or a blanket claim that future AWS-native ELB/telemetry proofs are impossible.",
+      "source": "peaso/checks/compliance_new_sw46.py::_ec2_public@396-431; docs/compliance-ledgers/new-checks-aws.json::aws_nist_ec2_instance_not_publicly_accessible",
+      "mandatory_external_fields": [],
+      "native_alternative": "aws.nist.ec2_instance_effective_public_reachability",
+      "disposition": "unsupported_exact_contract",
+      "native_alternatives": [
+        "aws.nist.ec2_instance_effective_public_reachability",
+        "aws_fedramp_ec2_effective_public_exposure",
+        "aws.claude_a.ec2.instance_no_public_ip",
+        "aws.claude_a.ec2.instance_no_public_ip_not_terminated",
+        "aws_g6_ec2_instance_no_public_ipv6"
+      ]
+    },
+    "aws_cis_lightsail_ssm_patch_compliance": {
+      "reason": "The exact historical predicate requires Verified LightsailArn-to-SSM managed-node identity and matching PatchState. Native Lightsail GetInstances/GetInstance expose no EC2 or managed-SSM ID, and reviewed SSM SourceType/SourceId APIs provide no immutable Lightsail ARN link. IP addresses, computer names and supportCode are not that identity proof. Exclude this unsupported exact cross-service contract rather than asserting patch compliance from invented SsmMatch fields. Actual SSM managed-node patch controls remain available; this is not an owner-policy input requirement.",
+      "source": "peaso/checks/compliance_new_sw44.py::lightsail_patch; docs/aws-review/field-producers.json::producer_triage",
+      "mandatory_external_fields": [],
+      "native_alternative": "aws.cb.ssm.instance_patch_compliant",
+      "native_alternatives": [
+        "aws.cb.ssm.instance_patch_compliant",
+        "aws.cb.ssm.resource_compliance_summary_compliant"
+      ],
+      "disposition": "unsupported_exact_contract"
+    },
+    "gcp_logging_detect_t1110": {
+      "reason": "The historical project-scoped predicate requires synthetic audit_coverage.complete/authentication_events, authenticationEvent and a nonzero status.code for failed logins. The native project audit adapter selects unrelated RPC methods and produces none of those classification/completeness fields. Official Workspace login failures are organization-scoped login.googleapis.com / google.login.LoginService.loginFailure Data Access entries, not the project/status schema. A permission-denied RPC does not establish a failed login. Archive this unsupported exact contract instead of fabricating classification or a clean scan; a future organization-level login observer needs a separately reviewed native producer/consumer and cannot be claimed here.",
+      "source": "peaso/checks/compliance_new_sw50.py::_audit_check; peaso/collectors/gcp_audit_native.py::AuditGCPCollector; docs/gcp-review/authentication-contract-review.json",
+      "mandatory_external_fields": [],
+      "disposition": "unsupported_exact_contract",
+      "native_alternatives": []
     }
   },
   "schema_version": "1.0"

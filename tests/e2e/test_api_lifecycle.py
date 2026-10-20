@@ -53,7 +53,7 @@ def connector(client):
 def test_scan_survives_api_restart_and_generates_both_formats(runtime):
     settings, app, client = runtime
     ident = connector(client)
-    body = {"connector_id": ident, "categories": ["hardening"], "frameworks": ["hacktricks"]}
+    body = {"ai_enabled": False, "connector_id": ident, "categories": ["hardening"], "frameworks": ["hacktricks"]}
     queued = client.post("/api/scans", headers={**headers(), "Idempotency-Key": "qa-pipeline"}, json=body)
     assert queued.status_code == 201, queued.text
     scan = queued.json()["id"]
@@ -87,7 +87,7 @@ def test_free_quota_is_atomic_with_concurrent_requests(runtime):
     _, _, client = runtime
     ident = connector(client)
     with ThreadPoolExecutor(max_workers=8) as pool:
-        codes = list(pool.map(lambda _: client.post("/api/scans", headers=headers(), json={"connector_id": ident}).status_code, range(8)))
+        codes = list(pool.map(lambda _: client.post("/api/scans", headers=headers(), json={"ai_enabled": False, "connector_id": ident}).status_code, range(8)))
     assert codes.count(201) == 1
     assert codes.count(429) == 7
     assert client.get("/api/me", headers=headers()).json()["plan"] == "free"
@@ -96,8 +96,8 @@ def test_free_quota_is_atomic_with_concurrent_requests(runtime):
 def test_foreign_tenant_cannot_read_or_mutate_owned_state(runtime):
     _, _, client = runtime
     ident = connector(client)
-    scan = client.post("/api/scans", headers=headers(), json={"connector_id": ident}).json()["id"]
-    schedule = client.post("/api/schedules", headers=headers(), json={"connector_id": ident, "interval_hours": 168}).json()["id"]
+    scan = client.post("/api/scans", headers=headers(), json={"ai_enabled": False, "connector_id": ident}).json()["id"]
+    schedule = client.post("/api/schedules", headers=headers(), json={"ai_enabled": False, "connector_id": ident, "interval_hours": 168}).json()["id"]
     foreign = headers("two")
     assert client.get("/api/connectors", headers=foreign).json()["items"] == []
     assert client.get("/api/scans", headers=foreign).json()["items"] == []
@@ -112,7 +112,7 @@ def test_foreign_tenant_cannot_read_or_mutate_owned_state(runtime):
 def test_cancelled_queue_never_runs_and_schedules_use_server_quota(runtime):
     settings, _, client = runtime
     ident = connector(client)
-    schedule = client.post("/api/schedules", headers=headers(), json={"connector_id": ident, "interval_hours": 1,
+    schedule = client.post("/api/schedules", headers=headers(), json={"ai_enabled": False, "connector_id": ident, "interval_hours": 1,
         "next_run_at": (datetime.now(timezone.utc) - timedelta(seconds=1)).isoformat()})
     assert schedule.status_code == 201, schedule.text
     collector = Worker("collector", settings, authenticator=FreeIdentities())
@@ -126,7 +126,7 @@ def test_cancelled_queue_never_runs_and_schedules_use_server_quota(runtime):
     assert collector.run_once() is False
     assert Worker("analyzer", settings).run_once() is False
     assert client.get(f"/api/scans/{scan}/report", headers=headers()).status_code == 409
-    assert client.post("/api/scans", headers=headers(), json={"connector_id": ident}).status_code == 429
+    assert client.post("/api/scans", headers=headers(), json={"ai_enabled": False, "connector_id": ident}).status_code == 429
     assert client.patch(f"/api/schedules/{schedule.json()['id']}", headers=headers(), json={"enabled": False}).status_code == 200
     assert client.delete(f"/api/schedules/{schedule.json()['id']}", headers=headers()).status_code == 204
 
@@ -152,6 +152,6 @@ def test_published_exact_framework_checklist_can_enqueue(runtime):
     _, _, client = runtime
     ident = connector(client)
     selected = next(row for row in catalog()["framework_versions"] if row["provider"] == "aws" and row["native_check_ids"])
-    response = client.post("/api/scans", headers=headers(), json={"connector_id": ident, "frameworks": [selected["id"]]})
+    response = client.post("/api/scans", headers=headers(), json={"ai_enabled": False, "connector_id": ident, "frameworks": [selected["id"]]})
     assert response.status_code == 201, response.text
     assert response.json()["frameworks"] == [selected["id"]]

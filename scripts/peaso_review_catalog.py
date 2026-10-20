@@ -262,10 +262,13 @@ def validate_manifest(data):
     from peaso.checks.catalog import display_names_from_rows, raw_framework_catalog
     display = display_names_from_rows(raw_framework_catalog(data))
     canonical = set(display.values()) | {HACKTRICKS}
+    from peaso.analysis import ANALYSIS_CHECKS
+    from peaso.checks.hacktricks_scope import includes, validate_review
+    validate_review([check.id for check in CHECKS] + [check["id"] for check in ANALYSIS_CHECKS])
     for check in CHECKS:
         public = check.public()
-        if HACKTRICKS not in public["frameworks"] or not public["dependencies"]:
-            raise ValueError("native security check needs mapping and dependencies")
+        if (HACKTRICKS in public["frameworks"]) != includes(check.id) or not public["dependencies"]:
+            raise ValueError("native check needs reviewed checklist membership and dependencies")
         # One canonical display name per framework version; family slugs are filter aliases, never labels.
         if not set(public["frameworks"]) <= canonical or any(display[fid] not in public["frameworks"] for fid in public["framework_ids"] if fid in display):
             raise ValueError("non-canonical framework labels on " + check.id)

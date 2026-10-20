@@ -44,7 +44,7 @@ def test_grants_endpoint_returns_complete_severity_annotated_list(tmp_path):
         connector = client.post("/api/connectors", json={"name": "grants", "provider": "gcp", "auth": {}, "scopes": snap["scopes"],
                                                          "options": {"snapshot": snap}})
         assert connector.status_code == 201, connector.text
-        job = client.post("/api/scans", json={"connector_id": connector.json()["id"], "categories": ["iam_graph", "least_privilege"]})
+        job = client.post("/api/scans", json={"ai_enabled": False, "connector_id": connector.json()["id"], "categories": ["iam_graph", "least_privilege"]})
         assert job.status_code == 201, job.text
         assert Worker("collector", settings).run_once() and Worker("analyzer", settings).run_once()
         ident = job.json()["id"]

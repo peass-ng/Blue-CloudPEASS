@@ -1440,292 +1440,292 @@
     "review_status": "source_reviewed"
   },
   "gcp-connectors-connections-setiampolicy-connection-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to execute a query through the exact connector.",
+    "purpose": "The caller could grant itself permission to execute a query through the exact connector.",
     "label": "Self-grant connectors.connections.executeSqlQuery on a connection",
     "review_status": "source_reviewed"
   },
   "gcp-compute-machineimages-setiampolicy-machine-image-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to use the exact machine image read-only.",
+    "purpose": "The caller could grant itself permission to use the exact machine image read-only.",
     "label": "Self-grant compute.machineImages.useReadOnly on a machine image",
     "review_status": "source_reviewed"
   },
   "gcp-compute-snapshots-setiampolicy-snapshot-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to use the exact snapshot read-only.",
+    "purpose": "The caller could grant itself permission to use the exact snapshot read-only.",
     "label": "Self-grant compute.snapshots.useReadOnly on a snapshot",
     "review_status": "source_reviewed"
   },
   "gcp-compute-disks-setiampolicy-disk-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to use the exact disk read-only.",
+    "purpose": "The caller could grant itself permission to use the exact disk read-only.",
     "label": "Self-grant compute.disks.useReadOnly on a disk",
     "review_status": "source_reviewed"
   },
   "gcp-gkehub-memberships-setiampolicy-membership-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to generate gateway credentials for the exact fleet membership.",
+    "purpose": "The caller could grant itself permission to generate gateway credentials for the exact fleet membership.",
     "label": "Self-grant gkehub.gateway.generateCredentials on a membership",
     "review_status": "source_reviewed"
   },
   "gcp-iap-tunnelinstances-setiampolicy-instance-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to access the exact VM through an IAP tunnel.",
+    "purpose": "The caller could grant itself permission to access the exact VM through an IAP tunnel.",
     "label": "Self-grant iap.tunnelInstances.accessViaIAP on a instance",
     "review_status": "source_reviewed"
   },
   "gcp-iap-tunnelzones-setiampolicy-zone-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to access VMs only within the exact IAP tunnel zone.",
+    "purpose": "The caller could grant itself permission to access VMs only within the exact IAP tunnel zone.",
     "label": "Self-grant iap.tunnelInstances.accessViaIAP on a zone",
     "review_status": "source_reviewed"
   },
   "gcp-cloudkms-cryptokeys-setiampolicy-crypto-key-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to decrypt with the exact crypto key.",
+    "purpose": "The caller could grant itself permission to decrypt with the exact crypto key.",
     "label": "Self-grant cloudkms.cryptoKeyVersions.useToDecrypt on a crypto key",
     "review_status": "source_reviewed"
   },
   "gcp-secretmanager-secrets-setiampolicy-secret-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to read a version of the exact secret.",
+    "purpose": "The caller could grant itself permission to read a version of the exact secret.",
     "label": "Self-grant secretmanager.versions.access on a secret",
     "review_status": "source_reviewed"
   },
   "gcp-compute-recoverablesnapshots-setiampolicy-recoverable-snapshot-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to recover the exact recoverable snapshot.",
+    "purpose": "The caller could grant itself permission to recover the exact recoverable snapshot.",
     "label": "Self-grant compute.recoverableSnapshots.recover on a recoverable snapshot",
     "review_status": "source_reviewed"
   },
   "gcp-containeranalysis-notes-setiampolicy-note-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to attach an occurrence to the exact analysis note.",
+    "purpose": "The caller could grant itself permission to attach an occurrence to the exact analysis note.",
     "label": "Self-grant containeranalysis.notes.attachOccurrence on a note",
     "review_status": "source_reviewed"
   },
   "gcp-datacatalog-categories-setiampolicy-policy-tag-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to read data protected by the exact policy tag.",
+    "purpose": "The caller could grant itself permission to read data protected by the exact policy tag.",
     "label": "Self-grant datacatalog.categories.fineGrainedGet on a policy tag",
     "review_status": "source_reviewed"
   },
   "gcp-metastore-services-setiampolicy-metastore-service-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to use the exact Metastore service.",
+    "purpose": "The caller could grant itself permission to use the exact Metastore service.",
     "label": "Self-grant metastore.services.use on a metastore service",
     "review_status": "source_reviewed"
   },
   "gcp-analyticshub-listings-setiampolicy-listing-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to subscribe to the exact Analytics Hub listing.",
+    "purpose": "The caller could grant itself permission to subscribe to the exact Analytics Hub listing.",
     "label": "Self-grant analyticshub.listings.subscribe on a listing",
     "review_status": "source_reviewed"
   },
   "gcp-analyticshub-dataexchanges-setiampolicy-data-exchange-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to subscribe to the exact Analytics Hub exchange.",
+    "purpose": "The caller could grant itself permission to subscribe to the exact Analytics Hub exchange.",
     "label": "Self-grant analyticshub.dataExchanges.subscribe on a data exchange",
     "review_status": "source_reviewed"
   },
   "gcp-biglake-catalogs-setiampolicy-catalog-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to read the exact BigLake catalog metadata.",
+    "purpose": "The caller could grant itself permission to read the exact BigLake catalog metadata.",
     "label": "Self-grant biglake.catalogs.get on a catalog",
     "review_status": "source_reviewed"
   },
   "gcp-biglake-namespaces-setiampolicy-namespace-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to read the exact BigLake namespace metadata.",
+    "purpose": "The caller could grant itself permission to read the exact BigLake namespace metadata.",
     "label": "Self-grant biglake.namespaces.get on a namespace",
     "review_status": "source_reviewed"
   },
   "gcp-biglake-tables-setiampolicy-table-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to read the exact BigLake table metadata.",
+    "purpose": "The caller could grant itself permission to read the exact BigLake table metadata.",
     "label": "Self-grant biglake.tables.get on a table",
     "review_status": "source_reviewed"
   },
   "gcp-bigquery-datasets-setiampolicy-dataset-iam-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to read table data within the exact dataset.",
+    "purpose": "The caller could grant itself permission to read table data within the exact dataset.",
     "label": "Self-grant bigquery.tables.getData on a dataset iam",
     "review_status": "source_reviewed"
   },
   "gcp-bigquery-datasets-update-dataset-acl-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to read table data within the exact dataset ACL scope.",
+    "purpose": "The caller could grant itself permission to read table data within the exact dataset ACL scope.",
     "label": "Self-grant bigquery.tables.getData on a dataset acl",
     "review_status": "source_reviewed"
   },
   "gcp-bigquery-connections-setiampolicy-connection-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to use the exact BigQuery connection.",
+    "purpose": "The caller could grant itself permission to use the exact BigQuery connection.",
     "label": "Self-grant bigquery.connections.use on a connection",
     "review_status": "source_reviewed"
   },
   "gcp-datacatalog-taxonomies-setiampolicy-taxonomy-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to read data protected by the exact taxonomy.",
+    "purpose": "The caller could grant itself permission to read data protected by the exact taxonomy.",
     "label": "Self-grant datacatalog.categories.fineGrainedGet on a taxonomy",
     "review_status": "source_reviewed"
   },
   "gcp-bigquery-tables-setiampolicy-table-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to read data from the exact BigQuery table.",
+    "purpose": "The caller could grant itself permission to read data from the exact BigQuery table.",
     "label": "Self-grant bigquery.tables.getData on a table",
     "review_status": "source_reviewed"
   },
   "gcp-bigtable-instances-setiampolicy-instance-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to read rows within the exact Bigtable instance.",
+    "purpose": "The caller could grant itself permission to read rows within the exact Bigtable instance.",
     "label": "Self-grant bigtable.tables.readRows on a instance",
     "review_status": "source_reviewed"
   },
   "gcp-bigtable-tables-setiampolicy-table-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to read rows from the exact Bigtable table.",
+    "purpose": "The caller could grant itself permission to read rows from the exact Bigtable table.",
     "label": "Self-grant bigtable.tables.readRows on a table",
     "review_status": "source_reviewed"
   },
   "gcp-bigtable-backups-setiampolicy-backup-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to restore the exact Bigtable backup.",
+    "purpose": "The caller could grant itself permission to restore the exact Bigtable backup.",
     "label": "Self-grant bigtable.backups.restore on a backup",
     "review_status": "source_reviewed"
   },
   "gcp-bigtable-authorizedviews-setiampolicy-authorized-view-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to read rows through the exact authorized view.",
+    "purpose": "The caller could grant itself permission to read rows through the exact authorized view.",
     "label": "Self-grant bigtable.authorizedViews.readRows on a authorized view",
     "review_status": "source_reviewed"
   },
   "gcp-bigtable-materializedviews-setiampolicy-materialized-view-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to read rows through the exact materialized view.",
+    "purpose": "The caller could grant itself permission to read rows through the exact materialized view.",
     "label": "Self-grant bigtable.materializedViews.readRows on a materialized view",
     "review_status": "source_reviewed"
   },
   "gcp-discoveryengine-engines-setiampolicy-engine-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to update the exact Discovery Engine engine.",
+    "purpose": "The caller could grant itself permission to update the exact Discovery Engine engine.",
     "label": "Self-grant discoveryengine.engines.update on a engine",
     "review_status": "source_reviewed"
   },
   "gcp-discoveryengine-datastores-setiampolicy-data-store-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to update the exact Discovery Engine data store.",
+    "purpose": "The caller could grant itself permission to update the exact Discovery Engine data store.",
     "label": "Self-grant discoveryengine.dataStores.update on a data store",
     "review_status": "source_reviewed"
   },
   "gcp-discoveryengine-collections-setiampolicy-collection-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to read the exact Discovery Engine collection.",
+    "purpose": "The caller could grant itself permission to read the exact Discovery Engine collection.",
     "label": "Self-grant discoveryengine.collections.get on a collection",
     "review_status": "source_reviewed"
   },
   "gcp-identitytoolkit-tenants-setiampolicy-tenant-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to update users within the exact Identity Platform tenant.",
+    "purpose": "The caller could grant itself permission to update users within the exact Identity Platform tenant.",
     "label": "Self-grant firebaseauth.users.update on a tenant",
     "review_status": "source_reviewed"
   },
   "gcp-healthcare-datasets-setiampolicy-dataset-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to read FHIR resources in the exact Healthcare dataset.",
+    "purpose": "The caller could grant itself permission to read FHIR resources in the exact Healthcare dataset.",
     "label": "Self-grant healthcare.fhirResources.get on a dataset",
     "review_status": "source_reviewed"
   },
   "gcp-healthcare-fhirstores-setiampolicy-fhir-store-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to read resources in the exact FHIR store.",
+    "purpose": "The caller could grant itself permission to read resources in the exact FHIR store.",
     "label": "Self-grant healthcare.fhirResources.get on a fhir store",
     "review_status": "source_reviewed"
   },
   "gcp-healthcare-dicomstores-setiampolicy-dicom-store-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to read resources in the exact DICOM store.",
+    "purpose": "The caller could grant itself permission to read resources in the exact DICOM store.",
     "label": "Self-grant healthcare.dicomStores.dicomWebRead on a dicom store",
     "review_status": "source_reviewed"
   },
   "gcp-healthcare-hl7v2stores-setiampolicy-hl7v2-store-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to read messages in the exact HL7v2 store.",
+    "purpose": "The caller could grant itself permission to read messages in the exact HL7v2 store.",
     "label": "Self-grant healthcare.hl7V2Messages.get on a hl7v2 store",
     "review_status": "source_reviewed"
   },
   "gcp-healthcare-consentstores-setiampolicy-consent-store-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to read consents in the exact consent store.",
+    "purpose": "The caller could grant itself permission to read consents in the exact consent store.",
     "label": "Self-grant healthcare.consents.get on a consent store",
     "review_status": "source_reviewed"
   },
   "gcp-networkconnectivity-hubs-setiampolicy-hub-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to update the exact Network Connectivity hub.",
+    "purpose": "The caller could grant itself permission to update the exact Network Connectivity hub.",
     "label": "Self-grant networkconnectivity.hubs.update on a hub",
     "review_status": "source_reviewed"
   },
   "gcp-networkconnectivity-groups-setiampolicy-group-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to use the exact Network Connectivity group.",
+    "purpose": "The caller could grant itself permission to use the exact Network Connectivity group.",
     "label": "Self-grant networkconnectivity.groups.use on a group",
     "review_status": "source_reviewed"
   },
   "gcp-networksecurity-addressgroups-setiampolicy-address-group-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to update the exact network address group.",
+    "purpose": "The caller could grant itself permission to update the exact network address group.",
     "label": "Self-grant networksecurity.addressGroups.update on a address group",
     "review_status": "source_reviewed"
   },
   "gcp-networksecurity-authorizationpolicies-setiampolicy-authorization-policy-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to update the exact authorization policy.",
+    "purpose": "The caller could grant itself permission to update the exact authorization policy.",
     "label": "Self-grant networksecurity.authorizationPolicies.update on a authorization policy",
     "review_status": "source_reviewed"
   },
   "gcp-networksecurity-authzpolicies-setiampolicy-authz-policy-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to update the exact authz policy.",
+    "purpose": "The caller could grant itself permission to update the exact authz policy.",
     "label": "Self-grant networksecurity.authzPolicies.update on a authz policy",
     "review_status": "source_reviewed"
   },
   "gcp-networksecurity-clienttlspolicies-setiampolicy-client-tls-policy-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to update the exact client TLS policy.",
+    "purpose": "The caller could grant itself permission to update the exact client TLS policy.",
     "label": "Self-grant networksecurity.clientTlsPolicies.update on a client tls policy",
     "review_status": "source_reviewed"
   },
   "gcp-networksecurity-servertlspolicies-setiampolicy-server-tls-policy-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to update the exact server TLS policy.",
+    "purpose": "The caller could grant itself permission to update the exact server TLS policy.",
     "label": "Self-grant networksecurity.serverTlsPolicies.update on a server tls policy",
     "review_status": "source_reviewed"
   },
   "gcp-pubsub-topics-setiampolicy-topic-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to publish to the exact Pub/Sub topic.",
+    "purpose": "The caller could grant itself permission to publish to the exact Pub/Sub topic.",
     "label": "Self-grant pubsub.topics.publish on a topic",
     "review_status": "source_reviewed"
   },
   "gcp-pubsub-subscriptions-setiampolicy-subscription-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to consume the exact Pub/Sub subscription.",
+    "purpose": "The caller could grant itself permission to consume the exact Pub/Sub subscription.",
     "label": "Self-grant pubsub.subscriptions.consume on a subscription",
     "review_status": "source_reviewed"
   },
   "gcp-runtimeconfig-configs-setiampolicy-config-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to read variables from the exact runtime configuration.",
+    "purpose": "The caller could grant itself permission to read variables from the exact runtime configuration.",
     "label": "Self-grant runtimeconfig.variables.get on a config",
     "review_status": "source_reviewed"
   },
   "gcp-spanner-databases-setiampolicy-database-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to read the exact Spanner database.",
+    "purpose": "The caller could grant itself permission to read the exact Spanner database.",
     "label": "Self-grant spanner.databases.read on a database",
     "review_status": "source_reviewed"
   },
   "gcp-spanner-instances-setiampolicy-instance-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to read databases within the exact Spanner instance.",
+    "purpose": "The caller could grant itself permission to read databases within the exact Spanner instance.",
     "label": "Self-grant spanner.databases.read on a instance",
     "review_status": "source_reviewed"
   },
   "gcp-vmwareengine-privateclouds-setiampolicy-private-cloud-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to read vCenter credentials for the exact private cloud.",
+    "purpose": "The caller could grant itself permission to read vCenter credentials for the exact private cloud.",
     "label": "Self-grant vmwareengine.privateClouds.showVcenterCredentials on a private cloud",
     "review_status": "source_reviewed"
   },
   "gcp-privateca-capools-setiampolicy-ca-pool-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to create certificates within the exact CA pool.",
+    "purpose": "The caller could grant itself permission to create certificates within the exact CA pool.",
     "label": "Self-grant privateca.certificates.create on a ca pool",
     "review_status": "source_reviewed"
   },
   "gcp-krmapihosting-krmapihosts-setiampolicy-krm-api-host-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to update the exact KRM API host.",
+    "purpose": "The caller could grant itself permission to update the exact KRM API host.",
     "label": "Self-grant krmapihosting.krmApiHosts.update on a krm api host",
     "review_status": "source_reviewed"
   },
   "gcp-compute-images-setiampolicy-image-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to use the exact Compute image read-only.",
+    "purpose": "The caller could grant itself permission to use the exact Compute image read-only.",
     "label": "Self-grant compute.images.useReadOnly on a image",
     "review_status": "source_reviewed"
   },
   "gcp-logging-views-setiampolicy-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to read the exact log view.",
+    "purpose": "The caller could grant itself permission to read the exact log view.",
     "label": "Self-grant logging.views.access on a log view",
     "review_status": "source_reviewed"
   },
   "gcp-domains-registrations-setiampolicy-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to change DNS for the exact domain registration.",
+    "purpose": "The caller could grant itself permission to change DNS for the exact domain registration.",
     "label": "Self-grant domains.registrations.configureDns on a domain registration",
     "review_status": "source_reviewed"
   },
   "gcp-servicedirectory-namespaces-setiampolicy-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to create services within the exact directory namespace.",
+    "purpose": "The caller could grant itself permission to create services within the exact directory namespace.",
     "label": "Self-grant servicedirectory.services.create on a namespace",
     "review_status": "source_reviewed"
   },
   "gcp-servicedirectory-services-setiampolicy-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to update the exact directory service.",
+    "purpose": "The caller could grant itself permission to update the exact directory service.",
     "label": "Self-grant servicedirectory.services.update on a service",
     "review_status": "source_reviewed"
   },
   "gcp-contactcenterinsights-authorizedviews-setiampolicy-self-grant": {
-    "purpose": "An accepted self-targeted policy change may newly allow the source to read the exact Contact Center authorized view.",
+    "purpose": "The caller could grant itself permission to read the exact Contact Center authorized view.",
     "label": "Self-grant authorized-view read access",
     "review_status": "source_reviewed"
   },

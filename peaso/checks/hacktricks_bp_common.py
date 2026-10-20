@@ -1,7 +1,7 @@
 """HackTricks Cloud Best Practices: per-check HackTricks page references.
 
-Every native check carries the "HackTricks Cloud Best Practices" framework label
-(see peaso.checks.catalog.mappings_for). Checks in the hacktricks_bp_* modules
+Checklist membership is explicitly reviewed in hacktricks_scope.json; a page
+reference alone does not attach the checklist. Checks in the hacktricks_bp_* modules
 are derived from a specific HackTricks Cloud attack-technique page; that page,
 rather than the generic methodology page, becomes the framework reference.
 Existing Prowler/Powerpipe-derived checks that already implement a HackTricks

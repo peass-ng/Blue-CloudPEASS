@@ -38,7 +38,7 @@ def evidence_summary(finding):
     if not isinstance(conditions,list) or any(not _text(c) for c in conditions):return None
     if not isinstance(blockers,list) or any(not (_text(b) or isinstance(b,dict) and _text(b.get('id')) and _text(b.get('constraint'))) for b in blockers):return None
     if cid=='admin-equivalent':
-        meaning='The recorded grants already match administrative control; this does not establish an escalation or actual use.'
+        meaning={'derived':'These grants already represent administrative control; they do not show a new escalation or actual use.','conditional':'These grants may provide administrative control if their remaining conditions are satisfied.','unknown':'Missing evidence prevents confirming administrative control.'}[confidence]
     else:
         entry=_catalog_entries().get(cid)
         if not entry or entry['provider']!=provider or technique.get('source')!=entry['source']:return None
@@ -57,7 +57,7 @@ def evidence_summary(finding):
     refs=e.get('granting_statements',[])+[p.get('grant',{}) for p in e.get('granting_permissions',[]) if isinstance(p,dict)]
     if any(isinstance(ref,dict) and ref.get('effect',ref.get('Effect','Allow'))!='Allow' for ref in refs):return None
     limit=' Conditions or guardrails remain; execution was not tested.' if conditions or blockers or confidence=='conditional' else ' Execution was not tested.'
-    return _bounded_text(name,target,count,targets,meaning,limit)
+    return _bounded_text(name,target,count,targets,meaning,limit,administrative=cid=='admin-equivalent' and confidence=='derived')
 
 
 _TARGET_LABELS={
@@ -69,11 +69,12 @@ _TARGET_LABELS={
 }
 
 
-def _bounded_text(name,target,count,targets,meaning,limit,*,unknown=False):
+def _bounded_text(name,target,count,targets,meaning,limit,*,unknown=False,administrative=False):
     def render(actor,destination):
         if unknown:
-            return f'Required facts are missing for the path from {actor} to {destination}. '+meaning+limit
-        return f'Recorded grants link {actor} to {destination}. '+meaning+limit
+            return f'The scan lacks required facts for {actor}’s path to {destination}. '+meaning+limit
+        if administrative:return f'{actor} has administrative grants covering {destination}. '+meaning+limit
+        return f'The scan found a possible path from {actor} to {destination}. '+meaning+limit
     text=render(name,target)
     if len(text)<=240:return text
     # Use complete structural references instead of clipping an ARN, email or

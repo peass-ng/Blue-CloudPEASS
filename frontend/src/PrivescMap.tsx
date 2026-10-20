@@ -1,3 +1,4 @@
+import { ExposureBadges, ExposureDetails } from "./PrincipalExposure";
 import { memo, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import {
@@ -293,7 +294,7 @@ const PeNodeView = memo(function PeNodeView({ data }: NodeProps<PeFlowNode>) {
             nodeLabel(n)
           )}
         </strong>
-        <span>{subtitle}</span>
+        <span>{n.exposures?.length ? "Exposed entry point · " : ""}{subtitle}</span>
       </span>
       {!unresolved && !aggregate && (
         <span className="pe-node-actions" role="group" aria-label={`Actions for ${nodeLabel(n)}`}>
@@ -360,32 +361,22 @@ export function PrivescMap({
   );
   const index = useMemo(() => new PrivescIndex(graph), [graph]);
   const findingList = useMemo(() => listOf(findingsQ.data), [findingsQ.data]);
-  const techSeverity = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const f of findingList) {
-      const sev = String(f.severity || "").toLowerCase();
-      const old = map.get(f.check_id);
-      if (!old || (SEV_RANK[sev] ?? 0) > (SEV_RANK[old] ?? 0))
-        map.set(f.check_id, sev);
-    }
-    return map;
-  }, [findingList]);
+  const findingSeverity = useMemo(() => new Map(findingList.map(f => [f.id, String(f.severity || "").toLowerCase()])), [findingList]);
   const edgeSeverity = useCallback(
     (e: PrivescEdge) => {
-      let best = "";
-      for (const t of e.techniques) {
-        const s = techSeverity.get(t);
-        if (s && (!best || SEV_RANK[s] > SEV_RANK[best])) best = s;
-      }
-      if (best) return best;
-      return index.isAdmin(e.target) ? "critical" : "high";
+      // Priority belongs to this source and finding, not every use of a technique.
+      const levels = [...(e.technique_details || []).map(d => findingSeverity.get(d.finding || "") || d.severity || ""),
+        ...(e.findings || []).map(id => findingSeverity.get(id) || "")].filter(Boolean);
+      return levels.sort((a, b) => (SEV_RANK[b] ?? 0) - (SEV_RANK[a] ?? 0))[0]
+        || (index.isAdmin(e.target) ? "critical" : "high");
     },
-    [techSeverity, index],
+    [findingSeverity, index],
   );
 
   const [provider, setProvider] = useState(""),
     [minSeverity, setMinSeverity] = useState(""),
     [confidence, setConfidence] = useState(""),
+    [exposedOnly, setExposedOnly] = useState(false),
     [hideUnknown, setHideUnknown] = useState(true),
     // null = automatic (hidden when there are many placeholders).
     [unresolvedChoice, setUnresolvedChoice] = useState<boolean | null>(null),
@@ -397,6 +388,7 @@ export function PrivescMap({
     [query, setQuery] = useState<QueryKind | null>(null),
     [cap, setCap] = useState(INITIAL_CAP);
   const [hoveredRelation, setHoveredRelation] = useState("");
+  const [hoveredNode, setHoveredNode] = useState("");
   const [positions, setPositions] = useState<Record<string, { x: number; y: number }>>({});
   const positionsRef = useRef(positions);
   const onNodesChange = useCallback((changes: NodeChange<PeFlowNode>[]) => {
@@ -416,6 +408,7 @@ export function PrivescMap({
     setFocus("");
     setHighlight(null);
     setHoveredRelation("");
+    setHoveredNode("");
     positionsRef.current = {};
     setPositions({});
     setSelected("");
@@ -448,6 +441,7 @@ export function PrivescMap({
     const edges: VEdge[] = [];
     const ids = new Set<string>();
     for (const e of graph.edges) {
+      if (exposedOnly && !index.nodes.get(e.source)?.exposures?.length && !index.nodes.get(e.source)?.exposed_member_count) continue;
       if (!passNode(index.nodes.get(e.source))) continue;
       if (!passNode(index.nodes.get(e.target))) continue;
       if (hideUnknown && e.confidence === "unknown") continue;
@@ -553,6 +547,7 @@ export function PrivescMap({
     showUnresolved,
     confidence,
     minSeverity,
+    exposedOnly,
     edgeSeverity,
     expanded,
     focus,
@@ -673,13 +668,43 @@ export function PrivescMap({
   }, [layoutKey]);
 
   const hl = highlight;
+  const hoverPaths = useMemo(() => {
+    const incoming = new Map<string, VEdge[]>(), outgoing = new Map<string, VEdge[]>();
+    for (const edge of layout?.edges || []) {
+      if (!incoming.has(edge.target)) incoming.set(edge.target, []);
+      if (!outgoing.has(edge.source)) outgoing.set(edge.source, []);
+      incoming.get(edge.target)!.push(edge);
+      outgoing.get(edge.source)!.push(edge);
+    }
+    return { incoming, outgoing };
+  }, [layout]);
   // Hover is temporary: it must not change the query, graph layout or viewport.
   const renderHighlight = useMemo(() => {
+    if (hoveredNode && layout?.nodes.some(node => node.id === hoveredNode)) {
+      const nodes = new Set([hoveredNode]), edges = new Set<string>();
+      // Keep directions separate: an ancestor's unrelated branches are not paths through this node.
+      for (const direction of ["incoming", "outgoing"] as const) {
+        const visited = new Set([hoveredNode]), pending = [hoveredNode];
+        while (pending.length) {
+          const current = pending.pop()!;
+          for (const edge of hoverPaths[direction].get(current) || []) {
+            edges.add(edge.id);
+            const next = direction === "incoming" ? edge.source : edge.target;
+            nodes.add(next);
+            if (!visited.has(next)) {
+              visited.add(next);
+              pending.push(next);
+            }
+          }
+        }
+      }
+      return { nodes, edges };
+    }
     const edge = layout?.edges.find((item) => item.id === hoveredRelation);
     return edge
       ? { nodes: new Set([edge.source, edge.target]), edges: new Set([edge.id]) }
-      : highlight;
-  }, [layout, hoveredRelation, highlight]);
+      : hl ? { nodes: hl.nodes, edges: hl.edges } : null;
+  }, [layout, hoverPaths, hoveredNode, hoveredRelation, hl]);
   const focusOn = useCallback((id: string) => {
     setFocus(id);
     setSelected(id);
@@ -704,6 +729,8 @@ export function PrivescMap({
       (layout?.nodes || []).map((n) => ({
         id: n.id,
         type: "pe",
+        // Crossing arrows must not intercept node hover or clicks.
+        zIndex: 20,
         position: positions[n.id] || layout!.pos[n.id] || { x: 0, y: 0 },
         width: nodeWidth(n),
         height: NODE_H,
@@ -943,7 +970,7 @@ export function PrivescMap({
     () => graph.nodes.filter((n) => n.type !== "principal_group"),
     [graph],
   );
-  const filtered = !!(provider || minSeverity || confidence || hideUnknown);
+  const filtered = !!(provider || minSeverity || confidence || hideUnknown || exposedOnly);
 
   if (!scanId) return <State empty title="Select a scan to explore the map" />;
   if (graphQ.isPending) return <State loading />;
@@ -1058,6 +1085,10 @@ export function PrivescMap({
               <option value="unknown">Unknown</option>
             </select>
             <label className="pe-check">
+              <input type="checkbox" checked={exposedOnly} onChange={e => setExposedOnly(e.target.checked)} />
+              Exposed sources only
+            </label>
+            <label className="pe-check">
               <input
                 type="checkbox"
                 checked={hideUnknown}
@@ -1152,6 +1183,7 @@ export function PrivescMap({
           <div
             className="graph-canvas pe-canvas"
             aria-label="Privilege escalation map"
+            onPointerLeave={() => { setHoveredNode(""); setHoveredRelation(""); }}
             ref={canvasRef}
           >
             <button
@@ -1178,9 +1210,11 @@ export function PrivescMap({
                   nodesDraggable
                   nodeDragThreshold={4}
                   onNodesChange={onNodesChange}
-                  onEdgeMouseEnter={(_, edge) => setHoveredRelation(edge.id)}
+                  onEdgeMouseEnter={(_, edge) => { setHoveredNode(""); setHoveredRelation(edge.id); }}
                   onEdgeMouseLeave={() => setHoveredRelation("")}
-                  onNodeDragStart={() => setHoveredRelation("")}
+                  onNodeMouseEnter={(_, node) => { setHoveredRelation(""); setHoveredNode(node.id); }}
+                  onNodeMouseLeave={() => setHoveredNode("")}
+                  onNodeDragStart={() => { setHoveredRelation(""); setHoveredNode(""); }}
                   nodesConnectable={false}
                   edgesReconnectable={false}
                   deleteKeyCode={null}
@@ -1189,6 +1223,8 @@ export function PrivescMap({
                   minZoom={0.05}
                   maxZoom={2}
                   onNodeClick={(_, n) => {
+                    setHoveredNode("");
+                    setHoveredRelation("");
                     const node = (n as PeFlowNode).data.node;
                     if (isUnresolved(node)) setCard({ type: "unresolved", id: node.id });
                     else if (node.kind === "aggregate") toggleExpand(node.id);
@@ -1373,6 +1409,7 @@ function UnresolvedCard({
       </div>
       <div className="inspector-badges pe-badges">
         <Badge value="unknown" />
+        <ExposureBadges exposures={node.exposures} />
         <Badge value={humanType(node.type)} />
         {node.scope && <Badge value={node.scope} />}
       </div>
@@ -2007,6 +2044,7 @@ function PrincipalCard({
         </div>
       </div>
       <div className="inspector-badges pe-badges">
+        <ExposureBadges exposures={node.exposures} />
         <Badge value={humanType(node.type)} />
         <Badge value={String(node.kind || "principal")} />
         {(admin || card.is_admin) && <Badge value="critical" />}
@@ -2016,6 +2054,8 @@ function PrincipalCard({
           </span>
         )}
       </div>
+      <ExposureDetails exposures={node.exposures} />
+      {!!node.exposed_member_count && <p>{node.exposed_member_count} members have an external or internet workload entry point. Expand members to review evidence.</p>}
       {q.isPending && <p className="muted small-text">Loading the principal card…</p>}
       <details className="pe-identity">
         <summary>Identity <ChevronDown size={15} aria-hidden="true" /></summary>
@@ -2168,14 +2208,41 @@ function EdgeCard({
           scanId={scanId}
           demo={demo}
           technique={t}
-          findingId={edge.findings?.[i] || `privesc:${t}:${edge.source}`}
+          findingId={edge.technique_details?.find(detail => detail.id === t)?.finding || findingFor(t, edge.source, findings)?.id || edge.findings?.[i] || `privesc:${t}:${edge.source}`}
           summary={findingFor(t, edge.source, findings)}
           edgeGrants={edge.technique_details?.find((detail) => detail.id === t)?.granting_permissions}
+          edgeRefs={edge.technique_details?.find(detail => detail.id === t)?.evidence_refs || edge.evidence_refs}
+          edgeConfidence={edge.confidence}
           catalogRequired={sourceQ.data?.technique_details?.[t]?.required_permissions}
         />
       ))}
     </Inspector>
   );
+}
+
+
+function PermissionGrantDetails({ grant }: { grant: PrivescEvidenceRef }) {
+  const statement = grant.statement_document as Record<string, unknown> | undefined;
+  const list = (value: unknown) => Array.isArray(value) ? value.map(String).join(", ") : String(value ?? "");
+  return <div className="pe-grant-details">
+    {(grant.policy_name || grant.policy_type) ? <p>{formatRef(grant)}</p> : null}
+    {statement && <>
+      <p><strong>{statement.NotAction ? "NotAction" : "Action"}:</strong> <code>{list(statement.NotAction ?? statement.Action)}</code></p>
+      <p><strong>{statement.NotResource ? "NotResource" : "Resource"}:</strong> <code>{list(statement.NotResource ?? statement.Resource)}</code></p>
+      {statement.Condition ? <div><strong>Statement conditions</strong><pre>{JSON.stringify(statement.Condition, null, 2)}</pre></div> : null}
+    </>}
+    {grant.scope ? <p><strong>Assignment scope:</strong> <code>{String(grant.scope)}</code></p> : null}
+    {grant.via ? <p><strong>Granted through:</strong> <code>{String(grant.via)}</code></p> : null}
+    {grant.assignment ? <p><strong>Role assignment:</strong> <code>{String(grant.assignment)}</code></p> : null}
+    {grant.directory_role_assignment ? <p><strong>Directory role assignment:</strong> <code>{String(grant.directory_role_assignment)}</code></p> : null}
+    {grant.directory_scope ? <p><strong>Directory scope:</strong> <code>{String(grant.directory_scope)}</code></p> : null}
+    {grant.matched_role_permissions ? <p><strong>Matching role permissions:</strong> <code>{list(grant.matched_role_permissions)}</code></p> : null}
+    {grant.policy && !statement && !grant.policy_name ? <p><strong>Policy scope:</strong> <code>{String(grant.policy)}</code></p> : null}
+    {grant.expression ? <p><strong>Binding condition:</strong> <code>{String(grant.expression)}</code></p> : null}
+    {grant.condition && !statement && !grant.expression ? <div><strong>Grant condition</strong><pre>{JSON.stringify(grant.condition, null, 2)}</pre></div> : null}
+    {grant.role_permissions ? <div><strong>Role definition permissions</strong><pre>{JSON.stringify(grant.role_permissions, null, 2)}</pre></div> : null}
+    {grant.rule ? <div><strong>Matched RBAC rule</strong><pre>{JSON.stringify(grant.rule, null, 2)}</pre></div> : null}
+  </div>;
 }
 
 function TechniqueSection({
@@ -2185,6 +2252,8 @@ function TechniqueSection({
   findingId,
   summary,
   edgeGrants,
+  edgeRefs,
+  edgeConfidence,
   catalogRequired,
 }: {
   scanId: string;
@@ -2192,22 +2261,24 @@ function TechniqueSection({
   technique: string;
   findingId: string;
   summary?: Finding;
-  edgeGrants?: { permission: string; grant: PrivescEvidenceRef }[];
+  edgeGrants?: { permission: string; grant: PrivescEvidenceRef; evaluated_resource?: string }[];
+  edgeRefs?: PrivescEvidenceRef[];
+  edgeConfidence?: PrivescFindingEvidence["confidence"];
   catalogRequired?: { all_of?: string[]; any_of?: string[][]; leaves?: string[] };
 }) {
   const q = useApi<Finding>(
     privescApi.finding(scanId, findingId),
     demo,
-    !!scanId && technique !== "admin-equivalent",
+    !!scanId && !!findingId,
   );
   const finding = q.data || summary;
-  const ev = (finding?.evidence || {}) as PrivescFindingEvidence;
+  const ev = { granting_statements: edgeRefs, confidence: edgeConfidence, ...(finding?.evidence || {}) } as PrivescFindingEvidence;
   const tech = ev.technique || {};
   const requires = tech.requires ?? ev.required_permissions;
   const href = hacktricksUrl(tech.source);
-  const grants = [...new Map((edgeGrants || ev.granting_permissions || [])
-    .filter((item) => item.permission && grantSource(item.grant))
-    .map((item) => [`${item.permission}\n${grantSource(item.grant)}`, item])).values()];
+  const grants = [...new Map((ev.granting_permissions?.length ? ev.granting_permissions : edgeGrants || [])
+    .filter((item) => item.permission)
+    .map((item) => [`${item.permission}\n${item.evaluated_resource || ""}\n${JSON.stringify(item.grant)}`, item])).values()];
   const required = [...new Set(grants.map((item) => item.permission))];
   const legacySources = [...new Set((ev.granting_statements || [])
     .map(grantSource).filter((source): source is string => !!source))];
@@ -2225,11 +2296,12 @@ function TechniqueSection({
         {finding?.severity && <Badge value={String(finding.severity)} />}
       </div>
       <code className="pe-id">{technique}</code>
-      {q.isPending && technique !== "admin-equivalent" && !summary && (
+      {q.isPending && !summary && (
         <p className="muted small-text">Loading technique evidence…</p>
       )}
       {(tech.summary || finding?.description || finding?.evidence_summary) &&
         <p>{tech.summary || finding?.description || finding?.evidence_summary}</p>}
+      {q.error && <p className="muted small-text">Full finding evidence could not be loaded. <button className="text-button inline" onClick={() => void q.refetch()}>Retry evidence</button></p>}
       {ev.confidence === "conditional" && (
         <p className="pe-path-explanation">
           Conditional path: the permissions and target are modelled. The
@@ -2243,13 +2315,18 @@ function TechniqueSection({
         </p>
       )}
       {technique === "admin-equivalent" && (
-        <p>The source already holds an administrator-equivalent grant on this scope; no technique is needed.</p>
+        <p>{ev.confidence === "conditional"
+          ? "The recorded grant may provide administrative control if its conditions and guardrails permit. The exact matched grant is shown below."
+          : "The recorded grant provides administrative control on this scope. The exact matched grant is shown below."}</p>
       )}
       {typeof ev.target_count === "number" && (
         <p className="muted small-text">Reaches {plural(ev.target_count, "underlying target")}.</p>
       )}
       <h4>Required permissions</h4>
-      {Array.isArray(requires) && requires.length ? (
+      {technique === "admin-equivalent" ? (
+        required.length ? <ul className="pe-perms">{required.map(permission => <li key={permission}><code>{permission}</code></li>)}</ul>
+          : <p className="muted small-text">This stored assessment does not record the exact administrative permission match. Run a new assessment to capture it.</p>
+      ) : Array.isArray(requires) && requires.length ? (
         <ul className="pe-perms">
           {requires.map((r, i) => (
             <li key={i}>
@@ -2271,23 +2348,27 @@ function TechniqueSection({
         </ul>
       ) : (
         <p className="muted small-text">
-          See the technique source for its permission requirements.
+          {technique === "admin-equivalent"
+            ? "This stored assessment does not record the exact administrative permission match. Run a new assessment to capture it."
+            : "The exact required permissions were not recorded in this assessment. Review its source evidence or run a new assessment."}
         </p>
       )}
       <h4>Granting permissions</h4>
       {grants.length ? (
         <ul className="pe-grants">
           {grants.map((item) => (
-            <li key={`${item.permission}\n${grantSource(item.grant)}`}>
+            <li key={`${item.permission}\n${item.evaluated_resource || ""}\n${JSON.stringify(item.grant)}`}>
               <code>{item.permission}</code>
-              <span>{grantSource(item.grant)}</span>
+              <span>{grantSource(item.grant) || "Grant source not recorded"}</span>
+              {item.evaluated_resource && <p><strong>Evaluated resource:</strong> <code>{item.evaluated_resource}</code></p>}
+              <PermissionGrantDetails grant={item.grant} />
             </li>
           ))}
         </ul>
       ) : legacySources.length ? (
         <>
           <p className="muted small-text">This report records the grant sources without a permission-by-permission match.</p>
-          <ul className="pe-grants">{legacySources.map((source) => <li key={source}><span>{source}</span></li>)}</ul>
+          <ul className="pe-grants">{(ev.granting_statements || []).map((grant, index) => <li key={index}><span>{grantSource(grant) || formatRef(grant)}</span><PermissionGrantDetails grant={grant} /></li>)}</ul>
         </>
       ) : (
         <p className="muted small-text">No granting policy or role was recorded.</p>

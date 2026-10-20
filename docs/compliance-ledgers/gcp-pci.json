@@ -9959,8 +9959,10 @@
           "name": "Google AI Platform Notebooks",
           "decision": "MANUAL",
           "native_checks": [],
-          "removed_checks": [],
-          "reason": "Checks if direct internet access is disabled for a Google AI Platform Notebook instance. The proposal did not identify a named GCP API field and Boolean test for this exact condition; inspect the named service configuration and control evidence manually.",
+          "removed_checks": [
+            "gcp.review.workbench.public_ip_disabled"
+          ],
+          "reason": "Public-IP assignment does not evaluate audit-log protection, access, integrity or destruction controls. The source association is explicitly rejected for this native configuration check; this broader requirement remains manual.",
           "evidence": [
             "prowler/compliance/gcp/pci_4.0_gcp.json"
           ],
@@ -13990,8 +13992,10 @@
           "name": "Google Cloud AI Platform Notebooks",
           "decision": "MANUAL",
           "native_checks": [],
-          "removed_checks": [],
-          "reason": "Checks if direct internet access is disabled for a Google Cloud AI Platform Notebooks instance. The proposal did not identify a named GCP API field and Boolean test for this exact condition; inspect the named service configuration and control evidence manually.",
+          "removed_checks": [
+            "gcp.review.workbench.public_ip_disabled"
+          ],
+          "reason": "Public-IP assignment does not evaluate PAN storage, encryption, tokenization or other data-at-rest safeguards. The source association is explicitly rejected for this native configuration check; this broader requirement remains manual.",
           "evidence": [
             "prowler/compliance/gcp/pci_4.0_gcp.json"
           ],
@@ -23151,8 +23155,10 @@
           "name": "Google AI Platform Notebooks",
           "decision": "MANUAL",
           "native_checks": [],
-          "removed_checks": [],
-          "reason": "Checks if direct internet access is disabled for a Google AI Platform Notebook instance. The proposal did not identify a named GCP API field and Boolean test for this exact condition; inspect the named service configuration and control evidence manually.",
+          "removed_checks": [
+            "gcp.review.workbench.public_ip_disabled"
+          ],
+          "reason": "Public-IP assignment does not establish separation between different tenants or their data and administrative paths. The source association is explicitly rejected for this native configuration check; this broader requirement remains manual.",
           "evidence": [
             "prowler/compliance/gcp/pci_4.0_gcp.json"
           ],
@@ -23735,8 +23741,10 @@
           "name": "Google Cloud AI Platform",
           "decision": "MANUAL",
           "native_checks": [],
-          "removed_checks": [],
-          "reason": "Checks if direct internet access is disabled for a Google Cloud AI Platform Notebook instance. The proposal did not identify a named GCP API field and Boolean test for this exact condition; inspect the named service configuration and control evidence manually.",
+          "removed_checks": [
+            "gcp.review.workbench.public_ip_disabled"
+          ],
+          "reason": "Public-IP assignment does not establish separation between different tenants or their data and administrative paths. The source association is explicitly rejected for this native configuration check; this broader requirement remains manual.",
           "evidence": [
             "prowler/compliance/gcp/pci_4.0_gcp.json"
           ],

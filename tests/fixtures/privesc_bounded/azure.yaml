@@ -1,0 +1,555 @@
+- id: azure-audit-authorization-rule-key-disclosure-and-rotation
+  provider: azure
+  service: servicebus
+  title: Authorization-rule key disclosure and rotation
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-servicebus-privesc.md#authorization-rule-key-disclosure-and-rotation
+  summary: 'Evidence-bound operation on the exact affected resource: new standalone
+    SAS credential with rule-scoped rights No IAM identity, credential, scope control
+    or subsequent permissions are granted by this terminal effect.'
+  requires:
+    all_of: []
+    any_of:
+    - - action: Microsoft.ServiceBus/namespaces/authorizationRules/listKeys/action
+        scope: '{target.scope}'
+    - - action: Microsoft.ServiceBus/namespaces/authorizationRules/regenerateKeys/action
+        scope: '{target.scope}'
+  target:
+    kind: azure_verified_authority
+    scope: inherited_scope
+    aggregate_as: Bounded azure-audit-authorization-rule-key-disclosure-and-rotation
+      on {target.resource}
+    outcome: bounded_authority
+    selector:
+      azure_challenge_fact: azure-audit-authorization-rule-key-disclosure-and-rotation
+  conditions:
+  - id: collector_fact_required
+    description: Exact source, target, scope and requested collector facts must be
+      verified; missing facts remain UNKNOWN.
+  blockers:
+  - azure_deny_assignment
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the listed action to principals that need this service privilege.
+  references:
+  - https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-python-how-to-use-topics-subscriptions?tabs=passwordless
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: azure-audit-listtestkeys-public-test-endpoints
+  provider: azure
+  service: spring_apps
+  title: listTestKeys / public test endpoints
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-spring-apps-privesc.md#listtestkeys--public-test-endpoints
+  summary: 'Evidence-bound operation on the exact affected resource: app endpoint
+    key and, conditionally, application secrets No IAM identity, credential, scope
+    control or subsequent permissions are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: Microsoft.AppPlatform/Spring/listTestKeys/action
+      scope: '{target.scope}'
+  target:
+    kind: azure_verified_authority
+    scope: inherited_scope
+    aggregate_as: Bounded azure-audit-listtestkeys-public-test-endpoints on {target.resource}
+    outcome: bounded_authority
+    selector:
+      azure_challenge_fact: azure-audit-listtestkeys-public-test-endpoints
+  conditions:
+  - id: collector_fact_required
+    description: Exact source, target, scope and requested collector facts must be
+      verified; missing facts remain UNKNOWN.
+  blockers:
+  - azure_deny_assignment
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the listed action to principals that need this service privilege.
+  references:
+  - https://learn.microsoft.com/en-us/azure/spring-apps/basic-standard/retirement-announcement
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: azure-audit-microsoftappplatformspringregeneratetestkeyaction
+  provider: azure
+  service: spring_apps
+  title: Microsoft.AppPlatform/Spring/regenerateTestKey/action
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-spring-apps-privesc.md#microsoftappplatformspringregeneratetestkeyaction
+  summary: 'Evidence-bound operation on the exact affected resource: replacement app
+    endpoint key and conditional secrets No IAM identity, credential, scope control
+    or subsequent permissions are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: Microsoft.AppPlatform/Spring/regenerateTestKey/action
+      scope: '{target.scope}'
+  target:
+    kind: azure_verified_authority
+    scope: inherited_scope
+    aggregate_as: Bounded azure-audit-microsoftappplatformspringregeneratetestkeyaction
+      on {target.resource}
+    outcome: bounded_authority
+    selector:
+      azure_challenge_fact: azure-audit-microsoftappplatformspringregeneratetestkeyaction
+  conditions:
+  - id: collector_fact_required
+    description: Exact source, target, scope and requested collector facts must be
+      verified; missing facts remain UNKNOWN.
+  blockers:
+  - azure_deny_assignment
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the listed action to principals that need this service privilege.
+  references:
+  - https://learn.microsoft.com/en-us/azure/spring-apps/basic-standard/retirement-announcement
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: azure-audit-microsoftpurviewpolicyelementswrite-purview-access-policies-into-governe
+  provider: azure
+  service: purview
+  title: Microsoft.Purview/policyElements/write — Purview access policies into governed
+    SQL/Storage
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-purview-privesc.md#microsoftpurviewpolicyelementswrite--purview-access-policies-into-governed-sqlstorage
+  summary: 'Evidence-bound operation on the exact affected resource: Purview-governed
+    SQL or Storage data access granted to chosen principal No IAM identity, credential,
+    scope control or subsequent permissions are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: Microsoft.Purview/policyElements/write
+      scope: '{target.scope}'
+  target:
+    kind: azure_verified_authority
+    scope: inherited_scope
+    aggregate_as: Bounded azure-audit-microsoftpurviewpolicyelementswrite-purview-access-policies-into-governe
+      on {target.resource}
+    outcome: bounded_authority
+    selector:
+      azure_challenge_fact: azure-audit-microsoftpurviewpolicyelementswrite-purview-access-policies-into-governe
+  conditions:
+  - id: collector_fact_required
+    description: Exact source, target, scope and requested collector facts must be
+      verified; missing facts remain UNKNOWN.
+  blockers:
+  - azure_deny_assignment
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the listed action to principals that need this service privilege.
+  references:
+  - https://learn.microsoft.com/en-us/rest/api/purview/accounts/list-keys?view=rest-purview-2021-12-01
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: azure-audit-microsoftservicebusnamespacesauthorizationruleswrite
+  provider: azure
+  service: servicebus
+  title: Microsoft.ServiceBus/namespaces/AuthorizationRules/write
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-servicebus-privesc.md#microsoftservicebusnamespacesauthorizationruleswrite
+  summary: 'Evidence-bound operation on the exact affected resource: new namespace
+    SAS principal with attacker-selected Manage rights No IAM identity, credential,
+    scope control or subsequent permissions are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: Microsoft.ServiceBus/namespaces/authorizationRules/write
+      scope: '{target.scope}'
+    - action: Microsoft.ServiceBus/namespaces/authorizationRules/listKeys/action
+      scope: '{target.scope}'
+  target:
+    kind: azure_verified_authority
+    scope: inherited_scope
+    aggregate_as: Bounded azure-audit-microsoftservicebusnamespacesauthorizationruleswrite
+      on {target.resource}
+    outcome: bounded_authority
+    selector:
+      azure_challenge_fact: azure-audit-microsoftservicebusnamespacesauthorizationruleswrite
+  conditions:
+  - id: same_resource_binding
+    description: All actions must apply to the same service resource and the referenced
+      child object.
+  - id: collector_fact_required
+    description: Exact source, target, scope and requested collector facts must be
+      verified; missing facts remain UNKNOWN.
+  blockers:
+  - azure_deny_assignment
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the listed action to principals that need this service privilege.
+  references:
+  - https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-python-how-to-use-topics-subscriptions?tabs=passwordless
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: azure-audit-microsoftservicebusnamespacesdisasterrecoveryconfigsauthorizationrulesli
+  provider: azure
+  service: servicebus
+  title: Microsoft.ServiceBus/namespaces/disasterRecoveryConfigs/authorizationRules/listkeys/action
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-servicebus-privesc.md#microsoftservicebusnamespacesdisasterrecoveryconfigsauthorizationruleslistkeysaction
+  summary: 'Evidence-bound operation on the exact affected resource: new alias credential
+    with rule-scoped rights No IAM identity, credential, scope control or subsequent
+    permissions are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: Microsoft.ServiceBus/namespaces/disasterRecoveryConfigs/authorizationRules/listkeys/action
+      scope: '{target.scope}'
+  target:
+    kind: azure_verified_authority
+    scope: inherited_scope
+    aggregate_as: Bounded azure-audit-microsoftservicebusnamespacesdisasterrecoveryconfigsauthorizationrulesli
+      on {target.resource}
+    outcome: bounded_authority
+    selector:
+      azure_challenge_fact: azure-audit-microsoftservicebusnamespacesdisasterrecoveryconfigsauthorizationrulesli
+  conditions:
+  - id: collector_fact_required
+    description: Exact source, target, scope and requested collector facts must be
+      verified; missing facts remain UNKNOWN.
+  blockers:
+  - azure_deny_assignment
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the listed action to principals that need this service privilege.
+  references:
+  - https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-python-how-to-use-topics-subscriptions?tabs=passwordless
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: azure-audit-microsoftservicebusnamespacesqueuestopicsauthorizationruleslistkeysactio
+  provider: azure
+  service: servicebus
+  title: Microsoft.ServiceBus/namespaces/[queues|topics]/authorizationRules/ListKeys/action
+    OR Microsoft.ServiceBus/namespaces/[queues|topics]/authorizationRules/regenerateKeys/action
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-servicebus-privesc.md#microsoftservicebusnamespacesqueuestopicsauthorizationruleslistkeysaction-or-microsoftservicebusnamespacesqueuestopicsauthorizationrulesregeneratekeysaction
+  summary: 'Evidence-bound operation on the exact affected resource: entity-scoped
+    SAS credential No IAM identity, credential, scope control or subsequent permissions
+    are granted by this terminal effect.'
+  requires:
+    all_of: []
+    any_of:
+    - - action: Microsoft.ServiceBus/namespaces/queues/authorizationRules/listKeys/action
+        scope: '{target.scope}'
+    - - action: Microsoft.ServiceBus/namespaces/queues/authorizationRules/regenerateKeys/action
+        scope: '{target.scope}'
+    - - action: Microsoft.ServiceBus/namespaces/topics/authorizationRules/listKeys/action
+        scope: '{target.scope}'
+    - - action: Microsoft.ServiceBus/namespaces/topics/authorizationRules/regenerateKeys/action
+        scope: '{target.scope}'
+  target:
+    kind: azure_verified_authority
+    scope: inherited_scope
+    aggregate_as: Bounded azure-audit-microsoftservicebusnamespacesqueuestopicsauthorizationruleslistkeysactio
+      on {target.resource}
+    outcome: bounded_authority
+    selector:
+      azure_challenge_fact: azure-audit-microsoftservicebusnamespacesqueuestopicsauthorizationruleslistkeysactio
+  conditions:
+  - id: collector_fact_required
+    description: Exact source, target, scope and requested collector facts must be
+      verified; missing facts remain UNKNOWN.
+  blockers:
+  - azure_deny_assignment
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the listed action to principals that need this service privilege.
+  references:
+  - https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-python-how-to-use-topics-subscriptions?tabs=passwordless
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: azure-audit-microsoftstoragestorageaccountslistaccountsasaction
+  provider: azure
+  service: storage
+  title: Microsoft.Storage/storageAccounts/listAccountSas/action
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#microsoftstoragestorageaccountslistaccountsasaction
+  summary: 'Evidence-bound operation on the exact affected resource: attacker-chosen
+    account SAS No IAM identity, credential, scope control or subsequent permissions
+    are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: Microsoft.Storage/storageAccounts/listAccountSas/action
+      scope: '{target.scope}'
+  target:
+    kind: azure_verified_authority
+    scope: inherited_scope
+    aggregate_as: Bounded azure-audit-microsoftstoragestorageaccountslistaccountsasaction
+      on {target.resource}
+    outcome: bounded_authority
+    selector:
+      azure_challenge_fact: azure-audit-microsoftstoragestorageaccountslistaccountsasaction
+  conditions:
+  - id: collector_fact_required
+    description: Exact source, target, scope and requested collector facts must be
+      verified; missing facts remain UNKNOWN.
+  blockers:
+  - azure_deny_assignment
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the listed action to principals that need this service privilege.
+  references:
+  - https://learn.microsoft.com/en-us/azure/role-based-access-control/permissions/storage#microsoftstorage
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: azure-audit-microsoftstoragestorageaccountslistkeysaction
+  provider: azure
+  service: storage
+  title: Microsoft.Storage/storageAccounts/listkeys/action
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#microsoftstoragestorageaccountslistkeysaction
+  summary: 'Evidence-bound operation on the exact affected resource: account key authenticating
+    all four storage services No IAM identity, credential, scope control or subsequent
+    permissions are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: Microsoft.Storage/storageAccounts/listKeys/action
+      scope: '{target.scope}'
+  target:
+    kind: azure_verified_authority
+    scope: inherited_scope
+    aggregate_as: Bounded azure-audit-microsoftstoragestorageaccountslistkeysaction
+      on {target.resource}
+    outcome: bounded_authority
+    selector:
+      azure_challenge_fact: azure-audit-microsoftstoragestorageaccountslistkeysaction
+  conditions:
+  - id: collector_fact_required
+    description: Exact source, target, scope and requested collector facts must be
+      verified; missing facts remain UNKNOWN.
+  blockers:
+  - azure_deny_assignment
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the listed action to principals that need this service privilege.
+  references:
+  - https://learn.microsoft.com/en-us/azure/role-based-access-control/permissions/storage#microsoftstorage
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: azure-audit-microsoftstoragestorageaccountslistservicesasaction
+  provider: azure
+  service: storage
+  title: Microsoft.Storage/storageAccounts/listServiceSas/action
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#microsoftstoragestorageaccountslistservicesasaction
+  summary: 'Evidence-bound operation on the exact affected resource: attacker-chosen
+    service SAS No IAM identity, credential, scope control or subsequent permissions
+    are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: Microsoft.Storage/storageAccounts/listServiceSas/action
+      scope: '{target.scope}'
+  target:
+    kind: azure_verified_authority
+    scope: inherited_scope
+    aggregate_as: Bounded azure-audit-microsoftstoragestorageaccountslistservicesasaction
+      on {target.resource}
+    outcome: bounded_authority
+    selector:
+      azure_challenge_fact: azure-audit-microsoftstoragestorageaccountslistservicesasaction
+  conditions:
+  - id: collector_fact_required
+    description: Exact source, target, scope and requested collector facts must be
+      verified; missing facts remain UNKNOWN.
+  blockers:
+  - azure_deny_assignment
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the listed action to principals that need this service privilege.
+  references:
+  - https://learn.microsoft.com/en-us/azure/role-based-access-control/permissions/storage#microsoftstorage
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: azure-audit-microsoftstoragestorageaccountsregeneratekeyaction
+  provider: azure
+  service: storage
+  title: Microsoft.Storage/storageAccounts/regenerateKey/action
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#microsoftstoragestorageaccountsregeneratekeyaction
+  summary: 'Evidence-bound operation on the exact affected resource: replacement account
+    key, also unchanged key in response No IAM identity, credential, scope control
+    or subsequent permissions are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: Microsoft.Storage/storageAccounts/regenerateKey/action
+      scope: '{target.scope}'
+  target:
+    kind: azure_verified_authority
+    scope: inherited_scope
+    aggregate_as: Bounded azure-audit-microsoftstoragestorageaccountsregeneratekeyaction
+      on {target.resource}
+    outcome: bounded_authority
+    selector:
+      azure_challenge_fact: azure-audit-microsoftstoragestorageaccountsregeneratekeyaction
+  conditions:
+  - id: collector_fact_required
+    description: Exact source, target, scope and requested collector facts must be
+      verified; missing facts remain UNKNOWN.
+  blockers:
+  - azure_deny_assignment
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the listed action to principals that need this service privilege.
+  references:
+  - https://learn.microsoft.com/en-us/azure/role-based-access-control/permissions/storage#microsoftstorage
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: azure-audit-microsoftwebstaticsiteslistsecretsaction
+  provider: azure
+  service: static_web_apps
+  title: Microsoft.Web/staticSites/listSecrets/action
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-static-web-apps-privesc.md#microsoftwebstaticsiteslistsecretsaction
+  summary: 'Evidence-bound operation on the exact affected resource: deployment token
+    allowing arbitrary site content No IAM identity, credential, scope control or
+    subsequent permissions are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: Microsoft.Web/staticSites/listSecrets/action
+      scope: '{target.scope}'
+  target:
+    kind: azure_verified_authority
+    scope: inherited_scope
+    aggregate_as: Bounded azure-audit-microsoftwebstaticsiteslistsecretsaction on
+      {target.resource}
+    outcome: bounded_authority
+    selector:
+      azure_challenge_fact: azure-audit-microsoftwebstaticsiteslistsecretsaction
+  conditions:
+  - id: collector_fact_required
+    description: Exact source, target, scope and requested collector facts must be
+      verified; missing facts remain UNKNOWN.
+  blockers:
+  - azure_deny_assignment
+  confidence: conditional
+  severity: high
+  mitigation: Restrict the listed action to principals that need this service privilege.
+  references:
+  - https://learn.microsoft.com/en-us/azure/static-web-apps/snippets
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: azure-databricks-uc-temporary-storage-credential
+  provider: azure
+  service: databricks
+  title: Obtain temporary Azure Storage authority through Unity Catalog
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-databricks-privesc.md#unity-catalog-storage-credential--external-location-abuse
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: A Unity Catalog
+    principal with rights over a storage credential or external location can request
+    temporary Azure Storage tokens or SAS through an Access Connector managed identity.
+    No IAM identity, credential, scope control or subsequent permissions are granted
+    by this terminal effect.'
+  requires:
+    all_of: []
+  target:
+    kind: azure_verified_authority
+    scope: inherited_scope
+    outcome: bounded_authority
+    selector:
+      azure_challenge_fact: azure-databricks-uc-temporary-storage-credential
+    aggregate_as: Bounded azure-databricks-uc-temporary-storage-credential on {target.resource}
+  confidence: conditional
+  severity: high
+  mitigation: Limit UC storage credential privileges and Access Connector Storage
+    Blob roles.
+  references:
+  - https://docs.databricks.com/en/connect/unity-catalog/cloud-storage/azure-managed-identities.html
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+  source_kind:
+  - azure_user
+  - azure_service_principal
+  conditions:
+  - id: collector_fact_required
+    description: Exact source, target, scope and requested collector facts must be
+      verified; missing facts remain UNKNOWN.
+- id: azure-storage-hns-acl-takeover-and-blob-super-user-data-action
+  provider: azure
+  service: storage
+  title: Rewrite ADLS Gen2 path ACLs for new access
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#hns-acl-takeover-and-blob-super-user-data-action
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: modifyPermissions
+    can grant the caller previously denied file access when ancestor execute and a
+    read grant are present; the exclusion treats the gain as ordinary data read. No
+    IAM identity, credential, scope control or subsequent permissions are granted
+    by this terminal effect.'
+  requires:
+    all_of: []
+    any_of:
+    - - action: Microsoft.Storage/storageAccounts/blobServices/containers/blobs/modifyPermissions/action
+        scope: '{target.scope}'
+        data_action: true
+    - - action: Microsoft.Storage/storageAccounts/blobServices/containers/blobs/manageOwnership/action
+        scope: '{target.scope}'
+        data_action: true
+    - - action: Microsoft.Storage/storageAccounts/blobServices/containers/blobs/runAsSuperUser/action
+        scope: '{target.scope}'
+        data_action: true
+  target:
+    kind: azure_verified_authority
+    selector:
+      azure_challenge_fact: azure-storage-hns-acl-takeover-and-blob-super-user-data-action
+    scope: inherited_scope
+    aggregate_as: Bounded azure-storage-hns-acl-takeover-and-blob-super-user-data-action
+      on {target.resource}
+    outcome: bounded_authority
+  conditions:
+  - id: collector_fact_required
+    description: The azure_adls_acl_paths inventory must identify the exact target
+      and rights; absent or incomplete facts remain UNKNOWN.
+  confidence: conditional
+  severity: medium
+  mitigation: Restrict the listed permissions to trusted operators and rotate or revoke
+    resulting credentials or grants.
+  references:
+  - https://github.com/HackTricks-wiki/hacktricks-cloud/blob/0b36331/src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.
+- id: azure-storage-microsoftstoragestorageaccountsfileservicesfilesharesfilesmodifypermissionsact
+  provider: azure
+  service: storage
+  title: Rewrite Azure Files NTFS ACLs for new access
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md#microsoftstoragestorageaccountsfileservicesfilesharesfilesmodifypermissionsaction
+  source_revision: 0b36331
+  summary: 'Evidence-bound operation on the exact affected resource: The action can
+    rewrite NTFS ACLs to grant the caller previously denied file permissions; separate
+    file read is required for content. No IAM identity, credential, scope control
+    or subsequent permissions are granted by this terminal effect.'
+  requires:
+    all_of:
+    - action: Microsoft.Storage/storageAccounts/fileServices/fileshares/files/modifypermissions/action
+      scope: '{target.scope}'
+      data_action: true
+  target:
+    kind: azure_verified_authority
+    selector:
+      azure_challenge_fact: azure-storage-microsoftstoragestorageaccountsfileservicesfilesharesfilesmodifypermissionsact
+    scope: inherited_scope
+    aggregate_as: Bounded azure-storage-microsoftstoragestorageaccountsfileservicesfilesharesfilesmodifypermissionsact
+      on {target.resource}
+    outcome: bounded_authority
+  conditions:
+  - id: collector_fact_required
+    description: The azure_files_acls inventory must identify the exact target and
+      rights; absent or incomplete facts remain UNKNOWN.
+  confidence: conditional
+  severity: medium
+  mitigation: Restrict the listed permissions to trusted operators and rotate or revoke
+    resulting credentials or grants.
+  references:
+  - https://github.com/HackTricks-wiki/hacktricks-cloud/blob/0b36331/src/pentesting-cloud/azure-security/az-privilege-escalation/az-storage-privesc.md
+  notes: Requires reviewed evidence naming the exact source, resource, all authored
+    prerequisite condition IDs, evidence reference and bounded effect type. Ordinary
+    inventory without those facts remains UNKNOWN. This effect is terminal and grants
+    no principal permissions.

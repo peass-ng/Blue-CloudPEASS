@@ -15,6 +15,9 @@ import pytest
 from peaso.checks import CHECKS, CHECK_ALIASES
 from peaso.checks.catalog import description_for
 from peaso.checks.aws_evidence_explanations import evidence_summary, review_rows, reviewed_explanation
+from peaso.checks.aws_natural_evidence import complete_explanation
+from peaso.checks.aws_review_20261019 import MODULES
+from importlib import import_module
 
 ROOT = Path(__file__).resolve().parents[1]
 CHECK_BY_ID = {c.id: c for c in CHECKS if c.provider == 'aws'}
@@ -22,14 +25,17 @@ ROWS = review_rows()
 LEDGER = json.loads((ROOT / 'docs/evidence-reviews/aws.json').read_text())
 CASES = json.loads(gzip.decompress((ROOT / 'tests/fixtures/aws_evidence_review.json.gz').read_bytes()))
 STATUSES = ('PASS', 'FAIL', 'UNKNOWN', 'DENIED', 'MANUAL', 'EMPTY', 'NOT_APPLICABLE')
+EXTENSION_IDS = {row['spec']['id'] for name in MODULES
+                 for row in import_module('peaso.checks.' + name).ADMISSION_DATA['checks']}
 
 
 def test_every_registered_aws_check_and_retired_alias_has_source_review_and_real_native_witnesses():
     aliases = {old for old, new in CHECK_ALIASES.items() if new in CHECK_BY_ID}
-    assert len(CHECK_BY_ID) == 1521
+    assert len(CHECK_BY_ID) == 1521 + len(EXTENSION_IDS)
     assert set(CHECK_BY_ID) == set(CASES)
     assert set(CHECK_BY_ID) | aliases == set(ROWS) == set(LEDGER['checks'])
-    assert sum(map(len, CASES.values())) == 8882
+    assert sum(len(rows) for cid, rows in CASES.items() if cid not in EXTENSION_IDS) == 8882
+    assert all(len(CASES[cid]) >= 4 for cid in EXTENSION_IDS)
     assert all(row['review_status'] == 'source_reviewed_and_native_replayed' for row in ROWS.values())
     assert all(row['purpose'] and row['fields'] is not None for row in ROWS.values())
 
@@ -39,6 +45,9 @@ def test_exact_evaluator_and_requirement_contract_match_the_review(cid):
     row = LEDGER['checks'][cid]
     function = inspect.unwrap(CHECK_BY_ID[cid].evaluate)
     assert hashlib.sha256(inspect.getsource(function).encode()).hexdigest() == row['evaluator_sha256']
+    if cid in EXTENSION_IDS:
+        target = getattr(function, 'reviewed_target', function)
+        assert hashlib.sha256(inspect.getsource(target).encode()).hexdigest() == row['target_sha256']
     contract = json.dumps(description_for(cid), sort_keys=True, separators=(',', ':')).encode()
     assert hashlib.sha256(contract).hexdigest() == row['description_contract_sha256']
     assert ROWS[cid]['purpose'] == row['purpose']
@@ -54,10 +63,12 @@ def test_all_captured_success_failure_partial_and_inapplicable_witnesses(cid):
         summary = evidence_summary(finding)
         assert summary == case['summary']
         assert len(summary) <= 250
-        assert ROWS[cid]['purpose'] in summary
+        complete = complete_explanation(finding)
+        assert summary == complete or ROWS[cid]['purpose'] in summary
         assert not summary.startswith(('{', '[')) and '\n' not in summary
         assert 'All of:' not in summary and 'quantifier' not in summary
-        assert reviewed_explanation(cid, summary, finding['status']) == summary
+        if summary != complete:
+            assert reviewed_explanation(cid, summary, finding['status']) == summary
         assert finding == before
 
 
@@ -66,9 +77,11 @@ def test_every_status_with_absent_or_unrelated_evidence_is_explicitly_unclaimed(
     for status in STATUSES:
         for evidence in ({}, {'unrelated': True}):
             summary = evidence_summary(dict(provider='aws', check_id=cid, status=status, evidence=evidence))
-            assert summary and ROWS[cid]['purpose'] in summary
+            complete = complete_explanation(dict(provider='aws', check_id=cid, status=status, evidence=evidence))
+            assert summary and (summary == complete or ROWS[cid]['purpose'] in summary)
             assert any(text in summary for text in ('No usable deciding evidence', 'Required evidence is unavailable',
-                                                     'outside the control’s applicability', 'No applicable resources'))
+                                                     'outside the control’s applicability', 'No applicable resources',
+                                                     'could not be checked', 'cannot confirm whether root keys exist'))
             assert not summary.startswith(('The policy grants', 'The function has', 'Automatic rotation is enabled'))
 
 

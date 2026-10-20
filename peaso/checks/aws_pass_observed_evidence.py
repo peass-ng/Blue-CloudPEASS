@@ -1343,7 +1343,7 @@ BOOLEAN_SENTENCES = {
  'public_restore_attribute':('The snapshot declares public restore access.','The snapshot does not declare public restore access.'),
  'public_subnet':('The database subnet declares a public route.','The database subnet declares no public route.'),
  'public_write':('The bucket policy declares public write access.','The bucket policy does not declare public write access.'),
- 'selection_or_tag_key_match':('A backup selection or source tag-key criterion matches the resource.','No backup selection or source tag-key criterion matches the resource.'),
+ 'selection_or_tag_key_match':('The resource ARN or an exact tag key and value matches a backup selection.','Neither the resource ARN nor an exact tag key and value matches a backup selection.'),
  'subscribe_on_all':('The policy declares Marketplace subscription access on all resources.','The policy does not declare Marketplace subscription access on all resources.'),
  'update_available':('An OpenSearch service-software update is available.','No OpenSearch service-software update is reported.'),
  'versioning':('Bucket versioning is enabled.','Bucket versioning is disabled.'),

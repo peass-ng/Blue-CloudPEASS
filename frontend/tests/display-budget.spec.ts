@@ -44,7 +44,9 @@ test("compressed graph artifacts decode without credentials and show omitted rel
     await page.goto("/#Network%20Map");
     await expect(page.getByRole("status").filter({ hasText: "outside this view" })).toContainText("9,500");
     await expect(page.getByRole("button", { name: "Load inventory page", exact: true })).toHaveCount(1);
-    await expect(page.locator('.react-flow__node[data-id="network:fixture-node"]')).toContainText("Compressed evidence fixture");
+    const node = page.locator('.react-flow__node[data-id="network:fixture-node"]');
+    await expect(node).toContainText("Compressed");
+    await expect(node.locator(".network-node-heading")).toHaveAttribute("aria-label", "Open Compressed evidence fixture");
     expect(received.authorization).toBeUndefined();
     expect(received.cookie).toBeUndefined();
     expect(received.referer).toBeUndefined();

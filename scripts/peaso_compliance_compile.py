@@ -45,6 +45,11 @@ REVIEWED_CLOUDTRAIL_EQUIVALENT = {
 REVIEWED_CLOUDTRAIL_RUNTIME_SUCCESSORS = {
     "6830c3b72df05ae820d9bd96b04dc7741708bb2d29aa30a8e1b3816d397a6fda": frozenset({
         "adc455960545fafeda8f73855c5612e80290541b72e1117f026082deabf246b4",
+        # 2026-10-19 core semantic review: native selectors must bind the
+        # assessed TrailARN, respect unavailable fields, and cannot mix basic
+        # and advanced selectors. 205 focused SDK/consumer tests accepted;
+        # docs/aws-review/core-semantic-review.json records the reviewed scope.
+        "406b1fd3041683c2ab2797f7d9702cc515cfcc3f00edd4682655cb7a000793e8",
     }),
 }
 REVIEWED_RDS_CLUSTER_EQUIVALENT = {
@@ -213,9 +218,33 @@ def catalog_with_registered_checks(native_catalog: dict, checks) -> dict:
             source_severity = source_priority(row)
             if source_severity != getattr(registered[cid], "severity", None):
                 raise ValueError("Native catalogue signed source priority differs from registry")
-    additions = [{"id": cid, "provider": registered[cid].provider, "title": registered[cid].title}
-                 for cid in sorted(set(registered) - set(indexed))]
-    return {**native_catalog, "checks": [*stored, *additions]}
+    # Keep historical public/signed metadata unchanged while retaining the live
+    # contract for the separate, stricter NEW-extension admission path below.
+    existing_rows = []
+    for row in stored:
+        check = registered[row["id"]]
+        if all(hasattr(check, field) for field in ("kind", "category", "severity", "target")):
+            row = {**row, "_registered_contract": {"type": check.kind, "category": check.category,
+                                                    "severity": check.severity, "target": check.target}}
+        existing_rows.append(row)
+    additions = []
+    archived_ids = {row["id"] for row in native_catalog.get("archived_checks", [])}
+    for cid in sorted(set(registered) - set(indexed)):
+        check = registered[cid]
+        kind, category = getattr(check, "kind", None), getattr(check, "category", None)
+        severity, target = getattr(check, "severity", None), getattr(check, "target", None)
+        dependencies = getattr(check, "dependencies", None)
+        if (check.provider not in PROVIDERS or not isinstance(kind, str) or not kind.strip() or
+                not isinstance(category, str) or not category.strip() or
+                (cid not in archived_ids and category not in {"hardening", "exposure", "least_privilege", "iam_graph", "network"}) or
+                severity not in {"critical", "high", "medium", "low", "info"} or
+                target not in {"resource", "scope"} or not isinstance(dependencies, (list, tuple)) or
+                not dependencies or any(not isinstance(value, str) or not value for value in dependencies)):
+            raise ValueError("New registered native declaration has an incomplete typed contract")
+        additions.append({"id": cid, "provider": check.provider, "title": check.title,
+                          "type": kind, "category": category, "severity": severity,
+                          "target": target, "dependencies": list(dependencies)})
+    return {**native_catalog, "checks": [*existing_rows, *additions]}
 
 
 def read_json(path: Path):
@@ -311,6 +340,81 @@ def lookup_index(requirements_pack: dict, full_pack_sha256: str) -> dict:
             "hacktricks_best_practices": requirements_pack["hacktricks_best_practices"]}
 
 
+def admit_native_extensions(root, entries, native, indexed, proposed, frameworks, by_check):
+    """Admit reviewed security checks without inventing numbered requirements.
+
+    Extension files are explicitly hash-bound by the supervisor manifest. Formal
+    checklist links must name existing requirements and retain partial assurance;
+    an empty link list means HackTricks thematic guidance only.
+    """
+    for entry in entries:
+        document, _ = verified_file(root, entry, prefix="native-extensions/")
+        if document.get("schema_version") != 1 or not isinstance(document.get("checks"), list):
+            raise ValueError("Malformed native extension review")
+        for row in document["checks"]:
+            spec = row.get("spec", {})
+            require_fields(spec, {"id", "provider", "resource_kind", "data_source", "predicate",
+                                  "severity", "category", "title", "description", "remediation_hint"}, "native extension")
+            cid = spec["id"]
+            sources = row.get("sources")
+            if (cid in indexed or cid in proposed or cid not in native or
+                    spec["provider"] not in PROVIDERS or native[cid].get("provider") != spec["provider"] or
+                    any(not isinstance(v, str) or not v.strip() for v in spec.values()) or
+                    not isinstance(sources, list) or not sources or
+                    not all(isinstance(s, dict) and isinstance(s.get("url"), str) and s["url"].startswith("https://")
+                            and isinstance(s.get("sha256"), str) and len(s["sha256"]) == 64
+                            and all(c in "0123456789abcdef" for c in s["sha256"]) for s in sources)):
+                raise ValueError("Unreviewed, duplicate or unregistered native extension")
+            # New extension specifications must describe the actual registered
+            # contract. Historical signed proposals may use older compliance
+            # categories; they do not pass through this new-extension path.
+            from peaso.finding_priority import source_priority
+            actual = native[cid].get("_registered_contract", native[cid])
+            expected_target = row.get("target", "resource")
+            if (spec["resource_kind"] != actual.get("type") or
+                    spec["category"] not in {"hardening", "exposure", "least_privilege", "iam_graph", "network"} or
+                    spec["category"] != actual.get("category") or
+                    spec["severity"] not in {"critical", "high", "medium", "low", "info"} or
+                    spec["severity"] != source_priority(actual) or
+                    not isinstance(expected_target, str) or expected_target not in {"resource", "scope"} or
+                    actual.get("target") != expected_target):
+                raise ValueError("Native extension differs from registered typed contract")
+            links = row.get("requirements")
+            if not isinstance(links, list):
+                raise ValueError("Native extension requires an explicit checklist link list")
+            proposed[cid] = spec
+            by_check[cid] = []
+            seen = set()
+            for link in links:
+                fid, rid = link.get("framework_id"), link.get("requirement_id")
+                if (not isinstance(link.get("reason"), str) or len(link["reason"].strip()) < 20 or
+                        fid not in frameworks or frameworks[fid]["provider"] != spec["provider"] or
+                        (fid, rid) in seen):
+                    raise ValueError("Invalid native extension checklist link")
+                seen.add((fid, rid))
+                requirement = next((r for r in frameworks[fid]["requirements"] if r["requirement_id"] == rid), None)
+                if requirement is None or cid in requirement["removed_checks"]:
+                    raise ValueError("Native extension checklist requirement absent or explicitly rejected")
+                # A new technical signal cannot silently certify a broader
+                # organizational requirement or replace its historical review.
+                requirement["decision"] = "PARTIAL"
+                requirement["runtime_status"] = "partial"
+                requirement["native_checks"] = sorted(set(requirement["native_checks"]) | {cid})
+                requirement["declared_check_ids"] = sorted(set(requirement["declared_check_ids"]) | {cid})
+                requirement["reason"] += " Additional bounded native signal: " + link["reason"]
+                requirement["evidence"].append(entry["path"] + "#" + cid)
+                # Keep all old reverse tags consistent with the strengthened,
+                # explicitly partial requirement, including other checks.
+                for old_cid in requirement["native_checks"]:
+                    tags = by_check.setdefault(old_cid, [])
+                    tag = next((t for t in tags if t["framework_id"] == fid and t["requirement_id"] == rid), None)
+                    if tag is None:
+                        tags.append({"framework_id": fid, "requirement_id": rid,
+                                     "decision": "PARTIAL", "runtime_status": "partial"})
+                    else:
+                        tag.update(decision="PARTIAL", runtime_status="partial")
+
+
 def compile_verified(ledger_root: Path, audit_matrix: dict, native_catalog: dict):
     """Return (requirement pack, description pack); raise before any output on partial input."""
     ledger_root = ledger_root.resolve()
@@ -357,6 +461,18 @@ def compile_verified(ledger_root: Path, audit_matrix: dict, native_catalog: dict
         if not isinstance(supplement_entry, dict) or supplement_entry.get("path") != "descriptions/implemented-new-checks.json":
             raise ValueError("Unexpected supplemental description path")
         listed.add(supplement_entry["path"])
+    description_errata = manifest.get("description_errata")
+    if description_errata is not None:
+        if not isinstance(description_errata, dict):
+            raise ValueError("Malformed description errata manifest")
+        listed.add(description_errata.get("path"))
+    extensions = manifest.get("native_extensions", [])
+    if not isinstance(extensions, list) or any(not isinstance(e, dict) for e in extensions):
+        raise ValueError("Malformed native extension manifest")
+    extension_paths = [e.get("path") for e in extensions]
+    if len(extension_paths) != len(set(extension_paths)):
+        raise ValueError("Duplicate native extension file")
+    listed.update(extension_paths)
     actual = {path.relative_to(ledger_root).as_posix() for path in ledger_root.rglob("*.json")
               if "inputs" not in path.relative_to(ledger_root).parts and ".work" not in path.relative_to(ledger_root).parts
               and path.name != "manifest.json"
@@ -516,6 +632,8 @@ def compile_verified(ledger_root: Path, audit_matrix: dict, native_catalog: dict
     if set(frameworks) != set(matrix):
         raise ValueError("Manifest does not cover every pinned framework")
 
+    admit_native_extensions(ledger_root, extensions, native, indexed, proposed, frameworks, by_check)
+
     descriptions = {}
     for chunk, entry in sorted(manifest["descriptions"].items()):
         if entry.get("path") != "descriptions/" + chunk + ".json":
@@ -544,6 +662,18 @@ def compile_verified(ledger_root: Path, audit_matrix: dict, native_catalog: dict
             descriptions[cid] = {field: value[field] for field in DESCRIPTION_FIELD_ORDER}
     if set(descriptions) != set(indexed) | new_native:
         raise ValueError("Incomplete reviewed check descriptions")
+    if description_errata is not None:
+        correction, _ = verified_file(ledger_root, description_errata, prefix="descriptions/")
+        if correction.get("schema_version") != 1 or not isinstance(correction.get("checks"), dict):
+            raise ValueError("Malformed reviewed description errata")
+        for cid, row in correction["checks"].items():
+            replacement = row.get("description")
+            if (cid not in indexed or not isinstance(replacement, dict) or set(replacement) != DESCRIPTION_FIELDS or
+                    spec_digest(descriptions[cid]) != row.get("prior_sha256") or
+                    spec_digest(replacement) != row.get("replacement_sha256") or
+                    not isinstance(row.get("reason"), str) or len(row["reason"].strip()) < 20):
+                raise ValueError("Description erratum does not match exact reviewed ancestry")
+            descriptions[cid] = {field: replacement[field] for field in DESCRIPTION_FIELD_ORDER}
     seen = {}
     allowlist = manifest.get("duplicate_description_allowlist", {})
     if not isinstance(allowlist, dict):

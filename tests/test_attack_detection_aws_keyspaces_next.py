@@ -25,15 +25,15 @@ def record() -> dict:
         "eventCategory": "Management", "eventType": "AwsApiCall",
         "managementEvent": True, "readOnly": False, "awsRegion": "us-east-1",
         "eventID": "eeb7778f-6e12-48d0-9c60-69155382502d",
-        "eventTime": "2026-10-18T17:30:00Z", "recipientAccountId": "947247140022",
-        "userIdentity": {"type": "IAMUser", "accountId": "947247140022",
-                         "userName": "lab-admin", "arn": "arn:aws:iam::947247140022:user/lab-admin"},
+        "eventTime": "2026-10-18T17:30:00Z", "recipientAccountId": "222233334444",
+        "userIdentity": {"type": "IAMUser", "accountId": "222233334444",
+                         "userName": "lab-admin", "arn": "arn:aws:iam::222233334444:user/lab-admin"},
         "requestParameters": {"serviceName": "cassandra.amazonaws.com",
                               "userName": "disposable-user"},
         "responseElements": {"serviceSpecificCredential": {
             "serviceName": "cassandra.amazonaws.com", "userName": "disposable-user",
             "status": "Active", "serviceSpecificCredentialId": "ACCA1234567890EXAMPLE0",
-            "serviceUserName": "disposable-user-at-947247140022",
+            "serviceUserName": "disposable-user-at-222233334444",
         }},
     }
 
@@ -42,7 +42,7 @@ def test_positive_flat_event_and_pinned_cross_rule() -> None:
     row = record()
     event = normalize_keyspaces_other_user_credential(row)
     assert event is not None
-    assert event["target.id"] == "iam-user:947247140022:disposable-user"
+    assert event["target.id"] == "iam-user:222233334444:disposable-user"
     assert event["actor.id"] == row["userIdentity"]["arn"]
     assert event["event.id"] == row["eventID"]
     assert event["event.time"] == row["eventTime"]

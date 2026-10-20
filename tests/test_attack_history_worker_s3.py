@@ -6,6 +6,8 @@ import gzip
 import hashlib
 import io
 import json
+from datetime import datetime, timedelta, timezone
+from itertools import count
 from pathlib import Path
 from uuid import UUID
 
@@ -32,6 +34,21 @@ RULE = Rule("reviewed-stop", "StopLogging observed", "medium",
             {"event.source": "cloudtrail.amazonaws.com",
              "event.name": "StopLogging", "event.outcome": "success",
              "request.stop_logging_observed": True})
+
+
+@pytest.fixture(autouse=True)
+def listing_clock_matches_worker_clock(monkeypatch):
+    # The worker uses CLOCK below. Its two native listing receipts must use
+    # that same timeline, with the second strictly later than the first.
+    ticks = count()
+
+    class ListingDateTime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            value = datetime.fromtimestamp(CLOCK - 1, timezone.utc) + timedelta(microseconds=next(ticks))
+            return value.astimezone(tz) if tz else value.replace(tzinfo=None)
+
+    monkeypatch.setattr("peaso.attack_detection.history_s3.datetime", ListingDateTime)
 
 
 def event(event_id: str) -> dict:

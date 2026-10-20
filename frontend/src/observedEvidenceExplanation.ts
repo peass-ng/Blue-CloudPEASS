@@ -16,6 +16,7 @@ const reviews: Record<string, Record<string, EvidenceReview>> = reviewedCopy;
  */
 export function explainObservedEvidence(finding: Finding, observation: string): string {
   if (finding.guidance_refresh?.allow_summary === false) return observation;
+  if (finding.evidence_summary_format === "natural-language-v2" && finding.evidence_summary === observation) return observation;
   const row = reviews[finding.provider]?.[finding.check_id];
   if (!row || observation.includes(row.purpose)) return observation;
   if (finding.provider === "azure") {

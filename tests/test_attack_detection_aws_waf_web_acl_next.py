@@ -32,7 +32,7 @@ def _event() -> dict:
     return {"eventSource": "wafv2.amazonaws.com", "eventName": "UpdateWebACL",
             "eventCategory": "Management", "eventType": "AwsApiCall",
             "managementEvent": True, "readOnly": False,
-            "recipientAccountId": "947247140022",
+            "recipientAccountId": "222233334444",
             "requestParameters": {"id": "a4fceb6d-1195-4087-9b83-4709e869a14c",
                                   "name": "synthetic-acl", "defaultAction": {"allow": {}},
                                   "rules": [{"name": "allow", "priority": 0, "action": {"allow": {}},

@@ -51,6 +51,140 @@ def _rule_text(evidence, field):
     return 'The role declares ' + ', '.join('“' + x + '”' for x in verbs) + ' access to ' + ', '.join('“' + x + '”' for x in resources) + '.'
 
 
+def _duration_words(value):
+    """Translate captured Go-style time units without interpreting missing values."""
+    import re
+    from decimal import Decimal
+    if not isinstance(value, str) or not re.fullmatch(r'(?:[0-9]+(?:\.[0-9]+)?(?:ns|us|µs|ms|h|m|s))+|0', value):
+        return None
+    labels = {'h': 'hour', 'm': 'minute', 's': 'second', 'ms': 'millisecond', 'us': 'microsecond', 'µs': 'microsecond', 'ns': 'nanosecond'}
+    parts = []
+    for number, unit in re.findall(r'([0-9]+(?:\.[0-9]+)?)(ns|us|µs|ms|h|m|s)', value):
+        amount = Decimal(number)
+        if amount:
+            parts.append(number + ' ' + labels[unit] + ('' if amount == 1 else 's'))
+    return ' and '.join(parts) if parts else 'zero seconds'
+
+
+def _permission_sentence(mode):
+    try:
+        value = int(mode, 8)
+    except (TypeError, ValueError):
+        return None
+    if not 0 <= value <= 0o7777:
+        return None
+    basic = value & 0o777
+    explanations = {
+        0o000: 'sets no read, write or execute permission bits',
+        0o400: 'allows only the owner to read',
+        0o600: 'allows only the owner to read and write',
+        0o644: 'allows everyone to read and only the owner to write',
+        0o700: 'gives only the owner read, write and execute permissions',
+        0o755: 'allows everyone to read and execute, and only the owner to write',
+        0o777: 'allows everyone to read, write and execute',
+    }
+    if not value & 0o7000 and basic in explanations:
+        return f'The supplied file mode {value:04o} ' + explanations[basic] + '.'
+    special = [label for bit, label in ((0o4000, 'set-user-ID'), (0o2000, 'set-group-ID'), (0o1000, 'sticky')) if value & bit]
+    if special:
+        return f'The supplied mode {value:04o} sets ' + ' and '.join(special) + ' permission bits.'
+    def rights(bits):
+        selected = [label for bit, label in ((4, 'read'), (2, 'write'), (1, 'execute')) if bits & bit]
+        return ' and '.join(selected) if selected else 'no permissions'
+    return f'The supplied mode {value:04o} gives '+rights((value >> 6) & 7)+' to the owner, '+rights((value >> 3) & 7)+' to the group, and '+rights(value & 7)+' to others.'
+
+
+def _component_sentence(finding, row, validated):
+    binding = row.get('binding', {})
+    fields = binding.get('fields', [])
+    if not fields:
+        return validated
+    field = fields[0]
+    for observation in finding['evidence'].get('observations', []):
+        if not isinstance(observation, dict):
+            continue
+        name, component, settings = observation.get('container'), observation.get('component'), observation.get('settings')
+        if not _text(name) or not _text(component) or not isinstance(settings, dict):
+            continue
+        if not validated.startswith(f'Container “{name}” declares {component} '):
+            continue
+        value = settings.get(field)
+        prefix = f'Container “{name}” declares {component} '
+        if field == 'authorization-mode' and isinstance(value, str):
+            modes = set(value.split(','))
+            if 'AlwaysAllow' in modes:
+                return prefix + 'with authorization checks bypassed by the allow-all mode.'
+            descriptions = {'Node': 'node authorization', 'RBAC': 'role-based authorization', 'Webhook': 'webhook authorization'}
+            if modes and modes <= descriptions.keys():
+                return prefix + 'with ' + ' and '.join(descriptions[m] for m in sorted(modes)) + '.'
+        if field == 'enable-admission-plugins' and isinstance(value, str):
+            expected = binding.get('expected')
+            expected = [expected] if isinstance(expected, str) else expected
+            if isinstance(expected, (list, tuple)):
+                declared = [plugin for plugin in expected if plugin in value.split(',')]
+                if declared:
+                    return prefix + 'with ' + ' or '.join(declared) + ' admission configured.'
+                return prefix + 'without ' + ' or '.join(expected) + ' in its admission configuration.'
+        if field == 'feature-gates' and isinstance(value, str):
+            gates = value.split(',')
+            if 'RotateKubeletServerCertificate=true' in gates:
+                return prefix + 'with kubelet serving-certificate rotation enabled.'
+            if 'RotateKubeletServerCertificate=false' in gates:
+                return prefix + 'with kubelet serving-certificate rotation disabled.'
+            return prefix + 'without an enabled kubelet serving-certificate rotation declaration.'
+        if field == 'tls-cipher-suites' and isinstance(value, str):
+            if not value:
+                return prefix + 'without a TLS cipher-suite selection.'
+            return prefix + ('using only reviewed TLS cipher suites.' if finding['status'] == 'PASS' else 'using a TLS cipher suite outside the reviewed list.')
+        if field == 'streaming-connection-idle-timeout':
+            duration = _duration_words(value)
+            if duration:
+                return prefix + ('without an idle timeout for streaming connections.' if duration == 'zero seconds' else f'with a streaming idle timeout of {duration}.')
+    return validated
+
+
+def _scalar_sentence(finding, row):
+    e, cid = finding['evidence'], finding['check_id']
+    field = row['field']
+    if field not in e:
+        return None
+    value = e[field]
+    if cid == 'k8s.ports.configuration.kubelet_authorization_mode':
+        meanings = {'Webhook': 'delegates permission checks to a webhook', 'AlwaysAllow': 'allows requests without authorization checks'}
+        if isinstance(value, str) and value in meanings:
+            return 'The supplied kubelet configuration ' + meanings[value] + '.'
+        return f'The supplied kubelet configuration declares authorization mode “{value}”.' if _text(value) else None
+    boolean_meanings = {
+        'k8s.ports.configuration.kubelet_disable_anonymous_auth': ('allows unauthenticated requests', 'disables anonymous authentication'),
+        'k8s.ports.configuration.kubelet_manage_iptables': ('manages iptables utility chains', 'does not manage iptables utility chains'),
+        'k8s.ports.configuration.kubelet_rotate_certificates': ('enables client-certificate rotation', 'disables client-certificate rotation'),
+        'k8s.cis.the_seccomp_default_parameter_is_set_to_true': ('enables default seccomp filtering', 'disables default seccomp filtering'),
+        'k8s.cis.kubelet_rotate_kubelet_server_certificate_true': ('enables serving-certificate rotation', 'disables serving-certificate rotation'),
+    }
+    if cid in boolean_meanings:
+        if type(value) is not bool:
+            return None
+        return 'The supplied kubelet configuration ' + boolean_meanings[cid][0 if value else 1] + '.'
+    if cid == 'k8s.ports.configuration.kubelet_disable_read_only_port' and type(value) is int and 0 <= value <= 65535:
+        return 'The supplied kubelet configuration disables its unauthenticated read-only listener.' if value == 0 else f'The supplied kubelet configuration declares an unauthenticated read-only listener on port {value}.'
+    if cid == 'k8s.claude.configuration.kubelet_client_ca_file':
+        if value is None:
+            return 'The supplied kubelet configuration declares no client certificate-authority file.'
+        if _text(value):
+            return f'The supplied kubelet configuration references client certificate trust file “{value}”.'
+    if cid == 'k8s.claude.configuration.kubelet_streaming_timeout':
+        duration = _duration_words(value)
+        if duration:
+            return 'The supplied kubelet configuration sets no idle timeout for streaming connections.' if duration == 'zero seconds' else f'The supplied kubelet configuration sets a streaming idle timeout of {duration}.'
+    if cid == 'k8s.cis.a_limit_is_set_on_pod_pids' and type(value) is int:
+        if value <= 0:
+            return 'The supplied kubelet configuration sets no positive per-Pod process limit.'
+        return f'The supplied kubelet configuration declares a per-Pod process limit of {value}.'
+    if cid == 'k8s.cis.the_kube_proxy_metrics_service_is_bound_to_localhost' and _text(value):
+        return f'The kube-proxy declaration binds metrics to “{value}”.'
+    return None
+
+
 def _precise_native(finding, row):
     e, status = finding['evidence'], finding['status']
     predicate = row.get('binding', {}).get('predicate')
@@ -104,6 +238,8 @@ def _precise_native(finding, row):
                 if _text(container) and _text(env):
                     return f'Container “{container}” declares a nonempty literal in credential-like variable “{env}”.'
     observed = native_observation(finding)
+    if observed and row.get('binding', {}).get('component'):
+        observed = _component_sentence(finding, row, observed)
     if observed and predicate in ('plugin_deny_service_external_ips', 'plugin_event_rate_limit'):
         plugin = 'DenyServiceExternalIPs' if predicate == 'plugin_deny_service_external_ips' else 'EventRateLimit'
         return 'The API-server declaration ' + ('includes ' if status == 'PASS' else 'does not include ') + plugin + ' admission.'
@@ -111,7 +247,15 @@ def _precise_native(finding, row):
         rules = e.get('unrestricted_rule_indexes')
         direction = e.get('direction')
         if isinstance(rules, list) and direction in ('Ingress', 'Egress'):
-            return f'Unrestricted {direction.lower()} rules declared: {len(rules)}.'
+            return f'The policy declares {len(rules)} unrestricted {direction.lower()} '+('rule.' if len(rules) == 1 else 'rules.')
+    if observed and predicate == 'declared_nonroot' and status == 'FAIL':
+        return observed.replace('does not explicitly declare runAsNonRoot=true', 'does not explicitly require a non-root user')
+    if observed and predicate == 'security_services_hardening':
+        return 'The legacy Pod security policy requires configured SELinux labels.' if e.get('selinux_rule') == 'MustRunAs' else 'The legacy Pod security policy allows any SELinux label.'
+    if observed and predicate == 'default_seccomp_profile':
+        profile = e.get('default_profile')
+        if profile in ('runtime/default', 'docker/default'):
+            return 'The legacy Pod security policy selects the runtime’s default system-call filter.'
     if observed and status == 'PASS':
         if predicate == 'capabilities_dropped':
             return 'No assessed capabilities object adds capabilities or declares an empty drop list.'
@@ -139,35 +283,23 @@ def _external_observation(finding, row):
         if not path:
             return None
         if _text(e.get('mode')):
-            return f'Supplied file metadata reports mode {e["mode"]} for “{path}”.'
+            return _permission_sentence(e['mode'])
         if type(e.get('uid')) is int and type(e.get('gid')) is int:
-            return f'Supplied file metadata reports UID {e["uid"]} and GID {e["gid"]} for “{path}”.'
+            return f'The supplied metadata names the root user and group as owners of “{path}”.' if e['uid'] == e['gid'] == 0 else f'The supplied metadata names user ID {e["uid"]} and group ID {e["gid"]} as owners of “{path}”.'
         failures = e.get('failing_files')
         if status == 'FAIL' and isinstance(failures, list) and failures and isinstance(failures[0], dict):
             f = failures[0]
             if _text(f.get('path')):
                 if _text(f.get('mode_octal')):
-                    return f'Supplied metadata reports mode {f["mode_octal"]} for “{f["path"]}”.'
+                    return _permission_sentence(f['mode_octal'])
                 if type(f.get('uid')) is int and type(f.get('gid')) is int:
-                    return f'Supplied metadata reports UID {f["uid"]} and GID {f["gid"]} for “{f["path"]}”.'
+                    return f'The supplied metadata names user ID {f["uid"]} and group ID {f["gid"]} as owners of “{f["path"]}”.'
         count = e.get('assessed_file_count')
         if status == 'PASS' and type(count) is int and count > 0:
-            return f'Imported metadata: {count} '+('file meets' if count == 1 else 'files meet')+f' required {row["file_requirement"]} for “{path}”.'
+            return f'The supplied metadata meets the required {row["file_requirement"]} for “{path}”.'
         return None
     if fmt == 'scalar':
-        field = row['field']
-        if field not in e:
-            return None
-        value = e[field]
-        if type(value) is bool:
-            rendered = 'enabled' if value else 'disabled'
-        elif value is None and row.get('nullable'):
-            rendered = 'not declared'
-        elif type(value) in (int, float) or _text(value):
-            rendered = str(value)
-        else:
-            return None
-        return f'{row["label"]}: {rendered}.'
+        return _scalar_sentence(finding, row)
     if fmt == 'list':
         values = e.get(row['field'])
         if not isinstance(values, list):
@@ -217,7 +349,7 @@ def _external_observation(finding, row):
     if fmt == 'event_rate':
         observed, required = e.get('observed'), e.get('required')
         if type(observed) in (int, float) and type(required) in (int, float):
-            return f'Supplied kubelet configuration records {observed:g} events per second; the approved minimum is {required:g}.'
+            return f'Supplied kubelet configuration allows {observed:g} '+('event' if observed == 1 else 'events')+f' per second; the approved minimum is {required:g}.'
     if fmt == 'image_policy':
         if isinstance(e.get('approved_images'), list) and e['approved_images'] and status == 'PASS':
             return 'A recognized Deny admission binding declares the owner-approved image restriction.'
@@ -260,7 +392,7 @@ def _external_observation(finding, row):
         values = e.get('observed')
         if isinstance(values, dict) and values and all(_text(k) and _text(v) for k, v in values.items()):
             node, value = next(iter(values.items()))
-            return f'Supplied Windows policy for node “{node}” declares IPAddressDeny={value}.'
+            return f'For node “{node}”, the supplied Windows policy '+('declares a block-all IP restriction.' if value == 'Any' else f'sets its IP restriction to “{value}”.')
     return None
 
 
