@@ -32,7 +32,7 @@ peaso = "peaso.cli:main"
 include = ["peaso*", "bluepeass*", "scripts*", "risk_rules*", "tests.fixtures"]
 
 [tool.setuptools.package-data]
-peaso = ["*.yaml", "ai/agents/*.yaml", "ai/*.json", "check_services.json", "rulepacks/*.json", "rulepacks/licenses/*.txt", "risk_catalog/*.yaml", "checks/*.json", "checks/*.json.gz", "collectors/*.json", "privesc/*.json", "privesc/*.yaml", "privesc/catalog_versions/*.json", "privesc/catalog_versions/*.tar.gz", "privesc/catalog/*/*.yaml"]
+peaso = ["*.yaml", "ai/agents/*.yaml", "ai/*.json", "check_services.json", "rulepacks/*.json", "rulepacks/*.json.gz", "rulepacks/licenses/*.txt", "risk_catalog/*.yaml", "checks/*.json", "checks/*.json.gz", "collectors/*.json", "privesc/*.json", "privesc/*.yaml", "privesc/catalog_versions/*.json", "privesc/catalog_versions/*.tar.gz", "privesc/catalog/*/*.yaml"]
 bluepeass = ["*.yaml", "*.json"]
 
 risk_rules = ["*.yaml", "*.json"]

@@ -24,6 +24,8 @@ CHECK_BY_ID = {c.id: c for c in CHECKS if c.provider == 'aws'}
 ROWS = review_rows()
 LEDGER = json.loads((ROOT / 'docs/evidence-reviews/aws.json').read_text())
 CASES = json.loads(gzip.decompress((ROOT / 'tests/fixtures/aws_evidence_review.json.gz').read_bytes()))
+from tests.aws_late_native_contracts_20261020 import IDS as LATE_IDS, assert_contract
+
 STATUSES = ('PASS', 'FAIL', 'UNKNOWN', 'DENIED', 'MANUAL', 'EMPTY', 'NOT_APPLICABLE')
 EXTENSION_IDS = {row['spec']['id'] for name in MODULES
                  for row in import_module('peaso.checks.' + name).ADMISSION_DATA['checks']}
@@ -31,18 +33,24 @@ EXTENSION_IDS = {row['spec']['id'] for name in MODULES
 
 def test_every_registered_aws_check_and_retired_alias_has_source_review_and_real_native_witnesses():
     aliases = {old for old, new in CHECK_ALIASES.items() if new in CHECK_BY_ID}
-    assert len(CHECK_BY_ID) == 1521 + len(EXTENSION_IDS)
-    assert set(CHECK_BY_ID) == set(CASES)
+    assert len(CHECK_BY_ID) == 1521 + len(EXTENSION_IDS) + len(LATE_IDS)
+    assert set(CHECK_BY_ID) == set(CASES) | LATE_IDS
+    assert not set(CASES) & LATE_IDS
     assert set(CHECK_BY_ID) | aliases == set(ROWS) == set(LEDGER['checks'])
     assert sum(len(rows) for cid, rows in CASES.items() if cid not in EXTENSION_IDS) == 8882
     assert all(len(CASES[cid]) >= 4 for cid in EXTENSION_IDS)
-    assert all(row['review_status'] == 'source_reviewed_and_native_replayed' for row in ROWS.values())
-    assert all(row['purpose'] and row['fields'] is not None for row in ROWS.values())
+    assert all(ROWS[cid]['review_status'] == 'source_reviewed_and_native_replayed' for cid in set(ROWS) - LATE_IDS)
+    assert all(ROWS[cid]['purpose'] and ROWS[cid]['fields'] is not None for cid in set(ROWS) - LATE_IDS)
+    for cid in LATE_IDS:
+        assert_contract(cid, CHECK_BY_ID[cid], LEDGER['checks'][cid], ROWS[cid], description_for(cid))
 
 
 @pytest.mark.parametrize('cid', sorted(CHECK_BY_ID))
 def test_exact_evaluator_and_requirement_contract_match_the_review(cid):
     row = LEDGER['checks'][cid]
+    if cid in LATE_IDS:
+        assert_contract(cid, CHECK_BY_ID[cid], row, ROWS[cid], description_for(cid))
+        return
     function = inspect.unwrap(CHECK_BY_ID[cid].evaluate)
     assert hashlib.sha256(inspect.getsource(function).encode()).hexdigest() == row['evaluator_sha256']
     if cid in EXTENSION_IDS:

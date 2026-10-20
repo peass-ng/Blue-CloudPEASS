@@ -271,6 +271,8 @@ def _arm_parent_native_type(row, kind):
     if "type" not in row:
         return  # Optional omissions remain subject to existing family guards.
     expected = "Microsoft.Resources/resourceGroups" if kind == "resource_group" else ENDPOINTS[kind][0]
+    if kind == "jit_network_access_policy":
+        expected = "Microsoft.Security/locations/jitNetworkAccessPolicies"
     value = row["type"]
     # The official 2016-03-01 LogProfiles List example explicitly returns "".
     if kind == "monitor_log_profile" and value == "":

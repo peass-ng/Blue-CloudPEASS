@@ -8,7 +8,8 @@ import pytest
 from peaso.collectors import azure, azure_sql_ltr_native
 
 NEW_KINDS = tuple('vm_scale_set container_group disk_access databox_edge_device jit_network_access_policy resource_link eventgrid_domain eventgrid_topic eventhub_namespace frontdoor hdinsight_cluster healthcare_fhir_service hpc_cache iot_hub managed_hsm network_watcher bastion_host log_analytics_workspace logic_app_workflow ml_workspace mssql_managed_instance mysql_flexible_server postgresql_flexible_server recovery_vault policy_assignment security_assessment iot_security_solution servicebus_namespace service_fabric_cluster signalr_service spring_cloud_service storage_sync_service stream_analytics_job synapse_workspace web_application_firewall_policy'.split())
-SUB = '/subscriptions/sub'
+SUB = '/subscriptions/11111111-1111-1111-1111-111111111111'
+TENANT = '22222222-2222-2222-2222-222222222222'
 
 
 class ServiceAPI:
@@ -18,6 +19,12 @@ class ServiceAPI:
         self.kind, self.mode, self.calls = kind, mode, []
         self.endpoint, self.version = azure.ENDPOINTS[kind]
         self.rid = SUB + '/resourceGroups/group/providers/' + self.endpoint + '/resource'
+        self.native_type = self.endpoint
+        if kind == 'jit_network_access_policy':
+            # Official JIT DTO identity/type includes the location segment;
+            # the subscription-wide list URL itself intentionally does not.
+            self.native_type = 'Microsoft.Security/locations/jitNetworkAccessPolicies'
+            self.rid = SUB + '/resourceGroups/group/providers/Microsoft.Security/locations/eastus/jitNetworkAccessPolicies/resource'
         self.root = SUB + '/providers/' + self.endpoint
     def request(self, url, body=None, audience=azure.ARM):
         self.calls.append((url, body, audience))
@@ -27,23 +34,23 @@ class ServiceAPI:
             return {'data': []}
         if path == SUB + '/resources':
             # Authoritative ARM resource index: only this service's tracked type exists.
-            return {'value': [{'id': self.rid, 'type': self.endpoint}]}
+            return {'value': [{'id': self.rid, 'type': self.native_type}]}
         if path == self.root:
             assert parse_qs(urlsplit(url).query)['api-version'] == [self.version]
             if self.mode == 'denied': raise azure.AzureReadError('403', 403)
             if self.mode == 'malformed': return {'value': 'invalid-list'}
             if self.mode == 'empty': return {'value': []}
-            suffix = 'other' if '$skiptoken' in url else 'resource'
+            suffix = 'other' if '$skiptoken' in url else self.rid.rsplit('/', 1)[-1]
             rid = self.rid.rsplit('/', 1)[0] + '/' + suffix
-            if self.mode == 'foreign': rid = rid.replace('/sub/', '/other/')
-            value = {'id': rid, 'type': self.endpoint, 'sku': {'name': 'Premium', 'tier': 'Premium'}, 'properties': {'publicNetworkAccess': 'Disabled', 'enablePurgeProtection': True}}
+            if self.mode == 'foreign': rid = rid.replace(SUB + '/', '/subscriptions/33333333-3333-3333-3333-333333333333/')
+            value = {'id': rid, 'name': suffix, 'type': self.native_type, 'sku': {'name': 'Premium', 'tier': 'Premium'}, 'properties': {'publicNetworkAccess': 'Disabled', 'enablePurgeProtection': True}}
             reply = {'value': [value]}
             if self.mode == 'pagination' and suffix == 'resource': reply['nextLink'] = url + '&$skiptoken=page2'
             return reply
         if self.kind == 'container_group' and path.rsplit('/', 1)[0] == self.rid.rsplit('/', 1)[0]:
-            return {'id': path, 'type': self.endpoint, 'properties': {'containers': [{'properties': {'environmentVariables': [{'name': 'CONFIG', 'value': 'INERT_VALUE'}, {'name': 'PASSWORD', 'secureValue': 'INERT_SECRET'}]}}], 'encryptionProperties': {'keyName': 'metadata-key'}}}
+            return {'id': path, 'type': self.native_type, 'properties': {'containers': [{'properties': {'environmentVariables': [{'name': 'CONFIG', 'value': 'INERT_VALUE'}, {'name': 'PASSWORD', 'secureValue': 'INERT_SECRET'}]}}], 'encryptionProperties': {'keyName': 'metadata-key'}}}
         if path.rsplit('/', 1)[0] == self.rid.rsplit('/', 1)[0] and path.rsplit('/', 1)[-1] in ('resource', 'other'):
-            return {'id': path, 'type': self.endpoint, 'sku': {'name': 'Premium', 'tier': 'Premium'}, 'properties': {'publicNetworkAccess': 'Disabled', 'enablePurgeProtection': True}}
+            return {'id': path, 'name': path.rsplit('/', 1)[-1], 'type': self.native_type, 'sku': {'name': 'Premium', 'tier': 'Premium'}, 'properties': {'publicNetworkAccess': 'Disabled', 'enablePurgeProtection': True}}
         if path.endswith(('/networkRuleSets/default', '/vulnerabilityAssessments/default', '/sqlVulnerabilityAssessments/default', '/encryptionProtector/current')):
             return {'id': path, 'properties': {'state': 'Enabled', 'defaultAction': 'Deny', 'publicNetworkAccess': 'Disabled'}}
         return {'value': []}
@@ -53,7 +60,7 @@ class ServiceAPI:
 @pytest.mark.parametrize('mode,expected', [('pass', 'collected'), ('empty', 'empty'), ('denied', 'denied'), ('malformed', 'malformed'), ('foreign', 'malformed'), ('pagination', 'collected')])
 def test_documented_new_service_authoritative_list_scope_pagination_and_denial(kind, mode, expected):
     api = ServiceAPI(kind, mode)
-    snapshot = azure.collect({'scopes': ['sub'], 'options': {'retries': 0}}, [kind], transport=api)
+    snapshot = azure.collect({'scopes': [SUB], 'options': {'retries': 0}}, [kind], transport=api)
     row = next(c for c in snapshot['collections'] if c['type'] == kind)
     assert row['status'] == expected
     if mode == 'pagination': assert len(row['items']) == 2
@@ -79,7 +86,7 @@ EMBEDS += [(kind, field, path, version, False) for kind, specs in azure.EMBEDDED
 def test_embedded_children_have_native_values_and_explicit_unavailable_coverage(kind, field, path, version, is_list, mode):
     endpoint, _ = azure.ENDPOINTS.get(kind, ('Microsoft.Sql/servers/server/databases', '2023-08-01'))
     rid = SUB + '/resourceGroups/group/providers/' + endpoint + '/parent'
-    parent = {'id': rid, 'sku': {'name': 'Premium'}, 'properties': {}}
+    parent = {'id': rid, 'name': 'parent', 'type': endpoint, 'sku': {'name': 'Premium'}, 'properties': {}}
     if field == 'longTermRetentionBackups': parent['location'] = 'eastus'
     native_path = azure_sql_ltr_native.binding(parent)[0] if field == 'longTermRetentionBackups' else rid + '/' + path
     reader = azure._Reader({'retries': 0})
@@ -92,7 +99,14 @@ def test_embedded_children_have_native_values_and_explicit_unavailable_coverage(
         if mode == 'malformed': return {'value': [None]} if is_list else None
         if is_list:
             if mode == 'empty': return {'value': []}
-            value = {'id': rid + '/' + path + '/child', 'name': 'require_secure_transport' if field == 'configurations' else 'child', 'properties': {'value': 'ON', 'publisher': 'Microsoft.GuestConfiguration', 'type': 'ConfigurationForLinux', 'settings': {'password': 'INERT_PRIVATE'}}}
+            child_name = 'require_secure_transport' if field == 'configurations' else 'default' if field == 'workspaceVulnerabilityAssessments' else 'child'
+            native_type = {'resources': 'Microsoft.Compute/virtualMachines/extensions',
+                           'flowLogs': 'Microsoft.Network/networkWatchers/flowLogs',
+                           'extensions': 'Microsoft.KubernetesConfiguration/extensions',
+                           'eventSubscriptions': 'Microsoft.EventGrid/eventSubscriptions',
+                           'vulnerabilityAssessmentScans': 'Microsoft.Sql/servers/databases/vulnerabilityAssessments/scans'}.get(field, endpoint + '/' + path)
+            value = {'id': rid + '/' + path + '/' + child_name, 'name': child_name, 'type': native_type,
+                     'properties': {'value': 'ON', 'publisher': 'Microsoft.GuestConfiguration', 'type': 'ConfigurationForLinux', 'settings': {'password': 'INERT_PRIVATE'}}}
             if field == 'longTermRetentionBackups':
                 value = {'id': native_path + '/child', 'type': azure_sql_ltr_native.NATIVE_TYPE,
                          'properties': {'serverName': 'server', 'databaseName': 'parent',
@@ -100,7 +114,11 @@ def test_embedded_children_have_native_values_and_explicit_unavailable_coverage(
             result = {'value': [value]}
             if mode == 'partial': result['nextLink'] = url + '&page=2'
             return result
-        return {'id': rid + '/' + path, 'properties': {'state': 'Enabled'}}
+        native_type = {'vulnerabilityAssessment': 'Microsoft.Sql/servers/vulnerabilityAssessments',
+                       'expressVulnerabilityAssessment': 'Microsoft.Sql/servers/sqlVulnerabilityAssessments',
+                       'encryptionProtector': 'Microsoft.Sql/servers/encryptionProtector'}.get(field, endpoint + '/' + path.rsplit('/', 1)[0])
+        return {'id': rid + '/' + path, 'name': path.rsplit('/', 1)[-1], 'type': native_type,
+                'properties': {'state': 'Enabled'}}
     azure._embed(reader, request, [(kind, parent)])
     coverage = parent['_coverage'][field]['status']
     expected = 'partial' if mode == 'partial' and is_list else 'collected' if mode in ('pass', 'partial') or mode == 'empty' and not is_list else mode
@@ -115,9 +133,13 @@ def test_embedded_children_have_native_values_and_explicit_unavailable_coverage(
 def test_graph_policy_fields_credential_metadata_and_verified_tenant_provenance():
     calls = []
     class Directory:
-        tenant = verified_tenant = 'tenant'
+        tenant = verified_tenant = TENANT
         def request(self, url, body=None, audience=azure.ARM):
             calls.append(url)
+            if audience == azure.ARM:
+                assert urlsplit(url).path == SUB and body is None
+                assert parse_qs(urlsplit(url).query) == {'api-version': ['2022-12-01']}
+                return {'id': SUB, 'subscriptionId': SUB.rsplit('/', 1)[-1], 'tenantId': TENANT}
             assert audience == azure.GRAPH
             if 'authenticationMethodsPolicy' in url: return {'id': 'authenticationMethodsPolicy', 'registrationEnforcement': {'authenticationMethodsRegistrationCampaign': {'state': 'enabled'}}}
             if '/applications?' in url:
@@ -126,15 +148,17 @@ def test_graph_policy_fields_credential_metadata_and_verified_tenant_provenance(
             if '/users?' in url:
                 assert 'signInActivity' in url
                 return {'value': [{'id': 'user', 'signInActivity': {'lastSignInDateTime': '2026-10-10T00:00:00Z'}}]}
-            return {'value': [{'id': 'policy', 'state': 'enabled', 'isMfaCapable': True, 'isTrusted': True}]}
+            return {'value': [{'id': '33333333-3333-3333-3333-333333333333',
+                               '@odata.type': '#microsoft.graph.ipNamedLocation',
+                               'state': 'enabled', 'isMfaCapable': True, 'isTrusted': True}]}
     kinds = ['conditional_access_policy', 'named_location', 'user_registration_detail', 'authentication_methods_policy', 'directory_setting', 'directory_user', 'directory_application']
-    snapshot = azure.collect({'scopes': ['sub']}, kinds, transport=Directory())
+    snapshot = azure.collect({'scopes': [SUB]}, kinds, transport=Directory())
     assert all(row['status'] == 'collected' for row in snapshot['collections'])
     assert snapshot['metadata']['tenant_verified'] is True
     assert 'INERT_PRIVATE' not in json.dumps(snapshot) and 'INERT_CERT' not in json.dumps(snapshot)
     app = next(c for c in snapshot['collections'] if c['type'] == 'directory_application')['items'][0]
     assert app['passwordCredentials'] == [{'keyId': 'key', 'endDateTime': '2026-10-10T00:00:00Z'}]
-    assert app['_provenance']['tenant_id'] == 'tenant' and app['_provenance']['tenant_verified']
+    assert app['_provenance']['tenant_id'] == TENANT and app['_provenance']['tenant_verified']
 
 
 def test_subscription_backup_inventory_is_incomplete_when_one_vault_denies_child_read():
@@ -145,14 +169,15 @@ def test_subscription_backup_inventory_is_incomplete_when_one_vault_denies_child
             if body: return {'data': []}
             base = SUB + '/resourceGroups/group/providers/Microsoft.RecoveryServices/vaults/'
             if path == SUB + '/providers/Microsoft.RecoveryServices/vaults':
-                return {'value': [{'id': base + name, 'properties': {}} for name in ('a', 'b')]}
+                return {'value': [{'id': base + name, 'name': name, 'type': 'Microsoft.RecoveryServices/vaults', 'properties': {}} for name in ('a', 'b')]}
             if path in (base + 'a', base + 'b'):
-                return {'id': path, 'properties': {}}
+                return {'id': path, 'name': path.rsplit('/', 1)[-1],
+                        'type': 'Microsoft.RecoveryServices/vaults', 'properties': {}}
             if path.endswith('/backupProtectedItems'):
                 if '/vaults/b/' in path: raise azure.AzureReadError('403', 403)
                 return {'value': [{'id': path + '/item', 'properties': {'sourceResourceId': SUB + '/resourceGroups/group/providers/Microsoft.Compute/virtualMachines/vm', 'protectionState': 'Protected'}}]}
             return {'value': []}
-    snapshot = azure.collect({'scopes': ['sub'], 'options': {'retries': 0}}, ['backup_protected_item'], transport=Backup())
+    snapshot = azure.collect({'scopes': [SUB], 'options': {'retries': 0}}, ['backup_protected_item'], transport=Backup())
     row = next(c for c in snapshot['collections'] if c['type'] == 'backup_protected_item')
     assert row['scope'] == SUB and row['status'] == 'partial' and len(row['items']) == 1
     assert row['items'][0]['parent_id'].endswith('/vaults/a')
@@ -176,7 +201,7 @@ def test_storage_analytics_oauth_metadata_and_service_diagnostics_never_request_
             self.calls.append((url, None, azure.STORAGE))
             return {'read': True, 'write': False, 'delete': True}
     api = Storage()
-    snapshot = azure.collect({'scopes': ['sub']}, ['storage_account'], transport=api)
+    snapshot = azure.collect({'scopes': [SUB]}, ['storage_account'], transport=api)
     item = next(c for c in snapshot['collections'] if c['type'] == 'storage_account')['items'][0]
     assert item['serviceAnalyticsLogging']['blob'] == {'read': True, 'write': False, 'delete': True}
     assert item['serviceDiagnosticSettings']['blob'] == []
@@ -198,7 +223,7 @@ def test_certificate_policy_list_and_policy_get_exclude_all_private_material():
             if path == self.root: response['value'][0]['properties']['vaultUri'] = 'https://vault.vault.azure.net/'
             return response
     api = Certificates()
-    snapshot = azure.collect({'scopes': ['sub']}, ['key_vault_certificate_policy'], transport=api)
+    snapshot = azure.collect({'scopes': [SUB]}, ['key_vault_certificate_policy'], transport=api)
     row = next(c for c in snapshot['collections'] if c['type'] == 'key_vault_certificate_policy')
     assert row['status'] == 'collected'
     assert row['items'][0]['x509_props'] == {'validity_months': 12}
@@ -208,7 +233,7 @@ def test_certificate_policy_list_and_policy_get_exclude_all_private_material():
 
 def test_diagnostic_request_is_coalesced_when_requested_as_collection_and_parent_embed():
     api = ServiceAPI('vault')
-    snapshot = azure.collect({'scopes': ['sub']}, ['vault', 'diagnostic_setting'], transport=api)
+    snapshot = azure.collect({'scopes': [SUB]}, ['vault', 'diagnostic_setting'], transport=api)
     target = api.rid + '/providers/Microsoft.Insights/diagnosticSettings'
     assert sum(urlsplit(url).path == target for url, body, audience in api.calls) == 1
     vault = next(c for c in snapshot['collections'] if c['type'] == 'vault')['items'][0]
@@ -222,7 +247,7 @@ def test_signin_access_denied_preserves_basic_users_and_denied_field_coverage():
             assert audience == azure.GRAPH
             if 'signInActivity' in url: raise azure.AzureReadError('403', 403)
             return {'value': [{'id': 'user', 'accountEnabled': False, 'userType': 'Member'}]}
-    snapshot = azure.collect({'scopes': ['sub']}, ['directory_user'], transport=Users())
+    snapshot = azure.collect({'scopes': [SUB]}, ['directory_user'], transport=Users())
     users = snapshot['collections'][0]
     assert users['status'] == 'collected' and users['items'][0]['accountEnabled'] is False
     assert users['items'][0]['_coverage']['signInActivity']['status'] == 'denied'
@@ -263,7 +288,7 @@ def test_valid_default_https_port_continuation_does_not_allow_host_or_path_chang
 @pytest.mark.parametrize('mode,expected', [('empty', 'empty'), ('denied', 'denied'), ('malformed', 'malformed')])
 def test_absent_key_parent_produces_explicit_real_child_coverage(mode, expected):
     api = ServiceAPI('vault', mode)
-    snapshot = azure.collect({'scopes': ['sub'], 'options': {'retries': 0}}, ['key_vault_key', 'key_vault_certificate_policy'], transport=api)
+    snapshot = azure.collect({'scopes': [SUB], 'options': {'retries': 0}}, ['key_vault_key', 'key_vault_certificate_policy'], transport=api)
     for kind in ('key_vault_key', 'key_vault_certificate_policy', 'key_metadata', 'key_rotation_policy'):
         row = next(c for c in snapshot['collections'] if c['type'] == kind)
         assert row['status'] == expected and row['items'] == []
@@ -309,7 +334,7 @@ def test_same_tenant_directory_binding_is_scoped_to_one_generated_capture_contex
             if body: return {'data': []}
             if audience == azure.GRAPH: return {'value': [{'id': 'user', 'accountEnabled': True}]}
             return {'value': []}
-    snapshots = [azure.collect({'scopes': ['sub'], 'options': {'customer_context_id': 'untrusted-supplied-marker'}}, ['role_assignment', 'directory_user'], transport=TenantAPI()) for _ in range(2)]
+    snapshots = [azure.collect({'scopes': [SUB], 'options': {'customer_context_id': 'untrusted-supplied-marker'}}, ['role_assignment', 'directory_user'], transport=TenantAPI()) for _ in range(2)]
     first, second = snapshots
     users = next(c for c in first['collections'] if c['type'] == 'directory_user')
     assert first['metadata']['credential_context_id'] != second['metadata']['credential_context_id']
@@ -323,7 +348,7 @@ def test_same_tenant_directory_binding_is_scoped_to_one_generated_capture_contex
 @pytest.mark.parametrize('mode', ['pass', 'denied'])
 def test_azure_progress_reports_cumulative_settled_metadata_without_auth_or_resource_payload(mode):
     events = []
-    connector = {'scopes': ['sub'], 'auth': {'unused_secret': 'INERT_SECRET'}, 'options': {'_progress_callback': events.append, 'retries': 0}}
+    connector = {'scopes': [SUB], 'auth': {'unused_secret': 'INERT_SECRET'}, 'options': {'_progress_callback': events.append, 'retries': 0, '_content_secret_scan_kinds': []}}
     before = copy.copy(connector['options'])
     snapshot = azure.collect(connector, ['eventhub_namespace'], transport=ServiceAPI('eventhub_namespace', mode))
     assert connector['options'] == before
@@ -339,7 +364,7 @@ def test_azure_progress_reports_cumulative_settled_metadata_without_auth_or_reso
 
 def test_progress_callback_failure_does_not_change_coverage_and_shared_reader_stays_provider_neutral():
     def callback(event): raise RuntimeError('inert callback failure')
-    snapshot = azure.collect({'scopes': ['sub'], 'options': {'_progress_callback': callback}}, ['eventhub_namespace'], transport=ServiceAPI('eventhub_namespace'))
+    snapshot = azure.collect({'scopes': [SUB], 'options': {'_progress_callback': callback}}, ['eventhub_namespace'], transport=ServiceAPI('eventhub_namespace'))
     assert next(c for c in snapshot['collections'] if c['type'] == 'eventhub_namespace')['status'] == 'collected'
     reader = azure._Reader({'_progress_callback': callback})
     assert reader.progress_provider is None
@@ -356,7 +381,9 @@ def test_nested_arm_credentials_and_named_secret_parameters_are_not_snapshot_fac
 @pytest.mark.parametrize('mode,expected', [('pass', 'collected'), ('empty', 'empty'), ('denied', 'denied'), ('foreign', 'malformed')])
 def test_real_secret_list_metadata_shape_no_individual_get_or_values(mode, expected):
     class Secrets(ServiceAPI):
-        def __init__(self): super().__init__('vault')
+        def __init__(self):
+            super().__init__('vault')
+            self.rid = self.rid.rsplit('/', 1)[0] + '/vault'
         def request(self, url, body=None, audience=azure.ARM):
             path = urlsplit(url).path
             if urlsplit(url).netloc.startswith('vault.vault.azure.net'):
@@ -370,7 +397,7 @@ def test_real_secret_list_metadata_shape_no_individual_get_or_values(mode, expec
                 reply['value'][0]['properties'].update(vaultUri='https://vault.vault.azure.net/', enableRbacAuthorization=True)
             return reply
     api = Secrets()
-    snapshot = azure.collect({'scopes': ['sub'], 'options': {'retries': 0}}, ['secret_metadata'], transport=api)
+    snapshot = azure.collect({'scopes': [SUB], 'options': {'retries': 0}}, ['secret_metadata'], transport=api)
     row = next(c for c in snapshot['collections'] if c['type'] == 'secret_metadata')
     assert row['status'] == expected
     assert 'INERT_PRIVATE' not in json.dumps(snapshot)

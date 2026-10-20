@@ -48,8 +48,8 @@ def branches(value):
 
 @pytest.fixture(scope='module')
 def bridge():
-    from peaso.checks import aws_deployed_ai_shared_successor_20261020
-    return aws_deployed_ai_shared_successor_20261020
+    from peaso.checks import azure_jit_parent_type_shared_successor_20261020
+    return azure_jit_parent_type_shared_successor_20261020
 
 
 def consumed(rows):
@@ -70,7 +70,7 @@ def test_compiler_preserves_decorated_nested_async_class_and_defaults(bridge):
 
 
 @pytest.mark.parametrize('relative', [
-    'peaso/checks/aws_deployed_ai_shared_successor_20261020.py',
+    'peaso/checks/azure_jit_parent_type_shared_successor_20261020.py',
     'peaso/engine.py', 'peaso/collectors/aws.py',
 ])
 def test_current_real_source_consumed_records_match_historical_compiler(bridge, relative):

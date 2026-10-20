@@ -9,7 +9,7 @@ from types import SimpleNamespace
 
 import pytest
 from peaso import checks
-from peaso.checks import aws_deployed_ai_shared_successor_20261020 as bridge
+from peaso.checks import azure_jit_parent_type_shared_successor_20261020 as bridge
 from peaso.collectors.k8s import K8sReader
 
 ROOT = Path(__file__).resolve().parents[1]

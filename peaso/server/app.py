@@ -28,7 +28,8 @@ from peaso.storage.runtime import stores, WorkflowDispatcher
 from peaso.storage.reports import finding_summary
 from .config import Settings
 from .models import ConnectorCreate, ConnectorCheck, ConnectorPatch, ScanCreate, AttackLogSource, AttackLogRun, ScheduleCreate, SchedulePatch, ReachabilityQuery, ReachabilityBatchQuery, ReachabilityMatrixQuery, ReachabilityGridQuery, WorkspaceCreate, WorkspaceInvite, WorkspaceRole
-from .validation import validate_connector, validate_selectors, auth_capabilities, COLLECTOR_ROLE_ARN, CUSTOMER_ROLE_TEMPLATE_URL, EXTERNAL_ID_PREFIX
+from .materialized_catalog import validate_selectors
+from .validation import validate_connector, auth_capabilities, COLLECTOR_ROLE_ARN, CUSTOMER_ROLE_TEMPLATE_URL, EXTERNAL_ID_PREFIX
 
 
 def _safe_api_failure_details(exc):
@@ -313,18 +314,19 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
 
     def with_meta(finding, meta, bundle=None):
         from peaso.finding_types import annotate
-        from peaso.check_services import finding_service
         from peaso.ai.finding_reviews import apply_review
         finding = apply_review(finding, (bundle or {}).get("_finding_reviews", {}), meta)
         # Per-check fields are hydrated before any filter, facet or summary so every consumer sees full rows.
         if not meta or finding.get("check_id") not in meta:
             result = annotate(finding)
+            from peaso.check_services import finding_service
             service = finding_service(result)
             return dict(result, service=service) if service else result
         from peaso.engine import hydrate_finding
         bundle = bundle or {}
         result = annotate(hydrate_finding(finding, None, meta, bundle.get("check_meta_encoding"),
                                bundle.get("remediation_templates")))
+        from peaso.check_services import finding_service
         service = finding_service(result)
         return dict(result, service=service) if service else result
 
@@ -1887,17 +1889,22 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
 
     @app.get("/api/catalog/frameworks")
     def catalog_frameworks(request: Request, user=Depends(identity)):
-        from .catalog_view import frameworks_view
+        from .materialized_catalog import frameworks_view
         return catalog_response(request, "frameworks", frameworks_view)
 
+    @app.get("/api/catalog/checks/{check_id}")
+    def catalog_check(check_id: str, request: Request, user=Depends(identity)):
+        from .materialized_catalog import bounded_response, check_detail
+        return bounded_response(request, check_detail(check_id))
+
     @app.get("/api/catalog")
-    def catalog(request: Request, view: Literal["full", "summary"] = "full", user=Depends(identity)):
+    def catalog(request: Request, view: Literal["full", "summary"] = "full",
+                offset: int = Query(0, ge=0), limit: int = Query(100, ge=1, le=500), user=Depends(identity)):
         if view == "summary":
-            from .catalog_view import summary
-            from peaso.privesc.versioned_catalog import current_binding
-            return catalog_response(request, "summary", lambda: dict(summary(), privesc_catalog=current_binding()))
-        from peaso.engine import get_catalog
-        return catalog_response(request, "full", get_catalog)
+            from .materialized_catalog import summary
+            return catalog_response(request, "summary", summary)
+        from .materialized_catalog import bounded_response, full_page
+        return bounded_response(request, full_page(offset, limit))
 
     # Built frontend is served by the same API origin when available.
     static = Path(__file__).resolve().parents[1] / "frontend_dist"

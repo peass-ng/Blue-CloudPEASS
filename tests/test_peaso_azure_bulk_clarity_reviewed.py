@@ -6,6 +6,8 @@ import inspect
 import json
 from pathlib import Path
 import pytest
+from tests.provider_observation_residual_successors_20261020 import azure_binding, azure_case, digest, immutable_inputs
+from peaso.checks.azure_native_review_copy_20261020 import reviewed_fields
 from peaso.checks import CHECKS
 from peaso.checks.azure_bulk_clarity_reviewed import ROWS, _digest, description, remediation, severity_review
 from peaso.checks.azure_bulk_finding_summary import evidence_summary
@@ -33,7 +35,13 @@ def test_short_description_preserves_signed_contract(cid,originals):
     original=originals[0][cid];before=deepcopy(original);actual=description(cid,original)
     assert original==before
     assert len(actual['description'].split())<=40
-    assert {k:v for k,v in actual.items() if k!='description'}=={k:v for k,v in original.items() if k!='description'}
+    changed={'description'}
+    if cid=='azure_application_gateway_app_http_logs_enabled_2de0361':
+        fields=reviewed_fields(cid,'description',ROWS[cid]['description_fields'])
+        assert set(fields)=={'description','pass_when','fail_when','not_applicable_when'}
+        assert all(actual[k]==v for k,v in fields.items())
+        changed=set(fields)
+    assert {k:v for k,v in actual.items() if k not in changed}=={k:v for k,v in original.items() if k not in changed}
 
 @pytest.mark.parametrize('cid',sorted(ROWS))
 def test_short_actions_preserve_approved_commands_without_promoting_drafts(cid,originals):
@@ -58,7 +66,7 @@ def test_source_hash_guards_fail_closed(cid,kind,apply,originals):
 
 @pytest.mark.parametrize('cid',sorted(ROWS))
 def test_source_kind_and_priority_are_the_reviewed_contract(cid):
-    check=CHECK_BY_ID[cid];binding=ROWS[cid]['reviewed_binding'];f=inspect.unwrap(check.evaluate)
+    check=CHECK_BY_ID[cid];binding=azure_binding(cid,ROWS[cid]['reviewed_binding']);f=inspect.unwrap(check.evaluate)
     assert binding['kind']==check.kind
     assert binding['module']==f.__module__
     assert binding['source_qualname']==f.__qualname__
@@ -74,7 +82,7 @@ def _stable(value):
 
 @pytest.mark.parametrize('cid',sorted(ROWS))
 def test_exact_predicate_closure_and_delegates_remain_reviewed(cid):
-    check=CHECK_BY_ID[cid];binding=ROWS[cid]['reviewed_binding']
+    check=CHECK_BY_ID[cid];binding=azure_binding(cid,ROWS[cid]['reviewed_binding'])
     f=inspect.unwrap(check.evaluate);v=inspect.getclosurevars(f).nonlocals;g=f.__globals__
     fn=v.get('function',v.get('fn',v.get('evaluator',f)))
     if fn is f:
@@ -102,10 +110,14 @@ def test_replay_real_registered_callback_facts_and_concise_evidence(cid):
     assert cid in CASES and 'FAIL' in CASES[cid]
     assert 'PASS' in CASES[cid] or cid=='azure.other.audit_storage_access_logging'
     for expected,case in CASES[cid].items():
-        item,index=deepcopy((case['item'],case['index']))
+        native,successor_evidence=azure_case(cid,expected,case)
+        item,index=deepcopy((native['item'],native['index']))
         status,evidence=CHECK_BY_ID[cid].evaluate(item,index)
         assert status==expected,(cid,expected,status,evidence)
-        assert json.loads(json.dumps(evidence, sort_keys=True))==case['evidence']
+        if successor_evidence is None:
+            assert json.loads(json.dumps(evidence, sort_keys=True))==case['evidence']
+        else:
+            assert digest(evidence)==successor_evidence
         finding={'provider':'azure','status':status,'check_id':cid,'evidence':evidence};before=deepcopy(finding)
         assert bool(evidence_summary(finding))==(status=='FAIL')
         assert finding==before

@@ -235,7 +235,7 @@ def native_case(cid, bad=False):
                 'targetResourceId': NSG, 'enabled': True, 'storageId': BASE + 'Microsoft.Storage/storageAccounts/nativeflow',
                 'retentionPolicy': {'enabled': True, 'days': 30 if bad else 90}})]
     elif slug == 'vm_jit_access':
-        objects.append(resource(SCOPE + '/providers/Microsoft.Security/locations/eastus/jitNetworkAccessPolicies/native',
+        objects.append(resource(BASE + 'Microsoft.Security/locations/eastus/jitNetworkAccessPolicies/native',
             'Microsoft.Security/locations/jitNetworkAccessPolicies', {'provisioningState': 'Succeeded',
                 'virtualMachines': [] if bad else [{'id': VM, 'ports': [{'number': 22, 'protocol': '*', 'allowedSourceAddressPrefix': '*', 'maxRequestAccessDuration': 'PT3H'}]}]}))
     elif slug == 'vm_site_recovery_enabled':

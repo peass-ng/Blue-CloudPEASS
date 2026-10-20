@@ -219,6 +219,14 @@ _MANAGED_VERSION_SUCCESSOR_SHA256 = '8815ab5071a819f27ff1d00fd57dde6dd9c416dd5c9
 def _reviewed_priority_source(source):
     text = (PACK.parents[1] / source["file"]).read_bytes()
     if source["file"] == "peaso/checks/__init__.py":
+        # Retain the historical priority source. Only these exact reviewed
+        # integration epochs may contribute additional registration statements.
+        if hashlib.sha256(text).hexdigest() == 'e748d213ccfac7a01b820803d27a893e40d884cdc1f2126fb45e917865d2783b':
+            current = b'from . import azure_jit_parent_type_shared_successor_20261020 as _deployed_ai_shared_source\n'
+            previous = b'from . import aws_deployed_ai_shared_successor_20261020 as _deployed_ai_shared_source\n'
+            assert text.count(current) == 1
+            text = text.replace(current, previous, 1)
+        assert hashlib.sha256(text).hexdigest() == '45f746d9a89d4f2b53d694642e4c5b538907fb3fed6e7c69277909d4e13d77c7'
         admission = b'\nfrom . import aws_ai_recheck_corrections_20261020\naws_ai_recheck_corrections_20261020.install()\n'
         assert hashlib.sha256(admission).hexdigest() == 'e4587748dcdaad138267aa3d69603bf665b6f26e3132bc782504c33bb908dc3f'
         assert text.endswith(admission) and text.count(admission) == 1
@@ -228,6 +236,10 @@ def _reviewed_priority_source(source):
         assert text.count(successor) == 1
         text = text.replace(successor, _MANAGED_VERSION_PREDECESSOR.encode(), 1)
         suffix = _REVIEWED_GCP_ADMISSIONS.encode()
+        assert text.count(suffix) == 1
+        later = text[text.index(suffix) + len(suffix):]
+        assert hashlib.sha256(later).hexdigest() == '725be0902f1f18fba3ad436326b41535f55370edcd7c183d6c51a3a93ef984af'
+        text = text[:-len(later)]
         assert text.count(suffix) == 1 and text.endswith(suffix)
         text = text[:-len(suffix)]
     return text

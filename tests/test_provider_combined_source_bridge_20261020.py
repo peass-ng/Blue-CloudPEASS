@@ -27,21 +27,23 @@ GENERATED_CATALOGS = frozenset({
 # original baseline hash as before_sha256; after_sha256/after_size bind all new
 # bytes. This explicit file allowlist cannot admit unrelated package changes.
 REVIEWED_CURRENT_CHANGES = {
+    "peaso/server/app.py": {'before_sha256': '5f2b3dc9bb6f54c56502b22263973c6d1c6f0932af703317d46008dd11732707', 'after_sha256': '3cd6d5053c9522ce2842ac59778f087115a1e076b8ea14dbdf03c5e6e1d5ff9e', 'after_size': 124165},
+    "peaso/collectors/azure.py": {'before_sha256': '22aa297159aeec7ab4a0645877bf69de4c8c8c645098ffe1d0dd05a56f0f8aac', 'after_sha256': 'b69db967e65722174e847116620b63c7de4f0da835e3edde1a882456dc37afea', 'after_size': 243248},
     "peaso/ai/network.py": {
         "before_sha256": "c7e43d252261d26b2ee9d6fa2a3cee79a344dd052bee2f959a98b2a624d8d024",
         "after_sha256": "f8da3a90c6fbc0e2c2bb8fa40f2007bf45abdfa149b37c92d8b7b693f5ebd6fd",
         "after_size": 14438,
     },
 }
-REVIEWABLE_CURRENT_PATHS = frozenset({"peaso/ai/network.py"})
+REVIEWABLE_CURRENT_PATHS = frozenset({"peaso/ai/network.py", "peaso/collectors/azure.py", "peaso/server/app.py"})
 INITIALIZER_ADDITION = (
-    b"from . import aws_deployed_ai_shared_successor_20261020 as _deployed_ai_shared_source\n"
+    b"from . import azure_jit_parent_type_shared_successor_20261020 as _deployed_ai_shared_source\n"
     b"_historical_aws_workload_command_shared_successor_20261020 = aws_workload_command_shared_successor_20261020\n"
     b"aws_workload_command_shared_successor_20261020 = _deployed_ai_shared_source\n"
 )
-HELPER = "peaso/checks/aws_deployed_ai_shared_successor_20261020.py"
+HELPER = "peaso/checks/azure_jit_parent_type_shared_successor_20261020.py"
 RECEIPT = HELPER.removesuffix(".py") + ".json"
-BRIDGE_IMPORT = "from peaso.checks import aws_deployed_ai_shared_successor_20261020 as bridge\n"
+BRIDGE_IMPORT = "from peaso.checks import azure_jit_parent_type_shared_successor_20261020 as bridge\n"
 NATIVE_IDS = {
     "aws.review.workload.selected_command_literal_secret_indicators",
     "gcp.review.cloudrun_job.declared_image_secret_indicators",
@@ -71,10 +73,14 @@ def rejected(result):
 @pytest.fixture(scope="module")
 def isolated(tmp_path_factory):
     target = tmp_path_factory.mktemp("provider-bridge-hardlinks")
-    paths = subprocess.check_output(["git", "ls-files", "-z"], cwd=ROOT).decode().split("\0")
+    paths = (subprocess.check_output(["git", "ls-files", "-z"], cwd=ROOT).decode().split("\0")
+             if (ROOT / ".git").exists() else
+             [str(path.relative_to(ROOT)) for directory in ("peaso", "tests", "docs", "scripts", "risk_rules", "bluepeass")
+              for path in (ROOT / directory).rglob("*") if path.is_file()
+              and "__pycache__" not in path.parts and path.suffix != ".pyc"])
     allowed = {"peaso", "tests", "docs", "scripts", "risk_rules", "bluepeass"}
     paths = [p for p in paths if p and p.split("/", 1)[0] in allowed]
-    paths = sorted(set(paths) | {HELPER, RECEIPT, BASELINE})
+    paths = sorted(set(paths) | {HELPER, RECEIPT, BASELINE, "peaso/checks/aws_deployed_ai_shared_successor_20261020.py", "peaso/checks/aws_deployed_ai_shared_successor_20261020.json"})
     assert len(paths) < 6000
     assert sum((ROOT / p).stat().st_size for p in paths) < 600 * 1024 * 1024
     for name in paths:
@@ -115,7 +121,7 @@ import importlib, inspect, json
 from peaso.engine import get_catalog
 catalog=get_catalog()
 from peaso import checks
-from peaso.checks import aws_deployed_ai_shared_successor_20261020 as bridge
+from peaso.checks import azure_jit_parent_type_shared_successor_20261020 as bridge
 from peaso.checks import aws_ai_recheck_corrections_20261020 as ai
 from peaso.checks import aws_workload_command_runtime_consumer_20261020 as command
 from peaso.checks import gcp_cloudrun_job_image_secret_review_20261020 as job
@@ -266,7 +272,7 @@ def test_generated_catalog_exceptions_require_exact_materialization(isolated, na
 def test_exact_additions_and_replacements_reconstruct_the_whole_historical_epoch():
     receipt = json.loads((ROOT / RECEIPT).read_bytes())
     assert set(receipt["integration_file_deltas"]) == {
-        "peaso/checks/__init__.py", "peaso/collectors/aws.py", "peaso/engine.py", "peaso/collectors/aws_facts_swc.py"}
+        "peaso/checks/__init__.py", "peaso/collectors/aws.py", "peaso/engine.py", "peaso/collectors/aws_facts_swc.py", "peaso/collectors/azure.py"}
     for name, row in receipt["integration_file_deltas"].items():
         current = (ROOT / name).read_text()
         assert hashlib.sha256(current.encode()).hexdigest() == row["current_sha256"]
@@ -287,7 +293,10 @@ def test_exact_additions_and_replacements_reconstruct_the_whole_historical_epoch
     "peaso/collectors/aws.py", "peaso/engine.py", "peaso/collectors/aws_facts_swc.py",
     "peaso/collectors/gcp.py", "peaso/checks/aws_ai_recheck_corrections_20261020.py",
     "peaso/checks/aws_workload_command_shared_successor_20261020.py",
-    "peaso/checks/aws_workload_command_runtime_admission_20261020.json", HELPER, RECEIPT,
+    "peaso/checks/aws_workload_command_runtime_admission_20261020.json",
+    "peaso/collectors/azure.py",
+    "peaso/checks/aws_deployed_ai_shared_successor_20261020.py",
+    "peaso/checks/aws_deployed_ai_shared_successor_20261020.json", HELPER, RECEIPT,
 ])
 def test_real_unrelated_edits_and_historical_or_bridge_tamper_are_rejected(isolated, name):
     before = (isolated / name).read_bytes()
@@ -316,7 +325,7 @@ def test_missing_or_changed_deployed_flags_extensions_and_replacements_fail(isol
     ("peaso.collectors.aws", "_safe", "identity"),
     ("peaso.collectors.aws", "_safe", "code"),
     ("peaso.checks.aws_workload_command_shared_successor_20261020", "reviewed_delta", "identity"),
-    ("peaso.checks.aws_deployed_ai_shared_successor_20261020", "reviewed_delta", "code"),
+    ("peaso.checks.azure_jit_parent_type_shared_successor_20261020", "reviewed_delta", "code"),
 ])
 def test_executing_callable_identity_and_code_replacements_fail(owner, name, mode):
     # The positive import is real. Only the negative attempt changes runtime

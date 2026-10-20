@@ -390,6 +390,13 @@ def run(cid,branch='positive', *, mutate=None, legacy=None, explicit_inventories
     configuration=client.Configuration();configuration.host='https://native-cluster.invalid';configuration.api_key={}
     sdk=client.ApiClient(configuration);sdk.rest_client.pool_manager=wire
     connector={'provider':'k8s','auth':{'cluster_id':'native-reviewed-cluster'},'scopes':[scope], 'options':{'workers':1,'page_size':500,'max_retries':0}}
+    if cid=='k8s.claude.podsecuritypolicy.security_services_hardening' and branch=='positive':
+        # The admitted native annotation successor requires a configured read
+        # session even when SELinux MustRunAs supplies the positive criterion.
+        # Preserve historical unavailable branches; the dedicated annotation
+        # admission tests cover authenticated negatives and context tampering.
+        configuration.api_key['authorization']='Bearer synthetic-offline-native-review'
+        connector['auth']['token']='synthetic-offline-native-review'
     if explicit_inventories is not None:connector['options']['inventories']=explicit_inventories
     requirements=plan_collection({'connector':connector,'checks':[cid]})
     # No fabricated supporting inventory: public planner decides the reads.

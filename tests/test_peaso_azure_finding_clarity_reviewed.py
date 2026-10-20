@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from tests.provider_observation_residual_successors_20261020 import immutable_inputs
 from peaso.checks import CHECKS
 from peaso.checks.azure_finding_clarity_reviewed import ROWS, _digest, description, remediation
 from peaso.checks.azure_native_review_copy_20261020 import reviewed_fields
@@ -50,6 +51,7 @@ def test_description_preserves_actual_evaluation_contract(check_id, source_rows)
     assert len(actual["description"].split()) <= 40
     changed = set(fields)
     corrected_contracts = {
+        "azure.claude.iam_custom_role_administers_locks",
         "azure.claude.storage_key_expiration_policy_max_90",
         "azure.claude.network_watcher_flow_logs_retention_90",
         "azure.claude.sql_database_long_term_retention",
@@ -66,6 +68,9 @@ def test_description_preserves_actual_evaluation_contract(check_id, source_rows)
         "azure.claude2.app_gateway_waf_enabled",
         "azure.claude.sql_database_va_findings_resolved",
     }
+    if check_id == 'azure.claude.iam_custom_role_administers_locks':
+        assert changed == {'description', 'pass_when', 'fail_when'}
+        assert all(actual[k] == v for k, v in fields.items())
     if check_id not in corrected_contracts:
         assert changed == {"description"}
     else:

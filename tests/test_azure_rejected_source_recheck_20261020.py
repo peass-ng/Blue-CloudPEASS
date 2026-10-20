@@ -15,6 +15,7 @@ import socket
 import pytest
 
 from peaso.checks import azure_function_monitoring_declaration_proposal_20261020 as proposal
+from tests.provider_observation_residual_successors_20261020 import checked, immutable_inputs
 
 ROOT = Path(__file__).resolve().parents[1]
 REPORT = json.loads((ROOT / 'docs/check-review/azure-rejected-source-recheck-20261020.json').read_text())
@@ -178,9 +179,20 @@ def test_denied_partial_and_malformed_native_status(statuses):
                    site_status=statuses[0], settings_status=statuses[1])[0] == 'UNKNOWN'
 
 
-def test_proposal_stays_unregistered_and_live_calls_are_blocked():
+def test_historical_proposal_is_not_registered_and_exact_later_admission_is_source_proven():
     from peaso.checks import CHECKS
-    assert proposal.PROPOSED_ID not in {c.id for c in CHECKS}
+    from peaso.checks import azure_function_settings_runtime_consumer_20261020 as admitted
+    receipt=checked('peaso/checks/azure_function_settings_runtime_admission_20261020.json')
+    check,=[c for c in CHECKS if c.id==proposal.PROPOSED_ID]
+    # The original pure proposal and all its native tests stay unchanged.
+    # A later explicit admission uses a different, scan-bound native consumer.
+    assert all(inspect.unwrap(c.evaluate) is not proposal.evaluate_native for c in CHECKS)
+    assert inspect.unwrap(check.evaluate) is admitted.telemetry
+    assert receipt['functions'][proposal.PROPOSED_ID]=='telemetry'
+    assert digest(inspect.getsource(admitted.telemetry).encode())==receipt['runtime_callables']['telemetry']
+    assert str(Path(inspect.getsourcefile(admitted.telemetry)).relative_to(Path(__import__('peaso').__file__).resolve().parent.parent))=='peaso/checks/azure_function_settings_runtime_consumer_20261020.py'
+    assert check.kind=='azure_selected_function_settings_declaration'
+    assert check.dependencies==['azure_selected_function_settings_declaration']
     with pytest.raises(AssertionError):
         socket.getaddrinfo('management.azure.com', 443)
     import peaso.collectors.azure as azure

@@ -6,7 +6,7 @@ The hosted application is **https://cspm.hacktricks.wiki**. Its dedicated Terraf
 
 The Fargate collector and analyzer worker image includes `aws` (CLI v2), `kubectl`, `gcloud` and `az`, installed through the same vendor installer used by every local Compose runtime. CLI Python dependencies are separate from the application SDK constraints. Builds verify all four executables as UID 10001.
 
-- CloudFront serves a private S3 frontend and forwards `/api/*` to API Gateway and a FastAPI Lambda adapter.
+- CloudFront serves a private S3 frontend and forwards `/api/*` to API Gateway and a FastAPI Lambda adapter. The API has 1,792 MiB of memory and a 28-second timeout; this provides room for catalog data and native finding hydration in the same process.
 - DynamoDB stores tenant-owned workspaces, connectors, jobs, schedules and quotas. Reports and sealed snapshots reside in private S3.
 - Secrets Manager and KMS protect connector credentials. The API and collector receive only their required access; the analyzer cannot decrypt source connector credentials. Optional AI review uses captured sessions protected by a separate AI envelope key.
 - Step Functions runs a collector and then an analyzer as separate, temporary ECS tasks. Deterministic evaluation uses the saved snapshot; optional post-scan Chack agents also use network access for Codex and cloud verification. The analyzer still needs platform S3/DynamoDB access to persist results.
