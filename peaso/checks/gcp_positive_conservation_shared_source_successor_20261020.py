@@ -55,7 +55,7 @@ _DATAFLOW_FUNCTIONS = dict(_DATAFLOW_ADMISSION._FUNCTIONS)
 _DATAFLOW_REVIEWED_INPUTS = _DATAFLOW_FUNCTIONS[_DATAFLOW_ADMISSION.__name__ + ':reviewed_inputs']
 RECEIPT = 'azure_metadata_only_shared_successor_20261020.json'
 RECEIPT_SHA256 = '12bf2cd88f943bcb3cdb91a3701cd3197e78d6ba7ed7e956afd854d6d1b292ed'
-BRIDGE_RECEIPT_SHA256 = 'a632421a3cd18c03f82b083a50e8e18fbbb6b90807f1e8d6ee85023f020ba8c9'
+BRIDGE_RECEIPT_SHA256 = 'a3df8dc295d0ca6cd9a7e7cabd11af2036d6dc245e52bb55f0273ca7ff8ec2e9'
 _CURRENT_INIT_SHA256 = '8cd818f4733bd8d51d04cab583171ddfdcec6575fbff1a1b2222bdc6da15301e'
 _PREDECESSOR_INIT_SHA256 = 'e828e145917364fcd20a5a2d6de7e24eb304eee5698fea1cb1bed8669fef01c6'
 
@@ -259,7 +259,26 @@ def _verify_bridge(root):
         raise RuntimeError('GCP positive conservation compiled transaction carrier changed')
     from peaso.gcp_positive_conservation_source_admission_successor_20261020 import _bridge_source
     _bridge_source(root)
-    historical_bridge._verify_bridge(root)
+    # Preserve the historical proof, but send its immutable callable rows
+    # through this wave's signed artifact cache instead of recompiling the
+    # same module once per nested admission. No verification result is cached.
+    if historical_bridge._COMPILED_TRANSACTION is not historical_bridge._TRANSACTION_CONTEXT:
+        raise RuntimeError('Deployed AI compiled transaction carrier changed')
+    raw = (root / 'peaso/checks' / historical_bridge.RECEIPT).read_bytes()
+    if hashlib.sha256(raw).hexdigest() != historical_bridge.RECEIPT_SHA256:
+        raise RuntimeError('Deployed AI bridge receipt changed')
+    receipt = json.loads(raw)
+    helper = 'peaso/checks/azure_metadata_only_shared_successor_20261020.py'
+    if hashlib.sha256(historical_bridge._self((root / helper).read_bytes())).hexdigest() != receipt['sources'][helper]['sha256']:
+        raise RuntimeError('Deployed AI bridge self source changed')
+    if historical_bridge._FUNCTIONS != _FUNCTIONS:
+        raise RuntimeError('Deployed AI bridge callable snapshot changed')
+    compiled = {}
+    for qualified, function in _FUNCTIONS.items():
+        name = qualified.split(':')[1]
+        if vars(historical_bridge).get(name) is not function:
+            raise RuntimeError('Deployed AI bridge executing callable replaced: ' + name)
+        _check_function(function, receipt['functions'][qualified], root, compiled)
     _initialization_predecessor((root / 'peaso/checks/__init__.py').read_bytes())
 
 
@@ -874,27 +893,33 @@ def s3_reviewed_inputs():
 
 
 def install_s3():
-    from . import CHECKS,register
-    from .fixtures import CASES
-    from . import aws_s3_selected_source_secret_review_20261020 as reviewed
-    cases=s3_reviewed_inputs();declaration,=reviewed.DECLARATIONS
-    old=[c for c in CHECKS if c.id==reviewed.CHECK]
-    if old:
-        if len(old)!=1 or inspect.unwrap(old[0].evaluate) is not reviewed.evaluate or old[0].kind!=declaration['kind']:
-            raise RuntimeError('Selected S3 registration collision')
-        if CASES.get(reviewed.CHECK)!=cases[reviewed.CHECK]:raise RuntimeError('Selected S3 registered fixture changed')
-        return
-    before=tuple(CHECKS);had_case=reviewed.CHECK in CASES;previous=deepcopy(CASES.get(reviewed.CHECK))
+    # This installer runs before install_bundle; use the same bounded signed
+    # artifacts for its own nested proof calls and always release the wave.
+    token = _COMPILED_TRANSACTION.set(_transaction_compiler())
     try:
-        register(reviewed.CHECK,'aws',declaration['category'],declaration['kind'],declaration['title'],'high',
-            'security_configuration',declaration['remediation'],dependencies=declaration['dependencies'],
-            allow_incomplete_failure=True)(reviewed.evaluate)
-        CASES[reviewed.CHECK]=deepcopy(cases[reviewed.CHECK])
-    except Exception:
-        CHECKS[:]=before
-        if had_case:CASES[reviewed.CHECK]=previous
-        else:CASES.pop(reviewed.CHECK,None)
-        raise
+        from . import CHECKS,register
+        from .fixtures import CASES
+        from . import aws_s3_selected_source_secret_review_20261020 as reviewed
+        cases=s3_reviewed_inputs();declaration,=reviewed.DECLARATIONS
+        old=[c for c in CHECKS if c.id==reviewed.CHECK]
+        if old:
+            if len(old)!=1 or inspect.unwrap(old[0].evaluate) is not reviewed.evaluate or old[0].kind!=declaration['kind']:
+                raise RuntimeError('Selected S3 registration collision')
+            if CASES.get(reviewed.CHECK)!=cases[reviewed.CHECK]:raise RuntimeError('Selected S3 registered fixture changed')
+            return
+        before=tuple(CHECKS);had_case=reviewed.CHECK in CASES;previous=deepcopy(CASES.get(reviewed.CHECK))
+        try:
+            register(reviewed.CHECK,'aws',declaration['category'],declaration['kind'],declaration['title'],'high',
+                'security_configuration',declaration['remediation'],dependencies=declaration['dependencies'],
+                allow_incomplete_failure=True)(reviewed.evaluate)
+            CASES[reviewed.CHECK]=deepcopy(cases[reviewed.CHECK])
+        except Exception:
+            CHECKS[:]=before
+            if had_case:CASES[reviewed.CHECK]=previous
+            else:CASES.pop(reviewed.CHECK,None)
+            raise
+    finally:
+        _COMPILED_TRANSACTION.reset(token)
 
 
 

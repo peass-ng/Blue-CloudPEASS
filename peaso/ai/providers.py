@@ -143,7 +143,9 @@ def validate_access(access):
         headers['ChatGPT-Account-ID'] = claims(secret)['https://api.openai.com/auth']['chatgpt_account_id']
         models = provider_json('GET', 'https://chatgpt.com/backend-api/codex/models?client_version=0.147.0', headers)
         entry = next((m for m in models.get('models', []) if isinstance(m, dict) and m.get('slug') == model), None)
-        if not entry or thinking not in {level.get('effort') for level in entry.get('supported_reasoning_levels', []) if isinstance(level, dict)}:
+        # Discovery omits some usable manual IDs/aliases. An unlisted model
+        # must pass the exact inference probe below, without any fallback.
+        if entry is not None and thinking not in {level.get('effort') for level in entry.get('supported_reasoning_levels', []) if isinstance(level, dict)}:
             raise ConfigurationError('That model and thinking effort are unavailable for this Codex account.')
         probe = {key: value for key, value in request.items() if key != 'max_output_tokens'}
         probe.update(stream=True, instructions='Validate configuration; call configuration_probe with ok=true.',
