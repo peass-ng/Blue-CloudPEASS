@@ -284,7 +284,7 @@ def review_batches(report, inventory_by_id, entries, token, hardening, exposure,
         remaining = end - time.monotonic()
         if remaining <= 0:
             raise TimeoutError()
-        data = invoke_before_deadline(stage, context, access, token, batch, [], end, 360 if isolation.remote() else 120)
+        data = invoke_before_deadline(stage, context, access, token, batch, [], end, 480 if isolation.remote() else 120)
         return validate_reviews(data, batch)['items']
 
     def record(task, future=None):

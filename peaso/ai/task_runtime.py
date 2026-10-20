@@ -79,6 +79,9 @@ def run_agent(config):
             cwd=directory, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
         try:
             process.wait(timeout=remaining)
+            if process.returncode == 65:
+                from .output_validation import InvalidAgentOutput
+                raise InvalidAgentOutput('invalid_agent_result')
             if process.returncode == 124:
                 raise TimeoutError('agent_runtime_limit')
             if process.returncode:
@@ -124,6 +127,7 @@ def relay_request(method, path, capability, *, body=None, limit=MAX_INPUT):
 
 
 def main():
+    from .output_validation import InvalidAgentOutput
     os.umask(0o077)
     try:
         if sys.argv[1] == 'relay':
@@ -150,6 +154,9 @@ def main():
     except (TimeoutError, subprocess.TimeoutExpired):
         print('ai_agent_failure=deadline', file=sys.stderr, flush=True)
         sys.exit(124)
+    except InvalidAgentOutput:
+        print('ai_agent_failure=invalid_output', file=sys.stderr, flush=True)
+        sys.exit(65)
     except BaseException:
         # Credentials, signed URLs, provider bodies and exception text stay private.
         sys.exit(1)

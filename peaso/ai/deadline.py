@@ -15,8 +15,9 @@ def timeout_seconds(value):
     return math.ceil(seconds)
 
 
-def configure_runner(config):
-    remaining = os.getenv(ENVIRONMENT_KEY)
+def configure_runner(config, remaining=None):
+    if remaining is None:
+        remaining = os.getenv(ENVIRONMENT_KEY)
     if remaining is not None:
         # Round upward so Chack cannot impose an earlier, minute-based cutoff.
         # The caller's absolute deadline still stops the entire process tree.

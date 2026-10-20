@@ -39,6 +39,11 @@ def test_runner_does_not_discard_work_within_the_parent_deadline(tmp_path, monke
     monkeypatch.delenv('PEASO_AI_MODEL_RELAY', raising=False)
     (tmp_path/'codex-auth.json').write_text('{"access_token":"task-local-capability"}')
     (tmp_path/'credentials.json').write_text('{"entries":[]}')
+    (tmp_path/'findings.json').write_text('{"items":[]}')
+    if stage in ('network', 'priorities'):
+        import sqlite3
+        with sqlite3.connect(tmp_path/'context.sqlite') as db:
+            db.execute('CREATE TABLE records(domain TEXT,id TEXT,detail TEXT)')
     runner.main()
     assert json.loads((tmp_path/'result.json').read_text()) == payload
     assert not (tmp_path/'codex-auth.json').exists()

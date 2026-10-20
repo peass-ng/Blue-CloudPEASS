@@ -290,3 +290,25 @@ def test_started_agent_failure_is_not_classified_as_an_infrastructure_retry(conf
         fargate.invoke('network', tmp_path, 'private', 30, ecs=tasks, s3=storage)
     assert not isinstance(failed.value, fargate.TaskStartupError)
     assert tasks.stops and len(storage.deleted) == 3
+
+
+def test_completed_agent_result_does_not_wait_for_task_deprovisioning(configured, tmp_path):
+    (tmp_path/'credentials.json').write_text('{"entries":[]}')
+    tasks, storage = Tasks(), Storage()
+    tasks.describe_tasks = lambda **kw: {'tasks': [{'lastStatus': 'DEPROVISIONING',
+        'containers': [{'name': 'agent', 'lastStatus': 'STOPPED', 'exitCode': 0},
+                       {'name': 'relay', 'lastStatus': 'RUNNING'}]}]}
+    assert fargate.invoke('network', tmp_path, 'private', 3, ecs=tasks, s3=storage,
+        sleep=lambda _: pytest.fail('A completed agent result must be collected immediately')) == {'items': []}
+    assert tasks.stops and len(storage.deleted) == 3
+
+
+def test_failed_agent_result_is_never_accepted_during_deprovisioning(configured, tmp_path):
+    (tmp_path/'credentials.json').write_text('{"entries":[]}')
+    tasks, storage = Tasks(), Storage()
+    tasks.describe_tasks = lambda **kw: {'tasks': [{'lastStatus': 'DEPROVISIONING',
+        'containers': [{'name': 'agent', 'lastStatus': 'STOPPED', 'exitCode': 1}]}]}
+    storage.get_object = lambda **kw: pytest.fail('Failed agent output must not be accepted')
+    with pytest.raises(RuntimeError, match='agent_failed'):
+        fargate.invoke('network', tmp_path, 'private', 3, ecs=tasks, s3=storage)
+    assert tasks.stops and len(storage.deleted) == 3

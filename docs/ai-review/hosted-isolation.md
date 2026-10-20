@@ -11,7 +11,13 @@ collector retains its 30-minute stage limit. Absolute task deadlines leave time 
 invocation budget also sets the inner agent wrapper’s runtime budget; the
 parent process and relay enforce the absolute deadline. An ECS failure before
 the agent starts can retry once within the remaining phase budget. Each attempt
-cleans up its task and transport objects.
+cleans up its task and transport objects. Completed agent output is collected as
+soon as its container stops successfully, with task cleanup requested before
+returning. Each agent validates output against its original local references
+and can make one corrective pass within the same invocation deadline. The
+backend independently validates the final output. Manual/unknown network and
+privilege-escalation evidence can support an explicitly qualified review action;
+Hardening/Exposure recommendations still require confirmed FAIL reviews.
 
 ## Boundaries
 

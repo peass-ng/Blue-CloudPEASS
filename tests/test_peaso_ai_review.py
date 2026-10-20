@@ -1347,3 +1347,24 @@ def test_review_queue_rejects_unbounded_concurrency(monkeypatch):
     monkeypatch.setenv('PEASO_AI_MAX_CONCURRENCY', '7')
     with pytest.raises(ValueError, match='invalid_ai_concurrency'):
         pipeline.review_concurrency()
+
+
+@pytest.mark.parametrize('category,status', [('network','MANUAL'),('network','UNKNOWN'),('privesc','MANUAL'),('privesc','UNKNOWN')])
+def test_qualified_actions_can_reference_compact_contextual_findings(category, status):
+    data = report()
+    data['findings'] = [{'id':'h1','check_id':'contextual','status':status,'resource_id':'r1'}]
+    data['check_meta'] = {'contextual': {'category': category}}
+    before = copy.deepcopy(data)
+    proposed = action() | {'title': 'Review conditional access',
+        'rationale': 'The declared control warrants review; required access and effective reachability need owner validation.'}
+    assert validate_actions({'actions':[proposed],'limitations':[]}, data, [])['actions'] == [proposed]
+    assert data == before
+
+
+@pytest.mark.parametrize('category,status', [('hardening','MANUAL'),('exposure','UNKNOWN'),('privesc','PASS'),('network','DENIED')])
+def test_contextual_reference_support_preserves_rejected_finding_boundaries(category, status):
+    data = report()
+    data['findings'] = [{'id':'h1','check_id':'contextual','status':status,'resource_id':'r1'}]
+    data['check_meta'] = {'contextual': {'category': category}}
+    with pytest.raises(ValueError, match='unknown_action_reference'):
+        validate_actions({'actions':[action()],'limitations':[]}, data, [])
