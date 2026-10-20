@@ -133,7 +133,7 @@ RUNTIME_CONFIG_SHA256 = {
     "variables.tf": "2824bc1ff26a1cb2bdc97109bd911d301ee1df29688253d5c2cd22236b928a58",
     "versions.tf": "2b3b22273e0f514fd6b66be276cc47d20598f68e45ccd8537ee17e2cdbd2efff",
     "network.tf": "9b9b839d185551282d2e771bd779c069678099690740b7ef0b4d26acb6cee34e",
-    "ai_runtime.tf": "33ffe68631b7b3c1c9a95af8f787399768796a599a35012a9e74b0d50ac23c65",
+    "ai_runtime.tf": "3a1e98be34ff47397d6fb83f5a7f6fdddaaf51f7b8dc4a2c3cdad676e6d017ab",
     "ai_network.tf": "e180dee4032309d52455d23a59062a536dd231caa874a78b17057b7115308eab",
 }
 ALLOWED_RESOURCES = set("""

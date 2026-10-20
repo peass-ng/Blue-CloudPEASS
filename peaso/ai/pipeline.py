@@ -93,6 +93,8 @@ def invoke(stage, platform, entries, token, findings, reviews, timeout):
         if remaining <= 0:
             raise TimeoutError()
         command = isolation.wrap_command([sys.executable, '-m', 'peaso.ai.runner', stage], directory)
+        from .deadline import ENVIRONMENT_KEY, timeout_seconds
+        env[ENVIRONMENT_KEY] = str(timeout_seconds(remaining))
         process = subprocess.Popen(command, cwd=directory,
             env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
         try:
@@ -230,7 +232,7 @@ def available_memory():
 
 def review_concurrency():
     requested = int(os.getenv('PEASO_AI_MAX_CONCURRENCY', '2'))
-    if not 1 <= requested <= 4:
+    if not 1 <= requested <= 6:
         raise ValueError('invalid_ai_concurrency')
     # Admission estimate, not an enforced per-process memory limit. Current
     # analyzer usage is already included in the cgroup's used memory.

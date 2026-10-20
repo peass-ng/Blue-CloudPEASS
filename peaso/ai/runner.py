@@ -21,6 +21,8 @@ def main():
     config = load_config(str(agent_config_path(stage)))
     config.credentials.codex_access_token = token
     config.credentials.openai_api_key = ''
+    from .deadline import configure_runner
+    configure_runner(config)
     config.env = {'CHACK_EXEC_CWD': str(root)}
     relay = os.getenv('PEASO_AI_MODEL_RELAY')
     if relay:
@@ -43,5 +45,13 @@ def main():
     (root / 'result.json').write_text(json.dumps(data))
 
 
+def entrypoint():
+    try:
+        main()
+    except TimeoutError:
+        return 124
+    return 0
+
+
 if __name__ == '__main__':
-    main()
+    sys.exit(entrypoint())
