@@ -29,6 +29,7 @@ from .aws_codebuild_next import normalize_aws_codebuild_change
 from .aws_codebuild_execution_next import normalize_codebuild_execution
 from .aws_codebuild_sandbox_read_next import normalize as normalize_codebuild_sandbox_read
 from .aws_codepipeline_five_next import normalize as normalize_aws_codepipeline_five
+from .aws_codepipeline_remaining_next import normalize as normalize_aws_codepipeline_remaining, correlate as correlate_aws_codepipeline_remaining
 from .aws_codebuild_gap_correlations_next import correlate as correlate_aws_codebuild_gaps
 from .aws_appsync_five_next import normalize as normalize_aws_appsync_five
 from .aws_appsync_read_function_next import normalize as normalize_aws_appsync_read_function
@@ -177,8 +178,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "091b648988532cb645a1844ec4106f09dc2c13d0"
-DEFAULT_RULE_PACK_SHA256 = "347fbdd521f11d3adb8a89ac5843fcf8927083950d355353ca82d18e45ff30d7"
+DEFAULT_RULE_REF = "468d506aaf78c2933408338bafd29a0436742ff7"
+DEFAULT_RULE_PACK_SHA256 = "7f2e966b07f82ee535556db2e2aff325cad1787bb0d27688b04a7a68b8457739"
 
 
 @dataclass(frozen=True)
@@ -299,6 +300,7 @@ def detect_aws_events(
         codebuild_execution = normalize_codebuild_execution(record)
         codebuild_sandbox_read = normalize_codebuild_sandbox_read(record)
         codepipeline_five = normalize_aws_codepipeline_five(record)
+        codepipeline_remaining = normalize_aws_codepipeline_remaining(record)
         appsync_five = normalize_aws_appsync_five(record)
         appsync_read_function = normalize_aws_appsync_read_function(record)
         appsync_signed_role = normalize_aws_appsync_signed_role(record)
@@ -434,6 +436,7 @@ def detect_aws_events(
                 + ([codebuild_execution] if codebuild_execution is not None else [])
                 + ([codebuild_sandbox_read] if codebuild_sandbox_read is not None else [])
                 + ([codepipeline_five] if codepipeline_five is not None else [])
+                + ([codepipeline_remaining] if codepipeline_remaining is not None else [])
                 + ([appsync_five] if appsync_five is not None else [])
                 + ([appsync_read_function] if appsync_read_function is not None else [])
                 + ([appsync_signed_role] if appsync_signed_role is not None else [])
@@ -583,6 +586,7 @@ def detect_aws_events(
     cloudformation_trigger_records: list[Mapping[str, Any]] = []
     cloudformation_input_records: list[Mapping[str, Any]] = []
     codebuild_gap_records: list[Mapping[str, Any]] = []
+    codepipeline_remaining_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
             if record.get("eventSource") == "athena.amazonaws.com" and record.get("eventName") in {"StartQueryExecution", "ListQueryExecutions", "GetQueryExecution", "BatchGetQueryExecution", "GetQueryResults", "GetQueryRuntimeStatistics"}:
@@ -624,6 +628,11 @@ def detect_aws_events(
                 sqs_tag_records.append(record)
             if record.get("eventSource") == "sqs.amazonaws.com" and record.get("eventName") == "SendMessage":
                 sqs_fifo_records.append(record)
+            if ((record.get("eventSource") == "codepipeline.amazonaws.com" and record.get("eventName") in {
+                    "CreatePipeline", "UpdatePipeline", "StartPipelineExecution", "AcknowledgeJob", "PutJobSuccessResult"})
+                    or (record.get("eventSource") == "codebuild.amazonaws.com" and record.get("eventName") == "UpdateProject")
+                    or (record.get("eventSource") == "s3.amazonaws.com" and record.get("eventName") == "PutObject")):
+                codepipeline_remaining_records.append(record)
             if record.get("eventSource") == "lambda.amazonaws.com" and record.get("eventName") in {
                     "CreateFunction20150331", "UpdateFunctionConfiguration20150331v2",
                     "UpdateFunctionCode20150331v2", "AddPermission20150331v2",
@@ -671,6 +680,7 @@ def detect_aws_events(
     correlated += correlate_aws_cloudformation_triggers(cloudformation_trigger_records)
     correlated += correlate_aws_cloudformation_inputs(cloudformation_input_records)
     correlated += correlate_aws_codebuild_gaps(codebuild_gap_records)
+    correlated += correlate_aws_codepipeline_remaining(codepipeline_remaining_records)
     if correlated:
         matches.extend(_detect_events(correlated, selected, lambda event: event, "aws"))
     return matches

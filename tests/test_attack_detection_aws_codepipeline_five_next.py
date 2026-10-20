@@ -39,7 +39,12 @@ def records():
 
 
 def rules():
-    return [r for r in load_rules(product="aws") if r.selection.get("event.source") == "codepipeline.amazonaws.com"]
+    names = {"CreatePipeline", "StartPipelineExecution", "EnableStageTransition",
+             "PutApprovalResult", "RetryStageExecution"}
+    return [r for r in load_rules(product="aws")
+            if isinstance(r.selection.get("event.name"), str)
+            and r.selection.get("event.source") == "codepipeline.amazonaws.com"
+            and r.selection["event.name"] in names]
 
 
 def test_five_codepipeline_routes_match_without_emitting_values_or_token():
