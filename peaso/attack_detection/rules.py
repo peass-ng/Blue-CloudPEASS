@@ -60,6 +60,7 @@ from .aws_customer_profiles_export_next import normalize as normalize_aws_custom
 from .aws_servicecatalog_next import normalize as normalize_aws_servicecatalog, correlate as correlate_aws_servicecatalog
 from .aws_s3_retention_next import normalize_aws_s3_retention
 from .aws_s3_ssec_next import normalize as normalize_aws_s3_ssec, correlate as correlate_aws_s3_ssec
+from .aws_s3_acl_grants_next import normalize as normalize_aws_s3_acl_grants
 from .aws_iot_core_batch_next import normalize as normalize_aws_iot_core_batch
 from .aws_iot_provision_jobs_next import normalize as normalize_aws_iot_provision_jobs, correlate_external_cert_policy as correlate_aws_iot_external_cert_policy
 from .aws_lambda_access_mapping_next import normalize as normalize_aws_lambda_access_mapping, correlate_repoint as correlate_aws_lambda_mapping_repoint
@@ -342,6 +343,7 @@ def detect_aws_events(
         servicecatalog = normalize_aws_servicecatalog(record)
         s3_retention = normalize_aws_s3_retention(record)
         s3_ssec = normalize_aws_s3_ssec(record)
+        s3_acl_grants = normalize_aws_s3_acl_grants(record)
         iot_core_batch = normalize_aws_iot_core_batch(record)
         iot_provision_jobs = normalize_aws_iot_provision_jobs(record)
         lambda_access_mapping = normalize_aws_lambda_access_mapping(record)
@@ -491,6 +493,7 @@ def detect_aws_events(
                 + ([servicecatalog] if servicecatalog is not None else [])
                 + ([s3_retention] if s3_retention is not None else [])
                 + ([s3_ssec] if s3_ssec is not None else [])
+                + ([s3_acl_grants] if s3_acl_grants is not None else [])
                 + ([iot_core_batch] if iot_core_batch is not None else [])
                 + ([iot_provision_jobs] if iot_provision_jobs is not None else [])
                 + ([lambda_access_mapping] if lambda_access_mapping is not None else [])
