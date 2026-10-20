@@ -118,6 +118,7 @@ from .aws_lambda_privesc_next import normalize_aws_lambda_role_assignment, corre
 from .aws_ec2_controls_next import normalize_aws_ec2_controls
 from .aws_vpc_network_next import normalize_aws_vpc_network, correlate_aws_vpc_custom_dns
 from .aws_apigateway_controls_next import normalize_aws_apigateway_controls
+from .aws_apigateway_http_keys_next import normalize as normalize_aws_apigateway_http_keys
 from .aws_eventbridge_controls_next import normalize_aws_eventbridge_controls
 from .aws_eventbridge_connections_next import normalize_aws_eventbridge_connections
 from .aws_ssm_controls_next import normalize_aws_ssm_controls
@@ -170,8 +171,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "92e901d9cbc023a5cdfdfb72b51563adac1eefaf"
-DEFAULT_RULE_PACK_SHA256 = "45fae0c1351d2358e18d595a0c9cd4c7ccdfb1bafddbfa0c4a553548e68f0a12"
+DEFAULT_RULE_REF = "f71f056b36af3ed7146006e2048a669cd83b1750"
+DEFAULT_RULE_PACK_SHA256 = "b41e4778cdbfc00e287a21aee525645d6df8c6743a9e36c1161f1f30e138e1b8"
 
 
 @dataclass(frozen=True)
@@ -375,6 +376,7 @@ def detect_aws_events(
         ec2_controls = normalize_aws_ec2_controls(record)
         vpc_network = normalize_aws_vpc_network(record)
         apigateway_controls = normalize_aws_apigateway_controls(record)
+        apigateway_http_keys = normalize_aws_apigateway_http_keys(record)
         eventbridge_controls = normalize_aws_eventbridge_controls(record)
         eventbridge_connections = normalize_aws_eventbridge_connections(record)
         ssm_controls = normalize_aws_ssm_controls(record)
@@ -504,6 +506,7 @@ def detect_aws_events(
                 + ([ec2_controls] if ec2_controls is not None else [])
                 + ([vpc_network] if vpc_network is not None else [])
                 + ([apigateway_controls] if apigateway_controls is not None else [])
+                + ([apigateway_http_keys] if apigateway_http_keys is not None else [])
                 + ([eventbridge_controls] if eventbridge_controls is not None else [])
                 + ([eventbridge_connections] if eventbridge_connections is not None else [])
                 + ([ssm_controls] if ssm_controls is not None else [])
