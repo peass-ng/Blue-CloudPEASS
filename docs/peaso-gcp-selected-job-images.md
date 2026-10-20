@@ -1,10 +1,9 @@
 # Selected Cloud Run Job image secret inspection
 
-This local integration scans supported text in the immutable image declared by an
+This check scans supported text in the immutable image declared by an
 explicitly selected Job container. Kingfisher and TruffleHog run offline; detections
 of the same secret are combined and values remain hidden. It does not establish
-which image a running execution actually used. Production availability is separate
-from the local integration and directed tests.
+which image a running execution actually used.
 
 Select `gcp.review.cloudrun_job.declared_image_secret_indicators`, use one explicit
 `projects/PROJECT_ID` scope, and set `content_secret_scans: true`. The
@@ -45,5 +44,5 @@ detected secrets remain visible when other bound content inspection is incomplet
 Only supported single-platform image configuration and layer text is covered.
 
 See the [native contract, permission spelling and size limits](gcp-review/recheck-20261020/gcp_cloudrun_v2_job_declared_images_20261020_setup.md)
-and [content read permissions](secret-content-permissions.md). Vulnerability scanning
-with Trivy is a separate optional feature; secret detection uses Kingfisher and TruffleHog.
+and [content read permissions](secret-content-permissions.md). This check scans for secrets with
+Kingfisher and TruffleHog; it does not run Trivy vulnerability scanning.

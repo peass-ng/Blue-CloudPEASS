@@ -11,6 +11,18 @@ from tests.test_gcp_current_source_reconciliation_20261020 import _bound_functio
 def test_all_current_azure_k8s_bodies_have_exact_existing_or_erratum_receipts():
     root=Path(__file__).resolve().parents[1]
     audit=json.loads((root/'docs/check-review/azure-k8s-current-predicate-bindings-20261020.json').read_text())
+    successor_raw=(root/'docs/check-review/azure-defender-assessment-four-current-binding-20261021.json').read_bytes()
+    assert hashlib.sha256(successor_raw).hexdigest()=='495d31b83d1586a453b4aa325d4f287d694c950a389e0fa0fdbde6a27f6fe02d'
+    successor=json.loads(successor_raw)
+    assert set(successor['scope_ids'])==set(successor['records'])=={
+        'azure.claude.defender_assessment_endpoint_protection',
+        'azure.claude.defender_assessment_vulnerability_solution',
+        'azure.claude.defender_assessment_running_images_vulnerabilities',
+        'azure.claude.defender_assessment_system_updates',
+    }
+    for path, expected in successor['immutable_predecessor_files_sha256'].items():
+        assert hashlib.sha256((root/path).read_bytes()).hexdigest()==expected
+    assert hashlib.sha256((root/successor['evaluator_source']).read_bytes()).hexdigest()==successor['evaluator_current_sha256']
     err=json.loads((root/audit['current_master_attestation_errata']).read_text())
     rows={r['id']:r for r in audit['checks']};fixes={r['id']:r for r in err['records']}
     current={c.id:c for c in CHECKS if c.provider in ('azure','k8s')}
@@ -29,8 +41,19 @@ def test_all_current_azure_k8s_bodies_have_exact_existing_or_erratum_receipts():
     for cid,check in current.items():
         row=rows[cid];fn=next(f for f in _bound_functions(check.evaluate)
                              if str(Path(inspect.getsourcefile(f)).relative_to(root))==row['current_source']
-                             and hashlib.sha256(inspect.getsource(f).encode()).hexdigest()==row['current_body_sha256'])
+                             and hashlib.sha256(inspect.getsource(f).encode()).hexdigest()==(
+                                 successor['records'][cid]['current_body_sha256'] if cid in successor['records']
+                                 else row['current_body_sha256']))
         assert fn and (root/row['review_receipt']).is_file()
+        if cid in successor['records']:
+            update=successor['records'][cid]
+            assert row['expected_body_sha256']==row['current_body_sha256']==update['historical_body_sha256']
+            assert row['source_file_sha256_at_review']==update['historical_source_file_sha256']
+            assert row['current_source']==update['source']==successor['evaluator_source']
+            assert row['review_receipt']==update['historical_review_receipt']
+            assert update['current_source_file_sha256']==successor['evaluator_current_sha256']
+            assert cid not in fixes
+            continue
         if cid not in fixes:
             assert row['current_body_sha256']==row['expected_body_sha256']
             continue

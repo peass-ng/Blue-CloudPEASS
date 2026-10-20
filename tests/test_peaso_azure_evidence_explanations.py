@@ -14,12 +14,16 @@ from peaso.checks import CHECKS
 from peaso.checks.catalog import description_for
 from peaso.checks.azure_evidence_explanations import ROWS, evidence_summary, reviewed_explanation
 from peaso.checks.azure_native_evidence_observations import evidence_summary as native_observation
+from tests.test_gcp_current_source_reconciliation_20261020 import _bound_functions
 from tests.azure_native_successor_inputs_20261020 import _native_rows
 
 ROOT = Path(__file__).resolve().parents[1]
 CHECK_BY_ID = {check.id: check for check in CHECKS if check.provider == 'azure'}
 LEDGER = json.loads((ROOT / 'docs/evidence-reviews/azure.json').read_text())
 CASES = json.loads(gzip.decompress((ROOT / 'tests/fixtures/azure_evidence_review.json.gz').read_bytes()))
+ASSESSMENT_SUCCESSOR_RAW = (ROOT / 'docs/check-review/azure-defender-assessment-four-current-binding-20261021.json').read_bytes()
+assert hashlib.sha256(ASSESSMENT_SUCCESSOR_RAW).hexdigest() == '495d31b83d1586a453b4aa325d4f287d694c950a389e0fa0fdbde6a27f6fe02d'
+ASSESSMENT_SUCCESSOR = json.loads(ASSESSMENT_SUCCESSOR_RAW)
 
 
 def _digest(value):
@@ -36,6 +40,13 @@ def _checked_json(path):
 def _preserve_all_successor_sources_and_historical_inputs():
     def verify():
         for path, expected in PINNED_SUCCESSOR_INPUTS.items():
+            current = hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
+            if path == ASSESSMENT_SUCCESSOR['evaluator_source']:
+                assert expected == ASSESSMENT_SUCCESSOR['evaluator_predecessor_sha256']
+                assert current == ASSESSMENT_SUCCESSOR['evaluator_current_sha256']
+            else:
+                assert current == expected, path
+        for path, expected in ASSESSMENT_SUCCESSOR['immutable_predecessor_files_sha256'].items():
             assert hashlib.sha256((ROOT / path).read_bytes()).hexdigest() == expected, path
     verify()
     yield
@@ -44,6 +55,14 @@ def _preserve_all_successor_sources_and_historical_inputs():
 
 def _reviewed_source_digest(cid, function):
     row = LEDGER[cid]
+    if cid in ASSESSMENT_SUCCESSOR['records']:
+        update = ASSESSMENT_SUCCESSOR['records'][cid]
+        assert row['predicate_sha256'] == update['historical_body_sha256']
+        assert row['source_sha256'] == update['historical_wrapper_sha256']
+        inner, = [f for f in _bound_functions(CHECK_BY_ID[cid].evaluate)
+                  if f.__qualname__ == '_assessment_check.<locals>.evaluate']
+        assert Path(inspect.getsourcefile(inner)).relative_to(ROOT).as_posix() == update['source']
+        assert hashlib.sha256(inspect.getsource(inner).encode()).hexdigest() == update['current_body_sha256']
     actual = hashlib.sha256(inspect.getsource(function).encode()).hexdigest()
     if actual == row.get('source_sha256'):
         return row['source_sha256']
@@ -88,6 +107,14 @@ def _reviewed_description_digest(cid, description):
 
 
 def _current_case(cid, number, historical):
+    if cid in ASSESSMENT_SUCCESSOR['records']:
+        update = ASSESSMENT_SUCCESSOR['historical_fixture_successors'].get(cid + '|' + str(number))
+        if update is not None:
+            assert _digest(historical) == update['historical_case_sha256']
+            assert historical['status'] == update['historical_status']
+            return {'item': historical['item'], 'index': historical['index'],
+                    'status': update['current_status'],
+                    'expected_evidence_sha256': update['current_evidence_sha256']}
     reference = NATIVE_WITNESS_SUCCESSORS.get(cid + '|' + str(number))
     if reference is None:
         return historical

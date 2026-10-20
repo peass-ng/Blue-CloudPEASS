@@ -1,6 +1,6 @@
 # Selected inline CodeBuild buildspec secret inspection
 
-This local addition scans the build instructions stored inline on an explicitly selected CodeBuild project. Kingfisher and TruffleHog run offline; matched values are hidden and matching detections become one leak. It does not inspect referenced files, S3 buildspecs, repositories, artifacts or executed build bytes.
+This check scans the build instructions stored inline on an explicitly selected CodeBuild project. Kingfisher and TruffleHog run offline; matched values are hidden and matching detections become one leak. It does not inspect referenced files, S3 buildspecs, repositories, artifacts or executed build bytes.
 
 Select `aws.review.codebuild.selected_inline_buildspec_secret_indicators` and supply exact account/Region scopes with these collector options:
 
