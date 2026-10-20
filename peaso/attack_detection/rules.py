@@ -53,6 +53,7 @@ from .aws_codeartifact_policy_next import normalize_aws_codeartifact_policy
 from .aws_appconfig_extension_next import normalize_aws_appconfig_extension
 from .aws_athena_workgroup_next import normalize_aws_athena_workgroup
 from .aws_athena_stored_query_next import normalize as normalize_aws_athena_stored_query, correlate as correlate_aws_athena_stored_query
+from .aws_athena_history_cross_actor_next import correlate as correlate_aws_athena_history_cross_actor
 from .aws_config_recorder_next import normalize_aws_config_recorder_stop, normalize_aws_config_auto_remediation
 from .aws_eventbridge_archive_next import normalize_aws_eventbridge_archive
 from .aws_eventbridge_rule_targets_next import normalize_aws_eventbridge_rule_targets
@@ -162,8 +163,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "f9dbf192e31ec7055c7308ebb9ac5fb47806fd82"
-DEFAULT_RULE_PACK_SHA256 = "dee976e9ea8f1e81efbe43ab84d553c9d3972c0fdd3c3e61d1a3d8ace2873e2f"
+DEFAULT_RULE_REF = "519a7554040e41595c940e8d358dc6ddd2ea545b"
+DEFAULT_RULE_PACK_SHA256 = "d400e0ad34b28b73646a329a9560ea7aadf5a1f63d1404b6f2774ed6ed9b2045"
 
 
 @dataclass(frozen=True)
@@ -539,9 +540,12 @@ def detect_aws_events(
     rds_proxy_secret_records: list[Mapping[str, Any]] = []
     servicecatalog_records: list[Mapping[str, Any]] = []
     athena_stored_records: list[Mapping[str, Any]] = []
+    athena_history_records: list[Mapping[str, Any]] = []
     codebuild_gap_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
+            if record.get("eventSource") == "athena.amazonaws.com" and record.get("eventName") in {"StartQueryExecution", "ListQueryExecutions", "GetQueryExecution", "BatchGetQueryExecution", "GetQueryResults", "GetQueryRuntimeStatistics"}:
+                athena_history_records.append(record)
             if record.get("eventSource") == "athena.amazonaws.com" and record.get("eventName") in {"CreateWorkGroup", "StartQueryExecution"}:
                 athena_stored_records.append(record)
             if ((record.get("eventSource") == "codebuild.amazonaws.com" and record.get("eventName") in {"StartBuild", "UpdateProject"})
@@ -606,6 +610,7 @@ def detect_aws_events(
     correlated += correlate_aws_rds_proxy_auth_secret_read(rds_proxy_secret_records)
     correlated += correlate_aws_servicecatalog(servicecatalog_records)
     correlated += correlate_aws_athena_stored_query(athena_stored_records)
+    correlated += correlate_aws_athena_history_cross_actor(athena_history_records)
     correlated += correlate_aws_codebuild_gaps(codebuild_gap_records)
     if correlated:
         matches.extend(_detect_events(correlated, selected, lambda event: event, "aws"))
