@@ -36,6 +36,7 @@ from .aws_customer_profiles_write_next import normalize as normalize_aws_custome
 from .aws_customer_profiles_disruption_next import normalize as normalize_aws_customer_profiles_disruption
 from .aws_customer_profiles_paths_next import normalize as normalize_aws_customer_profiles_paths
 from .aws_customer_profiles_segments_next import normalize as normalize_aws_customer_profiles_segments
+from .aws_customer_profiles_export_next import normalize as normalize_aws_customer_profiles_export
 from .aws_servicecatalog_next import normalize as normalize_aws_servicecatalog, correlate as correlate_aws_servicecatalog
 from .aws_s3_retention_next import normalize_aws_s3_retention
 from .aws_s3_notification_next import normalize_aws_s3_template_notification
@@ -157,8 +158,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "15ae9b85c49f001dd232c39de4b07c0ec80bf7d4"
-DEFAULT_RULE_PACK_SHA256 = "70c2060da36310df4203261c1402c154d759c6625b1ab347c7a05f4f5d5df8b7"
+DEFAULT_RULE_REF = "7457fba88663a83bb39bbe09e35e7d316ce66800"
+DEFAULT_RULE_PACK_SHA256 = "b2f96ba66762369f88eceaa3e984d228b6ab863a29ef4e617110ed958bfdb1cf"
 
 
 @dataclass(frozen=True)
@@ -286,6 +287,7 @@ def detect_aws_events(
         customer_profiles_disruption = normalize_aws_customer_profiles_disruption(record)
         customer_profiles_paths = normalize_aws_customer_profiles_paths(record)
         customer_profiles_segments = normalize_aws_customer_profiles_segments(record)
+        customer_profiles_export = normalize_aws_customer_profiles_export(record)
         servicecatalog = normalize_aws_servicecatalog(record)
         s3_retention = normalize_aws_s3_retention(record)
         s3_notification = normalize_aws_s3_template_notification(record)
@@ -406,6 +408,7 @@ def detect_aws_events(
                 + ([customer_profiles_disruption] if customer_profiles_disruption is not None else [])
                 + ([customer_profiles_paths] if customer_profiles_paths is not None else [])
                 + ([customer_profiles_segments] if customer_profiles_segments is not None else [])
+                + ([customer_profiles_export] if customer_profiles_export is not None else [])
                 + ([servicecatalog] if servicecatalog is not None else [])
                 + ([s3_retention] if s3_retention is not None else [])
                 + ([s3_notification] if s3_notification is not None else [])
