@@ -56,7 +56,7 @@ def verify_source_archive(manifest: dict) -> Path:
 
 def verify_api_archive() -> None:
     archive_path = deploy.BUILD / 'api.zip'
-    if not archive_path.is_file() or archive_path.stat().st_size > 50_000_000:
+    if not archive_path.is_file() or archive_path.stat().st_size > deploy.CURRENT_API_ARCHIVE_LIMIT:
         raise ValueError('API archive is missing or exceeds reviewed size')
     with zipfile.ZipFile(archive_path) as archive:
         members = archive.infolist()

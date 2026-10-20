@@ -56,6 +56,48 @@ def test_current_freeze_uses_its_own_byte_budget_and_rejects_one_byte_over(tmp_p
         optimizer.assert_called_once()
 
 
+
+def test_api_sdk_omission_preserves_runtime_models_and_other_examples(tmp_path, monkeypatch):
+    monkeypatch.setattr(deploy, "BUILD", tmp_path)
+    target = tmp_path / "api-package"
+    files = {
+        "botocore/data/s3/2006-03-01/examples-1.json": b'{"examples": {}}',
+        "botocore/data/s3/2006-03-01/service-2.json.gz": b"service-model",
+        "botocore/data/s3/2006-03-01/paginators-1.json": b"paginators",
+        "botocore/data/s3/2006-03-01/waiters-2.json": b"waiters",
+        "botocore/data/endpoints.json": b"endpoints",
+        "botocore/LICENSE.txt": b"license",
+        "peaso/data/s3/2006-03-01/examples-1.json": b"application-data",
+    }
+    for name, data in files.items():
+        path = target / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+    omitted = deploy.omit_api_sdk_documentation_examples(target)
+    assert omitted == ["botocore/data/s3/2006-03-01/examples-1.json"]
+    for name, data in files.items():
+        if name not in omitted:
+            assert (target / name).read_bytes() == data
+    assert not (target / omitted[0]).exists()
+
+
+def test_api_archive_enforces_aws_upload_byte_limit(tmp_path, monkeypatch):
+    authored = tmp_path / "authored"
+    authored.mkdir()
+    GeneratedPackagePermissions().fixture_source(authored)
+    build = tmp_path / "build"
+    monkeypatch.setattr(deploy, "ROOT", authored)
+    monkeypatch.setattr(deploy, "BUILD", build)
+    monkeypatch.setattr(deploy, "run", lambda *args, **kwargs: None)
+    deploy.freeze_release()
+    package = deploy.package_api()
+    measured = package.stat().st_size
+    monkeypatch.setattr(deploy, "CURRENT_API_ARCHIVE_LIMIT", measured)
+    deploy.package_api()
+    monkeypatch.setattr(deploy, "CURRENT_API_ARCHIVE_LIMIT", measured - 1)
+    with pytest.raises(RuntimeError, match="API archive byte limit exceeded"):
+        deploy.package_api()
+
 def test_customer_role_quick_create_template_is_dedicated_and_narrowly_public():
     from peaso.server.validation import CUSTOMER_ROLE_TEMPLATE_URL, COLLECTOR_ROLE_ARN
     from urllib.parse import urlparse

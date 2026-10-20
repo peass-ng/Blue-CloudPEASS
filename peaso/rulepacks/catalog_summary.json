@@ -539,6 +539,7 @@
         "sagemaker_workforce",
         "sagemaker_workteam",
         "scheduler_network_schedule",
+        "scheduler_schedule",
         "scp_policy",
         "secret",
         "security_group",

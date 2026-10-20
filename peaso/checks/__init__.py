@@ -1552,6 +1552,9 @@ k8s_kubelet_configmap_admission_20261020.install()
 from . import aws_s3_selected_source_admission_20261020
 from . import aws_codebuild_buildspec_s3_successor_20261020
 from . import aws_workload_command_shared_successor_20261020
+from . import aws_deployed_ai_shared_successor_20261020 as _deployed_ai_shared_source
+_historical_aws_workload_command_shared_successor_20261020 = aws_workload_command_shared_successor_20261020
+aws_workload_command_shared_successor_20261020 = _deployed_ai_shared_source
 aws_workload_command_shared_successor_20261020.install_s3()
 
 from . import azure_log_samples_admission_20261020
