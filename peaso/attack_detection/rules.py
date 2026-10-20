@@ -54,6 +54,7 @@ from .aws_appconfig_extension_next import normalize_aws_appconfig_extension
 from .aws_athena_workgroup_next import normalize_aws_athena_workgroup
 from .aws_athena_stored_query_next import normalize as normalize_aws_athena_stored_query, correlate as correlate_aws_athena_stored_query
 from .aws_athena_history_cross_actor_next import correlate as correlate_aws_athena_history_cross_actor
+from .aws_athena_spark_v3_cross_actor_next import normalize_create_workgroup as normalize_aws_athena_spark_workgroup, correlate as correlate_aws_athena_spark_v3
 from .aws_config_recorder_next import normalize_aws_config_recorder_stop, normalize_aws_config_auto_remediation
 from .aws_eventbridge_archive_next import normalize_aws_eventbridge_archive
 from .aws_eventbridge_rule_targets_next import normalize_aws_eventbridge_rule_targets
@@ -166,8 +167,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "6807e5431ada452f17947e632981a9488eeb2e78"
-DEFAULT_RULE_PACK_SHA256 = "965c9116ea02ad3d0555b7f40364f97b47782eeee78de80f98f359a242aba6bc"
+DEFAULT_RULE_REF = "a3a75c55edb0a5c0e6dd5d52db6a20273c4088f3"
+DEFAULT_RULE_PACK_SHA256 = "e5bf4fa223748c3fac2e9be1571f63aca7efa589b85d821c5de4b7cc8fd753ad"
 
 
 @dataclass(frozen=True)
@@ -314,6 +315,7 @@ def detect_aws_events(
         appconfig_extension = normalize_aws_appconfig_extension(record)
         athena_workgroup = normalize_aws_athena_workgroup(record)
         athena_stored_query = normalize_aws_athena_stored_query(record)
+        athena_spark_workgroup = normalize_aws_athena_spark_workgroup(record)
         config_recorder_stop = normalize_aws_config_recorder_stop(record)
         config_auto_remediation = normalize_aws_config_auto_remediation(record)
         eventbridge_archive = normalize_aws_eventbridge_archive(record)
@@ -441,6 +443,7 @@ def detect_aws_events(
                 + ([appconfig_extension] if appconfig_extension is not None else [])
                 + ([athena_workgroup] if athena_workgroup is not None else [])
                 + ([athena_stored_query] if athena_stored_query is not None else [])
+                + ([athena_spark_workgroup] if athena_spark_workgroup is not None else [])
                 + ([config_recorder_stop] if config_recorder_stop is not None else [])
                 + ([config_auto_remediation] if config_auto_remediation is not None else [])
                 + ([eventbridge_archive] if eventbridge_archive is not None else [])
@@ -550,6 +553,7 @@ def detect_aws_events(
     servicecatalog_records: list[Mapping[str, Any]] = []
     athena_stored_records: list[Mapping[str, Any]] = []
     athena_history_records: list[Mapping[str, Any]] = []
+    athena_spark_records: list[Mapping[str, Any]] = []
     codebuild_gap_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
@@ -557,6 +561,8 @@ def detect_aws_events(
                 athena_history_records.append(record)
             if record.get("eventSource") == "athena.amazonaws.com" and record.get("eventName") in {"CreateWorkGroup", "StartQueryExecution"}:
                 athena_stored_records.append(record)
+            if record.get("eventSource") == "athena.amazonaws.com" and record.get("eventName") in {"CreateWorkGroup", "CreateNotebook", "UpdateNotebook", "StartSession", "CreatePresignedNotebookUrl", "StartCalculationExecution"}:
+                athena_spark_records.append(record)
             if ((record.get("eventSource") == "codebuild.amazonaws.com" and record.get("eventName") in {"StartBuild", "UpdateProject"})
                     or (record.get("eventSource") == "ssm.amazonaws.com" and record.get("eventName") == "StartSession")
                     or (record.get("eventSource") == "secretsmanager.amazonaws.com" and record.get("eventName") == "GetSecretValue")):
@@ -620,6 +626,7 @@ def detect_aws_events(
     correlated += correlate_aws_servicecatalog(servicecatalog_records)
     correlated += correlate_aws_athena_stored_query(athena_stored_records)
     correlated += correlate_aws_athena_history_cross_actor(athena_history_records)
+    correlated += correlate_aws_athena_spark_v3(athena_spark_records)
     correlated += correlate_aws_codebuild_gaps(codebuild_gap_records)
     if correlated:
         matches.extend(_detect_events(correlated, selected, lambda event: event, "aws"))
