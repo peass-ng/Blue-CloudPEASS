@@ -4,12 +4,14 @@
       "additionalProperties": false,
       "properties": {
         "summary": {
+          "description": "One to three short, natural-language lines explaining the exact weak boundary, observed configuration and affected resources. Include concrete selectors, CIDRs and ports when available; no generic warnings.",
           "maxLength": 1000,
           "minLength": 1,
           "title": "Summary",
           "type": "string"
         },
         "resource_ids": {
+          "description": "Existing original platform IDs for every affected control or workload, including the primary resource_id.",
           "items": {
             "type": "string"
           },
@@ -19,6 +21,7 @@
           "type": "array"
         },
         "graph_refs": {
+          "description": "Existing node or edge IDs supporting the configuration and relationships; never invented references.",
           "items": {
             "type": "string"
           },
@@ -27,6 +30,7 @@
           "type": "array"
         },
         "observations": {
+          "description": "Specific observed rule values, native resource identifiers, selectors, protocols/ports and evidence paths supporting this finding.",
           "items": {
             "maxLength": 1000,
             "minLength": 1,
@@ -51,28 +55,34 @@
       "additionalProperties": false,
       "properties": {
         "title": {
+          "description": "A concise actionable title naming the affected boundary or control and the needed change.",
           "maxLength": 300,
           "minLength": 1,
           "title": "Title",
           "type": "string"
         },
         "description": {
+          "description": "What is misconfigured: identify the affected tier/boundary, native controls and exact observed rule or route. Do not claim live reachability from configuration alone.",
           "maxLength": 1000,
           "minLength": 1,
           "title": "Description",
           "type": "string"
         },
         "rationale": {
+          "description": "Why this configuration weakens segmentation, which workloads or tiers are affected, and any decision-changing dependency or intent assumption.",
           "maxLength": 1000,
           "minLength": 1,
           "title": "Rationale",
           "type": "string"
         },
         "resource_id": {
+          "description": "Primary affected control\u2019s original platform resource ID, not its graph ID or native ID. The platform derives its display identity and scope.",
+          "minLength": 1,
           "title": "Resource Id",
           "type": "string"
         },
         "severity": {
+          "description": "Severity justified by the evidenced scope and impact of the boundary weakness; do not inflate based on unverified exploitation.",
           "enum": [
             "critical",
             "high",
@@ -84,6 +94,7 @@
           "type": "string"
         },
         "status": {
+          "description": "FAIL for an evidenced configuration weakness; MANUAL when the recommendation depends on unconfirmed intent or dependencies; UNKNOWN when configuration is missing or denied.",
           "enum": [
             "FAIL",
             "MANUAL",
@@ -96,12 +107,14 @@
           "$ref": "#/$defs/NetworkEvidence"
         },
         "remediation": {
+          "description": "Concrete change to the named enforcement control: allowed source/destination and protocols/ports where evidenced, prerequisites and staged rollout preserving required dependencies.",
           "maxLength": 2000,
           "minLength": 1,
           "title": "Remediation",
           "type": "string"
         },
         "verification": {
+          "description": "Specific read-only configuration checks and owner validation of required connectivity after the change, including expected allowed and restricted flows.",
           "maxLength": 1000,
           "minLength": 1,
           "title": "Verification",
@@ -126,7 +139,7 @@
   "additionalProperties": false,
   "properties": {
     "explanation": {
-      "description": "Short paragraphs organized by VPC/VNet/network and subnet tier. Explain each boundary\u2019s structure, workload purpose and the configuration supporting that purpose; group equivalent default networks.",
+      "description": "Readable outline with ### headings per VPC/VNet/network, #### headings per subnet tier/connectivity boundary, and short - bullet lists separated by blank lines. Introduce each network with region, address space and purpose. Explain tier placement, purpose and enforcement in one or two sentences per bullet; group equivalent default networks. No dense global paragraphs.",
       "maxLength": 12000,
       "minLength": 1,
       "title": "Explanation",

@@ -53,12 +53,14 @@ test('Top 15 Actions shows prioritized plans without duplicate verification tabl
   await page.goto('/#AI%20Review');
   await expect(page.getByText('Require IMDSv2', { exact: true })).toBeVisible();
   await expect(page.getByRole('columnheader', { name: 'Order', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('columnheader', { name: 'Plan', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /View plan|Review plan:/ })).toHaveCount(0);
   await expect(page.getByText(/failed findings reached a conclusion/)).toHaveCount(0);
   await expect(page.getByText('Review scope detail', { exact: true })).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Hardening verification', exact: true })).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Exposure verification', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Next reviews', exact: true })).toHaveCount(0);
-  await page.getByRole('button', { name: 'Review plan: Require IMDSv2', exact: true }).click();
+  await page.getByRole('button', { name: 'Require IMDSv2', exact: true }).click();
   await expect(page.getByText('Check workload compatibility', { exact: true })).toBeVisible();
   await page.screenshot({ path: '/tmp/cspm-ai-review.png', fullPage: true });
 });
@@ -71,7 +73,7 @@ test('network findings have a separate page below Network Map', async ({ page })
   const explanation = paragraphs.join('\n\n');
   const network = { status: 'completed', explanation, total: 1, limitations: ['Required traffic must be confirmed.'], findings: [{
     id: 'network-finding', check_id: 'ai.network.example', category: 'network', title: 'Restrict backend security group sources',
-    provider: 'aws', service: 'network', resource_id: 'sg-backend', native_resource_id: 'sg-123', scope: '123456789012/us-east-1',
+    provider: 'aws', service: 'network', resource_id: 'sg-backend', resource_name: 'sg-123', native_resource_id: 'sg-123', scope: '123456789012/us-east-1',
     severity: 'medium', status: 'MANUAL', frameworks: [], description: 'The backend rule admits the full VPC range.',
     rationale: 'Reduce unnecessary cross-tier access after dependency validation.',
     evidence: { source: 'ai_network_review', summary: '10.0.0.0/8 is allowed.', resource_ids: ['sg-backend'], graph_refs: [], observations: ['All protocols are allowed.'], limitations: ['Legacy evidence disclaimer.'] },
@@ -93,10 +95,17 @@ test('network findings have a separate page below Network Map', async ({ page })
   await expect(page.getByRole('region', { name: 'Network architecture' }).locator('p')).toHaveCount(2);
   await expect(page.getByText('Required traffic must be confirmed.', { exact: true })).toHaveCount(0);
   await expect(page.getByText(/AI suggestions|Validate workload dependencies before changing connectivity/)).toHaveCount(0);
-  await page.locator('summary').filter({ hasText: 'Restrict backend security group sources' }).click();
+  const networkTable = page.getByRole('region', { name: 'Network findings table' });
+  await expect(networkTable.locator('tbody tr')).toHaveCount(1);
+  await expect(networkTable.getByText('sg-123', { exact: true })).toHaveCount(1);
+  await expect(networkTable.getByText('10.0.0.0/8 is allowed.', { exact: true })).toBeVisible();
+  await networkTable.getByRole('button', { name: 'Restrict backend security group sources', exact: true }).click();
   await expect(page.getByText(network.findings[0].remediation, { exact: true })).toBeVisible();
   await expect(page.getByText(network.findings[0].verification, { exact: true })).toBeVisible();
+  await expect(page.getByRole('dialog').getByText('sg-123', { exact: true })).toHaveCount(1);
   await expect(page.getByText('Legacy evidence disclaimer.', { exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Close inspector' }).click();
+  await expect(networkTable.getByRole('button', { name: network.findings[0].title, exact: true })).toBeFocused();
   await nav.getByRole('button', { name: 'Top 15 Actions', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Top 15 Actions', exact: true }).first()).toBeVisible();
   await expect(page.getByText(explanation, { exact: true })).toHaveCount(0);
@@ -187,7 +196,7 @@ for (const width of [1280, 390]) {
     await page.getByRole('textbox', { name: 'Search actions' }).fill('resource-15');
     await expect(table.locator('tbody tr')).toHaveCount(1);
     await expect(page.getByText('1 / 15 actions', { exact: true })).toBeVisible();
-    await table.getByRole('button', { name: `Review plan: ${actions[14].title}`, exact: true }).click();
+    await table.getByRole('button', { name: actions[14].title, exact: true }).click();
     await expect(page.getByRole('dialog').getByRole('heading', { name: actions[14].title, exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Close inspector' }).click();
     await page.getByRole('textbox', { name: 'Search actions' }).fill('unmatched-search');
@@ -197,3 +206,92 @@ for (const width of [1280, 390]) {
     await expect(table.getByRole('columnheader', { name: 'Order' })).toHaveCount(0);
   });
 }
+
+for (const width of [1280, 390]) {
+  test(`network findings support complete-set filtering, sorting, paging and evidence drawers at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await setup(page);
+    await page.route('**/api/scans', route => route.fulfill({ json: { items: [{ id: 'scan', connector_id: 'account', status: 'completed' }] } }));
+    const findings = Array.from({ length: 60 }, (_, index) => ({
+      id: `network-${index}`, check_id: `ai.network.${index}`, category: 'network', provider: 'aws', service: 'ec2',
+      resource_id: `resource-${index}`, resource_name: `Database control ${index}`, native_resource_id: `sg-${index}`, scope: '123456789012/us-east-1',
+      title: `Restrict database tier access ${String(index).padStart(2, '0')}`, severity: index === 59 ? 'high' : 'medium', status: index === 59 ? 'MANUAL' : 'FAIL',
+      description: 'The database control accepts all application subnet sources on TCP 5432.',
+      rationale: 'Subnet-wide trust admits unrelated application workloads to the database tier.', frameworks: [],
+      evidence_summary: `Control sg-${index} accepts 10.0.1.0/24 on TCP 5432.`,
+      evidence: { summary: `Control sg-${index} accepts 10.0.1.0/24 on TCP 5432.`, source: 'ai_network_review', resource_ids: [`resource-${index}`], graph_refs: ['edge-db'], observations: ['IpPermissions[0] admits TCP 5432 from 10.0.1.0/24.'] },
+      remediation: 'Replace subnet-wide trust with the approved API security group on TCP 5432 after confirming client dependencies.',
+      verification: index === 59 ? 'Unique verification: approved API clients connect while unrelated workloads have no allowed database rule.' : 'Verify approved clients retain their database rule.',
+    }));
+    await page.route('**/api/scans/scan/ai?*', route => {
+      const url = new URL(route.request().url());
+      const offset = Number(url.searchParams.get('offset'));
+      const limit = Number(url.searchParams.get('limit'));
+      return route.fulfill({ json: { actions: [], network: { status: 'completed', explanation: 'Application VPC separates API and database subnet tiers.', total: findings.length, findings: findings.slice(offset, offset + limit) } } });
+    });
+    await page.goto('/#Network%20Findings');
+    const table = page.getByRole('region', { name: 'Network findings table' });
+    await expect(table.locator('table')).toHaveClass(/findings-table/);
+    await expect(table.locator('tbody tr')).toHaveCount(25);
+    await expect(table.getByRole('columnheader')).toHaveText(['Severity', 'Finding', 'Service', 'Asset', 'Scope', 'Status']);
+    await expect(table.locator('tbody tr').first()).toContainText(findings[59].title);
+    await page.getByRole('button', { name: 'Next page', exact: true }).click();
+    await expect(page.getByText('26–50 of 60 findings', { exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Next page', exact: true }).click();
+    await expect(table.locator('tbody tr')).toHaveCount(10);
+    await page.getByLabel('Search network findings').fill('Unique verification');
+    await expect(table.locator('tbody tr')).toHaveCount(1);
+    await expect(table.locator('tbody')).toContainText(findings[59].title);
+    await page.getByRole('button', { name: 'Reset filters', exact: true }).click();
+    await page.getByLabel('Network finding status').selectOption('UNKNOWN,MANUAL');
+    await expect(table.locator('tbody tr')).toHaveCount(1);
+    await page.getByLabel('Network finding severity').selectOption('low');
+    await expect(table.getByText('No network findings match your filters.', { exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Reset filters', exact: true }).click();
+    await table.getByRole('columnheader', { name: 'Finding', exact: true }).getByRole('button').click();
+    await expect(table.locator('tbody tr').first()).toContainText(findings[0].title);
+    const title = table.getByRole('button', { name: findings[0].title, exact: true });
+    await title.click();
+    const drawer = page.getByRole('dialog');
+    for (const text of [findings[0].resource_name, findings[0].native_resource_id, findings[0].description, findings[0].rationale, findings[0].evidence.observations[0], findings[0].remediation, findings[0].verification])
+      await expect(drawer.getByText(text, { exact: true })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(drawer).toHaveCount(0);
+    await expect(title).toBeFocused();
+    const geometry = await table.evaluate(element => ({ pageWidth: document.documentElement.scrollWidth, viewport: innerWidth, width: element.clientWidth, content: element.scrollWidth, titleWidth: element.querySelectorAll("th")[1].getBoundingClientRect().width }));
+    expect(geometry.pageWidth).toBeLessThanOrEqual(geometry.viewport + 1);
+    expect(geometry.titleWidth).toBeGreaterThanOrEqual(260);
+    if (width === 390) expect(geometry.content).toBeGreaterThan(geometry.width);
+    await page.screenshot({ path: `/tmp/cspm-network-findings-table-${width}.png`, fullPage: true });
+  });
+}
+
+
+test('network architecture has clear network and tier sections below the findings table', async ({ page }) => {
+  await setup(page);
+  await page.route('**/api/scans', route => route.fulfill({ json: { items: [{ id: 'scan', status: 'completed' }] } }));
+  const explanation = '### Application VPC\n\nus-east-1 · 10.0.0.0/16. Hosts the API and its private database.\n\n#### Public edge\n\n- 10.0.101.0/24 hosts the NAT gateway; its route table sends internet traffic to the IGW.\n\n#### Private application tier\n\n- 10.0.1.0/24 hosts the API. Outbound traffic uses the NAT gateway.\n\n#### Database boundary\n\n- `10.0.21.0/24` hosts the **database**. Its SG permits TCP 5432 from the application SG.\n\n### Default networks\n\n- Regional default VPCs use 172.31.0.0/16 and IGW routes.\n- No attached workloads were collected.';
+  await page.route('**/api/scans/scan/ai?*', route => route.fulfill({ json: { actions: [], network: { status: 'completed', explanation, findings: [] } } }));
+  await page.goto('/#Network%20Findings');
+  const architecture = page.getByRole('region', { name: 'Network architecture', exact: true });
+  for (const name of ['Application VPC', 'Public edge', 'Private application tier', 'Database boundary', 'Default networks'])
+    await expect(architecture.getByRole('heading', { name, exact: true })).toBeVisible();
+  await expect(architecture.locator('li')).toHaveCount(5);
+  await expect(architecture.locator('code')).toHaveText('10.0.21.0/24');
+  await expect(architecture.locator('strong')).toHaveText('database');
+  const table = page.getByRole('region', { name: 'Network findings table' });
+  expect(await table.evaluate(element => Boolean(element.compareDocumentPosition(document.querySelector('section[aria-label="Network architecture"]')!) & Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
+});
+
+test('older dense architecture paragraphs become readable blocks without losing content', async ({ page }) => {
+  await setup(page);
+  await page.route('**/api/scans', route => route.fulfill({ json: { items: [{ id: 'scan', status: 'completed' }] } }));
+  const sentences = ['The public edge tier hosts the NAT gateway.', 'Its route points to the internet gateway.', 'The private application tier hosts the API.', 'Outbound traffic uses NAT.', 'The database tier holds the database.', 'Only the approved API SG is allowed on TCP 5432.'];
+  await page.route('**/api/scans/scan/ai?*', route => route.fulfill({ json: { actions: [], network: { status: 'completed', explanation: 'Application VPC — ' + sentences.join(' '), findings: [] } } }));
+  await page.goto('/#Network%20Findings');
+  const architecture = page.getByRole('region', { name: 'Network architecture', exact: true });
+  await expect(architecture.getByRole('heading', { name: 'Application VPC', exact: true })).toBeVisible();
+  await expect(architecture.locator('p')).toHaveCount(3);
+  for (const name of ['Public edge tier', 'Private application tier', 'Database tier']) await expect(architecture.getByRole('heading', { name, exact: true })).toBeVisible();
+  expect((await architecture.locator('p').allTextContents()).join(' ')).toBe(sentences.join(' '));
+});
