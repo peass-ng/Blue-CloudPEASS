@@ -971,12 +971,12 @@ aws_s3_bucket_policy.ai_transport aws_ecs_task_definition.ai aws_iam_role_policy
 aws_subnet.ai aws_route_table_association.ai aws_security_group.ai aws_network_acl.ai
 """.split())
 
-# The reviewed Python 3.12 manylinux package contains 5,890 members after
-# optional installer markers and SDK documentation examples are removed.
+# Keep dependency bytecode out of this cross-platform package; source, SDK
+# models, documentation examples and native extensions remain available.
 CURRENT_API_MEMBER_LIMIT = 6000
 CURRENT_API_ARCHIVE_LIMIT = 52_428_800  # Lambda's verified zipped upload limit.
-# Current complete API expands to 255.6 MB. Lambda permits 250 MiB including
-# layers (these functions declare none); enforce a cap below that service limit.
+# Enforce a cap below Lambda's 250 MiB uncompressed limit, including
+# layers (these functions declare none).
 # Historical artifact-update approvals retain their original byte limits.
 # https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html
 CURRENT_API_UNCOMPRESSED_LIMIT = 260_000_000
@@ -1367,20 +1367,6 @@ def omit_empty_api_installation_markers(target):
     return sorted(removed)
 
 
-def omit_api_sdk_documentation_examples(target):
-    """Exclude SDK documentation examples while retaining all service models."""
-    entries = public_tree_entries(target)
-    removed = []
-    for path in entries:
-        relative = path.relative_to(target)
-        if (len(relative.parts) == 5
-                and relative.parts[:2] == ("botocore", "data")
-                and relative.name == "examples-1.json" and path.is_file()):
-            path.unlink()
-            removed.append(relative.as_posix())
-    return sorted(removed)
-
-
 def package_api():
     import shutil
     source = source_root()
@@ -1395,15 +1381,14 @@ def package_api():
     target.mkdir()
     run([sys.executable, "-m", "pip", "install", "--target", target,
          "--constraint", source / "infra/aws/sdk-constraints.txt",
-         "--platform", "manylinux2014_x86_64", "--implementation", "cp",
+         "--no-compile", "--platform", "manylinux2014_x86_64", "--implementation", "cp",
          "--python-version", "3.12", "--abi", "cp312", "--only-binary=:all:",
          "fastapi>=0.115", "uvicorn>=0.30", "cryptography>=43", "PyYAML>=6",
          "PyJWT[crypto]>=2.10", "mangum>=0.19", "boto3==1.43.38", "requests>=2", "tzdata>=2024.1"])
     # Reject installer-created links before copying any source into its tree.
     omitted = omit_empty_api_installation_markers(target)
-    omitted.extend(omit_api_sdk_documentation_examples(target))
     if omitted:
-        print(f"Omitted {len(omitted)} optional API installation markers and SDK documentation examples")
+        print(f"Omitted {len(omitted)} optional empty API installation markers")
     shutil.copytree(source / "peaso", target / "peaso", ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
     shutil.copytree(source / "risk_rules", target / "risk_rules", ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
     for name in ["bluepeass/__init__.py", "bluepeass/k8s.py", "bluepeass/k8s_risks.py", "scripts/cloud_permission_risks.py", *admission_data]:
