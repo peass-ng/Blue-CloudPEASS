@@ -504,7 +504,15 @@
         "defaults": "null",
         "kwdefaults": "null"
       },
+      "_compiled_module": {
+        "defaults": "null",
+        "kwdefaults": "null"
+      },
       "_live_leaf": {
+        "defaults": "null",
+        "kwdefaults": "null"
+      },
+      "_module_compiler": {
         "defaults": "null",
         "kwdefaults": "null"
       },
@@ -523,8 +531,8 @@
     }
   },
   "normalized_sources": {
-    "peaso/checks/gcp_positive_conservation_shared_source_successor_20261020.py": "1b1da9779f0be62d9025706525d0a22dd1890dda5f81207dff8b0b1f6301a726",
-    "peaso/gcp_positive_conservation_source_admission_successor_20261020.py": "dc60050ccf7578015a3b3f61fc3b5f15855570f2b44818d0500a41a3d125d67a"
+    "peaso/checks/gcp_positive_conservation_shared_source_successor_20261020.py": "903fe4cb45855383f6b5a9c309ae0ff19957630dbf9179aa672c39480227cceb",
+    "peaso/gcp_positive_conservation_source_admission_successor_20261020.py": "d892f77133672d83d2e009b670e36f4c9275e13a290d43bae887379c9d9add6f"
   },
   "schema": "gcp-positive-conservation-source-bridge-v1"
 }

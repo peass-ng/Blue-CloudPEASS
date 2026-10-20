@@ -75,13 +75,13 @@ def test_container_scanning_free_tier_and_missing_extension_fail():
     assert run(slug, data.SCOPE, _pricing(data._pricing_row("VirtualMachines"))) == "NOT_APPLICABLE"
 
 
-def test_assessment_absent_and_not_applicable_filtering():
+def test_assessment_unassessed_is_unknown_and_unhealthy_is_not_hidden():
     images = cid("defender_assessment_running_images_vulnerabilities")
     name = "Azure running container images should have vulnerabilities resolved (powered by Microsoft Defender Vulnerability Management)"
-    assert run(images, data.SCOPE, scope_index({"security_assessment": [data._assessment(name, "NotApplicable")]})) == "NOT_APPLICABLE"
+    assert run(images, data.SCOPE, scope_index({"security_assessment": [data._assessment(name, "NotApplicable")]})) == "UNKNOWN"
     updates = cid("defender_assessment_system_updates")
     only_one = scope_index({"security_assessment": [data._assessment("System updates should be installed on your machines", "Unhealthy")]})
-    assert run(updates, data.SCOPE, only_one) == "NOT_APPLICABLE"
+    assert run(updates, data.SCOPE, only_one) == "FAIL"
     bogus = scope_index({"security_assessment": [data._assessment("Install endpoint protection solution on virtual machines", "Weird")]})
     assert run(cid("defender_assessment_endpoint_protection"), data.SCOPE, bogus) == "UNKNOWN"
 

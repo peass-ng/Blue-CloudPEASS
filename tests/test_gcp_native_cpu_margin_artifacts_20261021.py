@@ -1,0 +1,169 @@
+"""Artifact reuse preserves every current proof and immutable predecessor."""
+import ast
+import hashlib
+import inspect
+import json
+from pathlib import Path
+import sys
+import types
+
+import pytest
+from peaso import gcp_positive_conservation_source_admission_successor_20261020 as source
+from peaso.checks import gcp_positive_conservation_shared_source_successor_20261020 as bridge
+from tests.gcp_native_cpu_margin_epoch_20261021 import CHANGES, predecessor_bytes
+
+ROOT = Path(source.__file__).resolve().parents[1]
+
+
+def _functions(raw):
+    return {n.name: ast.dump(n, include_attributes=False) for n in ast.parse(raw).body
+            if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))}
+
+
+def test_finite_changed_function_roster_and_unchanged_historical_manifest():
+    shared = 'peaso/checks/gcp_positive_conservation_shared_source_successor_20261020.py'
+    root = 'peaso/gcp_positive_conservation_source_admission_successor_20261020.py'
+    manifest = 'peaso/checks/gcp_positive_conservation_source_bridge_20261020.json'
+    assert set(CHANGES) == {shared, root, manifest}
+    old, new = _functions(predecessor_bytes(ROOT, shared)), _functions((ROOT / shared).read_bytes())
+    assert old.keys() == new.keys()
+    assert {n for n in old if old[n] != new[n]} == {'_transaction_compiler', '_check_function', 'install_s3', 'install_bundle'}
+    old, new = _functions(predecessor_bytes(ROOT, root)), _functions((ROOT / root).read_bytes())
+    assert set(new) - set(old) == {'_module_compiler', '_compiled_module'}
+    assert not (set(old) - set(new))
+    assert {n for n in old if old[n] != new[n]} == {'_bridge_source', '_live_leaf'}
+    assert old['_source_delta'] == new['_source_delta']
+    before = json.loads(predecessor_bytes(ROOT, manifest))
+    current = json.loads((ROOT / manifest).read_bytes())
+    assert set(current['normalized_sources']) == set(before['normalized_sources']) == {shared, root}
+    for name in (shared, root):
+        current['normalized_sources'][name] = before['normalized_sources'][name]
+    for name in ('_module_compiler', '_compiled_module'):
+        assert current['live_functions'][root].pop(name) == {'defaults': 'null', 'kwdefaults': 'null'}
+    assert current == before
+
+
+@pytest.mark.parametrize('name', sorted(CHANGES))
+def test_predecessor_projection_rejects_any_unreviewed_current_source(name):
+    raw = (ROOT / name).read_bytes()
+    with pytest.raises(AssertionError):
+        predecessor_bytes(ROOT, name, raw + b'\n')
+
+
+@pytest.mark.parametrize('mutation', ['code', 'signature', 'source_key'])
+def test_module_artifact_poisoning_rejected(tmp_path, mutation):
+    path = tmp_path / 'sample.py'
+    raw = b'value = 1\n'
+    compiler = source._module_compiler()
+    first = compiler(path, raw)
+    assert compiler(path, raw) is first
+    cache = inspect.getclosurevars(compiler).nonlocals['cache']
+    key = next(iter(cache)); code, signature = cache[key]
+    if mutation == 'code': code = compile('value = 2', str(path), 'exec')
+    elif mutation == 'signature': signature = b'0' * 32
+    else:
+        foreign = (str(path), hashlib.sha256(b'value = 2\n').hexdigest(), sys.flags.optimize)
+        cache[foreign] = cache.pop(key)
+        with pytest.raises(RuntimeError, match='module artifact changed'):
+            compiler(path, b'value = 2\n')
+        return
+    cache[key] = (code, signature)
+    with pytest.raises(RuntimeError, match='module artifact changed'):
+        compiler(path, raw)
+
+
+def test_module_artifact_new_source_is_recompiled(tmp_path):
+    compiler = source._module_compiler(); path = tmp_path / 'sample.py'
+    first = compiler(path, b'value = 1\n')
+    second = compiler(path, b'value = 2\n')
+    assert first is not second
+    namespace = {}; exec(second, namespace)
+    assert namespace['value'] == 2
+
+
+@pytest.mark.parametrize('mutation', ['callable', 'globals', 'code'])
+def test_module_compiler_live_identity_rejected(tmp_path, mutation):
+    compiler = source._module_compiler()
+    if mutation == 'callable': changed = lambda path, raw: compile(raw, str(path), 'exec')
+    elif mutation == 'globals':
+        changed = types.FunctionType(compiler.__code__, dict(compiler.__globals__),
+                                     compiler.__name__, compiler.__defaults__, compiler.__closure__)
+    else:
+        changed = types.FunctionType(compiler.__code__.replace(co_consts=compiler.__code__.co_consts + ('unreviewed',)),
+                                     compiler.__globals__, compiler.__name__, compiler.__defaults__, compiler.__closure__)
+    token = source._MODULE_ARTIFACTS.set(changed)
+    try:
+        with pytest.raises(RuntimeError, match='compiler callable changed'):
+            source._compiled_module(tmp_path / 'sample.py', b'value = 1\n')
+    finally:
+        source._MODULE_ARTIFACTS.reset(token)
+
+
+@pytest.mark.parametrize('mutation', ['code', 'json', 'signature'])
+def test_normalized_code_cache_poisoning_rejected(mutation):
+    compiler = bridge._transaction_compiler()
+    normalized = inspect.getclosurevars(compiler).nonlocals['normalized']
+    code = compile('answer = 1', '<sample>', 'exec')
+    key = ('<sample>', 'digest', sys.flags.optimize)
+    expected = normalized(key, code)
+    assert normalized(key, code) == expected
+    cache = inspect.getclosurevars(normalized).nonlocals['code_cache']
+    artifact_key = next(iter(cache)); saved, value, signature = cache[artifact_key]
+    if mutation == 'code': saved = compile('answer = 2', '<sample>', 'exec')
+    elif mutation == 'json': value = '{}'
+    else: signature = b'0' * 32
+    cache[artifact_key] = (saved, value, signature)
+    with pytest.raises(RuntimeError, match='Normalized code artifact changed'):
+        normalized(key, code)
+
+
+def test_code_serialization_keeps_false_integer_float_distinct():
+    compiler = bridge._transaction_compiler()
+    normalized = inspect.getclosurevars(compiler).nonlocals['normalized']
+    base = compile('answer = 1', '<sample>', 'exec')
+    values = [normalized(('<sample>', 'digest', 0), base.replace(co_consts=(v,))) for v in (False, 0, 0.0)]
+    assert len(set(values)) == 3
+
+
+@pytest.mark.parametrize('constant', [type('BytesSubclass', (bytes,), {})(b'x'), type('TupleSubclass', (tuple,), {})((1,))])
+def test_mutable_subclass_constants_refused(constant):
+    compiler = bridge._transaction_compiler()
+    normalized = inspect.getclosurevars(compiler).nonlocals['normalized']
+    code = compile('answer = 1', '<sample>', 'exec').replace(co_consts=(constant,))
+    with pytest.raises(RuntimeError, match='Mutable native code artifact refused'):
+        normalized(('<sample>', 'digest', 0), code)
+
+
+@pytest.mark.parametrize('installer', ['install_bundle', 'install_s3'])
+def test_constructor_or_earlier_live_guard_failure_restores_artifact_context(monkeypatch, installer):
+    outer = source._module_compiler()
+    token = source._MODULE_ARTIFACTS.set(outer)
+    def fail(): raise RuntimeError('injected constructor failure')
+    monkeypatch.setattr(bridge, '_transaction_compiler', fail)
+    try:
+        expected = ('injected constructor failure' if installer == 'install_s3'
+                    else 'bridge callable roster changed')
+        with pytest.raises(RuntimeError, match=expected):
+            getattr(bridge, installer)()
+        assert source._MODULE_ARTIFACTS.get() is outer
+    finally:
+        source._MODULE_ARTIFACTS.reset(token)
+
+
+def test_real_source_proof_rechecks_live_function_inside_warm_module_context(monkeypatch):
+    token = source._MODULE_ARTIFACTS.set(source._module_compiler())
+    try:
+        source._bridge_source(ROOT)
+        source._bridge_source(ROOT)
+        fn = source._compiled_module
+        monkeypatch.setattr(fn, '__defaults__', ('unreviewed',))
+        with pytest.raises(RuntimeError, match='executing callable changed'):
+            source._bridge_source(ROOT)
+    finally:
+        source._MODULE_ARTIFACTS.reset(token)
+
+
+def test_module_carrier_replacement_rejected(monkeypatch):
+    monkeypatch.setattr(source, '_MODULE_ARTIFACTS', object())
+    with pytest.raises(RuntimeError, match='artifact context changed'):
+        source._bridge_source(ROOT)

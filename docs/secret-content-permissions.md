@@ -21,9 +21,11 @@ a clean result. Coverage is limited to the selected objects and documented bound
 | AWS | Sampled CloudWatch log messages | `logs:FilterLogEvents` on the selected log groups. |
 | AWS | Latest selected ECR image | `ecr:BatchGetImage`, `ecr:GetDownloadUrlForLayer` on the selected repositories, alongside image inventory. |
 | AWS | Explicit selected configuration literals (15 surfaces; locally integrated) | Exact selected read operations and scope limits are listed in the [AWS configuration-content table](peaso-aws-collector.md#optional-explicitly-selected-configuration-content-scanning). SSM ownership requires `ssm:DescribeDocument` alongside `ssm:GetDocument`; REST stages use exact `apigateway:GET`. |
+| AWS | Exact ECS task-definition / classic Batch job-definition command literals | `ecs:DescribeTaskDefinition` and `batch:DescribeJobDefinitions`; both require `Resource: "*"`. The reader restricts requests to selected ARN revisions and account/Region scopes. [Selectors and limits](peaso-aws-selected-workload-commands.md). |
 | AWS | Explicit selected inline CodeBuild buildspec | `codebuild:BatchGetProjects` on the exact selected project ARNs. No build, repository or artifact permission; missing or referenced sources stay undetermined. [Selectors and limits](peaso-aws-selected-codebuild-buildspecs.md). |
 | AWS | Explicit selected S3 text object or supported source archive | `s3:GetBucketLocation` plus exact-object `s3:GetObject` or version-scoped `s3:GetObjectVersion`. Existing SSE-KMS key authorization can be necessary; no grants or KMS mutations are attempted. [Exact selectors and limits](aws-selected-s3-source-secret-permissions-20261020.md). |
 | GCP | Private Artifact Registry images, including supported GCR-backed images | Repository/image metadata and `artifactregistry.repositories.downloadArtifacts`. `roles/artifactregistry.reader` is a suitable read role; restrict its scope to required repositories. |
+| GCP | Immutable image declared by an exact Cloud Run Job container | `run.jobs.get`, `resourcemanager.projects.get`, `artifactregistry.repositories.get`, `artifactregistry.dockerimages.get`, and `artifactregistry.repositories.downloadArtifacts`. Repository metadata access alone does not grant image downloads. [Selectors and permissions](peaso-gcp-selected-job-images.md). |
 | GCP | Exact selected Dataflow package or Batch GCS-mounted host script | `dataflow.jobs.get` or `batch.jobs.get`, plus `resourcemanager.projects.get`, `storage.buckets.get` and exact-object `storage.objects.get`. Explicit named opt-in and same-project bucket required; no list or execution permission. [Selectors and bounds](peaso-gcp-selected-job-sources.md). |
 | GCP | Exact selected Workbench startup GCS source | `notebooks.instances.get`, `resourcemanager.projects.get`, `storage.buckets.get` and exact-object `storage.objects.get`. Explicit named opt-in and same-project bucket required. [Selectors and limits](peaso-gcp-selected-workbench-sources.md). |
 | GCP | Other supported selected content | See the [GCP per-surface permission table](peaso-gcp-collector.md#read-permissions-for-optional-content-scans). Tasks FULL view and BigQuery routine definitions have separate explicit selectors. |
@@ -32,9 +34,9 @@ a clean result. Coverage is limited to the selected objects and documented bound
 | Azure | Explicit immutable ACR images | Registry identity read plus scoped image pull: `AcrPull` for classic registries or `Container Registry Repository Reader` for ABAC registries. |
 | Kubernetes | Selected Pod and workload-template literal env/command/args, plus ConfigMap literals | Namespace-scoped RBAC `get` on only the selected resource names in the core, `apps` or `batch` API group. See the exact kinds and paths below; no list, Secret, log or exec permission is needed for this reader. |
 
-The Azure, Kubernetes and selected Lambda-environment readers are local follow-up additions. Their native offline
-acceptance and release status are tracked in [the review ledger](check-review/progress.json);
-this document does not certify that they are already deployed.
+These readers are registered in the source catalog and stay disabled without the required explicit selections.
+The [review ledger](check-review/progress.json) records bounded acceptance; availability on a hosted
+instance depends on its deployed version. Metadata access does not imply content-read permission.
 
 ## Private registry permissions and remaining coverage
 

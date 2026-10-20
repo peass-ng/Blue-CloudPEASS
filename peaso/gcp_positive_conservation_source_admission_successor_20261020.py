@@ -4,6 +4,10 @@ The old receipts and executable code remain byte-for-byte unchanged. Exactly
 the twelve manifest-listed source-only leaves may have successor bytes.
 """
 import gzip
+from contextvars import ContextVar
+import hmac
+import marshal
+import os
 import hashlib
 import importlib
 import json
@@ -26,17 +30,67 @@ PAGE_RECEIPT_SHA256 = 'a9cf3dd72f0745e2c61cb9ace44afdbaa9dc06ba0e02a7a3ffd4c253d
 SOURCE_DELTA = 'peaso/checks/gcp_positive_conservation_source_delta_20261020.json'
 SOURCE_DELTA_SHA256 = '6f803d15053fdccf982ab20883b76a72a821ef98f703192eba25c3a05695d6d6'
 BRIDGE_RECEIPT = 'peaso/checks/gcp_positive_conservation_source_bridge_20261020.json'
-BRIDGE_RECEIPT_SHA256 = 'a3df8dc295d0ca6cd9a7e7cabd11af2036d6dc245e52bb55f0273ca7ff8ec2e9'
+BRIDGE_RECEIPT_SHA256 = '833f82de54bc9c0cdae0143ecf09e7b8dbcb0509af958512449bf12ea16397a6'
+
+
+_MODULE_ARTIFACTS = ContextVar('gcp_positive_module_artifacts', default=None)
+_MODULE_CONTEXT = _MODULE_ARTIFACTS
+
+
+def _module_compiler():
+    """Signed immutable module code only; never a source/live-binding verdict."""
+    cache = {}
+    secret = os.urandom(32)
+    size = 0
+
+    def lookup(path, raw):
+        nonlocal size
+        key = (str(path), hashlib.sha256(raw).hexdigest(), sys.flags.optimize)
+        entry = cache.get(key)
+        if entry is None:
+            code = compile(raw, str(path), 'exec', optimize=sys.flags.optimize)
+            payload = marshal.dumps((key, code), 2)
+            entry = (code, hmac.digest(secret, payload, 'sha256'))
+            if len(cache) >= 128 or size + len(payload) > 4 * 1024 * 1024:
+                cache.clear()
+                size = 0
+            if len(payload) <= 4 * 1024 * 1024:
+                cache[key] = entry
+                size += len(payload)
+        code, signature = entry
+        if not isinstance(code, types.CodeType) or not hmac.compare_digest(signature,
+                hmac.digest(secret, marshal.dumps((key, code), 2), 'sha256')):
+            raise RuntimeError('GCP module artifact changed')
+        return code
+
+    return lookup
+
+
+def _compiled_module(path, raw):
+    compiler = _MODULE_ARTIFACTS.get()
+    if compiler is None:
+        return compile(raw, str(path), 'exec', optimize=sys.flags.optimize)
+    expected = next(code for code in _module_compiler.__code__.co_consts
+                    if isinstance(code, types.CodeType) and code.co_name == 'lookup')
+    if (not isinstance(compiler, types.FunctionType) or compiler.__code__ is not expected
+            or compiler.__globals__ is not globals()):
+        raise RuntimeError('GCP module compiler callable changed')
+    return compiler(path, raw)
 
 
 def _bridge_source(root):
+    if _MODULE_ARTIFACTS is not _MODULE_CONTEXT:
+        raise RuntimeError('GCP module artifact context changed')
     raw = (root / BRIDGE_RECEIPT).read_bytes()
     if hashlib.sha256(raw).hexdigest() != BRIDGE_RECEIPT_SHA256:
         raise RuntimeError('GCP positive conservation bridge receipt changed')
     receipt = json.loads(raw)
     if receipt['delta_sha256'] != SOURCE_DELTA_SHA256:
         raise RuntimeError('GCP positive conservation bridge delta changed')
-    for name, digest in receipt['normalized_sources'].items():
+    # Freshly compile and attest this small bootstrap before any cached code.
+    names = sorted(receipt['normalized_sources'], key=lambda name: (name != 'peaso/gcp_positive_conservation_source_admission_successor_20261020.py', name))
+    for name in names:
+        digest = receipt['normalized_sources'][name]
         path = (root / name).resolve()
         if not path.is_relative_to(root / 'peaso'):
             raise RuntimeError('GCP positive conservation bridge source escaped package')
@@ -50,8 +104,10 @@ def _bridge_source(root):
         module = sys.modules.get(module_name)
         if module is None:
             raise RuntimeError('GCP positive conservation bridge module absent: ' + name)
-        compiled = {code.co_qualname: code for code in predecessor._codes(
-            compile(path.read_bytes(), str(path), 'exec', optimize=sys.flags.optimize))}
+        raw_code = path.read_bytes()
+        module_code = (compile(raw_code, str(path), 'exec', optimize=sys.flags.optimize)
+                       if module is sys.modules[__name__] else _compiled_module(path, raw_code))
+        compiled = {code.co_qualname: code for code in predecessor._codes(module_code)}
         expected_functions = receipt['live_functions'][name]
         actual_functions = {key for key, value in vars(module).items()
             if isinstance(value, types.FunctionType) and value.__globals__ is vars(module)}
@@ -103,7 +159,7 @@ def _live_leaf(root, rows):
         if sys.modules.get(module_name) is not module:
             raise RuntimeError('GCP positive conservation leaf module replaced: ' + name)
         compiled = {code.co_qualname: code for code in predecessor._codes(
-            compile(path.read_bytes(), str(path), 'exec', optimize=sys.flags.optimize))}
+            _compiled_module(path, path.read_bytes()))}
         for qualified, row in functions.items():
             parts = qualified.split('.')
             value = vars(module)[parts[0]]

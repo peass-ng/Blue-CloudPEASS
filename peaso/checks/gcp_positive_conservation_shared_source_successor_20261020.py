@@ -55,7 +55,7 @@ _DATAFLOW_FUNCTIONS = dict(_DATAFLOW_ADMISSION._FUNCTIONS)
 _DATAFLOW_REVIEWED_INPUTS = _DATAFLOW_FUNCTIONS[_DATAFLOW_ADMISSION.__name__ + ':reviewed_inputs']
 RECEIPT = 'azure_metadata_only_shared_successor_20261020.json'
 RECEIPT_SHA256 = '12bf2cd88f943bcb3cdb91a3701cd3197e78d6ba7ed7e956afd854d6d1b292ed'
-BRIDGE_RECEIPT_SHA256 = 'a3df8dc295d0ca6cd9a7e7cabd11af2036d6dc245e52bb55f0273ca7ff8ec2e9'
+BRIDGE_RECEIPT_SHA256 = '833f82de54bc9c0cdae0143ecf09e7b8dbcb0509af958512449bf12ea16397a6'
 _CURRENT_INIT_SHA256 = '8cd818f4733bd8d51d04cab583171ddfdcec6575fbff1a1b2222bdc6da15301e'
 _PREDECESSOR_INIT_SHA256 = 'e828e145917364fcd20a5a2d6de7e24eb304eee5698fea1cb1bed8669fef01c6'
 
@@ -153,9 +153,42 @@ def _transaction_compiler():
     secret = os.urandom(32)
     source_bytes = 0
     source_cache = {}
+    code_cache = {}
+    code_bytes = 0
+
+    def immutable(value):
+        # Exact builtins only: a tuple/bytes subclass can have mutable methods.
+        if type(value) is types.CodeType:
+            return all(immutable(item) for item in value.co_consts)
+        if type(value) in (tuple, frozenset):
+            return all(immutable(item) for item in value)
+        if type(value) is slice:
+            return all(immutable(item) for item in (value.start, value.stop, value.step))
+        return value is None or value is Ellipsis or type(value) in (str, int, bool, float, bytes, complex)
+
+    def normalized(key, code):
+        nonlocal code_bytes
+        artifact_key = (key, id(code))
+        entry = code_cache.get(artifact_key)
+        if entry is None:
+            if not immutable(code):
+                raise RuntimeError('Mutable native code artifact refused')
+            value = json.dumps(original.proof._code(code), sort_keys=True)
+            signature = hmac.digest(secret, marshal.dumps((artifact_key, code, value), 2), 'sha256')
+            entry = (code, value, signature)
+            if len(code_cache) < 4096 and code_bytes + len(value.encode()) <= 4 * 1024 * 1024:
+                code_cache[artifact_key] = entry
+                code_bytes += len(value.encode())
+        saved, value, signature = entry
+        # This is a serialization artifact, never a live-function verdict.
+        # Marshal/HMAC and exact immutable code identity are checked each use.
+        if (saved is not code or not hmac.compare_digest(signature,
+                hmac.digest(secret, marshal.dumps((artifact_key, code, value), 2), 'sha256'))):
+            raise RuntimeError('Normalized code artifact changed')
+        return value
 
     def lookup(key, raw, qualname, native=None, want_source=False):
-        nonlocal source_bytes
+        nonlocal source_bytes, code_bytes
         if key != (key[0], hashlib.sha256(raw).hexdigest(), sys.flags.optimize):
             raise RuntimeError('Deployed AI compiled cache source binding changed')
         if key not in cache:
@@ -169,7 +202,8 @@ def _transaction_compiler():
             if len(cache) >= 128 or source_bytes + artifact_bytes > 16 * 1024 * 1024:
                 cache.clear()
                 source_cache.clear()
-                source_bytes = 0
+                code_cache.clear()
+                source_bytes = code_bytes = 0
             if artifact_bytes <= 16 * 1024 * 1024:
                 cache[key] = signed
                 source_bytes += artifact_bytes
@@ -181,12 +215,14 @@ def _transaction_compiler():
             if record[0] == qualname:
                 if not hmac.compare_digest(signature, hmac.digest(secret, marshal.dumps((key, record), 2), 'sha256')):
                     raise RuntimeError('Deployed AI compiled cache artifact changed')
-                matches.append(({'qualname': record[0], 'source_sha256': record[1]}, record[2]))
+                matches.append(({'qualname': record[0], 'source_sha256': record[1],
+                                 'compiled_code_json': normalized(key, record[2])}, record[2]))
                 source_fragment = record[3]
         if native is None:
             return matches
         filename = inspect.getsourcefile(native)
-        if not isinstance(filename, str) or Path(filename).resolve() != Path(key[0]):
+        if (not isinstance(filename, str)
+                or filename != key[0] and Path(filename).resolve() != Path(key[0])):
             raise RuntimeError('Native CPU inspect source identity changed')
         # Preserve inspect's linecache view as well as the independently reread
         # disk bytes. Mutable cached source lines never share a successful key.
@@ -208,6 +244,9 @@ def _transaction_compiler():
         if (saved_code is not code or not hmac.compare_digest(signature,
                 hmac.digest(secret, marshal.dumps((source_key, saved_code, digest), 2), 'sha256'))):
             raise RuntimeError('Native CPU source cache artifact changed')
+        live_json = normalized(key, code)
+        for record, _ in matches:
+            record['live_code_json'] = live_json
         return (matches, digest, source_fragment) if want_source else (matches, digest)
 
     return lookup
@@ -244,9 +283,15 @@ def _check_function(fn, row, root, compiled):
             if len(matches) != 1:
                 raise RuntimeError('GCP positive callable source ambiguous')
             expected_source_sha = matches[0][0]['source_sha256']
+    live_json = matches[0][0].get('live_code_json') if len(matches) == 1 else None
+    expected_json = matches[0][0].get('compiled_code_json') if len(matches) == 1 else None
+    if live_json is None:
+        live_json = json.dumps(original.proof._code(native.__code__), sort_keys=True)
+    if expected_json is None and len(matches) == 1:
+        expected_json = json.dumps(original.proof._code(matches[0][1]), sort_keys=True)
     if (len(matches) != 1 or matches[0][0]['source_sha256'] != expected_source_sha
             or source_digest != expected_source_sha
-            or json.dumps(original.proof._code(native.__code__), sort_keys=True) != json.dumps(original.proof._code(matches[0][1]), sort_keys=True)
+            or live_json != expected_json
             or native.__globals__ is not vars(sys.modules[native.__module__])
             or json.dumps(native.__defaults__, sort_keys=True) != json.dumps(row['defaults'], sort_keys=True)
             or json.dumps(native.__kwdefaults__, sort_keys=True) != json.dumps(row['kwdefaults'], sort_keys=True)):
@@ -769,11 +814,21 @@ def install_dataflow(admission):
 def install_bundle():
     """Release this wave's compilation cache on success and every exception."""
     _verify_bridge(Path(__file__).resolve().parents[2])
-    token = _COMPILED_TRANSACTION.set(_transaction_compiler())
+    from peaso import gcp_positive_conservation_source_admission_successor_20261020 as source_artifacts
+    artifact_context = source_artifacts._MODULE_ARTIFACTS
+    artifact_token = artifact_context.set(source_artifacts._module_compiler())
+    try:
+        token = _COMPILED_TRANSACTION.set(_transaction_compiler())
+    except BaseException:
+        artifact_context.reset(artifact_token)
+        raise
     try:
         return _install_bundle()
     finally:
-        _COMPILED_TRANSACTION.reset(token)
+        try:
+            _COMPILED_TRANSACTION.reset(token)
+        finally:
+            artifact_context.reset(artifact_token)
 
 
 def _install_bundle():
@@ -895,7 +950,14 @@ def s3_reviewed_inputs():
 def install_s3():
     # This installer runs before install_bundle; use the same bounded signed
     # artifacts for its own nested proof calls and always release the wave.
-    token = _COMPILED_TRANSACTION.set(_transaction_compiler())
+    from peaso import gcp_positive_conservation_source_admission_successor_20261020 as source_artifacts
+    artifact_context = source_artifacts._MODULE_ARTIFACTS
+    artifact_token = artifact_context.set(source_artifacts._module_compiler())
+    try:
+        token = _COMPILED_TRANSACTION.set(_transaction_compiler())
+    except BaseException:
+        artifact_context.reset(artifact_token)
+        raise
     try:
         from . import CHECKS,register
         from .fixtures import CASES
@@ -919,7 +981,10 @@ def install_s3():
             else:CASES.pop(reviewed.CHECK,None)
             raise
     finally:
-        _COMPILED_TRANSACTION.reset(token)
+        try:
+            _COMPILED_TRANSACTION.reset(token)
+        finally:
+            artifact_context.reset(artifact_token)
 
 
 

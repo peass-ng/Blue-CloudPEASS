@@ -327,13 +327,21 @@ def _assessment_check(slug, names, title, *, ignore_not_applicable=False, contro
                   remediation="Remediate the unhealthy Defender for Cloud recommendation on the affected resources.")
     def evaluate(item, index):
         by_name = {name: _assessment_states(index, name) for name in names}
-        if ignore_not_applicable:
-            by_name = {name: [s for s in states if s != "NotApplicable"] for name, states in by_name.items()}
-        absent = [name for name, states in by_name.items() if not states]
-        if absent:
-            return _na("Named Defender assessment is not reported for this subscription", absent=absent)
+        # Keep the factory option for compatibility. NotApplicable means an
+        # assessment did not happen (including OffByPolicy), not a healthy or
+        # independently inapplicable resource.
         unhealthy = {name: states.count("Unhealthy") for name, states in by_name.items() if "Unhealthy" in states}
-        return result(bool(unhealthy), unhealthy_counts=unhealthy, assessments=list(names))
+        if unhealthy:
+            return result(True, unhealthy_counts=unhealthy, assessments=list(names),
+                          observed="Defender reports Unhealthy for at least one selected recommendation.")
+        absent = [name for name, states in by_name.items() if not states]
+        unassessed = [name for name, states in by_name.items() if "NotApplicable" in states]
+        if absent or unassessed:
+            return unknown("Named Defender assessment did not report a health result",
+                           absent=absent, unassessed=unassessed,
+                           observed="Defender has not assessed one or more selected recommendations, so their health is unknown.")
+        return result(False, unhealthy_counts={}, assessments=list(names),
+                      observed="Defender reports Healthy for the selected assessments.")
     evaluate.__name__ = "claude_" + slug
     CASES[cid(slug)] = {"pass": SCOPE, "fail": SCOPE,
                         "pass_index": scope_index({"security_assessment": [_assessment(n, "Healthy") for n in names]}),

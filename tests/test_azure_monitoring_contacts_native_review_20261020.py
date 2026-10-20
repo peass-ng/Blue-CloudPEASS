@@ -86,7 +86,9 @@ def test_native_monitoring_deciding_fields_and_collection_boundaries(spec,mode):
  elif mode=='bad':expected={'FAIL'}
  elif mode=='denied':expected={'DENIED'}
  elif mode=='empty':
-  if kind=='security_assessment' or 'attack_path_setting' in cid:expected={'NOT_APPLICABLE'}
+  # Empty assessment inventory supplies no health or applicability result.
+  if kind=='security_assessment':expected={'UNKNOWN'}
+  elif 'attack_path_setting' in cid:expected={'NOT_APPLICABLE'}
   elif kind=='log_analytics_workspace' or cid in ('azure.claude.defender_attack_path_notifications','azure.claude.defender_contact_has_email','azure.port.defender_alert_severity_contact','azure.port.defender_notify_owner_contact'):expected={'EMPTY'}
   elif cid in ('azure.port.securitycenter_mcas_integration','azure.port.securitycenter_wdatp_integration'):expected={'UNKNOWN'}
   else:expected={'FAIL'}

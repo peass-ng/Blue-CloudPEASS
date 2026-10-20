@@ -50,6 +50,11 @@ RUNTIME_ADMISSION_INPUTS = {
 # Exact public inputs needed to reproduce the shipped compiler, provenance and
 # tests. Explicit paths/globs only: no .work drafts, caches or private files.
 REPRODUCTION_INPUT_PATTERNS = (
+    'tests/test_gcp_native_cpu_margin_artifacts_20261021.py',
+    'tests/gcp_native_cpu_margin_epoch_20261021.py',
+    'tests/fixtures/gcp_native_cpu_margin_predecessor_20261021.json.gz',
+    'tests/test_azure_defender_unassessed_status_20261020.py',
+    'docs/check-review/azure-defender-assessment-four-current-binding-20261021.json',
     'tests/test_gcp_positive_native_cpu_cache_20261020.py',
     'tests/fixtures/gcp_positive_native_cpu_predecessor_20261020.json.gz',
     'tests/gcp_positive_conservation_epoch_20261020.py',
