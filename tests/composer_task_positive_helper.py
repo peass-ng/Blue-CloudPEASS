@@ -66,4 +66,3 @@ def run_task(kind):
     finally:
         patch.undo()
         scan._RESULTS.clear()
-
