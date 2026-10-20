@@ -85,6 +85,8 @@ from .aws_iam_federation_deletion_next import normalize_aws_iam_federation_delet
 from .aws_resource_explorer_next import normalize_aws_resource_explorer_view
 from .aws_ses_receipt_next import normalize_aws_ses_receipt
 from .aws_kinesis_controls_next import normalize_aws_kinesis_controls
+from .aws_kinesis_data_write_next import normalize as normalize_aws_kinesis_data_write
+from .aws_kinesis_data_read_next import normalize as normalize_aws_kinesis_data_read
 from .aws_kinesis_controls_extended_next import normalize_aws_kinesis_controls_extended
 from .aws_kinesis_channel_next import normalize_aws_kinesis_channel
 from .aws_kinesis_video_controls_next import normalize_aws_kinesis_video_controls
@@ -149,8 +151,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "c98b94377d35aec2be7b57ea0888138b0d64c8ed"
-DEFAULT_RULE_PACK_SHA256 = "cb5f547cf15bf0902349884613967c8d3c6b05f0de5f6ec774649fb40b3e68f4"
+DEFAULT_RULE_REF = "4523f652d3bd4cf45eb362e4980e1163fec9bcdd"
+DEFAULT_RULE_PACK_SHA256 = "6c187b1f1ec89292ecd9caec2cc7fd0f94c5fcc87d0eac9c1bb77c900db05141"
 
 
 @dataclass(frozen=True)
@@ -327,6 +329,8 @@ def detect_aws_events(
         resource_explorer_view = normalize_aws_resource_explorer_view(record)
         ses_receipt = normalize_aws_ses_receipt(record)
         kinesis_controls = normalize_aws_kinesis_controls(record)
+        kinesis_data_write = normalize_aws_kinesis_data_write(record)
+        kinesis_data_read = normalize_aws_kinesis_data_read(record)
         kinesis_controls_extended = normalize_aws_kinesis_controls_extended(record)
         kinesis_channel = normalize_aws_kinesis_channel(record)
         kinesis_video_controls = normalize_aws_kinesis_video_controls(record)
@@ -439,6 +443,8 @@ def detect_aws_events(
                 + ([resource_explorer_view] if resource_explorer_view is not None else [])
                 + ([ses_receipt] if ses_receipt is not None else [])
                 + ([kinesis_controls] if kinesis_controls is not None else [])
+                + ([kinesis_data_write] if kinesis_data_write is not None else [])
+                + ([kinesis_data_read] if kinesis_data_read is not None else [])
                 + ([kinesis_controls_extended] if kinesis_controls_extended is not None else [])
                 + ([kinesis_channel] if kinesis_channel is not None else [])
                 + ([kinesis_video_controls] if kinesis_video_controls is not None else [])
