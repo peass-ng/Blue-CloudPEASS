@@ -251,3 +251,12 @@ def test_recorded_absence_is_explained_without_inventing_missing_facts(cid, key,
     assert fragment in text and len(text) < 250
     finding['evidence'] = {}
     assert evidence_summary(finding) is None
+
+
+def test_targeted_dlq_collection_includes_lambda_function_destinations():
+    from peaso.engine import plan_collection
+    cid = 'aws.cb.sqs.dead_letter_queue'
+    assert 'lambda_function' in plan_collection({'provider': 'aws', 'checks': [cid]})
+    native = deepcopy(CASES[cid]['fail'])
+    arn = native['Attributes']['Attributes']['QueueArn']
+    assert run(cid, native, {'lambda_function': [{'data': {'DeadLetterConfig': {'TargetArn': arn}}}]})[0] == 'NOT_APPLICABLE'

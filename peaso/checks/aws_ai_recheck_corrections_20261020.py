@@ -227,5 +227,5 @@ def install():
             return evaluate
         dependencies = check.dependencies
         if check.id == 'aws.cb.sqs.dead_letter_queue':
-            dependencies = tuple(dict.fromkeys([*dependencies, 'eventbridge_rule', 'lambda_event_source_mapping', 'scheduler_schedule']))
+            dependencies = tuple(dict.fromkeys([*dependencies, 'eventbridge_rule', 'lambda_function', 'lambda_event_source_mapping', 'scheduler_schedule']))
         CHECKS[position] = replace(check, evaluate=wrap(check), declared_dependencies=dependencies)
