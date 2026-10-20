@@ -139,6 +139,29 @@ def test_accepts_provider_and_aws_service_directories(monkeypatch):
     assert fetch(expected) == {name: TEXT}
 
 
+def test_archive_supports_catalog_beyond_old_640_rule_limit(monkeypatch):
+    entries = [(ROOT, b"", tarfile.DIRTYPE),
+               (f"{ROOT}/rules", b"", tarfile.DIRTYPE),
+               (f"{ROOT}/rules/aws", b"", tarfile.DIRTYPE),
+               (f"{ROOT}/rules/aws/iam", b"", tarfile.DIRTYPE)]
+    entries.extend((f"{ROOT}/rules/aws/iam/rule_{i:04d}.yml", TEXT.encode(), tarfile.REGTYPE)
+                   for i in range(641))
+    mock_network(monkeypatch, archive(*entries))
+    result = fetch()
+    assert len(result) == 641
+    assert result["aws/iam/rule_0640.yml"] == TEXT
+
+
+def test_archive_supports_work_plan_beyond_old_2_5_mb_limit(monkeypatch):
+    plan = b"x" * 2_600_000
+    mock_network(monkeypatch, archive(
+        (ROOT, b"", tarfile.DIRTYPE),
+        (f"{ROOT}/WORK_PLAN.md", plan, tarfile.REGTYPE),
+        (f"{ROOT}/rules", b"", tarfile.DIRTYPE),
+        (f"{ROOT}/rules/sample.yml", TEXT.encode(), tarfile.REGTYPE)))
+    assert fetch(digest()) == {"sample.yml": TEXT}
+
+
 def test_rejects_oversized_archive_rule_and_bad_digest(monkeypatch):
     network = mock_network(monkeypatch, b"x" * (source.MAX_ARCHIVE_BYTES + 1))
     with pytest.raises(source.RuleSourceError, match="rule_archive_too_large"):

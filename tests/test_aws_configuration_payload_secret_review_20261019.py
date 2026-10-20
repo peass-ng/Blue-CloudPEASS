@@ -107,7 +107,7 @@ def test_parent_collection_is_authoritative(kind, state):
 
 
 @pytest.mark.parametrize('payload', ['not base64', None, encoded('x' * 16385), base64.b64encode(b'\xff').decode(),
-    base64.b64encode(gzip.compress(b'x' * 1000000)).decode(), base64.b64encode(gzip.compress(b'echo ready')[:-3]).decode()])
+    base64.b64encode(gzip.compress(b'x' * 1000000, mtime=0)).decode(), base64.b64encode(gzip.compress(b'echo ready', mtime=0)[:-3]).decode()])
 def test_decoding_and_compression_bounds_are_fail_closed(payload):
     service, operation, args, response, item = fixture('ec2_launch_template', False)
     response['LaunchTemplateVersions'][0]['LaunchTemplateData']['UserData'] = payload

@@ -11,12 +11,12 @@ from urllib.error import HTTPError, URLError
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 
-MAX_ARCHIVE_BYTES = 3_000_000
+MAX_ARCHIVE_BYTES = 12_000_000
 MAX_MEMBER_BYTES = 65_536
-MAX_PLAN_BYTES = 2_000_000
-MAX_TOTAL_BYTES = 2_000_000
-MAX_MEMBERS = 512
-MAX_RULES = 512
+MAX_PLAN_BYTES = 8_000_000
+MAX_TOTAL_BYTES = 12_000_000
+MAX_MEMBERS = 10_000
+MAX_RULES = 8_192
 _SHA = re.compile(r"[0-9a-fA-F]{40}\Z")
 _DIGEST = re.compile(r"[0-9a-fA-F]{64}\Z")
 _OWNER = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?\Z")
