@@ -57,7 +57,7 @@ function NetworkReviewPanel({ data }: { data: NetworkResult }) {
             <td><Badge value={row.severity} /></td>
             <td><button className="finding-title" aria-haspopup="dialog" onClick={event => { trigger.current = event.currentTarget; setSelected(row); }}>{row.title}</button><p className="network-finding-summary">{row.evidence_summary || (row.evidence as { summary?: string } | null)?.summary || row.description}</p></td>
             <td><span className="service-cell" title={row.service}>{row.service}</span></td>
-            <td><div className="asset-cell"><span className="truncate" title={networkAsset(row)}>{networkAsset(row)}</span>{row.resource_name && row.native_resource_id && <span className="native-asset-id" title={row.native_resource_id}>{row.native_resource_id}</span>}</div></td>
+            <td><div className="asset-cell"><span className="truncate" title={networkAsset(row)}>{networkAsset(row)}</span>{row.resource_name && row.native_resource_id && row.resource_name !== row.native_resource_id && <span className="native-asset-id" title={row.native_resource_id}>{row.native_resource_id}</span>}</div></td>
             <td><span className="network-finding-scope">{row.provider.toUpperCase()}<br />{row.scope}</span></td>
             <td><FindingStatusBadge status={row.status} /></td>
           </tr>)}
@@ -69,7 +69,7 @@ function NetworkReviewPanel({ data }: { data: NetworkResult }) {
     </Panel>
     {selected && <Inspector title={selected.title} onClose={closeFinding} className="network-finding-inspector">
       <div className="button-row"><Badge value={selected.severity} /><FindingStatusBadge status={selected.status} /></div>
-      <h3>Affected resource</h3><p>{networkAsset(selected)}</p>{selected.resource_name && selected.native_resource_id && <p>{selected.native_resource_id}</p>}<p>{selected.provider.toUpperCase()} · {selected.service} · {selected.scope}</p>
+      <h3>Affected resource</h3><p>{networkAsset(selected)}</p>{selected.resource_name && selected.native_resource_id && selected.resource_name !== selected.native_resource_id && <p>{selected.native_resource_id}</p>}<p>{selected.provider.toUpperCase()} · {selected.service} · {selected.scope}</p>
       <h3>Finding</h3><p>{selected.description}</p><h3>Why it matters</h3><p>{selected.rationale}</p>
       <h3>Evidence</h3><Evidence data={Object.fromEntries(Object.entries(selected.evidence || {}).filter(([key]) => key !== "limitations"))} />
       <h3>Remediation</h3><Remediation legacy={selected.remediation} details={selected.remediation_details} />

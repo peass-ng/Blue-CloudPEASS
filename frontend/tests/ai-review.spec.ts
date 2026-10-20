@@ -71,7 +71,7 @@ test('network findings have a separate page below Network Map', async ({ page })
   const explanation = paragraphs.join('\n\n');
   const network = { status: 'completed', explanation, total: 1, limitations: ['Required traffic must be confirmed.'], findings: [{
     id: 'network-finding', check_id: 'ai.network.example', category: 'network', title: 'Restrict backend security group sources',
-    provider: 'aws', service: 'network', resource_id: 'sg-backend', native_resource_id: 'sg-123', scope: '123456789012/us-east-1',
+    provider: 'aws', service: 'network', resource_id: 'sg-backend', resource_name: 'sg-123', native_resource_id: 'sg-123', scope: '123456789012/us-east-1',
     severity: 'medium', status: 'MANUAL', frameworks: [], description: 'The backend rule admits the full VPC range.',
     rationale: 'Reduce unnecessary cross-tier access after dependency validation.',
     evidence: { source: 'ai_network_review', summary: '10.0.0.0/8 is allowed.', resource_ids: ['sg-backend'], graph_refs: [], observations: ['All protocols are allowed.'], limitations: ['Legacy evidence disclaimer.'] },
@@ -95,10 +95,12 @@ test('network findings have a separate page below Network Map', async ({ page })
   await expect(page.getByText(/AI suggestions|Validate workload dependencies before changing connectivity/)).toHaveCount(0);
   const networkTable = page.getByRole('region', { name: 'Network findings table' });
   await expect(networkTable.locator('tbody tr')).toHaveCount(1);
+  await expect(networkTable.getByText('sg-123', { exact: true })).toHaveCount(1);
   await expect(networkTable.getByText('10.0.0.0/8 is allowed.', { exact: true })).toBeVisible();
   await networkTable.getByRole('button', { name: 'Restrict backend security group sources', exact: true }).click();
   await expect(page.getByText(network.findings[0].remediation, { exact: true })).toBeVisible();
   await expect(page.getByText(network.findings[0].verification, { exact: true })).toBeVisible();
+  await expect(page.getByRole('dialog').getByText('sg-123', { exact: true })).toHaveCount(1);
   await expect(page.getByText('Legacy evidence disclaimer.', { exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: 'Close inspector' }).click();
   await expect(networkTable.getByRole('button', { name: network.findings[0].title, exact: true })).toBeFocused();
