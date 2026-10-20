@@ -38,6 +38,7 @@ from .aws_ecr_lightsail_batch_next import normalize as normalize_aws_ecr_lightsa
 from .aws_ecr_public_push_next import normalize_public as normalize_aws_ecr_public_push, correlate_new_layer_push as correlate_aws_ecr_new_layer_push
 from .aws_cloudwatch_logs_data_next import normalize as normalize_aws_cloudwatch_logs_data
 from .aws_cloudwatch_dashboard_insight_next import normalize as normalize_aws_cloudwatch_dashboard_insight
+from .aws_codecommit_source_next import normalize as normalize_aws_codecommit_source
 from .aws_codebuild_gap_correlations_next import correlate as correlate_aws_codebuild_gaps
 from .aws_appsync_five_next import normalize as normalize_aws_appsync_five
 from .aws_appsync_read_function_next import normalize as normalize_aws_appsync_read_function
@@ -186,8 +187,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "314eb7b59d0965179eef7fd31322c34731d08b01"
-DEFAULT_RULE_PACK_SHA256 = "c6877586200f87c9ccbe8a60f066be5e575fca91cfd69afe9cfdb9bdc7e572b1"
+DEFAULT_RULE_REF = "2d21cf745a2c091d4d86ccdbf498c992e092545a"
+DEFAULT_RULE_PACK_SHA256 = "5b8d614bebb8150e11fb7cea018cf4c245107c24d30aa2e1667c9e70d684f325"
 
 
 @dataclass(frozen=True)
@@ -317,6 +318,7 @@ def detect_aws_events(
         ecr_public_push = normalize_aws_ecr_public_push(record)
         cloudwatch_logs_data = normalize_aws_cloudwatch_logs_data(record)
         cloudwatch_dashboard_insight = normalize_aws_cloudwatch_dashboard_insight(record)
+        codecommit_source = normalize_aws_codecommit_source(record)
         appsync_five = normalize_aws_appsync_five(record)
         appsync_read_function = normalize_aws_appsync_read_function(record)
         appsync_signed_role = normalize_aws_appsync_signed_role(record)
@@ -461,6 +463,7 @@ def detect_aws_events(
                 + ([ecr_public_push] if ecr_public_push is not None else [])
                 + ([cloudwatch_logs_data] if cloudwatch_logs_data is not None else [])
                 + ([cloudwatch_dashboard_insight] if cloudwatch_dashboard_insight is not None else [])
+                + ([codecommit_source] if codecommit_source is not None else [])
                 + ([appsync_five] if appsync_five is not None else [])
                 + ([appsync_read_function] if appsync_read_function is not None else [])
                 + ([appsync_signed_role] if appsync_signed_role is not None else [])
