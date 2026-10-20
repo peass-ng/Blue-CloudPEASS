@@ -313,7 +313,7 @@ def test_exact_sql_native_child_contract(monkeypatch,cid,target,variant,record_p
     record_property('check_id',cid);record_property('mode',variant);record_property('actual',','.join(sorted({f['status']for f in findings})));record_property('expected','UNKNOWN')
     assert {f['status']for f in findings}=={'UNKNOWN'},findings
 
-@pytest.mark.parametrize('cid',tuple(SECRET_IDS))
+@pytest.mark.parametrize('cid',tuple(sorted(SECRET_IDS)))
 def test_native_secret_explicitly_disabled_applicability(monkeypatch,cid,record_property):
     def mutate(d):d['secret']['attributes']['enabled']=False;d['secret']['attributes'].pop('exp',None)
     findings,snapshot,http=capture(monkeypatch,cid,mutate=mutate)
@@ -328,7 +328,7 @@ def test_sql_child_native_type_is_not_parent_prefix_alone(monkeypatch,cid,target
     record_property('check_id',cid);record_property('mode','wrong_sql_child_type');record_property('actual',','.join(sorted({f['status']for f in findings})));record_property('expected','UNKNOWN')
     assert {f['status']for f in findings}=={'UNKNOWN'},findings
 
-@pytest.mark.parametrize('cid',tuple(SECRET_IDS))
+@pytest.mark.parametrize('cid',tuple(sorted(SECRET_IDS)))
 @pytest.mark.parametrize('variant',('foreign_secret_origin','foreign_vault_uri','wrong_native_secret_kind'))
 def test_native_secret_source_binding(monkeypatch,cid,variant,record_property):
     def mutate(d):
@@ -360,7 +360,7 @@ def test_diagnostic_native_child_binding(monkeypatch,cid,variant,record_property
     record_property('check_id',cid);record_property('mode',variant);record_property('actual',','.join(sorted({f['status']for f in findings})));record_property('expected','UNKNOWN')
     assert {f['status']for f in findings}=={'UNKNOWN'},findings
 
-@pytest.mark.parametrize('cid',tuple(PRIVATE_LINK))
+@pytest.mark.parametrize('cid',tuple(sorted(PRIVATE_LINK)))
 @pytest.mark.parametrize('status,want',(('Pending','FAIL'),('Rejected','FAIL'),('Future','UNKNOWN')))
 def test_native_private_endpoint_approval_states(monkeypatch,cid,status,want,record_property):
     def mutate(d):d['item']['properties']['privateEndpointConnections'][0]['properties']['privateLinkServiceConnectionState']['status']=status
@@ -376,7 +376,7 @@ def test_native_scan_state_count_must_be_coherent(monkeypatch,state,count,want,r
     record_property('check_id',cid);record_property('mode','incoherent_'+state);record_property('actual',','.join(sorted({f['status']for f in findings})));record_property('expected',want)
     assert {f['status']for f in findings}=={want},findings
 
-@pytest.mark.parametrize('cid',tuple(PRIVATE_LINK))
+@pytest.mark.parametrize('cid',tuple(sorted(PRIVATE_LINK)))
 def test_native_private_endpoint_cannot_belong_to_foreign_parent(monkeypatch,cid,record_property):
     def mutate(d):d['item']['properties']['privateEndpointConnections'][0]['id']=d['item']['properties']['privateEndpointConnections'][0]['id'].replace(SUB,OTHER)
     findings,snapshot,http=capture(monkeypatch,cid,mutate=mutate)

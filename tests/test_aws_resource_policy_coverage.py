@@ -238,16 +238,25 @@ def test_customer_role_expansion_preserves_grants_and_adds_only_reviewed_reads(t
     assert after['Outputs'] == before['Outputs']
     assert all(after['Metadata'][key] == value for key, value in before['Metadata'].items())
     def grants(template):
-        return {(statement['Effect'], action, json.dumps(statement['Resource'], sort_keys=True))
+        return {(statement['Effect'], action, json.dumps(target, sort_keys=True))
                 for resource in template['Resources'].values() if resource['Type'] == 'AWS::IAM::ManagedPolicy'
                 for statement in resource['Properties']['PolicyDocument']['Statement']
-                for action in (statement['Action'] if isinstance(statement['Action'], list) else [statement['Action']])}
+                for action in (statement['Action'] if isinstance(statement['Action'], list) else [statement['Action']])
+                for target in (statement['Resource'] if isinstance(statement['Resource'], list) else [statement['Resource']])}
     old, new = grants(before), grants(after)
     assert not old - new
     receipt = json.loads(Path('peaso/collectors/aws_resource_policy_permissions.json').read_text())
     reviewed = set(receipt['mappings'].values()) | {a for actions in receipt['additional_actions'].values() for a in actions} | {'apigateway:GET'} | set(IAM_REPORT_READ_REFERENCES)
-    from scripts.peaso_deploy_customer_policy import RECHECK_METADATA_READ_REFERENCES
-    reviewed |= set(RECHECK_METADATA_READ_REFERENCES)
+    from scripts.peaso_deploy_customer_policy import RECHECK_METADATA_READ_REFERENCES, NETWORK_SERVICE_READ_REFERENCES
+    reviewed |= set(RECHECK_METADATA_READ_REFERENCES) | set(NETWORK_SERVICE_READ_REFERENCES)
+    from peaso.collectors import aws_network_catalog, aws_network_inventory
+    from scripts.peaso_deploy_customer_policy import iam_action
+    # Review the precise SDK operations declared by the network metadata plans.
+    # iam_action rejects mappings outside the pinned authorization reference.
+    for module in (aws_network_catalog, aws_network_inventory):
+        operations = module.READ_ACTIONS | {(service, operation)
+                      for service, operation, _ in module.SPECS.values()}
+        reviewed |= {iam_action(service, operation) for service, operation in operations}
     added = new - old
     assert added and {action for effect, action, resource in added} <= reviewed
     assert all(effect == 'Allow' and '*' not in action for effect, action, resource in added)

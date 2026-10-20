@@ -51,6 +51,8 @@ RUNTIME_ADMISSION_INPUTS = {
 # tests. Explicit paths/globs only: no .work drafts, caches or private files.
 REPRODUCTION_INPUT_PATTERNS = (
     "tests/test_provider_combined_source_bridge_20261020.py",
+    "tests/test_azure_admitted_alias_draft_isolation_20261020.py",
+    "tests/test_peaso_network_ai_purpose.py",
     # Frozen provider/network review inputs and portable reproduction fixtures.
     'docs/aws-codebuild-buildspec-source-setup-20261020.md',
     'docs/aws-review/current-roster-reconciliation-20261020.json',

@@ -405,7 +405,7 @@ def test_native_same_subscription_wrong_parent_kind_is_not_selected_service(monk
  actual=','.join(sorted({f['status']for f in findings}));record_property('check_id',cid);record_property('mode','native_parent_id_type_conflict');record_property('actual',actual);record_property('expected','UNKNOWN')
  assert actual=='UNKNOWN',findings
 
-@pytest.mark.parametrize('cid',tuple(PRIVATE))
+@pytest.mark.parametrize('cid',tuple(sorted(PRIVATE)))
 def test_native_private_link_child_cannot_belong_to_foreign_service(monkeypatch,cid,record_property):
  def mutate(d):d['parent']['properties']['privateEndpointConnections'][0]['id']=d['parent']['properties']['privateEndpointConnections'][0]['id'].replace(SUB,OTHER)
  findings,snapshot,http=capture(monkeypatch,cid,mutate=mutate)
@@ -453,7 +453,7 @@ def test_explicit_devops_metadata_http(monkeypatch,variant,want,record_property)
  actual=','.join(sorted({f['status']for f in findings}));record_property('check_id',current_id);record_property('mode','devops_http_'+variant);record_property('actual',actual);record_property('expected',want);record_property('native_http',json.dumps(calls))
  assert actual==want,findings
 
-@pytest.mark.parametrize('cid',tuple(KEYS))
+@pytest.mark.parametrize('cid',tuple(sorted(KEYS)))
 @pytest.mark.parametrize('variant',('foreign_key_origin','conflicting_key_identity'))
 def test_native_key_identity_conflicts_cannot_be_clean(monkeypatch,cid,variant,record_property):
  def mutate(d):
@@ -486,14 +486,14 @@ def test_scope_alias_requires_actual_capture_binding(monkeypatch,cid,variant,rec
  record_property('check_id',cid);record_property('mode',variant);record_property('actual',actual);record_property('expected','UNKNOWN')
  assert actual=='UNKNOWN',findings
 
-@pytest.mark.parametrize('cid',tuple(KEYS))
+@pytest.mark.parametrize('cid',tuple(sorted(KEYS)))
 def test_identical_native_key_repeat_is_safe(monkeypatch,cid,record_property):
  def mutate(d):d['key_rows']=[deepcopy(d['key']),deepcopy(d['key'])]
  findings,snapshot,http=capture(monkeypatch,cid,mutate=mutate);actual=','.join(sorted({f['status']for f in findings}))
  record_property('check_id',cid);record_property('mode','identical_key_repeat');record_property('actual',actual);record_property('expected','PASS')
  assert actual=='PASS',findings
 
-@pytest.mark.parametrize('cid',tuple(PRIVATE))
+@pytest.mark.parametrize('cid',tuple(sorted(PRIVATE)))
 @pytest.mark.parametrize('variant,want',(('identical','PASS'),('conflict','UNKNOWN'),('wrong_child_type','UNKNOWN')))
 def test_private_connection_native_consistency(monkeypatch,cid,variant,want,record_property):
  def mutate(d):

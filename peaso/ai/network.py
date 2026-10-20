@@ -20,6 +20,50 @@ WORKLOAD_FIELDS = {
 WORKLOAD_TYPES = {'instance', 'vm', 'pod', 'node', 'daemonset', 'lambda_function', 'rds_instance',
                   'rds_cluster', 'eks_cluster', 'gke_cluster', 'container', 'function', 'app_service'}
 
+# Purpose hints are separate from network facts. Admit only these native paths,
+# scalar descriptions/names, and known purpose label keys; never copy workload
+# configuration or arbitrary tag values into the service projection.
+PURPOSE_TEXT_PATHS = {
+    'aws': (('FunctionName',), ('Description',)),
+    'gcp': (('description',),),
+}
+PURPOSE_LABEL_PATHS = {
+    'aws': (('Tags',), ('TagList',), ('tags',), ('Cluster', 'cluster', 'tags')),
+    'gcp': (('labels',), ('resourceLabels',)),
+    'azure': (('tags',),),
+}
+PURPOSE_LABEL_KEYS = frozenset({
+    'Name', 'name', 'App', 'app', 'Application', 'application', 'Service', 'service',
+    'Component', 'component', 'Tier', 'tier', 'Role', 'role', 'Purpose', 'purpose',
+    'app.kubernetes.io/name', 'app.kubernetes.io/instance',
+    'app.kubernetes.io/component', 'app.kubernetes.io/part-of',
+})
+
+
+def retain_purpose_metadata(source, projected, provider):
+    """Restore bounded native metadata without traversing application settings."""
+    text_paths = PURPOSE_TEXT_PATHS.get(provider, ())
+    for path in (*text_paths, *PURPOSE_LABEL_PATHS.get(provider, ())):
+        value = source
+        for key in path:
+            value = value.get(key) if isinstance(value, dict) else None
+        if path in text_paths:
+            if not isinstance(value, str):
+                continue
+        elif isinstance(value, dict):
+            value = {key: item for key, item in value.items()
+                     if key in PURPOSE_LABEL_KEYS and isinstance(item, str)}
+        elif provider == 'aws' and len(path) == 1 and path[0] in {'Tags', 'TagList'} and isinstance(value, list):
+            value = [{'Key': item['Key'], 'Value': item['Value']} for item in value
+                     if isinstance(item, dict) and isinstance(item.get('Key'), str)
+                     and item['Key'] in PURPOSE_LABEL_KEYS and isinstance(item.get('Value'), str)]
+        else:
+            continue
+        target = projected
+        for key in path[:-1]:
+            target = target.setdefault(key, {})
+        target[path[-1]] = value
+
 
 def without_secrets(value, *, network_projection=False):
     if isinstance(value, dict):
@@ -42,6 +86,7 @@ def native_network_resource(row):
         return dict(row, data=without_secrets(row.get('data', {})))
     if row.get('type') in SERVICE_TYPES.get(row['provider'], set()):
         projected = project_network_data(row.get('data', {}))
+        retain_purpose_metadata(row.get('data', {}), projected, row['provider'])
         from peaso.analysis.network_observations import network_observations
         retained = {(fact['path'], repr(fact['value'])) for fact in network_observations(projected)}
         observations = [fact for fact in network_observations(row.get('data', {}))
