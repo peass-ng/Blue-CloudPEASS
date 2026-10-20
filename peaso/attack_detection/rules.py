@@ -22,6 +22,7 @@ from .aws_security_controls import normalize_aws_security_control
 from .aws_trail_update import normalize_aws_trail_update
 from .aws_cloudtrail_selectors_next import normalize_aws_cloudtrail_selectors
 from .aws_cloudtrail_log_dest_next import correlate as correlate_aws_cloudtrail_log_dest
+from .aws_cloudtrail_log_objects_next import correlate as correlate_aws_cloudtrail_log_objects
 from .aws_role_boundary_next import normalize_aws_role_boundary_delete
 from .aws_user_boundary_self_next import normalize_aws_self_user_boundary_delete
 from .aws_wildcard_trust_next import normalize_aws_wildcard_role_trust
@@ -190,8 +191,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "7c8cdbbcd3554d72013350f771f86a4828335972"
-DEFAULT_RULE_PACK_SHA256 = "d60913a6f3f1634188f429d6379cfad1d983237392ef4afe2a3c8ed1a98a999b"
+DEFAULT_RULE_REF = "568d9a6ce5708815fea1266dc10df1bd25b2fe5f"
+DEFAULT_RULE_PACK_SHA256 = "8350a351c07c52cd2dbe92afe9ea7ed871ec60c25d437c8bf20ac138dfb30a1e"
 
 
 @dataclass(frozen=True)
@@ -620,6 +621,7 @@ def detect_aws_events(
     codecommit_consumer_records: list[Mapping[str, Any]] = []
     appconfig_hosted_records: list[Mapping[str, Any]] = []
     cloudtrail_log_dest_records: list[Mapping[str, Any]] = []
+    cloudtrail_log_object_records: list[Mapping[str, Any]] = []
     ecr_image_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
@@ -688,6 +690,13 @@ def detect_aws_events(
                 or (record.get("eventSource") == "kms.amazonaws.com"
                     and record.get("eventName") in {"DisableKey", "ScheduleKeyDeletion"})):
                 cloudtrail_log_dest_records.append(record)
+            if ((record.get("eventSource") == "cloudtrail.amazonaws.com"
+                 and record.get("eventName") in {"CreateTrail", "StartLogging", "StopLogging", "DeleteTrail"})
+                or (record.get("eventSource") == "s3.amazonaws.com"
+                    and record.get("eventName") in {"CopyObject", "DeleteObject", "DeleteBucket"})
+                or (record.get("eventSource") == "kms.amazonaws.com"
+                    and record.get("eventName") == "DisableKey")):
+                cloudtrail_log_object_records.append(record)
             if record.get("eventSource") == "lambda.amazonaws.com" and record.get("eventName") in {
                     "CreateFunction20150331", "UpdateFunctionConfiguration20150331v2",
                     "UpdateFunctionCode20150331v2", "AddPermission20150331v2",
@@ -739,6 +748,7 @@ def detect_aws_events(
     correlated += correlate_aws_codecommit_consumers(codecommit_consumer_records)
     correlated += correlate_aws_appconfig_hosted(appconfig_hosted_records)
     correlated += correlate_aws_cloudtrail_log_dest(cloudtrail_log_dest_records)
+    correlated += correlate_aws_cloudtrail_log_objects(cloudtrail_log_object_records)
     correlated += correlate_aws_ecr_tag_overwrite(ecr_image_records)
     correlated += correlate_aws_ecr_new_layer_push(ecr_image_records)
     if correlated:
