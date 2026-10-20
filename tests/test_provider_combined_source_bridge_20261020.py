@@ -46,8 +46,8 @@ REVIEWED_CURRENT_CHANGES = {'peaso/ai/network.py': {'after_sha256': 'f8da3a90c6f
  'peaso/collectors/azure_function_package_integration_20261020.py': {'after_sha256': '9eb8c15ad1052795777ae95960f7c65a8062d5555e2456a9c34a9f2aa6d1e58c',
                                                                      'after_size': 12770,
                                                                      'before_sha256': '678fc74f19156541992b9ce3536cf642253842b34583e6408005a4e38858c0e0'},
- 'peaso/server/app.py': {'after_sha256': '1c99c60b5b3dbca22d19095c6bbff577f27c7a980ecc8c42354d4823a57512ce',
-                         'after_size': 124599,
+ 'peaso/server/app.py': {'after_sha256': '45192b68c74f5b3019dd44cadc8276d3fdc8614586311bc83a43a3c92bec1180',
+                         'after_size': 124659,
                          'before_sha256': '5f2b3dc9bb6f54c56502b22263973c6d1c6f0932af703317d46008dd11732707'}}
 REVIEWABLE_CURRENT_PATHS = frozenset(['peaso/ai/network.py', 'peaso/analysis/common.py', 'peaso/collectors/aws_codebuild_buildspec_runtime_20261020.py', 'peaso/collectors/aws_workload_command_runtime_20261020.py', 'peaso/collectors/azure.py', 'peaso/collectors/azure_function_package_integration_20261020.py', 'peaso/server/app.py'])
 INITIALIZER_ADDITION = (

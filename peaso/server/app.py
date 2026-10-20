@@ -338,7 +338,8 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
     def with_remediation(finding, bundle):
         from .materialized_catalog import description_for
         from peaso.finding_presentation import refresh_finding_presentation, evaluator_contract_fingerprint
-        from peaso.remediation import bind_command, exposure_details, template as current_template
+        from .remediation_presentation_static_20261020 import bind_command, exposure_details
+        from .materialized_catalog import template_for as current_template
         finding = with_meta(finding, check_fields(bundle), bundle)
         cid = finding.get("check_id")
         templates = bundle.get("remediation_templates") or {}
@@ -371,7 +372,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
                 archived_template=archived, current_evaluator_contract=evaluator_contract_fingerprint())
         if not allow_summary:
             return finding
-        from peaso.finding_observation import evidence_summary
+        from .evidence_static import evidence_summary
         observation = (finding.get("ai_review") or {}).get("reason") or evidence_summary(finding)
         if observation:
             finding = dict(finding, evidence_summary=observation, evidence_summary_format="natural-language-v2")

@@ -50,6 +50,13 @@ RUNTIME_ADMISSION_INPUTS = {
 # Exact public inputs needed to reproduce the shipped compiler, provenance and
 # tests. Explicit paths/globs only: no .work drafts, caches or private files.
 REPRODUCTION_INPUT_PATTERNS = (
+    'tests/test_api_native_free_finding_detail_20261020.py',
+    'tests/test_api_remediation_presentation_static_20261020.py',
+    'tests/test_api_evidence_static_20261020.py',
+    'tests/fixtures/evidence_static_parity_all_20261020.jsonl.gz',
+    'tests/fixtures/evidence_static_skipped_20261020.json',
+
+    "tests/test_api_service_labels_static_20261020.py",
     "tests/test_azure_metadata_only_admission_successor_20261020.py",
     "tests/case_state_contract_20261020.py",
     "tests/test_case_state_contract_20261020.py",
