@@ -28,6 +28,7 @@ from .aws_keyspaces_next import normalize_keyspaces_other_user_credential
 from .aws_codebuild_next import normalize_aws_codebuild_change
 from .aws_codebuild_execution_next import normalize_codebuild_execution
 from .aws_codebuild_sandbox_read_next import normalize as normalize_codebuild_sandbox_read
+from .aws_codebuild_gap_correlations_next import correlate as correlate_aws_codebuild_gaps
 from .aws_sagemaker_control_next import normalize_aws_sagemaker_control
 from .aws_rolesanywhere_next import normalize as normalize_aws_rolesanywhere
 from .aws_customer_profiles_next import normalize as normalize_aws_customer_profiles
@@ -158,8 +159,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "7457fba88663a83bb39bbe09e35e7d316ce66800"
-DEFAULT_RULE_PACK_SHA256 = "b2f96ba66762369f88eceaa3e984d228b6ab863a29ef4e617110ed958bfdb1cf"
+DEFAULT_RULE_REF = "ac01ec569befdaf6c3db32b350c5c6f46fdfa054"
+DEFAULT_RULE_PACK_SHA256 = "fa93232fccafae758b60696842650662fb7647ac72f2934328ceedd9cb2c230f"
 
 
 @dataclass(frozen=True)
@@ -528,8 +529,13 @@ def detect_aws_events(
     rds_replica_records: list[Mapping[str, Any]] = []
     rds_proxy_secret_records: list[Mapping[str, Any]] = []
     servicecatalog_records: list[Mapping[str, Any]] = []
+    codebuild_gap_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
+            if ((record.get("eventSource") == "codebuild.amazonaws.com" and record.get("eventName") in {"StartBuild", "UpdateProject"})
+                    or (record.get("eventSource") == "ssm.amazonaws.com" and record.get("eventName") == "StartSession")
+                    or (record.get("eventSource") == "secretsmanager.amazonaws.com" and record.get("eventName") == "GetSecretValue")):
+                codebuild_gap_records.append(record)
             if record.get("eventSource") == "servicecatalog.amazonaws.com" and record.get("eventName") in {"CreateProvisioningArtifact", "ProvisionProduct"}:
                 servicecatalog_records.append(record)
             if record.get("eventSource") == "glue.amazonaws.com" and record.get("eventName") in {"CreateSession", "RunStatement", "CreateJob", "UpdateJob", "StartJobRun"}:
@@ -587,6 +593,7 @@ def detect_aws_events(
     correlated += correlate_aws_rds_public_replica_controls(rds_replica_records)
     correlated += correlate_aws_rds_proxy_auth_secret_read(rds_proxy_secret_records)
     correlated += correlate_aws_servicecatalog(servicecatalog_records)
+    correlated += correlate_aws_codebuild_gaps(codebuild_gap_records)
     if correlated:
         matches.extend(_detect_events(correlated, selected, lambda event: event, "aws"))
     return matches
