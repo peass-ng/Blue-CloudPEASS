@@ -36,6 +36,7 @@ from .aws_customer_profiles_write_next import normalize as normalize_aws_custome
 from .aws_customer_profiles_disruption_next import normalize as normalize_aws_customer_profiles_disruption
 from .aws_customer_profiles_paths_next import normalize as normalize_aws_customer_profiles_paths
 from .aws_customer_profiles_segments_next import normalize as normalize_aws_customer_profiles_segments
+from .aws_servicecatalog_next import normalize as normalize_aws_servicecatalog, correlate as correlate_aws_servicecatalog
 from .aws_s3_retention_next import normalize_aws_s3_retention
 from .aws_s3_notification_next import normalize_aws_s3_template_notification
 from .aws_s3_replication_next import normalize_aws_s3_replication
@@ -156,8 +157,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "236136309ad8c886bd6052cdfd9c7cffb601a294"
-DEFAULT_RULE_PACK_SHA256 = "86f45622ef86ee64e3ae66aaa829bc1b190d78eaee6e7e5843eb6eced43f8515"
+DEFAULT_RULE_REF = "15ae9b85c49f001dd232c39de4b07c0ec80bf7d4"
+DEFAULT_RULE_PACK_SHA256 = "70c2060da36310df4203261c1402c154d759c6625b1ab347c7a05f4f5d5df8b7"
 
 
 @dataclass(frozen=True)
@@ -285,6 +286,7 @@ def detect_aws_events(
         customer_profiles_disruption = normalize_aws_customer_profiles_disruption(record)
         customer_profiles_paths = normalize_aws_customer_profiles_paths(record)
         customer_profiles_segments = normalize_aws_customer_profiles_segments(record)
+        servicecatalog = normalize_aws_servicecatalog(record)
         s3_retention = normalize_aws_s3_retention(record)
         s3_notification = normalize_aws_s3_template_notification(record)
         s3_replication = normalize_aws_s3_replication(record)
@@ -404,6 +406,7 @@ def detect_aws_events(
                 + ([customer_profiles_disruption] if customer_profiles_disruption is not None else [])
                 + ([customer_profiles_paths] if customer_profiles_paths is not None else [])
                 + ([customer_profiles_segments] if customer_profiles_segments is not None else [])
+                + ([servicecatalog] if servicecatalog is not None else [])
                 + ([s3_retention] if s3_retention is not None else [])
                 + ([s3_notification] if s3_notification is not None else [])
                 + ([s3_replication] if s3_replication is not None else [])
@@ -521,8 +524,11 @@ def detect_aws_events(
     rds_parameter_records: list[Mapping[str, Any]] = []
     rds_replica_records: list[Mapping[str, Any]] = []
     rds_proxy_secret_records: list[Mapping[str, Any]] = []
+    servicecatalog_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
+            if record.get("eventSource") == "servicecatalog.amazonaws.com" and record.get("eventName") in {"CreateProvisioningArtifact", "ProvisionProduct"}:
+                servicecatalog_records.append(record)
             if record.get("eventSource") == "glue.amazonaws.com" and record.get("eventName") in {"CreateSession", "RunStatement", "CreateJob", "UpdateJob", "StartJobRun"}:
                 glue_correlation_records.append(record)
             if record.get("eventSource") == "cognito-idp.amazonaws.com" and record.get("eventName") in {"CreateGroup", "UpdateGroup", "AdminAddUserToGroup"}:
@@ -577,6 +583,7 @@ def detect_aws_events(
     correlated += correlate_aws_rds_sql_log_capture_path(rds_parameter_records)
     correlated += correlate_aws_rds_public_replica_controls(rds_replica_records)
     correlated += correlate_aws_rds_proxy_auth_secret_read(rds_proxy_secret_records)
+    correlated += correlate_aws_servicecatalog(servicecatalog_records)
     if correlated:
         matches.extend(_detect_events(correlated, selected, lambda event: event, "aws"))
     return matches
