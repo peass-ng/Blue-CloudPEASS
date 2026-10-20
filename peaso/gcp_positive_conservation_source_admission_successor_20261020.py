@@ -26,7 +26,7 @@ PAGE_RECEIPT_SHA256 = 'a9cf3dd72f0745e2c61cb9ace44afdbaa9dc06ba0e02a7a3ffd4c253d
 SOURCE_DELTA = 'peaso/checks/gcp_positive_conservation_source_delta_20261020.json'
 SOURCE_DELTA_SHA256 = '6f803d15053fdccf982ab20883b76a72a821ef98f703192eba25c3a05695d6d6'
 BRIDGE_RECEIPT = 'peaso/checks/gcp_positive_conservation_source_bridge_20261020.json'
-BRIDGE_RECEIPT_SHA256 = 'a632421a3cd18c03f82b083a50e8e18fbbb6b90807f1e8d6ee85023f020ba8c9'
+BRIDGE_RECEIPT_SHA256 = 'a3df8dc295d0ca6cd9a7e7cabd11af2036d6dc245e52bb55f0273ca7ff8ec2e9'
 
 
 def _bridge_source(root):
