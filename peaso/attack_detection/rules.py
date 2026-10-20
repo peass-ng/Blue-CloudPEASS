@@ -106,6 +106,7 @@ from .aws_sqs_redrive_next import normalize_aws_sqs_redrive
 from .aws_sqs_public_policy_next import normalize_aws_sqs_public_policy
 from .aws_sns_controls_next import normalize_aws_sns_topic_controls
 from .aws_sns_public_policy_next import normalize_aws_sns_public_policy
+from .aws_sns_service_scope_next import normalize_aws_sqs_sns_scope, normalize_aws_lambda_sns_scope
 from .aws_chime_admin_next import normalize_aws_chime_admin
 from .aws_chime_attendee_messaging_next import normalize_aws_chime_attendee_messaging
 from .aws_chime_capability_flow_next import normalize_aws_chime_capability_flow
@@ -411,6 +412,8 @@ def detect_aws_events(
         sqs_public_policy = normalize_aws_sqs_public_policy(record)
         sns_topic_controls = normalize_aws_sns_topic_controls(record)
         sns_public_policy = normalize_aws_sns_public_policy(record)
+        sqs_sns_scope = normalize_aws_sqs_sns_scope(record)
+        lambda_sns_scope = normalize_aws_lambda_sns_scope(record)
         chime_admin = normalize_aws_chime_admin(record)
         chime_attendee_messaging = normalize_aws_chime_attendee_messaging(record)
         chime_capability_flow = normalize_aws_chime_capability_flow(record)
@@ -577,6 +580,8 @@ def detect_aws_events(
                 + ([sqs_public_policy] if sqs_public_policy is not None else [])
                 + ([sns_topic_controls] if sns_topic_controls is not None else [])
                 + ([sns_public_policy] if sns_public_policy is not None else [])
+                + ([sqs_sns_scope] if sqs_sns_scope is not None else [])
+                + ([lambda_sns_scope] if lambda_sns_scope is not None else [])
                 + ([chime_admin] if chime_admin is not None else [])
                 + ([chime_attendee_messaging] if chime_attendee_messaging is not None else [])
                 + ([chime_capability_flow] if chime_capability_flow is not None else [])
