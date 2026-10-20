@@ -99,6 +99,7 @@ from .aws_ecr_retention_next import normalize_aws_ecr_retention
 from .aws_dynamodb_controls_next import normalize_aws_dynamodb_controls
 from .aws_dynamodb_backup_stream_next import normalize_aws_dynamodb_backup_stream
 from .aws_sns_sqs_controls_next import normalize_aws_sns_sqs_controls
+from .aws_sns_subscription_next import normalize_aws_sns_subscription
 from .aws_sqs_followup_next import normalize_aws_sqs_followup, correlate_aws_sqs_tagged_receive
 from .aws_sqs_data_next import normalize_aws_sqs_data, correlate_aws_sqs_fifo_dedup_collision
 from .aws_sqs_redrive_next import normalize_aws_sqs_redrive
@@ -401,6 +402,7 @@ def detect_aws_events(
         dynamodb_controls = normalize_aws_dynamodb_controls(record)
         dynamodb_backup_stream = normalize_aws_dynamodb_backup_stream(record)
         sns_sqs_controls = normalize_aws_sns_sqs_controls(record)
+        sns_subscription = normalize_aws_sns_subscription(record)
         sqs_followup = normalize_aws_sqs_followup(record)
         sqs_data = normalize_aws_sqs_data(record)
         sqs_redrive = normalize_aws_sqs_redrive(record)
@@ -564,6 +566,7 @@ def detect_aws_events(
                 + ([dynamodb_controls] if dynamodb_controls is not None else [])
                 + ([dynamodb_backup_stream] if dynamodb_backup_stream is not None else [])
                 + ([sns_sqs_controls] if sns_sqs_controls is not None else [])
+                + ([sns_subscription] if sns_subscription is not None else [])
                 + ([sqs_followup] if sqs_followup is not None else [])
                 + ([sqs_data] if sqs_data is not None else [])
                 + ([sqs_redrive] if sqs_redrive is not None else [])
