@@ -35,6 +35,7 @@ from .aws_lightsail_six_next import normalize as normalize_aws_lightsail_six
 from .aws_lightsail_snapshot_dns_next import normalize as normalize_aws_lightsail_snapshot_dns
 from .aws_lightsail_db_next import normalize as normalize_aws_lightsail_db
 from .aws_ecr_lightsail_batch_next import normalize as normalize_aws_ecr_lightsail_batch, correlate_tag_overwrite as correlate_aws_ecr_tag_overwrite
+from .aws_ecr_public_push_next import normalize_public as normalize_aws_ecr_public_push, correlate_new_layer_push as correlate_aws_ecr_new_layer_push
 from .aws_codebuild_gap_correlations_next import correlate as correlate_aws_codebuild_gaps
 from .aws_appsync_five_next import normalize as normalize_aws_appsync_five
 from .aws_appsync_read_function_next import normalize as normalize_aws_appsync_read_function
@@ -183,8 +184,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "24c6554be51e4effddad9bff018338f0cede0fe5"
-DEFAULT_RULE_PACK_SHA256 = "2732318637f85eca244c6c1a8c46f678754ac38c0d71d43cc93e51ab15a88cc6"
+DEFAULT_RULE_REF = "f19db05fbb418f7239356953688f2283a7e297b3"
+DEFAULT_RULE_PACK_SHA256 = "0bf501730e9bf2918bb604214b80961a786c2c138845369c49e8393ddec4c5b1"
 
 
 @dataclass(frozen=True)
@@ -311,6 +312,7 @@ def detect_aws_events(
         lightsail_snapshot_dns = normalize_aws_lightsail_snapshot_dns(record)
         lightsail_db = normalize_aws_lightsail_db(record)
         ecr_lightsail_batch = normalize_aws_ecr_lightsail_batch(record)
+        ecr_public_push = normalize_aws_ecr_public_push(record)
         appsync_five = normalize_aws_appsync_five(record)
         appsync_read_function = normalize_aws_appsync_read_function(record)
         appsync_signed_role = normalize_aws_appsync_signed_role(record)
@@ -452,6 +454,7 @@ def detect_aws_events(
                 + ([lightsail_snapshot_dns] if lightsail_snapshot_dns is not None else [])
                 + ([lightsail_db] if lightsail_db is not None else [])
                 + ([ecr_lightsail_batch] if ecr_lightsail_batch is not None else [])
+                + ([ecr_public_push] if ecr_public_push is not None else [])
                 + ([appsync_five] if appsync_five is not None else [])
                 + ([appsync_read_function] if appsync_read_function is not None else [])
                 + ([appsync_signed_role] if appsync_signed_role is not None else [])
@@ -605,7 +608,10 @@ def detect_aws_events(
     ecr_image_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
-            if record.get("eventSource") == "ecr.amazonaws.com" and record.get("eventName") == "PutImage":
+            if (isinstance(record.get("eventSource"), str)
+                    and record["eventSource"] in {"ecr.amazonaws.com", "ecr-public.amazonaws.com"}
+                    and isinstance(record.get("eventName"), str)
+                    and record["eventName"] in {"PutImage", "CompleteLayerUpload"}):
                 ecr_image_records.append(record)
             if record.get("eventSource") == "athena.amazonaws.com" and record.get("eventName") in {"StartQueryExecution", "ListQueryExecutions", "GetQueryExecution", "BatchGetQueryExecution", "GetQueryResults", "GetQueryRuntimeStatistics"}:
                 athena_history_records.append(record)
@@ -700,6 +706,7 @@ def detect_aws_events(
     correlated += correlate_aws_codebuild_gaps(codebuild_gap_records)
     correlated += correlate_aws_codepipeline_remaining(codepipeline_remaining_records)
     correlated += correlate_aws_ecr_tag_overwrite(ecr_image_records)
+    correlated += correlate_aws_ecr_new_layer_push(ecr_image_records)
     if correlated:
         matches.extend(_detect_events(correlated, selected, lambda event: event, "aws"))
     return matches
