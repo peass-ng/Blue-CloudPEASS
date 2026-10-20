@@ -9,7 +9,7 @@ from typing import Any
 
 NAMES = {'UpdateMediaStorageConfiguration', 'UpdateNotificationConfiguration',
          'UpdateImageGenerationConfiguration', 'UpdateDataRetention', 'UpdateStream',
-         'DeleteStream', 'DeleteSignalingChannel'}
+         'UpdateSignalingChannel', 'DeleteStream', 'DeleteSignalingChannel'}
 
 
 def _kvs_arn(value: Any, kind: str, region: str, account: str) -> bool:
@@ -42,6 +42,8 @@ def normalize_aws_kinesis_video_controls(record: Mapping[str, Any]) -> dict[str,
     notification = notification if isinstance(notification, Mapping) else {}
     image = request.get('imageGenerationConfiguration')
     image = image if isinstance(image, Mapping) else {}
+    signaling = request.get('singleMasterConfiguration')
+    signaling = signaling if isinstance(signaling, Mapping) else {}
     notification_dest = notification.get('destinationConfig')
     notification_dest = notification_dest if isinstance(notification_dest, Mapping) else {}
     topic = notification_dest.get('uri')
@@ -78,6 +80,10 @@ def normalize_aws_kinesis_video_controls(record: Mapping[str, Any]) -> dict[str,
         'request.kvs_stream_configuration_updated': name == 'UpdateStream' and valid_stream
             and isinstance(request.get('currentVersion'), str) and bool(request['currentVersion'])
             and (bool(request.get('deviceName')) or bool(request.get('mediaType'))),
+        'request.kvs_signaling_short_ttl_set': name == 'UpdateSignalingChannel' and valid_channel
+            and isinstance(request.get('currentVersion'), str) and bool(request['currentVersion'])
+            and type(signaling.get('messageTtlSeconds')) is int
+            and 5 <= signaling['messageTtlSeconds'] <= 10,
         'request.kvs_stream_deleted': name == 'DeleteStream' and valid_stream,
         'request.kvs_signaling_channel_deleted': name == 'DeleteSignalingChannel' and valid_channel,
     }
