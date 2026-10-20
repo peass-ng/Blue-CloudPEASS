@@ -52,6 +52,7 @@ from .aws_waf_web_acl_next import normalize_aws_waf_web_acl
 from .aws_codeartifact_policy_next import normalize_aws_codeartifact_policy
 from .aws_appconfig_extension_next import normalize_aws_appconfig_extension
 from .aws_athena_workgroup_next import normalize_aws_athena_workgroup
+from .aws_athena_stored_query_next import normalize as normalize_aws_athena_stored_query, correlate as correlate_aws_athena_stored_query
 from .aws_config_recorder_next import normalize_aws_config_recorder_stop, normalize_aws_config_auto_remediation
 from .aws_eventbridge_archive_next import normalize_aws_eventbridge_archive
 from .aws_eventbridge_rule_targets_next import normalize_aws_eventbridge_rule_targets
@@ -161,8 +162,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "d10ffd13499c16e452d9dbc978939e39c49b82f9"
-DEFAULT_RULE_PACK_SHA256 = "9e4e121122a4d2fe718c1bd987b253258fcef3de6f78d939afb89187e1b39578"
+DEFAULT_RULE_REF = "f9dbf192e31ec7055c7308ebb9ac5fb47806fd82"
+DEFAULT_RULE_PACK_SHA256 = "dee976e9ea8f1e81efbe43ab84d553c9d3972c0fdd3c3e61d1a3d8ace2873e2f"
 
 
 @dataclass(frozen=True)
@@ -308,6 +309,7 @@ def detect_aws_events(
         codeartifact_policy = normalize_aws_codeartifact_policy(record)
         appconfig_extension = normalize_aws_appconfig_extension(record)
         athena_workgroup = normalize_aws_athena_workgroup(record)
+        athena_stored_query = normalize_aws_athena_stored_query(record)
         config_recorder_stop = normalize_aws_config_recorder_stop(record)
         config_auto_remediation = normalize_aws_config_auto_remediation(record)
         eventbridge_archive = normalize_aws_eventbridge_archive(record)
@@ -431,6 +433,7 @@ def detect_aws_events(
                 + ([codeartifact_policy] if codeartifact_policy is not None else [])
                 + ([appconfig_extension] if appconfig_extension is not None else [])
                 + ([athena_workgroup] if athena_workgroup is not None else [])
+                + ([athena_stored_query] if athena_stored_query is not None else [])
                 + ([config_recorder_stop] if config_recorder_stop is not None else [])
                 + ([config_auto_remediation] if config_auto_remediation is not None else [])
                 + ([eventbridge_archive] if eventbridge_archive is not None else [])
@@ -535,9 +538,12 @@ def detect_aws_events(
     rds_replica_records: list[Mapping[str, Any]] = []
     rds_proxy_secret_records: list[Mapping[str, Any]] = []
     servicecatalog_records: list[Mapping[str, Any]] = []
+    athena_stored_records: list[Mapping[str, Any]] = []
     codebuild_gap_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
+            if record.get("eventSource") == "athena.amazonaws.com" and record.get("eventName") in {"CreateWorkGroup", "StartQueryExecution"}:
+                athena_stored_records.append(record)
             if ((record.get("eventSource") == "codebuild.amazonaws.com" and record.get("eventName") in {"StartBuild", "UpdateProject"})
                     or (record.get("eventSource") == "ssm.amazonaws.com" and record.get("eventName") == "StartSession")
                     or (record.get("eventSource") == "secretsmanager.amazonaws.com" and record.get("eventName") == "GetSecretValue")):
@@ -599,6 +605,7 @@ def detect_aws_events(
     correlated += correlate_aws_rds_public_replica_controls(rds_replica_records)
     correlated += correlate_aws_rds_proxy_auth_secret_read(rds_proxy_secret_records)
     correlated += correlate_aws_servicecatalog(servicecatalog_records)
+    correlated += correlate_aws_athena_stored_query(athena_stored_records)
     correlated += correlate_aws_codebuild_gaps(codebuild_gap_records)
     if correlated:
         matches.extend(_detect_events(correlated, selected, lambda event: event, "aws"))
