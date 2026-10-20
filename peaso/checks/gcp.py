@@ -193,12 +193,15 @@ def gke_private_endpoint(item, index):
     # IPEndpointsConfig.enable_public_endpoint instead ... the value of
     # enablePublicEndpoint is reversed". IPEndpointsConfig.enablePublicEndpoint:
     # "Controls whether the control plane allows access through a public IP."
-    legacy = gke_flag(item, "privateClusterConfig.enablePrivateEndpoint")
+    gke_cluster(item)
+    legacy = optional(optional(item, "privateClusterConfig", {}, dict), "enablePrivateEndpoint", None, bool)
     endpoints = optional(optional(item, "controlPlaneEndpointsConfig", {}, dict), "ipEndpointsConfig", None, dict)
     if endpoints is not None:
         public = optional(endpoints, "enablePublicEndpoint", False, bool)
-        return result(public and not legacy, enable_private_endpoint=legacy, enable_public_endpoint=public)
-    return result(not legacy, enable_private_endpoint=legacy, semantics="Legacy privateClusterConfig only; omitted boolean is false")
+        if legacy is not None and legacy == public:
+            return unknown("conflicting legacy and current public-endpoint declarations")
+        return result(public, enable_private_endpoint=bool(legacy), enable_public_endpoint=public)
+    return result(not legacy, enable_private_endpoint=bool(legacy), semantics="Legacy privateClusterConfig only; omitted boolean is false")
 CASES["gcp.gke.private_endpoint"] = {"pass": {"name": "c", "controlPlaneEndpointsConfig": {"ipEndpointsConfig": {"enabled": True}}},
     "fail": {"name": "c", "controlPlaneEndpointsConfig": {"ipEndpointsConfig": {"enablePublicEndpoint": True}}, "privateClusterConfig": {}},
     "unknown": {"name": "c", "_coverage": {"privateClusterConfig": {"status": "denied"}}},
@@ -220,9 +223,12 @@ CASES["gcp.gke.shielded_nodes"] = {"pass": {"name": "c", "shieldedNodes": {"enab
 def gke_private_nodes_native(item, index):
     # privateClusterConfig.enablePrivateNodes is deprecated in favor of
     # NetworkConfig.default_enable_private_nodes; either explicit true counts.
-    legacy = gke_flag(item, "privateClusterConfig.enablePrivateNodes")
-    default = gke_flag(item, "networkConfig.defaultEnablePrivateNodes")
-    return result(not (legacy or default), private_cluster_config_private_nodes=legacy, network_config_default_private_nodes=default,
+    gke_cluster(item)
+    legacy = optional(optional(item, "privateClusterConfig", {}, dict), "enablePrivateNodes", None, bool)
+    default = optional(optional(item, "networkConfig", {}, dict), "defaultEnablePrivateNodes", None, bool)
+    if legacy is not None and default is not None and legacy != default:
+        return unknown("conflicting legacy and current private-node defaults")
+    return result(not (legacy or default), private_cluster_config_private_nodes=bool(legacy), network_config_default_private_nodes=bool(default),
         semantics="Cluster default; individual node pools can override with networkConfig.enablePrivateNodes")
 CASES["gcp.gke.private_nodes"] = {"pass": {"name": "c", "networkConfig": {"defaultEnablePrivateNodes": True}},
     "fail": {"name": "c", "privateClusterConfig": {"privateEndpoint": "10.0.0.2"}, "networkConfig": {}},
@@ -234,9 +240,15 @@ CASES["gcp.gke.private_nodes"] = {"pass": {"name": "c", "networkConfig": {"defau
 def gke_authorized_networks_native(item, index):
     # masterAuthorizedNetworksConfig is deprecated in favor of
     # ControlPlaneEndpointsConfig.IPEndpointsConfig.authorized_networks_config.
-    legacy = gke_flag(item, "masterAuthorizedNetworksConfig.enabled")
-    current = gke_flag(item, "controlPlaneEndpointsConfig.ipEndpointsConfig.authorizedNetworksConfig.enabled")
-    return result(not (legacy or current), master_authorized_networks_enabled=legacy, ip_endpoints_authorized_networks_enabled=current,
+    gke_cluster(item)
+    previous = optional(item, "masterAuthorizedNetworksConfig", None, dict)
+    endpoints = optional(optional(item, "controlPlaneEndpointsConfig", {}, dict), "ipEndpointsConfig", {}, dict)
+    modern = optional(endpoints, "authorizedNetworksConfig", None, dict)
+    legacy = optional(previous, "enabled", False, bool) if previous is not None else None
+    current = optional(modern, "enabled", False, bool) if modern is not None else None
+    if legacy is not None and current is not None and legacy != current:
+        return unknown("conflicting legacy and current authorized-network declarations")
+    return result(not (legacy or current), master_authorized_networks_enabled=bool(legacy), ip_endpoints_authorized_networks_enabled=bool(current),
         semantics="Feature enablement only; CIDR breadth is evaluated by gcp.claude.gke.master_authorized_networks_restricted")
 CASES["gcp.gke.authorized_networks"] = {"pass": {"name": "c", "controlPlaneEndpointsConfig": {"ipEndpointsConfig": {"authorizedNetworksConfig": {"enabled": True}}}},
     "fail": {"name": "c", "masterAuthorizedNetworksConfig": {}, "controlPlaneEndpointsConfig": {"ipEndpointsConfig": {"authorizedNetworksConfig": {}}}},
@@ -246,9 +258,12 @@ CASES["gcp.gke.authorized_networks"] = {"pass": {"name": "c", "controlPlaneEndpo
 
 @register("gcp.gke.network_policy", "gcp", "hardening", "gke_cluster", "GKE configures a NetworkPolicy enforcement engine", "medium", "SC-7", "Use GKE Dataplane V2, Autopilot or supported Calico network policy enforcement and review workload policies.")
 def network_policy(item, index):
-    network = get(item, "networkConfig", dict) if "networkConfig" in item else {}
-    autopilot = get(item, "autopilot", dict) if "autopilot" in item else {}
-    if network.get("datapathProvider") == "ADVANCED_DATAPATH" or autopilot.get("enabled") is True:
+    network = optional(item, "networkConfig", {}, dict)
+    autopilot = optional(item, "autopilot", {}, dict)
+    provider = optional(network, "datapathProvider", "DATAPATH_PROVIDER_UNSPECIFIED", str)
+    if provider not in ("DATAPATH_PROVIDER_UNSPECIFIED", "LEGACY_DATAPATH", "ADVANCED_DATAPATH"):
+        raise Unavailable("unrecognized GKE datapath provider")
+    if provider == "ADVANCED_DATAPATH" or optional(autopilot, "enabled", False, bool):
         return result(False, semantics="Dataplane V2/Autopilot includes network policy enforcement; policy coverage is separate")
     policy = optional(item, "networkPolicy", None, dict)
     if policy is None or "enabled" not in policy:

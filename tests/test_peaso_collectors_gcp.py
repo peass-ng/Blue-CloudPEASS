@@ -39,6 +39,15 @@ class FixtureTransport:
         return copy.deepcopy(data), request_id
 
 
+class NativeDataFixtureTransport(FixtureTransport):
+    """Retain the actual successful HTTP identity receipt used for CRM aliases."""
+    def request(self, method, url, **kwargs):
+        data, request_id = super().request(method, url, **kwargs)
+        receipt = next(r for r in self.evidence if r['id'] == request_id)
+        receipt.update(scope=kwargs['scope'], http_status=200, query=kwargs.get('params', {}))
+        return data, request_id
+
+
 def connector(kinds, scopes=None, **options):
     return {"provider": "gcp", "scopes": scopes or ["projects/p-one"],
             "options": {"inventories": kinds, "include_inherited": False, "concurrency": 1, **options}}
@@ -64,6 +73,52 @@ def test_selection_fetches_only_required_facts():
         "https://compute.googleapis.com/compute/v1/projects/p-one/global/networks"}
     collector = gcp.GCPCollector(connector(["bucket", "network"]), ["network"], transport=transport)
     assert {c["type"] for c in collector.collect()["collections"]} == {"network"}
+
+
+def test_psc_and_neg_inventories_include_global_and_aggregated_native_resources():
+    kinds = ["service_attachment", "network_endpoint_group", "network_attachment"]
+    def resolver(request):
+        path = request["url"]
+        if "/global/networkEndpointGroups" in path:
+            return {"items": [{"name": "global-neg", "selfLink": "https://www.googleapis.com/compute/v1/projects/p-one/global/networkEndpointGroups/global-neg"}]}
+        segment = path.rsplit("/", 1)[1]
+        return {"items": {"regions/us-central1": {segment: [{"name": segment,
+            "selfLink": f"https://www.googleapis.com/compute/v1/projects/p-one/regions/us-central1/{segment}/regional"}]}}}
+    result, transport = snapshot(kinds, resolver)
+    assert len(transport.requests) == 4
+    assert len(collection(result, "network_endpoint_group")["items"]) == 2
+    for kind in kinds:
+        assert collection(result, kind)["status"] == "collected"
+        assert collection(result, kind)["source_requests"]
+
+
+@pytest.mark.parametrize("kind,service,key,option", [
+    ("vpc_access_connector", "vpcaccess", "connectors", "vpcaccess_locations"),
+    ("filestore_instance", "file", "instances", "filestore_locations"),
+    ("redis_instance", "redis", "instances", "redis_locations"),
+])
+def test_managed_network_metadata_uses_location_pagination_without_iam_reads(kind, service, key, option):
+    assert f"{service}.googleapis.com" in gcp.HOSTS
+    def resolver(request):
+        assert request["method"] == "GET"
+        assert request["url"] == f"https://{service}.googleapis.com/v1/projects/p-one/locations/us-central1/{key}"
+        token = request.get("params", {}).get("pageToken")
+        name = f"projects/p-one/locations/us-central1/{key}/{'two' if token else 'one'}"
+        return {key: [{"name": name, "network": "net"}], **({} if token else {"nextPageToken": "next"})}
+    result, transport = snapshot([kind], resolver, **{option: ["us-central1"]})
+    assert len(transport.requests) == 2
+    assert len(collection(result, kind)["items"]) == 2
+    assert collection(result, kind)["status"] == "collected"
+
+
+def test_connector_location_discovery_and_denied_region_stay_in_coverage():
+    def resolver(request):
+        if request["url"].endswith("/locations"):
+            return {"locations": [{"locationId": "us-central1"}]}
+        raise gcp.ReadError("denied", "denied")
+    result, transport = snapshot(["vpc_access_connector"], resolver)
+    assert len(transport.requests) == 2
+    assert collection(result, "vpc_access_connector")["status"] == "denied"
 
 
 def test_native_peering_effective_route_exchange_survives_network_projection():
@@ -379,6 +434,7 @@ CONTENT_ONLY_TYPES = {
     "batch_job", "dataproc_job", "gke_workload_literal", "function_source_archive", "artifact_selected_file",
     "appengine_deployment_source", "cloudbuild_artifact_source", "cloudbuild_log_source",
     "clouddeploy_release_source", "source_repository_file",
+    "cloudtasks_selected_task", "bigquery_selected_routine",
 }
 
 
@@ -443,6 +499,8 @@ def test_native_service_coverage_and_configuration_fixture():
             return {"items": {"regions/r": {segment: [{"name": segment, "network": "projects/host/global/networks/n",
                 "networkInterfaces": [{"subnetwork": "projects/host/regions/r/subnetworks/s", "accessConfigs": [{"natIP": "203.0.113.1"}]}],
                 "shieldedInstanceConfig": {"enableSecureBoot": True}}]}}}
+        if url.endswith("/zones"):
+            return {"items": [{"name": "r-a", "region": "projects/p-one/regions/r"}]}
         if url.endswith("/clusters"):
             return {"clusters": [{"name": "gke", "location": "europe-west1",
                 "selfLink": "https://container.googleapis.com/v1/projects/p-one/locations/europe-west1/clusters/gke", "privateClusterConfig": {"enablePrivateNodes": True},
@@ -482,12 +540,14 @@ def test_native_service_coverage_and_configuration_fixture():
     # dedicated org-scope fixture rather than asserted as an empty project API.
     # Perimeters need project ancestry (include_inherited), tested separately.
     # Content-only inventories require a separately named, opted-in request.
-    kinds = sorted(gcp.SUPPORTED_TYPES - CONTENT_ONLY_TYPES - {"project", "organization", "folder", "workforce_pool", "workforce_provider", "kms_key", "kms_key_ring", "activity", "principal_access_boundary_policy", "firewall_policy_association", "service_perimeter", "audit_log", "scc_finding", "scc_notification_config", "provider_access_event", "asset_previous", "asset_audit_log", "deployed_image", "effective_firewall"})
+    from peaso.collectors.gcp_network_catalog import PRIVATE_SERVICES
+    organization_network_types = {kind for kind, plan in PRIVATE_SERVICES.items() if plan.get('scope_kind') == 'organizations'}
+    kinds = sorted(gcp.SUPPORTED_TYPES - CONTENT_ONLY_TYPES - gcp.CONTENT_ONLY_TYPES - organization_network_types - {"project", "organization", "folder", "workforce_pool", "workforce_provider", "kms_key", "kms_key_ring", "activity", "principal_access_boundary_policy", "firewall_policy_association", "service_perimeter", "audit_log", "scc_finding", "scc_notification_config", "provider_access_event", "asset_previous", "asset_audit_log", "deployed_image", "effective_firewall"})
     result, transport = snapshot(kinds, resolve, cloud_identity_customers=["Cfixture"], regions=["r"],
         sw51_policy={'scope': 'projects/p-one', 'status': 'collected', 'approved_asset_types': ['compute.googleapis.com/Instance']})
     assert {c["type"] for c in result["collections"]} == set(kinds)
     assert collection(result, "shared_vpc")["status"] == "collected"
-    assert not any(c["status"] in ("malformed", "unknown") for c in result["collections"])
+    assert not any(c["status"] in ("malformed", "unknown") for c in result["collections"]), [(c["type"], c.get("error")) for c in result["collections"] if c["status"] in ("malformed", "unknown")]
     assert not any("workflows.googleapis.com" in r["url"] for r in transport.requests)
     assert collection(result, "gke_cluster")["status"] == "collected"
     assert "do-not-store" not in json.dumps(result)
@@ -521,6 +581,14 @@ def http_transport(monkeypatch, responses, **options):
                               options, sleep=lambda _: None)
     monkeypatch.setattr(transport, "_session", lambda: session)
     return transport, calls
+
+
+@pytest.mark.parametrize("service,segment", [("vpcaccess", "connectors"), ("file", "instances"), ("redis", "instances")])
+def test_managed_network_hosts_pass_the_real_transport_boundary(monkeypatch, service, segment):
+    transport, calls = http_transport(monkeypatch, [Response(200, {segment: []})], retries=0)
+    value, _ = transport.request("GET", f"https://{service}.googleapis.com/v1/projects/p-one/locations/us-central1/{segment}", scope="projects/p-one")
+    assert value == {segment: []}
+    assert len(calls) == 1 and calls[0]["allow_redirects"] is False
 
 
 def test_transport_retries_and_budget_count_each_attempt_redacts_api_messages(monkeypatch):
@@ -915,7 +983,8 @@ def test_direct_bigquery_artifact_run_functions_metadata_has_no_payload_reads():
             return {"datasets": [{"datasetReference": {"projectId": "p-one", "datasetId": "d"}}]}
         if url.endswith("/datasets/d"):
             assert request["params"] == {"accessPolicyVersion": 3, "datasetView": "FULL"}
-            return {"access": [], "defaultEncryptionConfiguration": {"kmsKeyName": "projects/p-one/locations/r/keyRings/a/cryptoKeys/k"}}
+            return {"datasetReference": {"projectId": "p-one", "datasetId": "d"},
+                "access": [], "defaultEncryptionConfiguration": {"kmsKeyName": "projects/p-one/locations/r/keyRings/a/cryptoKeys/k"}}
         if url.endswith("/repositories"):
             return {"repositories": [{"name": "projects/p-one/locations/r/repositories/a", "format": "DOCKER",
                 "dockerConfig": {"immutableTags": True}}]}
@@ -964,7 +1033,7 @@ def test_unreadable_region_does_not_hide_readable_other_region():
 def test_bigquery_detail_denial_does_not_imply_dataset_acl_is_empty():
     def resolve(request):
         if request["url"].endswith("/datasets"):
-            return {"datasets": [{"datasetReference": {"datasetId": "d"}}]}
+            return {"datasets": [{"datasetReference": {"projectId": "p-one", "datasetId": "d"}}]}
         raise gcp.ReadError("denied", "api_error", http_status=403)
     result, _ = snapshot(["bigquery_dataset"], resolve)
     item = collection(result, "bigquery_dataset")["items"][0]
@@ -1112,10 +1181,10 @@ def test_full_representation_marker_only_on_unmasked_complete_reads():
         if url.endswith("aggregated/subnetworks"):
             return {"items": {"regions/r": {"subnetworks": [{"name": "s", "purpose": "PRIVATE"}]}}}
         if url.endswith("/datasets"):
-            return {"datasets": [{"datasetReference": {"datasetId": "ok"}}, {"datasetReference": {"datasetId": "denied"}}]}
+            return {"datasets": [{"datasetReference": {"projectId": "p-one", "datasetId": "ok"}}, {"datasetReference": {"projectId": "p-one", "datasetId": "denied"}}]}
         if url.endswith("/datasets/ok"):
             assert request["params"]["datasetView"] == "FULL"
-            return {"datasetReference": {"datasetId": "ok"}}
+            return {"datasetReference": {"projectId": "p-one", "datasetId": "ok"}}
         if url.endswith("/datasets/denied"):
             raise gcp.ReadError("denied", "api_error", http_status=403)
         return {"items": []}
@@ -1358,12 +1427,13 @@ def test_restricted_dataproc_region_and_anonymous_bigquery_datasets_are_not_deni
         if anonymous in url:
             raise gcp.http_error(403, {"error": {"errors": [{"reason": "accessDenied"}]}})
         if url.endswith("/datasets"):
-            return {"datasets": [{"datasetReference": {"datasetId": anonymous}}, {"datasetReference": {"datasetId": "d"}}]}
+            return {"datasets": [{"datasetReference": {"projectId": "p-one", "datasetId": anonymous}},
+                {"datasetReference": {"projectId": "p-one", "datasetId": "d"}}]}
         if url.endswith("/tables"):
-            return {"tables": [{"tableReference": {"tableId": "t"}}]}
+            return {"tables": [{"tableReference": {"projectId": "p-one", "datasetId": "d", "tableId": "t"}}]}
         if "/tables/" in url:
-            return {"tableReference": {"tableId": "t"}, "type": "TABLE"}
-        return {"datasetReference": {"datasetId": url.rsplit("/", 1)[1]}}
+            return {"tableReference": {"projectId": "p-one", "datasetId": "d", "tableId": "t"}, "type": "TABLE"}
+        return {"datasetReference": {"projectId": "p-one", "datasetId": url.rsplit("/", 1)[1]}}
     result, transport = snapshot(["bigquery_table"], bigquery)
     tables = collection(result, "bigquery_table")
     assert tables["status"] == "collected" and len(tables["items"]) == 1
@@ -1506,10 +1576,14 @@ def test_disabled_data_service_for_numeric_project_preserves_unknown_and_control
     from peaso.engine import evaluate_snapshot
 
     def resolve(request):
+        if kind == 'bigquery_dataset' and request['url'] == 'https://cloudresourcemanager.googleapis.com/v3/projects/123':
+            return {'name': 'projects/123', 'projectId': 'native-project'}
         assert host in request["url"]
         raise disabled("projects/123", service)
 
-    result, transport = snapshot([kind], resolve, scopes=["projects/123"])
+    transport = NativeDataFixtureTransport(resolve)
+    result = gcp.GCPCollector(connector([kind], scopes=['projects/123']), transport=transport).collect()
+    validate(result)
     found = collection(result, kind, "projects/123")
     assert found["status"] == "unknown" and found["coverage_status"] == "unavailable"
     assert found["items"] == []
@@ -1519,7 +1593,7 @@ def test_disabled_data_service_for_numeric_project_preserves_unknown_and_control
         "service": service, "consumer": "projects/123", "source_requests": found["source_requests"]}
     check_id = "gcp.storage.uniform_access" if kind == "bucket" else "gcp.reviewed.bigquery.cmek"
     report = evaluate_snapshot(result, checks=[check_id])
-    assert transport.calls == 1
+    assert transport.calls == (2 if kind == 'bigquery_dataset' else 1)
     assert any(f["check_id"] == check_id and f["status"] == "UNKNOWN" for f in report["findings"])
     assert not any(f["check_id"] == check_id and f["status"] in ("NOT_APPLICABLE", "PASS", "EMPTY")
                    for f in report["findings"])
@@ -1527,7 +1601,13 @@ def test_disabled_data_service_for_numeric_project_preserves_unknown_and_control
 
 @pytest.mark.parametrize("kind,response", [("bucket", {"items": []}), ("bigquery_dataset", {"datasets": []})])
 def test_successful_empty_data_service_inventory_is_still_empty(kind, response):
-    result, _ = snapshot([kind], lambda request: response, scopes=["projects/123"])
+    def resolve(request):
+        if kind == 'bigquery_dataset' and request['url'] == 'https://cloudresourcemanager.googleapis.com/v3/projects/123':
+            return {'name': 'projects/123', 'projectId': 'native-project'}
+        return response
+    transport = NativeDataFixtureTransport(resolve)
+    result = gcp.GCPCollector(connector([kind], scopes=['projects/123']), transport=transport).collect()
+    validate(result)
     found = collection(result, kind, "projects/123")
     assert found["status"] == found["coverage_status"] == "empty"
     assert found["items"] == [] and "error" not in found and "service_state" not in found

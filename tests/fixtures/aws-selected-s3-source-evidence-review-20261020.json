@@ -1,0 +1,110 @@
+{
+  "aws.review.s3.selected_source_secret_indicators": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "observed": "Both offline detectors completed without detecting a supported secret in the selected S3 source text and regular archive members. Coverage is limited to the selected object or version.",
+        "secret_leaks": [],
+        "complete": true,
+        "coverage": "selected_s3_source_text_only",
+        "credential_validation": "not_attempted",
+        "format": "text",
+        "parts": [
+          {
+            "path": "s3_selected_source_content:eeb1410ffd11a5ab4a75e8d4b595f9a448700cc721321efe73d933b690dd4493.text",
+            "bytes": 26,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "version": "1.4.0",
+                "status": "complete"
+              },
+              {
+                "engine": "trufflehog",
+                "version": "3.92.5",
+                "status": "complete"
+              }
+            ]
+          }
+        ],
+        "source_requests": [
+          "s3-source-read-1",
+          "s3-source-read-2",
+          "s3-source-read-3",
+          "s3-source-read-4",
+          "s3-source-read-5"
+        ],
+        "object_bytes": 10
+      },
+      "summary": "Both offline detectors completed without detecting a supported secret in the selected S3 source text and regular archive members. Coverage is limited to the selected object or version."
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "observed": "A likely secret was detected in selected S3 source text or archive members. The value is hidden and was not validated.",
+        "secret_leaks": [
+          {
+            "fingerprint": "8068679c18f684e592a88acbcfe6b70e733ca45245acbbfd0fc9abd8330db1d7",
+            "detectors": [
+              {
+                "engine": "kingfisher",
+                "rule": "betterleaks.github-pat"
+              },
+              {
+                "engine": "trufflehog",
+                "rule": "Github"
+              }
+            ],
+            "locations": [
+              {
+                "path": "s3_selected_source_content:eeb1410ffd11a5ab4a75e8d4b595f9a448700cc721321efe73d933b690dd4493.text"
+              }
+            ]
+          }
+        ],
+        "complete": true,
+        "coverage": "selected_s3_source_text_only",
+        "credential_validation": "not_attempted",
+        "format": "text",
+        "parts": [
+          {
+            "path": "s3_selected_source_content:eeb1410ffd11a5ab4a75e8d4b595f9a448700cc721321efe73d933b690dd4493.text",
+            "bytes": 56,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "version": "1.4.0",
+                "status": "complete"
+              },
+              {
+                "engine": "trufflehog",
+                "version": "3.92.5",
+                "status": "complete"
+              }
+            ]
+          }
+        ],
+        "source_requests": [
+          "s3-source-read-1",
+          "s3-source-read-2",
+          "s3-source-read-3",
+          "s3-source-read-4",
+          "s3-source-read-5"
+        ],
+        "object_bytes": 40
+      },
+      "summary": "A likely secret was detected in selected S3 source text or archive members. The value is hidden and was not validated."
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "observed": "Selected S3 source content was unreadable, unsupported, incomplete or unbound. A clean result cannot be established.",
+        "complete": false,
+        "coverage": "incomplete"
+      },
+      "summary": "Selected S3 source content was unreadable, unsupported, incomplete or unbound. A clean result cannot be established."
+    }
+  ]
+}

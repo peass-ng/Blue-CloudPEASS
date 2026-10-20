@@ -1,0 +1,1267 @@
+{
+  "schema_version": 1,
+  "source_native_fixture": "tests/fixtures/k8s_controller_literal_secret_review_20261020.json",
+  "source_sha256": "57fcfd7349060488c15ac1cd982f82006b02b6c21a885509c713eefc2b138afd",
+  "cases": [
+    {
+      "kind": "Pod",
+      "branch": "clean",
+      "finding": {
+        "provider": "k8s",
+        "check_id": "k8s.review.selected_literals.secret_indicators",
+        "status": "PASS",
+        "evidence": {
+          "secret_leaks": [],
+          "credential_validation": "not_attempted",
+          "complete": true,
+          "coverage": "selected_observed_literals_only",
+          "parts": [
+            {
+              "part": "literals",
+              "bytes": 172,
+              "engines": [
+                {
+                  "engine": "kingfisher",
+                  "version": "1.4.0",
+                  "status": "complete"
+                },
+                {
+                  "engine": "trufflehog",
+                  "version": "3.92.5",
+                  "status": "complete"
+                }
+              ],
+              "complete": true
+            }
+          ],
+          "literal_count": 3,
+          "reference_count": 0,
+          "source_requests": [
+            "k8s-literal-read-1",
+            "k8s-literal-read-2"
+          ],
+          "observed": "Both offline detectors completed without detecting a supported secret in selected Kubernetes literals. Coverage is limited to the observed workload and ConfigMap literals; references were not dereferenced."
+        }
+      },
+      "backend_observation": "Both offline detectors found no supported secret in selected workload and ConfigMap literals."
+    },
+    {
+      "kind": "Pod",
+      "branch": "detected",
+      "finding": {
+        "provider": "k8s",
+        "check_id": "k8s.review.selected_literals.secret_indicators",
+        "status": "FAIL",
+        "evidence": {
+          "secret_leaks": [
+            {
+              "fingerprint": "e59a2011d2e04689db9b799ec0196497ac8c6c4e4ebc67061ce46483d51ae0b6",
+              "detectors": [
+                {
+                  "engine": "kingfisher",
+                  "rule": "betterleaks.github-pat"
+                },
+                {
+                  "engine": "trufflehog",
+                  "rule": "Github"
+                }
+              ],
+              "locations": [
+                {
+                  "path": "k8s_selected_literals:2235255772c3af1023abddb79d98636fda3d285509acb2cbaee6834ec80223ca.literals",
+                  "line": 10
+                }
+              ]
+            }
+          ],
+          "credential_validation": "not_attempted",
+          "complete": true,
+          "coverage": "selected_observed_literals_only",
+          "parts": [
+            {
+              "part": "literals",
+              "bytes": 188,
+              "engines": [
+                {
+                  "engine": "kingfisher",
+                  "version": "1.4.0",
+                  "status": "complete"
+                },
+                {
+                  "engine": "trufflehog",
+                  "version": "3.92.5",
+                  "status": "complete"
+                }
+              ],
+              "complete": true
+            }
+          ],
+          "literal_count": 3,
+          "reference_count": 0,
+          "source_requests": [
+            "k8s-literal-read-1",
+            "k8s-literal-read-2"
+          ],
+          "observed": "A likely secret was detected in selected Kubernetes literals. The value is hidden; offline detection did not validate the credential."
+        }
+      },
+      "backend_observation": "A likely secret was detected in selected workload and ConfigMap literals."
+    },
+    {
+      "kind": "ConfigMap",
+      "branch": "clean",
+      "finding": {
+        "provider": "k8s",
+        "check_id": "k8s.review.selected_literals.secret_indicators",
+        "status": "PASS",
+        "evidence": {
+          "secret_leaks": [],
+          "credential_validation": "not_attempted",
+          "complete": true,
+          "coverage": "selected_observed_literals_only",
+          "parts": [
+            {
+              "part": "literals",
+              "bytes": 125,
+              "engines": [
+                {
+                  "engine": "kingfisher",
+                  "version": "1.4.0",
+                  "status": "complete"
+                },
+                {
+                  "engine": "trufflehog",
+                  "version": "3.92.5",
+                  "status": "complete"
+                }
+              ],
+              "complete": true
+            }
+          ],
+          "literal_count": 1,
+          "reference_count": 0,
+          "source_requests": [
+            "k8s-literal-read-1",
+            "k8s-literal-read-2"
+          ],
+          "observed": "Both offline detectors completed without detecting a supported secret in selected Kubernetes literals. Coverage is limited to the observed workload and ConfigMap literals; references were not dereferenced."
+        }
+      },
+      "backend_observation": "Both offline detectors found no supported secret in selected workload and ConfigMap literals."
+    },
+    {
+      "kind": "ConfigMap",
+      "branch": "detected",
+      "finding": {
+        "provider": "k8s",
+        "check_id": "k8s.review.selected_literals.secret_indicators",
+        "status": "FAIL",
+        "evidence": {
+          "secret_leaks": [
+            {
+              "fingerprint": "e59a2011d2e04689db9b799ec0196497ac8c6c4e4ebc67061ce46483d51ae0b6",
+              "detectors": [
+                {
+                  "engine": "kingfisher",
+                  "rule": "betterleaks.github-pat"
+                },
+                {
+                  "engine": "trufflehog",
+                  "rule": "Github"
+                }
+              ],
+              "locations": [
+                {
+                  "path": "k8s_selected_literals:9fbcba0289194bb338f11a8ba254476dd4faae99fc76ecc1018a1f800d337d37.literals",
+                  "line": 7
+                }
+              ]
+            }
+          ],
+          "credential_validation": "not_attempted",
+          "complete": true,
+          "coverage": "selected_observed_literals_only",
+          "parts": [
+            {
+              "part": "literals",
+              "bytes": 141,
+              "engines": [
+                {
+                  "engine": "kingfisher",
+                  "version": "1.4.0",
+                  "status": "complete"
+                },
+                {
+                  "engine": "trufflehog",
+                  "version": "3.92.5",
+                  "status": "complete"
+                }
+              ],
+              "complete": true
+            }
+          ],
+          "literal_count": 1,
+          "reference_count": 0,
+          "source_requests": [
+            "k8s-literal-read-1",
+            "k8s-literal-read-2"
+          ],
+          "observed": "A likely secret was detected in selected Kubernetes literals. The value is hidden; offline detection did not validate the credential."
+        }
+      },
+      "backend_observation": "A likely secret was detected in selected workload and ConfigMap literals."
+    },
+    {
+      "kind": "Deployment",
+      "branch": "clean",
+      "finding": {
+        "provider": "k8s",
+        "check_id": "k8s.review.selected_literals.secret_indicators",
+        "status": "PASS",
+        "evidence": {
+          "secret_leaks": [],
+          "credential_validation": "not_attempted",
+          "complete": true,
+          "coverage": "selected_observed_literals_only",
+          "parts": [
+            {
+              "part": "literals",
+              "bytes": 172,
+              "engines": [
+                {
+                  "engine": "kingfisher",
+                  "version": "1.4.0",
+                  "status": "complete"
+                },
+                {
+                  "engine": "trufflehog",
+                  "version": "3.92.5",
+                  "status": "complete"
+                }
+              ],
+              "complete": true
+            }
+          ],
+          "literal_count": 3,
+          "reference_count": 0,
+          "source_requests": [
+            "k8s-literal-read-1",
+            "k8s-literal-read-2"
+          ],
+          "observed": "Both offline detectors completed without detecting a supported secret in selected Kubernetes literals. Coverage is limited to the observed workload and ConfigMap literals; references were not dereferenced."
+        }
+      },
+      "backend_observation": "Both offline detectors found no supported secret in selected workload and ConfigMap literals."
+    },
+    {
+      "kind": "Deployment",
+      "branch": "detected",
+      "finding": {
+        "provider": "k8s",
+        "check_id": "k8s.review.selected_literals.secret_indicators",
+        "status": "FAIL",
+        "evidence": {
+          "secret_leaks": [
+            {
+              "fingerprint": "e59a2011d2e04689db9b799ec0196497ac8c6c4e4ebc67061ce46483d51ae0b6",
+              "detectors": [
+                {
+                  "engine": "kingfisher",
+                  "rule": "betterleaks.github-pat"
+                },
+                {
+                  "engine": "trufflehog",
+                  "rule": "Github"
+                }
+              ],
+              "locations": [
+                {
+                  "path": "k8s_selected_literals:aa6f6cc26fdd2cb74f168c95d844c83ce80f144ad9f5db759896549948a2adf3.literals",
+                  "line": 10
+                }
+              ]
+            }
+          ],
+          "credential_validation": "not_attempted",
+          "complete": true,
+          "coverage": "selected_observed_literals_only",
+          "parts": [
+            {
+              "part": "literals",
+              "bytes": 188,
+              "engines": [
+                {
+                  "engine": "kingfisher",
+                  "version": "1.4.0",
+                  "status": "complete"
+                },
+                {
+                  "engine": "trufflehog",
+                  "version": "3.92.5",
+                  "status": "complete"
+                }
+              ],
+              "complete": true
+            }
+          ],
+          "literal_count": 3,
+          "reference_count": 0,
+          "source_requests": [
+            "k8s-literal-read-1",
+            "k8s-literal-read-2"
+          ],
+          "observed": "A likely secret was detected in selected Kubernetes literals. The value is hidden; offline detection did not validate the credential."
+        }
+      },
+      "backend_observation": "A likely secret was detected in selected workload and ConfigMap literals."
+    },
+    {
+      "kind": "DaemonSet",
+      "branch": "clean",
+      "finding": {
+        "provider": "k8s",
+        "check_id": "k8s.review.selected_literals.secret_indicators",
+        "status": "PASS",
+        "evidence": {
+          "secret_leaks": [],
+          "credential_validation": "not_attempted",
+          "complete": true,
+          "coverage": "selected_observed_literals_only",
+          "parts": [
+            {
+              "part": "literals",
+              "bytes": 172,
+              "engines": [
+                {
+                  "engine": "kingfisher",
+                  "version": "1.4.0",
+                  "status": "complete"
+                },
+                {
+                  "engine": "trufflehog",
+                  "version": "3.92.5",
+                  "status": "complete"
+                }
+              ],
+              "complete": true
+            }
+          ],
+          "literal_count": 3,
+          "reference_count": 0,
+          "source_requests": [
+            "k8s-literal-read-1",
+            "k8s-literal-read-2"
+          ],
+          "observed": "Both offline detectors completed without detecting a supported secret in selected Kubernetes literals. Coverage is limited to the observed workload and ConfigMap literals; references were not dereferenced."
+        }
+      },
+      "backend_observation": "Both offline detectors found no supported secret in selected workload and ConfigMap literals."
+    },
+    {
+      "kind": "DaemonSet",
+      "branch": "detected",
+      "finding": {
+        "provider": "k8s",
+        "check_id": "k8s.review.selected_literals.secret_indicators",
+        "status": "FAIL",
+        "evidence": {
+          "secret_leaks": [
+            {
+              "fingerprint": "e59a2011d2e04689db9b799ec0196497ac8c6c4e4ebc67061ce46483d51ae0b6",
+              "detectors": [
+                {
+                  "engine": "kingfisher",
+                  "rule": "betterleaks.github-pat"
+                },
+                {
+                  "engine": "trufflehog",
+                  "rule": "Github"
+                }
+              ],
+              "locations": [
+                {
+                  "path": "k8s_selected_literals:de9673f30b2b827c2454c9effeca50b2a8e7c4f9d69944af7f01fb490b9d2c19.literals",
+                  "line": 10
+                }
+              ]
+            }
+          ],
+          "credential_validation": "not_attempted",
+          "complete": true,
+          "coverage": "selected_observed_literals_only",
+          "parts": [
+            {
+              "part": "literals",
+              "bytes": 188,
+              "engines": [
+                {
+                  "engine": "kingfisher",
+                  "version": "1.4.0",
+                  "status": "complete"
+                },
+                {
+                  "engine": "trufflehog",
+                  "version": "3.92.5",
+                  "status": "complete"
+                }
+              ],
+              "complete": true
+            }
+          ],
+          "literal_count": 3,
+          "reference_count": 0,
+          "source_requests": [
+            "k8s-literal-read-1",
+            "k8s-literal-read-2"
+          ],
+          "observed": "A likely secret was detected in selected Kubernetes literals. The value is hidden; offline detection did not validate the credential."
+        }
+      },
+      "backend_observation": "A likely secret was detected in selected workload and ConfigMap literals."
+    },
+    {
+      "kind": "StatefulSet",
+      "branch": "clean",
+      "finding": {
+        "provider": "k8s",
+        "check_id": "k8s.review.selected_literals.secret_indicators",
+        "status": "PASS",
+        "evidence": {
+          "secret_leaks": [],
+          "credential_validation": "not_attempted",
+          "complete": true,
+          "coverage": "selected_observed_literals_only",
+          "parts": [
+            {
+              "part": "literals",
+              "bytes": 171,
+              "engines": [
+                {
+                  "engine": "kingfisher",
+                  "version": "1.4.0",
+                  "status": "complete"
+                },
+                {
+                  "engine": "trufflehog",
+                  "version": "3.92.5",
+                  "status": "complete"
+                }
+              ],
+              "complete": true
+            }
+          ],
+          "literal_count": 3,
+          "reference_count": 0,
+          "source_requests": [
+            "k8s-literal-read-1",
+            "k8s-literal-read-2"
+          ],
+          "observed": "Both offline detectors completed without detecting a supported secret in selected Kubernetes literals. Coverage is limited to the observed workload and ConfigMap literals; references were not dereferenced."
+        }
+      },
+      "backend_observation": "Both offline detectors found no supported secret in selected workload and ConfigMap literals."
+    },
+    {
+      "kind": "StatefulSet",
+      "branch": "detected",
+      "finding": {
+        "provider": "k8s",
+        "check_id": "k8s.review.selected_literals.secret_indicators",
+        "status": "FAIL",
+        "evidence": {
+          "secret_leaks": [
+            {
+              "fingerprint": "e59a2011d2e04689db9b799ec0196497ac8c6c4e4ebc67061ce46483d51ae0b6",
+              "detectors": [
+                {
+                  "engine": "kingfisher",
+                  "rule": "betterleaks.github-pat"
+                },
+                {
+                  "engine": "trufflehog",
+                  "rule": "Github"
+                }
+              ],
+              "locations": [
+                {
+                  "path": "k8s_selected_literals:9b8c629dee9e54593f3681e43af5674785be948790a46eb6da17207c5dc22957.literals",
+                  "line": 10
+                }
+              ]
+            }
+          ],
+          "credential_validation": "not_attempted",
+          "complete": true,
+          "coverage": "selected_observed_literals_only",
+          "parts": [
+            {
+              "part": "literals",
+              "bytes": 187,
+              "engines": [
+                {
+                  "engine": "kingfisher",
+                  "version": "1.4.0",
+                  "status": "complete"
+                },
+                {
+                  "engine": "trufflehog",
+                  "version": "3.92.5",
+                  "status": "complete"
+                }
+              ],
+              "complete": true
+            }
+          ],
+          "literal_count": 3,
+          "reference_count": 0,
+          "source_requests": [
+            "k8s-literal-read-1",
+            "k8s-literal-read-2"
+          ],
+          "observed": "A likely secret was detected in selected Kubernetes literals. The value is hidden; offline detection did not validate the credential."
+        }
+      },
+      "backend_observation": "A likely secret was detected in selected workload and ConfigMap literals."
+    },
+    {
+      "kind": "ReplicaSet",
+      "branch": "clean",
+      "finding": {
+        "provider": "k8s",
+        "check_id": "k8s.review.selected_literals.secret_indicators",
+        "status": "PASS",
+        "evidence": {
+          "secret_leaks": [],
+          "credential_validation": "not_attempted",
+          "complete": true,
+          "coverage": "selected_observed_literals_only",
+          "parts": [
+            {
+              "part": "literals",
+              "bytes": 172,
+              "engines": [
+                {
+                  "engine": "kingfisher",
+                  "version": "1.4.0",
+                  "status": "complete"
+                },
+                {
+                  "engine": "trufflehog",
+                  "version": "3.92.5",
+                  "status": "complete"
+                }
+              ],
+              "complete": true
+            }
+          ],
+          "literal_count": 3,
+          "reference_count": 0,
+          "source_requests": [
+            "k8s-literal-read-1",
+            "k8s-literal-read-2"
+          ],
+          "observed": "Both offline detectors completed without detecting a supported secret in selected Kubernetes literals. Coverage is limited to the observed workload and ConfigMap literals; references were not dereferenced."
+        }
+      },
+      "backend_observation": "Both offline detectors found no supported secret in selected workload and ConfigMap literals."
+    },
+    {
+      "kind": "ReplicaSet",
+      "branch": "detected",
+      "finding": {
+        "provider": "k8s",
+        "check_id": "k8s.review.selected_literals.secret_indicators",
+        "status": "FAIL",
+        "evidence": {
+          "secret_leaks": [
+            {
+              "fingerprint": "e59a2011d2e04689db9b799ec0196497ac8c6c4e4ebc67061ce46483d51ae0b6",
+              "detectors": [
+                {
+                  "engine": "kingfisher",
+                  "rule": "betterleaks.github-pat"
+                },
+                {
+                  "engine": "trufflehog",
+                  "rule": "Github"
+                }
+              ],
+              "locations": [
+                {
+                  "path": "k8s_selected_literals:9d070ace80065b37c278f989265704868c1cbcd4c0cf4aad5da63e5aebe16b8b.literals",
+                  "line": 10
+                }
+              ]
+            }
+          ],
+          "credential_validation": "not_attempted",
+          "complete": true,
+          "coverage": "selected_observed_literals_only",
+          "parts": [
+            {
+              "part": "literals",
+              "bytes": 188,
+              "engines": [
+                {
+                  "engine": "kingfisher",
+                  "version": "1.4.0",
+                  "status": "complete"
+                },
+                {
+                  "engine": "trufflehog",
+                  "version": "3.92.5",
+                  "status": "complete"
+                }
+              ],
+              "complete": true
+            }
+          ],
+          "literal_count": 3,
+          "reference_count": 0,
+          "source_requests": [
+            "k8s-literal-read-1",
+            "k8s-literal-read-2"
+          ],
+          "observed": "A likely secret was detected in selected Kubernetes literals. The value is hidden; offline detection did not validate the credential."
+        }
+      },
+      "backend_observation": "A likely secret was detected in selected workload and ConfigMap literals."
+    },
+    {
+      "kind": "Job",
+      "branch": "clean",
+      "finding": {
+        "provider": "k8s",
+        "check_id": "k8s.review.selected_literals.secret_indicators",
+        "status": "PASS",
+        "evidence": {
+          "secret_leaks": [],
+          "credential_validation": "not_attempted",
+          "complete": true,
+          "coverage": "selected_observed_literals_only",
+          "parts": [
+            {
+              "part": "literals",
+              "bytes": 172,
+              "engines": [
+                {
+                  "engine": "kingfisher",
+                  "version": "1.4.0",
+                  "status": "complete"
+                },
+                {
+                  "engine": "trufflehog",
+                  "version": "3.92.5",
+                  "status": "complete"
+                }
+              ],
+              "complete": true
+            }
+          ],
+          "literal_count": 3,
+          "reference_count": 0,
+          "source_requests": [
+            "k8s-literal-read-1",
+            "k8s-literal-read-2"
+          ],
+          "observed": "Both offline detectors completed without detecting a supported secret in selected Kubernetes literals. Coverage is limited to the observed workload and ConfigMap literals; references were not dereferenced."
+        }
+      },
+      "backend_observation": "Both offline detectors found no supported secret in selected workload and ConfigMap literals."
+    },
+    {
+      "kind": "Job",
+      "branch": "detected",
+      "finding": {
+        "provider": "k8s",
+        "check_id": "k8s.review.selected_literals.secret_indicators",
+        "status": "FAIL",
+        "evidence": {
+          "secret_leaks": [
+            {
+              "fingerprint": "e59a2011d2e04689db9b799ec0196497ac8c6c4e4ebc67061ce46483d51ae0b6",
+              "detectors": [
+                {
+                  "engine": "kingfisher",
+                  "rule": "betterleaks.github-pat"
+                },
+                {
+                  "engine": "trufflehog",
+                  "rule": "Github"
+                }
+              ],
+              "locations": [
+                {
+                  "path": "k8s_selected_literals:09b15491e3a814bdf04bba36c00174ae09f9182c460af893010eeefe6fb095ad.literals",
+                  "line": 10
+                }
+              ]
+            }
+          ],
+          "credential_validation": "not_attempted",
+          "complete": true,
+          "coverage": "selected_observed_literals_only",
+          "parts": [
+            {
+              "part": "literals",
+              "bytes": 188,
+              "engines": [
+                {
+                  "engine": "kingfisher",
+                  "version": "1.4.0",
+                  "status": "complete"
+                },
+                {
+                  "engine": "trufflehog",
+                  "version": "3.92.5",
+                  "status": "complete"
+                }
+              ],
+              "complete": true
+            }
+          ],
+          "literal_count": 3,
+          "reference_count": 0,
+          "source_requests": [
+            "k8s-literal-read-1",
+            "k8s-literal-read-2"
+          ],
+          "observed": "A likely secret was detected in selected Kubernetes literals. The value is hidden; offline detection did not validate the credential."
+        }
+      },
+      "backend_observation": "A likely secret was detected in selected workload and ConfigMap literals."
+    },
+    {
+      "kind": "CronJob",
+      "branch": "clean",
+      "finding": {
+        "provider": "k8s",
+        "check_id": "k8s.review.selected_literals.secret_indicators",
+        "status": "PASS",
+        "evidence": {
+          "secret_leaks": [],
+          "credential_validation": "not_attempted",
+          "complete": true,
+          "coverage": "selected_observed_literals_only",
+          "parts": [
+            {
+              "part": "literals",
+              "bytes": 172,
+              "engines": [
+                {
+                  "engine": "kingfisher",
+                  "version": "1.4.0",
+                  "status": "complete"
+                },
+                {
+                  "engine": "trufflehog",
+                  "version": "3.92.5",
+                  "status": "complete"
+                }
+              ],
+              "complete": true
+            }
+          ],
+          "literal_count": 3,
+          "reference_count": 0,
+          "source_requests": [
+            "k8s-literal-read-1",
+            "k8s-literal-read-2"
+          ],
+          "observed": "Both offline detectors completed without detecting a supported secret in selected Kubernetes literals. Coverage is limited to the observed workload and ConfigMap literals; references were not dereferenced."
+        }
+      },
+      "backend_observation": "Both offline detectors found no supported secret in selected workload and ConfigMap literals."
+    },
+    {
+      "kind": "CronJob",
+      "branch": "detected",
+      "finding": {
+        "provider": "k8s",
+        "check_id": "k8s.review.selected_literals.secret_indicators",
+        "status": "FAIL",
+        "evidence": {
+          "secret_leaks": [
+            {
+              "fingerprint": "e59a2011d2e04689db9b799ec0196497ac8c6c4e4ebc67061ce46483d51ae0b6",
+              "detectors": [
+                {
+                  "engine": "kingfisher",
+                  "rule": "betterleaks.github-pat"
+                },
+                {
+                  "engine": "trufflehog",
+                  "rule": "Github"
+                }
+              ],
+              "locations": [
+                {
+                  "path": "k8s_selected_literals:0d2442929058df50ac50b3bf90fef615565bf01ba29ded199910f252ece167d6.literals",
+                  "line": 10
+                }
+              ]
+            }
+          ],
+          "credential_validation": "not_attempted",
+          "complete": true,
+          "coverage": "selected_observed_literals_only",
+          "parts": [
+            {
+              "part": "literals",
+              "bytes": 188,
+              "engines": [
+                {
+                  "engine": "kingfisher",
+                  "version": "1.4.0",
+                  "status": "complete"
+                },
+                {
+                  "engine": "trufflehog",
+                  "version": "3.92.5",
+                  "status": "complete"
+                }
+              ],
+              "complete": true
+            }
+          ],
+          "literal_count": 3,
+          "reference_count": 0,
+          "source_requests": [
+            "k8s-literal-read-1",
+            "k8s-literal-read-2"
+          ],
+          "observed": "A likely secret was detected in selected Kubernetes literals. The value is hidden; offline detection did not validate the credential."
+        }
+      },
+      "backend_observation": "A likely secret was detected in selected workload and ConfigMap literals."
+    },
+    {
+      "kind": "ReplicationController",
+      "branch": "clean",
+      "finding": {
+        "provider": "k8s",
+        "check_id": "k8s.review.selected_literals.secret_indicators",
+        "status": "PASS",
+        "evidence": {
+          "secret_leaks": [],
+          "credential_validation": "not_attempted",
+          "complete": true,
+          "coverage": "selected_observed_literals_only",
+          "parts": [
+            {
+              "part": "literals",
+              "bytes": 172,
+              "engines": [
+                {
+                  "engine": "kingfisher",
+                  "version": "1.4.0",
+                  "status": "complete"
+                },
+                {
+                  "engine": "trufflehog",
+                  "version": "3.92.5",
+                  "status": "complete"
+                }
+              ],
+              "complete": true
+            }
+          ],
+          "literal_count": 3,
+          "reference_count": 0,
+          "source_requests": [
+            "k8s-literal-read-1",
+            "k8s-literal-read-2"
+          ],
+          "observed": "Both offline detectors completed without detecting a supported secret in selected Kubernetes literals. Coverage is limited to the observed workload and ConfigMap literals; references were not dereferenced."
+        }
+      },
+      "backend_observation": "Both offline detectors found no supported secret in selected workload and ConfigMap literals."
+    },
+    {
+      "kind": "ReplicationController",
+      "branch": "detected",
+      "finding": {
+        "provider": "k8s",
+        "check_id": "k8s.review.selected_literals.secret_indicators",
+        "status": "FAIL",
+        "evidence": {
+          "secret_leaks": [
+            {
+              "fingerprint": "e59a2011d2e04689db9b799ec0196497ac8c6c4e4ebc67061ce46483d51ae0b6",
+              "detectors": [
+                {
+                  "engine": "kingfisher",
+                  "rule": "betterleaks.github-pat"
+                },
+                {
+                  "engine": "trufflehog",
+                  "rule": "Github"
+                }
+              ],
+              "locations": [
+                {
+                  "path": "k8s_selected_literals:d2cb45462d6e88076228811c51325cccf6c3d68f36d03f43f5bc40cce9bbd89a.literals",
+                  "line": 10
+                }
+              ]
+            }
+          ],
+          "credential_validation": "not_attempted",
+          "complete": true,
+          "coverage": "selected_observed_literals_only",
+          "parts": [
+            {
+              "part": "literals",
+              "bytes": 188,
+              "engines": [
+                {
+                  "engine": "kingfisher",
+                  "version": "1.4.0",
+                  "status": "complete"
+                },
+                {
+                  "engine": "trufflehog",
+                  "version": "3.92.5",
+                  "status": "complete"
+                }
+              ],
+              "complete": true
+            }
+          ],
+          "literal_count": 3,
+          "reference_count": 0,
+          "source_requests": [
+            "k8s-literal-read-1",
+            "k8s-literal-read-2"
+          ],
+          "observed": "A likely secret was detected in selected Kubernetes literals. The value is hidden; offline detection did not validate the credential."
+        }
+      },
+      "backend_observation": "A likely secret was detected in selected workload and ConfigMap literals."
+    },
+    {
+      "kind": "PodTemplate",
+      "branch": "clean",
+      "finding": {
+        "provider": "k8s",
+        "check_id": "k8s.review.selected_literals.secret_indicators",
+        "status": "PASS",
+        "evidence": {
+          "secret_leaks": [],
+          "credential_validation": "not_attempted",
+          "complete": true,
+          "coverage": "selected_observed_literals_only",
+          "parts": [
+            {
+              "part": "literals",
+              "bytes": 172,
+              "engines": [
+                {
+                  "engine": "kingfisher",
+                  "version": "1.4.0",
+                  "status": "complete"
+                },
+                {
+                  "engine": "trufflehog",
+                  "version": "3.92.5",
+                  "status": "complete"
+                }
+              ],
+              "complete": true
+            }
+          ],
+          "literal_count": 3,
+          "reference_count": 0,
+          "source_requests": [
+            "k8s-literal-read-1",
+            "k8s-literal-read-2"
+          ],
+          "observed": "Both offline detectors completed without detecting a supported secret in selected Kubernetes literals. Coverage is limited to the observed workload and ConfigMap literals; references were not dereferenced."
+        }
+      },
+      "backend_observation": "Both offline detectors found no supported secret in selected workload and ConfigMap literals."
+    },
+    {
+      "kind": "PodTemplate",
+      "branch": "detected",
+      "finding": {
+        "provider": "k8s",
+        "check_id": "k8s.review.selected_literals.secret_indicators",
+        "status": "FAIL",
+        "evidence": {
+          "secret_leaks": [
+            {
+              "fingerprint": "e59a2011d2e04689db9b799ec0196497ac8c6c4e4ebc67061ce46483d51ae0b6",
+              "detectors": [
+                {
+                  "engine": "kingfisher",
+                  "rule": "betterleaks.github-pat"
+                },
+                {
+                  "engine": "trufflehog",
+                  "rule": "Github"
+                }
+              ],
+              "locations": [
+                {
+                  "path": "k8s_selected_literals:f79a94d8f0cae5f58b816282566bc55609397fe20218a0406a81c49e9f37ff83.literals",
+                  "line": 10
+                }
+              ]
+            }
+          ],
+          "credential_validation": "not_attempted",
+          "complete": true,
+          "coverage": "selected_observed_literals_only",
+          "parts": [
+            {
+              "part": "literals",
+              "bytes": 188,
+              "engines": [
+                {
+                  "engine": "kingfisher",
+                  "version": "1.4.0",
+                  "status": "complete"
+                },
+                {
+                  "engine": "trufflehog",
+                  "version": "3.92.5",
+                  "status": "complete"
+                }
+              ],
+              "complete": true
+            }
+          ],
+          "literal_count": 3,
+          "reference_count": 0,
+          "source_requests": [
+            "k8s-literal-read-1",
+            "k8s-literal-read-2"
+          ],
+          "observed": "A likely secret was detected in selected Kubernetes literals. The value is hidden; offline detection did not validate the credential."
+        }
+      },
+      "backend_observation": "A likely secret was detected in selected workload and ConfigMap literals."
+    },
+    {
+      "kind": "Deployment",
+      "branch": "native-denied",
+      "finding": {
+        "provider": "k8s",
+        "check_id": "k8s.review.selected_literals.secret_indicators",
+        "status": "UNKNOWN",
+        "evidence": {
+          "observed": "Selected Kubernetes literals were disabled, unsupported, incomplete or unbound. Secret absence could not be assessed."
+        }
+      },
+      "backend_observation": null
+    },
+    {
+      "kind": "DaemonSet",
+      "branch": "native-denied",
+      "finding": {
+        "provider": "k8s",
+        "check_id": "k8s.review.selected_literals.secret_indicators",
+        "status": "UNKNOWN",
+        "evidence": {
+          "observed": "Selected Kubernetes literals were disabled, unsupported, incomplete or unbound. Secret absence could not be assessed."
+        }
+      },
+      "backend_observation": null
+    },
+    {
+      "kind": "StatefulSet",
+      "branch": "native-denied",
+      "finding": {
+        "provider": "k8s",
+        "check_id": "k8s.review.selected_literals.secret_indicators",
+        "status": "UNKNOWN",
+        "evidence": {
+          "observed": "Selected Kubernetes literals were disabled, unsupported, incomplete or unbound. Secret absence could not be assessed."
+        }
+      },
+      "backend_observation": null
+    },
+    {
+      "kind": "ReplicaSet",
+      "branch": "native-denied",
+      "finding": {
+        "provider": "k8s",
+        "check_id": "k8s.review.selected_literals.secret_indicators",
+        "status": "UNKNOWN",
+        "evidence": {
+          "observed": "Selected Kubernetes literals were disabled, unsupported, incomplete or unbound. Secret absence could not be assessed."
+        }
+      },
+      "backend_observation": null
+    },
+    {
+      "kind": "Job",
+      "branch": "native-denied",
+      "finding": {
+        "provider": "k8s",
+        "check_id": "k8s.review.selected_literals.secret_indicators",
+        "status": "UNKNOWN",
+        "evidence": {
+          "observed": "Selected Kubernetes literals were disabled, unsupported, incomplete or unbound. Secret absence could not be assessed."
+        }
+      },
+      "backend_observation": null
+    },
+    {
+      "kind": "CronJob",
+      "branch": "native-denied",
+      "finding": {
+        "provider": "k8s",
+        "check_id": "k8s.review.selected_literals.secret_indicators",
+        "status": "UNKNOWN",
+        "evidence": {
+          "observed": "Selected Kubernetes literals were disabled, unsupported, incomplete or unbound. Secret absence could not be assessed."
+        }
+      },
+      "backend_observation": null
+    },
+    {
+      "kind": "ReplicationController",
+      "branch": "native-denied",
+      "finding": {
+        "provider": "k8s",
+        "check_id": "k8s.review.selected_literals.secret_indicators",
+        "status": "UNKNOWN",
+        "evidence": {
+          "observed": "Selected Kubernetes literals were disabled, unsupported, incomplete or unbound. Secret absence could not be assessed."
+        }
+      },
+      "backend_observation": null
+    },
+    {
+      "kind": "PodTemplate",
+      "branch": "native-denied",
+      "finding": {
+        "provider": "k8s",
+        "check_id": "k8s.review.selected_literals.secret_indicators",
+        "status": "UNKNOWN",
+        "evidence": {
+          "observed": "Selected Kubernetes literals were disabled, unsupported, incomplete or unbound. Secret absence could not be assessed."
+        }
+      },
+      "backend_observation": null
+    },
+    {
+      "kind": "CronJob",
+      "branch": "real-one-completed-kingfisher",
+      "finding": {
+        "provider": "k8s",
+        "check_id": "k8s.review.selected_literals.secret_indicators",
+        "status": "FAIL",
+        "evidence": {
+          "secret_leaks": [
+            {
+              "fingerprint": "e59a2011d2e04689db9b799ec0196497ac8c6c4e4ebc67061ce46483d51ae0b6",
+              "detectors": [
+                {
+                  "engine": "trufflehog",
+                  "rule": "Github"
+                }
+              ],
+              "locations": [
+                {
+                  "path": "k8s_selected_literals:0d2442929058df50ac50b3bf90fef615565bf01ba29ded199910f252ece167d6.literals",
+                  "line": 10
+                }
+              ]
+            }
+          ],
+          "credential_validation": "not_attempted",
+          "complete": false,
+          "coverage": "selected_observed_literals_only",
+          "parts": [
+            {
+              "part": "literals",
+              "bytes": 188,
+              "engines": [
+                {
+                  "engine": "kingfisher",
+                  "version": "1.4.0",
+                  "status": "unavailable"
+                },
+                {
+                  "engine": "trufflehog",
+                  "version": "3.92.5",
+                  "status": "complete"
+                }
+              ],
+              "complete": false
+            }
+          ],
+          "literal_count": 3,
+          "reference_count": 0,
+          "source_requests": [
+            "k8s-literal-read-1",
+            "k8s-literal-read-2"
+          ],
+          "observed": "A likely secret was detected in selected Kubernetes literals. The value is hidden; offline detection did not validate the credential. Coverage is incomplete; a completed detector still reported this secret."
+        }
+      },
+      "backend_observation": null
+    },
+    {
+      "kind": "CronJob",
+      "branch": "real-one-completed-trufflehog",
+      "finding": {
+        "provider": "k8s",
+        "check_id": "k8s.review.selected_literals.secret_indicators",
+        "status": "FAIL",
+        "evidence": {
+          "secret_leaks": [
+            {
+              "fingerprint": "e59a2011d2e04689db9b799ec0196497ac8c6c4e4ebc67061ce46483d51ae0b6",
+              "detectors": [
+                {
+                  "engine": "kingfisher",
+                  "rule": "betterleaks.github-pat"
+                }
+              ],
+              "locations": [
+                {
+                  "path": "k8s_selected_literals:0d2442929058df50ac50b3bf90fef615565bf01ba29ded199910f252ece167d6.literals",
+                  "line": 10
+                }
+              ]
+            }
+          ],
+          "credential_validation": "not_attempted",
+          "complete": false,
+          "coverage": "selected_observed_literals_only",
+          "parts": [
+            {
+              "part": "literals",
+              "bytes": 188,
+              "engines": [
+                {
+                  "engine": "kingfisher",
+                  "version": "1.4.0",
+                  "status": "complete"
+                },
+                {
+                  "engine": "trufflehog",
+                  "version": "3.92.5",
+                  "status": "unavailable"
+                }
+              ],
+              "complete": false
+            }
+          ],
+          "literal_count": 3,
+          "reference_count": 0,
+          "source_requests": [
+            "k8s-literal-read-1",
+            "k8s-literal-read-2"
+          ],
+          "observed": "A likely secret was detected in selected Kubernetes literals. The value is hidden; offline detection did not validate the credential. Coverage is incomplete; a completed detector still reported this secret."
+        }
+      },
+      "backend_observation": null
+    }
+  ]
+}

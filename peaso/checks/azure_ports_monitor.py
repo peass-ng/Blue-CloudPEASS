@@ -26,7 +26,7 @@ def _matches(item, scope, category, operation, resource_type):
     scopes = get(item, "properties.scopes", list)
     if any(not isinstance(value, str) for value in scopes):
         raise Unavailable("Malformed alert scope list")
-    if not enabled or location.lower() != "global" or scope not in scopes:
+    if not enabled or location.lower() != "global" or scope.rstrip('/').casefold() not in {value.rstrip('/').casefold() for value in scopes}:
         return False
     conditions = list_of_objects(get(item, "properties.condition.allOf", list))
     pairs = set()
@@ -38,16 +38,17 @@ def _matches(item, scope, category, operation, resource_type):
         field = get(condition, "field", str)
         if "equals" in condition:
             value = get(condition, "equals", str)
-            pairs.add((field, value))
+            # Native Activity Log equals comparisons are case-insensitive.
+            pairs.add((field.casefold(), value.casefold()))
         elif "containsAny" in condition:
             values = get(condition, "containsAny", list)
             if any(not isinstance(value, str) for value in values):
                 raise Unavailable("Malformed alert containsAny condition")
         else:
             raise Unavailable("Malformed activity alert leaf condition")
-    if ("category", category) not in pairs:
+    if ("category", category.casefold()) not in pairs:
         return False
-    return ("operationName", operation) in pairs or (resource_type is not None and len(conditions) == 2 and ("resourceType", resource_type) in pairs)
+    return ("operationname", operation.casefold()) in pairs or (resource_type is not None and len(conditions) == 2 and ("resourcetype", resource_type.casefold()) in pairs)
 
 
 def _register(query, spec):

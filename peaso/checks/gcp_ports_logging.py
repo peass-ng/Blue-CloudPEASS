@@ -26,44 +26,34 @@ def project_prefixes(item):
 
 
 def metric_alert(query, pattern):
+    resource_types = {
+        "logging_metric_alert_audit_configuration_changes": "project",
+        "logging_metric_alert_custom_role_changes": "iam_role",
+        "logging_metric_alert_custom_role_changes_with_iam_admin_undelete_role": "iam_role",
+        "logging_metric_alert_firewall_rule_changes": "gce_firewall_rule",
+        "logging_metric_alert_network_changes": "gce_network",
+        "logging_metric_alert_network_route_changes": "gce_route",
+        "logging_metric_alert_project_ownership_assignment": "project",
+        "logging_metric_alert_sql_instance_configuration_changes": "cloudsql_database",
+        "logging_metric_alert_storage_iam_permission_changes": "gcs_bucket",
+    }
+    resource_type = resource_types[query]
     def evaluate(item, index):
-        prefixes = project_prefixes(item)
-        metrics = complete_items(index, "logging_metric")
-        alerts = complete_items(index, "monitoring_alert_policy")
-        eligible = []
-        for metric in metrics:
-            name = get(metric, "name", str)
-            if not any(name.startswith(prefix) for prefix in prefixes):
-                continue
-            if optional(metric, "disabled", False, bool):
-                continue
-            if re.search(pattern, get(metric, "filter", str)):
-                eligible.append(get(metric, "metricDescriptor.type", str))
-        matches = []
-        for alert in alerts:
-            name = get(alert, "name", str)
-            if not any(name.startswith(prefix) for prefix in prefixes) or not get(alert, "enabled", bool):
-                continue
-            for condition in list_of_objects(get(alert, "conditions", list)):
-                threshold = optional(condition, "conditionThreshold", None, dict)
-                if threshold is None:
-                    continue
-                condition_filter = get(threshold, "filter", str)
-                if any('metric.type="' + metric_type + '"' in condition_filter for metric_type in eligible):
-                    matches.append(name)
-        return result(not matches, declared_alerts=sorted(set(matches)),
-            semantics="Same-project enabled metric/alert and pinned event-filter template declaration. Cross-project metrics scopes, delivery, incident thresholds and filter equivalence require separate evidence.")
+        from .gcp_metric_alert_native import evaluate_metric_alert_native
+        status, evidence = evaluate_metric_alert_native(item, index, filter_value, event_threshold=True, resource_type=resource_type)
+        return status, {**evidence, "declared_alerts": sorted({row["alert"] for row in evidence.get("alerting", [])})}
     # Produce a concrete matching filter from this reviewed source grammar.
-    filter_value = pattern.replace(r"\s*", "")
+    filter_value = pattern.replace(r"\s*", " ")
     filter_value = re.sub(r"\\([.()*])", r"\1", filter_value)
     good = {"projectId": "p"}
     bad = {"projectId": "q"}
     cid = rule(query + "_scoped", "project", evaluate, good, bad,
         ["project", "logging_metric", "monitoring_alert_policy"])
     CASES[cid]["index"] = {"collections": {kind: [{"status": "collected"}] for kind in ("logging_metric", "monitoring_alert_policy")},
-        "logging_metric": [{"data": {"name": "projects/p/metrics/m", "filter": filter_value, "metricDescriptor": {"type": "logging.googleapis.com/user/m"}}}],
+        "logging_metric": [{"data": {"name": "projects/p/metrics/m", "filter": filter_value, "metricDescriptor": {"type": "logging.googleapis.com/user/m", "metricKind": "DELTA", "valueType": "INT64"}}}],
         "monitoring_alert_policy": [{"data": {"name": "projects/p/alertPolicies/a", "enabled": True,
-            "conditions": [{"conditionThreshold": {"filter": 'metric.type="logging.googleapis.com/user/m"'}}]}}]}
+            "conditions": [{"conditionThreshold": {"filter": 'metric.type="logging.googleapis.com/user/m" resource.type="' + resource_type + '"',
+                "comparison": "COMPARISON_GT", "thresholdValue": 0, "duration": "0s"}}]}}]}
     REFERENCE_SPECS[query] = cid
 
 

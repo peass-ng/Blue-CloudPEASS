@@ -30,6 +30,11 @@ def test_every_component_fixture_has_registry_status_and_evidence_parity():
         check = REGISTRY[check_id]
         for case, expected in cases:
             item = {"collection_status": "denied"} if case == "denied" else copy.deepcopy(CASES[check_id][case])
+            if case == "pass" and check_id.endswith(".container_argument_kubelet_authorization_mode_no_always_allow"):
+                # Explicit current-only native fixture; do not rewrite CASES.
+                _, rows = ports.pod_spec(item, check.kind)
+                assert rows[0]["_component_config"]["flags"]["authorization-mode"] == "RBAC"
+                rows[0]["_component_config"]["flags"]["authorization-mode"] = "Webhook"
             item = freeze(item)
             original = bytes_of(item)
             plain = check.evaluate(item, {})

@@ -7,6 +7,7 @@ Monitoring threshold/absence selectors are parsed separately from MQL.
 from __future__ import annotations
 
 import json
+import math
 import re
 
 from . import result, unknown
@@ -96,7 +97,8 @@ def _expression(text, *, monitoring=False):
 
 def reference_filter_matches(text, reference):
     """True only for a fully proven reference expression; never substring search."""
-    if _expression(text) != _expression(reference):
+    references = reference if isinstance(reference, tuple) else (reference,)
+    if _expression(text) not in [_expression(value) for value in references]:
         raise Unavailable("Logging filter differs from the complete reference expression")
     return True
 
@@ -128,23 +130,73 @@ def _selector_matches(text, metric_type, projects, project_id):
     return True
 
 
-def _alert_matches(alert, metric_type, projects, project_id):
+def _counter_threshold_matches(body, metric, metric_type, projects, project_id, resource_type):
+    """Prove the bounded positive-count alert contract, not incident delivery."""
+    if not _selector_matches(get(body, "filter", str), metric_type, projects, project_id):
+        return False
+    if resource_type is not None:
+        tree = _expression(get(body, "filter", str), monitoring=True)
+        atoms = tree[1] if tree[0] == "AND" else (tree,)
+        if {atom[3] for atom in atoms if atom[1] == "resource.type"} != {resource_type}:
+            return False
+    descriptor = get(metric, "metricDescriptor", dict)
+    if (get(descriptor, "metricKind", str) != "DELTA"
+            or get(descriptor, "valueType", str) != "INT64"):
+        raise Unavailable("event alert requires a native DELTA INT64 counter")
+    comparison = get(body, "comparison", str)
+    threshold = optional(body, "thresholdValue", 0, (int, float))
+    if type(threshold) not in (int, float) or not math.isfinite(threshold):
+        raise Unavailable("event alert threshold is not finite")
+    # Negative/non-event thresholds cannot attest detection of positive counts.
+    # Values above zero require an owner-chosen event volume policy, which this
+    # check does not invent. The native default 0 is preserved on omitted scalars.
+    if comparison != "COMPARISON_GT" or not 0 <= threshold < 1:
+        raise Unavailable("event alert does not prove detection of a positive count")
+    if get(body, "duration", str) != "0s":
+        raise Unavailable("event alert has an unproved sustained-count requirement")
+    for key in ("denominatorFilter", "denominatorAggregations", "forecastOptions", "evaluationMissingData"):
+        if key in body or key in body.get("_coverage", {}):
+            raise Unavailable("advanced event alert threshold semantics require review")
+    for aggregation in list_of_objects(optional(body, "aggregations", [], list)):
+        period = get(aggregation, "alignmentPeriod", str)
+        if not re.fullmatch(r"[0-9]+s", period) or int(period[:-1]) < 60:
+            raise Unavailable("event alert alignment period is unavailable")
+        if get(aggregation, "perSeriesAligner", str) not in ("ALIGN_DELTA", "ALIGN_SUM"):
+            raise Unavailable("event alert aligner does not preserve event counts")
+        if optional(aggregation, "crossSeriesReducer", "REDUCE_NONE", str) != "REDUCE_NONE":
+            raise Unavailable("event alert cross-series reduction requires review")
+        if optional(aggregation, "groupByFields", [], list):
+            raise Unavailable("event alert grouping requires review")
+    trigger = optional(body, "trigger", {}, dict)
+    if trigger and (set(trigger) != {"count"} or get(trigger, "count", int) != 1):
+        raise Unavailable("event alert requires an unproved number of time series")
+    return True
+
+
+def _alert_matches(alert, metric_type, projects, project_id, *, metric=None, event_threshold=False, resource_type=None):
     validity = optional(alert, "validity", {}, dict)
     if validity and get(validity, "code", int) != 0:
         return False
     conditions = list_of_objects(get(alert, "conditions", list))
+    if event_threshold:
+        if not 1 <= len(conditions) <= 6:
+            raise Unavailable("event alert has no valid native condition inventory")
+        if len(conditions) > 1 and optional(alert, "combiner", "", str) != "OR":
+            raise Unavailable("an AND gate does not prove independent event detection")
     uncertain = False
     for condition in conditions:
         forms = [key for key in condition if key.startswith("condition")]
         if len(forms) != 1:
             raise Unavailable("ambiguous Monitoring condition union")
         key = forms[0]
-        if key not in ("conditionThreshold", "conditionAbsent"):
+        if key not in (("conditionThreshold",) if event_threshold else ("conditionThreshold", "conditionAbsent")):
             uncertain = True  # MQL, PromQL and log-match are different languages.
             continue
         try:
             body = get(condition, key, dict)
-            if _selector_matches(get(body, "filter", str), metric_type, projects, project_id):
+            matches = (_counter_threshold_matches(body, metric, metric_type, projects, project_id, resource_type)
+                       if event_threshold else _selector_matches(get(body, "filter", str), metric_type, projects, project_id))
+            if matches:
                 return True
         except Unavailable:
             uncertain = True
@@ -153,12 +205,24 @@ def _alert_matches(alert, metric_type, projects, project_id):
     return False
 
 
-def evaluate_metric_alert_native(item, index, reference_filter):
+def evaluate_metric_alert_native(item, index, reference_filter, *, event_threshold=False, resource_type=None):
     """Same-project reference metric plus an enabled, valid associated policy.
 
     Threshold values, absence durations, policy combiners and notification
     channels do not establish event delivery and are outside this declaration
     check. A threshold and an absence condition both constitute association.
+    """
+    return evaluate_metric_alert_rows_native(item, complete_items(index, "logging_metric"),
+        complete_items(index, "monitoring_alert_policy"), reference_filter, event_threshold=event_threshold,
+        resource_type=resource_type)
+
+
+def evaluate_metric_alert_rows_native(item, metric_rows, alerts, reference_filter, *, event_threshold=False, resource_type=None):
+    """Shared row consumer after the caller proves complete scoped inventories.
+
+    event_threshold=False is explicitly association configuration only. True
+    additionally requires a supported positive-count threshold independent of
+    unrelated condition gates; neither mode establishes notification delivery.
     """
     project = get(item, "projectId", str)
     if not project or "/" in project:
@@ -173,7 +237,7 @@ def evaluate_metric_alert_native(item, index, reference_filter):
             raise Unavailable("project resource name is not a native numeric alias")
         projects.add(match[1])
     metrics, uncertain = [], False
-    for metric in complete_items(index, "logging_metric"):
+    for metric in metric_rows:
         try:
             name = get(metric, "name", str)
             match = re.fullmatch(r"projects/([^/]+)/metrics/(.+)", name)
@@ -187,10 +251,9 @@ def evaluate_metric_alert_native(item, index, reference_filter):
             metric_type = get(metric, "metricDescriptor.type", str)
             if metric_type != "logging.googleapis.com/user/" + optional(metric, "metricId", match[2], str):
                 raise Unavailable("metric descriptor type does not identify this log metric")
-            metrics.append(metric_type)
+            metrics.append((metric_type, metric))
         except Unavailable:
             uncertain = True
-    alerts = complete_items(index, "monitoring_alert_policy")
     alerted = []
     for alert in alerts:
         try:
@@ -200,12 +263,14 @@ def evaluate_metric_alert_native(item, index, reference_filter):
                 raise Unavailable("alert project binding unavailable")
             if match[1] not in projects or not get(alert, "enabled", bool):
                 continue
-            for metric_type in metrics:
-                if _alert_matches(alert, metric_type, projects, project):
+            for metric_type, metric in metrics:
+                if _alert_matches(alert, metric_type, projects, project, metric=metric, event_threshold=event_threshold,
+                                  resource_type=resource_type):
                     alerted.append({"alert": name, "metric_type": metric_type})
         except Unavailable:
             uncertain = True
-    evidence = dict(matching_metrics=sorted(set(metrics)), alerting=alerted,
+    evidence = dict(matching_metrics=sorted({mtype for mtype, _ in metrics}), alerting=alerted,
+                    assessed_configuration="positive-count event threshold" if event_threshold else "metric/alert association only",
                     semantics="Same-project reference metric and enabled alert declarations; event triggering, "
                               "cross-project metrics scopes and notification delivery are not evaluated")
     if not alerted and uncertain:

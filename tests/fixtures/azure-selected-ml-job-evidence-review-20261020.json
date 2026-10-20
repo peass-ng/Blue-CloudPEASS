@@ -1,0 +1,94 @@
+{
+  "azure.review.machine_learning.selected_command_job_secret_indicators": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "observed": "Both offline detectors completed without detecting a supported secret in the selected command text and literal environment variables. Referenced code and images were not inspected.",
+        "secret_leaks": [],
+        "complete": true,
+        "coverage": "selected_command_environment_declarations_only",
+        "referenced_sources_inspected": false,
+        "credential_validation": "not_attempted",
+        "parts": [
+          {
+            "bytes": 131,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ]
+          }
+        ]
+      },
+      "summary": "Both offline detectors found no supported secret in selected Machine Learning Command-job literals."
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "observed": "A likely secret was detected in selected Command-job literals. Its value is hidden and was not validated.",
+        "secret_leaks": [
+          {
+            "detectors": [
+              {
+                "engine": "kingfisher",
+                "rule": "betterleaks.github-pat"
+              },
+              {
+                "engine": "trufflehog",
+                "rule": "Github"
+              }
+            ],
+            "fingerprint": "bc06d0a9d76b87c34ea1788560d81592a236740f7800f8cfb0c0294a6a2383d3",
+            "locations": [
+              {
+                "line": 1,
+                "path": "azure_ml_selected_command_job:015b09f783a7c68fb38c4744d835afefae3b52bef9d922e2de0020f68372904e.command_environment_literals"
+              }
+            ]
+          }
+        ],
+        "complete": true,
+        "coverage": "selected_command_environment_declarations_only",
+        "referenced_sources_inspected": false,
+        "credential_validation": "not_attempted",
+        "parts": [
+          {
+            "bytes": 161,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ]
+          }
+        ]
+      },
+      "summary": "A likely secret was detected in selected Machine Learning Command-job literals. Its value is hidden and was not validated."
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "complete": false,
+        "coverage": "incomplete_selected_declarations",
+        "referenced_sources_inspected": false,
+        "observed": "Selected Command-job literals were unavailable, unbound or incompletely inspected. A clean declaration result cannot be established."
+      },
+      "summary": "Selected Command-job literals were unavailable, unbound or incompletely inspected. A clean declaration result cannot be established."
+    }
+  ]
+}

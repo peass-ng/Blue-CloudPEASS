@@ -62,6 +62,62 @@ def _policy_identity(alert, aliases):
     return name
 
 
+def project_scope_aliases(project, scope, index=None):
+    """Bind a CRM project number/ID pair before accepting either policy name.
+
+    A numeric scope already names the native project. Resolving a project-ID
+    scope additionally needs the complete project inventory and its successful
+    same-scope CRM read, rather than a coincidentally matching projectId field.
+    """
+    name = get(project, 'name', str)
+    if not re.fullmatch(r'projects/[1-9][0-9]*', name):
+        raise Unavailable('native numeric project identity unavailable')
+    project_id = _optional(project, 'projectId', '', str)
+    if project_id and not re.fullmatch(r'[a-z][a-z0-9-]{4,28}[a-z0-9]', project_id):
+        raise Unavailable('native project ID malformed')
+    aliases = {name.split('/', 1)[1]}
+    if project_id:
+        aliases.add(project_id)
+    if scope == name:
+        return aliases
+    if not project_id or scope != 'projects/' + project_id or index is None:
+        raise Unavailable('project identity differs from scope')
+    context = get(index, 'context', dict)
+    if get(context, 'provider', str) != 'gcp' or get(context, 'scope', str) != scope:
+        raise Unavailable('project alias context differs from scope')
+    provenance = get(project, '_provenance', dict)
+    if (get(provenance, 'scope', str) != scope
+            or get(project, 'native_id', str) != name
+            or get(project, '_resource_id', str) != name):
+        raise Unavailable('project alias native provenance differs from scope')
+    metadata = get(context, 'metadata', dict)
+    if get(provenance, 'collected_at', str) != get(metadata, 'asset_read_time', str):
+        raise Unavailable('project alias evidence is not from this collection')
+    refs = get(provenance, 'source_requests', list)
+    if not refs or any(not isinstance(ref, str) or not ref for ref in refs):
+        raise Unavailable('project alias source requests unavailable')
+    envelopes = get(index, 'collections.project', list)
+    if len(envelopes) != 1:
+        raise Unavailable('project alias inventory ambiguous')
+    envelope = envelopes[0]
+    if (get(envelope, 'type', str) != 'project' or get(envelope, 'scope', str) != scope
+            or get(envelope, 'status', str) != 'collected'
+            or get(envelope, 'coverage_status', str) != 'collected'
+            or get(envelope, 'items', list) != [project]
+            or not set(refs) <= set(get(envelope, 'source_requests', list))):
+        raise Unavailable('project alias inventory incomplete or inconsistent')
+    requests = list_of_objects(get(metadata, 'source_requests', list))
+    request_ids = [get(row, 'id', str) for row in requests]
+    if len(set(request_ids)) != len(request_ids):
+        raise Unavailable('project alias request identities ambiguous')
+    crm_url = 'https://cloudresourcemanager.googleapis.com/v3/' + scope
+    if not any(row['id'] in refs and row.get('method') == 'GET'
+               and row.get('url') == crm_url and row.get('scope') == scope
+               and row.get('status') == 'collected' for row in requests):
+        raise Unavailable('successful same-scope CRM project read unavailable')
+    return aliases
+
+
 def _threshold_matches(body, metric_names):
     expression = get(body, 'filter', str)
     match = re.fullmatch(r'\s*metric\.type\s*=\s*"([^"\\]+)"\s*'
@@ -89,11 +145,9 @@ def _threshold_matches(body, metric_names):
     return True
 
 
-def configured_alerts(project, scope, alerts, metrics):
+def configured_alerts(project, scope, alerts, metrics, *, index=None):
     """Return native alert names; fail closed on unproved candidate semantics."""
-    aliases = {scope.split('/', 1)[1]}
-    if 'projectId' in project:
-        aliases.add(get(project, 'projectId', str))
+    aliases = project_scope_aliases(project, scope, index)
     uncertain, active = False, []
     metric_names = set()
     for metric in metrics:

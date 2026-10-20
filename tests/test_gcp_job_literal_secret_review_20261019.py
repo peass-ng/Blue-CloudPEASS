@@ -90,7 +90,9 @@ def collect_native_pipeline(monkeypatch, kind, row=None, *, case=None, options=N
     class Metadata:
         status_code = 200
         headers = {}
-        def __init__(self, data): self.data = data
+        def __init__(self, data):
+            self.data = data
+            self.content = json.dumps(data).encode("utf-8")
         def json(self): return deepcopy(self.data)
     def normal_request(method, url, **kwargs):
         assert method == 'GET'

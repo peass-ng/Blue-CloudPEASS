@@ -2643,8 +2643,8 @@
     }
   },
   "gcp_cloud_armor_waf_enabled": {
-    "purpose": "Cloud Armor rules can filter malicious or unapproved requests; deciding rules or enforcement may be absent from this evidence.",
-    "missing_observation": "The evidence needed to evaluate “Public backend has no web application filtering” was not recorded reliably."
+    "purpose": "Checks the attached external-backend policy for a supported preconfigured WAF deny rule, including preview and earlier bypass rules. Public reachability and traffic blocking are not tested.",
+    "missing_observation": "The recorded backend association or policy rules do not establish an enforced preconfigured WAF rule."
   },
   "gcp_cloudbuild_private_pool": {
     "purpose": "The selected VPC constrains the workload network path; firewall policy and actual reachability were not tested.",
@@ -3350,5 +3350,49 @@
   "gcp.review.sourcerepo.selected_file_secret_indicators": {
     "purpose": "Only selected files at this commit were inspected; repository history and credential validity were not checked.",
     "missing_observation": "The selected supported content could not be completely scanned."
+  },
+  "gcp.review.cloudtasks.selected_payload_secret_indicators": {
+    "purpose": "Only selected content observed during this read was inspected; unselected resources, history and credential validity were not checked.",
+    "missing_observation": "Selected supported content could not be completely read and scanned with both offline detectors."
+  },
+  "gcp.review.bigquery.selected_routine_secret_indicators": {
+    "purpose": "Only selected content observed during this read was inspected; unselected resources, history and credential validity were not checked.",
+    "missing_observation": "Selected supported content could not be completely read and scanned with both offline detectors."
+  },
+  "gcp.review.dataproc.selected_job_referenced_source_secret_indicators": {
+    "purpose": "Only the captured referenced source is covered; original executed bytes were not established.",
+    "missing_observation": "The selected Dataproc referenced source could not be completely read and scanned."
+  },
+  "gcp.review.dataproc.selected_initialization_referenced_source_secret_indicators": {
+    "purpose": "Only the captured referenced source is covered; original executed bytes were not established.",
+    "missing_observation": "The selected Dataproc referenced source could not be completely read and scanned."
+  },
+  "gcp.review.workbench.selected_referenced_source_secret_indicators_20261020": {
+    "purpose": "Only the captured current referenced source is covered; cached or previously executed bytes were not established.",
+    "missing_observation": "The selected Workbench referenced source could not be completely read, identity-bound and scanned."
+  },
+  "gcp.review.dataflow.selected_package_referenced_source_secret_indicators": {
+    "purpose": "Only captured current referenced source is covered; previously executed bytes were not established.",
+    "missing_observation": "The selected Dataflow package source could not be completely read, identity-bound and scanned."
+  },
+  "gcp.review.batch.selected_mounted_script_source_secret_indicators": {
+    "purpose": "Only captured current referenced source is covered; previously executed bytes were not established.",
+    "missing_observation": "The selected Batch mounted script source could not be completely read, identity-bound and scanned."
+  },
+  "gcp.review.workbench.terminal_access_disabled": {
+    "purpose": "Kernel execution and other shell paths are outside this check.",
+    "missing_observation": "The Workbench setting could not be established from complete native configuration."
+  },
+  "gcp.review.workbench.file_download_disabled": {
+    "purpose": "Other transfer paths and effective DLP enforcement are not established.",
+    "missing_observation": "The Workbench setting could not be established from complete native configuration."
+  },
+  "gcp.review.workbench.auto_upgrade_schedule_declared": {
+    "purpose": "Upgrade execution and patch status were not established.",
+    "missing_observation": "The Workbench setting could not be established from complete native configuration."
+  },
+  "gcp.review.cloudrun_job.declared_image_secret_indicators": {
+    "purpose": "This covers the declared image; executed workload images and credential validity are not verified.",
+    "missing_observation": "The selected Job image could not be completely read, identity-bound and scanned."
   }
 }

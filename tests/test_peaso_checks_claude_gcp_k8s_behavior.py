@@ -1,5 +1,7 @@
 """Behavior fixtures for the claude_gcp_k8s compute, IAM and Kubernetes predicates."""
 import copy
+import json
+from pathlib import Path
 
 import pytest
 
@@ -30,6 +32,17 @@ def test_groups_registered_and_disjoint():
 @pytest.mark.parametrize("check_id", GROUP)
 def test_documented_outcomes(check_id):
     cases = CASES[check_id]
+    if check_id in {'gcp.claude.bigquery_dataset.no_gmail_access', 'gcp.claude.bigquery_dataset.no_googlegroups_access'}:
+        # Historical fail rows contain non-mailbox text and remain UNKNOWN.
+        # Replay already-reviewed real native mailbox observations separately.
+        current = json.loads((Path(__file__).parent/'fixtures/gcp-prior-bounded-native-successor-20261020.json').read_text())
+        rows = [row for row in current['cases'] if row['check_id'] == check_id]
+        assert {row['expected_status'] for row in rows} == {'PASS', 'FAIL', 'UNKNOWN'}
+        cases = copy.deepcopy(cases)
+        for row in rows:
+            branch = row['expected_status'].lower()
+            cases[branch] = copy.deepcopy(row['item'])
+            cases[branch + '_index'] = copy.deepcopy(row['index'])
     assert "index" not in cases, "scope fixtures must use <case>_index"
     for name, expected in (("pass", "PASS"), ("fail", "FAIL"), ("manual", "MANUAL"), ("unknown", "UNKNOWN"),
                            ("not_applicable", "NOT_APPLICABLE")):

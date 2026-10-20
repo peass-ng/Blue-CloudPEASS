@@ -1,0 +1,68 @@
+{
+  "azure.review.network.perimeter_association_enforced": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "observed": "The Storage association declares Enforced access mode. Effective traffic and access-rule suitability were not tested.",
+        "access_mode": "Enforced",
+        "configuration_only": true
+      },
+      "summary": "The Storage association declares Enforced access mode. Effective traffic and access-rule suitability were not tested."
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "observed": "The Storage association declares Learning access mode. Effective traffic and access-rule suitability were not tested.",
+        "access_mode": "Learning",
+        "configuration_only": true
+      },
+      "summary": "The Storage association declares Learning access mode. Effective traffic and access-rule suitability were not tested."
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "observed": "The native association, profile, Storage identity or provisioning declaration could not be established.",
+        "configuration_only": true
+      },
+      "summary": "The native association, profile, Storage identity or provisioning declaration could not be established."
+    }
+  ],
+  "azure.review.log_analytics.query_storage_cmk_declared": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "observed": "Every Query-linked storage account declares a customer-managed key reference and account-scoped Table encryption. Key usability and effective cryptography were not tested.",
+        "account_count": 1,
+        "provider_managed_count": 0,
+        "configuration_only": true
+      },
+      "summary": "Every Query-linked storage account declares a customer-managed key reference and account-scoped Table encryption. Key usability and effective cryptography were not tested."
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "observed": "Query-linked storage declares a provider-managed account or Table key. Key usability and effective cryptography were not tested.",
+        "account_count": 1,
+        "provider_managed_count": 1,
+        "configuration_only": true
+      },
+      "summary": "Query-linked storage declares a provider-managed account or Table key. Key usability and effective cryptography were not tested."
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "observed": "The native Query list, owned storage joins or encryption declarations could not be established.",
+        "configuration_only": true
+      },
+      "summary": "The native Query list, owned storage joins or encryption declarations could not be established."
+    },
+    {
+      "status": "NOT_APPLICABLE",
+      "evidence": {
+        "observed": "The complete native list contains no Query-linked storage. There is no Query-linked store to assess.",
+        "configuration_only": true
+      },
+      "summary": "The complete native list contains no Query-linked storage. There is no Query-linked store to assess."
+    }
+  ]
+}

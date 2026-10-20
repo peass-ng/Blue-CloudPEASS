@@ -33,13 +33,30 @@ def dns(query, key_type=None):
         if key_type is None:
             return result(state in (None, "off"), state=state,
                 semantics="Declared source non-off configuration; transfer is not active signing proof")
-        specs = list_of_objects(optional(config, "defaultKeySpecs", [], list))
-        weak = [spec for spec in specs if get(spec, "keyType", str) == key_type and get(spec, "algorithm", str) == "rsasha1"]
-        return result(state is None or bool(weak), key_type=key_type, state=state,
+        if state in (None, "off"):
+            return result(state is None, key_type=key_type, state=state,
+                          semantics="Algorithm declaration only; DNSSEC enablement is a separate check")
+        specs = list_of_objects(get(config, "defaultKeySpecs", list))
+        selected, weak = [], []
+        for spec in specs:
+            declared_type = get(spec, "keyType", str)
+            algorithm = get(spec, "algorithm", str)
+            if declared_type not in ("keySigning", "zoneSigning"):
+                raise Unavailable("unrecognized DNSSEC key type")
+            if algorithm not in ("rsasha1", "rsasha256", "rsasha512", "ecdsap256sha256", "ecdsap384sha384"):
+                raise Unavailable("unrecognized DNSSEC key algorithm")
+            if declared_type == key_type:
+                selected.append(spec)
+                if algorithm == "rsasha1":
+                    weak.append(spec)
+        if not selected:
+            raise Unavailable("DNSSEC default key specification unavailable for selected key type")
+        return result(bool(weak), key_type=key_type, state=state,
             semantics="Algorithm declaration only; DNSSEC enablement is a separate check")
     config = {"visibility": "public", "dnssecConfig": {"state": "on"}}
     bad = {"visibility": "public", "dnssecConfig": {"state": "off"}}
     if key_type:
+        config = {**config, "dnssecConfig": {"state": "on", "defaultKeySpecs": [{"keyType": key_type, "algorithm": "rsasha256"}]}}
         bad = {"visibility": "public", "dnssecConfig": {"state": "on", "defaultKeySpecs": [{"keyType": key_type, "algorithm": "rsasha1"}]}}
     rule(query, "dns_managed_zone", evaluate, config, bad)
 

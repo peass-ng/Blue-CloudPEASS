@@ -1,0 +1,139 @@
+{
+  "aws.review.codebuild.selected_inline_buildspec_secret_indicators": [
+    {
+      "capture_branch": "fail",
+      "status": "FAIL",
+      "summary": "A likely secret was detected in the selected inline CodeBuild buildspec. Its value is hidden and was not validated. Only the returned inline buildspec is covered; referenced files and build artifacts are not inspected.",
+      "evidence": {
+        "credential_validation": "not_attempted",
+        "observed": "The same secret was detected in 1 scanned location(s). Its value is hidden.",
+        "secret_leaks": [
+          {
+            "detectors": [
+              {
+                "engine": "kingfisher",
+                "rule": "betterleaks.github-pat"
+              },
+              {
+                "engine": "trufflehog",
+                "rule": "Github"
+              }
+            ],
+            "fingerprint": "8cdc798fd408d733c33355008ca71e4158871a4aafa336137f8b3c6083902a50",
+            "locations": [
+              {
+                "line": 8,
+                "path": "codebuild_selected_inline_buildspec:23589fd9a8488982a731d38260425c30e59104618e3ad683f3828b0cfab0d91f.source.buildspec",
+                "resource_id": "codebuild_selected_inline_buildspec:23589fd9a8488982a731d38260425c30e59104618e3ad683f3828b0cfab0d91f",
+                "scope": "123456789012/us-east-1"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "capture_branch": "malformed",
+      "status": "UNKNOWN",
+      "summary": "Required evidence is unavailable; this check is undetermined. Only the returned inline buildspec is covered; referenced files and build artifacts are not inspected.",
+      "evidence": {
+        "collection_status": "partial",
+        "reason": "no collected resources",
+        "semantics": "Inventory coverage, not a resource security pass."
+      }
+    },
+    {
+      "capture_branch": "malformed",
+      "status": "UNKNOWN",
+      "summary": "The selected inline CodeBuild source could not be fully inspected, so no clean result is established. The check remains undetermined. Only the returned inline buildspec is covered; referenced files and build artifacts are not inspected.",
+      "evidence": {
+        "observed": "The selected inline CodeBuild buildspec was unavailable, a reference, incomplete or unbound. Secret absence could not be assessed.",
+        "reason": "unknown_reason_not_supplied"
+      }
+    },
+    {
+      "capture_branch": "partial",
+      "status": "UNKNOWN",
+      "summary": "Required evidence is unavailable; this check is undetermined. Only the returned inline buildspec is covered; referenced files and build artifacts are not inspected.",
+      "evidence": {
+        "collection_status": "partial",
+        "reason": "no collected resources",
+        "semantics": "Inventory coverage, not a resource security pass."
+      }
+    },
+    {
+      "capture_branch": "partial",
+      "status": "FAIL",
+      "summary": "A likely secret was detected in the selected inline CodeBuild buildspec. Its value is hidden and was not validated; inspection is incomplete. Only the returned inline buildspec is covered; referenced files and build artifacts are not inspected.",
+      "evidence": {
+        "complete": false,
+        "coverage": "incomplete",
+        "credential_validation": "not_attempted",
+        "observed": "The same secret was detected in 1 scanned location(s). Its value is hidden. Coverage is incomplete.",
+        "secret_leaks": [
+          {
+            "detectors": [
+              {
+                "engine": "kingfisher",
+                "rule": "betterleaks.github-pat"
+              }
+            ],
+            "fingerprint": "8cdc798fd408d733c33355008ca71e4158871a4aafa336137f8b3c6083902a50",
+            "locations": [
+              {
+                "line": 8,
+                "path": "codebuild_selected_inline_buildspec:23589fd9a8488982a731d38260425c30e59104618e3ad683f3828b0cfab0d91f.source.buildspec",
+                "resource_id": "codebuild_selected_inline_buildspec:23589fd9a8488982a731d38260425c30e59104618e3ad683f3828b0cfab0d91f",
+                "scope": "123456789012/us-east-1"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "capture_branch": "pass",
+      "status": "PASS",
+      "summary": "Both offline detectors found no supported secret in the selected inline CodeBuild buildspec. Only the returned inline buildspec is covered; referenced files and build artifacts are not inspected.",
+      "evidence": {
+        "complete": true,
+        "coverage": "selected_returned_inline_buildspec_only",
+        "credential_validation": "not_attempted",
+        "engines": [
+          {
+            "engine": "kingfisher",
+            "status": "complete",
+            "version": "1.4.0"
+          },
+          {
+            "engine": "trufflehog",
+            "status": "complete",
+            "version": "3.92.5"
+          }
+        ],
+        "field": "projects[0].source.buildspec",
+        "observed": "Both offline detectors completed without detecting a supported secret in the selected inline CodeBuild buildspec. Coverage is limited to the returned inline bytes.",
+        "secret_leaks": []
+      }
+    },
+    {
+      "capture_branch": "unknown",
+      "status": "UNKNOWN",
+      "summary": "Required evidence is unavailable; this check is undetermined. Only the returned inline buildspec is covered; referenced files and build artifacts are not inspected.",
+      "evidence": {
+        "collection_status": "partial",
+        "reason": "no collected resources",
+        "semantics": "Inventory coverage, not a resource security pass."
+      }
+    },
+    {
+      "capture_branch": "unknown",
+      "status": "UNKNOWN",
+      "summary": "The selected inline CodeBuild source could not be fully inspected, so no clean result is established. The check remains undetermined. Only the returned inline buildspec is covered; referenced files and build artifacts are not inspected.",
+      "evidence": {
+        "observed": "The selected inline CodeBuild buildspec was unavailable, a reference, incomplete or unbound. Secret absence could not be assessed.",
+        "reason": "unknown_reason_not_supplied"
+      }
+    }
+  ]
+}

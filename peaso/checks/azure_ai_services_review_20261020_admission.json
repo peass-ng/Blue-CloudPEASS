@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "status": "local_offline_reviewed",
+  "declarations": [
+    {
+      "id": "azure.review.ai_services.audit_logging",
+      "provider": "azure",
+      "category": "hardening",
+      "kind": "cognitive_account_audit_logging",
+      "finding_type": "logging",
+      "severity": "medium",
+      "requirements": [],
+      "dependencies": [
+        "cognitive_account_audit_logging"
+      ],
+      "title": "AI Services configures supported audit logs to a destination",
+      "remediation": "Enable the Audit category or a supported audit/allLogs group in a diagnostic setting. Configure a Log Analytics, Storage, Event Hub or partner destination. Verify ingestion separately.",
+      "evidence_sentences": [
+        "The result describes collected ARM configuration. Runtime enforcement and event delivery were not tested."
+      ]
+    },
+    {
+      "id": "azure.review.ai_services.managed_identity",
+      "provider": "azure",
+      "category": "least_privilege",
+      "kind": "cognitive_account_managed_identity",
+      "finding_type": "permissions",
+      "severity": "medium",
+      "requirements": [],
+      "dependencies": [
+        "cognitive_account_managed_identity"
+      ],
+      "title": "AI Services declares a managed identity",
+      "remediation": "Enable a system-assigned or user-assigned managed identity. Grant only the roles needed by the workload and review those role assignments separately.",
+      "evidence_sentences": [
+        "The result describes collected ARM configuration. Runtime enforcement and event delivery were not tested."
+      ]
+    },
+    {
+      "id": "azure.review.ai_services.outbound_restriction",
+      "provider": "azure",
+      "category": "hardening",
+      "kind": "cognitive_account_outbound_restriction",
+      "finding_type": "network",
+      "severity": "medium",
+      "requirements": [],
+      "dependencies": [
+        "cognitive_account_outbound_restriction"
+      ],
+      "title": "AI Services declares restricted outbound network access",
+      "remediation": "Enable restrictOutboundNetworkAccess for the supported account. Review allowedFqdnList for necessary destinations and verify workload compatibility.",
+      "evidence_sentences": [
+        "The result describes collected ARM configuration. Runtime enforcement and event delivery were not tested."
+      ]
+    },
+    {
+      "id": "azure.review.ai_services.prompt_shield",
+      "provider": "azure",
+      "category": "hardening",
+      "kind": "cognitive_account_prompt_shield",
+      "finding_type": "workload_hardening",
+      "severity": "high",
+      "requirements": [],
+      "dependencies": [
+        "cognitive_account_prompt_shield"
+      ],
+      "title": "Text deployments explicitly configure blocking Prompt Shields",
+      "remediation": "Assign an explicit RAI policy to each supported text deployment. Enable the Jailbreak filter with source Prompt and blocking true. Review default or unsupported policies manually.",
+      "evidence_sentences": [
+        "The result describes collected ARM configuration. Runtime enforcement and event delivery were not tested."
+      ]
+    }
+  ],
+  "source_hashes": {
+    "peaso/checks/azure_ai_services_review_20261020.py": "7308ea804ff2890a463105842422c2e4050149e0ba626a877933609f9fb097a8",
+    "peaso/collectors/azure_ai_services_native.py": "e3a601322ccda5f8013752faf09999368f82506abdbdb61958710279e30ec2a2"
+  },
+  "fixture": {
+    "path": "peaso/checks/azure_ai_services_review_20261020_fixtures.json",
+    "sha256": "fc1ddb8a01a3738497fbedc34218404822f55794af76c7eafbbc119d6ad95c11",
+    "origin": "Independent native ARM LIST/GET -> focused Azure collector -> engine: four PASS/FAIL pairs and denied inventories, generated with socket/DNS/auth hard guards; no CASES or predicate output used as native input."
+  },
+  "checks": {
+    "azure.review.ai_services.audit_logging": {
+      "kind": "cognitive_account_audit_logging",
+      "dependencies": [
+        "cognitive_account_audit_logging"
+      ],
+      "predicate": "audit_logging",
+      "predicate_sha256": "6d473a51bd71a125c439bd138e3d6ada222af5e43ade0aab45279719ff005542",
+      "requirements": [],
+      "framework_references": [],
+      "thematic_inclusion": "HackTricks Cloud Best Practices; root owns canonical integration",
+      "default_enabled": true
+    },
+    "azure.review.ai_services.managed_identity": {
+      "kind": "cognitive_account_managed_identity",
+      "dependencies": [
+        "cognitive_account_managed_identity"
+      ],
+      "predicate": "managed_identity",
+      "predicate_sha256": "7843b2481a9fcb38697a530e3ccddb2b6fdede80140a8dc5c79e6646b13bb784",
+      "requirements": [],
+      "framework_references": [],
+      "thematic_inclusion": "HackTricks Cloud Best Practices; root owns canonical integration",
+      "default_enabled": true
+    },
+    "azure.review.ai_services.outbound_restriction": {
+      "kind": "cognitive_account_outbound_restriction",
+      "dependencies": [
+        "cognitive_account_outbound_restriction"
+      ],
+      "predicate": "outbound_restriction",
+      "predicate_sha256": "2095ded93a744de3c9dfc946c533712792ce061715122d8d5366366eefd30532",
+      "requirements": [],
+      "framework_references": [],
+      "thematic_inclusion": "HackTricks Cloud Best Practices; root owns canonical integration",
+      "default_enabled": true
+    },
+    "azure.review.ai_services.prompt_shield": {
+      "kind": "cognitive_account_prompt_shield",
+      "dependencies": [
+        "cognitive_account_prompt_shield"
+      ],
+      "predicate": "prompt_shield",
+      "predicate_sha256": "a8baf8ca0044d17c49940da3def46592c9ec9eae7c7c3f8d52f8a0218126c299",
+      "requirements": [],
+      "framework_references": [],
+      "thematic_inclusion": "HackTricks Cloud Best Practices; root owns canonical integration",
+      "default_enabled": true
+    }
+  }
+}

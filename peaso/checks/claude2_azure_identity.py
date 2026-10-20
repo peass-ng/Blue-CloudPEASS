@@ -8,7 +8,7 @@ from __future__ import annotations
 import re
 from .claude2_azure_common import *  # noqa: F401,F403
 from .claude2_azure_common import CHECK_IDS
-from .claude_azure_identity import (_tenant_matches, _foreign_tenant, _tenant_index, _ca_policies, _ca_state, _ca_controls,
+from .claude_azure_identity import (_tenant_matches, _foreign_tenant, _tenant_index, _ca_policies, _ca_state, _ca_controls, _ca_mfa_requirement,
                                     _role_type, _actions, _definition, GLOBAL_ADMINISTRATOR)
 
 _START = len(CHECK_IDS)
@@ -103,22 +103,31 @@ def _strings(container, key):
                           "and does not exclude individual users.")
 def ca_mfa_all_users(item, index):
     templates = None
-    matching = []
+    matching, unresolved = [], False
     for policy in _ca_policies(index):
-        if _ca_state(policy) != "enabled" or "mfa" not in _ca_controls(policy):
+        if _ca_state(policy) != "enabled":
             continue
         users = get(policy, "conditions.users", dict)
         if _strings(users, "excludeUsers"):
             continue
+        required = _ca_mfa_requirement(policy)
         if "All" in _strings(users, "includeUsers"):
-            matching.append(policy.get("id"))
+            if required is True:
+                matching.append(policy.get("id"))
+            elif required is None:
+                unresolved = True
             continue
         roles = {r.lower() for r in _strings(users, "includeRoles")}
         if roles:
             if templates is None:
                 templates = {get(r, "roleTemplateId", str).lower() for r in scoped(index, "directory_role")}
             if roles & templates:
-                matching.append(policy.get("id"))
+                if required is True:
+                    matching.append(policy.get("id"))
+                elif required is None:
+                    unresolved = True
+    if not matching and unresolved:
+        return unknown("eligible policy grant does not establish an MFA mandate")
     return result(not matching, matching_policies=matching,
                   semantics="Upstream counts MFA policies whose includeRoles intersect activated directory role templates and that "
                             "exclude no users; an enabled all-users MFA policy is also accepted")

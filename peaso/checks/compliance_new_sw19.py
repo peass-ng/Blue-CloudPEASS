@@ -1562,6 +1562,10 @@ def _cluster_scope(item, index):
 
 
 def _evaluate(check_id, item, index):
+    from ..collectors.azure_identity_enforcement_review_20261020 import evaluate_native
+    native = evaluate_native(check_id, item, index)
+    if native is not None:
+        return native
     if check_id == CLUSTER_CMK:
         return _cluster_scope(item, index)
     if check_id in (CIS_MFA, ALL_MFA, ADMIN_MFA):
@@ -1580,6 +1584,9 @@ for _cid in (CIS_MFA, ALL_MFA, ADMIN_MFA):
     DEPENDENCIES[_cid].append('conditional_access_policy')
 DEPENDENCIES[QUERY_CMK].append('storage_account')
 DEPENDENCIES[CLUSTER_CMK].append('log_analytics_cluster')
+# Native successor input; signed predecessor specifications and predicates stay intact.
+for _cid in (CIS_MFA, ALL_MFA, ADMIN_MFA, DIRECT):
+    DEPENDENCIES[_cid].append('azure_identity_enforcement_native')
 
 
 def _register(check_id):

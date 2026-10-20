@@ -7736,7 +7736,7 @@
     "predicate_function": "vmss_not_empty",
     "predicate_sha256": "03924ebea965cf1bb4211870a0b0b06357eed7b4a3d49d1bef6efd96a7234157",
     "description_contract_sha256": "65f46a008a8a525771434205e97db3f69a0701ce9d630f39a2185665b2703d30",
-    "interpretation": "The instance count shows whether the scale set declares deployed capacity.",
+    "interpretation": "The model declares the requested VM scale set capacity; it does not count actual instances.",
     "evidence_limit": "An empty scale set alone does not establish a security defect.",
     "fixture_source": "tests/fixtures/azure_evidence_review.json.gz",
     "branch_coverage": [
@@ -7767,7 +7767,8 @@
     "plain_language_recheck": {
       "result": "rechecked",
       "criterion": "Observed facts are complete plain-language sentences; provider field codes, numeric boolean flags, and label-value fragments are not used as explanations."
-    }
+    },
+    "current_presentation_successor": "docs/check-review/azure-application-native-title-successors-20261020.json"
   },
   "azure.claude.container_group_cmk": {
     "disposition": "rechecked_observation_contract_and_rewrote_explanation",
@@ -47222,5 +47223,1179 @@
       "result": "rechecked",
       "criterion": "Observed facts are complete plain-language sentences; provider field codes, numeric boolean flags, and label-value fragments are not used as explanations."
     }
+  },
+  "azure.review.app_service.selected_app_settings_secret_indicators": {
+    "disposition": "new_explicit_selected_content_native_review",
+    "source": "peaso/checks/azure_app_settings_secret_review_20261020.py",
+    "fixture_source": "peaso/checks/azure_app_settings_secret_review_20261020_fixtures.json",
+    "review_receipt": "docs/check-review/azure-app-settings-secret-implementation-20261020.json",
+    "branch_coverage": [
+      {
+        "status": "PASS",
+        "evidence_fields": [
+          "complete",
+          "coverage",
+          "literal_count",
+          "parts",
+          "secret_leaks"
+        ],
+        "example": "Both offline detectors completed without detecting a supported secret in selected literal app settings."
+      },
+      {
+        "status": "FAIL",
+        "evidence_fields": [
+          "complete",
+          "coverage",
+          "literal_count",
+          "parts",
+          "secret_leaks"
+        ],
+        "example": "A likely secret was detected in selected literal app settings. The value is hidden; offline detection did not validate the credential."
+      },
+      {
+        "status": "UNKNOWN",
+        "evidence_fields": [
+          "complete",
+          "coverage",
+          "literal_count",
+          "parts",
+          "secret_leaks"
+        ],
+        "example": "Selected supported literal settings could not be completely read, bound and scanned with both offline detectors."
+      }
+    ],
+    "interpretation": "Offline checks detect potential credential leaks.",
+    "evidence_limit": "Only selected content was inspected; credentials were not tested."
+  },
+  "azure.review.acr.selected_image_secret_indicators": {
+    "disposition": "new_explicit_selected_content_native_review",
+    "source": "peaso/checks/azure_acr_image_secret_review_20261020.py",
+    "fixture_source": "peaso/checks/azure_acr_image_secret_review_20261020_fixtures.json",
+    "review_receipt": "docs/check-review/azure-acr-image-secret-implementation-20261020.json",
+    "interpretation": "Offline checks detect potential credential leaks.",
+    "evidence_limit": "Only selected content was inspected; credentials were not tested.",
+    "branch_coverage": [
+      {
+        "status": "PASS",
+        "evidence_fields": [
+          "complete",
+          "coverage",
+          "parts",
+          "secret_leaks"
+        ],
+        "example": "Both offline detectors completed without detecting a supported secret in the selected immutable ACR image."
+      },
+      {
+        "status": "FAIL",
+        "evidence_fields": [
+          "complete",
+          "coverage",
+          "parts",
+          "secret_leaks"
+        ],
+        "example": "A likely secret was detected in a selected immutable ACR image. The value is hidden; offline detection did not validate the credential."
+      },
+      {
+        "status": "UNKNOWN",
+        "evidence_fields": [
+          "complete",
+          "coverage",
+          "parts",
+          "secret_leaks"
+        ],
+        "example": "The selected ACR image could not be completely read, bound and scanned with both offline detectors."
+      }
+    ]
+  },
+  "azure.review.ai_services.audit_logging": {
+    "disposition": "new_native_configuration_review",
+    "source": "peaso/checks/azure_ai_services_review_20261020.py",
+    "source_function": "audit_logging",
+    "source_sha256": "6d473a51bd71a125c439bd138e3d6ada222af5e43ade0aab45279719ff005542",
+    "interpretation": "Audit logging supports investigation.",
+    "evidence_limit": "Delivery and retention were not tested.",
+    "fixture_source": "tests/fixtures/azure-ai-evidence-review-20261020.json",
+    "branch_coverage": [
+      {
+        "status": "PASS",
+        "evidence_fields": [
+          "observed",
+          "qualifying_log_entries"
+        ]
+      },
+      {
+        "status": "FAIL",
+        "evidence_fields": [
+          "observed",
+          "qualifying_log_entries"
+        ]
+      },
+      {
+        "status": "UNKNOWN",
+        "evidence_fields": [
+          "reason"
+        ]
+      }
+    ],
+    "missing_fixtures": [],
+    "review_basis": "Exact native ARM collector and independent bounded positive/negative/denied response matrix; no live account or runtime assertions."
+  },
+  "azure.review.ai_services.managed_identity": {
+    "disposition": "new_native_configuration_review",
+    "source": "peaso/checks/azure_ai_services_review_20261020.py",
+    "source_function": "managed_identity",
+    "source_sha256": "7843b2481a9fcb38697a530e3ccddb2b6fdede80140a8dc5c79e6646b13bb784",
+    "interpretation": "Managed identities avoid stored application credentials.",
+    "evidence_limit": "Role assignments were not assessed.",
+    "fixture_source": "tests/fixtures/azure-ai-evidence-review-20261020.json",
+    "branch_coverage": [
+      {
+        "status": "PASS",
+        "evidence_fields": [
+          "identity_type",
+          "observed"
+        ]
+      },
+      {
+        "status": "FAIL",
+        "evidence_fields": [
+          "identity_type",
+          "observed"
+        ]
+      },
+      {
+        "status": "UNKNOWN",
+        "evidence_fields": [
+          "reason"
+        ]
+      }
+    ],
+    "missing_fixtures": [],
+    "review_basis": "Exact native ARM collector and independent bounded positive/negative/denied response matrix; no live account or runtime assertions."
+  },
+  "azure.review.ai_services.outbound_restriction": {
+    "disposition": "new_native_configuration_review",
+    "source": "peaso/checks/azure_ai_services_review_20261020.py",
+    "source_function": "outbound_restriction",
+    "source_sha256": "2095ded93a744de3c9dfc946c533712792ce061715122d8d5366366eefd30532",
+    "interpretation": "Restricted egress limits external connections.",
+    "evidence_limit": "Allowed destinations and traffic were not tested.",
+    "fixture_source": "tests/fixtures/azure-ai-evidence-review-20261020.json",
+    "branch_coverage": [
+      {
+        "status": "PASS",
+        "evidence_fields": [
+          "observed",
+          "restrict_outbound_network_access"
+        ]
+      },
+      {
+        "status": "FAIL",
+        "evidence_fields": [
+          "observed",
+          "restrict_outbound_network_access"
+        ]
+      },
+      {
+        "status": "UNKNOWN",
+        "evidence_fields": [
+          "reason"
+        ]
+      }
+    ],
+    "missing_fixtures": [],
+    "review_basis": "Exact native ARM collector and independent bounded positive/negative/denied response matrix; no live account or runtime assertions."
+  },
+  "azure.review.ai_services.prompt_shield": {
+    "disposition": "new_native_configuration_review",
+    "source": "peaso/checks/azure_ai_services_review_20261020.py",
+    "source_function": "prompt_shield",
+    "source_sha256": "a8baf8ca0044d17c49940da3def46592c9ec9eae7c7c3f8d52f8a0218126c299",
+    "interpretation": "Prompt Shields filter supported prompt attacks.",
+    "evidence_limit": "Actual prompt traffic was not tested.",
+    "fixture_source": "tests/fixtures/azure-ai-evidence-review-20261020.json",
+    "branch_coverage": [
+      {
+        "status": "PASS",
+        "evidence_fields": [
+          "deployment_results",
+          "observed"
+        ]
+      },
+      {
+        "status": "FAIL",
+        "evidence_fields": [
+          "deployment_results",
+          "observed"
+        ]
+      },
+      {
+        "status": "UNKNOWN",
+        "evidence_fields": [
+          "reason"
+        ]
+      }
+    ],
+    "missing_fixtures": [],
+    "review_basis": "Exact native ARM collector and independent bounded positive/negative/denied response matrix; no live account or runtime assertions."
+  },
+  "azure.network.acr_public_ip_ranges_restricted": {
+    "disposition": "new_native_declaration_review",
+    "source": "peaso/checks/azure_acr_public_ip_review_20261020.py",
+    "source_function": "evaluate",
+    "source_sha256": "cb5d911e913c1d3180bff9e28ff768fde9cb0c864fab9dbee2bf85904cbc791d",
+    "interpretation": "VNet rules can coexist with unrestricted public IP exceptions.",
+    "evidence_limit": "Authentication, private routing and effective access were not tested.",
+    "fixture_source": "tests/fixtures/azure-network-audit-evidence-review-20261020.json",
+    "branch_coverage": [
+      {
+        "status": "PASS",
+        "evidence_fields": [
+          "allows_all_ipv4",
+          "collapsed_ipv4_ranges",
+          "criterion",
+          "declared_ip_rules",
+          "default_action",
+          "effective_access",
+          "observed",
+          "public_network_access",
+          "trusted_service_bypass"
+        ]
+      },
+      {
+        "status": "FAIL",
+        "evidence_fields": [
+          "allows_all_ipv4",
+          "collapsed_ipv4_ranges",
+          "criterion",
+          "declared_ip_rules",
+          "default_action",
+          "effective_access",
+          "observed",
+          "public_network_access",
+          "trusted_service_bypass"
+        ]
+      },
+      {
+        "status": "UNKNOWN",
+        "evidence_fields": [
+          "reason"
+        ]
+      }
+    ],
+    "missing_fixtures": [],
+    "review_basis": "Independent native collector positive/negative/unknown matrices and exact source-bound current observations; no live execution or effective access assertion."
+  },
+  "azure.review.managed_hsm.audit_storage_destination": {
+    "disposition": "new_native_declaration_review",
+    "source": "peaso/checks/azure_hsm_audit_review_20261020.py",
+    "source_function": "evaluate",
+    "source_sha256": "e3a335c3d98e675339910c0986d46aa84f445b0f3a16eb51ee485dc519596c94",
+    "interpretation": "AuditEvent logging supports investigation of Managed HSM access.",
+    "evidence_limit": "Destination existence, delivery and retention were not tested.",
+    "fixture_source": "tests/fixtures/azure-network-audit-evidence-review-20261020.json",
+    "branch_coverage": [
+      {
+        "status": "PASS",
+        "evidence_fields": [
+          "audit_storage_configured",
+          "criterion",
+          "observed",
+          "storage_destination_references"
+        ]
+      },
+      {
+        "status": "FAIL",
+        "evidence_fields": [
+          "audit_storage_configured",
+          "criterion",
+          "observed"
+        ]
+      },
+      {
+        "status": "UNKNOWN",
+        "evidence_fields": [
+          "observed",
+          "reason"
+        ]
+      }
+    ],
+    "missing_fixtures": [],
+    "review_basis": "Independent native collector positive/negative/unknown matrices and exact source-bound current observations; no live execution or effective access assertion."
+  },
+  "azure.encryption.automation_cmk_declared": {
+    "disposition": "native_configuration_successor_with_separate_current_fixture",
+    "source": "peaso/checks/azure_automation_aci_metadata_review_20261020.py",
+    "source_function": "automation",
+    "source_sha256": "a70eaf5b81e76f044e2a65b0deee5f9a3dd30d2b86c6f3146670fd59bbe59e9a",
+    "predicate_function": "automation",
+    "predicate_sha256": "f5eaf03ede8259fbfc8145116e5ccd66aad31abec0769ac87e82bf1f7c994c6d",
+    "description_contract_sha256": "95511474b9388481f084b8d1c86aa9add4a020d6713abf9761f105931e122862",
+    "interpretation": "The reference selects the intended asset-encryption key.",
+    "evidence_limit": "Key authorization and cryptographic use were not tested.",
+    "fixture_source": "tests/fixtures/azure-automation-aci-evidence-review-20261020.json",
+    "branch_coverage": [
+      {
+        "status": "PASS",
+        "evidence_fields": [
+          "key_source",
+          "vault_hostname",
+          "key_name",
+          "key_version",
+          "identity_type",
+          "observed",
+          "criterion",
+          "configured",
+          "effective_access"
+        ]
+      },
+      {
+        "status": "FAIL",
+        "evidence_fields": [
+          "key_source",
+          "observed",
+          "criterion",
+          "configured",
+          "effective_access"
+        ]
+      },
+      {
+        "status": "UNKNOWN",
+        "evidence_fields": [
+          "reason"
+        ]
+      }
+    ],
+    "review_basis": "Independent native HTTP fixture inputs and exact unchanged predicates; declaration-only typed output wrapper; no delivery/key-use claim.",
+    "missing_fixtures": [],
+    "observation_implementation": "peaso/checks/azure_review_observed_20261020.py and frontend/src/azureReviewEvidence.ts"
+  },
+  "azure.logging.aci_log_analytics_declared": {
+    "disposition": "native_configuration_successor_with_separate_current_fixture",
+    "source": "peaso/checks/azure_automation_aci_metadata_review_20261020.py",
+    "source_function": "aci",
+    "source_sha256": "a70eaf5b81e76f044e2a65b0deee5f9a3dd30d2b86c6f3146670fd59bbe59e9a",
+    "predicate_function": "aci",
+    "predicate_sha256": "2aecf346ac0c6711b14b89a0faae313884b9ad7dfed4cc72383e3dffab5dae66",
+    "description_contract_sha256": "0ccab2919dc0024c893f5d95398a67c15123151847f87bd0b2001cf7078f325c",
+    "interpretation": "Log Analytics settings identify the intended destination for container-group logs.",
+    "evidence_limit": "Workspace existence, access, ingestion and log delivery were not tested.",
+    "fixture_source": "tests/fixtures/azure-automation-aci-evidence-review-20261020.json",
+    "branch_coverage": [
+      {
+        "status": "PASS",
+        "evidence_fields": [
+          "workspace_customer_id",
+          "log_type",
+          "observed",
+          "criterion",
+          "configured",
+          "effective_access"
+        ]
+      },
+      {
+        "status": "FAIL",
+        "evidence_fields": [
+          "observed",
+          "criterion",
+          "configured",
+          "effective_access"
+        ]
+      },
+      {
+        "status": "UNKNOWN",
+        "evidence_fields": [
+          "reason"
+        ]
+      }
+    ],
+    "review_basis": "Independent native HTTP fixture inputs and exact unchanged predicates; declaration-only typed output wrapper; no delivery/key-use claim.",
+    "missing_fixtures": [],
+    "observation_implementation": "peaso/checks/azure_review_observed_20261020.py and frontend/src/azureReviewEvidence.ts"
+  },
+  "azure.logging.aks_supported_log_categories_destination_declared": {
+    "disposition": "native_configuration_successor_with_separate_current_fixture",
+    "source": "peaso/checks/azure_aks_legacy_projection_review_20261020.py",
+    "source_function": "diagnostic_declaration",
+    "source_sha256": "d2aac095ecf0da4019853fb86c4be7129e5f2f75578c1484414bb8b17cfac633",
+    "predicate_function": "diagnostic_declaration",
+    "predicate_sha256": "2314a465f7ff306967d1f8497d3cfbddda40aa726cc279cedf3311b6a439c49c",
+    "interpretation": "Control-plane logging declares where audit events should go.",
+    "evidence_limit": "Declared configuration only; effective access and delivery were not tested.",
+    "fixture_source": "tests/fixtures/azure-final-native-evidence-review-20261020.json",
+    "branch_coverage": [
+      {
+        "status": "PASS",
+        "evidence_fields": [
+          "missing_categories",
+          "destination_references",
+          "observed",
+          "native_declaration_id",
+          "native_declaration_satisfied",
+          "effective_access"
+        ]
+      },
+      {
+        "status": "FAIL",
+        "evidence_fields": [
+          "missing_categories",
+          "destination_references",
+          "observed",
+          "native_declaration_id",
+          "native_declaration_satisfied",
+          "effective_access"
+        ]
+      },
+      {
+        "status": "UNKNOWN",
+        "evidence_fields": [
+          "reason"
+        ]
+      }
+    ],
+    "review_basis": "Actual native HTTP fixture inputs; exact source-bound activation; no live-provider claim.",
+    "missing_fixtures": [],
+    "observation_implementation": "peaso/checks/azure_review_observed_20261020.py and frontend/src/azureReviewEvidence.ts"
+  },
+  "azure.logging.managed_hsm_audit_destination_declared": {
+    "disposition": "native_configuration_successor_with_separate_current_fixture",
+    "source": "peaso/checks/azure_hsm_audit_destination_review_20261020.py",
+    "source_function": "evaluate",
+    "source_sha256": "bd46c2f53e4e7def85f390662c20bc1599d7dd9c5a0fcfcbecd5fdac5e064ca2",
+    "predicate_function": "evaluate",
+    "predicate_sha256": "0e622c58a9d2bdc7014efef3895173e19b51f6ac62a906cb8525ab4199358ca6",
+    "interpretation": "Control-plane logging declares where audit events should go.",
+    "evidence_limit": "Declared configuration only; effective access and delivery were not tested.",
+    "fixture_source": "tests/fixtures/azure-final-native-evidence-review-20261020.json",
+    "branch_coverage": [
+      {
+        "status": "PASS",
+        "evidence_fields": [
+          "criterion",
+          "audit_destination_configured",
+          "destination_references",
+          "observed",
+          "native_declaration_id",
+          "native_declaration_satisfied",
+          "effective_access"
+        ]
+      },
+      {
+        "status": "FAIL",
+        "evidence_fields": [
+          "criterion",
+          "audit_destination_configured",
+          "observed",
+          "native_declaration_id",
+          "native_declaration_satisfied",
+          "effective_access"
+        ]
+      },
+      {
+        "status": "UNKNOWN",
+        "evidence_fields": [
+          "reason",
+          "observed"
+        ]
+      }
+    ],
+    "review_basis": "Actual native HTTP fixture inputs; exact source-bound activation; no live-provider claim.",
+    "missing_fixtures": [],
+    "observation_implementation": "peaso/checks/azure_review_observed_20261020.py and frontend/src/azureReviewEvidence.ts"
+  },
+  "azure.encryption.log_analytics_cluster_cmk_declared": {
+    "disposition": "native_configuration_successor_with_separate_current_fixture",
+    "source": "peaso/checks/azure_native_contract_closure_20261020.py",
+    "source_function": "log_cluster_cmk_declared",
+    "source_sha256": "4f05044102b87c56f4da90aaa9917d2c17587569675632f3f98ecf6db29b1a61",
+    "predicate_function": "log_cluster_cmk_declared",
+    "predicate_sha256": "e488ecda813065190b141eb1ef0e4c9dafb119b4116023b4532b0cea163abd61",
+    "interpretation": "Key and identity declarations identify the intended customer-managed encryption configuration.",
+    "evidence_limit": "Declared configuration only; effective access and delivery were not tested.",
+    "fixture_source": "tests/fixtures/azure-final-native-evidence-review-20261020.json",
+    "branch_coverage": [
+      {
+        "status": "PASS",
+        "evidence_fields": [
+          "reason",
+          "key_reference",
+          "key_version_mode",
+          "identity_reference",
+          "principal_id",
+          "semantics",
+          "native_declaration_id",
+          "native_declaration_satisfied",
+          "effective_access"
+        ]
+      },
+      {
+        "status": "FAIL",
+        "evidence_fields": [
+          "reason",
+          "native_declaration_id",
+          "native_declaration_satisfied",
+          "effective_access"
+        ]
+      },
+      {
+        "status": "UNKNOWN",
+        "evidence_fields": [
+          "reason"
+        ]
+      }
+    ],
+    "review_basis": "Actual native HTTP fixture inputs; exact source-bound activation; no live-provider claim.",
+    "missing_fixtures": [],
+    "observation_implementation": "peaso/checks/azure_review_observed_20261020.py and frontend/src/azureReviewEvidence.ts"
+  },
+  "azure.encryption.stream_analytics_job_storage_cmk_declared": {
+    "disposition": "native_configuration_successor_with_separate_current_fixture",
+    "source": "peaso/checks/azure_native_contract_closure_20261020.py",
+    "source_function": "stream_job_storage_cmk_declared",
+    "source_sha256": "4f05044102b87c56f4da90aaa9917d2c17587569675632f3f98ecf6db29b1a61",
+    "predicate_function": "stream_job_storage_cmk_declared",
+    "predicate_sha256": "99a4fbd98378b89b2d719061b5992a57a4447cf51f719d9e42e211cffd7bf775",
+    "interpretation": "The job selects this account for content storage.",
+    "evidence_limit": "Key access and stored-data encryption were not tested.",
+    "fixture_source": "tests/fixtures/azure-final-native-evidence-review-20261020.json",
+    "branch_coverage": [
+      {
+        "status": "PASS",
+        "evidence_fields": [
+          "reason",
+          "storage_account_id",
+          "key_reference",
+          "key_version_mode",
+          "identity_reference",
+          "principal_id",
+          "semantics",
+          "native_declaration_id",
+          "native_declaration_satisfied",
+          "effective_access"
+        ]
+      },
+      {
+        "status": "FAIL",
+        "evidence_fields": [
+          "reason",
+          "storage_account_id",
+          "native_declaration_id",
+          "native_declaration_satisfied",
+          "effective_access"
+        ]
+      },
+      {
+        "status": "UNKNOWN",
+        "evidence_fields": [
+          "reason"
+        ]
+      }
+    ],
+    "review_basis": "Actual native HTTP fixture inputs; exact source-bound activation; no live-provider claim.",
+    "missing_fixtures": [],
+    "observation_implementation": "peaso/checks/azure_review_observed_20261020.py and frontend/src/azureReviewEvidence.ts"
+  },
+  "azure.review.devops.visible_clone_urls_without_userinfo": {
+    "disposition": "selected_visible_native_url_metadata",
+    "source": "peaso/checks/azure_devops_visible_urls_review_20261020.py",
+    "source_function": "evaluate",
+    "source_sha256": "ad7cfe76a9b284f2934db24f7341048c563f69c7d6e5156573f2b24e15c059e5",
+    "predicate_function": "evaluate",
+    "predicate_sha256": "f1d48ee5f8abb6d92a61084c464fb31a35697e381c25416d5d7f79a322bbb17e",
+    "interpretation": "Only selected projects and visible URL metadata are assessed.",
+    "evidence_limit": "Hidden repositories and credential validity were not assessed.",
+    "fixture_source": "tests/fixtures/azure_edge_native_current_inputs_20261020.json.gz",
+    "branch_coverage": [
+      {
+        "status": "PASS"
+      },
+      {
+        "status": "FAIL"
+      },
+      {
+        "status": "UNKNOWN"
+      }
+    ],
+    "review_basis": "Actual selected-project native API7.1 HTTP results; security-trimmed universe limits retained.",
+    "missing_fixtures": [],
+    "observation_implementation": "peaso/checks/azure_review_observed_20261020.py and frontend/src/azureReviewEvidence.ts"
+  },
+  "azure.review.configuration.selected_content_secret_indicators": {
+    "disposition": "explicit_selected_native_source_content",
+    "source": "peaso/checks/azure_selected_configuration_secret_review_20261020.py",
+    "source_function": "evaluate",
+    "source_sha256": "7f91025d84506fa752ee9f5455ddd34ea2439a2ec86dafed6a3c634eaebdabf0",
+    "predicate_function": "evaluate",
+    "predicate_sha256": "f1abbf3a7a0d74233fdc7d30cdfb61273fa3f65660c075924b15c7e8daca0ea1",
+    "interpretation": "Only explicitly selected source or configuration literals are scanned.",
+    "evidence_limit": "Protected, encrypted and referenced content is excluded.",
+    "fixture_source": "peaso/checks/azure_selected_configuration_secret_review_20261020_native_fixtures.json",
+    "branch_coverage": [
+      {
+        "status": "PASS"
+      },
+      {
+        "status": "FAIL"
+      },
+      {
+        "status": "UNKNOWN"
+      }
+    ],
+    "review_basis": "Actual native GET responses, denied/partial/identity counterexamples and both pinned offline detectors; no live cloud execution.",
+    "missing_fixtures": [],
+    "observation_implementation": "peaso/checks/selected_configuration_content_observed_20261020.py and frontend/src/selectedContentEvidence.ts"
+  },
+  "azure.review.storage.selected_source_secret_indicators": {
+    "disposition": "explicit_selected_native_source_content",
+    "source": "peaso/checks/azure_selected_storage_secret_review_20261020.py",
+    "source_function": "evaluate",
+    "source_sha256": "6f750b36c51f37c18d6f666e11f8d73c05a20bb1f060f858517270e46a780971",
+    "predicate_function": "evaluate",
+    "predicate_sha256": "4ece94cbafad4f5cad114511d76acc848959b822e0e63404de8eb507649edbb1",
+    "interpretation": "Only explicitly selected source or configuration literals are scanned.",
+    "evidence_limit": "Only the captured supported text files are assessed.",
+    "fixture_source": "peaso/checks/azure_selected_storage_secret_review_20261020_fixtures.json",
+    "branch_coverage": [
+      {
+        "status": "PASS"
+      },
+      {
+        "status": "FAIL"
+      },
+      {
+        "status": "UNKNOWN"
+      }
+    ],
+    "review_basis": "Actual native GET responses, denied/partial/identity counterexamples and both pinned offline detectors; no live cloud execution.",
+    "missing_fixtures": [],
+    "observation_implementation": "peaso/checks/selected_configuration_content_observed_20261020.py and frontend/src/selectedContentEvidence.ts"
+  },
+  "azure.review.devops.selected_content_secret_indicators": {
+    "disposition": "explicit_selected_native_source_content",
+    "source": "peaso/checks/azure_devops_selected_content_secret_review_20261020.py",
+    "source_function": "evaluate",
+    "source_sha256": "3cf90c69336a559bc48fdf755a468f3d1c03cc9862753549ee310a5b459b033d",
+    "predicate_function": "evaluate",
+    "predicate_sha256": "046c435d8464dd1a53af44cdb9860788d33cf81cbd9bd2f2470a088b92ab5cb7",
+    "interpretation": "Only explicitly selected source or configuration literals are scanned.",
+    "evidence_limit": "Only selected file commits and pipeline revisions are assessed.",
+    "fixture_source": "peaso/checks/azure_devops_selected_content_secret_review_20261020_fixtures.json",
+    "branch_coverage": [
+      {
+        "status": "PASS"
+      },
+      {
+        "status": "FAIL"
+      },
+      {
+        "status": "UNKNOWN"
+      }
+    ],
+    "review_basis": "Actual native GET responses, denied/partial/identity counterexamples and both pinned offline detectors; no live cloud execution.",
+    "missing_fixtures": [],
+    "observation_implementation": "peaso/checks/selected_configuration_content_observed_20261020.py and frontend/src/selectedContentEvidence.ts"
+  },
+  "azure.review.app_configuration.selected_value_secret_indicators": {
+    "disposition": "explicit_selected_native_public_declaration_content",
+    "source": "peaso/checks/azure_selected_declaration_secret_review_20261020.py",
+    "source_function": "app_configuration",
+    "source_sha256": "450fd027e844998211f439e82f62c2882f78b720cc491ea661ec3c97688ee956",
+    "predicate_function": "app_configuration",
+    "predicate_sha256": "0447be0dc180b50a6b5e035f3653e128b0dd1a3acaf5d533a32a25fb10cf45f2",
+    "interpretation": "Only the selected App Configuration key and label are scanned.",
+    "evidence_limit": "Key Vault references and unselected keys are not inspected.",
+    "fixture_source": "peaso/checks/azure_declaration_secrets_admission_20261020_fixtures.json",
+    "branch_coverage": [
+      {
+        "status": "PASS"
+      },
+      {
+        "status": "FAIL"
+      },
+      {
+        "status": "UNKNOWN"
+      }
+    ],
+    "review_basis": "Actual native HTTP through production selector, collector and public engine; pinned offline detectors, no cloud calls.",
+    "missing_fixtures": [],
+    "observation_implementation": "peaso/checks/selected_configuration_content_observed_20261020.py and frontend/src/selectedConfigurationContentEvidence.ts"
+  },
+  "azure.review.data_factory.selected_declaration_secret_indicators": {
+    "disposition": "explicit_selected_native_public_declaration_content",
+    "source": "peaso/checks/azure_selected_declaration_secret_review_20261020.py",
+    "source_function": "data_factory",
+    "source_sha256": "450fd027e844998211f439e82f62c2882f78b720cc491ea661ec3c97688ee956",
+    "predicate_function": "data_factory",
+    "predicate_sha256": "1fe6f021c3cf750715443fede5bb7a7ca7722c3fd0a99c54b4ffa4d2904f3f08",
+    "interpretation": "Only the selected Data Factory inline declarations are scanned.",
+    "evidence_limit": "Protected values, linked services and referenced code are not inspected.",
+    "fixture_source": "peaso/checks/azure_declaration_secrets_admission_20261020_fixtures.json",
+    "branch_coverage": [
+      {
+        "status": "PASS"
+      },
+      {
+        "status": "FAIL"
+      },
+      {
+        "status": "UNKNOWN"
+      }
+    ],
+    "review_basis": "Actual native HTTP through production selector, collector and public engine; pinned offline detectors, no cloud calls.",
+    "missing_fixtures": [],
+    "observation_implementation": "peaso/checks/selected_configuration_content_observed_20261020.py and frontend/src/selectedConfigurationContentEvidence.ts"
+  },
+  "azure.review.synapse.selected_pipeline_secret_indicators": {
+    "disposition": "explicit_selected_native_public_declaration_content",
+    "source": "peaso/checks/azure_selected_declaration_secret_review_20261020.py",
+    "source_function": "synapse",
+    "source_sha256": "450fd027e844998211f439e82f62c2882f78b720cc491ea661ec3c97688ee956",
+    "predicate_function": "synapse",
+    "predicate_sha256": "671360f1f37773d1461be00ebf6ec1b6e10a22488085f00e2c15a72139bc9716",
+    "interpretation": "Only the selected Synapse pipeline declarations are scanned.",
+    "evidence_limit": "Protected values and referenced code are not inspected.",
+    "fixture_source": "peaso/checks/azure_declaration_secrets_admission_20261020_fixtures.json",
+    "branch_coverage": [
+      {
+        "status": "PASS"
+      },
+      {
+        "status": "FAIL"
+      },
+      {
+        "status": "UNKNOWN"
+      }
+    ],
+    "review_basis": "Actual native HTTP through production selector, collector and public engine; pinned offline detectors, no cloud calls.",
+    "missing_fixtures": [],
+    "observation_implementation": "peaso/checks/selected_configuration_content_observed_20261020.py and frontend/src/selectedConfigurationContentEvidence.ts"
+  },
+  "azure.review.log_analytics.selected_message_sample_secret_indicators": {
+    "disposition": "explicit_selected_native_public_declaration_content",
+    "source": "peaso/checks/azure_selected_log_sample_secret_review_20261020.py",
+    "source_function": "workspace",
+    "source_sha256": "6a0cf1b45d2dd8143d7d78ab83de242bf688e3261c1b8053b8aa2710e58728b5",
+    "predicate_function": "workspace",
+    "predicate_sha256": "5272bf0ee80a1bce31b09c13868f6149d8f4ef2e1122aba4256baa98b15ac8bb",
+    "interpretation": "Only the selected preceding-hour message sample is covered.",
+    "evidence_limit": "",
+    "fixture_source": "peaso/checks/azure_log_samples_admission_20261020_fixtures.json",
+    "branch_coverage": [
+      {
+        "status": "PASS"
+      },
+      {
+        "status": "FAIL"
+      },
+      {
+        "status": "UNKNOWN"
+      }
+    ],
+    "review_basis": "Actual native HTTP through production selector, collector and public engine; pinned offline detectors, no cloud calls.",
+    "missing_fixtures": [],
+    "observation_implementation": "peaso/checks/selected_configuration_content_observed_20261020.py and frontend/src/selectedConfigurationContentEvidence.ts"
+  },
+  "azure.review.application_insights.selected_trace_sample_secret_indicators": {
+    "disposition": "explicit_selected_native_public_declaration_content",
+    "source": "peaso/checks/azure_selected_log_sample_secret_review_20261020.py",
+    "source_function": "application",
+    "source_sha256": "6a0cf1b45d2dd8143d7d78ab83de242bf688e3261c1b8053b8aa2710e58728b5",
+    "predicate_function": "application",
+    "predicate_sha256": "d8eb9ea50279355bb26cbc466605930cd36432efaab2bcbcb7d134064b644d04",
+    "interpretation": "Only the selected preceding-hour message sample is covered.",
+    "evidence_limit": "",
+    "fixture_source": "peaso/checks/azure_log_samples_admission_20261020_fixtures.json",
+    "branch_coverage": [
+      {
+        "status": "PASS"
+      },
+      {
+        "status": "FAIL"
+      },
+      {
+        "status": "UNKNOWN"
+      }
+    ],
+    "review_basis": "Actual native HTTP through production selector, collector and public engine; pinned offline detectors, no cloud calls.",
+    "missing_fixtures": [],
+    "observation_implementation": "peaso/checks/selected_configuration_content_observed_20261020.py and frontend/src/selectedConfigurationContentEvidence.ts"
+  },
+  "azure.review.machine_learning.selected_command_job_secret_indicators": {
+    "disposition": "explicit_selected_native_command_job_literals",
+    "source": "peaso/checks/azure_ml_selected_job_secret_review_20261020.py",
+    "source_sha256": "20536cbdc302fdbee0565304aca63314e9ada62c769e17e383b3c3dc00798bd1",
+    "predicate_function": "evaluate",
+    "predicate_sha256": "7e909531ec36b6406e5ab02be8ac6d96e4129f81f61abfd93d218a61532ecc69",
+    "interpretation": "Only returned Command-job literals are covered.",
+    "evidence_limit": "",
+    "fixture_source": "peaso/checks/azure_ml_job_secrets_admission_20261020_fixtures.json",
+    "branch_coverage": [
+      {
+        "status": "PASS"
+      },
+      {
+        "status": "FAIL"
+      },
+      {
+        "status": "UNKNOWN"
+      }
+    ],
+    "missing_fixtures": [],
+    "review_basis": "Actual native ARM HTTP fixtures through production selector/collector/public engine; no live Azure or execution proof."
+  },
+  "azure.review.databricks.selected_notebook_source_secret_indicators": {
+    "disposition": "explicit_selected_native_notebook_export",
+    "source": "peaso/checks/azure_databricks_notebook_secret_review_20261020.py",
+    "source_sha256": "ffba8f894df00f9d6d014a19a2fc03158e84363610266abbf171d4c878e2f7ec",
+    "predicate_function": "evaluate",
+    "predicate_sha256": "7e909531ec36b6406e5ab02be8ac6d96e4129f81f61abfd93d218a61532ecc69",
+    "interpretation": "Only the selected point-in-time notebook export is covered.",
+    "evidence_limit": "",
+    "fixture_source": "peaso/checks/azure_databricks_notebook_secrets_admission_20261020_fixtures.json",
+    "branch_coverage": [
+      {
+        "status": "PASS"
+      },
+      {
+        "status": "FAIL"
+      },
+      {
+        "status": "UNKNOWN"
+      }
+    ],
+    "missing_fixtures": [],
+    "review_basis": "Actual native ARM/workspace HTTP fixtures through production selector/collector/public engine; no live Azure, immutable revision or execution proof."
+  },
+  "azure.review.storage.blocking_sas_expiry_policy_declared": {
+    "disposition": "native_configured_blocking_expiry_declaration_only",
+    "source": "peaso/checks/azure_sas_expiry_policy_declaration_proposal_20261020.py",
+    "source_sha256": "3da44b2f1ce9727abb44b0b382bef83f01886244ce16a4c4b76fe91605e0748e",
+    "predicate_function": "evaluate",
+    "predicate_sha256": "04470589148bd1c953b09298cb5be03b0a4cac8b58b6d0ececb358eca6e53f11",
+    "interpretation": "This checks the declared policy, not issued tokens or SAS types exempt from its enforcement.",
+    "evidence_limit": "",
+    "fixture_source": "peaso/checks/azure_sas_expiry_policy_declaration_native_cases_20261020.json",
+    "branch_coverage": [
+      {
+        "status": "PASS"
+      },
+      {
+        "status": "FAIL"
+      },
+      {
+        "status": "UNKNOWN"
+      }
+    ],
+    "missing_fixtures": [],
+    "review_basis": "Independent native storage-account HTTP through existing collector/full-GET guard; source and token issuance are separate."
+  },
+  "azure.review.machine_learning.selected_environment_conda_secret_indicators": {
+    "disposition": "explicit_selected_native_ml_asset_text",
+    "source": "peaso/checks/azure_ml_selected_asset_secret_review_20261020.py",
+    "source_sha256": "4c66fc194c7c94537581f240ee6999ee87e6677c6deeb5e65b510c4eddf6f472",
+    "predicate_function": "environment",
+    "predicate_sha256": "78d781e5775ecff0443583146149f13e756fcdbbdef279e91d7749b417c2d097",
+    "interpretation": "Only returned inline Conda text is covered.",
+    "evidence_limit": "",
+    "fixture_source": "peaso/checks/azure_ml_asset_secrets_admission_20261020_fixtures.json",
+    "branch_coverage": [
+      {
+        "status": "PASS"
+      },
+      {
+        "status": "FAIL"
+      },
+      {
+        "status": "UNKNOWN"
+      }
+    ],
+    "missing_fixtures": [],
+    "review_basis": "Actual native ARM/storage fixtures and pinned offline detectors; live authorization and original/executed asset bytes are not established."
+  },
+  "azure.review.machine_learning.selected_code_file_secret_indicators": {
+    "disposition": "explicit_selected_native_ml_asset_text",
+    "source": "peaso/checks/azure_ml_selected_asset_secret_review_20261020.py",
+    "source_sha256": "4c66fc194c7c94537581f240ee6999ee87e6677c6deeb5e65b510c4eddf6f472",
+    "predicate_function": "code",
+    "predicate_sha256": "f5db45a7400a1097ac302cdb9026494a368b0f6a982ed4811f59481413ccbd5a",
+    "interpretation": "Only the selected captured code file is covered.",
+    "evidence_limit": "",
+    "fixture_source": "peaso/checks/azure_ml_asset_secrets_admission_20261020_fixtures.json",
+    "branch_coverage": [
+      {
+        "status": "PASS"
+      },
+      {
+        "status": "FAIL"
+      },
+      {
+        "status": "UNKNOWN"
+      }
+    ],
+    "missing_fixtures": [],
+    "review_basis": "Actual native ARM/storage fixtures and pinned offline detectors; live authorization and original/executed asset bytes are not established."
+  },
+  "azure.review.function.application_insights_setting_declared": {
+    "disposition": "explicit_selected_native_function_declaration",
+    "source": "peaso/checks/azure_function_settings_runtime_consumer_20261020.py",
+    "source_sha256": "411689c7e89c3f70baa29eb3a235b1ee0ecffbdb6d8fbc6b2543be269c23451c",
+    "predicate_function": "telemetry",
+    "predicate_sha256": "a624b52792064cae0f5be8aec78449ab413b711acf78a96ed765dbd4b53d7507",
+    "interpretation": "Only the selected Function configuration is assessed.",
+    "evidence_limit": "",
+    "fixture_source": "peaso/checks/azure_function_settings_runtime_cases_20261020.json",
+    "branch_coverage": [
+      {
+        "status": "PASS"
+      },
+      {
+        "status": "FAIL"
+      },
+      {
+        "status": "UNKNOWN"
+      }
+    ],
+    "missing_fixtures": [],
+    "review_basis": "Native exact-site settings reads through production hooks; stamped provenance checked before immutable predicate delegation. No actual telemetry or host-build assertion."
+  },
+  "azure.review.function.runtime_major4_update_channel_declared": {
+    "disposition": "explicit_selected_native_function_declaration",
+    "source": "peaso/checks/azure_function_settings_runtime_consumer_20261020.py",
+    "source_sha256": "411689c7e89c3f70baa29eb3a235b1ee0ecffbdb6d8fbc6b2543be269c23451c",
+    "predicate_function": "runtime",
+    "predicate_sha256": "b8b02ff29e3bfb5a5c63965c24e9a8939e8682c3fba4ba40d8323153bf4a4341",
+    "interpretation": "Only the selected Function configuration is assessed.",
+    "evidence_limit": "",
+    "fixture_source": "peaso/checks/azure_function_settings_runtime_cases_20261020.json",
+    "branch_coverage": [
+      {
+        "status": "PASS"
+      },
+      {
+        "status": "FAIL"
+      },
+      {
+        "status": "UNKNOWN"
+      }
+    ],
+    "missing_fixtures": [],
+    "review_basis": "Native exact-site settings reads through production hooks; stamped provenance checked before immutable predicate delegation. No actual telemetry or host-build assertion."
+  },
+  "azure.review.network.perimeter_association_enforced": {
+    "disposition": "native_owned_perimeter_or_query_cmk_declaration",
+    "source": "peaso/checks/azure_nsp_query_cmk_runtime_review_20261020.py",
+    "source_sha256": "f18440a1a6c796dcc2d97b4194497ecf4023d881c73371d8a737a8b89fc4891f",
+    "predicate_function": "nsp",
+    "predicate_sha256": "d964b3559f64793de8462f87de052f035ee05b8e15f4d0d803d649d369bb20d7",
+    "interpretation": "Only the declared Storage perimeter association is assessed.",
+    "evidence_limit": "",
+    "fixture_source": "peaso/checks/azure_nsp_query_cmk_production_cases_20261020.json",
+    "branch_coverage": [
+      {
+        "status": "PASS"
+      },
+      {
+        "status": "FAIL"
+      },
+      {
+        "status": "UNKNOWN"
+      }
+    ],
+    "missing_fixtures": [],
+    "review_basis": "Actual native subscription/association/profile/workspace/storage HTTP fixtures through public production capture; no effective traffic, key usability or cryptographic proof."
+  },
+  "azure.review.log_analytics.query_storage_cmk_declared": {
+    "disposition": "native_owned_perimeter_or_query_cmk_declaration",
+    "source": "peaso/checks/azure_nsp_query_cmk_runtime_review_20261020.py",
+    "source_sha256": "f18440a1a6c796dcc2d97b4194497ecf4023d881c73371d8a737a8b89fc4891f",
+    "predicate_function": "query",
+    "predicate_sha256": "6c50ec68e662d0a3a68ee84fbeb168eb21dd8f245f13f2dc0eef654711ebb574",
+    "interpretation": "Only existing Query-linked storage declarations are assessed.",
+    "evidence_limit": "",
+    "fixture_source": "peaso/checks/azure_nsp_query_cmk_production_cases_20261020.json",
+    "branch_coverage": [
+      {
+        "status": "PASS"
+      },
+      {
+        "status": "FAIL"
+      },
+      {
+        "status": "UNKNOWN"
+      },
+      {
+        "status": "NOT_APPLICABLE"
+      }
+    ],
+    "missing_fixtures": [],
+    "review_basis": "Actual native subscription/association/profile/workspace/storage HTTP fixtures through public production capture; no effective traffic, key usability or cryptographic proof."
+  },
+  "azure.review.function.selected_package_source_secret_indicators": {
+    "disposition": "accepted_local_bounded_native_review",
+    "source": "peaso/checks/azure_function_package_integrated_consumer_20261020.py",
+    "source_function": "evaluate",
+    "source_sha256": "277b1e6115a683b72c7fbcebbde6eb163dff34196359a61af0c1b78e05de1129",
+    "predicate_function": "evaluate",
+    "predicate_sha256": "ae05f3b71d98193ba7762e17c54f1fd80b34b0e88af84f5ec99768a484c25a4e",
+    "description_contract_sha256": "21bb71e39755f329957a4ef8b3130ab7b5e4ab9157c244a8cce56265c84353f0",
+    "kind": "azure_function_package_portable_20261020",
+    "category": "hardening",
+    "severity": "high",
+    "interpretation": "This covers stored ZIP text;",
+    "evidence_limit": "executed app bytes remain unknown.",
+    "uncertain_observation": "The selected configured package could not be completely read, identity-bound and scanned.",
+    "fixture_source": "peaso/checks/azure_function_package_integration_cases_20261020.json",
+    "branch_coverage": [
+      {
+        "status": "PASS",
+        "evidence_fields": [
+          "cloud_authenticity",
+          "complete",
+          "context_provenance",
+          "continuous_immutability",
+          "coverage",
+          "credential_validation",
+          "observed",
+          "parts",
+          "runtime_bytes",
+          "secret_leaks",
+          "selection_mode",
+          "snapshot_trust"
+        ],
+        "receipt": {
+          "path": "docs/check-review/azure-function-package-integrated-public-native-20261020.json",
+          "sha256": "15ea8c8f99c9cd96b163a1b971e3a960c597dfe3756f6b6a3fb21e8b92702157"
+        },
+        "record_path": [
+          "captures",
+          0,
+          "findings",
+          0
+        ],
+        "case": "native-pass",
+        "predicate_sha256": "ae05f3b71d98193ba7762e17c54f1fd80b34b0e88af84f5ec99768a484c25a4e"
+      },
+      {
+        "status": "FAIL",
+        "evidence_fields": [
+          "credential_validation",
+          "observed",
+          "package_source_assertions",
+          "secret_leaks"
+        ],
+        "receipt": {
+          "path": "docs/check-review/azure-function-package-integrated-public-native-20261020.json",
+          "sha256": "15ea8c8f99c9cd96b163a1b971e3a960c597dfe3756f6b6a3fb21e8b92702157"
+        },
+        "record_path": [
+          "captures",
+          1,
+          "findings",
+          0
+        ],
+        "case": "native-fail",
+        "predicate_sha256": "ae05f3b71d98193ba7762e17c54f1fd80b34b0e88af84f5ec99768a484c25a4e"
+      },
+      {
+        "status": "UNKNOWN",
+        "evidence_fields": [
+          "collection_status",
+          "reason",
+          "semantics"
+        ],
+        "receipt": {
+          "path": "docs/check-review/azure-function-package-integrated-public-native-20261020.json",
+          "sha256": "15ea8c8f99c9cd96b163a1b971e3a960c597dfe3756f6b6a3fb21e8b92702157"
+        },
+        "record_path": [
+          "captures",
+          2,
+          "findings",
+          0
+        ],
+        "case": "native-unknown-partial",
+        "predicate_sha256": "ae05f3b71d98193ba7762e17c54f1fd80b34b0e88af84f5ec99768a484c25a4e"
+      },
+      {
+        "status": "UNKNOWN",
+        "evidence_fields": [
+          "cloud_authenticity",
+          "complete",
+          "context_provenance",
+          "continuous_immutability",
+          "coverage",
+          "credential_validation",
+          "observed",
+          "reason",
+          "runtime_bytes",
+          "snapshot_trust"
+        ],
+        "receipt": {
+          "path": "docs/check-review/azure-function-package-integrated-public-native-20261020.json",
+          "sha256": "15ea8c8f99c9cd96b163a1b971e3a960c597dfe3756f6b6a3fb21e8b92702157"
+        },
+        "record_path": [
+          "captures",
+          2,
+          "findings",
+          1
+        ],
+        "case": "native-unknown-partial",
+        "predicate_sha256": "ae05f3b71d98193ba7762e17c54f1fd80b34b0e88af84f5ec99768a484c25a4e"
+      },
+      {
+        "status": "UNKNOWN",
+        "evidence_fields": [
+          "collection_status",
+          "reason",
+          "semantics"
+        ],
+        "receipt": {
+          "path": "docs/check-review/azure-function-package-integrated-public-native-20261020.json",
+          "sha256": "15ea8c8f99c9cd96b163a1b971e3a960c597dfe3756f6b6a3fb21e8b92702157"
+        },
+        "record_path": [
+          "captures",
+          3,
+          "findings",
+          0
+        ],
+        "case": "native-fail-partial",
+        "predicate_sha256": "ae05f3b71d98193ba7762e17c54f1fd80b34b0e88af84f5ec99768a484c25a4e"
+      },
+      {
+        "status": "FAIL",
+        "evidence_fields": [
+          "complete",
+          "coverage",
+          "credential_validation",
+          "observed",
+          "package_source_assertions",
+          "secret_leaks"
+        ],
+        "receipt": {
+          "path": "docs/check-review/azure-function-package-integrated-public-native-20261020.json",
+          "sha256": "15ea8c8f99c9cd96b163a1b971e3a960c597dfe3756f6b6a3fb21e8b92702157"
+        },
+        "record_path": [
+          "captures",
+          3,
+          "findings",
+          1
+        ],
+        "case": "native-fail-partial",
+        "predicate_sha256": "ae05f3b71d98193ba7762e17c54f1fd80b34b0e88af84f5ec99768a484c25a4e"
+      }
+    ],
+    "missing_fixtures": [],
+    "review_basis": "Exact current registered predicate and module bytes, nine retained native response cases, four actual public native captures and two-secret DTO evidence; controlled fake HTTPS with installed offline detectors, without live Azure authorization or credential validation.",
+    "review_receipt": "docs/check-review/azure-function-package-final-acceptance-20261020.json",
+    "native_review_receipt": {
+      "path": "docs/check-review/azure-function-package-head3-current-acceptance-20261020.json",
+      "sha256": "89266f0e8baf9e0ab42d285555ed45c2761ff4134f3ba8d072bf6828e1581d02"
+    },
+    "offline_context_provenance": "supplied_snapshot_assertions",
+    "offline_cloud_authenticity": "not_established",
+    "review_scope": "Supported text in the exact selected owned remote Blob ZIP configured by the selected Function/App Service site; executed or cached bytes and continuous immutability remain unknown."
   }
 }

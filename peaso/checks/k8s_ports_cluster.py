@@ -172,7 +172,9 @@ def network_namespace(query, direction, requires_deny):
             spec = get(row, "spec", dict)
             selector = get(spec, "podSelector", dict)
             types = get(spec, "policyTypes", list)
-            if direction not in types or selector != {}:
+            from .compliance_new_k8s import _selector_shape
+            _selector_shape(selector)
+            if direction not in types or selector.get("matchLabels") or selector.get("matchExpressions"):
                 continue
             rules = optional(spec, direction.lower(), [], list)
             if requires_deny and not rules:

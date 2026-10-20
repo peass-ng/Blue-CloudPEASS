@@ -1,0 +1,193 @@
+{
+  "gcp.review.dataproc.selected_job_referenced_source_secret_indicators": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "9c83fba4f3f25328d69ebe0b9471840eb12cae7c4f4368312e017ca59baf461b",
+    "summary": "Remove credential literals from the referenced source and rotate confirmed exposed credentials. Use supported secret references.",
+    "steps": [
+      "Remove credential literals from the selected source and use supported secret references.",
+      "Rotate exposed credentials and review their use."
+    ],
+    "caveats": [
+      "Only the captured referenced source is covered; original executed bytes were not established."
+    ],
+    "references": [
+      {
+        "title": "Dataproc source reference API",
+        "url": "https://docs.cloud.google.com/dataproc/docs/reference/rest/v1/projects.regions.jobs/get"
+      },
+      {
+        "title": "Cloud Storage object reads",
+        "url": "https://docs.cloud.google.com/storage/docs/json_api/v1/objects/get"
+      }
+    ],
+    "cli": []
+  },
+  "gcp.review.dataproc.selected_initialization_referenced_source_secret_indicators": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "cbada890726766e371aa83dd33cb2a90a5d5853dcc62e63fb9eeb52f13869fe0",
+    "summary": "Remove credential literals from the referenced source and rotate confirmed exposed credentials. Use supported secret references.",
+    "steps": [
+      "Remove credential literals from the selected source and use supported secret references.",
+      "Rotate exposed credentials and review their use."
+    ],
+    "caveats": [
+      "Only the captured referenced source is covered; original executed bytes were not established."
+    ],
+    "references": [
+      {
+        "title": "Dataproc source reference API",
+        "url": "https://docs.cloud.google.com/dataproc/docs/reference/rest/v1/projects.regions.jobs/get"
+      },
+      {
+        "title": "Cloud Storage object reads",
+        "url": "https://docs.cloud.google.com/storage/docs/json_api/v1/objects/get"
+      }
+    ],
+    "cli": []
+  },
+  "gcp.review.workbench.selected_referenced_source_secret_indicators_20261020": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "7f184921083aee909f93c17390f44e08ded2469f101dd0b222659e2f8534febd",
+    "summary": "Remove credential literals from the referenced source and rotate confirmed exposed credentials. Use supported secret references.",
+    "steps": [
+      "Remove credential literals from the selected source and use supported secret references.",
+      "Rotate exposed credentials and review their use."
+    ],
+    "caveats": [
+      "Only the captured current source is covered; cached or previously executed bytes were not established."
+    ],
+    "references": [
+      {
+        "title": "Workbench Instance API",
+        "url": "https://docs.cloud.google.com/gemini-enterprise-agent-platform/notebooks/workbench/reference/rest/v2/projects.locations.instances/get"
+      },
+      {
+        "title": "Cloud Storage object reads",
+        "url": "https://docs.cloud.google.com/storage/docs/json_api/v1/objects/get"
+      }
+    ],
+    "cli": []
+  },
+  "gcp.review.dataflow.selected_package_referenced_source_secret_indicators": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "2dd5358b16fe7661f464a64d74d5685ea4622e6dfd53e9a6221f22fe4fea79a2",
+    "summary": "Remove credential literals from the referenced source and rotate confirmed exposed credentials. Use supported secret references.",
+    "steps": [
+      "Remove credential literals from the selected source and use supported secret references.",
+      "Rotate exposed credentials and review their use."
+    ],
+    "caveats": [
+      "Only the captured referenced source is covered; originally executed bytes were not established."
+    ],
+    "references": [
+      {
+        "title": "Dataflow job API",
+        "url": "https://docs.cloud.google.com/dataflow/docs/reference/rest/v1b3/projects.locations.jobs/get"
+      },
+      {
+        "title": "Cloud Storage object reads",
+        "url": "https://docs.cloud.google.com/storage/docs/json_api/v1/objects/get"
+      }
+    ],
+    "cli": []
+  },
+  "gcp.review.batch.selected_mounted_script_source_secret_indicators": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "4055ab522de7828e8089485adcd2c78cacbee0249ed6e4b8c7d008739fa91b2c",
+    "summary": "Remove credential literals from the referenced source and rotate confirmed exposed credentials. Use supported secret references.",
+    "steps": [
+      "Remove credential literals from the selected source and use supported secret references.",
+      "Rotate exposed credentials and review their use."
+    ],
+    "caveats": [
+      "Only the captured referenced source is covered; originally executed bytes were not established."
+    ],
+    "references": [
+      {
+        "title": "Batch job API",
+        "url": "https://docs.cloud.google.com/batch/docs/reference/rest/v1/projects.locations.jobs/get"
+      },
+      {
+        "title": "Cloud Storage object reads",
+        "url": "https://docs.cloud.google.com/storage/docs/json_api/v1/objects/get"
+      }
+    ],
+    "cli": []
+  },
+  "gcp.review.workbench.terminal_access_disabled": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "a297f4d889d3ff9fa67563725a9c9eb8ff03e9e65a977c7a9234096985cd7162",
+    "summary": "Set notebook-disable-terminal to true in Workbench instance metadata.",
+    "steps": [
+      "Set notebook-disable-terminal to true in Workbench instance metadata.",
+      "Keep notebook service-account permissions limited to the workload."
+    ],
+    "caveats": [
+      "Kernel execution and other shell paths are outside this check."
+    ],
+    "references": [
+      {
+        "title": "Workbench metadata settings",
+        "url": "https://cloud.google.com/vertex-ai/docs/workbench/instances/manage-metadata"
+      }
+    ],
+    "cli": []
+  },
+  "gcp.review.workbench.file_download_disabled": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "77412310cbc697aa036c9b4afee2a627f47c1bdd6cdadc56ec7ce49aa88ec1d4",
+    "summary": "Set notebook-disable-downloads to true in Workbench instance metadata.",
+    "steps": [
+      "Set notebook-disable-downloads to true in Workbench instance metadata.",
+      "Use governed storage when sharing notebook results."
+    ],
+    "caveats": [
+      "Other transfer paths and effective DLP enforcement are not established."
+    ],
+    "references": [
+      {
+        "title": "Workbench metadata settings",
+        "url": "https://cloud.google.com/vertex-ai/docs/workbench/instances/manage-metadata"
+      }
+    ],
+    "cli": []
+  },
+  "gcp.review.workbench.auto_upgrade_schedule_declared": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "2ef8472dc2936d4d806fc91443bd677bf92a36b60f7914645199c3b5910247d9",
+    "summary": "Set a supported five-field GMT upgrade schedule in Workbench instance metadata.",
+    "steps": [
+      "Set a supported five-field GMT upgrade schedule in Workbench instance metadata.",
+      "Review upgrade eligibility and completion separately."
+    ],
+    "caveats": [
+      "Upgrade execution and patch status were not established."
+    ],
+    "references": [
+      {
+        "title": "Workbench metadata settings",
+        "url": "https://cloud.google.com/vertex-ai/docs/workbench/instances/manage-metadata"
+      }
+    ],
+    "cli": []
+  },
+  "gcp.review.cloudrun_job.declared_image_secret_indicators": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "5433d8c501f141f4b408eadd9d522dab08e60dee1f7bd5824aaeffd133d3d42a",
+    "summary": "Remove the secret from the image and rotate the affected credential.",
+    "steps": [
+      "Remove the secret from the image and rotate the affected credential.",
+      "Rebuild the image and update the Job to its corrected immutable image reference."
+    ],
+    "caveats": [
+      "Native Job and registry identity reads bind the selected captured image; executed workload bytes are not established."
+    ],
+    "references": [
+      {
+        "title": "Cloud Run Job reference",
+        "url": "https://cloud.google.com/run/docs/reference/rest/v2/projects.locations.jobs/get"
+      }
+    ],
+    "cli": []
+  }
+}

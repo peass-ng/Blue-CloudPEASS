@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "new_check_id": "azure.review.devops.visible_clone_urls_without_userinfo",
+  "predecessor_evaluators": {
+    "azure_application_gateway_11_5_1_1_1_f56bdc2": "bbaaf58793cd05f46381861b7c2ab941c736cb01fedeaba243924e05aa03f3d2",
+    "azure_application_gateway_app_http_logs_enabled_2de0361": "74dc3c707560306fc82c36bb37c10ff54147d7001b59f4c39d39adbdffe53558"
+  },
+  "sources": [
+    {
+      "path": "peaso/checks/azure_public_edge_config_review_20261020.py",
+      "sha256": "1e5f8ca3e560adbece0529428e945888789f729a6b71e99188053b92b5305263"
+    },
+    {
+      "path": "peaso/checks/azure_gateway_logging_review_20261020.py",
+      "sha256": "c6898ab3ad1145494615329dcc2d12d938a2a75f7d0332ce9ce413ac248c0c4b"
+    },
+    {
+      "path": "peaso/checks/azure_devops_visible_urls_review_20261020.py",
+      "sha256": "ad7cfe76a9b284f2934db24f7341048c563f69c7d6e5156573f2b24e15c059e5"
+    },
+    {
+      "path": "peaso/checks/compliance_new_sw22.py",
+      "sha256": "057db13f83616754b31441872d39589275031ac7bbe5dbc8071ae4d20f684fa6"
+    },
+    {
+      "path": "peaso/checks/compliance_new_sw33.py",
+      "sha256": "aee51ad51345776f5861f0f90e82d4bab862e00d41c0a017363df80404c48a15"
+    }
+  ],
+  "fixtures": {
+    "path": "peaso/checks/azure_edge_native_admission_20261020_fixtures.json",
+    "sha256": "2066f6210aa397d9280f78e797cec6b43ae15ae7064e49a3df3078a34a989677"
+  },
+  "review": "docs/check-review/azure-final-edge-native-closure-20261020.json",
+  "new_numbered_requirement_edges": 0
+}

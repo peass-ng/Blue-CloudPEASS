@@ -50,8 +50,8 @@ def capture(mode='good',**limits):
  ('good','PASS'),('disabled','FAIL'),('empty','NOT_APPLICABLE'),('private_lb','NOT_APPLICABLE'),
  ('get_etag_changed','PASS'),('inherited','UNKNOWN'),('missing_settings','UNKNOWN'),('missing_etag','UNKNOWN'),
  ('missing_ip_reference','UNKNOWN'),('duplicate_ip','UNKNOWN'),('duplicate_frontend','UNKNOWN'),
- ('foreign_frontend','UNKNOWN'),('foreign_parent','UNKNOWN'),('public_gateway','UNKNOWN'),('frontdoor','UNKNOWN'),
- ('profile','UNKNOWN'),('get_id_changed','UNKNOWN'),('denied_profiles','DENIED'),('partial_profiles','DENIED')])
+ ('foreign_frontend','UNKNOWN'),('foreign_parent','UNKNOWN'),('public_gateway','UNKNOWN'),('frontdoor','PASS'),
+ ('profile','PASS'),('get_id_changed','UNKNOWN'),('denied_profiles','DENIED'),('partial_profiles','DENIED')])
 def test_native_collection_signed_result(mode,expected):
     snap,status,api=capture(mode);assert status==expected
     if mode in {'good','disabled','get_etag_changed'}:

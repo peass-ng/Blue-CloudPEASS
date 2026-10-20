@@ -504,6 +504,10 @@ def test_hosted_second_role_same_account_skips_before_any_sts(sdk):
         "Arn": f"arn:aws:sts::{account}:assumed-role/RoleA/peaso-read-only",
         "UserId": "AROASAFEROLE12345678A:peaso-read-only"}, {})
     add("ec2").add_response("describe_vpcs", {"Vpcs": [{"VpcId": "vpc-role-a"}]}, {})
+    add("ec2").add_response("describe_vpc_attribute", {"VpcId": "vpc-role-a", "EnableDnsSupport": {"Value": True}},
+        {"VpcId": "vpc-role-a", "Attribute": "enableDnsSupport"})
+    add("ec2").add_response("describe_vpc_attribute", {"VpcId": "vpc-role-a", "EnableDnsHostnames": {"Value": True}},
+        {"VpcId": "vpc-role-a", "Attribute": "enableDnsHostnames"})
     snapshot = aws.collect({"provider": "aws", "scopes": [account],
         "auth": {"method": "task_role", "external_id": "peaso-server-only", "assume_roles": [first, second]},
         "options": {"hosted": True, "include_source_account": True, "regions": [REGION], "service_concurrency": 1}}, ["vpc"])
@@ -517,7 +521,7 @@ def test_hosted_second_role_same_account_skips_before_any_sts(sdk):
         "account": account, "role_arn": second, "status": "not_collected", "code": "duplicate_account_target",
         "error_code": "duplicate_account_target"}]
     assert len(snapshot["metadata"]["caller_identities"]) == 1
-    assert snapshot["metadata"]["calls"] == 6
+    assert snapshot["metadata"]["calls"] == 8
 
 
 def test_hosted_failed_first_role_allows_second_role_same_account(sdk):

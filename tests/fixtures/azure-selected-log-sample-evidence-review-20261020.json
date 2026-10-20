@@ -1,0 +1,222 @@
+{
+  "azure.review.log_analytics.selected_message_sample_secret_indicators": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "observed": "Both offline detectors completed without detecting a supported secret in the selected message sample. This result covers only the returned sample from the fixed preceding hour.",
+        "secret_leaks": [],
+        "complete": true,
+        "coverage": "selected_message_sample_only",
+        "window": {
+          "end": "2026-10-20T07:13:44.089216Z",
+          "start": "2026-10-20T06:13:44.089216Z"
+        },
+        "row_count": 1,
+        "row_limit": 100,
+        "table": "AppTraces",
+        "first_row_at": "2026-10-20T07:13:43.089216Z",
+        "last_row_at": "2026-10-20T07:13:43.089216Z",
+        "credential_validation": "not_attempted",
+        "whole_history_covered": false,
+        "parts": [
+          {
+            "bytes": 10,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ]
+          }
+        ]
+      },
+      "summary": "Both offline detectors found no supported secret in the selected Log Analytics message sample."
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "observed": "A likely secret was detected in the selected message sample. Its value is hidden and was not validated.",
+        "secret_leaks": [
+          {
+            "detectors": [
+              {
+                "engine": "kingfisher",
+                "rule": "betterleaks.github-pat"
+              },
+              {
+                "engine": "trufflehog",
+                "rule": "Github"
+              }
+            ],
+            "fingerprint": "6f46af20d9b8415b96b434534d5fff86e69af701629b1a81a8fb3237df3a92a2",
+            "locations": [
+              {
+                "line": 1,
+                "path": "azure_selected_workspace_log_sample:f168b4555a04aa95e43c4c3d623b83c1237e5850a869331147d7874d6ad12a96.sample_messages"
+              }
+            ]
+          }
+        ],
+        "complete": true,
+        "coverage": "selected_message_sample_only",
+        "window": {
+          "end": "2026-10-20T07:13:49.263670Z",
+          "start": "2026-10-20T06:13:49.263670Z"
+        },
+        "row_count": 1,
+        "row_limit": 100,
+        "table": "AppTraces",
+        "first_row_at": "2026-10-20T07:13:48.263670Z",
+        "last_row_at": "2026-10-20T07:13:48.263670Z",
+        "credential_validation": "not_attempted",
+        "whole_history_covered": false,
+        "parts": [
+          {
+            "bytes": 40,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ]
+          }
+        ]
+      },
+      "summary": "A likely secret was detected in the selected Log Analytics message sample. Its value is hidden and was not validated."
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "complete": false,
+        "coverage": "incomplete_selected_message_sample",
+        "whole_history_covered": false,
+        "observed": "The selected message sample was unavailable, empty, unbound or incompletely inspected. A clean sample result cannot be established."
+      },
+      "summary": "The selected message sample was unavailable, empty, unbound or incompletely inspected. A clean sample result cannot be established."
+    }
+  ],
+  "azure.review.application_insights.selected_trace_sample_secret_indicators": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "observed": "Both offline detectors completed without detecting a supported secret in the selected message sample. This result covers only the returned sample from the fixed preceding hour.",
+        "secret_leaks": [],
+        "complete": true,
+        "coverage": "selected_message_sample_only",
+        "window": {
+          "end": "2026-10-20T07:13:48.546705Z",
+          "start": "2026-10-20T06:13:48.546705Z"
+        },
+        "row_count": 1,
+        "row_limit": 100,
+        "table": "traces",
+        "first_row_at": "2026-10-20T07:13:47.546705Z",
+        "last_row_at": "2026-10-20T07:13:47.546705Z",
+        "credential_validation": "not_attempted",
+        "whole_history_covered": false,
+        "parts": [
+          {
+            "bytes": 10,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ]
+          }
+        ]
+      },
+      "summary": "Both offline detectors found no supported secret in the selected Application Insights trace sample."
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "observed": "A likely secret was detected in the selected message sample. Its value is hidden and was not validated.",
+        "secret_leaks": [
+          {
+            "detectors": [
+              {
+                "engine": "kingfisher",
+                "rule": "betterleaks.github-pat"
+              },
+              {
+                "engine": "trufflehog",
+                "rule": "Github"
+              }
+            ],
+            "fingerprint": "6f46af20d9b8415b96b434534d5fff86e69af701629b1a81a8fb3237df3a92a2",
+            "locations": [
+              {
+                "line": 1,
+                "path": "azure_selected_application_trace_sample:1f117f685d2156afcaf6352ea6b318482cdb3917b838d0dec9fe4ef25111c937.sample_messages"
+              }
+            ]
+          }
+        ],
+        "complete": true,
+        "coverage": "selected_message_sample_only",
+        "window": {
+          "end": "2026-10-20T07:13:50.711871Z",
+          "start": "2026-10-20T06:13:50.711871Z"
+        },
+        "row_count": 1,
+        "row_limit": 100,
+        "table": "traces",
+        "first_row_at": "2026-10-20T07:13:49.711871Z",
+        "last_row_at": "2026-10-20T07:13:49.711871Z",
+        "credential_validation": "not_attempted",
+        "whole_history_covered": false,
+        "parts": [
+          {
+            "bytes": 40,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ]
+          }
+        ]
+      },
+      "summary": "A likely secret was detected in the selected Application Insights trace sample. Its value is hidden and was not validated."
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "complete": false,
+        "coverage": "incomplete_selected_message_sample",
+        "whole_history_covered": false,
+        "observed": "The selected message sample was unavailable, empty, unbound or incompletely inspected. A clean sample result cannot be established."
+      },
+      "summary": "The selected message sample was unavailable, empty, unbound or incompletely inspected. A clean sample result cannot be established."
+    }
+  ]
+}

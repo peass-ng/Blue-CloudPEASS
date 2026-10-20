@@ -36,9 +36,22 @@ ACCOUNT = deployment.value("account_id")
 REPOSITORY = f"{ACCOUNT}.dkr.ecr.us-east-1.amazonaws.com/hacktricks-cspm-worker"
 ZERO_IMAGE = REPOSITORY + "@sha256:" + "0" * 64
 CUSTOMER_ROLE_DOWNLOAD_KEY = "aws/customer-role.json"
+# Immutable data consumed by the source-bound native registry at import time.
+RUNTIME_ADMISSION_INPUTS = {
+    "tests/fixtures/azure_nsp_query_cmk_metadata_proposal_20261020.json.gz":
+        "a478816f3f9d0a6a732d1ff80b61cd80779e01e36172bda3a36f4fac16417fac",
+    "tests/fixtures/azure_nsp_query_cmk_runtime_native_20261020.json.gz":
+        "2d7c24828dbc5d22de6a68c96668e87db1c9fdaec01419eaf5b25219b5ef50a5",
+    "tests/fixtures/azure_nsp_query_cmk_production_native_20261020.json.gz":
+        "be06f6b6fc2ebe96a8c9da2138eaaea941e9a2e266432e45a9e253bc24f2558a",
+    "tests/fixtures/azure_sql_tde_parent_identity_predecessor_20261020.json.gz":
+        "ea4125608adcffd7ef148a40620dd1130afab7fb4ff27e5d08a6215834ef6af7",
+}
 # Exact public inputs needed to reproduce the shipped compiler, provenance and
 # tests. Explicit paths/globs only: no .work drafts, caches or private files.
 REPRODUCTION_INPUT_PATTERNS = (
+    *RUNTIME_ADMISSION_INPUTS,
+    "tests/test_provider_container_admission_inputs_20261020.py",
     "docs/evidence-reviews/*.json", "docs/finding-groups.md", "docs/check-scope-review.csv",
     "scripts/audit_observed_evidence.py", "scripts/sync_evidence_explanation_copy.py",
     "tests/test_gcp_evidence_explanations_review.py",
@@ -281,6 +294,17 @@ def verify_frozen_permissions(snapshot, names):
             raise RuntimeError(f"Frozen public source has nonportable permissions: {path}")
 
 
+def runtime_admission_data(files):
+    """Require the immutable data whenever its native registry consumer ships."""
+    present = {name: files[name] for name in RUNTIME_ADMISSION_INPUTS if name in files}
+    consumer = "peaso/checks/azure_nsp_query_cmk_production_tde_successor_20261020.py"
+    if consumer in files and set(present) != set(RUNTIME_ADMISSION_INPUTS):
+        raise RuntimeError("Frozen source omits required runtime admission inputs")
+    if any(digest != RUNTIME_ADMISSION_INPUTS[name] for name, digest in present.items()):
+        raise RuntimeError("Frozen runtime admission input hash changed")
+    return present
+
+
 def source_root():
     snapshot = generated_path("source-snapshot")
     manifest_path = checked_member(snapshot, "release.json")
@@ -292,6 +316,7 @@ def source_root():
         raise RuntimeError("Release manifest and source snapshot differ; freeze again")
     if not any(name.startswith("peaso/privesc/") for name in release["files"]):
         raise RuntimeError("Release must include the complete supplied peaso/privesc package")
+    runtime_admission_data(release["files"])
     verify_frozen_permissions(snapshot, ["release.json", *release["files"]])
     for name, expected in release["files"].items():
         path = checked_member(snapshot, name)
@@ -411,6 +436,7 @@ def freeze_release(release_source=None):
             raise RuntimeError("The private identifier list must remain outside public source")
         check_sources(source, identifier_file)
     manifest = {name: hashlib.sha256(value).hexdigest() for name, value in source.items()}
+    runtime_admission_data(manifest)
     version = hashlib.sha256(json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     release = {"source_version": version, "source_url": f"https://cspm.hacktricks.wiki/source/peaso-source-{version}.zip",
                "license": "AGPL-3.0", "files": manifest}
@@ -463,10 +489,11 @@ def verify_api_source():
     """Verify portable ZIP/staging permissions and complete frozen runtime source."""
     source_root()
     release = json.loads((BUILD / "release.json").read_text())
+    admission_data = runtime_admission_data(release["files"])
     runtime_files = {name: digest for name, digest in release["files"].items()
                      if name.startswith(("peaso/", "risk_rules/")) or name in {
                          "bluepeass/__init__.py", "bluepeass/k8s.py", "bluepeass/k8s_risks.py",
-                         "scripts/cloud_permission_risks.py"}}
+                         "scripts/cloud_permission_risks.py"} or name in admission_data}
     target = generated_path("api-package")
     entries = verify_public_tree(target)
     staged = {path.relative_to(target).as_posix(): path for path in entries if path.is_file()}
@@ -551,6 +578,8 @@ def omit_empty_api_installation_markers(target):
 def package_api():
     import shutil
     source = source_root()
+    release_path = BUILD / "release.json"
+    admission_data = runtime_admission_data(json.loads(release_path.read_text())["files"]) if release_path.is_file() else {}
     target = generated_path("api-package")
     package = generated_path("api.zip")
     BUILD.mkdir(parents=True, exist_ok=True)
@@ -570,7 +599,7 @@ def package_api():
         print(f"Omitted {len(omitted)} optional empty API installation markers")
     shutil.copytree(source / "peaso", target / "peaso", ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
     shutil.copytree(source / "risk_rules", target / "risk_rules", ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
-    for name in ["bluepeass/__init__.py", "bluepeass/k8s.py", "bluepeass/k8s_risks.py", "scripts/cloud_permission_risks.py"]:
+    for name in ["bluepeass/__init__.py", "bluepeass/k8s.py", "bluepeass/k8s_risks.py", "scripts/cloud_permission_risks.py", *admission_data]:
         destination = target / name
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source / name, destination)
@@ -603,7 +632,7 @@ def build_worker(tag):
     run(["docker", "build", "--platform", "linux/amd64", "-f", context / "infra/aws/Dockerfile.worker",
          "--label", f"org.opencontainers.image.revision={release['source_version']}",
          "-t", f"peaso-worker:{tag}", context])
-    code = """
+    code = "RUNTIME_ADMISSION_INPUTS = " + repr(RUNTIME_ADMISSION_INPUTS) + "\n" + """
 import hashlib,json,os
 from pathlib import Path
 from peaso.engine import get_catalog
@@ -612,7 +641,7 @@ assert os.getuid()==10001 and os.getgid()==10001
 release=json.loads(Path('/release.json').read_text())
 count=0
 for name,digest in release['files'].items():
-    if name.startswith(('peaso/','risk_rules/')) or name in {'bluepeass/__init__.py','bluepeass/k8s.py','bluepeass/k8s_risks.py','scripts/cloud_permission_risks.py'}:
+    if name.startswith(('peaso/','risk_rules/')) or name in {'bluepeass/__init__.py','bluepeass/k8s.py','bluepeass/k8s_risks.py','scripts/cloud_permission_risks.py'} or name in RUNTIME_ADMISSION_INPUTS:
         path=Path('/app')/name
         assert path.is_file() and hashlib.sha256(path.read_bytes()).hexdigest()==digest,name
         count+=1

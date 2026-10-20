@@ -152,8 +152,9 @@ def test_parser_rejects_malformed():
 ROUTE_ID = METRIC_IDS["route_changes"]
 LOCAL = {"name": "projects/123", "projectId": "p", "_ancestry": [{"resourceId": {"type": "project", "id": "p"}}]}
 ORG = {**LOCAL, "_ancestry": LOCAL["_ancestry"] + [{"resourceId": {"type": "organization", "id": "9"}}]}
-METRIC = {"name": "projects/p/metrics/m", "filter": CIS_FILTERS["route_changes"], "metricDescriptor": {"type": "logging.googleapis.com/user/m"}}
-THRESHOLD = {"conditionThreshold": {"filter": 'metric.type="logging.googleapis.com/user/m" resource.type="global"'}}
+METRIC = {"name": "projects/p/metrics/m", "filter": CIS_FILTERS["route_changes"], "metricDescriptor": {"type": "logging.googleapis.com/user/m", "metricKind": "DELTA", "valueType": "INT64"}}
+THRESHOLD = {"conditionThreshold": {"filter": 'metric.type="logging.googleapis.com/user/m" resource.type="gce_route"',
+    "comparison": "COMPARISON_GT", "thresholdValue": 0, "duration": "0s"}}
 ALERT = {"name": "projects/p/alertPolicies/a", "enabled": True, "notificationChannels": ["projects/p/notificationChannels/1"],
          "conditions": [THRESHOLD]}
 CHANNEL = {"name": "projects/p/notificationChannels/1", "type": "email", "enabled": True}
@@ -229,8 +230,10 @@ def test_metrics_in_other_projects_are_ignored():
 
 def test_custom_role_variants_differ_on_undelete():
     three = {**METRIC, "filter": CIS_FILTERS["custom_role_changes"]}
-    assert run(METRIC_IDS["custom_role_changes"], LOCAL, index(metrics=[three])) == "PASS"
-    assert run(METRIC_IDS["custom_role_changes_with_undelete"], LOCAL, index(metrics=[three])) == "MANUAL"
+    role_alert = {**ALERT, "conditions": [{"conditionThreshold": {**THRESHOLD["conditionThreshold"],
+        "filter": THRESHOLD["conditionThreshold"]["filter"].replace("gce_route", "iam_role")}}]}
+    assert run(METRIC_IDS["custom_role_changes"], LOCAL, index(metrics=[three], alerts=[role_alert])) == "PASS"
+    assert run(METRIC_IDS["custom_role_changes_with_undelete"], LOCAL, index(metrics=[three], alerts=[role_alert])) == "MANUAL"
 
 
 # --- 2.2 sinks ------------------------------------------------------------------------------------------------

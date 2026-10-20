@@ -200,17 +200,17 @@ def test_hosted_validation_rejects_non_boolean_aws_option(value, auth_mode):
     with pytest.raises(HTTPException) as caught:
         validate_connector('aws', {}, {'content_secret_scans': value}, SimpleNamespace(auth_mode=auth_mode))
     assert caught.value.status_code == 422
-    assert caught.value.detail == 'content_secret_scans must be an AWS or GCP boolean option'
+    assert caught.value.detail == 'content_secret_scans must be a supported provider boolean option'
 
 
-@pytest.mark.parametrize('provider', ['azure', 'k8s'])
+@pytest.mark.parametrize('provider', ['local', 'unsupported'])
 @pytest.mark.parametrize('enabled', [True, False])
 @pytest.mark.parametrize('auth_mode', ['local', 'cognito'])
 def test_hosted_validation_rejects_option_on_unsupported_providers(provider, enabled, auth_mode):
     with pytest.raises(HTTPException) as caught:
         validate_connector(provider, {}, {'content_secret_scans': enabled}, SimpleNamespace(auth_mode=auth_mode))
     assert caught.value.status_code == 422
-    assert caught.value.detail == 'content_secret_scans must be an AWS or GCP boolean option'
+    assert caught.value.detail == 'content_secret_scans must be a supported provider boolean option'
 
 
 def test_hosted_rejects_spoofed_internal_selection_even_for_valid_aws_flag():

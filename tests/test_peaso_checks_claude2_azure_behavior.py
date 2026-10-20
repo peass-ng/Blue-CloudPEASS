@@ -7,6 +7,7 @@ import peaso.checks.claude2_azure  # noqa: F401
 from peaso.checks import CHECKS
 from peaso.checks.claude2_azure_common import CHECK_IDS, SCOPE, cid, scope_index
 from peaso.checks.fixtures import CASES
+from tests.azure_native_successor_inputs_20261020 import current_cases
 
 REGISTRY = {check.id: check for check in CHECKS}
 EXPECTED_EXTRA = {"na": "NOT_APPLICABLE", "unset": "UNKNOWN"}
@@ -20,12 +21,12 @@ def run(check_id, item, index=None):
 
 
 def case(slug):
-    return copy.deepcopy(CASES[cid(slug)])
+    return current_cases(cid(slug), CASES[cid(slug)])
 
 
 @pytest.mark.parametrize("check_id", CHECK_IDS)
 def test_pass_fail_unknown_and_extras(check_id):
-    cases = CASES[check_id]
+    cases = current_cases(check_id, CASES[check_id])
     assert run(check_id, cases["pass"], cases.get("pass_index")) == "PASS"
     assert run(check_id, cases["fail"], cases.get("fail_index")) == "FAIL"
     for unknown in ({}, None, {"collection_status": "denied"}):
@@ -116,6 +117,11 @@ def test_app_gateway_tls_policy_variants():
     slug = cid("app_gateway_min_tls_12")
     gateway = case("app_gateway_min_tls_12")["pass"]
     gateway["properties"]["sslPolicy"] = None
+    # An omitted explicit policy does not establish the platform default.
+    assert run(slug, gateway) == "UNKNOWN"
+    gateway["properties"]["defaultPredefinedSslPolicy"] = "AppGwSslPolicy20150501"
+    assert run(slug, gateway) == "FAIL"
+    gateway["properties"]["defaultPredefinedSslPolicy"] = "AppGwSslPolicy20220101"
     assert run(slug, gateway) == "PASS"
     gateway["properties"]["sslPolicy"] = {"policyType": "Predefined", "policyName": "AppGwSslPolicy20150501"}
     assert run(slug, gateway) == "FAIL"
@@ -161,11 +167,14 @@ def test_nsg_flow_log_configured_is_coverage_aware():
 
 
 def test_nsg_log_analytics_accepts_vnet_traffic_analytics():
-    from peaso.checks.claude2_azure_network import _flow_log, VNET_ID, RG
+    from peaso.checks.claude2_azure_network import _flow_log, VNET_ID, NSG_ID, RG
     slug = cid("nsg_flow_logs_to_log_analytics")
 
     def flows(*logs):
-        return scope_index({"flow_log": list(logs), "nsg": [{"id": RG + "networkSecurityGroups/n"}], "vnet": []})
+        index = scope_index({"flow_log": list(logs), "nsg": [{"id": NSG_ID}],
+                             "vnet": [{"id": VNET_ID}], "nic": [{"id": RG + "networkInterfaces/nic1"}]})
+        index['context'] = {'scope': VNET_ID.split('/resourceGroups/')[0]}
+        return index
     assert run(slug, SCOPE, flows(_flow_log(VNET_ID))) == "PASS"
     assert run(slug, SCOPE, flows(_flow_log())) == "PASS"
     assert run(slug, SCOPE, flows(_flow_log(RG + "networkInterfaces/nic1"))) == "PASS"

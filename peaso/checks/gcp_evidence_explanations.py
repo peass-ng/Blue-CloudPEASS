@@ -30,7 +30,28 @@ def _values(values):
 
 
 def _observation(cid, e):
+    if cid == 'gcp_cloud_armor_waf_enabled' and e.get('__status') == 'PASS':
+        priorities = e.get('waf_rule_priorities')
+        backends = e.get('external_backends')
+        if (isinstance(e.get('policy'), str) and isinstance(backends, list) and backends
+                and all(isinstance(v, str) and v for v in backends)
+                and isinstance(priorities, list) and priorities
+                and all(type(v) is int and 0 <= v < 2147483647 for v in priorities)):
+            return 'The attached external-backend policy declares an enforced preconfigured WAF deny rule.'
+        return None
     spec = CATALOG[cid]
+    if cid in ('gcp.review.cloudtasks.selected_payload_secret_indicators', 'gcp.review.bigquery.selected_routine_secret_indicators'):
+        leaks = e.get('secret_leaks')
+        if (e.get('complete') is not True or e.get('coverage') != 'selected_observed_content_only'
+                or e.get('credential_validation') != 'not_attempted' or not isinstance(leaks, list)
+                or not isinstance(e.get('parts'), list) or not e['parts']):
+            return None
+        status = e.get('__status')
+        if (status == 'FAIL') != bool(leaks):
+            return None
+        subject = 'selected task body and headers' if '.cloudtasks.' in cid else 'selected routine definition'
+        return ('A likely secret was detected in the ' + subject + '.' if leaks else
+                'Both offline detectors found no supported secret in the ' + subject + '.')
     if cid == 'gcp.review.sourcerepo.selected_file_secret_indicators':
         if (e.get('coverage') != 'selected_files_at_advertised_commit_only'
                 or e.get('complete') is not True or not isinstance(e.get('secret_leaks'), list)
@@ -339,6 +360,10 @@ def _observation(cid, e):
 def evidence_summary(finding):
     if not isinstance(finding, dict) or finding.get('provider') != 'gcp':
         return None
+    from .gcp_cloudrun_job_image_observed_20261020 import observation as job_image_observation
+    job_image = job_image_observation(finding)
+    if job_image:
+        return job_image
     cid, status, evidence = finding.get('check_id'), finding.get('status'), finding.get('evidence')
     if not isinstance(cid, str) or cid not in CATALOG or not isinstance(evidence, dict):
         return None
@@ -354,7 +379,16 @@ def evidence_summary(finding):
                            'NOT_APPLICABLE': 'The recorded resource is outside this check’s evaluated scope.',
                            'EMPTY': 'No applicable resources were recorded in the assessed scope.'}[status]
     elif status in {'PASS', 'FAIL'}:
-        observation = _observation(CATALOG[cid].get('alias_of', cid), dict(evidence, __status=status))
+        from .gcp_workbench_head3_observed_20261020 import observation as head3
+        configured = head3(finding)
+        if configured:
+            return reviewed_explanation(cid, configured, status)
+        from .public_source_secret_observed_20261020 import observation as public_source
+        grouped = public_source(finding)
+        if grouped:
+            return grouped
+        from .selected_configuration_content_observed_20261020 import observation as selected_observation
+        observation = selected_observation(finding) or _observation(CATALOG[cid].get('alias_of', cid), dict(evidence, __status=status))
         if not observation:
             # The absence is stated explicitly. A result must not become an
             # invented setting simply because a legacy evaluator omitted it.

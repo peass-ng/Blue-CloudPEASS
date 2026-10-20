@@ -4,6 +4,8 @@ from functools import lru_cache
 import json
 from pathlib import Path
 
+_UNSUPPORTED_DISPOSITIONS = frozenset({'unsupported_exact_contract', 'retired_native_service', 'superseded_native_criterion'})
+
 
 @lru_cache(maxsize=1)
 def exclusions():
@@ -36,7 +38,7 @@ def automated_frameworks(rows):
         row["native_check_ids"] = [ident for ident in original if ident not in excluded]
         row["supported_native_checks"] = len(row["native_check_ids"])
         removed = set(original).intersection(excluded)
-        unsupported = {cid for cid in removed if excluded[cid].get('disposition') == 'unsupported_exact_contract'}
+        unsupported = {cid for cid in removed if excluded[cid].get('disposition') in _UNSUPPORTED_DISPOSITIONS}
         row["excluded_custom_checks"] = len(removed - unsupported)
         if unsupported:
             row['excluded_unsupported_checks'] = len(unsupported)
@@ -46,7 +48,7 @@ def automated_frameworks(rows):
 
 
 def scope():
-    unsupported = sum(entry.get('disposition') == 'unsupported_exact_contract' for entry in exclusions().values())
+    unsupported = sum(entry.get('disposition') in _UNSUPPORTED_DISPOSITIONS for entry in exclusions().values())
     return {"mode": "provider_read_only", "manual_attestations": False,
             "excluded_custom_controls": len(exclusions()) - unsupported,
             **({'excluded_unsupported_controls': unsupported} if unsupported else {})}

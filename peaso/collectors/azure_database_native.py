@@ -45,7 +45,9 @@ def collect(reader,request,scopes,wanted,options=None):
     if not isinstance(rid,str) or any(part in ('.','..') for part in rid.split('/')) or any(ord(c)<33 for c in rid) or not re.fullmatch(re.escape(scope)+r'/resourceGroups/[^/?#%]+/providers/'+re.escape(provider)+r'/[^/?#%]+',rid,re.I):
      raise ValueError('foreign native database identity')
     raw=reader.call(request,ARM+rid+'?api-version='+version)
-    if not isinstance(raw,dict) or str(raw.get('id','')).casefold()!=rid.casefold() or not isinstance(raw.get('properties'),dict):
+    if (not isinstance(raw,dict) or str(raw.get('id','')).casefold()!=rid.casefold() or not isinstance(raw.get('properties'),dict)
+        or 'type' in raw and str(raw['type']).casefold()!=provider.casefold()
+        or 'name' in raw and str(raw['name']).casefold()!=rid.rsplit('/',1)[-1].casefold()):
      raise ValueError('native database GET identity unavailable')
     native={key:copy.deepcopy(value) for key,value in raw['properties'].items() if key in ('publicNetworkAccess','network','authConfig')}
     # These fields are documented structural enums and ARM IDs, never secrets.
@@ -64,7 +66,9 @@ def collect(reader,request,scopes,wanted,options=None):
       for page in reader.pages(request,ARM+rid+'/'+segment+'?api-version='+version):
        safe=[]
        for row in page:
-        if not isinstance(row,dict) or not isinstance(row.get('id'),str) or any(part in ('.','..') for part in row['id'].split('/')) or any(ord(c)<33 for c in row['id']) or not re.fullmatch(re.escape(rid)+'/'+segment+r'/[^/?#%]+',row['id'],re.I) or row['id'].casefold() in seen or not isinstance(row.get('properties'),dict):
+        if (not isinstance(row,dict) or not isinstance(row.get('id'),str) or any(part in ('.','..') for part in row['id'].split('/')) or any(ord(c)<33 for c in row['id']) or not re.fullmatch(re.escape(rid)+'/'+segment+r'/[^/?#%]+',row['id'],re.I) or row['id'].casefold() in seen or not isinstance(row.get('properties'),dict)
+            or 'type' in row and str(row['type']).casefold()!=(provider+'/'+segment).casefold()
+            or 'name' in row and str(row['name']).casefold() not in (row['id'].rsplit('/',1)[-1].casefold(),'/'.join(re.split('/providers/',row['id'],flags=re.I)[-1].split('/')[2::2]).casefold())):
          raise ValueError('foreign or duplicate native database child')
         seen.add(row['id'].casefold());props=row['properties']
         keep=('startIpAddress','endIpAddress')if segment=='firewallRules'else('sid','objectId','administratorType','tenantId','identityResourceId','principalType')

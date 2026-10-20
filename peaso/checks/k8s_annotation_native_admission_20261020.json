@@ -1,0 +1,649 @@
+{
+  "callables": [
+    {
+      "module": "peaso.checks.k8s_annotation_indicators_review_20261020",
+      "proof": {
+        "closure": {},
+        "code_sha256": "25fe6d27981a51ccb3d437229ae6fa9359534c778b3d176905eb972b0a67183a",
+        "globals_module": "peaso.checks.k8s_annotation_indicators_review_20261020",
+        "path": "peaso/checks/k8s_annotation_indicators_review_20261020.py",
+        "qualname": "evaluate",
+        "source_sha256": "92d2cf9bf9c2399820871fbee2c93626139f5d37fd07766868ee6701192605a1"
+      },
+      "symbol": "evaluate"
+    },
+    {
+      "module": "peaso.checks.k8s_annotation_indicators_review_20261020",
+      "proof": {
+        "closure": {},
+        "code_sha256": "223da9e935a8ac8495395b99a9e0327b74acf9d7adbf1267f7486057172a2b14",
+        "globals_module": "peaso.checks.k8s_annotation_indicators_review_20261020",
+        "path": "peaso/checks/k8s_annotation_indicators_review_20261020.py",
+        "qualname": "_native_flags",
+        "source_sha256": "dac719c91117c179597e8c0812fbc54bf3d546b2329da6074a7ebefc0d8f4d14"
+      },
+      "symbol": "_native_flags"
+    },
+    {
+      "module": "peaso.checks.k8s_annotation_indicators_review_20261020",
+      "proof": {
+        "closure": {},
+        "code_sha256": "ab041eed9d5318f06ea4552d8019d919a359b21c0c481286e9dcb7a73e1408e4",
+        "globals_module": "peaso.checks.k8s_annotation_indicators_review_20261020",
+        "path": "peaso/checks/k8s_annotation_indicators_review_20261020.py",
+        "qualname": "evaluate_for",
+        "source_sha256": "ff1adf852d878c988b2425f99dce59058750c6d1165567479d3e3786bb22bc10"
+      },
+      "symbol": "evaluate_for"
+    },
+    {
+      "module": "peaso.collectors.k8s_annotation_indicators_20261020",
+      "proof": {
+        "closure": {},
+        "code_sha256": "4793656d5402a8db1118959dc650b438f27df2d0b0673bee87e0a9d40d090971",
+        "globals_module": "peaso.collectors.k8s_annotation_indicators_20261020",
+        "path": "peaso/collectors/k8s_annotation_indicators_20261020.py",
+        "qualname": "digest",
+        "source_sha256": "900d505f9d13249fb8b19b6efb869c6f83f7af2d4bfc721d73dce7822fe97390"
+      },
+      "symbol": "digest"
+    },
+    {
+      "module": "peaso.collectors.k8s_annotation_indicators_20261020",
+      "proof": {
+        "closure": {},
+        "code_sha256": "746ca1d010f9d72b781a1ae1438e75943972f8dbbeab587d82bacc47b0cd12b1",
+        "globals_module": "peaso.collectors.k8s_annotation_indicators_20261020",
+        "path": "peaso/collectors/k8s_annotation_indicators_20261020.py",
+        "qualname": "identity",
+        "source_sha256": "009b14a16e2a5a2a642ffe090d4e75b8a694aac7e08ba9472ed380cc6fa1141e"
+      },
+      "symbol": "identity"
+    },
+    {
+      "module": "peaso.collectors.k8s_annotation_indicators_20261020",
+      "proof": {
+        "closure": {},
+        "code_sha256": "8c93b402ef8cc8d9656d1e0476b7dff02dd31da0b050625faefa2bf4e24dce74",
+        "globals_module": "peaso.collectors.k8s_annotation_indicators_20261020",
+        "path": "peaso/collectors/k8s_annotation_indicators_20261020.py",
+        "qualname": "project",
+        "source_sha256": "93d5d28fac4b5c1d2fe24ea80d418148557605edb879d0dd297f585adca4ec9b"
+      },
+      "symbol": "project"
+    },
+    {
+      "module": "peaso.collectors.k8s_annotation_indicators_20261020",
+      "proof": {
+        "closure": {},
+        "code_sha256": "a786bd4e33253c194109774b53ae3c434e13dc896a30f34a30a7cac1a0a6c3b7",
+        "globals_module": "peaso.collectors.k8s_annotation_indicators_20261020",
+        "path": "peaso/collectors/k8s_annotation_indicators_20261020.py",
+        "qualname": "collection_context",
+        "source_sha256": "deb1b97eabb4178205ab404a0b96dc50dfe53a6b0e9796cd9746c4b32a114e81"
+      },
+      "symbol": "collection_context"
+    },
+    {
+      "module": "peaso.collectors.k8s_annotation_indicators_20261020",
+      "proof": {
+        "closure": {},
+        "code_sha256": "1947382c575e02828c61c2c2c5cd645010d850ea3d2e85a0076356283347af8b",
+        "globals_module": "peaso.collectors.k8s_annotation_indicators_20261020",
+        "path": "peaso/collectors/k8s_annotation_indicators_20261020.py",
+        "qualname": "pages",
+        "source_sha256": "8e2f94b71d29007b1e5fe696f52ebf981a2c268ff06b54ae3c928ff2bad907fc"
+      },
+      "symbol": "pages"
+    },
+    {
+      "module": "peaso.collectors.k8s",
+      "proof": {
+        "closure": {},
+        "code_sha256": "82c70977ecd2f42ea671913fdea7a850f1d966ebad04d8a153ef24c0c45a974c",
+        "globals_module": "peaso.collectors.k8s",
+        "path": "peaso/collectors/k8s.py",
+        "qualname": "_sanitize",
+        "source_sha256": "235505cc366adf66cb10ef7716d5b35ed5686ee27d42ae9b4f8bfb559955ced8"
+      },
+      "symbol": "_sanitize"
+    },
+    {
+      "module": "peaso.collectors.k8s",
+      "proof": {
+        "closure": {},
+        "code_sha256": "d7a1fb183bba280a3f0d1f7a9a50c54893b98dfc8c47f1debdb7fdf109e6fe71",
+        "globals_module": "peaso.collectors.k8s",
+        "path": "peaso/collectors/k8s.py",
+        "qualname": "_native",
+        "source_sha256": "478dc46059032af1e575d4d38ce0056e86bffc0e9164a5cba076acf9663271a2"
+      },
+      "symbol": "_native"
+    },
+    {
+      "module": "peaso.collectors.k8s",
+      "proof": {
+        "closure": {},
+        "code_sha256": "e1adc7d9fd06196207eb97dd0b7489ed17160695181800207a07bb7e37b9114e",
+        "globals_module": "peaso.collectors.k8s",
+        "path": "peaso/collectors/k8s.py",
+        "qualname": "_pages",
+        "source_sha256": "34ee190296b6dc7052ed75b168accc0f560dd4222b609cbaddce356b5637598f"
+      },
+      "symbol": "_pages"
+    },
+    {
+      "module": "peaso.collectors.k8s",
+      "proof": {
+        "closure": {},
+        "code_sha256": "7546b8053a930a84310ee9042a3ff645a2702e53ef728bd32afc443226d47753",
+        "globals_module": "peaso.collectors.k8s",
+        "path": "peaso/collectors/k8s.py",
+        "qualname": "collect",
+        "source_sha256": "b671e2a49a9208ffd7c4c6bde9956866001e3152d6f90bdc716cbba80bee631b"
+      },
+      "symbol": "collect"
+    },
+    {
+      "module": "peaso.engine",
+      "proof": {
+        "closure": {},
+        "code_sha256": "538cfb5c878475015f6f1baf21825a36cbfffb245d9496d2139b1b18a2d459bf",
+        "globals_module": "peaso.engine",
+        "path": "peaso/engine.py",
+        "qualname": "plan_collection",
+        "source_sha256": "f0d10ca0a0fe11cbb9e0e2eb8ea60ac8e1c6785d19aabd20d18f284cee17e028"
+      },
+      "symbol": "plan_collection"
+    },
+    {
+      "module": "peaso.checks.facts",
+      "proof": {
+        "closure": {},
+        "code_sha256": "e95807f1f2fe3009d94282c742ea28a0c69965900d634a56683fefb549a86dab",
+        "globals_module": "peaso.checks.facts",
+        "path": "peaso/checks/facts.py",
+        "qualname": "guard",
+        "source_sha256": "5356efd8b28edcb109fe40dad0ebe28b435bc89b9fff9015d08ae94806e6a6cd"
+      },
+      "symbol": "guard"
+    }
+  ],
+  "fixtures": {
+    "path": "peaso/checks/k8s_annotation_native_current_fixtures_20261020.json",
+    "sha256": "27a977a722626e7a75d309a5d58c39c2f434c39782a87cb96b9bbe0b9ba06cd9"
+  },
+  "historical_case_sha256": {
+    "k8s.claude.ingress.no_nginx_snippet_alias": "3745960cd43f74fb03a5da3990f4d997ef8e015c24366fa547d49e5b39b3b80f",
+    "k8s.claude.ingress.no_nginx_snippet_lua": "3745960cd43f74fb03a5da3990f4d997ef8e015c24366fa547d49e5b39b3b80f",
+    "k8s.claude.ingress.no_nginx_snippets": "3745960cd43f74fb03a5da3990f4d997ef8e015c24366fa547d49e5b39b3b80f",
+    "k8s.claude.podsecuritypolicy.default_seccomp_profile": "c954a10f7bdc441d84fa0a47d37b496d6e2410973eb73f6d4c372743f15b85f1",
+    "k8s.claude.podsecuritypolicy.security_services_hardening": "c2e0a356ad3ea0fb9b13c28ff824315cbe2eaa66ba1ce2b8384ac0c6e58ff5f1"
+  },
+  "ids": [
+    "k8s.claude.ingress.no_nginx_snippets",
+    "k8s.claude.ingress.no_nginx_snippet_alias",
+    "k8s.claude.ingress.no_nginx_snippet_lua",
+    "k8s.claude.podsecuritypolicy.default_seccomp_profile",
+    "k8s.claude.podsecuritypolicy.security_services_hardening"
+  ],
+  "predecessors": {
+    "k8s.claude.ingress.no_nginx_snippet_alias": {
+      "function": {
+        "closure": {
+          "checked": {
+            "function": {
+              "closure": {
+                "function": {
+                  "function": {
+                    "closure": {
+                      "function": {
+                        "function": {
+                          "closure": {
+                            "value_pattern": {
+                              "value": "alias"
+                            }
+                          },
+                          "code_sha256": "2ba533e826c8a122c0baeda1da4dc773476c6a6e0338b0c9837f0b5930084ae9",
+                          "globals_module": "peaso.checks.claude_gcp_k8s_k8s",
+                          "path": "peaso/checks/claude_gcp_k8s_k8s.py",
+                          "qualname": "snippet_rule.<locals>.evaluate",
+                          "source_sha256": "614260078a0514751b99de2934218f5f5d1f74d7cbbad164e909de3a5748d26f"
+                        }
+                      }
+                    },
+                    "code_sha256": "5da588e462050603f658ec1f4371d8a29eb70961ea9e338a6b96e35d747f5387",
+                    "globals_module": "peaso.checks.claude_gcp_k8s_common",
+                    "path": "peaso/checks/claude_gcp_k8s_common.py",
+                    "qualname": "_register.<locals>.decorator.<locals>.apply.<locals>.evaluate",
+                    "source_sha256": "45c0a50aedc69174589eb826004fe941cfab94d263c84bc9b1a51f62f25f4436"
+                  }
+                }
+              },
+              "code_sha256": "93c8863d635cefd500a7273ad98acee87fb97e7860c3ef4a805322b1868a6320",
+              "globals_module": "peaso.checks",
+              "path": "peaso/checks/__init__.py",
+              "qualname": "register.<locals>.decorate.<locals>.checked",
+              "source_sha256": "8eb07bdefdb8769640a93c9d397c02f8fc24ff2ee87ed97de6cc85d8e9873453"
+            }
+          },
+          "id": {
+            "value": "k8s.claude.ingress.no_nginx_snippet_alias"
+          },
+          "kind": {
+            "value": "ingress"
+          },
+          "provider": {
+            "value": "k8s"
+          },
+          "target": {
+            "value": "resource"
+          }
+        },
+        "code_sha256": "d7c7d9b9f4380c197bd82af5713ff179b89d5ba1fcc7b96d00fa412f216f5a97",
+        "globals_module": "peaso.checks",
+        "path": "peaso/checks/__init__.py",
+        "qualname": "register.<locals>.decorate.<locals>.safe",
+        "source_sha256": "a2ea8ab6c40d5cb1efe5cce2e1bc8febf0ae44542c61a5a00c4aaad07a69ea57"
+      },
+      "metadata": {
+        "allow_incomplete_failure": false,
+        "category": "hardening",
+        "control": "CM-7",
+        "declared_dependencies": [
+          "ingress"
+        ],
+        "dependencies": [
+          "ingress"
+        ],
+        "empty_applicability_dependencies": [],
+        "id": "k8s.claude.ingress.no_nginx_snippet_alias",
+        "kind": "ingress",
+        "provider": "k8s",
+        "remediation": "Remove ingress-nginx *-snippet annotations and set allow-snippet-annotations=false on the controller.",
+        "severity": "high",
+        "target": "resource",
+        "title": "Ingress snippet annotations do not use the alias directive"
+      }
+    },
+    "k8s.claude.ingress.no_nginx_snippet_lua": {
+      "function": {
+        "closure": {
+          "checked": {
+            "function": {
+              "closure": {
+                "function": {
+                  "function": {
+                    "closure": {
+                      "function": {
+                        "function": {
+                          "closure": {
+                            "value_pattern": {
+                              "value": "(lua_|_lua|kubernetes\\.io)"
+                            }
+                          },
+                          "code_sha256": "2ba533e826c8a122c0baeda1da4dc773476c6a6e0338b0c9837f0b5930084ae9",
+                          "globals_module": "peaso.checks.claude_gcp_k8s_k8s",
+                          "path": "peaso/checks/claude_gcp_k8s_k8s.py",
+                          "qualname": "snippet_rule.<locals>.evaluate",
+                          "source_sha256": "614260078a0514751b99de2934218f5f5d1f74d7cbbad164e909de3a5748d26f"
+                        }
+                      }
+                    },
+                    "code_sha256": "5da588e462050603f658ec1f4371d8a29eb70961ea9e338a6b96e35d747f5387",
+                    "globals_module": "peaso.checks.claude_gcp_k8s_common",
+                    "path": "peaso/checks/claude_gcp_k8s_common.py",
+                    "qualname": "_register.<locals>.decorator.<locals>.apply.<locals>.evaluate",
+                    "source_sha256": "45c0a50aedc69174589eb826004fe941cfab94d263c84bc9b1a51f62f25f4436"
+                  }
+                }
+              },
+              "code_sha256": "93c8863d635cefd500a7273ad98acee87fb97e7860c3ef4a805322b1868a6320",
+              "globals_module": "peaso.checks",
+              "path": "peaso/checks/__init__.py",
+              "qualname": "register.<locals>.decorate.<locals>.checked",
+              "source_sha256": "8eb07bdefdb8769640a93c9d397c02f8fc24ff2ee87ed97de6cc85d8e9873453"
+            }
+          },
+          "id": {
+            "value": "k8s.claude.ingress.no_nginx_snippet_lua"
+          },
+          "kind": {
+            "value": "ingress"
+          },
+          "provider": {
+            "value": "k8s"
+          },
+          "target": {
+            "value": "resource"
+          }
+        },
+        "code_sha256": "d7c7d9b9f4380c197bd82af5713ff179b89d5ba1fcc7b96d00fa412f216f5a97",
+        "globals_module": "peaso.checks",
+        "path": "peaso/checks/__init__.py",
+        "qualname": "register.<locals>.decorate.<locals>.safe",
+        "source_sha256": "a2ea8ab6c40d5cb1efe5cce2e1bc8febf0ae44542c61a5a00c4aaad07a69ea57"
+      },
+      "metadata": {
+        "allow_incomplete_failure": false,
+        "category": "hardening",
+        "control": "CM-7",
+        "declared_dependencies": [
+          "ingress"
+        ],
+        "dependencies": [
+          "ingress"
+        ],
+        "empty_applicability_dependencies": [],
+        "id": "k8s.claude.ingress.no_nginx_snippet_lua",
+        "kind": "ingress",
+        "provider": "k8s",
+        "remediation": "Remove ingress-nginx *-snippet annotations and set allow-snippet-annotations=false on the controller.",
+        "severity": "high",
+        "target": "resource",
+        "title": "Ingress snippet annotations do not embed Lua code"
+      }
+    },
+    "k8s.claude.ingress.no_nginx_snippets": {
+      "function": {
+        "closure": {
+          "checked": {
+            "function": {
+              "closure": {
+                "function": {
+                  "function": {
+                    "closure": {
+                      "function": {
+                        "function": {
+                          "closure": {
+                            "value_pattern": {
+                              "value": null
+                            }
+                          },
+                          "code_sha256": "2ba533e826c8a122c0baeda1da4dc773476c6a6e0338b0c9837f0b5930084ae9",
+                          "globals_module": "peaso.checks.claude_gcp_k8s_k8s",
+                          "path": "peaso/checks/claude_gcp_k8s_k8s.py",
+                          "qualname": "snippet_rule.<locals>.evaluate",
+                          "source_sha256": "614260078a0514751b99de2934218f5f5d1f74d7cbbad164e909de3a5748d26f"
+                        }
+                      }
+                    },
+                    "code_sha256": "5da588e462050603f658ec1f4371d8a29eb70961ea9e338a6b96e35d747f5387",
+                    "globals_module": "peaso.checks.claude_gcp_k8s_common",
+                    "path": "peaso/checks/claude_gcp_k8s_common.py",
+                    "qualname": "_register.<locals>.decorator.<locals>.apply.<locals>.evaluate",
+                    "source_sha256": "45c0a50aedc69174589eb826004fe941cfab94d263c84bc9b1a51f62f25f4436"
+                  }
+                }
+              },
+              "code_sha256": "93c8863d635cefd500a7273ad98acee87fb97e7860c3ef4a805322b1868a6320",
+              "globals_module": "peaso.checks",
+              "path": "peaso/checks/__init__.py",
+              "qualname": "register.<locals>.decorate.<locals>.checked",
+              "source_sha256": "8eb07bdefdb8769640a93c9d397c02f8fc24ff2ee87ed97de6cc85d8e9873453"
+            }
+          },
+          "id": {
+            "value": "k8s.claude.ingress.no_nginx_snippets"
+          },
+          "kind": {
+            "value": "ingress"
+          },
+          "provider": {
+            "value": "k8s"
+          },
+          "target": {
+            "value": "resource"
+          }
+        },
+        "code_sha256": "d7c7d9b9f4380c197bd82af5713ff179b89d5ba1fcc7b96d00fa412f216f5a97",
+        "globals_module": "peaso.checks",
+        "path": "peaso/checks/__init__.py",
+        "qualname": "register.<locals>.decorate.<locals>.safe",
+        "source_sha256": "a2ea8ab6c40d5cb1efe5cce2e1bc8febf0ae44542c61a5a00c4aaad07a69ea57"
+      },
+      "metadata": {
+        "allow_incomplete_failure": false,
+        "category": "hardening",
+        "control": "CM-7",
+        "declared_dependencies": [
+          "ingress"
+        ],
+        "dependencies": [
+          "ingress"
+        ],
+        "empty_applicability_dependencies": [],
+        "id": "k8s.claude.ingress.no_nginx_snippets",
+        "kind": "ingress",
+        "provider": "k8s",
+        "remediation": "Remove ingress-nginx *-snippet annotations and set allow-snippet-annotations=false on the controller.",
+        "severity": "high",
+        "target": "resource",
+        "title": "Ingress declares no ingress-nginx snippet annotations"
+      }
+    },
+    "k8s.claude.podsecuritypolicy.default_seccomp_profile": {
+      "function": {
+        "closure": {
+          "checked": {
+            "function": {
+              "closure": {
+                "function": {
+                  "function": {
+                    "closure": {
+                      "function": {
+                        "function": {
+                          "closure": {
+                            "evaluate_policy": {
+                              "function": {
+                                "closure": {},
+                                "code_sha256": "96d5bf3bd8e989db8b8183e0a7a9ba945f5bb9d105ec3ddfbd7a3f22d7bb7b76",
+                                "globals_module": "peaso.checks.claude_gcp_k8s_k8s",
+                                "path": "peaso/checks/claude_gcp_k8s_k8s.py",
+                                "qualname": "default_seccomp",
+                                "source_sha256": "3fbdc75b146afcd307d6aa47fb6522d3be561d2703aea6d3199215ad16f6fb9f"
+                              }
+                            }
+                          },
+                          "code_sha256": "31e48a8760470d70975ede845d561fcc493afc7ce3786f3bd7c47c4ed9da3fb5",
+                          "globals_module": "peaso.checks.claude_gcp_k8s_k8s",
+                          "path": "peaso/checks/claude_gcp_k8s_k8s.py",
+                          "qualname": "psp.<locals>.evaluate",
+                          "source_sha256": "e10cf7fc92722b5f2cd45a72e299f01efeb54401987f6b1723cf1f06ed494962"
+                        }
+                      }
+                    },
+                    "code_sha256": "5da588e462050603f658ec1f4371d8a29eb70961ea9e338a6b96e35d747f5387",
+                    "globals_module": "peaso.checks.claude_gcp_k8s_common",
+                    "path": "peaso/checks/claude_gcp_k8s_common.py",
+                    "qualname": "_register.<locals>.decorator.<locals>.apply.<locals>.evaluate",
+                    "source_sha256": "45c0a50aedc69174589eb826004fe941cfab94d263c84bc9b1a51f62f25f4436"
+                  }
+                }
+              },
+              "code_sha256": "93c8863d635cefd500a7273ad98acee87fb97e7860c3ef4a805322b1868a6320",
+              "globals_module": "peaso.checks",
+              "path": "peaso/checks/__init__.py",
+              "qualname": "register.<locals>.decorate.<locals>.checked",
+              "source_sha256": "8eb07bdefdb8769640a93c9d397c02f8fc24ff2ee87ed97de6cc85d8e9873453"
+            }
+          },
+          "id": {
+            "value": "k8s.claude.podsecuritypolicy.default_seccomp_profile"
+          },
+          "kind": {
+            "value": "podsecuritypolicy"
+          },
+          "provider": {
+            "value": "k8s"
+          },
+          "target": {
+            "value": "resource"
+          }
+        },
+        "code_sha256": "d7c7d9b9f4380c197bd82af5713ff179b89d5ba1fcc7b96d00fa412f216f5a97",
+        "globals_module": "peaso.checks",
+        "path": "peaso/checks/__init__.py",
+        "qualname": "register.<locals>.decorate.<locals>.safe",
+        "source_sha256": "a2ea8ab6c40d5cb1efe5cce2e1bc8febf0ae44542c61a5a00c4aaad07a69ea57"
+      },
+      "metadata": {
+        "allow_incomplete_failure": false,
+        "category": "hardening",
+        "control": "CM-7",
+        "declared_dependencies": [
+          "podsecuritypolicy"
+        ],
+        "dependencies": [
+          "podsecuritypolicy"
+        ],
+        "empty_applicability_dependencies": [],
+        "id": "k8s.claude.podsecuritypolicy.default_seccomp_profile",
+        "kind": "podsecuritypolicy",
+        "provider": "k8s",
+        "remediation": "Migrate to Pod Security Admission; while PSP is in use, tighten the policy as described.",
+        "severity": "medium",
+        "target": "resource",
+        "title": "PSP sets a default seccomp profile"
+      }
+    },
+    "k8s.claude.podsecuritypolicy.security_services_hardening": {
+      "function": {
+        "closure": {
+          "checked": {
+            "function": {
+              "closure": {
+                "function": {
+                  "function": {
+                    "closure": {
+                      "function": {
+                        "function": {
+                          "closure": {
+                            "evaluate_policy": {
+                              "function": {
+                                "closure": {},
+                                "code_sha256": "5b36e2338a5b28f355766ed21d3683b3b8135fddf20f03d33d11bc2e85c00406",
+                                "globals_module": "peaso.checks.claude_gcp_k8s_k8s",
+                                "path": "peaso/checks/claude_gcp_k8s_k8s.py",
+                                "qualname": "services_hardening",
+                                "source_sha256": "5d0e5daedac482bd4f52e9a4722b24bd144b20708cf1d4d6878a75262a3cfeb0"
+                              }
+                            }
+                          },
+                          "code_sha256": "31e48a8760470d70975ede845d561fcc493afc7ce3786f3bd7c47c4ed9da3fb5",
+                          "globals_module": "peaso.checks.claude_gcp_k8s_k8s",
+                          "path": "peaso/checks/claude_gcp_k8s_k8s.py",
+                          "qualname": "psp.<locals>.evaluate",
+                          "source_sha256": "e10cf7fc92722b5f2cd45a72e299f01efeb54401987f6b1723cf1f06ed494962"
+                        }
+                      }
+                    },
+                    "code_sha256": "5da588e462050603f658ec1f4371d8a29eb70961ea9e338a6b96e35d747f5387",
+                    "globals_module": "peaso.checks.claude_gcp_k8s_common",
+                    "path": "peaso/checks/claude_gcp_k8s_common.py",
+                    "qualname": "_register.<locals>.decorator.<locals>.apply.<locals>.evaluate",
+                    "source_sha256": "45c0a50aedc69174589eb826004fe941cfab94d263c84bc9b1a51f62f25f4436"
+                  }
+                }
+              },
+              "code_sha256": "93c8863d635cefd500a7273ad98acee87fb97e7860c3ef4a805322b1868a6320",
+              "globals_module": "peaso.checks",
+              "path": "peaso/checks/__init__.py",
+              "qualname": "register.<locals>.decorate.<locals>.checked",
+              "source_sha256": "8eb07bdefdb8769640a93c9d397c02f8fc24ff2ee87ed97de6cc85d8e9873453"
+            }
+          },
+          "id": {
+            "value": "k8s.claude.podsecuritypolicy.security_services_hardening"
+          },
+          "kind": {
+            "value": "podsecuritypolicy"
+          },
+          "provider": {
+            "value": "k8s"
+          },
+          "target": {
+            "value": "resource"
+          }
+        },
+        "code_sha256": "d7c7d9b9f4380c197bd82af5713ff179b89d5ba1fcc7b96d00fa412f216f5a97",
+        "globals_module": "peaso.checks",
+        "path": "peaso/checks/__init__.py",
+        "qualname": "register.<locals>.decorate.<locals>.safe",
+        "source_sha256": "a2ea8ab6c40d5cb1efe5cce2e1bc8febf0ae44542c61a5a00c4aaad07a69ea57"
+      },
+      "metadata": {
+        "allow_incomplete_failure": false,
+        "category": "hardening",
+        "control": "CM-7",
+        "declared_dependencies": [
+          "podsecuritypolicy"
+        ],
+        "dependencies": [
+          "podsecuritypolicy"
+        ],
+        "empty_applicability_dependencies": [],
+        "id": "k8s.claude.podsecuritypolicy.security_services_hardening",
+        "kind": "podsecuritypolicy",
+        "provider": "k8s",
+        "remediation": "Migrate to Pod Security Admission; while PSP is in use, tighten the policy as described.",
+        "severity": "medium",
+        "target": "resource",
+        "title": "PSP enforces SELinux, AppArmor or seccomp defaults"
+      }
+    }
+  },
+  "python_bytecode": [
+    3,
+    13
+  ],
+  "schema": {
+    "CONTEXT": "k8s_annotation_collection_context_20261020",
+    "FLAGS": [
+      "snippet",
+      "alias",
+      "lua",
+      "apparmor_runtime_default",
+      "seccomp_runtime_default"
+    ],
+    "MARKER": "_k8s_annotation_indicators_20261020",
+    "MAX_ANNOTATIONS": 2048,
+    "MAX_ANNOTATION_BYTES": 262144,
+    "MAX_NATIVE_PAGES": 32,
+    "MAX_PAGE_BYTES": 16777216,
+    "SCHEMA": "k8s-native-annotation-indicators/v1",
+    "TYPES": {
+      "ingress": [
+        "networking.k8s.io/v1",
+        "Ingress"
+      ],
+      "podsecuritypolicy": [
+        "policy/v1beta1",
+        "PodSecurityPolicy"
+      ]
+    }
+  },
+  "schema_version": 1,
+  "sources": [
+    {
+      "path": "peaso/checks/k8s_annotation_native_admission_20261020.py",
+      "sha256": "ba0c46e15135567f5e75251846c899bc63c02193bdacaf79257d4052bea60538"
+    },
+    {
+      "path": "peaso/checks/k8s_annotation_indicators_review_20261020.py",
+      "sha256": "61e9a76239a9cb63e1abcbe25c6b3a2e7a8fbd89fd27cc0365617bb8856e6df6"
+    },
+    {
+      "path": "peaso/collectors/k8s_annotation_indicators_20261020.py",
+      "sha256": "a450f0663a3af9cbb7c8e231b89dd946cdb5d066fc6ce4c1fa93323ad97fc919"
+    },
+    {
+      "path": "peaso/collectors/k8s_legacy_psp_planner_20261020.py",
+      "sha256": "84cf98188ad25db9e8717fb26752c826ff782954a069a68a61a349f0e27691eb"
+    },
+    {
+      "path": "peaso/checks/k8s_managed.py",
+      "sha256": "0dfb6ed4aa08b7abdff07432081490491c7b04e18f7bbdd698e48633bdba854b"
+    }
+  ]
+}

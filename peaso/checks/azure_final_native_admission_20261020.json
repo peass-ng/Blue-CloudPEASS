@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "new_check_ids": [
+    "azure.encryption.log_analytics_cluster_cmk_declared",
+    "azure.encryption.stream_analytics_job_storage_cmk_declared",
+    "azure.logging.aks_supported_log_categories_destination_declared",
+    "azure.logging.managed_hsm_audit_destination_declared"
+  ],
+  "sources": [
+    {
+      "path": "peaso/checks/azure_aks_legacy_projection_review_20261020.py",
+      "sha256": "d2aac095ecf0da4019853fb86c4be7129e5f2f75578c1484414bb8b17cfac633"
+    },
+    {
+      "path": "peaso/checks/azure_hsm_audit_destination_review_20261020.py",
+      "sha256": "bd46c2f53e4e7def85f390662c20bc1599d7dd9c5a0fcfcbecd5fdac5e064ca2"
+    },
+    {
+      "path": "peaso/checks/azure_native_contract_closure_20261020.py",
+      "sha256": "4f05044102b87c56f4da90aaa9917d2c17587569675632f3f98ecf6db29b1a61"
+    }
+  ],
+  "fixtures": {
+    "path": "peaso/checks/azure_final_native_admission_20261020_fixtures.json",
+    "sha256": "aa961e13c0290a4e02e6218d929e08b417727f9d3243c0d5312d245f32f77030"
+  },
+  "native_capture_sources": [
+    "docs/check-review/azure-aks-hsm-final-native-review-20261020.json",
+    "docs/check-review/azure-native-contract-closure-20261020.json"
+  ],
+  "new_numbered_requirement_edges": 0,
+  "scope": "Read-only declared native configuration and exact SW30 callback bridges only; prior source and CASES retained."
+}

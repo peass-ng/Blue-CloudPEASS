@@ -102,7 +102,10 @@ pod_rule("readiness_probe_configured", "Pod containers declare a readiness probe
 
 def host_port(spec, row):
     ports = [get(p, "hostPort", int) for p in list_of_objects(optional(row, "ports", [], list)) if "hostPort" in p]
-    return {"host_ports": ports} if ports else None
+    if any(not 0 <= port <= 65535 for port in ports):
+        raise Unavailable("malformed host port")
+    published = [port for port in ports if port != 0]
+    return {"host_ports": published} if published else None
 
 
 pod_rule("no_host_ports", "Pod containers do not declare hostPort", host_port,
@@ -287,13 +290,15 @@ flag_rule("no_host_pid", "hostPID", "Pod does not share the host PID namespace")
 @k8s("pod.runtime_default_seccomp", "pod", "Pod or all of its containers use the RuntimeDefault seccomp profile", control="CM-7",
      remediation="Set securityContext.seccompProfile.type: RuntimeDefault at Pod level (or on every container).")
 def seccomp(item, index):
-    spec, rows = pod_spec(item, "pod")
+    spec, rows = pod_spec(item, "pod", include_init=True)
     profile = lambda obj: optional(optional(obj, "securityContext", {}, dict), "seccompProfile", {}, dict).get("type")
     pod_level = profile(spec)
     containers_level = [profile(row) for row in rows]
-    if any(v is not None and not isinstance(v, str) for v in [pod_level] + containers_level):
+    if any(v not in (None, "RuntimeDefault", "Localhost", "Unconfined") for v in [pod_level] + containers_level):
         raise Unavailable("malformed seccomp profile type")
-    ok = pod_level == "RuntimeDefault" or all(v == "RuntimeDefault" for v in containers_level)
+    # A container's explicit profile overrides the Pod default, including
+    # init and ephemeral containers; Pod-level RuntimeDefault cannot mask it.
+    ok = all((value if value is not None else pod_level) == "RuntimeDefault" for value in containers_level)
     return result(not ok, pod_profile=pod_level, container_profiles=containers_level)
 
 

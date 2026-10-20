@@ -1,0 +1,57 @@
+{
+  "provider": "k8s",
+  "check_id": "k8s.review.selected_metadata.secret_indicators",
+  "status": "FAIL",
+  "evidence": {
+    "complete": false,
+    "coverage": "incomplete_selected_object_metadata",
+    "credential_validation": "not_attempted",
+    "literal_count": 3,
+    "observed": "A likely secret was detected in the selected object labels or annotations. Its value is hidden and was not validated. Inspection is incomplete.",
+    "parts": [
+      {
+        "bytes": 182,
+        "complete": true,
+        "engines": [
+          {
+            "engine": "kingfisher",
+            "status": "complete",
+            "version": "1.4.0"
+          },
+          {
+            "engine": "trufflehog",
+            "status": "complete",
+            "version": "3.92.5"
+          }
+        ],
+        "part": "literals"
+      }
+    ],
+    "reference_count": 0,
+    "secret_leaks": [
+      {
+        "detectors": [
+          {
+            "engine": "kingfisher",
+            "rule": "betterleaks.github-pat"
+          },
+          {
+            "engine": "trufflehog",
+            "rule": "Github"
+          }
+        ],
+        "fingerprint": "a962b3187bb100116dc32cc6974235ccc22ea07a402be87c4e39bdf141c1b421",
+        "locations": [
+          {
+            "line": 9,
+            "path": "k8s_selected_metadata:cac81b77de5ae93b1808d5772610fe93a2738642212778466d684afa2a30dba7.literals"
+          }
+        ]
+      }
+    ],
+    "source_requests": [
+      "k8s-literal-read-1",
+      "k8s-literal-read-2"
+    ]
+  }
+}

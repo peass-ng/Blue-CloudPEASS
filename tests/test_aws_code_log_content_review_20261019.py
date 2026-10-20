@@ -123,10 +123,10 @@ def test_repository_sdk_cache_redacted(sdk):
     first = c.scan_repository(requests, session, REGION, REPO)
     second = c.scan_repository(requests, session, REGION, REPO)
     assert first == second and first['complete']
-    assert [{k: v for k, v in row.items() if k not in ('leaks', 'scanner_complete')} for row in first['records']] == [{'path': '/config.py', 'size': len(SECRET), 'inspected_bytes': len(SECRET), 'readable': True, 'categories': ['private_key']}]
+    assert [{k: v for k, v in row.items() if k not in ('leaks', 'scanner_complete')} for row in first['records']] == [{'path': c.path_locator(REGION, REPO['repositoryName'], COMMIT, '/config.py'), 'size': len(SECRET), 'inspected_bytes': len(SECRET), 'readable': True, 'categories': ['private_key']}]
     assert first['records'][0]['scanner_complete'] is True
     assert first['records'][0]['leaks'] == []
-    assert requests.calls == 4 and requests.cache_hits == 4
+    assert requests.calls == 4 and requests.cache_hits == 2
     cached = cache_values(requests)
     assert SECRET not in cached and 'SYNTHETIC_PRIVATE_MATERIAL' not in cached and 'fileContent' not in cached
 

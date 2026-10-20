@@ -1,0 +1,192 @@
+{
+  "k8s.review.kubelet_configmap.authorization_webhook": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "ca4e69dad0678ee21cecb8e8d92eec87a8747e52ae7df695bb5be5a1be96a108",
+    "summary": "Set authorization.mode to Webhook in the intended kubelet configuration.",
+    "steps": [
+      "Set authorization.mode to Webhook in the intended kubelet configuration.",
+      "Confirm which nodes consume this configuration before rolling out the change."
+    ],
+    "caveats": [
+      "This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified."
+    ],
+    "references": [
+      {
+        "title": "Kubelet configuration reference",
+        "url": "https://v1-34.docs.kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/"
+      }
+    ],
+    "cli": []
+  },
+  "k8s.review.kubelet_configmap.client_ca_configured": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "54a56f71daff8d6a5bd078e6b70202019b47706e678f967ed966230f05bfcfc1",
+    "summary": "Configure the intended client CA path and ensure the deployment supplies that CA file.",
+    "steps": [
+      "Configure the intended client CA path and ensure the deployment supplies that CA file.",
+      "Confirm which nodes consume this configuration before rolling out the change."
+    ],
+    "caveats": [
+      "This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified."
+    ],
+    "references": [
+      {
+        "title": "Kubelet configuration reference",
+        "url": "https://v1-34.docs.kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/"
+      }
+    ],
+    "cli": []
+  },
+  "k8s.review.kubelet_configmap.anonymous_disabled": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "892d3b6cc7f2b30063987300a4c0ddeaef47dbb38added487d358b6406d76b56",
+    "summary": "Set authentication.anonymous.enabled to false in the intended kubelet configuration.",
+    "steps": [
+      "Set authentication.anonymous.enabled to false in the intended kubelet configuration.",
+      "Confirm which nodes consume this configuration before rolling out the change."
+    ],
+    "caveats": [
+      "This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified."
+    ],
+    "references": [
+      {
+        "title": "Kubelet configuration reference",
+        "url": "https://v1-34.docs.kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/"
+      }
+    ],
+    "cli": []
+  },
+  "k8s.review.kubelet_configmap.readonly_disabled": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "c278dc31d5ea8a781d10171081fcc3c1d7c0d06e5e492780fc72a528d80064e3",
+    "summary": "Set readOnlyPort to 0 in the intended kubelet configuration.",
+    "steps": [
+      "Set readOnlyPort to 0 in the intended kubelet configuration.",
+      "Confirm which nodes consume this configuration before rolling out the change."
+    ],
+    "caveats": [
+      "This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified."
+    ],
+    "references": [
+      {
+        "title": "Kubelet configuration reference",
+        "url": "https://v1-34.docs.kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/"
+      }
+    ],
+    "cli": []
+  },
+  "k8s.review.kubelet_configmap.client_certificate_rotation": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "09c97cc4f033a70a1c4761646aa91c65b89b281fe02b6aa20b6efefb931d1dbb",
+    "summary": "Set rotateCertificates to true and confirm the intended certificate approval process.",
+    "steps": [
+      "Set rotateCertificates to true and confirm the intended certificate approval process.",
+      "Confirm which nodes consume this configuration before rolling out the change."
+    ],
+    "caveats": [
+      "This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified."
+    ],
+    "references": [
+      {
+        "title": "Kubelet configuration reference",
+        "url": "https://v1-34.docs.kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/"
+      }
+    ],
+    "cli": []
+  },
+  "k8s.review.kubelet_configmap.explicit_cipher_allowlist": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "a33fd7697465dd1d76f7d78a6ec89104f9fa2398e8acffb60ab9544d5b36ca81",
+    "summary": "Replace ciphers outside the reviewed allowlist with supported approved ciphers.",
+    "steps": [
+      "Replace ciphers outside the reviewed allowlist with supported approved ciphers.",
+      "Confirm which nodes consume this configuration before rolling out the change."
+    ],
+    "caveats": [
+      "This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified."
+    ],
+    "references": [
+      {
+        "title": "Kubelet configuration reference",
+        "url": "https://v1-34.docs.kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/"
+      }
+    ],
+    "cli": []
+  },
+  "k8s.review.kubelet_configmap.tls_file_pair_configured": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "f92393950f202e3f28b8ed07fda22f2000d2b7d0900dc6f790a8ccf4ee484bb3",
+    "summary": "Configure the intended certificate and private-key paths and supply the matching files securely.",
+    "steps": [
+      "Configure the intended certificate and private-key paths and supply the matching files securely.",
+      "Confirm which nodes consume this configuration before rolling out the change."
+    ],
+    "caveats": [
+      "This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified."
+    ],
+    "references": [
+      {
+        "title": "Kubelet configuration reference",
+        "url": "https://v1-34.docs.kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/"
+      }
+    ],
+    "cli": []
+  },
+  "k8s.review.kubelet_configmap.event_qps_bounded": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "1f04336455b22d62ad2e921ef16cab2ba017d4b01df2312e46163fa42f39ecc9",
+    "summary": "Set a positive eventRecordQPS limit appropriate for the workload.",
+    "steps": [
+      "Set a positive eventRecordQPS limit appropriate for the workload.",
+      "Confirm which nodes consume this configuration before rolling out the change."
+    ],
+    "caveats": [
+      "This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified."
+    ],
+    "references": [
+      {
+        "title": "Kubelet configuration reference",
+        "url": "https://v1-34.docs.kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/"
+      }
+    ],
+    "cli": []
+  },
+  "k8s.review.selected_container_logs.secret_indicators": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "6d74ac998cbf901a6d95c23e12059fb87be791ed136aee4d5c5ebb333fb9726e",
+    "summary": "Remove credentials from application logs and rotate the exposed credential.",
+    "steps": [
+      "Stop logging credential values and use an appropriate secret reference in application configuration.",
+      "Rotate the exposed credential and restrict access to retained log copies."
+    ],
+    "caveats": [
+      "Only selected current-container samples are inspected; previous logs, other containers and mounted files are excluded."
+    ],
+    "references": [
+      {
+        "title": "Pod log API",
+        "url": "https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/"
+      }
+    ],
+    "cli": []
+  },
+  "k8s.review.selected_metadata.secret_indicators": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "6796a20ff3efa1d628d710b0a80b22144c648e902b3ab81724caababb4a6b217",
+    "summary": "Remove credentials from object metadata and rotate the exposed credential.",
+    "steps": [
+      "Remove credential literals from object labels and annotations.",
+      "Rotate the exposed credential and review its use."
+    ],
+    "caveats": [
+      "Only selected top-level metadata is inspected; specifications, template metadata, references, files, Secrets and images are excluded."
+    ],
+    "references": [
+      {
+        "title": "Kubernetes object metadata",
+        "url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/"
+      }
+    ],
+    "cli": []
+  }
+}

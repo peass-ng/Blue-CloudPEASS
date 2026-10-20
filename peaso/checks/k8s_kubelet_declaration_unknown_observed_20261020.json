@@ -1,0 +1,6 @@
+{
+  "unknown_native": "The explicit field, bounded YAML projection, native identity or complete authenticated inventory could not be bound. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+  "unknown_brief": "The ConfigMap declaration could not be assessed because its field, identity or inventory could not be verified. Node configuration was not assessed.",
+  "empty_native": "No matching kubelet-config ConfigMap declaration was collected in this scope. Node configuration was not assessed.",
+  "empty_brief": "No matching kubelet-config ConfigMap declaration was collected. Node configuration was not assessed."
+}

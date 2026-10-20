@@ -1,0 +1,182 @@
+{
+  "gcp.review.dataproc.selected_job_referenced_source_secret_indicators": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "observed": "Both offline detectors completed without detecting a supported secret in the captured Dataproc referenced source. This capture does not establish the bytes originally executed.",
+        "secret_leaks": [],
+        "complete": true,
+        "coverage": "selected_captured_referenced_source_only",
+        "executed_bytes_proven": false,
+        "credential_validation": "not_attempted",
+        "parts": [
+          {
+            "bytes": 11,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ]
+          }
+        ]
+      },
+      "summary": "Both offline detectors found no supported secret in the selected Dataproc referenced source."
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "observed": "A likely secret was detected in the captured Dataproc referenced source. Its value is hidden and was not validated. This capture does not establish the bytes originally executed.",
+        "secret_leaks": [
+          {
+            "detectors": [
+              {
+                "engine": "kingfisher",
+                "rule": "betterleaks.github-pat"
+              },
+              {
+                "engine": "trufflehog",
+                "rule": "Github"
+              }
+            ],
+            "fingerprint": "9ff76b8d79b24233d6507d5243cef499f1f597c6c1f74bddc343076165889425",
+            "locations": [
+              {
+                "line": 1,
+                "path": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd.source"
+              }
+            ]
+          }
+        ],
+        "complete": true,
+        "coverage": "selected_captured_referenced_source_only",
+        "executed_bytes_proven": false,
+        "credential_validation": "not_attempted",
+        "parts": [
+          {
+            "bytes": 46,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ]
+          }
+        ]
+      },
+      "summary": "A likely secret was detected in the selected Dataproc referenced source. Its value is hidden and was not validated."
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "complete": false,
+        "observed": "Selected referenced source was unavailable, unbound or incompletely inspected. A clean source result cannot be established."
+      },
+      "summary": "The selected Dataproc referenced source could not be completely read and scanned."
+    }
+  ],
+  "gcp.review.dataproc.selected_initialization_referenced_source_secret_indicators": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "observed": "Both offline detectors completed without detecting a supported secret in the captured Dataproc referenced source. This capture does not establish the bytes originally executed.",
+        "secret_leaks": [],
+        "complete": true,
+        "coverage": "selected_captured_referenced_source_only",
+        "executed_bytes_proven": false,
+        "credential_validation": "not_attempted",
+        "parts": [
+          {
+            "bytes": 11,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ]
+          }
+        ]
+      },
+      "summary": "Both offline detectors found no supported secret in the selected Dataproc referenced source."
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "observed": "A likely secret was detected in the captured Dataproc referenced source. Its value is hidden and was not validated. This capture does not establish the bytes originally executed.",
+        "secret_leaks": [
+          {
+            "detectors": [
+              {
+                "engine": "kingfisher",
+                "rule": "betterleaks.github-pat"
+              },
+              {
+                "engine": "trufflehog",
+                "rule": "Github"
+              }
+            ],
+            "fingerprint": "9ff76b8d79b24233d6507d5243cef499f1f597c6c1f74bddc343076165889425",
+            "locations": [
+              {
+                "line": 1,
+                "path": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b.source"
+              }
+            ]
+          }
+        ],
+        "complete": true,
+        "coverage": "selected_captured_referenced_source_only",
+        "executed_bytes_proven": false,
+        "credential_validation": "not_attempted",
+        "parts": [
+          {
+            "bytes": 46,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ]
+          }
+        ]
+      },
+      "summary": "A likely secret was detected in the selected Dataproc referenced source. Its value is hidden and was not validated."
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "complete": false,
+        "observed": "Selected referenced source was unavailable, unbound or incompletely inspected. A clean source result cannot be established."
+      },
+      "summary": "The selected Dataproc referenced source could not be completely read and scanned."
+    }
+  ]
+}

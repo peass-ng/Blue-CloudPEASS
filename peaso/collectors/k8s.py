@@ -18,6 +18,8 @@ from urllib.parse import parse_qs, quote, urlencode, urlsplit
 
 from peaso.snapshot import make_snapshot
 from .azure import _Reader, AzureReadError, _trusted_scopes, _safe_error
+from . import k8s_network_catalog
+from . import k8s_network_extensions
 
 
 class K8sReadError(AzureReadError):
@@ -35,6 +37,15 @@ class K8sReader(_Reader):
         self.k8s_progress_phase = "discovering"
         self.k8s_settled = {}
         self.k8s_progress_lock = threading.RLock()
+        self.gateway_discovery_lock = threading.RLock()
+        self.gateway_discovery = None
+
+    def call(self, operation, *args, **kwargs):
+        if args and isinstance(args[0], str) and k8s_network_extensions.match(args[0]):
+            return k8s_network_extensions.read(self, super().call, operation, *args, **kwargs)
+        if args and isinstance(args[0], str) and k8s_network_catalog.allowed_path(args[0]):
+            return k8s_network_catalog.read(self, super().call, operation, *args, **kwargs)
+        return super().call(operation, *args, **kwargs)
 
     def progress(self, phase=None, scope="", settled=None, *, complete=False, _kept=False):
         if settled is not None and not _kept:
@@ -55,6 +66,14 @@ class K8sReader(_Reader):
 
     def _read(self, job):
         value = super()._read(job)
+        if job[0] in getattr(self, 'network_route_absent', set()):
+            value['applicability'] = {'observed_resource_absent': k8s_network_catalog.route_extensions.RESOURCES[job[0]][1],
+                                    'source': 'GET /apis and served API resource discovery'}
+        if job[0] in getattr(self, 'network_extension_absent', set()):
+            value['applicability'] = {'observed_resource_absent': k8s_network_extensions.RESOURCES[job[0]][1],
+                                    'source': 'GET /apis and served API resource discovery'}
+        if job[0] in k8s_network_catalog.GATEWAYS and self.gateway_discovery and self.gateway_discovery.get("absent"):
+            value["applicability"] = {"observed_api_group_absent": k8s_network_catalog.GROUP, "source": "GET /apis"}
         if value.get("error", {}).get("kind") == "AzureReadError":
             value["error"]["kind"] = "K8sReadError"
         return value
@@ -98,6 +117,8 @@ ENDPOINTS = {
     "podtemplate": ("/api/v1/podtemplates", True),
     "service": ("/api/v1/services", True),
     "endpointslice": ("/apis/discovery.k8s.io/v1/endpointslices", True),
+    "persistentvolume": ("/api/v1/persistentvolumes", False),
+    "persistentvolumeclaim": ("/api/v1/persistentvolumeclaims", True),
     "ingress": ("/apis/networking.k8s.io/v1/ingresses", True),
     "ingressclass": ("/apis/networking.k8s.io/v1/ingressclasses", False),
     "networkpolicy": ("/apis/networking.k8s.io/v1/networkpolicies", True),
@@ -113,7 +134,14 @@ ENDPOINTS = {
 }
 TYPES = tuple(ENDPOINTS) + ("network_interface", "admission_configuration", "api_discovery", "securitycontextconstraint",
                            "component_configuration", "file_metadata", "secret_metadata", "configmap_metadata", "podsecuritypolicy",
-                           "admission_policy", "admission_configuration_file", "node_clock")
+                           "admission_policy", "admission_configuration_file", "node_clock", "k8s_selected_literals",
+                           "kubelet_configmap_declaration", "k8s_selected_log_samples", "k8s_selected_metadata")
+ENDPOINTS.update(k8s_network_catalog.ENDPOINTS)
+ENDPOINTS.update({kind: (f"/apis/{k8s_network_catalog.GROUP}/v1/{plural}", namespaced)
+                  for kind, (plural, namespaced) in k8s_network_catalog.GATEWAYS.items()})
+TYPES = tuple(dict.fromkeys((*TYPES, *k8s_network_catalog.ENDPOINTS, *k8s_network_catalog.GATEWAYS)))
+ENDPOINTS.update({kind: k8s_network_extensions.endpoint(kind) for kind in k8s_network_extensions.RESOURCES})
+TYPES = tuple(dict.fromkeys((*TYPES, *k8s_network_extensions.RESOURCES)))
 
 # In-tree CEL admission policies (admissionregistration.k8s.io): plural, inventory kind marker, object Kind.
 # Listed only for the resources the server advertises (resource discovery of each served group version).
@@ -237,24 +265,52 @@ def _component_config(value):
     executable = command[0].rsplit("/", 1)[-1] if command else ""
     selected = [executable] if executable in COMPONENTS else []
     if not selected:
-        candidates = {token.rsplit("/", 1)[-1] for token in command + args if token in COMPONENTS}
+        candidates = {token.rsplit("/", 1)[-1] for token in command + args if token.rsplit("/", 1)[-1] in COMPONENTS}
         return {"component": None, "component_identification": "ambiguous_wrapped_component" if candidates else "ordinary_command",
                 "flags_complete": not bool(candidates)}
-    tokens, flags = command + args, {}
-    for index, token in enumerate(tokens):
+    tokens, flags = command[1:] + args, {}
+    boolean_flags = frozenset(("anonymous-auth", "profiling", "client-cert-auth", "peer-client-cert-auth",
+        "auto-tls", "peer-auto-tls", "rotate-certificates", "protect-kernel-defaults", "make-iptables-util-chains",
+        "kubelet-https", "use-service-account-credentials", "service-account-lookup", "service-account-extend-token-expiration"))
+    boolean_values = {"true": "true", "1": "true", "t": "true", "false": "false", "0": "false", "f": "false"}
+    index = 0
+    while index < len(tokens):
+        token = tokens[index]
+        index += 1
+        if token == "--":
+            # Positional operands after the terminator are not flag evidence.
+            return {"collection_status": "partial", "error": {"code": "component_argv_terminator"}}
         if not token.startswith("--"):
             continue
         name, separator, captured = token[2:].partition("=")
+        if selected[0] != "etcd":
+            # Kubernetes normalizes underscores to hyphens before pflag parsing.
+            name = name.replace("_", "-")
         if name not in CONFIG_FLAGS:
             continue
         if not separator:
-            captured = tokens[index + 1] if index + 1 < len(tokens) and not tokens[index + 1].startswith("--") else "true"
+            if name in boolean_flags:
+                # pflag boolean flags do not consume a following space value.
+                # Such positional text cannot establish a coherent declaration.
+                if index < len(tokens) and not tokens[index].startswith("-"):
+                    return {"collection_status": "malformed", "error": {"code": "component_boolean_positional_value"}}
+                captured = "true"
+            elif index < len(tokens) and not tokens[index].startswith("--"):
+                captured = tokens[index]
+                index += 1
+            else:
+                return {"collection_status": "malformed", "error": {"code": "component_flag_value_missing"}}
         # Fixed flag names, simple paths/lists/durations/enums; no URI credentials,
         # shell expressions, token payloads or multiline values cross the boundary.
         if len(captured) > 2048 or not re.fullmatch(r"[A-Za-z0-9_.,/:=+@-]*", captured) or "://" in captured:
             return {"collection_status": "malformed", "error": {"code": "unsafe_component_flag_value"}}
         if name in flags:
             return {"collection_status": "malformed", "error": {"code": "duplicate_component_flag"}}
+        if name in boolean_flags:
+            normalized = boolean_values.get(captured.lower())
+            if normalized is None or captured not in ("true", "false", "TRUE", "FALSE", "True", "False", "t", "f", "T", "F", "0", "1"):
+                return {"collection_status": "malformed", "error": {"code": "component_boolean_value_invalid"}}
+            captured = normalized
         flags[name] = captured
     output = {"component": selected[0], "flags": flags, "flags_complete": True,
               "evidence": "explicit PodSpec executable/args declarations; no host or runtime configuration read"}
@@ -366,6 +422,8 @@ def _inventory_read_path(path, query, headers):
     version = r"v[0-9]+(?:(?:alpha|beta)[0-9]+)?"
     if path in ("/api", "/api/v1", "/apis", "/version"):
         return True
+    if k8s_network_catalog.allowed_path(path):
+        return True
     if re.fullmatch(r"/apis/" + dns + r"(?:/" + version + r")?", path):
         return True  # API group/resource discovery, including installed CRDs.
     for endpoint, namespaced in ENDPOINTS.values():
@@ -402,6 +460,8 @@ class _BoundedPool:
         self.pool = pool
         self.server = urlsplit(server) if server else None
         self.allow_self_subject_access_review = False
+        self.literal_paths = frozenset()  # Populated only for the exact optional selected reader.
+        self.selected_log_requests = frozenset()  # Exact runtime grants from the opted-in log sampler.
 
     def request(self, method, url, **kwargs):
         review_request = method == "POST" and self.allow_self_subject_access_review
@@ -430,9 +490,13 @@ class _BoundedPool:
             if (path != "/apis/authorization.k8s.io/v1/selfsubjectaccessreviews"
                     or query or not kwargs.get("body")):
                 raise ValueError("unsupported access review request")
-        elif (kwargs.get("body") is not None
-                or not _inventory_read_path(path, query, kwargs.get("headers"))):
-            raise ValueError("unsupported native inventory read path")
+        else:
+            from .k8s_selected_log_sample_secret_indicators import allowed_request
+            if (kwargs.get("body") is not None
+                    or not ((not query and path in self.literal_paths)
+                        or (path.endswith("/log") and allowed_request(path, query, self.selected_log_requests))
+                        or _inventory_read_path(path, query, kwargs.get("headers")))):
+                raise ValueError("unsupported native inventory read path")
         kwargs.update(redirect=False, retries=False)
         return self.pool.request(method, url, **kwargs)
 
@@ -610,18 +674,27 @@ def _sanitize(value):
     if not isinstance(value, dict):
         return value
     result = {}
+    from . import k8s_annotation_indicators_20261020 as annotation_indicators
+    annotation_projection = annotation_indicators.project(value)
+    if annotation_projection is not None:
+        result[annotation_indicators.MARKER] = annotation_projection
     if "command" in value or "args" in value:
         component = _component_config(value)
         if component is not None:
             result["_component_config"] = component
     for key, child in value.items():
+        if key == annotation_indicators.MARKER:
+            continue  # Provider/customer fields cannot supply trusted indicators.
         normalized_key = re.sub(r"[^a-z0-9]", "", str(key).lower())
         if (normalized_key != "automountserviceaccounttoken" and normalized_key.endswith(("password", "token", "privatekey", "clientsecret", "secretvalue"))) or normalized_key in (
             "apikey", "credentials", "stringdata", "privatekeydata"):
             continue
         if key in ("managedFields",):
             continue
-        if key == "annotations" and isinstance(child, dict):
+        if key == "annotations" and not isinstance(child, dict):
+            result[key] = {}
+            result.setdefault("_coverage", {})["annotations"] = {"status": "malformed"}
+        elif key == "annotations" and isinstance(child, dict):
             # Retain only documented identity, networking and policy provenance.
             nginx_fields = ("nginx.ingress.kubernetes.io/backend-protocol",
                             "nginx.ingress.kubernetes.io/force-ssl-redirect",
@@ -629,14 +702,14 @@ def _sanitize(value):
             if any(field in child and (not isinstance(child[field], str) or len(child[field]) > 253)
                    for field in nginx_fields):
                 result.setdefault("_coverage", {})["annotations"] = {"status": "malformed"}
-            result[key] = {k: v for k, v in child.items() if k in (
+            result[key] = {k: v for k, v in child.items() if isinstance(k, str) and isinstance(v, str) and (k in (
                 "eks.amazonaws.com/role-arn", "iam.gke.io/gcp-service-account",
                 "azure.workload.identity/client-id", "azure.workload.identity/tenant-id",
                 "k8s.v1.cni.cncf.io/networks", "k8s.v1.cni.cncf.io/network-status",
                 "kubernetes.io/ingress.class", "kubernetes.io/psp", "iam.amazonaws.com/permitted",
                 "iam.amazonaws.com/role", "openshift.io/scc", "openshift.io/required-scc", "kubernetes.io/service-account.name",
                 "kubernetes.io/service-account.uid") or (isinstance(k, str) and k.startswith(_MANAGED_ANNOTATION_PREFIXES) and isinstance(v, str) and len(v) <= 253)
-                or (k in nginx_fields and isinstance(v, str) and len(v) <= 253)}
+                or (k in nginx_fields and isinstance(v, str) and len(v) <= 253))}
         elif key == "env" and isinstance(child, list):
             result[key] = [_env_entry(entry) for entry in child if isinstance(entry, dict)]
         elif key in ("command", "args"):
@@ -649,6 +722,39 @@ def _sanitize(value):
 def _native(item, kind, cluster, scope, namespaced):
     if not isinstance(item, dict) or not isinstance(item.get("metadata"), dict):
         raise ValueError("malformed Kubernetes object")
+    # LIST items may omit TypeMeta. A supplied contradictory type must never
+    # acquire the requested endpoint's identity through provenance stamping.
+    native_types = {
+        "pod": ("v1", "Pod"), "podtemplate": ("v1", "PodTemplate"),
+        "replicationcontroller": ("v1", "ReplicationController"),
+        "namespace": ("v1", "Namespace"), "node": ("v1", "Node"),
+        "service": ("v1", "Service"), "serviceaccount": ("v1", "ServiceAccount"),
+        "resourcequota": ("v1", "ResourceQuota"), "limitrange": ("v1", "LimitRange"),
+        "deployment": ("apps/v1", "Deployment"), "daemonset": ("apps/v1", "DaemonSet"),
+        "statefulset": ("apps/v1", "StatefulSet"), "replicaset": ("apps/v1", "ReplicaSet"),
+        "job": ("batch/v1", "Job"), "cronjob": ("batch/v1", "CronJob"),
+        "role": ("rbac.authorization.k8s.io/v1", "Role"),
+        "clusterrole": ("rbac.authorization.k8s.io/v1", "ClusterRole"),
+        "rolebinding": ("rbac.authorization.k8s.io/v1", "RoleBinding"),
+        "clusterrolebinding": ("rbac.authorization.k8s.io/v1", "ClusterRoleBinding"),
+        "ingress": ("networking.k8s.io/v1", "Ingress"),
+        "ingressclass": ("networking.k8s.io/v1", "IngressClass"),
+        "networkpolicy": ("networking.k8s.io/v1", "NetworkPolicy"),
+        "endpointslice": ("discovery.k8s.io/v1", "EndpointSlice"),
+        "podsecuritypolicy": ("policy/v1beta1", "PodSecurityPolicy"),
+        "secret_metadata": ("meta.k8s.io/v1", "PartialObjectMetadata"),
+        "configmap_metadata": ("meta.k8s.io/v1", "PartialObjectMetadata"),
+    }
+    expected = native_types.get(kind)
+    if kind in {entry[1] for entry in ADMISSION_POLICY_RESOURCES}:
+        object_kind = next(entry[2] for entry in ADMISSION_POLICY_RESOURCES if entry[1] == kind)
+        version = item.get("apiVersion", ADMISSION_POLICY_GROUP + "/v1")
+        if version not in {ADMISSION_POLICY_GROUP + "/" + v for v in ADMISSION_POLICY_VERSIONS}:
+            raise ValueError("admission policy object version conflicts with endpoint")
+        expected = (version, object_kind)
+    if expected and (item.get("apiVersion", expected[0]) != expected[0]
+                     or item.get("kind", expected[1]) != expected[1]):
+        raise ValueError("Kubernetes object type conflicts with selected endpoint")
     if kind == "namespace":
         # GET /api/v1/namespaces fixes the GVK even when list items omit TypeMeta.
         # Reject a supplied, conflicting TypeMeta instead of silently replacing it.
@@ -682,6 +788,11 @@ def _pages(reader, api, path, kind, cluster, scope, namespaced):
     seen = set()
     node_names, node_uids = set(), set()
     version = None
+    workload_types = {"pod": ("v1", "PodList"), "podtemplate": ("v1", "PodTemplateList"),
+        "replicationcontroller": ("v1", "ReplicationControllerList"), "deployment": ("apps/v1", "DeploymentList"),
+        "daemonset": ("apps/v1", "DaemonSetList"), "statefulset": ("apps/v1", "StatefulSetList"),
+        "replicaset": ("apps/v1", "ReplicaSetList"), "job": ("batch/v1", "JobList"),
+        "cronjob": ("batch/v1", "CronJobList")}
     for page in count():
         params = {"limit": reader.page_size}
         if continuation:
@@ -692,6 +803,10 @@ def _pages(reader, api, path, kind, cluster, scope, namespaced):
         if kind == "namespace" and (response.get("kind", "NamespaceList") != "NamespaceList"
                                     or response.get("apiVersion", "v1") != "v1"):
             raise ValueError("namespace list type conflicts with endpoint")
+        if kind in workload_types:
+            api_version, list_kind = workload_types[kind]
+            if response.get("apiVersion", api_version) != api_version or response.get("kind", list_kind) != list_kind:
+                raise ValueError("workload list type conflicts with endpoint")
         metadata = response.get("metadata", {})
         current_version = metadata.get("resourceVersion")
         if version is not None and current_version != version:
@@ -1404,23 +1519,51 @@ def _owner_policy_metadata(options, cluster, captured_at):
 def collect(connector, requirements=None, *, api=None):
     options, auth = dict(connector.get("options", {})), connector.get("auth", {})
     from . import k8s_node_clock_evidence as clock_evidence
+    from . import k8s_literal_secret_indicators as literals
+    from . import k8s_selected_log_sample_secret_indicators as log_samples
+    from . import k8s_selected_metadata_runtime_20261020 as selected_metadata
+    from . import k8s_annotation_indicators_20261020 as annotation_indicators
+    from . import k8s_legacy_psp_planner_20261020 as legacy_psp
+    from . import k8s_kubelet_configmap_indicators_20261020 as kubelet_configmaps
     imported_clock = clock_evidence.normalize(options)
     trusted_scopes = _trusted_scopes(options)
-    requested = options.get("inventories", list(TYPES)) if requirements is None else requirements
+    requested = options.get("inventories", [kind for kind in TYPES if kind not in (literals.KIND, log_samples.KIND, selected_metadata.KIND)]) if requirements is None else requirements
     if not isinstance(requested, (list, tuple)) or any(kind not in TYPES for kind in requested):
         raise ValueError("unsupported Kubernetes inventory requirement")
     wanted = set(requested)
     actual = set(wanted)
+    legacy_psp_requested = options.get(legacy_psp.OPTION) is True and "api_discovery" in wanted
+    annotation_context = None
     scopes = connector.get("scopes") or ["*"]
     if not isinstance(scopes, list) or any(not isinstance(x, str) or (x != "*" and (len(x) > 63 or re.fullmatch(r"[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", x) is None)) for x in scopes):
         raise ValueError("scopes must contain valid namespaces or '*'")
     scopes = ["*"] if "*" in scopes else list(dict.fromkeys(scopes))
+    literals.selected_targets(options, scopes)  # Reject malformed selectors before authentication.
+    log_targets = log_samples.selected_targets(options, scopes)
+    selected_metadata.preflight(options, scopes)
+    literal_metadata, literal_matches = {}, set()
+    log_metadata, log_matches = {}, set()
+    selected_metadata_facts, selected_metadata_matches = {}, set()
     requested_scopes = list(scopes)
     max_scopes = options.get("max_scopes")
     if max_scopes is not None and (type(max_scopes) is not int or max_scopes <= 0):
         raise ValueError("max_scopes must be a positive explicit limit")
     scopes = scopes if max_scopes is None else scopes[:max_scopes]
     reader = K8sReader(options)
+    private_content = ((log_samples.KIND in wanted and log_samples.enabled(options))
+        or (literals.KIND in wanted and literals.enabled(options))
+        or (selected_metadata.KIND in wanted and selected_metadata.enabled(options, scopes)))
+    if private_content:
+        native_read = reader._read
+        def private_metadata_read(job):
+            with log_samples.private_native_logs():
+                return native_read(job)
+        reader._read = private_metadata_read
+    if wanted.intersection((literals.KIND, log_samples.KIND, selected_metadata.KIND)) and callable(reader.k8s_progress_callback):
+        literal_callback = reader.k8s_progress_callback
+        # Namespaces themselves can contain detected values. Optional content
+        # jobs publish counts only, including before detection has completed.
+        reader.k8s_progress_callback = lambda event: literal_callback({**event, "scope": ""})
     reader.progress("discovering")
     owned = api is None
     cluster = auth.get("cluster_id")
@@ -1428,12 +1571,42 @@ def collect(connector, requirements=None, *, api=None):
         if options.get("hosted"):
             auth = hosted_auth(auth)
         if owned:
-            api = _new_api(auth)
+            if selected_metadata.KIND in wanted and selected_metadata.enabled(options, scopes):
+                with log_samples.private_native_logs():
+                    api = _new_api(auth)
+            else:
+                api = _new_api(auth)
+        if selected_metadata.KIND in wanted and selected_metadata.enabled(options, scopes):
+            selected_metadata.assert_private_transport(api)
         cluster = _cluster_id(api, auth)
+        annotation_context = annotation_indicators.collection_context(api, cluster)
+        if literals.KIND in wanted:
+            if private_content:
+                with log_samples.private_native_logs():
+                    literal_metadata, literal_matches = literals.collect(reader, api, options, scopes, cluster)
+            else:
+                literal_metadata, literal_matches = literals.collect(reader, api, options, scopes, cluster)
+        if selected_metadata.KIND in wanted:
+            selected_metadata_facts, selected_metadata_matches = selected_metadata.collect(
+                reader, api, options, scopes, cluster)
+        if log_samples.KIND in wanted:
+            selected_logs = [target for target in log_targets if target['namespace'] in scopes]
+            if selected_logs:
+                log_options = {**options, log_samples.OPTION: selected_logs}
+                log_metadata, log_matches = log_samples.collect(reader, api, log_options, scopes, cluster)
         from peaso.ai.access import k8s as capture_ai_access
-        capture_ai_access(getattr(getattr(api, "api_client", None), "configuration", None),
-                          cluster_id=cluster, namespaces=scopes)
+        if not ((literals.KIND in wanted and literals.enabled(options))
+                or (log_samples.KIND in wanted and log_samples.enabled(options))
+                or (selected_metadata.KIND in wanted and selected_metadata.enabled(options, scopes))):
+            capture_ai_access(getattr(getattr(api, "api_client", None), "configuration", None),
+                              cluster_id=cluster, namespaces=scopes)
         jobs = []
+        if kubelet_configmaps.KIND in actual:
+            for scope in scopes:
+                path = "/api/v1/" + ("" if scope == "*" else "namespaces/" + quote(scope, safe="") + "/") + "configmaps"
+                jobs.append((kubelet_configmaps.KIND, scope, "kubernetes", lambda path=path, scope=scope:
+                    kubelet_configmaps.pages(reader, api, path, kubelet_configmaps.KIND, cluster,
+                        scope, True, annotation_context, _native)))
         coverage_input = options.get("metadata_evidence_coverage")
         component_manifest = (isinstance(coverage_input, dict) and "component_configuration" in coverage_input
                               and "component_configuration" in wanted)
@@ -1448,7 +1621,7 @@ def collect(connector, requirements=None, *, api=None):
             actual.add("pod")
         if component_manifest or file_manifest or proxy_manifest:
             actual.add("node")  # one paged LIST shared by all requested metadata attestations
-        discover_psp = "podsecuritypolicy" in actual and "podsecuritypolicy" not in options.get("metadata_evidence", {})
+        discover_psp = legacy_psp_requested or ("podsecuritypolicy" in actual and "podsecuritypolicy" not in options.get("metadata_evidence", {}))
         for imported_kind in sorted(actual.intersection({"component_configuration", "file_metadata", "secret_metadata", "configmap_metadata", "podsecuritypolicy"})):
             if imported_kind == "podsecuritypolicy" and discover_psp:
                 continue
@@ -1535,7 +1708,7 @@ def collect(connector, requirements=None, *, api=None):
                 if discover_psp:
                     try:
                         version = reader.call(api.get_json, "/version")
-                        if not isinstance(version, dict) or not isinstance(version.get("gitVersion"), str) or not re.match(r"^v?[0-9]+\.[0-9]+", version["gitVersion"]):
+                        if not isinstance(version, dict) or legacy_psp.parse_version(version.get("gitVersion")) is None:
                             raise ValueError("malformed Kubernetes server version")
                         item["serverVersion"] = {"gitVersion": version["gitVersion"]}
                     except Exception as exc:
@@ -1561,6 +1734,7 @@ def collect(connector, requirements=None, *, api=None):
             if "api_discovery" in actual:
                 from .batch_remaining_k8s import attach_server_version
                 attach_server_version(reader, api, discovered, _safe_error)
+            actual.update(legacy_psp.legacy_support(discovered, legacy_psp_requested))
             groups = {group["name"] for item in discovered["items"] for group in item["groups"]}
             for kind in sorted(actual.intersection(CUSTOM_NETWORK_POLICY_GROUPS)):
                 group_name, version = CUSTOM_NETWORK_POLICY_GROUPS[kind]
@@ -1596,9 +1770,9 @@ def collect(connector, requirements=None, *, api=None):
                         "error": {"kind": "not_applicable", "code": "pod_security_policy_api_absent"},
                         "applicability": {"kubernetes_version": version, "observed_resource_absent": "policy/v1beta1/podsecuritypolicies",
                             "source": "GET /apis and GET /version", "guidance": "Review Pod Security Admission/SCC metadata separately; API absence is not evidence of secure admission"}})
-                elif not modern and item.get("podSecurityPolicyAdvertised") is True:
+                elif match is not None and not modern and item.get("podSecurityPolicyAdvertised") is True:
                     def psp_pages(version=version):
-                        for page in _pages(reader, api, "/apis/policy/v1beta1/podsecuritypolicies", "podsecuritypolicy", cluster, scopes[0], False):
+                        for page in annotation_indicators.pages(reader, api, "/apis/policy/v1beta1/podsecuritypolicies", "podsecuritypolicy", cluster, scopes[0], False, annotation_context, _pages):
                             for policy in page:
                                 if version:
                                     policy["_provenance"] = {"kubernetes_version": version}
@@ -1653,7 +1827,9 @@ def collect(connector, requirements=None, *, api=None):
                 if namespaced and scope != "*":
                     prefix, plural = path.rsplit("/", 1)
                     scoped_path = prefix + "/namespaces/" + quote(scope, safe="") + "/" + plural
-                jobs.append((kind, scope, "kubernetes", lambda path=scoped_path, kind=kind, scope=scope, namespaced=namespaced: _pages(reader, api, path, kind, cluster, scope, namespaced)))
+                jobs.append((kind, scope, "kubernetes", lambda path=scoped_path, kind=kind, scope=scope, namespaced=namespaced:
+                    annotation_indicators.pages(reader, api, path, kind, cluster, scope, namespaced, annotation_context, _pages)
+                    if kind == "ingress" else _pages(reader, api, path, kind, cluster, scope, namespaced)))
         if "admission_configuration" in wanted:
             def admission():
                 for plural, kind, object_kind in (("validatingwebhookconfigurations", "validatingwebhookconfiguration", "ValidatingWebhookConfiguration"),
@@ -1665,6 +1841,8 @@ def collect(connector, requirements=None, *, api=None):
             jobs.append(("admission_configuration", scopes[0], "kubernetes", admission))
         reader.progress("collecting")
         reader.run(jobs)
+        if legacy_psp_requested:
+            legacy_psp.copy_cluster_envelopes(reader, scopes)
         if "admission_policy" in actual and len(scopes) > 1:
             source = next((row for row in reader.collections if row["type"] == "admission_policy" and row["scope"] == scopes[0]), None)
             if source is not None:
@@ -1713,8 +1891,20 @@ def collect(connector, requirements=None, *, api=None):
                 if (kind, scope) not in existing:
                     reader.unavailable(kind, scope, "kubernetes", exc)
     finally:
+        if ((literals.KIND in wanted and literals.enabled(options))
+                or (log_samples.KIND in wanted and log_samples.enabled(options))
+                or (selected_metadata.KIND in wanted and selected_metadata.enabled(options, scopes))):
+            # Metadata jobs use the SDK too; do not retain their raw identity
+            # fields in its response cache after union redaction is available.
+            literal_client = getattr(getattr(api, "api", api), "api_client", None)
+            if literal_client is not None:
+                literal_client.last_response = None
         if owned and api is not None:
-            api.close()
+            if selected_metadata.KIND in wanted and selected_metadata.enabled(options, scopes):
+                with log_samples.private_native_logs():
+                    api.close()
+            else:
+                api.close()
     for scope in requested_scopes[len(scopes):]:
         for kind in sorted(wanted):
             reader.unavailable(kind, scope, "kubernetes", K8sReadError("scope_limit"))
@@ -1729,6 +1919,8 @@ def collect(connector, requirements=None, *, api=None):
         reader.collections.append(clock_collection)
         reader.total += len(clock_collection["items"])
     metadata = reader.metadata()
+    if annotation_context is not None:
+        metadata[annotation_indicators.CONTEXT] = annotation_context
     metadata.update(cluster_id=cluster, cluster_id_source="explicit" if auth.get("cluster_id") else "API origin digest",
                     trusted_scope_ids=trusted_scopes,
                     context=auth.get("context"), namespace_semantics="administrative scope; not a subnet",
@@ -1748,6 +1940,14 @@ def collect(connector, requirements=None, *, api=None):
     if "file_metadata" in wanted:
         metadata["file_metadata_coverage"] = _file_metadata_coverage(
             options, cluster, reader.collections, captured_at)
+    metadata.update(literal_metadata)
+    metadata.update(log_metadata)
+    metadata.update(selected_metadata_facts)
+    if log_samples.KIND in wanted and log_samples.enabled(options):
+        metadata['usage_evidence'] = {'status': 'selected_current_container_samples_only',
+            'reason': 'Only explicitly selected current-container samples were requested; other logs, exec and Secrets were not read'}
+    requested_scopes, reader.collections, metadata = selected_metadata.finalize(
+        requested_scopes, reader.collections, metadata, log_matches, literal_matches, selected_metadata_matches)
     snapshot = make_snapshot("k8s", requested_scopes, reader.collections, created_at=captured_at, metadata=metadata)
     reader.progress("completed", complete=True)
     return snapshot

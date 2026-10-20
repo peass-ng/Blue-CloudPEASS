@@ -131,7 +131,378 @@ record sets and full transitive/PIM directory authorization are not inferred.
 Subscription discovery may include inaccessible tenant resources only as scope
 metadata; selected subscription scans fetch details within their selected scope.
 
+### Optional selected app-settings secret scanning
+
+Standard Azure inventory omits application-setting values. To inspect literal
+settings for App Service or Azure Functions, explicitly name
+`azure.review.app_service.selected_app_settings_secret_indicators`, set
+`options.content_secret_scans` to `true`, and supply
+`options.selected_azure_app_settings`: an array of 1–8 unique, exact native site
+or deployment-slot resource IDs. Use explicit `/subscriptions/<UUID>` scopes
+containing those resources. Broad category/framework selection does not enable
+content reads; no sites or slots are enumerated.
+
+```json
+{
+  "connector": {
+    "provider": "azure",
+    "scopes": ["/subscriptions/11111111-1111-1111-1111-111111111111"],
+    "options": {
+      "content_secret_scans": true,
+      "selected_azure_app_settings": [
+        "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/example/providers/Microsoft.Web/sites/example-app",
+        "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/example/providers/Microsoft.Web/sites/example-app/slots/staging"
+      ]
+    }
+  },
+  "checks": ["azure.review.app_service.selected_app_settings_secret_indicators"]
+}
+```
+
+Reader alone is insufficient for these optional sensitive reads. Grant only the
+following actions at the selected sites or slots; Contributor and write
+permissions are unnecessary. The `config/list/Action` permission can expose other
+sensitive configuration through Azure, although this reader calls only the
+app-settings endpoint.
+
+| Selected resource | Native API (2025-03-01) | Required action |
+| --- | --- | --- |
+| Site identity | `GET {site}` | `Microsoft.Web/sites/read` |
+| Site literal app settings | `POST {site}/config/appsettings/list` | `Microsoft.Web/sites/config/list/Action` |
+| Slot identity | `GET {site}/slots/{slot}` | `Microsoft.Web/sites/slots/read` |
+| Slot literal app settings | `POST {site}/slots/{slot}/config/appsettings/list` | `Microsoft.Web/sites/slots/config/list/Action` |
+
+These POST operations are documented reads, with no request payload or mutation.
+Only the fixed `management.azure.com` ARM origin is used. The returned identity
+must match the selected resource before literal values are scanned. Documented
+Key Vault references are excluded without resolution; no Key Vault secret-value
+permission is needed. A selection containing only references or empty literals
+remains UNKNOWN because no literal content was inspected.
+
+Both pinned offline engines, Kingfisher 1.4.0 and TruffleHog 3.92.5, must complete
+for PASS. Credential verification is disabled. Exact matching leaks are merged
+across engines and selected sites; values, setting names and native resource
+names are not exported. Reads use memory only, with no content files: at most
+2 MiB per response, 8 MiB across native responses, 512 settings, 64 KiB per value,
+256 KiB of literal content per selected resource, and a shared 60-second deadline.
+Denied, deleted, omitted, unsupported, partial, oversized or failed reads/scans
+remain UNKNOWN. Coverage applies only to the selected observed literal settings,
+not source packages, connection strings, images, logs, unselected slots, secret
+stores or credential validity.
+
+API and permission references: [site app settings](https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-application-settings?view=rest-appservice-2025-03-01),
+[slot app settings](https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-application-settings-slot?view=rest-appservice-2025-03-01),
+[Microsoft.Web actions](https://learn.microsoft.com/en-us/azure/role-based-access-control/permissions/web-and-mobile),
+and [Key Vault reference syntax](https://learn.microsoft.com/en-us/azure/app-service/app-service-key-vault-references).
+
+### Optional selected ACR image secret scanning
+
+To inspect private Azure Container Registry image content, name
+`azure.review.acr.selected_image_secret_indicators` in `checks`, set
+`options.content_secret_scans` to `true`, and supply
+`options.selected_azure_acr_images`: an array of 1–4 exact objects with
+`registry_id`, `repository` and immutable `digest` fields. Use explicit matching
+`/subscriptions/<UUID>` scopes. Tags, URLs, wildcard scopes and broad
+category/framework selection cannot enable these reads.
+
+```json
+{
+  "content_secret_scans": true,
+  "selected_azure_acr_images": [{
+    "registry_id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/example/providers/Microsoft.ContainerRegistry/registries/exampleregistry",
+    "repository": "team/application",
+    "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+  }]
+}
+```
+
+Replace the example digest with the selected image's actual manifest SHA256.
+Grant `Microsoft.ContainerRegistry/registries/read` on the selected registry for
+its native identity and endpoint metadata. Image pulls need separate content
+rights: **AcrPull** in classic RBAC mode, or **Container Registry Repository
+Reader** with the appropriate repository condition in ABAC-enabled mode. ARM
+Reader alone is insufficient; the ABAC Repository Catalog Lister role is
+unnecessary for exact repository selections. No Contributor, write, push,
+admin-user credential export or `listCredentials` permission is requested.
+
+| Read | Native route | Authority |
+| --- | --- | --- |
+| Registry identity/endpoints/mode | `GET {registry_id}?api-version=2025-11-01` at `management.azure.com` | Registry metadata read |
+| Existing Entra token exchange | `POST /oauth2/exchange` at the verified native login server | Fixed ACR audience preferred; ARM fallback only when explicitly allowed |
+| Repository pull token | `POST /oauth2/token` at that same server | Only `repository:<exact repository>:pull` scope |
+| Immutable manifest/config/layers | `GET /v2/<repository>/manifests/<sha256>` and `/blobs/<sha256>` | Exact repository content-read rights above |
+
+The reader uses the existing Azure credential configuration. It reads native
+registry identity with an ARM token, then requests the fixed Entra audience
+`https://containerregistry.azure.net/.default` through the existing SDK credential
+for exchange, requiring the same verified tenant. This supports hardened
+ACR-audience-only registries without changing their policy. If that audience is
+unavailable, an existing ARM token is used only when the native registry response
+explicitly reports ARM-audience authentication enabled. A direct ARM-only token
+connector with no SDK credential remains UNKNOWN on hardened registries; do not
+weaken their policy for scanning. No new registry username/password, Docker
+configuration, managed identity source, challenge-supplied realm or external auth
+URL is used. Expired, foreign or broader-than-pull registry tokens are rejected;
+invalid ACR tokens never trigger ARM fallback.
+
+The ARM response must bind the selected registry ID to its public Azure ACR
+login server. Blob downloads may follow one native 307 redirect only to an exact
+registry-specific `dataEndpointHostNames` entry returned by ARM, with no bearer
+token forwarded. Default redirects to wildcard Azure Storage hosts, regional
+login aliases, sovereign clouds and additional redirects are unsupported and
+remain UNKNOWN. Existing dedicated data endpoints may be used; this reader does
+not enable endpoints or alter network policy.
+
+Every manifest, config and layer is checked against the selected/declared SHA256
+and size. Both pinned offline scanners must complete for manifest/config bytes,
+decoded JSON strings, and each supported layer file. Only single-platform Linux
+amd64/arm64 OCI or Docker schema-2 images are supported. Multiarch indexes,
+foreign layers, duplicate descriptors, zstd, links/devices, nested archives,
+malformed or partial TARs, and unsupported content stay UNKNOWN. Layers are
+inspected individually, including files deleted by later whiteouts; no container
+is executed and no filesystem extraction occurs.
+
+Bounds are shared across the explicit selection: 4 images, 160 native HTTP
+calls, 64 MiB transferred and 120 seconds; per image, 16 layers, 16 MiB compressed,
+32 MiB expanded and 2,000 members. Individual limits are 256 KiB per manifest,
+1 MiB per config and 8 MiB per compressed or expanded layer. Reads and parsing
+use memory only; responses/connections close on every path. Values, native
+repository names, registry tokens, signed redirect URLs and original file paths
+are absent from exported evidence. Exact-value detections are redacted and
+merged across engines, files and selected images; credentials are never verified.
+PASS describes only the selected observed supported bytes and detector rules,
+not all registries, running workloads, history, secret stores or secret formats.
+
+References: [native registry GET](https://learn.microsoft.com/en-us/rest/api/container-registry/registries/get?view=rest-container-registry-2025-11-01),
+[ACR token exchange](https://github.com/Azure/acr/blob/main/docs/AAD-OAuth.md),
+[ACR read roles](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-built-in-roles-directory-reference),
+[ARM audience policy](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-disable-authentication-as-arm),
+and [dedicated data endpoints](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-dedicated-data-endpoints).
+
+### Optional selected ARM configuration and source literals (local proposal)
+
+The proposed check `azure.review.configuration.selected_content_secret_indicators`
+is unregistered until native admission. After admission, enable
+`content_secret_scans: true`, name that exact check, and supply
+`selected_azure_configuration_content` with 1–8 unique exact selectors. Each
+selector has exactly `surface` and `resource_id`; every ID must belong to an
+explicitly selected subscription. Bulk check selection does not authorize reads.
+
+```json
+{
+  "content_secret_scans": true,
+  "selected_azure_configuration_content": [
+    {
+      "surface": "vm_userdata",
+      "resource_id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/example/providers/Microsoft.Compute/virtualMachines/selected-vm"
+    }
+  ]
+}
+```
+
+All requests are authenticated GETs to `management.azure.com`. Grant only the
+following existing read actions at the selected resource scope, subject to Azure's
+supported RBAC assignment scopes. Automation documents account-level scope; use
+the narrow account containing the selected runbook or variable. No permission is
+created or expanded by the reader. An appropriately scoped Reader assignment
+normally includes these management-plane reads; no Contributor, write, decrypt,
+list-secrets, exec, deployment, runbook-start or policy-test action is needed.
+
+| `surface` | Selected native fields / API version | Minimum read action |
+| --- | --- | --- |
+| `aci_literals` | Container and init-container `properties.environmentVariables[].value` and `command[]`; `2023-05-01` | `Microsoft.ContainerInstance/containerGroups/read` |
+| `container_app_literals` | Current `properties.template` container/init-container literal `env[].value`, `command[]`, `args[]`; `2024-03-01` | `Microsoft.App/containerApps/read` |
+| `logic_workflow` | Current `properties.definition` strings; `2016-06-01` | `Microsoft.Logic/workflows/read` |
+| `vm_userdata` | `properties.userData` using `GET {id}?api-version=2025-04-01&$expand=userData`; canonical Base64 UTF-8, at most 64 KiB decoded | `Microsoft.Compute/virtualMachines/read` |
+| `vmss_model_userdata` | `properties.virtualMachineProfile.userData` with the same expansion/version; model only, no VM instance claim | `Microsoft.Compute/virtualMachineScaleSets/read` |
+| `vm_extension_settings` | Selected extension `properties.settings`; `2025-04-01` | `Microsoft.Compute/virtualMachines/extensions/read` |
+| `image_builder_inline` | Shell/PowerShell `properties.customize[].inline[]`; `2022-07-01` | `Microsoft.VirtualMachineImages/imageTemplates/read` |
+| `automation_runbook` | Published supported text runbook identity GET, then `GET {runbook-id}/content`; `2023-11-01` | `Microsoft.Automation/automationAccounts/runbooks/read` and `Microsoft.Automation/automationAccounts/runbooks/content/read` |
+| `automation_variable` | JSON-serialized `properties.value` only when `isEncrypted` is explicitly false; `2023-11-01` | `Microsoft.Automation/automationAccounts/variables/read` |
+| `apim_policy` | Exact global/API/operation `/policies/policy` child, `properties.value` returned as `rawxml`; `2024-05-01&format=rawxml` | `Microsoft.ApiManagement/service/policies/read`, `service/apis/policies/read` or `service/apis/operations/policies/read`, matching the selected level |
+
+Runbook reads support published PowerShell, PowerShellWorkflow, PowerShell72,
+Python2 and Python3 text only. Graphical, draft and unsupported encodings are
+unresolved. APIM selection supports the global child, an exact API (including a
+safe literal revision suffix), or an exact operation child; policies at other
+scopes, named values and fragments are not fetched. Logic Apps Standard
+`Microsoft.Web/sites` source files are outside this ARM workflow surface.
+
+`customData` is not recoverable through this reader. Protected extension settings,
+ACI secure values, Container Apps secret references and encrypted Automation
+variables are intended-store exclusions and are never decrypted or dereferenced.
+External scripts, links, inherited APIM policies, fragments and named values are
+not followed. Masks, binary/empty/unsupported content, missing facts or references
+prevent a clean result. A directly observed credential literal remains a finding
+with incomplete coverage when another portion or detector is unavailable.
+
+Reads are serial and bounded: 8 targets, 16 GET attempts, 2 MiB per response,
+8 MiB total wire bytes, 256 KiB inspected literals per resource, and a shared
+120-second deadline. Configured collector cancellation/call/resource bounds also
+apply. Content is memory-only and never executed. Both pinned offline detectors
+must complete for PASS; credentials are never validated. Exact-value HMACs merge
+repeated detections with other readers. Only opaque selected-object locators,
+counts, bounded request receipts and redacted findings reach snapshots/caches;
+the union of detected values is scrubbed from mixed-inventory metadata too.
+Coverage describes the selected current literals, not all subscriptions, history,
+running environments, external content or every possible secret format.
+
+Primary contracts: [ACI GET](https://learn.microsoft.com/en-us/rest/api/container-instances/container-groups/get?view=rest-container-instances-2023-05-01),
+[Container Apps GET](https://learn.microsoft.com/en-us/rest/api/resource-manager/containerapps/container-apps/get?view=rest-resource-manager-containerapps-2024-03-01),
+[workflow GET](https://learn.microsoft.com/en-us/rest/api/logic/workflows/get?view=rest-logic-2016-06-01),
+[VM GET](https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2025-04-01),
+[VMSS GET](https://learn.microsoft.com/en-us/rest/api/compute/virtual-machine-scale-sets/get?view=rest-compute-2025-04-01),
+[extension GET](https://learn.microsoft.com/en-us/rest/api/compute/virtual-machine-extensions/get?view=rest-compute-2025-04-01),
+[Image Builder GET](https://learn.microsoft.com/en-us/rest/api/imagebuilder/virtual-machine-image-templates/get?view=rest-imagebuilder-2022-07-01),
+[runbook content](https://learn.microsoft.com/en-us/rest/api/automation/runbook/get-content?view=rest-automation-2023-11-01),
+[variable GET](https://learn.microsoft.com/en-us/rest/api/automation/variable/get?view=rest-automation-2023-11-01),
+[APIM global](https://learn.microsoft.com/en-us/rest/api/apimanagement/policy/get?view=rest-apimanagement-2024-05-01),
+[API](https://learn.microsoft.com/en-us/rest/api/apimanagement/api-policy/get?view=rest-apimanagement-2024-05-01)
+and [operation](https://learn.microsoft.com/en-us/rest/api/apimanagement/api-operation-policy/get?view=rest-apimanagement-2024-05-01).
+
 ## Kubernetes
+
+### Kubelet ConfigMap declarations
+
+The eight `k8s.review.kubelet_configmap.*` checks read explicit settings from
+ConfigMaps whose names start with `kubelet-config`. They use metadata-only
+ConfigMap LISTs in the selected namespaces, then GET only those matching names.
+The full GET must match the discovered namespace, name, UID and resourceVersion.
+This is a normal configuration inventory; it does not enable content secret
+scanning. Other ConfigMaps receive no content GET.
+
+The checks assess explicit Webhook authorization, a client CA path declaration,
+disabled anonymous authentication, disabled read-only port, client certificate
+rotation, a fixed explicit cipher allowlist, certificate/key path declarations,
+and a positive event creation rate limit. A matching name does not prove that
+any node uses the ConfigMap. Node flags, overrides, file contents, certificate
+validity, approval and runtime enforcement are not verified. Missing, unsupported,
+malformed, denied or partial evidence cannot prove a clean declaration.
+
+Minimum permissions are `list` on core `configmaps` in each selected namespace
+and `get` on the matching names. GET may be restricted to exact known names:
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: read-kubelet-declarations
+  namespace: kube-system
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["list"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    resourceNames: ["kubelet-config", "kubelet-config-1.34"]
+    verbs: ["get"]
+```
+
+Use the actual names present in your cluster and an existing RoleBinding to the
+scanner identity. Kubernetes RBAC cannot restrict LIST to a name prefix or to
+metadata, and the metadata permission also authorizes full-object LISTs; this
+collector requests only metadata representations. An existing `*` namespace
+scope requires the corresponding cluster-wide list authorization. No Secret,
+node, proxy, log, exec or write permission is needed by these eight checks.
+
+Per selected namespace (or one existing wildcard scope), reads are bounded to
+eight metadata pages, sixteen matching content GETs, eight MiB total response
+bytes and thirty seconds. YAML is limited to 64 KiB, 4,096 tokens and depth 12;
+aliases, custom tags and duplicate fields are rejected. Only native identity and
+safe whitelisted indicators enter snapshots. YAML, paths, annotations, private
+keys and unrelated values are discarded; explicit collection limits and failed
+metadata negotiation leave coverage unresolved.
+
+### Optional selected literal-content secret scanning
+
+This reader is off by default. Enable `options.content_secret_scans: true`, name
+`k8s.review.selected_literals.secret_indicators` in `checks`, and supply
+`options.selected_k8s_literal_resources` with 1–8 unique exact selectors. Each
+selector has exactly `cluster_id`, `namespace`, `kind` (`Pod` or `ConfigMap`) and
+`name`. The namespace must be an explicit requested scope; `*` is not supported
+for this reader. The cluster ID must equal the configured `auth.cluster_id` or
+the collector's API-origin digest. Selectors cannot be URLs or contain path
+escapes, wildcards or discovery instructions.
+
+```json
+{
+  "checks": ["k8s.review.selected_literals.secret_indicators"],
+  "connector": {
+    "provider": "k8s",
+    "scopes": ["team-a"],
+    "auth": {"method": "context", "context": "review-context", "cluster_id": "review-cluster"},
+    "options": {
+      "content_secret_scans": true,
+      "selected_k8s_literal_resources": [
+        {"cluster_id": "review-cluster", "namespace": "team-a", "kind": "Pod", "name": "review-pod"},
+        {"cluster_id": "review-cluster", "namespace": "team-a", "kind": "ConfigMap", "name": "review-config"}
+      ]
+    }
+  }
+}
+```
+
+The reader issues two exact native GETs per selected object through the existing
+authenticated TLS transport, checks namespace/name/kind/API version, and requires
+unchanged UID, resourceVersion and selected content between reads. It inspects
+literal env values, command and args in regular, init and ephemeral containers,
+and ConfigMap `data` plus UTF-8 text decoded from `binaryData`. Selected object identities, container/env names and literal
+keys enter the same offline detector input so detected values copied into
+identity fields cannot survive in retained metadata. Variable substitutions are
+not evaluated. Secret/config-map env references, downward API values and
+`envFrom` references are counted and excluded without dereference. It never reads
+Secret payloads, logs, exec, node/kubelet/host files or registry images.
+
+Minimum additional permission for this exact check is namespace-scoped `get` on
+the exact selected resource names. The reader supports Pods, ConfigMaps,
+Deployments, DaemonSets, StatefulSets, ReplicaSets, Jobs, CronJobs,
+ReplicationControllers and PodTemplates; controller coverage is limited to the
+current Pod template. The overall scan may use `["*"]`, but every content selector
+still names an exact namespace and object. See the [per-kind read permission table](secret-content-permissions.md#kubernetes-selected-workload-literals). No `list` or `get secrets` grant is
+needed. For example, an administrator can bind this Role to the existing scanner
+identity in `team-a`; remove unused resource rules and use the actual exact names:
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: peaso-selected-literal-reader
+  namespace: team-a
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    resourceNames: ["review-pod"]
+    verbs: ["get"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    resourceNames: ["review-config"]
+    verbs: ["get"]
+```
+
+There is no blanket enumeration. The hard ceiling is 16 native GET attempts,
+2 MiB per response, 8 MiB total response bytes, 256 KiB detector input per
+object, 64 KiB per literal, and 512 nonempty literals per object. The reader uses
+a 60-second batch budget, cancellation and caller-supplied shared call/resource
+limits; individual network waits are at most 10 seconds and can finish after the
+remaining batch deadline, in which case the result stays incomplete. Both pinned
+offline engines (Kingfisher 1.4.0 and TruffleHog 3.92.5) must finish. No credential
+validation, verification request, detector download or network update is used.
+
+Only redacted evidence, opaque HMAC locators, counts and safe read receipts enter
+the snapshot. HMAC exact-value fingerprints use the same process key as the other
+content readers, allowing repeated detections to merge without retaining the
+value. The union of detected values scrubs identity and location fields across
+the completed collection before caching/export; progress carries counts only,
+and this optional scan does not capture live AI access. Denied, malformed,
+changed, partial, unsupported, empty or incompletely scanned content stays
+`UNKNOWN`; it cannot prove secret absence. A `PASS` covers only the selected
+observed supported literals, and a `FAIL` indicates potential exposure without
+proving the credential is valid or usable.
+
+Native field contracts: [Pod v1](https://kubernetes.io/docs/reference/kubernetes-api/core/pod-v1/),
+[ConfigMap v1](https://kubernetes.io/docs/reference/kubernetes-api/core/config-map-v1/),
+and [RBAC resourceNames](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#referring-to-resources).
+
 
 `scopes` are namespace names or `*`; cluster-scoped inventory is read once under
 the first selected scope. Namespaced endpoints are constructed separately for each
@@ -210,7 +581,7 @@ kind: ClusterRole
 metadata: {name: peaso-readonly}
 rules:
   - apiGroups: [""]
-    resources: [pods, nodes, namespaces, serviceaccounts, services, replicationcontrollers, podtemplates, resourcequotas, limitranges, configmaps]
+    resources: [pods, nodes, namespaces, serviceaccounts, services, endpoints, persistentvolumes, persistentvolumeclaims, replicationcontrollers, podtemplates, resourcequotas, limitranges, configmaps]
     verbs: [get, list]
   - apiGroups: [rbac.authorization.k8s.io]
     resources: [roles, clusterroles, rolebindings, clusterrolebindings]
@@ -222,7 +593,64 @@ rules:
     resources: [jobs, cronjobs]
     verbs: [list]
   - apiGroups: [networking.k8s.io]
-    resources: [ingresses, networkpolicies]
+    resources: [ingresses, ingressclasses, networkpolicies, servicecidrs, ipaddresses]
+    verbs: [list]
+  - apiGroups: [gateway.networking.k8s.io]     # when Gateway API is installed
+    resources: [gatewayclasses, gateways, httproutes, grpcroutes, tlsroutes, tcproutes, udproutes, referencegrants, backendtlspolicies]
+    verbs: [list]
+  - apiGroups: [storage.k8s.io]
+    resources: [storageclasses, csidrivers, csinodes, volumeattachments]
+    verbs: [list]
+  - apiGroups: [cilium.io]  # when installed
+    resources: [ciliumbgpadvertisements, ciliumbgpclusterconfigs, ciliumbgppeerconfigs, ciliumbgppeeringpolicies, ciliumcidrgroups, ciliumclusterwidenetworkpolicies, ciliumegressgatewaypolicies, ciliumendpoints, ciliuml2announcementpolicies, ciliumloadbalancerippools, ciliumlocalredirectpolicies, ciliumnetworkpolicies, ciliumnodes, ciliumpodippools]
+    verbs: [list]
+  - apiGroups: [crd.antrea.io]  # when installed
+    resources: [clustergroups, clusternetworkpolicies, egresses, externalippools, groups, networkpolicies]
+    verbs: [list]
+  - apiGroups: [crd.projectcalico.org]  # when installed
+    resources: [bgpconfigurations, bgppeers, globalnetworkpolicies, globalnetworksets, hostendpoints, ippools, networkpolicies, networksets]
+    verbs: [list]
+  - apiGroups: [gateway.envoyproxy.io]  # when installed
+    resources: [backends, backendtrafficpolicies, clienttrafficpolicies, envoyproxies]
+    verbs: [list]
+  - apiGroups: [k8s.cni.cncf.io]  # when installed
+    resources: [network-attachment-definitions]
+    verbs: [list]
+  - apiGroups: [k8s.nginx.org]  # when installed
+    resources: [transportservers, virtualserverroutes, virtualservers]
+    verbs: [list]
+  - apiGroups: [k8s.ovn.org]  # when installed
+    resources: [clusteruserdefinednetworks, egressfirewalls, egressips, egressservices, userdefinednetworks]
+    verbs: [list]
+  - apiGroups: [metallb.io]  # when installed
+    resources: [bgpadvertisements, bgppeers, ipaddresspools, l2advertisements]
+    verbs: [list]
+  - apiGroups: [networking.istio.io]  # when installed
+    resources: [destinationrules, gateways, serviceentries, sidecars, virtualservices, workloadentries]
+    verbs: [list]
+  - apiGroups: [policy.linkerd.io]  # when installed
+    resources: [authorizationpolicies, httproutes, meshtlsauthentications, networkauthentications, serverauthorizations, servers]
+    verbs: [list]
+  - apiGroups: [projectcalico.org]  # when installed
+    resources: [bgpconfigurations, bgppeers, globalnetworkpolicies, globalnetworksets, hostendpoints, ippools, networkpolicies, networksets]
+    verbs: [list]
+  - apiGroups: [projectcontour.io]  # when installed
+    resources: [httpproxies]
+    verbs: [list]
+  - apiGroups: [route.openshift.io]  # when installed
+    resources: [routes]
+    verbs: [list]
+  - apiGroups: [security.istio.io]  # when installed
+    resources: [authorizationpolicies, peerauthentications]
+    verbs: [list]
+  - apiGroups: [traefik.containo.us]  # when installed
+    resources: [ingressroutes, ingressroutetcps, ingressrouteudps, serverstransports, serverstransporttcps, traefikservices]
+    verbs: [list]
+  - apiGroups: [traefik.io]  # when installed
+    resources: [ingressroutes, ingressroutetcps, ingressrouteudps, serverstransports, serverstransporttcps, traefikservices]
+    verbs: [list]
+  - apiGroups: [policy.networking.k8s.io]      # when installed
+    resources: [adminnetworkpolicies, baselineadminnetworkpolicies, clusternetworkpolicies]
     verbs: [list]
   - apiGroups: [discovery.k8s.io]
     resources: [endpointslices]
@@ -549,3 +977,31 @@ Only native identity and container name/read-only-root flags are retained for th
 These SDK-shaped collector-to-signed-engine tests demonstrate declared settings, including false/omitted flags, init and ephemeral containers, scope errors and incomplete reads. They are not a live AKS or universal-account compliance claim. Primary schemas: [Kubernetes security context default](https://github.com/kubernetes/api/blob/v0.34.1/core/v1/types.go), [Deployment](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/deployment-v1/), [CronJob](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/cron-job-v1/), and [complete consistent LIST pagination](https://kubernetes.io/docs/reference/using-api/api-concepts/#retrieving-large-results-sets-in-chunks).
 
 Native typed LIST responses can omit `kind` and `apiVersion` on individual items. The adapter derives only absent fields from the exact endpoint and already validated List kind/version; explicit conflicting or null item fields still produce UNKNOWN. Namespace UID, object UID/resourceVersion, pagination and TLS/ARM identity checks remain mandatory. Individual GET responses retain their explicit generation checks. This follows the [Kubernetes server serialization contract](https://github.com/kubernetes/kubernetes/pull/127361#issuecomment-2353199198), and does not relax collection completeness or add permissions.
+
+
+## Optional selected Azure source and secret content
+
+The metadata Reader setup above does not grant private registry, storage data,
+App Configuration data or Synapse/DevOps content access. Before selecting an
+optional content check, use the [per-service permission table](secret-content-permissions.md#additional-locally-integrated-azure-content-readers).
+It links exact resource/commit/version selectors and minimum read roles for
+Blob/File sources, DevOps files/pipelines, App Configuration values, Data Factory
+and Synapse declarations. Private ACR images need the separately documented
+pull permission. A credential limited to an ARM bearer token cannot acquire
+the extra data-plane token audiences. These readers do not create grants or
+follow protected secret references; they remain default-off and require named
+check selection plus `content_secret_scans`.
+
+Optional selected [Log Analytics and Application Insights message samples](peaso-azure-selected-log-samples.md) require their separate query read permissions. Metadata Reader access alone does not establish message access; the local reader covers only selected preceding-hour samples, not full retained history.
+
+Optional selected [Databricks notebook source](peaso-azure-databricks-notebook-secrets.md) needs separately assigned workspace read authorization. Optional [current-container log samples](peaso-k8s-selected-log-secrets.md) need namespace-scoped `pods/log` read access. Both are off unless selected by exact check and target; no permission or infrastructure is created by a check.
+
+Optional [ML Command-job literals](peaso-azure-selected-ml-secrets.md) use job metadata reads. The separate [ML environment/code asset readers](peaso-azure-selected-ml-assets-secrets.md) inspect returned inline Conda text or one exact associated source file. Code-file reads additionally need scoped Blob/File data authorization; ARM Reader and stored datastore credentials do not provide it. These checks require their exact named selection and `content_secret_scans: true`; package installation, source execution and role changes are excluded.
+
+The storage-account blocking SAS-expiry policy declaration uses the existing full ARM account read and requests no extra permissions. It checks the declared Block action and positive interval, not issued tokens or exempt SAS types; client validity requirements remain a remediation consideration.
+
+Optional [selected Function declarations](peaso-azure-selected-function-declarations.md) check the Application Insights setting and automatic major4 runtime channel. These sensitive settings reads require exact named checks, targets, content consent and site-scoped `Microsoft.Web/sites/config/list/action`. They do not invoke secret detectors or prove delivery or the resolved host build.
+
+Ordinary [Storage perimeter associations and Query-linked Table CMK declarations](check-review/azure-nsp-query-cmk-setup-20261020.md) use scoped management-plane Reader access, including subscription, NSP/profile/association, workspace/link and Storage metadata reads. They require neither content downloads nor Key Vault data access and make no network or key-configuration changes.
+
+Optional [selected Kubernetes metadata inspection](peaso-k8s-selected-metadata-secrets.md) inspects exact object labels and annotations with separately selected content consent and narrowly scoped GET permissions.

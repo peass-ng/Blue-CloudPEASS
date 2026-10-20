@@ -1,0 +1,573 @@
+{
+  "azure.review.managed_hsm.audit_storage_destination": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "aae1c5854ed44c85fd1e23b4b06c5e00fd178c43a993640bdaa6d230fa9895fe",
+    "summary": "Review the Managed HSM diagnostic settings and configure an enabled AuditEvent category with the intended Azure Storage destination. Verify log delivery and storage retention separately.",
+    "steps": [
+      "Enable AuditEvent diagnostic logging to the intended Azure Storage destination."
+    ],
+    "caveats": [
+      "Destination existence, delivery and retention were not tested."
+    ],
+    "references": [
+      {
+        "title": "Managed HSM logging",
+        "url": "https://learn.microsoft.com/en-us/azure/key-vault/managed-hsm/logging"
+      }
+    ],
+    "cli": []
+  },
+  "azure.network.acr_public_ip_ranges_restricted": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "c1c58309d9bad6ac180e5a8eb226000d9c5f86f58065c17764ce867683d55977",
+    "summary": "Disable public network access, or use default Deny with only the IPv4 ranges needed by registry clients. Review trusted Azure service bypass separately.",
+    "steps": [
+      "Disable public access or allow only the IPv4 ranges required by registry clients.",
+      "Review the trusted Azure services bypass separately."
+    ],
+    "caveats": [
+      "Authentication, private routing and effective access were not tested."
+    ],
+    "references": [
+      {
+        "title": "Restrict ACR public IP access",
+        "url": "https://learn.microsoft.com/en-us/azure/container-registry/container-registry-access-selected-networks"
+      }
+    ],
+    "cli": []
+  },
+  "azure.encryption.automation_cmk_declared": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "95511474b9388481f084b8d1c86aa9add4a020d6713abf9761f105931e122862",
+    "summary": "Configure a complete Key Vault key reference and attach the Automation system-assigned identity. Review key authorization, connectivity and key use separately.",
+    "steps": [
+      "Configure the intended Key Vault key reference and attach the Automation system-assigned identity.",
+      "Verify that identity can use the selected key."
+    ],
+    "caveats": [
+      "Key existence, authorization, connectivity and cryptographic use were not tested."
+    ],
+    "references": [
+      {
+        "title": "Automation declares a customer-managed key reference and attached system identity",
+        "url": "https://learn.microsoft.com/en-us/rest/api/automation/automation-account/get?view=rest-automation-2023-11-01"
+      }
+    ],
+    "cli": []
+  },
+  "azure.logging.aci_log_analytics_declared": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "0ccab2919dc0024c893f5d95398a67c15123151847f87bd0b2001cf7078f325c",
+    "summary": "Configure diagnostics.logAnalytics with the workspace customer UUID and a supported logType. Verify workspace access and log delivery separately.",
+    "steps": [
+      "Configure the Log Analytics workspace customer UUID and supported log type for the container group.",
+      "Verify logs arrive in the intended workspace."
+    ],
+    "caveats": [
+      "Workspace existence, access, ingestion and log delivery were not tested."
+    ],
+    "references": [
+      {
+        "title": "Container groups declare a Log Analytics customer UUID and supported log type",
+        "url": "https://learn.microsoft.com/en-us/rest/api/container-instances/container-groups/get?view=rest-container-instances-2023-05-01"
+      }
+    ],
+    "cli": []
+  },
+  "azure.logging.aks_supported_log_categories_destination_declared": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "edafa20dda8809f4c8a53e8d0c3891993e55c3926b3e0d3d38037100e15e6f92",
+    "summary": "Enable each supported control-plane log category with the intended diagnostic destination. Verify destination permissions and log delivery separately.",
+    "steps": [
+      "Enable each supported control-plane log category with the intended diagnostic destination. Verify destination permissions and log delivery separately."
+    ],
+    "caveats": [
+      "This checks declared configuration. Effective key access, log delivery and runtime behavior were not tested."
+    ],
+    "references": [
+      {
+        "title": "AKS declares supported log categories to diagnostic destinations",
+        "url": "https://learn.microsoft.com/en-us/azure/aks/monitor-aks"
+      }
+    ],
+    "cli": []
+  },
+  "azure.logging.managed_hsm_audit_destination_declared": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "9e230a9ec981f2b3903a28f77cbf7eb4441343b2342947bee208a0da190575ec",
+    "summary": "Review the Managed HSM diagnostic settings and configure an enabled AuditEvent category with the intended Storage or Log Analytics destination. Verify log delivery and storage retention separately.",
+    "steps": [
+      "Review the Managed HSM diagnostic settings and configure an enabled AuditEvent category with the intended Storage or Log Analytics destination. Verify log delivery and storage retention separately."
+    ],
+    "caveats": [
+      "This checks declared configuration. Effective key access, log delivery and runtime behavior were not tested."
+    ],
+    "references": [
+      {
+        "title": "Managed HSM declares AuditEvent logging to Storage or Log Analytics",
+        "url": "https://learn.microsoft.com/en-us/azure/key-vault/managed-hsm/logging"
+      }
+    ],
+    "cli": []
+  },
+  "azure.encryption.log_analytics_cluster_cmk_declared": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "5480bed15c34436d5db7bc70329b21a48f2e6ca7bc292f36317afef625620886",
+    "summary": "Configure a supported Key Vault or Managed HSM key reference on the cluster. Assign the intended system identity or one user identity; review its key permissions separately.",
+    "steps": [
+      "Configure a supported Key Vault or Managed HSM key reference on the cluster.",
+      "Assign the intended system identity or one user identity; review its key permissions separately."
+    ],
+    "caveats": [
+      "This checks declared configuration. Effective key access, log delivery and runtime behavior were not tested."
+    ],
+    "references": [
+      {
+        "title": "Log Analytics cluster declares a customer-managed key and managed identity",
+        "url": "https://learn.microsoft.com/en-us/azure/azure-monitor/logs/customer-managed-keys"
+      }
+    ],
+    "cli": []
+  },
+  "azure.encryption.stream_analytics_job_storage_cmk_declared": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "fd2712df72b91c41bca82948f1680c534187e4373d996b4c1be19c02c56727be",
+    "summary": "Confirm the job selects the intended external storage account. Configure that account with a supported CMK reference and its assigned encryption identity. Review key permissions, availability and job operation separately.",
+    "steps": [
+      "Confirm the job selects the intended external storage account.",
+      "Configure that account with a supported CMK reference and its assigned encryption identity.",
+      "Review key permissions, availability and job operation separately."
+    ],
+    "caveats": [
+      "This checks declared configuration. Effective key access, log delivery and runtime behavior were not tested."
+    ],
+    "references": [
+      {
+        "title": "External Stream Analytics job storage declares customer-managed encryption",
+        "url": "https://learn.microsoft.com/en-us/azure/stream-analytics/data-protection"
+      }
+    ],
+    "cli": []
+  },
+  "azure.review.devops.visible_clone_urls_without_userinfo": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "82a1fdff8e949b1bcc25144f8beddf221a6e039458ee161b09be040f2c637880",
+    "summary": "Remove userinfo from the reported clone URL and rotate any exposed credential. Review inaccessible repositories separately.",
+    "steps": [
+      "Remove userinfo from the reported clone URL.",
+      "Rotate any exposed credential and review inaccessible repositories separately."
+    ],
+    "caveats": [
+      "Only API-visible selected-project URLs are assessed. Repository contents, hidden repositories and credential validity were not tested."
+    ],
+    "references": [
+      {
+        "title": "Azure DevOps Git repositories API",
+        "url": "https://learn.microsoft.com/en-us/rest/api/azure/devops/git/repositories/list?view=azure-devops-rest-7.1"
+      }
+    ],
+    "cli": []
+  },
+  "azure.review.configuration.selected_content_secret_indicators": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "671507e201ef30783b7581ae3dda5ba362e70103d147a3d081301e00128dc93e",
+    "summary": "Remove exposed literals from the selected configuration or code and rotate confirmed exposed credentials. Use managed identities or supported secret references.",
+    "steps": [
+      "Remove confirmed exposed credential literals from the selected content.",
+      "Rotate affected credentials and re-scan the updated selected source."
+    ],
+    "caveats": [
+      "Explicit selected current ARM literals only; VMSS model only, published runbook source only. No execution, live environment, credential validation or referenced-content coverage."
+    ],
+    "references": [
+      {
+        "title": "Native read API reference",
+        "url": "https://learn.microsoft.com/en-us/rest/api/container-instances/container-groups/get?view=rest-container-instances-2023-05-01"
+      },
+      {
+        "title": "Native read API reference",
+        "url": "https://learn.microsoft.com/en-us/rest/api/apimanagement/policy/get?view=rest-apimanagement-2024-05-01"
+      },
+      {
+        "title": "Native read API reference",
+        "url": "https://learn.microsoft.com/en-us/rest/api/automation/runbook/get-content?view=rest-automation-2023-11-01"
+      }
+    ],
+    "cli": []
+  },
+  "azure.review.storage.selected_source_secret_indicators": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "7de3c898ab1ccf3bd0f1de259ccd350edc527f16d24ce69a52bb352d0b84720b",
+    "summary": "Remove exposed literals from the selected stored source and rotate confirmed exposed credentials. Use managed identities or supported secret references.",
+    "steps": [
+      "Remove confirmed exposed credential literals from the selected content.",
+      "Rotate affected credentials and re-scan the updated selected source."
+    ],
+    "caveats": [
+      "Exact selected coherent current Blob/File objects or optional native Blob versions/File share snapshots. No SCM downloads, deployment/runtime identity, execution, credential validation or referenced-content proof."
+    ],
+    "references": [
+      {
+        "title": "Native read API reference",
+        "url": "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob"
+      },
+      {
+        "title": "Native read API reference",
+        "url": "https://learn.microsoft.com/en-us/rest/api/storageservices/get-file"
+      }
+    ],
+    "cli": []
+  },
+  "azure.review.devops.selected_content_secret_indicators": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "7fdc0a7123e93a4e5a90475d33bcb74b8db7947f20adc7ba79cb2c661356866d",
+    "summary": "Remove exposed literals from the selected source or nonsecret pipeline variables and rotate confirmed exposed credentials. Use supported secret references or workload identities.",
+    "steps": [
+      "Remove confirmed exposed credential literals from the selected content.",
+      "Rotate affected credentials and re-scan the updated selected source."
+    ],
+    "caveats": [
+      "Explicit selected files at immutable commits and selected pipeline definition revisions only; no template expansion, protected values, credential validation or whole-project coverage."
+    ],
+    "references": [
+      {
+        "title": "Native read API reference",
+        "url": "https://learn.microsoft.com/en-us/rest/api/azure/devops/git/items/get?view=azure-devops-rest-7.1"
+      },
+      {
+        "title": "Native read API reference",
+        "url": "https://learn.microsoft.com/en-us/rest/api/azure/devops/build/definitions/get?view=azure-devops-rest-7.1"
+      }
+    ],
+    "cli": []
+  },
+  "azure.review.app_configuration.selected_value_secret_indicators": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "e9bb9eb0fde8e25b829f454a46c385b82ffa3b8dcce1d1ad6654ea07484c9058",
+    "summary": "Remove exposed literal copies and rotate confirmed exposed credentials. Use managed identities or supported secret references.",
+    "steps": [
+      "Replace the exposed literal with a supported secret reference or workload identity.",
+      "Rotate the exposed credential and re-scan the selected declaration."
+    ],
+    "caveats": [
+      "Only explicitly selected returned public literals are assessed; protected or referenced values are not read."
+    ],
+    "references": [
+      {
+        "title": "Native selected declaration API",
+        "url": "https://github.com/Azure/azure-sdk-for-python/blob/main/sdk/appconfiguration/azure-appconfiguration/azure/appconfiguration/_audience.py"
+      },
+      {
+        "title": "Native selected declaration API",
+        "url": "https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac"
+      },
+      {
+        "title": "Native selected declaration API",
+        "url": "https://learn.microsoft.com/en-us/azure/azure-app-configuration/rest-api-authorization-azure-ad"
+      }
+    ],
+    "cli": []
+  },
+  "azure.review.data_factory.selected_declaration_secret_indicators": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "9d0948cb373e048211cd961a1ea66e423ffea520f93b9c3c935693e0ed1e9a5d",
+    "summary": "Remove exposed literal copies and rotate confirmed exposed credentials. Use managed identities or supported secret references.",
+    "steps": [
+      "Replace the exposed literal with a supported secret reference or workload identity.",
+      "Rotate the exposed credential and re-scan the selected declaration."
+    ],
+    "caveats": [
+      "Only explicitly selected returned public literals are assessed; protected or referenced values are not read."
+    ],
+    "references": [
+      {
+        "title": "Native selected declaration API",
+        "url": "https://learn.microsoft.com/en-us/azure/role-based-access-control/permissions/analytics"
+      },
+      {
+        "title": "Native selected declaration API",
+        "url": "https://learn.microsoft.com/en-us/rest/api/datafactory/data-flows/get?view=rest-datafactory-2018-06-01"
+      },
+      {
+        "title": "Native selected declaration API",
+        "url": "https://learn.microsoft.com/en-us/rest/api/resources/subscriptions/get?view=rest-resources-2022-12-01"
+      }
+    ],
+    "cli": []
+  },
+  "azure.review.synapse.selected_pipeline_secret_indicators": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "45e6de1d2470778d51421356ced520b81419d7c8602c3b1c4e87eee81cbbf423",
+    "summary": "Remove exposed literal copies and rotate confirmed exposed credentials. Use managed identities or supported secret references.",
+    "steps": [
+      "Replace the exposed literal with a supported secret reference or workload identity.",
+      "Rotate the exposed credential and re-scan the selected declaration."
+    ],
+    "caveats": [
+      "Only explicitly selected returned public literals are assessed; protected or referenced values are not read."
+    ],
+    "references": [
+      {
+        "title": "Native selected declaration API",
+        "url": "https://github.com/Azure/azure-sdk-for-python/blob/main/sdk/synapse/azure-synapse-artifacts/azure/synapse/artifacts/_configuration.py"
+      },
+      {
+        "title": "Native selected declaration API",
+        "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/security/synapse-workspace-synapse-rbac-roles"
+      },
+      {
+        "title": "Native selected declaration API",
+        "url": "https://learn.microsoft.com/en-us/rest/api/resources/subscriptions/get?view=rest-resources-2022-12-01"
+      }
+    ],
+    "cli": []
+  },
+  "azure.review.log_analytics.selected_message_sample_secret_indicators": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "c657dd4d10038c470acdc33cb1e8c19138b98ee44e27d707de90e1fb3e84ce3e",
+    "summary": "Remove credential literals from application logging, rotate confirmed exposed credentials and review retained copies. Use managed identities or supported secret references.",
+    "steps": [
+      "Remove credential values from application logging and use a supported secret reference or workload identity.",
+      "Rotate the exposed credential and review retained log copies."
+    ],
+    "caveats": [
+      "Only explicitly selected returned message samples are assessed; other messages and older history are not read."
+    ],
+    "references": [
+      {
+        "title": "Native selected declaration API",
+        "url": "https://learn.microsoft.com/en-us/azure/azure-monitor/app/azure-ad-authentication#query-application-insights-using-microsoft-entra-authentication"
+      },
+      {
+        "title": "Native selected declaration API",
+        "url": "https://learn.microsoft.com/en-us/azure/azure-monitor/logs/api/access-api"
+      },
+      {
+        "title": "Native selected declaration API",
+        "url": "https://learn.microsoft.com/en-us/azure/azure-monitor/logs/api/request-format"
+      }
+    ],
+    "cli": []
+  },
+  "azure.review.application_insights.selected_trace_sample_secret_indicators": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "37255d26a0e48db7b0acd3bd80568d32f5aa6784a4dd54f850497151ee027da3",
+    "summary": "Remove credential literals from application logging, rotate confirmed exposed credentials and review retained copies. Use managed identities or supported secret references.",
+    "steps": [
+      "Remove credential values from application logging and use a supported secret reference or workload identity.",
+      "Rotate the exposed credential and review retained log copies."
+    ],
+    "caveats": [
+      "Only explicitly selected returned message samples are assessed; other messages and older history are not read."
+    ],
+    "references": [
+      {
+        "title": "Native selected declaration API",
+        "url": "https://learn.microsoft.com/en-us/azure/azure-monitor/app/azure-ad-authentication#query-application-insights-using-microsoft-entra-authentication"
+      },
+      {
+        "title": "Native selected declaration API",
+        "url": "https://learn.microsoft.com/en-us/azure/azure-monitor/logs/api/access-api"
+      },
+      {
+        "title": "Native selected declaration API",
+        "url": "https://learn.microsoft.com/en-us/azure/azure-monitor/logs/api/request-format"
+      }
+    ],
+    "cli": []
+  },
+  "azure.review.machine_learning.selected_command_job_secret_indicators": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "92867b58ede8f0da06a331eef633fd2286fd5a627ae76d8b1847cdaea4261e43",
+    "summary": "Remove credential literals from the job declaration and rotate the affected credential.",
+    "steps": [
+      "Use managed identities or supported secret references instead of embedding credentials in commands or environment literals.",
+      "Rotate the exposed credential and re-scan the selected job."
+    ],
+    "caveats": [
+      "Referenced code, images and actual execution are not inspected."
+    ],
+    "references": [
+      {
+        "title": "Machine Learning jobs GET",
+        "url": "https://learn.microsoft.com/en-us/rest/api/azureml/jobs/get?view=rest-azureml-2024-04-01"
+      }
+    ],
+    "cli": []
+  },
+  "azure.review.databricks.selected_notebook_source_secret_indicators": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "10e30764f79474dbe89b5a1f9151b6b8a79c126dce19b576ebe54f4b47a4a718",
+    "summary": "Remove credential literals from the notebook source and rotate the affected credential.",
+    "steps": [
+      "Use managed identities or supported secret references instead of embedding credentials in notebook source.",
+      "Rotate the exposed credential and re-scan the selected notebook."
+    ],
+    "caveats": [
+      "Execution, outputs and immutable notebook cell revisions are not verified."
+    ],
+    "references": [
+      {
+        "title": "Databricks workspace and export APIs",
+        "url": "https://learn.microsoft.com/en-us/azure/databricks/dev-tools/auth/aad-token-manual"
+      }
+    ],
+    "cli": []
+  },
+  "azure.review.storage.blocking_sas_expiry_policy_declared": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "a0a68af7d90c1d5cbf46f0d8f6581efaa01de8317605fd81b27eda7f8e0b26f8",
+    "summary": "Review client requirements and configure a suitable SAS expiration policy with the Block action.",
+    "steps": [
+      "Review the validity intervals required by current SAS clients.",
+      "Configure a compatible expiration interval with the Block action."
+    ],
+    "caveats": [
+      "File Sync requires at least three days; enforcement exceptions exist for HDFS user-delegation SAS and stored access policies."
+    ],
+    "references": [
+      {
+        "title": "Azure SAS expiration policy",
+        "url": "https://learn.microsoft.com/en-us/azure/storage/common/sas-expiration-policy"
+      }
+    ],
+    "cli": []
+  },
+  "azure.review.machine_learning.selected_environment_conda_secret_indicators": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "49089ae6a3d34a684ed240f68c3b5498778320a93f431d99357e69c40742ee87",
+    "summary": "Remove the credential literal from the selected source and rotate the affected credential.",
+    "steps": [
+      "Use managed identities or supported secret references instead of embedded credentials.",
+      "Rotate the exposed credential and re-scan the selected source."
+    ],
+    "caveats": [
+      "Returned inline Conda text only; no package, build or image inspection."
+    ],
+    "references": [
+      {
+        "title": "Azure Machine Learning asset reads",
+        "url": "https://learn.microsoft.com/en-us/rest/api/azureml/environment-versions/get?view=rest-azureml-2026-05-01"
+      }
+    ],
+    "cli": []
+  },
+  "azure.review.machine_learning.selected_code_file_secret_indicators": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "b8aaea281bc1b623607fd2b0ca3d691b45b7287dca742e544a1394609a04efdd",
+    "summary": "Remove the credential literal from the selected source and rotate the affected credential.",
+    "steps": [
+      "Use managed identities or supported secret references instead of embedded credentials.",
+      "Rotate the exposed credential and re-scan the selected source."
+    ],
+    "caveats": [
+      "Exactly selected file bound to a native code asset URI and datastore plus explicit storage parent; no original/executed/version-creation bytes or complete code-folder assertion."
+    ],
+    "references": [
+      {
+        "title": "Azure Machine Learning asset reads",
+        "url": "https://learn.microsoft.com/en-us/rest/api/azureml/environment-versions/get?view=rest-azureml-2026-05-01"
+      }
+    ],
+    "cli": []
+  },
+  "azure.review.function.application_insights_setting_declared": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "00c8522580e25bba78ed379c8a5df870eafc3b2282f6e2821d323672e6396ec6",
+    "summary": "Configure APPLICATIONINSIGHTS_CONNECTION_STRING for the selected Function.",
+    "steps": [
+      "Configure APPLICATIONINSIGHTS_CONNECTION_STRING for the selected Function.",
+      "Review telemetry ingestion and authentication separately."
+    ],
+    "caveats": [
+      "A declared setting does not establish telemetry delivery or the resolved runtime build."
+    ],
+    "references": [
+      {
+        "title": "Azure Functions configuration",
+        "url": "https://learn.microsoft.com/en-us/azure/azure-functions/functions-app-settings"
+      }
+    ],
+    "cli": []
+  },
+  "azure.review.function.runtime_major4_update_channel_declared": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "1043bc70e754c41b0a701e1516026215262ccaa6532306079983d4e947cb4a9e",
+    "summary": "Review compatibility and select ~4 on supported classic Function hosting.",
+    "steps": [
+      "Review compatibility and select ~4 on supported classic Function hosting.",
+      "Review deliberate support-directed build pins before changing them."
+    ],
+    "caveats": [
+      "A declared setting does not establish telemetry delivery or the resolved runtime build."
+    ],
+    "references": [
+      {
+        "title": "Azure Functions configuration",
+        "url": "https://learn.microsoft.com/en-us/azure/azure-functions/functions-app-settings"
+      }
+    ],
+    "cli": []
+  },
+  "azure.review.network.perimeter_association_enforced": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "97c36cb96c31340d2f397cb4481109c0e306f3f4de259d7afb6f17b339fe4481",
+    "summary": "Review the associated perimeter profile and move the supported Storage association to Enforced after validating its access rules.",
+    "steps": [
+      "Review whether the selected Storage account should be protected by this perimeter.",
+      "After validating allowed access, set the association mode to Enforced."
+    ],
+    "caveats": [
+      "Native Storage association declaration only; no packet, access-rule suitability or effective-routing assertion."
+    ],
+    "references": [
+      {
+        "title": "NSP association API",
+        "url": "https://learn.microsoft.com/en-us/rest/api/network-security-perimeter/network-security-perimeters/list-by-subscription?view=rest-network-security-perimeter-2026-01-01"
+      }
+    ],
+    "cli": []
+  },
+  "azure.review.log_analytics.query_storage_cmk_declared": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "b36af244bc058ce24b6e1278933d570b1c639e40e2a8cc713405342e43ede3b0",
+    "summary": "Review customer-managed encryption on the existing Query-linked storage accounts. Validate key permissions and usability separately.",
+    "steps": [
+      "Configure customer-managed encryption for existing Query-linked storage, including account-scoped Table keys.",
+      "Verify that the Storage service can use the selected key."
+    ],
+    "caveats": [
+      "Existing Query-linked Storage declaration only; no requirement to enable Query links and no effective cryptography or key-usability assertion."
+    ],
+    "references": [
+      {
+        "title": "Query-linked storage API",
+        "url": "https://learn.microsoft.com/en-us/rest/api/loganalytics/linked-storage-accounts/list-by-workspace?view=rest-loganalytics-2025-07-01"
+      }
+    ],
+    "cli": []
+  },
+  "azure.review.function.selected_package_source_secret_indicators": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "5910f00989351635fc844a393d3e898c00c215aad322d6964496b9c20a38e327",
+    "summary": "Remove credential literals from the selected package source and rotate exposed credentials.",
+    "steps": [
+      "Rebuild the package using managed identities or supported secret references instead of embedded credentials.",
+      "Rotate exposed credentials and review their use."
+    ],
+    "caveats": [
+      "Only configured stored ZIP text is inspected; mounted or executed app bytes are not established."
+    ],
+    "references": [
+      {
+        "title": "App Service package configuration",
+        "url": "https://learn.microsoft.com/en-us/azure/app-service/deploy-run-package"
+      },
+      {
+        "title": "Azure Blob data reads",
+        "url": "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob"
+      }
+    ],
+    "cli": []
+  }
+}

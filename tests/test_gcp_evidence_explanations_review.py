@@ -47,7 +47,13 @@ def test_catalog_and_ledger_account_for_every_native_and_retired_alias():
     aliases = {old: new for old, new in CHECK_ALIASES.items() if old.startswith('gcp')}
     assert set(CATALOG) == set(CHECK_BY_ID) | set(aliases)
     assert set(LEDGER['checks']) == set(CATALOG)
-    assert LEDGER['registered_check_count'] == len(CHECK_BY_ID) == 525
+    import csv
+    baseline = {row['check_id'] for row in csv.DictReader((ROOT/'docs/gcp-review/checklist.csv').open())}
+    selected_content = {'gcp.review.cloudtasks.selected_payload_secret_indicators',
+                        'gcp.review.bigquery.selected_routine_secret_indicators'}
+    assert len(baseline) == 525 and not baseline & selected_content
+    assert set(CHECK_BY_ID) == baseline | selected_content
+    assert LEDGER['registered_check_count'] == len(CHECK_BY_ID) == 527
     for cid in CHECK_BY_ID:
         assert CASES.get(cid) or SUPPLEMENTAL.get(cid), cid
         assert LEDGER['checks'][cid]['branch_coverage'], cid

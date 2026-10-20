@@ -1,0 +1,94 @@
+{
+  "azure.review.ai_services.audit_logging": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "observed": "A diagnostic setting enables supported Audit logs with a destination. Log delivery and retention were not tested.",
+        "qualifying_log_entries": 1
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "observed": "A diagnostic setting does not enable supported Audit logs with a destination. Log delivery and retention were not tested.",
+        "qualifying_log_entries": 0
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: id"
+      }
+    }
+  ],
+  "azure.review.ai_services.managed_identity": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "observed": "The account declares SystemAssigned identity. This does not establish least privilege.",
+        "identity_type": "SystemAssigned"
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "observed": "The account declares None identity. This does not establish least privilege.",
+        "identity_type": "None"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: id"
+      }
+    }
+  ],
+  "azure.review.ai_services.outbound_restriction": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "observed": "The account declares outbound network restrictions enabled. Allowed destinations and actual traffic were not tested.",
+        "restrict_outbound_network_access": true
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "observed": "The account declares outbound network restrictions disabled. Allowed destinations and actual traffic were not tested.",
+        "restrict_outbound_network_access": false
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: id"
+      }
+    }
+  ],
+  "azure.review.ai_services.prompt_shield": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "observed": "All supported text deployments explicitly reference a policy with enabled blocking Jailbreak filtering on prompts. Actual prompt traffic was not tested.",
+        "deployment_results": [
+          "PASS"
+        ]
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "observed": "At least one supported text deployment explicitly references a policy without enabled blocking Jailbreak filtering on prompts. Actual prompt traffic was not tested.",
+        "deployment_results": [
+          "FAIL"
+        ]
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: id"
+      }
+    }
+  ]
+}

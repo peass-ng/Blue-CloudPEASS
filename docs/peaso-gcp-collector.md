@@ -48,6 +48,8 @@ Locally integrated optional checks use these exact IDs:
 | Cloud Build produced GCS artifacts | `gcp.review.cloudbuild.artifact_secret_indicators` |
 | Cloud Deploy release source archive | `gcp.review.clouddeploy.release_source_secret_indicators` |
 | Selected Cloud Source Repository files | `gcp.review.sourcerepo.selected_file_secret_indicators` |
+| Selected Cloud Tasks FULL payloads | `gcp.review.cloudtasks.selected_payload_secret_indicators` |
+| Selected BigQuery routine definitions | `gcp.review.bigquery.selected_routine_secret_indicators` |
 | Cloud Build stored GCS logs | `gcp.review.cloudbuild.stored_log_secret_indicators` |
 | App Engine version environments | `gcp.review.app_engine_version.literal_environment_secret_indicators` |
 | Deployed Workflows source | `gcp.review.workflow.deployed_source_secret_indicators` |
@@ -119,6 +121,36 @@ an explicit full `workspace` name (optionally with a `revision` SHA). This is a
 selected-file read, not repository traversal. A workspace read without a revision
 is an observation at collection time, not immutable history.
 
+Task and routine inspection requires one explicit project ID scope and 1–8 exact,
+unique native resource names per option. Select the corresponding exact check IDs
+from the table and provide either or both options:
+
+```json
+{
+  "content_secret_scans": true,
+  "selected_cloudtasks_tasks": ["projects/PROJECT_ID/locations/us-central1/queues/QUEUE/tasks/TASK"],
+  "selected_bigquery_routines": ["projects/PROJECT_ID/datasets/DATASET/routines/ROUTINE"]
+}
+```
+
+The Cloud Tasks reader requests `responseView=FULL` and inspects the selected
+HTTP/App Engine task's UTF-8 decoded body and literal headers. A BASIC response,
+omitted body, denied or deleted task stays UNKNOWN. It never dispatches, leases
+or runs a task, follows its target URL, or resolves OIDC/OAuth references.
+The BigQuery reader inspects only `definitionBody` in the selected native routine;
+SQL, JavaScript, Python, Java and Scala text are supported. It never runs queries,
+calls routines, downloads imported libraries or reads table data. Remote-function
+and Spark definitions remain UNKNOWN. Names use canonical project IDs and ASCII
+identifier subsets; unsupported names require a future reader extension.
+
+Each native JSON response is capped at 2 MiB and each task body plus headers or
+routine definition at 256 KiB. Both readers share a 2 MiB inspected-content budget
+and 60-second deadline per collection. Only selected content observed during the
+read is covered; no queue/dataset enumeration or historical completeness is
+claimed. Omitted, unsupported, oversized, partial or unread content and missing
+engines remain UNKNOWN. Resource identities and detector locations are opaque;
+content and credential values are not retained.
+
 Generic object/archive selection can inspect a known source archive, DAG or build
 artifact. It does not automatically discover every service-to-object relationship,
 fetch Git repositories, or claim to cover every source deployment. Permissions
@@ -157,6 +189,59 @@ Read-only function metadata permissions must include the relevant Functions
 list/get operations. Additional GCP configuration and content surfaces are being
 tracked in [the secret-surface review](gcp-review/secret-surfaces.md); a planned
 adapter is not implemented coverage.
+
+### Read permissions for optional content scans
+
+Standard metadata collection and optional content reads are separate. Grant the
+connector's existing Google identity access to the selected resources, then set
+`content_secret_scans: true` and name the exact checks above. IAM permission alone
+does not enable a scan. These reader permissions supplement the metadata plan;
+location discovery and parent project/bucket/repository reads still need their
+normal read permissions. Denied or incomplete reads remain UNKNOWN.
+
+| Selected surface | Actual reads and required permissions |
+| --- | --- |
+| Private Artifact Registry/GCR images | Repository/DockerImage metadata: `artifactregistry.repositories.list`, `artifactregistry.dockerimages.list` (or `artifactregistry.dockerimages.get` for a direct metadata read); registry `GET /v2/.../manifests/...` and `/blobs/...`: `artifactregistry.repositories.downloadArtifacts`. |
+| Artifact Registry package files | File metadata GET and `files:download`: `artifactregistry.files.get`. The reader does not enumerate all package files. |
+| Selected GCS text/archives and service-resolved GCS sources | Object metadata GET and generation-pinned media GET: `storage.objects.get`; project/bucket ownership metadata must also be readable. Exact object/archive selectors do not need `storage.objects.list`; Composer DAG prefix discovery does. |
+| Function environment/source | Functions v2 list/get: `cloudfunctions.functions.list` / `cloudfunctions.functions.get`; resolved source archives additionally need the GCS reads above. This adapter does not call `generateDownloadUrl` or require `cloudfunctions.functions.sourceCodeGet`. |
+| Compute VM/template/project literals | Instance/template list or get: `compute.instances.list` / `compute.instances.get`, `compute.instanceTemplates.list` / `compute.instanceTemplates.get`; project common metadata: `compute.projects.get`. |
+| Cloud Run service/job literals | Service/job list or get: `run.services.list` / `run.services.get`, `run.jobs.list` / `run.jobs.get`. Selected serving/tagged service image resolution additionally uses `run.services.get` and `run.revisions.get`, plus registry access above. |
+| Cloud Build inline configuration, stored logs and artifacts | Build/trigger list and GET use `cloudbuild.builds.list` and `cloudbuild.builds.get`; stored GCS logs/artifact manifests and bytes additionally need `storage.objects.get`. |
+| Application log sample | Logging `entries:list` (read-only POST): `logging.logEntries.list`. The fixed sample excludes audit logs; it is not a scan of all log history. |
+| App Engine environments/deployment files | Application/service/version discovery and version GET: `appengine.applications.get`, `appengine.services.list`, `appengine.versions.list`, `appengine.versions.get`; deployment bytes additionally need the GCS reads above. |
+| Scheduler targets / Workflows source | Scheduler list/get: `cloudscheduler.jobs.list` / `cloudscheduler.jobs.get`; Workflows list/get: `workflows.workflows.list` / `workflows.workflows.get`. Cloud Tasks task bodies are not scanned by the Scheduler check. |
+| Selected Cloud Tasks payloads | Exact task GET `cloudtasks.googleapis.com/v2/projects/.../locations/.../queues/.../tasks/...?responseView=FULL`: `cloudtasks.tasks.get` and `cloudtasks.tasks.fullView`. No queue/task list, lease or dispatch permission is needed. |
+| Selected BigQuery routine definitions | Exact routine GET `bigquery.googleapis.com/bigquery/v2/projects/.../datasets/.../routines/...`: `bigquery.routines.get`. No query execution or table-data permission is needed. |
+| Selected Dataform files | Repository metadata GET: `dataform.repositories.get`; repository file GET: `dataform.repositories.readFile`; workspace metadata/file GET: `dataform.workspaces.get`, `dataform.workspaces.readFile`. No directory traversal permission is needed for the selected-file reader. |
+| Dataflow / Batch / Dataproc literals | Dataflow job list plus `JOB_VIEW_ALL` GET: `dataflow.jobs.list`, `dataflow.jobs.get`; Batch job list: `batch.jobs.list`; Dataproc cluster/job list: `dataproc.clusters.list`, `dataproc.jobs.list`. Referenced scripts, JARs and datasets are not downloaded. |
+| Composer / Workbench literals | Environment/instance list or get: `composer.environments.list` / `composer.environments.get`, `notebooks.instances.list` / `notebooks.instances.get`. Composer DAG source additionally needs GCS prefix list and object GET. |
+| GKE ConfigMap/Pod literals | Cluster metadata: `container.clusters.list` / `container.clusters.get`; reachable control plane and Kubernetes RBAC `list` on ConfigMaps and Pods, plus `list` on namespaces when discovering them. No Kubernetes Secret contents are requested. |
+| Selected Cloud Deploy / Source Repository content | Release GET: `clouddeploy.releases.get`, then GCS object reads; repository metadata GET and read-only Git advertisement/upload-pack: `source.repos.get`. |
+
+For a private Artifact Registry repository, repository-scoped
+`roles/artifactregistry.reader` includes the metadata and download access needed
+for image inspection; a custom metadata-only role may lack download access.
+Use the connector identity, not the scanned workload's service account. The
+reader uses its Google access token and does not need Docker, a Docker login or
+a Docker credentials file. Only immutable digests in the selected project are
+accepted. Native `gcr.io`, `us.gcr.io`, `eu.gcr.io` and `asia.gcr.io` references need
+matching Artifact Registry metadata; legacy GCS-backed Container Registry,
+external private registries, mirrors, redirects and authentication challenges
+remain unsupported. See Google's [Artifact Registry access control](https://docs.cloud.google.com/artifact-registry/docs/access-control),
+[Reader role](https://docs.cloud.google.com/iam/docs/roles-permissions/artifactregistry#artifactregistry.reader)
+and [file download API](https://docs.cloud.google.com/artifact-registry/docs/reference/rest/v1/projects.locations.repositories.files/download).
+
+See the native [Cloud Tasks task GET and FULL view permissions](https://docs.cloud.google.com/tasks/docs/reference/rest/v2/projects.locations.queues.tasks/get)
+and [BigQuery routine GET](https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/routines/get).
+These selected reads also need the existing Resource Manager project GET
+(`resourcemanager.projects.get`) to bind the native identity to the chosen scope.
+
+Do not grant Secret Manager payload access, KMS decrypt/sign access, database
+password retrieval or Kubernetes Secret reads for leak scanning. Intended secret
+stores are excluded. Kingfisher and TruffleHog inspect the selected bytes offline
+without testing credentials; a clean result covers only the supported bytes read
+within that adapter's bounds.
 
 ## Selection and scopes
 
@@ -557,3 +642,15 @@ Select `gcp.review.sourcerepo.selected_file_secret_indicators`, one explicit pro
 The commit must be advertised by the repository. The reader checks the native repository identity, reads Git smart HTTP from the fixed Google host, and inspects only the selected regular UTF8 files with offline Kingfisher and TruffleHog. Matching leaks are deduplicated and values remain hidden. No credential validation is performed.
 
 This is read-only: Git uses GET advertisement and POST `git-upload-pack` to fetch objects; it never pushes. Git traffic is capped at 8 MiB, native repository metadata separately at 16 KiB, with one shared 60-second deadline. At most eight files, 256 KiB each and 2 MiB combined, are inspected. Missing, denied, unsupported, partial or failed reads remain UNKNOWN. A negative result says nothing about unselected files or repository history. Current live-provider authentication compatibility has not been tested.
+
+Optional [selected Dataproc referenced-source secret inspection](peaso-gcp-selected-dataproc-sources.md) requires exact source selection and separate object-read permission.
+
+Optional [selected Workbench startup-source secret inspection](peaso-gcp-selected-workbench-sources.md) requires the exact named check, explicit source generation and separate object-read permission; notebook files and cached/executed scripts are excluded.
+
+### Optional selected job source inspection (local)
+
+Selected Dataflow package and Batch mounted-script readers are separate default-off checks. They require exact job/object selectors and object download authorization; the normal literal scans above do not follow these references. See [selectors, read permissions and bounds](peaso-gcp-selected-job-sources.md).
+
+## Selected Cloud Run Job declared images
+
+The optional [Job image reader](peaso-gcp-selected-job-images.md) inspects an explicitly selected immutable Artifact Registry image declared by a Job. Grant `run.jobs.get`, `resourcemanager.projects.get`, `artifactregistry.repositories.get`, `artifactregistry.dockerimages.get` and `artifactregistry.repositories.downloadArtifacts` at the selected scopes. This establishes the desired image declaration, not the image actually executed by a Job. Local native acceptance does not certify deployment.

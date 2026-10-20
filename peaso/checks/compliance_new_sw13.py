@@ -1765,6 +1765,47 @@ def vault_children(item, index, kind):
     return rid, rows
 
 
+def _native_backup_policy_optional(row, path, default=None):
+    """Interpret only documented optional fields of an exact native policy LIST."""
+    allowed = {'properties.tieringPolicy', 'properties.retentionPolicy.dailySchedule',
+               'properties.retentionPolicy.weeklySchedule', 'properties.retentionPolicy.monthlySchedule',
+               'properties.retentionPolicy.yearlySchedule'}
+    if path not in allowed:
+        raise Unavailable('unsupported native backup optional field')
+    proof = get(row, '_provenance', dict)
+    if proof.get('source_operation') != 'BackupPolicies_List':
+        return omitted(row, path, default)  # Preserve prior full-response contracts.
+    parent = get(row, 'parent_id', str)
+    uuid = r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+    segment = r'[^/?#%\\\s]+'
+    if (re.fullmatch(r'/subscriptions/' + uuid + r'/resourceGroups/' + segment +
+                     r'/providers/Microsoft\.RecoveryServices/vaults/' + segment, parent, re.I) is None
+            or any(p in ('.', '..') for p in parent.split('/'))
+            or proof.get('read_only') is not True or proof.get('api_version') != '2024-04-01'
+            or str(proof.get('scope', '')).casefold() != parent.casefold()
+            or str(proof.get('request_path', '')).casefold() != (parent + '/backupPolicies').casefold()
+            or re.fullmatch(re.escape(parent + '/backupPolicies/') + segment, get(row, 'id', str), re.I) is None
+            or get(row, 'type', str).casefold() != 'microsoft.recoveryservices/vaults/backuppolicies'):
+        raise Unavailable('unbound native backup policy response')
+    current = row
+    parts = path.split('.')
+    for i, part in enumerate(parts):
+        if not isinstance(current, dict):
+            raise Unavailable('malformed native backup optional structure')
+        if part not in current:
+            # Only the final optional member may be absent; required parents
+            # and any explicit denied/partial field coverage remain unresolved.
+            if i != len(parts) - 1:
+                raise Unavailable('missing required native backup structure')
+            coverage = row.get('_coverage', {})
+            if isinstance(coverage, dict) and any(path == k or path.startswith(k + '.')
+                    for k, v in coverage.items() if v not in ('collected', 'empty')):
+                raise Unavailable('incomplete native backup optional field')
+            return default
+        current = current[part]
+    return get(row, path)
+
+
 def backup_semantics(row):
     """Recognized Standard Azure VM V1 schedules with measured tier durations.
 
@@ -1775,7 +1816,7 @@ def backup_semantics(row):
     props = get(row, 'properties', dict)
     if get(props, 'backupManagementType', str) != 'AzureIaasVM':
         raise Unavailable('unsupported backup workload retention schema')
-    archive = omitted(row, 'properties.tieringPolicy', None)
+    archive = _native_backup_policy_optional(row, 'properties.tieringPolicy', None)
     if archive not in (None, {}):
         raise Unavailable('archive retention behavior unresolved')
     schedule = get(props, 'schedulePolicy', dict)
@@ -1804,7 +1845,7 @@ def backup_semantics(row):
         raise Unavailable('unsupported retention discriminator')
     tiers = {}
     for name in ('dailySchedule', 'weeklySchedule', 'monthlySchedule', 'yearlySchedule'):
-        branch = omitted(row, 'properties.retentionPolicy.' + name, None)
+        branch = _native_backup_policy_optional(row, 'properties.retentionPolicy.' + name, None)
         if branch is None:
             continue
         if not isinstance(branch, dict):

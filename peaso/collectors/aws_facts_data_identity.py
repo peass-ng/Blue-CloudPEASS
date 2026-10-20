@@ -72,6 +72,7 @@ READ_ACTIONS.update({
     ("athena", "get_work_group"), ("backup", "list_backup_vaults"), ("backup", "get_backup_vault_access_policy"),
     ("dynamodb", "get_resource_policy"), ("dynamodb", "list_tags_of_resource"),
     ("efs", "describe_file_systems"), ("efs", "describe_backup_policy"), ("efs", "describe_file_system_policy"),
+    ("efs", "describe_mount_target_security_groups"),
     ("datasync", "describe_task"), ("docdb", "describe_db_cluster_parameters"),
     ("emr", "describe_security_configuration"), ("firehose", "describe_delivery_stream"),
     ("wafv2", "get_web_acl_for_resource"), ("connect", "describe_instance_attribute"),
@@ -211,8 +212,16 @@ def _mount_targets(requests, session, region, account):
         read = requests.pages(session, "efs", region, "describe_mount_targets", "MountTargets", FileSystemId=fs_id)
         if read.status not in ("collected", "empty"):
             failures.append((read.status, read.error))
-        items.extend(_pick(row, ["MountTargetId", "FileSystemId", "SubnetId", "VpcId", "AvailabilityZoneId", "AvailabilityZoneName",
-            "LifeCycleState", "NetworkInterfaceId", "OwnerId", "IpAddress", "Ipv6Address"]) for row in read.items)
+        for row in read.items:
+            item = _pick(row, ["MountTargetId", "FileSystemId", "SubnetId", "VpcId", "AvailabilityZoneId", "AvailabilityZoneName",
+                "LifeCycleState", "NetworkInterfaceId", "OwnerId", "IpAddress", "Ipv6Address"])
+            if isinstance(item.get("MountTargetId"), str):
+                groups = _aws()._single(requests, session, region, "efs", "describe_mount_target_security_groups", MountTargetId=item["MountTargetId"])
+                if groups.status == "collected" and len(groups.items) == 1 and isinstance(groups.items[0].get("SecurityGroups"), list):
+                    item["SecurityGroups"] = groups.items[0]["SecurityGroups"]
+                else:
+                    item["_coverage"] = {"SecurityGroups": {"status": groups.status if groups.status != "collected" else "malformed"}}
+            items.append(item)
     return _result(items, failures)
 
 

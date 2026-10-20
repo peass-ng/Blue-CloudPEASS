@@ -1,0 +1,188 @@
+{
+  "schema": "head3-native-brief-observation-capture-v1",
+  "fixture_source": "tests/test_gcp_workbench_head3_runtime_admission_20261020.py",
+  "fixture_source_sha256": "dd2a6c40ed57c51bd9fa22895efd70c415aba1a9fb63db0e3d9faccc32527092",
+  "transport": "in-process native HTTP fixture; no cloud calls",
+  "records": [
+    {
+      "case": "pass",
+      "native_requests": [
+        [
+          "GET",
+          "https://notebooks.googleapis.com/v2/projects/review/locations/-/instances"
+        ]
+      ],
+      "findings": [
+        {
+          "id": "sha256:ae596f609970ae713c7cd3ef51d0f6d5054dac964106299b96ce99842721ac06",
+          "check_id": "gcp.review.workbench.auto_upgrade_schedule_declared",
+          "provider": "gcp",
+          "resource_id": "sha256:2865558f3f683eb99911433d97254f3199d3bb51f91224f284371bfb68c18997",
+          "scope": "projects/review",
+          "status": "PASS",
+          "evidence": {
+            "observed": "The Workbench instance declares an upgrade schedule in the supported cron format. Upgrade execution and patch status were not established.",
+            "instance": "projects/review/locations/us-central1-a/instances/notebook",
+            "setting": "gceSetup.metadata.notebook-upgrade-schedule",
+            "schedule_declared": true
+          },
+          "native_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+          "region": "us-central1",
+          "resource_name": "projects/review/locations/us-central1-a/instances/notebook"
+        },
+        {
+          "id": "sha256:aaaa2e845899c56a50ade1f57d28f9950ac1cb4e7af149c3fc4dfc2292721b1f",
+          "check_id": "gcp.review.workbench.file_download_disabled",
+          "provider": "gcp",
+          "resource_id": "sha256:2865558f3f683eb99911433d97254f3199d3bb51f91224f284371bfb68c18997",
+          "scope": "projects/review",
+          "status": "PASS",
+          "evidence": {
+            "observed": "Workbench file downloads are disabled.",
+            "instance": "projects/review/locations/us-central1-a/instances/notebook",
+            "setting": "gceSetup.metadata.notebook-disable-downloads",
+            "disabled": true
+          },
+          "native_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+          "region": "us-central1",
+          "resource_name": "projects/review/locations/us-central1-a/instances/notebook"
+        },
+        {
+          "id": "sha256:dfd20b848bfaabaef253476478de3311012b4701da97b6138affe0403300cfaf",
+          "check_id": "gcp.review.workbench.terminal_access_disabled",
+          "provider": "gcp",
+          "resource_id": "sha256:2865558f3f683eb99911433d97254f3199d3bb51f91224f284371bfb68c18997",
+          "scope": "projects/review",
+          "status": "PASS",
+          "evidence": {
+            "observed": "Workbench terminal access is disabled.",
+            "instance": "projects/review/locations/us-central1-a/instances/notebook",
+            "setting": "gceSetup.metadata.notebook-disable-terminal",
+            "disabled": true
+          },
+          "native_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+          "region": "us-central1",
+          "resource_name": "projects/review/locations/us-central1-a/instances/notebook"
+        }
+      ]
+    },
+    {
+      "case": "fail",
+      "native_requests": [
+        [
+          "GET",
+          "https://notebooks.googleapis.com/v2/projects/review/locations/-/instances"
+        ]
+      ],
+      "findings": [
+        {
+          "id": "sha256:ae596f609970ae713c7cd3ef51d0f6d5054dac964106299b96ce99842721ac06",
+          "check_id": "gcp.review.workbench.auto_upgrade_schedule_declared",
+          "provider": "gcp",
+          "resource_id": "sha256:2865558f3f683eb99911433d97254f3199d3bb51f91224f284371bfb68c18997",
+          "scope": "projects/review",
+          "status": "FAIL",
+          "evidence": {
+            "observed": "The Workbench instance has no automatic upgrade schedule declared. Upgrade execution and patch status were not established.",
+            "instance": "projects/review/locations/us-central1-a/instances/notebook",
+            "setting": "gceSetup.metadata.notebook-upgrade-schedule",
+            "schedule_declared": false
+          },
+          "native_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+          "region": "us-central1",
+          "resource_name": "projects/review/locations/us-central1-a/instances/notebook"
+        },
+        {
+          "id": "sha256:aaaa2e845899c56a50ade1f57d28f9950ac1cb4e7af149c3fc4dfc2292721b1f",
+          "check_id": "gcp.review.workbench.file_download_disabled",
+          "provider": "gcp",
+          "resource_id": "sha256:2865558f3f683eb99911433d97254f3199d3bb51f91224f284371bfb68c18997",
+          "scope": "projects/review",
+          "status": "FAIL",
+          "evidence": {
+            "observed": "Workbench file downloads are enabled.",
+            "instance": "projects/review/locations/us-central1-a/instances/notebook",
+            "setting": "gceSetup.metadata.notebook-disable-downloads",
+            "disabled": false
+          },
+          "native_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+          "region": "us-central1",
+          "resource_name": "projects/review/locations/us-central1-a/instances/notebook"
+        },
+        {
+          "id": "sha256:dfd20b848bfaabaef253476478de3311012b4701da97b6138affe0403300cfaf",
+          "check_id": "gcp.review.workbench.terminal_access_disabled",
+          "provider": "gcp",
+          "resource_id": "sha256:2865558f3f683eb99911433d97254f3199d3bb51f91224f284371bfb68c18997",
+          "scope": "projects/review",
+          "status": "FAIL",
+          "evidence": {
+            "observed": "Workbench terminal access is enabled.",
+            "instance": "projects/review/locations/us-central1-a/instances/notebook",
+            "setting": "gceSetup.metadata.notebook-disable-terminal",
+            "disabled": false
+          },
+          "native_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+          "region": "us-central1",
+          "resource_name": "projects/review/locations/us-central1-a/instances/notebook"
+        }
+      ]
+    },
+    {
+      "case": "unknown",
+      "native_requests": [
+        [
+          "GET",
+          "https://notebooks.googleapis.com/v2/projects/review/locations/-/instances"
+        ]
+      ],
+      "findings": [
+        {
+          "id": "sha256:ae596f609970ae713c7cd3ef51d0f6d5054dac964106299b96ce99842721ac06",
+          "check_id": "gcp.review.workbench.auto_upgrade_schedule_declared",
+          "provider": "gcp",
+          "resource_id": "sha256:2865558f3f683eb99911433d97254f3199d3bb51f91224f284371bfb68c18997",
+          "scope": "projects/review",
+          "status": "UNKNOWN",
+          "evidence": {
+            "observed": "The Workbench setting could not be established from complete native configuration.",
+            "reason": "unknown_reason_not_supplied"
+          },
+          "native_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+          "region": "us-central1",
+          "resource_name": "projects/review/locations/us-central1-a/instances/notebook"
+        },
+        {
+          "id": "sha256:aaaa2e845899c56a50ade1f57d28f9950ac1cb4e7af149c3fc4dfc2292721b1f",
+          "check_id": "gcp.review.workbench.file_download_disabled",
+          "provider": "gcp",
+          "resource_id": "sha256:2865558f3f683eb99911433d97254f3199d3bb51f91224f284371bfb68c18997",
+          "scope": "projects/review",
+          "status": "UNKNOWN",
+          "evidence": {
+            "observed": "The Workbench setting could not be established from complete native configuration.",
+            "reason": "unknown_reason_not_supplied"
+          },
+          "native_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+          "region": "us-central1",
+          "resource_name": "projects/review/locations/us-central1-a/instances/notebook"
+        },
+        {
+          "id": "sha256:dfd20b848bfaabaef253476478de3311012b4701da97b6138affe0403300cfaf",
+          "check_id": "gcp.review.workbench.terminal_access_disabled",
+          "provider": "gcp",
+          "resource_id": "sha256:2865558f3f683eb99911433d97254f3199d3bb51f91224f284371bfb68c18997",
+          "scope": "projects/review",
+          "status": "UNKNOWN",
+          "evidence": {
+            "observed": "The Workbench setting could not be established from complete native configuration.",
+            "reason": "unknown_reason_not_supplied"
+          },
+          "native_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+          "region": "us-central1",
+          "resource_name": "projects/review/locations/us-central1-a/instances/notebook"
+        }
+      ]
+    }
+  ]
+}

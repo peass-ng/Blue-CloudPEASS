@@ -1,0 +1,192 @@
+"""Exact atomic log-sample admission and actual production public-engine hooks."""
+from copy import deepcopy
+import inspect
+import json
+from pathlib import Path
+import shutil
+import socket
+from types import SimpleNamespace
+import pytest
+from fastapi import HTTPException
+from peaso import checks,engine,secret_scanning as scanning
+from peaso.checks.fixtures import CASES
+from peaso.checks import azure_log_samples_admission_20261020 as admission
+from peaso.checks import azure_selected_log_sample_secret_review_20261020 as consumer
+from peaso.collectors import azure
+from peaso.collectors import azure_selected_log_sample_secret_indicators as source
+from peaso.server.validation import OPTIONS,validate_connector
+from peaso.snapshot import make_snapshot
+from tests import test_azure_selected_log_sample_secret_review_20261020 as native
+
+
+@pytest.fixture(autouse=True)
+def offline(monkeypatch):
+    def blocked(*args,**kwargs):pytest.fail('Live IO/authentication forbidden')
+    for name in ('connect','connect_ex','sendto'):monkeypatch.setattr(socket.socket,name,blocked)
+    for name in ('getaddrinfo','gethostbyname','gethostbyname_ex','create_connection'):monkeypatch.setattr(socket,name,blocked)
+    monkeypatch.setattr(azure,'credential_for',blocked);scanning._RESULTS.clear()
+    yield
+    scanning._RESULTS.clear()
+
+
+def test_exact_typed_registered_identity_case_branches_and_idempotence():
+    receipt,cases,declarations=admission.reviewed_inputs()
+    for metadata,function in declarations:
+        registered,=[c for c in checks.CHECKS if c.id==metadata['id']]
+        assert inspect.unwrap(registered.evaluate)is function and registered.allow_incomplete_failure
+        assert registered.kind==metadata['kind']and CASES[registered.id]==cases[registered.id]
+        assert function.__globals__['_evaluate']is consumer._evaluate
+        for branch in ('pass','fail','unknown'):assert registered.evaluate(cases[registered.id][branch],cases[registered.id][branch+'_index'])[0]==branch.upper()
+    before=tuple(checks.CHECKS);saved=deepcopy(CASES);admission.install()
+    assert tuple(checks.CHECKS)==before and CASES==saved
+
+
+@pytest.mark.parametrize('surface',['AppTraces','FunctionAppLogs','traces'])
+@pytest.mark.parametrize('branch',['pass','fail','unknown'])
+def test_actual_production_native_three_branches_with_real_pinned_engines(monkeypatch,surface,branch):
+    final='query'
+    def fault(s,op,response):return native.Response({'error':native.TOKEN},403)if branch=='unknown'and op==final else response
+    snapshot,rows,trace=native.collect(monkeypatch,surface,native.TOKEN if branch=='fail'else'mode=ready',real=True,fault=fault)
+    assert {r['status']for r in rows}=={branch.upper()}
+    assert native.TOKEN not in json.dumps([snapshot,rows])and native.AUTH not in json.dumps(snapshot)
+    assert all(r.closed for r in trace.responses)
+    native.capture(surface,branch,snapshot,rows,trace,real=branch!='unknown')
+
+
+@pytest.mark.parametrize('profile',source.PROFILES)
+@pytest.mark.parametrize('auth_mode',['local','cognito'])
+def test_public_hosted_validation_and_help_exact_native_profiles(profile,auth_mode):
+    surface='traces'if profile=='application'else'AppTraces'
+    option=source.PROFILES[profile]['option'];options={'content_secret_scans':True,option:[native.target(surface)]}
+    auth={'method':'token','tenant_id':native.TENANT,'arm_token':'offline-validator-token'}
+    validate_connector('azure',auth,options,SimpleNamespace(auth_mode=auth_mode),scopes=[native.SCOPE])
+    with pytest.raises(HTTPException)as error:validate_connector('aws',{},options,SimpleNamespace(auth_mode=auth_mode),scopes=[native.SCOPE])
+    assert error.value.status_code==422
+    help=Path('frontend/src/ConnectorFieldHelp.tsx').read_text()
+    assert option in OPTIONS and option+':'in help
+    assert source.PROFILES[profile]['kind']in engine.BULK_STREAM_TYPES['azure']
+    assert source.PROFILES[profile]['kind']not in azure._selected({},None)
+
+
+@pytest.mark.parametrize('kind',['receipt','source','fixture','proposal'])
+def test_changed_exact_reviewed_bytes_rejected_before_any_mutation(tmp_path,kind):
+    receipt=json.loads(Path('peaso/checks/azure_log_samples_admission_20261020.json').read_text())
+    paths=set(receipt['sources'])|{receipt['fixture']['path'],'peaso/checks/azure_log_samples_admission_20261020.json'}
+    for name in paths:
+        destination=tmp_path/name;destination.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(name,destination)
+    target={'receipt':'peaso/checks/azure_log_samples_admission_20261020.json','source':'peaso/checks/azure_selected_log_sample_secret_review_20261020.py','fixture':receipt['fixture']['path'],'proposal':'peaso/checks/azure_selected_log_sample_secret_review_20261020_proposal.json'}[kind]
+    with (tmp_path/target).open('ab')as handle:handle.write(b'\n')
+    before=tuple(checks.CHECKS);cases=deepcopy(CASES)
+    with pytest.raises(RuntimeError):admission.reviewed_inputs(tmp_path)
+    assert tuple(checks.CHECKS)==before and CASES==cases
+
+
+def test_atomic_mid_install_failure_rolls_back_both(monkeypatch):
+    ids={p['check']for p in source.PROFILES.values()};original_checks=list(checks.CHECKS);original_cases=deepcopy(CASES)
+    checks.CHECKS[:]=[c for c in checks.CHECKS if c.id not in ids]
+    for ident in ids:CASES.pop(ident,None)
+    before=tuple(checks.CHECKS);cases=deepcopy(CASES);register=checks.register;count=0
+    def fail_second(*args,**kwargs):
+        nonlocal count
+        count+=1
+        if count==2:raise RuntimeError('injected transaction failure')
+        return register(*args,**kwargs)
+    monkeypatch.setattr(checks,'register',fail_second)
+    try:
+        with pytest.raises(RuntimeError,match='transaction'):admission.install()
+        assert tuple(checks.CHECKS)==before and CASES==cases
+    finally:
+        checks.CHECKS[:]=original_checks;CASES.clear();CASES.update(original_cases)
+
+
+@pytest.mark.parametrize('profile',source.PROFILES)
+@pytest.mark.parametrize('failure',['missing','foreign','extra','wrong_provider'])
+def test_public_selector_rejected_before_authentication(monkeypatch,profile,failure):
+    surface='traces'if profile=='application'else'AppTraces';p=source.PROFILES[profile];target=native.target(surface)
+    options={'content_secret_scans':True,p['option']:[target]}
+    if failure=='missing':options.pop(p['option'])
+    if failure=='foreign':target['resource_id']=target['resource_id'].replace(native.SCOPE,native.FOREIGN)
+    if failure=='extra':target['endpoint']='https://evil.invalid/'+native.TOKEN
+    req={'connector':{'provider':'aws'if failure=='wrong_provider'else'azure','scopes':[native.SCOPE],'auth':{},'options':options},'checks':[]if failure=='wrong_provider'else[p['check']]}
+    with pytest.raises(ValueError):engine.collect_snapshot(req)
+
+
+@pytest.mark.parametrize('mode',['default','category','spoof','inventories'])
+def test_unnamed_bulk_and_internal_kind_spoof_cannot_authorize_content(monkeypatch,mode):
+    import peaso.collectors as collectors
+    p=source.PROFILES['workspace'];options={'content_secret_scans':True,p['option']:[native.target('AppTraces')]}
+    if mode in('spoof','inventories'):options['_content_secret_scan_kinds']=list(source.KINDS)
+    if mode=='inventories':options['inventories']=list(source.KINDS)
+    request={'connector':{'provider':'azure','scopes':[native.SCOPE],'auth':{},'options':options}}
+    if mode=='category':request['categories']=['hardening']
+    def observe(connector,requirements=None):
+        if mode in ('default','spoof'):assert not(set(source.KINDS)&set(requirements))
+        assert not(set(source.KINDS)&set(connector['options']['_content_secret_scan_kinds']))
+        return make_snapshot('azure',[native.SCOPE],[],metadata={})
+    monkeypatch.setattr(collectors,'collect_live',observe)
+    snapshot=engine.collect_snapshot(request)
+    assert snapshot['collections']==[]
+
+
+def test_combined_selector_limit_enforced_by_public_and_hosted_validation():
+    options={'content_secret_scans':True}
+    for profile,p in source.PROFILES.items():
+        surface='traces'if profile=='application'else'AppTraces';targets=[]
+        for i in range(3):
+            t=native.target(surface)
+            t['resource_id']+=str(i)
+            targets.append(t)
+        options[p['option']]=targets
+    with pytest.raises(ValueError):engine.collect_snapshot({'connector':{'provider':'azure','scopes':[native.SCOPE],'auth':{},'options':options},'checks':[p['check']for p in source.PROFILES.values()]})
+    with pytest.raises(HTTPException)as error:validate_connector('azure',{},options,SimpleNamespace(auth_mode='local'),scopes=[native.SCOPE])
+    assert error.value.status_code==422
+
+
+@pytest.mark.parametrize('target',['function','helper'])
+def test_typed_function_and_reachable_helper_tampering_rejected(monkeypatch,target):
+    before=tuple(checks.CHECKS);cases=deepcopy(CASES)
+    def changed(item,index):return 'PASS',{}
+    if target=='function':monkeypatch.setitem(consumer.EVALUATORS,'workspace',changed)
+    else:monkeypatch.setattr(consumer,'_evaluate',lambda profile,item,index:('PASS',{}))
+    with pytest.raises(RuntimeError):admission.install()
+    assert tuple(checks.CHECKS)==before and CASES==cases
+
+
+def test_existing_fixture_collision_cannot_partially_readmit():
+    ident=source.PROFILES['application']['check'];saved=deepcopy(CASES[ident]);before=tuple(checks.CHECKS)
+    CASES[ident]={'unexpected':'collision'}
+    try:
+        with pytest.raises(RuntimeError,match='collision'):admission.install()
+        assert tuple(checks.CHECKS)==before and CASES[ident]=={'unexpected':'collision'}
+    finally:CASES[ident]=saved
+
+
+def test_explicit_inventories_and_spoofed_kinds_do_not_read_without_named_check(monkeypatch):
+    class Credential:
+        def get_token(self,*args,**kwargs):pytest.fail('unnamed content cannot acquire a token')
+        def close(self):pass
+    monkeypatch.setattr(azure,'credential_for',lambda auth:Credential())
+    options={'content_secret_scans':True,'inventories':list(source.KINDS),'_content_secret_scan_kinds':list(source.KINDS),
+        source.PROFILES['workspace']['option']:[native.target('AppTraces')],'retries':0}
+    snapshot=engine.collect_snapshot({'connector':{'provider':'azure','scopes':[native.SCOPE],
+        'auth':{'method':'client-secret','tenant_id':native.TENANT,'client_id':native.TENANT,'client_secret':'offline'},'options':options}})
+    assert snapshot['collections']==[]
+    assert all(snapshot['metadata'][p['kind']+'_authorized']is False for p in source.PROFILES.values())
+    result=engine.evaluate_snapshot(snapshot,checks=[p['check']for p in source.PROFILES.values()])
+    assert {r['status']for r in result['findings']}=={'UNKNOWN'}
+
+
+@pytest.mark.parametrize('profile',source.PROFILES)
+@pytest.mark.parametrize('failure',['empty','duplicate','scope_missing','malformed','native_identity_input','custom_query'])
+def test_hosted_malformed_selection_rejected_without_auth_or_sensitive_error(profile,failure):
+    surface='traces'if profile=='application'else'AppTraces';p=source.PROFILES[profile];target=native.target(surface)
+    options={'content_secret_scans':True,p['option']:[target]};scopes=[native.SCOPE]
+    if failure=='empty':options[p['option']]=[]
+    if failure=='duplicate':options[p['option']].append(deepcopy(target))
+    if failure=='scope_missing':scopes=[]
+    if failure=='malformed':target['resource_id']=native.TOKEN
+    if failure=='native_identity_input':target['AppId'if profile=='application'else'customerId']=native.TOKEN
+    if failure=='custom_query':target['query']='print '+native.TOKEN
+    with pytest.raises(HTTPException)as error:
+        validate_connector('azure',{},options,SimpleNamespace(auth_mode='local'),scopes=scopes)
+    assert error.value.status_code==422 and native.TOKEN not in str(error.value.detail)

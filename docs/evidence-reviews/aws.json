@@ -2,8 +2,8 @@
   "schema_version": 1,
   "provider": "aws",
   "format": "One to three brief plain-language sentences: actual finding, precise value or permission, meaning, and evidence limits.",
-  "registered_check_count": 1556,
-  "active_check_count": 1404,
+  "registered_check_count": 1561,
+  "active_check_count": 1409,
   "alias_count": 3,
   "verification": {
     "native_gate": "19942 passed: tests/test_peaso_checks.py",
@@ -2519,7 +2519,7 @@
       "source_function": "install.<locals>.evaluate",
       "evaluator_sha256": "39ff4b80622386c1c37c9f33b67644b15b3391b13ef674263a65d7ae3898ee99",
       "description_contract_sha256": "b499fdcaa48daf425230491bd7f1ec128ecb9ef4c71d2c0c558ab2da017349bd",
-      "purpose": "A value of zero can disable password expiry even though it passes this check’s literal upper bound.",
+      "purpose": "A value of zero can disable password expiry even though it passes this check\u2019s literal upper bound.",
       "observation_fields": [
         {
           "key": "configured",
@@ -19827,7 +19827,7 @@
       "source_function": "glue_password",
       "evaluator_sha256": "f55c2d14853df1c25e0fe4d59543dd33032254d70b4a832210767147741822c6",
       "description_contract_sha256": "7936f6809e1c704a00247ddf1460b657aea41a5ea65ec8602c9206f6d33a6639",
-      "purpose": "Encrypting returned connection passwords limits plaintext exposure; callers’ decryption access still matters.",
+      "purpose": "Encrypting returned connection passwords limits plaintext exposure; callers\u2019 decryption access still matters.",
       "observation_fields": [],
       "fixture_source": "tests/fixtures/aws_evidence_review.json.gz",
       "fixture_count": 6,
@@ -19851,7 +19851,7 @@
       "source_function": "glue_password_tables",
       "evaluator_sha256": "335ee98d5d16350118300254b8cbf435072f879108f18106120d49797b32c029",
       "description_contract_sha256": "33d0e9ca2343f7dcbe95b4d4eed3aa5021630f8443b4faafc5d060c41182052b",
-      "purpose": "Encrypting returned connection passwords limits plaintext exposure; callers’ decryption access still matters.",
+      "purpose": "Encrypting returned connection passwords limits plaintext exposure; callers\u2019 decryption access still matters.",
       "observation_fields": [],
       "fixture_source": "tests/fixtures/aws_evidence_review.json.gz",
       "fixture_count": 6,
@@ -20019,7 +20019,7 @@
       "source_function": "_glue_s3.<locals>.evaluate",
       "evaluator_sha256": "0807a0c71946b862eeada21418efd893e0ac98bd8f5c4bec60a5eda3b62b5b8a",
       "description_contract_sha256": "6da0485ef389deff416ff1482a92ce547e56c6156aa2c58cfa525b40cd5b4604",
-      "purpose": "The selected S3 encryption modes protect Glue output; the check’s entry scope may not cover every output.",
+      "purpose": "The selected S3 encryption modes protect Glue output; the check\u2019s entry scope may not cover every output.",
       "observation_fields": [
         {
           "key": "security_configuration",
@@ -20058,7 +20058,7 @@
       "source_function": "_glue_s3.<locals>.evaluate_first",
       "evaluator_sha256": "ac2ba9bce6e3fdc5ad7ae492306f94471ab0c7a7e379936e190722bafbb40fa2",
       "description_contract_sha256": "33daeb51650422092484d5cad233e8047341334ef1c2d47461cecf555b80e04e",
-      "purpose": "The selected S3 encryption modes protect Glue output; the check’s entry scope may not cover every output.",
+      "purpose": "The selected S3 encryption modes protect Glue output; the check\u2019s entry scope may not cover every output.",
       "observation_fields": [
         {
           "key": "security_configuration",
@@ -20178,7 +20178,7 @@
       "source_function": "_glue_s3.<locals>.evaluate",
       "evaluator_sha256": "0807a0c71946b862eeada21418efd893e0ac98bd8f5c4bec60a5eda3b62b5b8a",
       "description_contract_sha256": "3d84a283b1a70f81555be07e5c77065c9d9624d6c19199e7a9db220055a3c7fc",
-      "purpose": "The selected S3 encryption modes protect Glue output; the check’s entry scope may not cover every output.",
+      "purpose": "The selected S3 encryption modes protect Glue output; the check\u2019s entry scope may not cover every output.",
       "observation_fields": [
         {
           "key": "security_configuration",
@@ -20217,7 +20217,7 @@
       "source_function": "_glue_s3.<locals>.evaluate_first",
       "evaluator_sha256": "ac2ba9bce6e3fdc5ad7ae492306f94471ab0c7a7e379936e190722bafbb40fa2",
       "description_contract_sha256": "cfa0741e33f1866d2bf5e95fd7fef84ea2587bcea3b8ea23770ada519ee1d2ec",
-      "purpose": "The selected S3 encryption modes protect Glue output; the check’s entry scope may not cover every output.",
+      "purpose": "The selected S3 encryption modes protect Glue output; the check\u2019s entry scope may not cover every output.",
       "observation_fields": [
         {
           "key": "security_configuration",
@@ -23210,7 +23210,7 @@
       "source_function": "_not_default.<locals>.evaluate",
       "evaluator_sha256": "38c5c94257960038e5430dce8ccef0a8b1760e392acac1a6d72d2c324b79e8a8",
       "description_contract_sha256": "a63aec1e63d1d3c9907842e0c12698bc774cf062cf5f53bed5b65b6030e26f56",
-      "purpose": "A nondefault database name follows this profile’s convention; it does not establish access control.",
+      "purpose": "A nondefault database name follows this profile\u2019s convention; it does not establish access control.",
       "observation_fields": [
         {
           "key": "DBName",
@@ -23665,7 +23665,7 @@
       "source_function": "_ns.<locals>.evaluate",
       "evaluator_sha256": "9420a069c3dcdc6ee1b2aae85ce00b0e29fceed97f5d4e347ebca4123002f857",
       "description_contract_sha256": "84f055ba19a49a47a8d638a26e8cf6446b7e23fce22ae8cdea706081aeb41d2b",
-      "purpose": "A nondefault database name follows this profile’s convention; it does not establish access control.",
+      "purpose": "A nondefault database name follows this profile\u2019s convention; it does not establish access control.",
       "observation_fields": [
         {
           "key": "dbName",
@@ -30883,7 +30883,7 @@
       "source_function": "cf_pqc",
       "evaluator_sha256": "827dcc53f966342fadc026b638d80ab6b194bc01f06eb0fe6d6ee1199e89787a",
       "description_contract_sha256": "4fbeb56440a82ebe8287be28244bb76853c725d8c3aecc209a153ee12bac5770",
-      "purpose": "The named post-quantum TLS policy follows this profile’s preference; client negotiation is untested.",
+      "purpose": "The named post-quantum TLS policy follows this profile\u2019s preference; client negotiation is untested.",
       "observation_fields": [
         {
           "key": "cloudfront_default_certificate",
@@ -31250,7 +31250,7 @@
       "source_function": "v2_pqc",
       "evaluator_sha256": "2bd8a1811eab767fab3edd1df1b4e5a49a8fd230174a4e83776cbca7ff47a2bd",
       "description_contract_sha256": "69c56766dfaeb0e266322df2f51456e284b4ecbae063f6214c3a73e053f061f2",
-      "purpose": "The named post-quantum TLS policy follows this profile’s preference; client negotiation is untested.",
+      "purpose": "The named post-quantum TLS policy follows this profile\u2019s preference; client negotiation is untested.",
       "observation_fields": [
         {
           "key": "non_pq_policies",
@@ -32006,7 +32006,7 @@
       "source_function": "apigw_domain_pqc",
       "evaluator_sha256": "c8d5b804df8d6858029dd7545c809e4eb39d7385334df1b525e316aca6337473",
       "description_contract_sha256": "f9628ace35dc2fa6facd6e5847042d2d7b63848c215af8ef3ca9c9765c199fd9",
-      "purpose": "The reviewed post-quantum domain policy follows this profile’s preference; client negotiation is untested.",
+      "purpose": "The reviewed post-quantum domain policy follows this profile\u2019s preference; client negotiation is untested.",
       "observation_fields": [
         {
           "key": "security_policy",
@@ -40321,7 +40321,7 @@
       "source_function": "_name.<locals>.evaluate",
       "evaluator_sha256": "c793997f2d861973e1c416334864ca17a0df2b52a3e11eb6e3b23e20f7ae86bc",
       "description_contract_sha256": "16df83c56cc98df204e08acd7e396f7d77bd67f103029dbfecd8867aa807a6c2",
-      "purpose": "A nondefault database name follows this profile’s convention; it does not establish access control.",
+      "purpose": "A nondefault database name follows this profile\u2019s convention; it does not establish access control.",
       "observation_fields": [
         {
           "key": "declared_name",
@@ -45760,7 +45760,7 @@
       "source_function": "no_active_high_findings",
       "evaluator_sha256": "f5eda9a9802474bd6a1d4f12efbde762638d4953e1fdeb57f4ec3fa192e1247f",
       "description_contract_sha256": "b4e13331e3f735502a64f1c9cbee7a1e0e664df7338e196ce7ca63d576995eb5",
-      "purpose": "Unarchived severity 7–9 findings need investigation; this scope excludes critical severity 9+ and does not prove compromise.",
+      "purpose": "Unarchived severity 7\u20139 findings need investigation; this scope excludes critical severity 9+ and does not prove compromise.",
       "observation_fields": [
         {
           "key": "enabled_detector_ids",
@@ -57023,6 +57023,180 @@
       ],
       "missing_fixture_ids": [],
       "review_basis": "Explicit native rotation enum only; absent and malformed settings remain unknown. Four actual evaluator outcomes replayed."
+    },
+    "aws.review.lambda.selected_environment_secret_indicators": {
+      "disposition": "new_explicit_selected_content_native_review",
+      "native_status": "active",
+      "source": "peaso/checks/aws_lambda_environment_secret_review_20261020.py",
+      "purpose": "Offline checks detect potential credential leaks.",
+      "fixture_source": "peaso/checks/aws_lambda_environment_secret_review_20261020_fixtures.json",
+      "fixture_count": 3,
+      "status_coverage": [
+        "FAIL",
+        "PASS",
+        "UNKNOWN"
+      ],
+      "review_receipt": "docs/check-review/aws-lambda-environment-secret-implementation-20261020.json"
+    },
+    "aws.review.configuration.selected_content_secret_indicators": {
+      "disposition": "explicit_selected_native_configuration_content",
+      "source": "peaso/checks/aws_selected_configuration_secret_review_20261020.py",
+      "source_function": "evaluate",
+      "source_sha256": "819cb82c47a3eefca9e4e7c6a3d14a6624f4e0e836e2b50638384533cb9d6b65",
+      "predicate_function": "evaluate",
+      "predicate_sha256": "124565e4295df00ba05a6643476e98e0e55b9cce0be9280e26f5f626946184f9",
+      "interpretation": "Inspect only explicitly selected returned AWS configuration literals using both offline detectors and exact native read provenance.",
+      "evidence_limit": "No credential verification, runtime execution, referenced secret-store content, all-resource or historical-configuration claim.",
+      "fixture_source": "peaso/checks/aws_selected_configuration_secret_review_20261020_fixtures.json",
+      "branch_coverage": [
+        {
+          "status": "PASS"
+        },
+        {
+          "status": "FAIL"
+        },
+        {
+          "status": "UNKNOWN"
+        }
+      ],
+      "review_basis": "15-surface native SDK response matrix, both pinned offline detectors; no live AWS or credential verification.",
+      "missing_fixtures": [],
+      "observation_implementation": "Pure reviewed consumer evidence.observed; grouped leaks retain incomplete coverage.",
+      "purpose": "Only explicitly selected returned configuration literals are scanned.",
+      "limit": "Referenced scripts, images and secret stores are excluded; credential validity is not checked."
+    },
+    "aws.review.s3.selected_source_secret_indicators": {
+      "disposition": "explicit_selected_native_stored_source_content",
+      "source": "peaso/checks/aws_s3_selected_source_secret_review_20261020.py",
+      "source_sha256": "c70abcb816d1071cd5c7a3c1ec6ded177b6bf1c96b03b30105ff98594733cb6d",
+      "predicate_function": "evaluate",
+      "predicate_sha256": "11c5eb88d78d7535ce59ac4aad701ee9e2f02dfe67c18d9ee883888992e422ec",
+      "interpretation": "Scans the selected S3 object or supported text archive members with Kingfisher and TruffleHog after checking owner and object revision. Referenced content is not followed and detected credentials are not validated.",
+      "evidence_limit": "Source association, referenced content and credential validity are not checked.",
+      "fixture_source": "peaso/checks/aws_s3_selected_source_native_cases_20261020.json",
+      "branches": [
+        {
+          "observed_status": "PASS",
+          "explanation": "Both offline detectors completed without detecting a supported secret in the selected S3 source text and regular archive members. Coverage is limited to the selected object or version."
+        },
+        {
+          "observed_status": "FAIL",
+          "explanation": "A likely secret was detected in selected S3 source text or archive members. The value is hidden and was not validated."
+        },
+        {
+          "observed_status": "UNKNOWN",
+          "explanation": "Selected S3 source content was unreadable, unsupported, incomplete or unbound. A clean result cannot be established."
+        }
+      ],
+      "missing_fixtures": [],
+      "purpose": "Only the selected object or version is covered."
+    },
+    "aws.review.codebuild.selected_inline_buildspec_secret_indicators": {
+      "disposition": "explicit_selected_native_inline_buildspec_content",
+      "source": "peaso/checks/aws_codebuild_buildspec_runtime_consumer_20261020.py",
+      "source_sha256": "463330f572896ffb3919cdd0b88e0bb678bafd740c5df71135ae3994fcb7338e",
+      "predicate_function": "evaluate",
+      "predicate_sha256": "f719d77edb555fe1728631ae5129c3baf223d1bb279f0adf818f941a048a59a5",
+      "interpretation": "Only the returned inline buildspec is inspected.",
+      "evidence_limit": "Referenced files, build artifacts and executed bytes are not inspected.",
+      "fixture_source": "peaso/checks/aws_codebuild_buildspec_runtime_cases_20261020.json",
+      "branches": [
+        {
+          "observed_status": "PASS",
+          "capture_branch": "pass",
+          "explanation": "Both offline detectors found no supported secret in the selected inline CodeBuild buildspec."
+        },
+        {
+          "observed_status": "FAIL",
+          "capture_branch": "fail",
+          "explanation": "A likely secret was detected in the selected inline CodeBuild buildspec. Its value is hidden and was not validated."
+        },
+        {
+          "observed_status": "UNKNOWN",
+          "capture_branch": "unknown",
+          "explanation": "The selected inline CodeBuild buildspec was unavailable, a reference, incomplete or unbound. Secret absence could not be assessed."
+        },
+        {
+          "observed_status": "FAIL",
+          "capture_branch": "partial",
+          "explanation": "A likely secret was detected in the selected inline CodeBuild buildspec. Its value is hidden; offline detection did not validate the credential."
+        },
+        {
+          "observed_status": "UNKNOWN",
+          "capture_branch": "malformed",
+          "explanation": "The selected inline CodeBuild buildspec was unavailable, a reference, incomplete or unbound. Secret absence could not be assessed."
+        }
+      ],
+      "missing_fixtures": [],
+      "purpose": "Only the returned inline buildspec is covered; referenced files and build artifacts are not inspected.",
+      "review_receipt": "docs/check-review/aws-codebuild-current-acceptance-20261020.json"
+    },
+    "aws.review.workload.selected_command_literal_secret_indicators": {
+      "disposition": "accepted_explicit_selected_native_thematic_addition",
+      "native_status": "active",
+      "source": "peaso/checks/aws_workload_command_runtime_consumer_20261020.py",
+      "source_sha256": "26fda08fe5718108901af36aa404a6e4807d21a5f5628c977f6397144ae8f1ed",
+      "evaluator_line": 10,
+      "evaluator_sha256": "27fc0706ac46884d952ade177104a024c7c531883dec4ac58ad450ae420cfdb2",
+      "predicate_qualname": "peaso.checks.aws_workload_command_runtime_consumer_20261020.evaluate",
+      "purpose": "Only selected definition command literals are covered; image defaults and runtime overrides are not assessed.",
+      "observation_contract": "Scans command literals returned for selected active ECS and classic Batch definition revisions with both offline detectors. Image defaults, external files and runtime overrides are not inspected.",
+      "catalog": {
+        "description": "Scans command literals returned for selected active ECS and classic Batch definition revisions with both offline detectors. Image defaults, external files and runtime overrides are not inspected.",
+        "fail_when": "A supported secret is detected in identity-bound selected source, including when other inspection is incomplete.",
+        "evaluated": [
+          "Exact selected native resource identity and captured content",
+          "Both offline detectors and selected-source completeness"
+        ],
+        "not_applicable_when": "No source is selected; denied, missing, unsupported and incomplete selected evidence remains undetermined.",
+        "pass_when": "All selected supported source fields and both detectors complete without a supported secret detection."
+      },
+      "catalog_sha256": "64a727ff07dd97f57e031e0a322b68fe1b475491cb946b40790dfe108187a0f8",
+      "status_coverage": [
+        "FAIL",
+        "PASS",
+        "UNKNOWN"
+      ],
+      "branch_coverage": {
+        "PASS": {
+          "basis": "verified_actual_normal_runtime_native_contract",
+          "native_node": "tests/test_aws_workload_command_runtime_20261020.py::test_native_clean_and_explicit_empty_complete",
+          "meaning": "All selected supported source fields and both detectors complete without a supported secret detection."
+        },
+        "FAIL": {
+          "basis": "verified_actual_normal_runtime_native_contract",
+          "native_node": "tests/test_aws_workload_command_runtime_20261020.py::test_real_normal_engine_sdk_dual_detector_value_union_and_saved_json_replay",
+          "meaning": "A supported secret is detected in identity-bound selected source, including when other inspection is incomplete."
+        },
+        "UNKNOWN": {
+          "basis": "actual_registered_predicate_missing_evidence",
+          "meaning": "No source is selected; denied, missing, unsupported and incomplete selected evidence remains undetermined.",
+          "native_node": "tests/test_aws_workload_command_runtime_20261020.py::test_missing_command_is_unknown_and_partial_positive_survives",
+          "evidence": {
+            "observed": "Selected ECS/classic Batch command evidence was unavailable, incomplete or unbound; images, environment files and EKS Batch are outside this check."
+          }
+        }
+      },
+      "runtime_receipt": {
+        "path": "docs/check-review/aws-workload-command-runtime-20261020.json",
+        "sha256": "b4bc249947fb0ec67f24a59ba55df4ac8baa5f674d9055d904631394fec4d791"
+      },
+      "native_replay_witnesses": {
+        "path": "docs/check-review/aws-workload-commands-current-native-witnesses-20261020.json.gz",
+        "sha256": "b7e7e7d00d2aec8dfd2ffe386fa29a2918436de0aac572866a140fc5bc791a10"
+      },
+      "review_receipt": "docs/check-review/aws-workload-commands-current-acceptance-20261020.json",
+      "fixture_limitations": [
+        "No new fabricated native input fixture; PASS/FAIL native statuses are bound to the actual runtime receipt and directed native test contracts",
+        "UNKNOWN is the actual registered predicate result on absent native evidence",
+        "Root final concise/merged rendering and whole-wave/wheel acceptance remain separate"
+      ],
+      "upstream_source_addition": false
     }
+  },
+  "current_local_followup": {
+    "new_admission_receipt": "docs/check-review/aws-lambda-environment-secret-implementation-20261020.json",
+    "meaning": "Counts include local native admissions; historical verification receipts below retain their original scope. No publication or live-provider validation is asserted.",
+    "codebuild_status": "accepted local bounded native runtime/canonical/package/prose; no live validation or deployment"
   }
 }

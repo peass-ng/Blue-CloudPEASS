@@ -1,0 +1,72 @@
+{
+  "fixtures": {
+    "k8s_selected_log_sample_admitted_cases_20261020.json": "eadea660fb67016056956f07d6198c47cc298b0851b00b26d7a84e7c03308e39",
+    "k8s_selected_log_sample_secret_review_20261020_native_fixtures.json": "bbb4f0e2c361c973be4cd3b383069ae52d7bef4fc74dee5ea32956547c797637",
+    "k8s_selected_log_sample_secret_review_20261020_proposal.json": "cfebebeb34597796b22d101bcd7c51c241df385481eed1a5064222baa57a6127"
+  },
+  "id": "k8s.review.selected_container_logs.secret_indicators",
+  "metadata": {
+    "allow_incomplete_failure": true,
+    "category": "hardening",
+    "control": "security_configuration",
+    "declared_dependencies": [
+      "k8s_selected_log_samples"
+    ],
+    "empty_applicability_dependencies": [],
+    "id": "k8s.review.selected_container_logs.secret_indicators",
+    "kind": "k8s_selected_log_samples",
+    "provider": "k8s",
+    "remediation": "Remove credential values from application logging and rotate confirmed exposed credentials. Restrict access to the affected Pod logs and use an appropriate secret reference for application configuration.",
+    "severity": "high",
+    "target": "resource",
+    "title": "Selected current container log samples have no detected secrets"
+  },
+  "schema": {
+    "declarations": [
+      {
+        "allow_incomplete_failure": true,
+        "category": "hardening",
+        "control": "security_configuration",
+        "dependencies": [
+          "k8s_selected_log_samples"
+        ],
+        "description": "Inspect at most 100 current-container log lines from the preceding fixed hour for each explicitly selected target. Both pinned offline detectors must complete for a clean sample; results do not establish secret absence in other logs or validate credentials.",
+        "finding_type": "secrets",
+        "id": "k8s.review.selected_container_logs.secret_indicators",
+        "kind": "k8s_selected_log_samples",
+        "provider": "k8s",
+        "remediation": "Remove credential values from application logging and rotate confirmed exposed credentials. Restrict access to the affected Pod logs and use an appropriate secret reference for application configuration.",
+        "requirements": [],
+        "severity": "high",
+        "title": "Selected current container log samples have no detected secrets",
+        "ui_group": "Secrets"
+      }
+    ],
+    "producer": {
+      "CHECK": "k8s.review.selected_container_logs.secret_indicators",
+      "KIND": "k8s_selected_log_samples",
+      "MARKER": "SelectedKubernetesLogSampleSecretIndicators",
+      "MAX_CALLS": 12,
+      "MAX_LEAKS": 256,
+      "MAX_LOCATIONS": 512,
+      "MAX_LOG": 262144,
+      "MAX_POD": 2097152,
+      "MAX_SECONDS": 60,
+      "MAX_TOTAL": 18874368,
+      "OPTION": "selected_k8s_log_samples",
+      "SCHEMA": "k8s-selected-current-container-log-sample-v1",
+      "TAIL_LINES": 100,
+      "WINDOW_SECONDS": 3600
+    }
+  },
+  "schema_version": 1,
+  "shared_functions": {
+    "pool_init": "ba8ab1e948bf8a73963fd985999c52b3911ffad1544d05dec486d37353df42cd",
+    "pool_request": "66c35eb820733fc409dcf7e94917d2b6bb1e5dd7b3d76d5d03cc8a5b81a045a5"
+  },
+  "sources": {
+    "peaso/checks/k8s_selected_log_sample_admission_20261020.py": "20d7fd75606b72d8bb3db404e388d6bcedafca92658ee1100363ffa8c86d0c51",
+    "peaso/checks/k8s_selected_log_sample_secret_review_20261020.py": "7e6eac0e305ea9ecddf2e64c03e642c8e3d0384b4609489e3100dbecb9986295",
+    "peaso/collectors/k8s_selected_log_sample_secret_indicators.py": "0fe2d51cb83f4126994f1bfaf1eff50c96469c3b1e285c44d78825f48328e9c0"
+  }
+}

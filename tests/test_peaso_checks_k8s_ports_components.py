@@ -37,6 +37,12 @@ REGISTRY = {check.id: check for check in CHECKS if check.id in ports.IDS}
 @pytest.mark.parametrize("case,wanted", [("pass", "PASS"), ("fail", "FAIL"), ("missing", "UNKNOWN"), ("malformed", "UNKNOWN"), ("denied", "UNKNOWN")])
 def test_modeled_available_settings_and_actual_gaps_are_distinct(cid, case, wanted):
     item = {"collection_status": "denied"} if case == "denied" else copy.deepcopy(CASES[cid][case])
+    if case == "pass" and cid.endswith(".container_argument_kubelet_authorization_mode_no_always_allow"):
+        # Current native kubelet accepts Webhook/AlwaysAllow, never RBAC.
+        # Preserve historical CASES and overlay this mutable test input only.
+        _, rows = ports.pod_spec(item, REGISTRY[cid].kind)
+        assert rows[0]["_component_config"]["flags"]["authorization-mode"] == "RBAC"
+        rows[0]["_component_config"]["flags"]["authorization-mode"] = "Webhook"
     original = copy.deepcopy(item)
     actual, evidence = REGISTRY[cid].evaluate(item, {})
     assert actual == wanted, evidence
@@ -59,7 +65,7 @@ def source_case_config(check, flags, version="v1.24.0"):
 
 def test_only_approved_configuration_fields_survive_projection():
     value = {"command": ["kube-apiserver", "--authorization-mode=Node,RBAC", "--private-token=INERT_PRIVATE_MARKER"],
-             "args": ["--profiling", "false", "--tls-private-key-file=/etc/tls/private.key"]}
+             "args": ["--profiling=false", "--tls-private-key-file=/etc/tls/private.key"]}
     scrubbed = _sanitize(value)
     assert "INERT_PRIVATE_MARKER" not in json.dumps(scrubbed)
     assert scrubbed["command_redacted"] and scrubbed["args_redacted"]

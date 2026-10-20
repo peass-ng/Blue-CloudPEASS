@@ -1,0 +1,307 @@
+{
+  "aks_fleet": {
+    "api_version": "2026-06-01",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.containerservice/fleets",
+    "resource_type": "Microsoft.ContainerService/fleets"
+  },
+  "apim_workspace_gateway": {
+    "api_version": "2024-05-01",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.apimanagement/gateways",
+    "resource_type": "Microsoft.ApiManagement/gateways"
+  },
+  "arc_private_link_scope": {
+    "api_version": "2026-07-15",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.hybridcompute/privatelinkscopes",
+    "resource_type": "Microsoft.HybridCompute/privateLinkScopes"
+  },
+  "arm_private_link": {
+    "api_version": "2020-05-01",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.authorization/resourcemanagementprivatelinks",
+    "resource_type": "Microsoft.Authorization/resourceManagementPrivateLinks"
+  },
+  "attestation_provider": {
+    "api_version": "2021-06-01",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.attestation/attestationproviders",
+    "resource_type": "Microsoft.Attestation/attestationProviders"
+  },
+  "azure_lustre_filesystem": {
+    "api_version": "2026-08-01",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.storagecache/amlfilesystems",
+    "resource_type": "Microsoft.StorageCache/amlFilesystems"
+  },
+  "azure_vmware_private_cloud": {
+    "api_version": "2026-03-01",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.avs/privateclouds",
+    "resource_type": "Microsoft.AVS/privateClouds"
+  },
+  "cassandra_cluster": {
+    "api_version": "2026-03-15",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.documentdb/cassandraclusters",
+    "resource_type": "Microsoft.DocumentDB/cassandraClusters"
+  },
+  "cloud_hsm_cluster": {
+    "api_version": "2025-03-31",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.hardwaresecuritymodules/cloudhsmclusters",
+    "resource_type": "Microsoft.HardwareSecurityModules/cloudHsmClusters"
+  },
+  "container_app_connected_environment": {
+    "api_version": "2026-07-01",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.app/connectedenvironments",
+    "resource_type": "Microsoft.App/connectedEnvironments"
+  },
+  "cosmos_postgresql_cluster": {
+    "api_version": "2022-11-08",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.dbforpostgresql/servergroupsv2",
+    "resource_type": "Microsoft.DBforPostgreSQL/serverGroupsv2"
+  },
+  "dataprotection_backup_vault": {
+    "api_version": "2026-06-01",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.dataprotection/backupvaults",
+    "resource_type": "Microsoft.DataProtection/backupVaults"
+  },
+  "dedicated_hsm": {
+    "api_version": "2025-03-31",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.hardwaresecuritymodules/dedicatedhsms",
+    "resource_type": "Microsoft.HardwareSecurityModules/dedicatedHSMs"
+  },
+  "desktop_host_pool": {
+    "api_version": "2025-10-10",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.desktopvirtualization/hostpools",
+    "resource_type": "Microsoft.DesktopVirtualization/hostpools"
+  },
+  "desktop_workspace": {
+    "api_version": "2025-10-10",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.desktopvirtualization/workspaces",
+    "resource_type": "Microsoft.DesktopVirtualization/workspaces"
+  },
+  "devcenter_network_connection": {
+    "api_version": "2025-02-01",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.devcenter/networkconnections",
+    "resource_type": "Microsoft.DevCenter/networkConnections"
+  },
+  "device_update_account": {
+    "api_version": "2023-07-01",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.deviceupdate/accounts",
+    "resource_type": "Microsoft.DeviceUpdate/accounts"
+  },
+  "devops_managed_pool": {
+    "api_version": "2026-06-02",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.devopsinfrastructure/pools",
+    "resource_type": "Microsoft.DevOpsInfrastructure/pools"
+  },
+  "digital_twins_instance": {
+    "api_version": "2023-01-31",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.digitaltwins/digitaltwinsinstances",
+    "resource_type": "Microsoft.DigitalTwins/digitalTwinsInstances"
+  },
+  "durable_task_scheduler": {
+    "api_version": "2026-02-01",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.durabletask/schedulers",
+    "resource_type": "Microsoft.DurableTask/schedulers"
+  },
+  "elastic_san": {
+    "api_version": "2025-09-01",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.elasticsan/elasticsans",
+    "resource_type": "Microsoft.ElasticSan/elasticSans"
+  },
+  "eventgrid_namespace": {
+    "api_version": "2025-02-15",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.eventgrid/namespaces",
+    "resource_type": "Microsoft.EventGrid/namespaces"
+  },
+  "eventgrid_partner_namespace": {
+    "api_version": "2025-02-15",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.eventgrid/partnernamespaces",
+    "resource_type": "Microsoft.EventGrid/partnerNamespaces"
+  },
+  "fabric_private_link_service": {
+    "api_version": "2024-06-01",
+    "reference": "https://learn.microsoft.com/en-us/fabric/security/security-workspace-level-private-links-set-up",
+    "resource_type": "Microsoft.Fabric/privateLinkServicesForFabric"
+  },
+  "healthcare_workspace": {
+    "api_version": "2024-03-31",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.healthcareapis/workspaces",
+    "resource_type": "Microsoft.HealthcareApis/workspaces"
+  },
+  "iot_central_app": {
+    "api_version": "2021-06-01",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.iotcentral/iotapps",
+    "resource_type": "Microsoft.IoTCentral/IoTApps"
+  },
+  "iot_dps_network": {
+    "api_version": "2026-08-31",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.devices/provisioningservices",
+    "resource_type": "Microsoft.Devices/ProvisioningServices"
+  },
+  "lab": {
+    "api_version": "2023-06-07",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.labservices/labs",
+    "resource_type": "Microsoft.LabServices/labs"
+  },
+  "lab_plan": {
+    "api_version": "2023-06-07",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.labservices/labplans",
+    "resource_type": "Microsoft.LabServices/labPlans"
+  },
+  "load_test_resource": {
+    "api_version": "2022-12-01",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.loadtestservice/loadtests",
+    "resource_type": "Microsoft.LoadTestService/loadTests"
+  },
+  "logic_integration_account": {
+    "api_version": "2019-05-01",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.logic/integrationaccounts",
+    "resource_type": "Microsoft.Logic/integrationAccounts"
+  },
+  "managed_domain_service": {
+    "api_version": "2025-06-01",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.aad/domainservices",
+    "resource_type": "Microsoft.AAD/domainServices"
+  },
+  "managed_file_share": {
+    "api_version": "2026-06-01",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.fileshares/fileshares",
+    "resource_type": "Microsoft.FileShares/fileShares"
+  },
+  "managed_grafana": {
+    "api_version": "2025-08-01",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.dashboard/grafana",
+    "resource_type": "Microsoft.Dashboard/grafana"
+  },
+  "managed_service_fabric_cluster": {
+    "api_version": "2026-02-01",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.servicefabric/managedclusters",
+    "resource_type": "Microsoft.ServiceFabric/managedClusters"
+  },
+  "maps_account": {
+    "api_version": "2023-06-01",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.maps/accounts",
+    "resource_type": "Microsoft.Maps/accounts"
+  },
+  "media_services_account": {
+    "api_version": "2023-01-01",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.media/mediaservices",
+    "resource_type": "Microsoft.Media/mediaservices"
+  },
+  "migrate_assessment_project": {
+    "api_version": "2024-01-15",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.migrate/assessmentprojects",
+    "resource_type": "Microsoft.Migrate/assessmentProjects"
+  },
+  "migrate_project": {
+    "api_version": "2023-01-01",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.migrate/migrateprojects",
+    "resource_type": "Microsoft.Migrate/migrateProjects"
+  },
+  "ml_registry": {
+    "api_version": "2026-07-01",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.machinelearningservices/registries",
+    "resource_type": "Microsoft.MachineLearningServices/registries"
+  },
+  "monitor_workspace": {
+    "api_version": "2025-10-03",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.monitor/accounts",
+    "resource_type": "Microsoft.Monitor/accounts"
+  },
+  "openshift_cluster": {
+    "api_version": "2025-07-25",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.redhatopenshift/openshiftclusters",
+    "resource_type": "Microsoft.RedHatOpenShift/openShiftClusters"
+  },
+  "orbital_contact_profile": {
+    "api_version": "2022-11-01",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.orbital/contactprofiles",
+    "resource_type": "Microsoft.Orbital/contactProfiles"
+  },
+  "powerbi_private_link_service": {
+    "api_version": "2020-06-01",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.powerbi/privatelinkservicesforpowerbi",
+    "resource_type": "Microsoft.PowerBI/privateLinkServicesForPowerBI"
+  },
+  "powerplatform_enterprise_policy": {
+    "api_version": "2020-10-30-preview",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.powerplatform/enterprisepolicies",
+    "resource_type": "Microsoft.PowerPlatform/enterprisePolicies"
+  },
+  "relay_namespace": {
+    "api_version": "2026-01-01",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.relay/namespaces",
+    "resource_type": "Microsoft.Relay/namespaces"
+  },
+  "static_web_app": {
+    "api_version": "2025-03-01",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/staticsites",
+    "resource_type": "Microsoft.Web/staticSites"
+  },
+  "stream_analytics_cluster": {
+    "api_version": "2020-03-01",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.streamanalytics/clusters",
+    "resource_type": "Microsoft.StreamAnalytics/clusters"
+  },
+  "synapse_private_link_hub": {
+    "api_version": "2021-06-01",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.synapse/privatelinkhubs",
+    "resource_type": "Microsoft.Synapse/privateLinkHubs"
+  },
+  "traffic_controller": {
+    "api_version": "2026-03-01",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.servicenetworking/trafficcontrollers",
+    "resource_type": "Microsoft.ServiceNetworking/trafficControllers"
+  },
+  "video_indexer_account": {
+    "api_version": "2025-04-01",
+    "http_status": 200,
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.videoindexer/accounts",
+    "resource_type": "Microsoft.VideoIndexer/accounts"
+  }
+}

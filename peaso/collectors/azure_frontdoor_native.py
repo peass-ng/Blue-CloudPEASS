@@ -28,7 +28,7 @@ def metadata_projection(value):
     fields = {
         'frontdoors': ('frontendEndpoints', 'routingRules', 'backendPools', 'enabledState', 'provisioningState'),
         'profiles': ('provisioningState', 'originResponseTimeoutSeconds'),
-        'frontendendpoints': ('hostName', 'customHttpsProvisioningState', 'customHttpsConfiguration'),
+        'frontendendpoints': ('hostName', 'customHttpsProvisioningState', 'customHttpsConfiguration', 'webApplicationFirewallPolicyLink'),
         'customdomains': ('hostName', 'customHttpsProvisioningState', 'customHttpsParameters', 'tlsSettings', 'domainValidationState', 'provisioningState', 'deploymentStatus'),
         'routes': ('supportedProtocols', 'forwardingProtocol', 'httpsRedirect', 'patternsToMatch', 'customDomains', 'linkToDefaultDomain', 'ruleSets', 'originGroup', 'originPath', 'enabledState', 'provisioningState', 'deploymentStatus'),
         'routingrules': ('acceptedProtocols', 'frontendEndpoints', 'enabledState', 'patternsToMatch', 'rulesEngine', 'routeConfiguration'),
@@ -49,7 +49,18 @@ def metadata_projection(value):
         if field in result['properties']:
             children = result['properties'][field]
             if not isinstance(children, list):raise ValueError('invalid embedded edge metadata')
-            result['properties'][field] = [metadata_projection(row) for row in children]
+            projected, seen = [], {}
+            for row in children:
+                identity = _identity(row, result['id'], '/' + re.escape(field) + r'/[^/?#%\\\s]+')
+                child = metadata_projection(row)
+                key = identity.casefold()
+                if key in seen:
+                    if seen[key] != child:
+                        raise ValueError('conflicting native embedded Front Door child identity')
+                    continue
+                seen[key] = child
+                projected.append(child)
+            result['properties'][field] = projected
     if kind == 'routingrules' and isinstance(result['properties'].get('routeConfiguration'), dict):
         config = result['properties']['routeConfiguration']
         result['properties']['routeConfiguration'] = {key: deepcopy(config[key]) for key in

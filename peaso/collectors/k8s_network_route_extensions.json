@@ -1,0 +1,204 @@
+{
+  "contour_http_proxy": [
+    [
+      "projectcontour.io"
+    ],
+    "httpproxies",
+    true
+  ],
+  "envoy_backend": [
+    [
+      "gateway.envoyproxy.io"
+    ],
+    "backends",
+    true
+  ],
+  "envoy_backend_traffic_policy": [
+    [
+      "gateway.envoyproxy.io"
+    ],
+    "backendtrafficpolicies",
+    true
+  ],
+  "envoy_client_traffic_policy": [
+    [
+      "gateway.envoyproxy.io"
+    ],
+    "clienttrafficpolicies",
+    true
+  ],
+  "envoy_proxy": [
+    [
+      "gateway.envoyproxy.io"
+    ],
+    "envoyproxies",
+    true
+  ],
+  "istio_authorization_policy": [
+    [
+      "security.istio.io"
+    ],
+    "authorizationpolicies",
+    true
+  ],
+  "istio_peer_authentication": [
+    [
+      "security.istio.io"
+    ],
+    "peerauthentications",
+    true
+  ],
+  "linkerd_authorization_policy": [
+    [
+      "policy.linkerd.io"
+    ],
+    "authorizationpolicies",
+    true
+  ],
+  "linkerd_http_route": [
+    [
+      "policy.linkerd.io"
+    ],
+    "httproutes",
+    true
+  ],
+  "linkerd_mesh_tls_authentication": [
+    [
+      "policy.linkerd.io"
+    ],
+    "meshtlsauthentications",
+    true
+  ],
+  "linkerd_network_authentication": [
+    [
+      "policy.linkerd.io"
+    ],
+    "networkauthentications",
+    true
+  ],
+  "linkerd_server": [
+    [
+      "policy.linkerd.io"
+    ],
+    "servers",
+    true
+  ],
+  "linkerd_server_authorization": [
+    [
+      "policy.linkerd.io"
+    ],
+    "serverauthorizations",
+    true
+  ],
+  "nginx_transport_server": [
+    [
+      "k8s.nginx.org"
+    ],
+    "transportservers",
+    true
+  ],
+  "nginx_virtual_server": [
+    [
+      "k8s.nginx.org"
+    ],
+    "virtualservers",
+    true
+  ],
+  "nginx_virtual_server_route": [
+    [
+      "k8s.nginx.org"
+    ],
+    "virtualserverroutes",
+    true
+  ],
+  "openshift_route": [
+    [
+      "route.openshift.io"
+    ],
+    "routes",
+    true
+  ],
+  "ovn_cluster_user_defined_network": [
+    [
+      "k8s.ovn.org"
+    ],
+    "clusteruserdefinednetworks",
+    false
+  ],
+  "ovn_egress_firewall": [
+    [
+      "k8s.ovn.org"
+    ],
+    "egressfirewalls",
+    true
+  ],
+  "ovn_egress_ip": [
+    [
+      "k8s.ovn.org"
+    ],
+    "egressips",
+    false
+  ],
+  "ovn_egress_service": [
+    [
+      "k8s.ovn.org"
+    ],
+    "egressservices",
+    true
+  ],
+  "ovn_user_defined_network": [
+    [
+      "k8s.ovn.org"
+    ],
+    "userdefinednetworks",
+    true
+  ],
+  "traefik_ingress_route": [
+    [
+      "traefik.io",
+      "traefik.containo.us"
+    ],
+    "ingressroutes",
+    true
+  ],
+  "traefik_ingress_route_tcp": [
+    [
+      "traefik.io",
+      "traefik.containo.us"
+    ],
+    "ingressroutetcps",
+    true
+  ],
+  "traefik_ingress_route_udp": [
+    [
+      "traefik.io",
+      "traefik.containo.us"
+    ],
+    "ingressrouteudps",
+    true
+  ],
+  "traefik_servers_transport": [
+    [
+      "traefik.io",
+      "traefik.containo.us"
+    ],
+    "serverstransports",
+    true
+  ],
+  "traefik_servers_transport_tcp": [
+    [
+      "traefik.io",
+      "traefik.containo.us"
+    ],
+    "serverstransporttcps",
+    true
+  ],
+  "traefik_service": [
+    [
+      "traefik.io",
+      "traefik.containo.us"
+    ],
+    "traefikservices",
+    true
+  ]
+}

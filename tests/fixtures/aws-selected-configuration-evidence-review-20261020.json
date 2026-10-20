@@ -1,0 +1,80 @@
+{
+  "aws.review.configuration.selected_content_secret_indicators": [
+    {
+      "status": "PASS",
+      "summary": "Both offline detectors completed without detecting a supported secret in the selected AWS configuration content. Coverage is limited to the returned literal values.",
+      "evidence": {
+        "observed": "Both offline detectors completed without detecting a supported secret in the selected AWS configuration content. Coverage is limited to the returned literal values.",
+        "secret_leaks": [],
+        "credential_validation": "not_attempted",
+        "complete": true,
+        "surface": "codebuild_environment",
+        "engines": [
+          {
+            "engine": "kingfisher",
+            "status": "complete",
+            "version": "1.4.0"
+          },
+          {
+            "engine": "trufflehog",
+            "status": "complete",
+            "version": "3.92.5"
+          }
+        ],
+        "coverage": "selected_returned_literals_only",
+        "literal_count": 1
+      }
+    },
+    {
+      "status": "FAIL",
+      "summary": "A likely secret was detected in the selected AWS configuration content. Its value is hidden; offline detection did not validate the credential.",
+      "evidence": {
+        "observed": "A likely secret was detected in the selected AWS configuration content. Its value is hidden; offline detection did not validate the credential.",
+        "secret_leaks": [
+          {
+            "detectors": [
+              {
+                "engine": "kingfisher",
+                "rule": "betterleaks.github-pat"
+              },
+              {
+                "engine": "trufflehog",
+                "rule": "Github"
+              }
+            ],
+            "fingerprint": "e7e9f48506a33226c751d71b5ae05674612692ee88591da2ddf89b704fb458a0",
+            "locations": [
+              {
+                "path": "configuration_selected_content:350843910a921eb773af8be6ee23cc5ff0e31506c337171b9e74352e0892b615.content"
+              }
+            ]
+          }
+        ],
+        "credential_validation": "not_attempted",
+        "complete": true,
+        "surface": "codebuild_environment",
+        "engines": [
+          {
+            "engine": "kingfisher",
+            "status": "complete",
+            "version": "1.4.0"
+          },
+          {
+            "engine": "trufflehog",
+            "status": "complete",
+            "version": "3.92.5"
+          }
+        ],
+        "coverage": "selected_returned_literals_only",
+        "literal_count": 1
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "summary": "The selected AWS configuration content was unreadable, unsupported, incomplete or unbound. Secret absence could not be assessed.",
+      "evidence": {
+        "observed": "The selected AWS configuration content was unreadable, unsupported, incomplete or unbound. Secret absence could not be assessed."
+      }
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "gcp.review.workbench.selected_referenced_source_secret_indicators_20261020": [
+    {
+      "id": "sha256:61c7b5ddc0b7993810a9eabad8ab1c9c2102bf75fddc59f197a3fc18dd3cb129",
+      "check_id": "gcp.review.workbench.selected_referenced_source_secret_indicators_20261020",
+      "provider": "gcp",
+      "resource_id": "sha256:8abe4079212c91e7c5e5bbdf2309320ec68c126a18b2e3fd8dff3ffe23d11752",
+      "scope": "projects/review",
+      "status": "PASS",
+      "evidence": {
+        "observed": "Both offline detectors completed without detecting a supported secret in the captured Workbench referenced source. This capture inspects the current selected GCS source; it does not establish bytes cached on the instance or originally executed.",
+        "secret_leaks": [],
+        "complete": true,
+        "coverage": "selected_captured_referenced_source_only",
+        "executed_bytes_proven": false,
+        "credential_validation": "not_attempted",
+        "parts": [
+          {
+            "bytes": 11,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "version": "1.4.0",
+                "status": "complete"
+              },
+              {
+                "engine": "trufflehog",
+                "version": "3.92.5",
+                "status": "complete"
+              }
+            ]
+          }
+        ]
+      },
+      "native_resource_id": "//gcp/projects/review/global/workbench_selected_referenced_source_20261020/workbench_selected_referenced_source_20261020:da2c38bb784602e3d59eba1c8a8d9320104e06ca668101099eab458c1de7718d",
+      "resource_name": "workbench_selected_referenced_source_20261020:da2c38bb784602e3d59eba1c8a8d9320104e06ca668101099eab458c1de7718d"
+    },
+    {
+      "id": "secret-be3fffe6e7feb4f90877f4e9a8d5521bc4399c0f7ae10e13996d2f2863bb212f",
+      "check_id": "gcp.review.workbench.selected_referenced_source_secret_indicators_20261020",
+      "provider": "gcp",
+      "resource_id": "secret:be3fffe6e7feb4f90877f4e9a8d5521bc4399c0f7ae10e13996d2f2863bb212f",
+      "scope": "projects/review",
+      "status": "FAIL",
+      "evidence": {
+        "secret_leaks": [
+          {
+            "fingerprint": "be3fffe6e7feb4f90877f4e9a8d5521bc4399c0f7ae10e13996d2f2863bb212f",
+            "detectors": [
+              {
+                "engine": "kingfisher",
+                "rule": "betterleaks.github-pat"
+              },
+              {
+                "engine": "trufflehog",
+                "rule": "Github"
+              }
+            ],
+            "locations": [
+              {
+                "path": "workbench_selected_referenced_source_20261020:da2c38bb784602e3d59eba1c8a8d9320104e06ca668101099eab458c1de7718d.source",
+                "line": 1,
+                "resource_id": "//gcp/projects/review/global/workbench_selected_referenced_source_20261020/workbench_selected_referenced_source_20261020:da2c38bb784602e3d59eba1c8a8d9320104e06ca668101099eab458c1de7718d",
+                "scope": "projects/review"
+              }
+            ]
+          }
+        ],
+        "credential_validation": "not_attempted",
+        "observed": "The same secret was detected in 1 scanned location(s). Its value is hidden."
+      },
+      "resource_name": "Exposed secret",
+      "secret_fingerprint": "be3fffe6e7feb4f90877f4e9a8d5521bc4399c0f7ae10e13996d2f2863bb212f",
+      "linked_check_ids": [
+        "gcp.review.workbench.selected_referenced_source_secret_indicators_20261020"
+      ],
+      "evidence_summary": "The same secret was detected in 1 scanned location(s). Its value is hidden."
+    },
+    {
+      "id": "sha256:61c7b5ddc0b7993810a9eabad8ab1c9c2102bf75fddc59f197a3fc18dd3cb129",
+      "check_id": "gcp.review.workbench.selected_referenced_source_secret_indicators_20261020",
+      "provider": "gcp",
+      "resource_id": "sha256:8abe4079212c91e7c5e5bbdf2309320ec68c126a18b2e3fd8dff3ffe23d11752",
+      "scope": "projects/review",
+      "status": "UNKNOWN",
+      "evidence": {
+        "complete": false,
+        "observed": "Selected referenced source was unavailable, unbound or incompletely inspected. A clean source result cannot be established.",
+        "reason": "unknown_reason_not_supplied"
+      },
+      "native_resource_id": "//gcp/projects/review/global/workbench_selected_referenced_source_20261020/workbench_selected_referenced_source_20261020:da2c38bb784602e3d59eba1c8a8d9320104e06ca668101099eab458c1de7718d",
+      "resource_name": "workbench_selected_referenced_source_20261020:da2c38bb784602e3d59eba1c8a8d9320104e06ca668101099eab458c1de7718d"
+    }
+  ]
+}

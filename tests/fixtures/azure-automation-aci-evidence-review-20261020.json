@@ -1,0 +1,68 @@
+{
+  "azure.encryption.automation_cmk_declared": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "key_source": "Microsoft.Keyvault",
+        "vault_hostname": "native-vault.vault.azure.net",
+        "key_name": "native-key",
+        "key_version": "7c73556c521340209371eaf623cc099d",
+        "identity_type": "SystemAssigned",
+        "observed": "Automation declares a complete customer-managed key reference and an attached system identity. Key existence, authorization, connectivity and cryptographic use were not tested.",
+        "criterion": "azure.encryption.automation_cmk_declared",
+        "configured": true,
+        "effective_access": "not_tested"
+      },
+      "expected_observation": "Automation declares a customer-managed key reference and an attached system identity."
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "key_source": "Microsoft.Automation",
+        "observed": "Automation declares a platform-managed key. This check does not assess cryptographic key use.",
+        "criterion": "azure.encryption.automation_cmk_declared",
+        "configured": false,
+        "effective_access": "not_tested"
+      },
+      "expected_observation": "Automation lacks a complete customer-managed key reference or attached system identity."
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "native key source unsupported"
+      },
+      "expected_observation": null
+    }
+  ],
+  "azure.logging.aci_log_analytics_declared": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "workspace_customer_id": "44444444-4444-4444-4444-444444444444",
+        "log_type": "ContainerInsights",
+        "observed": "The container group declares a Log Analytics workspace customer UUID and supported log type. Workspace existence, access and log ingestion or delivery were not tested.",
+        "criterion": "azure.logging.aci_log_analytics_declared",
+        "configured": true,
+        "effective_access": "not_tested"
+      },
+      "expected_observation": "The container group declares a Log Analytics workspace customer UUID and supported log type."
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "observed": "The full container group configuration has no Log Analytics declaration. Workspace access and log delivery were not tested.",
+        "criterion": "azure.logging.aci_log_analytics_declared",
+        "configured": false,
+        "effective_access": "not_tested"
+      },
+      "expected_observation": "The container group has no complete Log Analytics destination declaration."
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "native workspace customer UUID or log type unavailable"
+      },
+      "expected_observation": null
+    }
+  ]
+}

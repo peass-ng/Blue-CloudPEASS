@@ -2,6 +2,7 @@
 from . import register, result, unknown
 from .facts import get, optional, complete_items, list_of_objects, Unavailable
 from .fixtures import CASES
+from .gcp_api_key_service_names_native import canonical_target
 
 IDS, REFERENCE_SPECS, SQL_SPECS = [], {}, {}
 
@@ -128,7 +129,7 @@ def gemini(item, index):
         return unknown("unrecognized service state")
     restrictions = get(item, "restrictions", dict)
     targets = list_of_objects(optional(restrictions, "apiTargets", [], list))
-    names = [get(target, "service", str) for target in targets]
+    names = [canonical_target(get(target, "service", str)) for target in targets]
     fail = not names or "cloudapis.googleapis.com" in names or len(names) > 1 and "generativelanguage.googleapis.com" in names
     return result(fail, restricted_services=names, semantics="Gemini-specific service/API target declaration; caller restrictions are separate")
 

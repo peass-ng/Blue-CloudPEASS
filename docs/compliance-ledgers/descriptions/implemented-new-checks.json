@@ -806,6 +806,17 @@
     "pass_when": "The bound native app client explicitly reports Feature=ENABLED.",
     "proposed_spec_sha256": "81a57a2fc94f2e09db2e692c09085a6c52395fb40821b19268bf6e6856267e5f"
   },
+  "aws.review.configuration.selected_content_secret_indicators": {
+    "description": "Inspect only explicitly selected returned AWS configuration literals using both offline detectors and exact native read provenance.",
+    "evaluated": [
+      "Explicitly selected returned configuration literals",
+      "Both offline detectors and native source identity"
+    ],
+    "fail_when": "A likely secret was detected in the selected AWS configuration content. Its value is hidden; offline detection did not validate the credential.",
+    "not_applicable_when": "No selected configuration literal exists; absence does not assess referenced content.",
+    "pass_when": "Both offline detectors completed without detecting a supported secret in the selected AWS configuration content. Coverage is limited to the returned literal values.",
+    "proposed_spec_sha256": "1f27130ec31d76de8327e65b6151ff4f88bd4abd979750e2ae8c6d6ea9831655"
+  },
   "aws.review.datapipeline_pipeline.payload_secret_indicators": {
     "description": "Observes selected high-confidence indicators in Data Pipeline latest literal definition values. Existing-customer Data Pipeline remains usable in maintenance mode. Inspects latest returned pipeline object stringValue fields, parameter attributes and parameter values with 256-value/1 MiB limits; refValue resources and historic definitions are not resolved. Raw payloads are discarded before shared caching; negative results do not prove absence of all secrets.",
     "evaluated": [
@@ -984,6 +995,18 @@
     "pass_when": "Complete uniquely joined role documents contain no Allow statement combining literal * or *:* Action with * Resource; this is only a negative result for that pattern.",
     "proposed_spec_sha256": "a8c9233d102b1432c46f9a07d115cc88a162ec3f8fe388dd0d58c0b0893364f5"
   },
+  "aws.review.lambda.selected_environment_secret_indicators": {
+    "description": "Inspect literal environment variables only for explicitly selected Lambda functions using both offline detectors and native current-configuration provenance. Only observed selected literals are assessed, with detected values hidden and repeated leaks merged.",
+    "evaluated": [
+      "selected native content",
+      "exact scope and resource identity",
+      "bounded read and both offline secret detectors"
+    ],
+    "fail_when": "A likely secret was detected in selected Lambda environment variables. The value is hidden; offline detection did not validate the credential.",
+    "not_applicable_when": "No clean result is inferred from disabled, missing or unsupported content.",
+    "pass_when": "Both offline detectors completed without detecting a supported secret in selected Lambda environment variables.",
+    "proposed_spec_sha256": "e8087efae122af403388f459560f67fd68e652e1412695b55af139dceac0118f"
+  },
   "aws.review.lambda_function.package_content_secret_indicators": {
     "description": "Optional Lambda ZIP code static secret indicators. Own-account exact listed function version ZIP only, at most 8 MiB compressed. Image functions are UNKNOWN. CodeSha256 and CodeSize must match the downloaded package; configuration and code locations never enter shared caching. Disabled unless content_secret_scans is strictly true. Files stay in memory; no archive extraction or code execution. ZIP/tar links, traversal, conflicting duplicates, encryption, unsupported compression, truncation and bounds yield UNKNOWN. Kingfisher SDK 1.4.0 and TruffleHog 3.92.5 inspect each bounded file without credential validation. Supplemental static indicators are retained. Identical secret values are merged across engines and locations using a collection-local keyed fingerprint; raw matches are discarded. A missing or failed engine prevents a complete negative verdict.",
     "evaluated": [
@@ -1061,6 +1084,17 @@
     "not_applicable_when": "BucketOwnerEnforced or bucket/account IgnorePublicAcls is proven enabled; unknown suppression remains UNKNOWN for public grants.",
     "pass_when": "Complete readable sample/listing has no public object ACL grant; statement applies only to sampled current objects.",
     "proposed_spec_sha256": "06a88f2d2545fc3a0304d03c5a1c4ba975005b2a2784cac32f8d9166fe4a13ce"
+  },
+  "aws.review.s3.selected_source_secret_indicators": {
+    "description": "Scans the selected S3 object or supported text archive members with Kingfisher and TruffleHog after checking owner and object revision. Referenced content is not followed and detected credentials are not validated.",
+    "evaluated": [
+      "Exact selected object ownership and coherent native revision",
+      "Supported text or archive members and both pinned offline detectors"
+    ],
+    "fail_when": "A likely secret was detected in selected source text. Its value is hidden and was not validated.",
+    "not_applicable_when": "No selected supported text is available; unscanned content remains unresolved.",
+    "pass_when": "Both offline detectors completed without detecting a supported secret in the selected source text. Coverage is limited to the selected object or version.",
+    "proposed_spec_sha256": "895c7b1145486fdfc34175aa0a55f50db4abbca9520a3dd3a34c9beb68f82c75"
   },
   "aws.review.sagemaker_notebook_instance.payload_secret_indicators": {
     "description": "Observes selected high-confidence indicators in Attached notebook lifecycle scripts. Reuses a complete identity-bound DescribeNotebookInstance to read its current attachment, then decodes both OnCreate and OnStart strictly up to 16 KiB each. A confirmed absent attachment yields a negative observation; denied/unreadable attachment reads are UNKNOWN. Raw payloads are discarded before shared caching; negative results do not prove absence of all secrets.",
@@ -4230,6 +4264,40 @@
     "pass_when": "Complete evidence satisfies the signed predicate: PASS if every active account workspace returns a metastore_assignment with a nonempty metastore_id for its exact workspace_id. FAIL if a complete active workspace list includes a workspace whose metastore GET returns documented no-assignment 404. UNKNOWN for other errors, absent account ID, incomplete pages, inconsistent workspace ID or unmeasured workspace.",
     "proposed_spec_sha256": "bad95cc71ef790b5aa09817e2850ae2ca6a9ee39c6e4f91299814d4ff87441bb"
   },
+  "azure.encryption.automation_cmk_declared": {
+    "description": "Inspect a complete native Automation key-reference and attached system-identity declaration. Key existence, authorization, connectivity and cryptographic use are separate assessments.",
+    "evaluated": [
+      "properties.state",
+      "properties.encryption.keySource and keyVaultProperties",
+      "identity.type, principalId and tenantId"
+    ],
+    "fail_when": "The account declares a platform-managed key, explicitly incomplete key reference or no attached identity.",
+    "not_applicable_when": null,
+    "pass_when": "A complete customer-managed key reference and attached system-assigned identity are declared.",
+    "proposed_spec_sha256": "95511474b9388481f084b8d1c86aa9add4a020d6713abf9761f105931e122862"
+  },
+  "azure.encryption.log_analytics_cluster_cmk_declared": {
+    "description": "Checks the native cluster CMK reference and assigned managed identity. It does not verify key access, availability or encryption of stored data.",
+    "evaluated": [
+      "Native log_analytics_cluster configuration",
+      "Source-bound declared dependencies: log_analytics_cluster"
+    ],
+    "fail_when": "The complete native configuration explicitly lacks the required declaration.",
+    "not_applicable_when": null,
+    "pass_when": "The complete native configuration satisfies the specific declared setting described above.",
+    "proposed_spec_sha256": "5480bed15c34436d5db7bc70329b21a48f2e6ca7bc292f36317afef625620886"
+  },
+  "azure.encryption.stream_analytics_job_storage_cmk_declared": {
+    "description": "For jobs selecting external job storage, resolves the account within the selected subscription and checks its CMK declaration and assigned encryption identity. Built-in storage and effective key use are outside this check.",
+    "evaluated": [
+      "Native stream_analytics_job configuration",
+      "Source-bound declared dependencies: stream_analytics_job, storage_account"
+    ],
+    "fail_when": "The complete native configuration explicitly lacks the required declaration.",
+    "not_applicable_when": null,
+    "pass_when": "The complete native configuration satisfies the specific declared setting described above.",
+    "proposed_spec_sha256": "fd2712df72b91c41bca82948f1680c534187e4373d996b4c1be19c02c56727be"
+  },
   "azure.gap.appservice_api_app_latest_tls_version": {
     "description": "Checks the App Service site configuration TLS floor for API apps; it does not assert a globally current latest version. Complete scoped evidence is required; unavailable native projections or omitted operator inputs remain UNKNOWN. Signed check: azure.gap.appservice_api_app_latest_tls_version.",
     "evaluated": [
@@ -4897,6 +4965,53 @@
     "not_applicable_when": "Complete empty applicable resource inventory.",
     "pass_when": "For each in-scope Web PubSub resource, PASS if a complete paged private-endpoint-connection list contains an Approved connection with a nonempty properties.privateEndpoint.id. ",
     "proposed_spec_sha256": "82a248e2b678bf88d4b5a78348a6b0d170103fc785e0d5117c835b0e797ef292"
+  },
+  "azure.logging.aci_log_analytics_declared": {
+    "description": "Inspect a complete native container-group Log Analytics workspace customer UUID and supported log type declaration. Workspace existence, access and log ingestion or delivery are separate assessments.",
+    "evaluated": [
+      "properties.provisioningState",
+      "properties.diagnostics.logAnalytics.workspaceId",
+      "properties.diagnostics.logAnalytics.logType"
+    ],
+    "fail_when": "The complete configuration has no Log Analytics declaration or explicitly returns an empty workspace UUID.",
+    "not_applicable_when": null,
+    "pass_when": "A valid workspace customer UUID and supported log type are declared.",
+    "proposed_spec_sha256": "0ccab2919dc0024c893f5d95398a67c15123151847f87bd0b2001cf7078f325c"
+  },
+  "azure.logging.aks_supported_log_categories_destination_declared": {
+    "description": "Inspect actual supported log categories and enabled native diagnostic destination declarations. Resource existence, authorization, ingestion and retention are separate assessments.",
+    "evaluated": [
+      "Native aks_cluster configuration",
+      "Source-bound declared dependencies: aks_cluster, aks_diagnostic_declaration"
+    ],
+    "fail_when": "The complete native configuration explicitly lacks the required declaration.",
+    "not_applicable_when": null,
+    "pass_when": "The complete native configuration satisfies the specific declared setting described above.",
+    "proposed_spec_sha256": "edafa20dda8809f4c8a53e8d0c3891993e55c3926b3e0d3d38037100e15e6f92"
+  },
+  "azure.logging.managed_hsm_audit_destination_declared": {
+    "description": "Inspect enabled AuditEvent diagnostic settings with valid native Storage or Log Analytics resource references. Enabled category groups are resolved through complete bound native HSM category metadata; unresolved optional category reads do not affect an explicit AuditEvent declaration.",
+    "evaluated": [
+      "Native managed_hsm configuration",
+      "Source-bound declared dependencies: managed_hsm, hsm_audit_destination_declaration"
+    ],
+    "fail_when": "The complete native configuration explicitly lacks the required declaration.",
+    "not_applicable_when": null,
+    "pass_when": "The complete native configuration satisfies the specific declared setting described above.",
+    "proposed_spec_sha256": "9e230a9ec981f2b3903a28f77cbf7eb4441343b2342947bee208a0da190575ec"
+  },
+  "azure.network.acr_public_ip_ranges_restricted": {
+    "description": "Checks declared registry public IPv4 filtering. Enabled public access with default Allow or a rule union covering every IPv4 address fails; trusted Azure service bypass is reported separately.",
+    "evaluated": [
+      "selected registry identity and exact full GET source",
+      "properties.publicNetworkAccess",
+      "properties.networkRuleSet.defaultAction and ipRules",
+      "properties.networkRuleBypassOptions"
+    ],
+    "fail_when": "Enabled public access uses default Allow or IP rules whose union covers every IPv4 address.",
+    "not_applicable_when": null,
+    "pass_when": "Public access is disabled, or default Deny IP rules do not cover every IPv4 address.",
+    "proposed_spec_sha256": "c1c58309d9bad6ac180e5a8eb226000d9c5f86f58065c17764ce867683d55977"
   },
   "azure.other.access_analysis_coverage": {
     "description": "Checks native external/public-access and unused-access analysis coverage, not access-review completion. Complete scoped evidence is required; unavailable native projections or omitted operator inputs remain UNKNOWN. Signed check: azure.other.access_analysis_coverage.",
@@ -6119,6 +6234,285 @@
     "not_applicable_when": null,
     "pass_when": "Complete evidence satisfies the signed predicate: For every configured peering returned by complete child peering LIST pages, compare properties.remoteVirtualNetwork.id with approved peer ARM IDs. FAIL for a configured unapproved target or a successful controlled request to an unapproved peer. PASS for the frozen request-time prevention rule only when an enforced deny policy or controlled rejected request proves unapproved peering requests are blocked and complete current configuration has no unapproved peerings. UNKNOWN for missing remote ID, policy, deny enforcement or pages; current configuration alone is PARTIAL.",
     "proposed_spec_sha256": "d2cb0b28f63bddb9d4f7a42cef4c4ff2af3383d651d2b2c0dda126d655d0c95b"
+  },
+  "azure.review.acr.selected_image_secret_indicators": {
+    "description": "Inspect only explicitly selected immutable ACR images with both offline detectors after binding native registry identity, repository pull authorization and content digests. Only selected image content is assessed, with detected values hidden and repeated leaks merged.",
+    "evaluated": [
+      "selected native content",
+      "exact scope and resource identity",
+      "bounded read and both offline secret detectors"
+    ],
+    "fail_when": "A likely secret was detected in a selected immutable ACR image. The value is hidden; offline detection did not validate the credential.",
+    "not_applicable_when": "No clean result is inferred from disabled, missing or unsupported content.",
+    "pass_when": "Both offline detectors completed without detecting a supported secret in the selected immutable ACR image.",
+    "proposed_spec_sha256": "a736139b280bcfc1919172cdc2724a2c4160c2d3f480cfc03edfff804c64679c"
+  },
+  "azure.review.ai_services.audit_logging": {
+    "description": "AI Services configures supported audit logs to a destination. Evaluate only complete native ARM configuration for the selected subscription and account.",
+    "evaluated": [
+      "selected subscription/account identity",
+      "complete native ARM configuration and required child inventories"
+    ],
+    "fail_when": "No diagnostic setting enables supported Audit logs with a destination.",
+    "not_applicable_when": "Only explicitly established resource or deployment applicability exclusions apply.",
+    "pass_when": "A diagnostic setting enables supported Audit logs with a destination. Delivery and retention were not tested.",
+    "proposed_spec_sha256": "3f1ef3dc849990963b8c8b5e5e7a523f61691f7488fbb7f438baab15d70a4670"
+  },
+  "azure.review.ai_services.managed_identity": {
+    "description": "AI Services declares a managed identity. Evaluate only complete native ARM configuration for the selected subscription and account.",
+    "evaluated": [
+      "selected subscription/account identity",
+      "complete native ARM configuration and required child inventories"
+    ],
+    "fail_when": "The account has no managed identity declaration.",
+    "not_applicable_when": "Only explicitly established resource or deployment applicability exclusions apply.",
+    "pass_when": "The account declares a supported managed identity type. Role assignments were not assessed.",
+    "proposed_spec_sha256": "dacb3bc0234678bdf52098741f799be7b63ff88519e613c4d4034ffd8f55c365"
+  },
+  "azure.review.ai_services.outbound_restriction": {
+    "description": "AI Services declares restricted outbound network access. Evaluate only complete native ARM configuration for the selected subscription and account.",
+    "evaluated": [
+      "selected subscription/account identity",
+      "complete native ARM configuration and required child inventories"
+    ],
+    "fail_when": "The account declares outbound restrictions disabled.",
+    "not_applicable_when": "Only explicitly established resource or deployment applicability exclusions apply.",
+    "pass_when": "The account declares outbound restrictions enabled. Destinations and traffic were not tested.",
+    "proposed_spec_sha256": "f2be67a224af466a319a2ec38e425ea123241bf658c646ae34374dbccc5779df"
+  },
+  "azure.review.ai_services.prompt_shield": {
+    "description": "Text deployments explicitly configure blocking Prompt Shields. Evaluate only complete native ARM configuration for the selected subscription and account.",
+    "evaluated": [
+      "selected subscription/account identity",
+      "complete native ARM configuration and required child inventories"
+    ],
+    "fail_when": "A supported text deployment explicitly references a policy without enabled blocking Jailbreak filtering on prompts.",
+    "not_applicable_when": "Only explicitly established resource or deployment applicability exclusions apply.",
+    "pass_when": "Supported text deployments explicitly reference policies with enabled blocking Jailbreak filtering on prompts. Traffic was not tested.",
+    "proposed_spec_sha256": "ebf7a35dcc1a8ad9b4435ad1c58d97cce54d968c2dbf137ee2bbed2858c0bf40"
+  },
+  "azure.review.app_configuration.selected_value_secret_indicators": {
+    "description": "Scans the selected App Configuration key and label after confirming the store identity and stable ETag. Key Vault references are not followed.",
+    "evaluated": [
+      "Exact selected native declaration identity and supported public literals",
+      "Both pinned offline detectors and bounded source coverage"
+    ],
+    "fail_when": "A likely secret was detected in the selected public literals. The value is hidden and was not validated.",
+    "not_applicable_when": "No selected supported public literal was returned; protected and referenced content is not assessed.",
+    "pass_when": "Both offline detectors completed without detecting a supported secret in the selected public literals. Coverage is limited to these declarations.",
+    "proposed_spec_sha256": "e9bb9eb0fde8e25b829f454a46c385b82ffa3b8dcce1d1ad6654ea07484c9058"
+  },
+  "azure.review.app_service.selected_app_settings_secret_indicators": {
+    "description": "Inspect literal application settings only for explicitly selected App Service/Azure Function sites or deployment slots using both offline detectors. Only observed selected literals are assessed, with detected values hidden and repeated leaks merged.",
+    "evaluated": [
+      "selected native content",
+      "exact scope and resource identity",
+      "bounded read and both offline secret detectors"
+    ],
+    "fail_when": "A likely secret was detected in selected literal app settings. The value is hidden; offline detection did not validate the credential.",
+    "not_applicable_when": "No clean result is inferred from disabled, missing or unsupported content.",
+    "pass_when": "Both offline detectors completed without detecting a supported secret in selected literal app settings.",
+    "proposed_spec_sha256": "620e276e0b8510254754cefa6a876cb1b22a2a2d8c24b92f7a923421431ca6a4"
+  },
+  "azure.review.application_insights.selected_trace_sample_secret_indicators": {
+    "description": "Scans up to 100 trace messages from the selected Application Insights component from the preceding hour with both offline detectors. Other telemetry, older messages and credential validity are not assessed.",
+    "evaluated": [
+      "Native tenant, subscription and workspace/component identity",
+      "Fixed table/time window and both pinned offline detectors"
+    ],
+    "fail_when": "A likely secret was detected in the selected message sample. Its value is hidden and was not validated.",
+    "not_applicable_when": "No supported selected message sample was collected; unscanned messages remain unresolved.",
+    "pass_when": "Both offline detectors completed without detecting a supported secret in the selected message sample. This result covers only the returned sample from the fixed preceding hour.",
+    "proposed_spec_sha256": "37255d26a0e48db7b0acd3bd80568d32f5aa6784a4dd54f850497151ee027da3"
+  },
+  "azure.review.configuration.selected_content_secret_indicators": {
+    "description": "Inspect explicitly selected Azure ARM configuration and source literals with two offline secret detectors. Matched values are hidden; no credential is validated and coverage does not extend to referenced or encrypted stores.",
+    "evaluated": [
+      "Explicit selected native source identity and literal content",
+      "Both pinned offline detectors; detected values hidden"
+    ],
+    "fail_when": "A likely secret was detected in selected Azure configuration literals. Its value is hidden and was not validated.",
+    "not_applicable_when": "No selected supported literal content was returned; referenced or hidden content is not assessed.",
+    "pass_when": "Both offline detectors completed without detecting a supported secret in the selected Azure configuration literals.",
+    "proposed_spec_sha256": "671507e201ef30783b7581ae3dda5ba362e70103d147a3d081301e00128dc93e"
+  },
+  "azure.review.data_factory.selected_declaration_secret_indicators": {
+    "description": "Scans public literals in the selected Data Factory pipeline or dataflow definition. Linked services, protected values and referenced code are excluded.",
+    "evaluated": [
+      "Exact selected native declaration identity and supported public literals",
+      "Both pinned offline detectors and bounded source coverage"
+    ],
+    "fail_when": "A likely secret was detected in the selected public literals. The value is hidden and was not validated.",
+    "not_applicable_when": "No selected supported public literal was returned; protected and referenced content is not assessed.",
+    "pass_when": "Both offline detectors completed without detecting a supported secret in the selected public literals. Coverage is limited to these declarations.",
+    "proposed_spec_sha256": "9d0948cb373e048211cd961a1ea66e423ffea520f93b9c3c935693e0ed1e9a5d"
+  },
+  "azure.review.databricks.selected_notebook_source_secret_indicators": {
+    "description": "Scans SOURCE bytes exported from the selected Databricks notebook with both offline detectors after binding its workspace and native object. Notebook execution, outputs and immutable cell revisions are not verified.",
+    "evaluated": [
+      "Native subscription tenant, assigned workspace principal and exact selected notebook object",
+      "Captured SOURCE bytes with both pinned offline detectors"
+    ],
+    "fail_when": "A supported credential-like literal is detected in the selected captured notebook source.",
+    "not_applicable_when": "No coherent selected notebook source was readable; absent sample coverage remains UNKNOWN.",
+    "pass_when": "Both detectors complete without finding a supported secret in the selected captured notebook source.",
+    "proposed_spec_sha256": "10e30764f79474dbe89b5a1f9151b6b8a79c126dce19b576ebe54f4b47a4a718"
+  },
+  "azure.review.devops.selected_content_secret_indicators": {
+    "description": "Inspect only selected Azure DevOps Git files at immutable commits and selected pipeline definition literals using both pinned offline detectors.",
+    "evaluated": [
+      "Explicit selected native source identity and literal content",
+      "Both pinned offline detectors; detected values hidden"
+    ],
+    "fail_when": "A likely secret was detected in selected Azure DevOps literals. The value is hidden and was not validated.",
+    "not_applicable_when": "No selected supported literal content was returned; referenced or hidden content is not assessed.",
+    "pass_when": "Both offline detectors completed without detecting a supported secret in the selected Azure DevOps literals. Coverage is limited to the selected file commit and pipeline definition revision.",
+    "proposed_spec_sha256": "7fdc0a7123e93a4e5a90475d33bcb74b8db7947f20adc7ba79cb2c661356866d"
+  },
+  "azure.review.devops.visible_clone_urls_without_userinfo": {
+    "description": "Reviews clone URL metadata returned by the read-only API for explicitly selected projects. Hidden repositories and other projects are outside this result.",
+    "evaluated": [
+      "API-visible selected project repository clone URL metadata",
+      "Native per-project paging and credential context"
+    ],
+    "fail_when": "Userinfo is observed in at least one visible selected clone URL; values are redacted.",
+    "not_applicable_when": "No visible selected repository URL metadata was returned; this does not prove hidden repositories absent.",
+    "pass_when": "Complete visible clone URL metadata for selected projects contains no userinfo. Hidden repositories remain unassessed.",
+    "proposed_spec_sha256": "82a1fdff8e949b1bcc25144f8beddf221a6e039458ee161b09be040f2c637880"
+  },
+  "azure.review.function.application_insights_setting_declared": {
+    "description": "Checks the declared presence of at least one literal Application Insights connection setting on explicitly selected Functions. Telemetry delivery and destination validity are not tested.",
+    "evaluated": [
+      "Native subscription tenant and selected Function identity",
+      "Supported declared hosting model and literal setting value"
+    ],
+    "fail_when": "Neither supported Application Insights setting is nonempty.",
+    "not_applicable_when": "The native site is not a Function app.",
+    "pass_when": "A literal Application Insights connection string or instrumentation key is nonempty.",
+    "proposed_spec_sha256": "00c8522580e25bba78ed379c8a5df870eafc3b2282f6e2821d323672e6396ec6"
+  },
+  "azure.review.function.runtime_major4_update_channel_declared": {
+    "description": "Checks the classic Function FUNCTIONS_EXTENSION_VERSION declaration for the automatic major4 update channel. Flex Consumption and custom container host versions use separate mechanisms; the resolved build is not tested.",
+    "evaluated": [
+      "Native subscription tenant and selected Function identity",
+      "Supported declared hosting model and literal setting value"
+    ],
+    "fail_when": "The supported classic Function has no automatic major4 channel, uses a retired major or pins a specific build.",
+    "not_applicable_when": "The native site is not a Function, or Flex/custom-container hosting uses another host-version mechanism.",
+    "pass_when": "The supported classic Function declares ~4.",
+    "proposed_spec_sha256": "1043bc70e754c41b0a701e1516026215262ccaa6532306079983d4e947cb4a9e"
+  },
+  "azure.review.log_analytics.query_storage_cmk_declared": {
+    "description": "Joins the workspace Query-linked stores to native Storage accounts and checks for a valid declared customer-managed key and account-scoped Table encryption. Key authorization, usability and effective cryptography are not tested.",
+    "evaluated": [
+      "Complete Query link inventory and exact owned Storage account joins",
+      "Account keySource, valid customer-managed key reference and Table keyType"
+    ],
+    "fail_when": "A coherent Query-linked store declares a provider-managed account key or Service-scoped Table key.",
+    "not_applicable_when": "The complete native workspace link list has no Query link.",
+    "pass_when": "Every existing Query-linked store declares Microsoft.Keyvault, a valid key reference and Table keyType Account.",
+    "proposed_spec_sha256": "b36af244bc058ce24b6e1278933d570b1c639e40e2a8cc713405342e43ede3b0"
+  },
+  "azure.review.log_analytics.selected_message_sample_secret_indicators": {
+    "description": "Scans up to 100 selected AppTraces or FunctionAppLogs messages from the preceding hour with both offline detectors. Other tables, older messages and credential validity are not assessed.",
+    "evaluated": [
+      "Native tenant, subscription and workspace/component identity",
+      "Fixed table/time window and both pinned offline detectors"
+    ],
+    "fail_when": "A likely secret was detected in the selected message sample. Its value is hidden and was not validated.",
+    "not_applicable_when": "No supported selected message sample was collected; unscanned messages remain unresolved.",
+    "pass_when": "Both offline detectors completed without detecting a supported secret in the selected message sample. This result covers only the returned sample from the fixed preceding hour.",
+    "proposed_spec_sha256": "c657dd4d10038c470acdc33cb1e8c19138b98ee44e27d707de90e1fb3e84ce3e"
+  },
+  "azure.review.machine_learning.selected_code_file_secret_indicators": {
+    "description": "Scans the exact selected plain file after joining its native ML code asset, datastore and storage account. Folder contents, executed code and original asset-creation bytes are not established.",
+    "evaluated": [
+      "Exact selected asset and native subscription/workspace identity",
+      "Captured text with both pinned offline detectors"
+    ],
+    "fail_when": "A supported credential-like literal is detected in the selected captured text.",
+    "not_applicable_when": "No applicable asset was selected; unreadable, unsupported or incomplete selected content stays UNKNOWN.",
+    "pass_when": "Both detectors complete without a supported secret in the selected captured text.",
+    "proposed_spec_sha256": "b8aaea281bc1b623607fd2b0ca3d691b45b7287dca742e544a1394609a04efdd"
+  },
+  "azure.review.machine_learning.selected_command_job_secret_indicators": {
+    "description": "Scans returned command text and literal environment variables from the selected Machine Learning Command job with both offline detectors. Referenced code, images and actual execution are not inspected.",
+    "evaluated": [
+      "Native subscription tenant, workspace identity and exact selected Command job",
+      "Returned command and explicit environment literals with both pinned offline detectors"
+    ],
+    "fail_when": "A supported credential-like literal is detected in the selected returned command or environment values.",
+    "not_applicable_when": "No supported selected Command declaration was readable; absence of inspected content remains UNKNOWN.",
+    "pass_when": "Both detectors complete without finding a supported secret in the selected returned literals.",
+    "proposed_spec_sha256": "92867b58ede8f0da06a331eef633fd2286fd5a627ae76d8b1847cdaea4261e43"
+  },
+  "azure.review.machine_learning.selected_environment_conda_secret_indicators": {
+    "description": "Scans returned inline Conda text from the exact selected ML environment version with both offline detectors. Package references, builds and images are not inspected.",
+    "evaluated": [
+      "Exact selected asset and native subscription/workspace identity",
+      "Captured text with both pinned offline detectors"
+    ],
+    "fail_when": "A supported credential-like literal is detected in the selected captured text.",
+    "not_applicable_when": "No applicable asset was selected; unreadable, unsupported or incomplete selected content stays UNKNOWN.",
+    "pass_when": "Both detectors complete without a supported secret in the selected captured text.",
+    "proposed_spec_sha256": "49089ae6a3d34a684ed240f68c3b5498778320a93f431d99357e69c40742ee87"
+  },
+  "azure.review.managed_hsm.audit_storage_destination": {
+    "description": "Checks native diagnostic settings for enabled Managed HSM AuditEvent logging to an Azure Storage destination. This is configuration evidence; delivery and retention are separate.",
+    "evaluated": [
+      "native Managed HSM and diagnostic setting identities",
+      "complete diagnosticSettings inventory",
+      "logs[].enabled and category=AuditEvent",
+      "properties.storageAccountId"
+    ],
+    "fail_when": "Complete native settings contain no enabled AuditEvent/storage destination declaration.",
+    "not_applicable_when": null,
+    "pass_when": "An enabled AuditEvent log category declares an Azure Storage destination.",
+    "proposed_spec_sha256": "aae1c5854ed44c85fd1e23b4b06c5e00fd178c43a993640bdaa6d230fa9895fe"
+  },
+  "azure.review.network.perimeter_association_enforced": {
+    "description": "Joins a complete native Storage perimeter association to its exact profile and protected Storage account, then checks its declared Enforced mode and provisioning. Access rules and effective reachability are not tested.",
+    "evaluated": [
+      "Same-subscription Storage association, profile and native provisioning",
+      "Declared accessMode"
+    ],
+    "fail_when": "The coherent provisioned Storage association declares Learning or Audit.",
+    "not_applicable_when": "No supported Storage association was inventoried; unbound or unsupported evidence stays UNKNOWN.",
+    "pass_when": "The supported native association is provisioned, has no reported provisioning issues and declares Enforced.",
+    "proposed_spec_sha256": "97c36cb96c31340d2f397cb4481109c0e306f3f4de259d7afb6f17b339fe4481"
+  },
+  "azure.review.storage.blocking_sas_expiry_policy_declared": {
+    "description": "Reads sasPolicy from the full storage-account GET and checks for Block with a supported positive validity interval. It does not inspect issued tokens or prove enforcement for exempt SAS types.",
+    "evaluated": [
+      "Native storage-account identity, complete full GET and policy field coverage",
+      "SAS expiration action and supported positive DD.HH:MM:SS interval"
+    ],
+    "fail_when": "The full GET shows no SAS policy or the Log action, including its documented default.",
+    "not_applicable_when": "No applicable storage account was collected; missing or malformed native evidence remains unresolved.",
+    "pass_when": "The full GET declares Block and a supported positive validity interval.",
+    "proposed_spec_sha256": "a0a68af7d90c1d5cbf46f0d8f6581efaa01de8317605fd81b27eda7f8e0b26f8"
+  },
+  "azure.review.storage.selected_source_secret_indicators": {
+    "description": "Inspect explicitly selected Azure Blob/File source objects, using coherent current reads or an optional native version/snapshot and both offline detectors.",
+    "evaluated": [
+      "Explicit selected native source identity and literal content",
+      "Both pinned offline detectors; detected values hidden"
+    ],
+    "fail_when": "A likely secret was detected in the selected stored source. Its value is hidden; offline detection did not validate it.",
+    "not_applicable_when": "No selected supported literal content was returned; referenced or hidden content is not assessed.",
+    "pass_when": "Both offline detectors completed without detecting a supported secret in the selected stored source object. Coverage is limited to the captured supported text files.",
+    "proposed_spec_sha256": "7de3c898ab1ccf3bd0f1de259ccd350edc527f16d24ce69a52bb352d0b84720b"
+  },
+  "azure.review.synapse.selected_pipeline_secret_indicators": {
+    "description": "Scans public literals in the selected Synapse pipeline after binding its workspace and tenant. Protected values and referenced code are excluded.",
+    "evaluated": [
+      "Exact selected native declaration identity and supported public literals",
+      "Both pinned offline detectors and bounded source coverage"
+    ],
+    "fail_when": "A likely secret was detected in the selected public literals. The value is hidden and was not validated.",
+    "not_applicable_when": "No selected supported public literal was returned; protected and referenced content is not assessed.",
+    "pass_when": "Both offline detectors completed without detecting a supported secret in the selected public literals. Coverage is limited to these declarations.",
+    "proposed_spec_sha256": "45e6de1d2470778d51421356ced520b81419d7c8602c3b1c4e87eee81cbbf423"
   },
   "azure_aks_cluster_10_2_1_1_17_885658f": {
     "description": "Requires at least one supported AKS diagnostic log category exported to a configured sink. Complete scoped evidence is required; unavailable native projections or omitted operator inputs remain UNKNOWN. Signed check: azure_aks_cluster_10_2_1_1_17_885658f.",
@@ -7814,6 +8208,18 @@
     "pass_when": "Every listed column exists in the full schema and has at least one approved policy tag.",
     "proposed_spec_sha256": "ac162311af5af478129f0189a04b0ee521e467be5c188b5a8a3428ce14379072"
   },
+  "gcp.compute.os_config_fixable_vulnerabilities": {
+    "description": "Reports fixable known vulnerabilities in the matched OS Config assessment at its recorded timestamp. It does not establish current patch installation, freshness, package age or complete benchmark compliance.",
+    "evaluated": [
+      "native VM project, zone and numeric instance identity",
+      "source-bound assessment and collection timestamps",
+      "supported finding severities and native available fix references"
+    ],
+    "fail_when": "The matched assessment contains at least one supported vulnerability finding with an available fix reference.",
+    "not_applicable_when": "Missing or unreadable assessments remain UNKNOWN; old reports are explicitly assessment-only, not current patch compliance.",
+    "pass_when": "The complete matched assessment contains no finding with an available fix reference.",
+    "proposed_spec_sha256": "9ae8b986023480e4d43e19f759948f93f9b3ceb030e57a5be6bff9f66cc5fce2"
+  },
   "gcp.compute.os_patch_compliance": {
     "description": "On instance resources, detects when a RUNNING VM has a vulnerabilityReports.get item marked available whose published age exceeds the approved patch grace period and inventories.get updateTime is newer than 24 hours; this matters because known VM vulnerabilities remain exploitable. Complete scoped evidence is required; unavailable native projections or omitted operator inputs remain UNKNOWN. Signed check: gcp.compute.os_patch_compliance.",
     "evaluated": [
@@ -7919,6 +8325,489 @@
     "not_applicable_when": "The complete same-scope project inventory is empty.",
     "pass_when": "Every project parent chain contains at least one approved environment folder and one approved sensitivity folder.",
     "proposed_spec_sha256": "927e416e4c574f9da17900ad759015e677c572af348613aaa7aaa922daf1e69d"
+  },
+  "gcp.review.app_engine_version.literal_environment_secret_indicators": {
+    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: App Engine version envVariables and buildEnvVariables from explicitly selected full native version metadata, separate from existing masked configuration inventory. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
+    "evaluated": [
+      "App Engine version envVariables and buildEnvVariables from explicitly selected full native version metadata, separate from existing masked configuration inventory",
+      "native subject/project authority and complete bounded stream",
+      "pinned offline detector completion",
+      "redacted exact-value fingerprint and source locations"
+    ],
+    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
+    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
+    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
+    "proposed_spec_sha256": "2699a179df33df57064513992062af31e33e86731c40652728abe15355f172f7"
+  },
+  "gcp.review.appengine.deployment_source_secret_indicators": {
+    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: the complete supported native deployment.files manifest of each explicitly selected standard App Engine Version, with generation-pinned GCS bytes matching each native SHA1; runtime contents and generated artifacts are outside scope. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
+    "evaluated": [
+      "the complete supported native deployment.files manifest of each explicitly selected standard App Engine Version, with generation-pinned GCS bytes matching each native SHA1; runtime contents and generated artifacts are outside scope",
+      "native subject/project authority and complete bounded stream",
+      "pinned offline detector completion",
+      "redacted exact-value fingerprint and source locations"
+    ],
+    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
+    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
+    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
+    "proposed_spec_sha256": "f551e886dd29da9a437342888a3a46f6a9b0720f0dd2ce7db0837f28387e0e48"
+  },
+  "gcp.review.artifact_image.content_secret_indicators": {
+    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Explicit immutable Artifact Registry OCI/Docker manifest, config and supported tar/gzip layers with verified descriptor hashes and native repository/project binding. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
+    "evaluated": [
+      "Explicit immutable Artifact Registry OCI/Docker manifest, config and supported tar/gzip layers with verified descriptor hashes and native repository/project binding",
+      "native subject/project authority and complete bounded stream",
+      "pinned offline detector completion",
+      "redacted exact-value fingerprint and source locations"
+    ],
+    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
+    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
+    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
+    "proposed_spec_sha256": "5729b92f59a387dace5cdeed2d21ee8cedf87b362d135447c8d7ef5f7df65131"
+  },
+  "gcp.review.artifactregistry.selected_file_secret_indicators": {
+    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Exact selected Artifact Registry package file verified against native SHA256 metadata selected expected digest and downloaded bytes; bounded UTF8 or archive text members. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
+    "evaluated": [
+      "Exact selected Artifact Registry package file verified against native SHA256 metadata selected expected digest and downloaded bytes; bounded UTF8 or archive text members",
+      "native subject/project authority and complete bounded stream",
+      "pinned offline detector completion",
+      "redacted exact-value fingerprint and source locations"
+    ],
+    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
+    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
+    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
+    "proposed_spec_sha256": "7f4b8bf774e1af8bd535152875b52e96be4e297bc43e7f0e5b6f9ed11fc29649"
+  },
+  "gcp.review.batch_job.literal_configuration_secret_indicators": {
+    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Native regional Batch task groups with runnable and environment literals. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
+    "evaluated": [
+      "Native regional Batch task groups with runnable and environment literals",
+      "native subject/project authority and complete bounded stream",
+      "pinned offline detector completion",
+      "redacted exact-value fingerprint and source locations"
+    ],
+    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
+    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
+    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
+    "proposed_spec_sha256": "2d5d07c9c2ccd4a76eb730e942ed55aa33779c3744237f536a395cce5cfae0e6"
+  },
+  "gcp.review.bigquery.selected_routine_secret_indicators": {
+    "description": "Inspect only explicitly selected BigQuery inline routine definitionBody with both offline detectors. It retains hidden-value fingerprints and locations; the result covers only selected content read during the scan.",
+    "evaluated": [
+      "selected BigQuery inline routine definitionBody",
+      "same-project native identity and bounded GET response",
+      "both pinned offline detectors and redacted exact-value leak deduplication"
+    ],
+    "fail_when": "A likely secret was detected in the selected routine definition. The value is hidden; offline detection did not validate the credential.",
+    "not_applicable_when": "Only explicitly selected supported content is assessed; unreadable or incomplete content remains UNKNOWN.",
+    "pass_when": "Both offline detectors completed without detecting a supported secret in the selected routine definition.",
+    "proposed_spec_sha256": "6b486fda302ff904a306bc66f71756f71043bddaf9959acc5ec4740cec0d5d1c"
+  },
+  "gcp.review.cloudbuild.artifact_secret_indicators": {
+    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: the complete supported records of the observed Cloud Build output manifest and their pinned GCS artifact generations; historical build bytes are not established. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
+    "evaluated": [
+      "the complete supported records of the observed Cloud Build output manifest and their pinned GCS artifact generations; historical build bytes are not established",
+      "native subject/project authority and complete bounded stream",
+      "pinned offline detector completion",
+      "redacted exact-value fingerprint and source locations"
+    ],
+    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
+    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
+    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
+    "proposed_spec_sha256": "6f10d4a27c3c38098e8690ad318fdba1b4ef388457adb04be0eeba7a7d3e4fff"
+  },
+  "gcp.review.cloudbuild.stored_log_secret_indicators": {
+    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: the observed generation-pinned GCS log object of each explicitly selected terminal Cloud Build; complete historical log coverage is not established. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
+    "evaluated": [
+      "the observed generation-pinned GCS log object of each explicitly selected terminal Cloud Build; complete historical log coverage is not established",
+      "native subject/project authority and complete bounded stream",
+      "pinned offline detector completion",
+      "redacted exact-value fingerprint and source locations"
+    ],
+    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
+    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
+    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
+    "proposed_spec_sha256": "af2f4d6eea601579f1703892916e07aee53cb523b643ea4a2117cc6942aa980d"
+  },
+  "gcp.review.cloudbuild_build.literal_configuration_secret_indicators": {
+    "description": "Scans this resource’s returned literal configuration (substitutions, options.env[], steps[].env[], steps[].script, steps[].args[]) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
+    "evaluated": [
+      "native resource/project identity and complete matching collection",
+      "substitutions",
+      "options.env[]",
+      "steps[].env[]",
+      "steps[].script",
+      "steps[].args[]",
+      "pinned offline detector completions and redacted exact-value matches"
+    ],
+    "fail_when": "A likely secret is detected in the completely scanned returned literal configuration; credential validity is not tested.",
+    "not_applicable_when": "No resources of this kind are present in a complete applicable inventory.",
+    "pass_when": "Both offline detectors finish without a supported secret match in this returned literal configuration.",
+    "proposed_spec_sha256": "12960339a7a3c5b1f8c639a1a0bce1c9c2ef6d478d76d6b006a86971dd73bc6d"
+  },
+  "gcp.review.cloudbuild_trigger.literal_configuration_secret_indicators": {
+    "description": "Scans this resource’s returned literal configuration (substitutions, build.substitutions, build.options.env[], build.steps[].env[], build.steps[].script, build.steps[].args[]) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
+    "evaluated": [
+      "native resource/project identity and complete matching collection",
+      "substitutions",
+      "build.substitutions",
+      "build.options.env[]",
+      "build.steps[].env[]",
+      "build.steps[].script",
+      "build.steps[].args[]",
+      "pinned offline detector completions and redacted exact-value matches"
+    ],
+    "fail_when": "A likely secret is detected in the completely scanned returned literal configuration; credential validity is not tested.",
+    "not_applicable_when": "No resources of this kind are present in a complete applicable inventory.",
+    "pass_when": "Both offline detectors finish without a supported secret match in this returned literal configuration.",
+    "proposed_spec_sha256": "1049c497581e6445f409b56ac80f926e8db31243a42a62c3f79e571a91ca8da2"
+  },
+  "gcp.review.clouddeploy.release_source_secret_indicators": {
+    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: the complete supported text members of the observed generation-pinned Cloud Deploy release source archive; historical release bytes and deployed configuration are not established. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
+    "evaluated": [
+      "the complete supported text members of the observed generation-pinned Cloud Deploy release source archive; historical release bytes and deployed configuration are not established",
+      "native subject/project authority and complete bounded stream",
+      "pinned offline detector completion",
+      "redacted exact-value fingerprint and source locations"
+    ],
+    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
+    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
+    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
+    "proposed_spec_sha256": "b08ace49649c6cc62fb6a38ad9d67b8abb8e23805d7cfcd327f6a6232d605368"
+  },
+  "gcp.review.cloudrun_job.literal_configuration_secret_indicators": {
+    "description": "Scans this resource’s returned literal configuration (template.template.containers[].env[].value, template.template.containers[].args[], template.template.containers[].command[]) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
+    "evaluated": [
+      "native resource/project identity and complete matching collection",
+      "template.template.containers[].env[].value",
+      "template.template.containers[].args[]",
+      "template.template.containers[].command[]",
+      "pinned offline detector completions and redacted exact-value matches"
+    ],
+    "fail_when": "A likely secret is detected in the completely scanned returned literal configuration; credential validity is not tested.",
+    "not_applicable_when": "No resources of this kind are present in a complete applicable inventory.",
+    "pass_when": "Both offline detectors finish without a supported secret match in this returned literal configuration.",
+    "proposed_spec_sha256": "3c90e7ffa9998daee7ce5cba0751263510f82dcf3a116625965c0a2f123e6ac0"
+  },
+  "gcp.review.cloudrun_service.literal_configuration_secret_indicators": {
+    "description": "Scans this resource’s returned literal configuration (template.containers[].env[].value, template.containers[].args[], template.containers[].command[]) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
+    "evaluated": [
+      "native resource/project identity and complete matching collection",
+      "template.containers[].env[].value",
+      "template.containers[].args[]",
+      "template.containers[].command[]",
+      "pinned offline detector completions and redacted exact-value matches"
+    ],
+    "fail_when": "A likely secret is detected in the completely scanned returned literal configuration; credential validity is not tested.",
+    "not_applicable_when": "No resources of this kind are present in a complete applicable inventory.",
+    "pass_when": "Both offline detectors finish without a supported secret match in this returned literal configuration.",
+    "proposed_spec_sha256": "d0465782f9767d44cd2db4d12dfe62ddc63f18ec11d6d3079a483806640783f7"
+  },
+  "gcp.review.cloudtasks.selected_payload_secret_indicators": {
+    "description": "Inspect only explicitly selected Cloud Tasks FULL HTTP/App Engine body and literal headers with both offline detectors. It retains hidden-value fingerprints and locations; the result covers only selected content read during the scan.",
+    "evaluated": [
+      "selected Cloud Tasks FULL HTTP/App Engine request body and literal headers",
+      "same-project native identity and bounded GET response",
+      "both pinned offline detectors and redacted exact-value leak deduplication"
+    ],
+    "fail_when": "A likely secret was detected in the selected task body and headers. The value is hidden; offline detection did not validate the credential.",
+    "not_applicable_when": "Only explicitly selected supported content is assessed; unreadable or incomplete content remains UNKNOWN.",
+    "pass_when": "Both offline detectors completed without detecting a supported secret in the selected task body and headers.",
+    "proposed_spec_sha256": "c6a814d333987f8eb3ebd2567d5318b36b8e94be4d8dc93da20aea7d8675ac83"
+  },
+  "gcp.review.composer.dag_source_secret_indicators": {
+    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Native Composer DAG prefix with complete bounded GCS listing and immutable observed file generations; not all environment content or concurrent changes. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
+    "evaluated": [
+      "Native Composer DAG prefix with complete bounded GCS listing and immutable observed file generations; not all environment content or concurrent changes",
+      "native subject/project authority and complete bounded stream",
+      "pinned offline detector completion",
+      "redacted exact-value fingerprint and source locations"
+    ],
+    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
+    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
+    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
+    "proposed_spec_sha256": "7633da3b8492c9c61559b417c88da8daab37deb9ea66eea2e0b38b4996de3c08"
+  },
+  "gcp.review.composer_environment.literal_configuration_secret_indicators": {
+    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Native Composer software environment variables Airflow overrides and package specification literals. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
+    "evaluated": [
+      "Native Composer software environment variables Airflow overrides and package specification literals",
+      "native subject/project authority and complete bounded stream",
+      "pinned offline detector completion",
+      "redacted exact-value fingerprint and source locations"
+    ],
+    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
+    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
+    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
+    "proposed_spec_sha256": "ea21986e3e7878a3369c361e7a14eb191a5505ed92f5e4d3279f0bcf7d232040"
+  },
+  "gcp.review.dataflow_job.literal_configuration_secret_indicators": {
+    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Native regional Dataflow summary plus full-view job GET environment literals. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
+    "evaluated": [
+      "Native regional Dataflow summary plus full-view job GET environment literals",
+      "native subject/project authority and complete bounded stream",
+      "pinned offline detector completion",
+      "redacted exact-value fingerprint and source locations"
+    ],
+    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
+    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
+    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
+    "proposed_spec_sha256": "c0993e49a9516f759dda75c7faeece094c0d5f6315aaafd726909b042af08a63"
+  },
+  "gcp.review.dataform.selected_file_secret_indicators": {
+    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Explicit native Dataform repository readFile.contents at immutable commit SHA or workspace readFile.fileContents for selected supported UTF-8 files, with bounded streamed source reads. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
+    "evaluated": [
+      "Explicit native Dataform repository readFile.contents at immutable commit SHA or workspace readFile.fileContents for selected supported UTF-8 files, with bounded streamed source reads",
+      "native subject/project authority and complete bounded stream",
+      "pinned offline detector completion",
+      "redacted exact-value fingerprint and source locations"
+    ],
+    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
+    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
+    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
+    "proposed_spec_sha256": "e74cd8c8d33cd486872c278020dde9d0b840ec65d17722e1f6b8a95f72c883e7"
+  },
+  "gcp.review.dataproc.selected_initialization_referenced_source_secret_indicators": {
+    "description": "Scans the selected plain GCS initialization script currently referenced by the exact Dataproc cluster. Native resource and latest object generation must remain coherent before and after the pinned read. Original executed bytes are not established.",
+    "evaluated": [
+      "Exact selected project, native job or cluster UUID and supported GCS reference",
+      "Owned bucket and coherent current generation surrounding pinned plain-text source read",
+      "Both pinned offline detector results"
+    ],
+    "fail_when": "A supported credential-like literal is detected in the coherently bound captured source.",
+    "not_applicable_when": "No applicable source was selected; missing, unsupported, denied or incomplete selected source remains UNKNOWN.",
+    "pass_when": "Both detectors complete without a supported secret in the selected captured referenced source.",
+    "proposed_spec_sha256": "cbada890726766e371aa83dd33cb2a90a5d5853dcc62e63fb9eeb52f13869fe0"
+  },
+  "gcp.review.dataproc.selected_job_referenced_source_secret_indicators": {
+    "description": "Scans the selected plain GCS script or query currently referenced by the exact Dataproc job. Native resource and latest object generation must remain coherent before and after the pinned read. Original executed bytes are not established.",
+    "evaluated": [
+      "Exact selected project, native job or cluster UUID and supported GCS reference",
+      "Owned bucket and coherent current generation surrounding pinned plain-text source read",
+      "Both pinned offline detector results"
+    ],
+    "fail_when": "A supported credential-like literal is detected in the coherently bound captured source.",
+    "not_applicable_when": "No applicable source was selected; missing, unsupported, denied or incomplete selected source remains UNKNOWN.",
+    "pass_when": "Both detectors complete without a supported secret in the selected captured referenced source.",
+    "proposed_spec_sha256": "9c83fba4f3f25328d69ebe0b9471840eb12cae7c4f4368312e017ca59baf461b"
+  },
+  "gcp.review.dataproc_cluster.literal_configuration_secret_indicators": {
+    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Native regional Dataproc cluster software properties and VM metadata literals. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
+    "evaluated": [
+      "Native regional Dataproc cluster software properties and VM metadata literals",
+      "native subject/project authority and complete bounded stream",
+      "pinned offline detector completion",
+      "redacted exact-value fingerprint and source locations"
+    ],
+    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
+    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
+    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
+    "proposed_spec_sha256": "612443e62f0a4b66ebc1feaf939f1ef96597103b69f1dbdf6811b305393b1072"
+  },
+  "gcp.review.dataproc_job.literal_configuration_secret_indicators": {
+    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Native regional Dataproc job arguments properties and supported inline queries. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
+    "evaluated": [
+      "Native regional Dataproc job arguments properties and supported inline queries",
+      "native subject/project authority and complete bounded stream",
+      "pinned offline detector completion",
+      "redacted exact-value fingerprint and source locations"
+    ],
+    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
+    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
+    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
+    "proposed_spec_sha256": "68206885f2e677e7bb1eb7c8062be28b8715bc9049c3a7f9ca4f3db0982d89b0"
+  },
+  "gcp.review.function.literal_environment_secret_indicators": {
+    "description": "Scans returned runtime and build literal environment values with Kingfisher and TruffleHog. Secret Manager references are not read, raw values are not retained, and exact matches are deduplicated across both detectors.",
+    "evaluated": [
+      "native function identity and project scope",
+      "complete runtime and build literal environment maps",
+      "pinned Kingfisher and TruffleHog offline results",
+      "redacted value fingerprints and bounded source locations"
+    ],
+    "fail_when": "A likely secret is detected in the completely scanned returned literal maps; its validity is not tested.",
+    "not_applicable_when": "No functions are present in a complete applicable inventory.",
+    "pass_when": "Both detectors finish on both complete returned literal maps without a supported secret match. This is limited to the inspected configuration.",
+    "proposed_spec_sha256": "d26b5a54770436e4fb87a18a16fa19295f58aa2e25ede9b81259a81ccc8f786a"
+  },
+  "gcp.review.function.resolved_source_archive_secret_indicators": {
+    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Immutable GCS archive referenced by Functions v2 resolvedStorageSource with native function project and bucket authority; not a deployed-code assessment. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
+    "evaluated": [
+      "Immutable GCS archive referenced by Functions v2 resolvedStorageSource with native function project and bucket authority; not a deployed-code assessment",
+      "native subject/project authority and complete bounded stream",
+      "pinned offline detector completion",
+      "redacted exact-value fingerprint and source locations"
+    ],
+    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
+    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
+    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
+    "proposed_spec_sha256": "41c6310a06ec3b6a964fa8c76c4176621ab4bfbb9b974d5382e85f6917eb9849"
+  },
+  "gcp.review.gke_workload.literal_configuration_secret_indicators": {
+    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Read-only namespace ConfigMap data and Pod literal env command arguments using native cluster endpoint CA and existing Google token. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
+    "evaluated": [
+      "Read-only namespace ConfigMap data and Pod literal env command arguments using native cluster endpoint CA and existing Google token",
+      "native subject/project authority and complete bounded stream",
+      "pinned offline detector completion",
+      "redacted exact-value fingerprint and source locations"
+    ],
+    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
+    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
+    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
+    "proposed_spec_sha256": "564671c6fb69029750f1f703b4615c2eb13300e73ccd566671b8347cfffcaab0"
+  },
+  "gcp.review.instance.literal_configuration_secret_indicators": {
+    "description": "Scans this resource’s returned literal configuration (metadata.items[].value) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
+    "evaluated": [
+      "native resource/project identity and complete matching collection",
+      "metadata.items[].value",
+      "pinned offline detector completions and redacted exact-value matches"
+    ],
+    "fail_when": "A likely secret is detected in the completely scanned returned literal configuration; credential validity is not tested.",
+    "not_applicable_when": "No resources of this kind are present in a complete applicable inventory.",
+    "pass_when": "Both offline detectors finish without a supported secret match in this returned literal configuration.",
+    "proposed_spec_sha256": "3e9f184d8abaa939659ea00f175b9caa3bc5ac940248a180a1e7393545914cec"
+  },
+  "gcp.review.instance_template.literal_configuration_secret_indicators": {
+    "description": "Scans this resource’s returned literal configuration (properties.metadata.items[].value) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
+    "evaluated": [
+      "native resource/project identity and complete matching collection",
+      "properties.metadata.items[].value",
+      "pinned offline detector completions and redacted exact-value matches"
+    ],
+    "fail_when": "A likely secret is detected in the completely scanned returned literal configuration; credential validity is not tested.",
+    "not_applicable_when": "No resources of this kind are present in a complete applicable inventory.",
+    "pass_when": "Both offline detectors finish without a supported secret match in this returned literal configuration.",
+    "proposed_spec_sha256": "ac91561d29d86793f73ea15cf42a98e89666959d2897a8a3c28126097d732adc"
+  },
+  "gcp.review.logging.application_log_secret_indicators": {
+    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Bounded project-scoped Logging entries:list textPayload and jsonPayload messages in the recorded 15-minute window. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
+    "evaluated": [
+      "Bounded project-scoped Logging entries:list textPayload and jsonPayload messages in the recorded 15-minute window",
+      "native subject/project authority and complete bounded stream",
+      "pinned offline detector completion",
+      "redacted exact-value fingerprint and source locations"
+    ],
+    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
+    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
+    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
+    "proposed_spec_sha256": "b18b3e1fc32d8ad5c259cdad94e029bb35d07659aa230e4edbc4c6d2d8ea780b"
+  },
+  "gcp.review.project.literal_configuration_secret_indicators": {
+    "description": "Scans this resource’s returned literal configuration (commonInstanceMetadata.items[].value) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
+    "evaluated": [
+      "native resource/project identity and complete matching collection",
+      "commonInstanceMetadata.items[].value",
+      "pinned offline detector completions and redacted exact-value matches"
+    ],
+    "fail_when": "A likely secret is detected in the completely scanned returned literal configuration; credential validity is not tested.",
+    "not_applicable_when": "No resources of this kind are present in a complete applicable inventory.",
+    "pass_when": "Both offline detectors finish without a supported secret match in this returned literal configuration.",
+    "proposed_spec_sha256": "eb2f67d286e6812c9a3873929d135370a33fe9c70f3374071f4ad32bbc031e85"
+  },
+  "gcp.review.scheduler_job.literal_target_secret_indicators": {
+    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Native Scheduler HTTP target headers/body and Pub/Sub target attributes/data inspected transiently, preserving managed OAuth/OIDC references. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
+    "evaluated": [
+      "Native Scheduler HTTP target headers/body and Pub/Sub target attributes/data inspected transiently, preserving managed OAuth/OIDC references",
+      "native subject/project authority and complete bounded stream",
+      "pinned offline detector completion",
+      "redacted exact-value fingerprint and source locations"
+    ],
+    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
+    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
+    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
+    "proposed_spec_sha256": "4ce835b7a4f41062eaf062c572fb905691d56a4036091bcfa919229f81f3b321"
+  },
+  "gcp.review.sourcerepo.selected_file_secret_indicators": {
+    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: the exact explicitly selected text files at the native repository advertised immutable commit; repository-wide and historical secret absence are outside scope. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
+    "evaluated": [
+      "the exact explicitly selected text files at the native repository advertised immutable commit; repository-wide and historical secret absence are outside scope",
+      "native subject/project authority and complete bounded stream",
+      "pinned offline detector completion",
+      "redacted exact-value fingerprint and source locations"
+    ],
+    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
+    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
+    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
+    "proposed_spec_sha256": "ddf931f7bdba81a0ec306287b374426a89720ec61ea85c4b18fb4c7a0289cc16"
+  },
+  "gcp.review.storage.selected_archive_secret_indicators": {
+    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Explicit generation-bound Cloud Storage ZIP/tar/tar.gz archives with bounded memory-only supported UTF-8 members and complete offline detector evidence. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
+    "evaluated": [
+      "Explicit generation-bound Cloud Storage ZIP/tar/tar.gz archives with bounded memory-only supported UTF-8 members and complete offline detector evidence",
+      "native subject/project authority and complete bounded stream",
+      "pinned offline detector completion",
+      "redacted exact-value fingerprint and source locations"
+    ],
+    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
+    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
+    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
+    "proposed_spec_sha256": "7e703f3262089a685082cca174f006da8c1e3f9528323ced27e4e0f255070679"
+  },
+  "gcp.review.storage.selected_object_secret_indicators": {
+    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Explicit native Cloud Storage project/bucket/object/generation targets; generation-bound complete UTF-8 text via storage.objects.get metadata and streamed media. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
+    "evaluated": [
+      "Explicit native Cloud Storage project/bucket/object/generation targets; generation-bound complete UTF-8 text via storage.objects.get metadata and streamed media",
+      "native subject/project authority and complete bounded stream",
+      "pinned offline detector completion",
+      "redacted exact-value fingerprint and source locations"
+    ],
+    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
+    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
+    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
+    "proposed_spec_sha256": "90d4b3efcd6176ef7dd01256ad4b5b27e39c57568cc98a3f706cc9fadb5b8467"
+  },
+  "gcp.review.workbench.public_ip_disabled": {
+    "description": "Checks whether public IP assignment is disabled; it does not test a reachable network path.",
+    "evaluated": [
+      "name",
+      "state",
+      "gceSetup.disablePublicIp",
+      "complete native representation for omitted defaults"
+    ],
+    "fail_when": "The setting enables the feature, including its documented default in a full native representation.",
+    "not_applicable_when": "The native state is DELETED.",
+    "pass_when": "The setting explicitly disables the feature.",
+    "proposed_spec_sha256": "e82b385be8b76c23fb6495f0b560a6bc8de2942d795b93c530472f30134e478e"
+  },
+  "gcp.review.workbench.root_access_disabled": {
+    "description": "Checks the notebook root-access metadata setting; it does not execute commands as root.",
+    "evaluated": [
+      "name",
+      "state",
+      "gceSetup.metadata.notebook-disable-root",
+      "complete native representation for omitted defaults"
+    ],
+    "fail_when": "The setting enables the feature, including its documented default in a full native representation.",
+    "not_applicable_when": "The native state is DELETED.",
+    "pass_when": "The setting explicitly disables the feature.",
+    "proposed_spec_sha256": "e3b894a670e3729c0f66c94b5f88d25a6e2e643ca1bbf4d3a2f06805bd7cf8ad"
+  },
+  "gcp.review.workbench_instance.literal_configuration_secret_indicators": {
+    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Native Workbench v2 returned GCE metadata literals including inline scripts. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
+    "evaluated": [
+      "Native Workbench v2 metadata and systemMetadata string maps including inline scripts",
+      "native subject/project authority and complete bounded stream",
+      "pinned offline detector completion",
+      "redacted exact-value fingerprint and source locations"
+    ],
+    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
+    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
+    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
+    "proposed_spec_sha256": "934fcbee8c3aaa8a7b8c68a9dbd9f14d76c1ae4a881e0b8e29d0571c60c34c6d"
+  },
+  "gcp.review.workflow.deployed_source_secret_indicators": {
+    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Native deployed Workflows sourceContents bound to its returned name and discovered revisionId, retrieved with read-only revision-specific GET. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
+    "evaluated": [
+      "Native deployed Workflows sourceContents bound to its returned name and discovered revisionId, retrieved with read-only revision-specific GET",
+      "native subject/project authority and complete bounded stream",
+      "pinned offline detector completion",
+      "redacted exact-value fingerprint and source locations"
+    ],
+    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
+    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
+    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
+    "proposed_spec_sha256": "3fc3c65244059ce5387fa7a1f257102408e538735afef3e5aae6fa0270d954b2"
   },
   "gcp.sql.deletion_protection": {
     "description": "On each Cloud SQL instance in a complete project inventory, checks the observed settings.deletionProtectionEnabled Boolean. True passes and explicit false fails; missing, denied, malformed, or incomplete instance data remains unknown.",
@@ -10141,6 +11030,138 @@
     "pass_when": "The explicit kube-apiserver flag is false.",
     "proposed_spec_sha256": "094dc500a138ee59718529b04cd2302da87e4da154c4464d4fdaed244a73e89f"
   },
+  "k8s.review.kubelet_configmap.anonymous_disabled": {
+    "description": "Checks whether authentication.anonymous.enabled is explicitly false in a kubelet-config ConfigMap.",
+    "evaluated": [
+      "Native metadata-only discovery and exact ConfigMap GET identity/revision join",
+      "Bounded data.kubelet YAML whitelist; authentication.anonymous.enabled",
+      "Complete selected-scope envelope and authenticated read context"
+    ],
+    "fail_when": "The ConfigMap explicitly enables anonymous authentication. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+    "not_applicable_when": "No declaration was found; the check remains UNKNOWN because node configuration was not assessed.",
+    "pass_when": "The ConfigMap explicitly disables anonymous authentication. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+    "proposed_spec_sha256": "892d3b6cc7f2b30063987300a4c0ddeaef47dbb38added487d358b6406d76b56"
+  },
+  "k8s.review.kubelet_configmap.authorization_webhook": {
+    "description": "Checks whether authorization.mode explicitly selects Webhook in a kubelet-config ConfigMap.",
+    "evaluated": [
+      "Native metadata-only discovery and exact ConfigMap GET identity/revision join",
+      "Bounded data.kubelet YAML whitelist; authorization.mode",
+      "Complete selected-scope envelope and authenticated read context"
+    ],
+    "fail_when": "The ConfigMap explicitly declares AlwaysAllow authorization. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+    "not_applicable_when": "No declaration was found; the check remains UNKNOWN because node configuration was not assessed.",
+    "pass_when": "The ConfigMap explicitly declares Webhook authorization. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+    "proposed_spec_sha256": "ca4e69dad0678ee21cecb8e8d92eec87a8747e52ae7df695bb5be5a1be96a108"
+  },
+  "k8s.review.kubelet_configmap.client_ca_configured": {
+    "description": "Checks whether authentication.x509.clientCAFile declares a nonempty client CA path. The referenced file is not read.",
+    "evaluated": [
+      "Native metadata-only discovery and exact ConfigMap GET identity/revision join",
+      "Bounded data.kubelet YAML whitelist; authentication.x509.clientCAFile",
+      "Complete selected-scope envelope and authenticated read context"
+    ],
+    "fail_when": "The ConfigMap explicitly declares an empty client CA path. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+    "not_applicable_when": "No declaration was found; the check remains UNKNOWN because node configuration was not assessed.",
+    "pass_when": "The ConfigMap explicitly declares a nonempty client CA path. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+    "proposed_spec_sha256": "54a56f71daff8d6a5bd078e6b70202019b47706e678f967ed966230f05bfcfc1"
+  },
+  "k8s.review.kubelet_configmap.client_certificate_rotation": {
+    "description": "Checks whether rotateCertificates is explicitly true in a kubelet-config ConfigMap.",
+    "evaluated": [
+      "Native metadata-only discovery and exact ConfigMap GET identity/revision join",
+      "Bounded data.kubelet YAML whitelist; rotateCertificates",
+      "Complete selected-scope envelope and authenticated read context"
+    ],
+    "fail_when": "The ConfigMap explicitly disables client certificate rotation requests. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+    "not_applicable_when": "No declaration was found; the check remains UNKNOWN because node configuration was not assessed.",
+    "pass_when": "The ConfigMap explicitly enables client certificate rotation requests. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+    "proposed_spec_sha256": "09c97cc4f033a70a1c4761646aa91c65b89b281fe02b6aa20b6efefb931d1dbb"
+  },
+  "k8s.review.kubelet_configmap.event_qps_bounded": {
+    "description": "Checks whether eventRecordQPS declares a positive event rate limit; zero means unlimited. Workload suitability is not assessed.",
+    "evaluated": [
+      "Native metadata-only discovery and exact ConfigMap GET identity/revision join",
+      "Bounded data.kubelet YAML whitelist; eventRecordQPS",
+      "Complete selected-scope envelope and authenticated read context"
+    ],
+    "fail_when": "The ConfigMap explicitly declares eventRecordQPS as zero, which means unlimited event creation. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+    "not_applicable_when": "No declaration was found; the check remains UNKNOWN because node configuration was not assessed.",
+    "pass_when": "The ConfigMap explicitly declares a positive eventRecordQPS limit. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+    "proposed_spec_sha256": "1f04336455b22d62ad2e921ef16cab2ba017d4b01df2312e46163fa42f39ecc9"
+  },
+  "k8s.review.kubelet_configmap.explicit_cipher_allowlist": {
+    "description": "Compares the declared tlsCipherSuites list with the reviewed cipher allowlist. Negotiated TLS and node adoption are not tested.",
+    "evaluated": [
+      "Native metadata-only discovery and exact ConfigMap GET identity/revision join",
+      "Bounded data.kubelet YAML whitelist; tlsCipherSuites",
+      "Complete selected-scope envelope and authenticated read context"
+    ],
+    "fail_when": "The explicit cipher list includes a recognized cipher outside the fixed reviewed allowlist. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+    "not_applicable_when": "No declaration was found; the check remains UNKNOWN because node configuration was not assessed.",
+    "pass_when": "The explicit cipher list matches the fixed reviewed allowlist. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+    "proposed_spec_sha256": "a33fd7697465dd1d76f7d78a6ec89104f9fa2398e8acffb60ab9544d5b36ca81"
+  },
+  "k8s.review.kubelet_configmap.readonly_disabled": {
+    "description": "Checks whether readOnlyPort is explicitly zero in a kubelet-config ConfigMap.",
+    "evaluated": [
+      "Native metadata-only discovery and exact ConfigMap GET identity/revision join",
+      "Bounded data.kubelet YAML whitelist; readOnlyPort",
+      "Complete selected-scope envelope and authenticated read context"
+    ],
+    "fail_when": "The ConfigMap explicitly declares a nonzero unauthenticated read-only port. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+    "not_applicable_when": "No declaration was found; the check remains UNKNOWN because node configuration was not assessed.",
+    "pass_when": "The ConfigMap explicitly disables the unauthenticated read-only port. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+    "proposed_spec_sha256": "c278dc31d5ea8a781d10171081fcc3c1d7c0d06e5e492780fc72a528d80064e3"
+  },
+  "k8s.review.kubelet_configmap.tls_file_pair_configured": {
+    "description": "Checks whether tlsCertFile and tlsPrivateKeyFile both declare nonempty paths. The files and their certificate/key match are not inspected.",
+    "evaluated": [
+      "Native metadata-only discovery and exact ConfigMap GET identity/revision join",
+      "Bounded data.kubelet YAML whitelist; tlsCertFile + tlsPrivateKeyFile",
+      "Complete selected-scope envelope and authenticated read context"
+    ],
+    "fail_when": "The ConfigMap explicitly declares an empty certificate or key path. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+    "not_applicable_when": "No declaration was found; the check remains UNKNOWN because node configuration was not assessed.",
+    "pass_when": "The ConfigMap explicitly declares nonempty certificate and key paths. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+    "proposed_spec_sha256": "f92393950f202e3f28b8ed07fda22f2000d2b7d0900dc6f790a8ccf4ee484bb3"
+  },
+  "k8s.review.selected_container_logs.secret_indicators": {
+    "description": "Scans up to 100 returned current-container log lines from the fixed preceding hour for each selected Pod/container, using both offline detectors. Pod identity and restart state must remain coherent; other logs and credential validity are not assessed.",
+    "evaluated": [
+      "Selected Pod UID/resourceVersion, container identity/restart count and fixed-window native timestamps",
+      "Bounded log samples and both pinned offline detectors"
+    ],
+    "fail_when": "A supported credential-like literal is detected in the selected returned sample or its bound identity text.",
+    "not_applicable_when": "No coherent supported selected log sample was collected; missing coverage remains UNKNOWN.",
+    "pass_when": "Both detectors complete without a supported hit in the selected returned sample and bound identity text.",
+    "proposed_spec_sha256": "6d74ac998cbf901a6d95c23e12059fb87be791ed136aee4d5c5ebb333fb9726e"
+  },
+  "k8s.review.selected_literals.secret_indicators": {
+    "description": "Inspect literal environment values, command and args in exact selected Kubernetes workload PodSpecs and text data in ConfigMaps using both offline detectors. Controllers are assessed through their current templates; running replicas and referenced content are outside coverage.",
+    "evaluated": [
+      "Exact selected GVK, cluster, namespace, name, UID and resourceVersion across two authenticated named GETs",
+      "PodSpec containers/initContainers/ephemeralContainers literal env.value, command and args",
+      "Pod spec; apps and Job spec.template.spec; CronJob spec.jobTemplate.spec.template.spec; PodTemplate template.spec",
+      "ConfigMap data string values and bounded text binaryData",
+      "Both pinned offline engines, HMAC value deduplication and union redaction"
+    ],
+    "fail_when": "A completed offline detector finds a supported secret indicator in fully bound selected literals. Failure remains decisive with incomplete coverage when the other detector is unavailable.",
+    "not_applicable_when": "Disabled, missing, unsupported or incomplete selected content never establishes a clean result.",
+    "pass_when": "Both offline detectors complete on the supported identity-bound selected literals without detecting a supported secret indicator.",
+    "proposed_spec_sha256": "a593cbab5be4795055c1f17ac801a36448b35f03288dc85f37f5bac5f44ff866"
+  },
+  "k8s.review.selected_metadata.secret_indicators": {
+    "description": "Inspects only top-level labels and annotations of explicitly selected objects with both offline detectors. Native UID, resourceVersion and metadata must remain coherent across two exact reads; other object contents are not inspected.",
+    "evaluated": [
+      "Exact selected namespaced object identity, UID and resourceVersion before and after read",
+      "Top-level labels/annotations only and bounded dual offline detector results"
+    ],
+    "fail_when": "A supported credential-like value is detected in independently bound selected metadata; incomplete scope is stated explicitly.",
+    "not_applicable_when": "No supported selected object is available; denied, missing, changed or incomplete negatives remain UNKNOWN.",
+    "pass_when": "Both detectors finish without a supported secret in the fully collected selected metadata.",
+    "proposed_spec_sha256": "6796a20ff3efa1d628d710b0a80b22144c648e902b3ab81724caababb4a6b217"
+  },
   "k8s_approved_image_installation": {
     "description": "Checks each Pod container, init container and ephemeral container image against a cluster-bound owner list of exact registry/path@sha256:digest references, then requires a matching Deny admission binding with a recognized CEL expression using that same list for Pod CREATE and UPDATE. A proved unapproved Pod image or proved absence of a Deny binding fails. Missing or stale owner policy, incomplete inventory, partial PodSpec, unresolved selectors, exclusions or arbitrary CEL remain UNKNOWN. This proves declarations, not image signature verification or actual admission traffic.",
     "evaluated": [
@@ -10667,451 +11688,117 @@
     "pass_when": "Every owner-selected Service identity is observed with matching UID and LoadBalancer type across the complete assessed scope.",
     "proposed_spec_sha256": "2dd036156f8c5d7e59523c3f64a1eb44cc5244f7c3d1f6918532a96e3ab06e17"
   },
-  "gcp.review.workbench.public_ip_disabled": {
-    "description": "Checks whether public IP assignment is disabled; it does not test a reachable network path.",
+  "gcp.review.workbench.selected_referenced_source_secret_indicators_20261020": {
+    "description": "Scans the selected current startup or post-startup GCS script referenced by the owned Workbench instance. Instance identity, reference and current object generation must agree before and after the read. Cached or previously executed bytes are not established.",
     "evaluated": [
-      "name",
-      "state",
-      "gceSetup.disablePublicIp",
-      "complete native representation for omitted defaults"
+      "Exact current Workbench v2 instance ID and selected supported metadata GCS reference",
+      "Owned project/bucket and coherent current object generation surrounding pinned source read",
+      "Both pinned offline detector results"
     ],
-    "pass_when": "The setting explicitly disables the feature.",
-    "fail_when": "The setting enables the feature, including its documented default in a full native representation.",
-    "not_applicable_when": "The native state is DELETED.",
-    "proposed_spec_sha256": "e82b385be8b76c23fb6495f0b560a6bc8de2942d795b93c530472f30134e478e"
+    "pass_when": "Both offline detectors complete without detecting a supported secret in the selected captured source.",
+    "fail_when": "A supported credential-like literal is detected in the coherently bound captured source.",
+    "not_applicable_when": "No applicable source was selected; missing, denied, unsupported or incomplete selected sources remain UNKNOWN.",
+    "proposed_spec_sha256": "7f184921083aee909f93c17390f44e08ded2469f101dd0b222659e2f8534febd"
   },
-  "gcp.review.workbench.root_access_disabled": {
-    "description": "Checks the notebook root-access metadata setting; it does not execute commands as root.",
+  "gcp.review.dataflow.selected_package_referenced_source_secret_indicators": {
+    "description": "Reads the selected package currently referenced by the Dataflow job and scans supported text. Native identity, bucket ownership, current generation and any supplied SHA-256 must agree. Executed bytes are not established.",
     "evaluated": [
-      "name",
-      "state",
-      "gceSetup.metadata.notebook-disable-root",
-      "complete native representation for omitted defaults"
+      "Exact selected native job identity and supported package or mounted-script reference",
+      "Owned project/bucket and coherent current object generation surrounding pinned source read",
+      "Pinned offline detector results on supported selected content"
     ],
-    "pass_when": "The setting explicitly disables the feature.",
-    "fail_when": "The setting enables the feature, including its documented default in a full native representation.",
-    "not_applicable_when": "The native state is DELETED.",
-    "proposed_spec_sha256": "e3b894a670e3729c0f66c94b5f88d25a6e2e643ca1bbf4d3a2f06805bd7cf8ad"
+    "pass_when": "Both detectors complete without detecting a supported secret in the selected captured source.",
+    "fail_when": "A supported credential-like literal is detected in coherently bound captured source.",
+    "not_applicable_when": "No applicable source was selected; denied, unavailable or incomplete selected sources remain UNKNOWN.",
+    "proposed_spec_sha256": "2dd5358b16fe7661f464a64d74d5685ea4622e6dfd53e9a6221f22fe4fea79a2"
   },
-  "gcp.review.function.literal_environment_secret_indicators": {
-    "description": "Scans returned runtime and build literal environment values with Kingfisher and TruffleHog. Secret Manager references are not read, raw values are not retained, and exact matches are deduplicated across both detectors.",
+  "gcp.review.batch.selected_mounted_script_source_secret_indicators": {
+    "description": "Scans the selected GCS file declared by a Batch script path and mounted volume. Job identity, volume mapping, bucket ownership and current generation must agree around the pinned read. Previously executed bytes are not established.",
     "evaluated": [
-      "native function identity and project scope",
-      "complete runtime and build literal environment maps",
-      "pinned Kingfisher and TruffleHog offline results",
-      "redacted value fingerprints and bounded source locations"
+      "Exact selected native job identity and supported package or mounted-script reference",
+      "Owned project/bucket and coherent current object generation surrounding pinned source read",
+      "Pinned offline detector results on supported selected content"
     ],
-    "pass_when": "Both detectors finish on both complete returned literal maps without a supported secret match. This is limited to the inspected configuration.",
-    "fail_when": "A likely secret is detected in the completely scanned returned literal maps; its validity is not tested.",
-    "not_applicable_when": "No functions are present in a complete applicable inventory.",
-    "proposed_spec_sha256": "d26b5a54770436e4fb87a18a16fa19295f58aa2e25ede9b81259a81ccc8f786a"
+    "pass_when": "Both detectors complete without detecting a supported secret in the selected captured source.",
+    "fail_when": "A supported credential-like literal is detected in coherently bound captured source.",
+    "not_applicable_when": "No applicable source was selected; denied, unavailable or incomplete selected sources remain UNKNOWN.",
+    "proposed_spec_sha256": "4055ab522de7828e8089485adcd2c78cacbee0249ed6e4b8c7d008739fa91b2c"
   },
-  "gcp.review.instance.literal_configuration_secret_indicators": {
-    "description": "Scans this resource’s returned literal configuration (metadata.items[].value) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
+  "aws.review.codebuild.selected_inline_buildspec_secret_indicators": {
+    "description": "Scans the inline buildspec returned for an explicitly selected CodeBuild project with both offline detectors. Source files, S3 references, build artifacts and executed bytes are not inspected.",
     "evaluated": [
-      "native resource/project identity and complete matching collection",
-      "metadata.items[].value",
-      "pinned offline detector completions and redacted exact-value matches"
+      "Exact selected project identity and returned inline buildspec",
+      "Both offline detectors and captured-source completeness"
     ],
-    "pass_when": "Both offline detectors finish without a supported secret match in this returned literal configuration.",
-    "fail_when": "A likely secret is detected in the completely scanned returned literal configuration; credential validity is not tested.",
-    "not_applicable_when": "No resources of this kind are present in a complete applicable inventory.",
-    "proposed_spec_sha256": "3e9f184d8abaa939659ea00f175b9caa3bc5ac940248a180a1e7393545914cec"
+    "pass_when": "Both detectors complete without detecting a supported secret in all selected captured inline buildspecs.",
+    "fail_when": "A supported secret is detected in coherently bound selected inline source.",
+    "not_applicable_when": "No source was selected; references and denied, unavailable or incomplete selected sources remain UNKNOWN.",
+    "proposed_spec_sha256": "504905444c7c54affc7d99294798a6a20ecbd3dc8b6dc42600992f1732238688"
   },
-  "gcp.review.instance_template.literal_configuration_secret_indicators": {
-    "description": "Scans this resource’s returned literal configuration (properties.metadata.items[].value) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
+  "azure.review.function.selected_package_source_secret_indicators": {
+    "description": "Scans supported text members in the selected owned Blob ZIP referenced by the site configuration with both offline detectors. The captured stored package does not prove which bytes the app mounted or executed.",
     "evaluated": [
-      "native resource/project identity and complete matching collection",
-      "properties.metadata.items[].value",
-      "pinned offline detector completions and redacted exact-value matches"
+      "Selected site and owned Blob identity, unchanged source reference and object observations",
+      "Both offline detectors and supported text/archive completeness"
     ],
-    "pass_when": "Both offline detectors finish without a supported secret match in this returned literal configuration.",
-    "fail_when": "A likely secret is detected in the completely scanned returned literal configuration; credential validity is not tested.",
-    "not_applicable_when": "No resources of this kind are present in a complete applicable inventory.",
-    "proposed_spec_sha256": "ac91561d29d86793f73ea15cf42a98e89666959d2897a8a3c28126097d732adc"
+    "pass_when": "Both offline detectors complete without detecting a supported secret in all selected supported package text.",
+    "fail_when": "A supported secret is detected in coherently bound package text, including a retained positive when inspection is incomplete.",
+    "not_applicable_when": "No package source was selected. Selected unreadable, unsupported, changed or incomplete packages remain UNKNOWN unless supported positive evidence is retained.",
+    "proposed_spec_sha256": "5910f00989351635fc844a393d3e898c00c215aad322d6964496b9c20a38e327"
   },
-  "gcp.review.project.literal_configuration_secret_indicators": {
-    "description": "Scans this resource’s returned literal configuration (commonInstanceMetadata.items[].value) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
+  "gcp.review.workbench.terminal_access_disabled": {
+    "description": "Checks whether Workbench v2 metadata disables the JupyterLab terminal. Notebook code execution and effective operating-system isolation are outside this configuration check.",
     "evaluated": [
-      "native resource/project identity and complete matching collection",
-      "commonInstanceMetadata.items[].value",
-      "pinned offline detector completions and redacted exact-value matches"
+      "gceSetup.metadata.notebook-disable-terminal",
+      "native project/name/state and complete collection/representation"
     ],
-    "pass_when": "Both offline detectors finish without a supported secret match in this returned literal configuration.",
-    "fail_when": "A likely secret is detected in the completely scanned returned literal configuration; credential validity is not tested.",
-    "not_applicable_when": "No resources of this kind are present in a complete applicable inventory.",
-    "proposed_spec_sha256": "eb2f67d286e6812c9a3873929d135370a33fe9c70f3374071f4ad32bbc031e85"
+    "pass_when": "The exact metadata key is the documented string true.",
+    "fail_when": "The metadata key is false or absent in a full native representation.",
+    "not_applicable_when": "A fully bound native Workbench instance has state DELETED.",
+    "proposed_spec_sha256": "a297f4d889d3ff9fa67563725a9c9eb8ff03e9e65a977c7a9234096985cd7162"
   },
-  "gcp.review.cloudrun_service.literal_configuration_secret_indicators": {
-    "description": "Scans this resource’s returned literal configuration (template.containers[].env[].value, template.containers[].args[], template.containers[].command[]) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
+  "gcp.review.workbench.file_download_disabled": {
+    "description": "Checks whether Workbench v2 metadata disables downloads through JupyterLab. Other data-transfer paths and effective data-loss prevention are outside this configuration check.",
     "evaluated": [
-      "native resource/project identity and complete matching collection",
-      "template.containers[].env[].value",
-      "template.containers[].args[]",
-      "template.containers[].command[]",
-      "pinned offline detector completions and redacted exact-value matches"
+      "gceSetup.metadata.notebook-disable-downloads",
+      "native project/name/state and complete collection/representation"
     ],
-    "pass_when": "Both offline detectors finish without a supported secret match in this returned literal configuration.",
-    "fail_when": "A likely secret is detected in the completely scanned returned literal configuration; credential validity is not tested.",
-    "not_applicable_when": "No resources of this kind are present in a complete applicable inventory.",
-    "proposed_spec_sha256": "d0465782f9767d44cd2db4d12dfe62ddc63f18ec11d6d3079a483806640783f7"
+    "pass_when": "The exact metadata key is the documented string true.",
+    "fail_when": "The metadata key is false or absent in a full native representation.",
+    "not_applicable_when": "A fully bound native Workbench instance has state DELETED.",
+    "proposed_spec_sha256": "77412310cbc697aa036c9b4afee2a627f47c1bdd6cdadc56ec7ce49aa88ec1d4"
   },
-  "gcp.review.cloudrun_job.literal_configuration_secret_indicators": {
-    "description": "Scans this resource’s returned literal configuration (template.template.containers[].env[].value, template.template.containers[].args[], template.template.containers[].command[]) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
+  "gcp.review.workbench.auto_upgrade_schedule_declared": {
+    "description": "Checks the Workbench v2 upgrade-schedule metadata declaration against a bounded supported cron format. A schedule does not establish upgrade execution, cadence adequacy or current patch status.",
     "evaluated": [
-      "native resource/project identity and complete matching collection",
-      "template.template.containers[].env[].value",
-      "template.template.containers[].args[]",
-      "template.template.containers[].command[]",
-      "pinned offline detector completions and redacted exact-value matches"
+      "gceSetup.metadata.notebook-upgrade-schedule",
+      "native project/name/state and complete collection/representation"
     ],
-    "pass_when": "Both offline detectors finish without a supported secret match in this returned literal configuration.",
-    "fail_when": "A likely secret is detected in the completely scanned returned literal configuration; credential validity is not tested.",
-    "not_applicable_when": "No resources of this kind are present in a complete applicable inventory.",
-    "proposed_spec_sha256": "3c90e7ffa9998daee7ce5cba0751263510f82dcf3a116625965c0a2f123e6ac0"
+    "pass_when": "A supported nonempty five-field cron schedule is declared.",
+    "fail_when": "The schedule is absent in a full native representation or is explicitly empty.",
+    "not_applicable_when": "A fully bound native Workbench instance has state DELETED.",
+    "proposed_spec_sha256": "2ef8472dc2936d4d806fc91443bd677bf92a36b60f7914645199c3b5910247d9"
   },
-  "gcp.review.cloudbuild_trigger.literal_configuration_secret_indicators": {
-    "description": "Scans this resource’s returned literal configuration (substitutions, build.substitutions, build.options.env[], build.steps[].env[], build.steps[].script, build.steps[].args[]) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
+  "aws.review.workload.selected_command_literal_secret_indicators": {
+    "description": "Scans command literals returned for selected active ECS and classic Batch definition revisions with both offline detectors. Image defaults, external files and runtime overrides are not inspected.",
     "evaluated": [
-      "native resource/project identity and complete matching collection",
-      "substitutions",
-      "build.substitutions",
-      "build.options.env[]",
-      "build.steps[].env[]",
-      "build.steps[].script",
-      "build.steps[].args[]",
-      "pinned offline detector completions and redacted exact-value matches"
+      "Exact selected native resource identity and captured content",
+      "Both offline detectors and selected-source completeness"
     ],
-    "pass_when": "Both offline detectors finish without a supported secret match in this returned literal configuration.",
-    "fail_when": "A likely secret is detected in the completely scanned returned literal configuration; credential validity is not tested.",
-    "not_applicable_when": "No resources of this kind are present in a complete applicable inventory.",
-    "proposed_spec_sha256": "1049c497581e6445f409b56ac80f926e8db31243a42a62c3f79e571a91ca8da2"
+    "pass_when": "All selected supported source fields and both detectors complete without a supported secret detection.",
+    "fail_when": "A supported secret is detected in identity-bound selected source, including when other inspection is incomplete.",
+    "not_applicable_when": "No source is selected; denied, missing, unsupported and incomplete selected evidence remains undetermined.",
+    "proposed_spec_sha256": "dfcb9e2a2a2fdc01dabaf03b5e60384ee8ee80766e7e7ae65c2071f7be7eae45"
   },
-  "gcp.review.cloudbuild_build.literal_configuration_secret_indicators": {
-    "description": "Scans this resource’s returned literal configuration (substitutions, options.env[], steps[].env[], steps[].script, steps[].args[]) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
+  "gcp.review.cloudrun_job.declared_image_secret_indicators": {
+    "description": "Scans supported image configuration and layer text for immutable images declared by selected Cloud Run Job containers. Native Job and registry identity reads bind the selected captured image; executed workload bytes are not established.",
     "evaluated": [
-      "native resource/project identity and complete matching collection",
-      "substitutions",
-      "options.env[]",
-      "steps[].env[]",
-      "steps[].script",
-      "steps[].args[]",
-      "pinned offline detector completions and redacted exact-value matches"
+      "Exact selected native resource identity and captured content",
+      "Both offline detectors and selected-source completeness"
     ],
-    "pass_when": "Both offline detectors finish without a supported secret match in this returned literal configuration.",
-    "fail_when": "A likely secret is detected in the completely scanned returned literal configuration; credential validity is not tested.",
-    "not_applicable_when": "No resources of this kind are present in a complete applicable inventory.",
-    "proposed_spec_sha256": "12960339a7a3c5b1f8c639a1a0bce1c9c2ef6d478d76d6b006a86971dd73bc6d"
-  },
-  "gcp.review.logging.application_log_secret_indicators": {
-    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Bounded project-scoped Logging entries:list textPayload and jsonPayload messages in the recorded 15-minute window. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
-    "evaluated": [
-      "Bounded project-scoped Logging entries:list textPayload and jsonPayload messages in the recorded 15-minute window",
-      "native subject/project authority and complete bounded stream",
-      "pinned offline detector completion",
-      "redacted exact-value fingerprint and source locations"
-    ],
-    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
-    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
-    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
-    "proposed_spec_sha256": "b18b3e1fc32d8ad5c259cdad94e029bb35d07659aa230e4edbc4c6d2d8ea780b"
-  },
-  "gcp.review.storage.selected_object_secret_indicators": {
-    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Explicit native Cloud Storage project/bucket/object/generation targets; generation-bound complete UTF-8 text via storage.objects.get metadata and streamed media. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
-    "evaluated": [
-      "Explicit native Cloud Storage project/bucket/object/generation targets; generation-bound complete UTF-8 text via storage.objects.get metadata and streamed media",
-      "native subject/project authority and complete bounded stream",
-      "pinned offline detector completion",
-      "redacted exact-value fingerprint and source locations"
-    ],
-    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
-    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
-    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
-    "proposed_spec_sha256": "90d4b3efcd6176ef7dd01256ad4b5b27e39c57568cc98a3f706cc9fadb5b8467"
-  },
-  "gcp.review.artifact_image.content_secret_indicators": {
-    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Explicit immutable Artifact Registry OCI/Docker manifest, config and supported tar/gzip layers with verified descriptor hashes and native repository/project binding. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
-    "evaluated": [
-      "Explicit immutable Artifact Registry OCI/Docker manifest, config and supported tar/gzip layers with verified descriptor hashes and native repository/project binding",
-      "native subject/project authority and complete bounded stream",
-      "pinned offline detector completion",
-      "redacted exact-value fingerprint and source locations"
-    ],
-    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
-    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
-    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
-    "proposed_spec_sha256": "5729b92f59a387dace5cdeed2d21ee8cedf87b362d135447c8d7ef5f7df65131"
-  },
-  "gcp.review.storage.selected_archive_secret_indicators": {
-    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Explicit generation-bound Cloud Storage ZIP/tar/tar.gz archives with bounded memory-only supported UTF-8 members and complete offline detector evidence. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
-    "evaluated": [
-      "Explicit generation-bound Cloud Storage ZIP/tar/tar.gz archives with bounded memory-only supported UTF-8 members and complete offline detector evidence",
-      "native subject/project authority and complete bounded stream",
-      "pinned offline detector completion",
-      "redacted exact-value fingerprint and source locations"
-    ],
-    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
-    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
-    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
-    "proposed_spec_sha256": "7e703f3262089a685082cca174f006da8c1e3f9528323ced27e4e0f255070679"
-  },
-  "gcp.review.scheduler_job.literal_target_secret_indicators": {
-    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Native Scheduler HTTP target headers/body and Pub/Sub target attributes/data inspected transiently, preserving managed OAuth/OIDC references. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
-    "evaluated": [
-      "Native Scheduler HTTP target headers/body and Pub/Sub target attributes/data inspected transiently, preserving managed OAuth/OIDC references",
-      "native subject/project authority and complete bounded stream",
-      "pinned offline detector completion",
-      "redacted exact-value fingerprint and source locations"
-    ],
-    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
-    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
-    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
-    "proposed_spec_sha256": "4ce835b7a4f41062eaf062c572fb905691d56a4036091bcfa919229f81f3b321"
-  },
-  "gcp.review.app_engine_version.literal_environment_secret_indicators": {
-    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: App Engine version envVariables and buildEnvVariables from explicitly selected full native version metadata, separate from existing masked configuration inventory. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
-    "evaluated": [
-      "App Engine version envVariables and buildEnvVariables from explicitly selected full native version metadata, separate from existing masked configuration inventory",
-      "native subject/project authority and complete bounded stream",
-      "pinned offline detector completion",
-      "redacted exact-value fingerprint and source locations"
-    ],
-    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
-    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
-    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
-    "proposed_spec_sha256": "2699a179df33df57064513992062af31e33e86731c40652728abe15355f172f7"
-  },
-  "gcp.review.workflow.deployed_source_secret_indicators": {
-    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Native deployed Workflows sourceContents bound to its returned name and discovered revisionId, retrieved with read-only revision-specific GET. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
-    "evaluated": [
-      "Native deployed Workflows sourceContents bound to its returned name and discovered revisionId, retrieved with read-only revision-specific GET",
-      "native subject/project authority and complete bounded stream",
-      "pinned offline detector completion",
-      "redacted exact-value fingerprint and source locations"
-    ],
-    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
-    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
-    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
-    "proposed_spec_sha256": "3fc3c65244059ce5387fa7a1f257102408e538735afef3e5aae6fa0270d954b2"
-  },
-  "gcp.review.dataform.selected_file_secret_indicators": {
-    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Explicit native Dataform repository readFile.contents at immutable commit SHA or workspace readFile.fileContents for selected supported UTF-8 files, with bounded streamed source reads. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
-    "evaluated": [
-      "Explicit native Dataform repository readFile.contents at immutable commit SHA or workspace readFile.fileContents for selected supported UTF-8 files, with bounded streamed source reads",
-      "native subject/project authority and complete bounded stream",
-      "pinned offline detector completion",
-      "redacted exact-value fingerprint and source locations"
-    ],
-    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
-    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
-    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
-    "proposed_spec_sha256": "e74cd8c8d33cd486872c278020dde9d0b840ec65d17722e1f6b8a95f72c883e7"
-  },
-  "gcp.review.dataflow_job.literal_configuration_secret_indicators": {
-    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Native regional Dataflow summary plus full-view job GET environment literals. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
-    "evaluated": [
-      "Native regional Dataflow summary plus full-view job GET environment literals",
-      "native subject/project authority and complete bounded stream",
-      "pinned offline detector completion",
-      "redacted exact-value fingerprint and source locations"
-    ],
-    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
-    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
-    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
-    "proposed_spec_sha256": "c0993e49a9516f759dda75c7faeece094c0d5f6315aaafd726909b042af08a63"
-  },
-  "gcp.review.batch_job.literal_configuration_secret_indicators": {
-    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Native regional Batch task groups with runnable and environment literals. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
-    "evaluated": [
-      "Native regional Batch task groups with runnable and environment literals",
-      "native subject/project authority and complete bounded stream",
-      "pinned offline detector completion",
-      "redacted exact-value fingerprint and source locations"
-    ],
-    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
-    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
-    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
-    "proposed_spec_sha256": "2d5d07c9c2ccd4a76eb730e942ed55aa33779c3744237f536a395cce5cfae0e6"
-  },
-  "gcp.review.dataproc_cluster.literal_configuration_secret_indicators": {
-    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Native regional Dataproc cluster software properties and VM metadata literals. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
-    "evaluated": [
-      "Native regional Dataproc cluster software properties and VM metadata literals",
-      "native subject/project authority and complete bounded stream",
-      "pinned offline detector completion",
-      "redacted exact-value fingerprint and source locations"
-    ],
-    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
-    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
-    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
-    "proposed_spec_sha256": "612443e62f0a4b66ebc1feaf939f1ef96597103b69f1dbdf6811b305393b1072"
-  },
-  "gcp.review.dataproc_job.literal_configuration_secret_indicators": {
-    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Native regional Dataproc job arguments properties and supported inline queries. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
-    "evaluated": [
-      "Native regional Dataproc job arguments properties and supported inline queries",
-      "native subject/project authority and complete bounded stream",
-      "pinned offline detector completion",
-      "redacted exact-value fingerprint and source locations"
-    ],
-    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
-    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
-    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
-    "proposed_spec_sha256": "68206885f2e677e7bb1eb7c8062be28b8715bc9049c3a7f9ca4f3db0982d89b0"
-  },
-  "gcp.review.gke_workload.literal_configuration_secret_indicators": {
-    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Read-only namespace ConfigMap data and Pod literal env command arguments using native cluster endpoint CA and existing Google token. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
-    "evaluated": [
-      "Read-only namespace ConfigMap data and Pod literal env command arguments using native cluster endpoint CA and existing Google token",
-      "native subject/project authority and complete bounded stream",
-      "pinned offline detector completion",
-      "redacted exact-value fingerprint and source locations"
-    ],
-    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
-    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
-    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
-    "proposed_spec_sha256": "564671c6fb69029750f1f703b4615c2eb13300e73ccd566671b8347cfffcaab0"
-  },
-  "gcp.review.composer_environment.literal_configuration_secret_indicators": {
-    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Native Composer software environment variables Airflow overrides and package specification literals. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
-    "evaluated": [
-      "Native Composer software environment variables Airflow overrides and package specification literals",
-      "native subject/project authority and complete bounded stream",
-      "pinned offline detector completion",
-      "redacted exact-value fingerprint and source locations"
-    ],
-    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
-    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
-    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
-    "proposed_spec_sha256": "ea21986e3e7878a3369c361e7a14eb191a5505ed92f5e4d3279f0bcf7d232040"
-  },
-  "gcp.review.workbench_instance.literal_configuration_secret_indicators": {
-    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Native Workbench v2 returned GCE metadata literals including inline scripts. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
-    "evaluated": [
-      "Native Workbench v2 metadata and systemMetadata string maps including inline scripts",
-      "native subject/project authority and complete bounded stream",
-      "pinned offline detector completion",
-      "redacted exact-value fingerprint and source locations"
-    ],
-    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
-    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
-    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
-    "proposed_spec_sha256": "934fcbee8c3aaa8a7b8c68a9dbd9f14d76c1ae4a881e0b8e29d0571c60c34c6d"
-  },
-  "gcp.review.function.resolved_source_archive_secret_indicators": {
-    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Immutable GCS archive referenced by Functions v2 resolvedStorageSource with native function project and bucket authority; not a deployed-code assessment. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
-    "evaluated": [
-      "Immutable GCS archive referenced by Functions v2 resolvedStorageSource with native function project and bucket authority; not a deployed-code assessment",
-      "native subject/project authority and complete bounded stream",
-      "pinned offline detector completion",
-      "redacted exact-value fingerprint and source locations"
-    ],
-    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
-    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
-    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
-    "proposed_spec_sha256": "41c6310a06ec3b6a964fa8c76c4176621ab4bfbb9b974d5382e85f6917eb9849"
-  },
-  "gcp.review.artifactregistry.selected_file_secret_indicators": {
-    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Exact selected Artifact Registry package file verified against native SHA256 metadata selected expected digest and downloaded bytes; bounded UTF8 or archive text members. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
-    "evaluated": [
-      "Exact selected Artifact Registry package file verified against native SHA256 metadata selected expected digest and downloaded bytes; bounded UTF8 or archive text members",
-      "native subject/project authority and complete bounded stream",
-      "pinned offline detector completion",
-      "redacted exact-value fingerprint and source locations"
-    ],
-    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
-    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
-    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
-    "proposed_spec_sha256": "7f4b8bf774e1af8bd535152875b52e96be4e297bc43e7f0e5b6f9ed11fc29649"
-  },
-  "gcp.review.composer.dag_source_secret_indicators": {
-    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Native Composer DAG prefix with complete bounded GCS listing and immutable observed file generations; not all environment content or concurrent changes. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
-    "evaluated": [
-      "Native Composer DAG prefix with complete bounded GCS listing and immutable observed file generations; not all environment content or concurrent changes",
-      "native subject/project authority and complete bounded stream",
-      "pinned offline detector completion",
-      "redacted exact-value fingerprint and source locations"
-    ],
-    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
-    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
-    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
-    "proposed_spec_sha256": "7633da3b8492c9c61559b417c88da8daab37deb9ea66eea2e0b38b4996de3c08"
-  },
-  "gcp.compute.os_config_fixable_vulnerabilities": {
-    "description": "Reports fixable known vulnerabilities in the matched OS Config assessment at its recorded timestamp. It does not establish current patch installation, freshness, package age or complete benchmark compliance.",
-    "evaluated": [
-      "native VM project, zone and numeric instance identity",
-      "source-bound assessment and collection timestamps",
-      "supported finding severities and native available fix references"
-    ],
-    "pass_when": "The complete matched assessment contains no finding with an available fix reference.",
-    "fail_when": "The matched assessment contains at least one supported vulnerability finding with an available fix reference.",
-    "not_applicable_when": "Missing or unreadable assessments remain UNKNOWN; old reports are explicitly assessment-only, not current patch compliance.",
-    "proposed_spec_sha256": "9ae8b986023480e4d43e19f759948f93f9b3ceb030e57a5be6bff9f66cc5fce2"
-  },
-  "gcp.review.cloudbuild.stored_log_secret_indicators": {
-    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: the observed generation-pinned GCS log object of each explicitly selected terminal Cloud Build; complete historical log coverage is not established. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
-    "evaluated": [
-      "the observed generation-pinned GCS log object of each explicitly selected terminal Cloud Build; complete historical log coverage is not established",
-      "native subject/project authority and complete bounded stream",
-      "pinned offline detector completion",
-      "redacted exact-value fingerprint and source locations"
-    ],
-    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
-    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
-    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
-    "proposed_spec_sha256": "af2f4d6eea601579f1703892916e07aee53cb523b643ea4a2117cc6942aa980d"
-  },
-  "gcp.review.appengine.deployment_source_secret_indicators": {
-    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: the complete supported native deployment.files manifest of each explicitly selected standard App Engine Version, with generation-pinned GCS bytes matching each native SHA1; runtime contents and generated artifacts are outside scope. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
-    "evaluated": [
-      "the complete supported native deployment.files manifest of each explicitly selected standard App Engine Version, with generation-pinned GCS bytes matching each native SHA1; runtime contents and generated artifacts are outside scope",
-      "native subject/project authority and complete bounded stream",
-      "pinned offline detector completion",
-      "redacted exact-value fingerprint and source locations"
-    ],
-    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
-    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
-    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
-    "proposed_spec_sha256": "f551e886dd29da9a437342888a3a46f6a9b0720f0dd2ce7db0837f28387e0e48"
-  },
-  "gcp.review.cloudbuild.artifact_secret_indicators": {
-    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: the complete supported records of the observed Cloud Build output manifest and their pinned GCS artifact generations; historical build bytes are not established. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
-    "evaluated": [
-      "the complete supported records of the observed Cloud Build output manifest and their pinned GCS artifact generations; historical build bytes are not established",
-      "native subject/project authority and complete bounded stream",
-      "pinned offline detector completion",
-      "redacted exact-value fingerprint and source locations"
-    ],
-    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
-    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
-    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
-    "proposed_spec_sha256": "6f10d4a27c3c38098e8690ad318fdba1b4ef388457adb04be0eeba7a7d3e4fff"
-  },
-  "gcp.review.clouddeploy.release_source_secret_indicators": {
-    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: the complete supported text members of the observed generation-pinned Cloud Deploy release source archive; historical release bytes and deployed configuration are not established. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
-    "evaluated": [
-      "the complete supported text members of the observed generation-pinned Cloud Deploy release source archive; historical release bytes and deployed configuration are not established",
-      "native subject/project authority and complete bounded stream",
-      "pinned offline detector completion",
-      "redacted exact-value fingerprint and source locations"
-    ],
-    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
-    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
-    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
-    "proposed_spec_sha256": "b08ace49649c6cc62fb6a38ad9d67b8abb8e23805d7cfcd327f6a6232d605368"
-  },
-  "gcp.review.sourcerepo.selected_file_secret_indicators": {
-    "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: the exact explicitly selected text files at the native repository advertised immutable commit; repository-wide and historical secret absence are outside scope. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
-    "evaluated": [
-      "the exact explicitly selected text files at the native repository advertised immutable commit; repository-wide and historical secret absence are outside scope",
-      "native subject/project authority and complete bounded stream",
-      "pinned offline detector completion",
-      "redacted exact-value fingerprint and source locations"
-    ],
-    "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
-    "fail_when": "A likely secret is detected in the completely scanned selected content; its value is hidden and credential validity is not tested.",
-    "not_applicable_when": "Only explicitly selected content is evaluated; missing or unreadable selected content remains UNKNOWN.",
-    "proposed_spec_sha256": "ddf931f7bdba81a0ec306287b374426a89720ec61ea85c4b18fb4c7a0289cc16"
+    "pass_when": "All selected supported source fields and both detectors complete without a supported secret detection.",
+    "fail_when": "A supported secret is detected in identity-bound selected source, including when other inspection is incomplete.",
+    "not_applicable_when": "No source is selected; denied, missing, unsupported and incomplete selected evidence remains undetermined.",
+    "proposed_spec_sha256": "5433d8c501f141f4b408eadd9d522dab08e60dee1f7bd5824aaeffd133d3d42a"
   }
 }

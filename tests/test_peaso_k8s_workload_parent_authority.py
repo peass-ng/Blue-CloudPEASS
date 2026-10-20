@@ -78,7 +78,7 @@ def test_valid_omission_defaults_remain_distinct():
     assert _snapshot_status("k8s.ports.pod.no_added_capabilities", _spec()) == "PASS"
     assert _snapshot_status("k8s.ports.pod.no_host_ports", _spec()) == "PASS"
     assert _snapshot_status("k8s.ports.pod.readiness_probe", _spec()) == "FAIL"
-    assert _snapshot_status("k8s.ports.pod.always_pull", _spec({"image": "app:latest"})) == "PASS"
+    assert _snapshot_status("k8s.ports.pod.always_pull", _spec({"image": "app:latest"})) == "FAIL"
 
 
 def test_valid_unsafe_declared_facts_still_fail():

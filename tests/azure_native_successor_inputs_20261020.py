@@ -1,0 +1,148 @@
+"""Current native witnesses are overlays; signed historical CASES stay unchanged."""
+from copy import deepcopy
+from functools import lru_cache
+import json
+import gzip
+from pathlib import Path
+
+from peaso.checks.facts import MemoIndex
+
+PATH = Path(__file__).parent / 'fixtures/azure_storage_native_fixes_20261020.json'
+
+
+@lru_cache(maxsize=1)
+def _native_rows():
+    rows = json.loads(PATH.read_text())['cases']
+    identity_path = PATH.with_name('azure_identity_native_successors_20261020.json')
+    for cid, cases in json.loads(identity_path.read_text()).items():
+        assert cid not in rows
+        rows[cid] = {branch: {**case, 'status': branch.upper()} for branch, case in cases.items()}
+    application = PATH.with_name('azure_application_compute_native_successors_20261020.json')
+    for record in json.loads(application.read_text())['records']:
+        cid, branch = record['check_id'], record['status'].lower()
+        cases = rows.setdefault(cid, {})
+        assert branch not in cases, (cid, branch)
+        cases[branch] = record
+    application2 = PATH.with_name('azure_application_compute_2_native_successors_20261020.json')
+    for record in json.loads(application2.read_text())['captures']:
+        if record['check_id'] == 'azure.claude2.prowler_function_identity_not_admin':
+            # The earlier independent fixture used a 37-character principal,
+            # rejected by the reviewed native Authorization identity guard.
+            # Retain that file, replay current actual valid-GUID captures below.
+            continue
+        cid, branch = record['check_id'], record['mode']
+        cases = rows.setdefault(cid, {})
+        assert branch not in cases, (cid, branch)
+        cases[branch] = record
+    function_role = PATH.with_name('azure_function_role_native_successors_20261020.json')
+    for record in json.loads(function_role.read_text())['captures']:
+        cid, branch = record['check_id'], record['mode']
+        assert cid == 'azure.claude2.prowler_function_identity_not_admin'
+        cases = rows.setdefault(cid, {})
+        assert branch not in cases, (cid, branch)
+        cases[branch] = record
+    database = PATH.with_name('azure_database_native_evaluator_inputs_20261020.json')
+    for record in json.loads(database.read_text())['records']:
+        cid, branch = record['check_id'], record['mode']
+        cases = rows.setdefault(cid, {})
+        assert branch not in cases, (cid, branch)
+        cases[branch] = record
+    database2 = PATH.with_name('azure_database_crypto_backup_2_evaluator_inputs_20261020.json')
+    for record in json.loads(database2.read_text())['records']:
+        cid, branch = record['check_id'], 'database2/' + record['mode']
+        cases = rows.setdefault(cid, {})
+        assert branch not in cases, (cid, branch)
+        cases[branch] = record
+    enforcement = PATH.with_name('azure_identity_enforcement_native_successors_20261020.json')
+    for cid, cases in json.loads(enforcement.read_text()).items():
+        assert cid not in rows
+        rows[cid] = {branch: {**case, 'status': case['expected_status']} for branch, case in cases.items()}
+    network = PATH.with_name('azure_network_native_evaluator_inputs_20261020.json')
+    for record in json.loads(network.read_text())['inputs']:
+        cid, branch = record['check_id'], record['native_testnode']
+        cases = rows.setdefault(cid, {})
+        assert branch not in cases, (cid, branch)
+        cases[branch] = {**record, 'status': record['expected_status']}
+    services1 = PATH.with_name('azure_services1_native_evaluator_inputs_20261020.json.gz')
+    for record in json.loads(gzip.decompress(services1.read_bytes()))['captures']:
+        if record['check_id'] == 'azure.claude.iam_custom_role_administers_locks':
+            # Original literal-prefix witnesses are retained in the gzip file.
+            # Current native write/delete witnesses below supersede only this ID.
+            continue
+        cid, branch = record['check_id'], 'services1/' + record['branch']
+        assert len(record['captures']) == 1
+        captured = record['captures'][0]
+        cases = rows.setdefault(cid, {})
+        assert branch not in cases, (cid, branch)
+        cases[branch] = {'check_id': cid, 'item': captured['item'], 'index': captured['index'],
+                         'status': captured['result'][0], 'evidence': captured['result'][1]}
+    services2 = PATH.with_name('azure_services2_native_evaluator_inputs_20261020.json.gz')
+    for record in json.loads(gzip.decompress(services2.read_bytes()))['inputs']:
+        cid, branch = record['check_id'], 'services2/' + record['native_testnode']
+        cases = rows.setdefault(cid, {})
+        assert branch not in cases, (cid, branch)
+        cases[branch] = {**record, 'status': record['expected_status']}
+    services3 = PATH.with_name('azure_services3_native_evaluator_inputs_20261020.json.gz')
+    for record in json.loads(gzip.decompress(services3.read_bytes()))['records']:
+        if record['check_id'] == 'azure_application_gateway_app_http_logs_enabled_2de0361':
+            # Retain the old L4 aggregate witness, supersede its narrowed source below.
+            continue
+        cid, branch = record['check_id'], 'services3/' + record['case']
+        cases = rows.setdefault(cid, {})
+        assert branch not in cases, (cid, branch)
+        cases[branch] = record
+    lock = PATH.with_name('azure_lock_native_successors_20261020.json.gz')
+    for record in json.loads(gzip.decompress(lock.read_bytes()))['inputs']:
+        cid, branch = record['check_id'], 'lock-successor/' + record['branch']
+        cases = rows.setdefault(cid, {})
+        assert branch not in cases, (cid, branch)
+        cases[branch] = {**record, 'status': record['expected_status']}
+    edge = PATH.with_name('azure_edge_native_current_inputs_20261020.json.gz')
+    for number, record in enumerate(json.loads(gzip.decompress(edge.read_bytes()))['cases']):
+        callable_path = record['evaluated_callable']['path']
+        if not any(name in callable_path for name in ('azure_public_edge_config_review_20261020.py', 'azure_gateway_logging_review_20261020.py', 'azure_devops_visible_urls_review_20261020.py')):
+            continue
+        cid = record['check_id']
+        if 'azure_devops_visible_urls_review' in callable_path:
+            cid = 'azure.review.devops.visible_clone_urls_without_userinfo'
+        expected = {f['status'] for f in record['findings']}
+        assert len(expected) == 1
+        for position, captured in enumerate(record['actual_evaluator_item_indexes']):
+            branch = 'edge-successor/' + str(number) + '/' + str(position) + '/' + record['case']
+            cases = rows.setdefault(cid, {})
+            assert branch not in cases, (cid, branch)
+            cases[branch] = {**captured, 'status': next(iter(expected))}
+    return rows
+
+
+def native_row(check_id, branch):
+    rows = _native_rows().get(check_id, {})
+    if branch in rows:
+        return deepcopy(rows[branch])
+    candidates = [r for r in rows.values() if r['status'] == branch.upper()]
+    if not candidates:
+        return None
+    return deepcopy(candidates[0])
+
+
+def current_cases(check_id, historical):
+    result = deepcopy(historical)
+    for branch in ('pass', 'fail'):
+        row = native_row(check_id, branch)
+        if row:
+            result[branch] = row['item']
+            result[branch + '_index'] = MemoIndex(row['index'])
+    if check_id == 'azure.claude.managed_hsm_audit_logging':
+        # Diagnostic storage retention ceased applying in2025. There is no
+        # current native PASS for the old combined retention contract; preserve
+        # that historical CASE and explicitly test its unresolved successor.
+        row = native_row(check_id, 'unknown')
+        assert row is not None
+        result.pop('pass', None)
+        result.pop('pass_index', None)
+        result['unknown'], result['unknown_index'] = row['item'], MemoIndex(row['index'])
+    if check_id == 'azure.claude.vm_windows_secure_boot' and 'not_applicable' in result:
+        # A Windows SQL offer is not a Linux OS declaration. Retain that old
+        # CASES value and use an actual native Linux field for the current N/A.
+        result['not_applicable']['properties']['storageProfile']['osDisk']['osType'] = 'Linux'
+    return result
