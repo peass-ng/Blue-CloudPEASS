@@ -58,7 +58,7 @@ test('Top 15 Actions shows prioritized plans without duplicate verification tabl
   await expect(page.getByRole('heading', { name: 'Hardening verification', exact: true })).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Exposure verification', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Next reviews', exact: true })).toHaveCount(0);
-  await page.getByText('Review plan', { exact: true }).click();
+  await page.getByRole('button', { name: 'Review plan: Require IMDSv2', exact: true }).click();
   await expect(page.getByText('Check workload compatibility', { exact: true })).toBeVisible();
   await page.screenshot({ path: '/tmp/cspm-ai-review.png', fullPage: true });
 });
@@ -137,3 +137,58 @@ test('platform Codex configuration shows AI pages without personal sign-in', asy
   await expect(page.getByText('Select a completed scan.', { exact: true })).toBeVisible();
   await expect(page.getByRole('navigation', { name: 'Primary navigation' }).getByRole('button', { name: 'Top 15 Actions', exact: true })).toBeVisible();
 });
+
+
+for (const width of [1280, 390]) {
+  test(`actions use readable findings-table columns and a searchable detail drawer at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await setup(page);
+    await page.route('**/api/scans', route => route.fulfill({ json: { items: [{ id: 'scan', connector_id: 'account', status: 'completed' }] } }));
+    const actions = Array.from({ length: 15 }, (_, index) => ({
+      rank: index + 1,
+      title: index === 0 ? 'Narrow third-party identity access to account administration' : `Action ${index + 1}: restrict unnecessary workload access`,
+      resource_ids: [`resource-${index + 1}`], finding_ids: [`finding-${index + 1}`],
+      rationale: 'A trusted external identity has an administrator grant. Limit the trust to the intended deployment identity and replace broad permissions with the workload permissions actually required. '.repeat(3),
+      steps: ['Confirm the required deployment identity', 'Restrict the trust policy and validate the workload'],
+      verification: 'Verify the allowed deployment succeeds and other identities are denied',
+    }));
+    await page.route('**/api/scans/scan/ai?*', route => route.fulfill({ json: { actions: [...actions].reverse() } }));
+    await page.goto('/#Top%2015%20Recommended%20Actions');
+    const table = page.getByRole('region', { name: 'Prioritized actions' });
+    await expect(table.locator('tbody tr')).toHaveCount(15);
+    await expect(table.locator('tbody tr').first().getByRole('button', { name: actions[0].title, exact: true })).toBeVisible();
+    const geometry = await table.evaluate(element => {
+      const first = element.querySelector('th')!.getBoundingClientRect();
+      const row = element.querySelector('tbody tr')!.getBoundingClientRect();
+      return { actionWidth: first.width, rowHeight: row.height, pageWidth: document.documentElement.scrollWidth, viewport: innerWidth };
+    });
+    expect(geometry.actionWidth).toBeGreaterThanOrEqual(200);
+    expect(geometry.rowHeight).toBeLessThanOrEqual(110);
+    expect(geometry.pageWidth).toBeLessThanOrEqual(geometry.viewport + 1);
+    if (width === 1280) await page.screenshot({ path: '/tmp/cspm-top-actions-table-desktop.png', fullPage: true });
+    const title = table.getByRole('button', { name: actions[0].title, exact: true });
+    await title.focus();
+    await title.press('Enter');
+    const dialog = page.getByRole('dialog');
+    await expect(dialog.getByRole('heading', { name: actions[0].title, exact: true })).toBeVisible();
+    await expect(dialog.getByText(actions[0].rationale, { exact: true })).toBeVisible();
+    await expect(dialog.getByText(actions[0].steps[1], { exact: true })).toBeVisible();
+    await expect(dialog.getByText(actions[0].verification, { exact: true })).toBeVisible();
+    await dialog.getByText('Supporting evidence', { exact: true }).click();
+    await expect(dialog.getByText('resource-1', { exact: true })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(dialog).toHaveCount(0);
+    await expect(title).toBeFocused();
+    await page.getByRole('textbox', { name: 'Search actions' }).fill('resource-15');
+    await expect(table.locator('tbody tr')).toHaveCount(1);
+    await expect(page.getByText('1 / 15 actions', { exact: true })).toBeVisible();
+    await table.getByRole('button', { name: `Review plan: ${actions[14].title}`, exact: true }).click();
+    await expect(page.getByRole('dialog').getByRole('heading', { name: actions[14].title, exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Close inspector' }).click();
+    await page.getByRole('textbox', { name: 'Search actions' }).fill('unmatched-search');
+    await expect(table.getByText('No actions match your search.')).toBeVisible();
+    await page.getByRole('button', { name: 'Clear search', exact: true }).click();
+    await expect(table.locator('tbody tr')).toHaveCount(15);
+    await expect(table.getByRole('columnheader', { name: 'Order' })).toHaveCount(0);
+  });
+}

@@ -1,9 +1,26 @@
-.ai-review-view { display: grid; gap: 1rem; }
-.ai-review-view .table-scroll { min-height: 0; }
-.ai-review-view table { width: 100%; min-width: 800px; border-collapse: collapse; font-size: .875rem; }
-.ai-review-view th, .ai-review-view td { text-align: left; vertical-align: top; padding: .8rem .65rem; border-bottom: 1px solid var(--border, #24363b); overflow-wrap: anywhere; }
-.ai-review-view th { color: var(--muted, #93a9b0); font-size: .75rem; }
-.ai-review-view td:first-child { max-width: 180px; }
-.ai-review-view details { min-width: 180px; max-width: 420px; }
-.ai-review-view details p { margin: .6rem 0; }
-.ai-review-view ol, .ai-review-view ul { padding-left: 1.3rem; }
+.ai-review-view { display: grid; gap: 1rem; min-width: 0; }
+.actions-panel .filters { align-items: center; }
+.ai-review-view .actions-table { min-width: 700px; }
+.ai-review-view .actions-table th:first-child { width: 34%; }
+.ai-review-view .actions-table th:nth-child(2) { width: auto; }
+.ai-review-view .actions-table th:last-child { width: 120px; }
+.actions-table td { vertical-align: middle; }
+.actions-table .action-title,
+.actions-table .action-summary {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: break-word;
+}
+.actions-table .action-title { font-weight: 500; width: 100%; }
+.actions-table .action-summary { color: #9fb2c1; margin: 0; line-height: 1.6; }
+.actions-table .action-open { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; font-size: 10px; }
+.actions-table .actions-empty { text-align: center; color: var(--muted); height: 160px; }
+.action-inspector .inspector-heading h2 { overflow-wrap: anywhere; }
+.action-inspector .action-steps { padding-left: 1.4rem; font-size: 12px; line-height: 1.7; color: #b6c6d3; }
+.action-steps li + li { margin-top: .75rem; }
+.action-references { margin-top: 24px; border-top: 1px solid var(--line); padding-top: 18px; font-size: 12px; }
+.action-references summary { cursor: pointer; color: var(--mint); }
+.action-references ul { padding-left: 1.4rem; }
+.action-references li { margin: .5rem 0; overflow-wrap: anywhere; }

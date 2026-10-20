@@ -1,8 +1,9 @@
 import "./AiReview.css";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { ChevronRight, Search } from "lucide-react";
 import { useApi } from "./api";
 import { FindingStatusBadge } from "./findingStatus";
-import { Evidence, Panel, State } from "./ui";
+import { Evidence, Inspector, Panel, State } from "./ui";
 import type { Finding } from "./types";
 type Action = { rank: number; title: string; resource_ids: string[]; finding_ids: string[]; rationale: string; steps: string[]; verification: string };
 type NetworkResult = { status: string; explanation: string; findings: (Finding & { verification?: string })[]; limitations?: string[]; total?: number };
@@ -34,17 +35,56 @@ export function NetworkAiReview({ scanId, demo }: { scanId: string; demo: boolea
   return <NetworkReviewPanel data={query.data?.network} offset={offset} setOffset={setOffset} />;
 }
 export function AiReview({ scanId, demo }: { scanId: string; demo: boolean }) {
+  const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<Action>();
+  const trigger = useRef<HTMLButtonElement | null>(null);
+  function openPlan(action: Action, button: HTMLButtonElement) {
+    trigger.current = button;
+    setSelected(action);
+  }
+  function closePlan() {
+    setSelected(undefined);
+    requestAnimationFrame(() => trigger.current?.focus());
+  }
   const query = useApi<Result>(`/scans/${encodeURIComponent(scanId)}/ai?offset=0&limit=50`, demo, !!scanId && !demo);
   if (demo) return <Panel title="AI review"><p>AI reviews are available for live scans.</p></Panel>;
   if (!scanId) return <Panel title="AI review"><p>Select a completed scan.</p></Panel>;
   if (query.isPending || query.error) return <State loading={query.isPending} error={query.error} onRetry={() => void query.refetch()} />;
   const data = query.data;
   if (!data) return null;
+  const term = search.trim().toLocaleLowerCase();
+  const actions = [...data.actions].sort((a, b) => a.rank - b.rank).filter(action =>
+    [action.title, action.rationale, ...action.resource_ids, ...action.finding_ids,
+      ...action.steps, action.verification].join(" ").toLocaleLowerCase().includes(term));
   return <div className="ai-review-view">
-    <Panel title="Top 15 Actions" kicker="AI REVIEW">
-      {!!data.actions.length && <div className="table-scroll"><table><thead><tr><th>Action</th><th>Reason & benefit</th><th>Plan</th></tr></thead><tbody>{data.actions.map(action => <tr key={action.rank}>
-        <td>{action.title}</td><td>{action.rationale}</td><td><details><summary>Review plan</summary><p>Resources: {action.resource_ids.join(", ") || "Account-wide"}</p><p>Findings: {action.finding_ids.join(", ") || "Graph evidence"}</p><ol>{action.steps.map((step, i) => <li key={i}>{step}</li>)}</ol><p>Verify: {action.verification}</p></details></td>
-      </tr>)}</tbody></table></div>}
+    <Panel className="findings-panel actions-panel">
+      <div className="filters">
+        <div className="search-field"><Search size={17} />
+          <input aria-label="Search actions" value={search} onChange={event => setSearch(event.target.value)} placeholder="Search actions, resources or findings…" />
+        </div>
+        {search && <button className="text-button" onClick={() => setSearch("")}>Clear search</button>}
+        <span className="count-pill" aria-live="polite">{term ? `${actions.length} / ${data.actions.length}` : data.actions.length} actions</span>
+      </div>
+      <div className="table-scroll" role="region" aria-label="Prioritized actions" tabIndex={0}>
+        <table className="findings-table actions-table"><thead><tr><th scope="col">Action</th><th scope="col">Reason & benefit</th><th scope="col">Plan</th></tr></thead>
+          <tbody>{actions.map(action => <tr key={action.rank}>
+            <td><button className="finding-title action-title" aria-haspopup="dialog" title={action.title} onClick={event => openPlan(action, event.currentTarget)}>{action.title}</button></td>
+            <td><p className="action-summary">{action.rationale}</p></td>
+            <td><button className="text-button action-open" aria-label={`Review plan: ${action.title}`} aria-haspopup="dialog" onClick={event => openPlan(action, event.currentTarget)}>View plan <ChevronRight size={15} aria-hidden="true" /></button></td>
+          </tr>)}
+          {!actions.length && <tr><td colSpan={3} className="actions-empty">{term ? "No actions match your search." : "No recommended actions are available for this scan."}</td></tr>}
+          </tbody>
+        </table>
+      </div>
     </Panel>
+    {selected && <Inspector title={selected.title} onClose={closePlan} className="action-inspector">
+      <h3>Reason & benefit</h3><p>{selected.rationale}</p>
+      <h3>Implementation plan</h3><ol className="action-steps">{selected.steps.map((step, index) => <li key={index}>{step}</li>)}</ol>
+      <h3>Verification</h3><p>{selected.verification}</p>
+      <details className="action-references"><summary>Supporting evidence</summary>
+        <h3>Resources</h3>{selected.resource_ids.length ? <ul>{selected.resource_ids.map(id => <li key={id}><code>{id}</code></li>)}</ul> : <p>Account-wide</p>}
+        <h3>Findings</h3>{selected.finding_ids.length ? <ul>{selected.finding_ids.map(id => <li key={id}><code>{id}</code></li>)}</ul> : <p>Graph evidence</p>}
+      </details>
+    </Inspector>}
   </div>;
 }
