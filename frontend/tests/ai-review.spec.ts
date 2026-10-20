@@ -67,13 +67,14 @@ test('network findings have a separate page below Network Map', async ({ page })
   await setup(page);
   await page.route('**/api/scans', route => route.fulfill({ json: { items: [{ id: 'scan', connector_id: 'account', status: 'completed' }] } }));
   await page.route('**/api/scans/scan/graphs/network**', route => route.fulfill({ json: { nodes: [], edges: [] } }));
-  const explanation = 'Two application tiers share a VPC. Backend filtering admits a broader source range than the documented frontend dependency.';
+  const paragraphs = ['Application VPC 10.0.0.0/16: public edge subnets contain the NAT gateway.', 'Private application subnets host API functions; database subnets host the RDS database. The API SG is the recorded database client.'];
+  const explanation = paragraphs.join('\n\n');
   const network = { status: 'completed', explanation, total: 1, limitations: ['Required traffic must be confirmed.'], findings: [{
     id: 'network-finding', check_id: 'ai.network.example', category: 'network', title: 'Restrict backend security group sources',
     provider: 'aws', service: 'network', resource_id: 'sg-backend', native_resource_id: 'sg-123', scope: '123456789012/us-east-1',
     severity: 'medium', status: 'MANUAL', frameworks: [], description: 'The backend rule admits the full VPC range.',
     rationale: 'Reduce unnecessary cross-tier access after dependency validation.',
-    evidence: { source: 'ai_network_review', summary: '10.0.0.0/8 is allowed.', resource_ids: ['sg-backend'], graph_refs: [], observations: ['All protocols are allowed.'], limitations: [] },
+    evidence: { source: 'ai_network_review', summary: '10.0.0.0/8 is allowed.', resource_ids: ['sg-backend'], graph_refs: [], observations: ['All protocols are allowed.'], limitations: ['Legacy evidence disclaimer.'] },
     remediation: 'Validate dependencies, then allow the frontend SG on the required application port.',
     verification: 'Check effective rules and required application connectivity.',
   }] };
@@ -88,10 +89,14 @@ test('network findings have a separate page below Network Map', async ({ page })
   expect(labels[labels.findIndex(label => label === 'Network Map') + 1]).toBe('Network Findings');
   await nav.getByRole('button', { name: 'Network Findings', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Network Findings', exact: true })).toBeVisible();
-  await expect(page.getByText(explanation, { exact: true })).toBeVisible();
+  for (const paragraph of paragraphs) await expect(page.getByText(paragraph, { exact: true })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Network architecture' }).locator('p')).toHaveCount(2);
+  await expect(page.getByText('Required traffic must be confirmed.', { exact: true })).toHaveCount(0);
+  await expect(page.getByText(/AI suggestions|Validate workload dependencies before changing connectivity/)).toHaveCount(0);
   await page.locator('summary').filter({ hasText: 'Restrict backend security group sources' }).click();
   await expect(page.getByText(network.findings[0].remediation, { exact: true })).toBeVisible();
   await expect(page.getByText(network.findings[0].verification, { exact: true })).toBeVisible();
+  await expect(page.getByText('Legacy evidence disclaimer.', { exact: true })).toHaveCount(0);
   await nav.getByRole('button', { name: 'Top 15 Actions', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Top 15 Actions', exact: true }).first()).toBeVisible();
   await expect(page.getByText(explanation, { exact: true })).toHaveCount(0);

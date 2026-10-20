@@ -45,7 +45,6 @@ class NetworkEvidence(Strict):
     resource_ids: list[str] = Field(min_length=1, max_length=50)
     graph_refs: list[str] = Field(max_length=50)
     observations: list[Annotated[str, Field(min_length=1, max_length=1000)]] = Field(min_length=1, max_length=10)
-    limitations: list[Annotated[str, Field(min_length=1, max_length=500)]] = Field(max_length=10)
 
 
 class NetworkFinding(Strict):
@@ -61,9 +60,8 @@ class NetworkFinding(Strict):
 
 
 class NetworkReview(Strict):
-    explanation: str = Field(min_length=1, max_length=1000)
+    explanation: str = Field(min_length=1, max_length=12000, description='Short paragraphs organized by VPC/VNet/network and subnet tier. Explain each boundary’s structure, workload purpose and the configuration supporting that purpose; group equivalent default networks.')
     findings: list[NetworkFinding] = Field(max_length=100)
-    limitations: list[Annotated[str, Field(min_length=1, max_length=500)]] = Field(max_length=20)
 
 
 def validate_network(data, platform):

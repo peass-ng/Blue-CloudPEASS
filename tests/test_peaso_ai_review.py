@@ -139,11 +139,9 @@ def network_fixture():
                             'rationale': 'A broad source CIDR weakens the tier boundary; required client flows have not been confirmed.',
                             'resource_id': 'r2', 'severity': 'medium', 'status': 'MANUAL',
                             'evidence': {'summary': 'sg-a admits 10.0.0.0/8 on all protocols.', 'resource_ids': ['r1', 'r2'],
-                                         'graph_refs': ['edge-sg'], 'observations': ['IpPermissions[0] has IpProtocol=-1 and CidrIp=10.0.0.0/8.'],
-                                         'limitations': ['Required workload dependencies are unknown.']},
+                                         'graph_refs': ['edge-sg'], 'observations': ['IpPermissions[0] has IpProtocol=-1 and CidrIp=10.0.0.0/8.']},
                             'remediation': 'Validate client dependencies, then narrow sources and ports while preserving required flows.',
-                            'verification': 'Review effective rules and validate required clients after a staged change.'}],
-              'limitations': ['Network ACL collection was denied.']}
+                            'verification': 'Review effective rules and validate required clients after a staged change.'}]}
     return data, inventory, output
 
 
@@ -175,7 +173,7 @@ def test_network_input_is_network_only_and_retains_complete_topology(tmp_path):
 
 
 @pytest.mark.parametrize('patch', [
-    {'explanation': 'x' * 1001},
+    {'explanation': 'x' * 12001},
     {'findings': [{'resource_id': 'invented'}]},
     {'findings': [{'evidence': {'graph_refs': ['invented']}}]},
     {'findings': [{'evidence': {'resource_ids': ['r1']}}]},
@@ -291,7 +289,7 @@ def test_priorities_brief_includes_new_network_findings_and_assessment(tmp_path)
     from peaso.ai.network import prepare, with_findings
     data, inventory, output = network_fixture()
     network = validate_network(output, prepare(data, inventory, {}))
-    assessment = {'status': 'completed', 'explanation': output['explanation'], 'limitations': output['limitations']}
+    assessment = {'status': 'completed', 'explanation': output['explanation']}
     platform = {'report': with_findings(data, network['findings']), 'inventory': inventory, 'network_review': assessment}
     build(tmp_path, platform, [], [], pipeline.private_json)
     brief = json.loads((tmp_path / 'platform.json').read_text())
@@ -329,7 +327,7 @@ def test_network_runner_uses_private_files_and_cleanup(tmp_path, monkeypatch):
             root = Path(cwd)
             observed['root'] = root
             assert argv[-1] == 'network'
-            assert {path.name for path in root.iterdir()} == {'credentials.json', 'codex-auth.json', 'platform.json', 'context.py', 'context.sqlite', 'topology.json'}
+            assert {path.name for path in root.iterdir()} == {'credentials.json', 'codex-auth.json', 'platform.json', 'context.py', 'context.sqlite', 'topology.json', 'exposure.json'}
             assert all(path.stat().st_mode & 0o777 == 0o600 for path in root.iterdir())
             assert root.stat().st_mode & 0o777 == 0o700
             assert 'private-cloud-token' not in json.dumps(argv) + json.dumps(env)
@@ -1368,3 +1366,62 @@ def test_contextual_reference_support_preserves_rejected_finding_boundaries(cate
     data['check_meta'] = {'contextual': {'category': category}}
     with pytest.raises(ValueError, match='unknown_action_reference'):
         validate_actions({'actions':[action()],'limitations':[]}, data, [])
+
+
+def test_network_receives_exposure_issue_catalog_after_repeated_projection(tmp_path):
+    from peaso.ai.network import prepare, build
+    data, inventory, _ = network_fixture()
+    exposure = {'id': 'public-sg', 'category': 'exposure', 'resource_id': 'r2',
+        'check_id': 'aws.exposure.ssh', 'title': 'World-source SSH rule', 'status': 'FAIL',
+        'scope': 'test/us-east-1', 'evidence_summary': 'sg-a permits TCP/22 from 0.0.0.0/0.',
+        'evidence': {'policy': 'never-give-unrelated-iam'}, 'description': 'never-give-extra'}
+    data['findings'] = [exposure, exposure | {'id': 'passed', 'status': 'PASS'},
+        exposure | {'id': 'manual', 'status': 'MANUAL'},
+        exposure | {'id': 'iam', 'category': 'hardening'}]
+    prepared = prepare(data, inventory, {})
+    build(tmp_path, prepared, [], pipeline.private_json)
+    issues = json.loads((tmp_path/'exposure.json').read_text())['findings']
+    assert {r['id'] for r in issues} == {'public-sg', 'manual'}
+    assert issues[0]['evidence_summary'] == exposure['evidence_summary']
+    assert all('evidence' not in r and 'description' not in r for r in issues)
+    assert 'never-give' not in json.dumps(issues)
+    import sqlite3
+    with sqlite3.connect(tmp_path/'context.sqlite') as db:
+        assert db.execute("SELECT COUNT(*) FROM records WHERE domain='findings'").fetchone()[0] == 0
+
+
+def test_network_contract_accepts_per_network_paragraphs_without_limitations():
+    from peaso.ai.network import prepare
+    data, inventory, output = network_fixture()
+    output['explanation'] = ('Application VPC 10.0.0.0/16. ' * 60 + '\n\n' +
+        'Subnet 10.0.1.0/24 holds the API instances; their SG references connect them to the database tier.')
+    assert len(output['explanation']) > 1000
+    result = validate_network(output, prepare(data, inventory, {}))
+    assert result['explanation'] == output['explanation']
+    assert 'limitations' not in result and 'limitations' not in result['findings'][0]['evidence']
+    with pytest.raises(ValueError):
+        validate_network(output | {'limitations': ['Generic disclaimer']}, prepare(data, inventory, {}))
+
+
+def test_network_prompt_requires_distinct_segmentation_issue_on_shared_exposure_resource():
+    import yaml
+    prompt = yaml.safe_load((Path(pipeline.__file__).parent/'agents/network.yaml').read_text())['system_prompt']
+    assert 'exposure.json' in prompt
+    assert 'same weakness on the same resource' in prompt
+    assert 'distinct internal trust boundary' in prompt
+    assert 'Do not return public buckets, public URLs/endpoints or world-source ports' in prompt
+    assert 'names/tags, workload attachments, dependencies and routes as evidence' in prompt
+    assert 'one per distinct VPC/VNet/network' in prompt
+
+
+@pytest.mark.parametrize('provider,kind,data,purpose_key', [
+    ('aws', 'lambda_function', {'VpcConfig': {'VpcId': 'vpc-app'}, 'Tags': {'tier': 'api'}, 'Environment': {'Variables': {'TOKEN': 'never-give'}}}, 'Tags'),
+    ('gcp', 'instance', {'networkInterfaces': [{'network': 'app'}], 'labels': {'tier': 'api'}, 'metadata': {'startup-script': 'never-give'}}, 'labels'),
+    ('azure', 'vm', {'tags': {'tier': 'api'}, 'properties': {'networkProfile': {'networkInterfaces': []}, 'osProfile': {'adminPassword': 'never-give'}}}, 'tags'),
+    ('k8s', 'pod', {'metadata': {'labels': {'tier': 'api'}}, 'spec': {'containers': [{'env': [{'value': 'never-give'}]}]}}, 'metadata'),
+])
+def test_network_purpose_hints_preserve_labels_without_application_settings(provider, kind, data, purpose_key):
+    from peaso.ai.network import native_network_resource
+    projected = native_network_resource({'id': 'r', 'provider': provider, 'type': kind, 'data': data})
+    assert 'api' in json.dumps(projected['data'][purpose_key])
+    assert 'never-give' not in json.dumps(projected)

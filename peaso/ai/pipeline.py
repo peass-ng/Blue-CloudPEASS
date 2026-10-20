@@ -303,7 +303,7 @@ def review_batches(report, inventory_by_id, entries, token, hardening, exposure,
             failed = True
             if stage == 'network':
                 output['network'] = {'status': 'unavailable', 'explanation': '', 'findings': [],
-                    'limitations': ['Network AI review was unavailable, timed out, or returned an invalid result.']}
+                    'reason': 'network_review_unavailable'}
                 return
             rows = [{'finding_id': row['id'], 'verdict': 'UNKNOWN',
                      'reason': 'AI review was unavailable, timed out, or returned an invalid result; the original failure could not be verified.'}
@@ -389,7 +389,7 @@ def review_scan(report, snapshot, selectors, *, tenant, artifacts, deadline=None
                                                        hardening, exposure, review_end, network=network)
         result['network'] = result['reviews'].pop('network', {
             'status': 'not_available', 'explanation': '', 'findings': [],
-            'limitations': ['No network inventory or graph was collected for this scan.']})
+            'reason': 'network_inventory_unavailable'})
         priorities_report = with_findings(report, result['network']['findings'])
         reviewed = result['reviews']['hardening'] + result['reviews']['exposure']
         by_id = {row['finding_id']: row for row in reviewed}
@@ -406,7 +406,7 @@ def review_scan(report, snapshot, selectors, *, tenant, artifacts, deadline=None
             from peaso.least_privilege import project
             platform = {'report': priorities_report, 'inventory': inventory,
                         'least_privilege': project(report['provider'], inventory, snapshot=snapshot),
-                        'network_review': {key: result['network'][key] for key in ('status', 'explanation', 'limitations')}}
+                        'network_review': {key: result['network'][key] for key in ('status', 'explanation')}}
             remaining = end - time.monotonic()
             if remaining <= 0:
                 raise TimeoutError()
@@ -430,7 +430,7 @@ def review_scan(report, snapshot, selectors, *, tenant, artifacts, deadline=None
                     secrets.extend(secret_values(user.get('user', {})))
         sanitized = redact(result, tuple(secrets))
         if 'network' in sanitized:
-            sanitized['network']['explanation'] = sanitized['network']['explanation'][:1000]
+            sanitized['network']['explanation'] = sanitized['network']['explanation'][:12000]
         for rows in sanitized['reviews'].values():
             for row in rows:
                 row['reason'] = row['reason'][:500]

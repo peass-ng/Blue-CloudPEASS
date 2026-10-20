@@ -6,21 +6,20 @@ import { FindingStatusBadge } from "./findingStatus";
 import { Evidence, Inspector, Panel, State } from "./ui";
 import type { Finding } from "./types";
 type Action = { rank: number; title: string; resource_ids: string[]; finding_ids: string[]; rationale: string; steps: string[]; verification: string };
-type NetworkResult = { status: string; explanation: string; findings: (Finding & { verification?: string })[]; limitations?: string[]; total?: number };
+type NetworkResult = { status: string; explanation: string; findings: (Finding & { verification?: string })[]; total?: number };
 type Result = { network?: NetworkResult; actions: Action[] };
 
 function NetworkReviewPanel({ data, offset, setOffset }: { data?: NetworkResult; offset: number; setOffset: (offset: number) => void }) {
   if (!data) return null;
   const total = data.total ?? data.findings.length;
   return <Panel title="Network findings" kicker="AI REVIEW">
-    {data.explanation && <p>{data.explanation}</p>}
-    {data.limitations?.map((text, index) => <p className="muted small" key={index}>{text}</p>)}
-    <p className="muted small">AI suggestions · {data.status.replaceAll("_", " ")} · {total} findings. Validate workload dependencies before changing connectivity.</p>
+    {data.explanation && <section className="network-architecture" aria-label="Network architecture">{data.explanation.split(/\n\s*\n/).filter(text => text.trim()).map((text, index) => <p key={index}>{text}</p>)}</section>}
+    {data.status === "unavailable" && <p>The network review could not be completed. Run a scan with AI enabled to retry it.</p>}
     {total > 50 && <div className="button-row"><button className="button" disabled={offset === 0} onClick={() => setOffset(Math.max(0, offset - 50))}>Previous network findings</button><span>{offset + 1}–{Math.min(offset + 50, total)} of {total}</span><button className="button" disabled={offset + 50 >= total} onClick={() => setOffset(offset + 50)}>Next network findings</button></div>}
-    {!total && <p>No network findings were generated.</p>}
+    {!total && data.status === 'completed' && <p>No additional architecture or segmentation issues were identified.</p>}
     {data.findings.map(row => <details key={row.id}><summary>{row.title} · {row.severity} · <FindingStatusBadge status={row.status} /></summary>
       <p>{row.description}</p><p>{row.rationale}</p><p>Resource: {row.native_resource_id || row.resource_id} · {row.scope}</p>
-      <Evidence data={row.evidence} /><h4>Mitigation</h4><p>{String(row.remediation)}</p>{row.verification && <><h4>Verification</h4><p>{row.verification}</p></>}
+      <Evidence data={Object.fromEntries(Object.entries(row.evidence || {}).filter(([key]) => key !== "limitations"))} /><h4>Mitigation</h4><p>{String(row.remediation)}</p>{row.verification && <><h4>Verification</h4><p>{row.verification}</p></>}
     </details>)}
   </Panel>;
 }

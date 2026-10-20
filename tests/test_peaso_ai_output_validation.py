@@ -90,9 +90,9 @@ def test_network_output_binds_resource_and_graph_references(tmp_path):
     row = {'title':'Review broad access','description':'Observed broad rule warrants owner review.',
         'rationale':'Required traffic is not confirmed.','resource_id':'r1','severity':'medium','status':'MANUAL',
         'evidence':{'summary':'Captured rule.','resource_ids':['r1'],'graph_refs':['n1'],
-                    'observations':['The captured rule permits a broad source.'],'limitations':['Confirm required traffic.']},
+                    'observations':['The captured rule permits a broad source.']},
         'remediation':'Validate dependencies and narrow the source.','verification':'Read the resulting effective configuration.'}
-    data = {'explanation':'Captured network reviewed.','findings':[row],'limitations':[]}
+    data = {'explanation':'Captured network reviewed.','findings':[row]}
     assert output_validation.validate('network', data, original) == data
     with pytest.raises(ValueError, match='unknown_network_reference'):
         output_validation.validate('network', data|{'findings':[row|{'resource_id':'foreign'}]}, original)
