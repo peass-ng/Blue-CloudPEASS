@@ -84,6 +84,13 @@ def csv_content(**changes):
 
 class Native:
     def __init__(self, monkeypatch):
+        # SDK responses below are dated at NOW. Capture on that same timeline
+        # so the one-day root-use contract does not expire as wall time passes.
+        original_init = aws.Requests.__init__
+        def captured_init(requests, *args, **kwargs):
+            original_init(requests, *args, **kwargs)
+            requests.observed_at = NOW
+        monkeypatch.setattr(aws.Requests, '__init__', captured_init)
         self.session = boto3.Session(aws_access_key_id='inert', aws_secret_access_key='inert', region_name=REGION)
         self.clients, self.stubs, self.calls, self.native, self.attempts = {}, {}, [], [], []
         monkeypatch.setattr(aws, '_session', lambda auth, region: (self.session, 'inert'))

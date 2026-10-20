@@ -44,6 +44,8 @@ REPRODUCTION_INPUT_PATTERNS = (
     "tests/test_gcp_evidence_explanations_review.py",
     "tests/test_attack_detection*.py",
     "tests/test_attack_history_worker_s3.py",
+    "tests/test_aws_identity_sdk_closure_review.py", "docs/aws-review/identity-closure-review.json",
+    "docs/aws-review/identity-sdk-closure-review.json",
     "tests/test_gcp_source_parity_review.py", "scripts/audit_gcp_source_parity.py",
     "docs/gcp-review/source-parity.json", "tests/fixtures/gcp-workbench-source-parity.json.gz",
     "tests/test_principal_exposure.py", "tests/test_privesc_grant_evidence.py",
