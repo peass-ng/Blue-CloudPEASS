@@ -89,6 +89,7 @@ from .aws_lex_runtime_batch136 import normalize as normalize_aws_lex_runtime_bat
 from .aws_lex_testset_batch136 import normalize as normalize_aws_lex_testset_batch136
 from .aws_lex_hook_batch137 import normalize as normalize_aws_lex_hook_batch137, correlate_role_hook as correlate_aws_lex_role_hook_batch137
 from .aws_route53_profiles_batch139 import normalize as normalize_aws_route53_profiles_batch139, correlate_resource_vpc as correlate_aws_route53_profiles_batch139
+from .aws_devicefarm_batch140 import normalize as normalize_aws_devicefarm_batch140
 from .aws_sagemaker_control_next import normalize_aws_sagemaker_control
 from .aws_rolesanywhere_next import normalize as normalize_aws_rolesanywhere
 from .aws_customer_profiles_next import normalize as normalize_aws_customer_profiles
@@ -270,8 +271,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "838b213746be396585ef7631d8e997b223bd4bbd"
-DEFAULT_RULE_PACK_SHA256 = "7afa918eeb1c2bb91126984cf11e05f7bf13bd56bc4de8e1036aa67e094de191"
+DEFAULT_RULE_REF = "ee3ead431d46323ba720e3f69568607a2430ca80"
+DEFAULT_RULE_PACK_SHA256 = "8dd90257eb50e26c0cdb408da8d28cb1076af2fcdfddd10ea42b8bc5265b168b"
 
 
 @dataclass(frozen=True)
@@ -547,6 +548,7 @@ def detect_aws_events(
         lex_testset_batch136 = normalize_aws_lex_testset_batch136(record)
         lex_hook_batch137 = normalize_aws_lex_hook_batch137(record)
         route53_profiles_batch139 = normalize_aws_route53_profiles_batch139(record)
+        devicefarm_batch140 = normalize_aws_devicefarm_batch140(record)
         lambda_controls = normalize_aws_lambda_controls(record)
         lambda_qualified_grant = normalize_aws_lambda_qualified_grant(record)
         lambda_config = normalize_aws_lambda_config(record)
@@ -768,6 +770,7 @@ def detect_aws_events(
                 + lex_testset_batch136
                 + lex_hook_batch137
                 + route53_profiles_batch139
+                + devicefarm_batch140
                 + ([lambda_controls] if lambda_controls is not None else [])
                 + ([lambda_qualified_grant] if lambda_qualified_grant is not None else [])
                 + ([lambda_config] if lambda_config is not None else [])
