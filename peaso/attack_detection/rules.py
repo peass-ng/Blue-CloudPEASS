@@ -58,6 +58,7 @@ from .aws_dynamodb_data_batch105 import normalize as normalize_aws_dynamodb_data
 from .aws_dynamodb_data_batch106 import normalize as normalize_aws_dynamodb_data_batch106, correlate_partiql_after_denials as correlate_aws_dynamodb_partiql_denials_batch106
 from .aws_dynamodb_management_batch107 import normalize as normalize_aws_dynamodb_management_batch107
 from .aws_cloudwatch_alarm_batch108 import correlate as correlate_aws_cloudwatch_alarms_batch108
+from .aws_cloudwatch_metric_stream_batch109 import normalize as normalize_aws_cloudwatch_metric_stream_batch109, correlate_filter_expansion as correlate_aws_cloudwatch_metric_stream_scope_batch109
 from .aws_sagemaker_control_next import normalize_aws_sagemaker_control
 from .aws_rolesanywhere_next import normalize as normalize_aws_rolesanywhere
 from .aws_customer_profiles_next import normalize as normalize_aws_customer_profiles
@@ -239,8 +240,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "72816eaba121b6de3fb6a5c6d59b0f6539403c7e"
-DEFAULT_RULE_PACK_SHA256 = "cbda1f08054280e8db2bc6ce254360751e7b3b749c8907effbbb03de6e0b59c3"
+DEFAULT_RULE_REF = "087e908c01e48b0f62e70df3966aefad2b102a86"
+DEFAULT_RULE_PACK_SHA256 = "aca2cff93e4f23b08d182fb7aa311acc866d81b7c4f1fea2810eb2c8c2c4b283"
 
 
 @dataclass(frozen=True)
@@ -485,6 +486,7 @@ def detect_aws_events(
         ecs_controls = normalize_aws_ecs_controls(record)
         emr_runtime = normalize_aws_emr_serverless_runtime(record)
         cloudwatch_controls = normalize_aws_cloudwatch_controls(record)
+        cloudwatch_metric_stream_batch109 = normalize_aws_cloudwatch_metric_stream_batch109(record)
         lambda_controls = normalize_aws_lambda_controls(record)
         lambda_qualified_grant = normalize_aws_lambda_qualified_grant(record)
         lambda_config = normalize_aws_lambda_config(record)
@@ -675,6 +677,7 @@ def detect_aws_events(
                 + ([ecs_controls] if ecs_controls is not None else [])
                 + ([emr_runtime] if emr_runtime is not None else [])
                 + ([cloudwatch_controls] if cloudwatch_controls is not None else [])
+                + cloudwatch_metric_stream_batch109
                 + ([lambda_controls] if lambda_controls is not None else [])
                 + ([lambda_qualified_grant] if lambda_qualified_grant is not None else [])
                 + ([lambda_config] if lambda_config is not None else [])
@@ -973,6 +976,7 @@ def detect_aws_events(
     correlated += correlate_aws_resource_policy_validation_batch104(resource_policy_validation_records)
     correlated += correlate_aws_dynamodb_partiql_denials_batch106(dynamodb_data_batch106_records)
     correlated += correlate_aws_cloudwatch_alarms_batch108(cloudwatch_alarm_batch108_records)
+    correlated += correlate_aws_cloudwatch_metric_stream_scope_batch109(cloudwatch_alarm_batch108_records)
     correlated += correlate_aws_apigateway_portal(apigateway_portal_records)
     correlated += correlate_aws_cloudformation_triggers(cloudformation_trigger_records)
     correlated += correlate_aws_cloudformation_inputs(cloudformation_input_records)
