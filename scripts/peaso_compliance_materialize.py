@@ -29,7 +29,7 @@ def render_documents() -> dict[Path, bytes]:
     validate_review([check.id for check in CHECKS] + [check["id"] for check in ANALYSIS_CHECKS])
     from peaso.finding_types import validate_review as validate_types
     validate_types([check.id for check in CHECKS] + [check["id"] for check in ANALYSIS_CHECKS])
-    from peaso.checks.catalog import (_compliance, clear_caches, framework_catalog,
+    from peaso.checks.catalog import (_compliance, clear_caches, description_for, framework_catalog,
                                       full_requirements, manifest, proposal_provenance_for, runtime_metadata)
     from peaso.collectors import supported_types
     from peaso.server.catalog_view import frameworks_view_from_catalog
@@ -60,12 +60,20 @@ def render_documents() -> dict[Path, bytes]:
     signed = hashlib.sha256((LEDGER / "manifest.json").read_bytes()).hexdigest()
     if requirements["source_manifest_sha256"] != signed or descriptions["source_manifest_sha256"] != signed:
         raise ValueError("Compiled packs do not match the current supervisor manifest")
+    from peaso.checks import CHECK_ALIASES, resolve_check_id
     native_ids = {check.id for check in CHECKS}
     if len(native_ids) != len(CHECKS):
         raise ValueError("Duplicate registered native check")
     indexed = {row["id"] for row in json.loads((LEDGER / "inputs/check-index.json").read_text())}
     analysis_ids = {row["id"] for row in ANALYSIS_CHECKS}
-    if set(descriptions["checks"]) != native_ids | analysis_ids:
+    reviewed_ids = set(descriptions["checks"])
+    active_ids = native_ids | analysis_ids
+    historical_aliases = {cid for cid in reviewed_ids - active_ids
+                          if cid in CHECK_ALIASES and resolve_check_id(cid) in active_ids}
+    new_analysis_ids = {"analysis.exposed_privileged_workload"}
+    if (reviewed_ids - active_ids != historical_aliases or
+            active_ids - reviewed_ids != new_analysis_ids or
+            any(description_for(cid) is None for cid in new_analysis_ids)):
         raise ValueError("Every registered check needs exactly one reviewed description")
     new_ids = native_ids - indexed
     if not new_ids <= set(requirements["by_check"]):
@@ -92,7 +100,7 @@ def render_documents() -> dict[Path, bytes]:
             if row["requirements"] == []:
                 thematic_extensions.add(row["spec"]["id"])
     for cid, tags in requirements["by_check"].items():
-        if cid not in native_ids | analysis_ids or (not tags and cid not in thematic_extensions):
+        if resolve_check_id(cid) not in active_ids or (not tags and cid not in thematic_extensions):
             raise ValueError("Requirement map contains an absent or untagged check")
 
     source = manifest()

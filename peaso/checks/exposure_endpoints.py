@@ -25,7 +25,7 @@ def _open(cidrs):
 def aks_api_server(item, index):
     from ipaddress import collapse_addresses
     props = get(item, "properties", dict)
-    profile = optional(props, "apiServerAccessProfile", {}, dict)
+    profile = get(props, "apiServerAccessProfile", dict)
     if not isinstance(profile, dict):
         return unknown("malformed apiServerAccessProfile")
     if optional(profile, "enablePrivateCluster", False, bool):
@@ -33,7 +33,9 @@ def aks_api_server(item, index):
     ranges = optional(profile, "authorizedIPRanges", [], list)
     if not isinstance(ranges, list) or any(not isinstance(r, str) for r in ranges):
         return unknown("malformed authorizedIPRanges")
-    networks = [ip_network(value.strip(), strict=False) for value in ranges]
+    if any(not value or value != value.strip() for value in ranges):
+        return unknown("malformed authorizedIPRanges")
+    networks = [ip_network(value, strict=False) for value in ranges]
     universal = any(network.prefixlen == 0 for version in (4, 6)
                     for network in collapse_addresses(n for n in networks if n.version == version))
     return result(not ranges or universal, private_cluster=False, authorized_ip_ranges=ranges,

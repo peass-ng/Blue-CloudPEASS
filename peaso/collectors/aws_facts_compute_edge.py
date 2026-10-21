@@ -19,6 +19,7 @@ SPECS = {
     "appstream_fleet": ("appstream", "describe_fleets", "Fleets"),
     "elastic_beanstalk_environment": ("elasticbeanstalk", "describe_environments", "Environments"),
     "apigateway_domain_name": ("apigateway", "get_domain_names", "items"),
+    "apigatewayv2_domain_name": ("apigatewayv2", "get_domain_names", "Items"),
     "appsync_graphql_api": ("appsync", "list_graphql_apis", "graphqlApis"),
     "directconnect_connection": ("directconnect", "describe_connections", "connections"),
     "directconnect_virtual_interface": ("directconnect", "describe_virtual_interfaces", "virtualInterfaces"),
@@ -34,7 +35,7 @@ SPECS = {
 }
 NATIVE_IDS = {
     "launch_configuration": "LaunchConfigurationARN", "ecs_service": "serviceArn", "ecs_task_set": "taskSetArn", "ecs_account_setting": "name",
-    "appstream_fleet": "Arn", "elastic_beanstalk_environment": "EnvironmentArn", "apigateway_domain_name": "domainName", "appsync_graphql_api": "arn",
+    "appstream_fleet": "Arn", "elastic_beanstalk_environment": "EnvironmentArn", "apigateway_domain_name": "domainName", "apigatewayv2_domain_name": "DomainName", "appsync_graphql_api": "arn",
     "directconnect_connection": "connectionId", "directconnect_virtual_interface": "virtualInterfaceId", "managed_prefix_list": "PrefixListId",
     "wafv2_web_acl": "ARN", "wafv2_rule_group": "ARN", "waf_web_acl": "WebACLId", "waf_rule": "RuleId", "waf_rule_group": "RuleGroupId",
     "wafregional_web_acl": "WebACLId", "wafregional_rule": "RuleId", "wafregional_rule_group": "RuleGroupId",
@@ -46,7 +47,9 @@ READ_ACTIONS.update({
     ("ecs", "list_clusters"), ("ecs", "list_services"), ("ecs", "describe_task_definition"),
     ("elasticbeanstalk", "describe_configuration_settings"),
     ("apigateway", "get_resources"), ("apigateway", "get_authorizers"),
+    ("apigateway", "get_base_path_mappings"),
     ("apigatewayv2", "get_routes"), ("apigatewayv2", "get_authorizers"),
+    ("apigatewayv2", "get_api_mappings"), ("apigatewayv2", "get_integrations"),
     ("appsync", "get_api_cache"), ("eks", "describe_addon"), ("lambda", "get_function_configuration"),
     ("elbv2", "describe_rules"), ("logs", "describe_delivery_sources"), ("logs", "describe_deliveries"),
     ("ec2", "get_managed_prefix_list_entries"), ("ec2", "describe_image_attribute"),
@@ -379,9 +382,53 @@ def _appstream_fleets(requests, session, region, items):
 
 def _rest_api_method(resource):
     row = _pick(resource, ("id", "parentId", "path"))
-    row["resourceMethods"] = {verb: _pick(method, ("httpMethod", "authorizationType", "authorizerId", "authorizationScopes", "apiKeyRequired", "requestValidatorId", "operationName"))
-                              for verb, method in (resource.get("resourceMethods") or {}).items() if isinstance(method, dict)}
+    row["resourceMethods"] = {}
+    for verb, method in (resource.get("resourceMethods") or {}).items():
+        if not isinstance(method, dict):
+            continue
+        selected = _pick(method, ("httpMethod", "authorizationType", "authorizerId", "authorizationScopes", "apiKeyRequired", "requestValidatorId", "operationName"))
+        uri = (method.get("methodIntegration") or {}).get("uri")
+        match = re.search(r"/functions/(arn:[^/]+:lambda:[^/]+:function:[^/]+)/", uri) if isinstance(uri, str) else None
+        if match:
+            selected["integrationLambdaArn"] = match.group(1)
+        row["resourceMethods"][verb] = selected
     return row
+
+
+def _api_domain_mappings(requests, session, region, items):
+    output = []
+    for item in items:
+        current = copy.deepcopy(item)
+        name = current.get("domainName")
+        current["BasePathMappings"] = (_child(requests.pages(session, "apigateway", region,
+            "get_base_path_mappings", "items", domainName=name),
+            lambda row: _pick(row, ("basePath", "restApiId", "stage")))
+            if isinstance(name, str) and name else {"collection_status": "malformed"})
+        output.append(current)
+    return output
+
+
+def _http_api_domain_mappings(requests, session, region, items):
+    output = []
+    for item in items:
+        current = copy.deepcopy(item)
+        name = current.get("DomainName")
+        current["ApiMappings"] = (_child(requests.pages(session, "apigatewayv2", region,
+            "get_api_mappings", "Items", DomainName=name),
+            lambda row: _pick(row, ("ApiId", "Stage", "ApiMappingKey", "ApiMappingId")))
+            if isinstance(name, str) and name else {"collection_status": "malformed"})
+        output.append(current)
+    return output
+
+
+def _http_integration(row):
+    result = _pick(row, ("IntegrationId", "IntegrationType", "IntegrationMethod", "IntegrationSubtype"))
+    uri = row.get("IntegrationUri")
+    if isinstance(uri, str):
+        match = re.search(r"arn:[^/\s]+:lambda:[^/\s]+:[0-9]{12}:function:[^/:\s]+(?::[^/\s]+)?", uri)
+        if match:
+            result["integrationLambdaArn"] = match.group(0)
+    return result
 
 
 def _rest_api(requests, session, region, items):
@@ -413,6 +460,8 @@ def _http_api(requests, session, region, items):
                                      lambda a: _pick(a, ("AuthorizerId", "Name", "AuthorizerType", "IdentitySource", "JwtConfiguration", "AuthorizerUri", "AuthorizerPayloadFormatVersion", "EnableSimpleResponses")))
         item["Routes"] = _child(requests.pages(session, "apigatewayv2", region, "get_routes", "Items", ApiId=api),
                                 lambda r: _pick(r, ("RouteId", "RouteKey", "AuthorizationType", "AuthorizerId", "AuthorizationScopes", "ApiKeyRequired", "ApiGatewayManaged", "OperationName", "Target")))
+        item["Integrations"] = _child(requests.pages(session, "apigatewayv2", region, "get_integrations", "Items", ApiId=api),
+                                      _http_integration)
         output.append(item)
     return output
 
@@ -449,9 +498,24 @@ def _prefix_list_entries(requests, session, region, items):
 
 
 def _load_balancer_rules(requests, session, region, items):
-    """DescribeRules for every HTTP listener of an application load balancer."""
+    """DescribeRules for HTTP and HTTPS listeners of an application load balancer."""
     def action(row):
         return _pick(row, ("Type", "Order", "TargetGroupArn", "RedirectConfig", "ForwardConfig", "FixedResponseConfig"))
+
+    def rule(row):
+        conditions = []
+        for condition in row.get("Conditions") or []:
+            if not isinstance(condition, dict):
+                conditions.append({"Field": "unknown"})
+                continue
+            field = condition.get("Field")
+            entry = {"Field": field}
+            if field == "source-ip":
+                entry["Values"] = list((condition.get("SourceIpConfig") or {}).get("Values")
+                    or condition.get("Values") or [])
+            conditions.append(entry)
+        return {**_pick(row, ("RuleArn", "Priority", "IsDefault")), "Conditions": conditions,
+            "Actions": [action(a) for a in row.get("Actions") or [] if isinstance(a, dict)]}
 
     output = []
     for item in items:
@@ -459,9 +523,9 @@ def _load_balancer_rules(requests, session, region, items):
         listeners = item.get("Listeners")
         if item.get("Type") == "application" and isinstance(listeners, dict) and listeners.get("collection_status") == "collected":
             for listener in listeners.get("items") or []:
-                if isinstance(listener, dict) and listener.get("Protocol") == "HTTP" and isinstance(listener.get("ListenerArn"), str):
+                if isinstance(listener, dict) and listener.get("Protocol") in {"HTTP", "HTTPS"} and isinstance(listener.get("ListenerArn"), str):
                     listener["Rules"] = _child(requests.pages(session, "elbv2", region, "describe_rules", "Rules", ListenerArn=listener["ListenerArn"]),
-                                               lambda r: {**_pick(r, ("RuleArn", "Priority", "IsDefault")), "Actions": [action(a) for a in r.get("Actions") or [] if isinstance(a, dict)]})
+                                               rule)
         output.append(item)
     return output
 
@@ -601,6 +665,8 @@ ENRICHERS = {
     "ec2_image": _image_launch_permissions,
     "rds_cluster_snapshot": _cluster_snapshot_attributes,
     "rest_api": _rest_api,
+    "apigateway_domain_name": _api_domain_mappings,
+    "apigatewayv2_domain_name": _http_api_domain_mappings,
     "http_api": _http_api,
     "appsync_graphql_api": _appsync_cache,
     "managed_prefix_list": _prefix_list_entries,
