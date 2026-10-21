@@ -24,7 +24,7 @@
 .action-references ul { padding-left: 1.4rem; }
 .action-references li { margin: .5rem 0; overflow-wrap: anywhere; }
 
-.network-architecture { max-width: 100ch; }
+.network-architecture[aria-label="Network architecture"] { width: 100%; min-width: 0; max-width: none; }
 .network-architecture p { white-space: pre-line; overflow-wrap: anywhere; line-height: 1.7; }
 .network-architecture p + p { margin-top: 1.25rem; }
 
@@ -40,7 +40,6 @@
 .ai-review-view .network-findings-table th:nth-child(3) { width: 100px; }
 .ai-review-view .network-findings-table th:nth-child(4), .ai-review-view .network-findings-table th:nth-child(5) { width: 180px; }
 
-.network-architecture { max-width: 90ch; }
 .network-architecture h3 { margin: 1.75rem 0 .85rem; color: var(--mint); font-size: 16px; }
 .network-architecture h3:first-child { margin-top: 0; }
 .network-architecture h4 { margin: 1.25rem 0 .5rem; font-size: 14px; }
