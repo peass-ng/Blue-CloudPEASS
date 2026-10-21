@@ -3,6 +3,8 @@
 The configured SDK's authenticated TLS pool is reused, but SDK deserialization
 (and its last_response / exception-body retention) is deliberately bypassed.
 """
+
+from peaso.secret_evidence import scan_with_source
 from copy import deepcopy
 import base64
 import json
@@ -359,8 +361,8 @@ def collect(reader, api, options, scopes, cluster):
                         marker['source_requests'].append(ref)
                     payload, uid, version, count, references = before
                     _remaining(reader, state)
-                    outcome = scan_content(payload, ident + '.literals', timeout=_remaining(reader, state) / 2,
-                        _redact_values=matches.update)
+                    outcome = scan_with_source(scan_content, payload, ident + '.literals', timeout=_remaining(reader, state) / 2,
+                        _redact_values=matches.update, source={'resource_id': ident, 'location_kind': 'configuration', 'scope': scope}, native=document)
                     _remaining(reader, state)
                     if (len(outcome['leaks']) > MAX_LEAKS or
                             sum(len(l['locations']) for l in outcome['leaks']) > MAX_LOCATIONS):

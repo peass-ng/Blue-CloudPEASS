@@ -62,3 +62,15 @@ def test_local_rule_source_reads_provider_and_service_directories(tmp_path):
     (nested / "sample.yml").write_text(SAMPLE, encoding="utf-8")
     rules = load_rules(tmp_path, product="aws")
     assert [rule.id for rule in rules] == ["test-rule"]
+
+
+def test_parsed_rule_cache_tracks_local_content_and_returns_independent_selections(tmp_path):
+    rule_file = tmp_path / "sample.yml"
+    rule_file.write_text(SAMPLE, encoding="utf-8")
+    first = load_rules(tmp_path, product="aws")
+    second = load_rules(tmp_path, product="aws")
+    assert first[0].selection == second[0].selection
+    first[0].selection["event.name"] = "MutatedByCaller"
+    assert load_rules(tmp_path, product="aws")[0].selection["event.name"] == "SyntheticAction"
+    rule_file.write_text(SAMPLE.replace("SyntheticAction", "RevisedAction"), encoding="utf-8")
+    assert load_rules(tmp_path, product="aws")[0].selection["event.name"] == "RevisedAction"

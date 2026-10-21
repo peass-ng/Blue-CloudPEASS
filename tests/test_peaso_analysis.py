@@ -176,7 +176,7 @@ def test_large_group_projection_counts_and_evidence_refs():
 def test_denied_and_missing_inventory_never_clean():
     snap = make_snapshot("aws", ["scope-a"], [{"type": "iam_policy", "scope": "scope-a", "service": "iam", "status": "denied", "items": []}])
     review = next(f for f in analyze_findings(snap) if f["check_id"] == "analysis.coverage")
-    assert review["status"] == "UNKNOWN"
+    assert review["status"] == "DENIED"
     assert {g["status"] for g in review["evidence"]["gaps"]} == {"denied", "not_collected"}
 
 
@@ -333,3 +333,31 @@ def test_unrecognized_permission_criticality_is_unknown_not_low():
     assert unknown["severity"] == "info"
     card = next(n["card"] for n in result["graphs"]["iam"]["nodes"] if n["type"] == "iam_policy")
     assert card["source_grants"][0]["criticality_state"] == "unknown"
+
+
+def test_hosted_catalog_excludes_wholly_manual_analysis_but_keeps_archived_reviews():
+    from peaso import engine
+    from peaso.analysis import MANUAL_ONLY_ANALYSIS_CHECK_IDS
+    snap = snapshot("aws", {("iam_policy", "scope-a"): [{
+        "Arn": "arn:aws:iam::123456789012:policy/review",
+        "PolicyDocument": {"Statement": [{"Effect": "Allow", "Action": "*", "Resource": "*"}]},
+    }]})
+    assert any(f["check_id"] == "analysis.grant_review" for f in analyze_findings(snap))
+    assert not MANUAL_ONLY_ANALYSIS_CHECK_IDS.intersection(f["check_id"] for f in analyze_findings(snap, include_manual_only=False))
+    assert not MANUAL_ONLY_ANALYSIS_CHECK_IDS.intersection(c["id"] for c in engine.get_catalog()["checks"])
+    for check_id in MANUAL_ONLY_ANALYSIS_CHECK_IDS:
+        with pytest.raises(ValueError, match="unknown check ID"):
+            engine.plan_collection({"connector": {"provider": "aws"}, "checks": [check_id]})
+
+
+@pytest.mark.parametrize("condition,expected", [(None, "FAIL"), ({"StringEquals": {"aws:SourceVpce": "vpce-fixture"}}, "MANUAL")])
+def test_hosted_analysis_retains_conditional_checks(condition, expected):
+    from peaso import engine
+    statement = {"Effect": "Allow", "Principal": "*", "Action": "s3:GetObject", "Resource": "arn:aws:s3:::fixture/*"}
+    if condition:
+        statement["Condition"] = condition
+    snap = snapshot("aws", {("bucket", "scope-a"): [{"Name": "fixture", "Policy": {
+        "collection_status": "collected", "Policy": {"Statement": [statement]}}}]})
+    report = engine.evaluate_snapshot(snap, checks=["analysis.principal_exposure"])
+    finding = next(f for f in report["findings"] if f["check_id"] == "analysis.principal_exposure")
+    assert finding["status"] == expected

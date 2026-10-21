@@ -4,6 +4,8 @@ Uninstalled collection seam. Reuses only audited ZIP/tar parser code, with a
 private per-call globals mapping for limits and the GCP detection callback.
 Neither AWS globals nor network/context helpers are called or modified.
 """
+from peaso.secret_evidence import scan_with_source, source_context, target_source
+
 from copy import deepcopy
 import hashlib
 import json
@@ -113,7 +115,7 @@ def _parse(raw, format_name, transport, state):
         objects._text(bytes(payload))  # strict UTF-8, binary and nested archive rejection
         path = 'archive.member-' + str(len(files) + 1)
         remaining = objects._remaining(transport, state)
-        outcome = scan_content(bytes(payload), path, timeout=min(5, remaining / 2))
+        outcome = scan_with_source(scan_content, bytes(payload), path, timeout=min(5, remaining / 2), source={'path': name})
         requests.check_deadline()
         entry = {'path': path, 'bytes': len(payload), 'engines': outcome['engines']}
         files.append(entry)
@@ -193,7 +195,8 @@ def collect_selected_archives(collector, scope):
                     if state['archive_expanded'] >= MAX_TOTAL_EXPANDED_BYTES or state['archive_members'] >= MAX_TOTAL_MEMBERS:
                         raise objects.Incomplete('archive_total_limit')
                     payload = objects._read(transport, state, base, media=True, expected=metadata)
-                    parsed = _parse(payload, target['format'], transport, state)
+                    with source_context(**target_source(target, resource_id=ident, scope=scope)):
+                        parsed = _parse(payload, target['format'], transport, state)
                     del payload
                     objects._check(transport, state)
                     marker.update(parsed, compressed_bytes=metadata['size'], complete=True,

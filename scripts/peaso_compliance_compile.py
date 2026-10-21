@@ -415,6 +415,40 @@ def admit_native_extensions(root, entries, native, indexed, proposed, frameworks
                         tag.update(decision="PARTIAL", runtime_status="partial")
 
 
+
+# Exact native aliases introduced by main fe6f790. Their signed predecessor
+# metadata remains available to historical requirement rows, never runnable.
+REVIEWED_NATIVE_ALIASES_20261021 = {
+    'aws.a.cloudwatch.cross_account_role_absent': 'aws.claude2_a.cloudwatch.cross_account_sharing_role_absent',
+    'aws.a.s3.bucket_account_public_blocks': 'aws.s3.public_access_block',
+    'aws.b.redshift.no_public_endpoint': 'aws.cb.redshift.not_publicly_accessible',
+    'aws.c2b.ecs.service_no_public_ip': 'aws.c2b.ecs.awsvpc_service_no_public_ip',
+    'aws.c2b.elasticache.cluster_public_subnet': 'aws.c2b.elasticache.cluster_public_subnet_prowler',
+    'aws.cb.sns.policy_prohibit_public_access_perimeter': 'aws.cb.sns.policy_no_unrestricted_wildcard',
+    'azure.claude.aks_authorized_ip_ranges': 'azure.aks.api_server_restricted',
+}
+
+
+def historical_alias_metadata(indexed, native, live_aliases):
+    """Retain only reviewed, live aliases from the already hash-verified index."""
+    historical = {}
+    for retired, survivor in REVIEWED_NATIVE_ALIASES_20261021.items():
+        if retired not in indexed or retired in native:
+            continue
+        if live_aliases.get(retired) != survivor or survivor not in native:
+            raise ValueError('Reviewed native alias has no live survivor: ' + retired)
+        prior, current = indexed[retired], native[survivor]
+        target_agrees = prior.get('target') == current.get('target') or (
+            retired == 'aws.a.cloudwatch.cross_account_role_absent'
+            and prior.get('target') == 'scope' and current.get('target') == 'resource'
+            and prior.get('kind') == 'aws_account')
+        if (prior.get('provider') != current.get('provider')
+                or prior.get('kind') != current.get('type') or not target_agrees):
+            raise ValueError('Reviewed native alias contract differs: ' + retired)
+        historical[retired] = {**prior, 'type': prior['kind']}
+    return historical
+
+
 def compile_verified(ledger_root: Path, audit_matrix: dict, native_catalog: dict):
     """Return (requirement pack, description pack); raise before any output on partial input."""
     ledger_root = ledger_root.resolve()
@@ -440,6 +474,10 @@ def compile_verified(ledger_root: Path, audit_matrix: dict, native_catalog: dict
     if len(native) != len(native_rows):
         raise ValueError("Native catalogue IDs are not unique")
     new_native = set(native) - set(indexed)
+    # The index above has already been verified against the signed manifest.
+    # Preserve old requirement IDs while materialization emits only live checks.
+    from peaso.checks import CHECK_ALIASES
+    native.update(historical_alias_metadata(indexed, native, CHECK_ALIASES))
     for cid in ANALYSIS_IDS & set(indexed):
         if indexed[cid].get("provider") != "all" or cid in native:
             raise ValueError("Analysis check metadata is malformed")

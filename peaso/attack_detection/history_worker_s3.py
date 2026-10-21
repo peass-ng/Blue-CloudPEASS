@@ -9,15 +9,13 @@ from __future__ import annotations
 
 import hashlib
 import json
-from pathlib import Path
-from tempfile import TemporaryDirectory
 import time
 
-from peaso.attack_detection.github_source import fetch_rules
+from peaso.attack_detection.catalog import select_catalog
 from peaso.attack_detection.history_s3 import HistorySourceGap, inventory_day, read_cloudtrail_object
 from peaso.attack_detection.rules import (
-    DEFAULT_RULE_PACK_SHA256, DEFAULT_RULE_REF, DEFAULT_RULE_REPO,
-    Rule, detect_aws_events, load_rules,
+    DEFAULT_RULE_PACK_SHA256, DEFAULT_RULE_REF,
+    Rule, RuleSourceError, detect_aws_events,
 )
 from peaso.storage.attack_history_sqlite import AttackHistoryError, SQLiteAttackHistoryStore
 
@@ -26,12 +24,15 @@ AWS_NORMALIZER_VERSION = "aws-v1"
 
 
 def load_exact_pinned_aws_rules() -> tuple[Rule, ...]:
-    texts = fetch_rules(DEFAULT_RULE_REPO, DEFAULT_RULE_REF, DEFAULT_RULE_PACK_SHA256)
-    with TemporaryDirectory() as temporary:
-        root = Path(temporary)
-        for name, source in texts.items():
-            (root / name).write_text(source, encoding="utf-8")
-        return load_rules(root, product="aws")
+    """Retain the reviewed fallback without honoring operator source overrides."""
+    return select_catalog("latest", product="aws", commit=DEFAULT_RULE_REF,
+                          digest=DEFAULT_RULE_PACK_SHA256).rules
+
+
+def resolve_new_history_rule_snapshot() -> dict[str, str]:
+    """Call once when creating a job, then persist both values in its snapshot."""
+    catalog = select_catalog("latest", product="aws")
+    return {"rule_version": catalog.commit, "rule_fingerprint": catalog.sha256}
 
 
 def _record_hash(record: dict) -> str:
@@ -45,18 +46,20 @@ def _record_hash(record: dict) -> str:
 
 def _process(store: SQLiteAttackHistoryStore, tenant: str, job_id: str, owner: str,
              generation: int, s3_client, rules: tuple[Rule, ...], *,
-             grace_seconds: int = 86400, clock=time.time) -> dict:
+             grace_seconds: int = 86400, clock=time.time,
+             rule_version: str = DEFAULT_RULE_REF,
+             rule_fingerprint: str = DEFAULT_RULE_PACK_SHA256) -> dict:
     """Internal testable executor; caller has resolved the immutable rule pack."""
     snapshot = store.worker_snapshot(tenant, job_id, owner, generation, now=clock())
     source = snapshot["source"]
     if (source.get("kind") != "aws_cloudtrail_s3"
-            or snapshot["rule_version"] != DEFAULT_RULE_REF
-            or snapshot["rule_fingerprint"] != DEFAULT_RULE_PACK_SHA256
+            or snapshot["rule_version"] != rule_version
+            or snapshot["rule_fingerprint"] != rule_fingerprint
             or snapshot["source_version"] != HISTORY_SOURCE_VERSION
             or snapshot["normalizer_version"] != AWS_NORMALIZER_VERSION):
-        raise AttackHistoryError(409, "CloudTrail source or pinned rule snapshot mismatch")
+        raise AttackHistoryError(409, "CloudTrail source or exact rule snapshot mismatch")
     if not rules or any(item.product != "aws" for item in rules):
-        raise AttackHistoryError(409, "Pinned AWS rule pack is unavailable")
+        raise AttackHistoryError(409, "Exact AWS rule pack is unavailable")
     try:
         first = inventory_day(s3_client, source["bucket"], source["prefix"],
                               source["account_id"], source["region"], source["day"])
@@ -107,7 +110,22 @@ def _process(store: SQLiteAttackHistoryStore, tenant: str, job_id: str, owner: s
 
 def process_aws_cloudtrail_day(store: SQLiteAttackHistoryStore, tenant: str,
                                job_id: str, owner: str, generation: int,
-                               s3_client, *, grace_seconds: int = 86400) -> dict:
-    """Run with the exact public rule commit/hash, ignoring environment overrides."""
+                               s3_client, *, grace_seconds: int = 86400,
+                               clock=time.time) -> dict:
+    """Fetch the job's immutable official-repo pack before any S3 event read."""
+    snapshot = store.worker_snapshot(tenant, job_id, owner, generation, now=clock())
+    if (snapshot["source"].get("kind") != "aws_cloudtrail_s3"
+            or snapshot["source_version"] != HISTORY_SOURCE_VERSION
+            or snapshot["normalizer_version"] != AWS_NORMALIZER_VERSION):
+        raise AttackHistoryError(409, "CloudTrail source or exact rule snapshot mismatch")
+    commit = snapshot["rule_version"]
+    digest = snapshot["rule_fingerprint"]
+    try:
+        catalog = select_catalog("latest", product="aws", commit=commit, digest=digest)
+    except RuleSourceError:
+        raise AttackHistoryError(503, "Exact AWS rule pack is unavailable") from None
+    if catalog.commit != commit or catalog.sha256 != digest:
+        raise AttackHistoryError(409, "CloudTrail source or exact rule snapshot mismatch")
     return _process(store, tenant, job_id, owner, generation, s3_client,
-                    load_exact_pinned_aws_rules(), grace_seconds=grace_seconds)
+                    catalog.rules, grace_seconds=grace_seconds, clock=clock,
+                    rule_version=commit, rule_fingerprint=digest)

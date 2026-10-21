@@ -10,7 +10,7 @@ Use the [hosted application](https://cspm.hacktricks.wiki/) to manage workspaces
 - Evaluates hardening, exposure, identity, least-privilege and compliance checks against immutable snapshots.
 - Presents native evidence, collection coverage, remediation guidance and JSON/Markdown reports.
 - Builds network views and declared IAM/privilege-escalation relationships from captured configuration.
-- Reviews supported audit events using a pinned public detection-rule pack. A match requires investigation; it does not prove malicious intent.
+- Reviews supported audit events using rules downloaded directly from the public detections repository. New analyses use its latest version; each run records its exact commit and digest. A match requires investigation; it does not prove malicious intent.
 
 The running catalog defines supported checks and prerequisites. Framework mappings are review aids, not certifications. Unknown, denied, partial and empty evidence is not proof of compliance. Relationship maps do not establish effective access, exploitability or live network reachability.
 

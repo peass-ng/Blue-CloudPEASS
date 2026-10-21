@@ -22,28 +22,39 @@ from peaso.checks import aws_s3_selected_source_secret_review_20261020 as s3
 MODULES += [pytest.param(s3,'aws_s3_selected_source_native_cases_20261020.json',id='aws_s3')]
 
 from peaso.checks import azure_ml_selected_job_secret_review_20261020 as ml
-MODULES += [pytest.param(SimpleNamespace(CHECK=ml.DECLARATION['id'],evaluate=ml.evaluate),'azure_ml_job_secrets_admission_20261020_fixtures.json',id='azure_ml')]
+MODULES += [pytest.param(SimpleNamespace(CHECK=ml.DECLARATION['id'],evaluate=ml.evaluate),'azure_ml_job_variants_native_cases_20261021.json',id='azure_ml')]
 
 from peaso.checks import k8s_selected_log_sample_secret_review_20261020 as k8s_logs
 MODULES += [pytest.param(k8s_logs,'k8s_selected_log_sample_admitted_cases_20261020.json',id='k8s_logs')]
 
 from peaso.checks import azure_databricks_notebook_secret_review_20261020 as notebook
-MODULES += [pytest.param(SimpleNamespace(CHECK=notebook.DECLARATION['id'],evaluate=notebook.evaluate),'azure_databricks_notebook_secrets_admission_20261020_fixtures.json',id='azure_databricks')]
+MODULES += [pytest.param(SimpleNamespace(CHECK=notebook.DECLARATION['id'],evaluate=notebook.evaluate),'azure_databricks_current_native_cases_20261021.json',id='azure_databricks')]
 
 from peaso.checks import azure_ml_selected_asset_secret_review_20261020 as ml_assets
 MODULES += [pytest.param(SimpleNamespace(CHECK=d['id'],evaluate=ml_assets.environment if 'environment_conda' in d['id'] else ml_assets.code),'azure_ml_asset_secrets_admission_20261020_fixtures.json',id='azure_ml_asset_'+d['kind'])for d in ml_assets.DECLARATIONS]
 
-from peaso.checks.gcp_dataproc_source_runtime_admission_20261020 import reviewed_inputs as dataproc_inputs
-MODULES += [pytest.param(SimpleNamespace(CHECK=d['id'],evaluate=fn),'gcp_dataproc_source_runtime_cases_20261020.json',id='gcp_dataproc_'+d['kind'])for d,fn in dataproc_inputs()[2]]
+from peaso.checks import CHECKS as CURRENT_CHECKS
+from peaso.checks.gcp_dataproc_source_runtime_admission_20261020 import CHECK_IDS as DATAPROC_IDS
+
+def current_native_cases(ids, fixture, prefix):
+    # Normal registry import has already checked the finite current-source admission.
+    # These tests exercise current presentation, rather than replaying an immutable
+    # predecessor proof against a later collector source. Require exact ID coverage.
+    checks = [c for c in CURRENT_CHECKS if c.id in ids]
+    assert {c.id for c in checks} == set(ids) and len(checks) == len(ids)
+    return [pytest.param(SimpleNamespace(CHECK=c.id, evaluate=c.evaluate), fixture,
+                         id=prefix+c.kind) for c in checks]
+
+MODULES += current_native_cases(DATAPROC_IDS, 'gcp_dataproc_source_runtime_cases_20261020.json', 'gcp_dataproc_')
 
 from peaso.checks import k8s_selected_metadata_secret_review_20261020 as k8s_metadata
 MODULES += [pytest.param(k8s_metadata,'k8s_selected_metadata_secret_cases_20261020.json',id='k8s_metadata')]
 
-from peaso.checks.gcp_workbench_source_runtime_admission_20261020 import reviewed_inputs as workbench_inputs
-MODULES += [pytest.param(SimpleNamespace(CHECK=d['id'],evaluate=fn),'gcp_workbench_source_runtime_cases_20261020.json',id='gcp_workbench_'+d['kind'])for d,fn in workbench_inputs()[2]]
+from peaso.checks.gcp_workbench_source_runtime_admission_20261020 import CHECK_IDS as WORKBENCH_IDS
+MODULES += current_native_cases(WORKBENCH_IDS, 'gcp_workbench_source_runtime_cases_20261020.json', 'gcp_workbench_')
 
-from peaso.checks.gcp_dataflow_batch_source_runtime_admission_20261020 import reviewed_inputs as jobs_inputs
-MODULES += [pytest.param(SimpleNamespace(CHECK=d['id'],evaluate=fn),'gcp_dataflow_batch_source_runtime_cases_20261020.json',id='gcp_job_source_'+d['kind'])for d,fn in jobs_inputs()[2]]
+from peaso.checks.gcp_dataflow_batch_source_runtime_consumer_20261020 import DECLARATIONS as JOB_DECLARATIONS
+MODULES += current_native_cases(tuple(d['id'] for d in JOB_DECLARATIONS), 'gcp_dataflow_batch_source_runtime_cases_20261020.json', 'gcp_job_source_')
 
 from peaso.checks import aws_codebuild_buildspec_runtime_consumer_20261020 as codebuild
 MODULES += [pytest.param(SimpleNamespace(CHECK=codebuild.DECLARATION['id'], evaluate=codebuild.evaluate), 'aws_codebuild_buildspec_runtime_cases_20261020.json', id='aws_codebuild_inline')]

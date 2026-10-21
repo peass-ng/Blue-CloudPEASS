@@ -55,7 +55,7 @@ def _json(text):
     return json.loads(text, object_pairs_hook=unique, parse_constant=invalid_constant)
 
 
-def marker(kind, identity, texts, region, operation, coverage, account=None, version=None, selected=None):
+def marker(kind, identity, texts, region, operation, coverage, account=None, version=None, selected=None, paths=None):
     try:
         if not isinstance(identity, str) or not identity or len(identity) > 2048 or not isinstance(region, str):
             raise ValueError('resource identity absent')
@@ -66,11 +66,22 @@ def marker(kind, identity, texts, region, operation, coverage, account=None, ver
         if account is not None and not re.fullmatch(r'[0-9]{12}', account): raise ValueError('invalid account')
         total, categories = 0, set()
         if not isinstance(texts, list) or len(texts) > 64: raise ValueError('invalid fragments')
-        for text in texts:
+        for part, text in enumerate(texts):
             if not isinstance(text, str): raise ValueError('nontext payload')
             total += len(text.encode('utf-8'))
             if total > 1048576: raise ValueError('payload bound exceeded')
-            categories.update(inspect_text(text, 'unused')['MatchedCategories'])
+            from peaso.secret_evidence import source_context
+            check_kind = {'launch_template': 'ec2_launch_template', 'ssm_document': 'ssm_document_metadata',
+                'state_machine': 'sfn_state_machine', 'notebook_lifecycle': 'sagemaker_notebook_instance',
+                'data_pipeline': 'datapipeline_pipeline'}.get(kind, kind)
+            checks = {'aws.review.' + check_kind + '.payload_secret_indicators'}
+            if kind == 'launch_configuration':
+                checks.add('aws_autoscaling_userdata_plaintext_aws_key')
+            with source_context(resource_id=identity, scope=(account + '/' + region) if account else region,
+                                check_ids=checks,
+                                path=paths[part] if paths else {'launch_configuration': 'UserData', 'launch_template': 'LaunchTemplateData.UserData', 'ssm_document': 'Content', 'state_machine': 'definition'}.get(kind, coverage + '[' + str(part) + ']'),
+                                source=operation + (':' + str(version) if version is not None else '')):
+                categories.update(inspect_text(text, 'unused')['MatchedCategories'])
         if selected is not None: categories &= set(selected)
         return {'Schema': SCHEMA, 'collection_status': 'collected', 'NativeResponseComplete': True,
             'Kind': kind, 'ResourceId': identity, 'AccountId': account, 'Region': region,
@@ -149,8 +160,10 @@ def project_response(response, *, service, operation, arguments, region):
             for row in values:
                 if not isinstance(row, dict): raise ValueError('pipeline parameter value malformed')
                 add(row.get('id'), row.get('stringValue'))
-            indicator = marker('data_pipeline', identity, [json.dumps(pairs)], region, 'datapipeline:GetPipelineDefinition',
-                               'latest_returned_literal_definition_values', version='latest')
+            from peaso.secret_evidence import source_context
+            with source_context(native=response, location_kind='configuration'):
+                indicator = marker('data_pipeline', identity, [json.dumps(pairs)], region, 'datapipeline:GetPipelineDefinition',
+                                   'latest_returned_literal_definition_values', version='latest', paths=['DataPipelineDefinition'])
         except (ValueError, TypeError, KeyError, UnicodeError, RecursionError):
             indicator = bad()
         return {'PayloadSecretIndicators': indicator}
@@ -194,14 +207,15 @@ def project_response(response, *, service, operation, arguments, region):
         name, arn = response['NotebookInstanceLifecycleConfigName'], response['NotebookInstanceLifecycleConfigArn']
         if name != arguments.get('NotebookInstanceLifecycleConfigName') or not isinstance(arn, str) or not arn.endswith(':notebook-instance-lifecycle-config/' + name):
             raise ValueError('lifecycle identity mismatch')
-        texts = []
+        texts, paths = [], []
         for field in ('OnCreate', 'OnStart'):
             rows = response.get(field, [])
             if not isinstance(rows, list) or len(rows) > 1: raise ValueError('lifecycle script shape invalid')
             for row in rows:
                 if not isinstance(row, dict) or set(row) != {'Content'}: raise ValueError('script incomplete')
                 texts.append(decode(row['Content']))
-        safe['PayloadSecretIndicators'] = marker('notebook_lifecycle', arn, texts, region, 'sagemaker:DescribeNotebookInstanceLifecycleConfig', 'attached_oncreate_onstart_scripts')
+                paths.append(field + '[0].Content')
+        safe['PayloadSecretIndicators'] = marker('notebook_lifecycle', arn, texts, region, 'sagemaker:DescribeNotebookInstanceLifecycleConfig', 'attached_oncreate_onstart_scripts', paths=paths)
     except (ValueError, TypeError, KeyError, UnicodeError, zlib.error):
         safe['PayloadSecretIndicators'] = bad()
     return safe

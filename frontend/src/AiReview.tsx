@@ -6,8 +6,9 @@ import { FindingStatusBadge, matchesFindingStatus } from "./findingStatus";
 import { Badge, Evidence, Inspector, Panel, State } from "./ui";
 import { NetworkArchitecture } from "./NetworkArchitecture";
 import { Remediation } from "./Remediation";
+import { FindingInspector } from "./Findings";
 import type { Finding } from "./types";
-type Action = { rank: number; title: string; resource_ids: string[]; finding_ids: string[]; rationale: string; steps: string[]; verification: string };
+type Action = { rank: number; title: string; finding_ids: string[]; rationale: string; steps: string[]; verification: string };
 type NetworkResult = { status: string; explanation: string; findings: (Finding & { verification?: string })[]; total?: number };
 type Result = { network?: NetworkResult; actions: Action[] };
 
@@ -89,19 +90,35 @@ export function NetworkAiReview({ scanId, demo }: { scanId: string; demo: boolea
   if (!query.data?.network) return <Panel title="Network findings"><p>No network review is available for this scan. Run a scan with AI enabled to generate network findings.</p></Panel>;
   return <NetworkReviewPanel key={scanId} data={query.data.network} />;
 }
+function RelatedFindingLink({ scanId, id, supplied, onOpen }: {
+  scanId: string; id: string; supplied?: Finding; onOpen: (finding: Finding, button: HTMLButtonElement) => void;
+}) {
+  const finding = useApi<Finding>(`/scans/${encodeURIComponent(scanId)}/findings/${encodeURIComponent(id)}`, false, !supplied);
+  const observed = supplied || finding.data;
+  if (!supplied && finding.isPending) return <li><span role="status">Loading finding…</span></li>;
+  if ((!supplied && finding.error) || !observed?.title) return <li><button className="text-button" onClick={() => void finding.refetch()}>Retry loading finding</button></li>;
+  return <li><button className="finding-title action-finding-link" aria-haspopup="dialog"
+    onClick={event => onOpen(observed!, event.currentTarget)}>{observed!.title}</button></li>;
+}
+
 export function AiReview({ scanId, demo }: { scanId: string; demo: boolean }) {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Action>();
+  const [supportingOpen, setSupportingOpen] = useState(false);
+  const [relatedFinding, setRelatedFinding] = useState<Finding>();
+  const findingTrigger = useRef<HTMLButtonElement | null>(null);
   const trigger = useRef<HTMLButtonElement | null>(null);
   function openPlan(action: Action, button: HTMLButtonElement) {
     trigger.current = button;
+    setSupportingOpen(false);
     setSelected(action);
   }
   function closePlan() {
+    setRelatedFinding(undefined);
     setSelected(undefined);
     requestAnimationFrame(() => trigger.current?.focus());
   }
-  const query = useApi<Result>(`/scans/${encodeURIComponent(scanId)}/ai?offset=0&limit=50`, demo, !!scanId && !demo);
+  const query = useApi<Result>(`/scans/${encodeURIComponent(scanId)}/ai?offset=0&limit=100`, demo, !!scanId && !demo);
   if (demo) return <Panel title="AI review"><p>AI reviews are available for live scans.</p></Panel>;
   if (!scanId) return <Panel title="AI review"><p>Select a completed scan.</p></Panel>;
   if (query.isPending || query.error) return <State loading={query.isPending} error={query.error} onRetry={() => void query.refetch()} />;
@@ -109,13 +126,13 @@ export function AiReview({ scanId, demo }: { scanId: string; demo: boolean }) {
   if (!data) return null;
   const term = search.trim().toLocaleLowerCase();
   const actions = [...data.actions].sort((a, b) => a.rank - b.rank).filter(action =>
-    [action.title, action.rationale, ...action.resource_ids, ...action.finding_ids,
+    [action.title, action.rationale, ...action.finding_ids,
       ...action.steps, action.verification].join(" ").toLocaleLowerCase().includes(term));
   return <div className="ai-review-view">
     <Panel className="findings-panel actions-panel">
       <div className="filters">
         <div className="search-field"><Search size={17} />
-          <input aria-label="Search actions" value={search} onChange={event => setSearch(event.target.value)} placeholder="Search actions, resources or findings…" />
+          <input aria-label="Search actions" value={search} onChange={event => setSearch(event.target.value)} placeholder="Search actions or findings…" />
         </div>
         {search && <button className="text-button" onClick={() => setSearch("")}>Clear search</button>}
         <span className="count-pill" aria-live="polite">{term ? `${actions.length} / ${data.actions.length}` : data.actions.length} actions</span>
@@ -135,10 +152,17 @@ export function AiReview({ scanId, demo }: { scanId: string; demo: boolean }) {
       <h3>Reason & benefit</h3><p>{selected.rationale}</p>
       <h3>Implementation plan</h3><ol className="action-steps">{selected.steps.map((step, index) => <li key={index}>{step}</li>)}</ol>
       <h3>Verification</h3><p>{selected.verification}</p>
-      <details className="action-references"><summary>Supporting evidence</summary>
-        <h3>Resources</h3>{selected.resource_ids.length ? <ul>{selected.resource_ids.map(id => <li key={id}><code>{id}</code></li>)}</ul> : <p>Account-wide</p>}
-        <h3>Findings</h3>{selected.finding_ids.length ? <ul>{selected.finding_ids.map(id => <li key={id}><code>{id}</code></li>)}</ul> : <p>Graph evidence</p>}
+      <details className="action-references" open={supportingOpen} onToggle={event => setSupportingOpen(event.currentTarget.open)}><summary>Supporting evidence</summary>
+        <h3>Findings</h3>{supportingOpen && (selected.finding_ids.length ? <ul>{[...new Set(selected.finding_ids)].map(id =>
+          <RelatedFindingLink key={id} scanId={scanId} id={id} supplied={data.network?.findings.find(finding => finding.id === id)} onOpen={(finding, button) => {
+            findingTrigger.current = button; setRelatedFinding(finding);
+          }} />)}</ul> : <p>No related findings.</p>)}
       </details>
     </Inspector>}
+    {selected && relatedFinding && <FindingInspector finding={relatedFinding} scanId={scanId} demo={false} lazy={false}
+      onInspectMember={setRelatedFinding} onClose={() => {
+        setRelatedFinding(undefined);
+        requestAnimationFrame(() => findingTrigger.current?.focus());
+      }} />}
   </div>;
 }

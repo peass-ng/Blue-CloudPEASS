@@ -48,12 +48,13 @@ def _runtime_seccomp(item, kind):
     inherited = optional(pod_profile, "type", None)
     if inherited not in (None, "RuntimeDefault", "Localhost", "Unconfined"):
         return unknown("unrecognized Pod seccomp profile", observed_type=inherited)
-    # list_of_objects returns the native PodSpec list; build our own list before
-    # appending init containers so evaluation cannot mutate snapshot evidence.
+    # Build our own list before appending init and ephemeral containers so
+    # evaluation cannot mutate the native PodSpec evidence.
     containers = list(list_of_objects(get(spec, "containers", list)))
     if not containers:
         raise Unavailable("PodSpec has no regular containers")
     containers += list_of_objects(optional(spec, "initContainers", [], list))
+    containers += list_of_objects(optional(spec, "ephemeralContainers", [], list))
     failures, unresolved = [], []
     for row in containers:
         name = get(row, "name", str)

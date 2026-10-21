@@ -27,7 +27,8 @@ def includes(check_id):
 
 def validate_review(check_ids):
     """Build/test gate: every registered check needs an explicit decision."""
-    expected, reviewed = set(check_ids), set(review()["checks"])
+    from peaso.analysis import MANUAL_ONLY_ANALYSIS_CHECK_IDS
+    expected, reviewed = set(check_ids) | MANUAL_ONLY_ANALYSIS_CHECK_IDS, set(review()["checks"])
     missing, stale = expected - reviewed, reviewed - expected
     pending = sorted(cid for cid, row in review()["checks"].items() if row["decision"] == "pending")
     if missing or stale or pending:

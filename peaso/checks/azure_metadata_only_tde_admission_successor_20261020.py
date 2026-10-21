@@ -39,6 +39,12 @@ def reviewed_inputs(root=None):
             record = dict(receipt['functions'][name])
             if name == 'peaso.collectors.azure:collect':
                 record['source_sha256'] = successor['metadata_only_collect']['current_sha256']
+            if name == 'peaso.collectors.azure:_selected':
+                transition = shared._private_receipt()['provider_group_callables'][
+                    'peaso/collectors/azure.py:_selected']
+                if record['source_sha256'] != transition['predecessor_sha256']:
+                    raise RuntimeError('production selected-source predecessor changed')
+                record['source_sha256'] = transition['current_sha256']
             path = (root / record['path']).resolve()
             if not path.is_relative_to(root):
                 raise RuntimeError('production callable escaped repository')

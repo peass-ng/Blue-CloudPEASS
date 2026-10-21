@@ -12,6 +12,7 @@ from . import k8s_literal_secret_review_20261020 as predecessor
 
 CHECK = 'k8s.review.selected_literals.secret_indicators'
 PREDICATE_SHA256 = '6a825cbbe6e1b0efe3df29b5e81443eb00ea3cb7636e3b5995227daba0639c8c'
+CURRENT_DISPATCH_SHA256 = 'c42632fbf8fcbcb1592ba32b00be44ca8135c6c6d1fec833430eb03cdb4d201b'
 DECLARATIONS_SHA256 = '19c6043989b98d3d9efd6af62964c1afaf8a352e4f87a4af203bea1b7a6bc706'
 CURRENT_FIELDS = {
     'title': 'Selected workload and ConfigMap literals have no detected secrets',
@@ -37,8 +38,13 @@ def fields():
     """Return a fresh exact canonical proposal only after the source guard passes."""
     fn = inspect.unwrap(predecessor.evaluate)
     body = inspect.getsource(fn)
+    historical = inspect.getsource(predecessor._evaluate_legacy)
+    if historical.count('def _evaluate_legacy(') != 1:
+        raise ValueError('Kubernetes literal metadata predecessor changed')
+    historical = historical.replace('def _evaluate_legacy(', 'def evaluate(', 1)
     declarations = json.dumps(predecessor.DECLARATIONS, sort_keys=True, separators=(',', ':'))
-    if (hashlib.sha256(body.encode()).hexdigest() != PREDICATE_SHA256
+    if (hashlib.sha256(historical.encode()).hexdigest() != PREDICATE_SHA256
+            or hashlib.sha256(body.encode()).hexdigest() != CURRENT_DISPATCH_SHA256
             or hashlib.sha256(declarations.encode()).hexdigest() != DECLARATIONS_SHA256):
         raise ValueError('Kubernetes literal metadata predecessor changed')
     return deepcopy(CURRENT_FIELDS)

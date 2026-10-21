@@ -145,6 +145,12 @@ def compare(flags, fields, operation, expected):
         if not re.fullmatch(r"[0-9]+", value):
             raise Unavailable("malformed integer component setting")
         integer = int(value)
+        if fields == ["event-qps"] and operation == "le" and integer == 0:
+            # Zero has version-dependent effective semantics: older kubelets
+            # select a default above this bound, while current releases can
+            # disable the event rate limit. A declaration of zero is not proof
+            # of a bounded effective QPS.
+            raise Unavailable("zero event-qps does not establish a bounded effective rate")
         return {"ge": integer >= expected, "gt": integer > expected, "le": integer <= expected}[operation]
     if operation in ("contains", "contains_any", "excludes", "subset"):
         members = set(value.split(","))
@@ -194,75 +200,78 @@ def evaluate_component(item, kind, spec, index=None):
     hints, static = _memo_prework(index, item, kind, "component_hints", lambda: component_hints(item, kind))
     observations, bad, gaps = [], [], []
     for container in containers:
-        if "_component_config" not in container:
-            if "metadata" not in item or static or hints.intersection(components) or container["name"] in components:
-                gaps.append(container["name"])
-            continue
-        configuration = get(container, "_component_config", dict)
-        captured = optional(configuration, "component", None)
-        if captured is None:
-            if configuration.get("component_identification") == "ambiguous_wrapped_component" or static or hints.intersection(components) or container["name"] in components:
-                gaps.append(container["name"])
-            continue
-        if not isinstance(captured, str) or captured not in KNOWN_COMPONENTS:
-            return unknown("unrecognized component metadata subject")
-        if captured not in components:
-            continue
-        if get(configuration, "flags_complete", bool) is not True:
-            raise Unavailable("incomplete component flag projection")
-        effective_operation, effective_expected = operation, expected
-        max_version = next((LEGACY_MAX[field] for field in fields if field in LEGACY_MAX), None)
-        legacy_security_plugins = expected == ("PodSecurityPolicy", "SecurityContextDeny")
-        if expected == "PodSecurityPolicy":
-            max_version = (1, 24)
-        # Only version-bounded predicates consume version authority. Unrelated
-        # unavailable version metadata cannot invalidate captured declarations.
-        version = optional(configuration, "version", None) if max_version or legacy_security_plugins else None
-        if legacy_security_plugins:
-            # PSP stopped working in 1.25; SecurityContextDeny survived until
-            # its removal in 1.30. A declared PSP cannot substitute for it.
-            if not isinstance(version, str):
-                return unknown("component version required for legacy admission control")
-            match = re.fullmatch(r"v?(\d+)\.(\d+)(?:\.\d+)?(?:\+[A-Za-z0-9_.-]+)?", version)
-            if not match or int(match[1]) != 1:
-                return unknown("component version outside reviewed legacy admission range")
-            minor = int(match[2])
-            if minor >= 30:
+        try:
+            if "_component_config" not in container:
+                if "metadata" not in item or static or hints.intersection(components) or container["name"] in components:
+                    gaps.append(container["name"])
                 continue
-            if minor >= 25:
-                effective_operation, effective_expected = "contains", "SecurityContextDeny"
-        if max_version:
-            match = re.fullmatch(r"v?(\d+)\.(\d+)(?:\.\d+)?(?:\+[A-Za-z0-9_.-]+)?", version) if isinstance(version, str) else None
-            if not match or int(match[1]) != 1:
-                return unknown("component version required for removed legacy control")
-            current = (int(match[1]), int(match[2]))
-            if current > max_version:
+            configuration = get(container, "_component_config", dict)
+            captured = optional(configuration, "component", None)
+            if captured is None:
+                if configuration.get("component_identification") == "ambiguous_wrapped_component" or static or hints.intersection(components) or container["name"] in components:
+                    gaps.append(container["name"])
                 continue
-        flags = get(configuration, "flags", dict)
-        if "feature-gates" in fields and "feature-gates" in flags:
-            gates = get(flags, "feature-gates", str).split(",")
-            names = [gate.partition("=")[0] for gate in gates]
-            if any(not re.fullmatch(r"[A-Za-z][A-Za-z0-9]*=(?:true|false)", gate) for gate in gates) or len(set(names)) != len(names):
-                raise Unavailable("malformed or duplicate feature gate declarations")
-        if "authorization-mode" in fields and "authorization-mode" in flags:
-            declared = get(flags, "authorization-mode", str).split(",")
-            allowed = {"AlwaysAllow", "Webhook"} if captured == "kubelet" else {
-                "AlwaysAllow", "AlwaysDeny", "ABAC", "RBAC", "Webhook", "Node"}
-            if not declared or any(mode not in allowed for mode in declared) or len(set(declared)) != len(declared):
-                raise Unavailable("malformed native authorization mode declaration")
-        if "enable-admission-plugins" in fields and "disable-admission-plugins" in flags:
-            enabled = get(flags, "enable-admission-plugins", str).split(",") if "enable-admission-plugins" in flags else []
-            disabled = get(flags, "disable-admission-plugins", str).split(",")
-            if set(enabled).intersection(disabled):
-                raise Unavailable("contradictory enabled and disabled admission plugin declarations")
-        safe = compare(flags, fields, effective_operation, effective_expected)
-        observation = {"container": container["name"], "component": captured,
-                       "settings": {field: flags.get(field) for field in fields}}
-        if legacy_security_plugins:
-            observation["observed_version"] = version
-        observations.append(observation)
-        if not safe:
-            bad.append(container["name"])
+            if not isinstance(captured, str) or captured not in KNOWN_COMPONENTS:
+                raise Unavailable("unrecognized component metadata subject")
+            if captured not in components:
+                continue
+            if get(configuration, "flags_complete", bool) is not True:
+                raise Unavailable("incomplete component flag projection")
+            effective_operation, effective_expected = operation, expected
+            max_version = next((LEGACY_MAX[field] for field in fields if field in LEGACY_MAX), None)
+            legacy_security_plugins = expected == ("PodSecurityPolicy", "SecurityContextDeny")
+            if expected == "PodSecurityPolicy":
+                max_version = (1, 24)
+            # Only version-bounded predicates consume version authority. Unrelated
+            # unavailable version metadata cannot invalidate captured declarations.
+            version = optional(configuration, "version", None) if max_version or legacy_security_plugins else None
+            if legacy_security_plugins:
+                # PSP stopped working in 1.25; SecurityContextDeny survived until
+                # its removal in 1.30. A declared PSP cannot substitute for it.
+                if not isinstance(version, str):
+                    raise Unavailable("component version required for legacy admission control")
+                match = re.fullmatch(r"v?(\d+)\.(\d+)(?:\.\d+)?(?:\+[A-Za-z0-9_.-]+)?", version)
+                if not match or int(match[1]) != 1:
+                    raise Unavailable("component version outside reviewed legacy admission range")
+                minor = int(match[2])
+                if minor >= 30:
+                    continue
+                if minor >= 25:
+                    effective_operation, effective_expected = "contains", "SecurityContextDeny"
+            if max_version:
+                match = re.fullmatch(r"v?(\d+)\.(\d+)(?:\.\d+)?(?:\+[A-Za-z0-9_.-]+)?", version) if isinstance(version, str) else None
+                if not match or int(match[1]) != 1:
+                    raise Unavailable("component version required for removed legacy control")
+                current = (int(match[1]), int(match[2]))
+                if current > max_version:
+                    continue
+            flags = get(configuration, "flags", dict)
+            if "feature-gates" in fields and "feature-gates" in flags:
+                gates = get(flags, "feature-gates", str).split(",")
+                names = [gate.partition("=")[0] for gate in gates]
+                if any(not re.fullmatch(r"[A-Za-z][A-Za-z0-9]*=(?:true|false)", gate) for gate in gates) or len(set(names)) != len(names):
+                    raise Unavailable("malformed or duplicate feature gate declarations")
+            if "authorization-mode" in fields and "authorization-mode" in flags:
+                declared = get(flags, "authorization-mode", str).split(",")
+                allowed = {"AlwaysAllow", "Webhook"} if captured == "kubelet" else {
+                    "AlwaysAllow", "AlwaysDeny", "ABAC", "RBAC", "Webhook", "Node"}
+                if not declared or any(mode not in allowed for mode in declared) or len(set(declared)) != len(declared):
+                    raise Unavailable("malformed native authorization mode declaration")
+            if "enable-admission-plugins" in fields and "disable-admission-plugins" in flags:
+                enabled = get(flags, "enable-admission-plugins", str).split(",") if "enable-admission-plugins" in flags else []
+                disabled = get(flags, "disable-admission-plugins", str).split(",")
+                if set(enabled).intersection(disabled):
+                    raise Unavailable("contradictory enabled and disabled admission plugin declarations")
+            safe = compare(flags, fields, effective_operation, effective_expected)
+            observation = {"container": container["name"], "component": captured,
+                           "settings": {field: flags.get(field) for field in fields}}
+            if legacy_security_plugins:
+                observation["observed_version"] = version
+            observations.append(observation)
+            if not safe:
+                bad.append(container["name"])
+        except Unavailable:
+            gaps.append(container["name"])
     if bad:
         return result(True, observations=observations, containers_needing_review=bad,
             semantics="Explicit declarations, not evidence of host/runtime enforcement")
@@ -293,7 +302,7 @@ def register_component(kind, suffix, spec):
     if operation in ("contains", "contains_any"):
         good = expected[0] if isinstance(expected, tuple) else expected
     elif operation == "excludes":
-        good = "RBAC" if fields[0] == "authorization-mode" else "NodeRestriction"
+        good = ("Webhook" if component == "kubelet" else "RBAC") if fields[0] == "authorization-mode" else "NodeRestriction"
     elif operation == "subset":
         good = "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
     elif operation in ("duration", "nonzero_duration"):

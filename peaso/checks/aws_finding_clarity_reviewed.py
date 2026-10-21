@@ -2039,7 +2039,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                    'trust, served chains and '
                                                                                    'actual transparency entries '
                                                                                    'are not verified.'},
-                                             'remediation_base_sha256': '5d49e734e84756c720a89286ce08f536d36d8d9af1d8a3c2fe11dceaaf6bc096',
+                                             'remediation_base_sha256': 'd18d6cf56a9041b5703255ec6759b2c98c33fe3092413c2b22dbbb79752b7da3',
                                              'remediation_fields': {'steps': ['Enable certificate transparency '
                                                                               'logging where needed, accounting '
                                                                               'for intentionally private names '
@@ -2072,7 +2072,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                            'not applicable and certificate '
                                                                            'issuance permissions are not '
                                                                            'evaluated.'},
-                                     'remediation_base_sha256': '8cf36dbcc5befe872e80f3bc93985612902412d71da08cb33797fda327399b87',
+                                     'remediation_base_sha256': '78a059fb70934c90bf9af93dfecdce1e3f229399be597a4d0b026c86c65b6c90',
                                      'remediation_fields': {'steps': ['Disable routine use of the root CA where '
                                                                       'the PKI design permits, preserving the '
                                                                       'required subordinate-CA lifecycle.'],
@@ -2090,7 +2090,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                 'rejects '
                                                                                                 'authorizationType '
                                                                                                 'NONE.'},
-                                                          'remediation_base_sha256': '7fec875b9415dc21d1ebf939803b3280f66df684cec53eaf57e21bc66eae4d04',
+                                                          'remediation_base_sha256': 'dc78c58f71fb2b82569ce0498cb06aaf1c1fcda7d47b57ca058da2ab3cebbd4b',
                                                           'remediation_fields': {'steps': ['Protect methods that '
                                                                                            'require '
                                                                                            'authentication; an '
@@ -2113,7 +2113,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                          'authorization are '
                                                                                          'reported even if other '
                                                                                          'methods are protected.'},
-                                                   'remediation_base_sha256': 'a7aa36d88bf583a2ea60132c3886f46359adfb59b400127dec52da5a06c2eee6',
+                                                   'remediation_base_sha256': '925704c6273768ba7b7f8b110e0470ae5265c6c2993c6a0d83b2382841c18d93',
                                                    'remediation_fields': {'steps': ['Apply the required '
                                                                                     'authorization to affected '
                                                                                     'methods; keep deliberately '
@@ -2130,7 +2130,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                         'requestValidatorId; an '
                                                                                         'API with no methods is '
                                                                                         'skipped.'},
-                                                  'remediation_base_sha256': '7fb0c11e99f0d7355bea66c2bb895f8d98383a8b4fcf0c11eb64d3aa47c49a35',
+                                                  'remediation_base_sha256': '7294efd6456bb25cbedd03a53eaf97fbaf7b0d15b1f8a9d40689b48ddf4566b0',
                                                   'remediation_fields': {'steps': ['Attach the appropriate '
                                                                                    'request validator to each '
                                                                                    'affected method and test '
@@ -2148,7 +2148,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                          'it does not prove '
                                                                                          'authorizers protect its '
                                                                                          'methods.'},
-                                                   'remediation_base_sha256': 'cf66c9f715f864ef864de61e05bb9a0e12631f56aacad0a2853653ab522b67c5',
+                                                   'remediation_base_sha256': '57323f4d2c6a53d4cb64d270498e435d632bfe806bbc21f2ed03c6c1f9d3854f',
                                                    'remediation_fields': {'steps': ['Attach the appropriate '
                                                                                     'authorization to the methods '
                                                                                     'that require it; creating an '
@@ -2167,7 +2167,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                       'not establish method '
                                                                                       'attachment or effective '
                                                                                       'protection.'},
-                                                'remediation_base_sha256': '7d17d5c35d8e14c876efbddb7f4debe76d069bf9096b9328f0b9e055cd89453e',
+                                                'remediation_base_sha256': '18146acdc263d85caf301a7198270f53bb9e47d3feb27c98fb174c61bea60236',
                                                 'remediation_fields': {'steps': ['Configure the required '
                                                                                  'authorizer and attach it to '
                                                                                  'methods that require '
@@ -2185,7 +2185,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                          'absent from the native '
                                                                                          'response passes this '
                                                                                          'variant.'},
-                                                   'remediation_base_sha256': 'e4f84e79fac6946c237676fda359d8f1c62eacb1d5afde7d9ac8f212f6e315e1',
+                                                   'remediation_base_sha256': '2f196ba485f8846d0d06333b0c3e72e78261c444438b580944e4ef2b0ffad842',
                                                    'remediation_fields': {'steps': ['Remove unnecessary public '
                                                                                     'grants or restrict them to '
                                                                                     'the callers and source '
@@ -2202,7 +2202,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                     'PRIVATE; an intentionally '
                                                                                     'public API still fails this '
                                                                                     'private-only criterion.'},
-                                              'remediation_base_sha256': 'ca934f35a0fc768ef99f1a9ead1029dbf8aa2c341849c6248511775def8e2f80',
+                                              'remediation_base_sha256': 'a052430e4e7fcc9aad25d3ab16c4c533c6a49400632f71f6f31366f7917b7009',
                                               'remediation_fields': {'steps': ['Use a private API endpoint only '
                                                                                'when that matches the application '
                                                                                'design; preserve intended client '
@@ -2218,7 +2218,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                     'whether at least one caching '
                                                                                     'method setting enables cache '
                                                                                     'encryption.'},
-                                              'remediation_base_sha256': '062dc36173f01323301ee6ac80a9c73cec4df4149f881461e22307f9040e6b87',
+                                              'remediation_base_sha256': 'b3f09a65bbbce5e681892b6f07f4bb5af04b8a5e1a3545aee3143c7cb5eadaba',
                                               'remediation_fields': {'steps': ['Enable encryption on each cached '
                                                                                'method that needs protection; '
                                                                                'this check alone does not verify '
@@ -2232,7 +2232,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                       'Gateway stage method '
                                                                                       'setting has a logging '
                                                                                       'level other than OFF.'},
-                                                'remediation_base_sha256': '6c8549ade344c0ee409b50b6d0ee010478462380fc50cbb461e598bea845b89f',
+                                                'remediation_base_sha256': '4fde91b2d7b05b0f0aef87030cc854e5aa379dc6b23072fc67ab241857097ddc',
                                                 'remediation_fields': {'steps': ['Enable execution logging for '
                                                                                  'the methods that need it and '
                                                                                  'configure their CloudWatch '
@@ -2288,7 +2288,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                             'query results or an SSE_S3, SSE_KMS '
                                                                             'or CSE_KMS result encryption option, '
                                                                             'including disabled workgroups.'},
-                                      'remediation_base_sha256': '8e24cf72b84da0801d4869d9729944f32a69a3a413553047c47923118d048915',
+                                      'remediation_base_sha256': '71dc045af83e7cfe55369de8f6787fe3be8f92e9e393575d48f1a23d09ba3a32',
                                       'remediation_fields': {'steps': ['Configure managed query results or the '
                                                                        'required result encryption mode and key '
                                                                        'permissions.'],
@@ -2300,7 +2300,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                     'workgroups, checks that the '
                                                                                     'result encryption option is '
                                                                                     'SSE_S3, SSE_KMS or CSE_KMS.'},
-                                              'remediation_base_sha256': 'a53ce39ba52595126f39b5c4abc15b6ca4a5ebfeff1f78e8f8d0b16923d6d974',
+                                              'remediation_base_sha256': 'e8c19b34d6fb6ae1bde4924b41dcb33215890700583c900f97583395cb020b58',
                                               'remediation_fields': {'steps': ['Configure query-result encryption '
                                                                                'and its required key permissions; '
                                                                                'managed results alone do not '
@@ -2315,7 +2315,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                 'to load balancers or target '
                                                                                 'groups, checks that '
                                                                                 'HealthCheckType contains ELB.'},
-                                          'remediation_base_sha256': 'd722a5b04c892e68ad037b6859b10f92f34c778fd20914aa9342a485803bc4bb',
+                                          'remediation_base_sha256': 'f5ae2f86d9add73bdd72b3f9328f0168e23c0bf5c7d64ae6f239736b89919608',
                                           'remediation_fields': {'steps': ['Enable load-balancer health checks '
                                                                            'and test the grace period and '
                                                                            'replacement behavior before rollout.'],
@@ -2449,7 +2449,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                            'validity, guardrail configuration and '
                                                                            'effective filtering are not '
                                                                            'verified.'},
-                                     'remediation_base_sha256': '883af99fb501135de4ee1be9aef21cbc8d77ae7422948cde713cf5e0c2af8496',
+                                     'remediation_base_sha256': '8237f6bcbfad0843df61287ceaf224e1ce7adbe7d822ae66ae592633876addfe',
                                      'remediation_fields': {'steps': ['Associate the intended guardrail and '
                                                                       'version, then verify its behavior in the '
                                                                       'agent workflow.'],
@@ -2487,7 +2487,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                           'facts remain unknown '
                                                                                           'and output accuracy is '
                                                                                           'not verified.'},
-                                                    'remediation_base_sha256': 'a5d5e3aaa0713abd9092db9dafd0b45aa936f1ff9214747a004e815200b5da41',
+                                                    'remediation_base_sha256': 'efb0febf4fe0c84d9bfbc5c3c967ec5b03165de2f51b76c6debcfa15b92d8705',
                                                     'remediation_fields': {'steps': ['Configure both grounding '
                                                                                      'filters with appropriate '
                                                                                      'blocking thresholds and '
@@ -2507,7 +2507,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                         'attachment and actual '
                                                                                         'resistance to prompt '
                                                                                         'attacks are not tested.'},
-                                                  'remediation_base_sha256': '8d3374ea719ff15b355724c4807ce078eb2f08c3fd9b912ef255960180a15b86',
+                                                  'remediation_base_sha256': '48139c91139f48c73e0a6a040c20cc306ca68c973fb6cda9c605c265e5628660',
                                                   'remediation_fields': {'steps': ['Set prompt-attack filtering '
                                                                                    'appropriate for the '
                                                                                    'application and test its '
@@ -2531,7 +2531,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                   'attachment are '
                                                                                                   'not '
                                                                                                   'evaluated.'},
-                                                            'remediation_base_sha256': 'e9104dc3f7f253900ccabe8706e7dece88ed1196fa037f7d06976f1b7db65af9',
+                                                            'remediation_base_sha256': 'c7ef62cd9c5d592f31d2e60cb101ae19e8d1a161a52addbebdb96fd865a6df43',
                                                             'remediation_fields': {'steps': ['Configure '
                                                                                              'appropriate '
                                                                                              'sensitive-information '
@@ -2599,7 +2599,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                       'ARN; key usability is not tested and '
                                                                       'absence does not prove plaintext prompt '
                                                                       'storage.'},
-                                'remediation_base_sha256': '9174156359a080389ffe0fec695639cf2cb634d69328f32eb60854b324556b91',
+                                'remediation_base_sha256': '6cd6849e9ada45a79c726070d803a6d37bafc1d1c0ae0dfa41c5a47d81deb57a',
                                 'remediation_fields': {'steps': ['Associate a customer-managed key if its '
                                                                  'additional controls are required, verifying '
                                                                  'service and reader permissions.'],
@@ -2613,7 +2613,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                     'quality and security '
                                                                                     'protections are not '
                                                                                     'evaluated.'},
-                                              'remediation_base_sha256': '151d8dda1e583ee6bb5be1f7b256d765c74199ae13eda16527e09b6f79405b22',
+                                              'remediation_base_sha256': 'c6343c3d339a391867e4d143ccdf6687acd1f1920833520f6a31b28bf2d4a7a4',
                                               'remediation_fields': {'steps': ['Use managed prompts only where '
                                                                                'versioned centralized prompt '
                                                                                'management benefits the '
@@ -2631,7 +2631,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                       'grants, boundaries and '
                                                                                       'effective permissions are '
                                                                                       'not evaluated.'},
-                                                'remediation_base_sha256': '7ef8d03ccdd636d4be577012607f7d827e897a4ea28a94be7361fe9f7e669479',
+                                                'remediation_base_sha256': 'd2fa65bffeadfc453c05e9f6da213b6ed3b04168637fa63b3fed5272d5d618f9',
                                                 'remediation_fields': {'steps': ['Replace unnecessarily broad '
                                                                                  'managed-policy access with '
                                                                                  'permissions needed by the role, '
@@ -2664,7 +2664,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                 'that they are AMAZON_ISSUED; '
                                                                                 'imported certificates also fail '
                                                                                 'this criterion.'},
-                                          'remediation_base_sha256': '654e96a980653a80508e0ed174640209f7e8dd1cc6398cb3898dc22b8022520c',
+                                          'remediation_base_sha256': 'a1b554c927b773904fc71692bc682baabbdf63b4075fbb943a727c10b603e491',
                                           'remediation_fields': {'steps': ['If ACM-managed issuance is required, '
                                                                            'attach an Amazon-issued certificate '
                                                                            'matching the served domains and test '
@@ -2729,7 +2729,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                 'permissions, subscriptions and '
                                                                                 'actual notification delivery are '
                                                                                 'not verified.'},
-                                          'remediation_base_sha256': '3b5fcb343af3e7a70891216197db7d94c7d25dabc38105f7f2edf61184803716',
+                                          'remediation_base_sha256': '80b9bf9b24057834ed85e3b1eccb8d07b227af0f3edd0606e850e36e3a0ba619',
                                           'remediation_fields': {'steps': ['Configure required stack '
                                                                            'notifications and verify their '
                                                                            'destinations receive the intended '
@@ -2769,7 +2769,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                     'readiness '
                                                                                                     'are '
                                                                                                     'separate.'},
-                                                              'remediation_base_sha256': '04ec059dbf2d1e1c77d52a25132cb164dd582508e2d5da83f125e9cbf35dc17b',
+                                                              'remediation_base_sha256': '54e1247792fcca78a1ec6b2477b3cbf5e58e672969e8d85bbb6cd77f751d7a37',
                                                               'remediation_fields': {'steps': ['Enable '
                                                                                                'termination '
                                                                                                'protection on '
@@ -2800,7 +2800,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                      'recoverability '
                                                                                                      'are '
                                                                                                      'separate.'},
-                                                               'remediation_base_sha256': 'cfdb12901bbf41b303571961aead4a4cb2976cd92cba4256c983d8c17035e88b',
+                                                               'remediation_base_sha256': '1b984b38f65157529894d7cff3264202c3843497a7c952642d70378f5b63a5af',
                                                                'remediation_fields': {'steps': ['Enable '
                                                                                                 'termination '
                                                                                                 'protection for '
@@ -2822,7 +2822,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                      'uses its default viewer '
                                                                                      'certificate; it does not '
                                                                                      'test certificate validity.'},
-                                               'remediation_base_sha256': '88bbcb414a6ea61a175fc1e4f524d2f34e877a53c7e5e4e2ebca8a7ba2dba9f2',
+                                               'remediation_base_sha256': 'acca4fd0bc7e1900e359f25c996ed73e1af6221ced26e9b31206943da0c6b0a4',
                                                'remediation_fields': {'steps': ['If a custom domain requires it, '
                                                                                 'attach a matching ACM '
                                                                                 'certificate; the default '
@@ -2841,7 +2841,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                           'configuration, or a collected v2 log '
                                                                           'delivery for the CloudFront '
                                                                           'distribution.'},
-                                    'remediation_base_sha256': '2461a29d687c72bc11543823c98b6c38e23d69ba890f258f203ef14a02dae53d',
+                                    'remediation_base_sha256': '52622e082d409afb813a92c73aa07b35322fea016fd5aa93df93abaf40e2fed2',
                                     'remediation_fields': {'steps': ['Configure a supported logging destination '
                                                                      'for the distribution and verify logs arrive '
                                                                      'there.'],
@@ -2854,7 +2854,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                        'for SSLv3, TLSv1 or '
                                                                                        'TLSv1.1; S3 origins are '
                                                                                        'outside this test.'},
-                                                 'remediation_base_sha256': '24b2ea2ac1ec25bac98c58f436d02ff4900cc4f82881137cb1b61387f200d12e',
+                                                 'remediation_base_sha256': '3f76ae37a5f24722a06ec9cb64f23672db8a364dd033978fab052c7739a5a5e7',
                                                  'remediation_fields': {'steps': ['Remove deprecated protocols '
                                                                                   'from the affected custom '
                                                                                   'origins and test TLS 1.2 '
@@ -2887,7 +2887,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                      "viewer certificate's "
                                                                                      'minimum TLS version with '
                                                                                      'the reviewed policy list.'},
-                                               'remediation_base_sha256': '268017e5b6cb9c18bfd46bb3734b0804659c7093f93a768f7e4ae477ca77ba20',
+                                               'remediation_base_sha256': '6aa2f2ff3a16223bd9dc5963671972addf091bf0e787689c39db2616492571e4',
                                                'remediation_fields': {'steps': ['Select a supported modern viewer '
                                                                                 'TLS policy after checking client '
                                                                                 'compatibility.'],
@@ -2955,7 +2955,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                  'dependency '
                                                                                                  'confusion are '
                                                                                                  'not tested.'},
-                                                           'remediation_base_sha256': '515da68bd18fe0802434ca20912936719808068062e5029956c050da91922d7f',
+                                                           'remediation_base_sha256': '5a44791e34007b2871045c83983959d2710ef131d9d48374f48722ded310fbcd',
                                                            'remediation_fields': {'steps': ['Block unnecessary '
                                                                                             'external package '
                                                                                             'versions for '
@@ -3024,7 +3024,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                            'and author '
                                                                                            'permissions are not '
                                                                                            'inspected.'},
-                                                     'remediation_base_sha256': 'd94ee1405f846ee7b463cf8daf5cd58e26db85474f7c1e9460692bae9405aca4',
+                                                     'remediation_base_sha256': 'db9c9baf273b3be046b35c609903d8ed4df95200b3961f0346f9d2c3deb86651',
                                                      'remediation_fields': {'steps': ['Review who can edit the '
                                                                                       'buildspec and its '
                                                                                       'execution role; use a '
@@ -3042,7 +3042,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                     '.yaml and omitted defaults '
                                                                                     'pass, and author permissions '
                                                                                     'are not inspected.'},
-                                              'remediation_base_sha256': 'c94e8a38bbd63295222bf1268533f272cd4e31a91365407314c7fdd8cabeb634',
+                                              'remediation_base_sha256': '428a1d50871cafcd648dbdcff404388929eea67d3da37553fe6527911825547a',
                                               'remediation_fields': {'steps': ['Review buildspec write '
                                                                                'permissions and the execution '
                                                                                'role; use a protected build '
@@ -3093,7 +3093,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                               'credential '
                                                                                               'validity are not '
                                                                                               'inspected.'},
-                                                        'remediation_base_sha256': 'e3e54c2c684f5787ca4971312c04282c515e015d7be242708aabf3cdcb51222c',
+                                                        'remediation_base_sha256': 'ea79c4d195f815fef394636c3889e0e3769e6c027669aab37eb0e958db611c65',
                                                         'remediation_fields': {'steps': ['Move genuinely '
                                                                                          'sensitive variables to '
                                                                                          'Secrets Manager or '
@@ -3114,7 +3114,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                              'results, logs or artifacts, but '
                                                                              'their contents and credentials are '
                                                                              'not inspected.'},
-                                       'remediation_base_sha256': '49824dbcd3a20f52205e58f7fb0c49732f9ecf885d9729cab107b6ea1cb54cad',
+                                       'remediation_base_sha256': 'd134f48aeb22dffe3bb40d81779ef50a6bc11abe38107189bfc91655d98a42be',
                                        'remediation_fields': {'steps': ['Set visibility to PRIVATE unless these '
                                                                         'build outputs are intentionally public; '
                                                                         'review access before changing publishing '
@@ -3130,7 +3130,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                            "destination's "
                                                                                            'encryptionDisabled '
                                                                                            'flag.'},
-                                                     'remediation_base_sha256': '2f3ecdc87d7f79a55bfc708ca7bb19f30dd40a774fc35e07a4cba892eda7bee9',
+                                                     'remediation_base_sha256': 'b62060785a303fc89cf109f60048747f487ffef68d40f4d965a45897a962f604',
                                                      'remediation_fields': {'steps': ['Enable encryption on the '
                                                                                       "report group's S3 export "
                                                                                       'configuration; preserve '
@@ -3149,7 +3149,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                             'is false; disabled '
                                                                                             'S3 logging is '
                                                                                             'skipped.'},
-                                                      'remediation_base_sha256': '8939e5f99b991428a545a88f7bca16d51b6550963d4b25f39e3f53676bf5d539',
+                                                      'remediation_base_sha256': '6f3558da13fe832cca880411dfecc351eb72b6448456a30014a4f8be9a058b6d',
                                                       'remediation_fields': {'steps': ['Enable encryption for the '
                                                                                        "project's S3 logs while "
                                                                                        'preserving the '
@@ -3167,7 +3167,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                'authType=OAUTH; project-specific '
                                                                                'effective credential selection is '
                                                                                'not proven.'},
-                                         'remediation_base_sha256': '44ffb8d51cd932e8bdaafd25b4d7d68bcc8ad78219c8997cb4a767a6aaf557bc',
+                                         'remediation_base_sha256': '4b682a2b1acdcd7935cdf583ef3d8445f727de127860442223274b5fb8e07716',
                                          'remediation_fields': {'steps': ['Use a supported source connection and '
                                                                           'review matching source credentials; '
                                                                           'replace inappropriate long-lived '
@@ -3187,7 +3187,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                        'kind, never credential '
                                                                                        'values or token '
                                                                                        'validity.'},
-                                                 'remediation_base_sha256': '104baf3e3f64bb2f85950bd3f837b6cfaa357fdbd2318c71f334d72b9f6a727b',
+                                                 'remediation_base_sha256': 'd6a49cf38d57588d487cb76a1b31dd1c2d1f406269b6a6010ed6b1aa6cbba26a',
                                                  'remediation_fields': {'steps': ['Remove embedded credentials '
                                                                                   'from source URLs, rotate '
                                                                                   'affected credentials and use a '
@@ -3221,7 +3221,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                      'custom configuration '
                                                                                      'contents and deployment '
                                                                                      'health are not inspected.'},
-                                               'remediation_base_sha256': '6e835df83d3e755dca52e5a3c54985c62bde5f43942c8c093c937efa5a4a4359',
+                                               'remediation_base_sha256': 'c800785115fb9f8bb8087967e0be62fd95ca81df872e8423be356dd845f46f1a',
                                                'remediation_fields': {'steps': ['Consider a canary or linear '
                                                                                 'rollout when a full traffic '
                                                                                 'switch creates unacceptable '
@@ -3286,7 +3286,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                   'user pool; rule coverage, '
                                                                                   'bypasses and actual request '
                                                                                   'blocking are not tested.'},
-                                            'remediation_base_sha256': '08a58f3203fb35419a202e4138bff780591a553b680f8cbd2d3a853b3a83665a',
+                                            'remediation_base_sha256': '1eb655ede02cfad5e1bb78a02a2ae577d157f379853019326e90954728e09823',
                                             'remediation_fields': {'steps': ['Associate an appropriate web ACL if '
                                                                              'protection is required and verify '
                                                                              'its rules and legitimate sign-in '
@@ -3301,7 +3301,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                              'value true; log delivery, '
                                                                              'flow-specific logging and sensitive '
                                                                              'content are not inspected.'},
-                                       'remediation_base_sha256': '983289f0a20ccdf410b7cfa9feb20b3bc8738d1492bbf6f2b225edff269e9ad1',
+                                       'remediation_base_sha256': 'ae4a9de7d6aa734ddeb3f1af486182089857c6cf1e14f1e39301156a1641ed32',
                                        'remediation_fields': {'steps': ['Enable contact-flow logging where needed '
                                                                         'and verify delivery with appropriate '
                                                                         'sensitive-data handling.'],
@@ -3312,7 +3312,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                     'description_fields': {'description': "Checks whether the DAX cluster's "
                                                                           'reported server-side encryption status '
                                                                           'is ENABLED.'},
-                                    'remediation_base_sha256': 'd196271c74b5ed0263b5f33c5f6aa35ae795dfa6c6139be66858f2b9b5904151',
+                                    'remediation_base_sha256': 'a771223e31457c3b431280ec14d233c7f17ccbb125d3a8a5b4e9312f6282a397',
                                     'remediation_fields': {'steps': ['Create an encrypted replacement DAX cluster '
                                                                      'and migrate clients after testing.'],
                                                            'summary': 'Create an encrypted replacement DAX '
@@ -3321,7 +3321,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
  'aws.c2b.dax.encryption_in_transit': {'description_base_sha256': 'e5420f3c77e3d2a605cada980e62f7866a30ae1b146fd69f121bb04bc5109c89',
                                        'description_fields': {'description': 'Reads whether the DAX cluster '
                                                                              'endpoint encryption type is TLS.'},
-                                       'remediation_base_sha256': '90177c6a299f1b3ae92a35e786fedf9f8d584dde69a73e6ad333a07c6205cc88',
+                                       'remediation_base_sha256': '97bd0a2f011364d9278afa3f61de9cf3a82f3c6e1cd680b592db0fdd9f73da88',
                                        'remediation_fields': {'steps': ['Create a TLS-enabled replacement cluster '
                                                                         'and migrate clients with compatible TLS '
                                                                         'settings.'],
@@ -3393,7 +3393,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                    'retention, permissions and '
                                                                                    'actual event delivery are not '
                                                                                    'verified.'},
-                                             'remediation_base_sha256': '27fed095fac3b7e88128fd5bdff8e6c49c15d90c2afbab64a2d14d461550e226',
+                                             'remediation_base_sha256': '19fff009f504de973e618061a6f36ff347148232580ba61e9da5a7b6a24a5dcb',
                                              'remediation_fields': {'steps': ['Configure directory log forwarding '
                                                                               'where needed and verify the '
                                                                               'destination receives the required '
@@ -3431,7 +3431,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                        'status does not prove '
                                                                                        'every user or sign-in '
                                                                                        'requires MFA.'},
-                                                 'remediation_base_sha256': '40d82cab1b379a4716cc58a0d28184a8b008e59bf66d923ec143363e3170f5af',
+                                                 'remediation_base_sha256': '0b3cdc437ea77826a3d6c5e00cd8ee37cbad97add568423b4ddf2d36f242e021',
                                                  'remediation_fields': {'steps': ['Complete and verify RADIUS MFA '
                                                                                   'configuration, checking the '
                                                                                   'intended users and sign-in '
@@ -3448,7 +3448,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                      'not applicable and '
                                                                                      'successful MFA challenges '
                                                                                      'are not tested.'},
-                                               'remediation_base_sha256': 'fd1b1f2a9cd1eac49a56bd56688f2548ff44ff7f3790e1cb2ee01bdbbfd0e62d',
+                                               'remediation_base_sha256': '7210be6c822e8ae8a3be57d1a0b8323f06e16f45ab38bf95b7fad7d86852fb15',
                                                'remediation_fields': {'steps': ['Use the required compatible '
                                                                                 'RADIUS authentication protocol '
                                                                                 'and verify authentication with '
@@ -3465,7 +3465,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                       'subscription confirmation '
                                                                                       'and notification delivery '
                                                                                       'are not verified.'},
-                                                'remediation_base_sha256': 'a2f83cebab1694bead3f489934525ef830b13796e602fff0fa142304e2c2a71e',
+                                                'remediation_base_sha256': 'd441d1edf57374b7cd2fa52588ca4a775f18ee90c318bcb4eee8b6fd5836a1f0',
                                                 'remediation_fields': {'steps': ['Configure required directory '
                                                                                  'notifications and verify the '
                                                                                  'intended subscribers receive '
@@ -3493,7 +3493,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                               'parameter; disabled and legacy '
                                                                               'enabled modes fail the reviewed '
                                                                               'TLS-mode requirement.'},
-                                        'remediation_base_sha256': '032f0030634ca3ead21b1d11b85835c975b0f71c3473f0a9f81904878d288727',
+                                        'remediation_base_sha256': 'f2ffc86ccd700ff000939de9414f6cc2f738f4c4d8a256f414cc6a3280032c3f',
                                         'remediation_fields': {'steps': ['Select the required modern TLS mode in '
                                                                          'the cluster parameter group and test '
                                                                          'clients before applying it.'],
@@ -3525,7 +3525,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                   'resource; backups and '
                                                                                   'recoverability are not '
                                                                                   'tested.'},
-                                            'remediation_base_sha256': '33c9ff1a1e63e07d7a3c7286c5b233a3017bf6f42eed36a31ff52a8f92a100ad',
+                                            'remediation_base_sha256': '3dd84c70b7870ba509da4c28880fa91688ad12942fa9d494163d5035b921906e',
                                             'remediation_fields': {'steps': ['Enable deletion protection to '
                                                                              'reduce accidental deletion.'],
                                                                    'summary': 'Enable deletion protection to '
@@ -3564,7 +3564,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                    'continuous-all default; '
                                                                                    'completed scans and findings '
                                                                                    'are not verified.'},
-                                             'remediation_base_sha256': '7343e481aa84119c14564a2a57498d34c43eaa93e0d23a0acf44a42ebd4f7de3',
+                                             'remediation_base_sha256': '913faad04f200c4de8192b5d23f9fa714e554d95a63b911a0cff653d148dfb89',
                                              'remediation_fields': {'steps': ['Configure automatic scanning rules '
                                                                               'covering intended repositories and '
                                                                               'verify actual scan completion and '
@@ -3580,7 +3580,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                   'filter coverage, completed '
                                                                                   'scans and vulnerability '
                                                                                   'results are not inspected.'},
-                                            'remediation_base_sha256': '25f518a2767da3f91fa947862b098d876d6122a034cfc342c88221bb8ff8baef',
+                                            'remediation_base_sha256': '6c49ebc164c4d642449b2674c03232313895eb90757dd0ae9bd95780e397ef88',
                                             'remediation_fields': {'steps': ['Enable enhanced scanning if its '
                                                                              'coverage is required, checking cost '
                                                                              'and repository-specific rules '
@@ -3596,7 +3596,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                              'policies are not applicable and '
                                                                              'other permission layers are not '
                                                                              'evaluated.'},
-                                       'remediation_base_sha256': '35bff2d62aeae7e141740b6c262dbf5bd48caafde8590e6ce130f1b92434694d',
+                                       'remediation_base_sha256': '754b5e3e2ae70e3387373179890cd4a7fa0c45275f23c08347b70ef6a0814ce5',
                                        'remediation_fields': {'steps': ['Restrict unnecessary public '
                                                                         'repository-policy grants to required '
                                                                         'accounts or roles, preserving intended '
@@ -3618,7 +3618,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                'test, not proof '
                                                                                                'of effective '
                                                                                                'public access.'},
-                                                         'remediation_base_sha256': '4bc0795f320ae95090725e348761bb9111788f710be1b3f0fa2e327c18b91ea6',
+                                                         'remediation_base_sha256': '68cb58ad38165897c31506e0b9699a3c3d5dffbfd316c18187ed120348bf4544',
                                                          'remediation_fields': {'steps': ['Review matching '
                                                                                           'statements and their '
                                                                                           'conditions; restrict '
@@ -3651,7 +3651,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                    'image access '
                                                                                                    'is not '
                                                                                                    'tested.'},
-                                                             'remediation_base_sha256': '1439b8c1c8d174a4b832a91656b59d75b8d5abcd2b53aaacba6affef167b554a',
+                                                             'remediation_base_sha256': '5d82222da7c5dae709866c9a0bae44ffd6da194e0d6909e31af759f0743ef973',
                                                              'remediation_fields': {'steps': ['Restrict '
                                                                                               'unnecessary public '
                                                                                               'grants or apply '
@@ -3675,7 +3675,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                               'task-definition container has a '
                                                                               'configured log driver; it does not '
                                                                               'verify log delivery.'},
-                                        'remediation_base_sha256': 'a2bcfe71bf98407bcec52f3e5106c15ff42f94f95d41ae3c9d9fc425399c0698',
+                                        'remediation_base_sha256': '46737544341d4c2dad1a70f8b7ad4a1e5b78df9ac648c6df3c97aae1343d80a8',
                                         'remediation_fields': {'steps': ['Add an appropriate log driver to each '
                                                                          'affected container and verify its '
                                                                          'destination permissions and delivery.'],
@@ -3688,7 +3688,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                    'task definition and checks '
                                                                                    'public-IP assignment only '
                                                                                    'when networkMode is awsvpc.'},
-                                             'remediation_base_sha256': '92adcd1bd3d7281922bbe3a2adbfc8a623eaa421c4ca99d2bf9a4aee30abf1a9',
+                                             'remediation_base_sha256': '3a299d468174646db99d03c1879027efed2fdb971790f70bac6baddfeb33b08a',
                                              'remediation_fields': {'steps': ['Disable public-IP assignment for '
                                                                               'this service if direct public '
                                                                               'access is unnecessary; preserve '
@@ -3720,7 +3720,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                               'identifies nonprivileged '
                                                                               'containers whose user is root, UID '
                                                                               '0 or unspecified.'},
-                                        'remediation_base_sha256': '511d42d1e07b817ab0fce3f6058dbeb8d745a59e6ea723e3a233282c43fa3f31',
+                                        'remediation_base_sha256': 'e20aceb1a8be6c15e814c09d11e717c40d0de28d52a3479124998155d588535f',
                                         'remediation_fields': {'steps': ['Run the affected containers as a '
                                                                          'dedicated nonroot user; retain host '
                                                                          'networking only when required.'],
@@ -3731,7 +3731,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                       'description_fields': {'description': 'Checks log-enabled ECS containers '
                                                                             'for non-blocking mode, including the '
                                                                             'inherited account setting.'},
-                                      'remediation_base_sha256': '11d0861a5457721aa4301ae86bcce705ccb6b672bb6909d026665fd79eb5643b',
+                                      'remediation_base_sha256': '565b750802f5f25389ba829f70d3f530a269fad3d9db5d287bae0366af6a101d',
                                       'remediation_fields': {'steps': ["Set the affected containers' log-driver "
                                                                        'mode to non-blocking, or change the '
                                                                        'account default if appropriate for all '
@@ -3743,7 +3743,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
  'aws.c2b.ecs.service_no_public_ip': {'description_base_sha256': 'b2603250955ae6739ea4f31150d1206be8f73ef6a9403d5faf912c9dd7b4af23',
                                       'description_fields': {'description': 'Reads public-IP assignment in the '
                                                                             "ECS service's awsvpc configuration."},
-                                      'remediation_base_sha256': '4d5d3c7a5238d70c2df6a76cf32c3d33aec150caf180562f1a51f86286eea5c3',
+                                      'remediation_base_sha256': '250375c6eb3e934c2cd708cca338e0073645e03cecda7ca96006b8b4cbf5fd13',
                                       'remediation_fields': {'steps': ['Disable public-IP assignment if direct '
                                                                        'public access is unnecessary; preserve '
                                                                        'required outbound connectivity.'],
@@ -3825,7 +3825,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                            'condition; full EFS action and '
                                                                            'resource coverage is not established '
                                                                            'by this predicate.'},
-                                     'remediation_base_sha256': '67ddef167ccc1e44cef9da833d48e253d253f1d58cb2298ea29a5327079f1ec2',
+                                     'remediation_base_sha256': 'aeb85c97ff7917c706bb898a8031b9dfc0f5035883931627cfdea241cd818197',
                                      'remediation_fields': {'steps': ['Require TLS in the file-system policy for '
                                                                       'the relevant EFS client actions and test '
                                                                       'clients using TLS mounts.'],
@@ -3839,7 +3839,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                       'condition; it does not '
                                                                                       'prove approved principals '
                                                                                       'or reachable clients.'},
-                                                'remediation_base_sha256': '5d93e401fcc9df8f410964caddcd48eab5d2b0af4ea52d0d4985d74aa1e97182',
+                                                'remediation_base_sha256': '6d3b395c16bc92585105756fe4a24827210bf701600570ca9fb7b51bd57cafc0',
                                                 'remediation_fields': {'steps': ['Restrict the file-system policy '
                                                                                  'to the clients that need access '
                                                                                  'and require mount-target access '
@@ -3855,7 +3855,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                'an enabled public EKS endpoint; '
                                                                                'other CIDR forms are not '
                                                                                'evaluated by this predicate.'},
-                                         'remediation_base_sha256': '410fad12feb297d3e97ae5b3b58300c1cd5168525bd5dec37515f2a377b8d31e',
+                                         'remediation_base_sha256': '51c849eb8b35344ef853bc0bd2d4fd47e9782a22fdc08aaa55407dc48be3ce0e',
                                          'remediation_fields': {'steps': ['Restrict public endpoint source ranges '
                                                                           'to administrator networks, or use a '
                                                                           'tested private endpoint connection.'],
@@ -3869,7 +3869,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                               'configuration; missing or '
                                                                               'unrecognized settings require '
                                                                               'review.'},
-                                        'remediation_base_sha256': '175734158dc24b9949f74d964fd21cbd0945bb31df49c5aa5a472df445bf6599',
+                                        'remediation_base_sha256': 'e25b0f88a1b7e9499bb5a1ed053ea11feb2af17a9716f9c76d120cf430d4e9c0',
                                         'remediation_fields': {'steps': ['Enable network-policy support in the '
                                                                          'VPC CNI add-on and apply the policies '
                                                                          'needed by your workloads.'],
@@ -3885,7 +3885,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                              'versions and patch '
                                                                                              'availability are '
                                                                                              'not assessed.'},
-                                                       'remediation_base_sha256': '6af0d5c543b320990f989fd011673b258a68932ef557450a70cd486138bac637',
+                                                       'remediation_base_sha256': 'db76f63d60032d9d1160d522fa6e35a9a8835104b1cae409bd308df4303d7180',
                                                        'remediation_fields': {'steps': ['Enable automatic '
                                                                                         'minor-version upgrades '
                                                                                         'after testing '
@@ -3904,7 +3904,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                      'description_fields': {'description': 'Reads the reported Multi-AZ setting; '
                                                                            'availability-zone placement and '
                                                                            'successful failover are not tested.'},
-                                     'remediation_base_sha256': 'cb7f508ef6bdc2decda39d8708d1b88e7d6fc75e8de4f684ad90cb94d1c0561b',
+                                     'remediation_base_sha256': '0bb39f3b3d24af957387a6d28ea505ea4c33ac7fe393489b3d552f6e19a110c9',
                                      'remediation_fields': {'steps': ['Configure supported Multi-AZ deployment if '
                                                                       'required for availability, planning the '
                                                                       'cost and maintenance impact.'],
@@ -3916,7 +3916,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                    'default actions for an HTTPS '
                                                                                    'redirect; conditional rules '
                                                                                    'are outside this variant.'},
-                                             'remediation_base_sha256': '42c5c3bb67b6955dd14b17451c96fae147219a3264b4b0ab0e5234cd79e02bb6',
+                                             'remediation_base_sha256': 'a8129342baa4f621ef83e1f2acffa1c2c8196ff48e0398abb417407f8d3206b0',
                                              'remediation_fields': {'steps': ["Set the affected HTTP listener's "
                                                                               'default routing action to redirect '
                                                                               'to HTTPS after checking client '
@@ -3945,7 +3945,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                     'description_fields': {'description': 'Checks whether an ALB is associated '
                                                                           'with a collected regional WAF or WAFv2 '
                                                                           'WebACL.'},
-                                    'remediation_base_sha256': '9814d14e4096c9837d446c4ae121a70a363fa7acce68d69aadf1162ad2d3770c',
+                                    'remediation_base_sha256': '407b44822713bcaa8f2fe1ff2546720967264fc815650c94501882c2eed20f7b',
                                     'remediation_fields': {'steps': ['Associate the appropriate WebACL when the '
                                                                      'application needs it and test its effect on '
                                                                      'legitimate requests.'],
@@ -3957,7 +3957,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                             'with a collected WAFv2 WebACL; it '
                                                                             "does not test the WebACL's "
                                                                             'protections.'},
-                                      'remediation_base_sha256': '36e7a845ec31c9844de02d3695bae494b24416b1f0e2b364b386e8c5261d2b39',
+                                      'remediation_base_sha256': '16180f2c9de4a564272651040261db63147143a999e615cd364352b70512c8d1',
                                       'remediation_fields': {'steps': ['Associate an appropriate WAFv2 WebACL '
                                                                        'when the application needs it, then test '
                                                                        'legitimate traffic and rule behavior.'],
@@ -3967,7 +3967,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
  'aws.c2b.elbv2.has_listeners': {'description_base_sha256': 'c05a702bfcedb15135c62f404e8a29bdf71765223666b1b5191d441e7a60ff1c',
                                  'description_fields': {'description': 'Checks that the ELBv2 listener inventory '
                                                                        'is nonempty.'},
-                                 'remediation_base_sha256': '283875c9db86bdc1ca171139cc22f0adef3320626b04d372ff9bf719ff5b0314',
+                                 'remediation_base_sha256': '9f93229f8092ff99cf80c8ac7ca093c42ad6db7518092a666f00e7e0a692b4df',
                                  'remediation_fields': {'steps': ['Create the listeners required by the service, '
                                                                   'or retire an unused load balancer after '
                                                                   'checking dependencies.'],
@@ -3982,7 +3982,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                        'redirection; missing or '
                                                                                        'inconsistent rules remain '
                                                                                        'UNKNOWN.'},
-                                                 'remediation_base_sha256': '0d2ce732b0255cdf3ab863567e216e3583dfa3308c9ce28bcfc7b0f2db76dc5c',
+                                                 'remediation_base_sha256': '773d1e3e5944e35eda86b1bd6545154b7d0ba51f32c87e1343e43b7a876f28bb',
                                                  'remediation_fields': {'steps': ['Set every affected HTTP '
                                                                                   'listener routing action, '
                                                                                   'including its default, to '
@@ -3996,7 +3996,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                               'with the reviewed secure-policy '
                                                                               'list; TLS and plaintext listeners '
                                                                               'are outside this variant.'},
-                                        'remediation_base_sha256': 'da85e2555de88f124bab81fc2bc56b67af93dcea6fa4552aa80abdb8f9054c3a',
+                                        'remediation_base_sha256': '0971c23626ff8850932a4b262888c1392435597ca034afb8b05ff32fcf9f1b31',
                                         'remediation_fields': {'steps': ['Choose a compatible secure TLS policy '
                                                                          'for affected HTTPS listeners and test '
                                                                          'clients.'],
@@ -4025,7 +4025,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                       '30-day threshold; '
                                                                                       'unresolved expiry remains '
                                                                                       'UNKNOWN.'},
-                                                'remediation_base_sha256': '458c79f1b1a675f54854ff311d648eb2182fabb5ce27487a8072919c74481ccf',
+                                                'remediation_base_sha256': '479b9fbeae9407746bc0142f7be09c2bc8e26f02c542756d811921272f592ae1',
                                                 'remediation_fields': {'steps': ['Renew the affected certificate '
                                                                                  'and ensure the listener uses '
                                                                                  'the renewed certificate before '
@@ -4040,7 +4040,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                      'their expiry against a '
                                                                                      '7-day threshold; unresolved '
                                                                                      'expiry remains UNKNOWN.'},
-                                               'remediation_base_sha256': 'bfe5197b8fca63dec15583fd0e064411bca4cc63c388e96b71c19a1cd7884a03',
+                                               'remediation_base_sha256': '548fc00a6d5a5977a960358a2dbec98a8e276e58e5708435dd3d41bc8fd04539',
                                                'remediation_fields': {'steps': ['Renew the affected certificate '
                                                                                 'urgently and ensure the listener '
                                                                                 'uses the renewed certificate '
@@ -4055,7 +4055,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                            'policy name contains the FIPS marker; '
                                                                            'plaintext listeners are outside this '
                                                                            'check.'},
-                                     'remediation_base_sha256': '5351cf5271a3551d3bbf7c19ea5157287720c46141214e1ca8356a00d649e911',
+                                     'remediation_base_sha256': '1bcf775e7a779e529c69cf010d5e8eca442496193ebf9629373309d1b24ae4de',
                                      'remediation_fields': {'steps': ['If FIPS is required, select a compatible '
                                                                       'FIPS listener policy and test clients; '
                                                                       'assess plaintext listeners separately.'],
@@ -4067,7 +4067,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                           'with the reviewed post-quantum policy '
                                                                           'list; plaintext listeners are outside '
                                                                           'this check.'},
-                                    'remediation_base_sha256': '391f3ec8461b5103bf9e7b652ace11c921fa30d554b7717cede777dbf0d6d890',
+                                    'remediation_base_sha256': 'bb06237dde943be8428cd4dc9fb74875b558f669c084bc3d246ef645133e5b88',
                                     'remediation_fields': {'steps': ['Select a compatible post-quantum TLS policy '
                                                                      'if required, and test clients before '
                                                                      'changing listener policy.'],
@@ -4081,7 +4081,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                    'listeners also fail this '
                                                                                    'certificate-presence '
                                                                                    'criterion.'},
-                                             'remediation_base_sha256': '4864f920e42d861ec504852689f9247b794e8afe44eb55e951696f3c66d24af5',
+                                             'remediation_base_sha256': 'b7ab3bcca73904d0b889a55002ee34976b1b287a6ac5babb84bdaf9ee026e5fa',
                                              'remediation_fields': {'steps': ['Attach an appropriate ACM '
                                                                               'certificate to TLS-terminating '
                                                                               'listeners; assess intentional '
@@ -4099,7 +4099,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                              'listener terminates TLS; TCP '
                                                                              'pass-through alone does not satisfy '
                                                                              'this criterion.'},
-                                       'remediation_base_sha256': 'ba620555e084e492d98470f62a1253c8613634d7c2b62228d9baa76c5f43f730',
+                                       'remediation_base_sha256': '5223719157993adb9e4e326e225cdde992d2cbfa1c67948715d0aa75e20f0d7c',
                                        'remediation_fields': {'steps': ['Add TLS termination only if required by '
                                                                         'the service design; verify backend TLS '
                                                                         'independently when preserving TCP '
@@ -4127,7 +4127,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                 'reviewed recommendation table; '
                                                                                 'unknown policies remain '
                                                                                 'UNKNOWN.'},
-                                          'remediation_base_sha256': '337db4f184e37ad59c0e893526f6c479a968b780b8744561dd49596f30bd60bb',
+                                          'remediation_base_sha256': 'bb03601841e9c36f4c9eacdec5d93065c079b7592e227f493fd8c64d7ac7d6ad',
                                           'remediation_fields': {'steps': ['Use an appropriate current TLS policy '
                                                                            'on each affected listener after '
                                                                            'checking client compatibility.'],
@@ -4142,7 +4142,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                         'ranges contain only '
                                                                                         'individual port 22 '
                                                                                         'entries.'},
-                                                  'remediation_base_sha256': 'e06ace0c07d33f66b18603cf0bb4f75062dc781886157aebde75023b6031cb68',
+                                                  'remediation_base_sha256': '1a2d3c24943a127bb07288916b61c937b8c39fd4f95a7f9bf7514dcff224e54d',
                                                   'remediation_fields': {'steps': ['Enable EMR Block Public '
                                                                                    'Access and remove unnecessary '
                                                                                    'permitted port ranges; '
@@ -4318,7 +4318,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                            'intentional and other '
                                                                                            'permission layers are '
                                                                                            'not evaluated.'},
-                                                     'remediation_base_sha256': 'ba877feaaee5d2248530496d05e2e5c7d6573e00c4a861afd1282f6a11d55ec9',
+                                                     'remediation_base_sha256': '88aeeae09157e5f8851927c6bde6c22a6ee25cf13c7147e508b5712ab765a895',
                                                      'remediation_fields': {'steps': ['Review external-account '
                                                                                       'grants and restrict those '
                                                                                       'unnecessary for intended '
@@ -4332,7 +4332,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                      "bus's declared policy for "
                                                                                      'public access; an absent '
                                                                                      'policy passes this check.'},
-                                               'remediation_base_sha256': '7409e388af8144e1a7536b665f930e78b297d4fb0ca8fc729d230e991dacce9e',
+                                               'remediation_base_sha256': '9bb21ba6cee3edf5b63b8b10aa93307246478d670d797e56c167ab27129e54ca',
                                                'remediation_fields': {'steps': ['Remove unnecessary public bus '
                                                                                 'grants or restrict them to the '
                                                                                 'accounts and conditions required '
@@ -4359,7 +4359,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                     'and event '
                                                                                                     'delivery is '
                                                                                                     'not tested.'},
-                                                              'remediation_base_sha256': 'b2a185c06d296554df3e09cf80a8728484cc75b04059bf0d5f1dc0c8065cc38a',
+                                                              'remediation_base_sha256': 'e5e14ab82e7ad11d5fb2d1e9283606008eb3ca576bc5c31e240805a5ee64f4b5',
                                                               'remediation_fields': {'steps': ['Restrict '
                                                                                                'unnecessary '
                                                                                                'public principals '
@@ -4385,7 +4385,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                           'public access or '
                                                                                           'unusable same-account '
                                                                                           'access.'},
-                                                    'remediation_base_sha256': 'cffee5107121951defde3ae3222d62510be3c8862dcf4fcaafeae4d52412eeca',
+                                                    'remediation_base_sha256': '72fc498b42dfb964722446604f8951c3c306a5f26a80bf84df478841ac02f8be',
                                                     'remediation_fields': {'steps': ['Add a restrictive resource '
                                                                                      'policy only when needed for '
                                                                                      'the intended event '
@@ -4463,7 +4463,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                  'description_fields': {'description': 'For Lambda functions with environment '
                                                                        'variables, checks for a configured '
                                                                        'customer-managed KMS key ARN.'},
-                                 'remediation_base_sha256': '2f2304eea77e21cde0481ee1e7f4170aad2303f571110b06fa0bbe2c59762fff',
+                                 'remediation_base_sha256': '33dc0ae2c23b2bd3f91d17e21cc94ecf06ed9811bfc601819f6a9cd1e63fbf57',
                                  'remediation_fields': {'steps': ['If a dedicated key is required, configure '
                                                                   'KMSKeyArn and grant the function and '
                                                                   'administrators the required key permissions.'],
@@ -4477,7 +4477,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                             'a policy are skipped and '
                                                                             'cross-account grants may be '
                                                                             'allowed.'},
-                                      'remediation_base_sha256': '2351d546533b8cb20df7d6e4bb65951da536b053970ff0ce60e4bc5a359db487',
+                                      'remediation_base_sha256': '04ddbc03cd4e66765d61a17e7711d9a8b144e6b1dd50e77a3ca57643fbe28885',
                                       'remediation_fields': {'steps': ['Remove unnecessary public invocation '
                                                                        'grants or restrict them with the source '
                                                                        'account, resource or organization '
@@ -4521,7 +4521,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                             'DISABLED; unresolved '
                                                                                             'configurations are '
                                                                                             'skipped.'},
-                                                      'remediation_base_sha256': 'f6ce2b950db5e563ab136ae21fd186bbb00190921b62346515631e0b3f4b3d07',
+                                                      'remediation_base_sha256': 'a463063cd989041952d05b3610fd5bfee7b6bc9ae72bcf15634377c86cd1ebd6',
                                                       'remediation_fields': {'steps': ['Enable the required S3 '
                                                                                        'encryption modes in the '
                                                                                        "endpoint's security "
@@ -4540,7 +4540,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                    'joined security configuration '
                                                                                    'for DISABLED; unresolved '
                                                                                    'configurations are skipped.'},
-                                             'remediation_base_sha256': '1e0b0e8bfc8c01b32f4d540482488211f49f37e5bb22b1fadede37ad1cae5780',
+                                             'remediation_base_sha256': '71696b4062e9988188f9e1bd20dc397c9ee5461d76232157d9ef35613b0927f1',
                                              'remediation_fields': {'steps': ['Enable the required S3 encryption '
                                                                               "modes in the job's security "
                                                                               'configuration and verify the '
@@ -4556,7 +4556,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                     'configuration, or its sse-s3 '
                                                                                     'default argument when no '
                                                                                     'configuration resolves.'},
-                                              'remediation_base_sha256': 'ee64d9c00cc7081eec1cdbcd20fb9ec7d7336216b3bf8aa30809f4b6d8c80136',
+                                              'remediation_base_sha256': '27ff51435fa28b024ad039cc3258f4b2a991fc0a38fd0c2d436494d1b15d47a5',
                                               'remediation_fields': {'steps': ['Configure the required S3 '
                                                                                "encryption mode in the job's "
                                                                                'security configuration; review '
@@ -4772,7 +4772,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                              'broker listeners, credentials and a '
                                                                              'complete reachable path are not '
                                                                              'evaluated.'},
-                                       'remediation_base_sha256': 'caad9a35b6f28062a3af96f13a9ae583a6aee8f31c8a81df4f2f85af95e60779',
+                                       'remediation_base_sha256': 'cc903256d395f1ac12baf043ca73f112f85decf0fe0fa1d7408f30412d3c9f08',
                                        'remediation_fields': {'steps': ['Create a private replacement broker if '
                                                                         'public access is unnecessary, then '
                                                                         'migrate and verify clients before '
@@ -4800,7 +4800,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                 'copied to snapshots; snapshot '
                                                                                 'contents, encryption and restore '
                                                                                 'success are not evaluated.'},
-                                          'remediation_base_sha256': 'ba2da0c3195b462edb5f1e280c72ccee252e4cf5cd176228936d6a62ec1e2895',
+                                          'remediation_base_sha256': '184440809f0e0be6a3d030aa6a74656c605eec1052475b43e235a8e6bbf2bcef',
                                           'remediation_fields': {'steps': ['Enable copying tags to snapshots when '
                                                                            'snapshot ownership or lifecycle '
                                                                            'management depends on those tags.'],
@@ -4812,7 +4812,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                               'is enabled on this resource; '
                                                                               'backups and recoverability are not '
                                                                               'tested.'},
-                                        'remediation_base_sha256': 'bbf07e29b931be2f9c9207c40be7e1940ed2f2eeefd56d551ee4a93301891a52',
+                                        'remediation_base_sha256': 'cd772304a662d88a4717bf08a6606f2590708fda0a776c95be42d325c6ef74f1',
                                         'remediation_fields': {'steps': ['Enable deletion protection to reduce '
                                                                          'accidental deletion.'],
                                                                'summary': 'Enable deletion protection to reduce '
@@ -4823,7 +4823,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                              'authentication methods and '
                                                                              'effective database grants are not '
                                                                              'evaluated.'},
-                                       'remediation_base_sha256': '87755528d80766ee76060034d2adb9fdc4725036589c4d397332780194173fd9',
+                                       'remediation_base_sha256': '1280f04efc1061864a8c68978874f3f35f4624660e568f1947a44c58f8be54d5',
                                        'remediation_fields': {'steps': ['Enable IAM database authentication if '
                                                                         'supported and required by the '
                                                                         'application; migrate and test clients '
@@ -4922,7 +4922,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                  'version upgrades; the installed '
                                                                                  'version and available patches '
                                                                                  'are not assessed.'},
-                                           'remediation_base_sha256': '22530938764403b5cdaa1e5490cdf3a8c497b0e68ddc0dbff35ed7fc1dace924',
+                                           'remediation_base_sha256': 'f059c3f23e801fac8d8dbf04b26d7656197b1516647e0f02f8bfbc44eb84376f',
                                            'remediation_fields': {'steps': ['Allow version upgrades after testing '
                                                                             'workload compatibility and planning '
                                                                             'the maintenance window.'],
@@ -4933,7 +4933,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                'description_fields': {'description': 'Reads the Redshift cluster encryption flag; '
                                                                      'key access and restore success are not '
                                                                      'tested.'},
-                               'remediation_base_sha256': '6dad45bdd251eb9a6a169c0e0a9e852f41ccd1b5afd6318dee0de26f8a32957d',
+                               'remediation_base_sha256': 'ca5babe0cb52973353bd8f69907dc861382fef07fa8812d39afe7d37b292a0d2',
                                'remediation_fields': {'steps': ['Enable cluster encryption through a supported '
                                                                 'modification or encrypted migration, planning '
                                                                 'availability impact and verifying recovery.'],
@@ -4945,7 +4945,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                 'routing flag; network routes, '
                                                                                 'endpoint policies and actual '
                                                                                 'traffic paths are not tested.'},
-                                          'remediation_base_sha256': 'db82b91a61e070554a5f4158d0069416c66278610bdb2832e4d92e0c518eee2a',
+                                          'remediation_base_sha256': '6fc722aadf9043955b5726608931702ea9388ae75edc0608a218ca4a9a91d1cc',
                                           'remediation_fields': {'steps': ['Enable enhanced VPC routing if '
                                                                            'required for your data-transfer '
                                                                            'design, ensuring routes and endpoints '
@@ -4959,7 +4959,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                               'description_fields': {'description': 'Reads the reported Multi-AZ setting; '
                                                                     'availability-zone placement and successful '
                                                                     'failover are not tested.'},
-                              'remediation_base_sha256': '52e21e83437338f8a0a2a1cce698b6a8f92af07092e0ea097411e396299a6a6f',
+                              'remediation_base_sha256': '4b15d83ed02d34dd9a893fb7d08296ed159e05d3c8070aeddc2755a7ca776b0c',
                               'remediation_fields': {'steps': ['Configure supported Multi-AZ deployment if '
                                                                'required for availability, planning the cost and '
                                                                'maintenance impact.'],
@@ -4972,7 +4972,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                    'security groups, credentials '
                                                                                    'and a complete reachable path '
                                                                                    'are not evaluated.'},
-                                             'remediation_base_sha256': 'fb2e77cd0fb71643e0ce245d56bfc2adf92fb89c6f1119c9576b1e5a98f8ba69',
+                                             'remediation_base_sha256': '2065703201366cf26335875bdb8324b25e31a137cbabe5db34789aeac154d90f',
                                              'remediation_fields': {'steps': ['Disable public accessibility if '
                                                                               'external access is unnecessary; '
                                                                               'establish private client '
@@ -5173,7 +5173,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                         'Disabled; this does not '
                                                                                         'test inbound public '
                                                                                         'reachability.'},
-                                                  'remediation_base_sha256': 'e9e17d4c1ac5c1e1910ed6621804019ac64de1deda148fd0c20613e890cc9bcd',
+                                                  'remediation_base_sha256': '415c82569aeb273b5f84642077e28b282455040c19f1cc1e194297726b2c5ff1',
                                                   'remediation_fields': {'steps': ['If controlled VPC egress is '
                                                                                    'required, create a '
                                                                                    'replacement notebook with '
@@ -5195,7 +5195,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                           'activity and other '
                                                                                           'administrative paths '
                                                                                           'are not evaluated.'},
-                                                    'remediation_base_sha256': 'a2928bd1098c9df72fa1bcdf3bcfc4ddd3628d16a8c98ff78532020e9aa691b4',
+                                                    'remediation_base_sha256': '592298e508d17142603f95ead0c4de308620967b586f93f3a2aae6c316c91581',
                                                     'remediation_fields': {'steps': ['Disable notebook root '
                                                                                      'access if users do not need '
                                                                                      'it, stopping the notebook '
@@ -5214,7 +5214,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                'traffic and TLS '
                                                                                                'handshakes are '
                                                                                                'not observed.'},
-                                                         'remediation_base_sha256': 'e98fa95cb186dd2c4214fb9b7971039876af8622ff129aa4ef3c4c6cf72ea6ea',
+                                                         'remediation_base_sha256': 'f6b118f9589bd06ec36cd301081aed62a45cb5057ab2541aee1351185b5a2a57',
                                                          'remediation_fields': {'steps': ['Enable inter-container '
                                                                                           'traffic encryption for '
                                                                                           'new distributed '
@@ -5233,7 +5233,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                        'network-isolation flag; '
                                                                                        'actual egress traffic is '
                                                                                        'not observed.'},
-                                                 'remediation_base_sha256': '35ae6ca0fd94a29e6645ac823f77882e3badcb40d4784396bdab015ded3049de',
+                                                 'remediation_base_sha256': '701bc4f510432d8ad50b2d2a4f6103f3c1bbad32eb855bafc97e09878f0804a9',
                                                  'remediation_fields': {'steps': ['Enable network isolation on a '
                                                                                   'new model or training job if '
                                                                                   'it can run without network '
@@ -5802,7 +5802,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                           'recommendations may concern cost, '
                                                                           'performance, availability or security, '
                                                                           'and not_available is not applicable.'},
-                                    'remediation_base_sha256': '81c00e17d9a775b08860b65c9fd26976a6ce139e507518b8ac081881a8924761',
+                                    'remediation_base_sha256': '0c901b74328fc023ad521b559dd165da1f0e48dfee23a482bfe3f8c660bb7f0f',
                                     'remediation_fields': {'steps': ['Review the specific Trusted Advisor '
                                                                      'recommendation and its impact before '
                                                                      'changing the resource.'],
@@ -5814,7 +5814,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                  'premium-support flag; security '
                                                                                  'posture and available support '
                                                                                  'capabilities are not assessed.'},
-                                           'remediation_base_sha256': 'f0e0e0bf0c8898f391d1216b10d1240df7752ee180f909d967b0b045b32b9c23',
+                                           'remediation_base_sha256': '1c508a9fb13f4d013ee99de55f1f4cc0ad2647aa6188fbbf470fc08de74dae6a',
                                            'remediation_fields': {'steps': ['Choose support appropriate for '
                                                                             'operational needs; a paid support '
                                                                             'plan is not itself a security fix.'],
@@ -6265,7 +6265,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                  'workload '
                                                                                                  'monitoring are '
                                                                                                  'not verified.'},
-                                                           'remediation_base_sha256': '0c7f2978f7dee4ba426a0480287c26c137a1692fefb4f3b4aa1507a8aea78ee0',
+                                                           'remediation_base_sha256': 'b9859372b40c4a8eb2160530535198a5b23e72291f851f96ba8941f7a7220c7b',
                                                            'remediation_fields': {'steps': ['Enable supported '
                                                                                             'GuardDuty ebs '
                                                                                             'malware protection '
@@ -6288,7 +6288,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                'and workload '
                                                                                                'monitoring are '
                                                                                                'not verified.'},
-                                                         'remediation_base_sha256': '69a26966ca4f9e55224d9d0354493ab981cd92383bec8ea5bdf9fb38e981246c',
+                                                         'remediation_base_sha256': '2dcd4a403a58a7346df7bee76fd0ae08b4056564db2be241b15e92f4e3bf3f03',
                                                          'remediation_fields': {'steps': ['Enable supported '
                                                                                           'GuardDuty ec2 agent '
                                                                                           'management if '
@@ -6309,7 +6309,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                'and workload '
                                                                                                'monitoring are '
                                                                                                'not verified.'},
-                                                         'remediation_base_sha256': 'c2973a2e382cff337c0f5e93acc630acfba1cd5e529e8bd3e93ba978cb986221',
+                                                         'remediation_base_sha256': '70217e66c803faf8555110ca908be19645a95bf73caaafe355c98a87e9d41878',
                                                          'remediation_fields': {'steps': ['Enable supported '
                                                                                           'GuardDuty ecs fargate '
                                                                                           'agent management if '
@@ -6330,7 +6330,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                  'workload '
                                                                                                  'monitoring are '
                                                                                                  'not verified.'},
-                                                           'remediation_base_sha256': 'a741230ddc9456d27f514e0d570574d7a358aecf1a36b9cb791f0c035bc8cc6c',
+                                                           'remediation_base_sha256': '43da50f5c7efd935e3f5b0bb5242f047f685ce4a7aef5adfab0f711b83b4b568',
                                                            'remediation_fields': {'steps': ['Enable supported '
                                                                                             'GuardDuty eks '
                                                                                             'runtime monitoring '
@@ -6363,7 +6363,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                         'feature metadata or a '
                                                                                         'disabled detector '
                                                                                         'remains MANUAL.'},
-                                                  'remediation_base_sha256': 'fd65900455c55f6c59a524f6ef9a49a68ed89dda38b55c863ad55d7c631c1b6d',
+                                                  'remediation_base_sha256': 'ee1c6a0389548721e21033b1c41a042bfea94bec0ed0c58d9aab5d2009acdad6',
                                                   'remediation_fields': {'steps': ['Enable supported AI '
                                                                                    'Protection if the account '
                                                                                    'uses the workloads it '
@@ -6447,7 +6447,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                  'workload '
                                                                                                  'coverage are '
                                                                                                  'not tested.'},
-                                                           'remediation_base_sha256': 'a23fba0f578632716d9c698fe950e26367eeb233e67098f42ea739aecf9070ae',
+                                                           'remediation_base_sha256': '24654c652ba525d81a09b574d40da9a1c910e69b7c0ebb35dadb66125a791673',
                                                            'remediation_fields': {'steps': ['Enable supported '
                                                                                             'GuardDuty EC2 '
                                                                                             'malware protection '
@@ -6471,7 +6471,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                          'agents and workload '
                                                                                          'coverage are not '
                                                                                          'tested.'},
-                                                   'remediation_base_sha256': 'd9007112a2b075f703a0f69fb7c88aac988c96eb0f1fd1ef1fff6f8a5b522c4d',
+                                                   'remediation_base_sha256': '6b672051974e2f7e6329a05b47f77928300eec692b7a58ab2b95329326c1e766',
                                                    'remediation_fields': {'steps': ['Enable supported GuardDuty '
                                                                                     'EKS audit-log monitoring if '
                                                                                     'required by the monitored '
@@ -6497,7 +6497,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                  'workload '
                                                                                                  'coverage are '
                                                                                                  'not tested.'},
-                                                           'remediation_base_sha256': '14321ae59eccec4da85d915eb643d5dde8941bd49dfaf9ab390f3d24dec3397d',
+                                                           'remediation_base_sha256': 'd2d6b25906693556bb9e6dddbbeb6d76e163727768cb90452ad93fea0fe37b96',
                                                            'remediation_fields': {'steps': ['Enable supported '
                                                                                             'GuardDuty EKS '
                                                                                             'runtime monitoring '
@@ -6521,7 +6521,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                             'delivery, agents and '
                                                                                             'workload coverage '
                                                                                             'are not tested.'},
-                                                      'remediation_base_sha256': '2501665a845f0d758fbde773a7f8502c129476015e682ad3a29c68a6f129d9f5',
+                                                      'remediation_base_sha256': '185d010e7c9c65d5f78c2ece329a2593409aadcf6e00f2b2fd1b28d7a6416308',
                                                       'remediation_fields': {'steps': ['Enable supported '
                                                                                        'GuardDuty Lambda '
                                                                                        'Protection if required by '
@@ -6570,7 +6570,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                          'agents and workload '
                                                                                          'coverage are not '
                                                                                          'tested.'},
-                                                   'remediation_base_sha256': 'b7fcfe16574074fbce8f815fc2fdb4205d5a9e40dbb79c82a30fba4aae4dea25',
+                                                   'remediation_base_sha256': '44240477bb276bb0de5df0eb669c62f7b2ccb597d38c9f656e5f246cf171a97f',
                                                    'remediation_fields': {'steps': ['Enable supported GuardDuty '
                                                                                     'RDS Protection if required '
                                                                                     'by the monitored workloads, '
@@ -6589,7 +6589,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                              'missing feature '
                                                                                              'metadata remains '
                                                                                              'MANUAL.'},
-                                                       'remediation_base_sha256': '8764c1f67f3171d3555cc6cdcee7e14992907f253f3b89adc98e3f7d608763d1',
+                                                       'remediation_base_sha256': 'f0783130f27c8fd892d06efa90aed32f40a2d9d38f2ab6b1f45b521f7ff6e82b',
                                                        'remediation_fields': {'steps': ['Enable unified Runtime '
                                                                                         'Monitoring where needed '
                                                                                         'and verify agent '
@@ -6607,7 +6607,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                         'delivery, agents and '
                                                                                         'workload coverage are '
                                                                                         'not tested.'},
-                                                  'remediation_base_sha256': '2e21ee1122a086749c9215a35301d4fabc272997906616ae806f97074b8b4633',
+                                                  'remediation_base_sha256': 'cac09c0ede297b84de1ef766dc2732b5b0d67b7de4059769b6271df38be79126',
                                                   'remediation_fields': {'steps': ['Enable supported GuardDuty S3 '
                                                                                    'Protection if required by the '
                                                                                    'monitored workloads, then '
@@ -7018,7 +7018,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                 'effective access '
                                                                                                 'are not '
                                                                                                 'evaluated.'},
-                                                          'remediation_base_sha256': '5a41f64251a92dcca1904e6996feac35b22b4c462651850a87897eec7296e0fe',
+                                                          'remediation_base_sha256': '7563b06192cd4bd7644bf6005fecb30cd19084f770e61a9ca8cdead81c91cf8a',
                                                           'remediation_fields': {'steps': ['Restrict unnecessary '
                                                                                            'inline decryption '
                                                                                            'grants to the '
@@ -7040,7 +7040,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                   'permission boundaries and '
                                                                                   'effective access are not '
                                                                                   'evaluated.'},
-                                            'remediation_base_sha256': 'a98f7242e2f63869d57dcfaa2a0cc971e3c6b2df5f82dfcb22da15c40c8feb77',
+                                            'remediation_base_sha256': 'f6678567bdd6e042844f14f06792babf672abf15680887ac87f56032cfaaaf4c',
                                             'remediation_fields': {'steps': ['Replace unnecessary inline '
                                                                              'administrator grants with the '
                                                                              'actions and resources required by '
@@ -7063,7 +7063,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                 'effective key '
                                                                                                 'access are not '
                                                                                                 'evaluated.'},
-                                                          'remediation_base_sha256': '326f6d3f9dd60da2c5b01b1e5155e2c8dcfdb7151b9eb3d022648d9e27379e74',
+                                                          'remediation_base_sha256': '40808c4fa05c14b9e6f6322b0f1f2de726c31a2119aa6bf152d88e214789d94d',
                                                           'remediation_fields': {'steps': ['Remove unnecessary '
                                                                                            'inline decryption '
                                                                                            'grants and scope '
@@ -7088,7 +7088,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                             'permissions and '
                                                                                             'actual shell use are '
                                                                                             'not evaluated.'},
-                                                      'remediation_base_sha256': '59cf734382aa97fbbaf8a7ec52ee7eb3a7a0dbda3251e3710d8f71c700e0a925',
+                                                      'remediation_base_sha256': 'b171341c3e17b436c83da6021194d9606964c9e8a43e6a696bf7e477bf5098a1',
                                                       'remediation_fields': {'steps': ['Remove the direct '
                                                                                        'AWSCloudShellFullAccess '
                                                                                        'attachment if unnecessary '
@@ -7106,7 +7106,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                      'service-role path, and '
                                                                                      'policy permissions are not '
                                                                                      'evaluated.'},
-                                               'remediation_base_sha256': 'df0a023fca9bcf396c465ab6283df68932b4bc45068d9521be1a346e218d2d8a',
+                                               'remediation_base_sha256': '17fe7590f493e0fe979e083470e821dcac90241512a027ab4ea23bba0eb8ee31',
                                                'remediation_fields': {'steps': ['Use reviewed managed policies '
                                                                                 'when centralized reuse and '
                                                                                 'versioning are needed; preserve '
@@ -7797,11 +7797,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                       'narrowing '
                                                                                                       'grants.'],
                                                                                           'cli': [],
-                                                                                          'references': [{'title': 'IAM '
-                                                                                                                   'permissions '
-                                                                                                                   'and '
-                                                                                                                   'policy '
-                                                                                                                   'scope',
+                                                                                          'references': [{'title': 'AWS IAM policy evaluation logic',
                                                                                                           'url': 'https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_evaluation-logic.html'}],
                                                                                           'review_status': 'approved',
                                                                                           'steps': ['Remove '
@@ -7845,7 +7841,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                  'administrative '
                                                                                                  'permissions are '
                                                                                                  'not evaluated.'},
-                                                           'remediation_base_sha256': 'eebc6dd16657ca8f1467881905ee382f8fe5f88f9eef5fb85058a48154d630de',
+                                                           'remediation_base_sha256': '507fa650c4105fa7d59872660cd645b7b2a347a81dc57cd22bdf93be45a03e49',
                                                            'remediation_fields': {'steps': ['Replace unnecessary '
                                                                                             'AdministratorAccess '
                                                                                             'attachments with the '
@@ -7893,11 +7889,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                'narrowing '
                                                                                                'grants.'],
                                                                                    'cli': [],
-                                                                                   'references': [{'title': 'IAM '
-                                                                                                            'permissions '
-                                                                                                            'and '
-                                                                                                            'policy '
-                                                                                                            'scope',
+                                                                                   'references': [{'title': 'AWS Bedrock AgentCore managed policies',
                                                                                                    'url': 'https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/security-iam-awsmanpol.html'}],
                                                                                    'review_status': 'approved',
                                                                                    'steps': ['Scope AgentCore '
@@ -7955,11 +7947,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                       'narrowing '
                                                                                                       'grants.'],
                                                                                           'cli': [],
-                                                                                          'references': [{'title': 'IAM '
-                                                                                                                   'permissions '
-                                                                                                                   'and '
-                                                                                                                   'policy '
-                                                                                                                   'scope',
+                                                                                          'references': [{'title': 'AWS IAM PassRole permissions',
                                                                                                           'url': 'https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_passrole.html'}],
                                                                                           'review_status': 'approved',
                                                                                           'steps': ['Limit '
@@ -8211,11 +8199,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                      'narrowing '
                                                                                                      'grants.'],
                                                                                          'cli': [],
-                                                                                         'references': [{'title': 'IAM '
-                                                                                                                  'permissions '
-                                                                                                                  'and '
-                                                                                                                  'policy '
-                                                                                                                  'scope',
+                                                                                         'references': [{'title': 'AWS IAM policy evaluation logic',
                                                                                                          'url': 'https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_evaluation-logic.html'}],
                                                                                          'review_status': 'approved',
                                                                                          'steps': ['Remove '
@@ -8257,7 +8241,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                 'paths are '
                                                                                                 'outside this '
                                                                                                 'check.'},
-                                                          'remediation_base_sha256': 'b582eb6f29ab7d5996dd53437ec18ec4c624090ec8485231e7db69b72f228edd',
+                                                          'remediation_base_sha256': 'd8d2d020c8c3d90a4ff490e45e9066fa5fb2bf77a1e6fd36524dd64c6ffdb2aa',
                                                           'remediation_fields': {'steps': ['Replace unnecessary '
                                                                                            'AdministratorAccess '
                                                                                            'attachment with the '
@@ -8582,11 +8566,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                      'narrowing '
                                                                                                      'grants.'],
                                                                                          'cli': [],
-                                                                                         'references': [{'title': 'IAM '
-                                                                                                                  'permissions '
-                                                                                                                  'and '
-                                                                                                                  'policy '
-                                                                                                                  'scope',
+                                                                                         'references': [{'title': 'AWS IAM policy evaluation logic',
                                                                                                          'url': 'https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_evaluation-logic.html'}],
                                                                                          'review_status': 'approved',
                                                                                          'steps': ['Remove '
@@ -8628,7 +8608,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                 'administrative '
                                                                                                 'permissions are '
                                                                                                 'not evaluated.'},
-                                                          'remediation_base_sha256': '59a57b480513d1898e52246b6a62cd1227a85536768906c3baf662502eef5bc9',
+                                                          'remediation_base_sha256': '3adba1046e1c630c4bef8576235b68a4bb4ebf83fbbd82045126e434123660d3',
                                                           'remediation_fields': {'steps': ['Replace unnecessary '
                                                                                            'AdministratorAccess '
                                                                                            'attachments with the '
@@ -8678,7 +8658,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                'effective access '
                                                                                                'are not '
                                                                                                'evaluated.'},
-                                                         'remediation_base_sha256': '76b1d45933a341630532d493616d9f908b50340f0e0a17e3e4258e9a2b4396fa',
+                                                         'remediation_base_sha256': '1e43b60f21bc7b6271d82369907f8636eb23dcaf61862cb97b5fae22b343a885',
                                                          'remediation_fields': {'steps': ['Restrict unnecessary '
                                                                                           'inline decryption '
                                                                                           'grants to the specific '
@@ -8698,7 +8678,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                  'conditions, permission '
                                                                                  'boundaries and effective access '
                                                                                  'are not evaluated.'},
-                                           'remediation_base_sha256': '566cead7f047956c44a8220b21c5268e05fa6a6cd5aea2b19c444b1d1d1e23cb',
+                                           'remediation_base_sha256': '1160f428fc78e666b3b0877ce1ee70de3ef85bac1138de04b80e48bb29f7323b',
                                            'remediation_fields': {'steps': ['Replace unnecessary inline '
                                                                             'administrator grants with the '
                                                                             'actions and resources required by '
@@ -8721,7 +8701,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                'effective key '
                                                                                                'access are not '
                                                                                                'evaluated.'},
-                                                         'remediation_base_sha256': '7ff21b843e59306d93fc841d7fcdec8ea8a887470e0498a0576cfbbec58aecc8',
+                                                         'remediation_base_sha256': '98b50f3c05ce62a1314bf3684e85456383cf41397372148e6e94e96962bab430',
                                                          'remediation_fields': {'steps': ['Remove unnecessary '
                                                                                           'inline decryption '
                                                                                           'grants and scope '
@@ -8765,7 +8745,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                            'permissions and '
                                                                                            'actual shell use are '
                                                                                            'not evaluated.'},
-                                                     'remediation_base_sha256': '3046426cd4fe9366e40a3c0fabc5262304b633bfbf937f34b15c762f84110d08',
+                                                     'remediation_base_sha256': '742f04b99a5bb3abc3da285c132c3f68c8fee00079a56fa853c6e757fa11f40d',
                                                      'remediation_fields': {'steps': ['Remove the direct '
                                                                                       'AWSCloudShellFullAccess '
                                                                                       'attachment if unnecessary '
@@ -8782,7 +8762,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                     'service-role path, and '
                                                                                     'policy permissions are not '
                                                                                     'evaluated.'},
-                                              'remediation_base_sha256': 'b0fad4e865028b138f2d9e1506637f3100a0af8f27fed92d10b4c3473c9cda0d',
+                                              'remediation_base_sha256': '8c5a6396e90c1081fd38d98f7fcd344bd194fdf6dcaead238db29d709f62b52d',
                                               'remediation_fields': {'steps': ['Use reviewed managed policies '
                                                                                'when centralized reuse and '
                                                                                'versioning are needed; preserve '
@@ -8998,7 +8978,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                'effective access '
                                                                                                'are not '
                                                                                                'evaluated.'},
-                                                         'remediation_base_sha256': '0e9d38934b68f2b076818efe3d5b7f06fe26331826a69b38c620226aead63b35',
+                                                         'remediation_base_sha256': '07800892352550085e37777c29ce7a5fde68b41f077c36e2b0f1a2f3142829d8',
                                                          'remediation_fields': {'steps': ['Restrict unnecessary '
                                                                                           'inline decryption '
                                                                                           'grants to the specific '
@@ -9018,7 +8998,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                  'conditions, permission '
                                                                                  'boundaries and effective access '
                                                                                  'are not evaluated.'},
-                                           'remediation_base_sha256': '32d27848539bc1ac13c0f93837bf46d316e5cd8f2e98f608827711d719bf65b9',
+                                           'remediation_base_sha256': '185656e005632bdccf55991301a67d748c6d78175e2d31f134bb7e16166d87d7',
                                            'remediation_fields': {'steps': ['Replace unnecessary inline '
                                                                             'administrator grants with the '
                                                                             'actions and resources required by '
@@ -9066,7 +9046,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                'effective key '
                                                                                                'access are not '
                                                                                                'evaluated.'},
-                                                         'remediation_base_sha256': '20fdc0368e655403dd98785ec39040e5d1823eb5b2e9a6efc9c396698d2185c2',
+                                                         'remediation_base_sha256': '9822920c05cea40a2b98f793921c87542586c33e2e14dc614ee8dcc29f5efb29',
                                                          'remediation_fields': {'steps': ['Remove unnecessary '
                                                                                           'inline decryption '
                                                                                           'grants and scope '
@@ -9117,7 +9097,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                            'permissions and '
                                                                                            'actual shell use are '
                                                                                            'not evaluated.'},
-                                                     'remediation_base_sha256': '376ad98d40ba0596a2e29adf86ff5216f59fece9f5808eb2560cb11d3fa30f13',
+                                                     'remediation_base_sha256': 'aea8c7f95d14978ebc77f39e81838142bdcd35044a30ceb5e9d31f41bcd87585',
                                                      'remediation_fields': {'steps': ['Remove the direct '
                                                                                       'AWSCloudShellFullAccess '
                                                                                       'attachment if unnecessary '
@@ -9134,7 +9114,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                     'service-role path, and '
                                                                                     'policy permissions are not '
                                                                                     'evaluated.'},
-                                              'remediation_base_sha256': '2fba1445e1ab3191f16d18224bb6c6de098b25a6f2f3e99b01090e00af2e84fc',
+                                              'remediation_base_sha256': 'a3eda0c892d1cbdc4a3524f162f6b34bc6dfcec3b194d35d67b96ba7b354fabf',
                                               'remediation_fields': {'steps': ['Use reviewed managed policies '
                                                                                'when centralized reuse and '
                                                                                'versioning are needed; preserve '
@@ -9195,7 +9175,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                      'actual key '
                                                                                                      'use is not '
                                                                                                      'assessed.'},
-                                                               'remediation_base_sha256': '4e2ab774d1946255050a7130b9e5f366323dbe114d873341074a6801935127ba',
+                                                               'remediation_base_sha256': '1528d9183fd42f5978cf9e42a6bda32b9d0edc54b6089d252d251676dfc6b24c',
                                                                'remediation_fields': {'steps': ['Review why the '
                                                                                                 'key is disabled; '
                                                                                                 'restore it only '
@@ -9228,7 +9208,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                               'recovery '
                                                                                               'requirements are '
                                                                                               'not assessed.'},
-                                                        'remediation_base_sha256': '901a1ae5ae4506c515f519af34ee6f4dc1fd35f64d563c61d561fdee434a9f9f',
+                                                        'remediation_base_sha256': '4470ddf191ba5826c96074aac997981248ba18a500ea7b57fc5827d4d27ad04c',
                                                         'remediation_fields': {'steps': ['Cancel unintended key '
                                                                                          'deletion before its '
                                                                                          'deadline and verify '
@@ -9248,7 +9228,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                   'public-principal pattern; '
                                                                                   'complete effective access is '
                                                                                   'not simulated.'},
-                                            'remediation_base_sha256': 'e8f9fd2584e1ceb8894c3674a7eafb5ef68da790c569346f668c6a79ecd0380b',
+                                            'remediation_base_sha256': '2025aef382ec95f12ed44f7db4b1d9f6ce9743a497b62c0a6c868193b1aebc3e',
                                             'remediation_fields': {'steps': ['Restrict unintended public '
                                                                              'key-policy grants to the principals '
                                                                              'and cryptographic operations that '
@@ -9264,7 +9244,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                  'imported-origin keys fail this '
                                                                                  'automatic-rotation criterion '
                                                                                  'and key age is not evaluated.'},
-                                           'remediation_base_sha256': '5615719680311e6e6096c4388d6725491fccdd5e7ea37372f3aae47421340e0b',
+                                           'remediation_base_sha256': '7f64a646c2ef8c14732369fe94e857aba74f6ff25a70f67f86394bca09d827fd',
                                            'remediation_fields': {'steps': ['Enable supported automatic rotation '
                                                                             'or manage appropriate key-material '
                                                                             'rotation for imported keys, '
@@ -9283,7 +9263,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                       'cryptographic strength and '
                                                                                       'actual cross-Region use '
                                                                                       'are not evaluated.'},
-                                                'remediation_base_sha256': '047dd88fdadaf221d18c74acba80e1725f0fb5906a0155400239b1ada0873697',
+                                                'remediation_base_sha256': '74534ae6d0be113ebb02f27a8d567ceb729bb363cd566d906ba1130d7c3ccc2a',
                                                 'remediation_fields': {'steps': ['Keep a multi-Region key when '
                                                                                  'the recovery or application '
                                                                                  'design requires it; use a '
@@ -9299,7 +9279,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                              'Enabled or PendingDeletion state; '
                                                                              'cryptographic use and dependent '
                                                                              'resources are not collected.'},
-                                       'remediation_base_sha256': '05919ac72b7308ea6b3538907c03278746fd5a433329d538f77f6c1aef6037d3',
+                                       'remediation_base_sha256': '7f74711c575c8ecc6544a8a2003f64950721f85f30e56f12ed8c6316c663100f',
                                        'remediation_fields': {'steps': ['Review disabled keys and their '
                                                                         'dependencies; retain, enable or schedule '
                                                                         'deletion only according to their '
@@ -9315,7 +9295,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                    'model; complete effective '
                                                                                    'permissions and actual key '
                                                                                    'operations are not tested.'},
-                                             'remediation_base_sha256': '5246f9a000719f13320a2e61512a5dedd27b70bfce91648d4f086ab53726e027',
+                                             'remediation_base_sha256': '211315e97b23fa15bf5a2e9a7856684eb9ce4d0b3570106f7c42df46017ad010',
                                              'remediation_fields': {'steps': ['Restrict unintended key-policy '
                                                                               'grants to the principals, '
                                                                               'operations and resources that need '
@@ -9332,7 +9312,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                             'inspection and '
                                                                                             'recovery are not '
                                                                                             'tested.'},
-                                                      'remediation_base_sha256': '6f58913829f732eeef0ea406b8a621f86c641f806963822f6fc3b89588c6eaa6',
+                                                      'remediation_base_sha256': 'ce5514246350ebd53a580409a9ab0bb1c508af706a7e67dce55e38f7e5624f52',
                                                       'remediation_fields': {'steps': ['Enable deletion '
                                                                                        'protection on the '
                                                                                        'firewall.'],
@@ -9352,7 +9332,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                   'stateful '
                                                                                                   'enforcement is '
                                                                                                   'not tested.'},
-                                                            'remediation_base_sha256': '580eb3d5f88402b3666a4b12229614c5fcf432dbbcd4b09bb2d67874732a4a70',
+                                                            'remediation_base_sha256': 'b6b58c17b24a1e76a6df78127044b2856cda3be129bf8daee2b6dbddd779547c',
                                                             'remediation_fields': {'steps': ['Use aws:drop or '
                                                                                              'aws:forward_to_sfe '
                                                                                              'for default '
@@ -9386,7 +9366,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                       'enforcement '
                                                                                                       'is not '
                                                                                                       'tested.'},
-                                                                'remediation_base_sha256': '84a2ccc8193691b0f6566ea650f55725a6c31f7d90be45d92a628b3be190cf6b',
+                                                                'remediation_base_sha256': 'a5cf93dd0145b796a7395815f61adbf891f6b8e1eebeec2bd95002205626b858',
                                                                 'remediation_fields': {'steps': ['Use aws:drop or '
                                                                                                  'aws:forward_to_sfe '
                                                                                                  'for default '
@@ -9428,7 +9408,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                         'inspection '
                                                                                                         'are not '
                                                                                                         'evaluated.'},
-                                                                  'remediation_base_sha256': '013581b23a93d0b15fc50dc6de2bc69d7a206788b19e7da94136785af90a8cc9',
+                                                                  'remediation_base_sha256': 'e4039f6d5f09f15f0db0ca2ca76bbbf077a032b925d9df21d5cad19269aa77a8',
                                                                   'remediation_fields': {'steps': ['Associate the '
                                                                                                    'rule groups '
                                                                                                    'required by '
@@ -9466,7 +9446,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                 'actual traffic '
                                                                                                 'inspection are '
                                                                                                 'not evaluated.'},
-                                                          'remediation_base_sha256': 'd02dda62558407eb0f149fad7d7affd74cbb5e5f1037ff5ef8e0685e1e34df38',
+                                                          'remediation_base_sha256': '1da40900cf4daedd82b820312fd607cecf53e1104ef336c82b17fb6afcbec7bc',
                                                           'remediation_fields': {'steps': ['Verify the intended '
                                                                                            'inspection '
                                                                                            'architecture before '
@@ -9523,7 +9503,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                 'requires at least one; log '
                                                                                 'types, delivery and retention '
                                                                                 'are not verified.'},
-                                          'remediation_base_sha256': '057b82a7ebf4fe2e5669342acf50a4ac6e1cb41bd174a599c2733b90f82d22fa',
+                                          'remediation_base_sha256': '088853289710712c2d6811662864b96b65eb50d21e54088b0c7f36eb314093bc',
                                           'remediation_fields': {'steps': ['Configure the required firewall flow '
                                                                            'and alert log destinations and verify '
                                                                            'delivery.'],
@@ -9536,7 +9516,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                  'distinct Availability Zones and '
                                                                                  'successful failover are not '
                                                                                  'verified.'},
-                                           'remediation_base_sha256': '97221952ef811760e0ff48d2d2c76e8513c969b637ed66f283cf82004a665c52',
+                                           'remediation_base_sha256': 'c9b47cad0ae8ab5233e9f1e60ae7c73d4cba6992d3012e7105fd606b974e0b69',
                                            'remediation_fields': {'steps': ['Add supported subnet mappings for '
                                                                             'the Availability Zones that require '
                                                                             'firewall resilience, and verify '
@@ -9557,7 +9537,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                 'stateful '
                                                                                                 'enforcement is '
                                                                                                 'not tested.'},
-                                                          'remediation_base_sha256': '2cde3266a8a077dbe6e7b0fad3722534772d09f59867c22249c0f8b24c0869b6',
+                                                          'remediation_base_sha256': 'bb4ce7e97b35ff02463643b4565a59f71397f7dd26e7819af92661f53354fffa',
                                                           'remediation_fields': {'steps': ['Use aws:drop or '
                                                                                            'aws:forward_to_sfe '
                                                                                            'for default '
@@ -9587,7 +9567,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                     'enforcement '
                                                                                                     'is not '
                                                                                                     'tested.'},
-                                                              'remediation_base_sha256': '34ba4754ee01732363824bae49fc6131493c0ac7edc671580676bd47300370e0',
+                                                              'remediation_base_sha256': '3304c84102ca34c98e4ae712f185ad98a0fcc0d74bc3489a28267f825ecf812b',
                                                               'remediation_fields': {'steps': ['Use aws:drop or '
                                                                                                'aws:forward_to_sfe '
                                                                                                'for default full '
@@ -9617,7 +9597,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                'traffic '
                                                                                                'inspection are '
                                                                                                'not evaluated.'},
-                                                         'remediation_base_sha256': 'b2412dce32b8a263de4d3baa9140051c3bbde03a60239642162bbc05f8fb978a',
+                                                         'remediation_base_sha256': 'fb647b32651c88c1ee51c18a08cc67f79b5a29fbcf25b413b175db1eda8639c9',
                                                          'remediation_fields': {'steps': ['Associate the rule '
                                                                                           'groups required by the '
                                                                                           'inspection design, '
@@ -9648,7 +9628,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                        'effectiveness '
                                                                                                        'is not '
                                                                                                        'tested.'},
-                                                                 'remediation_base_sha256': 'd870c5015cb2ff5f9b02389da91df4afc57fe270a90479d5bf2bd548133d1539',
+                                                                 'remediation_base_sha256': 'c6cbc37fd9cb4ef75abd1d0853c65184622f5794d5c7bf592a72a6432baef5d1',
                                                                  'remediation_fields': {'steps': ['Add the '
                                                                                                   'required '
                                                                                                   'stateless '
@@ -9682,7 +9662,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                  'policy '
                                                                                                  'enforcement are '
                                                                                                  'not tested.'},
-                                                           'remediation_base_sha256': 'bbe10798a807523bb2049d51921b22b82eb2a8fbc1925fa027a502452a51b49c',
+                                                           'remediation_base_sha256': '6dec03e3bc0cdf60e2c43c707ed1d6c59153541ee3b618179ea9072dc9d1a8bd',
                                                            'remediation_fields': {'steps': ['Enable subnet-change '
                                                                                             'protection when '
                                                                                             'endpoint placement '
@@ -9813,7 +9793,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                 'coverage; this variant does not '
                                                                                 'prove delivered events or active '
                                                                                 'trail logging.'},
-                                          'remediation_base_sha256': '5ee59999ef97160bb732f11b42b2605e736ab4f0044f9033f3bcab98f3ca95b2',
+                                          'remediation_base_sha256': 'ef754dd54a09e0e4914ccc63dfc9102b7c92fd2a2248d0717f71454cff0deb58',
                                           'remediation_fields': {'steps': ['Configure object-data selectors for '
                                                                            'the bucket and independently verify '
                                                                            'the trail is logging and delivering '
@@ -9847,7 +9827,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                               'bucket; criteria-based membership '
                                                                               'remains UNKNOWN and disabled Macie '
                                                                               'is skipped.'},
-                                        'remediation_base_sha256': '93706999146e778462d949628a074c10e6cb32e11414b6547076af779b118f0e',
+                                        'remediation_base_sha256': '638728d60568b46825b6328bae5a716eb900d9154207c738b230b6b08bc8d668',
                                         'remediation_fields': {'steps': ['Include the bucket in a suitable Macie '
                                                                          'classification job when required, then '
                                                                          'verify job scope and results '
@@ -9916,7 +9896,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                    'index document; it does not '
                                                                                    'prove the website is publicly '
                                                                                    'reachable.'},
-                                             'remediation_base_sha256': '95cd872977348ebd364e44752e3248086194f4a21f55a6f1a6c3a2ccb710da2b',
+                                             'remediation_base_sha256': '07afd865cdd5455fa68295cd3929376709aa77d83b19a772ba3ef30359fbda3a',
                                              'remediation_fields': {'steps': ['Disable website hosting if unused; '
                                                                               'otherwise keep the intended '
                                                                               'website and review its public '
@@ -10056,7 +10036,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                        'and outbound rules; any '
                                                                                        'entry fails, regardless '
                                                                                        'of its permissions.'},
-                                                 'remediation_base_sha256': 'fa0c86b91ba1e9d0b2d2f4b1366a28d1b9090bb45810434adb265de71f547fb1',
+                                                 'remediation_base_sha256': '0f6c79526810778144e64a5162abd7f43c2d5c0819f35b3c86390294b30cf165',
                                                  'remediation_fields': {'steps': ['Move required traffic to '
                                                                                   'dedicated security groups '
                                                                                   'before removing the default '
@@ -10070,7 +10050,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                 'inbound and outbound rules; any '
                                                                                 'entry fails, regardless of its '
                                                                                 'permissions.'},
-                                          'remediation_base_sha256': 'd64c62f5848dc450bf99bc993d88ba05a3ba406735d5fa50f1153cfe30a20568',
+                                          'remediation_base_sha256': 'df07879edb48e18ea0322ba07e3e90ebfa3e8f58ed2b211c1efde2707562ff97',
                                           'remediation_fields': {'steps': ['Move required traffic to dedicated '
                                                                            'security groups before removing the '
                                                                            'default group rules.'],
@@ -10473,7 +10453,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                       'description_fields': {'description': 'Counts reported ACL associations; '
                                                                             'traffic rules and future subnet use '
                                                                             'are not evaluated.'},
-                                      'remediation_base_sha256': '1c568a832ddadd3f52b8568eeac3f23e92d1a479f7072201c1feadda4bd0c26b',
+                                      'remediation_base_sha256': '30af700cfa9d9132f1ea8e4d3cd32a561ebf1916236fb79e83e4349850450212',
                                       'remediation_fields': {'steps': ['Remove an unassociated non-default ACL '
                                                                        'only if no current or planned subnet '
                                                                        'needs it.'],
@@ -10487,7 +10467,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                     'security groups, routes and '
                                                                                     'live connectivity are not '
                                                                                     'tested.'},
-                                              'remediation_base_sha256': '0c3c4e424c2a18ce397bd338c6b7b04199ae81ac7a98d657c160940c04b22d3a',
+                                              'remediation_base_sha256': '9aab0caad518dc439b72177f8932dda71884512f4b4a3d99d4717b72ee07f44f',
                                               'remediation_fields': {'steps': ['Restrict unnecessary '
                                                                                'Internet-wide all-protocol '
                                                                                'traffic using appropriate ACL '
@@ -10508,7 +10488,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                        'entries and a complete '
                                                                                        'network path are not '
                                                                                        'evaluated.'},
-                                                 'remediation_base_sha256': '9a6826e5786a0a657e87c0680b53efebc89b39ccab28d1ede8c9fd97b29e5e17',
+                                                 'remediation_base_sha256': '8e0881401115635e08c3757bc20b5352f3722e3ec20f642966db8b9b378025a5',
                                                  'remediation_fields': {'steps': ['Remove unnecessary public '
                                                                                   'administration Allow entries '
                                                                                   'or narrow their source ranges, '
@@ -10527,7 +10507,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                  'security groups, routes and '
                                                                                  'live connectivity are not '
                                                                                  'tested.'},
-                                           'remediation_base_sha256': '8b4c2ad679308120a21de4be45f9c0f803bef60495651257064a9b456b01c0f3',
+                                           'remediation_base_sha256': '63d5b8a1f176d2096542bea787f2159ea6c6cecbb3e9355bee7949fddeb7b168',
                                            'remediation_fields': {'steps': ['Restrict unnecessary Internet-wide '
                                                                             'TCP port 22 using appropriate ACL '
                                                                             'ordering, preserving required return '
@@ -10542,7 +10522,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                    '3389; security groups, routes '
                                                                                    'and live connectivity are not '
                                                                                    'tested.'},
-                                             'remediation_base_sha256': '72366615dfcdfdf6891349d80b550a19dff5aa9a70383c577875265dab9a5f95',
+                                             'remediation_base_sha256': '56c5a7eae7893f67935a6af7395bcb8680d6acd336962157a67c12b42481846e',
                                              'remediation_fields': {'steps': ['Restrict unnecessary Internet-wide '
                                                                               'TCP port 3389 using appropriate '
                                                                               'ACL ordering, preserving required '
@@ -10559,7 +10539,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                        'ACLs are not applicable '
                                                                                        'and rule effectiveness is '
                                                                                        'not evaluated.'},
-                                                 'remediation_base_sha256': 'b9a8d8b1ccd970ea13a8c5b3499cd4a255e20e63402bac1428c1aa5de10d73e1',
+                                                 'remediation_base_sha256': 'b60f008b055ab66f86ae5cf441d3165bb90b1dfd8e86a61bc5939f5b0cf23bac',
                                                  'remediation_fields': {'steps': ['Remove an unassociated '
                                                                                   'non-default ACL only after '
                                                                                   'checking deployment automation '
@@ -10746,7 +10726,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                'other security groups; absence '
                                                                                'does not prove that future '
                                                                                'automation will not use it.'},
-                                         'remediation_base_sha256': '5b3d2d78f1a09f2103260e7b9fe966e65b290965603f4d4e2bf84e60d5dd5bfd',
+                                         'remediation_base_sha256': '69544b050324c3d3fd7f645baadd00b44a55db37991714036c1f626207dae8dc',
                                          'remediation_fields': {'steps': ['Delete the group only if it is no '
                                                                           'longer needed, after checking '
                                                                           'deployment automation and planned '
@@ -10762,7 +10742,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                       'rule permissions and '
                                                                                       'attachments are not '
                                                                                       'evaluated.'},
-                                                'remediation_base_sha256': '157717439221d06e7d907306d2e291eb32931a255496791b9024ba1811633e76',
+                                                'remediation_base_sha256': 'f31e15f79f64d50e44056b0f3d410f95e3a6d2bc02698d6542b34c51982f3d5f',
                                                 'remediation_fields': {'steps': ['Review the group rules and keep '
                                                                                  'only required access; replace '
                                                                                  'the group if your naming or '
@@ -10781,7 +10761,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                      'handled separately and a '
                                                                                      'complete reachable path is '
                                                                                      'not tested.'},
-                                               'remediation_base_sha256': '43df438743af321462d44fa1ab36ba3782305d2be5a58267893c174d47082a91',
+                                               'remediation_base_sha256': '91556a4e926523764ae22d729f59acb568b114ae2190f11ce9ae127dcb84163e',
                                                'remediation_fields': {'steps': ['Keep only the public source '
                                                                                 'addresses and ports that need '
                                                                                 'access; use private connectivity '
@@ -10798,7 +10778,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                    'prefix lengths 1–23; world /0 '
                                                                                    'and IPv6 are not covered by '
                                                                                    'this criterion.'},
-                                             'remediation_base_sha256': '0027ea41e948644ff3c362ffdbc88890bdad95a31faab45e0284b647d2d0380c',
+                                             'remediation_base_sha256': '0810f80172608603971ecc08db43d80f99f9852a85aa3f10b34a1b6a610e4dac',
                                              'remediation_fields': {'steps': ['Narrow an unnecessarily broad '
                                                                               'public IPv4 range to the actual '
                                                                               'required source or destination '
@@ -10814,7 +10794,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                     'all-traffic pattern; routing '
                                                                                     'and listening services are '
                                                                                     'not tested.'},
-                                              'remediation_base_sha256': 'a5c0619167663ebf18d3cda1f172abf488161c655cff1086cdebf185d94f6a09',
+                                              'remediation_base_sha256': '36a4df80164e7ddacc72528ec3ba484b0952376e8159f728781703f1febcf0c0',
                                               'remediation_fields': {'steps': ['Replace unnecessary all-traffic '
                                                                                'ingress with only the source '
                                                                                'networks, protocols and ports the '
@@ -10841,7 +10821,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                   'reachable path '
                                                                                                   'is not '
                                                                                                   'tested.'},
-                                                            'remediation_base_sha256': '35d2aecabca37857ec23c213bf4155c5aa37092bab8f0e5ef6252d7f485a992b',
+                                                            'remediation_base_sha256': 'bf99227a2a8037c6579f3c094f151c59bbfc031b9e79cf1d66442ae334adc814',
                                                             'remediation_fields': {'steps': ['Restrict '
                                                                                              'unnecessary '
                                                                                              'Internet-wide '
@@ -10865,7 +10845,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                   'access to ports 7199, 9160, '
                                                                                   '8888; it does not test a '
                                                                                   'complete network path.'},
-                                            'remediation_base_sha256': '2b5d959babd0aba978bd949470a79c3d0c4ef8ffc27f4eca3feda9dfe2574c98',
+                                            'remediation_base_sha256': '34894b8a0645c256afbda1d014f23bbee1e6e072ff7b8b3ebed2726bba390b3f',
                                             'remediation_fields': {'steps': ['Restrict access to TCP ports 7199, '
                                                                              '9160, 8888 to the source networks '
                                                                              'that need it.'],
@@ -10882,7 +10862,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                              'it does not test a '
                                                                                              'complete network '
                                                                                              'path.'},
-                                                       'remediation_base_sha256': 'a271dfccdbd0db6aefeb1952153db28547fa9049fa3744dba74c43f86daaefab',
+                                                       'remediation_base_sha256': '517a99625bb0fc0715aa33e8c392d09c88aedd3f5d555eac58822bc34cc035fb',
                                                        'remediation_fields': {'steps': ['Restrict access to TCP '
                                                                                         'ports 9200, 9300, 5601 '
                                                                                         'to the source networks '
@@ -10896,7 +10876,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                             'for Internet-wide TCP access to '
                                                                             'ports 20, 21; it does not test a '
                                                                             'complete network path.'},
-                                      'remediation_base_sha256': 'b054947e10aec0d23bb853a333d32568537056b427fff5f4750736bb2137528b',
+                                      'remediation_base_sha256': '16b7e6e728fc644c697836798541a16d39e7855fa5a3cc009e08106efa09e690',
                                       'remediation_fields': {'steps': ['Restrict access to TCP ports 20, 21 to '
                                                                        'the source networks that need it.'],
                                                              'summary': 'Restrict access to TCP ports 20, 21 to '
@@ -10910,7 +10890,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                             '5500, 8080 and 8088; '
                                                                                             'listeners are not '
                                                                                             'tested.'},
-                                                      'remediation_base_sha256': '00cd38a9d6d59d49f53b5e4f616bb5438698b3b20625c1f1f6755b04adb7afb4',
+                                                      'remediation_base_sha256': 'ac11f8384f8c52fb658810a1340941b703449ece4cb1b250bfd8b61878ab9f9b',
                                                       'remediation_fields': {'steps': ['Restrict the listed open '
                                                                                        'ports to necessary source '
                                                                                        'networks; retain '
@@ -10929,7 +10909,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                               'ingress for Internet-wide TCP '
                                                                               'access to ports 9092; it does not '
                                                                               'test a complete network path.'},
-                                        'remediation_base_sha256': '89d1c15e1655d1ca45f39555b77c861d72fc28a45ee119f308946cde113762ba',
+                                        'remediation_base_sha256': 'd60f614d6eb479e382545e5f6c08d4f54379e870c61301fd578ad692e3df5eb1',
                                         'remediation_fields': {'steps': ['Restrict access to TCP ports 9092 to '
                                                                          'the source networks that need it.'],
                                                                'summary': 'Restrict access to TCP ports 9092 to '
@@ -10940,7 +10920,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                   'access to ports 11211; it does '
                                                                                   'not test a complete network '
                                                                                   'path.'},
-                                            'remediation_base_sha256': 'bc54440a4787f8a1ef8576ca515304ba13677ee5805c5a3ec11100a50d0cc3b2',
+                                            'remediation_base_sha256': 'ba64226fc4ed67434c1f14016bdbaa964f5ef31db826ed7803f3b5bd4a87e28c',
                                             'remediation_fields': {'steps': ['Restrict access to TCP ports 11211 '
                                                                              'to the source networks that need '
                                                                              'it.'],
@@ -10953,7 +10933,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                 'access to ports 27017, 27018; it '
                                                                                 'does not test a complete network '
                                                                                 'path.'},
-                                          'remediation_base_sha256': 'b1f871f1b26dacc498f43304ca99029848b135f8fb53b9d904d4151e5389b73d',
+                                          'remediation_base_sha256': '498e6ebe65e6bda6b2f19c23e6a28361c9dc08ddb28a1e8a2655c95e907ba4bb',
                                           'remediation_fields': {'steps': ['Restrict access to TCP ports 27017, '
                                                                            '27018 to the source networks that '
                                                                            'need it.'],
@@ -10965,7 +10945,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                               'ingress for Internet-wide TCP '
                                                                               'access to ports 3306; it does not '
                                                                               'test a complete network path.'},
-                                        'remediation_base_sha256': '226176918c20b3c04ca01200c925d2f680365060247f62b1f9af7672fc695b62',
+                                        'remediation_base_sha256': '043e802f0271f1d04e6146bd86ccc67e682c46f2263b6daac84f9d4b229f6bfe',
                                         'remediation_fields': {'steps': ['Restrict access to TCP ports 3306 to '
                                                                          'the source networks that need it.'],
                                                                'summary': 'Restrict access to TCP ports 3306 to '
@@ -10976,7 +10956,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                'access to ports 1521, 2483; it '
                                                                                'does not test a complete network '
                                                                                'path.'},
-                                         'remediation_base_sha256': '384b62cb87d53ddacfa0a4f33eb2e05552134fe17a7608951b355fb7935698a4',
+                                         'remediation_base_sha256': 'fb0380b9ca13249f712dbf275136218a740dda084b0110925d0ad562e28a0d8c',
                                          'remediation_fields': {'steps': ['Restrict access to TCP ports 1521, '
                                                                           '2483 to the source networks that need '
                                                                           'it.'],
@@ -10989,7 +10969,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                  'access to ports 5432; it does '
                                                                                  'not test a complete network '
                                                                                  'path.'},
-                                           'remediation_base_sha256': '90e0945a7ea059ce7075c236b1a3ef03c44ee5c0422a50e629da6bab67ce3573',
+                                           'remediation_base_sha256': '4c41296b9c6d8fad3fef2f5fde1a1c781d0c8d67967b7d944878065b65bbd506',
                                            'remediation_fields': {'steps': ['Restrict access to TCP ports 5432 to '
                                                                             'the source networks that need it.'],
                                                                   'summary': 'Restrict access to TCP ports 5432 '
@@ -11000,7 +10980,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                             'for Internet-wide TCP access to '
                                                                             'ports 3389; it does not test a '
                                                                             'complete network path.'},
-                                      'remediation_base_sha256': '7783002ac2fe75b8f5ae33743bf685eb706dfe7e05bdfd776d082ef04c6cf91b',
+                                      'remediation_base_sha256': '9a0e3286ea1691e688bdef7ad32fda469d8a97722aec20d61fa838f64c63c6ea',
                                       'remediation_fields': {'steps': ['Restrict access to TCP ports 3389 to the '
                                                                        'source networks that need it.'],
                                                              'summary': 'Restrict access to TCP ports 3389 to the '
@@ -11010,7 +10990,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                               'ingress for Internet-wide TCP '
                                                                               'access to ports 6379; it does not '
                                                                               'test a complete network path.'},
-                                        'remediation_base_sha256': 'f632be6a4144b07de3c5968ad95671b3354988ec63fd4cfa289c339c3b3a4063',
+                                        'remediation_base_sha256': '9b0bb03c6acc71a1207b35196e7726149b92667a3f2edf7f08190765b0ba5181',
                                         'remediation_fields': {'steps': ['Restrict access to TCP ports 6379 to '
                                                                          'the source networks that need it.'],
                                                                'summary': 'Restrict access to TCP ports 6379 to '
@@ -11021,7 +11001,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                   'access to ports 1433, 1434; it '
                                                                                   'does not test a complete '
                                                                                   'network path.'},
-                                            'remediation_base_sha256': '2975cdeff0891f28a120846617880429bc534d97d1b17c4cfc5434ff8c87099b',
+                                            'remediation_base_sha256': '2e4ac3cd51f5e1070ec9d938237d06c4d64a7f7ad28ed243707e0a7cc24d5d0a',
                                             'remediation_fields': {'steps': ['Restrict access to TCP ports 1433, '
                                                                              '1434 to the source networks that '
                                                                              'need it.'],
@@ -11033,7 +11013,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                             'for Internet-wide TCP access to '
                                                                             'ports 22; it does not test a '
                                                                             'complete network path.'},
-                                      'remediation_base_sha256': 'b226872dbac004ea1d583fc42220810500539eeec139bbd6a081c939481bd53c',
+                                      'remediation_base_sha256': '67d0b119ead6eb3d30cfbb05b31bd1dc803d5ce6cdb69cd746283ef2b0f8b9d2',
                                       'remediation_fields': {'steps': ['Restrict access to TCP ports 22 to the '
                                                                        'source networks that need it.'],
                                                              'summary': 'Restrict access to TCP ports 22 to the '
@@ -11043,7 +11023,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                'ingress for Internet-wide TCP '
                                                                                'access to ports 23; it does not '
                                                                                'test a complete network path.'},
-                                         'remediation_base_sha256': '1022694a08a4b9d7c7dcd00340de2454565d7e869b637ca8543af9fb3edb9719',
+                                         'remediation_base_sha256': 'edd4ed438774b6f3574bcff44600148cb54f3e86da99c1c535fbdc2955881f06',
                                          'remediation_fields': {'steps': ['Restrict access to TCP ports 23 to the '
                                                                           'source networks that need it.'],
                                                                 'summary': 'Restrict access to TCP ports 23 to '
@@ -11055,7 +11035,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                     'source ranges and effective '
                                                                                     'permissions are not '
                                                                                     'counted.'},
-                                              'remediation_base_sha256': '3ac5745693efc2d34bb58f22700da9f074174c9956c7085255295e6b66a90abf',
+                                              'remediation_base_sha256': '157cf3ccc87e3b48ff4d2ca6144a948e4747875dfd4203a2c48c1bc6d7913003',
                                               'remediation_fields': {'steps': ['Review and consolidate '
                                                                                'unnecessary rules while '
                                                                                'preserving required traffic; rule '
@@ -11071,7 +11051,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                               '0.0.0.0/0 and ::/0 for ports 445; '
                                                                               'a complete reachable path is not '
                                                                               'tested.'},
-                                        'remediation_base_sha256': '440990f79e80d749d17b2a1dff64b17138f0c892d2f679d324716fd84420e8a2',
+                                        'remediation_base_sha256': '98d8ed54da188c8fec0c1a4c5f51eccbbe1694d2baa6181d8282f1e6fe154f57',
                                         'remediation_fields': {'steps': ['Restrict unnecessary ingress on ports '
                                                                          '445 to the source networks that need '
                                                                          'it.'],
@@ -11083,7 +11063,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                '0.0.0.0/0 and ::/0 for ports '
                                                                                '9092; a complete reachable path '
                                                                                'is not tested.'},
-                                         'remediation_base_sha256': 'be9bcac12fee8c475eca1c89b802d2d7aa5ac7f49249d3934947048307fcb150',
+                                         'remediation_base_sha256': 'af5d08375650298fd0369be4be8425bb0e04b102cda99e5fa989017db22cc93b',
                                          'remediation_fields': {'steps': ['Restrict unnecessary ingress on ports '
                                                                           '9092 to the source networks that need '
                                                                           'it.'],
@@ -11095,7 +11075,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                 '0.0.0.0/0 and ::/0 for ports '
                                                                                 '9200, 5601; a complete reachable '
                                                                                 'path is not tested.'},
-                                          'remediation_base_sha256': '791d6a596b198c15af9e9e9a72d2ac83afe175bb4e6ff561ca7ca194fb3100ed',
+                                          'remediation_base_sha256': '715b0ccbb4749528938f4d7af0b1d17ab04cdae70cba8b66ea7cca03a165e5af',
                                           'remediation_fields': {'steps': ['Restrict unnecessary ingress on ports '
                                                                            '9200, 5601 to the source networks '
                                                                            'that need it.'],
@@ -11107,7 +11087,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                '0.0.0.0/0 and ::/0 for ports '
                                                                                '6379; a complete reachable path '
                                                                                'is not tested.'},
-                                         'remediation_base_sha256': '1d2bb45626b9c6795f349451fec7c5a82b568353c8ab9530d4fce22351367a81',
+                                         'remediation_base_sha256': '421af58c445ed9b78b7b09b828e4fe7deb520c44b565fbc5f0867c2483869030',
                                          'remediation_fields': {'steps': ['Restrict unnecessary ingress on ports '
                                                                           '6379 to the source networks that need '
                                                                           'it.'],
@@ -11120,7 +11100,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                       'for ports 22, 3389; a '
                                                                                       'complete reachable path is '
                                                                                       'not tested.'},
-                                                'remediation_base_sha256': '31c3df91b2ff56efad6786d24a78e2cea4b3e0c93e9103977424daea3158fea8',
+                                                'remediation_base_sha256': 'd2902c0ace33d6b4506a960a6ef9683a7b69f44a753aa053e1687d40e791f948',
                                                 'remediation_fields': {'steps': ['Restrict unnecessary ingress on '
                                                                                  'ports 22, 3389 to the source '
                                                                                  'networks that need it.'],
@@ -11133,7 +11113,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                   '0.0.0.0/0 for ports 7199, '
                                                                                   '9160, 8888; a complete '
                                                                                   'reachable path is not tested.'},
-                                            'remediation_base_sha256': 'ef686a0bdad789886f01d681ea1d916c4e1c953a4a2d67e14735605bec2ec74a',
+                                            'remediation_base_sha256': 'df9193fc0d9273d4e8c0c7159132bc74163f902c138f2668dfc278da217f72f6',
                                             'remediation_fields': {'steps': ['Restrict unnecessary ingress on '
                                                                              'ports 7199, 9160, 8888 to the '
                                                                              'source networks that need it.'],
@@ -11146,7 +11126,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                  'the reviewed common-port list; '
                                                                                  'it does not establish a '
                                                                                  'complete network path.'},
-                                           'remediation_base_sha256': 'fa5bde7092b95dc9aadfd9fd1c95638222fe25e19d7098a3419f1fa1ea592a52',
+                                           'remediation_base_sha256': 'b51adcd8e422ee2b6807ef2cb96696d04fed70780f2233c798984eefe381c612',
                                            'remediation_fields': {'steps': ['Remove unnecessary Internet-wide '
                                                                             'sources from the affected '
                                                                             'common-port ingress rules.'],
@@ -11158,7 +11138,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                 '0.0.0.0/0 for ports 22, 3389, '
                                                                                 '21, 20, 3306, 4333; a complete '
                                                                                 'reachable path is not tested.'},
-                                          'remediation_base_sha256': 'b8ebd460e051d77eed998e37347ee0e463abb1043373406936acfff1759c4e5e',
+                                          'remediation_base_sha256': '1133266943d2f9cb21f3ac0900e5524388ee5c59c8dd2e3b3219e679e6dbcbf3',
                                           'remediation_fields': {'steps': ['Restrict unnecessary ingress on ports '
                                                                            '22, 3389, 21, 20, 3306, 4333 to the '
                                                                            'source networks that need it.'],
@@ -11171,7 +11151,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                   '0.0.0.0/0 for ports 11211; a '
                                                                                   'complete reachable path is not '
                                                                                   'tested.'},
-                                            'remediation_base_sha256': '0bb33c1b259d3cc98b718f6341015229ea2203b9f0e2374a78de8fe92e33a38a',
+                                            'remediation_base_sha256': 'dbb22b365dc2284060fa28c03fbc385994820e1316d0364f3e7c14b7e1317a22',
                                             'remediation_fields': {'steps': ['Restrict unnecessary ingress on '
                                                                              'ports 11211 to the source networks '
                                                                              'that need it.'],
@@ -11183,7 +11163,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                 '0.0.0.0/0 for ports 27017, '
                                                                                 '27018; a complete reachable path '
                                                                                 'is not tested.'},
-                                          'remediation_base_sha256': 'f5892e149c63361ba1ba0a9f8cb3f3ae3940e564868a89c850830d2afe406a6b',
+                                          'remediation_base_sha256': 'c4a2f3d6ce9031e6118d10e58279ad1c80532b7acff334e03e8a8396c359ecc0',
                                           'remediation_fields': {'steps': ['Restrict unnecessary ingress on ports '
                                                                            '27017, 27018 to the source networks '
                                                                            'that need it.'],
@@ -11196,7 +11176,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                    'all-protocol rules; a '
                                                                                    'complete reachable path is '
                                                                                    'not tested.'},
-                                             'remediation_base_sha256': '42384bcb419ff2f641031f7dd966b78b3a528672245546e9eb2ea229858cbd0f',
+                                             'remediation_base_sha256': 'e39941aea0dfcb2a1975383afc7efba6626c85dd39d7d0527322a7a055c0730c',
                                              'remediation_fields': {'steps': ['Restrict unnecessary ingress on '
                                                                               'TCP, UDP or all-protocol rules to '
                                                                               'the source networks that need it.'],
@@ -11223,7 +11203,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                '0.0.0.0/0 for ports 1521, 2483; a '
                                                                                'complete reachable path is not '
                                                                                'tested.'},
-                                         'remediation_base_sha256': '0bedbf9f4239221c46e775098e2cfa5c837777ee5e8f52a0fb67b9bc4079e11f',
+                                         'remediation_base_sha256': '25a4c91dfcc7c27441dcd4a29fb59c780a915f09f6158361c8c659ceefd89401',
                                          'remediation_fields': {'steps': ['Restrict unnecessary ingress on ports '
                                                                           '1521, 2483 to the source networks that '
                                                                           'need it.'],
@@ -11234,7 +11214,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                       'description_fields': {'description': 'Checks declared ingress from '
                                                                             '0.0.0.0/0 for ports 3389; a complete '
                                                                             'reachable path is not tested.'},
-                                      'remediation_base_sha256': '20252b61f23058cec115187c6bb73d565f8f6ef697d548c41de2a07222a2afb9',
+                                      'remediation_base_sha256': '1a72e9ca4a215716f1ac50d36eaee763711bfed7f63f001a0ef1182ecec6decc',
                                       'remediation_fields': {'steps': ['Restrict unnecessary ingress on ports '
                                                                        '3389 to the source networks that need '
                                                                        'it.'],
@@ -11247,7 +11227,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                             'reachable path is not tested. '
                                                                             'Attachment applicability follows the '
                                                                             'source predicate.'},
-                                      'remediation_base_sha256': 'e8e9d3f50a7a0218297b531bc9c813cef189d237326411d3c27decf52c58fb9e',
+                                      'remediation_base_sha256': 'fe6bc7cb8acea1177f28307b514b7c61b46ae8b7f58e6318ea0300970ff65010',
                                       'remediation_fields': {'steps': ['Restrict unnecessary ingress on ports 22 '
                                                                        'to the source networks that need it.'],
                                                              'summary': 'Restrict unnecessary ingress on ports 22 '
@@ -11257,7 +11237,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                      'from ::/0 for ports 22, '
                                                                                      '3389; a complete reachable '
                                                                                      'path is not tested.'},
-                                               'remediation_base_sha256': '368cf89dc546e43bf2a107ee8ea9388e3156fc77d96cff2bf7ce5eb88eb68778',
+                                               'remediation_base_sha256': 'ac0c8fe35b83f5a0caf1142f3b9003e77d6077c29ca46297434a4ae7da2ca820',
                                                'remediation_fields': {'steps': ['Restrict unnecessary ingress on '
                                                                                 'ports 22, 3389 to the source '
                                                                                 'networks that need it.'],
@@ -11373,7 +11353,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                    'description_fields': {'description': 'Reads whether CloudTrail log-file '
                                                                          'validation is enabled; delivered digest '
                                                                          'integrity is not tested.'},
-                                   'remediation_base_sha256': '933f35bc1ac64fa03155b47ffb12a7cb7226636989235fb821075472cf20f0de',
+                                   'remediation_base_sha256': '8801e0fa66106e212df14e3e6cbc29df747eb44f6d95f8804483a53f32dc4e19',
                                    'remediation_fields': {'steps': ['Enable log-file validation on this trail to '
                                                                     'support later integrity verification.'],
                                                           'summary': 'Enable log-file validation on this trail to '
@@ -11381,7 +11361,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
  'aws.cloudtrail.logging': {'description_base_sha256': '1f7a238d39f08686b04330e316d7b1fc7f2e2e6a0b1b91a744723ea4190ddbbc',
                             'description_fields': {'description': 'Reads the trail logging status; delivery of '
                                                                   'individual events is not verified.'},
-                            'remediation_base_sha256': '955d234d3e82b4514e5dfc7e1ebffd3ebbc20a3f4d8b25762a0ed8752c893f70',
+                            'remediation_base_sha256': '55978a5c7d07ef92fc88866f015c5296945dcb2031ed4cccbd3c9afba8010fe1',
                             'remediation_fields': {'steps': ['Start logging on the trail and check any delivery '
                                                              'errors.'],
                                                    'summary': 'Start logging on the trail and check any delivery '
@@ -11403,7 +11383,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                  'description_fields': {'description': 'Reads whether the trail is configured for '
                                                                        'multiple Regions; actual event coverage '
                                                                        'is not tested.'},
-                                 'remediation_base_sha256': '5aed579b72a201b7f82bc89c1cebcb3f95257a016cf685f5cc594ab3c04af89b',
+                                 'remediation_base_sha256': 'e17f90ee5e1bacdf3e61254938ca6035ffe3d3b0fda2ec5633d24a427fd19373',
                                  'remediation_fields': {'steps': ['Enable a multi-Region trail if this trail is '
                                                                   'intended to cover the account.'],
                                                         'summary': 'Enable a multi-Region trail if this trail is '
@@ -11421,7 +11401,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                             'description_fields': {'description': 'Reads repository tag mutability and requires '
                                                                   'IMMUTABLE; image contents and deployments are '
                                                                   'not tested.'},
-                            'remediation_base_sha256': '11b886751773d810e504708945618de969fcefd6a504e62072beb2ee2a535eb3',
+                            'remediation_base_sha256': '637dd96881d19663f9ceb0decb9b1cb132665d76a9266d097fe8263e58600236',
                             'remediation_fields': {'steps': ['Use versioned image tags and enable tag '
                                                              'immutability after checking image-publishing '
                                                              'workflows.'],
@@ -12645,7 +12625,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                       'requires lowercase characters; password '
                                                                       'values and authentication outcomes are not '
                                                                       'collected.'},
-                                'remediation_base_sha256': '03aea256edac7349e4b07aad251efce786a25d3f8062c7d8a476b4ab1bb880f5',
+                                'remediation_base_sha256': 'f21ec38eb11e32c89582a61a1391fb68cffb2476d864c83c79218fac2a53a58a',
                                 'remediation_fields': {'steps': ['Require lowercase characters in the password '
                                                                  'policy if this composition rule is part of your '
                                                                  'password standard.'],
@@ -12664,7 +12644,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                               'description_fields': {'description': 'Checks whether the password policy requires '
                                                                     'numbers; password values and authentication '
                                                                     'outcomes are not collected.'},
-                              'remediation_base_sha256': '95451c11cd570b3a23ae591b53515b663d53a690266dc07ae671929c49027c90',
+                              'remediation_base_sha256': '1bb5aecd97534bf596601fa46f3e1f0f79924246f3fc12a6f515902eb3056db5',
                               'remediation_fields': {'steps': ['Require numbers in the password policy if this '
                                                                'composition rule is part of your password '
                                                                'standard.'],
@@ -12675,7 +12655,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                               'description_fields': {'description': 'Checks whether the password policy requires '
                                                                     'symbols; password values and authentication '
                                                                     'outcomes are not collected.'},
-                              'remediation_base_sha256': '6bbb64d75f46fdfa12cf6e75150740f88efd0f2f0b60f108b192dbd70203bebb',
+                              'remediation_base_sha256': 'd29f6c018b04e31555db81fc5ef1b5141b913f475c4999520a375f697cf4c10a',
                               'remediation_fields': {'steps': ['Require symbols in the password policy if this '
                                                                'composition rule is part of your password '
                                                                'standard.'],
@@ -12687,7 +12667,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                       'requires uppercase characters; password '
                                                                       'values and authentication outcomes are not '
                                                                       'collected.'},
-                                'remediation_base_sha256': '16c0541857cdaa87ca836eb88848ed3e1c510f4e257dd1cce3e7f36b9cd0e490',
+                                'remediation_base_sha256': 'dea2c6f3f6337e91873f74dbd00d7e85e4b52f3f06641df4adca94970c7b354c',
                                 'remediation_fields': {'steps': ['Require uppercase characters in the password '
                                                                  'policy if this composition rule is part of your '
                                                                  'password standard.'],
@@ -12734,7 +12714,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                      'delivery is '
                                                                                                      'not '
                                                                                                      'verified.'},
-                                                               'remediation_base_sha256': 'df3dd65acc4bf13cc445b4a346640663c02d7037489482e4c5c2547621ad2300',
+                                                               'remediation_base_sha256': '449b45cf9590449433cf0fbd0eb01861100e8bccc3a64cff6d14e21f87a340ac',
                                                                'remediation_fields': {'cli': [],
                                                                                       'review_status': 'approved',
                                                                                       'steps': ['Configure access '
@@ -12844,7 +12824,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                       'presence, freshness and '
                                                                                       'actual log delivery are '
                                                                                       'not evaluated.'},
-                                                'remediation_base_sha256': '5b8365092663909120b85296811f5a942f9abaeff193233ab59d378ba27f9fff',
+                                                'remediation_base_sha256': '922dd5287dbfd177c3608a689c189867a234cffee2b4b6619559d9c9b82db61d',
                                                 'remediation_fields': {'cli': [],
                                                                        'review_status': 'approved',
                                                                        'steps': ['Repair trail logging and the '
@@ -12863,7 +12843,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                       'omitted type defaults to '
                                                                                       'PLAINTEXT and values are '
                                                                                       'not inspected.'},
-                                                'remediation_base_sha256': 'fe451131bf0bf0bd477c0869e6fa5763f0bf29c96130a9f3505da8a0ab8354b5',
+                                                'remediation_base_sha256': '961b290126f0fd5bd7a5c215c8354db6e011c5fe7f6446a36ee609e932e63621',
                                                 'remediation_fields': {'cli': [],
                                                                        'review_status': 'approved',
                                                                        'steps': ['Replace genuine plaintext '
@@ -12887,7 +12867,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                       'secret references; values '
                                                                                       'and validity are not '
                                                                                       'inspected.'},
-                                                'remediation_base_sha256': 'e480a5264aadab18cff37993a94283b84ead84e9f76cb75aa3262b58b62309d4',
+                                                'remediation_base_sha256': '5c997bfaba08e4b1cb5dc488e60087d7ec1915ff64672be4efc0536e6dceec75',
                                                 'remediation_fields': {'cli': [],
                                                                        'review_status': 'approved',
                                                                        'steps': ['Prefer appropriate role-based '
@@ -12910,7 +12890,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                           'permissions and actual '
                                                                                           'deployment separation '
                                                                                           'are not evaluated.'},
-                                                    'remediation_base_sha256': 'be3dfb25292f09f558c518981f5ab2dc57e72e76573daad632b8839150321b50',
+                                                    'remediation_base_sha256': 'f74f5d9fc0d7e7f85a48f5e07d281a921e2f3cf0f540178b2c43cebf17bc3781',
                                                     'remediation_fields': {'cli': [],
                                                                            'review_status': 'approved',
                                                                            'steps': ['Review whether multiple '
@@ -12933,7 +12913,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                        'attachments and effective '
                                                                                        'permissions are not '
                                                                                        'evaluated.'},
-                                                 'remediation_base_sha256': 'ee76610fdf40dc883a758e0f87cf2f4224969c3235f4f4bee1eb6091aa12850a',
+                                                 'remediation_base_sha256': 'a2e5520d27f47ef9f662ad186e7871f56437dc9aaa9d9e73b8505e911813dec2',
                                                  'remediation_fields': {'cli': [],
                                                                         'review_status': 'approved',
                                                                         'steps': ['Replace unnecessary broad '
@@ -12950,7 +12930,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                 'description_fields': {'description': 'Reads whether automatic minor-version '
                                                                       'upgrades are enabled; installed versions '
                                                                       'and patch availability are not assessed.'},
-                                'remediation_base_sha256': 'f6a5498e7d4656a5bf1a7322809d7356300954de8a4ee0aaa6316ed7a889fb18',
+                                'remediation_base_sha256': 'b090240d1ff53e17dbab9cc30539bffd66a53a6836faf81eeba6be1dad2a35a7',
                                 'remediation_fields': {'steps': ['Enable automatic minor-version upgrades after '
                                                                  'testing application compatibility and choosing '
                                                                  'an appropriate maintenance window.'],
@@ -12974,7 +12954,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                'protection is enabled on this '
                                                                                'resource; backups and '
                                                                                'recoverability are not tested.'},
-                                         'remediation_base_sha256': 'daeb2aa8d7c8b3504be41267e7d449785fa30a4fab7b7bbaa500ed626dd1457c',
+                                         'remediation_base_sha256': 'bbdfbec2229b7601a9c481d4107446b18271e4d568106e8a6709bb5955d7702d',
                                          'remediation_fields': {'steps': ['Enable deletion protection to reduce '
                                                                           'accidental deletion.'],
                                                                 'summary': 'Enable deletion protection to reduce '
@@ -13020,7 +13000,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                  'description_fields': {'description': 'Checks whether deletion protection is '
                                                                        'enabled on this resource; backups and '
                                                                        'recoverability are not tested.'},
-                                 'remediation_base_sha256': '8d4eb50783e7bd82218058981022cdac301cc96130840ca26c97920e45994d8b',
+                                 'remediation_base_sha256': '25146aaed8eba90b682dff16574001c5397459791c802ad3b35b0b608de77648',
                                  'remediation_fields': {'steps': ['Enable deletion protection to reduce '
                                                                   'accidental deletion.'],
                                                         'summary': 'Enable deletion protection to reduce '
@@ -13106,7 +13086,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                            'and subscriptions or actual '
                                                                            'notification delivery are not '
                                                                            'verified.'},
-                                     'remediation_base_sha256': '65c8932485136e20387eb7671b7f69c3a665c545653143129ce00cf33f57ba7d',
+                                     'remediation_base_sha256': '6ff751833ecf44cd9beacb8bd2679976d5fe0d5e0607d0ac2edd4d6c967d9279',
                                      'remediation_fields': {'cli': [],
                                                             'review_status': 'approved',
                                                             'steps': ['Configure backup-failure notifications to '
@@ -13122,7 +13102,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                 'awslogs with a nonempty group; '
                                                                                 'running-job adoption and '
                                                                                 'delivery are not evaluated.'},
-                                          'remediation_base_sha256': '6fe77d8dfa59b34a6b7d24ddb1800889e61bf8ec2fe5e3fb12d6b8a5abcfbddb',
+                                          'remediation_base_sha256': 'ad23be3ea8056f77cb89d77ddf0e04bfef86e036580f84b6f36ce08687779dc8',
                                           'remediation_fields': {'cli': [],
                                                                  'review_status': 'approved',
                                                                  'steps': ['Configure the intended awslogs group '
@@ -13138,7 +13118,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                           'service-linked-only coverage remains '
                                                                           'unknown and actual configuration-item '
                                                                           'delivery is not verified.'},
-                                    'remediation_base_sha256': '896674d8cc7db6d3edb8d48848eac321393b410e844a23dc3d670080a23f7c25',
+                                    'remediation_base_sha256': 'fbd08a769c4d5cf34540267ec600cdcad36a1539235ef2384bfeb11273de7578',
                                     'remediation_fields': {'cli': [],
                                                            'review_status': 'approved',
                                                            'steps': ['Configure a suitable running '
@@ -13154,7 +13134,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                    'permissions and successful '
                                                                                    'access-log delivery are not '
                                                                                    'verified.'},
-                                             'remediation_base_sha256': 'b9eec11aa4abadb57bab0906c2d1cae542a890bc324e815a38cc0551f55ae92c',
+                                             'remediation_base_sha256': 'a00e767f0db03e0b9e38ff40ddcf14884eff559e17ae8676572149efa28d420a',
                                              'remediation_fields': {'cli': [],
                                                                     'review_status': 'approved',
                                                                     'steps': ['Configure the intended bucket '
@@ -13172,7 +13152,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                     'certificate validity and '
                                                                                     'real sign-ins are not '
                                                                                     'tested.'},
-                                              'remediation_base_sha256': '84e74d756c4322c3ff15e0c5ea3e5e83b74941f7119466e6692a78aba58208bb',
+                                              'remediation_base_sha256': '2859631a1e1abc53903892d0fdf42d9d0e1ef2ae46e084dabb665a6558d7caa7',
                                               'remediation_fields': {'cli': [],
                                                                      'review_status': 'approved',
                                                                      'steps': ['Configure required server '
@@ -13195,7 +13175,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                       'block absence and '
                                                                                       'thresholds or delivery are '
                                                                                       'not evaluated.'},
-                                                'remediation_base_sha256': 'ecbf836775a01a59b7dd6133517d5712195467d21b4b7a6b68e898afdcf7c651',
+                                                'remediation_base_sha256': '2822022f6ccaff5fb86097ebb779b8680b9ee060341a552c3a99307a7b740db2',
                                                 'remediation_fields': {'cli': [],
                                                                        'review_status': 'approved',
                                                                        'steps': ['Configure required CPU-capacity '
@@ -13212,7 +13192,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                 'InstanceId and actions; stopped instances remain '
                                                                 'unknown and thresholds or notification delivery '
                                                                 'are not evaluated.'},
-                          'remediation_base_sha256': '25333927f6d3fe23d76a67d5a080b3d50d55b53cb9b51aad264e126029a90e27',
+                          'remediation_base_sha256': 'fa8a9a2448608b38c470f5723e86a56eafda3b81cc9b193af9a043e9dd3efe7d',
                           'remediation_fields': {'cli': [],
                                                  'review_status': 'approved',
                                                  'steps': ['Configure instance-status monitoring where needed and '
@@ -13227,7 +13207,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                  'pattern constraints remain '
                                                                                  'unknown and notification '
                                                                                  'delivery is not observed.'},
-                                           'remediation_base_sha256': 'e84d49dd676e8abc4814dbd3c50a92a33dbd92301d5c0a87e7810c2479623914',
+                                           'remediation_base_sha256': 'b4eb31f10a36a46ce1a1d6f5bcbb3767f219e319ee1bf36bbe47b5290a980a82',
                                            'remediation_fields': {'cli': [],
                                                                   'review_status': 'approved',
                                                                   'steps': ['Cover the missing IAM change events '
@@ -13245,7 +13225,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                  'constraints remain unknown and '
                                                                                  'notification delivery is not '
                                                                                  'observed.'},
-                                           'remediation_base_sha256': '6c8b97b8bbb7fea6d792b1345111008a3a1cf23e6f8e06e9cda6a445f9a26d62',
+                                           'remediation_base_sha256': 'c39a3167f8d379fc47fb7ccb594595568765beacd0e856ee53d720e6598afacc',
                                            'remediation_fields': {'cli': [],
                                                                   'review_status': 'approved',
                                                                   'steps': ['Cover the missing snapshot change '
@@ -13263,7 +13243,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                   'log group; key grants, actual '
                                                                                   'delivery and historical '
                                                                                   'encryption are not evaluated.'},
-                                            'remediation_base_sha256': '28624203dd7646e2d758a20279ea11ca73bf91ba0dd56c3fdd0571439c482314',
+                                            'remediation_base_sha256': '730200515e7b3aabec0754bf572e700d6e50dc7dff2249eda2c6f05a00b503e4',
                                             'remediation_fields': {'cli': [],
                                                                    'review_status': 'approved',
                                                                    'steps': ['Configure required customer-managed '
@@ -13294,7 +13274,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                    'delivery is '
                                                                                                    'not '
                                                                                                    'verified.'},
-                                                             'remediation_base_sha256': 'ea484dafa4f71fc03daa3cedfd15fbf9c55376340e1cb34a5186bc75caa41e81',
+                                                             'remediation_base_sha256': 'eff0bc3c6341835f33ebaafc394542d05b924e894b6e7851a54d6021cdb66682',
                                                              'remediation_fields': {'cli': [],
                                                                                     'review_status': 'approved',
                                                                                     'steps': ['Configure the '
@@ -13326,7 +13306,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                'effective role '
                                                                                                'permissions or '
                                                                                                'delivery.'},
-                                                         'remediation_base_sha256': 'd66318c0012574f2d2953e3e54b1e495818a1af9e24bce3da5bec64d2f54f4b7',
+                                                         'remediation_base_sha256': 'c08fd35825547d54c4735253b4d3a2a3c395ddb2542fd4e7e1bc70ebaa8a2b32',
                                                          'remediation_fields': {'cli': [],
                                                                                 'review_status': 'approved',
                                                                                 'steps': ['Configure the intended '
@@ -13348,7 +13328,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                   'group; active logging, key '
                                                                                   'grants and historical '
                                                                                   'encryption are not evaluated.'},
-                                            'remediation_base_sha256': 'fde4519fab25fa4fa4ca25e2fa692bb3824737ee3d01ff22862da7a096d9945f',
+                                            'remediation_base_sha256': 'b7006c31da22bd1e3bce956c5926fc2dae8f2b6f3a126c9903fcb38d74b2bb49',
                                             'remediation_fields': {'cli': [],
                                                                    'review_status': 'approved',
                                                                    'steps': ['Configure dedicated keys if their '
@@ -13367,7 +13347,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                  'inventory public ECR '
                                                                                  'repositories or prove effective '
                                                                                  'public access.'},
-                                           'remediation_base_sha256': '24f8d5bd20458299cdd315a3321d6dbba17fa3f61c6a2f9329f17057c086e2c8',
+                                           'remediation_base_sha256': '1d983c471ce55bdb4e39d41988c3125e8498ee8ddde96ddf4c8ee2583f6d2d4a',
                                            'remediation_fields': {'cli': [],
                                                                   'review_status': 'approved',
                                                                   'steps': ['Review matching statements and '
@@ -13386,7 +13366,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                              'logDriver; driver suitability, '
                                                                              'running task adoption and delivery '
                                                                              'are not evaluated.'},
-                                       'remediation_base_sha256': 'b3617824b98c068b3205e8595a8f6da5d11b19a613122424b8db1c2caaea95fe',
+                                       'remediation_base_sha256': '3c755c99c371e31ec9d86aba8ac8fc4a53c52cffa6561e4615fabfa7d5d59c9e',
                                        'remediation_fields': {'cli': [],
                                                               'review_status': 'approved',
                                                               'steps': ['Configure an appropriate log driver for '
@@ -13461,7 +13441,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                           'list passes and metric '
                                                                                           'delivery is not '
                                                                                           'evaluated.'},
-                                                    'remediation_base_sha256': 'a61c0f98f003b594858a5ee3440ad1a0c0d5028575c3b4040b3d93c502e9421d',
+                                                    'remediation_base_sha256': 'e762f42e2fdef604f58017b90bdb39b9db30e517a916240c75a46add551b0443',
                                                     'remediation_fields': {'cli': [],
                                                                            'review_status': 'approved',
                                                                            'steps': ['Enable Enhanced Monitoring '
@@ -13481,7 +13461,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                             'usage; other origins skip and actual '
                                                                             'imported-material security is not '
                                                                             'verified.'},
-                                      'remediation_base_sha256': 'd6f2356a7fbd9831180fbd6dbfba98452d9393f6b0497633458d5087aedb3657',
+                                      'remediation_base_sha256': 'db9e847505db14166e3b1feaa4310c1f8c51c4d0a0ea91d88539e0d8a14b3060',
                                       'remediation_fields': {'cli': [],
                                                              'review_status': 'approved',
                                                              'steps': ['Review the flagged imported-key '
@@ -13499,7 +13479,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                               'skip and actual artifact '
                                                                               'signatures or publisher approval '
                                                                               'are not independently verified.'},
-                                        'remediation_base_sha256': 'a8c2d2871fe105c9b8eb805a450c37c85e458d48d39e0ef041d6b4ef3675846d',
+                                        'remediation_base_sha256': '9c21f7ecf9063428d3aab28d8ffb832832ad413dd38a80940ed74d624fac8031',
                                         'remediation_fields': {'cli': [],
                                                                'review_status': 'approved',
                                                                'steps': ['Configure intended signing publishers '
@@ -13517,7 +13497,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                           'and broker certificates or packet '
                                                                           'encryption are not independently '
                                                                           'tested.'},
-                                    'remediation_base_sha256': '6ced2729d40baa4749c93acffe835a7f141ceba934216d596f0a0a4ca8bad314',
+                                    'remediation_base_sha256': '7730545250f503d0fdd2e942d69c5058001da8ba1625afbfdfad634d57761246',
                                     'remediation_fields': {'cli': [],
                                                            'review_status': 'approved',
                                                            'steps': ['Enable broker-to-broker encryption where '
@@ -13535,7 +13515,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                   'or inactive trails skip and '
                                                                                   'actual access-log delivery is '
                                                                                   'not verified.'},
-                                            'remediation_base_sha256': '03f688a7bd8185945137a293cc07afe3d6a0be91c80f4fb78a497abf8f47f3a4',
+                                            'remediation_base_sha256': '800fffaba355d6cc78b5718e07586073ffdefbb1b590c9a231faecc1907a3faa',
                                             'remediation_fields': {'cli': [],
                                                                    'review_status': 'approved',
                                                                    'steps': ['Configure destination-bucket access '
@@ -13561,7 +13541,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                  'historical '
                                                                                                  'encryption is '
                                                                                                  'not evaluated.'},
-                                                           'remediation_base_sha256': '1f759d39887e0f09c5c81875c3a55f0af483ca5bbdc6d702f2f1f78901a6bd04',
+                                                           'remediation_base_sha256': '0b4ba07b86951fad5ce392b158feff72a9c4b4b30e691f3d7efdc5d9199420dd',
                                                            'remediation_fields': {'cli': [],
                                                                                   'review_status': 'approved',
                                                                                   'steps': ['Configure required '
@@ -13586,7 +13566,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                       'not imply plaintext '
                                                                                       'because DynamoDB default '
                                                                                       'encryption applies.'},
-                                                'remediation_base_sha256': 'b584e40fb55f17c981171e4f7d5aca2f8006bc0153b9b08e1f1f647ec2552e3e',
+                                                'remediation_base_sha256': 'ad8c89afed41202ba7d190b666be39cb1414a509aa7a9f8396f7bc65256a8b05',
                                                 'remediation_fields': {'cli': [],
                                                                        'review_status': 'approved',
                                                                        'steps': ['Use the required KMS encryption '
@@ -13688,7 +13668,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                                             'is '
                                                                                                             'not '
                                                                                                             'evaluated.'},
-                                                                      'remediation_base_sha256': 'c362a59d4ed5ad193dd8f087d0255a1c65d3abcbdca2970e601a4876ce78b75c',
+                                                                      'remediation_base_sha256': '27cc26e25be36ad31847cee186ce37a0148250d883291acc2b3e3ac2d9c8780d',
                                                                       'remediation_fields': {'cli': [],
                                                                                              'review_status': 'approved',
                                                                                              'steps': ['Enable '
@@ -13724,7 +13704,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                   'private zones skip and parent '
                                                                                   'DS publication or validating '
                                                                                   'resolution is not tested.'},
-                                            'remediation_base_sha256': '72cab3bb08db159cab049d9376d63339e2ecbb60bfa3e3d77f6ecfce1bfe0649',
+                                            'remediation_base_sha256': '1f43f06148d419c728d1196c02b4787f4d58c0eb239adfb48074e957b0b77223',
                                             'remediation_fields': {'cli': [],
                                                                    'review_status': 'approved',
                                                                    'steps': ['Configure DNSSEC signing and '
@@ -13743,7 +13723,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                     'rules; routing, listeners '
                                                                                     'and effective reachability '
                                                                                     'are not evaluated.'},
-                                              'remediation_base_sha256': '6eed704b41a228219a432925c1fe007412efa0e65192f55e50fe176f0d612fc7',
+                                              'remediation_base_sha256': '0f8536cfd0ad18f938533198988871ff48266efa1d8292515e12ed16632d6443',
                                               'remediation_fields': {'cli': [],
                                                                      'review_status': 'approved',
                                                                      'steps': ['Restrict unnecessary IPv6 ingress '
@@ -13760,7 +13740,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                            'all-protocol rules; routing, '
                                                                            'listeners and successful SSH '
                                                                            'authentication are not evaluated.'},
-                                     'remediation_base_sha256': 'b42bc93c77eac92783969194a89315f197fadb74a81177c73a7f434066446f13',
+                                     'remediation_base_sha256': '3017001506f4a9e6db688d1d4918f2175935fe70db857f109ec7799839030491',
                                      'remediation_fields': {'cli': [],
                                                             'review_status': 'approved',
                                                             'steps': ['Restrict IPv6 SSH ingress to required '
@@ -13775,7 +13755,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                'service sensitivity, listeners '
                                                                                'and complete network paths are '
                                                                                'not evaluated.'},
-                                         'remediation_base_sha256': '8fb396c53944aeb79e6c6e8f2ffc2c23729068c78f156a2c0482acab6639f4a2',
+                                         'remediation_base_sha256': '21219ea8535bbf6e2ad4a23af7465db7eca0a4fc423f51ad644b7349a4193736',
                                          'remediation_fields': {'cli': [],
                                                                 'review_status': 'approved',
                                                                 'steps': ['Review each public IPv6 rule and '
@@ -13795,7 +13775,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                                   'and actions; thresholds, '
                                                                                   'subscription health and '
                                                                                   'delivery are not evaluated.'},
-                                            'remediation_base_sha256': '12c650d5fe8514c291b22975ae498d17cd0a3a8d9b338205f7c75023ed7c503e',
+                                            'remediation_base_sha256': 'e66b49361b72f07564560b53a691802bd41b50341d307093129929a2eb580c36',
                                             'remediation_fields': {'cli': [],
                                                                    'review_status': 'approved',
                                                                    'steps': ['Configure appropriate '
@@ -13812,7 +13792,7 @@ ROWS = {'aws.a.accessanalyzer.region_active': {'description_base_sha256': '86227
                                                                              'dimension and actions; unresolved '
                                                                              'alarms block absence and thresholds '
                                                                              'or delivery are not evaluated.'},
-                                       'remediation_base_sha256': 'c34024df58067da8f1c29ea686a59a98f529f2c4c2a397b4310710171b92458d',
+                                       'remediation_base_sha256': 'a8dba5ac4213bc9bbfe3ca16952cecb071cb9f38f4172e68321ce92ca032c65e',
                                        'remediation_fields': {'cli': [],
                                                               'review_status': 'approved',
                                                               'steps': ['Configure appropriate queue-backlog '

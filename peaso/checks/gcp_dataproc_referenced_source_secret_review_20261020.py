@@ -9,7 +9,7 @@ DECLARATIONS = [dict(id=p['check'], provider='gcp', category='exposure', kind=p[
     title=p['title'], severity='high', finding_type='secrets', ui_group='Secrets', requirements=[],
     dependencies=[p['kind']], allow_incomplete_failure=True,
     remediation='Remove credential literals from the referenced source and rotate confirmed exposed credentials. Use supported secret references.',
-    coverage='Selected captured referenced plain source only; original executed bytes are not established.')
+    coverage='Selected captured source or indexed PySpark ZIP/.egg dependency only; original executed bytes are not established.')
     for p in source.PROFILES.values()]
 
 
@@ -79,9 +79,11 @@ def _evaluate(item, index, profile):
         if (not isinstance(engines, list) or len(engines) != 2 or {e['engine'] for e in engines} != set(versions)
                 or any(set(e) != {'engine', 'version', 'status'} or e['version'] != versions[e['engine']]
                        or e['status'] not in ('complete', 'unavailable') for e in engines)
-                or part['complete'] != all(e['status'] == 'complete' for e in engines)
+                or (part['complete'] and not all(e['status'] == 'complete' for e in engines))
                 or m['complete'] != part['complete']
-                or m['reason'] != ('complete' if part['complete'] else 'detector_unavailable')):
+                or m['reason'] not in ({'complete'} if part['complete'] else
+                                      {'detector_unavailable', 'archive_incomplete'} if profile == 'job'
+                                      else {'detector_unavailable'})):
             raise ValueError('engines')
         trusted = {e['engine'] for e in engines if e['status'] == 'complete'}
         leaks = m['leaks']
@@ -95,14 +97,14 @@ def _evaluate(item, index, profile):
                         and all(r.get(source.MARKER, {}).get('complete') is True for r in own['items']))
         if not leaks and not complete:
             raise ValueError('incomplete negative')
-        observed = ('A likely secret was detected in the captured Dataproc referenced source. Its value is hidden and was not validated.' if leaks else
-                    'Both offline detectors completed without detecting a supported secret in the captured Dataproc referenced source.')
-        observed += ' This capture does not establish the bytes originally executed.'
+        observed = ('A likely secret was found in the selected Dataproc source. Its value is hidden.' if leaks else
+                    'Both detectors found no supported secret in the inspected Dataproc source at its recorded object generation.')
         return ('FAIL' if leaks else 'PASS'), dict(observed=observed, secret_leaks=deepcopy(leaks), complete=complete,
             coverage='selected_captured_referenced_source_only', executed_bytes_proven=False,
             credential_validation='not_attempted', parts=deepcopy(m['parts']))
     except (KeyError, TypeError, ValueError, AttributeError, IndexError, OverflowError):
-        return 'UNKNOWN', {'complete': False, 'observed': 'Selected referenced source was unavailable, unbound or incompletely inspected. A clean source result cannot be established.'}
+        return 'UNKNOWN', {'complete': False, 'observed':
+            'The selected Dataproc source could not be fully inspected or associated with its job and object generation.'}
 
 
 def job_source(item, index):

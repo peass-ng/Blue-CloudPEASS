@@ -3,6 +3,8 @@
 All application values are scanned transiently before transport caching. No
 execution, message consumption, code download or credential validation occurs.
 """
+
+from peaso.secret_evidence import scan_with_source
 import base64
 import json
 import re
@@ -168,7 +170,7 @@ def scan_row(row, scope, kind, *, expected_name=None, revision=None, budget=None
             remaining = budget[1] - time.monotonic()
             if remaining <= 0:
                 raise TimeoutError('scan budget')
-            outcome = scan_content(payload, surface, timeout=min(10, remaining / 2), _redact_values=_redact_values)
+            outcome = scan_with_source(scan_content, payload, surface, timeout=min(10, remaining / 2), _redact_values=_redact_values, source={'resource_id': row['name'], 'location_kind': 'configuration', 'scope': scope}, native=row)
             marker['surfaces'].append({'surface': surface, 'bytes': len(payload),
                 'complete': outcome['complete'], 'engines': outcome['engines']})
             marker['leaks'] = merge_leaks(marker['leaks'] + outcome['leaks'])

@@ -224,3 +224,16 @@ def test_grouped_downloads_include_all_assets_for_old_and_new_reports(live):
     assert markdown.status_code == 200
     assert markdown.text.count("### FAIL:") == 2
     assert "log-124" in markdown.text and "log-0" in markdown.text
+
+
+def test_summary_failed_category_count_excludes_passed_controls(live):
+    client, scan, report = live
+    changed = deepcopy(report)
+    changed['findings'].append(dict(changed['findings'][-1], id='passed-control', check_id='fixture.passing', status='PASS'))
+    artifacts, store = client.app.state.artifacts, client.app.state.store
+    reference = artifacts.put('alice', scan, 'report', changed)
+    with store.transaction() as db:
+        db.execute("UPDATE jobs SET report=? WHERE id=?", (reference, scan))
+    summary = client.get(f'/api/scans/{scan}/summary?aggregation=check').json()
+    assert summary['stats']['by_category'] == {'hardening': 3}
+    assert summary['stats']['failed_by_category'] == {'hardening': 2}

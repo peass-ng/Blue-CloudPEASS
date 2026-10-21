@@ -67,7 +67,7 @@ def _scan(kind, resource_id, groups, region, operation, coverage, arn=None, acco
         categories, total = set(), 0
         if not isinstance(groups, list) or len(groups) > MAX_PAIRS:
             raise ValueError('invalid configuration groups')
-        for pairs in groups:
+        for group_index, pairs in enumerate(groups):
             if len(pairs) > MAX_PAIRS:
                 raise ValueError('configuration pair limit')
             mapping = {}
@@ -78,7 +78,25 @@ def _scan(kind, resource_id, groups, region, operation, coverage, arn=None, acco
                 if len(key) > 4096 or len(value.encode()) > MAX_VALUE_BYTES or total > MAX_TOTAL_BYTES:
                     raise ValueError('configuration size limit')
                 mapping[key] = value
-            categories.update(inspect_text(json.dumps(mapping), 'unused')['MatchedCategories'])
+            from peaso.secret_evidence import source_context, named_mapping
+            authority = arn or resource_id
+            group_path = {'codebuild_project': 'environment.environmentVariables',
+                'rest_api_stage': 'variables', 'ecs_task_definition': 'containerDefinitions[' + str(group_index) + '].environment',
+                'amplify_app': 'environmentVariables', 'batch_job_definition': 'containerProperties.environment',
+                'elastic_beanstalk_environment': 'OptionSettings',
+                'glue_job': 'DefaultArguments' if group_index == 0 else 'NonOverridableArguments',
+                'glue_connection': 'ConnectionProperties'}.get(kind, coverage + '[' + str(group_index) + ']')
+            name_checks = ({'aws.c2b.codebuild.no_plaintext_sensitive_env_names', 'aws.nist.codebuild_exact_aws_key_env_names',
+                'aws.pci.codebuild.aws_key_environment_vars', 'aws_nist_codebuild_project_plaintext_env_variables_no_sensitive_aws_values'}
+                if kind == 'codebuild_project' else {'aws.c2b.ecs.no_credential_named_env_vars', 'aws_ecs_task_definition_credential_environment_names',
+                'aws_nist_ecs_task_definition_container_environment_no_secret'} if kind == 'ecs_task_definition' else set())
+            named_mapping(mapping, provider='aws', resource_id=authority,
+                          scope=(account + '/' + region) if account else region, path=group_path, checks=name_checks,
+                          entry_list=kind in {'codebuild_project', 'ecs_task_definition'})
+            with source_context(resource_id=authority, scope=(account + '/' + region) if account else region,
+                                check_ids={'aws.review.' + kind + '.configuration_secret_indicators'},
+                                path=group_path, source=operation, location_kind='configuration', native=mapping):
+                categories.update(inspect_text(json.dumps(mapping), 'unused')['MatchedCategories'])
         return {'Schema': SCHEMA, 'collection_status': 'collected', 'NativeResponseComplete': True,
             'Kind': kind, 'ResourceId': resource_id, 'AccountId': account, 'Region': region, 'SourceOperation': operation,
             'Coverage': coverage, 'HighConfidenceSecretPresent': bool(categories), 'MatchedCategories': sorted(categories)}
@@ -93,6 +111,11 @@ def codebuild_indicator(project, region=None):
         if match is None or match[2] != project['name']:
             raise ValueError('invalid project identity')
         region = region or match[1]
+        from peaso.secret_evidence import url_credentials
+        for field, source in [('source', project.get('source'))] + [('secondarySources[' + str(i) + ']', v) for i, v in enumerate(project.get('secondarySources', []))]:
+            if isinstance(source, dict) and source.get('type') == 'BITBUCKET':
+                url_credentials(source.get('location'), resource_id=arn, path=field + '.location',
+                                check_id='aws.c2b.codebuild.source_url_no_credentials', scope=region)
         environment = project['environment']
         if not isinstance(environment, dict):
             raise ValueError('invalid project environment')

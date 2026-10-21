@@ -4,6 +4,8 @@ Dedicated uncached metadata reads discard sourceUrl/query before serialization.
 Only fixed GCS endpoints are read; a native deployed SHA1 must match bytes before
 running the existing bounded offline dual-detector reader primitives.
 """
+
+from peaso.secret_evidence import scan_with_source, target_source
 from copy import deepcopy
 import hashlib
 import http.client
@@ -217,7 +219,7 @@ def collect_sources(collector, scope):
                         raise Incomplete('deployed_hash_mismatch')
                     objects._text(payload)
                     objects._check(transport, state)
-                    outcome = scan_content(payload, 'object.content', timeout=min(5, objects._remaining(transport, state) / 2))
+                    outcome = scan_with_source(scan_content, payload, 'object.content', timeout=min(5, objects._remaining(transport, state) / 2), source=target_source(target, resource_id=ident, scope=scope))
                     del payload
                     objects._check(transport, state)
                     leaks = merge_leaks(outcome['leaks'])

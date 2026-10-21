@@ -402,7 +402,7 @@ export function LaunchForm({
     schedule?.categories || categories.map((c) => c.id),
   );
   const [aiEnabled, setAiEnabled] = useState(schedule?.ai_enabled ?? true);
-  const codex = useApi<{ available: boolean; isolation_available?: boolean }>("/ai/codex", demo);
+  const codex = useApi<{ available: boolean; disabled?: boolean; isolation_available?: boolean }>("/ai/codex", demo);
   const aiAvailable = !demo && codex.data?.available === true;
   const [checks, setChecks] = useState(schedule?.checks?.join(", ") || "");
   const [frameworks, setFrameworks] = useState<string[]>(schedule?.frameworks || []);
@@ -485,7 +485,7 @@ export function LaunchForm({
           <p className="form-error">Add a connector before launching a scan.</p>
         )}
         <label className="checkbox"><input type="checkbox" checked={aiAvailable && aiEnabled} disabled={!aiAvailable} onChange={event => setAiEnabled(event.target.checked)} />Use AI to verify failed findings and prioritize security actions</label>
-        {!aiAvailable && <p className="muted small">{codex.isPending ? "Checking AI access…" : codex.data?.isolation_available === false ? "AI checks are unavailable until the platform administrator configures isolated agent execution." : "Configure an AI provider, model and thinking effort in Settings to enable AI checks."}</p>}
+        {!aiAvailable && <p className="muted small">{codex.isPending ? "Checking AI access…" : codex.data?.disabled ? "AI review is disabled for every scan in Settings." : codex.data?.isolation_available === false ? "AI checks are unavailable until the platform administrator configures isolated agent execution." : "Configure an AI provider, model and thinking effort in Settings to enable AI checks."}</p>}
         <fieldset>
           <legend>Assessment categories <span className="category-count">{selected.length} / {categories.length} selected</span></legend>
           <div className="assessment-category-grid">

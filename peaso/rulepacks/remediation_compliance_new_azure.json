@@ -57,7 +57,7 @@
     "proposed_spec_sha256": "ad118902477d457f424e5ea7226ab14640fa52779441ead1182ad56e7fe42bc1",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Microsoft Learn REST postgresql servers get",
         "url": "https://learn.microsoft.com/en-us/rest/api/postgresql/servers/get?view=rest-postgresql-2024-08-01"
       }
     ],
@@ -105,7 +105,7 @@
     "proposed_spec_sha256": "0770996f1470a9f1421144f883c91d9916c10a8097d297de67c19ab68a00fe3d",
     "references": [
       {
-        "title": "Official provider resource API",
+        "title": "Microsoft Learn REST virtualnetwork network security groups get (1567be1a)",
         "url": "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2023-09-01"
       }
     ],
@@ -127,7 +127,7 @@
     "proposed_spec_sha256": "d157361730e2b9559df67b60bea2fd744858376c563e50eec1d2f39210c47065",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Microsoft Learn REST searchmanagement services get",
         "url": "https://learn.microsoft.com/en-us/rest/api/searchmanagement/services/get"
       }
     ],
@@ -149,7 +149,7 @@
     "proposed_spec_sha256": "0c3e3cd27c5eb9a08b1b4596ffa21af40b9a2c7f733e6cf424b326de82f295ce",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Microsoft Learn REST compute virtual machines get",
         "url": "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2023-09-01"
       }
     ],

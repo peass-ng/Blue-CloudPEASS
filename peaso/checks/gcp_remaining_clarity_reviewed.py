@@ -9300,7 +9300,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks function IAM bindings for public principals."
     },
-    "remediation_base_sha256": "59b1a378e877f4dc3193522ed42df57d50bc8233f447c382c36921026631ff4a",
+    "remediation_base_sha256": "f08ac0ad6422a866484857ae947a7908145acc9caa3d01e71f05e6c8ac6c8ab3",
     "remediation_fields": {
       "caveats": [
         "Bindings and conditions are reported as declarations; inherited permissions, deny policies and principal access boundaries can change effective access."
@@ -9386,7 +9386,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks Cloud Run run.invoker bindings for public principals."
     },
-    "remediation_base_sha256": "c37271a664a493688205d9e92c53274f54c4a0324b6f7549c24370af342daf48",
+    "remediation_base_sha256": "b978910f44e3097cde1166469f1b58954c75a32dcc975775028adc551dc49e1c",
     "remediation_fields": {
       "caveats": [
         "Bindings and conditions are reported as declarations; inherited permissions, deny policies and principal access boundaries can change effective access. Other roles and disabled invoker checks are outside this predicate."
@@ -10359,7 +10359,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks IAM bindings on ACTIVE functions for public principals."
     },
-    "remediation_base_sha256": "3a74778e027cb87d9171c08771463ac6b7731f8bcd9779b125847c069a048ce7",
+    "remediation_base_sha256": "d997db04188a0c7529e835a64c2c4d66a63ec23a31288cedafb022ada9bdc038",
     "remediation_fields": {
       "caveats": [
         "Bindings and conditions are reported as declarations; inherited permissions, deny policies and principal access boundaries can change effective access."
@@ -14219,7 +14219,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks bucket IAM bindings for public principals, retaining role and condition metadata."
     },
-    "remediation_base_sha256": "8e2adf579d98fb06724bda769a66c0a55b6bb7242b739dcbd9dbbc3c944b2dc9",
+    "remediation_base_sha256": "4f3cce1daf85c737d5161418376e9fa08f68769932271b05e467c82473b45881",
     "remediation_fields": {
       "caveats": [
         "Bindings and conditions are reported as declarations; inherited permissions, deny policies and principal access boundaries can change effective access."

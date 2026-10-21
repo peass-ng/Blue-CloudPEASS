@@ -15,13 +15,6 @@
           "title": "Title",
           "type": "string"
         },
-        "resource_ids": {
-          "items": {
-            "type": "string"
-          },
-          "title": "Resource Ids",
-          "type": "array"
-        },
         "finding_ids": {
           "items": {
             "type": "string"
@@ -56,7 +49,6 @@
       "required": [
         "rank",
         "title",
-        "resource_ids",
         "finding_ids",
         "rationale",
         "steps",

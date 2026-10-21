@@ -3,6 +3,7 @@
 No Docker daemon, extraction, credential validation, challenge exchange, redirects,
 external URLs or content cache. Existing dual-detector TAR parsing is reused.
 """
+from peaso.secret_evidence import alias_path, scan_with_source, source_context
 import base64
 from copy import deepcopy
 import hashlib
@@ -234,6 +235,7 @@ def _tar(raw, media, expected_diff):
             raise ValueError('duplicate/unsupported original TAR member')
         names.add(original)
         ordinal += 1
+        alias_path('member-' + str(ordinal), original)
         member.name = 'member-' + str(ordinal)
         safe[offset:offset+512] = member.tobuf(format=tarfile.USTAR_FORMAT)
         offset += 512 + ((member.size + 511) // 512) * 512
@@ -290,7 +292,7 @@ def inspect_image(row, scope, repositories, projects, reader):
                 or any(not isinstance(d, str) or not DIGEST.fullmatch(d) for d in decoded['rootfs']['diff_ids'])):
             raise ValueError('unsupported platform/config rootfs')
         reader.check()
-        outcome = scan_content(config_raw, 'image-config.json', timeout=min(10, max(.001, (reader.end-time.monotonic())/2)))
+        outcome = scan_with_source(scan_content, config_raw, 'image-config.json', source={'resource_id': uri, 'scope': scope, 'image_digest': digest, 'layer': config['digest'], 'location_kind': 'configuration'}, native=decoded, timeout=min(10, max(.001, (reader.end-time.monotonic())/2)))
         leaks = [dict(leak, locations=[dict(loc, layer=config['digest']) for loc in leak['locations']]) for leak in outcome['leaks']]
         engines = outcome['engines']
         inspected = [config['digest']]
@@ -303,19 +305,20 @@ def inspect_image(row, scope, repositories, projects, reader):
         for layer, diff in zip(layers, decoded['rootfs']['diff_ids']):
             reader.check()
             payload = reader.get(uri, 'blobs', layer['digest'], MAX_LAYER, layer['size'])
-            uncompressed, regular = _tar(payload, layer['mediaType'], diff)
-            if len(uncompressed) + expanded > MAX_EXPANDED or files + regular > MAX_MEMBERS:
-                raise ValueError('image expansion/member bound')
-            try:
-                refs, tar_expanded, members = scan_tar(uncompressed, 'application/vnd.oci.image.layer.v1.tar', Deadline(reader), (expanded, members))
-            except PartialArchive as observed:
-                add_refs(observed.refs, layer['digest'])
-                if observed.refs:
-                    inspected.append(layer['digest'])
-                raise
-            expanded, files = tar_expanded, files + regular
-            if members > MAX_MEMBERS: raise ValueError('image member bound')
-            add_refs(refs, layer['digest'])
+            with source_context(resource_id=uri, scope=scope, image_digest=digest, layer=layer['digest']):
+                uncompressed, regular = _tar(payload, layer['mediaType'], diff)
+                if len(uncompressed) + expanded > MAX_EXPANDED or files + regular > MAX_MEMBERS:
+                    raise ValueError('image expansion/member bound')
+                try:
+                    refs, tar_expanded, members = scan_tar(uncompressed, 'application/vnd.oci.image.layer.v1.tar', Deadline(reader), (expanded, members))
+                except PartialArchive as observed:
+                    add_refs(observed.refs, layer['digest'])
+                    if observed.refs:
+                        inspected.append(layer['digest'])
+                    raise
+                expanded, files = tar_expanded, files + regular
+                if members > MAX_MEMBERS: raise ValueError('image member bound')
+                add_refs(refs, layer['digest'])
             scanned.append(layer['digest'])
             inspected.append(layer['digest'])
         reader.check()

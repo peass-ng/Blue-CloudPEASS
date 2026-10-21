@@ -1,0 +1,117 @@
+[
+  {
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T22:00:00Z",
+    "userIdentity": {
+      "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-admin/session"
+    },
+    "eventID": "synthetic-b84-sqs-exact",
+    "eventSource": "sqs.amazonaws.com",
+    "eventName": "SetQueueAttributes",
+    "requestParameters": {
+      "queueUrl": "https://sqs.us-east-1.amazonaws.com/999999999999/synthetic-queue",
+      "attributes": {
+        "Policy": "{\"Version\": \"2012-10-17\", \"Statement\": [{\"Sid\": \"SyntheticSNSDelivery\", \"Effect\": \"Allow\", \"Principal\": {\"Service\": \"sns.amazonaws.com\"}, \"Action\": \"sqs:SendMessage\", \"Resource\": \"arn:aws:sqs:us-east-1:999999999999:synthetic-queue\", \"Condition\": {\"ArnEquals\": {\"aws:SourceArn\": \"arn:aws:sns:us-east-1:999999999999:synthetic-topic\"}}}]}"
+      }
+    },
+    "responseElements": {}
+  },
+  {
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T22:00:00Z",
+    "userIdentity": {
+      "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-admin/session"
+    },
+    "eventID": "synthetic-b84-sqs-account",
+    "eventSource": "sqs.amazonaws.com",
+    "eventName": "SetQueueAttributes",
+    "requestParameters": {
+      "queueUrl": "https://sqs.us-east-1.amazonaws.com/999999999999/synthetic-queue",
+      "attributes": {
+        "Policy": "{\"Version\": \"2012-10-17\", \"Statement\": [{\"Sid\": \"SyntheticSNSDelivery\", \"Effect\": \"Allow\", \"Principal\": {\"Service\": \"sns.amazonaws.com\"}, \"Action\": \"sqs:SendMessage\", \"Resource\": \"arn:aws:sqs:us-east-1:999999999999:synthetic-queue\", \"Condition\": {\"StringEquals\": {\"aws:SourceAccount\": \"999999999999\"}}}]}"
+      }
+    },
+    "responseElements": {}
+  },
+  {
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T22:00:00Z",
+    "userIdentity": {
+      "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-admin/session"
+    },
+    "eventID": "synthetic-b84-sqs-unscoped",
+    "eventSource": "sqs.amazonaws.com",
+    "eventName": "SetQueueAttributes",
+    "requestParameters": {
+      "queueUrl": "https://sqs.us-east-1.amazonaws.com/999999999999/synthetic-queue",
+      "attributes": {
+        "Policy": "{\"Version\": \"2012-10-17\", \"Statement\": [{\"Sid\": \"SyntheticSNSDelivery\", \"Effect\": \"Allow\", \"Principal\": {\"Service\": \"sns.amazonaws.com\"}, \"Action\": \"sqs:SendMessage\", \"Resource\": \"arn:aws:sqs:us-east-1:999999999999:synthetic-queue\"}]}"
+      }
+    },
+    "responseElements": {}
+  },
+  {
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T22:00:00Z",
+    "userIdentity": {
+      "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-admin/session"
+    },
+    "eventID": "synthetic-b84-lambda-broad",
+    "eventSource": "lambda.amazonaws.com",
+    "eventName": "AddPermission20150331v2",
+    "requestParameters": {
+      "functionName": "synthetic-function",
+      "statementId": "SyntheticBroad",
+      "action": "lambda:InvokeFunction",
+      "principal": "sns.amazonaws.com"
+    },
+    "responseElements": {
+      "statement": "{\"Sid\": \"SyntheticBroad\", \"Effect\": \"Allow\", \"Principal\": {\"Service\": \"sns.amazonaws.com\"}, \"Action\": \"lambda:InvokeFunction\", \"Resource\": \"arn:aws:lambda:us-east-1:999999999999:function:synthetic-function\"}"
+    }
+  },
+  {
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T22:00:00Z",
+    "userIdentity": {
+      "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-admin/session"
+    },
+    "eventID": "synthetic-b84-lambda-scoped",
+    "eventSource": "lambda.amazonaws.com",
+    "eventName": "AddPermission20150331v2",
+    "requestParameters": {
+      "functionName": "synthetic-function",
+      "statementId": "SyntheticScoped",
+      "action": "lambda:InvokeFunction",
+      "principal": "sns.amazonaws.com",
+      "sourceArn": "arn:aws:sns:us-east-1:999999999999:synthetic-topic"
+    },
+    "responseElements": {
+      "statement": "{\"Sid\": \"SyntheticScoped\", \"Effect\": \"Allow\", \"Principal\": {\"Service\": \"sns.amazonaws.com\"}, \"Action\": \"lambda:InvokeFunction\", \"Resource\": \"arn:aws:lambda:us-east-1:999999999999:function:synthetic-function\", \"Condition\": {\"ArnLike\": {\"AWS:SourceArn\": \"arn:aws:sns:us-east-1:999999999999:synthetic-topic\"}}}"
+    }
+  }
+]

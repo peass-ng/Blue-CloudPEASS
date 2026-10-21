@@ -1,0 +1,2664 @@
+{
+  "azure.review.app_service.runtime_support_declared": {
+    "fail": {
+      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Web/sites/app",
+      "runtime_support_native": {
+        "asset_id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Web/sites/app",
+        "check_id": "azure.review.app_service.runtime_support_declared",
+        "complete": true,
+        "evidence": "The Linux web app declares PYTHON|3.12; its exact regional stack is deprecated or past its stated end of life date. This is provider lifecycle evidence, not an application compatibility test.",
+        "observed_at": "2026-10-21T00:00:00+00:00",
+        "reason": null,
+        "runtime": "PYTHON|3.12",
+        "schema": "azure-app-service-runtime-native-v1",
+        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+        "source_requests": [
+          {
+            "method": "GET",
+            "operation": "site",
+            "page": 1,
+            "projection_sha256": "92bd3f4976ca28d576d1fe43db86c4d40b765aacae5f885e51e2d7a971625894",
+            "read_only": true,
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "url": "https://management.azure.com/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Web/sites/app?api-version=2024-11-01"
+          },
+          {
+            "method": "GET",
+            "operation": "config",
+            "page": 1,
+            "projection_sha256": "a316ec24edb6db05ca6d343593dbce13254410df14a3a3a48c4c4b0c00c8bbcf",
+            "read_only": true,
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "url": "https://management.azure.com/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Web/sites/app/config/web?api-version=2024-11-01"
+          },
+          {
+            "method": "GET",
+            "operation": "regional_web_app_stacks",
+            "page": 1,
+            "projection_sha256": "041ed79ac622564b22de909213b43f146398ce7f2314cba48a753d1b035804a7",
+            "read_only": true,
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "url": "https://management.azure.com/providers/Microsoft.Web/locations/westus/webAppStacks?api-version=2024-11-01"
+          }
+        ],
+        "status": "FAIL"
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+      }
+    },
+    "index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+      }
+    },
+    "malformed": null,
+    "missing": {},
+    "pass": {
+      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Web/sites/app",
+      "runtime_support_native": {
+        "asset_id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Web/sites/app",
+        "check_id": "azure.review.app_service.runtime_support_declared",
+        "complete": true,
+        "evidence": "The Linux web app declares PYTHON|3.12; its exact regional stack is not deprecated and any stated end of life date is in the future. Its patch level and application compatibility were not tested.",
+        "observed_at": "2026-10-21T00:00:00+00:00",
+        "reason": null,
+        "runtime": "PYTHON|3.12",
+        "schema": "azure-app-service-runtime-native-v1",
+        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+        "source_requests": [
+          {
+            "method": "GET",
+            "operation": "site",
+            "page": 1,
+            "projection_sha256": "92bd3f4976ca28d576d1fe43db86c4d40b765aacae5f885e51e2d7a971625894",
+            "read_only": true,
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "url": "https://management.azure.com/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Web/sites/app?api-version=2024-11-01"
+          },
+          {
+            "method": "GET",
+            "operation": "config",
+            "page": 1,
+            "projection_sha256": "a316ec24edb6db05ca6d343593dbce13254410df14a3a3a48c4c4b0c00c8bbcf",
+            "read_only": true,
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "url": "https://management.azure.com/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Web/sites/app/config/web?api-version=2024-11-01"
+          },
+          {
+            "method": "GET",
+            "operation": "regional_web_app_stacks",
+            "page": 1,
+            "projection_sha256": "046ab88804f920ad65645c829fa4ddb0412b0ba8ac698970deee8a5dfded250f",
+            "read_only": true,
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "url": "https://management.azure.com/providers/Microsoft.Web/locations/westus/webAppStacks?api-version=2024-11-01"
+          }
+        ],
+        "status": "PASS"
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+      }
+    },
+    "unknown": {
+      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Web/sites/app",
+      "runtime_support_native": {
+        "asset_id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Web/sites/app",
+        "check_id": "azure.review.app_service.runtime_support_declared",
+        "complete": true,
+        "evidence": "The Linux web app declares PYTHON|3.12; its exact regional stack is not deprecated and any stated end of life date is in the future. Its patch level and application compatibility were not tested.",
+        "observed_at": "2026-10-21T00:00:00+00:00",
+        "reason": null,
+        "runtime": "PYTHON|3.12",
+        "schema": "azure-app-service-runtime-native-v1",
+        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+        "source_requests": [
+          {
+            "method": "GET",
+            "operation": "site",
+            "page": 1,
+            "projection_sha256": "92bd3f4976ca28d576d1fe43db86c4d40b765aacae5f885e51e2d7a971625894",
+            "read_only": true,
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "denied",
+            "url": "https://management.azure.com/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Web/sites/app?api-version=2024-11-01"
+          },
+          {
+            "method": "GET",
+            "operation": "config",
+            "page": 1,
+            "projection_sha256": "a316ec24edb6db05ca6d343593dbce13254410df14a3a3a48c4c4b0c00c8bbcf",
+            "read_only": true,
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "url": "https://management.azure.com/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Web/sites/app/config/web?api-version=2024-11-01"
+          },
+          {
+            "method": "GET",
+            "operation": "regional_web_app_stacks",
+            "page": 1,
+            "projection_sha256": "046ab88804f920ad65645c829fa4ddb0412b0ba8ac698970deee8a5dfded250f",
+            "read_only": true,
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "url": "https://management.azure.com/providers/Microsoft.Web/locations/westus/webAppStacks?api-version=2024-11-01"
+          }
+        ],
+        "status": "PASS"
+      }
+    },
+    "unknown_index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+      }
+    }
+  },
+  "gcp.review.cloud_run.selected_job_image_vulnerabilities": {
+    "fail": {
+      "JobImageVulnerabilityReview": {
+        "complete": false,
+        "reason": null,
+        "selection": {
+          "api_version": "run.googleapis.com/v2",
+          "container_name": "worker",
+          "digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+          "immutable_reference": "us-central1-docker.pkg.dev/review/images/app@sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+          "kind": "Job",
+          "project_id": "review",
+          "repository": "projects/review/locations/us-central1/repositories/images",
+          "resource_name": "projects/review/locations/us-central1/jobs/batch-job",
+          "resource_uid": "4c03895a-b5b4-4d6c-b8dd-f1979d8f044c"
+        },
+        "source_ledger": [
+          {
+            "body_sha256": "45b3598f239cd4570ffd07d33c6bc67279ffbd7983e15d98c0ce517bb397d36c",
+            "bytes": 381,
+            "http_attempts": 1,
+            "http_status": 200,
+            "id": "request-1",
+            "method": "GET",
+            "operation": "cloudrun_v2_job_declared_image_metadata_get",
+            "query": {
+              "fields": "name,uid,etag,generation,observedGeneration,reconciling,deleteTime,expireTime,template(template(containers(name,image)))"
+            },
+            "scope": "projects/review",
+            "status": "collected",
+            "url": "https://run.googleapis.com/v2/projects/review/locations/us-central1/jobs/batch-job"
+          },
+          {
+            "body_sha256": "858fd54e5ed31f17adcfe1df70a674faa736cafada00586c13e38cdda6bcebb9",
+            "bytes": 67,
+            "http_attempts": 1,
+            "http_status": 200,
+            "id": "request-2",
+            "method": "GET",
+            "operation": "cloudrun_v2_job_declared_image_metadata_get",
+            "query": {
+              "fields": "name,projectId,state"
+            },
+            "scope": "projects/review",
+            "status": "collected",
+            "url": "https://cloudresourcemanager.googleapis.com/v3/projects/review"
+          },
+          {
+            "body_sha256": "513f500e41f2ff03739a118daf32aae8842f69b8a9594e5fe8d85b91d8600398",
+            "bytes": 151,
+            "http_attempts": 1,
+            "http_status": 200,
+            "id": "request-3",
+            "method": "GET",
+            "operation": "cloudrun_v2_job_declared_image_metadata_get",
+            "query": {
+              "fields": "name,format,mode,updateTime"
+            },
+            "scope": "projects/review",
+            "status": "collected",
+            "url": "https://artifactregistry.googleapis.com/v1/projects/review/locations/us-central1/repositories/images"
+          },
+          {
+            "body_sha256": "1d5476b4fe3ec1c3991746abb85ccc718fe9f16c9d96462f53fc28ab833e51e2",
+            "bytes": 375,
+            "http_attempts": 1,
+            "http_status": 200,
+            "id": "request-4",
+            "method": "GET",
+            "operation": "cloudrun_v2_job_declared_image_metadata_get",
+            "query": {
+              "fields": "name,uri,mediaType,updateTime"
+            },
+            "scope": "projects/review",
+            "status": "collected",
+            "url": "https://artifactregistry.googleapis.com/v1/projects/review/locations/us-central1/repositories/images/dockerImages/app%40sha256%3A902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9"
+          },
+          {
+            "attempts": 1,
+            "category": "manifests",
+            "digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+            "http_attempts": 1,
+            "http_status": 200,
+            "id": "request-5",
+            "method": "GET",
+            "operation": "artifactregistry.registry_content_get",
+            "scope": "projects/review",
+            "status": "collected"
+          },
+          {
+            "attempts": 1,
+            "category": "blobs",
+            "digest": "sha256:830dadf770a0fc118b33f5a6d19963c9c5ac6e251fba6bcb5cdcb37b7d4d8c82",
+            "http_attempts": 1,
+            "http_status": 200,
+            "id": "request-6",
+            "method": "GET",
+            "operation": "artifactregistry.registry_content_get",
+            "scope": "projects/review",
+            "status": "collected"
+          },
+          {
+            "attempts": 1,
+            "category": "blobs",
+            "digest": "sha256:61a107f655d4c7bbb11f9daf55b410f9c8d1067c4e0426358c4e286ca06fb344",
+            "http_attempts": 1,
+            "http_status": 200,
+            "id": "request-7",
+            "method": "GET",
+            "operation": "artifactregistry.registry_content_get",
+            "scope": "projects/review",
+            "status": "collected"
+          },
+          {
+            "body_sha256": "45b3598f239cd4570ffd07d33c6bc67279ffbd7983e15d98c0ce517bb397d36c",
+            "bytes": 381,
+            "http_attempts": 1,
+            "http_status": 200,
+            "id": "request-8",
+            "method": "GET",
+            "operation": "cloudrun_v2_job_declared_image_metadata_get",
+            "query": {
+              "fields": "name,uid,etag,generation,observedGeneration,reconciling,deleteTime,expireTime,template(template(containers(name,image)))"
+            },
+            "scope": "projects/review",
+            "status": "collected",
+            "url": "https://run.googleapis.com/v2/projects/review/locations/us-central1/jobs/batch-job"
+          },
+          {
+            "body_sha256": "858fd54e5ed31f17adcfe1df70a674faa736cafada00586c13e38cdda6bcebb9",
+            "bytes": 67,
+            "http_attempts": 1,
+            "http_status": 200,
+            "id": "request-9",
+            "method": "GET",
+            "operation": "cloudrun_v2_job_declared_image_metadata_get",
+            "query": {
+              "fields": "name,projectId,state"
+            },
+            "scope": "projects/review",
+            "status": "collected",
+            "url": "https://cloudresourcemanager.googleapis.com/v3/projects/review"
+          },
+          {
+            "body_sha256": "513f500e41f2ff03739a118daf32aae8842f69b8a9594e5fe8d85b91d8600398",
+            "bytes": 151,
+            "http_attempts": 1,
+            "http_status": 200,
+            "id": "request-10",
+            "method": "GET",
+            "operation": "cloudrun_v2_job_declared_image_metadata_get",
+            "query": {
+              "fields": "name,format,mode,updateTime"
+            },
+            "scope": "projects/review",
+            "status": "collected",
+            "url": "https://artifactregistry.googleapis.com/v1/projects/review/locations/us-central1/repositories/images"
+          },
+          {
+            "body_sha256": "1d5476b4fe3ec1c3991746abb85ccc718fe9f16c9d96462f53fc28ab833e51e2",
+            "bytes": 375,
+            "http_attempts": 1,
+            "http_status": 200,
+            "id": "request-11",
+            "method": "GET",
+            "operation": "cloudrun_v2_job_declared_image_metadata_get",
+            "query": {
+              "fields": "name,uri,mediaType,updateTime"
+            },
+            "scope": "projects/review",
+            "status": "collected",
+            "url": "https://artifactregistry.googleapis.com/v1/projects/review/locations/us-central1/repositories/images/dockerImages/app%40sha256%3A902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9"
+          }
+        ],
+        "source_requests": [
+          "request-1",
+          "request-2",
+          "request-3",
+          "request-4",
+          "request-8",
+          "request-9",
+          "request-10",
+          "request-11",
+          "request-5",
+          "request-6",
+          "request-7"
+        ],
+        "status": "FAIL",
+        "vulnerability_record": {
+          "association_kind": "desired_digest_declaration",
+          "complete": false,
+          "coverage_status": "UNKNOWN",
+          "database_fresh": false,
+          "findings": [
+            {
+              "classes": [
+                "os-pkgs"
+              ],
+              "fix_status": "fixed",
+              "fixed_in": [
+                "1.1"
+              ],
+              "image_digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+              "package": "package",
+              "package_types": [
+                "alpine"
+              ],
+              "severity": "HIGH",
+              "version": "1.0",
+              "vulnerability_id": "CVE-2026-12345"
+            }
+          ],
+          "image": {
+            "config_digest": "sha256:830dadf770a0fc118b33f5a6d19963c9c5ac6e251fba6bcb5cdcb37b7d4d8c82",
+            "immutable_reference": "us-central1-docker.pkg.dev/review/images/app@sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+            "manifest_digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+            "provider": "gcp",
+            "scope": "projects/review"
+          },
+          "runtime_image_proven": false,
+          "scan_complete": false,
+          "schema": "gcp-job-declared-image-vulnerabilities-proposal-20261020-v1",
+          "scope": "projects/review",
+          "selection": {
+            "api_version": "run.googleapis.com/v2",
+            "container_name": "worker",
+            "digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+            "immutable_reference": "us-central1-docker.pkg.dev/review/images/app@sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+            "kind": "Job",
+            "project_id": "review",
+            "repository": "projects/review/locations/us-central1/repositories/images",
+            "resource_name": "projects/review/locations/us-central1/jobs/batch-job",
+            "resource_uid": "4c03895a-b5b4-4d6c-b8dd-f1979d8f044c"
+          },
+          "source_requests": [
+            "request-1",
+            "request-10",
+            "request-11",
+            "request-2",
+            "request-3",
+            "request-4",
+            "request-8",
+            "request-9",
+            "request-5",
+            "request-6",
+            "request-7"
+          ],
+          "status": "FAIL"
+        }
+      },
+      "_resource_id": "projects/review/locations/us-central1/jobs/batch-job#container=worker",
+      "name": "projects/review/locations/us-central1/jobs/batch-job#container=worker",
+      "native_id": "projects/review/locations/us-central1/jobs/batch-job#container=worker"
+    },
+    "fail_index": {
+      "collections": {
+        "cloud_run_selected_job_image_vulnerabilities": [
+          {
+            "items": [
+              {
+                "JobImageVulnerabilityReview": {
+                  "complete": false,
+                  "reason": null,
+                  "selection": {
+                    "api_version": "run.googleapis.com/v2",
+                    "container_name": "worker",
+                    "digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+                    "immutable_reference": "us-central1-docker.pkg.dev/review/images/app@sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+                    "kind": "Job",
+                    "project_id": "review",
+                    "repository": "projects/review/locations/us-central1/repositories/images",
+                    "resource_name": "projects/review/locations/us-central1/jobs/batch-job",
+                    "resource_uid": "4c03895a-b5b4-4d6c-b8dd-f1979d8f044c"
+                  },
+                  "source_ledger": [
+                    {
+                      "body_sha256": "45b3598f239cd4570ffd07d33c6bc67279ffbd7983e15d98c0ce517bb397d36c",
+                      "bytes": 381,
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-1",
+                      "method": "GET",
+                      "operation": "cloudrun_v2_job_declared_image_metadata_get",
+                      "query": {
+                        "fields": "name,uid,etag,generation,observedGeneration,reconciling,deleteTime,expireTime,template(template(containers(name,image)))"
+                      },
+                      "scope": "projects/review",
+                      "status": "collected",
+                      "url": "https://run.googleapis.com/v2/projects/review/locations/us-central1/jobs/batch-job"
+                    },
+                    {
+                      "body_sha256": "858fd54e5ed31f17adcfe1df70a674faa736cafada00586c13e38cdda6bcebb9",
+                      "bytes": 67,
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-2",
+                      "method": "GET",
+                      "operation": "cloudrun_v2_job_declared_image_metadata_get",
+                      "query": {
+                        "fields": "name,projectId,state"
+                      },
+                      "scope": "projects/review",
+                      "status": "collected",
+                      "url": "https://cloudresourcemanager.googleapis.com/v3/projects/review"
+                    },
+                    {
+                      "body_sha256": "513f500e41f2ff03739a118daf32aae8842f69b8a9594e5fe8d85b91d8600398",
+                      "bytes": 151,
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-3",
+                      "method": "GET",
+                      "operation": "cloudrun_v2_job_declared_image_metadata_get",
+                      "query": {
+                        "fields": "name,format,mode,updateTime"
+                      },
+                      "scope": "projects/review",
+                      "status": "collected",
+                      "url": "https://artifactregistry.googleapis.com/v1/projects/review/locations/us-central1/repositories/images"
+                    },
+                    {
+                      "body_sha256": "1d5476b4fe3ec1c3991746abb85ccc718fe9f16c9d96462f53fc28ab833e51e2",
+                      "bytes": 375,
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-4",
+                      "method": "GET",
+                      "operation": "cloudrun_v2_job_declared_image_metadata_get",
+                      "query": {
+                        "fields": "name,uri,mediaType,updateTime"
+                      },
+                      "scope": "projects/review",
+                      "status": "collected",
+                      "url": "https://artifactregistry.googleapis.com/v1/projects/review/locations/us-central1/repositories/images/dockerImages/app%40sha256%3A902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9"
+                    },
+                    {
+                      "attempts": 1,
+                      "category": "manifests",
+                      "digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-5",
+                      "method": "GET",
+                      "operation": "artifactregistry.registry_content_get",
+                      "scope": "projects/review",
+                      "status": "collected"
+                    },
+                    {
+                      "attempts": 1,
+                      "category": "blobs",
+                      "digest": "sha256:830dadf770a0fc118b33f5a6d19963c9c5ac6e251fba6bcb5cdcb37b7d4d8c82",
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-6",
+                      "method": "GET",
+                      "operation": "artifactregistry.registry_content_get",
+                      "scope": "projects/review",
+                      "status": "collected"
+                    },
+                    {
+                      "attempts": 1,
+                      "category": "blobs",
+                      "digest": "sha256:61a107f655d4c7bbb11f9daf55b410f9c8d1067c4e0426358c4e286ca06fb344",
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-7",
+                      "method": "GET",
+                      "operation": "artifactregistry.registry_content_get",
+                      "scope": "projects/review",
+                      "status": "collected"
+                    },
+                    {
+                      "body_sha256": "45b3598f239cd4570ffd07d33c6bc67279ffbd7983e15d98c0ce517bb397d36c",
+                      "bytes": 381,
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-8",
+                      "method": "GET",
+                      "operation": "cloudrun_v2_job_declared_image_metadata_get",
+                      "query": {
+                        "fields": "name,uid,etag,generation,observedGeneration,reconciling,deleteTime,expireTime,template(template(containers(name,image)))"
+                      },
+                      "scope": "projects/review",
+                      "status": "collected",
+                      "url": "https://run.googleapis.com/v2/projects/review/locations/us-central1/jobs/batch-job"
+                    },
+                    {
+                      "body_sha256": "858fd54e5ed31f17adcfe1df70a674faa736cafada00586c13e38cdda6bcebb9",
+                      "bytes": 67,
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-9",
+                      "method": "GET",
+                      "operation": "cloudrun_v2_job_declared_image_metadata_get",
+                      "query": {
+                        "fields": "name,projectId,state"
+                      },
+                      "scope": "projects/review",
+                      "status": "collected",
+                      "url": "https://cloudresourcemanager.googleapis.com/v3/projects/review"
+                    },
+                    {
+                      "body_sha256": "513f500e41f2ff03739a118daf32aae8842f69b8a9594e5fe8d85b91d8600398",
+                      "bytes": 151,
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-10",
+                      "method": "GET",
+                      "operation": "cloudrun_v2_job_declared_image_metadata_get",
+                      "query": {
+                        "fields": "name,format,mode,updateTime"
+                      },
+                      "scope": "projects/review",
+                      "status": "collected",
+                      "url": "https://artifactregistry.googleapis.com/v1/projects/review/locations/us-central1/repositories/images"
+                    },
+                    {
+                      "body_sha256": "1d5476b4fe3ec1c3991746abb85ccc718fe9f16c9d96462f53fc28ab833e51e2",
+                      "bytes": 375,
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-11",
+                      "method": "GET",
+                      "operation": "cloudrun_v2_job_declared_image_metadata_get",
+                      "query": {
+                        "fields": "name,uri,mediaType,updateTime"
+                      },
+                      "scope": "projects/review",
+                      "status": "collected",
+                      "url": "https://artifactregistry.googleapis.com/v1/projects/review/locations/us-central1/repositories/images/dockerImages/app%40sha256%3A902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9"
+                    }
+                  ],
+                  "source_requests": [
+                    "request-1",
+                    "request-2",
+                    "request-3",
+                    "request-4",
+                    "request-8",
+                    "request-9",
+                    "request-10",
+                    "request-11",
+                    "request-5",
+                    "request-6",
+                    "request-7"
+                  ],
+                  "status": "FAIL",
+                  "vulnerability_record": {
+                    "association_kind": "desired_digest_declaration",
+                    "complete": false,
+                    "coverage_status": "UNKNOWN",
+                    "database_fresh": false,
+                    "findings": [
+                      {
+                        "classes": [
+                          "os-pkgs"
+                        ],
+                        "fix_status": "fixed",
+                        "fixed_in": [
+                          "1.1"
+                        ],
+                        "image_digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+                        "package": "package",
+                        "package_types": [
+                          "alpine"
+                        ],
+                        "severity": "HIGH",
+                        "version": "1.0",
+                        "vulnerability_id": "CVE-2026-12345"
+                      }
+                    ],
+                    "image": {
+                      "config_digest": "sha256:830dadf770a0fc118b33f5a6d19963c9c5ac6e251fba6bcb5cdcb37b7d4d8c82",
+                      "immutable_reference": "us-central1-docker.pkg.dev/review/images/app@sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+                      "manifest_digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+                      "provider": "gcp",
+                      "scope": "projects/review"
+                    },
+                    "runtime_image_proven": false,
+                    "scan_complete": false,
+                    "schema": "gcp-job-declared-image-vulnerabilities-proposal-20261020-v1",
+                    "scope": "projects/review",
+                    "selection": {
+                      "api_version": "run.googleapis.com/v2",
+                      "container_name": "worker",
+                      "digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+                      "immutable_reference": "us-central1-docker.pkg.dev/review/images/app@sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+                      "kind": "Job",
+                      "project_id": "review",
+                      "repository": "projects/review/locations/us-central1/repositories/images",
+                      "resource_name": "projects/review/locations/us-central1/jobs/batch-job",
+                      "resource_uid": "4c03895a-b5b4-4d6c-b8dd-f1979d8f044c"
+                    },
+                    "source_requests": [
+                      "request-1",
+                      "request-10",
+                      "request-11",
+                      "request-2",
+                      "request-3",
+                      "request-4",
+                      "request-8",
+                      "request-9",
+                      "request-5",
+                      "request-6",
+                      "request-7"
+                    ],
+                    "status": "FAIL"
+                  }
+                },
+                "_resource_id": "projects/review/locations/us-central1/jobs/batch-job#container=worker",
+                "name": "projects/review/locations/us-central1/jobs/batch-job#container=worker",
+                "native_id": "projects/review/locations/us-central1/jobs/batch-job#container=worker"
+              }
+            ],
+            "scope": "projects/review",
+            "status": "collected"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "selected_cloudrun_job_declared_images": [
+            {
+              "api_version": "run.googleapis.com/v2",
+              "container_name": "worker",
+              "digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+              "immutable_reference": "us-central1-docker.pkg.dev/review/images/app@sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+              "kind": "Job",
+              "project_id": "review",
+              "repository": "projects/review/locations/us-central1/repositories/images",
+              "resource_name": "projects/review/locations/us-central1/jobs/batch-job",
+              "resource_uid": "4c03895a-b5b4-4d6c-b8dd-f1979d8f044c"
+            }
+          ]
+        },
+        "provider": "gcp",
+        "scope": "projects/review"
+      }
+    },
+    "index": {
+      "collections": {
+        "cloud_run_selected_job_image_vulnerabilities": [
+          {
+            "items": [
+              {
+                "JobImageVulnerabilityReview": {
+                  "complete": true,
+                  "reason": null,
+                  "selection": {
+                    "api_version": "run.googleapis.com/v2",
+                    "container_name": "worker",
+                    "digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+                    "immutable_reference": "us-central1-docker.pkg.dev/review/images/app@sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+                    "kind": "Job",
+                    "project_id": "review",
+                    "repository": "projects/review/locations/us-central1/repositories/images",
+                    "resource_name": "projects/review/locations/us-central1/jobs/batch-job",
+                    "resource_uid": "4c03895a-b5b4-4d6c-b8dd-f1979d8f044c"
+                  },
+                  "source_ledger": [
+                    {
+                      "body_sha256": "45b3598f239cd4570ffd07d33c6bc67279ffbd7983e15d98c0ce517bb397d36c",
+                      "bytes": 381,
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-1",
+                      "method": "GET",
+                      "operation": "cloudrun_v2_job_declared_image_metadata_get",
+                      "query": {
+                        "fields": "name,uid,etag,generation,observedGeneration,reconciling,deleteTime,expireTime,template(template(containers(name,image)))"
+                      },
+                      "scope": "projects/review",
+                      "status": "collected",
+                      "url": "https://run.googleapis.com/v2/projects/review/locations/us-central1/jobs/batch-job"
+                    },
+                    {
+                      "body_sha256": "858fd54e5ed31f17adcfe1df70a674faa736cafada00586c13e38cdda6bcebb9",
+                      "bytes": 67,
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-2",
+                      "method": "GET",
+                      "operation": "cloudrun_v2_job_declared_image_metadata_get",
+                      "query": {
+                        "fields": "name,projectId,state"
+                      },
+                      "scope": "projects/review",
+                      "status": "collected",
+                      "url": "https://cloudresourcemanager.googleapis.com/v3/projects/review"
+                    },
+                    {
+                      "body_sha256": "513f500e41f2ff03739a118daf32aae8842f69b8a9594e5fe8d85b91d8600398",
+                      "bytes": 151,
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-3",
+                      "method": "GET",
+                      "operation": "cloudrun_v2_job_declared_image_metadata_get",
+                      "query": {
+                        "fields": "name,format,mode,updateTime"
+                      },
+                      "scope": "projects/review",
+                      "status": "collected",
+                      "url": "https://artifactregistry.googleapis.com/v1/projects/review/locations/us-central1/repositories/images"
+                    },
+                    {
+                      "body_sha256": "1d5476b4fe3ec1c3991746abb85ccc718fe9f16c9d96462f53fc28ab833e51e2",
+                      "bytes": 375,
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-4",
+                      "method": "GET",
+                      "operation": "cloudrun_v2_job_declared_image_metadata_get",
+                      "query": {
+                        "fields": "name,uri,mediaType,updateTime"
+                      },
+                      "scope": "projects/review",
+                      "status": "collected",
+                      "url": "https://artifactregistry.googleapis.com/v1/projects/review/locations/us-central1/repositories/images/dockerImages/app%40sha256%3A902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9"
+                    },
+                    {
+                      "attempts": 1,
+                      "category": "manifests",
+                      "digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-5",
+                      "method": "GET",
+                      "operation": "artifactregistry.registry_content_get",
+                      "scope": "projects/review",
+                      "status": "collected"
+                    },
+                    {
+                      "attempts": 1,
+                      "category": "blobs",
+                      "digest": "sha256:830dadf770a0fc118b33f5a6d19963c9c5ac6e251fba6bcb5cdcb37b7d4d8c82",
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-6",
+                      "method": "GET",
+                      "operation": "artifactregistry.registry_content_get",
+                      "scope": "projects/review",
+                      "status": "collected"
+                    },
+                    {
+                      "attempts": 1,
+                      "category": "blobs",
+                      "digest": "sha256:61a107f655d4c7bbb11f9daf55b410f9c8d1067c4e0426358c4e286ca06fb344",
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-7",
+                      "method": "GET",
+                      "operation": "artifactregistry.registry_content_get",
+                      "scope": "projects/review",
+                      "status": "collected"
+                    },
+                    {
+                      "body_sha256": "45b3598f239cd4570ffd07d33c6bc67279ffbd7983e15d98c0ce517bb397d36c",
+                      "bytes": 381,
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-8",
+                      "method": "GET",
+                      "operation": "cloudrun_v2_job_declared_image_metadata_get",
+                      "query": {
+                        "fields": "name,uid,etag,generation,observedGeneration,reconciling,deleteTime,expireTime,template(template(containers(name,image)))"
+                      },
+                      "scope": "projects/review",
+                      "status": "collected",
+                      "url": "https://run.googleapis.com/v2/projects/review/locations/us-central1/jobs/batch-job"
+                    },
+                    {
+                      "body_sha256": "858fd54e5ed31f17adcfe1df70a674faa736cafada00586c13e38cdda6bcebb9",
+                      "bytes": 67,
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-9",
+                      "method": "GET",
+                      "operation": "cloudrun_v2_job_declared_image_metadata_get",
+                      "query": {
+                        "fields": "name,projectId,state"
+                      },
+                      "scope": "projects/review",
+                      "status": "collected",
+                      "url": "https://cloudresourcemanager.googleapis.com/v3/projects/review"
+                    },
+                    {
+                      "body_sha256": "513f500e41f2ff03739a118daf32aae8842f69b8a9594e5fe8d85b91d8600398",
+                      "bytes": 151,
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-10",
+                      "method": "GET",
+                      "operation": "cloudrun_v2_job_declared_image_metadata_get",
+                      "query": {
+                        "fields": "name,format,mode,updateTime"
+                      },
+                      "scope": "projects/review",
+                      "status": "collected",
+                      "url": "https://artifactregistry.googleapis.com/v1/projects/review/locations/us-central1/repositories/images"
+                    },
+                    {
+                      "body_sha256": "1d5476b4fe3ec1c3991746abb85ccc718fe9f16c9d96462f53fc28ab833e51e2",
+                      "bytes": 375,
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-11",
+                      "method": "GET",
+                      "operation": "cloudrun_v2_job_declared_image_metadata_get",
+                      "query": {
+                        "fields": "name,uri,mediaType,updateTime"
+                      },
+                      "scope": "projects/review",
+                      "status": "collected",
+                      "url": "https://artifactregistry.googleapis.com/v1/projects/review/locations/us-central1/repositories/images/dockerImages/app%40sha256%3A902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9"
+                    }
+                  ],
+                  "source_requests": [
+                    "request-1",
+                    "request-2",
+                    "request-3",
+                    "request-4",
+                    "request-8",
+                    "request-9",
+                    "request-10",
+                    "request-11",
+                    "request-5",
+                    "request-6",
+                    "request-7"
+                  ],
+                  "status": "PASS",
+                  "vulnerability_record": {
+                    "association_kind": "desired_digest_declaration",
+                    "complete": true,
+                    "coverage_status": "COMPLETE",
+                    "database_fresh": true,
+                    "findings": [],
+                    "image": {
+                      "config_digest": "sha256:830dadf770a0fc118b33f5a6d19963c9c5ac6e251fba6bcb5cdcb37b7d4d8c82",
+                      "immutable_reference": "us-central1-docker.pkg.dev/review/images/app@sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+                      "manifest_digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+                      "provider": "gcp",
+                      "scope": "projects/review"
+                    },
+                    "runtime_image_proven": false,
+                    "scan_complete": true,
+                    "schema": "gcp-job-declared-image-vulnerabilities-proposal-20261020-v1",
+                    "scope": "projects/review",
+                    "selection": {
+                      "api_version": "run.googleapis.com/v2",
+                      "container_name": "worker",
+                      "digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+                      "immutable_reference": "us-central1-docker.pkg.dev/review/images/app@sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+                      "kind": "Job",
+                      "project_id": "review",
+                      "repository": "projects/review/locations/us-central1/repositories/images",
+                      "resource_name": "projects/review/locations/us-central1/jobs/batch-job",
+                      "resource_uid": "4c03895a-b5b4-4d6c-b8dd-f1979d8f044c"
+                    },
+                    "source_requests": [
+                      "request-1",
+                      "request-10",
+                      "request-11",
+                      "request-2",
+                      "request-3",
+                      "request-4",
+                      "request-8",
+                      "request-9",
+                      "request-5",
+                      "request-6",
+                      "request-7"
+                    ],
+                    "status": "PASS"
+                  }
+                },
+                "_resource_id": "projects/review/locations/us-central1/jobs/batch-job#container=worker",
+                "name": "projects/review/locations/us-central1/jobs/batch-job#container=worker",
+                "native_id": "projects/review/locations/us-central1/jobs/batch-job#container=worker"
+              }
+            ],
+            "scope": "projects/review",
+            "status": "collected"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "selected_cloudrun_job_declared_images": [
+            {
+              "api_version": "run.googleapis.com/v2",
+              "container_name": "worker",
+              "digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+              "immutable_reference": "us-central1-docker.pkg.dev/review/images/app@sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+              "kind": "Job",
+              "project_id": "review",
+              "repository": "projects/review/locations/us-central1/repositories/images",
+              "resource_name": "projects/review/locations/us-central1/jobs/batch-job",
+              "resource_uid": "4c03895a-b5b4-4d6c-b8dd-f1979d8f044c"
+            }
+          ]
+        },
+        "provider": "gcp",
+        "scope": "projects/review"
+      }
+    },
+    "malformed": null,
+    "missing": {},
+    "pass": {
+      "JobImageVulnerabilityReview": {
+        "complete": true,
+        "reason": null,
+        "selection": {
+          "api_version": "run.googleapis.com/v2",
+          "container_name": "worker",
+          "digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+          "immutable_reference": "us-central1-docker.pkg.dev/review/images/app@sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+          "kind": "Job",
+          "project_id": "review",
+          "repository": "projects/review/locations/us-central1/repositories/images",
+          "resource_name": "projects/review/locations/us-central1/jobs/batch-job",
+          "resource_uid": "4c03895a-b5b4-4d6c-b8dd-f1979d8f044c"
+        },
+        "source_ledger": [
+          {
+            "body_sha256": "45b3598f239cd4570ffd07d33c6bc67279ffbd7983e15d98c0ce517bb397d36c",
+            "bytes": 381,
+            "http_attempts": 1,
+            "http_status": 200,
+            "id": "request-1",
+            "method": "GET",
+            "operation": "cloudrun_v2_job_declared_image_metadata_get",
+            "query": {
+              "fields": "name,uid,etag,generation,observedGeneration,reconciling,deleteTime,expireTime,template(template(containers(name,image)))"
+            },
+            "scope": "projects/review",
+            "status": "collected",
+            "url": "https://run.googleapis.com/v2/projects/review/locations/us-central1/jobs/batch-job"
+          },
+          {
+            "body_sha256": "858fd54e5ed31f17adcfe1df70a674faa736cafada00586c13e38cdda6bcebb9",
+            "bytes": 67,
+            "http_attempts": 1,
+            "http_status": 200,
+            "id": "request-2",
+            "method": "GET",
+            "operation": "cloudrun_v2_job_declared_image_metadata_get",
+            "query": {
+              "fields": "name,projectId,state"
+            },
+            "scope": "projects/review",
+            "status": "collected",
+            "url": "https://cloudresourcemanager.googleapis.com/v3/projects/review"
+          },
+          {
+            "body_sha256": "513f500e41f2ff03739a118daf32aae8842f69b8a9594e5fe8d85b91d8600398",
+            "bytes": 151,
+            "http_attempts": 1,
+            "http_status": 200,
+            "id": "request-3",
+            "method": "GET",
+            "operation": "cloudrun_v2_job_declared_image_metadata_get",
+            "query": {
+              "fields": "name,format,mode,updateTime"
+            },
+            "scope": "projects/review",
+            "status": "collected",
+            "url": "https://artifactregistry.googleapis.com/v1/projects/review/locations/us-central1/repositories/images"
+          },
+          {
+            "body_sha256": "1d5476b4fe3ec1c3991746abb85ccc718fe9f16c9d96462f53fc28ab833e51e2",
+            "bytes": 375,
+            "http_attempts": 1,
+            "http_status": 200,
+            "id": "request-4",
+            "method": "GET",
+            "operation": "cloudrun_v2_job_declared_image_metadata_get",
+            "query": {
+              "fields": "name,uri,mediaType,updateTime"
+            },
+            "scope": "projects/review",
+            "status": "collected",
+            "url": "https://artifactregistry.googleapis.com/v1/projects/review/locations/us-central1/repositories/images/dockerImages/app%40sha256%3A902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9"
+          },
+          {
+            "attempts": 1,
+            "category": "manifests",
+            "digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+            "http_attempts": 1,
+            "http_status": 200,
+            "id": "request-5",
+            "method": "GET",
+            "operation": "artifactregistry.registry_content_get",
+            "scope": "projects/review",
+            "status": "collected"
+          },
+          {
+            "attempts": 1,
+            "category": "blobs",
+            "digest": "sha256:830dadf770a0fc118b33f5a6d19963c9c5ac6e251fba6bcb5cdcb37b7d4d8c82",
+            "http_attempts": 1,
+            "http_status": 200,
+            "id": "request-6",
+            "method": "GET",
+            "operation": "artifactregistry.registry_content_get",
+            "scope": "projects/review",
+            "status": "collected"
+          },
+          {
+            "attempts": 1,
+            "category": "blobs",
+            "digest": "sha256:61a107f655d4c7bbb11f9daf55b410f9c8d1067c4e0426358c4e286ca06fb344",
+            "http_attempts": 1,
+            "http_status": 200,
+            "id": "request-7",
+            "method": "GET",
+            "operation": "artifactregistry.registry_content_get",
+            "scope": "projects/review",
+            "status": "collected"
+          },
+          {
+            "body_sha256": "45b3598f239cd4570ffd07d33c6bc67279ffbd7983e15d98c0ce517bb397d36c",
+            "bytes": 381,
+            "http_attempts": 1,
+            "http_status": 200,
+            "id": "request-8",
+            "method": "GET",
+            "operation": "cloudrun_v2_job_declared_image_metadata_get",
+            "query": {
+              "fields": "name,uid,etag,generation,observedGeneration,reconciling,deleteTime,expireTime,template(template(containers(name,image)))"
+            },
+            "scope": "projects/review",
+            "status": "collected",
+            "url": "https://run.googleapis.com/v2/projects/review/locations/us-central1/jobs/batch-job"
+          },
+          {
+            "body_sha256": "858fd54e5ed31f17adcfe1df70a674faa736cafada00586c13e38cdda6bcebb9",
+            "bytes": 67,
+            "http_attempts": 1,
+            "http_status": 200,
+            "id": "request-9",
+            "method": "GET",
+            "operation": "cloudrun_v2_job_declared_image_metadata_get",
+            "query": {
+              "fields": "name,projectId,state"
+            },
+            "scope": "projects/review",
+            "status": "collected",
+            "url": "https://cloudresourcemanager.googleapis.com/v3/projects/review"
+          },
+          {
+            "body_sha256": "513f500e41f2ff03739a118daf32aae8842f69b8a9594e5fe8d85b91d8600398",
+            "bytes": 151,
+            "http_attempts": 1,
+            "http_status": 200,
+            "id": "request-10",
+            "method": "GET",
+            "operation": "cloudrun_v2_job_declared_image_metadata_get",
+            "query": {
+              "fields": "name,format,mode,updateTime"
+            },
+            "scope": "projects/review",
+            "status": "collected",
+            "url": "https://artifactregistry.googleapis.com/v1/projects/review/locations/us-central1/repositories/images"
+          },
+          {
+            "body_sha256": "1d5476b4fe3ec1c3991746abb85ccc718fe9f16c9d96462f53fc28ab833e51e2",
+            "bytes": 375,
+            "http_attempts": 1,
+            "http_status": 200,
+            "id": "request-11",
+            "method": "GET",
+            "operation": "cloudrun_v2_job_declared_image_metadata_get",
+            "query": {
+              "fields": "name,uri,mediaType,updateTime"
+            },
+            "scope": "projects/review",
+            "status": "collected",
+            "url": "https://artifactregistry.googleapis.com/v1/projects/review/locations/us-central1/repositories/images/dockerImages/app%40sha256%3A902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9"
+          }
+        ],
+        "source_requests": [
+          "request-1",
+          "request-2",
+          "request-3",
+          "request-4",
+          "request-8",
+          "request-9",
+          "request-10",
+          "request-11",
+          "request-5",
+          "request-6",
+          "request-7"
+        ],
+        "status": "PASS",
+        "vulnerability_record": {
+          "association_kind": "desired_digest_declaration",
+          "complete": true,
+          "coverage_status": "COMPLETE",
+          "database_fresh": true,
+          "findings": [],
+          "image": {
+            "config_digest": "sha256:830dadf770a0fc118b33f5a6d19963c9c5ac6e251fba6bcb5cdcb37b7d4d8c82",
+            "immutable_reference": "us-central1-docker.pkg.dev/review/images/app@sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+            "manifest_digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+            "provider": "gcp",
+            "scope": "projects/review"
+          },
+          "runtime_image_proven": false,
+          "scan_complete": true,
+          "schema": "gcp-job-declared-image-vulnerabilities-proposal-20261020-v1",
+          "scope": "projects/review",
+          "selection": {
+            "api_version": "run.googleapis.com/v2",
+            "container_name": "worker",
+            "digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+            "immutable_reference": "us-central1-docker.pkg.dev/review/images/app@sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+            "kind": "Job",
+            "project_id": "review",
+            "repository": "projects/review/locations/us-central1/repositories/images",
+            "resource_name": "projects/review/locations/us-central1/jobs/batch-job",
+            "resource_uid": "4c03895a-b5b4-4d6c-b8dd-f1979d8f044c"
+          },
+          "source_requests": [
+            "request-1",
+            "request-10",
+            "request-11",
+            "request-2",
+            "request-3",
+            "request-4",
+            "request-8",
+            "request-9",
+            "request-5",
+            "request-6",
+            "request-7"
+          ],
+          "status": "PASS"
+        }
+      },
+      "_resource_id": "projects/review/locations/us-central1/jobs/batch-job#container=worker",
+      "name": "projects/review/locations/us-central1/jobs/batch-job#container=worker",
+      "native_id": "projects/review/locations/us-central1/jobs/batch-job#container=worker"
+    },
+    "pass_index": {
+      "collections": {
+        "cloud_run_selected_job_image_vulnerabilities": [
+          {
+            "items": [
+              {
+                "JobImageVulnerabilityReview": {
+                  "complete": true,
+                  "reason": null,
+                  "selection": {
+                    "api_version": "run.googleapis.com/v2",
+                    "container_name": "worker",
+                    "digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+                    "immutable_reference": "us-central1-docker.pkg.dev/review/images/app@sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+                    "kind": "Job",
+                    "project_id": "review",
+                    "repository": "projects/review/locations/us-central1/repositories/images",
+                    "resource_name": "projects/review/locations/us-central1/jobs/batch-job",
+                    "resource_uid": "4c03895a-b5b4-4d6c-b8dd-f1979d8f044c"
+                  },
+                  "source_ledger": [
+                    {
+                      "body_sha256": "45b3598f239cd4570ffd07d33c6bc67279ffbd7983e15d98c0ce517bb397d36c",
+                      "bytes": 381,
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-1",
+                      "method": "GET",
+                      "operation": "cloudrun_v2_job_declared_image_metadata_get",
+                      "query": {
+                        "fields": "name,uid,etag,generation,observedGeneration,reconciling,deleteTime,expireTime,template(template(containers(name,image)))"
+                      },
+                      "scope": "projects/review",
+                      "status": "collected",
+                      "url": "https://run.googleapis.com/v2/projects/review/locations/us-central1/jobs/batch-job"
+                    },
+                    {
+                      "body_sha256": "858fd54e5ed31f17adcfe1df70a674faa736cafada00586c13e38cdda6bcebb9",
+                      "bytes": 67,
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-2",
+                      "method": "GET",
+                      "operation": "cloudrun_v2_job_declared_image_metadata_get",
+                      "query": {
+                        "fields": "name,projectId,state"
+                      },
+                      "scope": "projects/review",
+                      "status": "collected",
+                      "url": "https://cloudresourcemanager.googleapis.com/v3/projects/review"
+                    },
+                    {
+                      "body_sha256": "513f500e41f2ff03739a118daf32aae8842f69b8a9594e5fe8d85b91d8600398",
+                      "bytes": 151,
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-3",
+                      "method": "GET",
+                      "operation": "cloudrun_v2_job_declared_image_metadata_get",
+                      "query": {
+                        "fields": "name,format,mode,updateTime"
+                      },
+                      "scope": "projects/review",
+                      "status": "collected",
+                      "url": "https://artifactregistry.googleapis.com/v1/projects/review/locations/us-central1/repositories/images"
+                    },
+                    {
+                      "body_sha256": "1d5476b4fe3ec1c3991746abb85ccc718fe9f16c9d96462f53fc28ab833e51e2",
+                      "bytes": 375,
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-4",
+                      "method": "GET",
+                      "operation": "cloudrun_v2_job_declared_image_metadata_get",
+                      "query": {
+                        "fields": "name,uri,mediaType,updateTime"
+                      },
+                      "scope": "projects/review",
+                      "status": "collected",
+                      "url": "https://artifactregistry.googleapis.com/v1/projects/review/locations/us-central1/repositories/images/dockerImages/app%40sha256%3A902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9"
+                    },
+                    {
+                      "attempts": 1,
+                      "category": "manifests",
+                      "digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-5",
+                      "method": "GET",
+                      "operation": "artifactregistry.registry_content_get",
+                      "scope": "projects/review",
+                      "status": "collected"
+                    },
+                    {
+                      "attempts": 1,
+                      "category": "blobs",
+                      "digest": "sha256:830dadf770a0fc118b33f5a6d19963c9c5ac6e251fba6bcb5cdcb37b7d4d8c82",
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-6",
+                      "method": "GET",
+                      "operation": "artifactregistry.registry_content_get",
+                      "scope": "projects/review",
+                      "status": "collected"
+                    },
+                    {
+                      "attempts": 1,
+                      "category": "blobs",
+                      "digest": "sha256:61a107f655d4c7bbb11f9daf55b410f9c8d1067c4e0426358c4e286ca06fb344",
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-7",
+                      "method": "GET",
+                      "operation": "artifactregistry.registry_content_get",
+                      "scope": "projects/review",
+                      "status": "collected"
+                    },
+                    {
+                      "body_sha256": "45b3598f239cd4570ffd07d33c6bc67279ffbd7983e15d98c0ce517bb397d36c",
+                      "bytes": 381,
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-8",
+                      "method": "GET",
+                      "operation": "cloudrun_v2_job_declared_image_metadata_get",
+                      "query": {
+                        "fields": "name,uid,etag,generation,observedGeneration,reconciling,deleteTime,expireTime,template(template(containers(name,image)))"
+                      },
+                      "scope": "projects/review",
+                      "status": "collected",
+                      "url": "https://run.googleapis.com/v2/projects/review/locations/us-central1/jobs/batch-job"
+                    },
+                    {
+                      "body_sha256": "858fd54e5ed31f17adcfe1df70a674faa736cafada00586c13e38cdda6bcebb9",
+                      "bytes": 67,
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-9",
+                      "method": "GET",
+                      "operation": "cloudrun_v2_job_declared_image_metadata_get",
+                      "query": {
+                        "fields": "name,projectId,state"
+                      },
+                      "scope": "projects/review",
+                      "status": "collected",
+                      "url": "https://cloudresourcemanager.googleapis.com/v3/projects/review"
+                    },
+                    {
+                      "body_sha256": "513f500e41f2ff03739a118daf32aae8842f69b8a9594e5fe8d85b91d8600398",
+                      "bytes": 151,
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-10",
+                      "method": "GET",
+                      "operation": "cloudrun_v2_job_declared_image_metadata_get",
+                      "query": {
+                        "fields": "name,format,mode,updateTime"
+                      },
+                      "scope": "projects/review",
+                      "status": "collected",
+                      "url": "https://artifactregistry.googleapis.com/v1/projects/review/locations/us-central1/repositories/images"
+                    },
+                    {
+                      "body_sha256": "1d5476b4fe3ec1c3991746abb85ccc718fe9f16c9d96462f53fc28ab833e51e2",
+                      "bytes": 375,
+                      "http_attempts": 1,
+                      "http_status": 200,
+                      "id": "request-11",
+                      "method": "GET",
+                      "operation": "cloudrun_v2_job_declared_image_metadata_get",
+                      "query": {
+                        "fields": "name,uri,mediaType,updateTime"
+                      },
+                      "scope": "projects/review",
+                      "status": "collected",
+                      "url": "https://artifactregistry.googleapis.com/v1/projects/review/locations/us-central1/repositories/images/dockerImages/app%40sha256%3A902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9"
+                    }
+                  ],
+                  "source_requests": [
+                    "request-1",
+                    "request-2",
+                    "request-3",
+                    "request-4",
+                    "request-8",
+                    "request-9",
+                    "request-10",
+                    "request-11",
+                    "request-5",
+                    "request-6",
+                    "request-7"
+                  ],
+                  "status": "PASS",
+                  "vulnerability_record": {
+                    "association_kind": "desired_digest_declaration",
+                    "complete": true,
+                    "coverage_status": "COMPLETE",
+                    "database_fresh": true,
+                    "findings": [],
+                    "image": {
+                      "config_digest": "sha256:830dadf770a0fc118b33f5a6d19963c9c5ac6e251fba6bcb5cdcb37b7d4d8c82",
+                      "immutable_reference": "us-central1-docker.pkg.dev/review/images/app@sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+                      "manifest_digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+                      "provider": "gcp",
+                      "scope": "projects/review"
+                    },
+                    "runtime_image_proven": false,
+                    "scan_complete": true,
+                    "schema": "gcp-job-declared-image-vulnerabilities-proposal-20261020-v1",
+                    "scope": "projects/review",
+                    "selection": {
+                      "api_version": "run.googleapis.com/v2",
+                      "container_name": "worker",
+                      "digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+                      "immutable_reference": "us-central1-docker.pkg.dev/review/images/app@sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+                      "kind": "Job",
+                      "project_id": "review",
+                      "repository": "projects/review/locations/us-central1/repositories/images",
+                      "resource_name": "projects/review/locations/us-central1/jobs/batch-job",
+                      "resource_uid": "4c03895a-b5b4-4d6c-b8dd-f1979d8f044c"
+                    },
+                    "source_requests": [
+                      "request-1",
+                      "request-10",
+                      "request-11",
+                      "request-2",
+                      "request-3",
+                      "request-4",
+                      "request-8",
+                      "request-9",
+                      "request-5",
+                      "request-6",
+                      "request-7"
+                    ],
+                    "status": "PASS"
+                  }
+                },
+                "_resource_id": "projects/review/locations/us-central1/jobs/batch-job#container=worker",
+                "name": "projects/review/locations/us-central1/jobs/batch-job#container=worker",
+                "native_id": "projects/review/locations/us-central1/jobs/batch-job#container=worker"
+              }
+            ],
+            "scope": "projects/review",
+            "status": "collected"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "selected_cloudrun_job_declared_images": [
+            {
+              "api_version": "run.googleapis.com/v2",
+              "container_name": "worker",
+              "digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+              "immutable_reference": "us-central1-docker.pkg.dev/review/images/app@sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+              "kind": "Job",
+              "project_id": "review",
+              "repository": "projects/review/locations/us-central1/repositories/images",
+              "resource_name": "projects/review/locations/us-central1/jobs/batch-job",
+              "resource_uid": "4c03895a-b5b4-4d6c-b8dd-f1979d8f044c"
+            }
+          ]
+        },
+        "provider": "gcp",
+        "scope": "projects/review"
+      }
+    },
+    "unknown": {
+      "JobImageVulnerabilityReview": {
+        "complete": false,
+        "reason": null,
+        "selection": {
+          "api_version": "run.googleapis.com/v2",
+          "container_name": "worker",
+          "digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+          "immutable_reference": "us-central1-docker.pkg.dev/review/images/app@sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+          "kind": "Job",
+          "project_id": "review",
+          "repository": "projects/review/locations/us-central1/repositories/images",
+          "resource_name": "projects/review/locations/us-central1/jobs/batch-job",
+          "resource_uid": "4c03895a-b5b4-4d6c-b8dd-f1979d8f044c"
+        },
+        "source_ledger": [],
+        "source_requests": [
+          "request-1",
+          "request-2",
+          "request-3",
+          "request-4",
+          "request-8",
+          "request-9",
+          "request-10",
+          "request-11",
+          "request-5",
+          "request-6",
+          "request-7"
+        ],
+        "status": "FAIL",
+        "vulnerability_record": {
+          "association_kind": "desired_digest_declaration",
+          "complete": false,
+          "coverage_status": "UNKNOWN",
+          "database_fresh": false,
+          "findings": [
+            {
+              "classes": [
+                "os-pkgs"
+              ],
+              "fix_status": "fixed",
+              "fixed_in": [
+                "1.1"
+              ],
+              "image_digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+              "package": "package",
+              "package_types": [
+                "alpine"
+              ],
+              "severity": "HIGH",
+              "version": "1.0",
+              "vulnerability_id": "CVE-2026-12345"
+            }
+          ],
+          "image": {
+            "config_digest": "sha256:830dadf770a0fc118b33f5a6d19963c9c5ac6e251fba6bcb5cdcb37b7d4d8c82",
+            "immutable_reference": "us-central1-docker.pkg.dev/review/images/app@sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+            "manifest_digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+            "provider": "gcp",
+            "scope": "projects/review"
+          },
+          "runtime_image_proven": false,
+          "scan_complete": false,
+          "schema": "gcp-job-declared-image-vulnerabilities-proposal-20261020-v1",
+          "scope": "projects/review",
+          "selection": {
+            "api_version": "run.googleapis.com/v2",
+            "container_name": "worker",
+            "digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+            "immutable_reference": "us-central1-docker.pkg.dev/review/images/app@sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+            "kind": "Job",
+            "project_id": "review",
+            "repository": "projects/review/locations/us-central1/repositories/images",
+            "resource_name": "projects/review/locations/us-central1/jobs/batch-job",
+            "resource_uid": "4c03895a-b5b4-4d6c-b8dd-f1979d8f044c"
+          },
+          "source_requests": [
+            "request-1",
+            "request-10",
+            "request-11",
+            "request-2",
+            "request-3",
+            "request-4",
+            "request-8",
+            "request-9",
+            "request-5",
+            "request-6",
+            "request-7"
+          ],
+          "status": "FAIL"
+        }
+      },
+      "_resource_id": "projects/review/locations/us-central1/jobs/batch-job#container=worker",
+      "name": "projects/review/locations/us-central1/jobs/batch-job#container=worker",
+      "native_id": "projects/review/locations/us-central1/jobs/batch-job#container=worker"
+    },
+    "unknown_index": {
+      "collections": {
+        "cloud_run_selected_job_image_vulnerabilities": [
+          {
+            "items": [
+              {
+                "JobImageVulnerabilityReview": {
+                  "complete": false,
+                  "reason": null,
+                  "selection": {
+                    "api_version": "run.googleapis.com/v2",
+                    "container_name": "worker",
+                    "digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+                    "immutable_reference": "us-central1-docker.pkg.dev/review/images/app@sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+                    "kind": "Job",
+                    "project_id": "review",
+                    "repository": "projects/review/locations/us-central1/repositories/images",
+                    "resource_name": "projects/review/locations/us-central1/jobs/batch-job",
+                    "resource_uid": "4c03895a-b5b4-4d6c-b8dd-f1979d8f044c"
+                  },
+                  "source_ledger": [],
+                  "source_requests": [
+                    "request-1",
+                    "request-2",
+                    "request-3",
+                    "request-4",
+                    "request-8",
+                    "request-9",
+                    "request-10",
+                    "request-11",
+                    "request-5",
+                    "request-6",
+                    "request-7"
+                  ],
+                  "status": "FAIL",
+                  "vulnerability_record": {
+                    "association_kind": "desired_digest_declaration",
+                    "complete": false,
+                    "coverage_status": "UNKNOWN",
+                    "database_fresh": false,
+                    "findings": [
+                      {
+                        "classes": [
+                          "os-pkgs"
+                        ],
+                        "fix_status": "fixed",
+                        "fixed_in": [
+                          "1.1"
+                        ],
+                        "image_digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+                        "package": "package",
+                        "package_types": [
+                          "alpine"
+                        ],
+                        "severity": "HIGH",
+                        "version": "1.0",
+                        "vulnerability_id": "CVE-2026-12345"
+                      }
+                    ],
+                    "image": {
+                      "config_digest": "sha256:830dadf770a0fc118b33f5a6d19963c9c5ac6e251fba6bcb5cdcb37b7d4d8c82",
+                      "immutable_reference": "us-central1-docker.pkg.dev/review/images/app@sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+                      "manifest_digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+                      "provider": "gcp",
+                      "scope": "projects/review"
+                    },
+                    "runtime_image_proven": false,
+                    "scan_complete": false,
+                    "schema": "gcp-job-declared-image-vulnerabilities-proposal-20261020-v1",
+                    "scope": "projects/review",
+                    "selection": {
+                      "api_version": "run.googleapis.com/v2",
+                      "container_name": "worker",
+                      "digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+                      "immutable_reference": "us-central1-docker.pkg.dev/review/images/app@sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+                      "kind": "Job",
+                      "project_id": "review",
+                      "repository": "projects/review/locations/us-central1/repositories/images",
+                      "resource_name": "projects/review/locations/us-central1/jobs/batch-job",
+                      "resource_uid": "4c03895a-b5b4-4d6c-b8dd-f1979d8f044c"
+                    },
+                    "source_requests": [
+                      "request-1",
+                      "request-10",
+                      "request-11",
+                      "request-2",
+                      "request-3",
+                      "request-4",
+                      "request-8",
+                      "request-9",
+                      "request-5",
+                      "request-6",
+                      "request-7"
+                    ],
+                    "status": "FAIL"
+                  }
+                },
+                "_resource_id": "projects/review/locations/us-central1/jobs/batch-job#container=worker",
+                "name": "projects/review/locations/us-central1/jobs/batch-job#container=worker",
+                "native_id": "projects/review/locations/us-central1/jobs/batch-job#container=worker"
+              }
+            ],
+            "scope": "projects/review",
+            "status": "collected"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "selected_cloudrun_job_declared_images": [
+            {
+              "api_version": "run.googleapis.com/v2",
+              "container_name": "worker",
+              "digest": "sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+              "immutable_reference": "us-central1-docker.pkg.dev/review/images/app@sha256:902df2aee0333dfc62202133270b3ed41a0daabdd52d7941fff48b4f73fa21a9",
+              "kind": "Job",
+              "project_id": "review",
+              "repository": "projects/review/locations/us-central1/repositories/images",
+              "resource_name": "projects/review/locations/us-central1/jobs/batch-job",
+              "resource_uid": "4c03895a-b5b4-4d6c-b8dd-f1979d8f044c"
+            }
+          ]
+        },
+        "provider": "gcp",
+        "scope": "projects/review"
+      }
+    }
+  },
+  "aws.review.ecr.selected_image_vulnerabilities": {
+    "pass": {
+      "id": "fixture-image",
+      "ImageVulnerabilityReview": {
+        "selection": {
+          "scope": "123456789012/us-east-1",
+          "repository_name": "fixture/image",
+          "image_digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec"
+        },
+        "status": "PASS",
+        "complete": true,
+        "reason": null,
+        "observation": {
+          "provider": "aws",
+          "scope": "123456789012/us-east-1",
+          "asset_id": "arn:aws:ecr:us-east-1:123456789012:repository/fixture/image@sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+          "asset_kind": "ecr_image",
+          "scan": {
+            "image": {
+              "provider": "aws",
+              "scope": "123456789012/us-east-1",
+              "immutable_reference": "123456789012.dkr.ecr.us-east-1.amazonaws.com/fixture/image@sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+              "manifest_digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+              "config_digest": "sha256:de4a38d42190144f4442dff3f8e3f3e538abbef3316db9a0cb35c33dfccc4a4f"
+            },
+            "status": "PASS",
+            "complete": true,
+            "scan_complete": true,
+            "coverage_status": "COMPLETE",
+            "findings": [],
+            "database": {
+              "fresh": true
+            }
+          }
+        },
+        "source_ledger": [
+          {
+            "operation": "sts:get_caller_identity",
+            "status": "collected",
+            "account": "123456789012"
+          },
+          {
+            "operation": "ecr:batch_get_image",
+            "status": "collected",
+            "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+            "bytes": 398
+          },
+          {
+            "operation": "ecr:get_download_url_for_layer",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr:signed_layer_download",
+            "status": "collected",
+            "digest": "sha256:de4a38d42190144f4442dff3f8e3f3e538abbef3316db9a0cb35c33dfccc4a4f",
+            "bytes": 217
+          },
+          {
+            "operation": "ecr:get_download_url_for_layer",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr:signed_layer_download",
+            "status": "collected",
+            "digest": "sha256:fc08011cc532ce109bc050692ae579b8f8378aa2e4535f6c664a87b2d0e25806",
+            "bytes": 10240
+          },
+          {
+            "operation": "sts:get_caller_identity",
+            "status": "collected",
+            "account": "123456789012"
+          },
+          {
+            "operation": "ecr:batch_get_image",
+            "status": "collected",
+            "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+            "bytes": 398
+          },
+          {
+            "operation": "sts:get_caller_identity",
+            "status": "collected",
+            "account": "123456789012"
+          },
+          {
+            "operation": "ecr:batch_get_image",
+            "status": "collected",
+            "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+            "bytes": 398
+          },
+          {
+            "operation": "sts:get_caller_identity",
+            "status": "collected",
+            "account": "123456789012"
+          },
+          {
+            "operation": "ecr:batch_get_image",
+            "status": "collected",
+            "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+            "bytes": 398
+          },
+          {
+            "operation": "sts:get_caller_identity",
+            "status": "collected",
+            "account": "123456789012"
+          },
+          {
+            "operation": "ecr:batch_get_image",
+            "status": "collected",
+            "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+            "bytes": 398
+          }
+        ],
+        "association": "selected_immutable_image",
+        "function_binding": null,
+        "runtime_image_proven": false
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "metadata": {
+          "selected_aws_image_vulnerabilities": [
+            {
+              "scope": "123456789012/us-east-1",
+              "repository_name": "fixture/image",
+              "image_digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec"
+            }
+          ]
+        }
+      },
+      "collections": {
+        "ecr_selected_image_vulnerabilities": [
+          {
+            "type": "ecr_selected_image_vulnerabilities",
+            "scope": "123456789012/us-east-1",
+            "service": "ecr",
+            "status": "collected",
+            "items": [
+              {
+                "id": "fixture-image",
+                "ImageVulnerabilityReview": {
+                  "selection": {
+                    "scope": "123456789012/us-east-1",
+                    "repository_name": "fixture/image",
+                    "image_digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec"
+                  },
+                  "status": "PASS",
+                  "complete": true,
+                  "reason": null,
+                  "observation": {
+                    "provider": "aws",
+                    "scope": "123456789012/us-east-1",
+                    "asset_id": "arn:aws:ecr:us-east-1:123456789012:repository/fixture/image@sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+                    "asset_kind": "ecr_image",
+                    "scan": {
+                      "image": {
+                        "provider": "aws",
+                        "scope": "123456789012/us-east-1",
+                        "immutable_reference": "123456789012.dkr.ecr.us-east-1.amazonaws.com/fixture/image@sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+                        "manifest_digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+                        "config_digest": "sha256:de4a38d42190144f4442dff3f8e3f3e538abbef3316db9a0cb35c33dfccc4a4f"
+                      },
+                      "status": "PASS",
+                      "complete": true,
+                      "scan_complete": true,
+                      "coverage_status": "COMPLETE",
+                      "findings": [],
+                      "database": {
+                        "fresh": true
+                      }
+                    }
+                  },
+                  "source_ledger": [
+                    {
+                      "operation": "sts:get_caller_identity",
+                      "status": "collected",
+                      "account": "123456789012"
+                    },
+                    {
+                      "operation": "ecr:batch_get_image",
+                      "status": "collected",
+                      "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+                      "bytes": 398
+                    },
+                    {
+                      "operation": "ecr:get_download_url_for_layer",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr:signed_layer_download",
+                      "status": "collected",
+                      "digest": "sha256:de4a38d42190144f4442dff3f8e3f3e538abbef3316db9a0cb35c33dfccc4a4f",
+                      "bytes": 217
+                    },
+                    {
+                      "operation": "ecr:get_download_url_for_layer",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr:signed_layer_download",
+                      "status": "collected",
+                      "digest": "sha256:fc08011cc532ce109bc050692ae579b8f8378aa2e4535f6c664a87b2d0e25806",
+                      "bytes": 10240
+                    },
+                    {
+                      "operation": "sts:get_caller_identity",
+                      "status": "collected",
+                      "account": "123456789012"
+                    },
+                    {
+                      "operation": "ecr:batch_get_image",
+                      "status": "collected",
+                      "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+                      "bytes": 398
+                    },
+                    {
+                      "operation": "sts:get_caller_identity",
+                      "status": "collected",
+                      "account": "123456789012"
+                    },
+                    {
+                      "operation": "ecr:batch_get_image",
+                      "status": "collected",
+                      "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+                      "bytes": 398
+                    },
+                    {
+                      "operation": "sts:get_caller_identity",
+                      "status": "collected",
+                      "account": "123456789012"
+                    },
+                    {
+                      "operation": "ecr:batch_get_image",
+                      "status": "collected",
+                      "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+                      "bytes": 398
+                    },
+                    {
+                      "operation": "sts:get_caller_identity",
+                      "status": "collected",
+                      "account": "123456789012"
+                    },
+                    {
+                      "operation": "ecr:batch_get_image",
+                      "status": "collected",
+                      "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+                      "bytes": 398
+                    }
+                  ],
+                  "association": "selected_immutable_image",
+                  "function_binding": null,
+                  "runtime_image_proven": false
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "fail": {
+      "id": "fixture-image",
+      "ImageVulnerabilityReview": {
+        "selection": {
+          "scope": "123456789012/us-east-1",
+          "repository_name": "fixture/image",
+          "image_digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec"
+        },
+        "status": "FAIL",
+        "complete": true,
+        "reason": null,
+        "observation": {
+          "provider": "aws",
+          "scope": "123456789012/us-east-1",
+          "asset_id": "arn:aws:ecr:us-east-1:123456789012:repository/fixture/image@sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+          "asset_kind": "ecr_image",
+          "scan": {
+            "image": {
+              "provider": "aws",
+              "scope": "123456789012/us-east-1",
+              "immutable_reference": "123456789012.dkr.ecr.us-east-1.amazonaws.com/fixture/image@sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+              "manifest_digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+              "config_digest": "sha256:de4a38d42190144f4442dff3f8e3f3e538abbef3316db9a0cb35c33dfccc4a4f"
+            },
+            "status": "FAIL",
+            "complete": true,
+            "scan_complete": true,
+            "coverage_status": "COMPLETE",
+            "findings": [
+              {
+                "vulnerability_id": "CVE-2026-12345",
+                "severity": "HIGH",
+                "package_types": [
+                  "alpine"
+                ],
+                "package": "fixture-package",
+                "version": "1.0",
+                "fixed_in": [
+                  "1.1"
+                ],
+                "fix_status": "fixed",
+                "classes": [
+                  "os-pkgs"
+                ],
+                "image_digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec"
+              }
+            ],
+            "database": {
+              "fresh": true
+            }
+          }
+        },
+        "source_ledger": [
+          {
+            "operation": "sts:get_caller_identity",
+            "status": "collected",
+            "account": "123456789012"
+          },
+          {
+            "operation": "ecr:batch_get_image",
+            "status": "collected",
+            "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+            "bytes": 398
+          },
+          {
+            "operation": "ecr:get_download_url_for_layer",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr:signed_layer_download",
+            "status": "collected",
+            "digest": "sha256:de4a38d42190144f4442dff3f8e3f3e538abbef3316db9a0cb35c33dfccc4a4f",
+            "bytes": 217
+          },
+          {
+            "operation": "ecr:get_download_url_for_layer",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr:signed_layer_download",
+            "status": "collected",
+            "digest": "sha256:fc08011cc532ce109bc050692ae579b8f8378aa2e4535f6c664a87b2d0e25806",
+            "bytes": 10240
+          },
+          {
+            "operation": "sts:get_caller_identity",
+            "status": "collected",
+            "account": "123456789012"
+          },
+          {
+            "operation": "ecr:batch_get_image",
+            "status": "collected",
+            "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+            "bytes": 398
+          },
+          {
+            "operation": "sts:get_caller_identity",
+            "status": "collected",
+            "account": "123456789012"
+          },
+          {
+            "operation": "ecr:batch_get_image",
+            "status": "collected",
+            "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+            "bytes": 398
+          },
+          {
+            "operation": "sts:get_caller_identity",
+            "status": "collected",
+            "account": "123456789012"
+          },
+          {
+            "operation": "ecr:batch_get_image",
+            "status": "collected",
+            "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+            "bytes": 398
+          },
+          {
+            "operation": "sts:get_caller_identity",
+            "status": "collected",
+            "account": "123456789012"
+          },
+          {
+            "operation": "ecr:batch_get_image",
+            "status": "collected",
+            "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+            "bytes": 398
+          }
+        ],
+        "association": "selected_immutable_image",
+        "function_binding": null,
+        "runtime_image_proven": false
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "metadata": {
+          "selected_aws_image_vulnerabilities": [
+            {
+              "scope": "123456789012/us-east-1",
+              "repository_name": "fixture/image",
+              "image_digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec"
+            }
+          ]
+        }
+      },
+      "collections": {
+        "ecr_selected_image_vulnerabilities": [
+          {
+            "type": "ecr_selected_image_vulnerabilities",
+            "scope": "123456789012/us-east-1",
+            "service": "ecr",
+            "status": "collected",
+            "items": [
+              {
+                "id": "fixture-image",
+                "ImageVulnerabilityReview": {
+                  "selection": {
+                    "scope": "123456789012/us-east-1",
+                    "repository_name": "fixture/image",
+                    "image_digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec"
+                  },
+                  "status": "FAIL",
+                  "complete": true,
+                  "reason": null,
+                  "observation": {
+                    "provider": "aws",
+                    "scope": "123456789012/us-east-1",
+                    "asset_id": "arn:aws:ecr:us-east-1:123456789012:repository/fixture/image@sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+                    "asset_kind": "ecr_image",
+                    "scan": {
+                      "image": {
+                        "provider": "aws",
+                        "scope": "123456789012/us-east-1",
+                        "immutable_reference": "123456789012.dkr.ecr.us-east-1.amazonaws.com/fixture/image@sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+                        "manifest_digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+                        "config_digest": "sha256:de4a38d42190144f4442dff3f8e3f3e538abbef3316db9a0cb35c33dfccc4a4f"
+                      },
+                      "status": "FAIL",
+                      "complete": true,
+                      "scan_complete": true,
+                      "coverage_status": "COMPLETE",
+                      "findings": [
+                        {
+                          "vulnerability_id": "CVE-2026-12345",
+                          "severity": "HIGH",
+                          "package_types": [
+                            "alpine"
+                          ],
+                          "package": "fixture-package",
+                          "version": "1.0",
+                          "fixed_in": [
+                            "1.1"
+                          ],
+                          "fix_status": "fixed",
+                          "classes": [
+                            "os-pkgs"
+                          ],
+                          "image_digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec"
+                        }
+                      ],
+                      "database": {
+                        "fresh": true
+                      }
+                    }
+                  },
+                  "source_ledger": [
+                    {
+                      "operation": "sts:get_caller_identity",
+                      "status": "collected",
+                      "account": "123456789012"
+                    },
+                    {
+                      "operation": "ecr:batch_get_image",
+                      "status": "collected",
+                      "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+                      "bytes": 398
+                    },
+                    {
+                      "operation": "ecr:get_download_url_for_layer",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr:signed_layer_download",
+                      "status": "collected",
+                      "digest": "sha256:de4a38d42190144f4442dff3f8e3f3e538abbef3316db9a0cb35c33dfccc4a4f",
+                      "bytes": 217
+                    },
+                    {
+                      "operation": "ecr:get_download_url_for_layer",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr:signed_layer_download",
+                      "status": "collected",
+                      "digest": "sha256:fc08011cc532ce109bc050692ae579b8f8378aa2e4535f6c664a87b2d0e25806",
+                      "bytes": 10240
+                    },
+                    {
+                      "operation": "sts:get_caller_identity",
+                      "status": "collected",
+                      "account": "123456789012"
+                    },
+                    {
+                      "operation": "ecr:batch_get_image",
+                      "status": "collected",
+                      "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+                      "bytes": 398
+                    },
+                    {
+                      "operation": "sts:get_caller_identity",
+                      "status": "collected",
+                      "account": "123456789012"
+                    },
+                    {
+                      "operation": "ecr:batch_get_image",
+                      "status": "collected",
+                      "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+                      "bytes": 398
+                    },
+                    {
+                      "operation": "sts:get_caller_identity",
+                      "status": "collected",
+                      "account": "123456789012"
+                    },
+                    {
+                      "operation": "ecr:batch_get_image",
+                      "status": "collected",
+                      "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+                      "bytes": 398
+                    },
+                    {
+                      "operation": "sts:get_caller_identity",
+                      "status": "collected",
+                      "account": "123456789012"
+                    },
+                    {
+                      "operation": "ecr:batch_get_image",
+                      "status": "collected",
+                      "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+                      "bytes": 398
+                    }
+                  ],
+                  "association": "selected_immutable_image",
+                  "function_binding": null,
+                  "runtime_image_proven": false
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "unknown": {
+      "id": "fixture-image",
+      "ImageVulnerabilityReview": {
+        "selection": {
+          "scope": "123456789012/us-east-1",
+          "repository_name": "fixture/image",
+          "image_digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec"
+        },
+        "status": "UNKNOWN",
+        "complete": false,
+        "reason": "image_vulnerability_coverage_incomplete",
+        "observation": {
+          "provider": "aws",
+          "scope": "123456789012/us-east-1",
+          "asset_id": "arn:aws:ecr:us-east-1:123456789012:repository/fixture/image@sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+          "asset_kind": "ecr_image",
+          "scan": {
+            "image": {
+              "provider": "aws",
+              "scope": "123456789012/us-east-1",
+              "immutable_reference": "123456789012.dkr.ecr.us-east-1.amazonaws.com/fixture/image@sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+              "manifest_digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+              "config_digest": "sha256:de4a38d42190144f4442dff3f8e3f3e538abbef3316db9a0cb35c33dfccc4a4f"
+            },
+            "status": "UNKNOWN",
+            "complete": false,
+            "scan_complete": true,
+            "coverage_status": "UNKNOWN",
+            "findings": [],
+            "database": {
+              "fresh": false
+            }
+          }
+        },
+        "source_ledger": [
+          {
+            "operation": "sts:get_caller_identity",
+            "status": "collected",
+            "account": "123456789012"
+          },
+          {
+            "operation": "ecr:batch_get_image",
+            "status": "collected",
+            "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+            "bytes": 398
+          },
+          {
+            "operation": "ecr:get_download_url_for_layer",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr:signed_layer_download",
+            "status": "collected",
+            "digest": "sha256:de4a38d42190144f4442dff3f8e3f3e538abbef3316db9a0cb35c33dfccc4a4f",
+            "bytes": 217
+          },
+          {
+            "operation": "ecr:get_download_url_for_layer",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr:signed_layer_download",
+            "status": "collected",
+            "digest": "sha256:fc08011cc532ce109bc050692ae579b8f8378aa2e4535f6c664a87b2d0e25806",
+            "bytes": 10240
+          },
+          {
+            "operation": "sts:get_caller_identity",
+            "status": "collected",
+            "account": "123456789012"
+          },
+          {
+            "operation": "ecr:batch_get_image",
+            "status": "collected",
+            "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+            "bytes": 398
+          },
+          {
+            "operation": "sts:get_caller_identity",
+            "status": "collected",
+            "account": "123456789012"
+          },
+          {
+            "operation": "ecr:batch_get_image",
+            "status": "collected",
+            "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+            "bytes": 398
+          },
+          {
+            "operation": "sts:get_caller_identity",
+            "status": "collected",
+            "account": "123456789012"
+          },
+          {
+            "operation": "ecr:batch_get_image",
+            "status": "collected",
+            "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+            "bytes": 398
+          },
+          {
+            "operation": "sts:get_caller_identity",
+            "status": "collected",
+            "account": "123456789012"
+          },
+          {
+            "operation": "ecr:batch_get_image",
+            "status": "collected",
+            "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+            "bytes": 398
+          }
+        ],
+        "association": "selected_immutable_image",
+        "function_binding": null,
+        "runtime_image_proven": false
+      }
+    },
+    "unknown_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "metadata": {
+          "selected_aws_image_vulnerabilities": [
+            {
+              "scope": "123456789012/us-east-1",
+              "repository_name": "fixture/image",
+              "image_digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec"
+            }
+          ]
+        }
+      },
+      "collections": {
+        "ecr_selected_image_vulnerabilities": [
+          {
+            "type": "ecr_selected_image_vulnerabilities",
+            "scope": "123456789012/us-east-1",
+            "service": "ecr",
+            "status": "partial",
+            "items": [
+              {
+                "id": "fixture-image",
+                "ImageVulnerabilityReview": {
+                  "selection": {
+                    "scope": "123456789012/us-east-1",
+                    "repository_name": "fixture/image",
+                    "image_digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec"
+                  },
+                  "status": "UNKNOWN",
+                  "complete": false,
+                  "reason": "image_vulnerability_coverage_incomplete",
+                  "observation": {
+                    "provider": "aws",
+                    "scope": "123456789012/us-east-1",
+                    "asset_id": "arn:aws:ecr:us-east-1:123456789012:repository/fixture/image@sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+                    "asset_kind": "ecr_image",
+                    "scan": {
+                      "image": {
+                        "provider": "aws",
+                        "scope": "123456789012/us-east-1",
+                        "immutable_reference": "123456789012.dkr.ecr.us-east-1.amazonaws.com/fixture/image@sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+                        "manifest_digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+                        "config_digest": "sha256:de4a38d42190144f4442dff3f8e3f3e538abbef3316db9a0cb35c33dfccc4a4f"
+                      },
+                      "status": "UNKNOWN",
+                      "complete": false,
+                      "scan_complete": true,
+                      "coverage_status": "UNKNOWN",
+                      "findings": [],
+                      "database": {
+                        "fresh": false
+                      }
+                    }
+                  },
+                  "source_ledger": [
+                    {
+                      "operation": "sts:get_caller_identity",
+                      "status": "collected",
+                      "account": "123456789012"
+                    },
+                    {
+                      "operation": "ecr:batch_get_image",
+                      "status": "collected",
+                      "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+                      "bytes": 398
+                    },
+                    {
+                      "operation": "ecr:get_download_url_for_layer",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr:signed_layer_download",
+                      "status": "collected",
+                      "digest": "sha256:de4a38d42190144f4442dff3f8e3f3e538abbef3316db9a0cb35c33dfccc4a4f",
+                      "bytes": 217
+                    },
+                    {
+                      "operation": "ecr:get_download_url_for_layer",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr:signed_layer_download",
+                      "status": "collected",
+                      "digest": "sha256:fc08011cc532ce109bc050692ae579b8f8378aa2e4535f6c664a87b2d0e25806",
+                      "bytes": 10240
+                    },
+                    {
+                      "operation": "sts:get_caller_identity",
+                      "status": "collected",
+                      "account": "123456789012"
+                    },
+                    {
+                      "operation": "ecr:batch_get_image",
+                      "status": "collected",
+                      "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+                      "bytes": 398
+                    },
+                    {
+                      "operation": "sts:get_caller_identity",
+                      "status": "collected",
+                      "account": "123456789012"
+                    },
+                    {
+                      "operation": "ecr:batch_get_image",
+                      "status": "collected",
+                      "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+                      "bytes": 398
+                    },
+                    {
+                      "operation": "sts:get_caller_identity",
+                      "status": "collected",
+                      "account": "123456789012"
+                    },
+                    {
+                      "operation": "ecr:batch_get_image",
+                      "status": "collected",
+                      "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+                      "bytes": 398
+                    },
+                    {
+                      "operation": "sts:get_caller_identity",
+                      "status": "collected",
+                      "account": "123456789012"
+                    },
+                    {
+                      "operation": "ecr:batch_get_image",
+                      "status": "collected",
+                      "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+                      "bytes": 398
+                    }
+                  ],
+                  "association": "selected_immutable_image",
+                  "function_binding": null,
+                  "runtime_image_proven": false
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "missing": {},
+    "malformed": {
+      "ImageVulnerabilityReview": "invalid"
+    },
+    "index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "metadata": {
+          "selected_aws_image_vulnerabilities": [
+            {
+              "scope": "123456789012/us-east-1",
+              "repository_name": "fixture/image",
+              "image_digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec"
+            }
+          ]
+        }
+      },
+      "collections": {
+        "ecr_selected_image_vulnerabilities": [
+          {
+            "type": "ecr_selected_image_vulnerabilities",
+            "scope": "123456789012/us-east-1",
+            "service": "ecr",
+            "status": "collected",
+            "items": [
+              {
+                "id": "fixture-image",
+                "ImageVulnerabilityReview": {
+                  "selection": {
+                    "scope": "123456789012/us-east-1",
+                    "repository_name": "fixture/image",
+                    "image_digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec"
+                  },
+                  "status": "PASS",
+                  "complete": true,
+                  "reason": null,
+                  "observation": {
+                    "provider": "aws",
+                    "scope": "123456789012/us-east-1",
+                    "asset_id": "arn:aws:ecr:us-east-1:123456789012:repository/fixture/image@sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+                    "asset_kind": "ecr_image",
+                    "scan": {
+                      "image": {
+                        "provider": "aws",
+                        "scope": "123456789012/us-east-1",
+                        "immutable_reference": "123456789012.dkr.ecr.us-east-1.amazonaws.com/fixture/image@sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+                        "manifest_digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+                        "config_digest": "sha256:de4a38d42190144f4442dff3f8e3f3e538abbef3316db9a0cb35c33dfccc4a4f"
+                      },
+                      "status": "PASS",
+                      "complete": true,
+                      "scan_complete": true,
+                      "coverage_status": "COMPLETE",
+                      "findings": [],
+                      "database": {
+                        "fresh": true
+                      }
+                    }
+                  },
+                  "source_ledger": [
+                    {
+                      "operation": "sts:get_caller_identity",
+                      "status": "collected",
+                      "account": "123456789012"
+                    },
+                    {
+                      "operation": "ecr:batch_get_image",
+                      "status": "collected",
+                      "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+                      "bytes": 398
+                    },
+                    {
+                      "operation": "ecr:get_download_url_for_layer",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr:signed_layer_download",
+                      "status": "collected",
+                      "digest": "sha256:de4a38d42190144f4442dff3f8e3f3e538abbef3316db9a0cb35c33dfccc4a4f",
+                      "bytes": 217
+                    },
+                    {
+                      "operation": "ecr:get_download_url_for_layer",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr:signed_layer_download",
+                      "status": "collected",
+                      "digest": "sha256:fc08011cc532ce109bc050692ae579b8f8378aa2e4535f6c664a87b2d0e25806",
+                      "bytes": 10240
+                    },
+                    {
+                      "operation": "sts:get_caller_identity",
+                      "status": "collected",
+                      "account": "123456789012"
+                    },
+                    {
+                      "operation": "ecr:batch_get_image",
+                      "status": "collected",
+                      "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+                      "bytes": 398
+                    },
+                    {
+                      "operation": "sts:get_caller_identity",
+                      "status": "collected",
+                      "account": "123456789012"
+                    },
+                    {
+                      "operation": "ecr:batch_get_image",
+                      "status": "collected",
+                      "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+                      "bytes": 398
+                    },
+                    {
+                      "operation": "sts:get_caller_identity",
+                      "status": "collected",
+                      "account": "123456789012"
+                    },
+                    {
+                      "operation": "ecr:batch_get_image",
+                      "status": "collected",
+                      "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+                      "bytes": 398
+                    },
+                    {
+                      "operation": "sts:get_caller_identity",
+                      "status": "collected",
+                      "account": "123456789012"
+                    },
+                    {
+                      "operation": "ecr:batch_get_image",
+                      "status": "collected",
+                      "digest": "sha256:8695e2cf03d530ffd786b3ad09da3908fc313fbaa030ff231a4a81a1f8e4d7ec",
+                      "bytes": 398
+                    }
+                  ],
+                  "association": "selected_immutable_image",
+                  "function_binding": null,
+                  "runtime_image_proven": false
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

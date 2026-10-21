@@ -30,7 +30,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS AWSCLOUDTRAIL Trail API",
           "url": "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_Trail.html"
         }
       ],
@@ -136,7 +136,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS EC2 Describe Instances API",
           "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstances.html"
         }
       ],
@@ -204,7 +204,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS WAF Get Logging Configuration API",
           "url": "https://docs.aws.amazon.com/waf/latest/APIReference/API_GetLoggingConfiguration.html"
         }
       ],
@@ -258,7 +258,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS WAF Get Web ACL For Resource API",
           "url": "https://docs.aws.amazon.com/waf/latest/APIReference/API_GetWebACLForResource.html"
         }
       ],
@@ -317,7 +317,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS Elastic Load Balancing Describe Load Balancer Policies API",
           "url": "https://docs.aws.amazon.com/elasticloadbalancing/2012-06-01/APIReference/API_DescribeLoadBalancerPolicies.html"
         }
       ],
@@ -427,7 +427,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS EC2 Client Vpn Authorization Rule API",
           "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ClientVpnAuthorizationRule.html"
         }
       ],
@@ -477,7 +477,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS IAM Get Account Authorization Details API",
           "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetAccountAuthorizationDetails.html"
         }
       ],
@@ -540,7 +540,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS IAM Get Account Authorization Details API",
           "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetAccountAuthorizationDetails.html"
         }
       ],
@@ -606,7 +606,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS WAF Protection API",
           "url": "https://docs.aws.amazon.com/waf/latest/DDOSAPIReference/API_Protection.html"
         }
       ],
@@ -672,7 +672,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS SNS sns topic attributes",
           "url": "https://docs.aws.amazon.com/sns/latest/dg/sns-topic-attributes.html"
         }
       ],
@@ -792,7 +792,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS NETWORK-FIREWALL Stateless Rule API",
           "url": "https://docs.aws.amazon.com/network-firewall/latest/APIReference/API_StatelessRule.html"
         }
       ],
@@ -846,7 +846,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS APIGATEWAY Stage API",
           "url": "https://docs.aws.amazon.com/apigateway/latest/api/API_Stage.html"
         }
       ],
@@ -919,7 +919,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS Auto Scaling Launch Configuration API",
           "url": "https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_LaunchConfiguration.html"
         }
       ],
@@ -1025,7 +1025,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS Backup restore testing",
           "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/restore-testing.html"
         }
       ],
@@ -1075,7 +1075,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS IAM reference policies elements principal",
           "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_principal.html"
         }
       ],
@@ -1126,7 +1126,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS LIGHTSAIL Bucket API",
           "url": "https://docs.aws.amazon.com/lightsail/2016-11-28/api-reference/API_Bucket.html"
         }
       ],
@@ -1176,7 +1176,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS ORGANIZATIONS orgs manage policies delegated administrator",
           "url": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_delegated-administrator.html"
         }
       ],
@@ -1240,7 +1240,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS AWSCLOUDTRAIL Trail API",
           "url": "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_Trail.html"
         }
       ],
@@ -1346,7 +1346,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS AWSCLOUDTRAIL Trail API",
           "url": "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_Trail.html"
         }
       ],
@@ -1452,7 +1452,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS Elastic Load Balancing Describe Target Health API",
           "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_DescribeTargetHealth.html"
         }
       ],
@@ -1506,7 +1506,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS AWSCLOUDTRAIL Trail API",
           "url": "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_Trail.html"
         }
       ],
@@ -1604,7 +1604,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS EC2 Describe Instances API",
           "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstances.html"
         }
       ],
@@ -1671,7 +1671,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS IAM Get Account Authorization Details API",
           "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetAccountAuthorizationDetails.html"
         }
       ],
@@ -1716,7 +1716,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS IAM Get Account Authorization Details API",
           "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetAccountAuthorizationDetails.html"
         }
       ],
@@ -1762,7 +1762,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS APIGATEWAY Method Setting API",
           "url": "https://docs.aws.amazon.com/apigateway/latest/api/API_MethodSetting.html"
         }
       ],
@@ -1828,7 +1828,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS AWSCLOUDTRAIL cloudtrail multi region trails",
           "url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-multi-region-trails.html"
         }
       ],
@@ -1881,7 +1881,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS EVENTBRIDGE Rule API",
           "url": "https://docs.aws.amazon.com/eventbridge/latest/APIReference/API_Rule.html"
         }
       ],
@@ -1954,7 +1954,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS SINGLESIGNON Account Assignment API",
           "url": "https://docs.aws.amazon.com/singlesignon/latest/APIReference/API_AccountAssignment.html"
         }
       ],
@@ -2007,7 +2007,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS EVENTBRIDGE Rule API",
           "url": "https://docs.aws.amazon.com/eventbridge/latest/APIReference/API_Rule.html"
         }
       ],
@@ -2073,7 +2073,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS KMS Key Metadata API",
           "url": "https://docs.aws.amazon.com/kms/latest/APIReference/API_KeyMetadata.html"
         }
       ],
@@ -2135,7 +2135,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS KMS Key Metadata API",
           "url": "https://docs.aws.amazon.com/kms/latest/APIReference/API_KeyMetadata.html"
         }
       ],
@@ -2187,7 +2187,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS S3 Object Lock Configuration API",
           "url": "https://docs.aws.amazon.com/AmazonS3/latest/API/API_ObjectLockConfiguration.html"
         }
       ],
@@ -2237,7 +2237,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS APIGATEWAY Method Setting API",
           "url": "https://docs.aws.amazon.com/apigateway/latest/api/API_MethodSetting.html"
         }
       ],
@@ -2304,7 +2304,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS APIGATEWAY set up logging",
           "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-logging.html"
         }
       ],
@@ -2394,7 +2394,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS AWSCLOUDTRAIL Trail API",
           "url": "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_Trail.html"
         }
       ],
@@ -2500,7 +2500,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS CONFIG Configuration Recorder API",
           "url": "https://docs.aws.amazon.com/config/latest/APIReference/API_ConfigurationRecorder.html"
         }
       ],
@@ -2606,7 +2606,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS Elastic Load Balancing Describe Target Health API",
           "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_DescribeTargetHealth.html"
         }
       ],
@@ -2659,7 +2659,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS RDS Aurora My SQL.Managing.Backtrack",
           "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraMySQL.Managing.Backtrack.html"
         }
       ],
@@ -2768,7 +2768,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS SECRETSMANAGER Describe Secret API",
           "url": "https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_DescribeSecret.html"
         }
       ],
@@ -2876,7 +2876,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS SNS sns topic attributes",
           "url": "https://docs.aws.amazon.com/sns/latest/dg/sns-topic-attributes.html"
         }
       ],
@@ -2992,7 +2992,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS WAF Get Logging Configuration API",
           "url": "https://docs.aws.amazon.com/waf/latest/APIReference/API_GetLoggingConfiguration.html"
         }
       ],
@@ -3046,7 +3046,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS WAF waf Regional List Resources For Web ACL API",
           "url": "https://docs.aws.amazon.com/waf/latest/APIReference/API_wafRegional_ListResourcesForWebACL.html"
         }
       ],
@@ -3097,7 +3097,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS EVENTBRIDGE Rule API",
           "url": "https://docs.aws.amazon.com/eventbridge/latest/APIReference/API_Rule.html"
         }
       ],
@@ -3157,7 +3157,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS EVENTBRIDGE Rule API",
           "url": "https://docs.aws.amazon.com/eventbridge/latest/APIReference/API_Rule.html"
         }
       ],
@@ -3230,7 +3230,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS EVENTBRIDGE Rule API",
           "url": "https://docs.aws.amazon.com/eventbridge/latest/APIReference/API_Rule.html"
         }
       ],
@@ -3298,7 +3298,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS EVENTBRIDGE Rule API",
           "url": "https://docs.aws.amazon.com/eventbridge/latest/APIReference/API_Rule.html"
         }
       ],
@@ -3366,7 +3366,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS SECURITYHUB Get Findings API",
           "url": "https://docs.aws.amazon.com/securityhub/1.0/APIReference/API_GetFindings.html"
         }
       ],
@@ -3416,7 +3416,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS CloudWatch Metric Alarm API",
           "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_MetricAlarm.html"
         }
       ],
@@ -3523,7 +3523,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS SYSTEMS-MANAGER Inventory Result Item API",
           "url": "https://docs.aws.amazon.com/systems-manager/latest/APIReference/API_InventoryResultItem.html"
         }
       ],
@@ -3579,7 +3579,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS EC2 Tunnel Option API",
           "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_TunnelOption.html"
         }
       ],
@@ -3685,7 +3685,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS WAF Rule API",
           "url": "https://docs.aws.amazon.com/waf/latest/APIReference/API_Rule.html"
         }
       ],
@@ -3748,7 +3748,7 @@ ROWS=json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS check documentation",
+          "title": "AWS WAF Rule API",
           "url": "https://docs.aws.amazon.com/waf/latest/APIReference/API_Rule.html"
         }
       ],

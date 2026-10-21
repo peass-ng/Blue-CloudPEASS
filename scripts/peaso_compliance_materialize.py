@@ -23,7 +23,7 @@ LEDGER = ROOT / "docs/compliance-ledgers"
 
 
 def render_documents() -> dict[Path, bytes]:
-    from peaso.analysis import ANALYSIS_CHECKS
+    from peaso.analysis import ANALYSIS_CHECKS, MANUAL_ONLY_ANALYSIS_CHECK_IDS
     from peaso.checks import CHECKS
     from peaso.checks.hacktricks_scope import validate_review
     validate_review([check.id for check in CHECKS] + [check["id"] for check in ANALYSIS_CHECKS])
@@ -65,7 +65,8 @@ def render_documents() -> dict[Path, bytes]:
     if len(native_ids) != len(CHECKS):
         raise ValueError("Duplicate registered native check")
     indexed = {row["id"] for row in json.loads((LEDGER / "inputs/check-index.json").read_text())}
-    analysis_ids = {row["id"] for row in ANALYSIS_CHECKS}
+    # Retain reviewed metadata for archived reports without advertising runnable controls.
+    analysis_ids = {row["id"] for row in ANALYSIS_CHECKS} | MANUAL_ONLY_ANALYSIS_CHECK_IDS
     reviewed_ids = set(descriptions["checks"])
     active_ids = native_ids | analysis_ids
     historical_aliases = {cid for cid in reviewed_ids - active_ids

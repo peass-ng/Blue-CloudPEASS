@@ -44,6 +44,15 @@ EXPECTED_COUNT = 181
 EXPECTED_CONTROL_LINKS = 716
 ONE_SIDED_FAIL = {"gcp.apikeys.active_service_restrictions"}
 ONE_SIDED_PASS = {"gcp.logging.access_transparency_entries"}
+HISTORICAL_NATIVE_UNKNOWN = {
+    "gcp_pci_backend_service_2ce96d36d0bf": {"pass", "fail"},
+    "gcp_cloud_armor_waf_enabled": {"pass", "fail"},
+    "gcp_pci_url_map_9ed56c323a05": {"pass", "fail"},
+    "gcp_kms_key_destroy_alert": {"pass", "fail"},
+    "gcp_logging_enumeration_alert": {"pass"},
+    "gcp_gke_small_cluster_auto_upgrade": {"pass", "fail"},
+    "azure.gap.compute_vm_remote_access_restricted_all_ports": {"pass", "fail"},
+}
 REDSHIFT_PROPOSAL = "aws_g6_redshift_automatic_version_upgrade"
 REDSHIFT_SURVIVOR = "aws.cb.redshift.allow_version_upgrade"
 REDSHIFT_CONTROL = ("aws-compliance.benchmark.nist_csf_v2",
@@ -62,6 +71,14 @@ CLOUDTRAIL_CONTROL_KEYS = {
 
 def _batch():
     return {check.id: check for check in CHECKS if check.evaluate.__module__ in MODULES}
+
+
+def _native_cases(path, check_id):
+    """Retained synthetic-transport captures from the native producer tests."""
+    rows = json.loads((ROOT / path).read_text())["cases"]
+    cases = {row["id"].split(":", 1)[1]: row for row in rows if row["check_id"] == check_id}
+    assert all(row["source_bound_receipt"]["synthetic_transport"] is True for row in cases.values())
+    return cases
 
 
 def _source_links(manifest, ids):
@@ -129,6 +146,10 @@ def test_all_real_batch_cases_have_truthful_verdicts_and_no_mutation():
             if cid == "gcp_pci_bucket_157fb0c69361" and name == "pass":
                 # The old local-only sample lacks the now-required native hierarchy.
                 verdict = "UNKNOWN"
+            if name in HISTORICAL_NATIVE_UNKNOWN.get(cid, ()):
+                # Predecessor samples lack relations or coverage now verified by
+                # separate source-bound native producer captures below.
+                verdict = "UNKNOWN"
             if cid in {"gcp.identity.non_service_account_mfa", "gcp.identity.super_admin_recovery_group"} and name in {"pass", "fail"}:
                 # Old Directory samples predate the independently verified
                 # project/customer binding. They cannot now prove either verdict.
@@ -137,6 +158,36 @@ def test_all_real_batch_cases_have_truthful_verdicts_and_no_mutation():
             assert original == before_data and index == before_index, cid
         denied = {"collection_status": "denied"}
         assert check.evaluate(denied, deepcopy(cases.get("index", {})))[0] == "UNKNOWN", cid
+    # Current collector captures independently prove the accepted outcomes.
+    final_services = "tests/fixtures/gcp-final-services-native-successor-20261020.json"
+    azure_verdicts = {"pass_native_declared_configuration": "PASS",
+                      "fail_native_declared_configuration": "FAIL",
+                      "unknown_child_denied": "UNKNOWN",
+                      "unknown_native_default_service_tags": "UNKNOWN"}
+    for cid in HISTORICAL_NATIVE_UNKNOWN:
+        if cid == "azure.gap.compute_vm_remote_access_restricted_all_ports":
+            native = json.loads((ROOT / "tests/fixtures/azure_storage_native_fixes_20261020.json").read_text())["cases"][cid]
+            assert set(native) == set(azure_verdicts)
+            for scenario, row in native.items():
+                assert row["native_calls"] and row["source"].startswith("Actual AzureTransport JSON bytes")
+                assert row["status"] == azure_verdicts[scenario]
+                item, index = deepcopy(row["item"]), deepcopy(row["index"])
+                assert checks[cid].evaluate(item, index)[0] == azure_verdicts[scenario], (cid, scenario)
+            continue
+        path = ("tests/fixtures/gcp-alert-native-successor-20261020.json"
+                if cid == "gcp_kms_key_destroy_alert" else final_services)
+        native = _native_cases(path, cid)
+        verdicts = ({"complete": "PASS", "absent": "FAIL", "denied": "UNKNOWN"}
+                    if cid == "gcp_kms_key_destroy_alert" else
+                    {"good": "PASS", "bad": "FAIL", "denied_field": "UNKNOWN"})
+        assert set(native) == set(verdicts)
+        for scenario, row in native.items():
+            assert row["source_bound_receipt"]["synthetic_transport"] is True
+            assert row["expected_status"] == verdicts[scenario]
+            item, index = deepcopy(row["item"]), deepcopy(row["index"])
+            before_item, before_index = deepcopy(item), deepcopy(index)
+            assert checks[cid].evaluate(item, index)[0] == verdicts[scenario], (cid, scenario)
+            assert item == before_item and index == before_index
 
 
 def test_bucket_public_read_pass_requires_complete_inherited_evidence():
@@ -145,19 +196,19 @@ def test_bucket_public_read_pass_requires_complete_inherited_evidence():
     item = deepcopy(CASES[cid]["pass"])
     index = deepcopy(CASES[cid]["pass_index"])
     assert check.evaluate(item, index)[0] == "UNKNOWN"
-    scope = "projects/demo-project"
-    evidence = {
-        "project": {"name": scope, "projectId": "demo-project", "_ancestry": [], "_provenance": {"scope": scope}},
-        "iam_policy": {"name": scope, "bindings": []},
-        "bucket_effective_iam": {"name": item["name"], "resolutionComplete": True, "policyScopes": [scope]},
-    }
-    for kind, row in evidence.items():
-        index["collections"][kind] = [{"type": kind, "scope": scope, "status": "collected", "items": [row]}]
-        index[kind] = [{"type": kind, "scope": scope, "data": row}]
-    assert check.evaluate(item, index)[0] == "PASS"
-    public = {"role": "roles/storage.objectViewer", "members": ["allUsers"]}
-    index["iam_policy"][0]["data"]["bindings"].append(public)
-    assert check.evaluate(item, index)[0] == "FAIL"
+    native = _native_cases("tests/fixtures/gcp-native-review-behavior.json", cid)
+    assert set(native) == {"complete", "ancestor_public", "acl_public_read", "denied_ancestry"}
+    for scenario, verdict in (("complete", "PASS"), ("ancestor_public", "FAIL"),
+                              ("acl_public_read", "FAIL"), ("denied_ancestry", "UNKNOWN")):
+        row = native[scenario]
+        receipt = row["source_bound_receipt"]
+        assert receipt["collector"] == "peaso.collectors.gcp.GCPCollector.collect"
+        assert receipt["read_only"] is True and receipt["requests"]
+        assert row["expected_status"] == verdict
+        current_item, current_index = deepcopy(row["item"]), deepcopy(row["index"])
+        before_item, before_index = deepcopy(current_item), deepcopy(current_index)
+        assert check.evaluate(current_item, current_index)[0] == verdict
+        assert current_item == before_item and current_index == before_index
 
 
 def test_reviewed_batch_cases_survive_legacy_fixture_imports():

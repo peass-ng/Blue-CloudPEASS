@@ -37,6 +37,20 @@ RAWV2_EDITS = ((b'collector_noop_authorization_shared_successor_20261020 = aws_w
 def metadata_initializer_bytes(raw):
     """Accept either exact epoch; reverse only the reviewed three hunks."""
     digest = hashlib.sha256(raw).hexdigest()
+    if digest == 'ec7a07be2ec474b98096199868629250d7f16fa17835787bcc377c54d41a64d8':
+        from pathlib import Path
+        import json
+        receipt_raw = (Path(__file__).resolve().parents[1] / 'peaso/checks/private_secret_shared_source_successor_20261021.json').read_bytes()
+        if hashlib.sha256(receipt_raw).hexdigest() != '022b0bc39fde669e96abb0963970cb9e679f32172c2e600eb53bfc618e0b0f17':
+            raise RuntimeError("Private initializer receipt changed")
+        for before, after in reversed(json.loads(receipt_raw)['initializer_edits']):
+            before, after = before.encode(), after.encode()
+            if raw.count(after) != 1:
+                raise RuntimeError("Private initializer reversal ambiguous")
+            raw = raw.replace(after, before, 1)
+        digest = hashlib.sha256(raw).hexdigest()
+        if digest != RAWV2_INITIALIZER_SHA256:
+            raise RuntimeError("Private initializer predecessor changed")
     if digest == RAWV2_INITIALIZER_SHA256:
         for after, before in RAWV2_EDITS:
             if raw.count(after) != 1:

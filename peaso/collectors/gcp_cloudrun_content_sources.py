@@ -149,14 +149,35 @@ def _bind_spec(image, uri):
                  and image.split(':', 1)[0] == resolved.split('@', 1)[0], 'revision_spec_image_path_mismatch')
 
 
+def _container_images(containers, revision_status, scope):
+    _require(isinstance(containers, list) and 1 <= len(containers) <= 10
+             and all(isinstance(value, dict) for value in containers),
+             'multi_container_or_missing_container_unsupported')
+    if len(containers) == 1:
+        uri, repo, digest = _image(revision_status.get('imageDigest'), scope)
+        _bind_spec(containers[0].get('image'), uri)
+        return [(uri, repo, digest)]
+    result = []
+    for container in containers:
+        declared = container.get('image')
+        _require(isinstance(declared, str) and '@sha256:' in declared
+                 and not declared.startswith('https://'),
+                 'multi_container_or_missing_container_unsupported')
+        result.append(_image(declared, scope))
+    if revision_status.get('imageDigest'):
+        resolved = _image(revision_status['imageDigest'], scope)
+        _require(resolved in result, 'status_image_not_in_container_declarations')
+    return result
+
+
 def plan_sources(scope, services, *, projects, repositories, service_reads, revision_reads, image_rows):
     """Return reader-compatible rows and selection; ValueError means no plan.
 
     Call gcp_image_secret_indicators.bind_image/inspect_image with each image row
     and the same complete inventories. A plan is never
     content evidence: complete=False and content_status=not_inspected always.
-    Multi-container v1 revisions are rejected because imageDigest binds only the
-    singular container contract; no sidecar completeness can be inferred.
+    Multi-container revisions require an explicit immutable digest for every
+    container. This is a declared-image association, never a running-image claim.
     """
     selected = _selection(scope, services)
     aliases = _aliases(scope, projects)
@@ -165,6 +186,7 @@ def plan_sources(scope, services, *, projects, repositories, service_reads, revi
              and isinstance(image_rows, list) and all(isinstance(r, dict) for r in repositories + image_rows),
              'native_image_inventories_required')
     paths, images = [], {}
+    has_multi = False
     for service in selected:
         short = service.rsplit('/', 1)[1]
         _, status = _ready(service_reads.get(_base(service) + '/services/' + short), short, aliases)
@@ -175,29 +197,32 @@ def plan_sources(scope, services, *, projects, repositories, service_reads, revi
             _require(isinstance(meta.get('labels'), dict)
                      and meta['labels'].get('serving.knative.dev/service') == short, 'native_revision_service_mismatch')
             containers = raw.get('spec', {}).get('containers') if isinstance(raw.get('spec'), dict) else None
-            _require(isinstance(containers, list) and len(containers) == 1 and isinstance(containers[0], dict),
-                     'multi_container_or_missing_container_unsupported')
-            uri, repo, digest = _image(revision_status.get('imageDigest'), scope)
-            _bind_spec(containers[0].get('image'), uri)
-            matches = [r for r in repositories if r.get('name') == repo]
-            _require(len(matches) == 1 and matches[0].get('format') == 'DOCKER', 'native_repository_join_incomplete')
-            rows = [r for r in image_rows if r.get('uri') == uri]
-            _require(len(rows) == 1, 'native_docker_image_missing_or_duplicate')
-            row = rows[0]
-            name = row.get('name')
-            from peaso.collectors.gcp_registry_image_uri import parse
-            _require(row.get('repository') == repo and row.get('digest') == digest
-                     and isinstance(name, str) and name.startswith(repo + '/dockerImages/')
-                     and unquote(name[len(repo + '/dockerImages/'):]) == parse(uri)[3],
-                     'native_docker_image_binding_mismatch')
-            images[uri] = {k: row[k] for k in ('name', 'uri', 'repository', 'digest')}
-            paths.append({'service': service, 'revision': service + '/revisions/' + revision,
-                          'revision_request_url': url, 'uri': uri, 'digest': digest,
-                          'traffic_percent': route['percent'], 'tags': sorted(route['tags'])})
+            bindings = _container_images(containers, revision_status, scope)
+            has_multi = has_multi or len(bindings) > 1
+            for container_index, (uri, repo, digest) in enumerate(bindings):
+                matches = [r for r in repositories if r.get('name') == repo]
+                _require(len(matches) == 1 and matches[0].get('format') == 'DOCKER', 'native_repository_join_incomplete')
+                rows = [r for r in image_rows if r.get('uri') == uri]
+                _require(len(rows) == 1, 'native_docker_image_missing_or_duplicate')
+                row = rows[0]
+                name = row.get('name')
+                from peaso.collectors.gcp_registry_image_uri import parse
+                _require(row.get('repository') == repo and row.get('digest') == digest
+                         and isinstance(name, str) and name.startswith(repo + '/dockerImages/')
+                         and unquote(name[len(repo + '/dockerImages/'):]) == parse(uri)[3],
+                         'native_docker_image_binding_mismatch')
+                images[uri] = {k: row[k] for k in ('name', 'uri', 'repository', 'digest')}
+                paths.append({'service': service, 'revision': service + '/revisions/' + revision,
+                              'revision_request_url': url, 'uri': uri, 'digest': digest,
+                              'traffic_percent': route['percent'], 'tags': sorted(route['tags'])})
+                if len(bindings) > 1:
+                    paths[-1].update(container_index=container_index,
+                                     association_kind='immutable_container_declaration',
+                                     runtime_image_proven=False)
     _require(len(images) <= MAX_IMAGES, 'selected_image_reader_bound')
     return {'schema': SCHEMA, 'status': 'planned', 'complete': False, 'content_status': 'not_inspected',
             'scope': scope, 'services': selected, 'coverage': 'selected_services_positive_traffic_and_tagged_revisions',
-            'container_limit': 'single_container_revisions_only', 'deployment_paths': paths,
+            'container_limit': ('all_containers_immutable_declarations' if has_multi else 'single_container_revisions_only'), 'deployment_paths': paths,
             'selected_artifact_images': [u.removeprefix('https://') for u in sorted(images)],
             'image_rows': [deepcopy(images[u]) for u in sorted(images)],
             'reader_contract': 'peaso.collectors.gcp_image_secret_indicators.inspect_image',

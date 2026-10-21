@@ -21,7 +21,8 @@ from . import isolation
 def private_json(path, value):
     fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     with os.fdopen(fd, 'w') as stream:
-        json.dump(value, stream, default=str)
+        from peaso.secret_evidence import without_private_values
+        json.dump(without_private_values(value), stream, default=str)
 
 
 def kill_tree(process):
@@ -359,11 +360,14 @@ def review_scan(report, snapshot, selectors, *, tenant, artifacts, deadline=None
             settings.state_dir = Path(context["state_dir"])
             settings.identity_dir = Path(context["identity_dir"])
         store, _ = stores(settings)
-        cipher = AICipher(settings.identity_dir)
         ai_user = selectors.get('ai_user_id', tenant)
         if ai_user != tenant and store.workspace_role(tenant, ai_user) not in ('write', 'admin'):
             raise PermissionError('ai_owner_no_longer_authorized')
-        from .providers import resolve_access, credential_value
+        from .providers import resolve_access, credential_value, review_disabled
+        if review_disabled(store, ai_user):
+            result['reason'] = 'disabled_for_account'
+            return result
+        cipher = AICipher(settings.identity_dir)
         token, result['auth_source'] = resolve_access(store, cipher, ai_user,
             auth_mode=settings.auth_mode, token_resolver=personal_token)
         if not isolation.available():

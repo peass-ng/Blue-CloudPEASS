@@ -88,12 +88,12 @@ def test_context_capture_accepts_qualified_native_manual_paths_and_rejects_forei
         db.execute('INSERT INTO records VALUES(?,?,?)', ('findings','f1',json.dumps({'finding':{
             'id':'f1','category':'privesc','status':'MANUAL','resource_id':'r1'},'review':None})))
     original = output_validation.context('priorities', tmp_path)
-    action = {'rank':1,'title':'Review conditional privilege','resource_ids':['r1'],'finding_ids':['f1'],
+    action = {'rank':1,'title':'Review conditional privilege','finding_ids':['f1'],
         'rationale':'Declared grants warrant owner review; effective reachability remains conditional.',
         'steps':['Validate required access before scoping the grant.'],'verification':'Read the resulting policy and retained dependencies.'}
     output_validation.validate('priorities', {'actions':[action],'limitations':[]}, original)
     with pytest.raises(ValueError, match='unknown_action_reference'):
-        output_validation.validate('priorities', {'actions':[action|{'resource_ids':['foreign']}],'limitations':[]}, original)
+        output_validation.validate('priorities', {'actions':[action|{'finding_ids':['foreign']}],'limitations':[]}, original)
 
 
 def test_network_output_binds_resource_and_graph_references(tmp_path):

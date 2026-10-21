@@ -3,6 +3,8 @@
 No enumeration, execution, arbitrary URLs, secret-store dereference or writes.
 Only opaque locators, finite counts and canonical redacted findings survive.
 """
+
+from peaso.secret_evidence import scan_with_source, target_source
 import base64
 from copy import deepcopy
 import http.client
@@ -375,14 +377,14 @@ def _scan(reader, transport, target, scope, state, receipts):
             receipts[-1]['identity_bound'] = True
             projection = Projection(); projection.text(text); del text
         else:
-            projection = project(surface, props); del data, props
+            projection = project(surface, props); del props
         marker.update(literal_count=len(projection.values), reference_count=projection.references)
         payload = b'\n\n'.join(projection.values)
         if not payload or len(payload) > MAX_CONTENT:
             raise Incomplete('literal_content_unavailable')
-        result = scan_content(payload, ident + '.selected_literals',
+        result = scan_with_source(scan_content, payload, ident + '.selected_literals',
             timeout=remaining(reader, state) / 2,
-            _redact_values=lambda values: reader.configuration_secret_redactions.update(values))
+            _redact_values=lambda values: reader.configuration_secret_redactions.update(values), source=target_source(target, resource_id=ident, scope=scope, location_kind='configuration'), native=data if surface != 'automation_runbook' else None)
         marker['parts'] = [{'bytes': len(payload), 'engines': deepcopy(result['engines']),
                             'complete': result['complete']}]
         del payload

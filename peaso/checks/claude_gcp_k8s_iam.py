@@ -1026,21 +1026,21 @@ def dataset_domain(slug, suffix, label):
     def evaluate(item, index):
         hits = []
         for entry in list_of_objects(omitted(item, "access", [], list)):  # empty ACL omitted on full reads
-            emails = {field: email for field in ("userByEmail", "groupByEmail")
-                      if (email := optional(entry, field, None, str)) is not None}
-            if len(emails) > 1:
-                raise Unavailable("conflicting dataset access email principal variants")
-            for field, email in emails.items():
+            principals = {field: value for field in ("userByEmail", "groupByEmail", "domain")
+                          if (value := optional(entry, field, None, str)) is not None}
+            if len(principals) > 1:
+                raise Unavailable("conflicting dataset access principal variants")
+            for field, value in principals.items():
                 role = get(entry, "role", str)
                 if not role:
                     raise Unavailable("missing dataset access role")
-                parts = email.split("@")
-                if (len(parts) != 2 or not parts[0] or re.search(r"[\s<>]", parts[0])
-                        or not all(re.fullmatch(r"[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?", label)
-                                   for label in parts[1].split("."))):
-                    raise Unavailable("malformed dataset access email")
+                parts = value.split("@") if field != "domain" else ["domain", value]
+                if (len(parts) != 2 or not parts[0] or field != "domain" and re.search(r"[\s<>]", parts[0])
+                        or not all(re.fullmatch(r"[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?", part)
+                                   for part in parts[1].split("."))):
+                    raise Unavailable("malformed dataset access principal")
                 if parts[1].lower() == suffix:
-                    hits.append({field: email, "role": role})
+                    hits.append({field: value, "role": role})
         return result(bool(hits), matching_entries=hits)
     cid = track(gid(slug))
     cases(cid, {"access": [{"role": "READER", "userByEmail": "a@corp.example"}]},
@@ -1146,11 +1146,38 @@ telemetry("gke.monitoring_enabled", "monitoringService", "monitoring")
 @gke("gke.no_default_network", "GKE cluster does not use the default VPC network", control="SC-7", category="network",
      remediation="Create clusters in a purpose-built VPC network instead of the auto-created default network.")
 def gke_default_network(item, index):
-    network = get(item, "network", str)
-    return result(network == "default", network=network)
+    legacy = optional(item, "network", None, str)
+    current = optional(optional(item, "networkConfig", {}, dict), "network", None, str)
+    if legacy is None and current is None:
+        raise Unavailable("cluster network identity unavailable")
+
+    def identity(value):
+        if value == "":
+            return None, "default"  # Cluster.network's documented creation default.
+        for prefix in ("https://www.googleapis.com/compute/v1/", "https://compute.googleapis.com/compute/v1/"):
+            if value.startswith(prefix):
+                value = value[len(prefix):]
+                break
+        match = re.fullmatch(r"projects/([^/]+)/global/networks/([^/]+)", value)
+        if match:
+            return match[1], match[2]
+        if re.fullmatch(r"[a-z](?:[a-z0-9-]*[a-z0-9])?", value):
+            return None, value
+        raise Unavailable("cluster network identity malformed")
+
+    previous = identity(legacy) if legacy is not None else None
+    modern = identity(current) if current is not None else None
+    if previous and modern and (previous[1] != modern[1] or
+                                previous[0] and modern[0] and previous[0] != modern[0]):
+        raise Unavailable("conflicting cluster network identities")
+    name = (modern or previous)[1]
+    return result(name == "default", network=legacy if legacy is not None else current)
 
 
-cases(track(gid("gke.no_default_network")), {"network": "prod-vpc"}, {"network": "default"}, malformed={"network": None})
+cases(track(gid("gke.no_default_network")),
+      {"network": "prod-vpc", "networkConfig": {"network": "projects/p/global/networks/prod-vpc"}},
+      {"network": "default", "networkConfig": {"network": "projects/p/global/networks/default"}},
+      malformed={"network": "prod-vpc", "networkConfig": {"network": "projects/p/global/networks/default"}})
 
 
 @gke("gke.nodes_no_default_service_account", "GKE nodes do not use the Compute Engine default service account", severity="high",

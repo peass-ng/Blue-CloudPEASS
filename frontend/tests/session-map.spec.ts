@@ -115,7 +115,7 @@ test("local severity sort follows critical, high, medium, low and info rank", as
   await page.route("**/api/me", (route) => route.fulfill({ status: 401, json: { detail: "Bearer authentication required" } }));
   await page.goto("/");
   await expect(page.getByLabel("Fixture demo", { exact: true })).toBeChecked();
-  await page.getByRole("navigation").getByRole("button", { name: "Hardening Findings" }).click();
+  await page.getByRole("navigation").getByRole("button", { name: "Hardening & Compliance" }).click();
   await page.getByLabel("Group findings").selectOption("check_id");
   await page.getByRole("combobox", { name: "Status", exact: true }).selectOption("");
   const severity = page.getByRole("columnheader", { name: "Severity" });

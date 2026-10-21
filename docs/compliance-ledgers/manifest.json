@@ -253,12 +253,27 @@
       "path": "native-extensions/workload-content-20261020.json",
       "sha256": "990f38aa7472ec959a524ed52b5652075bbba0d1a0f4c5894747b5a1a9abf9ff",
       "verified": true
+    },
+    {
+      "path": "native-extensions/provider-images-runtime-20261021.json",
+      "sha256": "926cfd9f96df0ef8628bc8a39fcfe10d776d76d2d31544b6dbcb2e5115025e58",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/provider-content-images-followup-20261021.json",
+      "sha256": "9fdff71152548dfa2db3b36581f0456da2bfd8e273420adc940ac16c32fc86fa",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/provider-final-selected-content-20261021.json",
+      "sha256": "e6e187e828de59b227d987d518f0a157650bc1f07e55e16fa776a89382552551",
+      "verified": true
     }
   ],
   "new_descriptions": {
-    "checks": 1010,
     "path": "descriptions/implemented-new-checks.json",
-    "sha256": "851bd2d3c62dacd6c3b0b721065aebc3f5a39a72496a885db3afc8188ada4cc9",
+    "checks": 1035,
+    "sha256": "9ea1ebcab9381fc2b219bc45a32970b12b22cfc5e5b27461306c7e40067e590e",
     "verified": true
   },
   "slices": {

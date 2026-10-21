@@ -9,7 +9,7 @@
     "proposed_spec_sha256": "889fa81459bc8e70895673a3e4f0a61fdc4ae8496de8faf1fb16ce642ee50c72",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Kubernetes access authn authz rbac",
         "url": "https://kubernetes.io/docs/reference/access-authn-authz/rbac/"
       }
     ],
@@ -31,7 +31,7 @@
     "proposed_spec_sha256": "5202bc53b4d403784b6b68928daa4f71b8ce9bdad533f10c18673d955e094fbb",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Kubernetes node seccomp",
         "url": "https://kubernetes.io/docs/reference/node/seccomp/"
       }
     ],
@@ -54,7 +54,7 @@
     "proposed_spec_sha256": "133bd29a6ee42ba1ba3d56ed97767afb5275b13108b1f4e729421b31e880294e",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Kubernetes node seccomp",
         "url": "https://kubernetes.io/docs/reference/node/seccomp/"
       }
     ],
@@ -77,7 +77,7 @@
     "proposed_spec_sha256": "fefb83d1b62b5dadd93d209281962a47195401c87e0ce64ca8b9a37a76655f95",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Kubernetes node seccomp",
         "url": "https://kubernetes.io/docs/reference/node/seccomp/"
       }
     ],
@@ -100,7 +100,7 @@
     "proposed_spec_sha256": "8ada8476aa82c0a97ff54f54fa31e480877ac2d06de9a94b98469da869c30acd",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Kubernetes node seccomp",
         "url": "https://kubernetes.io/docs/reference/node/seccomp/"
       }
     ],
@@ -123,7 +123,7 @@
     "proposed_spec_sha256": "255c9d36f757742557a2891a82c989fcb73986bd20a553fa857c1ef82451d5ff",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Kubernetes networking network policy v1",
         "url": "https://kubernetes.io/docs/reference/kubernetes-api/networking/network-policy-v1/"
       }
     ],
@@ -145,7 +145,7 @@
     "proposed_spec_sha256": "3e179cb6119dd2d21a89838b136ee8e62720f84365010554a7c9b43e573251cf",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Kubernetes networking network policy v1",
         "url": "https://kubernetes.io/docs/reference/kubernetes-api/networking/network-policy-v1/"
       }
     ],
@@ -167,7 +167,7 @@
     "proposed_spec_sha256": "7f8ceb584bbfb1281f987531dcf1fd46b28a3d96f82c24a61fadd0a2be4abcc7",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Kubernetes node seccomp",
         "url": "https://kubernetes.io/docs/reference/node/seccomp/"
       }
     ],
@@ -190,7 +190,7 @@
     "proposed_spec_sha256": "1ef7525baa0c50a647fcebafb8470f7f708c90fa36fb576e42996591b4692b8f",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Kubernetes node seccomp",
         "url": "https://kubernetes.io/docs/reference/node/seccomp/"
       }
     ],
@@ -213,7 +213,7 @@
     "proposed_spec_sha256": "f5767cf862d75fe810ebe5e4ffd197744b93d9a8fae4827b34d6d4133df0a150",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Kubernetes node seccomp",
         "url": "https://kubernetes.io/docs/reference/node/seccomp/"
       }
     ],
@@ -236,7 +236,7 @@
     "proposed_spec_sha256": "e5317ac107bd5136475da560d5c540d67f7dbfe3fffa459d7a4d8a7f5a1d933b",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Kubernetes node seccomp",
         "url": "https://kubernetes.io/docs/reference/node/seccomp/"
       }
     ],
@@ -259,7 +259,7 @@
     "proposed_spec_sha256": "fb69f5bdbc82ccf1f6dd9b0a292e5104ee178d576dff930a08b66f36bdf4d4cc",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Kubernetes controllers deployment",
         "url": "https://kubernetes.io/docs/concepts/workloads/controllers/deployment/"
       }
     ],
@@ -281,7 +281,7 @@
     "proposed_spec_sha256": "17ac71764775ab20bb6665902cd1ff482de0a7573ca5f129c10f1f4782da77de",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Kubernetes networking ingress v1",
         "url": "https://kubernetes.io/docs/reference/kubernetes-api/networking/ingress-v1/"
       }
     ],
@@ -329,7 +329,7 @@
     "proposed_spec_sha256": "8c9cd719b673fe8d7147b04b9d26ede32bae48d822e0ec0cb1bfef6a400f44e8",
     "references": [
       {
-        "title": "Official provider resource API",
+        "title": "Kubernetes core node v1",
         "url": "https://kubernetes.io/docs/reference/kubernetes-api/core/node-v1/"
       }
     ],
@@ -351,7 +351,7 @@
     "proposed_spec_sha256": "7d9ea35b078c2ecb733ee4f3bc7637884f2adbf1f3695804d0e450d318f5126c",
     "references": [
       {
-        "title": "Official provider resource API",
+        "title": "Kubernetes core pod v1",
         "url": "https://kubernetes.io/docs/reference/kubernetes-api/core/pod-v1/"
       }
     ],
@@ -373,7 +373,7 @@
     "proposed_spec_sha256": "aaaa1cf499d98c402aba9b2c1217e03f5eff22b062fbc2430c23ac3267c5cd26",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Kubernetes working with objects namespaces",
         "url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/"
       }
     ],
@@ -395,7 +395,7 @@
     "proposed_spec_sha256": "83117937c7c76e56eb5e93482f2e03782bd9576002f144881b3fb728db4c7b66",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Kubernetes access authn authz rbac",
         "url": "https://kubernetes.io/docs/reference/access-authn-authz/rbac/"
       }
     ],
@@ -439,7 +439,7 @@
     "proposed_spec_sha256": "6e43c5e57026a34ff1d38b6975205299d893ddc06c4249418008d75fd6b060f6",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Kubernetes core service v1",
         "url": "https://kubernetes.io/docs/reference/kubernetes-api/core/service-v1/"
       }
     ],

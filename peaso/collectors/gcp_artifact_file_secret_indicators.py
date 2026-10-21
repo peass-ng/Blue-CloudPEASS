@@ -5,6 +5,8 @@ must already be complete. Media is verified before UTF-8 or memory-only archive
 inspection. Reuses the audited GCP archive facade with private parser bindings;
 no AWS context/network helper or global scanner mutation is involved.
 """
+from peaso.secret_evidence import scan_with_source, source_context, target_source
+
 from copy import deepcopy
 import base64
 import hashlib
@@ -235,12 +237,14 @@ def _metadata(raw, target):
 
 
 def _inspect(payload, target, transport, state):
-    if target['format'] != 'utf8': return archives._parse(payload, target['format'], transport, state)
+    if target['format'] != 'utf8':
+        with source_context(**target_source(target, resource_id=target['name'])):
+            return archives._parse(payload, target['format'], transport, state)
     if (state['archive_expanded'] + len(payload) > archives.MAX_TOTAL_EXPANDED_BYTES
             or state['archive_members'] >= archives.MAX_TOTAL_MEMBERS): raise Incomplete('expanded_limit')
     state['archive_expanded'] += len(payload); state['archive_members'] += 1
     objects._text(payload)
-    outcome = scan_content(payload, 'artifact.content', timeout=min(5, _remaining(transport, state) / 2))
+    outcome = scan_with_source(scan_content, payload, 'artifact.content', timeout=min(5, _remaining(transport, state) / 2), source=target_source(target, resource_id=target['name']))
     _check(transport, state)
     leaks = merge_leaks(outcome['leaks'])
     if len(leaks) > objects.MAX_LEAKS or sum(len(l['locations']) for l in leaks) > objects.MAX_LOCATIONS: raise Incomplete('finding_limit')

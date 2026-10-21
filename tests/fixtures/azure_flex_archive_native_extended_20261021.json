@@ -1,0 +1,2232 @@
+{
+  "cases": [
+    {
+      "expected": "PASS",
+      "index": {
+        "collections": {
+          "azure_flex_configured_deployment_archives": [
+            {
+              "items": [
+                {
+                  "ConfiguredFlexDeploymentArchives": {
+                    "archive_count": 1,
+                    "archives": [
+                      {
+                        "SelectedStorageSourceSecretIndicators": {
+                          "capture": "flex-archives:e13bb0c0d7e4426785136ed05a04f166",
+                          "complete": true,
+                          "etag_locator": "storage-source-etag:3e4242f120bf7a9b8a7b8fa8665801d64548a23cec23155ce6c4e973a407f009",
+                          "expanded_bytes": 10,
+                          "file_locator": null,
+                          "format": "zip",
+                          "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+                          "leaks": [],
+                          "members": 1,
+                          "native_complete": true,
+                          "object_bytes": 124,
+                          "parts": [
+                            {
+                              "bytes": 10,
+                              "complete": true,
+                              "engines": [
+                                {
+                                  "engine": "kingfisher",
+                                  "status": "complete",
+                                  "version": "1.4.0"
+                                },
+                                {
+                                  "engine": "trufflehog",
+                                  "status": "complete",
+                                  "version": "3.92.5"
+                                }
+                              ],
+                              "leaks": [],
+                              "path": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940.file-1"
+                            }
+                          ],
+                          "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                          "reason": "complete",
+                          "schema": "azure-selected-storage-source-v1",
+                          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                          "selection_mode": "current",
+                          "service": "blob",
+                          "source_requests": [
+                            "storage-source-read:dca9420480294a1bac4136eda695507f",
+                            "storage-source-read:5e51a95fe2ee472ab39bf92793698c19",
+                            "storage-source-read:2207c5586ab34c9dad878787365bc506",
+                            "storage-source-read:74dbf96dd80e4f7cb6225f8af0d212f1",
+                            "storage-source-read:a45c975dcdcb45aa80038817d64f7d99"
+                          ],
+                          "tenant": "22222222-2222-2222-2222-222222222222",
+                          "verification": "not_attempted",
+                          "version_locator": "storage-source-version:f37d7177b9fde3a2fb04a2a49350942272fd76bdd16af0bab4a6073cee64711c"
+                        },
+                        "_provenance": {
+                          "capture": "flex-archives:e13bb0c0d7e4426785136ed05a04f166",
+                          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                          "source_requests": [
+                            "storage-source-read:dca9420480294a1bac4136eda695507f",
+                            "storage-source-read:5e51a95fe2ee472ab39bf92793698c19",
+                            "storage-source-read:2207c5586ab34c9dad878787365bc506",
+                            "storage-source-read:74dbf96dd80e4f7cb6225f8af0d212f1",
+                            "storage-source-read:a45c975dcdcb45aa80038817d64f7d99"
+                          ]
+                        },
+                        "id": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940"
+                      }
+                    ],
+                    "capture": "flex-archives:e13bb0c0d7e4426785136ed05a04f166",
+                    "complete": true,
+                    "configured_container": true,
+                    "identity": "azure_flex_configured_deployment_archives:f1e343e711578e32b9f2aa2550fa9650b2e1ce73a943cf2ee61e6c11e895a844",
+                    "listing_locator": "flex-list:aec2c001b29e697eef6d96f4ba4033b7f46618a2f2190433da76390db79150bc",
+                    "listing_stable": true,
+                    "native_stable": true,
+                    "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                    "reason": "complete",
+                    "receipts": [
+                      {
+                        "bound": false,
+                        "bytes": 191,
+                        "capture": "flex-archives:e13bb0c0d7e4426785136ed05a04f166",
+                        "http_status": 200,
+                        "id": "storage-source-read:1d3daf9d379e4bb2aab3c10d358c1486",
+                        "identity": "azure_storage_selected_source:9a364eead137b7f3f5793f085fd56bee439ba0e6ab00815bafb1ca25e859be42",
+                        "method": "GET",
+                        "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+                        "operation": "subscription",
+                        "origin": "arm",
+                        "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                        "request": "storage-source-request:d14e39badaeab258feacc42fba8575dcabed0beb0cbabebf8c338dda36701624",
+                        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                        "status": "collected",
+                        "tenant": "22222222-2222-2222-2222-222222222222",
+                        "version": "2022-12-01"
+                      },
+                      {
+                        "bound": false,
+                        "bytes": 339,
+                        "capture": "flex-archives:e13bb0c0d7e4426785136ed05a04f166",
+                        "http_status": 200,
+                        "id": "storage-source-read:40854e2d90234468ba11d35e0b24b3d7",
+                        "identity": "azure_storage_selected_source:9a364eead137b7f3f5793f085fd56bee439ba0e6ab00815bafb1ca25e859be42",
+                        "method": "GET",
+                        "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+                        "operation": "account",
+                        "origin": "arm",
+                        "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                        "request": "storage-source-request:b8f56d7501a7eb342f0fbdc9770a7fbb82cf7d68777ac9d068f18d347c75f7ec",
+                        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                        "status": "collected",
+                        "tenant": "22222222-2222-2222-2222-222222222222",
+                        "version": "2025-06-01"
+                      },
+                      {
+                        "bound": true,
+                        "bytes": 191,
+                        "capture": "flex-archives:e13bb0c0d7e4426785136ed05a04f166",
+                        "http_status": 200,
+                        "id": "storage-source-read:dca9420480294a1bac4136eda695507f",
+                        "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+                        "method": "GET",
+                        "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+                        "operation": "subscription",
+                        "origin": "arm",
+                        "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                        "request": "storage-source-request:d14e39badaeab258feacc42fba8575dcabed0beb0cbabebf8c338dda36701624",
+                        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                        "status": "collected",
+                        "tenant": "22222222-2222-2222-2222-222222222222",
+                        "version": "2022-12-01"
+                      },
+                      {
+                        "bound": true,
+                        "bytes": 339,
+                        "capture": "flex-archives:e13bb0c0d7e4426785136ed05a04f166",
+                        "http_status": 200,
+                        "id": "storage-source-read:5e51a95fe2ee472ab39bf92793698c19",
+                        "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+                        "method": "GET",
+                        "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+                        "operation": "account",
+                        "origin": "arm",
+                        "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                        "request": "storage-source-request:b8f56d7501a7eb342f0fbdc9770a7fbb82cf7d68777ac9d068f18d347c75f7ec",
+                        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                        "status": "collected",
+                        "tenant": "22222222-2222-2222-2222-222222222222",
+                        "version": "2025-06-01"
+                      },
+                      {
+                        "bound": true,
+                        "bytes": 0,
+                        "capture": "flex-archives:e13bb0c0d7e4426785136ed05a04f166",
+                        "http_status": 200,
+                        "id": "storage-source-read:2207c5586ab34c9dad878787365bc506",
+                        "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+                        "method": "HEAD",
+                        "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+                        "operation": "properties_before",
+                        "origin": "blob",
+                        "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                        "request": "storage-source-request:e9634be2c623e60c4dc24c9cd3dac85b0dba1c432ebfb7eb2e5e9726b6a48b75",
+                        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                        "status": "collected",
+                        "tenant": "22222222-2222-2222-2222-222222222222",
+                        "version": "2023-11-03"
+                      },
+                      {
+                        "bound": true,
+                        "bytes": 124,
+                        "capture": "flex-archives:e13bb0c0d7e4426785136ed05a04f166",
+                        "http_status": 200,
+                        "id": "storage-source-read:74dbf96dd80e4f7cb6225f8af0d212f1",
+                        "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+                        "method": "GET",
+                        "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+                        "operation": "content",
+                        "origin": "blob",
+                        "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                        "request": "storage-source-request:30ab28491368717cefa94bb49ee5ecbdb9c16c587850822aef07a38c9e7aaa36",
+                        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                        "status": "collected",
+                        "tenant": "22222222-2222-2222-2222-222222222222",
+                        "version": "2023-11-03"
+                      },
+                      {
+                        "bound": true,
+                        "bytes": 0,
+                        "capture": "flex-archives:e13bb0c0d7e4426785136ed05a04f166",
+                        "http_status": 200,
+                        "id": "storage-source-read:a45c975dcdcb45aa80038817d64f7d99",
+                        "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+                        "method": "HEAD",
+                        "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+                        "operation": "properties_after",
+                        "origin": "blob",
+                        "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                        "request": "storage-source-request:e9634be2c623e60c4dc24c9cd3dac85b0dba1c432ebfb7eb2e5e9726b6a48b75",
+                        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                        "status": "collected",
+                        "tenant": "22222222-2222-2222-2222-222222222222",
+                        "version": "2023-11-03"
+                      },
+                      {
+                        "bound": false,
+                        "bytes": 339,
+                        "capture": "flex-archives:e13bb0c0d7e4426785136ed05a04f166",
+                        "http_status": 200,
+                        "id": "storage-source-read:d17500f86654412ea0a93a52bb20c4d9",
+                        "identity": "azure_storage_selected_source:9a364eead137b7f3f5793f085fd56bee439ba0e6ab00815bafb1ca25e859be42",
+                        "method": "GET",
+                        "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+                        "operation": "account",
+                        "origin": "arm",
+                        "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                        "request": "storage-source-request:b8f56d7501a7eb342f0fbdc9770a7fbb82cf7d68777ac9d068f18d347c75f7ec",
+                        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                        "status": "collected",
+                        "tenant": "22222222-2222-2222-2222-222222222222",
+                        "version": "2025-06-01"
+                      }
+                    ],
+                    "schema": "azure-flex-configured-deployment-archives-v1",
+                    "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                    "tenant": "22222222-2222-2222-2222-222222222222"
+                  },
+                  "_provenance": {
+                    "capture": "flex-archives:e13bb0c0d7e4426785136ed05a04f166",
+                    "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+                  },
+                  "id": "azure_flex_configured_deployment_archives:f1e343e711578e32b9f2aa2550fa9650b2e1ce73a943cf2ee61e6c11e895a844"
+                }
+              ],
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "service": "Microsoft.Web",
+              "status": "collected",
+              "type": "azure_flex_configured_deployment_archives"
+            }
+          ]
+        },
+        "context": {
+          "metadata": {
+            "azure_flex_configured_deployment_archives_authorized": true,
+            "azure_flex_configured_deployment_archives_selection": {
+              "/subscriptions/11111111-1111-1111-1111-111111111111": [
+                "azure_flex_configured_deployment_archives:f1e343e711578e32b9f2aa2550fa9650b2e1ce73a943cf2ee61e6c11e895a844"
+              ]
+            },
+            "tenant_id": "22222222-2222-2222-2222-222222222222",
+            "tenant_verified": true
+          },
+          "provider": "azure",
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+        }
+      },
+      "item": {
+        "ConfiguredFlexDeploymentArchives": {
+          "archive_count": 1,
+          "archives": [
+            {
+              "SelectedStorageSourceSecretIndicators": {
+                "capture": "flex-archives:e13bb0c0d7e4426785136ed05a04f166",
+                "complete": true,
+                "etag_locator": "storage-source-etag:3e4242f120bf7a9b8a7b8fa8665801d64548a23cec23155ce6c4e973a407f009",
+                "expanded_bytes": 10,
+                "file_locator": null,
+                "format": "zip",
+                "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+                "leaks": [],
+                "members": 1,
+                "native_complete": true,
+                "object_bytes": 124,
+                "parts": [
+                  {
+                    "bytes": 10,
+                    "complete": true,
+                    "engines": [
+                      {
+                        "engine": "kingfisher",
+                        "status": "complete",
+                        "version": "1.4.0"
+                      },
+                      {
+                        "engine": "trufflehog",
+                        "status": "complete",
+                        "version": "3.92.5"
+                      }
+                    ],
+                    "leaks": [],
+                    "path": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940.file-1"
+                  }
+                ],
+                "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                "reason": "complete",
+                "schema": "azure-selected-storage-source-v1",
+                "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                "selection_mode": "current",
+                "service": "blob",
+                "source_requests": [
+                  "storage-source-read:dca9420480294a1bac4136eda695507f",
+                  "storage-source-read:5e51a95fe2ee472ab39bf92793698c19",
+                  "storage-source-read:2207c5586ab34c9dad878787365bc506",
+                  "storage-source-read:74dbf96dd80e4f7cb6225f8af0d212f1",
+                  "storage-source-read:a45c975dcdcb45aa80038817d64f7d99"
+                ],
+                "tenant": "22222222-2222-2222-2222-222222222222",
+                "verification": "not_attempted",
+                "version_locator": "storage-source-version:f37d7177b9fde3a2fb04a2a49350942272fd76bdd16af0bab4a6073cee64711c"
+              },
+              "_provenance": {
+                "capture": "flex-archives:e13bb0c0d7e4426785136ed05a04f166",
+                "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                "source_requests": [
+                  "storage-source-read:dca9420480294a1bac4136eda695507f",
+                  "storage-source-read:5e51a95fe2ee472ab39bf92793698c19",
+                  "storage-source-read:2207c5586ab34c9dad878787365bc506",
+                  "storage-source-read:74dbf96dd80e4f7cb6225f8af0d212f1",
+                  "storage-source-read:a45c975dcdcb45aa80038817d64f7d99"
+                ]
+              },
+              "id": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940"
+            }
+          ],
+          "capture": "flex-archives:e13bb0c0d7e4426785136ed05a04f166",
+          "complete": true,
+          "configured_container": true,
+          "identity": "azure_flex_configured_deployment_archives:f1e343e711578e32b9f2aa2550fa9650b2e1ce73a943cf2ee61e6c11e895a844",
+          "listing_locator": "flex-list:aec2c001b29e697eef6d96f4ba4033b7f46618a2f2190433da76390db79150bc",
+          "listing_stable": true,
+          "native_stable": true,
+          "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+          "reason": "complete",
+          "receipts": [
+            {
+              "bound": false,
+              "bytes": 191,
+              "capture": "flex-archives:e13bb0c0d7e4426785136ed05a04f166",
+              "http_status": 200,
+              "id": "storage-source-read:1d3daf9d379e4bb2aab3c10d358c1486",
+              "identity": "azure_storage_selected_source:9a364eead137b7f3f5793f085fd56bee439ba0e6ab00815bafb1ca25e859be42",
+              "method": "GET",
+              "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+              "operation": "subscription",
+              "origin": "arm",
+              "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+              "request": "storage-source-request:d14e39badaeab258feacc42fba8575dcabed0beb0cbabebf8c338dda36701624",
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "status": "collected",
+              "tenant": "22222222-2222-2222-2222-222222222222",
+              "version": "2022-12-01"
+            },
+            {
+              "bound": false,
+              "bytes": 339,
+              "capture": "flex-archives:e13bb0c0d7e4426785136ed05a04f166",
+              "http_status": 200,
+              "id": "storage-source-read:40854e2d90234468ba11d35e0b24b3d7",
+              "identity": "azure_storage_selected_source:9a364eead137b7f3f5793f085fd56bee439ba0e6ab00815bafb1ca25e859be42",
+              "method": "GET",
+              "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+              "operation": "account",
+              "origin": "arm",
+              "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+              "request": "storage-source-request:b8f56d7501a7eb342f0fbdc9770a7fbb82cf7d68777ac9d068f18d347c75f7ec",
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "status": "collected",
+              "tenant": "22222222-2222-2222-2222-222222222222",
+              "version": "2025-06-01"
+            },
+            {
+              "bound": true,
+              "bytes": 191,
+              "capture": "flex-archives:e13bb0c0d7e4426785136ed05a04f166",
+              "http_status": 200,
+              "id": "storage-source-read:dca9420480294a1bac4136eda695507f",
+              "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+              "method": "GET",
+              "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+              "operation": "subscription",
+              "origin": "arm",
+              "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+              "request": "storage-source-request:d14e39badaeab258feacc42fba8575dcabed0beb0cbabebf8c338dda36701624",
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "status": "collected",
+              "tenant": "22222222-2222-2222-2222-222222222222",
+              "version": "2022-12-01"
+            },
+            {
+              "bound": true,
+              "bytes": 339,
+              "capture": "flex-archives:e13bb0c0d7e4426785136ed05a04f166",
+              "http_status": 200,
+              "id": "storage-source-read:5e51a95fe2ee472ab39bf92793698c19",
+              "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+              "method": "GET",
+              "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+              "operation": "account",
+              "origin": "arm",
+              "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+              "request": "storage-source-request:b8f56d7501a7eb342f0fbdc9770a7fbb82cf7d68777ac9d068f18d347c75f7ec",
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "status": "collected",
+              "tenant": "22222222-2222-2222-2222-222222222222",
+              "version": "2025-06-01"
+            },
+            {
+              "bound": true,
+              "bytes": 0,
+              "capture": "flex-archives:e13bb0c0d7e4426785136ed05a04f166",
+              "http_status": 200,
+              "id": "storage-source-read:2207c5586ab34c9dad878787365bc506",
+              "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+              "method": "HEAD",
+              "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+              "operation": "properties_before",
+              "origin": "blob",
+              "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+              "request": "storage-source-request:e9634be2c623e60c4dc24c9cd3dac85b0dba1c432ebfb7eb2e5e9726b6a48b75",
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "status": "collected",
+              "tenant": "22222222-2222-2222-2222-222222222222",
+              "version": "2023-11-03"
+            },
+            {
+              "bound": true,
+              "bytes": 124,
+              "capture": "flex-archives:e13bb0c0d7e4426785136ed05a04f166",
+              "http_status": 200,
+              "id": "storage-source-read:74dbf96dd80e4f7cb6225f8af0d212f1",
+              "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+              "method": "GET",
+              "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+              "operation": "content",
+              "origin": "blob",
+              "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+              "request": "storage-source-request:30ab28491368717cefa94bb49ee5ecbdb9c16c587850822aef07a38c9e7aaa36",
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "status": "collected",
+              "tenant": "22222222-2222-2222-2222-222222222222",
+              "version": "2023-11-03"
+            },
+            {
+              "bound": true,
+              "bytes": 0,
+              "capture": "flex-archives:e13bb0c0d7e4426785136ed05a04f166",
+              "http_status": 200,
+              "id": "storage-source-read:a45c975dcdcb45aa80038817d64f7d99",
+              "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+              "method": "HEAD",
+              "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+              "operation": "properties_after",
+              "origin": "blob",
+              "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+              "request": "storage-source-request:e9634be2c623e60c4dc24c9cd3dac85b0dba1c432ebfb7eb2e5e9726b6a48b75",
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "status": "collected",
+              "tenant": "22222222-2222-2222-2222-222222222222",
+              "version": "2023-11-03"
+            },
+            {
+              "bound": false,
+              "bytes": 339,
+              "capture": "flex-archives:e13bb0c0d7e4426785136ed05a04f166",
+              "http_status": 200,
+              "id": "storage-source-read:d17500f86654412ea0a93a52bb20c4d9",
+              "identity": "azure_storage_selected_source:9a364eead137b7f3f5793f085fd56bee439ba0e6ab00815bafb1ca25e859be42",
+              "method": "GET",
+              "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+              "operation": "account",
+              "origin": "arm",
+              "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+              "request": "storage-source-request:b8f56d7501a7eb342f0fbdc9770a7fbb82cf7d68777ac9d068f18d347c75f7ec",
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "status": "collected",
+              "tenant": "22222222-2222-2222-2222-222222222222",
+              "version": "2025-06-01"
+            }
+          ],
+          "schema": "azure-flex-configured-deployment-archives-v1",
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "tenant": "22222222-2222-2222-2222-222222222222"
+        },
+        "_provenance": {
+          "capture": "flex-archives:e13bb0c0d7e4426785136ed05a04f166",
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+        },
+        "id": "azure_flex_configured_deployment_archives:f1e343e711578e32b9f2aa2550fa9650b2e1ce73a943cf2ee61e6c11e895a844"
+      },
+      "name": "pass_clean"
+    },
+    {
+      "expected": "FAIL",
+      "index": {
+        "collections": {
+          "azure_flex_configured_deployment_archives": [
+            {
+              "items": [
+                {
+                  "ConfiguredFlexDeploymentArchives": {
+                    "archive_count": 1,
+                    "archives": [
+                      {
+                        "SelectedStorageSourceSecretIndicators": {
+                          "capture": "flex-archives:b0dd3cb63d844fc9ae4b265244f44ebc",
+                          "complete": true,
+                          "etag_locator": "storage-source-etag:3e4242f120bf7a9b8a7b8fa8665801d64548a23cec23155ce6c4e973a407f009",
+                          "expanded_bytes": 40,
+                          "file_locator": null,
+                          "format": "zip",
+                          "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+                          "leaks": [
+                            {
+                              "detectors": [
+                                {
+                                  "engine": "kingfisher",
+                                  "rule": "github-pat"
+                                },
+                                {
+                                  "engine": "trufflehog",
+                                  "rule": "github-pat"
+                                }
+                              ],
+                              "fingerprint": "960e273576a72d9b3494062de49d9aa9b55bad51b15e2a919259bd862954fe06",
+                              "locations": [
+                                {
+                                  "path": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940.file-1"
+                                }
+                              ]
+                            }
+                          ],
+                          "members": 1,
+                          "native_complete": true,
+                          "object_bytes": 154,
+                          "parts": [
+                            {
+                              "bytes": 40,
+                              "complete": true,
+                              "engines": [
+                                {
+                                  "engine": "kingfisher",
+                                  "status": "complete",
+                                  "version": "1.4.0"
+                                },
+                                {
+                                  "engine": "trufflehog",
+                                  "status": "complete",
+                                  "version": "3.92.5"
+                                }
+                              ],
+                              "leaks": [
+                                {
+                                  "detectors": [
+                                    {
+                                      "engine": "kingfisher",
+                                      "rule": "github-pat"
+                                    },
+                                    {
+                                      "engine": "trufflehog",
+                                      "rule": "github-pat"
+                                    }
+                                  ],
+                                  "fingerprint": "960e273576a72d9b3494062de49d9aa9b55bad51b15e2a919259bd862954fe06",
+                                  "locations": [
+                                    {
+                                      "path": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940.file-1"
+                                    }
+                                  ]
+                                }
+                              ],
+                              "path": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940.file-1"
+                            }
+                          ],
+                          "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                          "reason": "complete",
+                          "schema": "azure-selected-storage-source-v1",
+                          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                          "selection_mode": "current",
+                          "service": "blob",
+                          "source_requests": [
+                            "storage-source-read:7971b01884594f6384779cef6fdc2a76",
+                            "storage-source-read:59d0eb05034043b3915b1e4ced46c995",
+                            "storage-source-read:b4ad899d07c3476f8cc3036cedcead1a",
+                            "storage-source-read:6af67d5e62f44984834dd46fc37fa576",
+                            "storage-source-read:3db3295ca8c64845aa60de64eba7e039"
+                          ],
+                          "tenant": "22222222-2222-2222-2222-222222222222",
+                          "verification": "not_attempted",
+                          "version_locator": "storage-source-version:326bb322594302396daa363d419ac70c6546b4eb95121a38af8a295028f2720d"
+                        },
+                        "_provenance": {
+                          "capture": "flex-archives:b0dd3cb63d844fc9ae4b265244f44ebc",
+                          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                          "source_requests": [
+                            "storage-source-read:7971b01884594f6384779cef6fdc2a76",
+                            "storage-source-read:59d0eb05034043b3915b1e4ced46c995",
+                            "storage-source-read:b4ad899d07c3476f8cc3036cedcead1a",
+                            "storage-source-read:6af67d5e62f44984834dd46fc37fa576",
+                            "storage-source-read:3db3295ca8c64845aa60de64eba7e039"
+                          ]
+                        },
+                        "id": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940"
+                      }
+                    ],
+                    "capture": "flex-archives:b0dd3cb63d844fc9ae4b265244f44ebc",
+                    "complete": true,
+                    "configured_container": true,
+                    "identity": "azure_flex_configured_deployment_archives:f1e343e711578e32b9f2aa2550fa9650b2e1ce73a943cf2ee61e6c11e895a844",
+                    "listing_locator": "flex-list:90f52d9139518b43b469d3c6cd562e7f7259888bd99eeae2a6d371938268ea63",
+                    "listing_stable": true,
+                    "native_stable": true,
+                    "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                    "reason": "complete",
+                    "receipts": [
+                      {
+                        "bound": false,
+                        "bytes": 191,
+                        "capture": "flex-archives:b0dd3cb63d844fc9ae4b265244f44ebc",
+                        "http_status": 200,
+                        "id": "storage-source-read:d17a2a53ab694979964023983bb30c21",
+                        "identity": "azure_storage_selected_source:9a364eead137b7f3f5793f085fd56bee439ba0e6ab00815bafb1ca25e859be42",
+                        "method": "GET",
+                        "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+                        "operation": "subscription",
+                        "origin": "arm",
+                        "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                        "request": "storage-source-request:d14e39badaeab258feacc42fba8575dcabed0beb0cbabebf8c338dda36701624",
+                        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                        "status": "collected",
+                        "tenant": "22222222-2222-2222-2222-222222222222",
+                        "version": "2022-12-01"
+                      },
+                      {
+                        "bound": false,
+                        "bytes": 339,
+                        "capture": "flex-archives:b0dd3cb63d844fc9ae4b265244f44ebc",
+                        "http_status": 200,
+                        "id": "storage-source-read:fbd664abe8dd4980b993ff8ed495f030",
+                        "identity": "azure_storage_selected_source:9a364eead137b7f3f5793f085fd56bee439ba0e6ab00815bafb1ca25e859be42",
+                        "method": "GET",
+                        "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+                        "operation": "account",
+                        "origin": "arm",
+                        "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                        "request": "storage-source-request:b8f56d7501a7eb342f0fbdc9770a7fbb82cf7d68777ac9d068f18d347c75f7ec",
+                        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                        "status": "collected",
+                        "tenant": "22222222-2222-2222-2222-222222222222",
+                        "version": "2025-06-01"
+                      },
+                      {
+                        "bound": true,
+                        "bytes": 191,
+                        "capture": "flex-archives:b0dd3cb63d844fc9ae4b265244f44ebc",
+                        "http_status": 200,
+                        "id": "storage-source-read:7971b01884594f6384779cef6fdc2a76",
+                        "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+                        "method": "GET",
+                        "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+                        "operation": "subscription",
+                        "origin": "arm",
+                        "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                        "request": "storage-source-request:d14e39badaeab258feacc42fba8575dcabed0beb0cbabebf8c338dda36701624",
+                        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                        "status": "collected",
+                        "tenant": "22222222-2222-2222-2222-222222222222",
+                        "version": "2022-12-01"
+                      },
+                      {
+                        "bound": true,
+                        "bytes": 339,
+                        "capture": "flex-archives:b0dd3cb63d844fc9ae4b265244f44ebc",
+                        "http_status": 200,
+                        "id": "storage-source-read:59d0eb05034043b3915b1e4ced46c995",
+                        "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+                        "method": "GET",
+                        "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+                        "operation": "account",
+                        "origin": "arm",
+                        "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                        "request": "storage-source-request:b8f56d7501a7eb342f0fbdc9770a7fbb82cf7d68777ac9d068f18d347c75f7ec",
+                        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                        "status": "collected",
+                        "tenant": "22222222-2222-2222-2222-222222222222",
+                        "version": "2025-06-01"
+                      },
+                      {
+                        "bound": true,
+                        "bytes": 0,
+                        "capture": "flex-archives:b0dd3cb63d844fc9ae4b265244f44ebc",
+                        "http_status": 200,
+                        "id": "storage-source-read:b4ad899d07c3476f8cc3036cedcead1a",
+                        "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+                        "method": "HEAD",
+                        "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+                        "operation": "properties_before",
+                        "origin": "blob",
+                        "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                        "request": "storage-source-request:e9634be2c623e60c4dc24c9cd3dac85b0dba1c432ebfb7eb2e5e9726b6a48b75",
+                        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                        "status": "collected",
+                        "tenant": "22222222-2222-2222-2222-222222222222",
+                        "version": "2023-11-03"
+                      },
+                      {
+                        "bound": true,
+                        "bytes": 154,
+                        "capture": "flex-archives:b0dd3cb63d844fc9ae4b265244f44ebc",
+                        "http_status": 200,
+                        "id": "storage-source-read:6af67d5e62f44984834dd46fc37fa576",
+                        "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+                        "method": "GET",
+                        "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+                        "operation": "content",
+                        "origin": "blob",
+                        "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                        "request": "storage-source-request:30ab28491368717cefa94bb49ee5ecbdb9c16c587850822aef07a38c9e7aaa36",
+                        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                        "status": "collected",
+                        "tenant": "22222222-2222-2222-2222-222222222222",
+                        "version": "2023-11-03"
+                      },
+                      {
+                        "bound": true,
+                        "bytes": 0,
+                        "capture": "flex-archives:b0dd3cb63d844fc9ae4b265244f44ebc",
+                        "http_status": 200,
+                        "id": "storage-source-read:3db3295ca8c64845aa60de64eba7e039",
+                        "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+                        "method": "HEAD",
+                        "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+                        "operation": "properties_after",
+                        "origin": "blob",
+                        "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                        "request": "storage-source-request:e9634be2c623e60c4dc24c9cd3dac85b0dba1c432ebfb7eb2e5e9726b6a48b75",
+                        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                        "status": "collected",
+                        "tenant": "22222222-2222-2222-2222-222222222222",
+                        "version": "2023-11-03"
+                      },
+                      {
+                        "bound": false,
+                        "bytes": 339,
+                        "capture": "flex-archives:b0dd3cb63d844fc9ae4b265244f44ebc",
+                        "http_status": 200,
+                        "id": "storage-source-read:506a43c57fcb4157bbf83d90e629a411",
+                        "identity": "azure_storage_selected_source:9a364eead137b7f3f5793f085fd56bee439ba0e6ab00815bafb1ca25e859be42",
+                        "method": "GET",
+                        "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+                        "operation": "account",
+                        "origin": "arm",
+                        "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                        "request": "storage-source-request:b8f56d7501a7eb342f0fbdc9770a7fbb82cf7d68777ac9d068f18d347c75f7ec",
+                        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                        "status": "collected",
+                        "tenant": "22222222-2222-2222-2222-222222222222",
+                        "version": "2025-06-01"
+                      }
+                    ],
+                    "schema": "azure-flex-configured-deployment-archives-v1",
+                    "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                    "tenant": "22222222-2222-2222-2222-222222222222"
+                  },
+                  "_provenance": {
+                    "capture": "flex-archives:b0dd3cb63d844fc9ae4b265244f44ebc",
+                    "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+                  },
+                  "id": "azure_flex_configured_deployment_archives:f1e343e711578e32b9f2aa2550fa9650b2e1ce73a943cf2ee61e6c11e895a844"
+                }
+              ],
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "service": "Microsoft.Web",
+              "status": "collected",
+              "type": "azure_flex_configured_deployment_archives"
+            }
+          ]
+        },
+        "context": {
+          "metadata": {
+            "azure_flex_configured_deployment_archives_authorized": true,
+            "azure_flex_configured_deployment_archives_selection": {
+              "/subscriptions/11111111-1111-1111-1111-111111111111": [
+                "azure_flex_configured_deployment_archives:f1e343e711578e32b9f2aa2550fa9650b2e1ce73a943cf2ee61e6c11e895a844"
+              ]
+            },
+            "tenant_id": "22222222-2222-2222-2222-222222222222",
+            "tenant_verified": true
+          },
+          "provider": "azure",
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+        }
+      },
+      "item": {
+        "ConfiguredFlexDeploymentArchives": {
+          "archive_count": 1,
+          "archives": [
+            {
+              "SelectedStorageSourceSecretIndicators": {
+                "capture": "flex-archives:b0dd3cb63d844fc9ae4b265244f44ebc",
+                "complete": true,
+                "etag_locator": "storage-source-etag:3e4242f120bf7a9b8a7b8fa8665801d64548a23cec23155ce6c4e973a407f009",
+                "expanded_bytes": 40,
+                "file_locator": null,
+                "format": "zip",
+                "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+                "leaks": [
+                  {
+                    "detectors": [
+                      {
+                        "engine": "kingfisher",
+                        "rule": "github-pat"
+                      },
+                      {
+                        "engine": "trufflehog",
+                        "rule": "github-pat"
+                      }
+                    ],
+                    "fingerprint": "960e273576a72d9b3494062de49d9aa9b55bad51b15e2a919259bd862954fe06",
+                    "locations": [
+                      {
+                        "path": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940.file-1"
+                      }
+                    ]
+                  }
+                ],
+                "members": 1,
+                "native_complete": true,
+                "object_bytes": 154,
+                "parts": [
+                  {
+                    "bytes": 40,
+                    "complete": true,
+                    "engines": [
+                      {
+                        "engine": "kingfisher",
+                        "status": "complete",
+                        "version": "1.4.0"
+                      },
+                      {
+                        "engine": "trufflehog",
+                        "status": "complete",
+                        "version": "3.92.5"
+                      }
+                    ],
+                    "leaks": [
+                      {
+                        "detectors": [
+                          {
+                            "engine": "kingfisher",
+                            "rule": "github-pat"
+                          },
+                          {
+                            "engine": "trufflehog",
+                            "rule": "github-pat"
+                          }
+                        ],
+                        "fingerprint": "960e273576a72d9b3494062de49d9aa9b55bad51b15e2a919259bd862954fe06",
+                        "locations": [
+                          {
+                            "path": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940.file-1"
+                          }
+                        ]
+                      }
+                    ],
+                    "path": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940.file-1"
+                  }
+                ],
+                "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                "reason": "complete",
+                "schema": "azure-selected-storage-source-v1",
+                "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                "selection_mode": "current",
+                "service": "blob",
+                "source_requests": [
+                  "storage-source-read:7971b01884594f6384779cef6fdc2a76",
+                  "storage-source-read:59d0eb05034043b3915b1e4ced46c995",
+                  "storage-source-read:b4ad899d07c3476f8cc3036cedcead1a",
+                  "storage-source-read:6af67d5e62f44984834dd46fc37fa576",
+                  "storage-source-read:3db3295ca8c64845aa60de64eba7e039"
+                ],
+                "tenant": "22222222-2222-2222-2222-222222222222",
+                "verification": "not_attempted",
+                "version_locator": "storage-source-version:326bb322594302396daa363d419ac70c6546b4eb95121a38af8a295028f2720d"
+              },
+              "_provenance": {
+                "capture": "flex-archives:b0dd3cb63d844fc9ae4b265244f44ebc",
+                "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                "source_requests": [
+                  "storage-source-read:7971b01884594f6384779cef6fdc2a76",
+                  "storage-source-read:59d0eb05034043b3915b1e4ced46c995",
+                  "storage-source-read:b4ad899d07c3476f8cc3036cedcead1a",
+                  "storage-source-read:6af67d5e62f44984834dd46fc37fa576",
+                  "storage-source-read:3db3295ca8c64845aa60de64eba7e039"
+                ]
+              },
+              "id": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940"
+            }
+          ],
+          "capture": "flex-archives:b0dd3cb63d844fc9ae4b265244f44ebc",
+          "complete": true,
+          "configured_container": true,
+          "identity": "azure_flex_configured_deployment_archives:f1e343e711578e32b9f2aa2550fa9650b2e1ce73a943cf2ee61e6c11e895a844",
+          "listing_locator": "flex-list:90f52d9139518b43b469d3c6cd562e7f7259888bd99eeae2a6d371938268ea63",
+          "listing_stable": true,
+          "native_stable": true,
+          "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+          "reason": "complete",
+          "receipts": [
+            {
+              "bound": false,
+              "bytes": 191,
+              "capture": "flex-archives:b0dd3cb63d844fc9ae4b265244f44ebc",
+              "http_status": 200,
+              "id": "storage-source-read:d17a2a53ab694979964023983bb30c21",
+              "identity": "azure_storage_selected_source:9a364eead137b7f3f5793f085fd56bee439ba0e6ab00815bafb1ca25e859be42",
+              "method": "GET",
+              "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+              "operation": "subscription",
+              "origin": "arm",
+              "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+              "request": "storage-source-request:d14e39badaeab258feacc42fba8575dcabed0beb0cbabebf8c338dda36701624",
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "status": "collected",
+              "tenant": "22222222-2222-2222-2222-222222222222",
+              "version": "2022-12-01"
+            },
+            {
+              "bound": false,
+              "bytes": 339,
+              "capture": "flex-archives:b0dd3cb63d844fc9ae4b265244f44ebc",
+              "http_status": 200,
+              "id": "storage-source-read:fbd664abe8dd4980b993ff8ed495f030",
+              "identity": "azure_storage_selected_source:9a364eead137b7f3f5793f085fd56bee439ba0e6ab00815bafb1ca25e859be42",
+              "method": "GET",
+              "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+              "operation": "account",
+              "origin": "arm",
+              "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+              "request": "storage-source-request:b8f56d7501a7eb342f0fbdc9770a7fbb82cf7d68777ac9d068f18d347c75f7ec",
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "status": "collected",
+              "tenant": "22222222-2222-2222-2222-222222222222",
+              "version": "2025-06-01"
+            },
+            {
+              "bound": true,
+              "bytes": 191,
+              "capture": "flex-archives:b0dd3cb63d844fc9ae4b265244f44ebc",
+              "http_status": 200,
+              "id": "storage-source-read:7971b01884594f6384779cef6fdc2a76",
+              "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+              "method": "GET",
+              "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+              "operation": "subscription",
+              "origin": "arm",
+              "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+              "request": "storage-source-request:d14e39badaeab258feacc42fba8575dcabed0beb0cbabebf8c338dda36701624",
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "status": "collected",
+              "tenant": "22222222-2222-2222-2222-222222222222",
+              "version": "2022-12-01"
+            },
+            {
+              "bound": true,
+              "bytes": 339,
+              "capture": "flex-archives:b0dd3cb63d844fc9ae4b265244f44ebc",
+              "http_status": 200,
+              "id": "storage-source-read:59d0eb05034043b3915b1e4ced46c995",
+              "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+              "method": "GET",
+              "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+              "operation": "account",
+              "origin": "arm",
+              "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+              "request": "storage-source-request:b8f56d7501a7eb342f0fbdc9770a7fbb82cf7d68777ac9d068f18d347c75f7ec",
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "status": "collected",
+              "tenant": "22222222-2222-2222-2222-222222222222",
+              "version": "2025-06-01"
+            },
+            {
+              "bound": true,
+              "bytes": 0,
+              "capture": "flex-archives:b0dd3cb63d844fc9ae4b265244f44ebc",
+              "http_status": 200,
+              "id": "storage-source-read:b4ad899d07c3476f8cc3036cedcead1a",
+              "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+              "method": "HEAD",
+              "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+              "operation": "properties_before",
+              "origin": "blob",
+              "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+              "request": "storage-source-request:e9634be2c623e60c4dc24c9cd3dac85b0dba1c432ebfb7eb2e5e9726b6a48b75",
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "status": "collected",
+              "tenant": "22222222-2222-2222-2222-222222222222",
+              "version": "2023-11-03"
+            },
+            {
+              "bound": true,
+              "bytes": 154,
+              "capture": "flex-archives:b0dd3cb63d844fc9ae4b265244f44ebc",
+              "http_status": 200,
+              "id": "storage-source-read:6af67d5e62f44984834dd46fc37fa576",
+              "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+              "method": "GET",
+              "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+              "operation": "content",
+              "origin": "blob",
+              "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+              "request": "storage-source-request:30ab28491368717cefa94bb49ee5ecbdb9c16c587850822aef07a38c9e7aaa36",
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "status": "collected",
+              "tenant": "22222222-2222-2222-2222-222222222222",
+              "version": "2023-11-03"
+            },
+            {
+              "bound": true,
+              "bytes": 0,
+              "capture": "flex-archives:b0dd3cb63d844fc9ae4b265244f44ebc",
+              "http_status": 200,
+              "id": "storage-source-read:3db3295ca8c64845aa60de64eba7e039",
+              "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+              "method": "HEAD",
+              "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+              "operation": "properties_after",
+              "origin": "blob",
+              "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+              "request": "storage-source-request:e9634be2c623e60c4dc24c9cd3dac85b0dba1c432ebfb7eb2e5e9726b6a48b75",
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "status": "collected",
+              "tenant": "22222222-2222-2222-2222-222222222222",
+              "version": "2023-11-03"
+            },
+            {
+              "bound": false,
+              "bytes": 339,
+              "capture": "flex-archives:b0dd3cb63d844fc9ae4b265244f44ebc",
+              "http_status": 200,
+              "id": "storage-source-read:506a43c57fcb4157bbf83d90e629a411",
+              "identity": "azure_storage_selected_source:9a364eead137b7f3f5793f085fd56bee439ba0e6ab00815bafb1ca25e859be42",
+              "method": "GET",
+              "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+              "operation": "account",
+              "origin": "arm",
+              "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+              "request": "storage-source-request:b8f56d7501a7eb342f0fbdc9770a7fbb82cf7d68777ac9d068f18d347c75f7ec",
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "status": "collected",
+              "tenant": "22222222-2222-2222-2222-222222222222",
+              "version": "2025-06-01"
+            }
+          ],
+          "schema": "azure-flex-configured-deployment-archives-v1",
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "tenant": "22222222-2222-2222-2222-222222222222"
+        },
+        "_provenance": {
+          "capture": "flex-archives:b0dd3cb63d844fc9ae4b265244f44ebc",
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+        },
+        "id": "azure_flex_configured_deployment_archives:f1e343e711578e32b9f2aa2550fa9650b2e1ce73a943cf2ee61e6c11e895a844"
+      },
+      "name": "fail_secret"
+    },
+    {
+      "expected": "UNKNOWN",
+      "index": {
+        "collections": {
+          "azure_flex_configured_deployment_archives": [
+            {
+              "items": [
+                {
+                  "ConfiguredFlexDeploymentArchives": {
+                    "archive_count": 0,
+                    "archives": [],
+                    "capture": "flex-archives:152c575fc5c4404e8f23f306813d6732",
+                    "complete": false,
+                    "configured_container": false,
+                    "identity": "azure_flex_configured_deployment_archives:f1e343e711578e32b9f2aa2550fa9650b2e1ce73a943cf2ee61e6c11e895a844",
+                    "listing_locator": null,
+                    "listing_stable": false,
+                    "native_stable": false,
+                    "principal": null,
+                    "reason": "incomplete",
+                    "receipts": [
+                      {
+                        "bound": false,
+                        "bytes": 191,
+                        "capture": "flex-archives:152c575fc5c4404e8f23f306813d6732",
+                        "http_status": 200,
+                        "id": "storage-source-read:f90f7a91fe44483582fc32f301d88941",
+                        "identity": "azure_storage_selected_source:9a364eead137b7f3f5793f085fd56bee439ba0e6ab00815bafb1ca25e859be42",
+                        "method": "GET",
+                        "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+                        "operation": "subscription",
+                        "origin": "arm",
+                        "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                        "request": "storage-source-request:d14e39badaeab258feacc42fba8575dcabed0beb0cbabebf8c338dda36701624",
+                        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                        "status": "collected",
+                        "tenant": "22222222-2222-2222-2222-222222222222",
+                        "version": "2022-12-01"
+                      },
+                      {
+                        "bound": false,
+                        "bytes": 339,
+                        "capture": "flex-archives:152c575fc5c4404e8f23f306813d6732",
+                        "http_status": 200,
+                        "id": "storage-source-read:61eb95ab9d154fbbbf2f4c04a5f28963",
+                        "identity": "azure_storage_selected_source:9a364eead137b7f3f5793f085fd56bee439ba0e6ab00815bafb1ca25e859be42",
+                        "method": "GET",
+                        "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+                        "operation": "account",
+                        "origin": "arm",
+                        "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                        "request": "storage-source-request:b8f56d7501a7eb342f0fbdc9770a7fbb82cf7d68777ac9d068f18d347c75f7ec",
+                        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                        "status": "collected",
+                        "tenant": "22222222-2222-2222-2222-222222222222",
+                        "version": "2025-06-01"
+                      }
+                    ],
+                    "schema": "azure-flex-configured-deployment-archives-v1",
+                    "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                    "tenant": null
+                  },
+                  "_provenance": {
+                    "capture": "flex-archives:152c575fc5c4404e8f23f306813d6732",
+                    "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+                  },
+                  "id": "azure_flex_configured_deployment_archives:f1e343e711578e32b9f2aa2550fa9650b2e1ce73a943cf2ee61e6c11e895a844"
+                }
+              ],
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "service": "Microsoft.Web",
+              "status": "collected",
+              "type": "azure_flex_configured_deployment_archives"
+            }
+          ]
+        },
+        "context": {
+          "metadata": {
+            "azure_flex_configured_deployment_archives_authorized": true,
+            "azure_flex_configured_deployment_archives_selection": {
+              "/subscriptions/11111111-1111-1111-1111-111111111111": [
+                "azure_flex_configured_deployment_archives:f1e343e711578e32b9f2aa2550fa9650b2e1ce73a943cf2ee61e6c11e895a844"
+              ]
+            },
+            "tenant_id": "22222222-2222-2222-2222-222222222222",
+            "tenant_verified": true
+          },
+          "provider": "azure",
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+        }
+      },
+      "item": {
+        "ConfiguredFlexDeploymentArchives": {
+          "archive_count": 0,
+          "archives": [],
+          "capture": "flex-archives:152c575fc5c4404e8f23f306813d6732",
+          "complete": false,
+          "configured_container": false,
+          "identity": "azure_flex_configured_deployment_archives:f1e343e711578e32b9f2aa2550fa9650b2e1ce73a943cf2ee61e6c11e895a844",
+          "listing_locator": null,
+          "listing_stable": false,
+          "native_stable": false,
+          "principal": null,
+          "reason": "incomplete",
+          "receipts": [
+            {
+              "bound": false,
+              "bytes": 191,
+              "capture": "flex-archives:152c575fc5c4404e8f23f306813d6732",
+              "http_status": 200,
+              "id": "storage-source-read:f90f7a91fe44483582fc32f301d88941",
+              "identity": "azure_storage_selected_source:9a364eead137b7f3f5793f085fd56bee439ba0e6ab00815bafb1ca25e859be42",
+              "method": "GET",
+              "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+              "operation": "subscription",
+              "origin": "arm",
+              "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+              "request": "storage-source-request:d14e39badaeab258feacc42fba8575dcabed0beb0cbabebf8c338dda36701624",
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "status": "collected",
+              "tenant": "22222222-2222-2222-2222-222222222222",
+              "version": "2022-12-01"
+            },
+            {
+              "bound": false,
+              "bytes": 339,
+              "capture": "flex-archives:152c575fc5c4404e8f23f306813d6732",
+              "http_status": 200,
+              "id": "storage-source-read:61eb95ab9d154fbbbf2f4c04a5f28963",
+              "identity": "azure_storage_selected_source:9a364eead137b7f3f5793f085fd56bee439ba0e6ab00815bafb1ca25e859be42",
+              "method": "GET",
+              "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+              "operation": "account",
+              "origin": "arm",
+              "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+              "request": "storage-source-request:b8f56d7501a7eb342f0fbdc9770a7fbb82cf7d68777ac9d068f18d347c75f7ec",
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "status": "collected",
+              "tenant": "22222222-2222-2222-2222-222222222222",
+              "version": "2025-06-01"
+            }
+          ],
+          "schema": "azure-flex-configured-deployment-archives-v1",
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "tenant": null
+        },
+        "_provenance": {
+          "capture": "flex-archives:152c575fc5c4404e8f23f306813d6732",
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+        },
+        "id": "azure_flex_configured_deployment_archives:f1e343e711578e32b9f2aa2550fa9650b2e1ce73a943cf2ee61e6c11e895a844"
+      },
+      "name": "unknown_missing"
+    },
+    {
+      "expected": "UNKNOWN",
+      "index": {
+        "collections": {
+          "azure_flex_configured_deployment_archives": [
+            {
+              "items": [
+                {
+                  "ConfiguredFlexDeploymentArchives": {
+                    "archive_count": 1,
+                    "archives": [
+                      {
+                        "SelectedStorageSourceSecretIndicators": {
+                          "capture": "flex-archives:0486f41442db48348f89b1f3d07d0cb4",
+                          "complete": true,
+                          "etag_locator": "storage-source-etag:3e4242f120bf7a9b8a7b8fa8665801d64548a23cec23155ce6c4e973a407f009",
+                          "expanded_bytes": 10,
+                          "file_locator": null,
+                          "format": "zip",
+                          "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+                          "leaks": [],
+                          "members": 1,
+                          "native_complete": true,
+                          "object_bytes": 124,
+                          "parts": [
+                            {
+                              "bytes": 10,
+                              "complete": true,
+                              "engines": [
+                                {
+                                  "engine": "kingfisher",
+                                  "status": "complete",
+                                  "version": "1.4.0"
+                                },
+                                {
+                                  "engine": "trufflehog",
+                                  "status": "complete",
+                                  "version": "3.92.5"
+                                }
+                              ],
+                              "leaks": [],
+                              "path": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940.file-1"
+                            }
+                          ],
+                          "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                          "reason": "complete",
+                          "schema": "azure-selected-storage-source-v1",
+                          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                          "selection_mode": "current",
+                          "service": "blob",
+                          "source_requests": [
+                            "storage-source-read:f429e7be35794175972587a298e94aa6",
+                            "storage-source-read:bc0e38237afe42569ca9225a7aadfd98",
+                            "storage-source-read:e12dd28e341d48ed9138dd4ef37094ca",
+                            "storage-source-read:cf2fb384211042ec92d8298bff5d905b",
+                            "storage-source-read:c37a2672a7854a4897541400f78c3c53"
+                          ],
+                          "tenant": "22222222-2222-2222-2222-222222222222",
+                          "verification": "not_attempted",
+                          "version_locator": "storage-source-version:f37d7177b9fde3a2fb04a2a49350942272fd76bdd16af0bab4a6073cee64711c"
+                        },
+                        "_provenance": {
+                          "capture": "flex-archives:0486f41442db48348f89b1f3d07d0cb4",
+                          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                          "source_requests": [
+                            "storage-source-read:f429e7be35794175972587a298e94aa6",
+                            "storage-source-read:bc0e38237afe42569ca9225a7aadfd98",
+                            "storage-source-read:e12dd28e341d48ed9138dd4ef37094ca",
+                            "storage-source-read:cf2fb384211042ec92d8298bff5d905b",
+                            "storage-source-read:c37a2672a7854a4897541400f78c3c53"
+                          ]
+                        },
+                        "id": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940"
+                      }
+                    ],
+                    "capture": "flex-archives:0486f41442db48348f89b1f3d07d0cb4",
+                    "complete": false,
+                    "configured_container": true,
+                    "identity": "azure_flex_configured_deployment_archives:f1e343e711578e32b9f2aa2550fa9650b2e1ce73a943cf2ee61e6c11e895a844",
+                    "listing_locator": "flex-list:aec2c001b29e697eef6d96f4ba4033b7f46618a2f2190433da76390db79150bc",
+                    "listing_stable": false,
+                    "native_stable": false,
+                    "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                    "reason": "incomplete",
+                    "receipts": [
+                      {
+                        "bound": false,
+                        "bytes": 191,
+                        "capture": "flex-archives:0486f41442db48348f89b1f3d07d0cb4",
+                        "http_status": 200,
+                        "id": "storage-source-read:9fadadfbec05495499412b5a17f795bd",
+                        "identity": "azure_storage_selected_source:9a364eead137b7f3f5793f085fd56bee439ba0e6ab00815bafb1ca25e859be42",
+                        "method": "GET",
+                        "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+                        "operation": "subscription",
+                        "origin": "arm",
+                        "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                        "request": "storage-source-request:d14e39badaeab258feacc42fba8575dcabed0beb0cbabebf8c338dda36701624",
+                        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                        "status": "collected",
+                        "tenant": "22222222-2222-2222-2222-222222222222",
+                        "version": "2022-12-01"
+                      },
+                      {
+                        "bound": false,
+                        "bytes": 339,
+                        "capture": "flex-archives:0486f41442db48348f89b1f3d07d0cb4",
+                        "http_status": 200,
+                        "id": "storage-source-read:f6da533c1ebe40619c933be10ba2c5e3",
+                        "identity": "azure_storage_selected_source:9a364eead137b7f3f5793f085fd56bee439ba0e6ab00815bafb1ca25e859be42",
+                        "method": "GET",
+                        "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+                        "operation": "account",
+                        "origin": "arm",
+                        "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                        "request": "storage-source-request:b8f56d7501a7eb342f0fbdc9770a7fbb82cf7d68777ac9d068f18d347c75f7ec",
+                        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                        "status": "collected",
+                        "tenant": "22222222-2222-2222-2222-222222222222",
+                        "version": "2025-06-01"
+                      },
+                      {
+                        "bound": true,
+                        "bytes": 191,
+                        "capture": "flex-archives:0486f41442db48348f89b1f3d07d0cb4",
+                        "http_status": 200,
+                        "id": "storage-source-read:f429e7be35794175972587a298e94aa6",
+                        "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+                        "method": "GET",
+                        "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+                        "operation": "subscription",
+                        "origin": "arm",
+                        "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                        "request": "storage-source-request:d14e39badaeab258feacc42fba8575dcabed0beb0cbabebf8c338dda36701624",
+                        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                        "status": "collected",
+                        "tenant": "22222222-2222-2222-2222-222222222222",
+                        "version": "2022-12-01"
+                      },
+                      {
+                        "bound": true,
+                        "bytes": 339,
+                        "capture": "flex-archives:0486f41442db48348f89b1f3d07d0cb4",
+                        "http_status": 200,
+                        "id": "storage-source-read:bc0e38237afe42569ca9225a7aadfd98",
+                        "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+                        "method": "GET",
+                        "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+                        "operation": "account",
+                        "origin": "arm",
+                        "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                        "request": "storage-source-request:b8f56d7501a7eb342f0fbdc9770a7fbb82cf7d68777ac9d068f18d347c75f7ec",
+                        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                        "status": "collected",
+                        "tenant": "22222222-2222-2222-2222-222222222222",
+                        "version": "2025-06-01"
+                      },
+                      {
+                        "bound": true,
+                        "bytes": 0,
+                        "capture": "flex-archives:0486f41442db48348f89b1f3d07d0cb4",
+                        "http_status": 200,
+                        "id": "storage-source-read:e12dd28e341d48ed9138dd4ef37094ca",
+                        "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+                        "method": "HEAD",
+                        "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+                        "operation": "properties_before",
+                        "origin": "blob",
+                        "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                        "request": "storage-source-request:e9634be2c623e60c4dc24c9cd3dac85b0dba1c432ebfb7eb2e5e9726b6a48b75",
+                        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                        "status": "collected",
+                        "tenant": "22222222-2222-2222-2222-222222222222",
+                        "version": "2023-11-03"
+                      },
+                      {
+                        "bound": true,
+                        "bytes": 124,
+                        "capture": "flex-archives:0486f41442db48348f89b1f3d07d0cb4",
+                        "http_status": 200,
+                        "id": "storage-source-read:cf2fb384211042ec92d8298bff5d905b",
+                        "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+                        "method": "GET",
+                        "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+                        "operation": "content",
+                        "origin": "blob",
+                        "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                        "request": "storage-source-request:30ab28491368717cefa94bb49ee5ecbdb9c16c587850822aef07a38c9e7aaa36",
+                        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                        "status": "collected",
+                        "tenant": "22222222-2222-2222-2222-222222222222",
+                        "version": "2023-11-03"
+                      },
+                      {
+                        "bound": true,
+                        "bytes": 0,
+                        "capture": "flex-archives:0486f41442db48348f89b1f3d07d0cb4",
+                        "http_status": 200,
+                        "id": "storage-source-read:c37a2672a7854a4897541400f78c3c53",
+                        "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+                        "method": "HEAD",
+                        "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+                        "operation": "properties_after",
+                        "origin": "blob",
+                        "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                        "request": "storage-source-request:e9634be2c623e60c4dc24c9cd3dac85b0dba1c432ebfb7eb2e5e9726b6a48b75",
+                        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                        "status": "collected",
+                        "tenant": "22222222-2222-2222-2222-222222222222",
+                        "version": "2023-11-03"
+                      }
+                    ],
+                    "schema": "azure-flex-configured-deployment-archives-v1",
+                    "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                    "tenant": "22222222-2222-2222-2222-222222222222"
+                  },
+                  "_provenance": {
+                    "capture": "flex-archives:0486f41442db48348f89b1f3d07d0cb4",
+                    "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+                  },
+                  "id": "azure_flex_configured_deployment_archives:f1e343e711578e32b9f2aa2550fa9650b2e1ce73a943cf2ee61e6c11e895a844"
+                }
+              ],
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "service": "Microsoft.Web",
+              "status": "collected",
+              "type": "azure_flex_configured_deployment_archives"
+            }
+          ]
+        },
+        "context": {
+          "metadata": {
+            "azure_flex_configured_deployment_archives_authorized": true,
+            "azure_flex_configured_deployment_archives_selection": {
+              "/subscriptions/11111111-1111-1111-1111-111111111111": [
+                "azure_flex_configured_deployment_archives:f1e343e711578e32b9f2aa2550fa9650b2e1ce73a943cf2ee61e6c11e895a844"
+              ]
+            },
+            "tenant_id": "22222222-2222-2222-2222-222222222222",
+            "tenant_verified": true
+          },
+          "provider": "azure",
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+        }
+      },
+      "item": {
+        "ConfiguredFlexDeploymentArchives": {
+          "archive_count": 1,
+          "archives": [
+            {
+              "SelectedStorageSourceSecretIndicators": {
+                "capture": "flex-archives:0486f41442db48348f89b1f3d07d0cb4",
+                "complete": true,
+                "etag_locator": "storage-source-etag:3e4242f120bf7a9b8a7b8fa8665801d64548a23cec23155ce6c4e973a407f009",
+                "expanded_bytes": 10,
+                "file_locator": null,
+                "format": "zip",
+                "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+                "leaks": [],
+                "members": 1,
+                "native_complete": true,
+                "object_bytes": 124,
+                "parts": [
+                  {
+                    "bytes": 10,
+                    "complete": true,
+                    "engines": [
+                      {
+                        "engine": "kingfisher",
+                        "status": "complete",
+                        "version": "1.4.0"
+                      },
+                      {
+                        "engine": "trufflehog",
+                        "status": "complete",
+                        "version": "3.92.5"
+                      }
+                    ],
+                    "leaks": [],
+                    "path": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940.file-1"
+                  }
+                ],
+                "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                "reason": "complete",
+                "schema": "azure-selected-storage-source-v1",
+                "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                "selection_mode": "current",
+                "service": "blob",
+                "source_requests": [
+                  "storage-source-read:f429e7be35794175972587a298e94aa6",
+                  "storage-source-read:bc0e38237afe42569ca9225a7aadfd98",
+                  "storage-source-read:e12dd28e341d48ed9138dd4ef37094ca",
+                  "storage-source-read:cf2fb384211042ec92d8298bff5d905b",
+                  "storage-source-read:c37a2672a7854a4897541400f78c3c53"
+                ],
+                "tenant": "22222222-2222-2222-2222-222222222222",
+                "verification": "not_attempted",
+                "version_locator": "storage-source-version:f37d7177b9fde3a2fb04a2a49350942272fd76bdd16af0bab4a6073cee64711c"
+              },
+              "_provenance": {
+                "capture": "flex-archives:0486f41442db48348f89b1f3d07d0cb4",
+                "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                "source_requests": [
+                  "storage-source-read:f429e7be35794175972587a298e94aa6",
+                  "storage-source-read:bc0e38237afe42569ca9225a7aadfd98",
+                  "storage-source-read:e12dd28e341d48ed9138dd4ef37094ca",
+                  "storage-source-read:cf2fb384211042ec92d8298bff5d905b",
+                  "storage-source-read:c37a2672a7854a4897541400f78c3c53"
+                ]
+              },
+              "id": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940"
+            }
+          ],
+          "capture": "flex-archives:0486f41442db48348f89b1f3d07d0cb4",
+          "complete": false,
+          "configured_container": true,
+          "identity": "azure_flex_configured_deployment_archives:f1e343e711578e32b9f2aa2550fa9650b2e1ce73a943cf2ee61e6c11e895a844",
+          "listing_locator": "flex-list:aec2c001b29e697eef6d96f4ba4033b7f46618a2f2190433da76390db79150bc",
+          "listing_stable": false,
+          "native_stable": false,
+          "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+          "reason": "incomplete",
+          "receipts": [
+            {
+              "bound": false,
+              "bytes": 191,
+              "capture": "flex-archives:0486f41442db48348f89b1f3d07d0cb4",
+              "http_status": 200,
+              "id": "storage-source-read:9fadadfbec05495499412b5a17f795bd",
+              "identity": "azure_storage_selected_source:9a364eead137b7f3f5793f085fd56bee439ba0e6ab00815bafb1ca25e859be42",
+              "method": "GET",
+              "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+              "operation": "subscription",
+              "origin": "arm",
+              "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+              "request": "storage-source-request:d14e39badaeab258feacc42fba8575dcabed0beb0cbabebf8c338dda36701624",
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "status": "collected",
+              "tenant": "22222222-2222-2222-2222-222222222222",
+              "version": "2022-12-01"
+            },
+            {
+              "bound": false,
+              "bytes": 339,
+              "capture": "flex-archives:0486f41442db48348f89b1f3d07d0cb4",
+              "http_status": 200,
+              "id": "storage-source-read:f6da533c1ebe40619c933be10ba2c5e3",
+              "identity": "azure_storage_selected_source:9a364eead137b7f3f5793f085fd56bee439ba0e6ab00815bafb1ca25e859be42",
+              "method": "GET",
+              "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+              "operation": "account",
+              "origin": "arm",
+              "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+              "request": "storage-source-request:b8f56d7501a7eb342f0fbdc9770a7fbb82cf7d68777ac9d068f18d347c75f7ec",
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "status": "collected",
+              "tenant": "22222222-2222-2222-2222-222222222222",
+              "version": "2025-06-01"
+            },
+            {
+              "bound": true,
+              "bytes": 191,
+              "capture": "flex-archives:0486f41442db48348f89b1f3d07d0cb4",
+              "http_status": 200,
+              "id": "storage-source-read:f429e7be35794175972587a298e94aa6",
+              "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+              "method": "GET",
+              "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+              "operation": "subscription",
+              "origin": "arm",
+              "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+              "request": "storage-source-request:d14e39badaeab258feacc42fba8575dcabed0beb0cbabebf8c338dda36701624",
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "status": "collected",
+              "tenant": "22222222-2222-2222-2222-222222222222",
+              "version": "2022-12-01"
+            },
+            {
+              "bound": true,
+              "bytes": 339,
+              "capture": "flex-archives:0486f41442db48348f89b1f3d07d0cb4",
+              "http_status": 200,
+              "id": "storage-source-read:bc0e38237afe42569ca9225a7aadfd98",
+              "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+              "method": "GET",
+              "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+              "operation": "account",
+              "origin": "arm",
+              "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+              "request": "storage-source-request:b8f56d7501a7eb342f0fbdc9770a7fbb82cf7d68777ac9d068f18d347c75f7ec",
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "status": "collected",
+              "tenant": "22222222-2222-2222-2222-222222222222",
+              "version": "2025-06-01"
+            },
+            {
+              "bound": true,
+              "bytes": 0,
+              "capture": "flex-archives:0486f41442db48348f89b1f3d07d0cb4",
+              "http_status": 200,
+              "id": "storage-source-read:e12dd28e341d48ed9138dd4ef37094ca",
+              "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+              "method": "HEAD",
+              "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+              "operation": "properties_before",
+              "origin": "blob",
+              "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+              "request": "storage-source-request:e9634be2c623e60c4dc24c9cd3dac85b0dba1c432ebfb7eb2e5e9726b6a48b75",
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "status": "collected",
+              "tenant": "22222222-2222-2222-2222-222222222222",
+              "version": "2023-11-03"
+            },
+            {
+              "bound": true,
+              "bytes": 124,
+              "capture": "flex-archives:0486f41442db48348f89b1f3d07d0cb4",
+              "http_status": 200,
+              "id": "storage-source-read:cf2fb384211042ec92d8298bff5d905b",
+              "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+              "method": "GET",
+              "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+              "operation": "content",
+              "origin": "blob",
+              "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+              "request": "storage-source-request:30ab28491368717cefa94bb49ee5ecbdb9c16c587850822aef07a38c9e7aaa36",
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "status": "collected",
+              "tenant": "22222222-2222-2222-2222-222222222222",
+              "version": "2023-11-03"
+            },
+            {
+              "bound": true,
+              "bytes": 0,
+              "capture": "flex-archives:0486f41442db48348f89b1f3d07d0cb4",
+              "http_status": 200,
+              "id": "storage-source-read:c37a2672a7854a4897541400f78c3c53",
+              "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+              "method": "HEAD",
+              "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+              "operation": "properties_after",
+              "origin": "blob",
+              "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+              "request": "storage-source-request:e9634be2c623e60c4dc24c9cd3dac85b0dba1c432ebfb7eb2e5e9726b6a48b75",
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "status": "collected",
+              "tenant": "22222222-2222-2222-2222-222222222222",
+              "version": "2023-11-03"
+            }
+          ],
+          "schema": "azure-flex-configured-deployment-archives-v1",
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "tenant": "22222222-2222-2222-2222-222222222222"
+        },
+        "_provenance": {
+          "capture": "flex-archives:0486f41442db48348f89b1f3d07d0cb4",
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+        },
+        "id": "azure_flex_configured_deployment_archives:f1e343e711578e32b9f2aa2550fa9650b2e1ce73a943cf2ee61e6c11e895a844"
+      },
+      "name": "unknown_drift"
+    },
+    {
+      "expected": "FAIL",
+      "index": {
+        "collections": {
+          "azure_flex_configured_deployment_archives": [
+            {
+              "items": [
+                {
+                  "ConfiguredFlexDeploymentArchives": {
+                    "archive_count": 1,
+                    "archives": [
+                      {
+                        "SelectedStorageSourceSecretIndicators": {
+                          "capture": "flex-archives:66b4ac0b1416494a926e1b69588b2745",
+                          "complete": true,
+                          "etag_locator": "storage-source-etag:3e4242f120bf7a9b8a7b8fa8665801d64548a23cec23155ce6c4e973a407f009",
+                          "expanded_bytes": 40,
+                          "file_locator": null,
+                          "format": "zip",
+                          "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+                          "leaks": [
+                            {
+                              "detectors": [
+                                {
+                                  "engine": "kingfisher",
+                                  "rule": "github-pat"
+                                },
+                                {
+                                  "engine": "trufflehog",
+                                  "rule": "github-pat"
+                                }
+                              ],
+                              "fingerprint": "960e273576a72d9b3494062de49d9aa9b55bad51b15e2a919259bd862954fe06",
+                              "locations": [
+                                {
+                                  "path": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940.file-1"
+                                }
+                              ]
+                            }
+                          ],
+                          "members": 1,
+                          "native_complete": true,
+                          "object_bytes": 154,
+                          "parts": [
+                            {
+                              "bytes": 40,
+                              "complete": true,
+                              "engines": [
+                                {
+                                  "engine": "kingfisher",
+                                  "status": "complete",
+                                  "version": "1.4.0"
+                                },
+                                {
+                                  "engine": "trufflehog",
+                                  "status": "complete",
+                                  "version": "3.92.5"
+                                }
+                              ],
+                              "leaks": [
+                                {
+                                  "detectors": [
+                                    {
+                                      "engine": "kingfisher",
+                                      "rule": "github-pat"
+                                    },
+                                    {
+                                      "engine": "trufflehog",
+                                      "rule": "github-pat"
+                                    }
+                                  ],
+                                  "fingerprint": "960e273576a72d9b3494062de49d9aa9b55bad51b15e2a919259bd862954fe06",
+                                  "locations": [
+                                    {
+                                      "path": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940.file-1"
+                                    }
+                                  ]
+                                }
+                              ],
+                              "path": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940.file-1"
+                            }
+                          ],
+                          "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                          "reason": "complete",
+                          "schema": "azure-selected-storage-source-v1",
+                          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                          "selection_mode": "current",
+                          "service": "blob",
+                          "source_requests": [
+                            "storage-source-read:7716c5eed5bb4c8ebb99389393d1e313",
+                            "storage-source-read:13843a3cb47d4d528374a4f8ea785931",
+                            "storage-source-read:0f79a7c0de824eeab8df3d1a32198802",
+                            "storage-source-read:bf807c4ff5ff4ceb836289f43892cef1",
+                            "storage-source-read:96276fe079eb44a3b73f045865d9d485"
+                          ],
+                          "tenant": "22222222-2222-2222-2222-222222222222",
+                          "verification": "not_attempted",
+                          "version_locator": "storage-source-version:326bb322594302396daa363d419ac70c6546b4eb95121a38af8a295028f2720d"
+                        },
+                        "_provenance": {
+                          "capture": "flex-archives:66b4ac0b1416494a926e1b69588b2745",
+                          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                          "source_requests": [
+                            "storage-source-read:7716c5eed5bb4c8ebb99389393d1e313",
+                            "storage-source-read:13843a3cb47d4d528374a4f8ea785931",
+                            "storage-source-read:0f79a7c0de824eeab8df3d1a32198802",
+                            "storage-source-read:bf807c4ff5ff4ceb836289f43892cef1",
+                            "storage-source-read:96276fe079eb44a3b73f045865d9d485"
+                          ]
+                        },
+                        "id": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940"
+                      }
+                    ],
+                    "capture": "flex-archives:66b4ac0b1416494a926e1b69588b2745",
+                    "complete": false,
+                    "configured_container": true,
+                    "identity": "azure_flex_configured_deployment_archives:f1e343e711578e32b9f2aa2550fa9650b2e1ce73a943cf2ee61e6c11e895a844",
+                    "listing_locator": "flex-list:90f52d9139518b43b469d3c6cd562e7f7259888bd99eeae2a6d371938268ea63",
+                    "listing_stable": false,
+                    "native_stable": false,
+                    "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                    "reason": "incomplete",
+                    "receipts": [
+                      {
+                        "bound": false,
+                        "bytes": 191,
+                        "capture": "flex-archives:66b4ac0b1416494a926e1b69588b2745",
+                        "http_status": 200,
+                        "id": "storage-source-read:119fa295f4194a0cac38ee2e7cf762e0",
+                        "identity": "azure_storage_selected_source:9a364eead137b7f3f5793f085fd56bee439ba0e6ab00815bafb1ca25e859be42",
+                        "method": "GET",
+                        "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+                        "operation": "subscription",
+                        "origin": "arm",
+                        "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                        "request": "storage-source-request:d14e39badaeab258feacc42fba8575dcabed0beb0cbabebf8c338dda36701624",
+                        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                        "status": "collected",
+                        "tenant": "22222222-2222-2222-2222-222222222222",
+                        "version": "2022-12-01"
+                      },
+                      {
+                        "bound": false,
+                        "bytes": 339,
+                        "capture": "flex-archives:66b4ac0b1416494a926e1b69588b2745",
+                        "http_status": 200,
+                        "id": "storage-source-read:48c1ea8754864d5f9c2db16e7b9609e4",
+                        "identity": "azure_storage_selected_source:9a364eead137b7f3f5793f085fd56bee439ba0e6ab00815bafb1ca25e859be42",
+                        "method": "GET",
+                        "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+                        "operation": "account",
+                        "origin": "arm",
+                        "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                        "request": "storage-source-request:b8f56d7501a7eb342f0fbdc9770a7fbb82cf7d68777ac9d068f18d347c75f7ec",
+                        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                        "status": "collected",
+                        "tenant": "22222222-2222-2222-2222-222222222222",
+                        "version": "2025-06-01"
+                      },
+                      {
+                        "bound": true,
+                        "bytes": 191,
+                        "capture": "flex-archives:66b4ac0b1416494a926e1b69588b2745",
+                        "http_status": 200,
+                        "id": "storage-source-read:7716c5eed5bb4c8ebb99389393d1e313",
+                        "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+                        "method": "GET",
+                        "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+                        "operation": "subscription",
+                        "origin": "arm",
+                        "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                        "request": "storage-source-request:d14e39badaeab258feacc42fba8575dcabed0beb0cbabebf8c338dda36701624",
+                        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                        "status": "collected",
+                        "tenant": "22222222-2222-2222-2222-222222222222",
+                        "version": "2022-12-01"
+                      },
+                      {
+                        "bound": true,
+                        "bytes": 339,
+                        "capture": "flex-archives:66b4ac0b1416494a926e1b69588b2745",
+                        "http_status": 200,
+                        "id": "storage-source-read:13843a3cb47d4d528374a4f8ea785931",
+                        "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+                        "method": "GET",
+                        "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+                        "operation": "account",
+                        "origin": "arm",
+                        "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                        "request": "storage-source-request:b8f56d7501a7eb342f0fbdc9770a7fbb82cf7d68777ac9d068f18d347c75f7ec",
+                        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                        "status": "collected",
+                        "tenant": "22222222-2222-2222-2222-222222222222",
+                        "version": "2025-06-01"
+                      },
+                      {
+                        "bound": true,
+                        "bytes": 0,
+                        "capture": "flex-archives:66b4ac0b1416494a926e1b69588b2745",
+                        "http_status": 200,
+                        "id": "storage-source-read:0f79a7c0de824eeab8df3d1a32198802",
+                        "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+                        "method": "HEAD",
+                        "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+                        "operation": "properties_before",
+                        "origin": "blob",
+                        "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                        "request": "storage-source-request:e9634be2c623e60c4dc24c9cd3dac85b0dba1c432ebfb7eb2e5e9726b6a48b75",
+                        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                        "status": "collected",
+                        "tenant": "22222222-2222-2222-2222-222222222222",
+                        "version": "2023-11-03"
+                      },
+                      {
+                        "bound": true,
+                        "bytes": 154,
+                        "capture": "flex-archives:66b4ac0b1416494a926e1b69588b2745",
+                        "http_status": 200,
+                        "id": "storage-source-read:bf807c4ff5ff4ceb836289f43892cef1",
+                        "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+                        "method": "GET",
+                        "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+                        "operation": "content",
+                        "origin": "blob",
+                        "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                        "request": "storage-source-request:30ab28491368717cefa94bb49ee5ecbdb9c16c587850822aef07a38c9e7aaa36",
+                        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                        "status": "collected",
+                        "tenant": "22222222-2222-2222-2222-222222222222",
+                        "version": "2023-11-03"
+                      },
+                      {
+                        "bound": true,
+                        "bytes": 0,
+                        "capture": "flex-archives:66b4ac0b1416494a926e1b69588b2745",
+                        "http_status": 200,
+                        "id": "storage-source-read:96276fe079eb44a3b73f045865d9d485",
+                        "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+                        "method": "HEAD",
+                        "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+                        "operation": "properties_after",
+                        "origin": "blob",
+                        "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                        "request": "storage-source-request:e9634be2c623e60c4dc24c9cd3dac85b0dba1c432ebfb7eb2e5e9726b6a48b75",
+                        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                        "status": "collected",
+                        "tenant": "22222222-2222-2222-2222-222222222222",
+                        "version": "2023-11-03"
+                      }
+                    ],
+                    "schema": "azure-flex-configured-deployment-archives-v1",
+                    "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                    "tenant": "22222222-2222-2222-2222-222222222222"
+                  },
+                  "_provenance": {
+                    "capture": "flex-archives:66b4ac0b1416494a926e1b69588b2745",
+                    "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+                  },
+                  "id": "azure_flex_configured_deployment_archives:f1e343e711578e32b9f2aa2550fa9650b2e1ce73a943cf2ee61e6c11e895a844"
+                }
+              ],
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "service": "Microsoft.Web",
+              "status": "collected",
+              "type": "azure_flex_configured_deployment_archives"
+            }
+          ]
+        },
+        "context": {
+          "metadata": {
+            "azure_flex_configured_deployment_archives_authorized": true,
+            "azure_flex_configured_deployment_archives_selection": {
+              "/subscriptions/11111111-1111-1111-1111-111111111111": [
+                "azure_flex_configured_deployment_archives:f1e343e711578e32b9f2aa2550fa9650b2e1ce73a943cf2ee61e6c11e895a844"
+              ]
+            },
+            "tenant_id": "22222222-2222-2222-2222-222222222222",
+            "tenant_verified": true
+          },
+          "provider": "azure",
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+        }
+      },
+      "item": {
+        "ConfiguredFlexDeploymentArchives": {
+          "archive_count": 1,
+          "archives": [
+            {
+              "SelectedStorageSourceSecretIndicators": {
+                "capture": "flex-archives:66b4ac0b1416494a926e1b69588b2745",
+                "complete": true,
+                "etag_locator": "storage-source-etag:3e4242f120bf7a9b8a7b8fa8665801d64548a23cec23155ce6c4e973a407f009",
+                "expanded_bytes": 40,
+                "file_locator": null,
+                "format": "zip",
+                "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+                "leaks": [
+                  {
+                    "detectors": [
+                      {
+                        "engine": "kingfisher",
+                        "rule": "github-pat"
+                      },
+                      {
+                        "engine": "trufflehog",
+                        "rule": "github-pat"
+                      }
+                    ],
+                    "fingerprint": "960e273576a72d9b3494062de49d9aa9b55bad51b15e2a919259bd862954fe06",
+                    "locations": [
+                      {
+                        "path": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940.file-1"
+                      }
+                    ]
+                  }
+                ],
+                "members": 1,
+                "native_complete": true,
+                "object_bytes": 154,
+                "parts": [
+                  {
+                    "bytes": 40,
+                    "complete": true,
+                    "engines": [
+                      {
+                        "engine": "kingfisher",
+                        "status": "complete",
+                        "version": "1.4.0"
+                      },
+                      {
+                        "engine": "trufflehog",
+                        "status": "complete",
+                        "version": "3.92.5"
+                      }
+                    ],
+                    "leaks": [
+                      {
+                        "detectors": [
+                          {
+                            "engine": "kingfisher",
+                            "rule": "github-pat"
+                          },
+                          {
+                            "engine": "trufflehog",
+                            "rule": "github-pat"
+                          }
+                        ],
+                        "fingerprint": "960e273576a72d9b3494062de49d9aa9b55bad51b15e2a919259bd862954fe06",
+                        "locations": [
+                          {
+                            "path": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940.file-1"
+                          }
+                        ]
+                      }
+                    ],
+                    "path": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940.file-1"
+                  }
+                ],
+                "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+                "reason": "complete",
+                "schema": "azure-selected-storage-source-v1",
+                "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                "selection_mode": "current",
+                "service": "blob",
+                "source_requests": [
+                  "storage-source-read:7716c5eed5bb4c8ebb99389393d1e313",
+                  "storage-source-read:13843a3cb47d4d528374a4f8ea785931",
+                  "storage-source-read:0f79a7c0de824eeab8df3d1a32198802",
+                  "storage-source-read:bf807c4ff5ff4ceb836289f43892cef1",
+                  "storage-source-read:96276fe079eb44a3b73f045865d9d485"
+                ],
+                "tenant": "22222222-2222-2222-2222-222222222222",
+                "verification": "not_attempted",
+                "version_locator": "storage-source-version:326bb322594302396daa363d419ac70c6546b4eb95121a38af8a295028f2720d"
+              },
+              "_provenance": {
+                "capture": "flex-archives:66b4ac0b1416494a926e1b69588b2745",
+                "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+                "source_requests": [
+                  "storage-source-read:7716c5eed5bb4c8ebb99389393d1e313",
+                  "storage-source-read:13843a3cb47d4d528374a4f8ea785931",
+                  "storage-source-read:0f79a7c0de824eeab8df3d1a32198802",
+                  "storage-source-read:bf807c4ff5ff4ceb836289f43892cef1",
+                  "storage-source-read:96276fe079eb44a3b73f045865d9d485"
+                ]
+              },
+              "id": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940"
+            }
+          ],
+          "capture": "flex-archives:66b4ac0b1416494a926e1b69588b2745",
+          "complete": false,
+          "configured_container": true,
+          "identity": "azure_flex_configured_deployment_archives:f1e343e711578e32b9f2aa2550fa9650b2e1ce73a943cf2ee61e6c11e895a844",
+          "listing_locator": "flex-list:90f52d9139518b43b469d3c6cd562e7f7259888bd99eeae2a6d371938268ea63",
+          "listing_stable": false,
+          "native_stable": false,
+          "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+          "reason": "incomplete",
+          "receipts": [
+            {
+              "bound": false,
+              "bytes": 191,
+              "capture": "flex-archives:66b4ac0b1416494a926e1b69588b2745",
+              "http_status": 200,
+              "id": "storage-source-read:119fa295f4194a0cac38ee2e7cf762e0",
+              "identity": "azure_storage_selected_source:9a364eead137b7f3f5793f085fd56bee439ba0e6ab00815bafb1ca25e859be42",
+              "method": "GET",
+              "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+              "operation": "subscription",
+              "origin": "arm",
+              "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+              "request": "storage-source-request:d14e39badaeab258feacc42fba8575dcabed0beb0cbabebf8c338dda36701624",
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "status": "collected",
+              "tenant": "22222222-2222-2222-2222-222222222222",
+              "version": "2022-12-01"
+            },
+            {
+              "bound": false,
+              "bytes": 339,
+              "capture": "flex-archives:66b4ac0b1416494a926e1b69588b2745",
+              "http_status": 200,
+              "id": "storage-source-read:48c1ea8754864d5f9c2db16e7b9609e4",
+              "identity": "azure_storage_selected_source:9a364eead137b7f3f5793f085fd56bee439ba0e6ab00815bafb1ca25e859be42",
+              "method": "GET",
+              "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+              "operation": "account",
+              "origin": "arm",
+              "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+              "request": "storage-source-request:b8f56d7501a7eb342f0fbdc9770a7fbb82cf7d68777ac9d068f18d347c75f7ec",
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "status": "collected",
+              "tenant": "22222222-2222-2222-2222-222222222222",
+              "version": "2025-06-01"
+            },
+            {
+              "bound": true,
+              "bytes": 191,
+              "capture": "flex-archives:66b4ac0b1416494a926e1b69588b2745",
+              "http_status": 200,
+              "id": "storage-source-read:7716c5eed5bb4c8ebb99389393d1e313",
+              "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+              "method": "GET",
+              "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+              "operation": "subscription",
+              "origin": "arm",
+              "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+              "request": "storage-source-request:d14e39badaeab258feacc42fba8575dcabed0beb0cbabebf8c338dda36701624",
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "status": "collected",
+              "tenant": "22222222-2222-2222-2222-222222222222",
+              "version": "2022-12-01"
+            },
+            {
+              "bound": true,
+              "bytes": 339,
+              "capture": "flex-archives:66b4ac0b1416494a926e1b69588b2745",
+              "http_status": 200,
+              "id": "storage-source-read:13843a3cb47d4d528374a4f8ea785931",
+              "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+              "method": "GET",
+              "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+              "operation": "account",
+              "origin": "arm",
+              "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+              "request": "storage-source-request:b8f56d7501a7eb342f0fbdc9770a7fbb82cf7d68777ac9d068f18d347c75f7ec",
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "status": "collected",
+              "tenant": "22222222-2222-2222-2222-222222222222",
+              "version": "2025-06-01"
+            },
+            {
+              "bound": true,
+              "bytes": 0,
+              "capture": "flex-archives:66b4ac0b1416494a926e1b69588b2745",
+              "http_status": 200,
+              "id": "storage-source-read:0f79a7c0de824eeab8df3d1a32198802",
+              "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+              "method": "HEAD",
+              "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+              "operation": "properties_before",
+              "origin": "blob",
+              "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+              "request": "storage-source-request:e9634be2c623e60c4dc24c9cd3dac85b0dba1c432ebfb7eb2e5e9726b6a48b75",
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "status": "collected",
+              "tenant": "22222222-2222-2222-2222-222222222222",
+              "version": "2023-11-03"
+            },
+            {
+              "bound": true,
+              "bytes": 154,
+              "capture": "flex-archives:66b4ac0b1416494a926e1b69588b2745",
+              "http_status": 200,
+              "id": "storage-source-read:bf807c4ff5ff4ceb836289f43892cef1",
+              "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+              "method": "GET",
+              "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+              "operation": "content",
+              "origin": "blob",
+              "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+              "request": "storage-source-request:30ab28491368717cefa94bb49ee5ecbdb9c16c587850822aef07a38c9e7aaa36",
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "status": "collected",
+              "tenant": "22222222-2222-2222-2222-222222222222",
+              "version": "2023-11-03"
+            },
+            {
+              "bound": true,
+              "bytes": 0,
+              "capture": "flex-archives:66b4ac0b1416494a926e1b69588b2745",
+              "http_status": 200,
+              "id": "storage-source-read:96276fe079eb44a3b73f045865d9d485",
+              "identity": "azure_storage_selected_source:135f0d4944963f2b5d3cc45c9c1f0382c3e65a9e1cd548930da0eb6412f2d940",
+              "method": "HEAD",
+              "native_request": "storage-source-response:271d68bda642a57373455e5f9649d6cd1174d54db301c2f88eaecf477f43b362",
+              "operation": "properties_after",
+              "origin": "blob",
+              "principal": "storage-source-principal:93065b2a4e420280da58d915d85012dc3be308ea5d761b66d8f8510882350cab",
+              "request": "storage-source-request:e9634be2c623e60c4dc24c9cd3dac85b0dba1c432ebfb7eb2e5e9726b6a48b75",
+              "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+              "status": "collected",
+              "tenant": "22222222-2222-2222-2222-222222222222",
+              "version": "2023-11-03"
+            }
+          ],
+          "schema": "azure-flex-configured-deployment-archives-v1",
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "tenant": "22222222-2222-2222-2222-222222222222"
+        },
+        "_provenance": {
+          "capture": "flex-archives:66b4ac0b1416494a926e1b69588b2745",
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+        },
+        "id": "azure_flex_configured_deployment_archives:f1e343e711578e32b9f2aa2550fa9650b2e1ce73a943cf2ee61e6c11e895a844"
+      },
+      "name": "fail_partial_positive"
+    }
+  ],
+  "check_id": "azure.review.function.configured_deployment_container_archives_secret_indicators",
+  "schema_version": 1
+}

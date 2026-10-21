@@ -175,6 +175,10 @@ def test_current_role_adds_only_reviewed_cloudtrail_delivery_policy_reads():
 # These SDK reads were introduced after all four archived templates below.
 # Keep their captured input universe fixed; current-role grants are tested separately.
 _POST_HISTORICAL_METADATA_READS = {
+    ('accessanalyzer', 'get_analyzer'),
+    ('apigateway', 'get_base_path_mappings'),
+    ('apigatewayv2', 'get_api_mappings'), ('apigatewayv2', 'get_domain_names'),
+    ('apigatewayv2', 'get_integrations'),
     ('scheduler', 'get_schedule'), ('scheduler', 'list_schedules'), ('sqs', 'list_dead_letter_source_queues'),
     ('cloudfront', 'list_vpc_origins'), ('cloudfront', 'get_vpc_origin'),
     ('efs', 'describe_mount_target_security_groups'),

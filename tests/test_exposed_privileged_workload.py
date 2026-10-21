@@ -1,6 +1,7 @@
 """Public workload and runtime privilege must both be recorded for a finding."""
 
 import json
+import hashlib
 from pathlib import Path
 
 from peaso.snapshot import make_snapshot, resources
@@ -330,14 +331,17 @@ def test_api_collector_keeps_only_backend_identity_and_mapping_metadata():
 
 def test_customer_role_can_read_api_custom_domain_mappings():
     root = Path(__file__).resolve().parents[1]
-    for filename in ("customer-role.json", "customer-policy-allocation.json"):
-        role = json.loads((root / "infra/aws" / filename).read_text())
-        statements = [statement for resource in role["Resources"].values()
-            for statement in resource.get("Properties", {}).get("PolicyDocument", {}).get("Statement", [])]
-        api_read = next(statement for statement in statements if statement.get("Sid") == "ApiGatewayConfigurationRead")
-        assert api_read["Action"] == "apigateway:GET"
-        for suffix in ("/domainnames/*/basepathmappings", "/domainnames/*/apimappings", "/apis/*/integrations"):
-            assert {"Fn::Sub": "arn:${AWS::Partition}:apigateway:*::" + suffix} in api_read["Resource"]
+    role = json.loads((root / "infra/aws/customer-role.json").read_text())
+    statements = [statement for resource in role["Resources"].values()
+        for statement in resource.get("Properties", {}).get("PolicyDocument", {}).get("Statement", [])]
+    api_read = next(statement for statement in statements if statement.get("Sid") == "ApiGatewayConfigurationRead")
+    assert api_read["Action"] == "apigateway:GET"
+    for suffix in ("/domainnames/*/basepathmappings", "/domainnames/*/apimappings", "/apis/*/integrations"):
+        assert {"Fn::Sub": "arn:${AWS::Partition}:apigateway:*::" + suffix} in api_read["Resource"]
+    # The signed allocation is historical input to the generator, not the active role.
+    from scripts.peaso_deploy_customer_policy import REVIEWED_ROLE_SHA256
+    archive = (root / "infra/aws/customer-policy-allocation.json").read_bytes()
+    assert hashlib.sha256(archive).hexdigest() == REVIEWED_ROLE_SHA256
 
 
 def test_gcp_public_cloud_run_uses_owner_service_account(monkeypatch):

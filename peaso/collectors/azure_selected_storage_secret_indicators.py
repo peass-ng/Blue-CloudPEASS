@@ -3,6 +3,8 @@
 Fixed ARM/account identity precedes OAuth named object reads. Archives are parsed
 in memory using the existing regular-file-only bounded parser, never extracted.
 """
+from peaso.secret_evidence import scan_with_source, target_source
+
 import base64
 from copy import deepcopy
 from datetime import datetime, timezone
@@ -233,7 +235,7 @@ class Deadline:
     def check_deadline(self):remaining(self.reader,self.state)
 
 
-def _scan(reader,state,target,marker,payload):
+def _scan(reader,state,target,marker,payload,member_path=None):
     text(payload);remaining(reader,state)
     path=identity(target)+'.file-'+str(len(marker['parts'])+1)
     def remember(values):
@@ -244,7 +246,7 @@ def _scan(reader,state,target,marker,payload):
         current.update(values)
         if len(current)>MAX_REDACTION_VALUES or sum(len(v.encode()) for v in current)>MAX_REDACTION_TOTAL:
             reader.storage_source_secret_overflow=True;current.clear()
-    result=scan_content(payload,path,timeout=min(30,remaining(reader,state)),_redact_values=remember)
+    result=scan_with_source(scan_content, payload,path,timeout=min(30,remaining(reader,state)),_redact_values=remember, source=target_source(target, resource_id=identity(target), path=member_path or target['object']))
     leaks=merge_leaks(result['leaks'])
     # Native file paths never leave parsing; rendered scanner line numbers are
     # not needed to identify the explicitly selected versioned source object.
@@ -266,7 +268,7 @@ def _inspect(reader,state,target,marker,raw):
     def inspect_member(payload,name,requests):
         requests.check_deadline()
         if name.lower().endswith(('.zip','.tar','.tgz','.tar.gz','.gz','.bz2','.xz','.7z','.rar','.exe','.dll','.so','.pyc','.pdf','.png','.jpg','.wasm')):raise Incomplete('unsupported_archive_member')
-        return _scan(reader,state,target,marker,bytes(payload))
+        return _scan(reader,state,target,marker,bytes(payload),member_path=name)
     parser=scan_zip if form=='zip' else scan_tar
     namespace=dict(parser.__globals__,_scan=inspect_member,EXPANDED_LIMIT=min(cap,max(1024,len(raw)*100)) if form=='tar.gz' else cap,
                    MEMBER_LIMIT=members,ZIP_LIMIT=MAX_OBJECT,LAYER_LIMIT=MAX_OBJECT)

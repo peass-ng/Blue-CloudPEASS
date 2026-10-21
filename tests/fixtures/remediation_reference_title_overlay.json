@@ -1,0 +1,3614 @@
+{
+  "schema_version": 1,
+  "sources": {
+    "peaso/rulepacks/remediation_aws_reviewed.json": [
+      {
+        "id": "aws.c2b.acm.in_use_transparency_logging",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/acm/latest/APIReference/API_CertificateDetail.html",
+        "old_title": "AWS documentation for acm certificate",
+        "new_title": "AWS ACM Certificate Detail API"
+      },
+      {
+        "id": "aws.c2b.acm.in_use_transparency_logging",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/acm/latest/userguide/acm-concepts.html#concept-transparency",
+        "old_title": "AWS documentation for acm certificate",
+        "new_title": "AWS ACM certificate transparency concepts (concept transparency)"
+      },
+      {
+        "id": "aws.c2b.acmpca.root_ca_disabled",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/privateca/latest/APIReference/API_CertificateAuthority.html",
+        "old_title": "AWS documentation for acmpca certificate authority",
+        "new_title": "AWS Private CA Certificate Authority API"
+      },
+      {
+        "id": "aws.c2b.acmpca.root_ca_disabled",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/pca-controls.html",
+        "old_title": "AWS documentation for acmpca certificate authority",
+        "new_title": "AWS Security Hub Private CA controls"
+      },
+      {
+        "id": "aws.c2b.apigateway.authorizers_or_authorized_methods",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/apigateway/latest/api/API_Authorizer.html",
+        "old_title": "AWS documentation for rest api",
+        "new_title": "AWS API Gateway Authorizer API"
+      },
+      {
+        "id": "aws.c2b.apigateway.authorizers_or_authorized_methods",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/apigateway/latest/api/API_Method.html",
+        "old_title": "AWS documentation for rest api",
+        "new_title": "AWS API Gateway Method API"
+      },
+      {
+        "id": "aws.c2b.apigateway.domain_pqc_tls",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/apigateway/latest/api/API_DomainName.html",
+        "old_title": "AWS documentation for apigateway domain name",
+        "new_title": "AWS API Gateway Domain Name API"
+      },
+      {
+        "id": "aws.c2b.apigateway.domain_pqc_tls",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-security-policies-list.html",
+        "old_title": "AWS documentation for apigateway domain name",
+        "new_title": "AWS API Gateway security policies list"
+      },
+      {
+        "id": "aws.c2b.apigateway.methods_authorization_type",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/apigateway/latest/api/API_Method.html",
+        "old_title": "AWS documentation for rest api",
+        "new_title": "AWS API Gateway Method API"
+      },
+      {
+        "id": "aws.c2b.apigateway.methods_request_validator",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/apigateway/latest/api/API_Method.html",
+        "old_title": "AWS documentation for rest api",
+        "new_title": "AWS API Gateway Method API"
+      },
+      {
+        "id": "aws.c2b.apigateway.public_rest_api_authorizer",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/apigateway/latest/api/API_Authorizer.html",
+        "old_title": "AWS documentation for rest api",
+        "new_title": "AWS API Gateway Authorizer API"
+      },
+      {
+        "id": "aws.c2b.apigateway.public_rest_api_authorizer",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/apigateway/latest/api/API_RestApi.html",
+        "old_title": "AWS documentation for rest api",
+        "new_title": "AWS API Gateway Rest Api API"
+      },
+      {
+        "id": "aws.c2b.apigateway.rest_api_has_authorizer",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/apigateway/latest/api/API_Authorizer.html",
+        "old_title": "AWS documentation for rest api",
+        "new_title": "AWS API Gateway Authorizer API"
+      },
+      {
+        "id": "aws.c2b.apigateway.rest_api_policy_not_public",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/apigateway/latest/api/API_RestApi.html",
+        "old_title": "AWS documentation for rest api",
+        "new_title": "AWS API Gateway Rest Api API"
+      },
+      {
+        "id": "aws.c2b.apigateway.rest_api_private_only",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/apigateway/latest/api/API_RestApi.html",
+        "old_title": "AWS documentation for rest api",
+        "new_title": "AWS API Gateway Rest Api API"
+      },
+      {
+        "id": "aws.c2b.apigateway.stage_cache_encrypted",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/apigateway/latest/api/API_Stage.html",
+        "old_title": "AWS documentation for rest api stage",
+        "new_title": "AWS API Gateway Stage API"
+      },
+      {
+        "id": "aws.c2b.apigateway.stage_cache_encrypted",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/apigateway/latest/api/API_MethodSetting.html",
+        "old_title": "AWS documentation for rest api stage",
+        "new_title": "AWS API Gateway Method Setting API"
+      },
+      {
+        "id": "aws.c2b.apigateway.stage_execution_logging",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/apigateway/latest/api/API_Stage.html",
+        "old_title": "AWS documentation for rest api stage",
+        "new_title": "AWS API Gateway Stage API"
+      },
+      {
+        "id": "aws.c2b.apigateway.stage_execution_logging",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/apigateway/latest/api/API_MethodSetting.html",
+        "old_title": "AWS documentation for rest api stage",
+        "new_title": "AWS API Gateway Method Setting API"
+      },
+      {
+        "id": "aws.c2b.apigatewayv2.routes_authorization_type",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/apigatewayv2/latest/api-reference/apis-apiid-routes.html",
+        "old_title": "AWS documentation for http api",
+        "new_title": "AWS API Gateway V2 apis apiid routes"
+      },
+      {
+        "id": "aws.c2b.apigatewayv2.routes_authorization_type",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/apigateway-controls.html#apigateway-8",
+        "old_title": "AWS documentation for http api",
+        "new_title": "AWS Security Hub apigateway controls (apigateway 8)"
+      },
+      {
+        "id": "aws.c2b.apigatewayv2.routes_authorizer",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/apigatewayv2/latest/api-reference/apis-apiid-routes.html",
+        "old_title": "AWS documentation for http api",
+        "new_title": "AWS API Gateway V2 apis apiid routes"
+      },
+      {
+        "id": "aws.c2b.athena.cloudwatch_metrics",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/athena/latest/APIReference/API_WorkGroupConfiguration.html",
+        "old_title": "AWS documentation for athena workgroup",
+        "new_title": "AWS Athena Work Group Configuration API"
+      },
+      {
+        "id": "aws.c2b.athena.cloudwatch_metrics",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/athena-controls.html",
+        "old_title": "AWS documentation for athena workgroup",
+        "new_title": "AWS Security Hub athena controls"
+      },
+      {
+        "id": "aws.c2b.athena.cloudwatch_metrics_prowler",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/athena/latest/APIReference/API_WorkGroupConfiguration.html",
+        "old_title": "AWS documentation for athena workgroup",
+        "new_title": "AWS Athena Work Group Configuration API"
+      },
+      {
+        "id": "aws.c2b.athena.enforce_configuration",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/athena/latest/APIReference/API_WorkGroupConfiguration.html",
+        "old_title": "AWS documentation for athena workgroup",
+        "new_title": "AWS Athena Work Group Configuration API"
+      },
+      {
+        "id": "aws.c2b.athena.enforce_configuration_prowler",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/athena/latest/APIReference/API_WorkGroupConfiguration.html",
+        "old_title": "AWS documentation for athena workgroup",
+        "new_title": "AWS Athena Work Group Configuration API"
+      },
+      {
+        "id": "aws.c2b.athena.results_encrypted",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/athena/latest/APIReference/API_WorkGroupConfiguration.html",
+        "old_title": "AWS documentation for athena workgroup",
+        "new_title": "AWS Athena Work Group Configuration API"
+      },
+      {
+        "id": "aws.c2b.athena.results_encrypted",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/athena/latest/APIReference/API_EncryptionConfiguration.html",
+        "old_title": "AWS documentation for athena workgroup",
+        "new_title": "AWS Athena Encryption Configuration API"
+      },
+      {
+        "id": "aws.c2b.athena.results_encrypted",
+        "index": 2,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/athena-controls.html",
+        "old_title": "AWS documentation for athena workgroup",
+        "new_title": "AWS Security Hub athena controls"
+      },
+      {
+        "id": "aws.c2b.athena.results_encrypted_prowler",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/athena/latest/APIReference/API_EncryptionConfiguration.html",
+        "old_title": "AWS documentation for athena workgroup",
+        "new_title": "AWS Athena Encryption Configuration API"
+      },
+      {
+        "id": "aws.c2b.autoscaling.capacity_rebalance",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_AutoScalingGroup.html",
+        "old_title": "AWS documentation for autoscaling group",
+        "new_title": "AWS Auto Scaling Auto Scaling Group API"
+      },
+      {
+        "id": "aws.c2b.autoscaling.capacity_rebalance",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-capacity-rebalancing.html",
+        "old_title": "AWS documentation for autoscaling group",
+        "new_title": "AWS Auto Scaling ec2 auto scaling capacity rebalancing"
+      },
+      {
+        "id": "aws.c2b.autoscaling.elb_health_check",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_AutoScalingGroup.html",
+        "old_title": "AWS documentation for autoscaling group",
+        "new_title": "AWS Auto Scaling Auto Scaling Group API"
+      },
+      {
+        "id": "aws.c2b.autoscaling.elb_health_check",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/autoscaling-controls.html",
+        "old_title": "AWS documentation for autoscaling group",
+        "new_title": "AWS Security Hub autoscaling controls"
+      },
+      {
+        "id": "aws.c2b.autoscaling.instance_types_per_az",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_AutoScalingGroup.html",
+        "old_title": "AWS documentation for autoscaling group",
+        "new_title": "AWS Auto Scaling Auto Scaling Group API"
+      },
+      {
+        "id": "aws.c2b.autoscaling.mixed_policy_multiple_types",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_AutoScalingGroup.html",
+        "old_title": "AWS documentation for autoscaling group",
+        "new_title": "AWS Auto Scaling Auto Scaling Group API"
+      },
+      {
+        "id": "aws.c2b.autoscaling.mixed_policy_multiple_types",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/autoscaling-controls.html",
+        "old_title": "AWS documentation for autoscaling group",
+        "new_title": "AWS Security Hub autoscaling controls"
+      },
+      {
+        "id": "aws.c2b.autoscaling.multiple_az",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_AutoScalingGroup.html",
+        "old_title": "AWS documentation for autoscaling group",
+        "new_title": "AWS Auto Scaling Auto Scaling Group API"
+      },
+      {
+        "id": "aws.c2b.autoscaling.multiple_az",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/autoscaling-controls.html",
+        "old_title": "AWS documentation for autoscaling group",
+        "new_title": "AWS Security Hub autoscaling controls"
+      },
+      {
+        "id": "aws.c2b.autoscaling.no_suspended_processes",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_AutoScalingGroup.html",
+        "old_title": "AWS documentation for autoscaling group",
+        "new_title": "AWS Auto Scaling Auto Scaling Group API"
+      },
+      {
+        "id": "aws.c2b.autoscaling.uses_launch_template",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_AutoScalingGroup.html",
+        "old_title": "AWS documentation for autoscaling group",
+        "new_title": "AWS Auto Scaling Auto Scaling Group API"
+      },
+      {
+        "id": "aws.c2b.autoscaling.uses_launch_template",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/autoscaling-controls.html",
+        "old_title": "AWS documentation for autoscaling group",
+        "new_title": "AWS Security Hub autoscaling controls"
+      },
+      {
+        "id": "aws.c2b.backup.plan_rules_retention_35",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/API_BackupRule.html",
+        "old_title": "AWS documentation for backup plan",
+        "new_title": "AWS Backup Backup Rule API"
+      },
+      {
+        "id": "aws.c2b.backup.plans_exist_when_vaults",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/creating-a-backup-plan.html",
+        "old_title": "AWS documentation for backup plan",
+        "new_title": "AWS Backup creating a backup plan"
+      },
+      {
+        "id": "aws.c2b.backup.vault_policy_denies_recovery_point_deletion",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/API_GetBackupVaultAccessPolicy.html",
+        "old_title": "AWS documentation for backup vault",
+        "new_title": "AWS Backup Get Backup Vault Access Policy API"
+      },
+      {
+        "id": "aws.c2b.backup.vault_policy_denies_recovery_point_deletion",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/create-a-vault-access-policy.html",
+        "old_title": "AWS documentation for backup vault",
+        "new_title": "AWS Backup create a vault access policy"
+      },
+      {
+        "id": "aws.c2b.backup.vault_policy_not_public",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/API_GetBackupVaultAccessPolicy.html",
+        "old_title": "AWS documentation for backup vault",
+        "new_title": "AWS Backup Get Backup Vault Access Policy API"
+      },
+      {
+        "id": "aws.c2b.bedrock.agent_guardrail",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent_AgentSummary.html",
+        "old_title": "AWS documentation for bedrock agent",
+        "new_title": "AWS BEDROCK agent Agent Summary API"
+      },
+      {
+        "id": "aws.c2b.bedrock.agent_guardrail",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent_GuardrailConfiguration.html",
+        "old_title": "AWS documentation for bedrock agent",
+        "new_title": "AWS BEDROCK agent Guardrail Configuration API"
+      },
+      {
+        "id": "aws.c2b.bedrock.guardrail_contextual_grounding",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_GetGuardrail.html",
+        "old_title": "AWS documentation for bedrock guardrail",
+        "new_title": "AWS BEDROCK Get Guardrail API"
+      },
+      {
+        "id": "aws.c2b.bedrock.guardrail_contextual_grounding",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_GuardrailContextualGroundingFilter.html",
+        "old_title": "AWS documentation for bedrock guardrail",
+        "new_title": "AWS BEDROCK Guardrail Contextual Grounding Filter API"
+      },
+      {
+        "id": "aws.c2b.bedrock.guardrail_prompt_attack_high",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_GetGuardrail.html",
+        "old_title": "AWS documentation for bedrock guardrail",
+        "new_title": "AWS BEDROCK Get Guardrail API"
+      },
+      {
+        "id": "aws.c2b.bedrock.guardrail_prompt_attack_high",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_GuardrailContentFilter.html",
+        "old_title": "AWS documentation for bedrock guardrail",
+        "new_title": "AWS BEDROCK Guardrail Content Filter API"
+      },
+      {
+        "id": "aws.c2b.bedrock.guardrail_sensitive_information_filter",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_GetGuardrail.html",
+        "old_title": "AWS documentation for bedrock guardrail",
+        "new_title": "AWS BEDROCK Get Guardrail API"
+      },
+      {
+        "id": "aws.c2b.bedrock.prompt_cmk",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent_GetPrompt.html",
+        "old_title": "AWS documentation for bedrock prompt",
+        "new_title": "AWS BEDROCK agent Get Prompt API"
+      },
+      {
+        "id": "aws.c2b.bedrock.prompt_management_exists",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent_ListPrompts.html",
+        "old_title": "AWS documentation for bedrock prompt",
+        "new_title": "AWS BEDROCK agent List Prompts API"
+      },
+      {
+        "id": "aws.c2b.bedrock.role_no_full_access_policy",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AmazonBedrockFullAccess.html",
+        "old_title": "AWS documentation for iam role",
+        "new_title": "AWS AWS-MANAGED-POLICY Amazon Bedrock Full Access"
+      },
+      {
+        "id": "aws.c2b.bedrock.role_no_full_access_policy",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetAccountAuthorizationDetails.html",
+        "old_title": "AWS documentation for iam role",
+        "new_title": "AWS IAM Get Account Authorization Details API"
+      },
+      {
+        "id": "aws.c2b.classic_elb.acm_certificates",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/elasticloadbalancing/2012-06-01/APIReference/API_LoadBalancerDescription.html",
+        "old_title": "AWS documentation for classic load balancer",
+        "new_title": "AWS Elastic Load Balancing Load Balancer Description API"
+      },
+      {
+        "id": "aws.c2b.classic_elb.acm_certificates",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/acm/latest/APIReference/API_CertificateDetail.html",
+        "old_title": "AWS documentation for classic load balancer",
+        "new_title": "AWS ACM Certificate Detail API"
+      },
+      {
+        "id": "aws.c2b.classic_elb.has_registered_instances",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/elasticloadbalancing/2012-06-01/APIReference/API_LoadBalancerDescription.html",
+        "old_title": "AWS documentation for classic load balancer",
+        "new_title": "AWS Elastic Load Balancing Load Balancer Description API"
+      },
+      {
+        "id": "aws.c2b.classic_elb.insecure_ssl_ciphers",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-security-policy-table.html",
+        "old_title": "AWS documentation for classic load balancer",
+        "new_title": "AWS Elastic Load Balancing elb security policy table"
+      },
+      {
+        "id": "aws.c2b.classic_elb.insecure_ssl_ciphers",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/elasticloadbalancing/2012-06-01/APIReference/API_LoadBalancerDescription.html",
+        "old_title": "AWS documentation for classic load balancer",
+        "new_title": "AWS Elastic Load Balancing Load Balancer Description API"
+      },
+      {
+        "id": "aws.c2b.classic_elb.sg_inbound_rule",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/elasticloadbalancing/2012-06-01/APIReference/API_LoadBalancerDescription.html",
+        "old_title": "AWS documentation for classic load balancer",
+        "new_title": "AWS Elastic Load Balancing Load Balancer Description API"
+      },
+      {
+        "id": "aws.c2b.classic_elb.sg_inbound_rule",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_SecurityGroup.html",
+        "old_title": "AWS documentation for classic load balancer",
+        "new_title": "AWS EC2 Security Group API"
+      },
+      {
+        "id": "aws.c2b.classic_elb.sg_outbound_rule",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/elasticloadbalancing/2012-06-01/APIReference/API_LoadBalancerDescription.html",
+        "old_title": "AWS documentation for classic load balancer",
+        "new_title": "AWS Elastic Load Balancing Load Balancer Description API"
+      },
+      {
+        "id": "aws.c2b.classic_elb.sg_outbound_rule",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_SecurityGroup.html",
+        "old_title": "AWS documentation for classic load balancer",
+        "new_title": "AWS EC2 Security Group API"
+      },
+      {
+        "id": "aws.c2b.cloudformation.notifications",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_Stack.html",
+        "old_title": "AWS documentation for cloudformation stack",
+        "new_title": "AWS AWSCLOUDFORMATION Stack API"
+      },
+      {
+        "id": "aws.c2b.cloudformation.notifications",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/cloudformation-controls.html",
+        "old_title": "AWS documentation for cloudformation stack",
+        "new_title": "AWS Security Hub cloudformation controls"
+      },
+      {
+        "id": "aws.c2b.cloudformation.termination_protection_all_stacks",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_Stack.html",
+        "old_title": "AWS documentation for cloudformation stack",
+        "new_title": "AWS AWSCLOUDFORMATION Stack API"
+      },
+      {
+        "id": "aws.c2b.cloudformation.termination_protection_all_stacks",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-protect-stacks.html",
+        "old_title": "AWS documentation for cloudformation stack",
+        "new_title": "AWS AWSCLOUDFORMATION using cfn protect stacks"
+      },
+      {
+        "id": "aws.c2b.cloudformation.termination_protection_root_stacks",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_Stack.html",
+        "old_title": "AWS documentation for cloudformation stack",
+        "new_title": "AWS AWSCLOUDFORMATION Stack API"
+      },
+      {
+        "id": "aws.c2b.cloudformation.termination_protection_root_stacks",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-protect-stacks.html",
+        "old_title": "AWS documentation for cloudformation stack",
+        "new_title": "AWS AWSCLOUDFORMATION using cfn protect stacks"
+      },
+      {
+        "id": "aws.c2b.cloudfront.custom_ssl_certificate",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_ViewerCertificate.html",
+        "old_title": "AWS documentation for cloudfront distribution",
+        "new_title": "AWS CLOUDFRONT Viewer Certificate API"
+      },
+      {
+        "id": "aws.c2b.cloudfront.https_sni",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_ViewerCertificate.html",
+        "old_title": "AWS documentation for cloudfront distribution",
+        "new_title": "AWS CLOUDFRONT Viewer Certificate API"
+      },
+      {
+        "id": "aws.c2b.cloudfront.logging_any",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/standard-logging.html",
+        "old_title": "AWS documentation for cloudfront distribution",
+        "new_title": "AWS AMAZONCLOUDFRONT standard logging"
+      },
+      {
+        "id": "aws.c2b.cloudfront.logging_any",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_DescribeDeliveries.html",
+        "old_title": "AWS documentation for cloudfront distribution",
+        "new_title": "AWS AMAZONCLOUDWATCHLOGS Describe Deliveries API"
+      },
+      {
+        "id": "aws.c2b.cloudfront.origin_no_deprecated_ssl",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_Origin.html",
+        "old_title": "AWS documentation for cloudfront distribution",
+        "new_title": "AWS CLOUDFRONT Origin API"
+      },
+      {
+        "id": "aws.c2b.cloudfront.pqc_tls",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/secure-connections-supported-viewer-protocols-ciphers.html",
+        "old_title": "AWS documentation for cloudfront distribution",
+        "new_title": "AWS AMAZONCLOUDFRONT secure connections supported viewer protocols ciphers"
+      },
+      {
+        "id": "aws.c2b.cloudfront.pqc_tls",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_ViewerCertificate.html",
+        "old_title": "AWS documentation for cloudfront distribution",
+        "new_title": "AWS CLOUDFRONT Viewer Certificate API"
+      },
+      {
+        "id": "aws.c2b.cloudfront.recommended_tls_policy",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/secure-connections-supported-viewer-protocols-ciphers.html",
+        "old_title": "AWS documentation for cloudfront distribution",
+        "new_title": "AWS AMAZONCLOUDFRONT secure connections supported viewer protocols ciphers"
+      },
+      {
+        "id": "aws.c2b.cloudfront.recommended_tls_policy",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_ViewerCertificate.html",
+        "old_title": "AWS documentation for cloudfront distribution",
+        "new_title": "AWS CLOUDFRONT Viewer Certificate API"
+      },
+      {
+        "id": "aws.c2b.cloudfront.s3_origin_access_control",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html",
+        "old_title": "AWS documentation for cloudfront distribution",
+        "new_title": "AWS AMAZONCLOUDFRONT private content restricting access to s3"
+      },
+      {
+        "id": "aws.c2b.cloudfront.s3_origin_access_control",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_Origin.html",
+        "old_title": "AWS documentation for cloudfront distribution",
+        "new_title": "AWS CLOUDFRONT Origin API"
+      },
+      {
+        "id": "aws.c2b.cloudfront.s3_origin_access_identity",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_S3OriginConfig.html",
+        "old_title": "AWS documentation for cloudfront distribution",
+        "new_title": "AWS CLOUDFRONT S3 Origin Config API"
+      },
+      {
+        "id": "aws.c2b.cloudfront.s3_origin_access_identity",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html",
+        "old_title": "AWS documentation for cloudfront distribution",
+        "new_title": "AWS AMAZONCLOUDFRONT private content restricting access to s3"
+      },
+      {
+        "id": "aws.c2b.codeartifact.internal_packages_block_upstream",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/codeartifact/latest/APIReference/API_PackageSummary.html",
+        "old_title": "AWS documentation for codeartifact repository",
+        "new_title": "AWS CODEARTIFACT Package Summary API"
+      },
+      {
+        "id": "aws.c2b.codeartifact.internal_packages_block_upstream",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/codeartifact/latest/ug/package-origin-controls.html",
+        "old_title": "AWS documentation for codeartifact repository",
+        "new_title": "AWS CODEARTIFACT package origin controls"
+      },
+      {
+        "id": "aws.c2b.codebuild.buildspec_not_user_controlled",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/codebuild/latest/APIReference/API_ProjectSource.html",
+        "old_title": "AWS documentation for codebuild project",
+        "new_title": "AWS CODEBUILD Project Source API"
+      },
+      {
+        "id": "aws.c2b.codebuild.buildspec_not_yml_file",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/codebuild/latest/APIReference/API_ProjectSource.html",
+        "old_title": "AWS documentation for codebuild project",
+        "new_title": "AWS CODEBUILD Project Source API"
+      },
+      {
+        "id": "aws.c2b.codebuild.no_plaintext_sensitive_env_names",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/codebuild/latest/APIReference/API_EnvironmentVariable.html",
+        "old_title": "AWS documentation for codebuild project",
+        "new_title": "AWS CODEBUILD Environment Variable API"
+      },
+      {
+        "id": "aws.c2b.codebuild.no_plaintext_sensitive_env_names",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/codebuild-controls.html",
+        "old_title": "AWS documentation for codebuild project",
+        "new_title": "AWS Security Hub CodeBuild controls"
+      },
+      {
+        "id": "aws.c2b.codebuild.project_private",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/codebuild/latest/APIReference/API_Project.html",
+        "old_title": "AWS documentation for codebuild project",
+        "new_title": "AWS CODEBUILD Project API"
+      },
+      {
+        "id": "aws.c2b.codebuild.project_private",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/codebuild/latest/userguide/public-builds.html",
+        "old_title": "AWS documentation for codebuild project",
+        "new_title": "AWS CODEBUILD public builds"
+      },
+      {
+        "id": "aws.c2b.codebuild.report_group_export_encrypted",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/codebuild/latest/APIReference/API_S3ReportExportConfig.html",
+        "old_title": "AWS documentation for codebuild report group",
+        "new_title": "AWS CODEBUILD S3 Report Export Config API"
+      },
+      {
+        "id": "aws.c2b.codebuild.report_group_export_encrypted",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/codebuild-controls.html",
+        "old_title": "AWS documentation for codebuild report group",
+        "new_title": "AWS Security Hub CodeBuild controls"
+      },
+      {
+        "id": "aws.c2b.codebuild.s3_logs_encrypted_when_enabled",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/codebuild/latest/APIReference/API_S3LogsConfig.html",
+        "old_title": "AWS documentation for codebuild project",
+        "new_title": "AWS CODEBUILD S3 Logs Config API"
+      },
+      {
+        "id": "aws.c2b.codebuild.s3_logs_encrypted_when_enabled",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/codebuild-controls.html",
+        "old_title": "AWS documentation for codebuild project",
+        "new_title": "AWS Security Hub CodeBuild controls"
+      },
+      {
+        "id": "aws.c2b.codebuild.source_repo_oauth",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/codebuild/latest/APIReference/API_SourceCredentialsInfo.html",
+        "old_title": "AWS documentation for codebuild project",
+        "new_title": "AWS CODEBUILD Source Credentials Info API"
+      },
+      {
+        "id": "aws.c2b.codebuild.source_repo_oauth",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/codebuild-controls.html",
+        "old_title": "AWS documentation for codebuild project",
+        "new_title": "AWS Security Hub CodeBuild controls"
+      },
+      {
+        "id": "aws.c2b.codebuild.source_url_no_credentials",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/codebuild/latest/APIReference/API_ProjectSource.html",
+        "old_title": "AWS documentation for codebuild project",
+        "new_title": "AWS CODEBUILD Project Source API"
+      },
+      {
+        "id": "aws.c2b.codebuild.source_url_no_credentials",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/codebuild-controls.html",
+        "old_title": "AWS documentation for codebuild project",
+        "new_title": "AWS Security Hub CodeBuild controls"
+      },
+      {
+        "id": "aws.c2b.codedeploy.lambda_not_all_at_once",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/codedeploy/latest/APIReference/API_DeploymentGroupInfo.html",
+        "old_title": "AWS documentation for codedeploy deployment group",
+        "new_title": "AWS CODEDEPLOY Deployment Group Info API"
+      },
+      {
+        "id": "aws.c2b.codedeploy.lambda_not_all_at_once",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/codedeploy/latest/userguide/deployment-configurations.html",
+        "old_title": "AWS documentation for codedeploy deployment group",
+        "new_title": "AWS CODEDEPLOY deployment configurations"
+      },
+      {
+        "id": "aws.c2b.cognito.waf_web_acl_associated",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/waf/latest/APIReference/API_GetWebACLForResource.html",
+        "old_title": "AWS documentation for cognito user pool",
+        "new_title": "AWS WAF Get Web ACL For Resource API"
+      },
+      {
+        "id": "aws.c2b.cognito.waf_web_acl_associated",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-waf.html",
+        "old_title": "AWS documentation for cognito user pool",
+        "new_title": "AWS COGNITO user pool waf"
+      },
+      {
+        "id": "aws.c2b.connect.contact_flow_logs",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/connect/latest/APIReference/API_DescribeInstanceAttribute.html",
+        "old_title": "AWS documentation for connect instance",
+        "new_title": "AWS CONNECT Describe Instance Attribute API"
+      },
+      {
+        "id": "aws.c2b.connect.contact_flow_logs",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/connect-controls.html",
+        "old_title": "AWS documentation for connect instance",
+        "new_title": "AWS Security Hub connect controls"
+      },
+      {
+        "id": "aws.c2b.datasync.task_log_group",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/datasync/latest/userguide/API_DescribeTask.html",
+        "old_title": "AWS documentation for datasync task",
+        "new_title": "AWS DATASYNC Describe Task API"
+      },
+      {
+        "id": "aws.c2b.datasync.task_logging_level",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/datasync/latest/userguide/API_DescribeTask.html",
+        "old_title": "AWS documentation for datasync task",
+        "new_title": "AWS DATASYNC Describe Task API"
+      },
+      {
+        "id": "aws.c2b.datasync.task_logging_level",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/datasync-controls.html",
+        "old_title": "AWS documentation for datasync task",
+        "new_title": "AWS Security Hub datasync controls"
+      },
+      {
+        "id": "aws.c2b.dax.encryption_at_rest",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DAXEncryptionAtRest.html",
+        "old_title": "DAX encryption mode and immutable setting",
+        "new_title": "AWS AMAZONDYNAMODB DAX Encryption At Rest"
+      },
+      {
+        "id": "aws.c2b.dax.encryption_in_transit",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DAXEncryptionInTransit.html",
+        "old_title": "DAX encryption mode and immutable setting",
+        "new_title": "AWS AMAZONDYNAMODB DAX Encryption In Transit"
+      },
+      {
+        "id": "aws.c2b.directoryservice.log_forwarding",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/directoryservice/latest/devguide/API_ListLogSubscriptions.html",
+        "old_title": "AWS documentation for directory service directory",
+        "new_title": "AWS DIRECTORYSERVICE List Log Subscriptions API"
+      },
+      {
+        "id": "aws.c2b.directoryservice.radius_mfa_enabled",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/directoryservice/latest/devguide/API_RadiusSettings.html",
+        "old_title": "AWS documentation for directory service directory",
+        "new_title": "AWS DIRECTORYSERVICE Radius Settings API"
+      },
+      {
+        "id": "aws.c2b.directoryservice.radius_mfa_enabled",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/directoryservice/latest/devguide/API_DirectoryDescription.html",
+        "old_title": "AWS documentation for directory service directory",
+        "new_title": "AWS DIRECTORYSERVICE Directory Description API"
+      },
+      {
+        "id": "aws.c2b.directoryservice.radius_mfa_enabled",
+        "index": 2,
+        "url": "https://docs.aws.amazon.com/directoryservice/latest/admin-guide/ms_ad_mfa.html",
+        "old_title": "AWS documentation for directory service directory",
+        "new_title": "AWS DIRECTORYSERVICE ms ad mfa"
+      },
+      {
+        "id": "aws.c2b.directoryservice.radius_ms_chapv2",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/directoryservice/latest/devguide/API_RadiusSettings.html",
+        "old_title": "AWS documentation for directory service directory",
+        "new_title": "AWS DIRECTORYSERVICE Radius Settings API"
+      },
+      {
+        "id": "aws.c2b.directoryservice.radius_ms_chapv2",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/directoryservice/latest/devguide/API_DirectoryDescription.html",
+        "old_title": "AWS documentation for directory service directory",
+        "new_title": "AWS DIRECTORYSERVICE Directory Description API"
+      },
+      {
+        "id": "aws.c2b.directoryservice.shared_accounts_review",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/directoryservice/latest/devguide/API_DescribeSharedDirectories.html",
+        "old_title": "AWS documentation for directory service directory",
+        "new_title": "AWS DIRECTORYSERVICE Describe Shared Directories API"
+      },
+      {
+        "id": "aws.c2b.directoryservice.sns_notifications",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/directoryservice/latest/devguide/API_DescribeEventTopics.html",
+        "old_title": "AWS documentation for directory service directory",
+        "new_title": "AWS DIRECTORYSERVICE Describe Event Topics API"
+      },
+      {
+        "id": "aws.c2b.dlm.ebs_snapshot_policy_with_snapshots",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/dlm/latest/APIReference/API_LifecyclePolicySummary.html",
+        "old_title": "AWS documentation for dlm lifecycle policy",
+        "new_title": "AWS DLM Lifecycle Policy Summary API"
+      },
+      {
+        "id": "aws.c2b.dlm.ebs_snapshot_policy_with_snapshots",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/ebs/latest/userguide/snapshot-lifecycle.html",
+        "old_title": "AWS documentation for dlm lifecycle policy",
+        "new_title": "AWS EBS snapshot lifecycle"
+      },
+      {
+        "id": "aws.c2b.dlm.policy_exists_with_snapshots",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/dlm/latest/APIReference/API_LifecyclePolicySummary.html",
+        "old_title": "AWS documentation for dlm lifecycle policy",
+        "new_title": "AWS DLM Lifecycle Policy Summary API"
+      },
+      {
+        "id": "aws.c2b.dlm.policy_exists_with_snapshots",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/ebs/latest/userguide/snapshot-lifecycle.html",
+        "old_title": "AWS documentation for dlm lifecycle policy",
+        "new_title": "AWS EBS snapshot lifecycle"
+      },
+      {
+        "id": "aws.c2b.dms.endpoint_ssl",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/dms/latest/APIReference/API_Endpoint.html",
+        "old_title": "AWS documentation for dms endpoint",
+        "new_title": "AWS DMS Endpoint API"
+      },
+      {
+        "id": "aws.c2b.dms.endpoint_ssl",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/dms-controls.html",
+        "old_title": "AWS documentation for dms endpoint",
+        "new_title": "AWS Security Hub DMS controls"
+      },
+      {
+        "id": "aws.c2b.dms.mongodb_auth",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/dms/latest/APIReference/API_MongoDbSettings.html",
+        "old_title": "AWS documentation for dms endpoint",
+        "new_title": "AWS DMS Mongo Db Settings API"
+      },
+      {
+        "id": "aws.c2b.dms.mongodb_auth",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/dms-controls.html",
+        "old_title": "AWS documentation for dms endpoint",
+        "new_title": "AWS Security Hub DMS controls"
+      },
+      {
+        "id": "aws.c2b.dms.neptune_iam_auth",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/dms/latest/APIReference/API_NeptuneSettings.html",
+        "old_title": "AWS documentation for dms endpoint",
+        "new_title": "AWS DMS Neptune Settings API"
+      },
+      {
+        "id": "aws.c2b.dms.neptune_iam_auth",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/dms-controls.html",
+        "old_title": "AWS documentation for dms endpoint",
+        "new_title": "AWS Security Hub DMS controls"
+      },
+      {
+        "id": "aws.c2b.dms.redis_tls",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/dms/latest/APIReference/API_RedisSettings.html",
+        "old_title": "AWS documentation for dms endpoint",
+        "new_title": "AWS DMS Redis Settings API"
+      },
+      {
+        "id": "aws.c2b.dms.redis_tls",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/dms-controls.html",
+        "old_title": "AWS documentation for dms endpoint",
+        "new_title": "AWS Security Hub DMS controls"
+      },
+      {
+        "id": "aws.c2b.dms.task_source_logging",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Tasks.CustomizingTasks.TaskSettings.Logging.html",
+        "old_title": "AWS documentation for dms replication task",
+        "new_title": "AWS DMS CHAP Tasks.Customizing Tasks.Task Settings.Logging"
+      },
+      {
+        "id": "aws.c2b.dms.task_source_logging",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/dms-controls.html",
+        "old_title": "AWS documentation for dms replication task",
+        "new_title": "AWS Security Hub DMS controls"
+      },
+      {
+        "id": "aws.c2b.dms.task_target_logging",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Tasks.CustomizingTasks.TaskSettings.Logging.html",
+        "old_title": "AWS documentation for dms replication task",
+        "new_title": "AWS DMS CHAP Tasks.Customizing Tasks.Task Settings.Logging"
+      },
+      {
+        "id": "aws.c2b.dms.task_target_logging",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/dms-controls.html",
+        "old_title": "AWS documentation for dms replication task",
+        "new_title": "AWS Security Hub DMS controls"
+      },
+      {
+        "id": "aws.c2b.docdb.cluster_tls_required",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/documentdb/latest/developerguide/security.encryption.ssl.html",
+        "old_title": "AWS documentation for docdb cluster",
+        "new_title": "AWS DOCUMENTDB security.encryption.ssl"
+      },
+      {
+        "id": "aws.c2b.docdb.cluster_tls_required",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/documentdb-controls.html",
+        "old_title": "AWS documentation for docdb cluster",
+        "new_title": "AWS Security Hub documentdb controls"
+      },
+      {
+        "id": "aws.c2b.docdb.snapshot_not_public_prowler",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DescribeDBClusterSnapshotAttributes.html",
+        "old_title": "AWS documentation for rds cluster snapshot",
+        "new_title": "AWS AMAZONRDS Describe DB Cluster Snapshot Attributes API"
+      },
+      {
+        "id": "aws.c2b.docdb.snapshot_restore_not_all_exact",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DescribeDBClusterSnapshotAttributes.html",
+        "old_title": "AWS documentation for rds cluster snapshot",
+        "new_title": "AWS AMAZONRDS Describe DB Cluster Snapshot Attributes API"
+      },
+      {
+        "id": "aws.c2b.docdb.snapshot_restore_not_all_exact",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/documentdb-controls.html",
+        "old_title": "AWS documentation for rds cluster snapshot",
+        "new_title": "AWS Security Hub documentdb controls"
+      },
+      {
+        "id": "aws.c2b.documentdb.backup_retention_7",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/documentdb/latest/developerguide/API_DBCluster.html",
+        "old_title": "AWS documentation for docdb cluster",
+        "new_title": "AWS DOCUMENTDB DB Cluster API"
+      },
+      {
+        "id": "aws.c2b.documentdb.cluster_log_exports",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/documentdb/latest/developerguide/API_DBCluster.html",
+        "old_title": "AWS documentation for docdb cluster",
+        "new_title": "AWS DOCUMENTDB DB Cluster API"
+      },
+      {
+        "id": "aws.c2b.documentdb.cluster_log_exports",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/documentdb/latest/developerguide/event-auditing.html",
+        "old_title": "AWS documentation for docdb cluster",
+        "new_title": "AWS DOCUMENTDB event auditing"
+      },
+      {
+        "id": "aws.c2b.documentdb.deletion_protection",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/documentdb/latest/developerguide/API_DBCluster.html",
+        "old_title": "AWS documentation for docdb cluster",
+        "new_title": "AWS DOCUMENTDB DB Cluster API"
+      },
+      {
+        "id": "aws.c2b.dynamodb.capacity_autoscaling",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_TableDescription.html",
+        "old_title": "AWS documentation for dynamodb table",
+        "new_title": "AWS AMAZONDYNAMODB Table Description API"
+      },
+      {
+        "id": "aws.c2b.dynamodb.capacity_autoscaling",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/autoscaling/application/APIReference/API_ScalableTarget.html",
+        "old_title": "AWS documentation for dynamodb table",
+        "new_title": "AWS Auto Scaling Scalable Target API"
+      },
+      {
+        "id": "aws.c2b.dynamodb.capacity_autoscaling",
+        "index": 2,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/dynamodb-controls.html",
+        "old_title": "AWS documentation for dynamodb table",
+        "new_title": "AWS Security Hub dynamodb controls"
+      },
+      {
+        "id": "aws.c2b.dynamodb.policy_not_cross_account",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_GetResourcePolicy.html",
+        "old_title": "AWS documentation for dynamodb table",
+        "new_title": "AWS AMAZONDYNAMODB Get Resource Policy API"
+      },
+      {
+        "id": "aws.c2b.dynamodb.sse_kms",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_SSEDescription.html",
+        "old_title": "AWS documentation for dynamodb table",
+        "new_title": "AWS AMAZONDYNAMODB SSE Description API"
+      },
+      {
+        "id": "aws.c2b.dynamodb.table_in_backup_selection_or_tag",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/API_BackupSelection.html",
+        "old_title": "AWS documentation for dynamodb table",
+        "new_title": "AWS Backup Backup Selection API"
+      },
+      {
+        "id": "aws.c2b.dynamodb.table_in_backup_selection_or_tag",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_ListTagsOfResource.html",
+        "old_title": "AWS documentation for dynamodb table",
+        "new_title": "AWS AMAZONDYNAMODB List Tags Of Resource API"
+      },
+      {
+        "id": "aws.c2b.dynamodb.table_in_backup_selection_prowler",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/API_BackupSelection.html",
+        "old_title": "AWS documentation for dynamodb table",
+        "new_title": "AWS Backup Backup Selection API"
+      },
+      {
+        "id": "aws.c2b.dynamodb.table_protected_resource",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/API_ProtectedResource.html",
+        "old_title": "AWS documentation for dynamodb table",
+        "new_title": "AWS Backup Protected Resource API"
+      },
+      {
+        "id": "aws.c2b.ecr.registry_automated_scanning",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonECR/latest/APIReference/API_GetRegistryScanningConfiguration.html",
+        "old_title": "AWS documentation for ecr registry scanning configuration",
+        "new_title": "AWS AMAZONECR Get Registry Scanning Configuration API"
+      },
+      {
+        "id": "aws.c2b.ecr.registry_automated_scanning",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/AmazonECR/latest/APIReference/API_RegistryScanningRule.html",
+        "old_title": "AWS documentation for ecr registry scanning configuration",
+        "new_title": "AWS AMAZONECR Registry Scanning Rule API"
+      },
+      {
+        "id": "aws.c2b.ecr.registry_enhanced_scanning",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonECR/latest/APIReference/API_GetRegistryScanningConfiguration.html",
+        "old_title": "AWS documentation for ecr registry scanning configuration",
+        "new_title": "AWS AMAZONECR Get Registry Scanning Configuration API"
+      },
+      {
+        "id": "aws.c2b.ecr.registry_enhanced_scanning",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-scanning-enhanced.html",
+        "old_title": "AWS documentation for ecr registry scanning configuration",
+        "new_title": "AWS AMAZONECR image scanning enhanced"
+      },
+      {
+        "id": "aws.c2b.ecr.repository_not_public",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonECR/latest/APIReference/API_GetRepositoryPolicy.html",
+        "old_title": "AWS documentation for ecr repository",
+        "new_title": "AWS AMAZONECR Get Repository Policy API"
+      },
+      {
+        "id": "aws.c2b.ecr.repository_policy_no_wildcard_principal",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonECR/latest/APIReference/API_GetRepositoryPolicy.html",
+        "old_title": "AWS documentation for ecr repository",
+        "new_title": "AWS AMAZONECR Get Repository Policy API"
+      },
+      {
+        "id": "aws.c2b.ecr.repository_policy_no_wildcard_principal",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/AmazonECR/latest/userguide/repository-policies.html",
+        "old_title": "AWS documentation for ecr repository",
+        "new_title": "AWS AMAZONECR repository policies"
+      },
+      {
+        "id": "aws.c2b.ecr.repository_policy_prohibit_public_perimeter",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonECR/latest/APIReference/API_GetRepositoryPolicy.html",
+        "old_title": "AWS documentation for ecr repository",
+        "new_title": "AWS AMAZONECR Get Repository Policy API"
+      },
+      {
+        "id": "aws.c2b.ecs.all_containers_logging",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerDefinition.html",
+        "old_title": "AWS documentation for ecs task definition",
+        "new_title": "AWS AMAZONECS Container Definition API"
+      },
+      {
+        "id": "aws.c2b.ecs.all_containers_logging",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/ecs-controls.html#ecs-9",
+        "old_title": "AWS documentation for ecs task definition",
+        "new_title": "AWS Security Hub ecs controls (ecs 9)"
+      },
+      {
+        "id": "aws.c2b.ecs.awsvpc_service_no_public_ip",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_Service.html",
+        "old_title": "AWS documentation for ecs service",
+        "new_title": "AWS AMAZONECS Service API"
+      },
+      {
+        "id": "aws.c2b.ecs.awsvpc_service_no_public_ip",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/ecs-controls.html#ecs-2",
+        "old_title": "AWS documentation for ecs service",
+        "new_title": "AWS Security Hub ecs controls (ecs 2)"
+      },
+      {
+        "id": "aws.c2b.ecs.container_insights",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_Cluster.html",
+        "old_title": "AWS documentation for ecs cluster",
+        "new_title": "AWS AMAZONECS Cluster API"
+      },
+      {
+        "id": "aws.c2b.ecs.container_insights",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/ecs-controls.html#ecs-12",
+        "old_title": "AWS documentation for ecs cluster",
+        "new_title": "AWS Security Hub ecs controls (ecs 12)"
+      },
+      {
+        "id": "aws.c2b.ecs.container_insights_setting",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_Cluster.html",
+        "old_title": "AWS documentation for ecs cluster",
+        "new_title": "AWS AMAZONECS Cluster API"
+      },
+      {
+        "id": "aws.c2b.ecs.container_insights_setting",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/deploy-container-insights-ECS-cluster.html",
+        "old_title": "AWS documentation for ecs cluster",
+        "new_title": "AWS AMAZONCLOUDWATCH deploy container insights ECS cluster"
+      },
+      {
+        "id": "aws.c2b.ecs.fargate_latest_platform",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_Service.html",
+        "old_title": "AWS documentation for ecs service",
+        "new_title": "AWS AMAZONECS Service API"
+      },
+      {
+        "id": "aws.c2b.ecs.fargate_latest_platform",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/ecs-controls.html#ecs-10",
+        "old_title": "AWS documentation for ecs service",
+        "new_title": "AWS Security Hub ecs controls (ecs 10)"
+      },
+      {
+        "id": "aws.c2b.ecs.fargate_latest_platform",
+        "index": 2,
+        "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/platform-fargate.html",
+        "old_title": "AWS documentation for ecs service",
+        "new_title": "AWS AMAZONECS platform fargate"
+      },
+      {
+        "id": "aws.c2b.ecs.host_network_root_user",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerDefinition.html",
+        "old_title": "AWS documentation for ecs task definition",
+        "new_title": "AWS AMAZONECS Container Definition API"
+      },
+      {
+        "id": "aws.c2b.ecs.host_network_root_user",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#network_mode",
+        "old_title": "AWS documentation for ecs task definition",
+        "new_title": "AWS AMAZONECS task definition parameters (network mode)"
+      },
+      {
+        "id": "aws.c2b.ecs.logging_non_blocking",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_LogConfiguration.html",
+        "old_title": "AWS documentation for ecs task definition",
+        "new_title": "AWS AMAZONECS Log Configuration API"
+      },
+      {
+        "id": "aws.c2b.ecs.logging_non_blocking",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-account-settings.html#default-log-driver-mode",
+        "old_title": "AWS documentation for ecs task definition",
+        "new_title": "AWS AMAZONECS ecs account settings (default log driver mode)"
+      },
+      {
+        "id": "aws.c2b.ecs.no_credential_named_env_vars",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/ecs-controls.html#ecs-8",
+        "old_title": "AWS documentation for ecs task definition",
+        "new_title": "AWS Security Hub ecs controls (ecs 8)"
+      },
+      {
+        "id": "aws.c2b.ecs.no_credential_named_env_vars",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerDefinition.html",
+        "old_title": "AWS documentation for ecs task definition",
+        "new_title": "AWS AMAZONECS Container Definition API"
+      },
+      {
+        "id": "aws.c2b.ecs.service_load_balancer_attached",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_Service.html",
+        "old_title": "AWS documentation for ecs service",
+        "new_title": "AWS AMAZONECS Service API"
+      },
+      {
+        "id": "aws.c2b.ecs.service_no_public_ip",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_Service.html",
+        "old_title": "AWS documentation for ecs service",
+        "new_title": "AWS AMAZONECS Service API"
+      },
+      {
+        "id": "aws.c2b.ecs.service_no_public_ip",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/ecs-controls.html#ecs-2",
+        "old_title": "AWS documentation for ecs service",
+        "new_title": "AWS Security Hub ecs controls (ecs 2)"
+      },
+      {
+        "id": "aws.c2b.efs.file_system_protected_resource",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/API_ProtectedResource.html",
+        "old_title": "AWS documentation for efs file system",
+        "new_title": "AWS Backup Protected Resource API"
+      },
+      {
+        "id": "aws.c2b.efs.file_system_protected_resource",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/efs/latest/ug/API_FileSystemDescription.html",
+        "old_title": "AWS documentation for efs file system",
+        "new_title": "AWS EFS File System Description API"
+      },
+      {
+        "id": "aws.c2b.efs.file_system_protected_resource",
+        "index": 2,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/efs-controls.html",
+        "old_title": "AWS documentation for efs file system",
+        "new_title": "AWS Security Hub EFS controls"
+      },
+      {
+        "id": "aws.c2b.efs.policy_enforces_ssl",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/efs/latest/ug/API_DescribeFileSystemPolicy.html",
+        "old_title": "AWS documentation for efs file system",
+        "new_title": "AWS EFS Describe File System Policy API"
+      },
+      {
+        "id": "aws.c2b.efs.policy_enforces_ssl",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/efs/latest/ug/encryption-in-transit.html",
+        "old_title": "AWS documentation for efs file system",
+        "new_title": "AWS EFS encryption in transit"
+      },
+      {
+        "id": "aws.c2b.efs.policy_no_wildcard_allow",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/efs/latest/ug/API_DescribeFileSystemPolicy.html",
+        "old_title": "AWS documentation for efs file system",
+        "new_title": "AWS EFS Describe File System Policy API"
+      },
+      {
+        "id": "aws.c2b.efs.policy_not_open_to_vpc_clients",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/efs/latest/ug/API_DescribeFileSystemPolicy.html",
+        "old_title": "AWS documentation for efs file system",
+        "new_title": "AWS EFS Describe File System Policy API"
+      },
+      {
+        "id": "aws.c2b.efs.policy_not_open_to_vpc_clients",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/efs/latest/ug/iam-access-control-nfs-efs.html",
+        "old_title": "AWS documentation for efs file system",
+        "new_title": "AWS EFS iam access control nfs efs"
+      },
+      {
+        "id": "aws.c2b.efs.policy_prohibit_public_access",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/efs/latest/ug/API_DescribeFileSystemPolicy.html",
+        "old_title": "AWS documentation for efs file system",
+        "new_title": "AWS EFS Describe File System Policy API"
+      },
+      {
+        "id": "aws.c2b.eks.deletion_protection",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/eks/latest/APIReference/API_Cluster.html",
+        "old_title": "AWS documentation for eks cluster",
+        "new_title": "AWS EKS Cluster API"
+      },
+      {
+        "id": "aws.c2b.eks.endpoint_not_public",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/eks/latest/APIReference/API_Cluster.html",
+        "old_title": "AWS documentation for eks cluster",
+        "new_title": "AWS EKS Cluster API"
+      },
+      {
+        "id": "aws.c2b.eks.endpoint_not_public",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html",
+        "old_title": "AWS documentation for eks cluster",
+        "new_title": "AWS EKS cluster endpoint"
+      },
+      {
+        "id": "aws.c2b.eks.endpoint_not_world_open",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/eks/latest/APIReference/API_Cluster.html",
+        "old_title": "AWS documentation for eks cluster",
+        "new_title": "AWS EKS Cluster API"
+      },
+      {
+        "id": "aws.c2b.eks.endpoint_not_world_open",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html",
+        "old_title": "AWS documentation for eks cluster",
+        "new_title": "AWS EKS cluster endpoint"
+      },
+      {
+        "id": "aws.c2b.eks.secrets_encryption_configured",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/eks/latest/APIReference/API_Cluster.html",
+        "old_title": "AWS documentation for eks cluster",
+        "new_title": "AWS EKS Cluster API"
+      },
+      {
+        "id": "aws.c2b.eks.secrets_encryption_configured",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/eks/latest/userguide/envelope-encryption.html",
+        "old_title": "AWS documentation for eks cluster",
+        "new_title": "AWS EKS envelope encryption"
+      },
+      {
+        "id": "aws.c2b.eks.vpc_cni_network_policy",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/eks/latest/userguide/cni-network-policy-configure.html",
+        "old_title": "AWS documentation for eks cluster",
+        "new_title": "AWS EKS cni network policy configure"
+      },
+      {
+        "id": "aws.c2b.eks.vpc_cni_network_policy",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/eks/latest/APIReference/API_Addon.html",
+        "old_title": "AWS documentation for eks cluster",
+        "new_title": "AWS EKS Addon API"
+      },
+      {
+        "id": "aws.c2b.elasticache.cluster_no_default_subnet_group",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonElastiCache/latest/APIReference/API_CacheCluster.html",
+        "old_title": "AWS documentation for elasticache cluster",
+        "new_title": "AWS AMAZONELASTICACHE Cache Cluster API"
+      },
+      {
+        "id": "aws.c2b.elasticache.cluster_no_default_subnet_group",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/elasticache-controls.html",
+        "old_title": "AWS documentation for elasticache cluster",
+        "new_title": "AWS Security Hub elasticache controls"
+      },
+      {
+        "id": "aws.c2b.elasticache.rg_auto_minor_version_upgrade",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonElastiCache/latest/APIReference/API_ReplicationGroup.html",
+        "old_title": "AWS documentation for elasticache replication group",
+        "new_title": "AWS AMAZONELASTICACHE Replication Group API"
+      },
+      {
+        "id": "aws.c2b.elasticache.rg_backup_retention_15",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonElastiCache/latest/APIReference/API_ReplicationGroup.html",
+        "old_title": "AWS documentation for elasticache replication group",
+        "new_title": "AWS AMAZONELASTICACHE Replication Group API"
+      },
+      {
+        "id": "aws.c2b.elasticache.rg_backup_retention_15",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/elasticache-controls.html",
+        "old_title": "AWS documentation for elasticache replication group",
+        "new_title": "AWS Security Hub elasticache controls"
+      },
+      {
+        "id": "aws.c2b.elasticache.rg_backup_retention_7",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonElastiCache/latest/APIReference/API_ReplicationGroup.html",
+        "old_title": "AWS documentation for elasticache replication group",
+        "new_title": "AWS AMAZONELASTICACHE Replication Group API"
+      },
+      {
+        "id": "aws.c2b.elasticache.rg_multi_az",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonElastiCache/latest/APIReference/API_ReplicationGroup.html",
+        "old_title": "AWS documentation for elasticache replication group",
+        "new_title": "AWS AMAZONELASTICACHE Replication Group API"
+      },
+      {
+        "id": "aws.c2b.elasticbeanstalk.enhanced_health",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/command-options-general.html",
+        "old_title": "AWS documentation for elastic beanstalk environment",
+        "new_title": "AWS ELASTICBEANSTALK command options general"
+      },
+      {
+        "id": "aws.c2b.elasticbeanstalk.enhanced_health",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/health-enhanced.html",
+        "old_title": "AWS documentation for elastic beanstalk environment",
+        "new_title": "AWS ELASTICBEANSTALK health enhanced"
+      },
+      {
+        "id": "aws.c2b.elasticbeanstalk.managed_updates",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/command-options-general.html",
+        "old_title": "AWS documentation for elastic beanstalk environment",
+        "new_title": "AWS ELASTICBEANSTALK command options general"
+      },
+      {
+        "id": "aws.c2b.elasticbeanstalk.managed_updates",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/environment-platform-update-managed.html",
+        "old_title": "AWS documentation for elastic beanstalk environment",
+        "new_title": "AWS ELASTICBEANSTALK environment platform update managed"
+      },
+      {
+        "id": "aws.c2b.elasticbeanstalk.stream_logs",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/command-options-general.html",
+        "old_title": "AWS documentation for elastic beanstalk environment",
+        "new_title": "AWS ELASTICBEANSTALK command options general"
+      },
+      {
+        "id": "aws.c2b.elasticbeanstalk.stream_logs",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/AWSHowTo.cloudwatchlogs.html",
+        "old_title": "AWS documentation for elastic beanstalk environment",
+        "new_title": "AWS ELASTICBEANSTALK AWS How To.cloudwatchlogs"
+      },
+      {
+        "id": "aws.c2b.elbv2.alb_http_redirect_default",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_Listener.html",
+        "old_title": "AWS documentation for load balancer",
+        "new_title": "AWS Elastic Load Balancing Listener API"
+      },
+      {
+        "id": "aws.c2b.elbv2.alb_http_redirect_default",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/elb-controls.html#elb-1",
+        "old_title": "AWS documentation for load balancer",
+        "new_title": "AWS Security Hub elb controls (elb 1)"
+      },
+      {
+        "id": "aws.c2b.elbv2.alb_waf_attached",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/waf/latest/APIReference/API_ListResourcesForWebACL.html",
+        "old_title": "AWS documentation for load balancer",
+        "new_title": "AWS WAF List Resources For Web ACL API"
+      },
+      {
+        "id": "aws.c2b.elbv2.alb_waf_attached",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/waf/latest/APIReference/API_wafRegional_ListResourcesForWebACL.html",
+        "old_title": "AWS documentation for load balancer",
+        "new_title": "AWS WAF waf Regional List Resources For Web ACL API"
+      },
+      {
+        "id": "aws.c2b.elbv2.alb_wafv2_attached",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/waf/latest/APIReference/API_ListResourcesForWebACL.html",
+        "old_title": "AWS documentation for load balancer",
+        "new_title": "AWS WAF List Resources For Web ACL API"
+      },
+      {
+        "id": "aws.c2b.elbv2.has_listeners",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_Listener.html",
+        "old_title": "AWS documentation for load balancer",
+        "new_title": "AWS Elastic Load Balancing Listener API"
+      },
+      {
+        "id": "aws.c2b.elbv2.http_listeners_redirect_https",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_Listener.html",
+        "old_title": "AWS documentation for load balancer",
+        "new_title": "AWS Elastic Load Balancing Listener API"
+      },
+      {
+        "id": "aws.c2b.elbv2.http_listeners_redirect_https",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_DescribeRules.html",
+        "old_title": "AWS documentation for load balancer",
+        "new_title": "AWS Elastic Load Balancing Describe Rules API"
+      },
+      {
+        "id": "aws.c2b.elbv2.insecure_ssl_ciphers",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/describe-ssl-policies.html",
+        "old_title": "AWS documentation for load balancer",
+        "new_title": "AWS Elastic Load Balancing describe ssl policies (Application Load Balancer)"
+      },
+      {
+        "id": "aws.c2b.elbv2.listener_certificate_30_days",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_Listener.html",
+        "old_title": "AWS documentation for load balancer",
+        "new_title": "AWS Elastic Load Balancing Listener API"
+      },
+      {
+        "id": "aws.c2b.elbv2.listener_certificate_30_days",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/acm/latest/APIReference/API_CertificateDetail.html",
+        "old_title": "AWS documentation for load balancer",
+        "new_title": "AWS ACM Certificate Detail API"
+      },
+      {
+        "id": "aws.c2b.elbv2.listener_certificate_30_days",
+        "index": 2,
+        "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ServerCertificateMetadata.html",
+        "old_title": "AWS documentation for load balancer",
+        "new_title": "AWS IAM Server Certificate Metadata API"
+      },
+      {
+        "id": "aws.c2b.elbv2.listener_certificate_7_days",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_Listener.html",
+        "old_title": "AWS documentation for load balancer",
+        "new_title": "AWS Elastic Load Balancing Listener API"
+      },
+      {
+        "id": "aws.c2b.elbv2.listener_certificate_7_days",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/acm/latest/APIReference/API_CertificateDetail.html",
+        "old_title": "AWS documentation for load balancer",
+        "new_title": "AWS ACM Certificate Detail API"
+      },
+      {
+        "id": "aws.c2b.elbv2.listener_certificate_7_days",
+        "index": 2,
+        "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ServerCertificateMetadata.html",
+        "old_title": "AWS documentation for load balancer",
+        "new_title": "AWS IAM Server Certificate Metadata API"
+      },
+      {
+        "id": "aws.c2b.elbv2.listener_fips_tls",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/describe-ssl-policies.html",
+        "old_title": "AWS documentation for load balancer",
+        "new_title": "AWS Elastic Load Balancing describe ssl policies (Application Load Balancer)"
+      },
+      {
+        "id": "aws.c2b.elbv2.listener_fips_tls",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/network/describe-ssl-policies.html",
+        "old_title": "AWS documentation for load balancer",
+        "new_title": "AWS Elastic Load Balancing describe ssl policies (Network Load Balancer)"
+      },
+      {
+        "id": "aws.c2b.elbv2.listener_pqc_tls",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/describe-ssl-policies.html",
+        "old_title": "AWS documentation for load balancer",
+        "new_title": "AWS Elastic Load Balancing describe ssl policies (Application Load Balancer)"
+      },
+      {
+        "id": "aws.c2b.elbv2.listeners_acm_certificate",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_Listener.html",
+        "old_title": "AWS documentation for load balancer",
+        "new_title": "AWS Elastic Load Balancing Listener API"
+      },
+      {
+        "id": "aws.c2b.elbv2.listeners_acm_certificate",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/acm/latest/APIReference/API_CertificateDetail.html",
+        "old_title": "AWS documentation for load balancer",
+        "new_title": "AWS ACM Certificate Detail API"
+      },
+      {
+        "id": "aws.c2b.elbv2.nlb_tls_termination",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_Listener.html",
+        "old_title": "AWS documentation for load balancer",
+        "new_title": "AWS Elastic Load Balancing Listener API"
+      },
+      {
+        "id": "aws.c2b.elbv2.nlb_tls_termination",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/network/describe-ssl-policies.html",
+        "old_title": "AWS documentation for load balancer",
+        "new_title": "AWS Elastic Load Balancing describe ssl policies (Network Load Balancer)"
+      },
+      {
+        "id": "aws.c2b.elbv2.recommended_tls_policy",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/describe-ssl-policies.html",
+        "old_title": "AWS documentation for load balancer",
+        "new_title": "AWS Elastic Load Balancing describe ssl policies (Application Load Balancer)"
+      },
+      {
+        "id": "aws.c2b.elbv2.recommended_tls_policy",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/network/describe-ssl-policies.html",
+        "old_title": "AWS documentation for load balancer",
+        "new_title": "AWS Elastic Load Balancing describe ssl policies (Network Load Balancer)"
+      },
+      {
+        "id": "aws.c2b.elbv2.recommended_tls_policy",
+        "index": 2,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/elb-controls.html#elb-17",
+        "old_title": "AWS documentation for load balancer",
+        "new_title": "AWS Security Hub elb controls (elb 17)"
+      },
+      {
+        "id": "aws.c2b.emr.block_public_access_enabled",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-block-public-access.html",
+        "old_title": "AWS documentation for emr block public access configuration",
+        "new_title": "AWS EMR emr block public access"
+      },
+      {
+        "id": "aws.c2b.emr.block_public_access_enabled",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/emr/latest/APIReference/API_BlockPublicAccessConfiguration.html",
+        "old_title": "AWS documentation for emr block public access configuration",
+        "new_title": "AWS EMR Block Public Access Configuration API"
+      },
+      {
+        "id": "aws.c2b.emr.block_public_access_only_port_22",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/emr-controls.html",
+        "old_title": "AWS documentation for emr block public access configuration",
+        "new_title": "AWS Security Hub emr controls"
+      },
+      {
+        "id": "aws.c2b.emr.block_public_access_only_port_22",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-block-public-access.html",
+        "old_title": "AWS documentation for emr block public access configuration",
+        "new_title": "AWS EMR emr block public access"
+      },
+      {
+        "id": "aws.c2b.emr.block_public_access_only_port_22",
+        "index": 2,
+        "url": "https://docs.aws.amazon.com/emr/latest/APIReference/API_BlockPublicAccessConfiguration.html",
+        "old_title": "AWS documentation for emr block public access configuration",
+        "new_title": "AWS EMR Block Public Access Configuration API"
+      },
+      {
+        "id": "aws.c2b.es.all_logs_to_cloudwatch",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/createdomain-configure-slow-logs.html",
+        "old_title": "AWS documentation for opensearch domain",
+        "new_title": "AWS OPENSEARCH-SERVICE createdomain configure slow logs"
+      },
+      {
+        "id": "aws.c2b.es.all_logs_to_cloudwatch",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/opensearch-service/latest/APIReference/API_DomainStatus.html",
+        "old_title": "AWS documentation for opensearch domain",
+        "new_title": "AWS OPENSEARCH-SERVICE Domain Status API"
+      },
+      {
+        "id": "aws.c2b.es.audit_logs_to_cloudwatch",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/es-controls.html",
+        "old_title": "AWS documentation for opensearch domain",
+        "new_title": "AWS Security Hub es controls"
+      },
+      {
+        "id": "aws.c2b.es.audit_logs_to_cloudwatch",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/audit-logs.html",
+        "old_title": "AWS documentation for opensearch domain",
+        "new_title": "AWS OPENSEARCH-SERVICE audit logs"
+      },
+      {
+        "id": "aws.c2b.es.audit_logs_to_cloudwatch",
+        "index": 2,
+        "url": "https://docs.aws.amazon.com/opensearch-service/latest/APIReference/API_DomainStatus.html",
+        "old_title": "AWS documentation for opensearch domain",
+        "new_title": "AWS OPENSEARCH-SERVICE Domain Status API"
+      },
+      {
+        "id": "aws.c2b.es.error_logs_to_cloudwatch",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/es-controls.html",
+        "old_title": "AWS documentation for opensearch domain",
+        "new_title": "AWS Security Hub es controls"
+      },
+      {
+        "id": "aws.c2b.es.error_logs_to_cloudwatch",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/createdomain-configure-slow-logs.html",
+        "old_title": "AWS documentation for opensearch domain",
+        "new_title": "AWS OPENSEARCH-SERVICE createdomain configure slow logs"
+      },
+      {
+        "id": "aws.c2b.es.error_logs_to_cloudwatch",
+        "index": 2,
+        "url": "https://docs.aws.amazon.com/opensearch-service/latest/APIReference/API_DomainStatus.html",
+        "old_title": "AWS documentation for opensearch domain",
+        "new_title": "AWS OPENSEARCH-SERVICE Domain Status API"
+      },
+      {
+        "id": "aws.c2b.es.policy_prohibit_public_access",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/ac.html",
+        "old_title": "AWS documentation for opensearch domain",
+        "new_title": "AWS OPENSEARCH-SERVICE ac"
+      },
+      {
+        "id": "aws.c2b.es.policy_prohibit_public_access",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/opensearch-service/latest/APIReference/API_DomainStatus.html",
+        "old_title": "AWS documentation for opensearch domain",
+        "new_title": "AWS OPENSEARCH-SERVICE Domain Status API"
+      },
+      {
+        "id": "aws.c2b.es.tls_1_2_policy",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/es-controls.html",
+        "old_title": "AWS documentation for opensearch domain",
+        "new_title": "AWS Security Hub es controls"
+      },
+      {
+        "id": "aws.c2b.es.tls_1_2_policy",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/opensearch-service/latest/APIReference/API_DomainEndpointOptions.html",
+        "old_title": "AWS documentation for opensearch domain",
+        "new_title": "AWS OPENSEARCH-SERVICE Domain Endpoint Options API"
+      },
+      {
+        "id": "aws.c2b.eventbridge.bus_policy_no_cross_account",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/eventbridge/latest/APIReference/API_EventBus.html",
+        "old_title": "AWS documentation for eventbridge bus",
+        "new_title": "AWS EVENTBRIDGE Event Bus API"
+      },
+      {
+        "id": "aws.c2b.eventbridge.bus_policy_not_public",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/eventbridge/latest/APIReference/API_EventBus.html",
+        "old_title": "AWS documentation for eventbridge bus",
+        "new_title": "AWS EVENTBRIDGE Event Bus API"
+      },
+      {
+        "id": "aws.c2b.eventbridge.bus_policy_prohibit_public_perimeter",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/eventbridge/latest/APIReference/API_EventBus.html",
+        "old_title": "AWS documentation for eventbridge bus",
+        "new_title": "AWS EVENTBRIDGE Event Bus API"
+      },
+      {
+        "id": "aws.c2b.eventbridge.custom_bus_policy_attached",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/eventbridge/latest/APIReference/API_EventBus.html",
+        "old_title": "AWS documentation for eventbridge bus",
+        "new_title": "AWS EVENTBRIDGE Event Bus API"
+      },
+      {
+        "id": "aws.c2b.eventbridge.custom_bus_policy_attached",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/eventbridge-controls.html",
+        "old_title": "AWS documentation for eventbridge bus",
+        "new_title": "AWS Security Hub eventbridge controls"
+      },
+      {
+        "id": "aws.c2b.firehose.encrypted_at_rest_or_msk_source",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/firehose/latest/APIReference/API_DeliveryStreamDescription.html",
+        "old_title": "AWS documentation for firehose delivery stream",
+        "new_title": "AWS FIREHOSE Delivery Stream Description API"
+      },
+      {
+        "id": "aws.c2b.firehose.encrypted_at_rest_or_msk_source",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/firehose/latest/APIReference/API_DeliveryStreamEncryptionConfiguration.html",
+        "old_title": "AWS documentation for firehose delivery stream",
+        "new_title": "AWS FIREHOSE Delivery Stream Encryption Configuration API"
+      },
+      {
+        "id": "aws.c2b.lambda.env_vars_cmk",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/lambda/latest/api/API_FunctionConfiguration.html",
+        "old_title": "AWS documentation for lambda function",
+        "new_title": "AWS LAMBDA Function Configuration API"
+      },
+      {
+        "id": "aws.c2b.lambda.env_vars_cmk",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars-encryption.html",
+        "old_title": "AWS documentation for lambda function",
+        "new_title": "AWS LAMBDA configuration envvars encryption"
+      },
+      {
+        "id": "aws.c2b.lambda.invoke_cloudtrail_logged",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-data-events-with-cloudtrail.html",
+        "old_title": "AWS documentation for lambda function",
+        "new_title": "AWS AWSCLOUDTRAIL logging data events with cloudtrail"
+      },
+      {
+        "id": "aws.c2b.lambda.no_cross_account_layers",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/lambda/latest/api/API_Layer.html",
+        "old_title": "AWS documentation for lambda function",
+        "new_title": "AWS LAMBDA Layer API"
+      },
+      {
+        "id": "aws.c2b.lambda.policy_not_public",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/lambda/latest/dg/access-control-resource-based.html",
+        "old_title": "AWS documentation for lambda function",
+        "new_title": "AWS LAMBDA access control resource based"
+      },
+      {
+        "id": "aws.c2b.lambda.runtime_not_obsolete",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html",
+        "old_title": "AWS documentation for lambda function",
+        "new_title": "AWS LAMBDA lambda runtimes"
+      },
+      {
+        "id": "aws.c2b.lambda.url_cors_no_wildcard",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/lambda/latest/api/API_Cors.html",
+        "old_title": "AWS documentation for lambda function",
+        "new_title": "AWS LAMBDA Cors API"
+      }
+    ],
+    "peaso/rulepacks/remediation_aws_families_reviewed.json": [
+      {
+        "id": "aws.cb.apigatewayv2.stage_access_logging",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/apigatewayv2/latest/api-reference/apis-apiid-stages-stagename.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS API Gateway V2 apis apiid stages stagename"
+      },
+      {
+        "id": "aws.cb.firehose.server_side_encryption",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/firehose/latest/APIReference/API_DeliveryStreamEncryptionConfiguration.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS FIREHOSE Delivery Stream Encryption Configuration API"
+      },
+      {
+        "id": "aws.cb.fsx.copy_tags_to_backups",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/fsx/latest/APIReference/API_FileSystem.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS FSX File System API"
+      },
+      {
+        "id": "aws.cb.fsx.copy_tags_to_volumes",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/fsx/latest/APIReference/API_OpenZFSFileSystemConfiguration.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS FSX Open ZFS File System Configuration API"
+      },
+      {
+        "id": "aws.cb.fsx.lustre_copy_tags_to_backups",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/fsx/latest/APIReference/API_LustreFileSystemConfiguration.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS FSX Lustre File System Configuration API"
+      },
+      {
+        "id": "aws.cb.fsx.ontap_multi_az",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/fsx/latest/APIReference/API_FileSystem.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS FSX File System API"
+      },
+      {
+        "id": "aws.cb.fsx.openzfs_copy_tags_backups_and_volumes",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/fsx/latest/APIReference/API_OpenZFSFileSystemConfiguration.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS FSX Open ZFS File System Configuration API"
+      },
+      {
+        "id": "aws.cb.fsx.openzfs_multi_az",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/fsx/latest/APIReference/API_FileSystem.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS FSX File System API"
+      },
+      {
+        "id": "aws.cb.fsx.protected_by_backup_plan",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/API_ProtectedResource.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS Backup Protected Resource API"
+      },
+      {
+        "id": "aws.cb.fsx.windows_multi_az_deployment",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/fsx/latest/APIReference/API_FileSystem.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS FSX File System API"
+      },
+      {
+        "id": "aws.cb.fsx.windows_multiple_subnets",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/fsx/latest/APIReference/API_FileSystem.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS FSX File System API"
+      },
+      {
+        "id": "aws.cb.glacier.vault_policy_no_public_principal",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/amazonglacier/latest/dev/api-GetVaultAccessPolicy.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS AMAZONGLACIER api Get Vault Access Policy"
+      },
+      {
+        "id": "aws.cb.glacier.vault_policy_prohibit_public_access",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/amazonglacier/latest/dev/access-control-resource-based.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS AMAZONGLACIER access control resource based"
+      },
+      {
+        "id": "aws.cb.glacier.vault_policy_star_principal",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/amazonglacier/latest/dev/api-GetVaultAccessPolicy.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS AMAZONGLACIER api Get Vault Access Policy"
+      },
+      {
+        "id": "aws.cb.glue.catalog_policy_not_public",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/glue/latest/webapi/API_PutResourcePolicy.html",
+        "old_title": "Official AWS Glue service guidance",
+        "new_title": "AWS GLUE Put Resource Policy API"
+      },
+      {
+        "id": "aws.cb.glue.dev_endpoint_bookmarks_encryption",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/glue/latest/dg/encryption-security-configuration.html",
+        "old_title": "Official AWS Glue service guidance",
+        "new_title": "AWS GLUE encryption security configuration"
+      },
+      {
+        "id": "aws.cb.glue.dev_endpoint_cloudwatch_encryption",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/glue/latest/dg/encryption-security-configuration.html",
+        "old_title": "Official AWS Glue service guidance",
+        "new_title": "AWS GLUE encryption security configuration"
+      },
+      {
+        "id": "aws.cb.glue.dev_endpoint_s3_encryption_all_modes",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/glue/latest/dg/encryption-security-configuration.html",
+        "old_title": "Official AWS Glue service guidance",
+        "new_title": "AWS GLUE encryption security configuration"
+      },
+      {
+        "id": "aws.cb.glue.dev_endpoint_s3_encryption_first_mode",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/glue/latest/dg/encryption-security-configuration.html",
+        "old_title": "Official AWS Glue service guidance",
+        "new_title": "AWS GLUE encryption security configuration"
+      },
+      {
+        "id": "aws.cb.glue.job_bookmarks_encryption",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/glue/latest/dg/encryption-security-configuration.html",
+        "old_title": "Official AWS Glue service guidance",
+        "new_title": "AWS GLUE encryption security configuration"
+      },
+      {
+        "id": "aws.cb.glue.job_cloudwatch_encryption",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/glue/latest/dg/encryption-security-configuration.html",
+        "old_title": "Official AWS Glue service guidance",
+        "new_title": "AWS GLUE encryption security configuration"
+      },
+      {
+        "id": "aws.cb.glue.job_continuous_cloudwatch_logging",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-glue-arguments.html",
+        "old_title": "Official AWS Glue service guidance",
+        "new_title": "AWS GLUE aws glue programming etl glue arguments"
+      },
+      {
+        "id": "aws.cb.glue.job_s3_encryption_all_modes",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/glue/latest/dg/encryption-security-configuration.html",
+        "old_title": "Official AWS Glue service guidance",
+        "new_title": "AWS GLUE encryption security configuration"
+      },
+      {
+        "id": "aws.cb.glue.job_s3_encryption_first_mode",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/glue/latest/dg/encryption-security-configuration.html",
+        "old_title": "Official AWS Glue service guidance",
+        "new_title": "AWS GLUE encryption security configuration"
+      },
+      {
+        "id": "aws.cb.kinesis.customer_kms_key",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/kinesis/latest/APIReference/API_StreamDescriptionSummary.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS KINESIS Stream Description Summary API"
+      },
+      {
+        "id": "aws.cb.kinesis.kms_encryption",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/kinesis/latest/APIReference/API_StreamDescriptionSummary.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS KINESIS Stream Description Summary API"
+      },
+      {
+        "id": "aws.cb.kinesis.retention_at_least_168h",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/kinesis/latest/APIReference/API_StreamDescriptionSummary.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS KINESIS Stream Description Summary API"
+      },
+      {
+        "id": "aws.cb.kinesis.retention_exactly_168h",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/kinesis/latest/APIReference/API_StreamDescriptionSummary.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS KINESIS Stream Description Summary API"
+      },
+      {
+        "id": "aws.cb.lambda.cloudtrail_data_events",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-data-events-with-cloudtrail.html",
+        "old_title": "Official AWS Lambda or CloudTrail guidance",
+        "new_title": "AWS AWSCLOUDTRAIL logging data events with cloudtrail"
+      },
+      {
+        "id": "aws.cb.lambda.runtime_not_deprecated_list",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html",
+        "old_title": "Official AWS Lambda or CloudTrail guidance",
+        "new_title": "AWS LAMBDA lambda runtimes"
+      },
+      {
+        "id": "aws.cb.lightsail.instance_ipv6_disabled",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-enable-disable-ipv6.html",
+        "old_title": "Official Amazon Lightsail guidance",
+        "new_title": "AWS LIGHTSAIL amazon lightsail enable disable ipv6"
+      },
+      {
+        "id": "aws.cb.lightsail.ssh_rdp_http_world_closed",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/lightsail/2016-11-28/api-reference/API_PutInstancePublicPorts.html",
+        "old_title": "Official Amazon Lightsail guidance",
+        "new_title": "AWS LIGHTSAIL Put Instance Public Ports API"
+      },
+      {
+        "id": "aws.cb.mq.activemq_active_standby",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/amazon-mq/latest/api-reference/brokers-broker-id.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS AMAZON-MQ brokers broker id"
+      },
+      {
+        "id": "aws.cb.mq.activemq_audit_logs",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/amazon-mq/latest/api-reference/brokers-broker-id.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS AMAZON-MQ brokers broker id"
+      },
+      {
+        "id": "aws.cb.mq.engine_logging",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/amazon-mq/latest/api-reference/brokers-broker-id.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS AMAZON-MQ brokers broker id"
+      },
+      {
+        "id": "aws.cb.mq.not_publicly_accessible",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/amazon-mq/latest/api-reference/brokers-broker-id.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS AMAZON-MQ brokers broker id"
+      },
+      {
+        "id": "aws.cb.mq.rabbitmq_cluster_deployment",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/amazon-mq/latest/api-reference/brokers-broker-id.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS AMAZON-MQ brokers broker id"
+      },
+      {
+        "id": "aws.cb.neptune.audit_log_export",
+        "index": 2,
+        "url": "https://docs.aws.amazon.com/neptune/latest/apiref/API_ModifyDBCluster.html",
+        "old_title": "AWS ModifyDBCluster API",
+        "new_title": "AWS NEPTUNE Modify DB Cluster API"
+      },
+      {
+        "id": "aws.cb.neptune.backup_retention_7_days",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/neptune/latest/apiref/API_ModifyDBCluster.html",
+        "old_title": "AWS ModifyDBCluster API",
+        "new_title": "AWS NEPTUNE Modify DB Cluster API"
+      },
+      {
+        "id": "aws.cb.neptune.copy_tags_to_snapshot",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/neptune/latest/apiref/API_ModifyDBCluster.html",
+        "old_title": "AWS ModifyDBCluster API",
+        "new_title": "AWS NEPTUNE Modify DB Cluster API"
+      },
+      {
+        "id": "aws.cb.neptune.deletion_protection",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/neptune/latest/apiref/API_ModifyDBCluster.html",
+        "old_title": "AWS ModifyDBCluster API",
+        "new_title": "AWS NEPTUNE Modify DB Cluster API"
+      },
+      {
+        "id": "aws.cb.neptune.iam_authentication",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/neptune/latest/apiref/API_ModifyDBCluster.html",
+        "old_title": "AWS ModifyDBCluster API",
+        "new_title": "AWS NEPTUNE Modify DB Cluster API"
+      },
+      {
+        "id": "aws.cb.neptune.no_public_subnet_prowler",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/neptune/latest/apiref/API_ModifyDBCluster.html",
+        "old_title": "AWS ModifyDBCluster API",
+        "new_title": "AWS NEPTUNE Modify DB Cluster API"
+      },
+      {
+        "id": "aws.cb.neptune.no_public_subnet_steampipe",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/neptune/latest/apiref/API_ModifyDBCluster.html",
+        "old_title": "AWS ModifyDBCluster API",
+        "new_title": "AWS NEPTUNE Modify DB Cluster API"
+      },
+      {
+        "id": "aws.cb.opensearch.access_policy_not_public",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/ac.html",
+        "old_title": "Official Amazon OpenSearch Service guidance",
+        "new_title": "AWS OPENSEARCH-SERVICE ac"
+      },
+      {
+        "id": "aws.cb.opensearch.audit_logs_enabled",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/audit-logs.html",
+        "old_title": "Official Amazon OpenSearch Service guidance",
+        "new_title": "AWS OPENSEARCH-SERVICE audit logs"
+      },
+      {
+        "id": "aws.cb.opensearch.cognito_dashboards_auth",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/cognito-auth.html",
+        "old_title": "Official Amazon OpenSearch Service guidance",
+        "new_title": "AWS OPENSEARCH-SERVICE cognito auth"
+      },
+      {
+        "id": "aws.cb.opensearch.cognito_or_saml_dashboards_auth",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/saml.html",
+        "old_title": "Official Amazon OpenSearch Service guidance",
+        "new_title": "AWS OPENSEARCH-SERVICE saml"
+      },
+      {
+        "id": "aws.cb.opensearch.data_node_fault_tolerance",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-multiaz.html",
+        "old_title": "Official Amazon OpenSearch Service guidance",
+        "new_title": "AWS OPENSEARCH-SERVICE managedomains multiaz"
+      },
+      {
+        "id": "aws.cb.opensearch.dedicated_master_nodes",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-dedicatedmasternodes.html",
+        "old_title": "Official Amazon OpenSearch Service guidance",
+        "new_title": "AWS OPENSEARCH-SERVICE managedomains dedicatedmasternodes"
+      },
+      {
+        "id": "aws.cb.opensearch.enabled_logs_have_log_group",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/createdomain-configure-slow-logs.html",
+        "old_title": "Official Amazon OpenSearch Service guidance",
+        "new_title": "AWS OPENSEARCH-SERVICE createdomain configure slow logs"
+      },
+      {
+        "id": "aws.cb.opensearch.encryption_at_rest",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/encryption-at-rest.html",
+        "old_title": "Official Amazon OpenSearch Service guidance",
+        "new_title": "AWS OPENSEARCH-SERVICE encryption at rest"
+      },
+      {
+        "id": "aws.cb.opensearch.enforce_https",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/opensearch-service/latest/APIReference/API_DomainEndpointOptions.html",
+        "old_title": "Official Amazon OpenSearch Service guidance",
+        "new_title": "AWS OPENSEARCH-SERVICE Domain Endpoint Options API"
+      },
+      {
+        "id": "aws.cb.opensearch.fine_grained_access_control",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/fgac.html",
+        "old_title": "Official Amazon OpenSearch Service guidance",
+        "new_title": "AWS OPENSEARCH-SERVICE fgac"
+      },
+      {
+        "id": "aws.cb.opensearch.in_vpc_private_subnets",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/vpc.html",
+        "old_title": "Official Amazon OpenSearch Service guidance",
+        "new_title": "AWS OPENSEARCH-SERVICE vpc"
+      },
+      {
+        "id": "aws.cb.opensearch.internal_user_database_disabled",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/fgac.html",
+        "old_title": "Official Amazon OpenSearch Service guidance",
+        "new_title": "AWS OPENSEARCH-SERVICE fgac"
+      },
+      {
+        "id": "aws.cb.opensearch.node_to_node_encryption",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/ntn.html",
+        "old_title": "Official Amazon OpenSearch Service guidance",
+        "new_title": "AWS OPENSEARCH-SERVICE ntn"
+      },
+      {
+        "id": "aws.cb.opensearch.node_to_node_encryption_region_skip",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/ntn.html",
+        "old_title": "Official Amazon OpenSearch Service guidance",
+        "new_title": "AWS OPENSEARCH-SERVICE ntn"
+      },
+      {
+        "id": "aws.cb.opensearch.service_software_current",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/service-software.html",
+        "old_title": "Official Amazon OpenSearch Service guidance",
+        "new_title": "AWS OPENSEARCH-SERVICE service software"
+      },
+      {
+        "id": "aws.cb.opensearch.slow_logs_enabled",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/createdomain-configure-slow-logs.html",
+        "old_title": "Official Amazon OpenSearch Service guidance",
+        "new_title": "AWS OPENSEARCH-SERVICE createdomain configure slow logs"
+      },
+      {
+        "id": "aws.cb.rds.aurora_postgres_postgresql_log_export",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_ModifyDBCluster.html",
+        "old_title": "AWS ModifyDBCluster API",
+        "new_title": "AWS AMAZONRDS Modify DB Cluster API"
+      },
+      {
+        "id": "aws.cb.rds.cluster_cloudwatch_log_exports",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_ModifyDBCluster.html",
+        "old_title": "AWS ModifyDBCluster API",
+        "new_title": "AWS AMAZONRDS Modify DB Cluster API"
+      },
+      {
+        "id": "aws.cb.rds.cluster_log_exports_declared",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_ModifyDBCluster.html",
+        "old_title": "AWS ModifyDBCluster API",
+        "new_title": "AWS AMAZONRDS Modify DB Cluster API"
+      },
+      {
+        "id": "aws.cb.rds.cluster_snapshot_not_public_prowler",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DescribeDBClusterSnapshotAttributes.html",
+        "old_title": "Official RDS snapshot attribute API",
+        "new_title": "AWS AMAZONRDS Describe DB Cluster Snapshot Attributes API"
+      },
+      {
+        "id": "aws.cb.rds.cluster_snapshot_restore_not_all_exact",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DescribeDBClusterSnapshotAttributes.html",
+        "old_title": "Official RDS snapshot attribute API",
+        "new_title": "AWS AMAZONRDS Describe DB Cluster Snapshot Attributes API"
+      },
+      {
+        "id": "aws.cb.rds.cluster_snapshot_shared_accounts_review",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DescribeDBClusterSnapshotAttributes.html",
+        "old_title": "Official RDS snapshot attribute API",
+        "new_title": "AWS AMAZONRDS Describe DB Cluster Snapshot Attributes API"
+      },
+      {
+        "id": "aws.cb.rds.instance_snapshot_not_public_prowler",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DescribeDBSnapshotAttributes.html",
+        "old_title": "Official RDS snapshot attribute API",
+        "new_title": "AWS AMAZONRDS Describe DB Snapshot Attributes API"
+      },
+      {
+        "id": "aws.cb.rds.instance_snapshot_restore_not_all_exact",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DescribeDBSnapshotAttributes.html",
+        "old_title": "Official RDS snapshot attribute API",
+        "new_title": "AWS AMAZONRDS Describe DB Snapshot Attributes API"
+      },
+      {
+        "id": "aws.cb.rds.instance_snapshot_shared_accounts_review",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DescribeDBSnapshotAttributes.html",
+        "old_title": "Official RDS snapshot attribute API",
+        "new_title": "AWS AMAZONRDS Describe DB Snapshot Attributes API"
+      },
+      {
+        "id": "aws.cb.rds.multi_az_cluster_minor_upgrade",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_ModifyDBCluster.html",
+        "old_title": "AWS ModifyDBCluster API",
+        "new_title": "AWS AMAZONRDS Modify DB Cluster API"
+      },
+      {
+        "id": "aws.cb.redshift.allow_version_upgrade",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/redshift/latest/APIReference/API_ModifyCluster.html",
+        "old_title": "Official Amazon Redshift setting or migration guidance",
+        "new_title": "AWS REDSHIFT Modify Cluster API"
+      },
+      {
+        "id": "aws.cb.redshift.audit_logging",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/redshift/latest/APIReference/API_EnableLogging.html",
+        "old_title": "Official Amazon Redshift audit or TLS guidance",
+        "new_title": "AWS REDSHIFT Enable Logging API"
+      },
+      {
+        "id": "aws.cb.redshift.cmk_encryption",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/changing-cluster-encryption.html",
+        "old_title": "Official Amazon Redshift guidance",
+        "new_title": "AWS REDSHIFT changing cluster encryption"
+      },
+      {
+        "id": "aws.cb.redshift.encrypted",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/changing-cluster-encryption.html",
+        "old_title": "Official Amazon Redshift setting or migration guidance",
+        "new_title": "AWS REDSHIFT changing cluster encryption"
+      },
+      {
+        "id": "aws.cb.redshift.encrypted_and_logging",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/changing-cluster-encryption.html",
+        "old_title": "Official Amazon Redshift audit or TLS guidance",
+        "new_title": "AWS REDSHIFT changing cluster encryption"
+      },
+      {
+        "id": "aws.cb.redshift.enhanced_vpc_routing",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/enhanced-vpc-enabling-cluster.html",
+        "old_title": "Official Amazon Redshift setting or migration guidance",
+        "new_title": "AWS REDSHIFT enhanced vpc enabling cluster"
+      },
+      {
+        "id": "aws.cb.redshift.has_snapshot",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/working-with-snapshots.html",
+        "old_title": "Official Amazon Redshift guidance",
+        "new_title": "AWS REDSHIFT working with snapshots"
+      },
+      {
+        "id": "aws.cb.redshift.internet_exposed",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/managing-clusters-vpc.html",
+        "old_title": "Official Amazon Redshift guidance",
+        "new_title": "AWS REDSHIFT managing clusters vpc"
+      },
+      {
+        "id": "aws.cb.redshift.kms_key_declared",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/changing-cluster-encryption.html",
+        "old_title": "Official Amazon Redshift guidance",
+        "new_title": "AWS REDSHIFT changing cluster encryption"
+      },
+      {
+        "id": "aws.cb.redshift.maintenance_settings",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/modify-cluster.html",
+        "old_title": "Official Amazon Redshift guidance",
+        "new_title": "AWS REDSHIFT modify cluster"
+      },
+      {
+        "id": "aws.cb.redshift.multi_az",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/managing-cluster-multi-az.html",
+        "old_title": "Official Amazon Redshift setting or migration guidance",
+        "new_title": "AWS REDSHIFT managing cluster multi az"
+      },
+      {
+        "id": "aws.cb.redshift.not_publicly_accessible",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/redshift/latest/APIReference/API_ModifyCluster.html",
+        "old_title": "Official Amazon Redshift setting or migration guidance",
+        "new_title": "AWS REDSHIFT Modify Cluster API"
+      },
+      {
+        "id": "aws.cb.redshift.require_ssl",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/connecting-ssl-support.html",
+        "old_title": "Official Amazon Redshift audit or TLS guidance",
+        "new_title": "AWS REDSHIFT connecting ssl support"
+      },
+      {
+        "id": "aws.cb.redshift.security_group_port_restricted",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/managing-vpc-security-groups.html",
+        "old_title": "Official Amazon Redshift guidance",
+        "new_title": "AWS REDSHIFT managing vpc security groups"
+      },
+      {
+        "id": "aws.cb.redshift.snapshot_retention_7_days",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/working-with-snapshots.html",
+        "old_title": "Official Amazon Redshift guidance",
+        "new_title": "AWS REDSHIFT working with snapshots"
+      },
+      {
+        "id": "aws.cb.sagemaker.notebook_cmk",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_CreateNotebookInstance.html",
+        "old_title": "Official Amazon SageMaker notebook API",
+        "new_title": "AWS SAGEMAKER Create Notebook Instance API"
+      },
+      {
+        "id": "aws.cb.sagemaker.notebook_in_vpc",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_CreateNotebookInstance.html",
+        "old_title": "Official Amazon SageMaker notebook API",
+        "new_title": "AWS SAGEMAKER Create Notebook Instance API"
+      },
+      {
+        "id": "aws.cb.sagemaker.notebook_kms_key",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_CreateNotebookInstance.html",
+        "old_title": "Official Amazon SageMaker notebook API",
+        "new_title": "AWS SAGEMAKER Create Notebook Instance API"
+      },
+      {
+        "id": "aws.cb.sagemaker.notebook_no_direct_internet",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_CreateNotebookInstance.html",
+        "old_title": "Official Amazon SageMaker notebook API",
+        "new_title": "AWS SAGEMAKER Create Notebook Instance API"
+      },
+      {
+        "id": "aws.cb.sagemaker.notebook_root_access_disabled",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_UpdateNotebookInstance.html",
+        "old_title": "Official Amazon SageMaker notebook API",
+        "new_title": "AWS SAGEMAKER Update Notebook Instance API"
+      },
+      {
+        "id": "aws.cb.sagemaker.training_intercontainer_encryption",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_CreateTrainingJob.html",
+        "old_title": "Official Amazon SageMaker training guidance",
+        "new_title": "AWS SAGEMAKER Create Training Job API"
+      },
+      {
+        "id": "aws.cb.sagemaker.training_network_isolation",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/mkt-algo-model-internet-free.html",
+        "old_title": "Official Amazon SageMaker training guidance",
+        "new_title": "AWS SAGEMAKER mkt algo model internet free"
+      },
+      {
+        "id": "aws.cb.sagemaker.training_output_kms",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/your-algorithms-training-algo-output.html",
+        "old_title": "Official Amazon SageMaker training guidance",
+        "new_title": "AWS SAGEMAKER your algorithms training algo output"
+      },
+      {
+        "id": "aws.cb.sagemaker.training_volume_kms",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/sms-security.html",
+        "old_title": "Official Amazon SageMaker training guidance",
+        "new_title": "AWS SAGEMAKER sms security"
+      },
+      {
+        "id": "aws.cb.sagemaker.training_vpc_config",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_CreateTrainingJob.html",
+        "old_title": "Official Amazon SageMaker training guidance",
+        "new_title": "AWS SAGEMAKER Create Training Job API"
+      },
+      {
+        "id": "aws.cb.sagemaker.training_vpc_subnets",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/train-vpc.html",
+        "old_title": "Official Amazon SageMaker training guidance",
+        "new_title": "AWS SAGEMAKER train vpc"
+      },
+      {
+        "id": "aws.cb.ses.dkim_signing",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_GetEmailIdentity.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS SES Get Email Identity API"
+      },
+      {
+        "id": "aws.cb.ses.identity_policies_not_public",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_GetEmailIdentity.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS SES Get Email Identity API"
+      },
+      {
+        "id": "aws.cb.sfn.logging_not_off",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/step-functions/latest/apireference/API_DescribeStateMachine.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS STEP-FUNCTIONS Describe State Machine API"
+      },
+      {
+        "id": "aws.cb.stepfunctions.cmk_encryption",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/step-functions/latest/apireference/API_DescribeStateMachine.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS STEP-FUNCTIONS Describe State Machine API"
+      },
+      {
+        "id": "aws.cb.stepfunctions.logging_enabled",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/step-functions/latest/apireference/API_DescribeStateMachine.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS STEP-FUNCTIONS Describe State Machine API"
+      },
+      {
+        "id": "aws.cb.storagegateway.fileshare_kms",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/storagegateway/latest/APIReference/API_NFSFileShareInfo.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS STORAGEGATEWAY NFS File Share Info API"
+      },
+      {
+        "id": "aws.cb.storagegateway.gateway_not_on_ec2",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/storagegateway/latest/APIReference/API_DescribeGatewayInformation.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS STORAGEGATEWAY Describe Gateway Information API"
+      },
+      {
+        "id": "aws.cb.transfer.connector_logging_role",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/transfer/latest/APIReference/API_DescribedConnector.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS TRANSFER Described Connector API"
+      },
+      {
+        "id": "aws.cb.transfer.connector_logging_role",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/cli/latest/reference/transfer/update-connector.html",
+        "old_title": "AWS CLI Transfer update reference",
+        "new_title": "AWS CLI update connector"
+      },
+      {
+        "id": "aws.cb.transfer.fips_security_policy",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/transfer/latest/userguide/security-policies.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS TRANSFER security policies"
+      },
+      {
+        "id": "aws.cb.transfer.fips_security_policy",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/cli/latest/reference/transfer/update-server.html",
+        "old_title": "AWS CLI Transfer update reference",
+        "new_title": "AWS CLI update server"
+      },
+      {
+        "id": "aws.cb.transfer.no_ftp_protocol",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/transfer/latest/APIReference/API_DescribedServer.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS TRANSFER Described Server API"
+      },
+      {
+        "id": "aws.cb.transfer.no_ftp_protocol",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/cli/latest/reference/transfer/update-server.html",
+        "old_title": "AWS CLI Transfer update reference",
+        "new_title": "AWS CLI update server"
+      },
+      {
+        "id": "aws.cb.transfer.pqc_ssh_kex_policy",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/transfer/latest/userguide/security-policies.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS TRANSFER security policies"
+      },
+      {
+        "id": "aws.cb.transfer.pqc_ssh_kex_policy",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/cli/latest/reference/transfer/update-server.html",
+        "old_title": "AWS CLI Transfer update reference",
+        "new_title": "AWS CLI update server"
+      },
+      {
+        "id": "aws.cb.trustedadvisor.check_ok",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/awssupport/latest/APIReference/API_DescribeTrustedAdvisorCheckResult.html",
+        "old_title": "AWS Support API reference",
+        "new_title": "AWS AWSSUPPORT Describe Trusted Advisor Check Result API"
+      },
+      {
+        "id": "aws.cb.trustedadvisor.premium_support",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/awssupport/latest/APIReference/API_DescribeServices.html",
+        "old_title": "AWS Support API reference",
+        "new_title": "AWS AWSSUPPORT Describe Services API"
+      },
+      {
+        "id": "aws.cb.workspaces.private_subnet_with_nat_vpc",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/workspaces/latest/api/API_Workspace.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS WorkSpaces Workspace API"
+      },
+      {
+        "id": "aws.cb.workspaces.private_subnet_with_nat_vpc",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/workspaces/latest/adminguide/amazon-workspaces-vpc.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS WorkSpaces amazon workspaces vpc"
+      },
+      {
+        "id": "aws.cb.workspaces.root_and_user_volume_encryption",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/workspaces/latest/api/API_Workspace.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS WorkSpaces Workspace API"
+      },
+      {
+        "id": "aws.cb.workspaces.root_volume_encryption",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/workspaces/latest/api/API_Workspace.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS WorkSpaces Workspace API"
+      },
+      {
+        "id": "aws.cb.workspaces.user_volume_encryption",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/workspaces/latest/api/API_Workspace.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS WorkSpaces Workspace API"
+      },
+      {
+        "id": "aws.claude_a.ebs.attached_delete_on_termination",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_VolumeAttachment.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Volume Attachment API"
+      },
+      {
+        "id": "aws.claude_a.ebs.attached_volume_encrypted",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Volume.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Volume API"
+      },
+      {
+        "id": "aws.claude_a.ebs.snapshot_encrypted",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Snapshot.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Snapshot API"
+      },
+      {
+        "id": "aws.claude_a.ebs.snapshot_not_public",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeSnapshotAttribute.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Describe Snapshot Attribute API"
+      },
+      {
+        "id": "aws.claude_a.ebs.snapshot_not_public",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateVolumePermission.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Create Volume Permission API"
+      },
+      {
+        "id": "aws.claude_a.ebs.volume_has_snapshot",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeSnapshots.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Describe Snapshots API"
+      },
+      {
+        "id": "aws.claude_a.ebs.volume_in_backup_plan_resources",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/API_BackupSelection.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS Backup Backup Selection API"
+      },
+      {
+        "id": "aws.claude_a.ebs.volume_in_backup_selection",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/API_BackupSelection.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS Backup Backup Selection API"
+      },
+      {
+        "id": "aws.claude_a.ebs.volume_in_use",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Volume.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Volume API"
+      },
+      {
+        "id": "aws.claude_a.ebs.volume_protected_by_backup",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/API_ListProtectedResources.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS Backup List Protected Resources API"
+      },
+      {
+        "id": "aws.claude_a.ec2.account_imdsv2_default",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetInstanceMetadataDefaults.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Get Instance Metadata Defaults API"
+      },
+      {
+        "id": "aws.claude_a.ec2.ami_block_public_access",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetImageBlockPublicAccessState.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Get Image Block Public Access State API"
+      },
+      {
+        "id": "aws.claude_a.ec2.ami_ebs_encrypted",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_BlockDeviceMapping.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Block Device Mapping API"
+      },
+      {
+        "id": "aws.claude_a.ec2.ami_not_older_than_90_days",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Image.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Image API"
+      },
+      {
+        "id": "aws.claude_a.ec2.ami_not_public",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Image.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Image API"
+      },
+      {
+        "id": "aws.claude_a.ec2.client_vpn_connection_logging",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ConnectionLogResponseOptions.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Connection Log Response Options API"
+      },
+      {
+        "id": "aws.claude_a.ec2.ebs_encryption_by_default",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetEbsEncryptionByDefault.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Get Ebs Encryption By Default API"
+      },
+      {
+        "id": "aws.claude_a.ec2.ebs_encryption_by_default_with_volumes",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetEbsEncryptionByDefault.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Get Ebs Encryption By Default API"
+      },
+      {
+        "id": "aws.claude_a.ec2.enclave_host_ingress_allowlist",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-rules.html",
+        "old_title": "AWS security group rules",
+        "new_title": "AWS EC2 security group rules"
+      },
+      {
+        "id": "aws.claude_a.ec2.instance_detailed_monitoring",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Monitoring.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Monitoring API"
+      },
+      {
+        "id": "aws.claude_a.ec2.instance_ebs_optimized",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Instance.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Instance API"
+      },
+      {
+        "id": "aws.claude_a.ec2.instance_in_vpc",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Instance.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Instance API"
+      },
+      {
+        "id": "aws.claude_a.ec2.instance_no_launch_wizard_sg",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-rules.html",
+        "old_title": "AWS Security group rules",
+        "new_title": "AWS EC2 security group rules"
+      },
+      {
+        "id": "aws.claude_a.ec2.instance_no_public_ip",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Instance.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Instance API"
+      },
+      {
+        "id": "aws.claude_a.ec2.instance_no_public_ip_not_terminated",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Instance.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Instance API"
+      },
+      {
+        "id": "aws.claude_a.ec2.instance_profile_attached",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IamInstanceProfile.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Iam Instance Profile API"
+      },
+      {
+        "id": "aws.claude_a.ec2.instance_profile_attached_not_terminated",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IamInstanceProfile.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Iam Instance Profile API"
+      },
+      {
+        "id": "aws.claude_a.ec2.snapshot_block_public_access",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetSnapshotBlockPublicAccessState.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Get Snapshot Block Public Access State API"
+      },
+      {
+        "id": "aws.claude_a.ec2.spot_fleet_ebs_encrypted",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_SpotFleetLaunchSpecification.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Spot Fleet Launch Specification API"
+      },
+      {
+        "id": "aws.claude_a.ec2.tgw_no_auto_accept_shared_attachments",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_TransitGatewayOptions.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Transit Gateway Options API"
+      },
+      {
+        "id": "aws.claude_a.guardduty.ebs_malware_protection_feature",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/guardduty/latest/APIReference/API_GetDetector.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS GuardDuty Get Detector API"
+      },
+      {
+        "id": "aws.claude_a.guardduty.ebs_malware_protection_feature",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/guardduty-controls.html#guardduty-8",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS Security Hub guardduty controls (guardduty 8)"
+      },
+      {
+        "id": "aws.claude_a.guardduty.ec2_runtime_agent_management",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/guardduty/latest/APIReference/API_DetectorAdditionalConfigurationResult.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS GuardDuty Detector Additional Configuration Result API"
+      },
+      {
+        "id": "aws.claude_a.guardduty.ec2_runtime_agent_management",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/guardduty-controls.html#guardduty-13",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS Security Hub guardduty controls (guardduty 13)"
+      },
+      {
+        "id": "aws.claude_a.guardduty.ecs_runtime_agent_management",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/guardduty/latest/APIReference/API_DetectorAdditionalConfigurationResult.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS GuardDuty Detector Additional Configuration Result API"
+      },
+      {
+        "id": "aws.claude_a.guardduty.ecs_runtime_agent_management",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/guardduty-controls.html#guardduty-12",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS Security Hub guardduty controls (guardduty 12)"
+      },
+      {
+        "id": "aws.claude_a.guardduty.eks_runtime_monitoring_feature",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/guardduty/latest/APIReference/API_DetectorFeatureConfigurationResult.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS GuardDuty Detector Feature Configuration Result API"
+      },
+      {
+        "id": "aws.claude_a.guardduty.eks_runtime_monitoring_feature",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/guardduty-controls.html#guardduty-7",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS Security Hub guardduty controls (guardduty 7)"
+      },
+      {
+        "id": "aws.claude_a.guardduty.prowler_ai_protection",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/guardduty/latest/APIReference/API_DetectorFeatureConfigurationResult.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS GuardDuty Detector Feature Configuration Result API"
+      },
+      {
+        "id": "aws.claude_a.guardduty.prowler_ec2_malware_protection",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/guardduty/latest/APIReference/API_MalwareProtectionConfigurationResult.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS GuardDuty Malware Protection Configuration Result API"
+      },
+      {
+        "id": "aws.claude_a.guardduty.prowler_eks_audit_logs",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/guardduty/latest/APIReference/API_KubernetesAuditLogsConfigurationResult.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS GuardDuty Kubernetes Audit Logs Configuration Result API"
+      },
+      {
+        "id": "aws.claude_a.guardduty.prowler_eks_runtime_monitoring",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/guardduty/latest/APIReference/API_DetectorFeatureConfigurationResult.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS GuardDuty Detector Feature Configuration Result API"
+      },
+      {
+        "id": "aws.claude_a.guardduty.prowler_lambda_protection",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/guardduty/latest/APIReference/API_DetectorFeatureConfigurationResult.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS GuardDuty Detector Feature Configuration Result API"
+      },
+      {
+        "id": "aws.claude_a.guardduty.prowler_rds_protection",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/guardduty/latest/APIReference/API_DetectorFeatureConfigurationResult.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS GuardDuty Detector Feature Configuration Result API"
+      },
+      {
+        "id": "aws.claude_a.guardduty.prowler_runtime_monitoring",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/guardduty/latest/APIReference/API_DetectorFeatureConfigurationResult.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS GuardDuty Detector Feature Configuration Result API"
+      },
+      {
+        "id": "aws.claude_a.guardduty.prowler_s3_protection",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/guardduty/latest/APIReference/API_S3LogsConfigurationResult.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS GuardDuty S3 Logs Configuration Result API"
+      },
+      {
+        "id": "aws.claude_a.iam.group_inline_kms_decrypt_restricted",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetGroupPolicy.html",
+        "old_title": "Official IAM principal inline policy APIs",
+        "new_title": "AWS IAM Get Group Policy API"
+      },
+      {
+        "id": "aws.claude_a.iam.group_inline_no_admin",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetGroupPolicy.html",
+        "old_title": "Official IAM principal inline policy APIs",
+        "new_title": "AWS IAM Get Group Policy API"
+      },
+      {
+        "id": "aws.claude_a.iam.group_inline_no_blocked_kms_actions",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetGroupPolicy.html",
+        "old_title": "Official IAM principal inline policy APIs",
+        "new_title": "AWS IAM Get Group Policy API"
+      },
+      {
+        "id": "aws.claude_a.iam.group_no_cloudshell_full_access",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetGroupPolicy.html",
+        "old_title": "Official IAM principal inline policy APIs",
+        "new_title": "AWS IAM Get Group Policy API"
+      },
+      {
+        "id": "aws.claude_a.iam.group_no_inline_policies",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetGroupPolicy.html",
+        "old_title": "Official IAM principal inline policy APIs",
+        "new_title": "AWS IAM Get Group Policy API"
+      },
+      {
+        "id": "aws.claude_a.iam.prowler_group_no_administratoraccess",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_DetachGroupPolicy.html",
+        "old_title": "Official IAM detach managed policy API",
+        "new_title": "AWS IAM Detach Group Policy API"
+      },
+      {
+        "id": "aws.claude_a.iam.prowler_role_no_administratoraccess",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_DetachRolePolicy.html",
+        "old_title": "Official IAM detach managed policy API",
+        "new_title": "AWS IAM Detach Role Policy API"
+      },
+      {
+        "id": "aws.claude_a.iam.prowler_user_no_administratoraccess",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_DetachUserPolicy.html",
+        "old_title": "Official IAM detach managed policy API",
+        "new_title": "AWS IAM Detach User Policy API"
+      },
+      {
+        "id": "aws.claude_a.iam.role_inline_kms_decrypt_restricted",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetRolePolicy.html",
+        "old_title": "Official IAM principal inline policy APIs",
+        "new_title": "AWS IAM Get Role Policy API"
+      },
+      {
+        "id": "aws.claude_a.iam.role_inline_no_admin",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetRolePolicy.html",
+        "old_title": "Official IAM principal inline policy APIs",
+        "new_title": "AWS IAM Get Role Policy API"
+      },
+      {
+        "id": "aws.claude_a.iam.role_inline_no_blocked_kms_actions",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetRolePolicy.html",
+        "old_title": "Official IAM principal inline policy APIs",
+        "new_title": "AWS IAM Get Role Policy API"
+      },
+      {
+        "id": "aws.claude_a.iam.role_no_cloudshell_full_access",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetRolePolicy.html",
+        "old_title": "Official IAM principal inline policy APIs",
+        "new_title": "AWS IAM Get Role Policy API"
+      },
+      {
+        "id": "aws.claude_a.iam.role_no_inline_policies",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetRolePolicy.html",
+        "old_title": "Official IAM principal inline policy APIs",
+        "new_title": "AWS IAM Get Role Policy API"
+      },
+      {
+        "id": "aws.claude_a.iam.user_inline_kms_decrypt_restricted",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetUserPolicy.html",
+        "old_title": "Official IAM principal inline policy APIs",
+        "new_title": "AWS IAM Get User Policy API"
+      },
+      {
+        "id": "aws.claude_a.iam.user_inline_no_admin",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetUserPolicy.html",
+        "old_title": "Official IAM principal inline policy APIs",
+        "new_title": "AWS IAM Get User Policy API"
+      },
+      {
+        "id": "aws.claude_a.iam.user_inline_no_blocked_kms_actions",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetUserPolicy.html",
+        "old_title": "Official IAM principal inline policy APIs",
+        "new_title": "AWS IAM Get User Policy API"
+      },
+      {
+        "id": "aws.claude_a.iam.user_no_cloudshell_full_access",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetUserPolicy.html",
+        "old_title": "Official IAM principal inline policy APIs",
+        "new_title": "AWS IAM Get User Policy API"
+      },
+      {
+        "id": "aws.claude_a.iam.user_no_inline_policies",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetUserPolicy.html",
+        "old_title": "Official IAM principal inline policy APIs",
+        "new_title": "AWS IAM Get User Policy API"
+      },
+      {
+        "id": "aws.claude_a.kms.customer_key_enabled_or_pending_deletion",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/kms/latest/APIReference/API_KeyMetadata.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS KMS Key Metadata API"
+      },
+      {
+        "id": "aws.claude_a.kms.customer_key_not_pending_deletion",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/kms/latest/APIReference/API_KeyMetadata.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS KMS Key Metadata API"
+      },
+      {
+        "id": "aws.claude_a.kms.customer_key_not_pending_deletion",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/kms-controls.html#kms-3",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS Security Hub kms controls (kms 3)"
+      },
+      {
+        "id": "aws.claude_a.kms.key_policy_not_public",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/kms/latest/APIReference/API_GetKeyPolicy.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS KMS Get Key Policy API"
+      },
+      {
+        "id": "aws.claude_a.kms.key_policy_not_public",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/kms-controls.html#kms-5",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS Security Hub kms controls (kms 5)"
+      },
+      {
+        "id": "aws.claude_a.kms.prowler_cmk_rotation",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/kms/latest/APIReference/API_GetKeyRotationStatus.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS KMS Get Key Rotation Status API"
+      },
+      {
+        "id": "aws.claude_a.kms.prowler_cmk_single_region",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/kms/latest/APIReference/API_KeyMetadata.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS KMS Key Metadata API"
+      },
+      {
+        "id": "aws.claude_a.kms.prowler_cmk_used",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/kms/latest/APIReference/API_KeyMetadata.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS KMS Key Metadata API"
+      },
+      {
+        "id": "aws.claude_a.kms.prowler_key_not_public",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/kms/latest/APIReference/API_GetKeyPolicy.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS KMS Get Key Policy API"
+      },
+      {
+        "id": "aws.claude_a.networkfirewall.deletion_protection",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/network-firewall/latest/APIReference/API_UpdateFirewallDeleteProtection.html",
+        "old_title": "Official AWS Network Firewall update API",
+        "new_title": "AWS NETWORK-FIREWALL Update Firewall Delete Protection API"
+      },
+      {
+        "id": "aws.claude_a.networkfirewall.firewall_fragment_default",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/network-firewall/latest/APIReference/API_UpdateFirewallPolicy.html",
+        "old_title": "Official AWS Network Firewall policy API",
+        "new_title": "AWS NETWORK-FIREWALL Update Firewall Policy API"
+      },
+      {
+        "id": "aws.claude_a.networkfirewall.firewall_full_packets_default",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/network-firewall/latest/APIReference/API_UpdateFirewallPolicy.html",
+        "old_title": "Official AWS Network Firewall policy API",
+        "new_title": "AWS NETWORK-FIREWALL Update Firewall Policy API"
+      },
+      {
+        "id": "aws.claude_a.networkfirewall.firewall_policy_has_rule_groups",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/network-firewall/latest/APIReference/API_UpdateFirewallPolicy.html",
+        "old_title": "Official AWS Network Firewall policy API",
+        "new_title": "AWS NETWORK-FIREWALL Update Firewall Policy API"
+      },
+      {
+        "id": "aws.claude_a.networkfirewall.in_use_vpc_has_firewall",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/network-firewall/latest/APIReference/API_CreateFirewall.html",
+        "old_title": "Official AWS Network Firewall guidance",
+        "new_title": "AWS NETWORK-FIREWALL Create Firewall API"
+      },
+      {
+        "id": "aws.claude_a.networkfirewall.logging",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/network-firewall/latest/APIReference/API_UpdateLoggingConfiguration.html",
+        "old_title": "Official AWS Network Firewall guidance",
+        "new_title": "AWS NETWORK-FIREWALL Update Logging Configuration API"
+      },
+      {
+        "id": "aws.claude_a.networkfirewall.multi_az",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/network-firewall/latest/APIReference/API_AssociateSubnets.html",
+        "old_title": "Official AWS Network Firewall guidance",
+        "new_title": "AWS NETWORK-FIREWALL Associate Subnets API"
+      },
+      {
+        "id": "aws.claude_a.networkfirewall.policy_fragment_default",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/network-firewall/latest/APIReference/API_UpdateFirewallPolicy.html",
+        "old_title": "Official AWS Network Firewall policy API",
+        "new_title": "AWS NETWORK-FIREWALL Update Firewall Policy API"
+      },
+      {
+        "id": "aws.claude_a.networkfirewall.policy_full_packets_default",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/network-firewall/latest/APIReference/API_UpdateFirewallPolicy.html",
+        "old_title": "Official AWS Network Firewall policy API",
+        "new_title": "AWS NETWORK-FIREWALL Update Firewall Policy API"
+      },
+      {
+        "id": "aws.claude_a.networkfirewall.policy_has_rule_groups",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/network-firewall/latest/APIReference/API_UpdateFirewallPolicy.html",
+        "old_title": "Official AWS Network Firewall policy API",
+        "new_title": "AWS NETWORK-FIREWALL Update Firewall Policy API"
+      },
+      {
+        "id": "aws.claude_a.networkfirewall.stateless_rule_group_not_empty",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/network-firewall/latest/APIReference/API_UpdateRuleGroup.html",
+        "old_title": "Official AWS Network Firewall policy API",
+        "new_title": "AWS NETWORK-FIREWALL Update Rule Group API"
+      },
+      {
+        "id": "aws.claude_a.networkfirewall.subnet_change_protection",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/network-firewall/latest/APIReference/API_UpdateSubnetChangeProtection.html",
+        "old_title": "Official AWS Network Firewall update API",
+        "new_title": "AWS NETWORK-FIREWALL Update Subnet Change Protection API"
+      },
+      {
+        "id": "aws.claude_a.s3.access_point_public_access_block",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-points-bpa-settings.html",
+        "old_title": "Official AWS S3 or CloudFront operational guidance",
+        "new_title": "AWS AMAZONS3 access points bpa settings"
+      },
+      {
+        "id": "aws.claude_a.s3.account_public_access_block_all",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonS3/latest/API/API_control_PutPublicAccessBlock.html",
+        "old_title": "AWS S3 PutPublicAccessBlock API",
+        "new_title": "AWS AMAZONS3 control Put Public Access Block API"
+      },
+      {
+        "id": "aws.claude_a.s3.bucket_public_access_block_all",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutPublicAccessBlock.html",
+        "old_title": "AWS S3 PutPublicAccessBlock API",
+        "new_title": "AWS AMAZONS3 Put Public Access Block API"
+      },
+      {
+        "id": "aws.claude_a.s3.directory_bucket_lifecycle",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutBucketLifecycleConfiguration.html",
+        "old_title": "Official AWS S3 or CloudFront operational guidance",
+        "new_title": "AWS AMAZONS3 Put Bucket Lifecycle Configuration API"
+      },
+      {
+        "id": "aws.claude_a.s3.multi_region_access_point_public_access_block",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/multi-region-access-point-block-public-access.html",
+        "old_title": "Official AWS S3 or CloudFront operational guidance",
+        "new_title": "AWS AMAZONS3 multi region access point block public access"
+      },
+      {
+        "id": "aws.claude_a.s3.object_level_logging",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_PutEventSelectors.html",
+        "old_title": "Official AWS data-event or classification job API",
+        "new_title": "AWS AWSCLOUDTRAIL Put Event Selectors API"
+      },
+      {
+        "id": "aws.claude_a.s3.protected_by_macie",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/macie/latest/APIReference/jobs.html",
+        "old_title": "Official AWS data-event or classification job API",
+        "new_title": "AWS MACIE jobs"
+      },
+      {
+        "id": "aws.claude_a.s3.prowler_account_ignore_restrict",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonS3/latest/API/API_control_PutPublicAccessBlock.html",
+        "old_title": "AWS S3 PutPublicAccessBlock API",
+        "new_title": "AWS AMAZONS3 control Put Public Access Block API"
+      },
+      {
+        "id": "aws.claude_a.s3.prowler_bucket_level_public_access_block",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutPublicAccessBlock.html",
+        "old_title": "AWS S3 PutPublicAccessBlock API",
+        "new_title": "AWS AMAZONS3 Put Public Access Block API"
+      },
+      {
+        "id": "aws.claude_a.s3.static_website_disabled",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html",
+        "old_title": "Official AWS S3 or CloudFront operational guidance",
+        "new_title": "AWS AMAZONCLOUDFRONT private content restricting access to s3"
+      },
+      {
+        "id": "aws.claude_a.vpc.default_sg_in_use_no_rules",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/vpc/latest/userguide/default-security-group.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS VPC default security group"
+      },
+      {
+        "id": "aws.claude_a.vpc.default_sg_no_rules",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/vpc/latest/userguide/default-security-group.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS VPC default security group"
+      },
+      {
+        "id": "aws.claude_a.vpc.nacl_associated",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_NetworkAcl.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Network Acl API"
+      },
+      {
+        "id": "aws.claude_a.vpc.nacl_no_world_all_ports",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_NetworkAclEntry.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Network Acl Entry API"
+      },
+      {
+        "id": "aws.claude_a.vpc.nacl_no_world_remote_admin",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_NetworkAclEntry.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Network Acl Entry API"
+      },
+      {
+        "id": "aws.claude_a.vpc.nacl_no_world_tcp_22",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_NetworkAclEntry.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Network Acl Entry API"
+      },
+      {
+        "id": "aws.claude_a.vpc.nacl_no_world_tcp_3389",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_NetworkAclEntry.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Network Acl Entry API"
+      },
+      {
+        "id": "aws.claude_a.vpc.nondefault_nacl_associated",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_NetworkAcl.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Network Acl API"
+      },
+      {
+        "id": "aws.claude_a.vpc.sg_in_use_anywhere",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_SecurityGroup.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Security Group API"
+      },
+      {
+        "id": "aws.claude_a.vpc.sg_name_not_launch_wizard",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_SecurityGroup.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Security Group API"
+      },
+      {
+        "id": "aws.claude_a.vpc.sg_no_public_ip_any_port",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Ip Permission API"
+      },
+      {
+        "id": "aws.claude_a.vpc.sg_no_wide_public_ipv4",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpRange.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Ip Range API"
+      },
+      {
+        "id": "aws.claude_a.vpc.sg_no_world_all_traffic",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Ip Permission API"
+      },
+      {
+        "id": "aws.claude_a.vpc.sg_no_world_any_port_on_customer_enis",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Ip Permission API"
+      },
+      {
+        "id": "aws.claude_a.vpc.sg_no_world_any_port_on_customer_enis",
+        "index": 1,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_NetworkInterface.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Network Interface API"
+      },
+      {
+        "id": "aws.claude_a.vpc.sg_no_world_cassandra",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Ip Permission API"
+      },
+      {
+        "id": "aws.claude_a.vpc.sg_no_world_elasticsearch_kibana",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Ip Permission API"
+      },
+      {
+        "id": "aws.claude_a.vpc.sg_no_world_ftp",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Ip Permission API"
+      },
+      {
+        "id": "aws.claude_a.vpc.sg_no_world_high_risk_tcp_ports",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Ip Permission API"
+      },
+      {
+        "id": "aws.claude_a.vpc.sg_no_world_kafka",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Ip Permission API"
+      },
+      {
+        "id": "aws.claude_a.vpc.sg_no_world_memcached",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Ip Permission API"
+      },
+      {
+        "id": "aws.claude_a.vpc.sg_no_world_mongodb",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Ip Permission API"
+      },
+      {
+        "id": "aws.claude_a.vpc.sg_no_world_mysql",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Ip Permission API"
+      },
+      {
+        "id": "aws.claude_a.vpc.sg_no_world_oracle",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Ip Permission API"
+      },
+      {
+        "id": "aws.claude_a.vpc.sg_no_world_postgres",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Ip Permission API"
+      },
+      {
+        "id": "aws.claude_a.vpc.sg_no_world_rdp",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Ip Permission API"
+      },
+      {
+        "id": "aws.claude_a.vpc.sg_no_world_redis",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Ip Permission API"
+      },
+      {
+        "id": "aws.claude_a.vpc.sg_no_world_sqlserver",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Ip Permission API"
+      },
+      {
+        "id": "aws.claude_a.vpc.sg_no_world_ssh",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Ip Permission API"
+      },
+      {
+        "id": "aws.claude_a.vpc.sg_no_world_telnet",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Ip Permission API"
+      },
+      {
+        "id": "aws.claude_a.vpc.sg_rule_count_within_50",
+        "index": 0,
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_SecurityGroup.html",
+        "old_title": "AWS source API reference",
+        "new_title": "AWS EC2 Security Group API"
+      }
+    ]
+  }
+}

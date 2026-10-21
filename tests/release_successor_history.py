@@ -8,6 +8,7 @@ tests still verify the complete successor artifacts.
 """
 import copy
 import base64
+from dataclasses import replace
 from functools import lru_cache
 import hashlib
 import gzip
@@ -92,18 +93,38 @@ def retained_ledger_inputs():
 
 
 def registered_before_bulk(checks):
+    from scripts.peaso_compliance_compile import REVIEWED_NATIVE_ALIASES_20261021
+    from peaso.checks import CHECK_ALIASES
+
     ids = [check.id for check in checks]
     assert len(ids) == len(set(ids))
     assert BULK_IDS <= set(ids) and len(BULK_IDS) == 552
     # Bind the cohort to the retained, digest-verified historical catalog.
     # Later native admissions must not silently enter the old conservation view.
     signed = json.loads(historical_bytes(PUBLISHED_SPRINT_ARCHIVE, SOURCE414_NATIVE_MEMBER))
-    expected = {row["id"] for row in signed["checks"]} - BULK_IDS
+    signed_rows = {row["id"]: row for row in signed["checks"]}
+    expected = set(signed_rows) - BULK_IDS
     assert len(expected) == BULK["baseline_native_checks"] == 3434
-    assert expected <= set(ids)
+    retired = expected - set(ids)
+    assert retired == set(REVIEWED_NATIVE_ALIASES_20261021)
+    assert all(CHECK_ALIASES.get(cid) == survivor and survivor in ids
+               for cid, survivor in REVIEWED_NATIVE_ALIASES_20261021.items())
     old = [check for check in checks if check.id in expected]
+    live = {check.id: check for check in checks}
+    for cid in sorted(retired):
+        row = signed_rows[cid]
+        survivor = live[REVIEWED_NATIVE_ALIASES_20261021[cid]]
+        assert row["provider"] == survivor.provider and row["type"] == survivor.kind
+        old.append(replace(survivor, id=cid, category=row["category"],
+                           title=row["title"], severity=row["severity"],
+                           remediation=row["remediation"], target=row["target"],
+                           declared_dependencies=tuple(row["dependencies"])))
     assert len(old) == 3434
-    return old
+    assert {check.id for check in old} == expected
+    # Recover registration order from the same digest-verified predecessor,
+    # including retired aliases at their original positions.
+    by_id = {check.id: check for check in old}
+    return [by_id[row["id"]] for row in signed["checks"] if row["id"] in expected]
 
 
 def registry_source_before_bulk():

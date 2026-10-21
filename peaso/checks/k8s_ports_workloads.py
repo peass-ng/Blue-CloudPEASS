@@ -199,7 +199,10 @@ def evaluate_predicate(item, kind, predicate):
                     failed = True
                 else:
                     tail = image.rsplit("/", 1)[-1]
-                    tagged = "@" in image or (":" in tail and tail.rsplit(":", 1)[1] not in ("", "latest"))
+                    immutable = bool(re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9./:_-]*@sha256:[0-9a-fA-F]{64}", image))
+                    if "@" in image and not immutable:
+                        raise Unavailable("unrecognized or malformed content digest reference")
+                    tagged = immutable or (":" in tail and tail.rsplit(":", 1)[1] not in ("", "latest"))
                     if predicate == "pinned_image":
                         failed = not tagged
                     else:
@@ -212,9 +215,6 @@ def evaluate_predicate(item, kind, predicate):
                         # A SHA256 digest is content-addressed: IfNotPresent can only run the
                         # pinned bytes, so it satisfies the intent of an Always pull for both
                         # variants. Never still trusts whatever the node cached under that name.
-                        immutable = bool(re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9./:_-]*@sha256:[0-9a-fA-F]{64}", image))
-                        if "@" in image and not immutable:
-                            raise Unavailable("unrecognized or malformed content digest reference")
                         if predicate == "content_digest_or_always_pull" and immutable and policy in (None, "IfNotPresent", "Always"):
                             failed = False
             else:

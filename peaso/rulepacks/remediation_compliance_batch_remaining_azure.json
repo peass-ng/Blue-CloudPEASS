@@ -29,7 +29,7 @@
     "proposed_spec_sha256": "821d2fb032658c354ae7acff5e11f261a671fde9752cbfcc67f7cb47ea67da41",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Microsoft Learn REST mysql configurations list by server",
         "url": "https://learn.microsoft.com/en-us/rest/api/mysql/configurations/list-by-server?view=rest-mysql-2017-12-01"
       }
     ],
@@ -55,7 +55,7 @@
     "proposed_spec_sha256": "87ad424bbef701ca1e75beeab786d698590dbc4dfd8b884688a8d75ea68c1f15",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Microsoft Learn REST postgresql configurations list by server",
         "url": "https://learn.microsoft.com/en-us/rest/api/postgresql/configurations/list-by-server?view=rest-postgresql-2017-12-01"
       }
     ],
@@ -83,7 +83,7 @@
     "proposed_spec_sha256": "782daf2a0cca5ca5b5f5fcc413fa7c48776768c83de5539a36ecbec597ebc990",
     "references": [
       {
-        "title": "Azure API reference",
+        "title": "Microsoft Learn en us azure",
         "url": "https://learn.microsoft.com/en-us/azure/"
       }
     ],
@@ -109,7 +109,7 @@
     "proposed_spec_sha256": "99c773662db15a77387006ea0ca689dc00384f492aaaef3d9648bae9bc10ec46",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Microsoft Learn REST mysql configurations list by server",
         "url": "https://learn.microsoft.com/en-us/rest/api/mysql/configurations/list-by-server?view=rest-mysql-2017-12-01"
       }
     ],
@@ -135,7 +135,7 @@
     "proposed_spec_sha256": "61602ee32d518e401840ad8b6df6239175bb2ea07e2e5a4ff2b74e4322b2d062",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Microsoft Learn REST mysql configurations list by server",
         "url": "https://learn.microsoft.com/en-us/rest/api/mysql/configurations/list-by-server?view=rest-mysql-2017-12-01"
       }
     ],
@@ -161,7 +161,7 @@
     "proposed_spec_sha256": "6d447958a90581c1f35a116eb56ec56380cc4a471704cc13945920158e2d6dfa",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Microsoft Learn REST postgresql configurations list by server",
         "url": "https://learn.microsoft.com/en-us/rest/api/postgresql/configurations/list-by-server?view=rest-postgresql-2017-12-01"
       }
     ],
@@ -187,7 +187,7 @@
     "proposed_spec_sha256": "d4400f7daf90760872e55528123811e75015ab06bbf88e63e17ecb8667a4d3e1",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Microsoft Learn REST postgresql configurations list by server",
         "url": "https://learn.microsoft.com/en-us/rest/api/postgresql/configurations/list-by-server?view=rest-postgresql-2017-12-01"
       }
     ],
@@ -213,7 +213,7 @@
     "proposed_spec_sha256": "6e3492ca0ce562827a7fb76f196fbd9026bdfa550510d2ffd40aaf6e6bdc845d",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Microsoft Learn REST postgresql configurations list by server",
         "url": "https://learn.microsoft.com/en-us/rest/api/postgresql/configurations/list-by-server?view=rest-postgresql-2017-12-01"
       }
     ],
@@ -239,7 +239,7 @@
     "proposed_spec_sha256": "cb13b60213390e824b9571d17c738307b626f548a94a9c8319ebd3dd05dc5e08",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Microsoft Learn REST postgresql configurations list by server",
         "url": "https://learn.microsoft.com/en-us/rest/api/postgresql/configurations/list-by-server?view=rest-postgresql-2017-12-01"
       }
     ],
@@ -265,7 +265,7 @@
     "proposed_spec_sha256": "c231feb6858dd2d3219d2bd93d72c9b0e8088bb85d31bb67dab506d30125e8e7",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Microsoft Learn REST postgresql configurations list by server",
         "url": "https://learn.microsoft.com/en-us/rest/api/postgresql/configurations/list-by-server?view=rest-postgresql-2017-12-01"
       }
     ],
@@ -291,7 +291,7 @@
     "proposed_spec_sha256": "55f2014d533de648cbe7891b49c4b7f663c25fb1862ecaf7f691eeee3fa1302a",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Microsoft Learn REST postgresql configurations list by server",
         "url": "https://learn.microsoft.com/en-us/rest/api/postgresql/configurations/list-by-server?view=rest-postgresql-2017-12-01"
       }
     ],
@@ -317,7 +317,7 @@
     "proposed_spec_sha256": "2ddf6b921932af6b292a918ec7bbbaf1d1219b71863adb9373d7ca5017b020c2",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Microsoft Learn REST postgresql configurations list by server",
         "url": "https://learn.microsoft.com/en-us/rest/api/postgresql/configurations/list-by-server?view=rest-postgresql-2017-12-01"
       }
     ],
@@ -343,7 +343,7 @@
     "proposed_spec_sha256": "ebcd6b48c5741b15e80e0e77709883f30716adc25d3537c673000833319f39e6",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Microsoft Learn REST mariadb servers get",
         "url": "https://learn.microsoft.com/en-us/rest/api/mariadb/servers/get?view=rest-mariadb-2018-06-01"
       }
     ],
@@ -371,7 +371,7 @@
     "proposed_spec_sha256": "7580aac3a6012476e3dd8169d336b4ff0816fe65929eb64203dba1869e8425e3",
     "references": [
       {
-        "title": "Azure API reference",
+        "title": "Microsoft Learn REST resources management locks list by scope",
         "url": "https://learn.microsoft.com/en-us/rest/api/resources/management-locks/list-by-scope?view=rest-resources-2016-09-01"
       }
     ],
@@ -399,7 +399,7 @@
     "proposed_spec_sha256": "0a3b74aa472b7e331bb0230fbbef71b5e61e9f659c35d6a16f2e16b0bb2c6bda",
     "references": [
       {
-        "title": "Azure API reference",
+        "title": "Microsoft Learn REST virtualnetwork network interfaces get",
         "url": "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-interfaces/get?view=rest-virtualnetwork-2023-09-01"
       }
     ],
@@ -455,7 +455,7 @@
     "proposed_spec_sha256": "b46b78955982732e1d6101a8719f54328c85202e00b63ec2c86cdf7a3c77a69e",
     "references": [
       {
-        "title": "Azure API reference",
+        "title": "Microsoft Learn REST azureresourcegraph resourcegraph resources resources",
         "url": "https://learn.microsoft.com/en-us/rest/api/azureresourcegraph/resourcegraph/resources/resources?view=rest-azureresourcegraph-2024-04-01"
       }
     ],
@@ -483,7 +483,7 @@
     "proposed_spec_sha256": "7158155ba1be9916eabc41e24e5a484b29bcb4d89633c5b7b69447d9e74e0a92",
     "references": [
       {
-        "title": "Azure API reference",
+        "title": "Microsoft Learn REST virtualnetwork network security groups get (3d55deda)",
         "url": "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2026-01-01"
       }
     ],
@@ -509,7 +509,7 @@
     "proposed_spec_sha256": "93f62300dd7e0eb862e878d68807b367e2468436ba9828f6ba4d177636fddfcb",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Microsoft Learn REST loganalytics clusters get",
         "url": "https://learn.microsoft.com/en-us/rest/api/loganalytics/clusters/get?view=rest-loganalytics-2023-09-01"
       }
     ],
@@ -583,7 +583,7 @@
     "proposed_spec_sha256": "fb7fef2975812a5d28069e1ff3b32ea7740aef79930717e75bf3d090fca7517f",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Microsoft Learn REST firewall firewall policy rule collection groups get",
         "url": "https://learn.microsoft.com/en-us/rest/api/firewall/firewall-policy-rule-collection-groups/get?view=rest-firewall-2026-01-01"
       }
     ],
@@ -609,7 +609,7 @@
     "proposed_spec_sha256": "af9e659362c7b71b209eba4080f5e6f00b28d613774aba8de69384bbced9c28c",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "Microsoft Learn REST application gateway web application firewall policies get",
         "url": "https://learn.microsoft.com/en-us/rest/api/application-gateway/web-application-firewall-policies/get?view=rest-application-gateway-2026-01-01"
       }
     ],
@@ -637,7 +637,7 @@
     "proposed_spec_sha256": "222fe45d4ac3a7cf978fb27a85af9760aea2b5c1b1fa9e085ac4bb846bae6d6f",
     "references": [
       {
-        "title": "Azure API reference",
+        "title": "Microsoft Learn en us azure",
         "url": "https://learn.microsoft.com/en-us/azure/"
       }
     ],

@@ -8,6 +8,22 @@ Shell-enabled hosted reviews use the role-free Fargate isolation backend. A usab
 
 AI defaults to `true` in `ScanCreate` and schedules. The launch form can disable it. Existing schedules without a flag inherit `true`.
 
+Settings → AI review also provides **Disable AI for every scan**, in both hosted
+and on-premise deployments. This account-wide override applies in every workspace,
+including existing schedules and queued scans.
+It prevents new AI agent launches and retains saved provider credentials and each
+schedule's selection. Disabling needs no provider validation; enabling restores
+the usual per-scan selections and mandatory launch-time credential validation.
+It does not terminate an agent that was already running when the preference changed.
+The setting is stored independently as non-secret account metadata, so checking it
+does not require loading an AI credential or encryption key.
+
+**Sign in with Codex** starts device authentication on the backend and shows the
+OpenAI login link and one-time code in Settings. Open that link on your laptop,
+enter the code and finish signing in; CSPM polls for completion and stores returned
+tokens encrypted. Then choose the model and thinking effort and validate/save the
+selection. No localhost callback or CLI installation is required on your laptop.
+
 After deterministic analysis, Chack reviews failed Hardening and Exposure findings and runs a holistic Network agent in the same bounded parallel pool, then produces up to 15 prioritized actions. Priorities runs alone after all three types finish, receiving their final verdicts and new network findings. It starts with a complete compact `platform.json` decision brief and uses `context.py` for indexed lookups in `context.sqlite`. Its full evidence covers all security areas; the Network agent gets a separate network-only database and topology catalog. Each Hardening/Exposure verifier receives one `findings.json`: `scan` holds the scan identity/time and `items` contains only its assigned failed checks. Each check retains its evidence and has `supporting_resources` containing only native resource records explicitly referenced by that check. There is no separate evidence file. Verifiers receive no full report, inventory, graphs, least-privilege projection or other review batches. Credentials are selected by provider and referenced accounts, projects, subscriptions or cluster. Target lists narrow the handoff and instructions, not the provider permissions of the captured token. Agents do not need a platform administrator API token.
 
 Both selection and the file-writing boundary enforce that findings.json contains only FAIL checks in the assigned category. Passed, unresolved, denied, manual, empty and inapplicable checks are excluded.
@@ -32,7 +48,7 @@ Validated AI verdicts are applied to the existing Hardening and Exposure finding
 
 Each task prompt follows the sectioned style of the existing FactChecker verifier, Trip Planner administrator and organization-recon Chack prompts: PERSONALITY, GOAL, INPUTS, GUIDELINES, WORKFLOW, OUTPUT and EXAMPLES. The user prompt has an AVAILABLE ACCESS section populated only from that invocation's credential entries. Instructions use natural language with good and bad examples. Pydantic validates output shape and cross references: exact review coverage, distinct IDs, supported verdicts and 500-character reasons, existing resource/finding references, consecutive ranks, at most 15 actions, and brief rationale/steps/verification fields. Findings reviewed as PASS, NOT_APPLICABLE or EMPTY cannot be recommended as outstanding remediation. The agents do not execute the proposed changes.
 
-Recommendations use seven fields per action: `rank`, `title`, `resource_ids`, `finding_ids`, `rationale`, `steps` and `verification`. Rationale combines decisive facts, expected benefit and action-specific uncertainty (1000 characters maximum). There are at most five steps of 500 characters each and a 700-character verification instruction. Necessary prerequisites and rollout cautions belong in steps; common limitations stay at the top level. Rank supplies the ordering, and resource/finding references identify affected targets. Separate priority, scope, provider, impact, effort, owner, dependency, rollback and evidence fields are no longer requested.
+Recommendations use six fields per action: `rank`, `title`, `finding_ids`, `rationale`, `steps` and `verification`. Rationale combines decisive facts, expected benefit and action-specific uncertainty (1000 characters maximum). There are at most five steps of 500 characters each and a 700-character verification instruction. Necessary prerequisites and rollout cautions belong in steps; common limitations stay at the top level. Rank supplies the ordering, and finding references identify affected targets. Supporting evidence lists finding titles that open their details while keeping the action plan open. Separate priority, scope, provider, impact, effort, owner, dependency, rollback and evidence fields are no longer requested.
 
 The dispatch pool runs inside the analyzer. Hosted invocations each use a separate role-free Fargate task; local invocations use the configured isolation launcher. It checks host-available RAM and Linux cgroup v1/v2 remaining memory before admitting more work, reserving 128 MiB of free headroom plus an estimated 512 MiB per new agent. This is an admission estimate, not a hard per-agent memory cap or a production capacity measurement. If no slot fits, unscheduled checks become UNKNOWN and priorities are skipped when headroom is still insufficient. Each concurrent invocation keeps separate private credential files and process cleanup.
 

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from copy import deepcopy
 from dataclasses import dataclass, replace
-from functools import lru_cache
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import os
@@ -33,7 +32,6 @@ class RuleCatalog:
                 "sha256": self.sha256, "rule_count": len(self.rules)}
 
 
-@lru_cache(maxsize=4)
 def _remote_catalog(repo: str, commit: str, expected_digest: str | None) -> tuple[str, tuple[Rule, ...]]:
     texts = fetch_rules(repo, commit, expected_digest)
     digest = rule_pack_sha256(texts)
@@ -47,7 +45,7 @@ def _remote_catalog(repo: str, commit: str, expected_digest: str | None) -> tupl
     return digest, rules
 
 
-def select_catalog(mode: str, *, product: str | None = None,
+def select_catalog(mode: str = "latest", *, product: str | None = None,
                    commit: str | None = None, digest: str | None = None) -> RuleCatalog:
     """Resolve main at access check; a run reuses its exact commit and digest."""
     if mode not in {"pinned", "latest"}:

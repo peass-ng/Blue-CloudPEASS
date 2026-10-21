@@ -819,6 +819,9 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             raise HTTPException(422, "Invalid idempotency key")
         owned = store.connector(user.tenant_id, body.connector_id)
         validate_selectors(body.model_dump(), json.loads(owned["data"])["provider"])
+        from peaso.ai.providers import review_disabled
+        if body.ai_enabled and review_disabled(store, account.tenant_id):
+            body = body.model_copy(update={'ai_enabled': False})
         if body.ai_enabled:
             from peaso.ai.auth import require_local_codex
             require_local_codex(settings, store, account.tenant_id)
@@ -1132,12 +1135,12 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         return response
 
     @app.get("/api/scans/{ident}/finding-groups/{group_ident}")
-    def finding_group(ident: str, group_ident: str, categories: str | None = None,
+    def finding_group(ident: str, group_ident: str, response: Response, categories: str | None = None,
                       framework: str | None = None, severity: str | None = None,
                       service: str | None = None, status: str | None = None, search: str | None = None,
                       finding_type: str | None = None,
                       members_offset: int = Query(default=0, ge=0), members_limit: int = Query(default=50, ge=1, le=100),
-                      user=Depends(identity)):
+                      secret_offset: int = Query(default=0, ge=0, le=50000), user=Depends(identity)):
         from .finding_groups_static_20261021 import group_id, group_findings, placement, member_scopes, STATUS_ORDER
         row, bundle, selected, _, _, labels, meta, field, _, _ = finding_selection(
             user.tenant_id, ident, categories, framework, severity, service, status, search, finding_type=finding_type)
@@ -1196,13 +1199,27 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             "service": service, "status": status, "search": search, "finding_type": finding_type}.items() if value}
         grouped.update(members=output, members_total=len(members), members_offset=members_offset,
             next_offset=members_offset + len(output) if members_offset + len(output) < len(members) else None)
+        from peaso.secret_evidence import load_group_details
+        private = load_group_details(artifacts, cipher, user.tenant_id, ident, members, offset=secret_offset)
+        if private is not None:
+            response.headers['Cache-Control'] = 'private, no-store'
+            response.headers['Pragma'] = 'no-cache'
+            grouped['secret_evidence'] = private
         return grouped
 
     # :path because finding ids embed ARNs/resource paths with "/" (raw or %2F-encoded both arrive decoded).
     @app.get("/api/scans/{ident}/findings/{finding_id:path}")
-    def finding_detail(ident: str, finding_id: str, user=Depends(identity)):
+    def finding_detail(ident: str, finding_id: str, response: Response, secret_offset: int = Query(default=0, ge=0, le=50000), user=Depends(identity)):
         row, bundle = owned_bundle(user.tenant_id, ident)
         bundle = finding_review_context(user.tenant_id, ident, bundle)
+        def private_detail(presented):
+            from peaso.secret_evidence import eligible, load_details
+            if not eligible(presented):
+                return presented
+            response.headers['Cache-Control'] = 'private, no-store'
+            response.headers['Pragma'] = 'no-cache'
+            private = load_details(artifacts, cipher, user.tenant_id, ident, presented, offset=secret_offset)
+            return dict(presented, secret_evidence=private)
         groups = (artifacts.get(user.tenant_id, chunk["reference"])["items"] for chunk in bundle["finding_chunks"] if chunk["first_id"] <= finding_id <= chunk["last_id"]) if bundle.get("bundle_version") == 1 else [bundle.get("findings", [])]
         for group in groups:
             for value in group:
@@ -1222,11 +1239,18 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
                                 envelope["finding_presentation"] = presentation
                                 if isinstance(presentation.get("remediation_details"), dict):
                                     envelope["remediation_details"] = presentation["remediation_details"]
+                            # The bounded public summary omits canonical secret
+                            # locations. Bind private values to the authorized
+                            # full finding, never to that summary alone.
+                            from peaso.secret_evidence import eligible
+                            private = private_detail(artifacts.get(user.tenant_id, value['_detail_reference'])) if eligible(presented) else presented
+                            if 'secret_evidence' in private:
+                                envelope['secret_evidence'] = private['secret_evidence']
                             return envelope
-                        return with_remediation(artifacts.get(user.tenant_id, value["_detail_reference"]), bundle)
+                        return private_detail(with_remediation(artifacts.get(user.tenant_id, value["_detail_reference"]), bundle))
                     if len(json.dumps(value).encode()) > 4 * 1024 * 1024 and hasattr(artifacts, "presign"):
                         raise HTTPException(413, "Finding exceeds the API detail budget; download the complete JSON report for this evidence")
-                    return with_remediation(with_labels(with_meta(value, check_fields(bundle), bundle), check_labels(bundle)), bundle)
+                    return private_detail(with_remediation(with_labels(with_meta(value, check_fields(bundle), bundle), check_labels(bundle)), bundle))
         raise HTTPException(404, "Finding not found")
 
     @app.get("/api/scans/{ident}/ai")
@@ -1259,17 +1283,15 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
                 finding_count=len(groups), by_status=dict(Counter(item["status"] for item in groups)),
                 observation_by_severity=stats.get("by_severity", {}),
                 by_severity=dict(Counter(item["severity"] for item in groups if item["status"] == "FAIL")),
-                by_category=dict(Counter(item["category"] for item in groups)))
+                by_category=dict(Counter(item["category"] for item in groups)),
+                failed_by_category=dict(Counter(item["category"] for item in groups if item["status"] == "FAIL")))
             value.update(finding_count=len(groups), finding_grouping="check-v1")
         return value
 
-    @app.get("/api/scans/{ident}/least-privilege")
-    def least_privilege(ident: str, search: str = "", exposure: Literal["external", "federated", "internet", "unresolved"] | None = None, offset: int = Query(default=0, ge=0),
-                        limit: int = Query(default=100, ge=1, le=500), user=Depends(identity)):
-        """One row per principal, backed by the immutable scan's native evidence."""
-        row, bundle = owned_bundle(user.tenant_id, ident)
+    def principal_projection(tenant, ident):
+        row, bundle = owned_bundle(tenant, ident)
         if bundle.get("least_privilege"):
-            projection = artifacts.get(user.tenant_id, bundle["least_privilege"])
+            projection = artifacts.get(tenant, bundle["least_privilege"])
         else:
             # Historical reports predate the compact projection artifact. Their
             # native resource chunks still carry the evidence needed to build it.
@@ -1278,10 +1300,18 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             if bundle.get("bundle_version") == 1 and bundle.get("resource_chunks"):
                 resource_rows = [dict(item, provider=provider)
                     for chunk in bundle["resource_chunks"]
-                    for item in artifacts.get(user.tenant_id, chunk["reference"])["items"]]
+                    for item in artifacts.get(tenant, chunk["reference"])["items"]]
                 projection = project(provider, resource_rows)
             else:
                 projection = project(provider, bundle.get("resources", []))
+        return row, bundle, projection
+
+    @app.get("/api/scans/{ident}/least-privilege")
+    def least_privilege(ident: str, search: str = "", exposure: Literal["external", "federated", "internet", "unresolved"] | None = None,
+                        sort_by: Literal["severity", "principal", "recommendations"] = "severity", sort_order: Literal["asc", "desc"] = "desc",
+                        offset: int = Query(default=0, ge=0), limit: int = Query(default=100, ge=1, le=500), user=Depends(identity)):
+        """Filter and sort the whole principal projection before pagination."""
+        row, bundle, projection = principal_projection(user.tenant_id, ident)
         needle = search.strip().casefold()[:200]
         candidates = projection["items"]
         if exposure:
@@ -1294,10 +1324,26 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             candidates = [card for card in candidates if needle in card["principal"].casefold()
                 or needle in card.get("label", "").casefold()
                 or any(needle in scope.casefold() for scope in card["scopes"])]
+        from peaso.principal_exposure import RANK
+        if sort_by == "severity":
+            candidates = sorted(candidates, key=lambda c: (RANK.get(c.get("severity"), 4), c.get("label", c["principal"]).casefold()), reverse=sort_order == "asc")
+        elif sort_by == "recommendations":
+            candidates = sorted(candidates, key=lambda c: (c.get("recommendation_count", 0), c["principal"].casefold()), reverse=sort_order == "desc")
+        else:
+            candidates = sorted(candidates, key=lambda c: c.get("label", c["principal"]).casefold(), reverse=sort_order == "desc")
         page = candidates[offset:offset + limit]
         return {"items": page, "total": len(candidates), "offset": offset,
             "next_offset": offset + len(page) if offset + len(page) < len(candidates) else None,
             "coverage": projection["coverage"]}
+
+    @app.get("/api/scans/{ident}/least-privilege/principals/{principal_id:path}")
+    def principal_permissions(ident: str, principal_id: str, user=Depends(identity)):
+        _, bundle, projection = principal_projection(user.tenant_id, ident)
+        card = next((c for c in projection["items"] if c["id"] == principal_id), None)
+        if card is None:
+            raise HTTPException(404, "Principal not found")
+        from .least_privilege_details import principal_detail
+        return principal_detail(artifacts, user.tenant_id, bundle, card)
 
     @app.get("/api/scans/{ident}/coverage")
     def coverage(ident: str, offset: int = Query(default=0, ge=0), limit: int = Query(default=500, ge=1, le=500), user=Depends(identity)):
@@ -1932,4 +1978,6 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
     if static.is_dir():
         from fastapi.staticfiles import StaticFiles
         app.mount("/", StaticFiles(directory=static, html=True), name="frontend")
+    from .image_findings_routes import install_routes as install_image_findings_routes
+    install_image_findings_routes(app, identity=identity, owned_bundle=owned_bundle, artifacts=artifacts)
     return app

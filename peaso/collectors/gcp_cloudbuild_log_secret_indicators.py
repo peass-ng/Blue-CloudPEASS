@@ -16,6 +16,7 @@ from types import SimpleNamespace
 from urllib.parse import quote
 
 from . import gcp_selected_object_secret_indicators as objects
+from . import gcp_cloudbuild_logging_entries as logging_entries
 from .gcp_composer_source_secret_indicators import _refs, _pairs
 
 KIND = 'cloudbuild_log_source'
@@ -155,6 +156,22 @@ def build_binding(build, name, project):
     return m[1], 'log-' + match[3] + '.txt'
 
 
+def logging_binding(build, name, project):
+    match = BUILD_NAME.fullmatch(name)
+    if (not isinstance(build, dict) or set(build) - set(BUILD_FIELDS.split(',')[:-1] + ['options'])
+            or build.get('name') != name or build.get('id') != match[3]
+            or build.get('projectId') != project.get('projectId')
+            or match[1] not in (project.get('projectId'), project.get('name', '').split('/')[-1])
+            or build.get('status') not in TERMINAL
+            or build.get('options') != {'logging': 'CLOUD_LOGGING_ONLY'}):
+        raise Incomplete('logging_build_identity_or_state_unavailable')
+    created, finished = _time(build.get('createTime')), _time(build.get('finishTime'))
+    if created > finished or 'startTime' in build and not created <= _time(build['startTime']) <= finished:
+        raise Incomplete('build_time_unavailable')
+    if 'logsBucket' in build and build['logsBucket'] not in ('', None):
+        raise Incomplete('ambiguous_logging_destination')
+
+
 def _project(collector, scope):
     source = collector.collections.get(('project', scope), {})
     rows = source.get('items')
@@ -201,35 +218,45 @@ def collect_sources(collector, scope):
                 marker['native_requests'] = refs
                 build = _json_get(transport, state, scope, 'https://cloudbuild.googleapis.com/v1/' + name,
                     {'fields': BUILD_FIELDS}, 'cloudbuild.builds.get.log_source', ident)
-                bucket, object_name = build_binding(build, name, project)
-                objects._bound_bucket(collector, scope, bucket)
-                bucket_row = next(r for r in collector.collections[('bucket', scope)]['items'] if r.get('name') == bucket)
-                if set(bucket_row.get('_coverage', {})) & {'name', 'projectNumber', '*'}:
-                    raise Incomplete('bucket_binding_unavailable')
-                marker['native_requests'] += _refs(collector, 'bucket', scope, bucket_row,
-                    'https://storage.googleapis.com/storage/v1/b', {'project': scope.split('/')[1], 'projection': 'full'})
-                target = {'project_scope': scope, 'bucket': bucket, 'object': object_name}
-                metadata = _json_get(transport, state, scope,
-                    'https://storage.googleapis.com/storage/v1/b/' + quote(bucket, safe='') + '/o/' + quote(object_name, safe=''),
-                    {'fields': objects.FIELDS, 'projection': 'noAcl'}, 'storage.objects.get.cloudbuild_log_generation', ident)
-                generation = metadata.get('generation')
-                if not isinstance(generation, str) or not objects._DECIMAL.fullmatch(generation):
-                    raise Incomplete('generation_unavailable')
-                target['generation'] = generation
-                observed = objects._metadata(json.dumps(metadata).encode(), target)
-                if observed['size'] == 0:
-                    raise Incomplete('empty_log')
-                object_id = objects.identity(target)
-                marker.update(build={k: v for k, v in build.items() if k != 'logsBucket'},
-                              bucket_sha256=hashlib.sha256(bucket.encode()).hexdigest(), generation=generation)
+                if isinstance(build, dict) and build.get('options') == {'logging': 'CLOUD_LOGGING_ONLY'}:
+                    marker['mode'] = 'cloud_logging_entries'
+                    marker['build'] = {k: v for k, v in build.items() if k != 'logsBucket'}
+                    marker['logging'] = logging_entries.collect(transport, state, scope, name, build, project, ident,
+                        lambda: _json_get(transport, state, scope, 'https://cloudbuild.googleapis.com/v1/' + name,
+                            {'fields': BUILD_FIELDS}, 'cloudbuild.builds.get.log_source_after', ident), logging_binding)
+                    marker['complete'] = marker['logging']['complete']
+                    marker['reason'] = marker['logging']['reason']
+                else:
+                    bucket, object_name = build_binding(build, name, project)
+                    objects._bound_bucket(collector, scope, bucket)
+                    bucket_row = next(r for r in collector.collections[('bucket', scope)]['items'] if r.get('name') == bucket)
+                    if set(bucket_row.get('_coverage', {})) & {'name', 'projectNumber', '*'}:
+                        raise Incomplete('bucket_binding_unavailable')
+                    marker['native_requests'] += _refs(collector, 'bucket', scope, bucket_row,
+                        'https://storage.googleapis.com/storage/v1/b', {'project': scope.split('/')[1], 'projection': 'full'})
+                    target = {'project_scope': scope, 'bucket': bucket, 'object': object_name}
+                    metadata = _json_get(transport, state, scope,
+                        'https://storage.googleapis.com/storage/v1/b/' + quote(bucket, safe='') + '/o/' + quote(object_name, safe=''),
+                        {'fields': objects.FIELDS, 'projection': 'noAcl'}, 'storage.objects.get.cloudbuild_log_generation', ident)
+                    generation = metadata.get('generation')
+                    if not isinstance(generation, str) or not objects._DECIMAL.fullmatch(generation):
+                        raise Incomplete('generation_unavailable')
+                    target['generation'] = generation
+                    observed = objects._metadata(json.dumps(metadata).encode(), target)
+                    if observed['size'] == 0:
+                        raise Incomplete('empty_log')
+                    object_id = objects.identity(target)
+                    marker.update(build={k: v for k, v in build.items() if k != 'logsBucket'},
+                                  bucket_sha256=hashlib.sha256(bucket.encode()).hexdigest(), generation=generation)
             # The reader owns the shared state lock and performs both pinned reads.
-            facade = SimpleNamespace(options={'content_secret_scans': True,
-                '_content_secret_scan_kinds': [objects.KIND], objects.OPTION: [target]},
-                scopes=[scope], transport=transport, collections=collector.collections)
-            selected, = objects.collect_selected_objects(facade, scope)
-            marker['object'] = selected
-            marker['complete'] = selected[objects.MARKER]['complete'] is True
-            marker['reason'] = 'complete' if marker['complete'] else 'object_incomplete'
+            if marker.get('mode') != 'cloud_logging_entries':
+                facade = SimpleNamespace(options={'content_secret_scans': True,
+                    '_content_secret_scan_kinds': [objects.KIND], objects.OPTION: [target]},
+                    scopes=[scope], transport=transport, collections=collector.collections)
+                selected, = objects.collect_selected_objects(facade, scope)
+                marker['object'] = selected
+                marker['complete'] = selected[objects.MARKER]['complete'] is True
+                marker['reason'] = 'complete' if marker['complete'] else 'object_incomplete'
         except Incomplete as exc:
             marker['reason'] = str(exc)
         except Exception:

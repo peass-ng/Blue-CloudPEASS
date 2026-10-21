@@ -59,22 +59,25 @@ test("full AWS report: every section renders with counts that match the API", as
   await expect(page.locator(".metric").filter({ hasText: "Observed assets" })).toContainText(
     String(summary.stats.resource_count),
   );
-  await expect(page.getByRole("navigation").getByRole("button", { name: /Hardening Findings/ })).toContainText(
+  await expect(page.getByRole("navigation").getByRole("button", { name: /Hardening & Compliance/ })).toContainText(
     String(counts.hardening),
   );
   await shot(page, "dashboard");
 
-  // Hardening Findings: totals, frameworks, checklist versions and grouping.
-  await open(page, "Hardening Findings");
+  // Hardening & Compliance: totals, frameworks, checklist versions and grouping.
+  await open(page, "Hardening & Compliance");
   await expect(footer(page)).toContainText(`of ${counts.hardening} matching findings`, { timeout: 30000 });
   const frameworks = page.getByLabel("Compliance framework");
-  await expect(frameworks.locator("option", { hasText: "HackTricks Cloud Best Practices" })).toHaveCount(1);
-  await frameworks.selectOption("HackTricks Cloud Best Practices");
+  await frameworks.click();
+  await expect(page.getByRole("listbox", { name: "Compliance frameworks" }).getByRole("option", { name: "HackTricks Cloud Best Practices", exact: true })).toHaveCount(1);
+  await page.getByRole("listbox", { name: "Compliance frameworks" }).getByRole("option", { name: "HackTricks Cloud Best Practices", exact: true }).click();
   await expect(footer(page)).toContainText(`of ${counts.hacktricks} matching findings`);
-  await frameworks.selectOption("CIS");
+  await frameworks.click();
+  await page.getByRole("listbox", { name: "Compliance frameworks" }).getByRole("option", { name: "CIS", exact: true }).click();
   await expect(footer(page)).toContainText(`of ${counts.cis} matching findings`);
-  await expect(frameworks.locator("option", { hasText: /CIS Amazon Web Services Foundations Benchmark v\d/ })).not.toHaveCount(0);
-  await frameworks.selectOption("cis_6.0_aws");
+  await frameworks.click();
+  await expect(page.getByRole("listbox", { name: "Compliance frameworks" }).getByRole("option", { name: /CIS Amazon Web Services Foundations Benchmark v\d/ })).not.toHaveCount(0);
+  await page.getByRole("listbox", { name: "Compliance frameworks" }).getByRole("option", { name: "CIS Amazon Web Services Foundations Benchmark v6.0.0", exact: true }).click();
   await expect(footer(page)).toContainText(`of ${counts.cis6} matching findings`);
   await expect(page.locator(".notice", { hasText: "CIS Amazon Web Services Foundations Benchmark v6.0.0" })).toBeVisible();
   await shot(page, "hardening-cis6");

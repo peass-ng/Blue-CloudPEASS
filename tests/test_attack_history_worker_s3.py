@@ -11,7 +11,10 @@ from itertools import count
 from pathlib import Path
 from uuid import UUID
 
-from peaso.attack_detection.history_worker_s3 import _process
+from peaso.attack_detection.history_worker_s3 import (
+    _process, process_aws_cloudtrail_day, resolve_new_history_rule_snapshot,
+)
+from peaso.attack_detection.catalog import RuleCatalog
 from peaso.attack_detection.history_s3 import HistorySourceGap
 from peaso.attack_detection.rules import (
     DEFAULT_RULE_PACK_SHA256, DEFAULT_RULE_REF, Rule,
@@ -89,15 +92,16 @@ class FakeS3:
                 "Body": io.BytesIO(raw)}
 
 
-def prepared(tmp_path: Path):
+def prepared(tmp_path: Path, *, rule_version=DEFAULT_RULE_REF,
+             rule_fingerprint=DEFAULT_RULE_PACK_SHA256):
     store = SQLiteAttackHistoryStore(tmp_path, CredentialCipher(tmp_path / "identity"))
     connector = {"data": {"provider": "aws"}, "auth": {"method": "role", "role_arn": "example"}}
     digest = hashlib.sha256(json.dumps(connector, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     source = {"kind": "aws_cloudtrail_s3", "bucket": "logs-bucket", "prefix": BASE,
               "account_id": ACCOUNT, "region": REGION, "day": DAY}
-    job = store.create_job("tenant-a", "connector-1", source, DEFAULT_RULE_PACK_SHA256,
+    job = store.create_job("tenant-a", "connector-1", source, rule_fingerprint,
                            digest, connector, source_version="cloudtrail-s3-v1",
-                           rule_version=DEFAULT_RULE_REF,
+                           rule_version=rule_version,
                            normalizer_version="aws-v1")["id"]
     generation = store.claim_job("tenant-a", job, "worker-a", lease_seconds=3600, now=CLOCK - 1)
     return store, job, generation
@@ -142,10 +146,67 @@ def test_worker_rejects_rule_snapshot_drift_before_s3_access(tmp_path: Path) -> 
                            rule_version="stale-rules", normalizer_version="aws-v1")["id"]
     generation = store.claim_job("tenant-a", job, "worker-a", now=CLOCK - 1)
     client = FakeS3({})
-    with pytest.raises(AttackHistoryError, match="pinned rule snapshot mismatch"):
+    with pytest.raises(AttackHistoryError, match="exact rule snapshot mismatch"):
         _process(store, "tenant-a", job, "worker-a", generation,
                  client, (RULE,), clock=lambda: CLOCK)
     assert client.list_calls == 0
+
+
+def test_new_history_snapshot_resolves_current_official_pack(monkeypatch):
+    calls = []
+    def selected(mode, *, product, commit=None, digest=None):
+        calls.append((mode, product, commit, digest))
+        return RuleCatalog("latest", "a" * 40, "b" * 64, (RULE,))
+    monkeypatch.setattr("peaso.attack_detection.history_worker_s3.select_catalog", selected)
+    assert resolve_new_history_rule_snapshot() == {
+        "rule_version": "a" * 40, "rule_fingerprint": "b" * 64}
+    assert calls == [("latest", "aws", None, None)]
+
+
+def test_worker_reloads_exact_job_pack_before_s3_reads(tmp_path: Path, monkeypatch):
+    commit, digest = "a" * 40, "b" * 64
+    store, job, generation = prepared(tmp_path, rule_version=commit,
+                                       rule_fingerprint=digest)
+    calls = []
+    def selected(mode, *, product, commit, digest):
+        calls.append((mode, product, commit, digest))
+        return RuleCatalog("latest", commit, digest, (RULE,))
+    monkeypatch.setattr("peaso.attack_detection.history_worker_s3.select_catalog", selected)
+    row = event("fee0d559-62a8-43b4-8824-2250a7a2203f")
+    s3 = FakeS3({PREFIX + "one.json.gz": compressed(row)})
+    result = process_aws_cloudtrail_day(store, "tenant-a", job, "worker-a", generation,
+                                        s3, grace_seconds=3600, clock=lambda: CLOCK)
+    assert result["state"] == "complete_as_of"
+    assert calls == [("latest", "aws", commit, digest)]
+    assert store.read_result("tenant-a", job)["summary"]["detection_count"] == 1
+
+
+def test_worker_rule_fetch_failure_has_no_stale_fallback_or_s3_read(tmp_path: Path, monkeypatch):
+    from peaso.attack_detection.rules import RuleSourceError
+    store, job, generation = prepared(tmp_path, rule_version="a" * 40,
+                                       rule_fingerprint="b" * 64)
+    def unavailable(*args, **kwargs):
+        raise RuleSourceError("private response")
+    monkeypatch.setattr("peaso.attack_detection.history_worker_s3.select_catalog", unavailable)
+    s3 = FakeS3({})
+    with pytest.raises(AttackHistoryError, match="Exact AWS rule pack is unavailable") as error:
+        process_aws_cloudtrail_day(store, "tenant-a", job, "worker-a", generation,
+                                   s3, clock=lambda: CLOCK)
+    assert "private response" not in str(error.value)
+    assert s3.list_calls == 0 and s3.get_calls == 0
+
+
+def test_worker_rejects_fetched_pack_identity_drift_before_s3(tmp_path: Path, monkeypatch):
+    store, job, generation = prepared(tmp_path, rule_version="a" * 40,
+                                       rule_fingerprint="b" * 64)
+    monkeypatch.setattr("peaso.attack_detection.history_worker_s3.select_catalog",
+                        lambda *args, **kwargs: RuleCatalog("latest", "c" * 40,
+                                                            "b" * 64, (RULE,)))
+    s3 = FakeS3({})
+    with pytest.raises(AttackHistoryError, match="exact rule snapshot mismatch"):
+        process_aws_cloudtrail_day(store, "tenant-a", job, "worker-a", generation,
+                                   s3, clock=lambda: CLOCK)
+    assert s3.list_calls == 0 and s3.get_calls == 0
 
 
 def test_worker_crash_after_object_commit_replays_without_duplicate_findings(tmp_path: Path) -> None:

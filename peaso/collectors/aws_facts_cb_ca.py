@@ -161,7 +161,7 @@ READ_ACTIONS.update({
     ("support", "describe_trusted_advisor_check_summaries"),
     ("ssm-incidents", "get_replication_set"), ("ssm-incidents", "list_response_plans"),
     ("ssm", "get_service_setting"),
-    ("accessanalyzer", "list_findings_v2"), ("accessanalyzer", "get_finding_v2"),
+    ("accessanalyzer", "list_findings_v2"), ("accessanalyzer", "get_finding_v2"), ("accessanalyzer", "get_analyzer"),
 })
 
 _OK = ("collected", "empty")
@@ -1237,24 +1237,44 @@ def _delegated_administrators(requests, session, region, items):
 
 def _analyzer_findings(requests, session, region, items):
     output = []
-    projection = "findings[].{id: id, status: status, resourceType: resourceType, findingType: findingType, resource: resource, resourceOwnerAccount: resourceOwnerAccount}"
+    projection = "findings"
     for original in items:
         item = copy.deepcopy(original)
         if item.get("status") == "ACTIVE" and isinstance(item.get("arn"), str):
+            if (item.get("type") in {"ACCOUNT_UNUSED_ACCESS", "ORGANIZATION_UNUSED_ACCESS"}
+                    and not item.get("configuration") and isinstance(item.get("name"), str)):
+                configuration = requests.pages(session, "accessanalyzer", region, "get_analyzer", "[analyzer]",
+                    analyzerName=item["name"])
+                if configuration.status in _OK and len(configuration.items) == 1 and isinstance(configuration.items[0], dict) and configuration.items[0].get("arn") == item["arn"]:
+                    item.update(copy.deepcopy(configuration.items[0]))
+                elif configuration.status in _OK:
+                    _cover(item, "configuration", "malformed", {"code": "invalid_analyzer_response"}, source_operation="access-analyzer:GetAnalyzer")
+                else:
+                    _cover(item, "configuration", *_cause(configuration), source_operation="access-analyzer:GetAnalyzer")
             findings = requests.pages(session, "accessanalyzer", region, "list_findings_v2", projection, analyzerArn=item["arn"], filter={"status": {"eq": ["ACTIVE"]}})
-            if findings.status in _OK:
-                item["Findings"] = findings.items
-                if item.get("_scan_temporary") or item.get("type") in {"ACCOUNT_UNUSED_ACCESS", "ORGANIZATION_UNUSED_ACCESS"}:
-                    for finding in item["Findings"]:
-                        if (finding.get("findingType") != "UnusedPermission" and not item.get("_scan_temporary")) or not isinstance(finding.get("id"), str):
-                            continue
-                        detail = requests.pages(session, "accessanalyzer", region, "get_finding_v2", "findingDetails",
-                            analyzerArn=item["arn"], id=finding["id"])
-                        finding["FindingDetails"] = _listing(detail)
-                        if finding.get("findingType") == "UnusedPermission":
-                            finding["UnusedPermissionDetails"] = _listing(detail)
-            else:
+            # Retain every returned summary, including timestamps and any positive
+            # evidence obtained before a pagination failure or collection limit.
+            item["Findings"] = copy.deepcopy(findings.items)
+            if findings.status not in _OK:
                 _cover(item, "Findings", *_cause(findings), source_operation="access-analyzer:ListFindingsV2")
+            for finding in item["Findings"]:
+                if not isinstance(finding, dict) or not isinstance(finding.get("id"), str):
+                    continue
+                detail = requests.pages(session, "accessanalyzer", region, "get_finding_v2", "[@]",
+                    analyzerArn=item["arn"], id=finding["id"])
+                finding["FindingDetails"] = _listing(detail)
+                finding["FindingDetails"]["items"] = []
+                for page in detail.items:
+                    if not isinstance(page, dict) or page.get("id") != finding["id"] or not isinstance(page.get("findingDetails"), list):
+                        finding["FindingDetails"].update(collection_status="malformed", error={"code": "invalid_finding_detail_response"})
+                        continue
+                    # Keep the current status, timestamps, policy restrictions and
+                    # other response metadata, as well as every page of details.
+                    finding.update({key: copy.deepcopy(value) for key, value in page.items()
+                                    if key not in {"findingDetails", "nextToken", "ResponseMetadata"}})
+                    finding["FindingDetails"]["items"].extend(copy.deepcopy(page["findingDetails"]))
+                if finding.get("findingType") == "UnusedPermission":
+                    finding["UnusedPermissionDetails"] = copy.deepcopy(finding["FindingDetails"])
         output.append(item)
     return output
 

@@ -1,0 +1,891 @@
+{
+  "after_functions": {
+    "_DetectorMatches": "4469252501683d27d6ad6953731701dcf714b66d4b705d6152b032167a10e3eb",
+    "_DetectorMatches.__init__": "80ea1800fae94c89dfc451a45fee5f29f70ee5ceca34d37a558b4d61a44abe00",
+    "_after_fork": "f67c4850c2d6fa0ddef37a517c0d584d4b463cc28ae04fe0f635de8b61b3b788",
+    "_complete_match_values": "fe2013f6520da755d276cbc0f46e90d4cfde5d1a7e9e3ca8ed89c2e6693c3648",
+    "_fingerprint": "d17562e7d08e43ee7f3d8d2a3c2cab315964ab805962c6117575a84568b89975",
+    "_kingfisher": "25398bab2644fe983a70d969bb1f87b1644dd970ff0768ce96d66240eaec3bc7",
+    "_label": "255fb5aebcc87ef5dc5a202ecde61d17c4ce4926e056b93e27fb3de6b761f5e5",
+    "_run": "f06b596efe9882fd8fdb22789b82d74ca85144a31efff04faccf40e28b518284",
+    "_scan_kingfisher": "70cf3a5bec42dedc2071d63940e10bb8b67081efbb63f86dd16c4d94782242c8",
+    "_scan_trufflehog": "0563b161e46a952b54f22ecf5fa8d093ae5a16a6e6a272f0cfcd61ae79f1a3e5",
+    "_trufflehog": "68890a08f9490e4c93935083925d55246759a92461ae1bfac8e624c4d325974c",
+    "merge_leaks": "c68113ee5f948578f926971b78a1e384e693cb845f8d00e3e6fa7e4051a58b79",
+    "omit_free_text_metadata": "f3c757accbb38c8fadccbf7d2b42c66139f2a93b281a68de850b1ce48a340926",
+    "redact_matches": "4c334f2c96e96a2bc6b58e9f681c239f4b731b64d530b495c213a182f02e57df",
+    "scan_content": "7b9bc28be3a44fe36afbd191de5997678035ffbe01745ef17a9f2e3423ad10d0"
+  },
+  "after_sha256": "853c402c0362565849c43cbd89cc82d1e5e8b1b5d8d25f6cc15706a48de6f55f",
+  "before_functions": {
+    "_after_fork": "f67c4850c2d6fa0ddef37a517c0d584d4b463cc28ae04fe0f635de8b61b3b788",
+    "_fingerprint": "d17562e7d08e43ee7f3d8d2a3c2cab315964ab805962c6117575a84568b89975",
+    "_kingfisher": "25398bab2644fe983a70d969bb1f87b1644dd970ff0768ce96d66240eaec3bc7",
+    "_label": "255fb5aebcc87ef5dc5a202ecde61d17c4ce4926e056b93e27fb3de6b761f5e5",
+    "_run": "f06b596efe9882fd8fdb22789b82d74ca85144a31efff04faccf40e28b518284",
+    "_scan_kingfisher": "9cc90a9525568f3fec7fe6825541776e1302a5bcea30bb37f8a9183db27c4c22",
+    "_scan_trufflehog": "8749ad49418a7ccf12fe76725790f36c201103c50e6887a581e88399a3d62d95",
+    "_trufflehog": "68890a08f9490e4c93935083925d55246759a92461ae1bfac8e624c4d325974c",
+    "merge_leaks": "c68113ee5f948578f926971b78a1e384e693cb845f8d00e3e6fa7e4051a58b79",
+    "omit_free_text_metadata": "f3c757accbb38c8fadccbf7d2b42c66139f2a93b281a68de850b1ce48a340926",
+    "redact_matches": "4c334f2c96e96a2bc6b58e9f681c239f4b731b64d530b495c213a182f02e57df",
+    "scan_content": "73e244e271ce1aa50306511f994ec9de178918d1c08e02ba34d5d88d58b65235"
+  },
+  "before_sha256": "72aaf391e3b168d9b8f7a10603a5763c04137b5e7807fef320b4fc22fa1a9d19",
+  "classes": [
+    "_DetectorMatches"
+  ],
+  "clones": {
+    "azure_databricks_notebook_secrets_admission_20261020": {
+      "after": "_admitted_source_digest(name, path, digest, root) != digest",
+      "after_sha256": "eaba858294f01999ddfea6779824a94a888b94e5cd360ffbfebf55a1fe93502e",
+      "before": "hashlib.sha256(path.read_bytes()).hexdigest() != digest",
+      "before_sha256": "7ad45d03270a79bc7a55d3682cc22ad19927046444521ff2e648eb3f00462aa8"
+    },
+    "azure_declaration_secrets_admission_20261020": {
+      "after": "_admitted_source_digest(name, path, digest, root) != digest",
+      "after_sha256": "e8d5932620b5ee3b28d4be7b1785b4baeea0916f76c90b82f6648a900112c280",
+      "before": "hashlib.sha256(path.read_bytes()).hexdigest() != digest",
+      "before_sha256": "19bb93793c8d6e6161e169170a5724075c2ca70af9361176d2069a476a93cad1"
+    },
+    "azure_function_settings_runtime_admission_20261020": {
+      "after": "_admitted_source_digest(name,path,digest,root)!=digest",
+      "after_sha256": "388560aae9d7d51f9b5a109c3525419d0ffcb1ec20947fbdb334b5ee148baee2",
+      "before": "hashlib.sha256(path.read_bytes()).hexdigest()!=digest",
+      "before_sha256": "0ee18ca95ffaf8c2d7c58367151fa100ae3323965192284b5613113ed49ff44f"
+    },
+    "azure_log_samples_admission_20261020": {
+      "after": "_admitted_source_digest(name, path, digest, root) != digest",
+      "after_sha256": "62442f9ceb1d1af16132001d0aef1ca8da2ac47e9f11d28ca1b9dfbd8af87008",
+      "before": "hashlib.sha256(path.read_bytes()).hexdigest() != digest",
+      "before_sha256": "b18414dd52b9d4d7e11a72d92c2c4947b27c681564e62c1375e3a510dbda512e"
+    },
+    "azure_ml_asset_secrets_admission_20261020": {
+      "after": "_admitted_source_digest(name, path, digest, root) != digest",
+      "after_sha256": "ace491c0a2dc4be58e2ba46861713257163bc114005db9a6e60d6b981c249608",
+      "before": "hashlib.sha256(path.read_bytes()).hexdigest() != digest",
+      "before_sha256": "477823312a308a4a1b37c4eb7612916a3e5419808abdbe7ef0640fd83295df89"
+    },
+    "azure_ml_job_secrets_admission_20261020": {
+      "after": "_admitted_source_digest(name, path, digest, root) != digest",
+      "after_sha256": "8bd4d803e6e1189b561af6c5f93666cb9a18dcc043e80bdedce4fd13fbc2a962",
+      "before": "hashlib.sha256(path.read_bytes()).hexdigest() != digest",
+      "before_sha256": "e9aa5ee9b8bdae106677c4dc8e3d8eb3b3be0ab77cc58ba0e4431b476bbdd4d9"
+    },
+    "gcp_dataproc_source_runtime_admission_20261020": {
+      "after": "_admitted_source_digest(name, path, digest, root) != digest",
+      "after_sha256": "1cc45aeaa129f0e6211826e72a963572f3981769b195f6a774756222f4b86ffe",
+      "before": "hashlib.sha256(path.read_bytes()).hexdigest() != digest",
+      "before_sha256": "5143e68a8ffe767f6981ad73d712993280f43edf09d355cbe1f8547bf89375ac"
+    },
+    "gcp_workbench_source_runtime_admission_20261020": {
+      "after": "_admitted_source_digest(name, path, digest, root) != digest",
+      "after_sha256": "59ae49b664d360f40b3277c872e3ee25bb9f8c21e84c42f5429fa4273004cce2",
+      "before": "hashlib.sha256(path.read_bytes()).hexdigest() != digest",
+      "before_sha256": "30047fdfbcde88d1104d8dd0bead086c116306fc4b02aa93838316df2b132673"
+    }
+  },
+  "dataproc_proposal": {
+    "path": "peaso/checks/gcp_dataproc_referenced_source_proposal_20261020.py",
+    "receipt": "peaso/checks/gcp_dataproc_referenced_source_proposal_20261020.json",
+    "receipt_sha256": "594beddbde9179cfe85d4fd154f5eb37d69e091f9784cbccca383ca0ebd974fd",
+    "source_sha256": "026f3eba9fc346a5fb71c917064d560dc369aab31386776f16ff3d6f5ffcafbf"
+  },
+  "detector_class_keys": [
+    "__dict__",
+    "__doc__",
+    "__init__",
+    "__module__",
+    "__weakref__"
+  ],
+  "detector_class_lineno": 140,
+  "detector_class_static_attributes": [
+    "redaction_values"
+  ],
+  "edits": [
+    {
+      "after": "class _DetectorMatches(list):\n    \"\"\"Internal plaintext parser result; extra values redact, never identify.\"\"\"\n    def __init__(self):\n        super().__init__()\n        self.redaction_values = set()\n\n\ndef _complete_match_values(primary, full, *, rule):\n    \"\"\"Privacy redactions from a parsed offline result, not source provenance.\"\"\"\n    if not isinstance(full, str) or not full:\n        return []\n    values = [full]\n    if rule.casefold() == 'aws' and full.startswith(primary + ':'):\n        component = full[len(primary) + 1:]\n        # The detector can decode the pair from base64. Redact its recognized\n        # component even when those literal bytes are absent from the input.\n        if re.fullmatch(r'[A-Za-z0-9/+=]{40}', component):\n            values.append(component)\n    return values\n\n\n",
+      "before": ""
+    },
+    {
+      "after": "    result = _DetectorMatches()\n",
+      "before": "    result = []\n"
+    },
+    {
+      "after": "        result.redaction_values.update(_complete_match_values(value, row.get('RawV2'),\n            rule=_label(row.get('DetectorName', 'secret'))))\n",
+      "before": ""
+    },
+    {
+      "after": "            # Extra credential components redact metadata and paths without\n            # changing the canonical primary-value fingerprints or locations.\n            known_values.update(getattr(matches, 'redaction_values', ()))\n",
+      "before": ""
+    }
+  ],
+  "guards": {
+    "peaso/checks/aws_selected_configuration_admission_20261020.py": {
+      "function_bindings": {
+        "install": {
+          "defaults": "None",
+          "kwdefaults": "None"
+        },
+        "reviewed_inputs": {
+          "defaults": "None",
+          "kwdefaults": "None"
+        }
+      },
+      "receipt": "peaso/checks/aws_selected_configuration_secret_review_20261020_admission.json",
+      "receipt_sha256": "b78800da34b90bde083cfac7e43a9b32b7b461ac48c8e5879dd853c3eb9c13ce",
+      "source_sha256": "0845d451dd1b4106ee35b58023ba54d9322a416db7fe340c7573e621e1ac70a0"
+    },
+    "peaso/checks/azure_databricks_notebook_secrets_admission_20261020.py": {
+      "function_bindings": {
+        "_signature": {
+          "defaults": "None",
+          "kwdefaults": "None"
+        },
+        "install": {
+          "defaults": "None",
+          "kwdefaults": "None"
+        },
+        "reviewed_inputs": {
+          "defaults": "(None,)",
+          "kwdefaults": "None"
+        }
+      },
+      "receipt": "peaso/checks/azure_databricks_notebook_secrets_admission_20261020.json",
+      "receipt_sha256": "61d1d4da0c55ed45a053cf09335d08b946611178c1f8e54c5cae8766e0e17260",
+      "source_sha256": "6aa2b92d2e51121ed57f0d5ae0436bf22c625053ee4567c6e02b4e91275ad9e3"
+    },
+    "peaso/checks/azure_declaration_secrets_admission_20261020.py": {
+      "function_bindings": {
+        "_signature": {
+          "defaults": "None",
+          "kwdefaults": "None"
+        },
+        "install": {
+          "defaults": "None",
+          "kwdefaults": "None"
+        },
+        "reviewed_inputs": {
+          "defaults": "(None,)",
+          "kwdefaults": "None"
+        }
+      },
+      "receipt": "peaso/checks/azure_declaration_secrets_admission_20261020.json",
+      "receipt_sha256": "c7093a025a8b7e2925bcf5786c42f09ff9ed18b977b43b53bb4fd17bce7ff44c",
+      "source_sha256": "90a7d701c1913a7793049ae54f8e68d1e46fad9edbf06a94c410c2bef4fc4e23"
+    },
+    "peaso/checks/azure_function_settings_runtime_admission_20261020.py": {
+      "function_bindings": {
+        "_signature": {
+          "defaults": "None",
+          "kwdefaults": "None"
+        },
+        "install": {
+          "defaults": "None",
+          "kwdefaults": "None"
+        },
+        "reviewed_inputs": {
+          "defaults": "(None,)",
+          "kwdefaults": "None"
+        }
+      },
+      "receipt": "peaso/checks/azure_function_settings_runtime_admission_20261020.json",
+      "receipt_sha256": "39c99db8cab98e9814e58fe4d4fa634b5f16974eaa80f4ffa101e78781efc589",
+      "source_sha256": "788020c5ecd8e35e610ad2cd141c2f75e54f722b6894afd334fd2cb07d172ea8"
+    },
+    "peaso/checks/azure_log_samples_admission_20261020.py": {
+      "function_bindings": {
+        "_signature": {
+          "defaults": "None",
+          "kwdefaults": "None"
+        },
+        "install": {
+          "defaults": "None",
+          "kwdefaults": "None"
+        },
+        "reviewed_inputs": {
+          "defaults": "(None,)",
+          "kwdefaults": "None"
+        }
+      },
+      "receipt": "peaso/checks/azure_log_samples_admission_20261020.json",
+      "receipt_sha256": "64124b5c0ae4c82b6e9abd9bbae9832ddb43cb9cc3696abc0850f5d0c9f12c6a",
+      "source_sha256": "477c62d56d67f16dde20fa31fd53f89a3e8551325e062fb171357c29f56754c5"
+    },
+    "peaso/checks/azure_ml_asset_secrets_admission_20261020.py": {
+      "function_bindings": {
+        "_signature": {
+          "defaults": "None",
+          "kwdefaults": "None"
+        },
+        "install": {
+          "defaults": "None",
+          "kwdefaults": "None"
+        },
+        "reviewed_inputs": {
+          "defaults": "(None,)",
+          "kwdefaults": "None"
+        }
+      },
+      "receipt": "peaso/checks/azure_ml_asset_secrets_admission_20261020.json",
+      "receipt_sha256": "3063d0b70cc51cf84fa5f262dc640622f369943cab0e9ed1ff88bd357bb5bcc3",
+      "source_sha256": "726ba835d50cc3fd267ddcfe837fa83a9b037ec455ba9784925e68847a8f7199"
+    },
+    "peaso/checks/azure_ml_job_secrets_admission_20261020.py": {
+      "function_bindings": {
+        "_signature": {
+          "defaults": "None",
+          "kwdefaults": "None"
+        },
+        "install": {
+          "defaults": "None",
+          "kwdefaults": "None"
+        },
+        "reviewed_inputs": {
+          "defaults": "(None,)",
+          "kwdefaults": "None"
+        }
+      },
+      "receipt": "peaso/checks/azure_ml_job_secrets_admission_20261020.json",
+      "receipt_sha256": "1575866cb199daa3400808f27c1ffa6320f8c185cbcb6a1c07c8ed2caa435358",
+      "source_sha256": "41eb44c2c7cab7db313479966018abf6047f22834f973afbd250efa28b6cbc5b"
+    },
+    "peaso/checks/azure_selected_secrets_admission_20261020.py": {
+      "function_bindings": {
+        "_signature": {
+          "defaults": "None",
+          "kwdefaults": "None"
+        },
+        "install": {
+          "defaults": "None",
+          "kwdefaults": "None"
+        },
+        "reviewed_inputs": {
+          "defaults": "(None,)",
+          "kwdefaults": "None"
+        }
+      },
+      "receipt": "peaso/checks/azure_selected_secrets_admission_20261020.json",
+      "receipt_sha256": "407816905ba6de0885241a275040d3227aee90d7fa3039ea830788ef8ee75009",
+      "source_sha256": "08b8b298e5e7a6b3c9aa7e24b09d973feeda66a70e940a950d8e590ff654563b"
+    },
+    "peaso/checks/gcp_dataproc_source_runtime_admission_20261020.py": {
+      "function_bindings": {
+        "_signature": {
+          "defaults": "None",
+          "kwdefaults": "None"
+        },
+        "install": {
+          "defaults": "None",
+          "kwdefaults": "None"
+        },
+        "reviewed_inputs": {
+          "defaults": "(None,)",
+          "kwdefaults": "None"
+        }
+      },
+      "receipt": "peaso/checks/gcp_dataproc_source_runtime_admission_20261020.json",
+      "receipt_sha256": "7c8989576f2068d6868b6e51bba8e8d265aaa33b70d63fb0e84b6ab8e3dd8e0c",
+      "source_sha256": "64e5b9b5c5b032c13d658ba778052cd6fc83ff3ddc5933b8dbef6a219165c191"
+    },
+    "peaso/checks/gcp_workbench_source_runtime_admission_20261020.py": {
+      "function_bindings": {
+        "_signature": {
+          "defaults": "None",
+          "kwdefaults": "None"
+        },
+        "install": {
+          "defaults": "None",
+          "kwdefaults": "None"
+        },
+        "reviewed_inputs": {
+          "defaults": "(None,)",
+          "kwdefaults": "None"
+        }
+      },
+      "receipt": "peaso/checks/gcp_workbench_source_runtime_admission_20261020.json",
+      "receipt_sha256": "bfb1d6364bef185bd37ffb9f6c07dabb807b5ed29fb56760c52d68ba7a0e30bf",
+      "source_sha256": "4330530bc2daaddc2abac2b432fb6341106d9f6def640feccd9932d667395022"
+    }
+  },
+  "helper_bindings": {
+    "_admitted_source_digest": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "_aws_reviewed_inputs": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "_azure_reviewed_inputs": {
+      "defaults": "(None,)",
+      "kwdefaults": "None"
+    },
+    "_clone_install": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "_codes": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "_compiled": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "_digest": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "_function_sources": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "_install_admission": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "_install_selected_aws": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "_install_selected_azure": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "_receipt": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "_root": {
+      "defaults": "(None,)",
+      "kwdefaults": "None"
+    },
+    "_same_code": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "_scanner_function": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "_selected_source": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "_validate_dataproc_proposal": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "_verify_guard": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "_verify_private_helper": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "_verify_scanner": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "_with_artifacts": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "install_admission": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "install_selected_aws": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "install_selected_azure": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "producer_row": {
+      "defaults": "(None,)",
+      "kwdefaults": "None"
+    },
+    "source_bytes": {
+      "defaults": "(None,)",
+      "kwdefaults": "None"
+    },
+    "verify_callable_proof": {
+      "defaults": "(None,)",
+      "kwdefaults": "None"
+    },
+    "verify_scanner": {
+      "defaults": "(None,)",
+      "kwdefaults": "None"
+    }
+  },
+  "helper_functions": [
+    "_admitted_source_digest",
+    "_aws_reviewed_inputs",
+    "_azure_reviewed_inputs",
+    "_clone_install",
+    "_codes",
+    "_compiled",
+    "_digest",
+    "_function_sources",
+    "_install_admission",
+    "_install_selected_aws",
+    "_install_selected_azure",
+    "_receipt",
+    "_root",
+    "_same_code",
+    "_scanner_function",
+    "_selected_source",
+    "_validate_dataproc_proposal",
+    "_verify_guard",
+    "_verify_private_helper",
+    "_verify_scanner",
+    "_with_artifacts",
+    "install_admission",
+    "install_selected_aws",
+    "install_selected_azure",
+    "producer_row",
+    "source_bytes",
+    "verify_callable_proof",
+    "verify_scanner"
+  ],
+  "helper_source_sha256": "42b8d6140c1de770d2e190abd0101a192f4158e44065f9062537e583cad8beef",
+  "live_functions": {
+    "_DetectorMatches.__init__": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "_after_fork": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "_complete_match_values": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "_fingerprint": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "_kingfisher": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "_label": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "_run": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "_scan_kingfisher": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "_scan_trufflehog": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "_trufflehog": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "merge_leaks": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "omit_free_text_metadata": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "redact_matches": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "scan_content": {
+      "defaults": "('content',)",
+      "kwdefaults": "{'timeout': 15, '_redact_values': None}"
+    }
+  },
+  "manifest_scanner": {
+    "after_sha256": "853c402c0362565849c43cbd89cc82d1e5e8b1b5d8d25f6cc15706a48de6f55f",
+    "before_sha256": "3897b64c134f88e7ad17c3c1f31df2b5497d34df6c1340d04e536313652f94f6",
+    "changed_top_level_definitions": [
+      {
+        "after": "70cf3a5bec42dedc2071d63940e10bb8b67081efbb63f86dd16c4d94782242c8",
+        "before": "9cc90a9525568f3fec7fe6825541776e1302a5bcea30bb37f8a9183db27c4c22",
+        "name": "_scan_kingfisher"
+      },
+      {
+        "after": "0563b161e46a952b54f22ecf5fa8d093ae5a16a6e6a272f0cfcd61ae79f1a3e5",
+        "before": "b7383086ec0fd65dfeca1a0fca819a71cd6a93cc3f2cc7546c162a0cabfb4bf4",
+        "name": "_scan_trufflehog"
+      },
+      {
+        "after": "7b9bc28be3a44fe36afbd191de5997678035ffbe01745ef17a9f2e3423ad10d0",
+        "before": "5cdd7bb260d06ed13b89b354e81565ed39639f3306bc3c8f2b67dc77c635de1e",
+        "name": "scan_content"
+      }
+    ],
+    "path": "peaso/secret_scanning.py"
+  },
+  "manifest_sha256": "73fbd321f4d4d33be8970b8006daff4143b9fba490430d2adac6e4854740dd4b",
+  "middle_functions": {
+    "_DetectorMatches": "4469252501683d27d6ad6953731701dcf714b66d4b705d6152b032167a10e3eb",
+    "_DetectorMatches.__init__": "80ea1800fae94c89dfc451a45fee5f29f70ee5ceca34d37a558b4d61a44abe00",
+    "_after_fork": "f67c4850c2d6fa0ddef37a517c0d584d4b463cc28ae04fe0f635de8b61b3b788",
+    "_complete_match_values": "fe2013f6520da755d276cbc0f46e90d4cfde5d1a7e9e3ca8ed89c2e6693c3648",
+    "_fingerprint": "d17562e7d08e43ee7f3d8d2a3c2cab315964ab805962c6117575a84568b89975",
+    "_kingfisher": "25398bab2644fe983a70d969bb1f87b1644dd970ff0768ce96d66240eaec3bc7",
+    "_label": "255fb5aebcc87ef5dc5a202ecde61d17c4ce4926e056b93e27fb3de6b761f5e5",
+    "_run": "f06b596efe9882fd8fdb22789b82d74ca85144a31efff04faccf40e28b518284",
+    "_scan_kingfisher": "9cc90a9525568f3fec7fe6825541776e1302a5bcea30bb37f8a9183db27c4c22",
+    "_scan_trufflehog": "b7383086ec0fd65dfeca1a0fca819a71cd6a93cc3f2cc7546c162a0cabfb4bf4",
+    "_trufflehog": "68890a08f9490e4c93935083925d55246759a92461ae1bfac8e624c4d325974c",
+    "merge_leaks": "c68113ee5f948578f926971b78a1e384e693cb845f8d00e3e6fa7e4051a58b79",
+    "omit_free_text_metadata": "f3c757accbb38c8fadccbf7d2b42c66139f2a93b281a68de850b1ce48a340926",
+    "redact_matches": "4c334f2c96e96a2bc6b58e9f681c239f4b731b64d530b495c213a182f02e57df",
+    "scan_content": "5cdd7bb260d06ed13b89b354e81565ed39639f3306bc3c8f2b67dc77c635de1e"
+  },
+  "middle_sha256": "3897b64c134f88e7ad17c3c1f31df2b5497d34df6c1340d04e536313652f94f6",
+  "private_definitions": [
+    "peaso.collectors.aws_additional_secret_indicators:_scan",
+    "peaso.collectors.aws_additional_secret_indicators:codebuild_indicator",
+    "peaso.collectors.aws_code_log_content_indicators:project_response",
+    "peaso.collectors.aws_codebuild_buildspec_source_20261020:collect",
+    "peaso.collectors.aws_configuration_payload_secret_indicators:marker",
+    "peaso.collectors.aws_configuration_payload_secret_indicators:project_response",
+    "peaso.collectors.aws_configuration_secret_indicators:_indicators",
+    "peaso.collectors.aws_configuration_secret_indicators:lambda_indicators",
+    "peaso.collectors.aws_lambda_environment_secret_indicators:project_response",
+    "peaso.collectors.aws_package_content_indicators:_image",
+    "peaso.collectors.aws_package_content_indicators:_lambda",
+    "peaso.collectors.aws_package_content_indicators:_layer",
+    "peaso.collectors.aws_package_content_indicators:_scan",
+    "peaso.collectors.aws_s3_selected_source_secret_indicators:_scan_part",
+    "peaso.collectors.aws_s3_selected_source_secret_indicators:collect_selected",
+    "peaso.collectors.aws_selected_configuration_secret_indicators:collect_selected",
+    "peaso.collectors.aws_selected_configuration_secret_indicators:project_response",
+    "peaso.collectors.aws_user_data_secret_indicators:project",
+    "peaso.collectors.aws_user_data_secret_indicators:scan_selected_content",
+    "peaso.collectors.aws_workload_command_source_20261020:collect",
+    "peaso.collectors.azure:AzureTransport",
+    "peaso.collectors.azure:AzureTransport.request",
+    "peaso.collectors.azure_acr_image_secret_indicators:_scan_bytes",
+    "peaso.collectors.azure_acr_image_secret_indicators:_scan_json",
+    "peaso.collectors.azure_acr_image_secret_indicators:inspect_image",
+    "peaso.collectors.azure_app_settings_secret_indicators:_scan",
+    "peaso.collectors.azure_databricks_notebook_secret_indicators:_scan",
+    "peaso.collectors.azure_devops_git_native:collect",
+    "peaso.collectors.azure_devops_git_native:project_response",
+    "peaso.collectors.azure_devops_selected_content_secret_indicators:_part",
+    "peaso.collectors.azure_devops_selected_content_secret_indicators:_scan",
+    "peaso.collectors.azure_ml_selected_asset_secret_indicators:_one",
+    "peaso.collectors.azure_ml_selected_job_secret_indicators:_scan",
+    "peaso.collectors.azure_selected_configuration_secret_indicators:_scan",
+    "peaso.collectors.azure_selected_declaration_secret_indicators:_scan",
+    "peaso.collectors.azure_selected_log_sample_secret_indicators:_scan",
+    "peaso.collectors.azure_selected_storage_secret_indicators:_inspect",
+    "peaso.collectors.azure_selected_storage_secret_indicators:_scan",
+    "peaso.collectors.gcp:Transport",
+    "peaso.collectors.gcp:Transport.request",
+    "peaso.collectors.gcp_additional_literal_secret_indicators:scan_row",
+    "peaso.collectors.gcp_appengine_source_secret_indicators:collect_sources",
+    "peaso.collectors.gcp_artifact_file_secret_indicators:_inspect",
+    "peaso.collectors.gcp_batch_referenced_source_20261020:collect",
+    "peaso.collectors.gcp_cloudrun_v2_job_declared_images_20261020:_inspect",
+    "peaso.collectors.gcp_composer_source_secret_indicators:collect_sources",
+    "peaso.collectors.gcp_configuration_secret_indicators:project_response",
+    "peaso.collectors.gcp_dataflow_referenced_source_20261020:inspect_payload",
+    "peaso.collectors.gcp_dataform_secret_indicators:collect_selected_files",
+    "peaso.collectors.gcp_dataproc_referenced_source_secret_indicators:collect_sources",
+    "peaso.collectors.gcp_function_secret_indicators:_scan_function",
+    "peaso.collectors.gcp_function_secret_pairs_20261020:_scan_function",
+    "peaso.collectors.gcp_gke_literal_secret_indicators:project_resource",
+    "peaso.collectors.gcp_image_secret_indicators:_tar",
+    "peaso.collectors.gcp_image_secret_indicators:inspect_image",
+    "peaso.collectors.gcp_job_literal_secret_indicators:project_row",
+    "peaso.collectors.gcp_log_secret_indicators:project_page",
+    "peaso.collectors.gcp_notebook_airflow_secret_indicators:project_response",
+    "peaso.collectors.gcp_selected_archive_secret_indicators:_parse",
+    "peaso.collectors.gcp_selected_archive_secret_indicators:collect_selected_archives",
+    "peaso.collectors.gcp_selected_object_secret_indicators:collect_selected_objects",
+    "peaso.collectors.gcp_selected_task_routine_secret_indicators:collect_sources",
+    "peaso.collectors.gcp_sourcerepo_secret_indicators:collect_sources",
+    "peaso.collectors.gcp_workbench_referenced_source_20261020:collect_sources",
+    "peaso.collectors.k8s:_native",
+    "peaso.collectors.k8s_literal_secret_indicators:collect",
+    "peaso.collectors.k8s_selected_log_sample_secret_indicators:collect"
+  ],
+  "private_edits": [
+    {
+      "after": "within that collection and cannot link separate scans. An explicit collector\nsink can retain encrypted private matches separately from this public result.\n",
+      "before": "within that collection, never stores secrets, and cannot link separate scans.\n"
+    },
+    {
+      "after": "        result.append((finding.secret, finding.rule_id, location.get('line')))\n",
+      "before": "        result.append((finding.secret, finding.rule_id, location.get('line', 1)))\n"
+    },
+    {
+      "after": "    result, full_matches = _DetectorMatches(), []\n",
+      "before": "    result = _DetectorMatches()\n"
+    },
+    {
+      "after": "            rule=_label(row.get('DetectorName', 'secret'))))\n        if isinstance(row.get('RawV2'), str) and row['RawV2'] and row['RawV2'] != value:\n            full_matches.append((value, row['RawV2'], row.get('DetectorName', 'secret')))\n",
+      "before": "            rule=_label(row.get('DetectorName', 'secret'))))\n"
+    },
+    {
+      "after": "            result.append((value, row.get('DetectorName', 'secret'), None))\n        if len(result) > MAX_FINDINGS:\n            raise ValueError('finding bound')\n    # Preserve additional credential components only after this offline engine\n    # completed successfully. Public primary-value fingerprints stay unchanged.\n    from peaso.secret_evidence import remember_full_match\n    for primary, full, rule in full_matches:\n        remember_full_match(primary, full, payload=payload, path=path, engine='trufflehog', rule=_label(rule))\n",
+      "before": "            result.append((value, row.get('DetectorName', 'secret'), None))\n        if len(result) > MAX_FINDINGS:\n            raise ValueError('finding bound')\n"
+    },
+    {
+      "after": "    from .secret_evidence import enabled as private_capture, remember, remember_redactions\n    if cached is not None and not private_capture() and (_redact_values is None or not cached['leaks']):\n",
+      "before": "    if cached is not None and (_redact_values is None or not cached['leaks']):\n"
+    },
+    {
+      "after": "            # Complete pairs/components must also be scrubbed from paths and\n            # metadata when private persistence is disabled or reaches a bound.\n",
+      "before": "            # Extra credential components redact metadata and paths without\n            # changing the canonical primary-value fingerprints or locations.\n"
+    },
+    {
+      "after": "        _redact_values(frozenset(known_values))\n    remember_redactions(known_values)\n",
+      "before": "        _redact_values(frozenset(known_values))\n"
+    },
+    {
+      "after": "            # Retain the actual match/value/line association before constructing\n            # redacted canonical witnesses. No raw values enter those witnesses.\n            remember(value, _fingerprint(value), path=path, public_path=safe_path, line=line, engine=name, rule=_label(rule),\n                     observed_bytes=not private_capture() or value.encode('utf-8') in payload)\n            observations.append({'fingerprint': _fingerprint(value),\n",
+      "before": "            observations.append({'fingerprint': _fingerprint(value),\n"
+    }
+  ],
+  "private_helper_classes": {
+    "Capture": {
+      "lineno": 212,
+      "methods": {
+        "__init__": {
+          "defaults": "(None, None)",
+          "kwdefaults": "None"
+        },
+        "bind_snapshot": {
+          "defaults": "None",
+          "kwdefaults": "None"
+        },
+        "document": {
+          "defaults": "None",
+          "kwdefaults": "None"
+        },
+        "public_snapshot": {
+          "defaults": "None",
+          "kwdefaults": "None"
+        },
+        "remember": {
+          "defaults": "None",
+          "kwdefaults": "None"
+        },
+        "retain_redaction": {
+          "defaults": "None",
+          "kwdefaults": "None"
+        }
+      },
+      "static_attributes": [
+        "alias_bytes",
+        "aliases",
+        "bytes",
+        "cipher",
+        "incomplete",
+        "locations",
+        "policy_names",
+        "records",
+        "redaction_bytes",
+        "redaction_incomplete",
+        "redactions",
+        "related",
+        "related_count",
+        "scan_id",
+        "selected_checks",
+        "tenant"
+      ]
+    },
+    "EphemeralCipher": {
+      "lineno": 793,
+      "methods": {
+        "__init__": {
+          "defaults": "None",
+          "kwdefaults": "None"
+        },
+        "decrypt": {
+          "defaults": "None",
+          "kwdefaults": "None"
+        },
+        "encrypt": {
+          "defaults": "None",
+          "kwdefaults": "None"
+        }
+      },
+      "static_attributes": [
+        "fernet"
+      ]
+    }
+  },
+  "private_helper_functions": {
+    "alias_path": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "canonical_sources": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "capture": {
+      "defaults": "None",
+      "kwdefaults": "{'tenant': 'cli', 'scan_id': 'cli', 'options': None, 'selected_checks': None}"
+    },
+    "checks_for_request": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "details": {
+      "defaults": "None",
+      "kwdefaults": "{'offset': 0, 'page_bytes': None, 'index': None}"
+    },
+    "eligible": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "enabled": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "export_report": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "fingerprint_locations": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "full_match_values": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "legacy_text": {
+      "defaults": "(None,)",
+      "kwdefaults": "None"
+    },
+    "literal_bindings": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "literal_name_checks": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "load_details": {
+      "defaults": "None",
+      "kwdefaults": "{'offset': 0}"
+    },
+    "load_group_details": {
+      "defaults": "None",
+      "kwdefaults": "{'offset': 0}"
+    },
+    "named_environment": {
+      "defaults": "None",
+      "kwdefaults": "{'scope': '', 'path': '', 'checks': None}"
+    },
+    "named_literal": {
+      "defaults": "None",
+      "kwdefaults": "{'checks': None}"
+    },
+    "named_mapping": {
+      "defaults": "None",
+      "kwdefaults": "{'entry_list': False}"
+    },
+    "native_environment_resources": {
+      "defaults": "None",
+      "kwdefaults": "{'body': None, 'scope': ''}"
+    },
+    "page_matches": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "pod_environment": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "policy_names": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "private_index": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "private_reference": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "reference_literal": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "remember": {
+      "defaults": "None",
+      "kwdefaults": "{'line': None, 'check_ids': (), 'public_path': None, 'observed_bytes': True}"
+    },
+    "remember_full_match": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "remember_redactions": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "reuse_image_layer": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "scan_with_source": {
+      "defaults": "None",
+      "kwdefaults": "{'native': None}"
+    },
+    "source_context": {
+      "defaults": "None",
+      "kwdefaults": "{'native': None, 'check_ids': None}"
+    },
+    "target_source": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "url_credentials": {
+      "defaults": "None",
+      "kwdefaults": "{'scope': '', 'source': ''}"
+    },
+    "value_witness": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "without_private_values": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    }
+  },
+  "private_helper_source_sha256": "15092e316c2331e03fdae7fad4dda5ed92310a1c15a827b0009fbcd54a11693a",
+  "published_receipt": "peaso/checks/rawv2_public_source_successor_20261021.json",
+  "published_receipt_sha256": "5b9980187330976e2644f41cda18605dc67fdc148ed07c18692785c34e8b226b",
+  "scanner": "peaso/secret_scanning.py",
+  "schema": "private_rawv2_source_successor_20261021",
+  "top_functions": [
+    "_after_fork",
+    "_complete_match_values",
+    "_fingerprint",
+    "_label",
+    "_run",
+    "_scan_kingfisher",
+    "_scan_trufflehog",
+    "merge_leaks",
+    "omit_free_text_metadata",
+    "redact_matches",
+    "scan_content"
+  ]
+}

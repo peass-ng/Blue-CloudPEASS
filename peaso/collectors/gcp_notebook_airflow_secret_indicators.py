@@ -4,6 +4,8 @@ No transport, credential access, reference download, script execution or managed
 secret access occurs here. The integration must call only on successful original
 unmasked JSON, and share new_budget() across transport responses in one run.
 """
+
+from peaso.secret_evidence import scan_with_source
 from copy import deepcopy
 import json
 import re
@@ -222,8 +224,8 @@ def project_response(response, *, method, url, scope, params=None, body=None,
                 if check_cancelled is not None: check_cancelled()
                 remaining = budget['deadline'] - time.monotonic()
                 if remaining <= 0: raise TimeoutError('deadline')
-                result = scan_content(payload, kind + '.literal_configuration', timeout=min(5, remaining / 2),
-                                      _redact_values=redactions.update)
+                result = scan_with_source(scan_content, payload, kind + '.literal_configuration', timeout=min(5, remaining / 2),
+                                      _redact_values=redactions.update, source={'resource_id': raw['name'], 'location_kind': 'configuration', 'scope': scope}, native=raw)
                 if check_cancelled is not None: check_cancelled()
                 if time.monotonic() >= budget['deadline']: raise TimeoutError('deadline')
                 leaks = merge_leaks(result['leaks'])

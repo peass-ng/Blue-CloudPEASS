@@ -77,11 +77,15 @@ def privesc_required_types(provider):
     return sorted(floor | (privesc_collection_types(provider) & set(supported_types(provider))))
 
 
+# These projections can only ask a person to judge a declaration. Keep their
+# identity for archived reports, but exclude them from hosted scan selection and
+# the public runnable catalog.
+MANUAL_ONLY_ANALYSIS_CHECK_IDS = frozenset({
+    "analysis.grant_review", "analysis.inactive_identity", "analysis.network_review",
+})
+
 ANALYSIS_CHECKS = [
-    {"id": "analysis.grant_review", "category": "least_privilege", "title": "Review high-impact or broad declared grants", "severity": "high"},
-    {"id": "analysis.inactive_identity", "category": "least_privilege", "title": "Review identity with no activity in the observed window", "severity": "low"},
     {"id": "analysis.principal_exposure", "category": "exposure", "title": "Review public or external principal declarations", "severity": "high"},
-    {"id": "analysis.network_review", "category": "exposure", "title": "Review unrestricted network rule candidates", "severity": "high"},
     {"id": "analysis.coverage", "category": "least_privilege", "title": "Analysis inventory context incomplete", "severity": "info"},
     {"id": "analysis.internet_exposure", "category": "exposure", "title": "Asset reachable from the internet", "severity": "high"},
     {"id": "analysis.exposed_privileged_workload", "category": "exposure", "title": "Public workload uses a privileged identity", "severity": "high"},
@@ -99,7 +103,7 @@ for _check in ANALYSIS_CHECKS:
 
 
 @with_analysis_context
-def analyze_findings(snapshot, resources=None, index=None):
+def analyze_findings(snapshot, resources=None, index=None, *, include_manual_only=True):
     from peaso.principal_exposure import exposed_privileged_findings
     if resources is None:
         from peaso.snapshot import resources as snapshot_resources
@@ -107,20 +111,22 @@ def analyze_findings(snapshot, resources=None, index=None):
     results = []
     for resource in resources:
         try:
-            results.extend(review_findings(snapshot, [resource]))
-            results.extend(exposure_findings(snapshot, [resource]))
+            results.extend(review_findings(snapshot, [resource], include_manual_only=include_manual_only))
+            if include_manual_only:
+                results.extend(exposure_findings(snapshot, [resource]))
         except (TypeError, AttributeError, KeyError, ValueError, IndexError):
             results.append(finding(snapshot, resource, "least_privilege", "analysis.coverage",
                 "Malformed native fact requires review", "info",
                 {"source": source(snapshot, resource, "data"), "reason": "malformed_native_fact", "risk_state": "unknown"}, status="UNKNOWN"))
     # Azure least-privilege review is per assignment (cross-resource: assignment -> definition by GUID).
-    try:
-        results.extend(azure_assignment_reviews(snapshot, resources))
-    except (TypeError, AttributeError, KeyError, ValueError, IndexError):
-        placeholder = {"id": "inventory:azure_assignment_reviews", "type": "inventory", "scope": (snapshot["scopes"] or ["global"])[0],
-                       "provider": snapshot["provider"], "service": "iam", "data": {}}
-        results.append(finding(snapshot, placeholder, "least_privilege", "analysis.coverage", "Assignment grant review failed on malformed facts", "info",
-            {"reason": "malformed_native_fact", "risk_state": "unknown"}, status="UNKNOWN"))
+    if include_manual_only:
+        try:
+            results.extend(azure_assignment_reviews(snapshot, resources))
+        except (TypeError, AttributeError, KeyError, ValueError, IndexError):
+            placeholder = {"id": "inventory:azure_assignment_reviews", "type": "inventory", "scope": (snapshot["scopes"] or ["global"])[0],
+                           "provider": snapshot["provider"], "service": "iam", "data": {}}
+            results.append(finding(snapshot, placeholder, "least_privilege", "analysis.coverage", "Assignment grant review failed on malformed facts", "info",
+                {"reason": "malformed_native_fact", "risk_state": "unknown"}, status="UNKNOWN"))
     for derived_findings in (internet_findings, federated_findings, exposed_privileged_findings):
         try:
             results.extend(derived_findings(snapshot, resources))
@@ -144,8 +150,9 @@ def analyze_findings(snapshot, resources=None, index=None):
         if gaps:
             placeholder = {"id": "inventory", "type": "inventory", "scope": scope,
                            "provider": snapshot["provider"], "service": "iam", "data": {}}
+            gap_status = "DENIED" if any(gap["status"] == "denied" for gap in gaps) else "UNKNOWN"
             results.append(finding(snapshot, placeholder, "least_privilege", "analysis.coverage",
-                "Analysis inventory context incomplete", "info", {"gaps": gaps, "risk_state": "unknown"}, status="UNKNOWN"))
+                "Analysis inventory context incomplete", "info", {"gaps": gaps, "risk_state": "unknown"}, status=gap_status))
     from .exposure_dedup import deduplicate_principal_exposure
     return sorted(deduplicate_principal_exposure(results),
         key=lambda f: (RANK[f["severity"]], f["check_id"], f["scope"], f["resource_id"]))

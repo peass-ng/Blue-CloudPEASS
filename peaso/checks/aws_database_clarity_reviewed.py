@@ -54,7 +54,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks whether the cluster declares any CloudWatch log exports."
     },
-    "remediation_base_sha256": "a0b455413dc2811e701dcd35503991f066a45ca2987951d58f4e25674517af65",
+    "remediation_base_sha256": "8cb5d1f1574daf86f1dce3d9e1f75894364c96dd52bb1250dc566dc105e57284",
     "remediation_fields": {
       "summary": "Enable the database log exports needed for investigation.",
       "steps": [
@@ -79,7 +79,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks whether the cluster declares any CloudWatch log exports."
     },
-    "remediation_base_sha256": "b120eeeb1a43e6793d656e81ea6becb30839e754e8622337980f22f340789a79",
+    "remediation_base_sha256": "e79e86993da916c14885bd888597ec0ebcd8809ed3e8d66baceeeb61ec38924e",
     "remediation_fields": {
       "summary": "Enable the database log exports needed for investigation.",
       "steps": [
@@ -104,7 +104,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks AutoMinorVersionUpgrade on applicable Multi-AZ DB clusters."
     },
-    "remediation_base_sha256": "f85701d0bab40066ddfaaed5068d84bed424ec67dad90ef6e5c4bb61a9916ebe",
+    "remediation_base_sha256": "d30dc83262d6928f575995a0dde219a8c45e20bd7c1b960c93cf1ef115ec6495",
     "remediation_fields": {
       "summary": "Enable automatic minor upgrades after checking maintenance and application compatibility.",
       "steps": [
@@ -300,7 +300,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks whether Aurora PostgreSQL declares the postgresql CloudWatch log export."
     },
-    "remediation_base_sha256": "c36050e8758f9c5d4991bb64ff6b42e96b894511f7b0310c2bd28861f9506458",
+    "remediation_base_sha256": "adfbf94fd9b9653d6e1bbf308085e42821f2a9e93741ca3803fbe1665cbacbb4",
     "remediation_fields": {
       "summary": "Enable the postgresql log export.",
       "steps": [
@@ -844,7 +844,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks whether the snapshot\u2019s restore attribute includes the public principal all."
     },
-    "remediation_base_sha256": "d8b9b97640fdc1d2e8e265b5c9a9d788ef8de0d40f0bbe58fd4da78ae3e9c0b0",
+    "remediation_base_sha256": "10d2f58c25fdf23dc70266db707d1764c1fe4b499ef2a7e2005baa98ab054c7d",
     "remediation_fields": {
       "summary": "Remove all from the snapshot\u2019s restore attribute; retain only the account IDs that need access.",
       "steps": [
@@ -865,7 +865,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks whether any collected snapshot attribute contains the public value all."
     },
-    "remediation_base_sha256": "b7cefb9e97773eeb3986df44cd168236678278e0949a9465676c7d5240e3c9e7",
+    "remediation_base_sha256": "93e0ee96981eb51fc52fef80e1610f82c58f98ac2268d3aea778ea1c3f6729f0",
     "remediation_fields": {
       "summary": "Remove unintended public sharing from the snapshot attributes.",
       "steps": [
@@ -890,7 +890,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Lists snapshot share accounts for manual trust review; no automatic failing verdict is defined."
     },
-    "remediation_base_sha256": "d19b65fc9e735318740ebbf4c2f2177efb70be1b5712fe7c735ba415db54e31b",
+    "remediation_base_sha256": "4c417a7eca9be271254fb8ff0c9324a8899baf6a8e1ac695ede01b12e29e7e64",
     "remediation_fields": {
       "summary": "Review snapshot sharing only through an explicitly configured organizational approval process.",
       "steps": [
@@ -915,7 +915,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks whether the snapshot\u2019s restore attribute includes the public principal all."
     },
-    "remediation_base_sha256": "cb0b239c3f0e1e550d257b0dfc998a2be993d333666d589828dc10759d5288fb",
+    "remediation_base_sha256": "1f696f94a94991345a22ad13e797b8c4cdebbecd8e31f0481b02215b33b23276",
     "remediation_fields": {
       "summary": "Remove all from the snapshot\u2019s restore attribute; retain only the account IDs that need access.",
       "steps": [
@@ -936,7 +936,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks whether any collected snapshot attribute contains the public value all."
     },
-    "remediation_base_sha256": "b4ba79986869c49ded43a8c71d065c6da90027d3b62b479727fc0c01b0f445f4",
+    "remediation_base_sha256": "d6f4754cec5a93a1648ac4e9c72d2b7f97f9eb365e9de46c8387ed18691aee32",
     "remediation_fields": {
       "summary": "Remove unintended public sharing from the snapshot attributes.",
       "steps": [
@@ -961,7 +961,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Lists snapshot share accounts for manual trust review; no automatic failing verdict is defined."
     },
-    "remediation_base_sha256": "45e1b6c8d18fb405f7af7b7ddab153b4aef6ddd8a6445faf8dae1799bbc2a891",
+    "remediation_base_sha256": "350ad4fa817886b36f6bec97240e81b6022631f22c0ed4fb6bc2e7ddc5e46ec8",
     "remediation_fields": {
       "summary": "Review snapshot sharing only through an explicitly configured organizational approval process.",
       "steps": [
@@ -1111,7 +1111,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks whether Neptune backup retention is at least seven days."
     },
-    "remediation_base_sha256": "dd5c8c0ea7834a5df67c3b3780062555cb708290dfcc42e917f116ec92c51694",
+    "remediation_base_sha256": "57ba125225c58392f76799e12de026a5e3c78fa97627c822d983679285bad87b",
     "remediation_fields": {
       "summary": "Set backup retention to at least seven days if it meets the workload\u2019s recovery needs.",
       "steps": [
@@ -1132,7 +1132,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks whether the Neptune cluster declares the audit CloudWatch log export."
     },
-    "remediation_base_sha256": "bf451beb6030912aa643ac9f4736627bd6b65a622b7b4e23e00e5c156b650753",
+    "remediation_base_sha256": "4403c524cfecf60c51798aa66a66ecc313501a7f467efa7f58fe9505710745da",
     "remediation_fields": {
       "summary": "Enable the audit log export and the corresponding database audit setting.",
       "steps": [
@@ -1220,7 +1220,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Resolves DB subnets and their effective IPv4 default routes to an Internet gateway."
     },
-    "remediation_base_sha256": "4a572ac608dab1001e3bc807f9745e36538ac0ffc95745bcf7adea91182f1fe7",
+    "remediation_base_sha256": "11cfe906e8453a6941e16345432d1c477d7bc14329be3c25d0877986a8f0ce2f",
     "remediation_fields": {
       "summary": "Use database subnets without an Internet-gateway default route if public routing is unnecessary.",
       "steps": [
@@ -1245,7 +1245,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Resolves DB subnets and their effective IPv4 default routes to an Internet gateway."
     },
-    "remediation_base_sha256": "080b6dfb276bf1da78c3c8ee8fc2f66fa5ec510385221ff8bfb991abf55b6b31",
+    "remediation_base_sha256": "a956192492c81f52116e233fa7a5ed390e881d26864579f8b574213c81b4b434",
     "remediation_fields": {
       "summary": "Use database subnets without an Internet-gateway default route if public routing is unnecessary.",
       "steps": [
@@ -1370,7 +1370,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks the collected Redshift LoggingEnabled setting."
     },
-    "remediation_base_sha256": "030b340efa8d445b9f3b0cb94468067aaf61d99280d59651a4c188840a36d73b",
+    "remediation_base_sha256": "8e70016741e409d35c7f16d33bee4d30a14d8358921fd636138c74121659cc8a",
     "remediation_fields": {
       "summary": "Enable Redshift audit logging and configure its destination.",
       "steps": [
@@ -1395,7 +1395,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks that Redshift storage encryption and audit logging are both enabled."
     },
-    "remediation_base_sha256": "4f3e8c8dd31038d2513b87ace48428532fc11afa73671406b5f1d8f047aa2b0f",
+    "remediation_base_sha256": "90b891085d8e3e7f2d139c5e0c5bbb3308ec9a1539f559792984c8fc6b890f4d",
     "remediation_fields": {
       "summary": "Enable any missing storage encryption or audit logging; plan migration before replacing storage.",
       "steps": [
@@ -1416,7 +1416,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks whether the require_ssl cluster parameter is the case-insensitive string true."
     },
-    "remediation_base_sha256": "dd90d2a0366c66a7a8c1f2953dba02f13b33c1e2a291cca019f0225ebdd6c995",
+    "remediation_base_sha256": "4a45d54e6319e34a15dbdcdbada6896384908668bbfe9379a8919c6fd77de63c",
     "remediation_fields": {
       "summary": "Require SSL and update clients to use TLS before applying the parameter.",
       "steps": [
@@ -1437,7 +1437,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Looks for any collected Redshift snapshot matching the cluster identifier."
     },
-    "remediation_base_sha256": "ae24f51e47da658126d99c682ad910b154485be9ec791dedd078f428e4447117",
+    "remediation_base_sha256": "640b9f9f24d5945c05736bd8aaad1eada00e1a4cae5966c3f1afdfaf13912322",
     "remediation_fields": {
       "summary": "Create a recoverable snapshot and investigate missing backup coverage.",
       "steps": [
@@ -1462,7 +1462,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Compares automated snapshot retention with seven days."
     },
-    "remediation_base_sha256": "8e14bc917f518203b04daf89b251e3038ecc718c9f1ed4714ccd8a24ac6ac650",
+    "remediation_base_sha256": "ac9f0672b1a5a17a642a5ce7368e442c13acd4e917aca1d1435fe348ec5c1805",
     "remediation_fields": {
       "summary": "Configure at least seven days of automated snapshots if suitable for recovery.",
       "steps": [
@@ -1483,7 +1483,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks AllowVersionUpgrade and automated snapshot retention of at least seven days."
     },
-    "remediation_base_sha256": "f8033c0b05007f1e8e77c5192afe2df5f51c929124a6c88d5cac8bfe78ebffde",
+    "remediation_base_sha256": "20f4348c16a1ba99bf763ede208b266ff011975002d67a0c5dee3fbee1507204",
     "remediation_fields": {
       "summary": "Enable version upgrades and adjust snapshot retention after reviewing maintenance and recovery needs.",
       "steps": [
@@ -1504,7 +1504,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks that storage encryption is enabled and KmsKeyId is present."
     },
-    "remediation_base_sha256": "6a21cc86ea90310be96c2cb152fcd78d3001e5d0adcdfe5887e895deb8e98bb0",
+    "remediation_base_sha256": "b4e44fd0bb5c9bbade10e36e7083242a166a61b4458cb09f4ce593edca24dbfb",
     "remediation_fields": {
       "summary": "Enable storage encryption with an appropriate KMS key; plan migration if required.",
       "steps": [
@@ -1525,7 +1525,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks storage encryption and the joined KMS key\u2019s KeyManager=CUSTOMER."
     },
-    "remediation_base_sha256": "b722d569f5d9fa8a790a417a375442184139e95cb936ab4fa5e40f5976d5bd2c",
+    "remediation_base_sha256": "4c09b878a6e94387cef12c8982a851b488e5197503608235bd3091798b7a1aae",
     "remediation_fields": {
       "summary": "Use a customer-managed KMS key if separate key administration is required.",
       "steps": [
@@ -1550,7 +1550,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Combines an endpoint, PubliclyAccessible, a public subnet and the source profile\u2019s world-address security-group ingress rule."
     },
-    "remediation_base_sha256": "a9dcc7fa5e0b35c93157fe0a566f6cfbd13896520db418e6214290b3478d8dc3",
+    "remediation_base_sha256": "e437f5dddbe39e8edb60293dfce73aed273525e2fea52dde2d7841c8f2102317",
     "remediation_fields": {
       "summary": "Restrict Internet-wide database ingress to the networks that need access.",
       "steps": [
@@ -1575,7 +1575,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks attached security groups for a world CIDR and a range covering the cluster port, default 5439."
     },
-    "remediation_base_sha256": "8083b8ec909617d990af86009c72ca9f597e1f30e10c0d178a84fd997d07feb4",
+    "remediation_base_sha256": "79e1d5028fd13f56e59b9d3aa80295e908f4fea56711a658e49714c9950bb20d",
     "remediation_fields": {
       "summary": "Restrict the database port to the client networks that need it.",
       "steps": [
@@ -1642,7 +1642,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks EncryptionAtRestOptions.Enabled on the domain."
     },
-    "remediation_base_sha256": "80fd86f088729e2e471d3465f9d3862a98a9b640a8b16768e6a88d2870e221b2",
+    "remediation_base_sha256": "33fd7692ac98b3410726baa3da531d1ac9e4c1994a6d14e16b23f29c18cb9cdc",
     "remediation_fields": {
       "summary": "Enable encryption at rest; plan a replacement domain if the existing deployment cannot be updated.",
       "steps": [
@@ -1663,7 +1663,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks AdvancedSecurityOptions.Enabled on the domain."
     },
-    "remediation_base_sha256": "aba389e4b7e5a228f4f3a536c7712645e107e90a8a6f945124b6beb8276452a5",
+    "remediation_base_sha256": "df9e3a844806705a0693d9314e9bebfd1696a73ae46c4d629ea3fb4d3856fded",
     "remediation_fields": {
       "summary": "Enable fine-grained access control and map users to the minimum required index permissions.",
       "steps": [
@@ -1684,7 +1684,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks the source profile\u2019s preference for disabling the internal user database."
     },
-    "remediation_base_sha256": "79c16131eb51cd0b9673fc2752d4995af2347b002c8bb91799dc3fd3157f6df7",
+    "remediation_base_sha256": "b71964c63849753a8745a8d041be57c52c78fa85a502c76c222ecc0cd938ea2b",
     "remediation_fields": {
       "summary": "Disable the internal user database only if an alternative authentication model is intended and working.",
       "steps": [
@@ -1709,7 +1709,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks ServiceSoftwareOptions.UpdateAvailable on the domain."
     },
-    "remediation_base_sha256": "13c79fb2ffffedadc307349f2424c39882df126b66312598a9dbd83add4e74a2",
+    "remediation_base_sha256": "85069cf00fe6e4e34c79cd4481fcfbc330e81d2610384f38a48d4938ff9ee689",
     "remediation_fields": {
       "summary": "Review and schedule the available service software update.",
       "steps": [
@@ -1734,7 +1734,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks for at least three data nodes and enabled zone awareness."
     },
-    "remediation_base_sha256": "2a2a847396b1085743d06d77065f91269268f4f9477e5098a8e1ad81d4db0ed6",
+    "remediation_base_sha256": "57d893e72b3ad7ccd31b6eafa4e57397b2e5d7104b70071a242b9afb0baa143a",
     "remediation_fields": {
       "summary": "Use sufficient nodes and zone awareness if the workload requires zonal fault tolerance.",
       "steps": [
@@ -1755,7 +1755,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks that dedicated masters are enabled and their count is at least three."
     },
-    "remediation_base_sha256": "b61bccf8f6388d3b65b4df90b3c719bde707057b1a66a3262db426add3d20c96",
+    "remediation_base_sha256": "1a9a2f794eec9c19f731a1eb0f9d2bd9af57b5aa9bec8321f194b14df0601fbb",
     "remediation_fields": {
       "summary": "Use at least three dedicated masters where the domain\u2019s availability requirements justify them.",
       "steps": [
@@ -1776,7 +1776,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks CognitoOptions.Enabled for the Dashboards authentication profile."
     },
-    "remediation_base_sha256": "2d9b1517eb3e84a31993c2cbaab7397f38444ee5b0e7e3c2cd5c86d6f4b0c879",
+    "remediation_base_sha256": "d4efa311b0e6759d63f97838ca85c6697709cb2ca6908e56df59a5f7434d188d",
     "remediation_fields": {
       "summary": "Enable Cognito only if it is the intended Dashboards authentication method.",
       "steps": [
@@ -1801,7 +1801,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks whether Cognito or SAML is enabled for Dashboards."
     },
-    "remediation_base_sha256": "33f22ef4aab6cccac7626f5f1069a2605b8ab265ebe872468ecb4da72919699b",
+    "remediation_base_sha256": "38489261a870c0b32cbe4d041cfeea76dcfa471e00cd2b0df72982dbe42813f7",
     "remediation_fields": {
       "summary": "Configure Cognito or SAML if that is the intended authentication model.",
       "steps": [
@@ -1826,7 +1826,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks NodeToNodeEncryptionOptions.Enabled within the source profile\u2019s regional scope."
     },
-    "remediation_base_sha256": "724719b80aa206810b37892679fdea58982a84b5b47b2185d331f94516b34589",
+    "remediation_base_sha256": "8028dcefc1a4b8172edb69071feb320fcae6ff0b7a869f3a4d44410c56630d3b",
     "remediation_fields": {
       "summary": "Enable node-to-node encryption; plan migration if the deployment cannot be updated.",
       "steps": [
@@ -1851,7 +1851,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks NodeToNodeEncryptionOptions.Enabled within the source profile\u2019s regional scope."
     },
-    "remediation_base_sha256": "ec3bd67c98ff9f89d6e3ba21f4bc718f1ef7c4ccd1a7e62fb147d8bb18578512",
+    "remediation_base_sha256": "61f0102232020107c3960d7ffdbcb45318a167f2163ee326c8815e166e0f81c4",
     "remediation_fields": {
       "summary": "Enable node-to-node encryption; plan migration if the deployment cannot be updated.",
       "steps": [
@@ -1876,7 +1876,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks whether the OpenSearch domain requires HTTPS."
     },
-    "remediation_base_sha256": "157d588cd39bad095822d6ece9d6007286a3b071de1fde0d4967ead62b6a8e0a",
+    "remediation_base_sha256": "ddd8f158af53626e597e27435aa4aaf64e2662cdbc0ddf239165cb70c9278f0e",
     "remediation_fields": {
       "summary": "Require HTTPS and update clients that still use HTTP.",
       "steps": [
@@ -1897,7 +1897,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks whether OpenSearch audit log publishing is enabled."
     },
-    "remediation_base_sha256": "23f6efcae75fcbe2751826a2cb323ee90d2982850b2bdc1f8503a92adf75ea8e",
+    "remediation_base_sha256": "65d707e66b3e1f9caf149da5172842d264ee91931f8a268c11d7bb155b3ab308",
     "remediation_fields": {
       "summary": "Enable audit log publishing and configure a usable CloudWatch destination.",
       "steps": [
@@ -1922,7 +1922,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks that search and index slow-log publishing are both enabled."
     },
-    "remediation_base_sha256": "661d084363f82715cb2604b23b106221dcaee4cbd326a607d41549dee43e72cb",
+    "remediation_base_sha256": "c1e31889a09e2f5690c9c35c0138798e1967d87ac4542a02494f750fe37d0a71",
     "remediation_fields": {
       "summary": "Enable the slow logs needed for operational diagnosis and configure thresholds.",
       "steps": [
@@ -1947,7 +1947,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks that each enabled supported log type declares a CloudWatch log-group ARN."
     },
-    "remediation_base_sha256": "bd70d910ced399b374686bf28090bb19e3064f8dc0378a1c0010fa3ef38e422b",
+    "remediation_base_sha256": "721864d46281da17e753c0c2eeb88ab13e35185a907160adaf77850828bf2bc7",
     "remediation_fields": {
       "summary": "Set a CloudWatch log-group destination for each enabled log type.",
       "steps": [
@@ -1972,7 +1972,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks VPCId and rejects domain subnets with an explicitly associated Internet-gateway default route."
     },
-    "remediation_base_sha256": "6d030cdde608d9a8bd4a9f73acc5baa99fd690ab31e948633a6eeb8de3872f67",
+    "remediation_base_sha256": "f07140893e8e5261e953cad5f28f14c07f5c16e079df6917ca4b6f9bf366ee47",
     "remediation_fields": {
       "summary": "Use private VPC subnets when public placement is unnecessary.",
       "steps": [
@@ -1997,7 +1997,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks the source profile\u2019s public Allow statements on domains outside a VPC."
     },
-    "remediation_base_sha256": "2fba6be4310dce6cdf80baccda832eeffc2285497bc3655d455e3d4c9f483be2",
+    "remediation_base_sha256": "eb21d26bcca8e539a8f20510217faf8cf9a7396de9024239348965f094390932",
     "remediation_fields": {
       "summary": "Restrict the access policy to the identities and conditions that need domain access.",
       "steps": [

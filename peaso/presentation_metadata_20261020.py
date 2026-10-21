@@ -1,6 +1,6 @@
 """API taxonomy lookup without installing native evaluators.
 
-The exact five signed aliases are build-checked against the native registrar.
+The signed aliases are build-checked against the native registrar.
 This successor changes presentation metadata lookup only. It never supplies
 observations, verdicts, expected contexts, or source-read authorization.
 """
@@ -11,7 +11,8 @@ from pathlib import Path
 from types import MappingProxyType
 
 REGISTRY_PATH = Path(__file__).resolve().parent / 'checks/finding_types.json'
-REGISTRY_SHA256 = 'ed44528de07addc75517558c0726bf67cb2ae4b294a916737ae12298da18de5f'
+REGISTRY_SHA256 = '309fbb1f5613636d3252bf23732fa201f5c4247f75673ec9777ba995211f0493'
+HISTORICAL_REGISTRY_SHA256 = 'bbb5b22a1dd5f4c9d1029d7c1ddcada0ec85b31ef8e0aff50ffa83738d7396d6'
 MAX_REGISTRY_BYTES = 1024 * 1024
 ALIASES = MappingProxyType({
     'gcp.compute.os_login': 'gcp.ports.compute_oslogin_metadata_precedence',
@@ -43,7 +44,7 @@ def _checks():
     with REGISTRY_PATH.open('rb') as stream:
         raw = stream.read(MAX_REGISTRY_BYTES + 1)
     if (len(raw) > MAX_REGISTRY_BYTES
-            or hashlib.sha256(raw).hexdigest() != REGISTRY_SHA256):
+            or hashlib.sha256(raw).hexdigest() not in (REGISTRY_SHA256, HISTORICAL_REGISTRY_SHA256)):
         raise ValueError('API taxonomy source identity differs')
     data = json.loads(raw, object_pairs_hook=_pairs)
     ids = [row['id'] for row in data['types']]
@@ -67,7 +68,8 @@ def install():
 
 
 SCOPE_PATH = Path(__file__).resolve().parent / 'checks/hacktricks_scope.json'
-SCOPE_SHA256 = 'b5f3e2aed5b07056425326f76bf141e5ac256576eeeb28f83fd492264eb4c0ef'
+SCOPE_SHA256 = '8a85d7522345279735759c132c87b6bbe80b50ddb02d7fe9c29c959d02542331'
+HISTORICAL_SCOPE_SHA256 = '9ee1a03f0cdd495c7b8a2e4e4ad2f138f22758d0aad574654c71eb9d2f0d1c77'
 
 
 @lru_cache(maxsize=1)
@@ -75,7 +77,7 @@ def _scope():
     with SCOPE_PATH.open('rb') as stream:
         raw = stream.read(MAX_REGISTRY_BYTES + 1)
     if (len(raw) > MAX_REGISTRY_BYTES
-            or hashlib.sha256(raw).hexdigest() != SCOPE_SHA256):
+            or hashlib.sha256(raw).hexdigest() not in (SCOPE_SHA256, HISTORICAL_SCOPE_SHA256)):
         raise ValueError('Checklist presentation source identity differs')
     data = json.loads(raw, object_pairs_hook=_pairs)
     if data.get('schema_version') != 1:

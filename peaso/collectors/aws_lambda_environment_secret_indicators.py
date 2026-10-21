@@ -3,6 +3,8 @@
 SDK JSON is already in memory on receipt: bounds here limit inspected/retained
 content, not transport streaming. No invoke/update/decrypt or secret-store read.
 """
+
+from peaso.secret_evidence import scan_with_source
 from copy import deepcopy
 import json
 import math
@@ -18,6 +20,7 @@ PROFILE='aws-lambda-environment-content-v1'
 MARKER='SelectedLambdaEnvironmentSecretIndicators'
 SCHEMA='aws-selected-lambda-environment-secrets-v1'
 MAX_TARGETS=8
+MAX_SELECTED_SCOPES=8
 MAX_RESPONSE=131072
 MAX_RESPONSE_TOTAL=1048576
 MAX_VARIABLES=128
@@ -58,15 +61,17 @@ def selected_targets(options,scopes):
         raise Incomplete('invalid_lambda_selection')
     if OPTION not in options and not enabled(options):return []
     targets=options.get(OPTION)
-    if (not isinstance(scopes,list) or not 1<=len(scopes)<=8
+    if (not isinstance(scopes,list) or not scopes
             or any(not isinstance(s,str) or not SCOPE.fullmatch(s) for s in scopes)
             or len(set(scopes))!=len(scopes) or not isinstance(targets,list) or not 1<=len(targets)<=MAX_TARGETS):
         raise Incomplete('invalid_lambda_selection')
-    seen=set()
+    seen=set();selected_scopes=set()
     for arn in targets:
         match=parse(arn)
         if match[3]+'/'+match[2] not in scopes or arn in seen:raise Incomplete('invalid_lambda_selection')
         seen.add(arn)
+        selected_scopes.add(match[3]+'/'+match[2])
+        if len(selected_scopes)>MAX_SELECTED_SCOPES:raise Incomplete('invalid_lambda_selection')
     return list(targets)
 
 
@@ -180,7 +185,7 @@ def project_response(response,service,operation,arguments,*,request_context=None
         if not any(env['Variables'].values()):raise Incomplete('environment_empty')
         payload=b'\n\n'.join(parts)
         if len(payload)>MAX_SCAN_BYTES:raise Incomplete('environment_bound')
-        outcome=scan_content(payload,identity(arn)+'.variables',timeout=min(60,_remaining(requests)))
+        outcome=scan_with_source(scan_content, payload,identity(arn)+'.variables',timeout=min(60,_remaining(requests)), source={'resource_id': arn, 'location_kind': 'configuration'}, native=env['Variables'])
         del payload,parts
         leaks=merge_leaks(outcome['leaks'])
         if len(leaks)>MAX_LEAKS or sum(len(l['locations']) for l in leaks)>MAX_LOCATIONS:raise Incomplete('leak_bound')

@@ -1,0 +1,2614 @@
+{
+  "aws.review.ecr_public.selected_image_high_vulnerabilities": {
+    "fail": {
+      "ECRPublicImageContent": {
+        "identity": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3",
+        "leaks": [],
+        "native_after": {
+          "account": "123456789012",
+          "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+          "image_size": 10423,
+          "manifest_media_type": "application/vnd.oci.image.manifest.v1+json",
+          "registry_alias": "fixture-alias",
+          "registry_arn": "arn:aws:ecr-public::123456789012:registry/123456789012",
+          "repository_arn": "arn:aws:ecr-public::123456789012:repository/fixture/image",
+          "repository_name": "fixture/image"
+        },
+        "native_before": {
+          "account": "123456789012",
+          "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+          "image_size": 10423,
+          "manifest_media_type": "application/vnd.oci.image.manifest.v1+json",
+          "registry_alias": "fixture-alias",
+          "registry_arn": "arn:aws:ecr-public::123456789012:registry/123456789012",
+          "repository_arn": "arn:aws:ecr-public::123456789012:repository/fixture/image",
+          "repository_name": "fixture/image"
+        },
+        "native_receipts": [
+          {
+            "operation": "ecr-public:describe_registries",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_repositories",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_images",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_registries",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_repositories",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_images",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_registries",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_repositories",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_images",
+            "status": "collected"
+          }
+        ],
+        "native_stable": true,
+        "parts": [
+          {
+            "bytes": 437,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.manifest"
+          },
+          {
+            "bytes": 183,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.config"
+          },
+          {
+            "bytes": 149,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.config-strings"
+          },
+          {
+            "bytes": 14,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.layer-1.file-4.name"
+          },
+          {
+            "bytes": 11,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.layer-1.file-4.chunk-11"
+          }
+        ],
+        "reason": "complete",
+        "registry_receipts": [
+          {
+            "bytes": 437,
+            "category": "manifests",
+            "digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+            "id": "registry-read-bb609b77f26445639f86540cee2f9f9f",
+            "method": "GET",
+            "status": "collected"
+          },
+          {
+            "bytes": 183,
+            "category": "blobs",
+            "digest": "sha256:d4123e67f4ef0805819550617055439be56a3253fecc7b3c63c7a0d395fbd718",
+            "id": "registry-read-68f72e58d40b4152933c496758c051e8",
+            "method": "GET",
+            "status": "collected"
+          },
+          {
+            "bytes": 10240,
+            "category": "blobs",
+            "digest": "sha256:0d7fbc41599bc1e7bd614f16d32c41d05ea05bdf71e338c142a8492940d6fb2b",
+            "id": "registry-read-7e6c4a376d164e2bb63ccf0990cea32e",
+            "method": "GET",
+            "status": "collected"
+          }
+        ],
+        "schema": "aws-selected-ecr-public-image-v1",
+        "secret_complete": true,
+        "selection": {
+          "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+          "registry_alias": "fixture-alias",
+          "repository_name": "fixture/image",
+          "scope": "123456789012/us-east-1"
+        },
+        "vulnerability": {
+          "cli_version": "0.68.1",
+          "complete": true,
+          "coverage_status": "COMPLETE",
+          "database": {
+            "fresh": true
+          },
+          "diagnostics": [],
+          "findings": [
+            {
+              "classes": [
+                "os-pkgs"
+              ],
+              "fix_status": "fixed",
+              "fixed_in": [
+                "1.1"
+              ],
+              "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+              "package": "fixture-package",
+              "package_types": [
+                "alpine"
+              ],
+              "severity": "HIGH",
+              "version": "1.0",
+              "vulnerability_id": "CVE-2026-12345"
+            }
+          ],
+          "image": {
+            "config_digest": "sha256:d4123e67f4ef0805819550617055439be56a3253fecc7b3c63c7a0d395fbd718",
+            "immutable_reference": "public.ecr.aws/fixture-alias/fixture/image@sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+            "manifest_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+            "provider": "aws",
+            "scope": "123456789012/us-east-1"
+          },
+          "os_end_of_support": false,
+          "package_types": [
+            "os",
+            "library"
+          ],
+          "production_freshness_certified": false,
+          "reason": null,
+          "runtime_image_proven": false,
+          "scan_complete": true,
+          "scanned_classes": [
+            "os-pkgs"
+          ],
+          "scanners": [
+            "vuln"
+          ],
+          "schema": "trivy-native-immutable-image-vulnerabilities-20261020-v1",
+          "severities": [
+            "HIGH",
+            "CRITICAL"
+          ],
+          "status": "FAIL"
+        }
+      },
+      "id": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3"
+    },
+    "fail_index": {
+      "collections": {
+        "ecr_public_selected_image_content": [
+          {
+            "items": [
+              {
+                "ECRPublicImageContent": {
+                  "identity": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3",
+                  "leaks": [],
+                  "native_after": {
+                    "account": "123456789012",
+                    "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+                    "image_size": 10423,
+                    "manifest_media_type": "application/vnd.oci.image.manifest.v1+json",
+                    "registry_alias": "fixture-alias",
+                    "registry_arn": "arn:aws:ecr-public::123456789012:registry/123456789012",
+                    "repository_arn": "arn:aws:ecr-public::123456789012:repository/fixture/image",
+                    "repository_name": "fixture/image"
+                  },
+                  "native_before": {
+                    "account": "123456789012",
+                    "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+                    "image_size": 10423,
+                    "manifest_media_type": "application/vnd.oci.image.manifest.v1+json",
+                    "registry_alias": "fixture-alias",
+                    "registry_arn": "arn:aws:ecr-public::123456789012:registry/123456789012",
+                    "repository_arn": "arn:aws:ecr-public::123456789012:repository/fixture/image",
+                    "repository_name": "fixture/image"
+                  },
+                  "native_receipts": [
+                    {
+                      "operation": "ecr-public:describe_registries",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_repositories",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_images",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_registries",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_repositories",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_images",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_registries",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_repositories",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_images",
+                      "status": "collected"
+                    }
+                  ],
+                  "native_stable": true,
+                  "parts": [
+                    {
+                      "bytes": 437,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.manifest"
+                    },
+                    {
+                      "bytes": 183,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.config"
+                    },
+                    {
+                      "bytes": 149,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.config-strings"
+                    },
+                    {
+                      "bytes": 14,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.layer-1.file-4.name"
+                    },
+                    {
+                      "bytes": 11,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.layer-1.file-4.chunk-11"
+                    }
+                  ],
+                  "reason": "complete",
+                  "registry_receipts": [
+                    {
+                      "bytes": 437,
+                      "category": "manifests",
+                      "digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+                      "id": "registry-read-bb609b77f26445639f86540cee2f9f9f",
+                      "method": "GET",
+                      "status": "collected"
+                    },
+                    {
+                      "bytes": 183,
+                      "category": "blobs",
+                      "digest": "sha256:d4123e67f4ef0805819550617055439be56a3253fecc7b3c63c7a0d395fbd718",
+                      "id": "registry-read-68f72e58d40b4152933c496758c051e8",
+                      "method": "GET",
+                      "status": "collected"
+                    },
+                    {
+                      "bytes": 10240,
+                      "category": "blobs",
+                      "digest": "sha256:0d7fbc41599bc1e7bd614f16d32c41d05ea05bdf71e338c142a8492940d6fb2b",
+                      "id": "registry-read-7e6c4a376d164e2bb63ccf0990cea32e",
+                      "method": "GET",
+                      "status": "collected"
+                    }
+                  ],
+                  "schema": "aws-selected-ecr-public-image-v1",
+                  "secret_complete": true,
+                  "selection": {
+                    "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+                    "registry_alias": "fixture-alias",
+                    "repository_name": "fixture/image",
+                    "scope": "123456789012/us-east-1"
+                  },
+                  "vulnerability": {
+                    "cli_version": "0.68.1",
+                    "complete": true,
+                    "coverage_status": "COMPLETE",
+                    "database": {
+                      "fresh": true
+                    },
+                    "diagnostics": [],
+                    "findings": [
+                      {
+                        "classes": [
+                          "os-pkgs"
+                        ],
+                        "fix_status": "fixed",
+                        "fixed_in": [
+                          "1.1"
+                        ],
+                        "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+                        "package": "fixture-package",
+                        "package_types": [
+                          "alpine"
+                        ],
+                        "severity": "HIGH",
+                        "version": "1.0",
+                        "vulnerability_id": "CVE-2026-12345"
+                      }
+                    ],
+                    "image": {
+                      "config_digest": "sha256:d4123e67f4ef0805819550617055439be56a3253fecc7b3c63c7a0d395fbd718",
+                      "immutable_reference": "public.ecr.aws/fixture-alias/fixture/image@sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+                      "manifest_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+                      "provider": "aws",
+                      "scope": "123456789012/us-east-1"
+                    },
+                    "os_end_of_support": false,
+                    "package_types": [
+                      "os",
+                      "library"
+                    ],
+                    "production_freshness_certified": false,
+                    "reason": null,
+                    "runtime_image_proven": false,
+                    "scan_complete": true,
+                    "scanned_classes": [
+                      "os-pkgs"
+                    ],
+                    "scanners": [
+                      "vuln"
+                    ],
+                    "schema": "trivy-native-immutable-image-vulnerabilities-20261020-v1",
+                    "severities": [
+                      "HIGH",
+                      "CRITICAL"
+                    ],
+                    "status": "FAIL"
+                  }
+                },
+                "id": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3"
+              }
+            ],
+            "scope": "123456789012/us-east-1",
+            "service": "ecr-public",
+            "status": "collected",
+            "type": "ecr_public_selected_image_content"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "ecr_public_selected_image_content_secret_authorized": true,
+          "ecr_public_selected_image_content_vulnerability_authorized": true,
+          "selected_aws_ecr_public_images": [
+            {
+              "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+              "registry_alias": "fixture-alias",
+              "repository_name": "fixture/image",
+              "scope": "123456789012/us-east-1"
+            }
+          ]
+        },
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      }
+    },
+    "missing": {},
+    "missing_index": {
+      "collections": {
+        "ecr_public_selected_image_content": [
+          {
+            "items": [],
+            "scope": "123456789012/us-east-1",
+            "service": "ecr-public",
+            "status": "partial",
+            "type": "ecr_public_selected_image_content"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "ecr_public_selected_image_content_secret_authorized": true,
+          "ecr_public_selected_image_content_vulnerability_authorized": true,
+          "selected_aws_ecr_public_images": [
+            {
+              "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+              "registry_alias": "fixture-alias",
+              "repository_name": "fixture/image",
+              "scope": "123456789012/us-east-1"
+            }
+          ]
+        },
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      }
+    },
+    "pass": {
+      "ECRPublicImageContent": {
+        "identity": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3",
+        "leaks": [],
+        "native_after": {
+          "account": "123456789012",
+          "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+          "image_size": 10423,
+          "manifest_media_type": "application/vnd.oci.image.manifest.v1+json",
+          "registry_alias": "fixture-alias",
+          "registry_arn": "arn:aws:ecr-public::123456789012:registry/123456789012",
+          "repository_arn": "arn:aws:ecr-public::123456789012:repository/fixture/image",
+          "repository_name": "fixture/image"
+        },
+        "native_before": {
+          "account": "123456789012",
+          "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+          "image_size": 10423,
+          "manifest_media_type": "application/vnd.oci.image.manifest.v1+json",
+          "registry_alias": "fixture-alias",
+          "registry_arn": "arn:aws:ecr-public::123456789012:registry/123456789012",
+          "repository_arn": "arn:aws:ecr-public::123456789012:repository/fixture/image",
+          "repository_name": "fixture/image"
+        },
+        "native_receipts": [
+          {
+            "operation": "ecr-public:describe_registries",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_repositories",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_images",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_registries",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_repositories",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_images",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_registries",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_repositories",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_images",
+            "status": "collected"
+          }
+        ],
+        "native_stable": true,
+        "parts": [
+          {
+            "bytes": 437,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.manifest"
+          },
+          {
+            "bytes": 183,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.config"
+          },
+          {
+            "bytes": 149,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.config-strings"
+          },
+          {
+            "bytes": 14,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.layer-1.file-4.name"
+          },
+          {
+            "bytes": 11,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.layer-1.file-4.chunk-11"
+          }
+        ],
+        "reason": "complete",
+        "registry_receipts": [
+          {
+            "bytes": 437,
+            "category": "manifests",
+            "digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+            "id": "registry-read-8fb6d70a6e5146c79e733d53d07a4e5c",
+            "method": "GET",
+            "status": "collected"
+          },
+          {
+            "bytes": 183,
+            "category": "blobs",
+            "digest": "sha256:d4123e67f4ef0805819550617055439be56a3253fecc7b3c63c7a0d395fbd718",
+            "id": "registry-read-4d94ac2453e94a83aba91c68553cb45e",
+            "method": "GET",
+            "status": "collected"
+          },
+          {
+            "bytes": 10240,
+            "category": "blobs",
+            "digest": "sha256:0d7fbc41599bc1e7bd614f16d32c41d05ea05bdf71e338c142a8492940d6fb2b",
+            "id": "registry-read-66667442cd394529a664d7704ecb13b6",
+            "method": "GET",
+            "status": "collected"
+          }
+        ],
+        "schema": "aws-selected-ecr-public-image-v1",
+        "secret_complete": true,
+        "selection": {
+          "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+          "registry_alias": "fixture-alias",
+          "repository_name": "fixture/image",
+          "scope": "123456789012/us-east-1"
+        },
+        "vulnerability": {
+          "cli_version": "0.68.1",
+          "complete": true,
+          "coverage_status": "COMPLETE",
+          "database": {
+            "fresh": true
+          },
+          "diagnostics": [],
+          "findings": [],
+          "image": {
+            "config_digest": "sha256:d4123e67f4ef0805819550617055439be56a3253fecc7b3c63c7a0d395fbd718",
+            "immutable_reference": "public.ecr.aws/fixture-alias/fixture/image@sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+            "manifest_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+            "provider": "aws",
+            "scope": "123456789012/us-east-1"
+          },
+          "os_end_of_support": false,
+          "package_types": [
+            "os",
+            "library"
+          ],
+          "production_freshness_certified": false,
+          "reason": null,
+          "runtime_image_proven": false,
+          "scan_complete": true,
+          "scanned_classes": [
+            "os-pkgs"
+          ],
+          "scanners": [
+            "vuln"
+          ],
+          "schema": "trivy-native-immutable-image-vulnerabilities-20261020-v1",
+          "severities": [
+            "HIGH",
+            "CRITICAL"
+          ],
+          "status": "PASS"
+        }
+      },
+      "id": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3"
+    },
+    "pass_index": {
+      "collections": {
+        "ecr_public_selected_image_content": [
+          {
+            "items": [
+              {
+                "ECRPublicImageContent": {
+                  "identity": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3",
+                  "leaks": [],
+                  "native_after": {
+                    "account": "123456789012",
+                    "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+                    "image_size": 10423,
+                    "manifest_media_type": "application/vnd.oci.image.manifest.v1+json",
+                    "registry_alias": "fixture-alias",
+                    "registry_arn": "arn:aws:ecr-public::123456789012:registry/123456789012",
+                    "repository_arn": "arn:aws:ecr-public::123456789012:repository/fixture/image",
+                    "repository_name": "fixture/image"
+                  },
+                  "native_before": {
+                    "account": "123456789012",
+                    "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+                    "image_size": 10423,
+                    "manifest_media_type": "application/vnd.oci.image.manifest.v1+json",
+                    "registry_alias": "fixture-alias",
+                    "registry_arn": "arn:aws:ecr-public::123456789012:registry/123456789012",
+                    "repository_arn": "arn:aws:ecr-public::123456789012:repository/fixture/image",
+                    "repository_name": "fixture/image"
+                  },
+                  "native_receipts": [
+                    {
+                      "operation": "ecr-public:describe_registries",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_repositories",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_images",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_registries",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_repositories",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_images",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_registries",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_repositories",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_images",
+                      "status": "collected"
+                    }
+                  ],
+                  "native_stable": true,
+                  "parts": [
+                    {
+                      "bytes": 437,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.manifest"
+                    },
+                    {
+                      "bytes": 183,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.config"
+                    },
+                    {
+                      "bytes": 149,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.config-strings"
+                    },
+                    {
+                      "bytes": 14,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.layer-1.file-4.name"
+                    },
+                    {
+                      "bytes": 11,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.layer-1.file-4.chunk-11"
+                    }
+                  ],
+                  "reason": "complete",
+                  "registry_receipts": [
+                    {
+                      "bytes": 437,
+                      "category": "manifests",
+                      "digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+                      "id": "registry-read-8fb6d70a6e5146c79e733d53d07a4e5c",
+                      "method": "GET",
+                      "status": "collected"
+                    },
+                    {
+                      "bytes": 183,
+                      "category": "blobs",
+                      "digest": "sha256:d4123e67f4ef0805819550617055439be56a3253fecc7b3c63c7a0d395fbd718",
+                      "id": "registry-read-4d94ac2453e94a83aba91c68553cb45e",
+                      "method": "GET",
+                      "status": "collected"
+                    },
+                    {
+                      "bytes": 10240,
+                      "category": "blobs",
+                      "digest": "sha256:0d7fbc41599bc1e7bd614f16d32c41d05ea05bdf71e338c142a8492940d6fb2b",
+                      "id": "registry-read-66667442cd394529a664d7704ecb13b6",
+                      "method": "GET",
+                      "status": "collected"
+                    }
+                  ],
+                  "schema": "aws-selected-ecr-public-image-v1",
+                  "secret_complete": true,
+                  "selection": {
+                    "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+                    "registry_alias": "fixture-alias",
+                    "repository_name": "fixture/image",
+                    "scope": "123456789012/us-east-1"
+                  },
+                  "vulnerability": {
+                    "cli_version": "0.68.1",
+                    "complete": true,
+                    "coverage_status": "COMPLETE",
+                    "database": {
+                      "fresh": true
+                    },
+                    "diagnostics": [],
+                    "findings": [],
+                    "image": {
+                      "config_digest": "sha256:d4123e67f4ef0805819550617055439be56a3253fecc7b3c63c7a0d395fbd718",
+                      "immutable_reference": "public.ecr.aws/fixture-alias/fixture/image@sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+                      "manifest_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+                      "provider": "aws",
+                      "scope": "123456789012/us-east-1"
+                    },
+                    "os_end_of_support": false,
+                    "package_types": [
+                      "os",
+                      "library"
+                    ],
+                    "production_freshness_certified": false,
+                    "reason": null,
+                    "runtime_image_proven": false,
+                    "scan_complete": true,
+                    "scanned_classes": [
+                      "os-pkgs"
+                    ],
+                    "scanners": [
+                      "vuln"
+                    ],
+                    "schema": "trivy-native-immutable-image-vulnerabilities-20261020-v1",
+                    "severities": [
+                      "HIGH",
+                      "CRITICAL"
+                    ],
+                    "status": "PASS"
+                  }
+                },
+                "id": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3"
+              }
+            ],
+            "scope": "123456789012/us-east-1",
+            "service": "ecr-public",
+            "status": "collected",
+            "type": "ecr_public_selected_image_content"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "ecr_public_selected_image_content_secret_authorized": true,
+          "ecr_public_selected_image_content_vulnerability_authorized": true,
+          "selected_aws_ecr_public_images": [
+            {
+              "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+              "registry_alias": "fixture-alias",
+              "repository_name": "fixture/image",
+              "scope": "123456789012/us-east-1"
+            }
+          ]
+        },
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      }
+    },
+    "unknown": {
+      "ECRPublicImageContent": {
+        "identity": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3",
+        "leaks": [],
+        "native_after": null,
+        "native_before": {
+          "account": "123456789012",
+          "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+          "image_size": 10423,
+          "manifest_media_type": "application/vnd.oci.image.manifest.v1+json",
+          "registry_alias": "fixture-alias",
+          "registry_arn": "arn:aws:ecr-public::123456789012:registry/123456789012",
+          "repository_arn": "arn:aws:ecr-public::123456789012:repository/fixture/image",
+          "repository_name": "fixture/image"
+        },
+        "native_receipts": [
+          {
+            "operation": "ecr-public:describe_registries",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_repositories",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_images",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_registries",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_repositories",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_images",
+            "status": "collected"
+          }
+        ],
+        "native_stable": false,
+        "parts": [
+          {
+            "bytes": 437,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.manifest"
+          },
+          {
+            "bytes": 183,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.config"
+          },
+          {
+            "bytes": 149,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.config-strings"
+          },
+          {
+            "bytes": 14,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.layer-1.file-4.name"
+          },
+          {
+            "bytes": 11,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.layer-1.file-4.chunk-11"
+          }
+        ],
+        "reason": "foreign_or_unsupported_image",
+        "registry_receipts": [
+          {
+            "bytes": 437,
+            "category": "manifests",
+            "digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+            "id": "registry-read-e39f381edd6143d5b2290ad2eeb7c514",
+            "method": "GET",
+            "status": "collected"
+          },
+          {
+            "bytes": 183,
+            "category": "blobs",
+            "digest": "sha256:d4123e67f4ef0805819550617055439be56a3253fecc7b3c63c7a0d395fbd718",
+            "id": "registry-read-993b41ad689a4926a5b3c271add4b815",
+            "method": "GET",
+            "status": "collected"
+          },
+          {
+            "bytes": 10240,
+            "category": "blobs",
+            "digest": "sha256:0d7fbc41599bc1e7bd614f16d32c41d05ea05bdf71e338c142a8492940d6fb2b",
+            "id": "registry-read-98fae489e2194d95ae63470527b9c15c",
+            "method": "GET",
+            "status": "collected"
+          }
+        ],
+        "schema": "aws-selected-ecr-public-image-v1",
+        "secret_complete": false,
+        "selection": {
+          "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+          "registry_alias": "fixture-alias",
+          "repository_name": "fixture/image",
+          "scope": "123456789012/us-east-1"
+        },
+        "vulnerability": null
+      },
+      "id": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3"
+    },
+    "unknown_index": {
+      "collections": {
+        "ecr_public_selected_image_content": [
+          {
+            "items": [
+              {
+                "ECRPublicImageContent": {
+                  "identity": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3",
+                  "leaks": [],
+                  "native_after": null,
+                  "native_before": {
+                    "account": "123456789012",
+                    "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+                    "image_size": 10423,
+                    "manifest_media_type": "application/vnd.oci.image.manifest.v1+json",
+                    "registry_alias": "fixture-alias",
+                    "registry_arn": "arn:aws:ecr-public::123456789012:registry/123456789012",
+                    "repository_arn": "arn:aws:ecr-public::123456789012:repository/fixture/image",
+                    "repository_name": "fixture/image"
+                  },
+                  "native_receipts": [
+                    {
+                      "operation": "ecr-public:describe_registries",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_repositories",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_images",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_registries",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_repositories",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_images",
+                      "status": "collected"
+                    }
+                  ],
+                  "native_stable": false,
+                  "parts": [
+                    {
+                      "bytes": 437,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.manifest"
+                    },
+                    {
+                      "bytes": 183,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.config"
+                    },
+                    {
+                      "bytes": 149,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.config-strings"
+                    },
+                    {
+                      "bytes": 14,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.layer-1.file-4.name"
+                    },
+                    {
+                      "bytes": 11,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.layer-1.file-4.chunk-11"
+                    }
+                  ],
+                  "reason": "foreign_or_unsupported_image",
+                  "registry_receipts": [
+                    {
+                      "bytes": 437,
+                      "category": "manifests",
+                      "digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+                      "id": "registry-read-e39f381edd6143d5b2290ad2eeb7c514",
+                      "method": "GET",
+                      "status": "collected"
+                    },
+                    {
+                      "bytes": 183,
+                      "category": "blobs",
+                      "digest": "sha256:d4123e67f4ef0805819550617055439be56a3253fecc7b3c63c7a0d395fbd718",
+                      "id": "registry-read-993b41ad689a4926a5b3c271add4b815",
+                      "method": "GET",
+                      "status": "collected"
+                    },
+                    {
+                      "bytes": 10240,
+                      "category": "blobs",
+                      "digest": "sha256:0d7fbc41599bc1e7bd614f16d32c41d05ea05bdf71e338c142a8492940d6fb2b",
+                      "id": "registry-read-98fae489e2194d95ae63470527b9c15c",
+                      "method": "GET",
+                      "status": "collected"
+                    }
+                  ],
+                  "schema": "aws-selected-ecr-public-image-v1",
+                  "secret_complete": false,
+                  "selection": {
+                    "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+                    "registry_alias": "fixture-alias",
+                    "repository_name": "fixture/image",
+                    "scope": "123456789012/us-east-1"
+                  },
+                  "vulnerability": null
+                },
+                "id": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3"
+              }
+            ],
+            "scope": "123456789012/us-east-1",
+            "service": "ecr-public",
+            "status": "partial",
+            "type": "ecr_public_selected_image_content"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "ecr_public_selected_image_content_secret_authorized": true,
+          "ecr_public_selected_image_content_vulnerability_authorized": true,
+          "selected_aws_ecr_public_images": [
+            {
+              "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+              "registry_alias": "fixture-alias",
+              "repository_name": "fixture/image",
+              "scope": "123456789012/us-east-1"
+            }
+          ]
+        },
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      }
+    }
+  },
+  "aws.review.ecr_public.selected_image_secret_indicators": {
+    "fail": {
+      "ECRPublicImageContent": {
+        "identity": "ecr-public-image:b8fdbc358d8695dcf7b004ff4c3300db43af6be7883bfde8ee10137a8253d52f",
+        "leaks": [
+          {
+            "detectors": [
+              {
+                "engine": "kingfisher",
+                "rule": "github-pat"
+              },
+              {
+                "engine": "trufflehog",
+                "rule": "github-pat"
+              }
+            ],
+            "fingerprint": "45f2fb08ab13cf111e1f3ab232eb2e13b1f2065b90eca3957e90034a87aff0ac",
+            "locations": [
+              {
+                "line": 1,
+                "path": "ecr-public-image:b8fdbc358d8695dcf7b004ff4c3300db43af6be7883bfde8ee10137a8253d52f.layer-1.file-4.chunk-47"
+              },
+              {
+                "line": 1,
+                "path": "ecr-public-image:b8fdbc358d8695dcf7b004ff4c3300db43af6be7883bfde8ee10137a8253d52f.manifest"
+              }
+            ]
+          }
+        ],
+        "native_after": {
+          "account": "123456789012",
+          "image_digest": "sha256:6bcdf5288043cd14369214c9322c655d09c8487d9165e115319f8014ca77ca07",
+          "image_size": 10423,
+          "manifest_media_type": "application/vnd.oci.image.manifest.v1+json",
+          "registry_alias": "fixture-alias",
+          "registry_arn": "arn:aws:ecr-public::123456789012:registry/123456789012",
+          "repository_arn": "arn:aws:ecr-public::123456789012:repository/fixture/image",
+          "repository_name": "fixture/image"
+        },
+        "native_before": {
+          "account": "123456789012",
+          "image_digest": "sha256:6bcdf5288043cd14369214c9322c655d09c8487d9165e115319f8014ca77ca07",
+          "image_size": 10423,
+          "manifest_media_type": "application/vnd.oci.image.manifest.v1+json",
+          "registry_alias": "fixture-alias",
+          "registry_arn": "arn:aws:ecr-public::123456789012:registry/123456789012",
+          "repository_arn": "arn:aws:ecr-public::123456789012:repository/fixture/image",
+          "repository_name": "fixture/image"
+        },
+        "native_receipts": [
+          {
+            "operation": "ecr-public:describe_registries",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_repositories",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_images",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_registries",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_repositories",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_images",
+            "status": "collected"
+          }
+        ],
+        "native_stable": true,
+        "parts": [
+          {
+            "bytes": 467,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "ecr-public-image:b8fdbc358d8695dcf7b004ff4c3300db43af6be7883bfde8ee10137a8253d52f.manifest"
+          },
+          {
+            "bytes": 183,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "ecr-public-image:b8fdbc358d8695dcf7b004ff4c3300db43af6be7883bfde8ee10137a8253d52f.config"
+          },
+          {
+            "bytes": 149,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "ecr-public-image:b8fdbc358d8695dcf7b004ff4c3300db43af6be7883bfde8ee10137a8253d52f.config-strings"
+          },
+          {
+            "bytes": 14,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "ecr-public-image:b8fdbc358d8695dcf7b004ff4c3300db43af6be7883bfde8ee10137a8253d52f.layer-1.file-4.name"
+          },
+          {
+            "bytes": 47,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "ecr-public-image:b8fdbc358d8695dcf7b004ff4c3300db43af6be7883bfde8ee10137a8253d52f.layer-1.file-4.chunk-47"
+          }
+        ],
+        "reason": "complete",
+        "registry_receipts": [
+          {
+            "bytes": 467,
+            "category": "manifests",
+            "digest": "sha256:6bcdf5288043cd14369214c9322c655d09c8487d9165e115319f8014ca77ca07",
+            "id": "registry-read-1e2d3dd7c1b9499d9b27876519afb930",
+            "method": "GET",
+            "status": "collected"
+          },
+          {
+            "bytes": 183,
+            "category": "blobs",
+            "digest": "sha256:d56203a3ad4061f11e0e7590712cd4410b6501aa8aa9e87393dc7ac20da838d5",
+            "id": "registry-read-9b65274a0a184287a7888045577425ce",
+            "method": "GET",
+            "status": "collected"
+          },
+          {
+            "bytes": 10240,
+            "category": "blobs",
+            "digest": "sha256:355ed14d08895abf9246dd1ff4aad66426a153ec302bd485f7c4afffbab21ce2",
+            "id": "registry-read-fb34cff810d945abbe02559e239d145f",
+            "method": "GET",
+            "status": "collected"
+          }
+        ],
+        "schema": "aws-selected-ecr-public-image-v1",
+        "secret_complete": true,
+        "selection": {
+          "image_digest": "sha256:6bcdf5288043cd14369214c9322c655d09c8487d9165e115319f8014ca77ca07",
+          "registry_alias": "fixture-alias",
+          "repository_name": "fixture/image",
+          "scope": "123456789012/us-east-1"
+        },
+        "vulnerability": null
+      },
+      "id": "ecr-public-image:b8fdbc358d8695dcf7b004ff4c3300db43af6be7883bfde8ee10137a8253d52f"
+    },
+    "fail_index": {
+      "collections": {
+        "ecr_public_selected_image_content": [
+          {
+            "items": [
+              {
+                "ECRPublicImageContent": {
+                  "identity": "ecr-public-image:b8fdbc358d8695dcf7b004ff4c3300db43af6be7883bfde8ee10137a8253d52f",
+                  "leaks": [
+                    {
+                      "detectors": [
+                        {
+                          "engine": "kingfisher",
+                          "rule": "github-pat"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "rule": "github-pat"
+                        }
+                      ],
+                      "fingerprint": "45f2fb08ab13cf111e1f3ab232eb2e13b1f2065b90eca3957e90034a87aff0ac",
+                      "locations": [
+                        {
+                          "line": 1,
+                          "path": "ecr-public-image:b8fdbc358d8695dcf7b004ff4c3300db43af6be7883bfde8ee10137a8253d52f.layer-1.file-4.chunk-47"
+                        },
+                        {
+                          "line": 1,
+                          "path": "ecr-public-image:b8fdbc358d8695dcf7b004ff4c3300db43af6be7883bfde8ee10137a8253d52f.manifest"
+                        }
+                      ]
+                    }
+                  ],
+                  "native_after": {
+                    "account": "123456789012",
+                    "image_digest": "sha256:6bcdf5288043cd14369214c9322c655d09c8487d9165e115319f8014ca77ca07",
+                    "image_size": 10423,
+                    "manifest_media_type": "application/vnd.oci.image.manifest.v1+json",
+                    "registry_alias": "fixture-alias",
+                    "registry_arn": "arn:aws:ecr-public::123456789012:registry/123456789012",
+                    "repository_arn": "arn:aws:ecr-public::123456789012:repository/fixture/image",
+                    "repository_name": "fixture/image"
+                  },
+                  "native_before": {
+                    "account": "123456789012",
+                    "image_digest": "sha256:6bcdf5288043cd14369214c9322c655d09c8487d9165e115319f8014ca77ca07",
+                    "image_size": 10423,
+                    "manifest_media_type": "application/vnd.oci.image.manifest.v1+json",
+                    "registry_alias": "fixture-alias",
+                    "registry_arn": "arn:aws:ecr-public::123456789012:registry/123456789012",
+                    "repository_arn": "arn:aws:ecr-public::123456789012:repository/fixture/image",
+                    "repository_name": "fixture/image"
+                  },
+                  "native_receipts": [
+                    {
+                      "operation": "ecr-public:describe_registries",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_repositories",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_images",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_registries",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_repositories",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_images",
+                      "status": "collected"
+                    }
+                  ],
+                  "native_stable": true,
+                  "parts": [
+                    {
+                      "bytes": 467,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "ecr-public-image:b8fdbc358d8695dcf7b004ff4c3300db43af6be7883bfde8ee10137a8253d52f.manifest"
+                    },
+                    {
+                      "bytes": 183,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "ecr-public-image:b8fdbc358d8695dcf7b004ff4c3300db43af6be7883bfde8ee10137a8253d52f.config"
+                    },
+                    {
+                      "bytes": 149,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "ecr-public-image:b8fdbc358d8695dcf7b004ff4c3300db43af6be7883bfde8ee10137a8253d52f.config-strings"
+                    },
+                    {
+                      "bytes": 14,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "ecr-public-image:b8fdbc358d8695dcf7b004ff4c3300db43af6be7883bfde8ee10137a8253d52f.layer-1.file-4.name"
+                    },
+                    {
+                      "bytes": 47,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "ecr-public-image:b8fdbc358d8695dcf7b004ff4c3300db43af6be7883bfde8ee10137a8253d52f.layer-1.file-4.chunk-47"
+                    }
+                  ],
+                  "reason": "complete",
+                  "registry_receipts": [
+                    {
+                      "bytes": 467,
+                      "category": "manifests",
+                      "digest": "sha256:6bcdf5288043cd14369214c9322c655d09c8487d9165e115319f8014ca77ca07",
+                      "id": "registry-read-1e2d3dd7c1b9499d9b27876519afb930",
+                      "method": "GET",
+                      "status": "collected"
+                    },
+                    {
+                      "bytes": 183,
+                      "category": "blobs",
+                      "digest": "sha256:d56203a3ad4061f11e0e7590712cd4410b6501aa8aa9e87393dc7ac20da838d5",
+                      "id": "registry-read-9b65274a0a184287a7888045577425ce",
+                      "method": "GET",
+                      "status": "collected"
+                    },
+                    {
+                      "bytes": 10240,
+                      "category": "blobs",
+                      "digest": "sha256:355ed14d08895abf9246dd1ff4aad66426a153ec302bd485f7c4afffbab21ce2",
+                      "id": "registry-read-fb34cff810d945abbe02559e239d145f",
+                      "method": "GET",
+                      "status": "collected"
+                    }
+                  ],
+                  "schema": "aws-selected-ecr-public-image-v1",
+                  "secret_complete": true,
+                  "selection": {
+                    "image_digest": "sha256:6bcdf5288043cd14369214c9322c655d09c8487d9165e115319f8014ca77ca07",
+                    "registry_alias": "fixture-alias",
+                    "repository_name": "fixture/image",
+                    "scope": "123456789012/us-east-1"
+                  },
+                  "vulnerability": null
+                },
+                "id": "ecr-public-image:b8fdbc358d8695dcf7b004ff4c3300db43af6be7883bfde8ee10137a8253d52f"
+              }
+            ],
+            "scope": "123456789012/us-east-1",
+            "service": "ecr-public",
+            "status": "collected",
+            "type": "ecr_public_selected_image_content"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "ecr_public_selected_image_content_secret_authorized": true,
+          "ecr_public_selected_image_content_vulnerability_authorized": false,
+          "selected_aws_ecr_public_images": [
+            {
+              "image_digest": "sha256:6bcdf5288043cd14369214c9322c655d09c8487d9165e115319f8014ca77ca07",
+              "registry_alias": "fixture-alias",
+              "repository_name": "fixture/image",
+              "scope": "123456789012/us-east-1"
+            }
+          ]
+        },
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      }
+    },
+    "missing": {},
+    "missing_index": {
+      "collections": {
+        "ecr_public_selected_image_content": [
+          {
+            "items": [],
+            "scope": "123456789012/us-east-1",
+            "service": "ecr-public",
+            "status": "partial",
+            "type": "ecr_public_selected_image_content"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "ecr_public_selected_image_content_secret_authorized": true,
+          "ecr_public_selected_image_content_vulnerability_authorized": false,
+          "selected_aws_ecr_public_images": [
+            {
+              "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+              "registry_alias": "fixture-alias",
+              "repository_name": "fixture/image",
+              "scope": "123456789012/us-east-1"
+            }
+          ]
+        },
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      }
+    },
+    "pass": {
+      "ECRPublicImageContent": {
+        "identity": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3",
+        "leaks": [],
+        "native_after": {
+          "account": "123456789012",
+          "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+          "image_size": 10423,
+          "manifest_media_type": "application/vnd.oci.image.manifest.v1+json",
+          "registry_alias": "fixture-alias",
+          "registry_arn": "arn:aws:ecr-public::123456789012:registry/123456789012",
+          "repository_arn": "arn:aws:ecr-public::123456789012:repository/fixture/image",
+          "repository_name": "fixture/image"
+        },
+        "native_before": {
+          "account": "123456789012",
+          "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+          "image_size": 10423,
+          "manifest_media_type": "application/vnd.oci.image.manifest.v1+json",
+          "registry_alias": "fixture-alias",
+          "registry_arn": "arn:aws:ecr-public::123456789012:registry/123456789012",
+          "repository_arn": "arn:aws:ecr-public::123456789012:repository/fixture/image",
+          "repository_name": "fixture/image"
+        },
+        "native_receipts": [
+          {
+            "operation": "ecr-public:describe_registries",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_repositories",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_images",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_registries",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_repositories",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_images",
+            "status": "collected"
+          }
+        ],
+        "native_stable": true,
+        "parts": [
+          {
+            "bytes": 437,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.manifest"
+          },
+          {
+            "bytes": 183,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.config"
+          },
+          {
+            "bytes": 149,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.config-strings"
+          },
+          {
+            "bytes": 14,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.layer-1.file-4.name"
+          },
+          {
+            "bytes": 11,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.layer-1.file-4.chunk-11"
+          }
+        ],
+        "reason": "complete",
+        "registry_receipts": [
+          {
+            "bytes": 437,
+            "category": "manifests",
+            "digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+            "id": "registry-read-72ecf432a18c4965b528d18ace9fda00",
+            "method": "GET",
+            "status": "collected"
+          },
+          {
+            "bytes": 183,
+            "category": "blobs",
+            "digest": "sha256:d4123e67f4ef0805819550617055439be56a3253fecc7b3c63c7a0d395fbd718",
+            "id": "registry-read-936613c50dca488b94e0ab386dd75a5f",
+            "method": "GET",
+            "status": "collected"
+          },
+          {
+            "bytes": 10240,
+            "category": "blobs",
+            "digest": "sha256:0d7fbc41599bc1e7bd614f16d32c41d05ea05bdf71e338c142a8492940d6fb2b",
+            "id": "registry-read-78f449cd753e42da8959f8aee4a1c361",
+            "method": "GET",
+            "status": "collected"
+          }
+        ],
+        "schema": "aws-selected-ecr-public-image-v1",
+        "secret_complete": true,
+        "selection": {
+          "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+          "registry_alias": "fixture-alias",
+          "repository_name": "fixture/image",
+          "scope": "123456789012/us-east-1"
+        },
+        "vulnerability": null
+      },
+      "id": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3"
+    },
+    "pass_index": {
+      "collections": {
+        "ecr_public_selected_image_content": [
+          {
+            "items": [
+              {
+                "ECRPublicImageContent": {
+                  "identity": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3",
+                  "leaks": [],
+                  "native_after": {
+                    "account": "123456789012",
+                    "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+                    "image_size": 10423,
+                    "manifest_media_type": "application/vnd.oci.image.manifest.v1+json",
+                    "registry_alias": "fixture-alias",
+                    "registry_arn": "arn:aws:ecr-public::123456789012:registry/123456789012",
+                    "repository_arn": "arn:aws:ecr-public::123456789012:repository/fixture/image",
+                    "repository_name": "fixture/image"
+                  },
+                  "native_before": {
+                    "account": "123456789012",
+                    "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+                    "image_size": 10423,
+                    "manifest_media_type": "application/vnd.oci.image.manifest.v1+json",
+                    "registry_alias": "fixture-alias",
+                    "registry_arn": "arn:aws:ecr-public::123456789012:registry/123456789012",
+                    "repository_arn": "arn:aws:ecr-public::123456789012:repository/fixture/image",
+                    "repository_name": "fixture/image"
+                  },
+                  "native_receipts": [
+                    {
+                      "operation": "ecr-public:describe_registries",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_repositories",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_images",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_registries",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_repositories",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_images",
+                      "status": "collected"
+                    }
+                  ],
+                  "native_stable": true,
+                  "parts": [
+                    {
+                      "bytes": 437,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.manifest"
+                    },
+                    {
+                      "bytes": 183,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.config"
+                    },
+                    {
+                      "bytes": 149,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.config-strings"
+                    },
+                    {
+                      "bytes": 14,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.layer-1.file-4.name"
+                    },
+                    {
+                      "bytes": 11,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.layer-1.file-4.chunk-11"
+                    }
+                  ],
+                  "reason": "complete",
+                  "registry_receipts": [
+                    {
+                      "bytes": 437,
+                      "category": "manifests",
+                      "digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+                      "id": "registry-read-72ecf432a18c4965b528d18ace9fda00",
+                      "method": "GET",
+                      "status": "collected"
+                    },
+                    {
+                      "bytes": 183,
+                      "category": "blobs",
+                      "digest": "sha256:d4123e67f4ef0805819550617055439be56a3253fecc7b3c63c7a0d395fbd718",
+                      "id": "registry-read-936613c50dca488b94e0ab386dd75a5f",
+                      "method": "GET",
+                      "status": "collected"
+                    },
+                    {
+                      "bytes": 10240,
+                      "category": "blobs",
+                      "digest": "sha256:0d7fbc41599bc1e7bd614f16d32c41d05ea05bdf71e338c142a8492940d6fb2b",
+                      "id": "registry-read-78f449cd753e42da8959f8aee4a1c361",
+                      "method": "GET",
+                      "status": "collected"
+                    }
+                  ],
+                  "schema": "aws-selected-ecr-public-image-v1",
+                  "secret_complete": true,
+                  "selection": {
+                    "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+                    "registry_alias": "fixture-alias",
+                    "repository_name": "fixture/image",
+                    "scope": "123456789012/us-east-1"
+                  },
+                  "vulnerability": null
+                },
+                "id": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3"
+              }
+            ],
+            "scope": "123456789012/us-east-1",
+            "service": "ecr-public",
+            "status": "collected",
+            "type": "ecr_public_selected_image_content"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "ecr_public_selected_image_content_secret_authorized": true,
+          "ecr_public_selected_image_content_vulnerability_authorized": false,
+          "selected_aws_ecr_public_images": [
+            {
+              "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+              "registry_alias": "fixture-alias",
+              "repository_name": "fixture/image",
+              "scope": "123456789012/us-east-1"
+            }
+          ]
+        },
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      }
+    },
+    "unknown": {
+      "ECRPublicImageContent": {
+        "identity": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3",
+        "leaks": [],
+        "native_after": null,
+        "native_before": {
+          "account": "123456789012",
+          "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+          "image_size": 10423,
+          "manifest_media_type": "application/vnd.oci.image.manifest.v1+json",
+          "registry_alias": "fixture-alias",
+          "registry_arn": "arn:aws:ecr-public::123456789012:registry/123456789012",
+          "repository_arn": "arn:aws:ecr-public::123456789012:repository/fixture/image",
+          "repository_name": "fixture/image"
+        },
+        "native_receipts": [
+          {
+            "operation": "ecr-public:describe_registries",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_repositories",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_images",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_registries",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_repositories",
+            "status": "collected"
+          },
+          {
+            "operation": "ecr-public:describe_images",
+            "status": "collected"
+          }
+        ],
+        "native_stable": false,
+        "parts": [
+          {
+            "bytes": 437,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.manifest"
+          },
+          {
+            "bytes": 183,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.config"
+          },
+          {
+            "bytes": 149,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.config-strings"
+          },
+          {
+            "bytes": 14,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.layer-1.file-4.name"
+          },
+          {
+            "bytes": 11,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.layer-1.file-4.chunk-11"
+          }
+        ],
+        "reason": "foreign_or_unsupported_image",
+        "registry_receipts": [
+          {
+            "bytes": 437,
+            "category": "manifests",
+            "digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+            "id": "registry-read-06db7f0f2af54fab8b42dad4a4df6e84",
+            "method": "GET",
+            "status": "collected"
+          },
+          {
+            "bytes": 183,
+            "category": "blobs",
+            "digest": "sha256:d4123e67f4ef0805819550617055439be56a3253fecc7b3c63c7a0d395fbd718",
+            "id": "registry-read-a976827ff5e14e789fa497a87a3c393c",
+            "method": "GET",
+            "status": "collected"
+          },
+          {
+            "bytes": 10240,
+            "category": "blobs",
+            "digest": "sha256:0d7fbc41599bc1e7bd614f16d32c41d05ea05bdf71e338c142a8492940d6fb2b",
+            "id": "registry-read-7663b2b96bd64cceade347f08e351536",
+            "method": "GET",
+            "status": "collected"
+          }
+        ],
+        "schema": "aws-selected-ecr-public-image-v1",
+        "secret_complete": false,
+        "selection": {
+          "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+          "registry_alias": "fixture-alias",
+          "repository_name": "fixture/image",
+          "scope": "123456789012/us-east-1"
+        },
+        "vulnerability": null
+      },
+      "id": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3"
+    },
+    "unknown_index": {
+      "collections": {
+        "ecr_public_selected_image_content": [
+          {
+            "items": [
+              {
+                "ECRPublicImageContent": {
+                  "identity": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3",
+                  "leaks": [],
+                  "native_after": null,
+                  "native_before": {
+                    "account": "123456789012",
+                    "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+                    "image_size": 10423,
+                    "manifest_media_type": "application/vnd.oci.image.manifest.v1+json",
+                    "registry_alias": "fixture-alias",
+                    "registry_arn": "arn:aws:ecr-public::123456789012:registry/123456789012",
+                    "repository_arn": "arn:aws:ecr-public::123456789012:repository/fixture/image",
+                    "repository_name": "fixture/image"
+                  },
+                  "native_receipts": [
+                    {
+                      "operation": "ecr-public:describe_registries",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_repositories",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_images",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_registries",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_repositories",
+                      "status": "collected"
+                    },
+                    {
+                      "operation": "ecr-public:describe_images",
+                      "status": "collected"
+                    }
+                  ],
+                  "native_stable": false,
+                  "parts": [
+                    {
+                      "bytes": 437,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.manifest"
+                    },
+                    {
+                      "bytes": 183,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.config"
+                    },
+                    {
+                      "bytes": 149,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.config-strings"
+                    },
+                    {
+                      "bytes": 14,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.layer-1.file-4.name"
+                    },
+                    {
+                      "bytes": 11,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3.layer-1.file-4.chunk-11"
+                    }
+                  ],
+                  "reason": "foreign_or_unsupported_image",
+                  "registry_receipts": [
+                    {
+                      "bytes": 437,
+                      "category": "manifests",
+                      "digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+                      "id": "registry-read-06db7f0f2af54fab8b42dad4a4df6e84",
+                      "method": "GET",
+                      "status": "collected"
+                    },
+                    {
+                      "bytes": 183,
+                      "category": "blobs",
+                      "digest": "sha256:d4123e67f4ef0805819550617055439be56a3253fecc7b3c63c7a0d395fbd718",
+                      "id": "registry-read-a976827ff5e14e789fa497a87a3c393c",
+                      "method": "GET",
+                      "status": "collected"
+                    },
+                    {
+                      "bytes": 10240,
+                      "category": "blobs",
+                      "digest": "sha256:0d7fbc41599bc1e7bd614f16d32c41d05ea05bdf71e338c142a8492940d6fb2b",
+                      "id": "registry-read-7663b2b96bd64cceade347f08e351536",
+                      "method": "GET",
+                      "status": "collected"
+                    }
+                  ],
+                  "schema": "aws-selected-ecr-public-image-v1",
+                  "secret_complete": false,
+                  "selection": {
+                    "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+                    "registry_alias": "fixture-alias",
+                    "repository_name": "fixture/image",
+                    "scope": "123456789012/us-east-1"
+                  },
+                  "vulnerability": null
+                },
+                "id": "ecr-public-image:6fb5dcf43166da249eb2e2be4b767f978dd1e0e56f9b2290e0afca721b3486a3"
+              }
+            ],
+            "scope": "123456789012/us-east-1",
+            "service": "ecr-public",
+            "status": "partial",
+            "type": "ecr_public_selected_image_content"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "ecr_public_selected_image_content_secret_authorized": true,
+          "ecr_public_selected_image_content_vulnerability_authorized": false,
+          "selected_aws_ecr_public_images": [
+            {
+              "image_digest": "sha256:592787165bf99f0e0738c8bb5df8be27af6c20f3035c32428e9afd301a2120d5",
+              "registry_alias": "fixture-alias",
+              "repository_name": "fixture/image",
+              "scope": "123456789012/us-east-1"
+            }
+          ]
+        },
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      }
+    }
+  }
+}

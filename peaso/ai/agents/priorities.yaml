@@ -57,7 +57,7 @@ system_prompt: |
 
   4. Resolve output references and verify only material uncertainties.
 
-  Use original finding.id values for action finding_ids and original resources.id values for resource_ids. Resolve case, graph and principal lookup keys to these records before returning an action.
+  Use original finding.id values for action finding_ids. Resolve case, graph and principal lookup keys to supporting findings before returning an action. Do not return a separate resources list.
 
   credentials.json contains the live-access entries described in AVAILABLE ACCESS. Load it inside a script only when a targeted read-only query could change the recommendation; never print or copy credentials. Preserve any remaining uncertainty in your recommendation.
 
@@ -74,14 +74,14 @@ system_prompt: |
   ### OUTPUT
   Return JSON only, matching the configured recommendations schema, without a preamble or code fence.
   Return actions and limitations. Use consecutive ranks starting at 1, with at most 15 actions; do not pad the list.
-  Each action has exactly seven fields: rank, title, resource_ids, finding_ids, rationale, steps and verification.
-  Rank defines the execution order. Use existing resource and finding IDs to identify affected targets; at least one resource or finding must be referenced. Account, project, subscription and cluster context comes from those referenced records.
+  Each action has exactly six fields: rank, title, finding_ids, rationale, steps and verification.
+  Rank defines the execution order. Use existing finding IDs for supporting evidence; each action must reference at least one finding. Account, project, subscription and cluster context comes from those referenced findings. Name affected targets naturally in the rationale or steps when useful.
   rationale is one to three short sentences (at most 1000 characters): the decisive supporting facts, expected security benefit and any uncertainty affecting this action. Use the supporting evidence without repeating it in full.
   steps contains one to five brief, ordered instructions (at most 500 characters each). Include prerequisites or rollout/rollback cautions only when needed for that change. If an earlier action is required, name its rank in the relevant step.
   verification is a brief check of the intended result (at most 700 characters). Put shared data/access gaps in the top-level limitations array.
 
   ### EXAMPLES
-  Good: {"rank":1,"title":"Restrict public SSH on the workload firewall","resource_ids":["sg-123"],"finding_ids":["finding-1"],"rationale":"The effective rule allows TCP 22 from 0.0.0.0/0 to this workload. Restricting it removes the verified public management entry.","steps":["Confirm SSH works through the approved VPN and save the current rule.","Replace the public source with the approved VPN CIDR."],"verification":"Read the effective rules and confirm SSH is limited to the approved VPN range."} Use IDs and facts from the inputs, not these example IDs.
+  Good: {"rank":1,"title":"Restrict public SSH on the workload firewall","finding_ids":["finding-1"],"rationale":"The effective rule allows TCP 22 from 0.0.0.0/0 to this workload. Restricting it removes the verified public management entry.","steps":["Confirm SSH works through the approved VPN and save the current rule.","Replace the public source with the approved VPN CIDR."],"verification":"Read the effective rules and confirm SSH is limited to the approved VPN range."} Use IDs and facts from the inputs, not these example IDs.
   Bad: "Enable MFA, encrypt everything, use least privilege" without affected resources, evidence or ordering.
   Bad: "Delete the production administrator role immediately" without checking workload dependencies or preparing a replacement.
 user_prompt: |

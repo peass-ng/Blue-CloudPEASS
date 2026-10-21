@@ -9,14 +9,16 @@ the environment was attack free.
 ## Rule and event format
 
 The canonical detection rules are Sigma YAML in the public
-`peass-ng/peasso-cspm-detections` repository. The server loads an immutable,
-reviewed commit by default. In Attack Analysis, **Detection rules** can instead
-select **Latest version from detections main**. The access check resolves
+`peass-ng/peasso-cspm-detections` repository. The server uses **Latest version
+from detections main** by default. An explicit **Reviewed pinned version**
+option retains the immutable reviewed pack. For the latest option, the access check resolves
 `main` to a commit, downloads and validates its complete rule pack, and binds
 that exact commit and pack digest to the short-lived analysis token. The run
-uses the same commit even if `main` moves meanwhile. If the latest pack cannot
+downloads and validates that same commit and digest even if `main` moves
+meanwhile. Each new access check resolves and downloads the current official
+pack; latest packs are not reused from a process cache. If the latest pack cannot
 be read or parsed, the access check blocks analysis; it does not silently fall
-back to an older pack. The result and downloaded JSON include the selected
+back to the pinned pack. The result and downloaded JSON include the selected
 commit and digest. Rule YAML is not shipped in
 this public source repository or its Python package. If the pinned source
 cannot be read, the access check blocks analysis instead of silently running
@@ -25,13 +27,13 @@ without detections. Public tests use synthetic rules only.
 Hosted loading needs outbound HTTPS to `codeload.github.com`; the latest option
 also needs `api.github.com` to resolve `main`. The latest option uses one bounded
 GitHub REST request per access check, subject to GitHub's anonymous API quota,
-then downloads the archive by immutable commit. The default pinned pack has an
+then downloads the archive by immutable commit. The explicit pinned pack has an
 expected SHA-256 digest over its rule files. No GitHub
-token or AWS Secrets Manager access is needed. An operator may override the default with
+token or AWS Secrets Manager access is needed. An operator may override the pinned source with
 `HACKTRICKS_CSPM_RULES_GITHUB_REF`; overriding the repository through
 `HACKTRICKS_CSPM_RULES_GITHUB_REPO` also requires an exact commit ref. A custom
 pack may set `HACKTRICKS_CSPM_RULES_PACK_SHA256` for its reviewed rule-file
-digest. The first successful read is cached per process for that commit. Local development may
+digest. The pinned pack is cached per process by its immutable commit. Local development may
 use `HACKTRICKS_CSPM_RULES_DIR` to point at a checkout; hosted Cognito mode
 never falls back to this directory.
 
@@ -52,8 +54,10 @@ expressions are rejected. A rule using this prefix must also select
 `resource.path_scope_checked: true`; older CSPM versions that cannot enforce
 the prefix then reject the rule pack instead of matching too broadly.
 Techniques that require parsing request content, a new provider API read, or
-correlation still require CSPM code. Historical S3 jobs retain their separate
-pinned catalog contract; this selector applies to interactive Attack Analysis.
+correlation still require CSPM code. Historical S3 workers replay the immutable commit and digest recorded by their job.
+A job creator can resolve the latest official pack once with
+`resolve_new_history_rule_snapshot()` and persist that pair; existing jobs keep
+their original rule version. The web selector applies to interactive Attack Analysis.
 
 The current evaluator deliberately
 accepts a small portable subset: one exact-match selection, conjunction across
@@ -129,7 +133,7 @@ Kubernetes: <https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/>
 
 ## Detection quality and validation
 
-The pinned pack contains **49 rules**. Its digest is `c0c465eb02dd91161c789832dedf1c8e3edfebb38f9e040f2d3db8d88b68ea98`. Runtime normalizers preserve source IDs, exact identities, successful/denied outcomes and correlation requirements. Unsupported, incomplete or contradictory evidence must not produce an accepted match.
+The explicit pinned fallback uses commit `70a1ba3d04cca219d641646135d5765c69e0e40c` and rule digest `e175f453d7fa51d547d5ba94ddbd39617bfcff8e2311bd3e19dd071e1a55462a`. Runtime normalizers preserve source IDs, exact identities, successful/denied outcomes and correlation requirements. Unsupported, incomplete or contradictory evidence must not produce an accepted match.
 
 Tests cover positive, negative, malformed and conflicting event shapes. Some rules also have bounded live audit evidence; that does not measure customer false-positive rates or complete technique coverage. Source-page links are navigation evidence rather than detection recall. Four experimental candidates for GuardDuty evasion, access keys, Key Vault purge and Kubernetes TokenRequest are excluded from this release because their signal or evidence was insufficient.
 

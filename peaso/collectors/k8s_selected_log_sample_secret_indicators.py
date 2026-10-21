@@ -4,6 +4,8 @@ The caller must supply the existing authenticated API and bounded reader. The
 existing transport deliberately rejects /log; admission needs the exact reviewed
 path/query bridge described in the proposal, never a bypass of that transport.
 """
+
+from peaso.secret_evidence import scan_with_source, target_source
 from copy import deepcopy
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
@@ -422,8 +424,8 @@ def collect(reader, api, options, scopes, cluster):
                         # values repeated in other metadata are included in the union.
                         identity_bytes = json.dumps([target, before[:5]], ensure_ascii=True).encode()
                         payload += b'\n' + identity_bytes
-                        outcome = scan_content(payload, ident + '.log_sample',
-                            timeout=max(0.001, _remaining(reader, state) / 2), _redact_values=matches.update)
+                        outcome = scan_with_source(scan_content, payload, ident + '.log_sample',
+                            timeout=max(0.001, _remaining(reader, state) / 2), _redact_values=matches.update, source=target_source(target, resource_id=ident, scope=scope, location_kind='log'))
                         _remaining(reader, state)
                         last, n3, last_context = _read(reader, api, cluster, pod_path, {}, state)
                         after = _pod_identity(last, target, timestamp_ns(end))

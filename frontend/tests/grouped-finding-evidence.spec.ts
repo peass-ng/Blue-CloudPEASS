@@ -20,6 +20,8 @@ test("one check opens paginated evidence across accounts and regions, with origi
       : index % 2 ? "The function URL requires AWS_IAM signed requests; caller policies still apply."
         : "The function URL declares AuthType NONE; the resource policy still determines permitted callers.",
   }));
+  members[0].evidence_summary = group.evidence_summary;
+  members[1].evidence_summary = `${group.evidence_summary} The function URL requires AWS_IAM signed requests.`;
   const groupRequests: URL[] = [];
   const originalRequests: string[] = [];
   let groupedListRequested = false;
@@ -54,7 +56,12 @@ test("one check opens paginated evidence across accounts and regions, with origi
   expect(groupedListRequested).toBeTruthy();
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByText(group.evidence_summary, { exact: true })).toBeVisible();
-  await expect(dialog.getByRole("list", { name: "Individual evidence observations" }).locator("li")).toHaveCount(50);
+  const assetList = dialog.getByRole("list", { name: "Individual evidence observations" });
+  await expect(assetList.locator("li")).toHaveCount(50);
+  await expect(dialog.getByText(group.evidence_summary, { exact: true })).toHaveCount(1);
+  await expect(assetList.locator("li").first().locator("p")).toHaveCount(1);
+  await expect(assetList.locator("li").nth(1).getByText("The function URL requires AWS_IAM signed requests.", { exact: true })).toBeVisible();
+  await expect(assetList.locator(".badge")).toHaveCount(0);
   await expect(dialog.getByText("111122223333 · us-east-1").first()).toBeVisible();
   await expect(dialog.getByText("444455556666 · eu-west-1").first()).toBeVisible();
   expect(originalRequests).toEqual([]);

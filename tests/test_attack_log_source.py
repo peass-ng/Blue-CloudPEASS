@@ -42,7 +42,7 @@ def test_access_token_is_bound_to_source_and_tenant(tmp_path, monkeypatch):
             "method": "access_keys", "aws_access_key_id": "test", "aws_secret_access_key": "secret"},
             "scopes": [], "options": {}})
         assert saved.status_code == 201, saved.text
-        source = {**SOURCE, "connector_id": saved.json()["id"]}
+        source = {**SOURCE, "connector_id": saved.json()["id"], "catalog_mode": "pinned"}
         checked = client.post("/api/attack-analysis/check-access", json=source)
         assert checked.status_code == 200 and checked.json()["status"] == "pass"
         token = checked.json()["check_token"]
@@ -74,7 +74,7 @@ def test_latest_catalog_is_bound_to_access_token_and_reported(tmp_path, monkeypa
         saved = client.post("/api/connectors", json={"name": "AWS", "provider": "aws", "auth": {
             "method": "access_keys", "aws_access_key_id": "test", "aws_secret_access_key": "secret"},
             "scopes": [], "options": {}})
-        source = {**SOURCE, "connector_id": saved.json()["id"], "catalog_mode": "latest"}
+        source = {**SOURCE, "connector_id": saved.json()["id"]}
         checked = client.post("/api/attack-analysis/check-access", json=source)
         assert checked.json()["status"] == "pass"
         assert checked.json()["catalog"]["commit"] == "a" * 40
@@ -98,7 +98,8 @@ def test_entra_access_check_does_not_authorize_analysis_without_context(tmp_path
             "method": "token", "tenant_id": "12345678-1234-1234-1234-123456789abc", "arm_token": "fixture"},
             "scopes": [], "options": {}})
         assert saved.status_code == 201, saved.text
-        source = {"connector_id": saved.json()["id"], "kind": "entra_directory_audit", "region": "us-east-1"}
+        source = {"connector_id": saved.json()["id"], "kind": "entra_directory_audit",
+                  "region": "us-east-1", "catalog_mode": "pinned"}
         checked = client.post("/api/attack-analysis/check-access", json=source)
         assert checked.status_code == 200 and checked.json()["status"] == "warning"
         assert "check_token" not in checked.json()

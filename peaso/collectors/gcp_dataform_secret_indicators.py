@@ -4,6 +4,8 @@ No enumeration, checkout, remote Git fallback, managed secret access or mutation
 Only opaque selection identities and offline redacted detector results survive.
 Root owns planner/collector admission; this module performs no registration.
 """
+
+from peaso.secret_evidence import scan_with_source, target_source
 import base64
 from copy import deepcopy
 from datetime import datetime, timezone
@@ -320,7 +322,7 @@ def collect_selected_files(collector, scope, reader_factory=None):
                     payload = _payload(reader.get(target, 'dataform.workspaces.readFile' if workspace else 'dataform.repositories.readFile'), workspace)
                     marker['observed_at'] = datetime.now(timezone.utc).isoformat()
                     timeout = min(10, reader.remaining() / 2)
-                    outcome = scan_content(payload, 'dataform.selected_file.content', timeout=timeout)
+                    outcome = scan_with_source(scan_content, payload, 'dataform.selected_file.content', timeout=timeout, source=target_source(target, resource_id=target['repository'], scope=scope))
                     marker['bytes'] = len(payload)
                     del payload
                     reader.remaining()

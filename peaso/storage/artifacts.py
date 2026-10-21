@@ -20,7 +20,7 @@ def prefix(tenant):
 
 
 def check_reference(tenant, reference):
-    if not re.fullmatch(r"[a-f0-9]{64}/[a-f0-9]{32}/(snapshot|network-snapshot|report|manifest|findings|finding-index|coverage|graph-network|graph-iam|graph-privesc|markdown|detail|resources|least-privilege|ai-access|ai-review)-[a-f0-9]{32}\.(json|md)", reference) or not reference.startswith(prefix(tenant) + "/"):
+    if not re.fullmatch(r"[a-f0-9]{64}/[a-f0-9]{32}/(snapshot|network-snapshot|report|manifest|findings|finding-index|coverage|graph-network|graph-iam|graph-privesc|markdown|detail|resources|least-privilege|ai-access|ai-review|secret-evidence)-[a-f0-9]{32}\.(json|md)", reference) or not reference.startswith(prefix(tenant) + "/"):
         raise ValueError("Invalid artifact reference")
 
 
@@ -59,11 +59,17 @@ class FileArtifacts:
     def put(self, tenant, job_id, kind, value):
         return self._write(tenant, job_id, kind, json.dumps(value, separators=(",", ":"), allow_nan=False))
 
+    def put_secret_evidence(self, tenant, job_id, value):
+        from peaso.secret_evidence import private_reference
+        return self._write(tenant, job_id, 'secret-evidence', json.dumps(value, separators=(',', ':')),
+                           reference=private_reference(tenant, job_id))
+
     def put_text(self, tenant, job_id, kind, value):
         return self._write(tenant, job_id, kind, value)
 
-    def _write(self, tenant, job_id, kind, value):
-        reference = reference_for(tenant, job_id, kind)
+    def _write(self, tenant, job_id, kind, value, *, reference=None):
+        reference = reference or reference_for(tenant, job_id, kind)
+        check_reference(tenant, reference)
         path = self.root / reference
         path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
         temp = path.with_suffix(".tmp")
@@ -124,8 +130,15 @@ class S3Artifacts:
         body = json.dumps(value, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode()
         return self._put(tenant, job_id, kind, body, "application/json")
 
-    def _put(self, tenant, job_id, kind, body, content_type):
-        reference = reference_for(tenant, job_id, kind)
+    def put_secret_evidence(self, tenant, job_id, value):
+        from peaso.secret_evidence import private_reference
+        body = json.dumps(value, separators=(',', ':')).encode()
+        return self._put(tenant, job_id, 'secret-evidence', body, 'application/json',
+                         reference=private_reference(tenant, job_id))
+
+    def _put(self, tenant, job_id, kind, body, content_type, *, reference=None):
+        reference = reference or reference_for(tenant, job_id, kind)
+        check_reference(tenant, reference)
         encryption = {"ServerSideEncryption": "aws:kms", "SSEKMSKeyId": self.kms_key} if self.kms_key else {"ServerSideEncryption": "AES256"}
         encoding = {}
         if len(body) >= 64 * 1024:
@@ -164,6 +177,8 @@ class S3Artifacts:
 
     def presign(self, tenant, reference, filename=None):
         check_reference(tenant, reference)
+        if '/secret-evidence-' in reference:
+            raise ValueError('Private secret evidence cannot be downloaded directly')
         arguments = {"Bucket": self.bucket, "Key": "artifacts/" + reference}
         if filename:
             if not re.fullmatch(r"(?:peaso|hacktricks-cspm)-[a-f0-9]{32}\.(json|md)", filename):

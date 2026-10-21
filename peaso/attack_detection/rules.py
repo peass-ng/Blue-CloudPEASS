@@ -8,7 +8,8 @@ and ``condition: selection``. Unsupported constructs fail closed at load time.
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping, Sequence
-from dataclasses import dataclass
+from copy import deepcopy
+from dataclasses import dataclass, replace
 from functools import lru_cache
 import os
 import re
@@ -52,6 +53,38 @@ from .aws_appsync_five_next import normalize as normalize_aws_appsync_five
 from .aws_appsync_read_function_next import normalize as normalize_aws_appsync_read_function
 from .aws_appsync_signed_role_next import normalize as normalize_aws_appsync_signed_role
 from .aws_apigateway_rest_next import correlate as correlate_aws_apigateway_rest
+from .aws_apigateway_authorizer_batch100 import correlate as correlate_aws_apigateway_authorizer_batch100
+from .aws_globalaccelerator_batch101 import normalize as normalize_aws_globalaccelerator_batch101
+from .aws_globalaccelerator_batch102 import normalize as normalize_aws_globalaccelerator_batch102, correlate_replacement as correlate_aws_ga_endpoint_replacement
+from .aws_amp_batch103 import normalize as normalize_aws_amp_batch103
+from .aws_resource_policy_batch104 import normalize_dynamodb_grant as normalize_aws_dynamodb_grant_batch104, correlate_validation as correlate_aws_resource_policy_validation_batch104
+from .aws_dynamodb_data_batch105 import normalize as normalize_aws_dynamodb_data_batch105
+from .aws_dynamodb_data_batch106 import normalize as normalize_aws_dynamodb_data_batch106, correlate_partiql_after_denials as correlate_aws_dynamodb_partiql_denials_batch106
+from .aws_dynamodb_management_batch107 import normalize as normalize_aws_dynamodb_management_batch107
+from .aws_cloudwatch_alarm_batch108 import correlate as correlate_aws_cloudwatch_alarms_batch108
+from .aws_cloudwatch_metric_stream_batch109 import normalize as normalize_aws_cloudwatch_metric_stream_batch109, correlate_filter_expansion as correlate_aws_cloudwatch_metric_stream_scope_batch109
+from .aws_cloudwatch_metric_data_batch110 import normalize as normalize_aws_cloudwatch_metric_data_batch110, correlate_stream_changes as correlate_aws_cloudwatch_stream_changes_batch110, correlate_data_burst as correlate_aws_cloudwatch_metric_data_burst_batch110
+from .aws_firehose_sns_batch111 import normalize as normalize_aws_firehose_sns_batch111, correlate_destination_change as correlate_aws_firehose_destination_batch111, correlate_sns_role_rebound as correlate_aws_sns_firehose_role_batch111
+from .aws_lambda_persistence_batch112 import normalize as normalize_aws_lambda_persistence_batch112, correlate as correlate_aws_lambda_persistence_batch112
+from .aws_inspector_filters_batch113 import normalize as normalize_aws_inspector_filters_batch113, correlate_criteria_change as correlate_aws_inspector_criteria_batch113
+from .aws_ivs_access_batch114 import normalize as normalize_aws_ivs_access_batch114
+from .aws_ivs_sessions_batch115 import normalize as normalize_aws_ivs_sessions_batch115
+from .aws_ivs_recording_batch116 import normalize as normalize_aws_ivs_recording_batch116
+from .aws_ivs_composition_batch117 import normalize as normalize_aws_ivs_composition_batch117
+from .aws_ivs_realtime_sessions_batch118 import normalize as normalize_aws_ivs_realtime_sessions_batch118
+from .aws_ivs_ad_break_batch119 import normalize as normalize_aws_ivs_ad_break_batch119
+from .aws_b2bi_config_batch120 import normalize as normalize_aws_b2bi_config_batch120
+from .aws_b2bi_partnership_batch121 import normalize as normalize_aws_b2bi_partnership_batch121
+from .aws_b2bi_lifecycle_batch122 import normalize as normalize_aws_b2bi_lifecycle_batch122
+from .aws_iotwireless_controls_batch123 import normalize as normalize_aws_iotwireless_controls_batch123
+from .aws_iotwireless_group_fuota_batch124 import normalize as normalize_aws_iotwireless_group_fuota_batch124
+from .aws_iotwireless_associations_batch125 import normalize as normalize_aws_iotwireless_associations_batch125
+from .aws_appflow_s3_batch126 import normalize as normalize_aws_appflow_s3_batch126
+from .aws_appflow_limited_batch127 import normalize_update as normalize_aws_appflow_update_batch127, correlate_schedule_activation as correlate_aws_appflow_schedule_batch127
+from .aws_codeconnections_control_batch128 import normalize as normalize_aws_codeconnections_control_batch128
+from .aws_codeconnections_host_batch129 import normalize as normalize_aws_codeconnections_host_batch129
+from .aws_license_config_batch130 import normalize as normalize_aws_license_config_batch130
+from .aws_license_seller_batch131 import normalize as normalize_aws_license_seller_batch131
 from .aws_sagemaker_control_next import normalize_aws_sagemaker_control
 from .aws_rolesanywhere_next import normalize as normalize_aws_rolesanywhere
 from .aws_customer_profiles_next import normalize as normalize_aws_customer_profiles
@@ -78,6 +111,7 @@ from .aws_waf_logging_next import normalize_aws_waf_logging, normalize_aws_waf_d
 from .aws_waf_web_acl_next import normalize_aws_waf_web_acl
 from .aws_codeartifact_policy_next import normalize_aws_codeartifact_policy
 from .aws_codeartifact_routes_next import normalize_aws_codeartifact_routes
+from .aws_codeartifact_npm_next import normalize_aws_codeartifact_npm
 from .aws_appconfig_extension_next import normalize_aws_appconfig_extension
 from .aws_athena_workgroup_next import normalize_aws_athena_workgroup
 from .aws_athena_stored_query_next import normalize as normalize_aws_athena_stored_query, correlate as correlate_aws_athena_stored_query
@@ -97,15 +131,23 @@ from .aws_ecr_template_next import normalize_aws_ecr_template
 from .aws_secretsmanager_self_policy_next import normalize_aws_secret_self_read_grant
 from .aws_secretsmanager_tamper_next import normalize_aws_secret_tamper
 from .aws_secretsmanager_followup_next import normalize_aws_secretsmanager_followup
+from .aws_secretsmanager_rotation_next import normalize_aws_secretsmanager_rotation, correlate_aws_secretsmanager_rotation
+from .aws_secretsmanager_replica_chain_next import normalize_aws_secretsmanager_replica_chain, correlate_aws_secretsmanager_replica_chain
+from .aws_prefix_list_backdoor_next import normalize_aws_prefix_list_backdoor, correlate_aws_prefix_list_sg_reference
+from .aws_address_reassignment_next import normalize_aws_address_reassignment, correlate_aws_address_reassignment
 from .aws_guardduty_controls_next import normalize_aws_guardduty_controls
 from .aws_ecr_retention_next import normalize_aws_ecr_retention
 from .aws_dynamodb_controls_next import normalize_aws_dynamodb_controls
 from .aws_dynamodb_backup_stream_next import normalize_aws_dynamodb_backup_stream
 from .aws_sns_sqs_controls_next import normalize_aws_sns_sqs_controls
+from .aws_sns_subscription_next import normalize_aws_sns_subscription
 from .aws_sqs_followup_next import normalize_aws_sqs_followup, correlate_aws_sqs_tagged_receive
 from .aws_sqs_data_next import normalize_aws_sqs_data, correlate_aws_sqs_fifo_dedup_collision
 from .aws_sqs_redrive_next import normalize_aws_sqs_redrive
+from .aws_sqs_public_policy_next import normalize_aws_sqs_public_policy
 from .aws_sns_controls_next import normalize_aws_sns_topic_controls
+from .aws_sns_public_policy_next import normalize_aws_sns_public_policy
+from .aws_sns_service_scope_next import normalize_aws_sqs_sns_scope, normalize_aws_lambda_sns_scope
 from .aws_chime_admin_next import normalize_aws_chime_admin
 from .aws_chime_attendee_messaging_next import normalize_aws_chime_attendee_messaging
 from .aws_chime_capability_flow_next import normalize_aws_chime_capability_flow
@@ -156,7 +198,12 @@ from .aws_lambda_alias_grant_next import normalize_aws_lambda_qualified_grant
 from .aws_lambda_config_next import normalize_aws_lambda_config
 from .aws_lambda_privesc_next import normalize_aws_lambda_role_assignment, correlate_aws_lambda_privesc
 from .aws_ec2_controls_next import normalize_aws_ec2_controls
+from .aws_ec2_ssm_batch96 import normalize_aws_ec2_ssm_batch96
+from .aws_verified_permissions_batch97 import normalize_aws_verified_permissions_batch97
+from .aws_ec2_persistence_batch98 import normalize_aws_ec2_persistence_batch98
 from .aws_vpc_network_next import normalize_aws_vpc_network, correlate_aws_vpc_custom_dns
+from .aws_vpc_endpoint_egress_next import normalize_aws_vpc_endpoint_egress
+from .aws_eic_endpoint_next import normalize_aws_eic_endpoint, normalize_aws_eic_connection, correlate_aws_eic_ssh_ingress
 from .aws_apigateway_controls_next import normalize_aws_apigateway_controls
 from .aws_apigateway_http_keys_next import normalize as normalize_aws_apigateway_http_keys
 from .aws_apigateway_portal_next import correlate as correlate_aws_apigateway_portal
@@ -173,6 +220,9 @@ from .aws_ssm_command_history_next import correlate_aws_ssm_command_output_read
 from .aws_ssm_session_next import normalize_aws_ssm_session_start
 from .aws_ssm_automation_window_next import normalize_aws_ssm_automation_window, correlate_aws_ssm_document_window
 from .aws_stepfunctions_controls_next import normalize_aws_stepfunctions_controls, normalize_aws_stepfunctions_activity_alias, normalize_aws_stepfunctions_redrive
+from .aws_sfn_role_routes_next import normalize_aws_sfn_role_routes, correlate_aws_sfn_new_machine_start
+from .aws_sfn_http_credentials_next import normalize_aws_sfn_reveal_secrets, correlate_aws_sfn_connection_secret_read
+from .aws_sfn_map_run_next import normalize_aws_sfn_map_run
 from .aws_rds_controls_next import normalize_aws_rds_controls
 from .aws_rds_restore_next import normalize_aws_rds_restore_controls, correlate_aws_rds_public_clone_password_reset
 from .aws_rds_parameters_next import normalize_aws_rds_parameters, correlate_aws_rds_sql_log_capture_path
@@ -216,8 +266,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "08725c62951dc198b13e03d98879bbf2dd2cf167"
-DEFAULT_RULE_PACK_SHA256 = "d4819d8924be714a41fe29230fcb44ae9866ed364d80b187db04359e9c4c1217"
+DEFAULT_RULE_REF = "70a1ba3d04cca219d641646135d5765c69e0e40c"
+DEFAULT_RULE_PACK_SHA256 = "e175f453d7fa51d547d5ba94ddbd39617bfcff8e2311bd3e19dd071e1a55462a"
 
 
 @dataclass(frozen=True)
@@ -282,8 +332,17 @@ def _rule_texts(directory: Path | None) -> tuple[tuple[str, str], ...]:
 
 
 def load_rules(directory: Path | None = None, *, product: str | None = None) -> tuple[Rule, ...]:
+    # The pinned catalog is immutable, while explicit local directories are read
+    # afresh by _rule_texts. Keying the parsed result by the actual texts keeps
+    # local edits visible and avoids parsing hundreds of YAML files per event.
+    cached = _parsed_rules(_rule_texts(directory), product)
+    return tuple(replace(rule, selection=deepcopy(rule.selection)) for rule in cached)
+
+
+@lru_cache(maxsize=4)
+def _parsed_rules(texts: tuple[tuple[str, str], ...], product: str | None) -> tuple[Rule, ...]:
     loaded: list[Rule] = []
-    for name, text in _rule_texts(directory):
+    for name, text in texts:
         source = yaml.safe_load(text)
         if not isinstance(source, Mapping):
             raise ValueError(f"Invalid detection rule: {name}")
@@ -409,6 +468,7 @@ def detect_aws_events(
         waf_web_acl = normalize_aws_waf_web_acl(record)
         codeartifact_policy = normalize_aws_codeartifact_policy(record)
         codeartifact_routes = normalize_aws_codeartifact_routes(record)
+        codeartifact_npm = normalize_aws_codeartifact_npm(record)
         appconfig_extension = normalize_aws_appconfig_extension(record)
         athena_workgroup = normalize_aws_athena_workgroup(record)
         athena_stored_query = normalize_aws_athena_stored_query(record)
@@ -427,15 +487,25 @@ def detect_aws_events(
         secret_self_read = normalize_aws_secret_self_read_grant(record)
         secret_tamper = normalize_aws_secret_tamper(record)
         secret_followup = normalize_aws_secretsmanager_followup(record)
+        secret_rotation = normalize_aws_secretsmanager_rotation(record)
+        secret_replica_chain = normalize_aws_secretsmanager_replica_chain(record)
+        prefix_list_backdoor = normalize_aws_prefix_list_backdoor(record)
+        address_reassignment = normalize_aws_address_reassignment(record)
         guardduty_controls = normalize_aws_guardduty_controls(record)
         ecr_retention = normalize_aws_ecr_retention(record)
         dynamodb_controls = normalize_aws_dynamodb_controls(record)
         dynamodb_backup_stream = normalize_aws_dynamodb_backup_stream(record)
+        dynamodb_management_batch107 = normalize_aws_dynamodb_management_batch107(record)
         sns_sqs_controls = normalize_aws_sns_sqs_controls(record)
+        sns_subscription = normalize_aws_sns_subscription(record)
         sqs_followup = normalize_aws_sqs_followup(record)
         sqs_data = normalize_aws_sqs_data(record)
         sqs_redrive = normalize_aws_sqs_redrive(record)
+        sqs_public_policy = normalize_aws_sqs_public_policy(record)
         sns_topic_controls = normalize_aws_sns_topic_controls(record)
+        sns_public_policy = normalize_aws_sns_public_policy(record)
+        sqs_sns_scope = normalize_aws_sqs_sns_scope(record)
+        lambda_sns_scope = normalize_aws_lambda_sns_scope(record)
         chime_admin = normalize_aws_chime_admin(record)
         chime_attendee_messaging = normalize_aws_chime_attendee_messaging(record)
         chime_capability_flow = normalize_aws_chime_capability_flow(record)
@@ -471,13 +541,48 @@ def detect_aws_events(
         ecs_controls = normalize_aws_ecs_controls(record)
         emr_runtime = normalize_aws_emr_serverless_runtime(record)
         cloudwatch_controls = normalize_aws_cloudwatch_controls(record)
+        cloudwatch_metric_stream_batch109 = normalize_aws_cloudwatch_metric_stream_batch109(record)
+        cloudwatch_metric_data_batch110 = normalize_aws_cloudwatch_metric_data_batch110(record)
+        firehose_sns_batch111 = normalize_aws_firehose_sns_batch111(record)
+        lambda_persistence_batch112 = normalize_aws_lambda_persistence_batch112(record)
+        inspector_filters_batch113 = normalize_aws_inspector_filters_batch113(record)
+        ivs_access_batch114 = normalize_aws_ivs_access_batch114(record)
+        ivs_sessions_batch115 = normalize_aws_ivs_sessions_batch115(record)
+        ivs_recording_batch116 = normalize_aws_ivs_recording_batch116(record)
+        ivs_composition_batch117 = normalize_aws_ivs_composition_batch117(record)
+        ivs_realtime_sessions_batch118 = normalize_aws_ivs_realtime_sessions_batch118(record)
+        ivs_ad_break_batch119 = normalize_aws_ivs_ad_break_batch119(record)
+        b2bi_config_batch120 = normalize_aws_b2bi_config_batch120(record)
+        b2bi_partnership_batch121 = normalize_aws_b2bi_partnership_batch121(record)
+        b2bi_lifecycle_batch122 = normalize_aws_b2bi_lifecycle_batch122(record)
+        iotwireless_controls_batch123 = normalize_aws_iotwireless_controls_batch123(record)
+        iotwireless_group_fuota_batch124 = normalize_aws_iotwireless_group_fuota_batch124(record)
+        iotwireless_associations_batch125 = normalize_aws_iotwireless_associations_batch125(record)
+        appflow_s3_batch126 = normalize_aws_appflow_s3_batch126(record)
+        appflow_update_batch127 = normalize_aws_appflow_update_batch127(record)
+        codeconnections_control_batch128 = normalize_aws_codeconnections_control_batch128(record)
+        codeconnections_host_batch129 = normalize_aws_codeconnections_host_batch129(record)
+        license_config_batch130 = normalize_aws_license_config_batch130(record)
+        license_seller_batch131 = normalize_aws_license_seller_batch131(record)
         lambda_controls = normalize_aws_lambda_controls(record)
         lambda_qualified_grant = normalize_aws_lambda_qualified_grant(record)
         lambda_config = normalize_aws_lambda_config(record)
         lambda_role_assignment = normalize_aws_lambda_role_assignment(record)
         ec2_controls = normalize_aws_ec2_controls(record)
+        ec2_ssm_batch96 = normalize_aws_ec2_ssm_batch96(record)
+        verified_permissions_batch97 = normalize_aws_verified_permissions_batch97(record)
+        ec2_persistence_batch98 = normalize_aws_ec2_persistence_batch98(record)
         vpc_network = normalize_aws_vpc_network(record)
+        vpc_endpoint_egress = normalize_aws_vpc_endpoint_egress(record)
+        eic_endpoint = normalize_aws_eic_endpoint(record)
+        eic_connection = normalize_aws_eic_connection(record)
         apigateway_controls = normalize_aws_apigateway_controls(record)
+        globalaccelerator_batch101 = normalize_aws_globalaccelerator_batch101(record)
+        globalaccelerator_batch102 = normalize_aws_globalaccelerator_batch102(record)
+        amp_batch103 = normalize_aws_amp_batch103(record)
+        dynamodb_grant_batch104 = normalize_aws_dynamodb_grant_batch104(record)
+        dynamodb_data_batch105 = normalize_aws_dynamodb_data_batch105(record)
+        dynamodb_data_batch106 = normalize_aws_dynamodb_data_batch106(record)
         apigateway_http_keys = normalize_aws_apigateway_http_keys(record)
         apigateway_private_vpce = normalize_aws_apigateway_private_vpce(record)
         cloudformation_reads = normalize_aws_cloudformation_reads(record)
@@ -493,6 +598,9 @@ def detect_aws_events(
         stepfunctions_controls = normalize_aws_stepfunctions_controls(record)
         stepfunctions_activity_alias = normalize_aws_stepfunctions_activity_alias(record)
         stepfunctions_redrive = normalize_aws_stepfunctions_redrive(record)
+        sfn_role_routes = normalize_aws_sfn_role_routes(record)
+        sfn_reveal_secrets = normalize_aws_sfn_reveal_secrets(record)
+        sfn_map_run = normalize_aws_sfn_map_run(record)
         rds_controls = normalize_aws_rds_controls(record)
         rds_restore_controls = normalize_aws_rds_restore_controls(record)
         rds_parameters = normalize_aws_rds_parameters(record)
@@ -573,6 +681,7 @@ def detect_aws_events(
                 + ([waf_web_acl] if waf_web_acl is not None else [])
                 + ([codeartifact_policy] if codeartifact_policy is not None else [])
                 + ([codeartifact_routes] if codeartifact_routes is not None else [])
+                + ([codeartifact_npm] if codeartifact_npm is not None else [])
                 + ([appconfig_extension] if appconfig_extension is not None else [])
                 + ([athena_workgroup] if athena_workgroup is not None else [])
                 + ([athena_stored_query] if athena_stored_query is not None else [])
@@ -591,15 +700,27 @@ def detect_aws_events(
                 + ([secret_self_read] if secret_self_read is not None else [])
                 + ([secret_tamper] if secret_tamper is not None else [])
                 + ([secret_followup] if secret_followup is not None else [])
+                + ([secret_rotation] if secret_rotation is not None else [])
+                + ([secret_replica_chain] if secret_replica_chain is not None else [])
+                + ([prefix_list_backdoor] if prefix_list_backdoor is not None else [])
+                + ([address_reassignment] if address_reassignment is not None else [])
                 + ([guardduty_controls] if guardduty_controls is not None else [])
                 + ([ecr_retention] if ecr_retention is not None else [])
                 + ([dynamodb_controls] if dynamodb_controls is not None else [])
                 + ([dynamodb_backup_stream] if dynamodb_backup_stream is not None else [])
+                + ([dynamodb_management_batch107] if dynamodb_management_batch107 is not None else [])
+                + ([dynamodb_data_batch105] if dynamodb_data_batch105 is not None else [])
+                + ([dynamodb_data_batch106] if dynamodb_data_batch106 is not None else [])
                 + ([sns_sqs_controls] if sns_sqs_controls is not None else [])
+                + ([sns_subscription] if sns_subscription is not None else [])
                 + ([sqs_followup] if sqs_followup is not None else [])
                 + ([sqs_data] if sqs_data is not None else [])
                 + ([sqs_redrive] if sqs_redrive is not None else [])
+                + ([sqs_public_policy] if sqs_public_policy is not None else [])
                 + ([sns_topic_controls] if sns_topic_controls is not None else [])
+                + ([sns_public_policy] if sns_public_policy is not None else [])
+                + ([sqs_sns_scope] if sqs_sns_scope is not None else [])
+                + ([lambda_sns_scope] if lambda_sns_scope is not None else [])
                 + ([chime_admin] if chime_admin is not None else [])
                 + ([chime_attendee_messaging] if chime_attendee_messaging is not None else [])
                 + ([chime_capability_flow] if chime_capability_flow is not None else [])
@@ -635,13 +756,46 @@ def detect_aws_events(
                 + ([ecs_controls] if ecs_controls is not None else [])
                 + ([emr_runtime] if emr_runtime is not None else [])
                 + ([cloudwatch_controls] if cloudwatch_controls is not None else [])
+                + cloudwatch_metric_stream_batch109
+                + cloudwatch_metric_data_batch110
+                + firehose_sns_batch111
+                + lambda_persistence_batch112
+                + inspector_filters_batch113
+                + ivs_access_batch114
+                + ivs_sessions_batch115
+                + ivs_recording_batch116
+                + ivs_composition_batch117
+                + ivs_realtime_sessions_batch118
+                + ivs_ad_break_batch119
+                + b2bi_config_batch120
+                + b2bi_partnership_batch121
+                + b2bi_lifecycle_batch122
+                + iotwireless_controls_batch123
+                + iotwireless_group_fuota_batch124
+                + iotwireless_associations_batch125
+                + appflow_s3_batch126
+                + appflow_update_batch127
+                + codeconnections_control_batch128
+                + codeconnections_host_batch129
+                + license_config_batch130
+                + license_seller_batch131
                 + ([lambda_controls] if lambda_controls is not None else [])
                 + ([lambda_qualified_grant] if lambda_qualified_grant is not None else [])
                 + ([lambda_config] if lambda_config is not None else [])
                 + ([lambda_role_assignment] if lambda_role_assignment is not None else [])
                 + ([ec2_controls] if ec2_controls is not None else [])
+                + ([ec2_ssm_batch96] if ec2_ssm_batch96 is not None else [])
+                + ([verified_permissions_batch97] if verified_permissions_batch97 is not None else [])
+                + ([ec2_persistence_batch98] if ec2_persistence_batch98 is not None else [])
                 + ([vpc_network] if vpc_network is not None else [])
+                + ([vpc_endpoint_egress] if vpc_endpoint_egress is not None else [])
+                + ([eic_endpoint] if eic_endpoint is not None else [])
+                + ([eic_connection] if eic_connection is not None else [])
                 + ([apigateway_controls] if apigateway_controls is not None else [])
+                + ([globalaccelerator_batch101] if globalaccelerator_batch101 is not None else [])
+                + ([globalaccelerator_batch102] if globalaccelerator_batch102 is not None else [])
+                + ([amp_batch103] if amp_batch103 is not None else [])
+                + ([dynamodb_grant_batch104] if dynamodb_grant_batch104 is not None else [])
                 + ([apigateway_http_keys] if apigateway_http_keys is not None else [])
                 + ([apigateway_private_vpce] if apigateway_private_vpce is not None else [])
                 + ([cloudformation_reads] if cloudformation_reads is not None else [])
@@ -657,6 +811,9 @@ def detect_aws_events(
                 + ([stepfunctions_controls] if stepfunctions_controls is not None else [])
                 + ([stepfunctions_activity_alias] if stepfunctions_activity_alias is not None else [])
                 + ([stepfunctions_redrive] if stepfunctions_redrive is not None else [])
+                + ([sfn_role_routes] if sfn_role_routes is not None else [])
+                + ([sfn_reveal_secrets] if sfn_reveal_secrets is not None else [])
+                + ([sfn_map_run] if sfn_map_run is not None else [])
                 + ([rds_controls] if rds_controls is not None else [])
                 + ([rds_restore_controls] if rds_restore_controls is not None else [])
                 + ([rds_parameters] if rds_parameters is not None else [])
@@ -691,8 +848,15 @@ def detect_aws_events(
     ecs_records: list[Mapping[str, Any]] = []
     emr_session_records: list[Mapping[str, Any]] = []
     vpc_network_records: list[Mapping[str, Any]] = []
+    eic_endpoint_records: list[Mapping[str, Any]] = []
     sqs_tag_records: list[Mapping[str, Any]] = []
     sqs_fifo_records: list[Mapping[str, Any]] = []
+    sfn_new_machine_records: list[Mapping[str, Any]] = []
+    sfn_http_credential_records: list[Mapping[str, Any]] = []
+    secret_rotation_records: list[Mapping[str, Any]] = []
+    secret_replica_chain_records: list[Mapping[str, Any]] = []
+    prefix_list_records: list[Mapping[str, Any]] = []
+    address_reassignment_records: list[Mapping[str, Any]] = []
     lambda_privesc_records: list[Mapping[str, Any]] = []
     ssm_command_records: list[Mapping[str, Any]] = []
     ssm_automation_window_records: list[Mapping[str, Any]] = []
@@ -705,6 +869,8 @@ def detect_aws_events(
     athena_history_records: list[Mapping[str, Any]] = []
     athena_spark_records: list[Mapping[str, Any]] = []
     apigateway_rest_records: list[Mapping[str, Any]] = []
+    globalaccelerator_records: list[Mapping[str, Any]] = []
+    resource_policy_validation_records: list[Mapping[str, Any]] = []
     apigateway_portal_records: list[Mapping[str, Any]] = []
     cloudformation_trigger_records: list[Mapping[str, Any]] = []
     cloudformation_input_records: list[Mapping[str, Any]] = []
@@ -721,8 +887,37 @@ def detect_aws_events(
     ecr_image_records: list[Mapping[str, Any]] = []
     chime_media_pipeline_records: list[Mapping[str, Any]] = []
     chime_media_insights_records: list[Mapping[str, Any]] = []
+    dynamodb_data_batch106_records: list[Mapping[str, Any]] = []
+    cloudwatch_alarm_batch108_records: list[Mapping[str, Any]] = []
+    firehose_sns_batch111_records: list[Mapping[str, Any]] = []
+    lambda_persistence_batch112_records: list[Mapping[str, Any]] = []
+    inspector_filters_batch113_records: list[Mapping[str, Any]] = []
+    appflow_schedule_batch127_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
+            if (not isinstance(record, Mapping)
+                    or not isinstance(record.get("eventSource"), str)
+                    or not isinstance(record.get("eventName"), str)):
+                continue
+            if record.get("eventSource") == "monitoring.amazonaws.com":
+                cloudwatch_alarm_batch108_records.append(record)
+            if record.get("eventSource") in {"firehose.amazonaws.com", "sns.amazonaws.com"}:
+                firehose_sns_batch111_records.append(record)
+            if record.get("eventSource") == "lambda.amazonaws.com":
+                lambda_persistence_batch112_records.append(record)
+            if record.get("eventSource") == "inspector2.amazonaws.com":
+                inspector_filters_batch113_records.append(record)
+            if record.get("eventSource") == "appflow.amazonaws.com" and record.get("eventName") in {"UpdateFlow", "StartFlow"}:
+                appflow_schedule_batch127_records.append(record)
+            if record.get("eventSource") == "dynamodb.amazonaws.com":
+                dynamodb_data_batch106_records.append(record)
+            if (isinstance(record.get("eventSource"), str)
+                    and record.get("eventSource") in {"kinesis.amazonaws.com", "codeartifact.amazonaws.com", "s3tables.amazonaws.com", "s3vectors.amazonaws.com", "aps.amazonaws.com"}
+                    and isinstance(record.get("eventName"), str)
+                    and record.get("eventName") in {"PutResourcePolicy", "PutDomainPermissionsPolicy", "PutTableBucketPolicy", "PutVectorBucketPolicy"}):
+                resource_policy_validation_records.append(record)
+            if record.get("eventSource") == "globalaccelerator.amazonaws.com" and record.get("eventName") == "UpdateEndpointGroup":
+                globalaccelerator_records.append(record)
             if (record.get("eventSource") == "chime-sdk-media-pipelines.amazonaws.com"
                     and record.get("eventName") in {"CreateMediaInsightsPipelineConfiguration",
                                                     "UpdateMediaInsightsPipelineConfiguration",
@@ -752,7 +947,7 @@ def detect_aws_events(
                 athena_stored_records.append(record)
             if record.get("eventSource") == "athena.amazonaws.com" and record.get("eventName") in {"CreateWorkGroup", "CreateNotebook", "UpdateNotebook", "StartSession", "CreatePresignedNotebookUrl", "StartCalculationExecution", "GetSessionEndpoint"}:
                 athena_spark_records.append(record)
-            if record.get("eventSource") == "apigateway.amazonaws.com" and record.get("eventName") in ("CreateApiKey", "CreateUsagePlanKey", "GetApiKey", "PutMethodResponse", "PutIntegrationResponse", "UpdateGatewayResponse", "UpdateRestApi", "CreateDeployment"):
+            if record.get("eventSource") == "apigateway.amazonaws.com" and record.get("eventName") in ("CreateApiKey", "CreateUsagePlanKey", "GetApiKey", "PutIntegration", "UpdateAuthorizer", "UpdateMethod", "PutMethodResponse", "PutIntegrationResponse", "UpdateGatewayResponse", "UpdateRestApi", "CreateDeployment"):
                 apigateway_rest_records.append(record)
             if record.get("eventSource") == "apigateway.amazonaws.com" and record.get("eventName") in {"UpdatePortal", "PublishPortal", "DisablePortal", "DeletePortal"}:
                 apigateway_portal_records.append(record)
@@ -780,11 +975,35 @@ def detect_aws_events(
                 emr_session_records.append(record)
             if record.get("eventSource") == "ec2.amazonaws.com" and record.get("eventName") in {"CreateDhcpOptions", "AssociateDhcpOptions"}:
                 vpc_network_records.append(record)
+            if record.get("eventSource") == "ec2.amazonaws.com" and record.get("eventName") in {"CreateInstanceConnectEndpoint", "AuthorizeSecurityGroupIngress"}:
+                eic_endpoint_records.append(record)
             if ((record.get("eventSource") == "iam.amazonaws.com" and record.get("eventName") == "PutRolePolicy")
                     or (record.get("eventSource") == "sqs.amazonaws.com" and record.get("eventName") == "TagQueue")):
                 sqs_tag_records.append(record)
             if record.get("eventSource") == "sqs.amazonaws.com" and record.get("eventName") == "SendMessage":
                 sqs_fifo_records.append(record)
+            if record.get("eventSource") == "states.amazonaws.com" and record.get("eventName") in {"CreateStateMachine", "StartExecution"}:
+                sfn_new_machine_records.append(record)
+            if ((record.get("eventSource") == "states.amazonaws.com" and record.get("eventName") == "TestState")
+                    or (record.get("eventSource") == "secretsmanager.amazonaws.com"
+                        and record.get("eventName") == "GetSecretValue")):
+                sfn_http_credential_records.append(record)
+            if (record.get("eventSource") == "secretsmanager.amazonaws.com"
+                    and record.get("eventName") in {"RotateSecret", "PutSecretValue", "UpdateSecretVersionStage"}):
+                secret_rotation_records.append(record)
+            if (record.get("eventSource") == "secretsmanager.amazonaws.com"
+                    and record.get("eventName") in {"ReplicateSecretToRegions", "StopReplicationToReplica",
+                                                     "PutResourcePolicy", "GetSecretValue"}):
+                secret_replica_chain_records.append(record)
+            if (record.get("eventSource") == "ec2.amazonaws.com"
+                    and record.get("eventName") in {"ModifyManagedPrefixList", "AuthorizeSecurityGroupIngress",
+                                                    "AuthorizeSecurityGroupEgress"}):
+                prefix_list_records.append(record)
+            if (record.get("eventSource") == "ec2.amazonaws.com"
+                    and record.get("eventName") in {"AssociateAddress", "DisassociateAddress",
+                                                    "AssignPrivateIpAddresses", "UnassignPrivateIpAddresses",
+                                                    "AuthorizeSecurityGroupIngress"}):
+                address_reassignment_records.append(record)
             if ((record.get("eventSource") == "codepipeline.amazonaws.com" and record.get("eventName") in {
                     "CreatePipeline", "UpdatePipeline", "StartPipelineExecution", "AcknowledgeJob", "PutJobSuccessResult"})
                     or (record.get("eventSource") == "codebuild.amazonaws.com" and record.get("eventName") == "UpdateProject")
@@ -845,8 +1064,15 @@ def detect_aws_events(
                   + correlate_aws_ecs_dormant_sidecar(ecs_records))
     correlated += correlate_aws_emr_session_endpoint_cross_actor(emr_session_records)
     correlated += correlate_aws_vpc_custom_dns(vpc_network_records)
+    correlated += correlate_aws_eic_ssh_ingress(eic_endpoint_records)
     correlated += correlate_aws_sqs_tagged_receive(sqs_tag_records)
     correlated += correlate_aws_sqs_fifo_dedup_collision(sqs_fifo_records)
+    correlated += correlate_aws_sfn_new_machine_start(sfn_new_machine_records)
+    correlated += correlate_aws_sfn_connection_secret_read(sfn_http_credential_records)
+    correlated += correlate_aws_secretsmanager_rotation(secret_rotation_records)
+    correlated += correlate_aws_secretsmanager_replica_chain(secret_replica_chain_records)
+    correlated += correlate_aws_prefix_list_sg_reference(prefix_list_records)
+    correlated += correlate_aws_address_reassignment(address_reassignment_records)
     correlated += correlate_aws_lambda_privesc(lambda_privesc_records)
     correlated += correlate_aws_ssm_command_output_read(ssm_command_records)
     correlated += correlate_aws_ssm_document_window(ssm_automation_window_records)
@@ -860,6 +1086,19 @@ def detect_aws_events(
     correlated += correlate_aws_athena_spark_v3(athena_spark_records)
     correlated += correlate_aws_athena_spark35_endpoint(athena_spark_records)
     correlated += correlate_aws_apigateway_rest(apigateway_rest_records)
+    correlated += correlate_aws_apigateway_authorizer_batch100(apigateway_rest_records)
+    correlated += correlate_aws_ga_endpoint_replacement(globalaccelerator_records)
+    correlated += correlate_aws_resource_policy_validation_batch104(resource_policy_validation_records)
+    correlated += correlate_aws_dynamodb_partiql_denials_batch106(dynamodb_data_batch106_records)
+    correlated += correlate_aws_cloudwatch_alarms_batch108(cloudwatch_alarm_batch108_records)
+    correlated += correlate_aws_cloudwatch_metric_stream_scope_batch109(cloudwatch_alarm_batch108_records)
+    correlated += correlate_aws_cloudwatch_stream_changes_batch110(cloudwatch_alarm_batch108_records)
+    correlated += correlate_aws_cloudwatch_metric_data_burst_batch110(cloudwatch_alarm_batch108_records)
+    correlated += correlate_aws_firehose_destination_batch111(firehose_sns_batch111_records)
+    correlated += correlate_aws_sns_firehose_role_batch111(firehose_sns_batch111_records)
+    correlated += correlate_aws_lambda_persistence_batch112(lambda_persistence_batch112_records)
+    correlated += correlate_aws_inspector_criteria_batch113(inspector_filters_batch113_records)
+    correlated += correlate_aws_appflow_schedule_batch127(appflow_schedule_batch127_records)
     correlated += correlate_aws_apigateway_portal(apigateway_portal_records)
     correlated += correlate_aws_cloudformation_triggers(cloudformation_trigger_records)
     correlated += correlate_aws_cloudformation_inputs(cloudformation_input_records)

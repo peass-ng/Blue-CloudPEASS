@@ -8,7 +8,8 @@ from peaso.collectors import k8s_selected_metadata_secret_indicators_20261020 as
 CHECK=source.CHECK
 _GLOBALS={**vars(predecessor),'__name__':__name__,'CHECK':CHECK,'KIND':source.KIND,'MARKER':source.MARKER,
           'SCHEMA':source.SCHEMA,'NATIVE_KINDS':source.NATIVE_KINDS}
-_evaluate=FunctionType(predecessor.evaluate.__code__,_GLOBALS,'_evaluate',predecessor.evaluate.__defaults__,predecessor.evaluate.__closure__)
+_original=predecessor._evaluate_legacy
+_evaluate=FunctionType(_original.__code__,_GLOBALS,'_evaluate',_original.__defaults__,_original.__closure__)
 DECLARATION={'id':CHECK,'provider':'k8s','category':'exposure','kind':source.KIND,'severity':'high',
     'finding_type':'secrets','ui_group':'Secrets','dependencies':[source.KIND],'requirements':[],
     'allow_incomplete_failure':True,'title':'Selected object labels and annotations have no detected secrets',

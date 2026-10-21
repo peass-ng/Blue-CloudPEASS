@@ -1,17 +1,21 @@
-"""Opt-in, memory-only package inspection. No payloads or URLs survive projection.
+"""Opt-in package inspection. No payloads or URLs survive projection.
 
 Kingfisher and TruffleHog inspect bounded content offline. The three existing
-resource kinds are enriched; no package is executed or extracted to disk.
+resource kinds are enriched. ECR blobs use private temporary files; no package
+is executed or extracted into the host filesystem.
 """
+from peaso.secret_evidence import source_context, reuse_image_layer
 import base64
 from copy import deepcopy
 import hashlib
 import io
 import json
+from pathlib import Path
 import re
 import stat
 import struct
 import tarfile
+import tempfile
 import time
 import threading
 from urllib.parse import urlsplit
@@ -29,6 +33,15 @@ ZIP_LIMIT = 8 * 1024 * 1024
 LAYER_LIMIT = 16 * 1024 * 1024
 IMAGE_LIMIT = 32 * 1024 * 1024
 EXPANDED_LIMIT = 64 * 1024 * 1024
+ECR_LAYER_LIMIT = 2 * 1024 * 1024 * 1024
+ECR_IMAGE_LIMIT = 4 * 1024 * 1024 * 1024
+ECR_EXPANDED_LIMIT = 8589934592  # 8 GiB; literal remains verifiable by the finite source checker.
+CONTENT_LIMIT = 512 * 1024 * 1024
+FILE_LIMIT = 64 * 1024 * 1024
+SCAN_WINDOW = 1024 * 1024
+SCAN_OVERLAP = 4096
+REFERENCE_LIMIT = 5000
+OUTPUT_LIMIT = 4 * 1024 * 1024
 MEMBER_LIMIT = 5000
 MANIFEST_LIMIT = 1024 * 1024
 OCI = 'application/vnd.oci.image.manifest.v1+json'
@@ -137,6 +150,22 @@ def download(requests, url, region, cap, expected_size=None, budget=None):
         raise _failure('package_download_unavailable') from None
 
 
+def download_layer(requests, url, region, path, digest, expected_size, budget):
+    """Use the shared bounded native ECR stream writer for immutable blobs."""
+    from .aws_image_vulnerability_native_20261021 import download_blob_path
+    if (not isinstance(path, Path) or not path.is_absolute() or not _digest(digest)
+            or type(expected_size) is not int or not 0 < expected_size <= ECR_LAYER_LIMIT
+            or budget[0] < expected_size):
+        raise _failure('package_download_unavailable')
+    # Reserve the descriptor size before I/O, including failed reads. A failed
+    # layer cannot be retried past the image's shared compressed-byte budget.
+    budget[0] -= expected_size
+    try:
+        return download_blob_path(requests, url, region, digest, expected_size, path,
+                                  check=requests.check_deadline)
+    except Exception:
+        raise _failure('package_download_unavailable') from None
+
 def _path(value):
     if (not isinstance(value, str) or not value or len(value) > 256 or not re.fullmatch(r'[A-Za-z0-9_./@+ -]+', value)
             or value.startswith('/') or any(piece in ('', '.', '..') for piece in value.rstrip('/').split('/'))):
@@ -147,8 +176,9 @@ def _path(value):
 def _scan(raw, name, requests):
     from peaso.secret_scanning import scan_content
     requests.check_deadline()
-    outcome = scan_content(bytes(raw), name)
-    categories = inspect_text(raw.decode('latin-1'), 'unused')['MatchedCategories']
+    with source_context(path=name):
+        outcome = scan_content(bytes(raw), name)
+        categories = inspect_text(raw.decode('latin-1'), 'unused')['MatchedCategories']
     if outcome['leaks']:
         categories = sorted(set(categories) | {'secret'})
     safe_name = outcome['leaks'][0]['locations'][0]['path'] if outcome['leaks'] else name
@@ -292,7 +322,9 @@ def _lambda(response, operation, arguments, requests, region):
     if hashlib.sha256(raw).digest() != expected_digest: raise ValueError('package hash mismatch')
     complete = True
     try:
-        refs, _, _ = scan_zip(raw, requests)
+        with source_context(resource_id=identity, scope=account + '/' + region, source='lambda:' + operation + ':' + str(version),
+                            check_ids={'aws.review.' + ('lambda_function' if operation == 'get_function' else 'lambda_layer_version') + '.package_content_secret_indicators'}):
+            refs, _, _ = scan_zip(raw, requests)
     except PartialArchive as partial:
         refs, complete = partial.refs, False
     return {'PackageSecretIndicators': marker(identity, account, region, 'lambda:' + operation, refs, complete=complete,
@@ -307,50 +339,51 @@ def _ecr_arguments(arguments):
     return account, repo
 
 
+def _scan_reader(reader, size, name, requests, remaining):
+    """Scan a regular file in overlapping, bounded windows through private capture."""
+    if not isinstance(name, str) or len(name) > 256 or size > FILE_LIMIT or remaining[0] < size:
+        return [], False
+    refs, overlap, consumed = [], b'', 0
+    while consumed < size:
+        requests.check_deadline()
+        chunk = reader.read(min(SCAN_WINDOW, size - consumed))
+        if not isinstance(chunk, bytes) or not chunk:
+            raise ValueError('truncated validated file')
+        consumed += len(chunk)
+        remaining[0] -= len(chunk)
+        if b'\0' in chunk:
+            return refs, False
+        try:
+            found = _scan(overlap + chunk, name, requests)
+            if len(refs) + len(found) > REFERENCE_LIMIT:
+                return refs, False
+            refs.extend(found)
+        except PartialArchive as partial:
+            refs.extend(partial.refs)
+            return refs, False
+        overlap = (overlap + chunk)[-SCAN_OVERLAP:]
+    return refs, True
+
+
 def _layer(response, arguments, requests, region):
     account, repo = _ecr_arguments(arguments)
     digest = arguments['layerDigest']
-    if not _digest(digest) or response.get('layerDigest') != digest: raise ValueError('foreign layer digest')
+    if not _digest(digest) or response.get('layerDigest') != digest:
+        raise ValueError('foreign layer digest')
     state = getattr(requests, '_package_scan_local', None)
-    budget = getattr(state, 'budget', None) if state is not None else None
-    raw = download(requests, response['downloadUrl'], region, LAYER_LIMIT, budget=budget)
-    if 'sha256:' + hashlib.sha256(raw).hexdigest() != digest: raise ValueError('layer digest mismatch')
-    # Return no layer bytes through the Future: scan both supported source shapes.
-    # Manifest projection selects the exact appropriate result and checks size.
-    results = {}
-    for typ in ('tar', 'gzip', 'config'):
-        try:
-            if typ == 'config':
-                document = _json(raw.decode('utf-8'))
-                if not isinstance(document, dict): raise ValueError('config object required')
-                config, history = document.get('config'), document.get('history')
-                if not isinstance(config, dict) or not isinstance(history, list): raise ValueError('incomplete config')
-                env = config.get('Env', [])
-                if not isinstance(env, list) or any(not isinstance(v, str) for v in env): raise ValueError('invalid environment')
-                texts = []
-                for v in env:
-                    key, separator, val = v.partition('=')
-                    if not separator or not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*', key): raise ValueError('invalid variable')
-                    texts.append(key + '=' + json.dumps(val))
-                for entry in history:
-                    if not isinstance(entry, dict) or not isinstance(entry.get('created_by'), str): raise ValueError('invalid build history')
-                    texts.append(entry['created_by'])
-                refs = _scan('\n'.join(texts).encode('utf-8'), 'image-config', requests)
-                results[typ] = {'References': refs, 'ExpandedBytes': len(raw), 'Members': 1, 'NativeResponseComplete': True}
-            else:
-                media = 'application/vnd.oci.image.layer.v1.tar' + ('+gzip' if typ == 'gzip' else '')
-                refs, expanded, members = scan_tar(raw, media, requests)
-                results[typ] = {'References': refs, 'ExpandedBytes': expanded, 'Members': members, 'NativeResponseComplete': True}
-        except PartialArchive as partial:
-            results[typ] = {'References': partial.refs, 'ExpandedBytes': partial.expanded, 'Members': partial.members, 'NativeResponseComplete': False}
-        except Exception:
-            # Each alternative is independently unsupported; discard payload errors.
-            pass
-    requests.check_deadline()
-    return {'LayerDigest': digest, 'RegistryId': account, 'RepositoryName': repo, 'CompressedBytes': len(raw), 'Formats': results}
+    active = getattr(state, 'active', None) if state is not None else None
+    if active is None or active[0] != digest:
+        raise ValueError('unbound layer request')
+    size, path = active[1], active[2]
+    download_layer(requests, response['downloadUrl'], region, path, digest, size, state.budget)
+    return {'LayerDigest': digest, 'RegistryId': account, 'RepositoryName': repo,
+            'CompressedBytes': size}
 
 
 def _image(response, arguments, requests, session, region):
+    from peaso.container_image_archive_20261020 import visit_files
+    from peaso import container_image_archive_20261020 as image_archive
+    from peaso import oci_index_20261021 as oci_index
     account, repo = _ecr_arguments(arguments)
     ids = arguments['imageIds']
     if not isinstance(ids, list) or len(ids) != 1 or set(ids[0]) != {'imageDigest'} or not _digest(ids[0]['imageDigest']):
@@ -358,54 +391,202 @@ def _image(response, arguments, requests, session, region):
     digest = ids[0]['imageDigest']
     identity = f'arn:{_partition(region)}:ecr:{region}:{account}:repository/{repo}@{digest}'
     images = response['images']
-    if response.get('failures') != [] or not isinstance(images, list) or len(images) != 1: raise ValueError('ambiguous image response')
+    if response.get('failures') != [] or not isinstance(images, list) or len(images) != 1:
+        raise ValueError('ambiguous image response')
     image = images[0]
     raw = image['imageManifest']
-    if (image.get('registryId') != account or image.get('repositoryName') != repo or image.get('imageId', {}).get('imageDigest') != digest
-            or not isinstance(raw, str) or len(raw.encode()) > MANIFEST_LIMIT or 'sha256:' + hashlib.sha256(raw.encode()).hexdigest() != digest):
+    if (image.get('registryId') != account or image.get('repositoryName') != repo or
+            image.get('imageId', {}).get('imageDigest') != digest or not isinstance(raw, str) or
+            len(raw.encode()) > MANIFEST_LIMIT or 'sha256:' + hashlib.sha256(raw.encode()).hexdigest() != digest):
         raise ValueError('image manifest binding mismatch')
     manifest = _json(raw)
-    if (not isinstance(manifest, dict) or type(manifest.get('schemaVersion')) is not int or manifest['schemaVersion'] != 2
-            or manifest.get('mediaType') not in (OCI, DOCKER) or image.get('imageManifestMediaType') != manifest['mediaType']):
+    if (not isinstance(manifest, dict) or len(raw.encode()) > 256 * 1024 or
+            type(manifest.get('schemaVersion')) is not int or
+            manifest['schemaVersion'] != 2 or manifest.get('mediaType') not in oci_index.ALL_MANIFEST_TYPES or
+            image.get('imageManifestMediaType') != manifest['mediaType']):
         raise ValueError('unsupported manifest or multiarch index')
-    layers, config = manifest.get('layers'), manifest.get('config')
-    if not isinstance(layers, list) or not layers or len(layers) > MEMBER_LIMIT or not isinstance(config, dict): raise ValueError('incomplete image')
-    with requests._lock:
-        if not hasattr(requests, '_package_scan_local'): requests._package_scan_local = threading.local()
-    requests._package_scan_local.budget = [IMAGE_LIMIT]
-    refs, complete, compressed, expanded, members, seen = [], True, 0, 0, 0, set()
-    for descriptor in [config] + layers:
-        requests.check_deadline()
+    if manifest['mediaType'] in oci_index.INDEX_TYPES:
+        from .aws_image_vulnerability_native_20261021 import Reader
+        def _require_index(ok):
+            if not ok:
+                raise ValueError('index_binding_unavailable')
+        reader = Reader(requests, session, account, region)
+        graph = {'parent_digest': digest, 'media_type': manifest['mediaType'],
+                 'children': [], 'complete': False, 'parent_binding_stable': False}
+        refs, total_compressed, output_bytes, stable = [], 0, 0, False
+        def fetch(child_digest, size, media_type):
+            child_raw, child_doc = reader.manifest(repo, child_digest)
+            _require_index(len(child_raw) == size and child_doc['mediaType'] == media_type)
+            return child_raw
+        def rebind():
+            reader.caller()
+            again, _ = reader.manifest(repo, digest, allow_index=True)
+            _require_index(again == raw.encode())
         try:
-            ld, size, typ = descriptor['digest'], descriptor['size'], descriptor['mediaType']
-            if (set(descriptor) - {'digest', 'size', 'mediaType', 'annotations'} or not _digest(ld) or ld in seen
-                    or type(size) is not int or not 0 < size <= LAYER_LIMIT): raise ValueError('unsupported descriptor')
-            seen.add(ld)
-            if descriptor is config:
-                if typ not in CONFIG_TYPES: raise ValueError('unsupported image config')
-                fmt = 'config'
-            else:
-                if typ not in TAR_TYPES: raise ValueError('unsupported image layer')
-                fmt = 'gzip' if typ.endswith('gzip') else 'tar'
-            compressed += size
-            if compressed > IMAGE_LIMIT: raise ValueError('image compressed limit')
-            safe = requests.detail(session, 'ecr', region, 'get_download_url_for_layer', _metadata_profile=PROFILE,
-                                   registryId=account, repositoryName=repo, layerDigest=ld)
-            if (safe.get('collection_status') != 'collected' or safe.get('LayerDigest') != ld or safe.get('RegistryId') != account
-                    or safe.get('RepositoryName') != repo or safe.get('CompressedBytes') != size): raise ValueError('layer incomplete')
-            result = safe['Formats'][fmt]
-            if result['NativeResponseComplete'] is not True: complete = False
-            expanded += result['ExpandedBytes']; members += result['Members']
-            if expanded > EXPANDED_LIMIT or members > MEMBER_LIMIT: raise ValueError('image expansion/member limit')
-            refs.extend({'File': r['File'], 'Categories': r['Categories'], **({'Leaks': r['Leaks']} if 'Leaks' in r else {}), 'LayerDigest': ld} for r in result['References'])
+            reader.caller()
+            for child in oci_index.children(raw.encode(), digest, fetch, check=reader.check):
+                child_digest = child['digest']
+                document = image_archive.decode(child['raw'])
+                config_desc = image_archive.descriptor(document['config'], image_archive.CONFIGS,
+                                                       image_archive.MAX_CONFIG)
+                configuration = image_archive.decode(reader.blob(repo, config_desc))
+                platform = child['platform']
+                _require_index(type(configuration) is dict and
+                    configuration.get('os') == platform['os'] and
+                    configuration.get('architecture') == platform['architecture'] and
+                    ('variant' not in platform or configuration.get('variant') == platform['variant']))
+                layers_desc = document['layers']
+                _require_index(type(layers_desc) is list and 1 <= len(layers_desc) <= image_archive.MAX_LAYERS)
+                layers_desc = [image_archive.descriptor(d, image_archive.LAYERS, image_archive.MAX_LAYER)
+                               for d in layers_desc]
+                total_compressed += config_desc['size'] + sum(d['size'] for d in layers_desc)
+                _require_index(total_compressed <= ECR_IMAGE_LIMIT)
+                source = requests.detail(session, 'ecr', region, 'batch_get_image',
+                    _metadata_profile=PROFILE, registryId=account, repositoryName=repo,
+                    imageIds=[{'imageDigest': child_digest}], acceptedMediaTypes=[OCI, DOCKER])
+                selected = source.get('PackageSecretIndicators') if type(source) is dict else None
+                expected = f'arn:{_partition(region)}:ecr:{region}:{account}:repository/{repo}@{child_digest}'
+                _require_index(type(selected) is dict and source.get('ImageDigest') == child_digest
+                    and selected.get('ResourceId') == expected and selected.get('AccountId') == account
+                    and selected.get('Region') == region and type(selected.get('References')) is list
+                    and type(selected.get('NativeResponseComplete')) is bool)
+                graph['children'].append({'digest': child_digest, 'size': child['size'],
+                    'mediaType': child['mediaType'], 'platform': child['platform'],
+                    'config_digest': config_desc['digest']})
+                for ref in selected['References']:
+                    projected = {**ref, 'ChildManifestDigest': child_digest}
+                    cost = len(json.dumps(projected, separators=(',', ':')).encode())
+                    _require_index(len(refs) < REFERENCE_LIMIT and output_bytes + cost <= OUTPUT_LIMIT)
+                    refs.append(projected); output_bytes += cost
+                    if ref.get('Leaks'):
+                        reuse_image_layer(ref['Leaks'], resource_id=identity, scope=account + '/' + region,
+                            image_digest=digest, source=child_digest, layer=ref['LayerDigest'])
+                _require_index(selected['NativeResponseComplete'] is True)
+            graph['complete'] = True
+            rebind(); stable = True
+        except Exception as exc:
+            if getattr(exc, 'code', None) in ('collection_cancelled', 'deadline_exceeded', 'intentional_scan_deadline'):
+                raise
+            try:
+                rebind(); stable = True
+            except Exception:
+                stable = False
+        finally:
+            if not reader.close():
+                stable = False
+        graph['parent_binding_stable'] = stable
+        complete = bool(graph['complete'] and stable)
+        result = marker(identity, account, region, 'ecr:batch_get_image', refs,
+            complete=complete, code=None if complete else 'image_content_incomplete')
+        result['IndexGraph'] = graph
+        return {'PackageSecretIndicators': result, 'ImageDigest': digest}
+    layers, config = manifest.get('layers'), manifest.get('config')
+    if not isinstance(layers, list) or not layers or len(layers) > MEMBER_LIMIT or not isinstance(config, dict):
+        raise ValueError('incomplete image')
+    descriptors, seen, compressed = [], set(), 0
+    for descriptor in [config] + layers:
+        ld, size, typ = descriptor['digest'], descriptor['size'], descriptor['mediaType']
+        if (set(descriptor) - {'digest', 'size', 'mediaType', 'annotations'} or not _digest(ld) or
+                ld in seen or type(size) is not int or
+                not 0 < size <= (1024 * 1024 if descriptor is config else ECR_LAYER_LIMIT) or
+                typ not in (CONFIG_TYPES if descriptor is config else TAR_TYPES)):
+            raise ValueError('unsupported descriptor')
+        seen.add(ld); compressed += size
+        if compressed > ECR_IMAGE_LIMIT: raise ValueError('image compressed limit')
+        descriptors.append((ld, size))
+    with requests._lock:
+        if not hasattr(requests, '_package_scan_local'):
+            requests._package_scan_local = threading.local()
+    state = requests._package_scan_local
+    state.budget = [ECR_IMAGE_LIMIT]
+    refs, complete, paths, output_bytes = [], True, [], [0]
+    def add_refs(found, ld):
+        nonlocal complete
+        for ref in found:
+            projected = {**ref, 'LayerDigest': ld}
+            size = len(json.dumps(projected, separators=(',', ':')).encode())
+            if len(refs) >= REFERENCE_LIMIT or output_bytes[0] + size > OUTPUT_LIMIT:
+                complete = False
+                return
+            refs.append(projected)
+            output_bytes[0] += size
+    with tempfile.TemporaryDirectory(prefix='peaso-ecr-secret-') as directory:
+        root = Path(directory)
+        try:
+            for index, (ld, size) in enumerate(descriptors):
+                requests.check_deadline()
+                path = root / f'blob-{index:04}'
+                state.active = (ld, size, path)
+                with source_context(resource_id=identity, scope=account + '/' + region,
+                                    image_digest=digest, layer=ld,
+                                    check_ids={'aws.review.ecr_repository.package_content_secret_indicators'}):
+                    safe = requests.detail(session, 'ecr', region, 'get_download_url_for_layer',
+                                           _metadata_profile=PROFILE, _cache_refresh=True,
+                                           registryId=account, repositoryName=repo, layerDigest=ld)
+                if (safe.get('collection_status') != 'collected' or safe.get('LayerDigest') != ld or
+                        safe.get('RegistryId') != account or safe.get('RepositoryName') != repo or
+                        safe.get('CompressedBytes') != size or not path.is_file() or path.stat().st_size != size):
+                    raise ValueError('layer incomplete')
+                paths.append(path)
+            config_raw = paths[0].read_bytes()
+            if len(config_raw) > 1024 * 1024: raise ValueError('config size bound')
+            document = _json(config_raw.decode('utf-8'))
+            if not isinstance(document, dict): raise ValueError('config object required')
+            config_values, history = document.get('config'), document.get('history')
+            if not isinstance(config_values, dict) or not isinstance(history, list):
+                raise ValueError('incomplete config')
+            env = config_values.get('Env', [])
+            if not isinstance(env, list) or any(not isinstance(v, str) for v in env):
+                raise ValueError('invalid environment')
+            texts = []
+            for value in env:
+                key, separator, val = value.partition('=')
+                if not separator or not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*', key):
+                    raise ValueError('invalid variable')
+                texts.append(key + '=' + json.dumps(val))
+            for entry in history:
+                if not isinstance(entry, dict) or not isinstance(entry.get('created_by'), str):
+                    raise ValueError('invalid build history')
+                texts.append(entry['created_by'])
+            with source_context(resource_id=identity, scope=account + '/' + region,
+                                image_digest=digest, layer=descriptors[0][0], native=document,
+                                location_kind='configuration', path='image-config',
+                                check_ids={'aws.review.ecr_repository.package_content_secret_indicators'}):
+                add_refs(_scan('\n'.join(texts).encode(), 'image-config', requests), descriptors[0][0])
+            remaining = [CONTENT_LIMIT]
+            def observe(name, reader, size, layer_index):
+                nonlocal complete
+                ld = descriptors[layer_index + 1][0]
+                with source_context(resource_id=identity, scope=account + '/' + region,
+                                    image_digest=digest, layer=ld,
+                                    check_ids={'aws.review.ecr_repository.package_content_secret_indicators'}):
+                    found, covered = _scan_reader(reader, size, name, requests, remaining)
+                add_refs(found, ld)
+                if not covered: complete = False
+            suffix = 'amazonaws.com.cn' if _partition(region) == 'aws-cn' else 'amazonaws.com'
+            image_identity = {'provider': 'aws', 'scope': account + '/' + region,
+                              'immutable_reference': f'{account}.dkr.ecr.{region}.{suffix}/{repo}@{digest}',
+                              'manifest_digest': digest, 'config_digest': descriptors[0][0]}
+            result = visit_files(image_identity, raw.encode(), config_raw, paths[1:],
+                                 lambda *args: None, check=requests.check_deadline,
+                                 partial_callback=observe)
+            if result['expanded_bytes'] > ECR_EXPANDED_LIMIT: complete = False
+            if result.get('links_skipped', 0) or result.get('partial', False): complete = False
+        except PartialArchive as partial:
+            add_refs(partial.refs, descriptors[0][0])
+            complete = False
         except Exception:
             complete = False
-            # Stop at bounds to prevent downloading later layers past the image budget.
-            if compressed > IMAGE_LIMIT or expanded > EXPANDED_LIMIT or members > MEMBER_LIMIT or requests._package_scan_local.budget[0] <= 0: break
+        finally:
+            if hasattr(state, 'active'): del state.active
     requests.check_deadline()
-    return {'PackageSecretIndicators': marker(identity, account, region, 'ecr:batch_get_image', refs, complete=complete,
-                                               code=None if complete else 'image_content_incomplete'), 'ImageDigest': digest}
-
+    for ld, _ in descriptors[1:]:
+        reuse_image_layer([leak for ref in refs if ref.get('LayerDigest') == ld
+                           for leak in ref.get('Leaks', [])],
+                          resource_id=identity, scope=account + '/' + region,
+                          image_digest=digest, layer=ld)
+    return {'PackageSecretIndicators': marker(identity, account, region, 'ecr:batch_get_image', refs,
+            complete=complete, code=None if complete else 'image_content_incomplete'), 'ImageDigest': digest}
 
 def project_response(response, service, operation, arguments, *, request_context=None, region=None):
     """Root dispatcher invokes before Future.set_result; never return raw SDK data."""
@@ -479,7 +660,7 @@ def enrich(kind, requests, session, region, items):
                 if len(images) > 1 and images[-1][0] == images[-2][0]: raise ValueError('ambiguous latest image')
                 digest = images[-1][1]
                 source = requests.detail(session, 'ecr', region, 'batch_get_image', _metadata_profile=PROFILE,
-                    registryId=account, repositoryName=repo, imageIds=[{'imageDigest': digest}], acceptedMediaTypes=[OCI, DOCKER])
+                    registryId=account, repositoryName=repo, imageIds=[{'imageDigest': digest}])
                 source['SelectedImageDigest'] = digest
         except Exception:
             pass

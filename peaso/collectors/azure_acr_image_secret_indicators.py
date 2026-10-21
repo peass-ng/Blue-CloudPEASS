@@ -3,11 +3,15 @@
 No challenge-derived hosts, catalog/tag enumeration, registry credentials export,
 container execution, filesystem extraction, credential validation or raw cache.
 """
+from peaso.secret_evidence import scan_with_source, source_context
 from copy import deepcopy
 import base64
 import hashlib
 import http.client
 import json
+import os
+from pathlib import Path
+import shutil
 import re
 import tarfile
 import time
@@ -15,6 +19,7 @@ from urllib.parse import urlencode, urlsplit
 from .gcp_image_secret_indicators import _tar, _descriptor, DIGEST
 from .aws_package_content_indicators import _json, OCI, DOCKER, TAR_TYPES, CONFIG_TYPES
 from peaso.secret_scanning import scan_content, merge_leaks, _fingerprint
+from peaso import oci_index_20261021 as oci_index
 
 KIND = 'acr_selected_image'
 CHECK = 'azure.review.acr.selected_image_secret_indicators'
@@ -27,16 +32,17 @@ API_VERSION = '2025-11-01'
 MAX_IMAGES = 4
 MAX_MANIFEST = 262144
 MAX_CONFIG = 1048576
-MAX_LAYER = 8 * 1024 * 1024
-MAX_IMAGE = 16 * 1024 * 1024
-MAX_TOTAL = 64 * 1024 * 1024
-MAX_EXPANDED = 32 * 1024 * 1024
-MAX_MEMBERS = 2000
-MAX_LAYERS = 16
-MAX_CALLS = 160
-MAX_SECONDS = 120
+MAX_LAYER = 512 * 1024 * 1024
+MAX_IMAGE = 1024 * 1024 * 1024
+MAX_TOTAL = MAX_IMAGES * MAX_IMAGE + MAX_IMAGES * (MAX_MANIFEST + MAX_CONFIG + 65536)
+MAX_EXPANDED = 4 * 1024 * 1024 * 1024
+MAX_MEMBERS = 200000
+MAX_LAYERS = 64
+MAX_CALLS = 320
+MAX_SECONDS = 600
 MAX_LEAKS = 256
 MAX_LOCATIONS = 2000
+MAX_PARTS = 8192
 _GUID = r'[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}'
 _SCOPE = re.compile(r'/subscriptions/' + _GUID + r'\Z', re.I)
 _REGISTRY = re.compile(r'(/subscriptions/' + _GUID + r')/resourceGroups/'
@@ -173,7 +179,7 @@ class Reader:
         if time.monotonic()>=self.state['deadline']:raise Incomplete('image_deadline')
     def timeout(self):
         self.check();return min(10,self.state['deadline']-time.monotonic())
-    def request(self,host,route,operation,cap,*,body=None,authorization=None,digest=None,size=None,redirect=False):
+    def request(self,host,route,operation,cap,*,body=None,authorization=None,digest=None,size=None,redirect=False,destination=None):
         if self.state['calls']>=MAX_CALLS:raise Incomplete('image_call_limit')
         self.check();self.state['calls']+=1
         receipt={'id':'acr-read-'+str(len(self.receipts)+1),'identity':self.ident,'scope':self.scope,
@@ -184,7 +190,8 @@ class Reader:
         connection=response=None
         try:
             connection=http.client.HTTPSConnection(host,timeout=self.timeout());connection.set_debuglevel(0)
-            headers={'Accept-Encoding':'identity','Accept':OCI+', '+DOCKER+', application/json' if operation=='manifest' else 'application/octet-stream'}
+            headers={'Accept-Encoding':'identity','Accept':', '.join((OCI,DOCKER,oci_index.OCI_INDEX,
+                oci_index.DOCKER_LIST)) if operation=='manifest' else 'application/octet-stream'}
             if body is not None:headers.update({'Content-Type':'application/x-www-form-urlencoded','Content-Length':str(len(body))})
             if authorization is not None:headers['Authorization']='Bearer '+authorization
             connection.request(receipt['method'],route,body=body,headers=headers)
@@ -195,7 +202,7 @@ class Reader:
                 if response.getheader('WWW-Authenticate') is not None:raise Incomplete('auth_challenge')
                 receipt.update(status='redirect',verified=True,bound=True)
                 # No registry token, cookies or identity headers reach data origin.
-                return self.get(rh,rr,'blob_data',cap,digest=digest,size=size)
+                return self.get(rh,rr,'blob_data',cap,digest=digest,size=size,destination=destination)
             if type(response.status) is not int or response.status!=200 or response.getheader('WWW-Authenticate') is not None or response.getheader('Location') is not None:
                 raise Incomplete('native_unavailable')
             if response.getheader('Content-Encoding') not in (None,'','identity'):raise Incomplete('encoded_response')
@@ -206,22 +213,44 @@ class Reader:
                 if expected>cap or size is not None and expected!=size:raise Incomplete('stream_length')
             header_digest=response.getheader('Docker-Content-Digest')
             if header_digest is not None and (digest is None or header_digest!=digest):raise Incomplete('digest_header')
-            raw=bytearray()
-            while True:
-                timeout=self.timeout()
-                if getattr(connection,'sock',None) is not None:connection.sock.settimeout(timeout)
-                block=response.read(min(16384,cap+1-len(raw)))
-                if not isinstance(block,bytes):raise Incomplete('stream_type')
-                self.state['bytes']+=len(block);receipt['bytes']+=len(block)
-                if self.state['bytes']>MAX_TOTAL or len(raw)+len(block)>cap:raise Incomplete('stream_bound')
-                if not block:break
-                raw.extend(block)
-            self.check()
-            if (not raw or expected is not None and len(raw)!=expected or size is not None and len(raw)!=size
-                    or digest is not None and _sha(raw)!=digest):raise Incomplete('digest_or_truncation')
+            output=None;created=False;raw=bytearray();count=0;checksum=hashlib.sha256()
+            try:
+                if destination is not None:
+                    if (not isinstance(destination,Path) or not destination.is_absolute() or
+                            size is None or shutil.disk_usage(destination.parent).free < size + 256*1024*1024):
+                        raise Incomplete('scratch_disk_bound')
+                    fd=os.open(destination,os.O_WRONLY|os.O_CREAT|os.O_EXCL|getattr(os,'O_NOFOLLOW',0),0o600)
+                    created=True;output=os.fdopen(fd,'wb')
+                while True:
+                    timeout=self.timeout()
+                    if getattr(connection,'sock',None) is not None:connection.sock.settimeout(timeout)
+                    block=response.read(min(16384,cap+1-count))
+                    if not isinstance(block,bytes):raise Incomplete('stream_type')
+                    count+=len(block);self.state['bytes']+=len(block);receipt['bytes']+=len(block)
+                    if self.state['bytes']>MAX_TOTAL or count>cap or size is not None and count>size:
+                        raise Incomplete('stream_bound')
+                    if not block:break
+                    checksum.update(block)
+                    if output is None:raw.extend(block)
+                    else:
+                        if shutil.disk_usage(destination.parent).free < len(block)+256*1024*1024:
+                            raise Incomplete('scratch_disk_bound')
+                        output.write(block)
+                self.check()
+                if (not count or expected is not None and count!=expected or size is not None and count!=size
+                        or digest is not None and 'sha256:'+checksum.hexdigest()!=digest):
+                    raise Incomplete('digest_or_truncation')
+                if output is not None:output.close();output=None
+            except BaseException:
+                if output is not None:output.close()
+                if created:destination.unlink(missing_ok=True)
+                raise
             receipt.update(status='collected',verified=True,bound=digest is not None)
-            return bytes(raw)
-        except Exception:
+            return destination if destination is not None else bytes(raw)
+        except Exception as exc:
+            if (type(exc).__name__=='AzureReadError'
+                    and getattr(exc,'code',None) in ('collection_cancelled','deadline_exceeded')):
+                raise
             raise Incomplete('native_image_read_unavailable') from None
         finally:
             if response is not None:response.close()
@@ -262,9 +291,9 @@ class Reader:
         _token(access,self.host,repository=self.target['repository'])
         self.receipts[-1]['bound']=True
         return access
-    def blob(self,category,digest,cap,token,size=None):
+    def blob(self,category,digest,cap,token,size=None,destination=None):
         return self.get(self.host,'/v2/'+self.target['repository']+'/'+category+'/'+digest,
-            'manifest' if category=='manifests' else 'blob',cap,authorization=token,digest=digest,size=size,redirect=category=='blobs')
+            'manifest' if category=='manifests' else 'blob',cap,authorization=token,digest=digest,size=size,redirect=category=='blobs',destination=destination)
 
 
 def _scan_bytes(raw,path,reader):
@@ -272,7 +301,7 @@ def _scan_bytes(raw,path,reader):
     remaining=reader.state['deadline']-time.monotonic()
     if remaining<1:raise Incomplete('scanner_deadline')
     from .azure_selected_secret_integration_20261020 import remember
-    result=scan_content(raw,path,timeout=min(30,remaining),
+    result=scan_with_source(scan_content,raw,path,source={},timeout=min(30,remaining),
         _redact_values=lambda values:remember(reader.reader,'acr_image_secret_redactions',values))
     reader.check()
     if result['complete'] is not True:raise Incomplete('scanners_incomplete')
@@ -283,94 +312,28 @@ def _scan_bytes(raw,path,reader):
 def _scan_json(raw, document, path, reader):
     # Inspect original bytes and decoded JSON strings, so an escaped multiline
     # credential in Env/history/annotations is not lost at the JSON boundary.
-    original=_scan_bytes(raw,path,reader)
-    stack=[document];strings=[];size=0;nodes=0
-    while stack:
-        value=stack.pop();nodes+=1
-        if nodes>MAX_MEMBERS*4:raise Incomplete('json_content_bound')
-        if isinstance(value,str):
-            payload=value.encode('utf-8',errors='strict');size+=len(payload)+2
-            if size>MAX_CONFIG*2:raise Incomplete('json_content_bound')
-            strings.append(payload)
-        elif isinstance(value,dict):
-            stack.extend(reversed(list(value.values())));stack.extend(reversed(list(value)))
-        elif isinstance(value,list):stack.extend(reversed(value))
-    if not strings:raise Incomplete('json_content_unavailable')
-    decoded=_scan_bytes(b'\n\n'.join(strings),path,reader)
+    with source_context(native=document, path=path, location_kind='configuration'):
+        original=_scan_bytes(raw,path,reader)
+        stack=[document];strings=[];size=0;nodes=0
+        while stack:
+            value=stack.pop();nodes+=1
+            if nodes>MAX_MEMBERS*4:raise Incomplete('json_content_bound')
+            if isinstance(value,str):
+                payload=value.encode('utf-8',errors='strict');size+=len(payload)+2
+                if size>MAX_CONFIG*2:raise Incomplete('json_content_bound')
+                strings.append(payload)
+            elif isinstance(value,dict):
+                stack.extend(reversed(list(value.values())));stack.extend(reversed(list(value)))
+            elif isinstance(value,list):stack.extend(reversed(value))
+        if not strings:raise Incomplete('json_content_unavailable')
+        decoded=_scan_bytes(b'\n\n'.join(strings),path,reader)
     return {'complete':True,'engines':original['engines'],
             'leaks':merge_leaks(original['leaks']+decoded['leaks'])}
 
 
 def inspect_image(reader):
-    marker={'schema':SCHEMA,'kind':KIND,'identity':reader.ident,'scope':reader.scope,'complete':False,
-        'verification':'not_attempted','manifest_digest':reader.target['digest'],'descriptors':[],'layers_scanned':[],'parts':[],'leaks':[],
-        'source_requests':[],'mode':None,'auth_audience':None,'expanded_bytes':0,'members':0,'regular_files':0}
-    start=len(reader.receipts)
-    try:
-        token=reader.authenticate();marker['mode']=reader.mode;marker['auth_audience']=reader.auth_audience
-        manifest_raw=reader.blob('manifests',reader.target['digest'],MAX_MANIFEST,token)
-        manifest=_json(manifest_raw)
-        if (not isinstance(manifest,dict) or set(manifest)-{'schemaVersion','mediaType','config','layers','annotations'}
-                or type(manifest.get('schemaVersion')) is not int or manifest['schemaVersion']!=2
-                or manifest.get('mediaType') not in (OCI,DOCKER)):
-            raise Incomplete('single_platform_manifest_required')
-        config=_descriptor(manifest['config'],CONFIG_TYPES,MAX_CONFIG)
-        layers=manifest['layers']
-        if not isinstance(layers,list) or not 1<=len(layers)<=MAX_LAYERS:raise Incomplete('layers_unavailable')
-        layers=[_descriptor(l,TAR_TYPES,MAX_LAYER) for l in layers]
-        if len({l['digest'] for l in layers})!=len(layers) or config['digest'] in {l['digest'] for l in layers}:
-            raise Incomplete('duplicate_descriptor')
-        if sum(d['size'] for d in [config]+layers)>MAX_IMAGE:raise Incomplete('compressed_image_bound')
-        marker['descriptors']=deepcopy([config]+layers)
-        manifest_outcome=_scan_json(manifest_raw,manifest,reader.ident+'.manifest',reader)
-        marker['parts'].append({'part':'manifest','bytes':len(manifest_raw),'complete':True,'engines':manifest_outcome['engines']})
-        raw=reader.blob('blobs',config['digest'],MAX_CONFIG,token,config['size']);decoded=_json(raw)
-        if (not isinstance(decoded,dict) or set(decoded)&{'error','nextLink','partial','_partial','_coverage','resultTruncated'} or decoded.get('os')!='linux' or decoded.get('architecture') not in ('amd64','arm64')
-                or not isinstance(decoded.get('rootfs'),dict) or decoded['rootfs'].get('type')!='layers'
-                or not isinstance(decoded['rootfs'].get('diff_ids'),list) or len(decoded['rootfs']['diff_ids'])!=len(layers)
-                or any(not isinstance(d,str) or not DIGEST.fullmatch(d) for d in decoded['rootfs']['diff_ids'])):
-            raise Incomplete('unsupported_rootfs')
-        outcome=_scan_json(raw,decoded,reader.ident+'.config',reader)
-        marker['parts'].append({'part':'config','bytes':len(raw),'complete':True,'engines':outcome['engines']})
-        leaks=list(manifest_outcome['leaks'])+list(outcome['leaks']);expanded=len(raw);members=regular=0
-        for number,(layer,diff) in enumerate(zip(layers,decoded['rootfs']['diff_ids'])):
-            payload=reader.blob('blobs',layer['digest'],MAX_LAYER,token,layer['size'])
-            safe,count=_tar(payload,layer['mediaType'],diff)
-            expanded+=len(safe)
-            if expanded>MAX_EXPANDED or regular+count>MAX_MEMBERS:raise Incomplete('expanded_image_bound')
-            # Original bytes were digest-bound before _tar replaced names. The
-            # reused parser admits only bounded regular files/directories, rejects
-            # links/devices/duplicate paths/nested archives. Never extracts files.
-            if len(safe)%512 or len(safe)<1024 or safe[-1024:]!=bytes(1024):raise Incomplete('tar_truncation')
-            offset=0
-            while offset+512<=len(safe):
-                reader.check();block=safe[offset:offset+512]
-                if block==bytes(512):
-                    if offset+1024>len(safe) or any(safe[offset:]):raise Incomplete('tar_terminator')
-                    break
-                member=tarfile.TarInfo.frombuf(block,'utf-8','strict');members+=1
-                if members>MAX_MEMBERS:raise Incomplete('member_bound')
-                offset+=512;end=offset+member.size;following=offset+((member.size+511)//512)*512
-                if member.size<0 or end>len(safe) or following>len(safe):raise Incomplete('tar_truncation')
-                if member.isfile():
-                    regular+=1
-                    outcome=_scan_bytes(safe[offset:end],reader.ident+'.layer-'+str(number+1)+'.member-'+str(members),reader)
-                    leaks.extend(outcome['leaks'])
-                    marker['parts'].append({'part':'layer-'+str(number+1)+'.member-'+str(members),'bytes':member.size,
-                        'complete':True,'engines':outcome['engines']})
-                offset=following
-            else:raise Incomplete('tar_terminator')
-            marker['layers_scanned'].append(layer['digest'])
-        del token
-        if not regular:raise Incomplete('no_layer_files')
-        leaks=merge_leaks(leaks)
-        if len(leaks)>MAX_LEAKS or sum(len(l['locations']) for l in leaks)>MAX_LOCATIONS:raise Incomplete('leak_bound')
-        reader.check()
-        marker.update(complete=True,leaks=leaks,expanded_bytes=expanded,members=members,regular_files=regular)
-    except Exception:
-        marker['complete']=False
-    marker['source_requests']=[r['id'] for r in reader.receipts[start:]]
-    return {'id':reader.ident,MARKER:marker,'_provenance':{'scope':reader.scope,'source_requests':list(marker['source_requests'])}}
+    from .azure_acr_image_stream_inspection_20261021 import inspect_image as streamed
+    return streamed(reader)
 
 
 def collect(reader,transport,scopes,wanted,options):

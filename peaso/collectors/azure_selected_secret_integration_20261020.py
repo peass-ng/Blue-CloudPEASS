@@ -19,7 +19,7 @@ def remember(reader,attribute,values):
 
 def final_snapshot(reader,snapshot):
     attributes=('configuration_secret_redactions','storage_source_secret_redactions','devops_selected_redactions',
-                'app_setting_secret_redactions','acr_image_secret_redactions')
+                'app_setting_secret_redactions','acr_image_secret_redactions','azure_aks_image_redactions')
     values=set();overflow=getattr(reader,'storage_source_secret_overflow',False)
     try:
         # Merge every ledger before any scrub; later finalizers must not

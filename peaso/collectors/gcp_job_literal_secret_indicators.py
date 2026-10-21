@@ -3,6 +3,8 @@
 Dedicated bounded JSON reads never cache native configuration. Managed secret,
 KMS and file/script/image references are not resolved. No jobs are submitted.
 """
+
+from peaso.secret_evidence import scan_with_source
 from copy import deepcopy
 import hashlib
 import http.client
@@ -312,8 +314,8 @@ def project_row(row, scope, kind, region, project, aliases, state, remaining):
             raise Incomplete('scan_byte_limit')
         state['scan_bytes'] += len(payload)
         scrubbed = [metadata]
-        outcome = scan_content(payload, kind + '.literal_configuration', timeout=min(5, remaining() / 2),
-                               _redact_values=lambda matches: scrubbed.__setitem__(0, redact_matches(scrubbed[0], matches)))
+        outcome = scan_with_source(scan_content, payload, kind + '.literal_configuration', timeout=min(5, remaining() / 2),
+                               _redact_values=lambda matches: scrubbed.__setitem__(0, redact_matches(scrubbed[0], matches)), source={'resource_id': metadata['nativeResourceName'], 'location_kind': 'configuration', 'scope': scope}, native=row)
         remaining()
         leaks = merge_leaks(outcome['leaks'])
         if len(leaks) > MAX_LEAKS or sum(len(l['locations']) for l in leaks) > MAX_LEAK_LOCATIONS:
