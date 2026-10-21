@@ -25,10 +25,21 @@ def normalize(record: Mapping[str, Any]) -> list[dict[str, Any]]:
     account, region = record.get("recipientAccountId"), record.get("awsRegion")
     stamp, event_id = record.get("eventTime"), record.get("eventID")
     resources = record.get("resources")
+    console_token = (
+        source == "signin.amazonaws.com"
+        and name == "GetSigninToken"
+        and record.get("eventType") == "AwsConsoleSignIn"
+        and category == "Management"
+        and read_only is False
+        and not resources
+        and isinstance(record.get("responseElements"), Mapping)
+        and record["responseElements"].get("GetSigninToken") == "Success"
+    )
     if (not isinstance(source, str) or not _SOURCE.fullmatch(source)
             or not isinstance(name, str) or not _NAME.fullmatch(name)
             or category not in {"Management", "Data"}
-            or record.get("eventType") != "AwsApiCall"
+            or (record.get("eventType") != "AwsApiCall" and not console_token)
+            or (source == "signin.amazonaws.com" and name == "GetSigninToken" and not console_token)
             or record.get("managementEvent") is not (category == "Management")
             or not isinstance(read_only, bool)
             or record.get("errorCode") or record.get("errorMessage")
@@ -44,6 +55,8 @@ def normalize(record: Mapping[str, Any]) -> list[dict[str, Any]]:
         return []
     identity = record.get("userIdentity")
     actor = identity.get("arn") if isinstance(identity, Mapping) else None
+    if console_token and isinstance(actor, str):
+        actor = "sha256:" + hashlib.sha256(actor.encode("utf-8")).hexdigest()[:24]
     if not resources:
         target = "sha256:" + hashlib.sha256(
             f"{account}:{region}:{event_id}".encode("utf-8")
