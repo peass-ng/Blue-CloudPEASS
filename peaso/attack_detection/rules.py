@@ -87,6 +87,7 @@ from .aws_license_instance_batch134 import normalize as normalize_aws_license_in
 from .aws_lex_analytics_batch135 import normalize as normalize_aws_lex_analytics_batch135
 from .aws_lex_runtime_batch136 import normalize as normalize_aws_lex_runtime_batch136
 from .aws_lex_testset_batch136 import normalize as normalize_aws_lex_testset_batch136
+from .aws_lex_hook_batch137 import normalize as normalize_aws_lex_hook_batch137, correlate_role_hook as correlate_aws_lex_role_hook_batch137
 from .aws_sagemaker_control_next import normalize_aws_sagemaker_control
 from .aws_rolesanywhere_next import normalize as normalize_aws_rolesanywhere
 from .aws_customer_profiles_next import normalize as normalize_aws_customer_profiles
@@ -268,8 +269,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "2d539dc4c2fa6c99bf017b2ce674f14306485486"
-DEFAULT_RULE_PACK_SHA256 = "ae181937e88528457a2598924459ad2182a9b051524cf4d43a12624a7dda7be6"
+DEFAULT_RULE_REF = "418f508510bda5fa03acfb61a6829fbf4d795232"
+DEFAULT_RULE_PACK_SHA256 = "ff91be87105b1da3bcd998fccbe192580630ed89facc28ef452067174090eebd"
 
 
 @dataclass(frozen=True)
@@ -543,6 +544,7 @@ def detect_aws_events(
         lex_analytics_batch135 = normalize_aws_lex_analytics_batch135(record)
         lex_runtime_batch136 = normalize_aws_lex_runtime_batch136(record)
         lex_testset_batch136 = normalize_aws_lex_testset_batch136(record)
+        lex_hook_batch137 = normalize_aws_lex_hook_batch137(record)
         lambda_controls = normalize_aws_lambda_controls(record)
         lambda_qualified_grant = normalize_aws_lambda_qualified_grant(record)
         lambda_config = normalize_aws_lambda_config(record)
@@ -762,6 +764,7 @@ def detect_aws_events(
                 + lex_analytics_batch135
                 + lex_runtime_batch136
                 + lex_testset_batch136
+                + lex_hook_batch137
                 + ([lambda_controls] if lambda_controls is not None else [])
                 + ([lambda_qualified_grant] if lambda_qualified_grant is not None else [])
                 + ([lambda_config] if lambda_config is not None else [])
@@ -874,6 +877,7 @@ def detect_aws_events(
     lambda_persistence_batch112_records: list[Mapping[str, Any]] = []
     inspector_filters_batch113_records: list[Mapping[str, Any]] = []
     appflow_schedule_batch127_records: list[Mapping[str, Any]] = []
+    lex_hook_batch137_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
             if (not isinstance(record, Mapping)
@@ -890,6 +894,8 @@ def detect_aws_events(
                 inspector_filters_batch113_records.append(record)
             if record.get("eventSource") == "appflow.amazonaws.com" and record.get("eventName") in {"UpdateFlow", "StartFlow"}:
                 appflow_schedule_batch127_records.append(record)
+            if record.get("eventSource") == "lex.amazonaws.com" and record.get("eventName") in {"UpdateBot", "UpdateBotAlias"}:
+                lex_hook_batch137_records.append(record)
             if record.get("eventSource") == "dynamodb.amazonaws.com":
                 dynamodb_data_batch106_records.append(record)
             if (isinstance(record.get("eventSource"), str)
@@ -1080,6 +1086,7 @@ def detect_aws_events(
     correlated += correlate_aws_lambda_persistence_batch112(lambda_persistence_batch112_records)
     correlated += correlate_aws_inspector_criteria_batch113(inspector_filters_batch113_records)
     correlated += correlate_aws_appflow_schedule_batch127(appflow_schedule_batch127_records)
+    correlated += correlate_aws_lex_role_hook_batch137(lex_hook_batch137_records)
     correlated += correlate_aws_apigateway_portal(apigateway_portal_records)
     correlated += correlate_aws_cloudformation_triggers(cloudformation_trigger_records)
     correlated += correlate_aws_cloudformation_inputs(cloudformation_input_records)
