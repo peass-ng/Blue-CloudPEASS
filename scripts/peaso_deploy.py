@@ -50,6 +50,10 @@ RUNTIME_ADMISSION_INPUTS = {
 # Exact public inputs needed to reproduce the shipped compiler, provenance and
 # tests. Explicit paths/globs only: no .work drafts, caches or private files.
 REPRODUCTION_INPUT_PATTERNS = (
+    'scripts/pytest_shard.py',
+    'docs/ci-runtime-optimization-20261022.md',
+    'tests/test_combined_catalog_history_successor_20261022.py',
+    'tests/fixtures/combined_iam_network_provider_catalog_successor_20261022.json.gz',
     'tests/test_attack_detection_aws_devicefarm_batch140.py',
     'tests/test_attack_detection_aws_devicefarm_sessions_batch141.py',
     'tests/test_attack_detection_aws_keyspaces_data_batch143.py',
@@ -1714,7 +1718,7 @@ CURRENT_API_UNCOMPRESSED_LIMIT = 260_000_000
 # Current corresponding source has grown beyond the historical artifact-update
 # contract. Keep these bounds aligned with the GitHub Actions release reviewer;
 # historical artifact-update approvals retain their original measured limits.
-CURRENT_SOURCE_MEMBER_LIMIT = 5300  # Complete retained source epoch and reviewed reproduction inputs.
+CURRENT_SOURCE_MEMBER_LIMIT = 6000  # Measured combined epoch: 5,642 members; complete source and reproduction inputs.
 CURRENT_SOURCE_UNCOMPRESSED_LIMIT = 600_000_000
 CURRENT_SOURCE_ARCHIVE_LIMIT = 100_000_000  # Measured complete epoch: 73.8 MB ZIP / 539 MB expanded; historical caps stay fixed.
 

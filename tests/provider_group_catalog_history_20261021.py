@@ -29,3 +29,40 @@ def predecessor_catalog(value):
         assert digest(current[keys[-1]])==change['after_sha256'], 'Provider catalog delta changed: '+repr(path)
         current[keys[-1]]=change['before']
     return value
+
+
+# Exact current-main composition, retaining the original provider fixture and
+# every original predecessor digest above. Only metadata is reconstructed.
+COMBINED_FIXTURE_SHA256 = 'bddd5cfec261e1833ac4e0c23310e1423a4b443723aa95a57f4a5264b300270b'
+
+def combined_predecessor_catalog(value):
+    from copy import deepcopy
+    raw=(Path(__file__).with_name('fixtures')/'combined_iam_network_provider_catalog_successor_20261022.json.gz').read_bytes()
+    assert hashlib.sha256(raw).hexdigest()==COMBINED_FIXTURE_SHA256
+    receipt=json.loads(gzip.decompress(raw))
+    assert receipt['schema_version']==1
+    digest=lambda obj:hashlib.sha256(json.dumps(obj,sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest()
+    normalized=deepcopy(value)
+    for row in normalized['checks']:row.pop('clarity_evaluation_contract',None)
+    assert digest(normalized)==receipt['after_catalog_sha256'], 'Combined current catalog changed'
+    checks={row['id']:row for row in value['checks']}
+    assert len(checks)==len(value['checks'])
+    for cid,expected in receipt['added_checks'].items():
+        row={k:v for k,v in checks[cid].items() if k!='clarity_evaluation_contract'}
+        assert digest(row)==expected, 'Combined added check changed: '+cid
+        del checks[cid]
+    for cid,change in receipt['changed_checks'].items():
+        row=checks[cid]
+        assert digest({k:v for k,v in row.items() if k!='clarity_evaluation_contract'})==change['after_sha256']
+        restored=deepcopy(change['before'])
+        if 'clarity_evaluation_contract' in row:restored['clarity_evaluation_contract']=row['clarity_evaluation_contract']
+        checks[cid]=restored
+    assert set(checks)==set(receipt['before_check_order'])
+    value['checks']=[checks[cid] for cid in receipt['before_check_order']]
+    for key,change in receipt['top_changes'].items():
+        assert digest(value[key])==change['after_sha256']
+        value[key]=deepcopy(change['before'])
+    normalized=deepcopy(value)
+    for row in normalized['checks']:row.pop('clarity_evaluation_contract',None)
+    assert digest(normalized)==receipt['before_catalog_sha256'], 'Combined catalog predecessor changed'
+    return value
