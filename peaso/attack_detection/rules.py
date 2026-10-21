@@ -51,6 +51,7 @@ from .aws_appsync_signed_role_next import normalize as normalize_aws_appsync_sig
 from .aws_apigateway_rest_next import correlate as correlate_aws_apigateway_rest
 from .aws_apigateway_authorizer_batch100 import correlate as correlate_aws_apigateway_authorizer_batch100
 from .aws_globalaccelerator_batch101 import normalize as normalize_aws_globalaccelerator_batch101
+from .aws_globalaccelerator_batch102 import normalize as normalize_aws_globalaccelerator_batch102, correlate_replacement as correlate_aws_ga_endpoint_replacement
 from .aws_sagemaker_control_next import normalize_aws_sagemaker_control
 from .aws_rolesanywhere_next import normalize as normalize_aws_rolesanywhere
 from .aws_customer_profiles_next import normalize as normalize_aws_customer_profiles
@@ -232,8 +233,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "2f61767a51d839091eaff7a3790f50af087e690b"
-DEFAULT_RULE_PACK_SHA256 = "1e467533ee2264608f1cc553175e523ea26f8456968c14143c41b95f0d03826f"
+DEFAULT_RULE_REF = "8470477225a5a077ee4f4a38582ac57936d73226"
+DEFAULT_RULE_PACK_SHA256 = "4fd439f4b94512333cc9cea6c96cff5733d5691f241ba9b82f3abee7eb44be5b"
 
 
 @dataclass(frozen=True)
@@ -491,6 +492,7 @@ def detect_aws_events(
         eic_connection = normalize_aws_eic_connection(record)
         apigateway_controls = normalize_aws_apigateway_controls(record)
         globalaccelerator_batch101 = normalize_aws_globalaccelerator_batch101(record)
+        globalaccelerator_batch102 = normalize_aws_globalaccelerator_batch102(record)
         apigateway_http_keys = normalize_aws_apigateway_http_keys(record)
         apigateway_private_vpce = normalize_aws_apigateway_private_vpce(record)
         cloudformation_reads = normalize_aws_cloudformation_reads(record)
@@ -673,6 +675,7 @@ def detect_aws_events(
                 + ([eic_connection] if eic_connection is not None else [])
                 + ([apigateway_controls] if apigateway_controls is not None else [])
                 + ([globalaccelerator_batch101] if globalaccelerator_batch101 is not None else [])
+                + ([globalaccelerator_batch102] if globalaccelerator_batch102 is not None else [])
                 + ([apigateway_http_keys] if apigateway_http_keys is not None else [])
                 + ([apigateway_private_vpce] if apigateway_private_vpce is not None else [])
                 + ([cloudformation_reads] if cloudformation_reads is not None else [])
@@ -744,6 +747,7 @@ def detect_aws_events(
     athena_history_records: list[Mapping[str, Any]] = []
     athena_spark_records: list[Mapping[str, Any]] = []
     apigateway_rest_records: list[Mapping[str, Any]] = []
+    globalaccelerator_records: list[Mapping[str, Any]] = []
     apigateway_portal_records: list[Mapping[str, Any]] = []
     cloudformation_trigger_records: list[Mapping[str, Any]] = []
     cloudformation_input_records: list[Mapping[str, Any]] = []
@@ -762,6 +766,8 @@ def detect_aws_events(
     chime_media_insights_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
+            if record.get("eventSource") == "globalaccelerator.amazonaws.com" and record.get("eventName") == "UpdateEndpointGroup":
+                globalaccelerator_records.append(record)
             if (record.get("eventSource") == "chime-sdk-media-pipelines.amazonaws.com"
                     and record.get("eventName") in {"CreateMediaInsightsPipelineConfiguration",
                                                     "UpdateMediaInsightsPipelineConfiguration",
@@ -931,6 +937,7 @@ def detect_aws_events(
     correlated += correlate_aws_athena_spark35_endpoint(athena_spark_records)
     correlated += correlate_aws_apigateway_rest(apigateway_rest_records)
     correlated += correlate_aws_apigateway_authorizer_batch100(apigateway_rest_records)
+    correlated += correlate_aws_ga_endpoint_replacement(globalaccelerator_records)
     correlated += correlate_aws_apigateway_portal(apigateway_portal_records)
     correlated += correlate_aws_cloudformation_triggers(cloudformation_trigger_records)
     correlated += correlate_aws_cloudformation_inputs(cloudformation_input_records)
