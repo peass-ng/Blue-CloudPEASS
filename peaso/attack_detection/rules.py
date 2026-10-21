@@ -29,6 +29,7 @@ from .aws_user_boundary_self_next import normalize_aws_self_user_boundary_delete
 from .aws_wildcard_trust_next import normalize_aws_wildcard_role_trust
 from .aws_keyspaces_next import normalize_keyspaces_other_user_credential
 from .aws_keyspaces_management_batch142 import normalize as normalize_aws_keyspaces_management_batch142
+from .aws_keyspaces_data_batch143 import normalize as normalize_aws_keyspaces_data_batch143
 from .aws_codebuild_next import normalize_aws_codebuild_change
 from .aws_codebuild_execution_next import normalize_codebuild_execution
 from .aws_codebuild_sandbox_read_next import normalize as normalize_codebuild_sandbox_read
@@ -273,8 +274,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "e45470f2aecfb0cd9b826635d645e9ccf882f03d"
-DEFAULT_RULE_PACK_SHA256 = "ee67c49643d282e01562332d94c77ef55c180c71ff1ee8cdd64e2c27dc87ceee"
+DEFAULT_RULE_REF = "14812629ff5f0fd10fd451e248f50aa89f5acd38"
+DEFAULT_RULE_PACK_SHA256 = "35435e7b8fab2abdb5f0611bfd5cb790de94a7fdfe51f87eea222cd75c34f894"
 
 
 @dataclass(frozen=True)
@@ -401,6 +402,7 @@ def detect_aws_events(
         trust = normalize_aws_wildcard_role_trust(record)
         keyspaces_credential = normalize_keyspaces_other_user_credential(record)
         keyspaces_management_batch142 = normalize_aws_keyspaces_management_batch142(record)
+        keyspaces_data_batch143 = normalize_aws_keyspaces_data_batch143(record)
         codebuild_change = normalize_aws_codebuild_change(record)
         codebuild_execution = normalize_codebuild_execution(record)
         codebuild_sandbox_read = normalize_codebuild_sandbox_read(record)
@@ -623,6 +625,7 @@ def detect_aws_events(
                 + ([trust] if trust is not None else [])
                 + ([keyspaces_credential] if keyspaces_credential is not None else [])
                 + keyspaces_management_batch142
+                + ([keyspaces_data_batch143] if keyspaces_data_batch143 is not None else [])
                 + ([codebuild_change] if codebuild_change is not None else [])
                 + ([codebuild_execution] if codebuild_execution is not None else [])
                 + ([codebuild_sandbox_read] if codebuild_sandbox_read is not None else [])
