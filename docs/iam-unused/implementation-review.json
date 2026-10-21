@@ -788,7 +788,8 @@
       "object_family": "federated_identity_credentials",
       "disposition": "no_sound_universal_inactivity_verdict",
       "checks": [],
-      "evidence_boundary": "Graph/ARM federated credential declarations expose issuer, subject and audience, without universal credential-specific successful-use timestamps. Positive configured trust does not prove activity and empty logs do not prove inactivity."
+      "evidence_boundary": "Graph/ARM declarations expose issuer, subject and audiences, not a complete credential-use interval. Graph beta sign-in events can identify federatedCredentialId and successful exchanges when available; this collector does not currently collect that credential-bound log stream. A complete declaration or an empty retained log cannot establish 90-day inactivity.",
+      "activity_source": "https://learn.microsoft.com/en-us/graph/api/resources/signin?view=graph-rest-beta"
     },
     {
       "provider": "azure",

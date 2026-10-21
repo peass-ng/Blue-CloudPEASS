@@ -1,41 +1,28 @@
 # GCP Directory and federated / external identity completion helpers
 
-This work adds isolated read-only helpers. They are **not yet registered native
-controls**. The current structural pool/provider and Kubernetes RBAC controls
-remain the executed checks. No absent audit event or object creation date is
-interpreted as inactivity.
+The Directory user collector is integrated into the native GCP collection path.
+The federation and Kubernetes external-subject helpers remain optional evidence
+parsers, not registered unused-object controls. No absent audit event or object
+creation date is interpreted as inactivity.
 
 ## GCP Directory multi-project binding
 
 `peaso/collectors/gcp_unused_iam_directory_completion_20261021.py` provides
-`bind_project(collector, scope)` and `collect_users(collector)`. Every selected
-project gets its own CRM v3 project, folder, and organization GET chain. The
+`bind_project(collector, scope)` and `collect_users(collector)`. Each selected
+project gets its own CRM v3 project, folder and organization GET chain. The
 organization's top-level `directoryCustomerId` binds that project to one
-Workspace customer. The helper lists only that customer for the same project
-scope, rejects foreign customer IDs and duplicates, and attaches the chain to
-each user. One project failing cannot authorize another project's users.
+Workspace customer. The collector lists that customer within the matching
+project scope, rejects foreign customer IDs and duplicates, and attaches the
+verified chain to each user.
 
-Exact root wiring:
-
-1. In `GCPCollector.workspace_directory`, exclude `workspace_user` from its
-   final collection loop; retain its existing role and role-assignment reads.
-2. At the existing workspace-directory call site in `peaso/collectors/gcp.py`,
-   call `collect_users(self)` from the new module when `workspace_user` is in
-   `self.needed`, then call `self.workspace_directory()` when role or assignment
-   inventory is needed. Keep the existing `workspace_user_activity` dependent
-   collection after this call. Do not use `my_customer` as a binding for this
-   control.
-3. Keep `unused_iam_gcp_directory.evaluate_user` as the native evaluator. Its
-   `_directory_customer` validation already checks the per-item chain and CRM
-   receipts, so each project should produce a separate workspace user/activity
-   collection and finding scope. Add a two-project native snapshot test before
-   registration acceptance.
-
-The existing collector's `workspace_project_binding()` only accepts a single
-project. Its `workspace_directory()` currently puts user inventory in the first
-scope. The new helper closes that path only after the root wiring above. It does
-not change global Directory roles or assignments, which require their own
-multi-scope review if used for per-project findings.
+`GCPCollector` calls `collect_users(self)` when `workspace_user` is required.
+`workspace_directory()` now collects only roles and role assignments, so it does
+not duplicate user collection or put every user's evidence in the first project.
+The existing `unused_iam_gcp_directory.evaluate_user` evaluator validates each
+item's project/customer chain and CRM read receipts. Native two-project tests
+verify separate customers and that a denied second project cannot invalidate
+positive evidence for the first. This does not extend project-specific authority
+to unrelated Directory role assignments.
 
 ## GCP federation audit usage
 

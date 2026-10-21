@@ -4,7 +4,7 @@ The target is native Hardening findings for unused identities, credentials and
 permissions in AWS, GCP, Azure and Kubernetes. Every resulting control must carry
 HackTricks Cloud Best Practices membership and any independently justified source
 compliance mappings. A result in the Least Privilege table does not satisfy the
-Hardening requirement. The implementation is **not complete**.
+Hardening requirement. The native implementation covers 32 of the 38 reviewed IAM families with bounded activity or structural-consumer evidence. Six families retain explicit source limitations; this is not a claim that every identity has complete usage telemetry. Main integration and production acceptance are still pending.
 
 `coverage-review.json` is a reproducible inventory of 38 object families, generated
 with:
@@ -205,3 +205,14 @@ The local network batch now registers 20 source-supported controls across all fo
 Six existing report-based inactivity IDs now share fresh report/identity/lifetime validation. Console-only checks assess passwords, and key-only checks assess keys; neither family borrows a passing or failing observation from the other. A newly created credential without recorded use cannot fail a 45-day inactivity interval. Exact enabled credential slots and recorded dates are retained.
 
 The existing Access Analyzer findings control is included in HackTricks `unused_assets`; ACTIVE unused permissions remain Hardening evidence with exact provider permission detail and configured observation days, even when an unrelated analyzer read is partial. This is independent of the Least Privilege table.
+
+## Azure federated credential telemetry
+
+Federated identity credential declarations contain trust configuration rather
+than a usage history. Microsoft Graph beta sign-in events can include
+`federatedCredentialId`, allowing an available successful event to identify the
+credential used. This release does not collect that credential-bound event stream;
+it does not claim an unused FID finding from missing logs. See the
+[Graph sign-in resource](https://learn.microsoft.com/en-us/graph/api/resources/signin?view=graph-rest-beta).
+A retained event interval also needs verified tenant/credential identity,
+coverage, retention and lifetime before absence could support inactivity.
