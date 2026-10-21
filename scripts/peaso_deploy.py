@@ -50,6 +50,8 @@ RUNTIME_ADMISSION_INPUTS = {
 # Exact public inputs needed to reproduce the shipped compiler, provenance and
 # tests. Explicit paths/globs only: no .work drafts, caches or private files.
 REPRODUCTION_INPUT_PATTERNS = (
+    "tests/test_snapshot_resource_identity_finite_source.py",
+    "tests/test_compliance_reviewed_native_aliases.py",
     "tests/test_unused_iam_access_analyzer_hardening.py",
     'tests/test_unused_network_aws_target_group.py',
     'tests/test_unused_network_gcp_native_completion.py',

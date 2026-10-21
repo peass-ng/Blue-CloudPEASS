@@ -1,7 +1,7 @@
 """Presence/MFA and each bucket OR account setting, with honest joins."""
 import copy
 import pytest
-from peaso.checks import CHECKS, aws_a_s3 as rules
+from peaso.checks import CHECKS, aws_a_s3 as rules, evaluate_check
 from peaso.checks.fixtures import CASES
 from peaso.checks.aws_a_facts import scope_fixture
 
@@ -25,28 +25,35 @@ def test_versioning_enabled_does_not_imply_mfa_delete():
     assert check.evaluate({"Versioning": {"Status": "Enabled"}}, {})[0] == "UNKNOWN"
 
 
-@pytest.mark.parametrize("field", rules.BLOCKS)
+BLOCKS = ("BlockPublicAcls", "BlockPublicPolicy", "IgnorePublicAcls", "RestrictPublicBuckets")
+OLD_ID = "aws.a.s3.bucket_account_public_blocks"
+NEW_ID = "aws.s3.public_access_block"
+ACCOUNT_BAD = {"PublicAccessBlockConfiguration": {field: False for field in BLOCKS}}
+CONTEXT = {"scope": "123456789012/us-east-1"}
+
+
+@pytest.mark.parametrize("field", BLOCKS)
 def test_one_missing_preventive_control_is_not_satisfied_by_other_controls(field):
-    check = REGISTRY["aws.a.s3.bucket_account_public_blocks"]
-    bucket = {key: key != field for key in rules.BLOCKS}
+    bucket = {key: key != field for key in BLOCKS}
     item = {"PublicAccessBlock": {"PublicAccessBlockConfiguration": bucket}}
-    idx = {**scope_fixture("s3_account_public_access_block", [copy.deepcopy(rules.ACCOUNT_BAD)]), "context": rules.CONTEXT}
-    assert check.evaluate(item, idx)[0] == "FAIL"
+    idx = {**scope_fixture("s3_account_public_access_block", [copy.deepcopy(ACCOUNT_BAD)]), "context": CONTEXT}
+    assert evaluate_check(OLD_ID, item, idx)[0] == "FAIL"
     idx["collections"]["s3_account_public_access_block"][0]["items"][0]["PublicAccessBlockConfiguration"][field] = True
-    assert check.evaluate(item, idx)[0] == "PASS"
+    assert evaluate_check(OLD_ID, item, idx)[0] == "PASS"
+    assert evaluate_check(OLD_ID, item, idx)[0] == evaluate_check(NEW_ID, item, idx)[0]
 
 
 def test_unverified_or_malformed_account_cannot_supply_bucket_controls():
-    check = REGISTRY["aws.a.s3.bucket_account_public_blocks"]
-    item = copy.deepcopy(CASES[check.id]["pass"])
-    idx = copy.deepcopy(CASES[check.id]["index"])
+    item = {"PublicAccessBlock": {"PublicAccessBlockConfiguration": {field: False for field in BLOCKS}}}
+    idx = {**scope_fixture("s3_account_public_access_block", [{"PublicAccessBlockConfiguration": {field: True for field in BLOCKS}}]), "context": CONTEXT}
     idx["collections"]["s3_account_public_access_block"][0]["account_id"] = "210987654321"
-    assert check.evaluate(item, idx)[0] == "UNKNOWN"
-    idx = copy.deepcopy(CASES[check.id]["index"])
+    assert evaluate_check(OLD_ID, item, idx)[0] == "UNKNOWN"
+    idx = {**scope_fixture("s3_account_public_access_block", [{"PublicAccessBlockConfiguration": {field: True for field in BLOCKS}}]), "context": CONTEXT}
     idx["collections"]["s3_account_public_access_block"][0]["items"][0]["PublicAccessBlockConfiguration"]["BlockPublicPolicy"] = "true"
-    assert check.evaluate(item, idx)[0] == "UNKNOWN"
+    assert evaluate_check(OLD_ID, item, idx)[0] == "UNKNOWN"
+    assert evaluate_check(OLD_ID, {**item, "AccountId": "210987654321"}, idx)[0] == "UNKNOWN"
 
 
 def test_all_bucket_controls_prove_or_result_without_unavailable_account():
-    item = {"PublicAccessBlock": {"PublicAccessBlockConfiguration": {field: True for field in rules.BLOCKS}}}
-    assert REGISTRY["aws.a.s3.bucket_account_public_blocks"].evaluate(item, {})[0] == "PASS"
+    item = {"PublicAccessBlock": {"PublicAccessBlockConfiguration": {field: True for field in BLOCKS}}}
+    assert evaluate_check(OLD_ID, item, {})[0] == "PASS"

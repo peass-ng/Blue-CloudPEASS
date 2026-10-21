@@ -153,6 +153,12 @@ def group_findings(findings, *, observations=False):
 def summary(group):
     counts = group.get("status_counts", {})
     status = group.get("status", "UNKNOWN")
+    if group.get("check_id") == "analysis.exposed_privileged_workload" and status == "FAIL":
+        number = group.get("affected_asset_count", 0)
+        noun = "workload" if number == 1 else "workloads"
+        return (f"{number} {noun} are linked to configured public entry points and use identities with recorded high-impact grants.\n"
+            "If one of these workloads is compromised, its identity could be used against resources covered by those grants.\n"
+            "That may affect the people or data those resources serve.")
     affected = counts.get(status, 0) + (counts.get("DENIED", 0) if status == "UNKNOWN" else 0)
     noun = "assets" if group.get("affected_asset_count") else "scopes"
     number = group.get("affected_asset_count") or len(group.get("affected_scopes", [])) or affected

@@ -2150,3 +2150,31 @@ def test_custom_role_consumers_require_root_and_complete_resource_policy_invento
     assert finding['status'] == expected, finding['evidence']
     assert 'HackTricks Cloud Best Practices' in finding['frameworks']
     if expected == 'FAIL': assert finding['evidence']['included_permissions'] == role['includedPermissions']
+
+
+
+def test_backend_service_collects_healthy_vm_identity_without_guessing_group_members():
+    base = "https://www.googleapis.com/compute/v1/projects/p-one"
+    service = base + "/global/backendServices/web"
+    group = base + "/zones/us-central1-a/instanceGroups/web"
+    vm = base + "/zones/us-central1-a/instances/web"
+    def resolver(request):
+        if request["method"] == "POST":
+            assert request["url"] == service + "/getHealth"
+            assert request["body"] == {"group": group}
+            return {"healthStatus": [{"instance": vm, "healthState": "HEALTHY"}]}
+        return {"items": {"global": {"backendServices": [{"name": "web", "selfLink": service,
+            "backends": [{"group": group}]}]}}}
+    result, transport = snapshot(["backend_service_health"], resolver)
+    health = collection(result, "backend_service_health")["items"][0]
+    assert health["collection_status"] == "collected"
+    assert health["groups"][0]["healthStatus"] == [{"instance": vm, "healthState": "HEALTHY"}]
+    assert [request["method"] for request in transport.requests] == ["GET", "POST"]
+    def denied(request):
+        if request["method"] == "POST":
+            raise gcp.ReadError("denied", "missing_compute_backend_service_get")
+        return resolver(request)
+    result, _ = snapshot(["backend_service_health"], denied)
+    health = collection(result, "backend_service_health")["items"][0]
+    assert health["collection_status"] == "partial"
+    assert health["groups"][0]["collection_status"] == "denied"

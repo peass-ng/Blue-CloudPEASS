@@ -7,6 +7,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from peaso.attack_detection import Rule, detect_aws_events
+from peaso.attack_detection.catalog import RuleCatalog
 from peaso.auth import Identity
 from peaso.server import create_app
 from peaso.server.attack_logs import LogAccessError, analyze_aws_source, check_aws_source
@@ -32,7 +33,7 @@ def test_access_token_is_bound_to_source_and_tenant(tmp_path, monkeypatch):
     monkeypatch.setattr("peaso.attack_detection.load_rules", lambda *args, **kwargs: (TEST_RULE,))
     monkeypatch.setattr("peaso.server.attack_logs.check_aws_source", lambda *args: {
         "account_id": "123456789012", "source_status": "accessible", "coverage": "readable"})
-    monkeypatch.setattr("peaso.server.attack_logs.analyze_aws_source", lambda *args: {
+    monkeypatch.setattr("peaso.server.attack_logs.analyze_aws_source", lambda *args, **kwargs: {
         "coverage": {"events_read": 0}, "detections": []})
     settings = Settings(state_dir=tmp_path / "state", identity_dir=tmp_path / "identity")
     with TestClient(create_app(settings, authenticator=IdentityStub()), base_url="http://localhost:8000") as client:
@@ -57,6 +58,35 @@ def test_access_token_is_bound_to_source_and_tenant(tmp_path, monkeypatch):
         assert "Connector settings changed" in stale.json()["detail"]
 
 
+def test_latest_catalog_is_bound_to_access_token_and_reported(tmp_path, monkeypatch):
+    calls = []
+    def selected(mode, *, product, commit=None, digest=None):
+        calls.append((mode, product, commit, digest))
+        return RuleCatalog("latest", "a" * 40, "b" * 64, (TEST_RULE,))
+    monkeypatch.setattr("peaso.attack_detection.catalog.select_catalog", selected)
+    monkeypatch.setattr("peaso.server.attack_logs.check_aws_source", lambda *args: {
+        "account_id": "123456789012", "source_status": "accessible", "coverage": "readable"})
+    monkeypatch.setattr("peaso.server.attack_logs.analyze_aws_source", lambda *args, **kwargs: {
+        "coverage": {"events_read": 0}, "detections": []})
+    settings = Settings(state_dir=tmp_path / "state", identity_dir=tmp_path / "identity")
+    with TestClient(create_app(settings, authenticator=IdentityStub()), base_url="http://localhost:8000") as client:
+        client.headers["Authorization"] = "Bearer owner"
+        saved = client.post("/api/connectors", json={"name": "AWS", "provider": "aws", "auth": {
+            "method": "access_keys", "aws_access_key_id": "test", "aws_secret_access_key": "secret"},
+            "scopes": [], "options": {}})
+        source = {**SOURCE, "connector_id": saved.json()["id"], "catalog_mode": "latest"}
+        checked = client.post("/api/attack-analysis/check-access", json=source)
+        assert checked.json()["status"] == "pass"
+        assert checked.json()["catalog"]["commit"] == "a" * 40
+        token = checked.json()["check_token"]
+        result = client.post("/api/attack-analysis/run", json={**source, "check_token": token})
+        assert result.status_code == 200
+        assert result.json()["catalog"]["sha256"] == "b" * 64
+        assert calls == [("latest", "aws", None, None), ("latest", "aws", "a" * 40, "b" * 64)]
+        changed = client.post("/api/attack-analysis/run", json={**source, "catalog_mode": "pinned", "check_token": token})
+        assert changed.status_code == 422
+
+
 def test_entra_access_check_does_not_authorize_analysis_without_context(tmp_path, monkeypatch):
     monkeypatch.setattr("peaso.server.entra_attack_logs.check_entra_source", lambda *args: {
         "source_status": "accessible", "coverage": {"events_read": 0, "detection_status": "global_admin_self_grants_only"}})
@@ -79,7 +109,7 @@ def test_entra_access_check_does_not_authorize_analysis_without_context(tmp_path
                           selection={"event.source": "entra.directoryAudit",
                                      "event.name": "global_admin_self_assignment"})
         monkeypatch.setattr("peaso.attack_detection.load_rules", lambda *args, **kwargs: (entra_rule,))
-        monkeypatch.setattr("peaso.server.entra_attack_logs.analyze_entra_source", lambda *args: {
+        monkeypatch.setattr("peaso.server.entra_attack_logs.analyze_entra_source", lambda *args, **kwargs: {
             "coverage": {"events_read": 0, "truncated": False}, "detections": []})
         allowed = client.post("/api/attack-analysis/check-access", json=source)
         assert allowed.status_code == 200 and allowed.json()["status"] == "pass"

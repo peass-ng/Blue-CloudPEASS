@@ -159,7 +159,10 @@ def make_snapshot(provider, scopes, collections, *, created_at=None, metadata=No
 
 def resource_id(provider, kind, scope, item):
     identifiers = {"security_group": "GroupId", "vpc": "VpcId", "subnet": "SubnetId", "instance": "InstanceId",
-                   "route_table": "RouteTableId", "ebs_volume": "VolumeId", "network_interface": "NetworkInterfaceId"}
+                   "route_table": "RouteTableId", "ebs_volume": "VolumeId", "network_interface": "NetworkInterfaceId",
+                   "lambda_function": "FunctionArn", "apigateway_domain_name": "domainName",
+                   "apigatewayv2_domain_name": "DomainName", "http_api": "ApiId",
+                   "ecs_task": "taskArn", "ecs_service": "serviceArn", "ecs_task_definition": "taskDefinitionArn"}
     for explicit in ("_resource_id", "native_id"):
         if isinstance(item.get(explicit), str):
             return item[explicit]

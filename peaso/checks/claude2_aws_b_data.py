@@ -10,7 +10,7 @@ import re
 from datetime import timedelta
 from fnmatch import fnmatchcase
 
-from . import result, unknown
+from . import alias_check, result, unknown
 from .facts import Unavailable, get, list_of_objects, complete_items, optional
 from .fixtures import nest
 from .claude2_aws_b_common import (install, flag, detail, detail_list, absent_or, strings, text, clock, parse_time, account,
@@ -1042,9 +1042,7 @@ def _ec_public(cid, title, rows, classify, note):
 
 _ec_public("aws.c2b.elasticache.cluster_public_subnet_prowler", "ElastiCache cluster does not use public subnets", [P + "elasticache_cluster_uses_public_subnet"],
     subnet_is_public_prowler, "Prowler: a subnet is public when its effective route table has 0.0.0.0/0 to an igw-. Clusters without a subnet group pass.")
-_ec_public("aws.c2b.elasticache.cluster_public_subnet", "ElastiCache cluster has no subnet routed to an internet gateway",
-    [C + "elasticache_cluster_no_public_subnet"], subnet_is_public_prowler,
-    "Semantic correction to pinned Steampipe SQL: its NAT default-route branch describes outbound access, not public ingress; classify only an effective 0.0.0.0/0 route to igw-.")
+alias_check("aws.c2b.elasticache.cluster_public_subnet", "aws.c2b.elasticache.cluster_public_subnet_prowler")
 
 
 @install("aws.c2b.elasticache.cluster_no_default_subnet_group", "elasticache_cluster", "ElastiCache cluster does not use the default subnet group",

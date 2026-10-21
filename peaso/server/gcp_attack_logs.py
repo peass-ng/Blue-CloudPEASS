@@ -167,7 +167,7 @@ def _entries(headers, kind, project, cluster, *, max_pages):
     return events, truncated
 
 
-def _run(auth, scopes, options, settings, source, *, analyze):
+def _run(auth, scopes, options, settings, source, *, analyze, rules=None):
     kind, project, cluster = _source(auth, scopes, options, source)
     credentials = None
     try:
@@ -189,7 +189,8 @@ def _run(auth, scopes, options, settings, source, *, analyze):
                              if not events else "Cloud Logging returned audit entries from the last 24 hours. ")
                             + "Data Access coverage is not proved by this check; it depends on logging configuration and private-log access."}
     from peaso.attack_detection import detect_gcp_events, detect_kubernetes_events
-    detections = detect_gcp_events(events) if kind == "gcp_audit" else detect_kubernetes_events(events)
+    detector = detect_gcp_events if kind == "gcp_audit" else detect_kubernetes_events
+    detections = detector(events) if rules is None else detector(events, rules)
     return {"coverage": {"project_id": project, "cluster_id": cluster if kind == "gke_audit" else None,
                           "source": kind, "events_read": len(events), "truncated": truncated,
                           "window_hours": 24},
@@ -200,5 +201,5 @@ def check_gcp_source(auth, scopes, options, settings, source):
     return _run(auth, scopes, options, settings, source, analyze=False)
 
 
-def analyze_gcp_source(auth, scopes, options, settings, source):
-    return _run(auth, scopes, options, settings, source, analyze=True)
+def analyze_gcp_source(auth, scopes, options, settings, source, *, rules=None):
+    return _run(auth, scopes, options, settings, source, analyze=True, rules=rules)

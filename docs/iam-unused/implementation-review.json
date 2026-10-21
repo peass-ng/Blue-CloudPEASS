@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scope": "Current implementation review for all 38 IAM families; dispositions are not a claim of a completed live scan or global usage coverage",
-  "catalog_sha256": "8a33dd8447b64a029ea388490037c23ca933c5dab6719df4427491c2fbd508d0",
+  "catalog_sha256": "a1558a436c64656abc068b4cf1af1b917ea8743e0f67808a234e77b72808bb63",
   "families": [
     {
       "provider": "aws",

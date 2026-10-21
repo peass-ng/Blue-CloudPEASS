@@ -1,5 +1,5 @@
 """Redshift native configuration policies; no SQL connections or log contents."""
-from . import result, unknown
+from . import alias_check, result, unknown
 from .facts import get, optional, complete_items
 from .aws_b_core import install, scalar, threshold, IDS as ALL_IDS
 
@@ -9,8 +9,7 @@ scalar("aws.b.redshift.allow_version_upgrade", "redshift_cluster", "AllowVersion
        "Redshift cluster permits version upgrades", "redshift_cluster_automatic_upgrade_major_versions_enabled")
 scalar("aws.b.redshift.enhanced_vpc_routing", "redshift_cluster", "EnhancedVpcRouting", True, False,
        "Redshift cluster enables enhanced VPC routing", "redshift_cluster_enhanced_vpc_routing_enabled")
-scalar("aws.b.redshift.no_public_endpoint", "redshift_cluster", "PubliclyAccessible", False, True,
-       "Redshift cluster disables public endpoint configuration", "redshift_cluster_prohibit_public_access", category="exposure")
+alias_check("aws.b.redshift.no_public_endpoint", "aws.cb.redshift.not_publicly_accessible")
 scalar("aws.b.redshift.audit_logging", "redshift_cluster", "Logging.LoggingEnabled", True, False,
        "Redshift cluster enables audit log delivery configuration", "redshift_cluster_audit_logging_enabled")
 threshold("aws.b.redshift.snapshots_seven_days", "redshift_cluster", "AutomatedSnapshotRetentionPeriod", 7, 7, 6,

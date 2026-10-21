@@ -11,7 +11,7 @@ from pathlib import Path
 from types import MappingProxyType
 
 REGISTRY_PATH = Path(__file__).resolve().parent / 'checks/finding_types.json'
-REGISTRY_SHA256 = '38086f1121219cedc9aa69ab9fe110da6ec23b0d598963b322b74bce92117f5c'
+REGISTRY_SHA256 = '064380c672edee40e4c97bf3d4342c6079c51e1d5f05dd154a1b412a6b858b88'
 MAX_REGISTRY_BYTES = 1024 * 1024
 ALIASES = MappingProxyType({
     'gcp.compute.os_login': 'gcp.ports.compute_oslogin_metadata_precedence',
@@ -19,6 +19,13 @@ ALIASES = MappingProxyType({
     'aws_fedramp_rds_cluster_members_enhanced_monitoring': 'aws.nist.rds_cluster_member_enhanced_monitoring',
     'aws_g6_redshift_automatic_version_upgrade': 'aws.cb.redshift.allow_version_upgrade',
     'aws.pci.cloudtrail.authentication_events': 'aws.gap.cloudtrail.region_logging_management_events',
+    'aws.a.cloudwatch.cross_account_role_absent': 'aws.claude2_a.cloudwatch.cross_account_sharing_role_absent',
+    'aws.a.s3.bucket_account_public_blocks': 'aws.s3.public_access_block',
+    'aws.b.redshift.no_public_endpoint': 'aws.cb.redshift.not_publicly_accessible',
+    'aws.c2b.ecs.service_no_public_ip': 'aws.c2b.ecs.awsvpc_service_no_public_ip',
+    'aws.c2b.elasticache.cluster_public_subnet': 'aws.c2b.elasticache.cluster_public_subnet_prowler',
+    'aws.cb.sns.policy_prohibit_public_access_perimeter': 'aws.cb.sns.policy_no_unrestricted_wildcard',
+    'azure.claude.aks_authorized_ip_ranges': 'azure.aks.api_server_restricted',
 })
 
 
@@ -60,7 +67,7 @@ def install():
 
 
 SCOPE_PATH = Path(__file__).resolve().parent / 'checks/hacktricks_scope.json'
-SCOPE_SHA256 = 'a989e3464e01dad58cc5e224a7bcf004da250c825751b62e96f02b3b4a069e10'
+SCOPE_SHA256 = '77ad060aa33f2ea1b7b142ae4d393895c8024c9d0aa5e46b4a2d5f6ff9fa20b4'
 
 
 @lru_cache(maxsize=1)

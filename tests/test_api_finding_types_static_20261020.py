@@ -105,8 +105,8 @@ with tempfile.TemporaryDirectory() as tmp:
  from peaso.engine import get_catalog
  from peaso.checks import CHECKS
  catalog=get_catalog()
- assert len(CHECKS)==4115
- assert len(catalog['checks'])==3496
+ assert len(CHECKS)==4108
+ assert len(catalog['checks'])==3490
 '''
     result=subprocess.run([sys.executable,'-c',program],cwd=ROOT,capture_output=True,text=True,timeout=180)
     assert result.returncode==0, result.stderr

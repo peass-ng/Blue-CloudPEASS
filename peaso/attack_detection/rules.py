@@ -12,12 +12,14 @@ from copy import deepcopy
 from dataclasses import dataclass, replace
 from functools import lru_cache
 import os
+import re
 from pathlib import Path
 from typing import Any
 
 import yaml
 
 from .aws import normalize_aws_cloudtrail
+from .aws_raw_cloudtrail import normalize as normalize_aws_raw_cloudtrail
 from .aws_login_profile_next import normalize_aws_other_user_login_profile, normalize_aws_other_user_login_profile_update
 from .aws_security_controls import normalize_aws_security_control
 from .aws_trail_update import normalize_aws_trail_update
@@ -28,6 +30,8 @@ from .aws_role_boundary_next import normalize_aws_role_boundary_delete
 from .aws_user_boundary_self_next import normalize_aws_self_user_boundary_delete
 from .aws_wildcard_trust_next import normalize_aws_wildcard_role_trust
 from .aws_keyspaces_next import normalize_keyspaces_other_user_credential
+from .aws_keyspaces_timestamps_next import normalize as normalize_keyspaces_timestamps
+from .aws_sagemaker_pipeline_execution_next import normalize as normalize_sagemaker_pipeline_execution
 from .aws_codebuild_next import normalize_aws_codebuild_change
 from .aws_codebuild_execution_next import normalize_codebuild_execution
 from .aws_codebuild_sandbox_read_next import normalize as normalize_codebuild_sandbox_read
@@ -276,6 +280,8 @@ class Rule:
     product: str
     selection: Mapping[str, Any]
     falsepositives: tuple[str, ...] = ()
+    raw_cloudtrail: bool = False
+    resource_path_prefix: str | None = None
 
 
 @dataclass(frozen=True)
@@ -354,6 +360,29 @@ def _parsed_rules(texts: tuple[tuple[str, str], ...], product: str | None) -> tu
             raise ValueError(f"Unsupported detection selection: {name}")
         if any(not isinstance(v, (str, bool, int, list)) or isinstance(v, list) and (not v or any(not isinstance(x, (str, bool, int)) for x in v)) for v in selection.values()):
             raise ValueError(f"Unsupported detection values: {name}")
+        raw_cloudtrail = source.get("x_cloudtrail_raw", False)
+        if raw_cloudtrail is not False:
+            allowed = {"event.source", "event.name", "event.category", "event.outcome",
+                       "event.read_only", "resource.type", "resource.path_scope_checked"}
+            if (raw_cloudtrail is not True or logsource.get("product") != "aws"
+                    or not set(selection).issubset(allowed)
+                    or not {"event.source", "event.name", "event.category",
+                            "event.outcome", "resource.type"}.issubset(selection)
+                    or not isinstance(selection["event.source"], str)
+                    or not isinstance(selection["event.name"], str)
+                    or selection["event.category"] not in {"Management", "Data"}
+                    or selection["event.outcome"] != "success"
+                    or not isinstance(selection["resource.type"], str)):
+                raise ValueError(f"Unsupported raw CloudTrail rule: {name}")
+        resource_path_prefix = source.get("x_cloudtrail_resource_path_prefix")
+        if resource_path_prefix is not None and (
+                raw_cloudtrail is not True
+                or not isinstance(resource_path_prefix, str)
+                or not re.fullmatch(r"/?[A-Za-z0-9][A-Za-z0-9/_:.-]{0,127}", resource_path_prefix)):
+            raise ValueError(f"Unsupported raw CloudTrail resource prefix: {name}")
+        if ((resource_path_prefix is not None and selection.get("resource.path_scope_checked") is not True)
+                or ("resource.path_scope_checked" in selection and resource_path_prefix is None)):
+            raise ValueError(f"Unsupported raw CloudTrail resource prefix: {name}")
         if product is not None and logsource["product"] != product:
             continue
         falsepositives = source.get("falsepositives", [])
@@ -367,6 +396,8 @@ def _parsed_rules(texts: tuple[tuple[str, str], ...], product: str | None) -> tu
             product=logsource["product"],
             selection=dict(selection),
             falsepositives=tuple(falsepositives),
+            raw_cloudtrail=raw_cloudtrail,
+            resource_path_prefix=resource_path_prefix,
         ))
     if not loaded:
         raise ValueError("No detection rules found")
@@ -389,6 +420,8 @@ def detect_aws_events(
         self_user_boundary = normalize_aws_self_user_boundary_delete(record)
         trust = normalize_aws_wildcard_role_trust(record)
         keyspaces_credential = normalize_keyspaces_other_user_credential(record)
+        keyspaces_timestamps = normalize_keyspaces_timestamps(record)
+        sagemaker_pipeline_execution = normalize_sagemaker_pipeline_execution(record)
         codebuild_change = normalize_aws_codebuild_change(record)
         codebuild_execution = normalize_codebuild_execution(record)
         codebuild_sandbox_read = normalize_codebuild_sandbox_read(record)
@@ -600,6 +633,8 @@ def detect_aws_events(
                 + ([self_user_boundary] if self_user_boundary is not None else [])
                 + ([trust] if trust is not None else [])
                 + ([keyspaces_credential] if keyspaces_credential is not None else [])
+                + ([keyspaces_timestamps] if keyspaces_timestamps is not None else [])
+                + ([sagemaker_pipeline_execution] if sagemaker_pipeline_execution is not None else [])
                 + ([codebuild_change] if codebuild_change is not None else [])
                 + ([codebuild_execution] if codebuild_execution is not None else [])
                 + ([codebuild_sandbox_read] if codebuild_sandbox_read is not None else [])
@@ -802,9 +837,11 @@ def detect_aws_events(
                 + ([iam_credential_boundary] if iam_credential_boundary is not None else [])
                 + ([iam_identity_deletion] if iam_identity_deletion is not None else [])
                 + ([iam_credential_deletion] if iam_credential_deletion is not None else [])
-                + ([iam_cert_key_controls] if iam_cert_key_controls is not None else []))
+                + ([iam_cert_key_controls] if iam_cert_key_controls is not None else [])
+                + (normalize_aws_raw_cloudtrail(record) if raw_enabled else []))
 
     selected = rules if rules is not None else load_rules(product="aws")
+    raw_enabled = any(rule.raw_cloudtrail for rule in selected)
     glue_correlation_records: list[Mapping[str, Any]] = []
     cognito_group_records: list[Mapping[str, Any]] = []
     sts_records: list[Mapping[str, Any]] = []
@@ -1191,6 +1228,11 @@ def _detect_events(
                 candidate_indexes.update(buckets.get(key, ()))
             for index in sorted(candidate_indexes):
                 rule = rules[index]
+                if product == "aws" and rule.raw_cloudtrail is not (event.get("__raw_cloudtrail") is True):
+                    continue
+                if (product == "aws" and rule.resource_path_prefix is not None
+                        and not str(event.get("__resource_path", "")).startswith(rule.resource_path_prefix)):
+                    continue
                 if all(any(exact(event.get(field), choice) for choice in expected)
                        if isinstance(expected, list) else exact(event.get(field), expected)
                        for field, expected in rule.selection.items()):
