@@ -91,15 +91,21 @@ def project(snapshot, resources):
                 card["grant_reviews"].append(detail)
 
     if provider == "aws":
+        policies_by_arn = defaultdict(list)
+        for policy_row in by_type["iam_policy"]:
+            arn = policy_row["data"].get("Arn")
+            if isinstance(arn, str) and arn:
+                policies_by_arn[arn].append((policy_row, grants(policy_row)))
         for row in by_type["iam_role"] + by_type["iam_user"]:
             data = row["data"]
             identity = data.get("Arn")
             record(identity, row, data.get("RoleName") or data.get("UserName"))
             review(identity, row)
-            attached = {p.get("PolicyArn") for p in data.get("AttachedManagedPolicies") or []}
-            for policy_row in by_type["iam_policy"]:
-                if policy_row["data"].get("Arn") in attached:
-                    review(identity, row, grants(policy_row), source_row=policy_row)
+            attached = {p.get("PolicyArn") for p in data.get("AttachedManagedPolicies") or []
+                if isinstance(p, dict) and isinstance(p.get("PolicyArn"), str) and p["PolicyArn"]}
+            for policy_arn in sorted(attached):
+                for policy_row, policy_grants in policies_by_arn.get(policy_arn, ()):
+                    review(identity, row, policy_grants, source_row=policy_row)
             federation_review = aws_federated_trust(snapshot, row)
             unpinned = {(r["federated_principal"], r["statement"]) for r in federation_review[2]["federated_trusts"]
                         if r.get("multi_tenant_issuer") and any(p.get("severity") not in {"low", "review"} for p in r["problems"])} if federation_review else set()
