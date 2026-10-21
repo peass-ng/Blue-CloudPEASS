@@ -150,7 +150,7 @@ def check_aws_source(auth, options, source, scopes=None):
     return {"account_id": account, "source_status": "accessible", "coverage": "S3 listing and GetObject succeeded for one CloudTrail object. KMS decrypt was exercised if the object uses SSE-KMS."}
 
 
-def analyze_aws_source(auth, options, source, scopes=None):
+def analyze_aws_source(auth, options, source, scopes=None, *, rules=None):
     session, account = _target_session(auth, options, source.role_arn, source.region, scopes)
     events = []
     coverage = {"account_id": account, "objects_read": 0, "events_read": 0, "truncated": False,
@@ -232,5 +232,5 @@ def analyze_aws_source(auth, options, source, scopes=None):
                 break
     coverage["events_read"] = len(events)
     from peaso.attack_detection import detect_aws_events
-    detections = detect_aws_events(events)
+    detections = detect_aws_events(events) if rules is None else detect_aws_events(events, rules)
     return {"coverage": coverage, "detections": [d.__dict__ for d in detections]}

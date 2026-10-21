@@ -164,7 +164,7 @@ def _read(transport, *, analyze, now, tenant):
     return read, pages, events, candidates, ignored, truncated
 
 
-def _run(auth, scopes, options, source, *, analyze):
+def _run(auth, scopes, options, source, *, analyze, rules=None):
     if _value(source, "kind") != "entra_directory_audit":
         raise LogAccessError("unsupported_log_source")
     tenant = _tenant(auth, source)
@@ -187,7 +187,7 @@ def _run(auth, scopes, options, source, *, analyze):
         return {"source_status": "accessible", "coverage": coverage,
                 "note": "Graph directoryAudits read succeeded. Empty results do not prove that all activities were logged or retained."}
     from peaso.attack_detection import detect_azure_events
-    detections = detect_azure_events(candidates) if candidates else []
+    detections = (detect_azure_events(candidates) if rules is None else detect_azure_events(candidates, rules)) if candidates else []
     return {"coverage": coverage, "events": events,
             "detections": [d.__dict__ for d in detections]}
 
@@ -196,5 +196,5 @@ def check_entra_source(auth, scopes, options, source):
     return _run(auth, scopes, options, source, analyze=False)
 
 
-def analyze_entra_source(auth, scopes, options, source):
-    return _run(auth, scopes, options, source, analyze=True)
+def analyze_entra_source(auth, scopes, options, source, *, rules=None):
+    return _run(auth, scopes, options, source, analyze=True, rules=rules)
