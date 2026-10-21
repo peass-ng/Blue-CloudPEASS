@@ -57,6 +57,7 @@ from .aws_resource_policy_batch104 import normalize_dynamodb_grant as normalize_
 from .aws_dynamodb_data_batch105 import normalize as normalize_aws_dynamodb_data_batch105
 from .aws_dynamodb_data_batch106 import normalize as normalize_aws_dynamodb_data_batch106, correlate_partiql_after_denials as correlate_aws_dynamodb_partiql_denials_batch106
 from .aws_dynamodb_management_batch107 import normalize as normalize_aws_dynamodb_management_batch107
+from .aws_cloudwatch_alarm_batch108 import correlate as correlate_aws_cloudwatch_alarms_batch108
 from .aws_sagemaker_control_next import normalize_aws_sagemaker_control
 from .aws_rolesanywhere_next import normalize as normalize_aws_rolesanywhere
 from .aws_customer_profiles_next import normalize as normalize_aws_customer_profiles
@@ -238,8 +239,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "7ee2550a860c228580952e932a44938a362253df"
-DEFAULT_RULE_PACK_SHA256 = "b8a7e18ee3eb24ee5baa2a252b147ee2f6f19a440309c991fdd7ef774f3ef4ea"
+DEFAULT_RULE_REF = "72816eaba121b6de3fb6a5c6d59b0f6539403c7e"
+DEFAULT_RULE_PACK_SHA256 = "cbda1f08054280e8db2bc6ce254360751e7b3b749c8907effbbb03de6e0b59c3"
 
 
 @dataclass(frozen=True)
@@ -781,8 +782,15 @@ def detect_aws_events(
     chime_media_pipeline_records: list[Mapping[str, Any]] = []
     chime_media_insights_records: list[Mapping[str, Any]] = []
     dynamodb_data_batch106_records: list[Mapping[str, Any]] = []
+    cloudwatch_alarm_batch108_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
+            if (not isinstance(record, Mapping)
+                    or not isinstance(record.get("eventSource"), str)
+                    or not isinstance(record.get("eventName"), str)):
+                continue
+            if record.get("eventSource") == "monitoring.amazonaws.com":
+                cloudwatch_alarm_batch108_records.append(record)
             if record.get("eventSource") == "dynamodb.amazonaws.com":
                 dynamodb_data_batch106_records.append(record)
             if (isinstance(record.get("eventSource"), str)
@@ -964,6 +972,7 @@ def detect_aws_events(
     correlated += correlate_aws_ga_endpoint_replacement(globalaccelerator_records)
     correlated += correlate_aws_resource_policy_validation_batch104(resource_policy_validation_records)
     correlated += correlate_aws_dynamodb_partiql_denials_batch106(dynamodb_data_batch106_records)
+    correlated += correlate_aws_cloudwatch_alarms_batch108(cloudwatch_alarm_batch108_records)
     correlated += correlate_aws_apigateway_portal(apigateway_portal_records)
     correlated += correlate_aws_cloudformation_triggers(cloudformation_trigger_records)
     correlated += correlate_aws_cloudformation_inputs(cloudformation_input_records)
