@@ -256,7 +256,7 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "e782c881798caed88603750f76d1b227efffd2ba"
+DEFAULT_RULE_REF = "9c73f89c6a0891b11405b733b86297e20dd1a266"
 DEFAULT_RULE_PACK_SHA256 = "2f2a9a4813d9d6536fa30be54330a7110fdc25b8dadc3b95a16a6aed318ad5f9"
 
 
