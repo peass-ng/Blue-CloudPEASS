@@ -248,6 +248,34 @@ CASES["aws.htbp.lambda.env_var_names_not_credentials"] = {
     "malformed": _env([1])}
 
 
+@ht_register("aws.htbp.lambda.exec_wrapper_not_configured", "aws", "hardening", "lambda_function",
+             "Lambda function has no execution wrapper configured", "medium", "CM-7",
+             "Review the configured wrapper and attached layer against the approved deployment; remove "
+             "AWS_LAMBDA_EXEC_WRAPPER when it is unexpected. The inventory reads variable names only, never values.",
+             pages=[AWS + "aws-persistence/aws-lambda-persistence/aws-lambda-exec-wrapper-persistence.md"])
+def lambda_exec_wrapper(item, index):
+    get(item, "FunctionName", str)
+    names = get(item, "EnvironmentVariableNames", dict)
+    status = get(names, "collection_status", str)
+    if status not in ("collected", "empty"):
+        raise Unavailable("environment variable names not collected: " + status)
+    values = get(names, "names", list)
+    if any(not isinstance(name, str) for name in values):
+        raise Unavailable("malformed environment variable names")
+    present = "AWS_LAMBDA_EXEC_WRAPPER" in values
+    return result(present, wrapper_key_present=present,
+                  semantics="Name only; inspect approved layer and wrapper behavior to determine intent.")
+
+
+CASES["aws.htbp.lambda.exec_wrapper_not_configured"] = {
+    "pass": _env(["STAGE"]),
+    "pass_empty": _env([], "empty"),
+    "fail": _env(["AWS_LAMBDA_EXEC_WRAPPER", "STAGE"]),
+    "missing": {"FunctionName": "api", "EnvironmentVariableNames": {"collection_status": "denied"}},
+    "malformed": _env([7]),
+}
+
+
 # ---------------------------------------------------------------- ECR registry
 _ECR_PAGES = [AWS + "aws-persistence/aws-ecr-persistence/README.md"]
 

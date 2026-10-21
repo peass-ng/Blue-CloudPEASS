@@ -9,7 +9,7 @@ from peaso.checks.hacktricks_bp_common import HTBP_IDS
 
 REGISTRY = {c.id: c for c in CHECKS}
 IDS = ["aws.htbp.lambda.layer_version_trust_boundary", "aws.htbp.lambda.runtime_updates_not_pinned_manual",
-       "aws.htbp.lambda.env_var_names_not_credentials",
+       "aws.htbp.lambda.env_var_names_not_credentials", "aws.htbp.lambda.exec_wrapper_not_configured",
        "aws.htbp.ecr.registry_policy_trust_boundary", "aws.htbp.ecr.replication_destinations_trust_boundary",
        "aws.htbp.ecr.creation_template_policy_trust_boundary", "aws.htbp.eks.access_entry_principal_trust_boundary",
        "aws.htbp.kms.grant_grantee_trust_boundary", "aws.htbp.opensearch.connection_peer_trust_boundary"]
@@ -20,9 +20,9 @@ def run(cid, item, index=None):
     return REGISTRY[cid].evaluate(copy.deepcopy(item), copy.deepcopy(index if index is not None else CASES[cid].get("index", {})))
 
 
-def test_module_registers_nine_htbp_checks():
+def test_module_registers_ten_htbp_checks():
     assert all(cid in HTBP_IDS and cid in REGISTRY and cid in CASES for cid in IDS)
-    assert len(set(IDS)) == 9
+    assert len(set(IDS)) == 10
 
 
 @pytest.mark.parametrize("cid", IDS)

@@ -61,6 +61,7 @@ from .aws_cloudwatch_alarm_batch108 import correlate as correlate_aws_cloudwatch
 from .aws_cloudwatch_metric_stream_batch109 import normalize as normalize_aws_cloudwatch_metric_stream_batch109, correlate_filter_expansion as correlate_aws_cloudwatch_metric_stream_scope_batch109
 from .aws_cloudwatch_metric_data_batch110 import normalize as normalize_aws_cloudwatch_metric_data_batch110, correlate_stream_changes as correlate_aws_cloudwatch_stream_changes_batch110, correlate_data_burst as correlate_aws_cloudwatch_metric_data_burst_batch110
 from .aws_firehose_sns_batch111 import normalize as normalize_aws_firehose_sns_batch111, correlate_destination_change as correlate_aws_firehose_destination_batch111, correlate_sns_role_rebound as correlate_aws_sns_firehose_role_batch111
+from .aws_lambda_persistence_batch112 import normalize as normalize_aws_lambda_persistence_batch112, correlate as correlate_aws_lambda_persistence_batch112
 from .aws_sagemaker_control_next import normalize_aws_sagemaker_control
 from .aws_rolesanywhere_next import normalize as normalize_aws_rolesanywhere
 from .aws_customer_profiles_next import normalize as normalize_aws_customer_profiles
@@ -242,8 +243,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "43913bb76660c10799bd74cdee9ad7a050cc835b"
-DEFAULT_RULE_PACK_SHA256 = "d1cfda484f692368436a48628f5c19111d89e6b387797a826a628459b0bc5a2f"
+DEFAULT_RULE_REF = "32deadc7c68a822a5023f5d646bb7dd21959172f"
+DEFAULT_RULE_PACK_SHA256 = "69f560a900fe3af4ef8d646e353dfbeb49526b2dd4ac409d57531a7065feff86"
 
 
 @dataclass(frozen=True)
@@ -491,6 +492,7 @@ def detect_aws_events(
         cloudwatch_metric_stream_batch109 = normalize_aws_cloudwatch_metric_stream_batch109(record)
         cloudwatch_metric_data_batch110 = normalize_aws_cloudwatch_metric_data_batch110(record)
         firehose_sns_batch111 = normalize_aws_firehose_sns_batch111(record)
+        lambda_persistence_batch112 = normalize_aws_lambda_persistence_batch112(record)
         lambda_controls = normalize_aws_lambda_controls(record)
         lambda_qualified_grant = normalize_aws_lambda_qualified_grant(record)
         lambda_config = normalize_aws_lambda_config(record)
@@ -684,6 +686,7 @@ def detect_aws_events(
                 + cloudwatch_metric_stream_batch109
                 + cloudwatch_metric_data_batch110
                 + firehose_sns_batch111
+                + lambda_persistence_batch112
                 + ([lambda_controls] if lambda_controls is not None else [])
                 + ([lambda_qualified_grant] if lambda_qualified_grant is not None else [])
                 + ([lambda_config] if lambda_config is not None else [])
@@ -793,6 +796,7 @@ def detect_aws_events(
     dynamodb_data_batch106_records: list[Mapping[str, Any]] = []
     cloudwatch_alarm_batch108_records: list[Mapping[str, Any]] = []
     firehose_sns_batch111_records: list[Mapping[str, Any]] = []
+    lambda_persistence_batch112_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
             if (not isinstance(record, Mapping)
@@ -803,6 +807,8 @@ def detect_aws_events(
                 cloudwatch_alarm_batch108_records.append(record)
             if record.get("eventSource") in {"firehose.amazonaws.com", "sns.amazonaws.com"}:
                 firehose_sns_batch111_records.append(record)
+            if record.get("eventSource") == "lambda.amazonaws.com":
+                lambda_persistence_batch112_records.append(record)
             if record.get("eventSource") == "dynamodb.amazonaws.com":
                 dynamodb_data_batch106_records.append(record)
             if (isinstance(record.get("eventSource"), str)
@@ -990,6 +996,7 @@ def detect_aws_events(
     correlated += correlate_aws_cloudwatch_metric_data_burst_batch110(cloudwatch_alarm_batch108_records)
     correlated += correlate_aws_firehose_destination_batch111(firehose_sns_batch111_records)
     correlated += correlate_aws_sns_firehose_role_batch111(firehose_sns_batch111_records)
+    correlated += correlate_aws_lambda_persistence_batch112(lambda_persistence_batch112_records)
     correlated += correlate_aws_apigateway_portal(apigateway_portal_records)
     correlated += correlate_aws_cloudformation_triggers(cloudformation_trigger_records)
     correlated += correlate_aws_cloudformation_inputs(cloudformation_input_records)
