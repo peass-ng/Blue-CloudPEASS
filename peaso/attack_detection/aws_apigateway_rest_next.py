@@ -12,7 +12,8 @@ from typing import Any
 from urllib.parse import urlparse
 
 
-_NAMES = {"CreateApiKey", "CreateUsagePlanKey", "GetApiKey", "PutIntegration", "PutMethodResponse",
+_NAMES = {"CreateApiKey", "CreateUsagePlanKey", "GetApiKey", "PutIntegration", "UpdateAuthorizer",
+          "UpdateMethod", "PutMethodResponse",
           "PutIntegrationResponse", "UpdateGatewayResponse", "UpdateRestApi",
           "CreateDeployment"}
 _ACCOUNT = re.compile(r"[0-9]{12}\Z")

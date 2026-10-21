@@ -49,6 +49,7 @@ from .aws_appsync_five_next import normalize as normalize_aws_appsync_five
 from .aws_appsync_read_function_next import normalize as normalize_aws_appsync_read_function
 from .aws_appsync_signed_role_next import normalize as normalize_aws_appsync_signed_role
 from .aws_apigateway_rest_next import correlate as correlate_aws_apigateway_rest
+from .aws_apigateway_authorizer_batch100 import correlate as correlate_aws_apigateway_authorizer_batch100
 from .aws_sagemaker_control_next import normalize_aws_sagemaker_control
 from .aws_rolesanywhere_next import normalize as normalize_aws_rolesanywhere
 from .aws_customer_profiles_next import normalize as normalize_aws_customer_profiles
@@ -230,8 +231,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "cf1f9d01e646241e6f9c3928d4221af8f9405840"
-DEFAULT_RULE_PACK_SHA256 = "b8faecd070d6f30bb49721e7c1bc20fa54f10295b83f0a70dc282dfe0c797cb8"
+DEFAULT_RULE_REF = "83776898e98511ba10cad433712f2b30d6cf70b5"
+DEFAULT_RULE_PACK_SHA256 = "7c61c3f0f73762b704a2736cb8b50c3eff4366e08c944deb18f44e59cd28b60e"
 
 
 @dataclass(frozen=True)
@@ -787,7 +788,7 @@ def detect_aws_events(
                 athena_stored_records.append(record)
             if record.get("eventSource") == "athena.amazonaws.com" and record.get("eventName") in {"CreateWorkGroup", "CreateNotebook", "UpdateNotebook", "StartSession", "CreatePresignedNotebookUrl", "StartCalculationExecution", "GetSessionEndpoint"}:
                 athena_spark_records.append(record)
-            if record.get("eventSource") == "apigateway.amazonaws.com" and record.get("eventName") in ("CreateApiKey", "CreateUsagePlanKey", "GetApiKey", "PutIntegration", "PutMethodResponse", "PutIntegrationResponse", "UpdateGatewayResponse", "UpdateRestApi", "CreateDeployment"):
+            if record.get("eventSource") == "apigateway.amazonaws.com" and record.get("eventName") in ("CreateApiKey", "CreateUsagePlanKey", "GetApiKey", "PutIntegration", "UpdateAuthorizer", "UpdateMethod", "PutMethodResponse", "PutIntegrationResponse", "UpdateGatewayResponse", "UpdateRestApi", "CreateDeployment"):
                 apigateway_rest_records.append(record)
             if record.get("eventSource") == "apigateway.amazonaws.com" and record.get("eventName") in {"UpdatePortal", "PublishPortal", "DisablePortal", "DeletePortal"}:
                 apigateway_portal_records.append(record)
@@ -926,6 +927,7 @@ def detect_aws_events(
     correlated += correlate_aws_athena_spark_v3(athena_spark_records)
     correlated += correlate_aws_athena_spark35_endpoint(athena_spark_records)
     correlated += correlate_aws_apigateway_rest(apigateway_rest_records)
+    correlated += correlate_aws_apigateway_authorizer_batch100(apigateway_rest_records)
     correlated += correlate_aws_apigateway_portal(apigateway_portal_records)
     correlated += correlate_aws_cloudformation_triggers(cloudformation_trigger_records)
     correlated += correlate_aws_cloudformation_inputs(cloudformation_input_records)
