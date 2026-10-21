@@ -58,7 +58,7 @@ const pages = [
   },
   { label: "Top 15 Actions", icon: ShieldCheck, ai: true, group: "SECURITY INSIGHTS", description: "Review the security changes to prioritize." },
   {
-    label: "Hardening Findings",
+    label: "Hardening & Compliance",
     icon: ShieldCheck,
     description: "Review configuration controls across your cloud estate.",
   },
@@ -84,7 +84,7 @@ const pages = [
     description: "See the connections behind your infrastructure.",
   },
   {
-    label: "Network Findings",
+    label: "Network Architecture",
     icon: ShieldCheck,
     ai: true,
     description: "Review AI network findings and recommended connectivity changes.",
@@ -107,10 +107,15 @@ const pages = [
     description: "Set up access, run an assessment and interpret its evidence.",
   },
 ];
+const pageAliases: Record<string, string> = {
+  "AI Review": "Top 15 Actions", "Top 15 Recommended Actions": "Top 15 Actions",
+  "Hardening Findings": "Hardening & Compliance", "Network Findings": "Network Architecture",
+};
+const normalizePage = (page: string) => pageAliases[page] || page;
 export function App() {
   const [page, setPage] = useState(() => {
     const raw = decodeURIComponent(location.hash.slice(1));
-    const p = ["AI Review", "Top 15 Recommended Actions"].includes(raw) ? "Top 15 Actions" : raw;
+    const p = normalizePage(raw);
     return pages.some((x) => x.label === p) ? p : "Dashboard";
   });
   const [demoRequested, setDemoRequested] = useState(true);
@@ -145,6 +150,7 @@ export function App() {
   );
   const pageInfo = pages.find((p) => p.label === page) || pages[0];
   function navigate(p: string) {
+    p = normalizePage(p);
     setPage(p);
     location.hash = encodeURIComponent(p);
   }
@@ -165,7 +171,7 @@ export function App() {
   useEffect(() => {
     const change = () => {
       const raw = decodeURIComponent(location.hash.slice(1));
-      const p = ["AI Review", "Top 15 Recommended Actions"].includes(raw) ? "Top 15 Actions" : raw;
+      const p = normalizePage(raw);
       setPage(pages.some((x) => x.label === p) ? p : "Dashboard");
     };
     window.addEventListener("hashchange", change);
@@ -191,10 +197,10 @@ export function App() {
     setSelected("");
   }
   const insight = [
-    "Hardening Findings",
+    "Hardening & Compliance",
     "Exposure",
     "Top 15 Actions",
-    "Network Findings",
+    "Network Architecture",
     "Least Privilege",
     "Privilege Escalation Map",
     "Network Map",
@@ -240,7 +246,7 @@ export function App() {
         <nav aria-label="Primary navigation">
           {pages.filter((p) => p.label !== "Help" && (!p.ai || aiAvailable)).map((p) => (
             <div key={p.label}>
-              {(p.group || (p.label === "Hardening Findings" && !aiAvailable)) && <div className="nav-group">{p.group || "SECURITY INSIGHTS"}</div>}
+              {(p.group || (p.label === "Hardening & Compliance" && !aiAvailable)) && <div className="nav-group">{p.group || "SECURITY INSIGHTS"}</div>}
               <button
                 className={`nav-item ${page === p.label ? "active" : ""}`}
                 onClick={() => navigate(p.label)}
@@ -251,7 +257,8 @@ export function App() {
                 <span>{p.label}</span>
                 {p.label === "Settings" && codex.data?.configuration_error && <AlertTriangle size={16} role="img" aria-label="AI configuration needs attention" />}
                 {p.label === "Attack Analysis" && <span className="feature-beta nav-beta">Beta</span>}
-                {p.label === "Hardening Findings" && report.data && (
+                {p.ai && <span className="feature-ai nav-ai" aria-hidden="true">✦ AI</span>}
+                {p.label === "Hardening & Compliance" && report.data && (
                   <span className="nav-count">
                     {Number(
                       (
@@ -307,7 +314,7 @@ export function App() {
           <div className="page-heading">
             <div>
               <div className="eyebrow page-kicker"><span>//</span> PEASS'o INTELLIGENCE</div>
-              <h1>{page}{page === "Attack Analysis" && <span className="feature-beta">Beta</span>}</h1>
+              <h1>{page}{pageInfo.ai && <span className="feature-ai" aria-hidden="true">✦ AI</span>}{page === "Attack Analysis" && <span className="feature-beta">Beta</span>}</h1>
               {pageInfo.description && <p>{pageInfo.description}</p>}
             </div>
             {(insight || page === "Dashboard") && (
@@ -400,11 +407,11 @@ export function App() {
               canWrite={canWriteWorkspace}
               onSelect={(s) => {
                 setSelected(s.id);
-                navigate("Hardening Findings");
+                navigate("Hardening & Compliance");
               }}
             />
           )}
-          {["Hardening Findings", "Exposure"].includes(
+          {["Hardening & Compliance", "Exposure"].includes(
             page,
           ) && (
             <>
@@ -416,7 +423,7 @@ export function App() {
                 <Findings
                   key={page}
                   scanId={scanId}
-                  category={page === "Hardening Findings" ? "hardening" : "exposure"}
+                  category={page === "Hardening & Compliance" ? "hardening" : "exposure"}
                   demo={demo}
                 />
               </State>
@@ -424,7 +431,7 @@ export function App() {
           )}
           {pageInfo.ai && codex.isPending && signedIn && <State loading />}
           {aiAvailable && page === "Top 15 Actions" && <AiReview key={scanId} scanId={scanId} demo={demo} />}
-          {aiAvailable && page === "Network Findings" && <NetworkAiReview key={scanId} scanId={scanId} demo={demo} />}
+          {aiAvailable && page === "Network Architecture" && <NetworkAiReview key={scanId} scanId={scanId} demo={demo} />}
           {page === "Least Privilege" && <LeastPrivilege scanId={scanId} demo={demo} />}
           {page === "Privilege Escalation Map" && (
             scans.error instanceof ApiError && scans.error.status === 401 && !demo

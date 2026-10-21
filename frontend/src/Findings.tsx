@@ -150,6 +150,44 @@ function ServiceSection({ summary, groupBy, scanId, category, demo, search, seve
     </td></tr>}
   </>;
 }
+function FrameworkPicker({ value, options, onChange }: {
+  value: string; options: { value: string; label: string }[]; onChange: (value: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const container = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const input = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    input.current?.focus();
+    function closeOutside(event: PointerEvent) {
+      if (!container.current?.contains(event.target as Node)) setOpen(false);
+    }
+    document.addEventListener("pointerdown", closeOutside);
+    return () => document.removeEventListener("pointerdown", closeOutside);
+  }, [open]);
+  const choices = [{ value: "", label: "All compliance frameworks" }, ...options];
+  const selected = choices.find(option => option.value === value)?.label || value;
+  function choose(next: string) {
+    onChange(next); setOpen(false); setSearch(""); trigger.current?.focus();
+  }
+  return <div className="framework-picker" ref={container} onKeyDown={event => {
+    if (event.key === "Escape" && open) { event.stopPropagation(); setOpen(false); trigger.current?.focus(); }
+  }}>
+    <button ref={trigger} type="button" className="framework-trigger" aria-label="Compliance framework" aria-haspopup="listbox"
+      aria-expanded={open} onClick={() => { setOpen(!open); setSearch(""); }}>{selected}<ChevronRight size={15} className={open ? "expanded" : ""} /></button>
+    {open && <div className="framework-menu">
+      <input ref={input} aria-label="Filter compliance frameworks" placeholder="Filter frameworks…" value={search} onChange={event => setSearch(event.target.value)} />
+      <div role="listbox" aria-label="Compliance frameworks">
+        {choices.filter(option => option.label.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())).map(option =>
+          <button key={option.value} type="button" role="option" aria-selected={option.value === value} onClick={() => choose(option.value)}>{option.label}</button>)}
+        {!choices.some(option => option.label.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())) && <p>No matching frameworks.</p>}
+      </div>
+    </div>}
+  </div>;
+}
+
 export function Findings({
   scanId,
   category,
@@ -262,6 +300,13 @@ export function Findings({
       ).sort(),
     [catalog.data?.frameworks, facets?.frameworks, all],
   );
+  const complianceOptions = useMemo(() => Array.from(new Map([
+    ...frameworkOptions.map(name => ({ value: name, label: name })),
+    ...(catalog.data?.framework_versions || []).filter(row => row.provider === summary.data?.provider || row.provider === "all")
+      .map(row => ({ value: String(row.id), label: String(row.name || row.id) })),
+  ].map(option => [option.value, option])).values())
+    .sort((left, right) => left.label.localeCompare(right.label, undefined, { sensitivity: "base", numeric: true }) || left.value.localeCompare(right.value)),
+    [frameworkOptions, catalog.data?.framework_versions, summary.data?.provider]);
   const filtered = useMemo(
     () =>
       all
@@ -501,23 +546,10 @@ export function Findings({
         </div>
         <div className="filter-secondary">
           <SlidersHorizontal size={15} />
-          <select
-            aria-label="Compliance framework"
-            value={framework}
-            onChange={(e) => setFramework(e.target.value)}
-          >
-            <option value="">All compliance frameworks</option>
-            {frameworkOptions.map((s) => (
-                <option key={s}>{s}</option>
-              ))}
-            {(catalog.data?.framework_versions || []).filter((row) =>
-              row.provider === summary.data?.provider || row.provider === "all"
-            ).map((row, i) => (
-              <option key={String(row.id || i)} value={String(row.id)}>
-                {String(row.name || row.id)}
-              </option>
-            ))}
-          </select>
+          <FrameworkPicker value={framework} options={complianceOptions} onChange={setFramework} />
+          <button className="text-button" onClick={() => {
+            setFramework("HackTricks Cloud Best Practices"); setStatus("FAIL");
+          }}>Show security failed</button>
           <label>
             Group by{" "}
             <select
@@ -748,7 +780,7 @@ function evidencePreview(value: unknown): unknown {
     .filter(([, item]) => item !== undefined));
   return value;
 }
-function FindingInspector({
+export function FindingInspector({
   finding,
   scanId,
   demo,

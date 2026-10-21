@@ -28,7 +28,6 @@ class Reviews(Strict):
 class Action(Strict):
     rank: int = Field(ge=1, le=15)
     title: str = Field(min_length=1, max_length=300)
-    resource_ids: list[str]
     finding_ids: list[str]
     rationale: str = Field(min_length=1, max_length=1000)
     steps: list[Annotated[str, Field(min_length=1, max_length=500)]] = Field(min_length=1, max_length=5)
@@ -124,7 +123,6 @@ def validate_actions(data, report, reviews):
         return row.get('category', (meta.get(row.get('check_id')) or {}).get('category'))
     findings = {row['id'] for row in report['findings'] if row.get('status') == 'FAIL'
                 or (category(row) in ('network', 'privesc') and row.get('status') in ('MANUAL', 'UNKNOWN'))}
-    resources = {row['id'] for row in report.get('resources', [])}
     rejected = {r['finding_id'] for r in reviews if r['verdict'] != 'FAIL'}
     titles = set()
     for action in actions:
@@ -132,8 +130,8 @@ def validate_actions(data, report, reviews):
         if title in titles:
             raise ValueError('invalid_action')
         titles.add(title)
-        if not set(action['finding_ids']) <= findings - rejected or not set(action['resource_ids']) <= resources:
+        if not set(action['finding_ids']) <= findings - rejected:
             raise ValueError('unknown_action_reference')
-        if not action['finding_ids'] and not action['resource_ids']:
+        if not action['finding_ids']:
             raise ValueError('action_reference_missing')
     return value

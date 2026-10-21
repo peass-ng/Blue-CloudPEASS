@@ -261,7 +261,7 @@ test("filter and inspect escaped evidence with compliance", async ({
   page,
 }) => {
   await demo(page);
-  await nav(page, "Hardening Findings");
+  await nav(page, "Hardening & Compliance");
   await page.getByLabel("Group findings").selectOption("check_id");
   await expect(
     page.getByRole("button", { name: "Storage encryption requires review" }),
@@ -270,9 +270,8 @@ test("filter and inspect escaped evidence with compliance", async ({
   await expect(
     page.getByRole("button", { name: "Storage audit configuration present" }),
   ).toHaveCount(0);
-  await page
-    .getByLabel("Compliance framework")
-    .selectOption("HackTricks Cloud Best Practices");
+  await page.getByLabel("Compliance framework", { exact: true }).click();
+  await page.getByRole("listbox", { name: "Compliance frameworks" }).getByRole("option", { name: "HackTricks Cloud Best Practices", exact: true }).click();
   await page.getByLabel("Search findings").fill("demo-artifacts");
   await page
     .getByRole("button", { name: "Storage encryption requires review" })
@@ -411,7 +410,7 @@ test("mobile layout and dialog keyboard accessibility", async ({ page }) => {
   expect(
     await page.evaluate(() => document.documentElement.scrollWidth),
   ).toBeLessThanOrEqual(390);
-  await nav(page, "Hardening Findings");
+  await nav(page, "Hardening & Compliance");
   await page.getByLabel("Group findings").selectOption("check_id");
   await page
     .getByRole("button", { name: "Storage encryption requires review" })
@@ -1131,9 +1130,8 @@ test("human asset labels preserve routing IDs and exact checklist filtering", as
   await page.goto("/#Hardening%20Findings");
   await page.getByLabel("Group findings").selectOption("check_id");
   await expect(page.locator(".asset-cell")).toContainText("Production <web>");
-  await page
-    .getByLabel("Compliance framework")
-    .selectOption("cis_aws_1.5");
+  await page.getByLabel("Compliance framework", { exact: true }).click();
+  await page.getByRole("listbox", { name: "Compliance frameworks" }).getByRole("option", { name: "CIS AWS Foundations v1.5", exact: true }).click();
   await expect.poll(() => selected).toBe("cis_aws_1.5");
   await expect(
     page.getByText(

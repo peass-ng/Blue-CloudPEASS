@@ -90,10 +90,11 @@ test('network findings have a separate page below Network Map', async ({ page })
   const nav = page.getByRole('navigation', { name: 'Primary navigation' });
   const labels = await nav.getByRole('button').evaluateAll(buttons => buttons.map(button => button.getAttribute('aria-label')));
   expect(labels[labels.findIndex(label => label === 'Scans') + 1]).toBe('Top 15 Actions');
-  expect(labels[labels.findIndex(label => label === 'Top 15 Actions') + 1]).toBe('Hardening Findings');
-  expect(labels[labels.findIndex(label => label === 'Network Map') + 1]).toBe('Network Findings');
-  await nav.getByRole('button', { name: 'Network Findings', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Network Findings', exact: true })).toBeVisible();
+  expect(labels[labels.findIndex(label => label === 'Top 15 Actions') + 1]).toBe('Hardening & Compliance');
+  expect(labels[labels.findIndex(label => label === 'Network Map') + 1]).toBe('Network Architecture');
+  await expect(nav.getByRole('button', { name: 'Network Architecture', exact: true }).locator('.feature-ai')).toHaveText('✦ AI');
+  await nav.getByRole('button', { name: 'Network Architecture', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Network Architecture', exact: true })).toBeVisible();
   for (const paragraph of paragraphs) await expect(page.getByText(paragraph, { exact: true })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Network architecture' }).locator('p')).toHaveCount(2);
   await expect(page.getByText('Required traffic must be confirmed.', { exact: true })).toHaveCount(0);
@@ -114,7 +115,7 @@ test('network findings have a separate page below Network Map', async ({ page })
   await expect(page.getByText(explanation, { exact: true })).toHaveCount(0);
 });
 
-for (const target of ['Network Findings', 'Top 15 Actions', 'Top 15 Recommended Actions', 'AI Review']) {
+for (const target of ['Network Architecture', 'Top 15 Actions', 'Top 15 Recommended Actions', 'AI Review']) {
   test(`AI sections are hidden and direct links fall back without Codex: ${target}`, async ({ page }) => {
     await setup(page);
     let resultReads = 0;
@@ -124,7 +125,7 @@ for (const target of ['Network Findings', 'Top 15 Actions', 'Top 15 Recommended 
     await page.goto('/#' + encodeURIComponent(target));
     await expect(page.getByRole('heading', { name: 'Dashboard', exact: true })).toBeVisible();
     const nav = page.getByRole('navigation', { name: 'Primary navigation' });
-    await expect(nav.getByRole('button', { name: 'Network Findings', exact: true })).toHaveCount(0);
+    await expect(nav.getByRole('button', { name: 'Network Architecture', exact: true })).toHaveCount(0);
     await expect(nav.getByRole('button', { name: 'Top 15 Actions', exact: true })).toHaveCount(0);
     expect(resultReads).toBe(0);
   });
@@ -140,10 +141,10 @@ test('disconnecting personal Codex hides AI navigation without a reload', async 
   });
   await page.goto('/#Settings');
   const nav = page.getByRole('navigation', { name: 'Primary navigation' });
-  await expect(nav.getByRole('button', { name: 'Network Findings', exact: true })).toBeVisible();
+  await expect(nav.getByRole('button', { name: 'Network Architecture', exact: true })).toBeVisible();
   await expect(nav.getByRole('button', { name: 'Top 15 Actions', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Disconnect Codex', exact: true }).click();
-  await expect(nav.getByRole('button', { name: 'Network Findings', exact: true })).toHaveCount(0);
+  await expect(nav.getByRole('button', { name: 'Network Architecture', exact: true })).toHaveCount(0);
   await expect(nav.getByRole('button', { name: 'Top 15 Actions', exact: true })).toHaveCount(0);
 });
 
@@ -151,7 +152,7 @@ test('platform Codex configuration shows AI pages without personal sign-in', asy
   await setup(page);
   await page.route('**/api/ai/codex', route => route.fulfill({ json: { connected: false, available: false, platform_configured: true } }));
   await page.goto('/#Network%20Findings');
-  await expect(page.getByRole('heading', { name: 'Network Findings', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Network Architecture', exact: true })).toBeVisible();
   await expect(page.getByText('Select a completed scan.', { exact: true })).toBeVisible();
   await expect(page.getByRole('navigation', { name: 'Primary navigation' }).getByRole('button', { name: 'Top 15 Actions', exact: true })).toBeVisible();
 });
@@ -298,4 +299,64 @@ test('older dense architecture paragraphs become readable blocks without losing 
   await expect(architecture.locator('p')).toHaveCount(3);
   for (const name of ['Public edge tier', 'Private application tier', 'Database tier']) await expect(architecture.getByRole('heading', { name, exact: true })).toBeVisible();
   expect((await architecture.locator('p').allTextContents()).join(' ')).toBe(sentences.join(' '));
+});
+
+for (const closeWith of ['button', 'Escape']) {
+  test(`supporting finding titles open details above the action plan and close with ${closeWith}`, async ({ page }) => {
+    await setup(page);
+    await page.route('**/api/scans', route => route.fulfill({ json: { items: [{ id: 'scan', connector_id: 'account', status: 'completed' }] } }));
+    await page.route('**/api/scans/scan/ai?*', route => route.fulfill({ json: { actions: [{
+      rank: 1, title: 'Require metadata tokens', resource_ids: ['legacy-resource-hidden'], finding_ids: ['h1'],
+      rationale: 'Reduce credential theft.', steps: ['Require tokens after compatibility checks.'], verification: 'Read HttpTokens.'
+    }] } }));
+    await page.route('**/api/scans/scan/findings/h1', route => route.fulfill({ json: {
+      id: 'h1', title: 'Instance requires IMDSv2 tokens', check_id: 'aws.ec2.imdsv2', category: 'hardening',
+      severity: 'medium', status: 'FAIL', service: 'ec2', scope: 'test-account/us-east-1', provider: 'aws', resource_id: 'instance-1',
+      description: 'Checks instance metadata token requirements.', evidence_summary: 'HttpTokens is optional.',
+      evidence: {}, remediation: 'Require IMDSv2.', frameworks: [],
+    } }));
+    await page.goto('/#Top%2015%20Actions');
+    await page.getByRole('button', { name: 'Require metadata tokens', exact: true }).click();
+    const plan = page.locator('dialog.action-inspector');
+    await plan.getByText('Supporting evidence', { exact: true }).click();
+    await expect(plan.getByRole('heading', { name: 'Resources', exact: true })).toHaveCount(0);
+    await expect(plan.getByText('legacy-resource-hidden', { exact: true })).toHaveCount(0);
+    const related = plan.getByRole('button', { name: 'Instance requires IMDSv2 tokens', exact: true });
+    await expect(related).toHaveCSS('text-decoration-line', 'underline');
+    await related.click();
+    const detail = page.locator('dialog.finding-inspector');
+    await expect(detail.getByText(/HttpTokens is optional\./)).toBeVisible();
+    await expect(plan).toHaveJSProperty('open', true);
+    if (closeWith === 'Escape') await page.keyboard.press('Escape');
+    else await detail.getByRole('button', { name: 'Close inspector', exact: true }).click();
+    await expect(detail).toHaveCount(0);
+    await expect(plan).toBeVisible();
+    await expect(plan.getByText('Require tokens after compatibility checks.', { exact: true })).toBeVisible();
+    await expect(page.getByRole('navigation', { name: 'Primary navigation' }).getByRole('button', { name: 'Top 15 Actions', exact: true }).locator('.feature-ai')).toHaveText('✦ AI');
+    await expect(related).toBeFocused();
+    await expect(plan.locator('details.action-references')).toHaveAttribute('open', '');
+  });
+}
+
+test('supporting evidence also opens AI network findings by title', async ({ page }) => {
+  await setup(page);
+  await page.route('**/api/scans', route => route.fulfill({ json: { items: [{ id: 'scan', connector_id: 'account', status: 'completed' }] } }));
+  await page.route('**/api/scans/scan/ai?*', route => route.fulfill({ json: {
+    actions: [{ rank: 1, title: 'Separate database clients', finding_ids: ['network-1'], rationale: 'Restrict tier access.', steps: ['Review client groups.'], verification: 'Check approved paths.' }],
+    network: { status: 'completed', explanation: '', findings: [{
+      id: 'network-1', title: 'Database group trusts the entire application subnet', check_id: 'ai.network.segmentation', category: 'network',
+      severity: 'medium', status: 'MANUAL', service: 'ec2', provider: 'aws', scope: 'test-account/us-east-1', resource_id: 'sg-db',
+      description: 'Review cross-tier trust.', evidence_summary: 'Database access allows the whole application subnet.', evidence: {}, remediation: 'Use approved client groups.', frameworks: [],
+    }] },
+  } }));
+  let nativeRequests = 0;
+  await page.route('**/api/scans/scan/findings/network-1', route => { nativeRequests++; return route.fulfill({ status: 404, json: {} }); });
+  await page.goto('/#Top%2015%20Actions');
+  await page.getByRole('button', { name: 'Separate database clients', exact: true }).click();
+  await page.locator('dialog.action-inspector').getByText('Supporting evidence', { exact: true }).click();
+  await page.getByRole('button', { name: 'Database group trusts the entire application subnet', exact: true }).click();
+  await expect(page.locator('dialog.finding-inspector').getByText('Database access allows the whole application subnet.', { exact: true })).toBeVisible();
+  await page.locator('dialog.finding-inspector').getByRole('button', { name: 'Close inspector', exact: true }).click();
+  await expect(page.locator('dialog.action-inspector')).toBeVisible();
+  expect(nativeRequests).toBe(0);
 });

@@ -48,3 +48,5 @@
 .network-architecture ul { padding-left: 1.25rem; margin: .5rem 0 1.25rem; }
 .network-architecture li + li { margin-top: .6rem; }
 .network-boundary + .network-boundary { border-top: 1px solid var(--line); margin-top: 1.5rem; padding-top: 1.5rem; }
+
+.action-references .action-finding-link { color: var(--mint); text-decoration: underline; text-underline-offset: 3px; }
