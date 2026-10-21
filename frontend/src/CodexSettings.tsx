@@ -5,7 +5,7 @@ import { Panel, State, humanError } from "./ui";
 
 type Login = { verification_url: string; user_code: string; interval: number; expires_at: number };
 type Selection = { provider: string; model: string; thinking: string; credential_saved: boolean };
-type Configuration = { available: boolean; hosted: boolean; source: string | null; selection: Selection | null; codex_connected: boolean; isolation_available: boolean; configuration_error?: { message: string; at: number } | null };
+type Configuration = { available: boolean; disabled?: boolean; hosted: boolean; source: string | null; selection: Selection | null; codex_connected: boolean; isolation_available: boolean; configuration_error?: { message: string; at: number } | null };
 const providers = [
   ["openai", "OpenAI API key"], ["codex", "Codex sign-in"],
   ["anthropic", "Anthropic API key"], ["anthropic_token", "Anthropic token"],
@@ -22,6 +22,7 @@ export function CodexSettings() {
   const [credential, setCredential] = useState("");
   const [login, setLogin] = useState<Login>();
   const [message, setMessage] = useState("");
+  const [copied, setCopied] = useState(false);
   useEffect(() => {
     if (!connection.data || initialized.current) return;
     initialized.current = true;
@@ -29,7 +30,14 @@ export function CodexSettings() {
     if (selected) { setProvider(selected.provider); setModel(selected.model); setThinking(selected.thinking); }
   }, [connection.data]);
   function refresh() { void client.invalidateQueries({ predicate: query => query.queryKey[0] === "live" && ["/ai/codex", "/ai/configuration"].includes(String(query.queryKey[2])) }); }
-  const start = useMutation({ mutationFn: () => request<Login>("/ai/codex/login", json({})), onSuccess: value => { setLogin(value); setMessage(""); } });
+  const start = useMutation({ mutationFn: () => request<Login>("/ai/codex/login", json({})), onSuccess: value => { setLogin(value); setCopied(false); setMessage(""); } });
+  const policy = useMutation({
+    mutationFn: (disabled: boolean) => request<{ disabled: boolean }>("/ai/preferences", { ...json({ disabled }), method: "PATCH" }),
+    onSuccess: value => {
+      client.setQueriesData<Configuration>({ predicate: query => query.queryKey[0] === "live" && query.queryKey[2] === "/ai/configuration" }, previous => previous ? { ...previous, disabled: value.disabled, ...(value.disabled ? { available: false, configuration_error: null } : {}) } : previous);
+      setMessage(value.disabled ? "AI review is disabled for every scan." : "AI review now follows each scan or schedule's selection."); refresh();
+    },
+  });
   const disconnect = useMutation({ mutationFn: () => request("/ai/codex", { method: "DELETE" }), onSuccess: () => { setLogin(undefined); setMessage(""); refresh(); } });
   const revalidate = useMutation({ mutationFn: () => request("/ai/configuration/validate", json({})), onSuccess: () => { setMessage("Saved AI configuration validated."); refresh(); }, onError: () => refresh() });
   const save = useMutation({
@@ -55,11 +63,18 @@ export function CodexSettings() {
     return () => { stopped = true; clearTimeout(timer); };
   }, [login]);
   const active = connection.data;
+  async function copyCode() {
+    if (!login) return;
+    try { await navigator.clipboard.writeText(login.user_code); setCopied(true); }
+    catch { setMessage("Select and copy the sign-in code above."); }
+  }
   const savedCredential = active?.selection?.provider === provider && active.selection.credential_saved;
   const ready = provider ? !!model.trim() && !!thinking && (provider === "codex" ? active?.codex_connected : !!credential || savedCredential) : active?.hosted || !!active?.selection;
   return <Panel title="AI review"><div className="form">
     <p>AI can recheck failed findings, explain the network, and prioritize security actions after each scan.</p>
-    {connection.error ? <State error={connection.error} onRetry={() => void connection.refetch()} /> : <p role="status">{active?.isolation_available === false ? "AI review is unavailable until isolated agent execution is configured." : active?.source === "hacktricks" ? "HackTricks AI is used." : active?.available ? active.selection ? "Your AI configuration is used." : "Local AI is configured." : "Configure an AI provider to enable AI review."}</p>}
+    {connection.error ? <State error={connection.error} onRetry={() => void connection.refetch()} /> : <p role="status">{active?.disabled ? "AI review is disabled for every scan." : active?.isolation_available === false ? "AI review is unavailable until isolated agent execution is configured." : active?.source === "hacktricks" ? "HackTricks AI is used." : active?.available ? active.selection ? "Your AI configuration is used." : "Local AI is configured." : "Configure an AI provider to enable AI review."}</p>}
+    <label className="checkbox"><input type="checkbox" checked={policy.isPending ? !!policy.variables : !!active?.disabled} disabled={!active || policy.isPending} onChange={event => policy.mutate(event.target.checked)} />Disable AI for every scan</label>
+    <p className="muted small">Applies to your scans in every workspace, including schedules and queued scans. Saved provider credentials are kept. Turn this off to use each scan's AI selection again.</p>
     <p className="muted small">AI-enabled scans share evidence with the selected provider and allow read-only verification of scanned cloud accounts. You can turn AI off for each scan or schedule.</p>
     {active?.configuration_error && <p role="alert">AI is paused: {active.configuration_error.message} No AI workloads will be launched. Validate and save your settings to resume.</p>}
     {active?.configuration_error && <button className="button" disabled={revalidate.isPending} onClick={() => revalidate.mutate()}>Revalidate saved AI configuration</button>}
@@ -85,8 +100,8 @@ export function CodexSettings() {
         {(login || active?.codex_connected && provider === "codex") && <button className="button" type="button" disabled={disconnect.isPending} onClick={() => disconnect.mutate()}>{login ? "Cancel sign-in" : "Disconnect Codex"}</button>}
       </div>
     </form>
-    {login && <div role="status"><p>Open <a href={login.verification_url} target="_blank" rel="noreferrer">Codex sign-in</a> and enter <strong>{login.user_code}</strong>.</p><p>Waiting for sign-in. The code expires in 15 minutes.</p></div>}
+    {login && <div role="status"><p>On your laptop, open <a href={login.verification_url} target="_blank" rel="noreferrer">Codex sign-in</a> and enter this code:</p><p><strong>{login.user_code}</strong></p><button type="button" className="button" onClick={() => void copyCode()}>{copied ? "Code copied" : "Copy sign-in code"}</button><p>Waiting for sign-in. The code expires at {new Date(login.expires_at * 1000).toLocaleTimeString()}.</p></div>}
     {message && <p role="status">{message}</p>}
-    {(start.error || disconnect.error || save.error || revalidate.error) && <p role="alert">{humanError(start.error || disconnect.error || save.error || revalidate.error)}</p>}
+    {(start.error || disconnect.error || save.error || revalidate.error || policy.error) && <p role="alert">{humanError(start.error || disconnect.error || save.error || revalidate.error || policy.error)}</p>}
   </div></Panel>;
 }

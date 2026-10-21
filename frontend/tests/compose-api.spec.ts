@@ -58,7 +58,7 @@ test("Compose live AWS report populates every UI section", async ({ page }) => {
   }
   await visit("Settings", "settings");
   await expect(page.getByRole("heading", { name: "Account & quota" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "API keys" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "PEASS'o CSPM API Keys" })).toBeVisible();
   await expect(page.getByLabel("API key name")).toBeVisible();
   await expect(page.getByLabel("Search check catalog")).toHaveCount(0);
   for (const heading of ["Local API authentication", "Native check catalog", "Exact framework and checklist coverage", "Help & evidence", "Source & license"]) {

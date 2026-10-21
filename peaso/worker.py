@@ -270,6 +270,10 @@ class Worker:
         process, parent, child = None, None, None
         try:
             selectors = json.loads(job["data"])
+            if selectors.get('ai_enabled', True):
+                from peaso.ai.providers import review_disabled
+                if review_disabled(self.store, selectors.get('ai_user_id', job['tenant'])):
+                    selectors['ai_enabled'] = False
             if self.role == "collector":
                 encrypted = json.loads(job["connector"])
                 private = self.cipher.decrypt(encrypted["auth"])

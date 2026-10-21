@@ -8,9 +8,7 @@ import json
 import os
 import time
 import uuid
-from urllib.error import HTTPError
-from urllib.parse import urlencode
-from urllib.request import Request, urlopen
+import requests
 from fastapi import Depends, HTTPException, Response
 
 ISSUER = "https://auth.openai.com"
@@ -34,14 +32,27 @@ def valid(token):
 
 
 def post(path, data, *, form=False):
-    body = urlencode(data).encode() if form else json.dumps(data).encode()
-    req = Request(ISSUER + path, data=body, headers={'Content-Type': 'application/x-www-form-urlencoded' if form else 'application/json'})
     try:
-        with urlopen(req, timeout=20) as response:
-            return response.status, json.loads(response.read(128000))
-    except HTTPError as exc:
-        # Do not serialize an OAuth error body or exception.
-        return exc.code, {}
+        # Match the working device flow transport. Python-urllib requests to
+        # this issuer can be rejected before the OAuth endpoint is reached.
+        with requests.post(ISSUER + path, **({'data': data} if form else {'json': data}),
+                           timeout=20, allow_redirects=False) as response:
+            if len(response.content) > 128000:
+                return 502, {}
+            try:
+                payload = response.json()
+            except ValueError:
+                payload = {}
+            if not isinstance(payload, dict):
+                payload = {}
+            if response.status_code != 200:
+                # Only protocol enums are needed for polling, never provider
+                # descriptions or bodies that could contain credentials.
+                code = payload.get('error') or payload.get('error_code')
+                payload = {'error': code} if code in ('authorization_pending', 'slow_down', 'expired_token', 'access_denied') else {}
+            return response.status_code, payload
+    except requests.RequestException:
+        return 503, {}
 
 
 def default_token():
@@ -108,7 +119,9 @@ def codex_available(store, identity_dir, user):
 
 def require_local_codex(settings, store, user):
     from .crypto import AICipher
-    from .providers import resolve_access
+    from .providers import resolve_access, review_disabled
+    if review_disabled(store, user):
+        return
     try:
         resolve_access(store, AICipher(settings.identity_dir), user, auth_mode=settings.auth_mode)
     except Exception:
@@ -135,7 +148,7 @@ def mount_auth_routes(app, store, identity_dir, account_identity, *, auth_mode='
             raise HTTPException(403, 'Sign in with your user account')
         return user.tenant_id
 
-    from .providers import (ConfigurationError, Selection, STATE_KEY, check_selection,
+    from .providers import (ConfigurationError, Selection, ReviewPolicy, REVIEW_POLICY_KEY, review_disabled, STATE_KEY, check_selection,
         connected_codex_token, resolve_access, validate_access, configuration_error, record_error, clear_error)
 
     @app.get('/api/ai/configuration')
@@ -155,16 +168,26 @@ def mount_auth_routes(app, store, identity_dir, account_identity, *, auth_mode='
         from .isolation import available as isolation_available
         isolated = isolation_available()
         source, usable = None, False
+        disabled = review_disabled(store, uid)
         try:
-            _, source = resolve_access(store, cipher, uid, auth_mode=auth_mode, verify=False)
-            usable = True
+            if not disabled:
+                _, source = resolve_access(store, cipher, uid, auth_mode=auth_mode, verify=False)
+                usable = True
         except Exception as error:
             if selected or raw_auth or (auth_mode != 'local' and (os.getenv('CODEX_ACCESS_TOKEN') or os.getenv('CODEX_TOKEN_SECRET_ARN'))):
                 record_error(store, cipher, uid, error)
-        return {'available': usable and isolated, 'hosted': auth_mode != 'local',
+        return {'available': usable and isolated, 'disabled': disabled, 'hosted': auth_mode != 'local',
                 'source': 'hacktricks' if source == 'platform' and auth_mode != 'local' else source,
                 'selection': selection, 'codex_connected': connected,
-                'isolation_available': isolated, 'configuration_error': configuration_error(store, cipher, uid)}
+                'isolation_available': isolated, 'configuration_error': None if disabled else configuration_error(store, cipher, uid)}
+
+    @app.patch('/api/ai/preferences')
+    def save_preferences(body: ReviewPolicy, user=Depends(account_identity)):
+        uid = owner(user)
+        raw = store.ai_state(uid, REVIEW_POLICY_KEY)
+        if not store.set_ai_state(uid, REVIEW_POLICY_KEY, body.model_dump_json(), raw):
+            raise HTTPException(409, 'AI preferences changed; reload and try again.')
+        return body.model_dump()
 
     @app.post('/api/ai/configuration')
     def save_configuration(body: Selection, user=Depends(account_identity)):
@@ -237,12 +260,15 @@ def mount_auth_routes(app, store, identity_dir, account_identity, *, auth_mode='
         from .isolation import available as isolation_available
         isolated = isolation_available()
         return {'connected': connected, 'source': 'personal' if connected else 'platform',
+                'disabled': summary['disabled'],
                 'platform_configured': platform_configured, 'available': available and isolated,
                 'isolation_available': isolated, 'configuration_error': summary['configuration_error'],
                 'unavailable_reason': 'ai_isolation_unavailable' if not isolated else None}
 
     @app.post('/api/ai/codex/login')
-    def start(user=Depends(account_identity)):
+    def start(response: Response, user=Depends(account_identity)):
+        response.headers['Cache-Control'] = 'private, no-store'
+        response.headers['Pragma'] = 'no-cache'
         uid = owner(user)
         old = store.ai_state(uid, 'pending')
         if old and cipher.decrypt(old).get('expires_at', 0) > time.time():
@@ -250,15 +276,24 @@ def mount_auth_routes(app, store, identity_dir, account_identity, *, auth_mode='
             return {'verification_url': ISSUER + '/codex/device', 'user_code': pending['user_code'], 'interval': pending['interval'], 'expires_at': pending['expires_at']}
         status, data = post('/api/accounts/deviceauth/usercode', {'client_id': CLIENT})
         if status != 200:
-            raise HTTPException(503, 'Codex sign-in unavailable; enable device code login in ChatGPT settings')
-        pending = {'device_auth_id': data['device_auth_id'], 'user_code': data.get('user_code') or data['usercode'],
-                   'interval': max(5, int(data.get('interval') or 5)), 'expires_at': time.time() + 900, 'next_poll': 0}
+            raise HTTPException(503, 'Could not start Codex device sign-in. Retry in a moment.' if status != 404 else 'Codex device sign-in is not available from the authentication server. Retry or check device-login permissions for your ChatGPT account.')
+        device_id, code = data.get('device_auth_id'), data.get('user_code') or data.get('usercode')
+        if not isinstance(device_id, str) or not device_id.strip() or not isinstance(code, str) or not code.strip():
+            raise HTTPException(502, 'Codex did not return a usable device sign-in code. Retry.')
+        try:
+            interval = max(5, min(60, int(data.get('interval') or 5)))
+        except (TypeError, ValueError):
+            interval = 5
+        pending = {'device_auth_id': device_id.strip(), 'user_code': code.strip(),
+                   'interval': interval, 'expires_at': time.time() + 900, 'next_poll': 0}
         if not store.set_ai_state(uid, 'pending', cipher.encrypt(pending), old):
             raise HTTPException(409, 'Sign-in already started; retry')
         return {'verification_url': ISSUER + '/codex/device', 'user_code': pending['user_code'], 'interval': pending['interval'], 'expires_at': pending['expires_at']}
 
     @app.post('/api/ai/codex/login/poll')
-    def poll(user=Depends(account_identity)):
+    def poll(response: Response, user=Depends(account_identity)):
+        response.headers['Cache-Control'] = 'private, no-store'
+        response.headers['Pragma'] = 'no-cache'
         uid = owner(user)
         raw = store.ai_state(uid, 'pending')
         if not raw:
@@ -274,14 +309,23 @@ def mount_auth_routes(app, store, identity_dir, account_identity, *, auth_mode='
         if not store.set_ai_state(uid, 'pending', locked, raw):
             return {'status': 'pending'}
         status, result = post('/api/accounts/deviceauth/token', {key: data[key] for key in ('device_auth_id', 'user_code')})
-        if status in (403, 404):
-            store.set_ai_state(uid, 'pending', cipher.encrypt(dict(data, next_poll=time.time() + data['interval'])), locked)
+        if status in (403, 404) or status == 400 and result.get('error') in ('authorization_pending', 'slow_down'):
+            interval = min(60, data['interval'] + 5) if result.get('error') == 'slow_down' else data['interval']
+            store.set_ai_state(uid, 'pending', cipher.encrypt(dict(data, interval=interval, next_poll=time.time() + interval)), locked)
             return {'status': 'pending'}
+        if status == 400 and result.get('error') in ('expired_token', 'access_denied'):
+            store.set_ai_state(uid, 'pending', None, locked)
+            raise HTTPException(410, 'Codex sign-in expired or was declined. Start sign-in again.')
         if status != 200:
-            raise HTTPException(502, 'Codex sign-in failed; start again after this code expires')
+            store.set_ai_state(uid, 'pending', cipher.encrypt(dict(data, next_poll=time.time() + data['interval'])), locked)
+            raise HTTPException(502, 'Codex sign-in could not be polled. Retry sign-in.')
+        if not all(isinstance(result.get(key), str) and result[key] for key in ('authorization_code', 'code_verifier')):
+            store.set_ai_state(uid, 'pending', None, locked)
+            raise HTTPException(502, 'Codex did not complete device authorization. Start sign-in again.')
         status, tokens = post('/oauth/token', {'grant_type': 'authorization_code', 'client_id': CLIENT,
             'code': result['authorization_code'], 'code_verifier': result['code_verifier'], 'redirect_uri': ISSUER + '/deviceauth/callback'}, form=True)
         if status != 200 or not valid(tokens.get('access_token', '')):
+            store.set_ai_state(uid, 'pending', None, locked)
             raise HTTPException(502, 'Codex token exchange failed')
         # CAS pending first: a disconnected/cancelled login cannot reconnect later.
         if not store.set_ai_state(uid, 'pending', None, locked):

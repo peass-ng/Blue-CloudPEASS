@@ -804,6 +804,9 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             raise HTTPException(422, "Invalid idempotency key")
         owned = store.connector(user.tenant_id, body.connector_id)
         validate_selectors(body.model_dump(), json.loads(owned["data"])["provider"])
+        from peaso.ai.providers import review_disabled
+        if body.ai_enabled and review_disabled(store, account.tenant_id):
+            body = body.model_copy(update={'ai_enabled': False})
         if body.ai_enabled:
             from peaso.ai.auth import require_local_codex
             require_local_codex(settings, store, account.tenant_id)

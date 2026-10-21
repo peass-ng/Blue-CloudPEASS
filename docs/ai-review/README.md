@@ -8,6 +8,21 @@ Shell-enabled hosted reviews use the role-free Fargate isolation backend. A usab
 
 AI defaults to `true` in `ScanCreate` and schedules. The launch form can disable it. Existing schedules without a flag inherit `true`.
 
+Settings → AI review also provides **Disable AI for every scan**. This account-wide
+override applies in every workspace, including existing schedules and queued scans.
+It prevents new AI agent launches and retains saved provider credentials and each
+schedule's selection. Disabling needs no provider validation; enabling restores
+the usual per-scan selections and mandatory launch-time credential validation.
+It does not terminate an agent that was already running when the preference changed.
+The setting is stored independently as non-secret account metadata, so checking it
+does not require loading an AI credential or encryption key.
+
+**Sign in with Codex** starts device authentication on the backend and shows the
+OpenAI login link and one-time code in Settings. Open that link on your laptop,
+enter the code and finish signing in; CSPM polls for completion and stores returned
+tokens encrypted. Then choose the model and thinking effort and validate/save the
+selection. No localhost callback or CLI installation is required on your laptop.
+
 After deterministic analysis, Chack reviews failed Hardening and Exposure findings and runs a holistic Network agent in the same bounded parallel pool, then produces up to 15 prioritized actions. Priorities runs alone after all three types finish, receiving their final verdicts and new network findings. It starts with a complete compact `platform.json` decision brief and uses `context.py` for indexed lookups in `context.sqlite`. Its full evidence covers all security areas; the Network agent gets a separate network-only database and topology catalog. Each Hardening/Exposure verifier receives one `findings.json`: `scan` holds the scan identity/time and `items` contains only its assigned failed checks. Each check retains its evidence and has `supporting_resources` containing only native resource records explicitly referenced by that check. There is no separate evidence file. Verifiers receive no full report, inventory, graphs, least-privilege projection or other review batches. Credentials are selected by provider and referenced accounts, projects, subscriptions or cluster. Target lists narrow the handoff and instructions, not the provider permissions of the captured token. Agents do not need a platform administrator API token.
 
 Both selection and the file-writing boundary enforce that findings.json contains only FAIL checks in the assigned category. Passed, unresolved, denied, manual, empty and inapplicable checks are excluded.
