@@ -162,6 +162,7 @@ from .aws_lambda_alias_grant_next import normalize_aws_lambda_qualified_grant
 from .aws_lambda_config_next import normalize_aws_lambda_config
 from .aws_lambda_privesc_next import normalize_aws_lambda_role_assignment, correlate_aws_lambda_privesc
 from .aws_ec2_controls_next import normalize_aws_ec2_controls
+from .aws_ec2_ssm_batch96 import normalize_aws_ec2_ssm_batch96
 from .aws_vpc_network_next import normalize_aws_vpc_network, correlate_aws_vpc_custom_dns
 from .aws_vpc_endpoint_egress_next import normalize_aws_vpc_endpoint_egress
 from .aws_eic_endpoint_next import normalize_aws_eic_endpoint, normalize_aws_eic_connection, correlate_aws_eic_ssh_ingress
@@ -227,8 +228,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "cd6b64f75b8b6845fcecd7b5c05c20e6d13044d7"
-DEFAULT_RULE_PACK_SHA256 = "38793059f5c88e78a7154ff4dcfa948a0db865f99f431a3b1f85d55d7238a8f4"
+DEFAULT_RULE_REF = "7351573d71e5078ae1e879210f4dfe23931be3b6"
+DEFAULT_RULE_PACK_SHA256 = "e6651806d446e30dfade5f1819eb465ad3bd771c6012ddcc717535faeb772908"
 
 
 @dataclass(frozen=True)
@@ -477,6 +478,7 @@ def detect_aws_events(
         lambda_config = normalize_aws_lambda_config(record)
         lambda_role_assignment = normalize_aws_lambda_role_assignment(record)
         ec2_controls = normalize_aws_ec2_controls(record)
+        ec2_ssm_batch96 = normalize_aws_ec2_ssm_batch96(record)
         vpc_network = normalize_aws_vpc_network(record)
         vpc_endpoint_egress = normalize_aws_vpc_endpoint_egress(record)
         eic_endpoint = normalize_aws_eic_endpoint(record)
@@ -655,6 +657,7 @@ def detect_aws_events(
                 + ([lambda_config] if lambda_config is not None else [])
                 + ([lambda_role_assignment] if lambda_role_assignment is not None else [])
                 + ([ec2_controls] if ec2_controls is not None else [])
+                + ([ec2_ssm_batch96] if ec2_ssm_batch96 is not None else [])
                 + ([vpc_network] if vpc_network is not None else [])
                 + ([vpc_endpoint_egress] if vpc_endpoint_egress is not None else [])
                 + ([eic_endpoint] if eic_endpoint is not None else [])
