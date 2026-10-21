@@ -61,6 +61,7 @@ REPRODUCTION_INPUT_PATTERNS = (
     "tests/test_snapshot_resource_identity_finite_source.py",
     "tests/test_compliance_reviewed_native_aliases.py",
     "tests/test_release_history_alias_projection.py",
+    "tests/test_unused_iam_network_cli_json.py",
     "tests/test_peaso_batch_remaining_admission.py",
     "tests/test_unused_iam_access_analyzer_hardening.py",
     'tests/test_unused_network_aws_target_group.py',

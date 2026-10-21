@@ -216,3 +216,20 @@ it does not claim an unused FID finding from missing logs. See the
 [Graph sign-in resource](https://learn.microsoft.com/en-us/graph/api/resources/signin?view=graph-rest-beta).
 A retained event interval also needs verified tenant/credential identity,
 coverage, retention and lifetime before absence could support inactivity.
+
+## Offline JSON output
+
+The normal CLI selects these controls without the AI workflow:
+
+```sh
+hacktricks-cspm evaluate snapshot.json --categories hardening \
+  --frameworks hacktricks --checks aws.iam.group_inline_policies_have_members \
+  --output unused-findings.json
+```
+
+`tests/test_unused_iam_network_cli_json.py` exercises the public CLI entry point
+with a source-bound unused IAM and network finding for each provider. All eight
+cases verify a FAIL, Hardening routing, HackTricks membership, resource identity
+and evidence in the written JSON. Network connections are blocked during these
+offline evaluations. These cases supplement the collector/native evaluator
+tests; they do not claim a live cloud scan.
