@@ -294,10 +294,25 @@ def _workloads(snapshot, resources, by_type, signal):
             if row["type"] == "ingress":
                 spec = row["data"].get("spec", {})
                 backends = [spec.get("defaultBackend", {})] + [p.get("backend", {}) for rule in spec.get("rules") or [] for p in (rule.get("http") or {}).get("paths") or []]
-                names = {b.get("service", {}).get("name") for b in backends}
+                service_ports = []
+                for backend in backends:
+                    service = backend.get("service") if isinstance(backend, dict) else None
+                    if not isinstance(service, dict) or not isinstance(service.get("name"), str):
+                        continue
+                    port = service.get("port")
+                    if isinstance(port, dict):
+                        service_ports.append((service["name"], port.get("number"), port.get("name")))
+
+                def matching_service_port(service, number, port_name):
+                    return any((isinstance(number, int) and not isinstance(number, bool) and port.get("port") == number)
+                        or (isinstance(port_name, str) and port_name and port.get("name") == port_name)
+                        for port in (service["data"].get("spec") or {}).get("ports") or [] if isinstance(port, dict))
+
                 services = [s for s in by_type["service"] if _cluster(s) == _cluster(row)
                     and s["data"].get("metadata", {}).get("namespace", "default") == row["data"].get("metadata", {}).get("namespace", "default")
-                    and s["data"].get("metadata", {}).get("name") in names]
+                    and any(name == s["data"].get("metadata", {}).get("name")
+                        and matching_service_port(s, number, port_name)
+                        for name, number, port_name in service_ports)]
             targets = [pod for service in services for pod in k8s_pods(service)]
         elif provider == "azure" and row["type"] == "nic":
             vm_id = ((row["data"].get("properties") or {}).get("virtualMachine") or {}).get("id")

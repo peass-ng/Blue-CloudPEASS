@@ -503,6 +503,34 @@ def test_kubernetes_public_service_uses_cluster_admin_service_account(monkeypatc
     assert_exposure_in_report(snap, monkeypatch)
 
 
+def test_kubernetes_ingress_joins_only_a_declared_service_port():
+    snap = snapshot("k8s", {
+        "networkpolicy": [],
+        "ingress": [{"metadata": {"name": "front", "namespace": "app"},
+            "spec": {"rules": [{"http": {"paths": [{"backend": {"service": {
+                "name": "web", "port": {"number": 80}}}}]}}]},
+            "status": {"loadBalancer": {"ingress": [{"ip": "8.8.8.8"}]}}}],
+        "service": [{"metadata": {"name": "web", "namespace": "app"},
+            "spec": {"selector": {"app": "web"}, "ports": [{"name": "http", "port": 80,
+                "targetPort": 8080}]}}],
+        "pod": [{"metadata": {"name": "web", "namespace": "app", "labels": {"app": "web"}},
+            "spec": {"serviceAccountName": "app", "automountServiceAccountToken": True}}],
+        "serviceaccount": [{"metadata": {"name": "app", "namespace": "app"}}],
+        "clusterrole": [{"metadata": {"name": "admin"}, "rules": [{"apiGroups": ["*"],
+            "resources": ["*"], "verbs": ["*"]}]}],
+        "clusterrolebinding": [{"metadata": {"name": "admin"},
+            "roleRef": {"kind": "ClusterRole", "name": "admin"},
+            "subjects": [{"kind": "ServiceAccount", "name": "app", "namespace": "app"}]}],
+    }, "cluster")
+    assert len(findings(snap)) == 1
+    service = next(c for c in snap["collections"] if c["type"] == "service")["items"][0]
+    service["spec"]["ports"][0]["port"] = 443
+    assert findings(snap) == []
+    backend = next(c for c in snap["collections"] if c["type"] == "ingress")["items"][0]["spec"]["rules"][0]["http"]["paths"][0]["backend"]
+    backend["service"]["port"] = {"name": "http"}
+    assert len(findings(snap)) == 1
+
+
 def test_unrelated_network_policy_does_not_hide_public_privileged_pod():
     snap = snapshot("k8s", {
         "networkpolicy": [{"metadata": {"name": "other", "namespace": "app"},
