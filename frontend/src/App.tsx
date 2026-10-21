@@ -9,6 +9,7 @@ import {
   GraduationCap,
   HelpCircle,
   Layers,
+  ListChecks,
   Network,
   ScanLine,
   Radar,
@@ -17,6 +18,7 @@ import {
   ShieldCheck,
   Target,
   Route,
+  Waypoints,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ApiError, authSessionChangedEvent, items, useApi, workspaceKey } from "./api";
@@ -40,6 +42,15 @@ import { Settings } from "./Settings";
 import type { Connector, Me, Report, Scan, Workspace } from "./types";
 import { Panel, State, sourceHref } from "./ui";
 import { scanNames } from "./scanNames";
+function IamIcon({ size = 18 }: { size?: number }) {
+  return <svg className="nav-iam-icon" width={24} height={size} viewBox="0 0 24 18"
+    style={{ width: 24, flexShrink: 0 }} fill="none" aria-hidden="true">
+    <rect x="0.75" y="0.75" width="22.5" height="16.5" rx="3" stroke="currentColor" strokeWidth="1.5" />
+    <text x="12" y="12" textAnchor="middle" fill="currentColor" fontFamily="'IBM Plex Mono', monospace"
+      fontSize="9" fontWeight="700" letterSpacing="0.3">IAM</text>
+  </svg>;
+}
+
 const pages = [
   {
     label: "Dashboard",
@@ -57,7 +68,7 @@ const pages = [
     icon: ScanLine,
     description: "Assess, monitor and revisit your cloud posture.",
   },
-  { label: "Top 15 Actions", icon: ShieldCheck, ai: true, group: "SECURITY INSIGHTS", description: "Review the security changes to prioritize." },
+  { label: "Top 15 Actions", icon: ListChecks, ai: true, group: "SECURITY INSIGHTS", description: "Review the security changes to prioritize." },
   {
     label: "Hardening & Compliance",
     icon: ShieldCheck,
@@ -80,7 +91,7 @@ const pages = [
   },
   {
     label: "Least Privilege",
-    icon: Shield,
+    icon: IamIcon,
     description: "Review identity permissions and reduce unnecessary access.",
   },
   {
@@ -96,7 +107,7 @@ const pages = [
   },
   {
     label: "Network Architecture",
-    icon: ShieldCheck,
+    icon: Waypoints,
     ai: true,
     description: "Review AI network findings and recommended connectivity changes.",
   },
