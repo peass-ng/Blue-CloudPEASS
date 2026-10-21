@@ -88,6 +88,7 @@ from .aws_lex_analytics_batch135 import normalize as normalize_aws_lex_analytics
 from .aws_lex_runtime_batch136 import normalize as normalize_aws_lex_runtime_batch136
 from .aws_lex_testset_batch136 import normalize as normalize_aws_lex_testset_batch136
 from .aws_lex_hook_batch137 import normalize as normalize_aws_lex_hook_batch137, correlate_role_hook as correlate_aws_lex_role_hook_batch137
+from .aws_route53_profiles_batch139 import normalize as normalize_aws_route53_profiles_batch139, correlate_resource_vpc as correlate_aws_route53_profiles_batch139
 from .aws_sagemaker_control_next import normalize_aws_sagemaker_control
 from .aws_rolesanywhere_next import normalize as normalize_aws_rolesanywhere
 from .aws_customer_profiles_next import normalize as normalize_aws_customer_profiles
@@ -545,6 +546,7 @@ def detect_aws_events(
         lex_runtime_batch136 = normalize_aws_lex_runtime_batch136(record)
         lex_testset_batch136 = normalize_aws_lex_testset_batch136(record)
         lex_hook_batch137 = normalize_aws_lex_hook_batch137(record)
+        route53_profiles_batch139 = normalize_aws_route53_profiles_batch139(record)
         lambda_controls = normalize_aws_lambda_controls(record)
         lambda_qualified_grant = normalize_aws_lambda_qualified_grant(record)
         lambda_config = normalize_aws_lambda_config(record)
@@ -765,6 +767,7 @@ def detect_aws_events(
                 + lex_runtime_batch136
                 + lex_testset_batch136
                 + lex_hook_batch137
+                + route53_profiles_batch139
                 + ([lambda_controls] if lambda_controls is not None else [])
                 + ([lambda_qualified_grant] if lambda_qualified_grant is not None else [])
                 + ([lambda_config] if lambda_config is not None else [])
@@ -878,6 +881,7 @@ def detect_aws_events(
     inspector_filters_batch113_records: list[Mapping[str, Any]] = []
     appflow_schedule_batch127_records: list[Mapping[str, Any]] = []
     lex_hook_batch137_records: list[Mapping[str, Any]] = []
+    route53_profiles_batch139_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
             if (not isinstance(record, Mapping)
@@ -898,6 +902,9 @@ def detect_aws_events(
                     and record.get("eventName") in {"CreateBot", "UpdateBot",
                                                     "CreateBotAlias", "UpdateBotAlias"}):
                 lex_hook_batch137_records.append(record)
+            if (record.get("eventSource") == "route53profiles.amazonaws.com"
+                    and record.get("eventName") in {"AssociateResourceToProfile", "AssociateProfile"}):
+                route53_profiles_batch139_records.append(record)
             if record.get("eventSource") == "dynamodb.amazonaws.com":
                 dynamodb_data_batch106_records.append(record)
             if (isinstance(record.get("eventSource"), str)
@@ -1089,6 +1096,7 @@ def detect_aws_events(
     correlated += correlate_aws_inspector_criteria_batch113(inspector_filters_batch113_records)
     correlated += correlate_aws_appflow_schedule_batch127(appflow_schedule_batch127_records)
     correlated += correlate_aws_lex_role_hook_batch137(lex_hook_batch137_records)
+    correlated += correlate_aws_route53_profiles_batch139(route53_profiles_batch139_records)
     correlated += correlate_aws_apigateway_portal(apigateway_portal_records)
     correlated += correlate_aws_cloudformation_triggers(cloudformation_trigger_records)
     correlated += correlate_aws_cloudformation_inputs(cloudformation_input_records)
