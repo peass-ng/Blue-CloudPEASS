@@ -1,0 +1,136 @@
+page	headings	active_source	excluded_source	review_state	review_evidence
+src/pentesting-cloud/aws-security/aws-privilege-escalation/README.md	6	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-account-management-privesc/README.md	4	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-amplify-privesc/README.md	18	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-apigateway-privesc/README.md	17	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-appconfig-privesc/README.md	6	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-apprunner-privesc/README.md	11	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-appstream-privesc/README.md	25	1	1	triaged	The existing running DESKTOP fleet role-session route is now cataloged and tested. Remaining builder-session and application-update sections still need individual review.
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-appsync-privesc/README.md	11	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-athena-spark-role-privesc/README.md	11	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-athena-stored-query-privesc/README.md	6	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-aurora-dsql-privesc/README.md	5	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-batch-privesc/README.md	10	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-bedrock-agentcore-privesc/README.md	17	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-bedrock-privesc/README.md	19	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-braket-privesc/README.md	4	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-budgets-privesc/README.md	8	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-chatbot-privesc/README.md	6	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-cloud-control-handler-role-privesc/README.md	4	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-cloudcontrol-privesc/README.md	5	1	0	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-cloudformation-privesc/README.md	31	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-cloudformation-privesc/iam-passrole-cloudformation-createstack-and-cloudformation-describestacks.md	3	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-cloudfront-privesc/README.md	12	1	0	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-cloudwatch-omni-privesc/README.md	5	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-codeartifact-privesc/README.md	6	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-codebuild-privesc/README.md	55	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-codecommit-pipeline-source-privesc/README.md	6	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-codeconnections-privesc/README.md	6	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-codedeploy-privesc/README.md	8	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-codepipeline-job-credentials-privesc/README.md	5	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-codepipeline-privesc/README.md	16	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-codestar-privesc/README.md	7	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-codestar-privesc/codestar-createproject-codestar-associateteammember.md	3	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-codestar-privesc/iam-passrole-codestar-createproject.md	8	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-cognito-privesc/README.md	56	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-cognito-user-pools-privesc/README.md	6	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-config-privesc/README.md	13	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-connect-cases-privesc/README.md	5	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-connect-privesc/README.md	12	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-control-tower-privesc/README.md	6	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-customer-profiles-privesc/README.md	8	0	0	triaged	The page says the passed role only performs bounded integrations, exports and event delivery; inspect each linked operation for another IAM principal.
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-datapipeline-privesc/README.md	5	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-datasync-privesc/README.md	12	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-datazone-privesc/README.md	6	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-deadline-cloud-privesc/README.md	14	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-device-farm-privesc/README.md	13	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-directory-services-privesc/README.md	6	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-dlm-privesc/README.md	5	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-documentdb-privesc/README.md	4	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-dynamodb-privesc/README.md	10	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ebs-privesc/README.md	5	0	0	triaged	The page lists snapshot block reads and snapshots; inspect whether any documented step gives another IAM principal rather than data access.
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ec2-image-builder-privesc/README.md	8	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ec2-privesc/README.md	25	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ecr-privesc/README.md	24	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ecs-privesc/README.md	56	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ecs-privesc/aws-ecscape-privesc.md	5	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-efs-privesc/README.md	4	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-eks-privesc/README.md	19	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-elastic-beanstalk-privesc/README.md	17	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-elasticache-privesc/README.md	4	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-emr-privesc/README.md	16	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-emr-serverless-privesc/README.md	17	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-entity-resolution-privesc/README.md	4	0	0	triaged	The page points to a bounded workflow-role data export; verify the linked operation has no general role credential or code execution path.
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-eventbridge-pipe-stored-role-privesc/README.md	4	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-eventbridge-pipes-privesc/README.md	5	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-eventbridge-privesc/README.md	11	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-fis-privesc/README.md	7	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-gamelift/README.md	7	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-gamelift-streams-privesc/README.md	5	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-glue-privesc/README.md	8	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-healthomics-privesc/README.md	5	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/README.md	49	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-invoicing-and-billing-privesc/README.md	9	0	0	triaged	The page separates billing rights and disclosure from IAM role escalation; check each linked bounded operation.
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iot-core-privesc/README.md	9	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iot-privesc/README.md	24	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iot-sitewise-privesc/README.md	4	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iot-twinmaker-privesc/README.md	5	0	0	triaged	Connector invocation and PassRole may execute service work; inspect exact connector, controllable input and target role before deciding.
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ivs-privesc/README.md	9	0	0	triaged	The page lists stream and stage credentials, not IAM role credentials; verify each token remains within IVS.
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-kinesis-data-streams-privesc/README.md	4	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-kms-privesc/README.md	9	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-lake-formation-grants-privesc/README.md	12	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-lambda-privesc/README.md	56	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-lex-v2-privesc/README.md	5	0	0	triaged	Create/UpdateBot with PassRole and an existing hook need an exact code and role join before exclusion or restoration.
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-lightsail-privesc/README.md	16	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-macie-privesc/README.md	5	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-mainframe-modernization-privesc/README.md	8	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-managed-blockchain-privesc/README.md	4	0	0	triaged	The page describes a Fabric network invitation; verify this does not grant an AWS IAM principal.
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-managed-flink-privesc/README.md	9	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-managed-grafana-privesc/README.md	10	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-mediapackage-privesc/README.md	8	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-memorydb-user-reset-privesc/README.md	4	0	0	triaged	The page describes a MemoryDB ACL password change; check the separate IAM-auth path before excluding an AWS principal transition.
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-migration-hub-orchestrator-privesc/README.md	5	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-migration-hub-privesc/README.md	4	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ml-dataaccess-passrole-privesc/README.md	6	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-mq-privesc/README.md	8	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-msk-privesc/README.md	4	0	0	triaged	The page describes MSK security changes and topic access; verify no IAM principal grant follows.
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-mwaa-privesc/README.md	17	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-odb-privesc/README.md	4	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-opensearch-serverless-privesc/README.md	7	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-organizations-prinvesc/README.md	13	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-payment-cryptography-privesc/README.md	6	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-pca-connector-ad-privesc/README.md	8	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-proton-privesc/README.md	8	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-q-business-privesc/README.md	4	0	0	triaged	The page points to plugin action/data changes; inspect the linked plugin operation for any exact service-role or credential path.
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-quicksight-privesc/README.md	6	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-rds-privesc/README.md	20	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-redshift-privesc/README.md	18	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-region-switch-privesc/README.md	8	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-resilience-hub-privesc/README.md	4	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-resource-explorer-view-privesc/README.md	4	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-route53-domains-privesc/README.md	6	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-s3-credential-brokers-privesc/README.md	4	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-s3-files-privesc/README.md	6	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-s3-privesc/README.md	8	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-s3-tables-privesc/README.md	4	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-s3-vectors-privesc/README.md	4	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-sagemaker-privesc/README.md	77	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-secrets-manager-privesc/README.md	5	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-service-catalog-privesc/README.md	12	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-sns-privesc/README.md	10	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-sqs-privesc/README.md	5	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ssm-privesc/README.md	55	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-sso-and-identitystore-privesc/README.md	26	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-stepfunctions-privesc/README.md	11	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-sts-privesc/README.md	22	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-supply-chain-privesc/README.md	4	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-synthetics-privesc/README.md	7	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-timestream-privesc/README.md	5	0	0	triaged	The page describes scheduled SQL and a fixed workflow trigger; check whether either can produce an exact IAM principal transition.
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-transfer-family-privesc/README.md	16	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-verified-permissions-privesc/README.md	6	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-wickr-privesc/README.md	4	0	0	triaged	The page points to retention-bot takeover; inspect whether the bot exposes an AWS principal or only Wickr data.
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-workdocs-privesc/README.md	8	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-workspaces-appstream-privesc/README.md	2	0	0	triaged	This page redirects to the canonical AppStream page; reconcile its session takeover routes there.
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-workspaces-privesc/README.md	5	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/eventbridgescheduler-privesc/README.md	4	1	0	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/route53-createhostedzone-route53-changeresourcerecordsets-acm-pca-issuecertificate-acm-pca-getcer/README.md	5	0	0	triaged	The page describes DNS/certificate effects; inspect whether a concrete IAM principal transition exists.

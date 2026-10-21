@@ -5866,6 +5866,50 @@ class AwsModel(Model):
                 return ("conditional", "appstream_new_stack_and_fleet_available")
         return ("unknown", "appstream_fleet_route_not_verified") if uncertain else None
 
+    def _appstream_existing_fleet_role_session(self, source, target):
+        """Join a streamable desktop fleet to its existing, exact machine role."""
+        statuses = {scope: status for scope, status in inventory_status(self.snapshot, "appstream_fleet").items()
+                    if scope.startswith(source.scope + "/")}
+        if not statuses:
+            return ("unknown", "appstream_fleet_inventory_not_collected")
+        uncertain = any(status not in ("collected", "empty") for status in statuses.values())
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        for scope, fleet in items(self.snapshot, "appstream_fleet"):
+            if scope not in statuses or statuses[scope] != "collected" or not isinstance(fleet, dict):
+                continue
+            region = scope.split("/", 1)[1]
+            name, arn = fleet.get("Name"), fleet.get("Arn")
+            if (not isinstance(name, str) or arn != f"arn:{partition}:appstream:{region}:{source.scope}:fleet/{name}"):
+                uncertain = True
+                continue
+            if fleet.get("IamRoleArn") != target.id:
+                continue
+            grant = self._check_action(source, "appstream:createstreamingurl", arn)
+            if grant is None:
+                continue
+            if grant.confidence != "derived":
+                uncertain = True
+                continue
+            if fleet.get("State") != "RUNNING" or fleet.get("StreamView") != "DESKTOP":
+                continue
+            capacity = fleet.get("ComputeCapacityStatus")
+            if not isinstance(capacity, dict) or type(capacity.get("Available")) is not int:
+                uncertain = True
+                continue
+            if capacity["Available"] <= 0:
+                continue
+            association = fleet.get("AssociatedStacks")
+            if not isinstance(association, dict) or association.get("collection_status") != "collected":
+                uncertain = True
+                continue
+            names = association.get("items")
+            if not isinstance(names, list) or any(not isinstance(n, str) or not n for n in names):
+                uncertain = True
+                continue
+            if names:
+                return ("conditional", "appstream_existing_desktop_fleet_role_session")
+        return ("unknown", "appstream_existing_fleet_role_session_not_verified") if uncertain else None
+
     def _codepipeline_new_project_route(self, source, target, provider):
         pipeline_status = inventory_status(self.snapshot, "codepipeline_pipeline")
         project_status = inventory_status(self.snapshot, "codebuild_project")
@@ -7825,6 +7869,14 @@ class AwsModel(Model):
                 return None
             for tid, target in candidates.items():
                 verdict = self._appstream_existing_fleet_role_swap(source, target)
+                if verdict:
+                    out[tid] = verdict
+            return out
+        if pid == "appstream_existing_fleet_role_session":
+            if source is None:
+                return None
+            for tid, target in candidates.items():
+                verdict = self._appstream_existing_fleet_role_session(source, target)
                 if verdict:
                     out[tid] = verdict
             return out

@@ -11,12 +11,12 @@ Status legend: COVERED (catalog ids), EXCLUDED (an `_excluded*.yaml` line explai
 
 ## Summary
 
-- COVERED: 179
-- EXCLUDED: 659
+- COVERED: 180
+- EXCLUDED: 658
 - NEEDS SCHEMA: 0
 - NOT PRIVESC: 133
 - STRUCTURAL: 661
-- Headings: 1632; distinct active catalog ids referenced: 176; AWS active catalog entries: 176
+- Headings: 1632; distinct active catalog ids referenced: 177; AWS active catalog entries: 177
 
 ## Headings by page
 
@@ -748,7 +748,7 @@ Status legend: COVERED (catalog ids), EXCLUDED (an `_excluded*.yaml` line explai
 | `aws---appstream-20-privesc` | AWS - AppStream 2.0 Privesc |  | STRUCTURAL | Page title / references list |
 | `amazon-appstream-20` | Amazon AppStream 2.0 |  | EXCLUDED | Service introduction pointing to the enumeration page; no technique. |
 | `appstream-20` | AppStream 2.0 |  | STRUCTURAL | Service introduction (machine-role model); techniques are mapped under their own headings. |
-| `appstreamcreatestreamingurl--enter-an-existing-fleet-under-its-machine-role` | `appstream:CreateStreamingURL` — enter an existing fleet under its machine role | appstream:CreateStreamingURL | EXCLUDED | Excluded: The appstream_fleet resource-to-role attachment is not loaded by the AWS evaluator (absent from HOST_KIND); service trust or a guessed resource cannot identify the exact role that the source operation reaches. |
+| `appstreamcreatestreamingurl--enter-an-existing-fleet-under-its-machine-role` | `appstream:CreateStreamingURL` — enter an existing fleet under its machine role | appstream:CreateStreamingURL | COVERED | `aws-appstream-createstreamingurl-existing-fleet` |
 | `appstreamupdatestack--streaming-url--agentaccess-mcp--headless-desktop-control` | `appstream:UpdateStack` + streaming URL + `agentaccess-mcp` — headless desktop control | appstream:UpdateStack | EXCLUDED | Variant of the streaming-session entries (aws-appstream-createstreamingurl-existing-fleet): enabling headless agent access on a stack still yields the fleet role through a session. |
 | `appstreamcreateentitlement--updateentitlement--grant-a-saml-identity-every-stack-application` | `appstream:CreateEntitlement` / `UpdateEntitlement` — grant a SAML identity every stack application | appstream:CreateEntitlement | EXCLUDED | Grants SAML users application entitlements on a stack; the fleet role reach is the same as the streaming-session entries and requires a federated user session, not an AWS principal escalation by itself. |
 | `appstreamcreateimagebuilderstreamingurl--administratorroot-access-to-an-existing-builder` | `appstream:CreateImageBuilderStreamingURL` — administrator/root access to an existing builder | appstream:CreateImageBuilderStreamingURL | EXCLUDED | Excluded: The appstream_image_builder resource-to-role attachment is not loaded by the AWS evaluator (absent from HOST_KIND); service trust or a guessed resource cannot identify the exact role that the source operation reaches. |
