@@ -28,3 +28,4 @@ def _valid_url(url, path, *, continuation):
     if not continuation and pairs != [("api-version", VERSION)]:
         return False
     return True
+

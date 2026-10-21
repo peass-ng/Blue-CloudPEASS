@@ -1,0 +1,26 @@
+[
+  {
+    "eventSource": "sqs.amazonaws.com", "eventName": "SetQueueAttributes",
+    "eventCategory": "Management", "eventType": "AwsApiCall", "managementEvent": true,
+    "readOnly": false, "recipientAccountId": "999999999999", "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T21:00:00Z", "eventID": "synthetic-b82-send",
+    "userIdentity": {"arn": "arn:aws:sts::999999999999:assumed-role/synthetic-admin/session"},
+    "requestParameters": {
+      "queueUrl": "https://sqs.us-east-1.amazonaws.com/999999999999/synthetic-queue",
+      "attributes": {"Policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"SyntheticPublicRoute\",\"Effect\":\"Allow\",\"Principal\":\"*\",\"Action\":\"sqs:SendMessage\",\"Resource\":\"arn:aws:sqs:us-east-1:999999999999:synthetic-queue\"}]}"}
+    },
+    "responseElements": {}
+  },
+  {
+    "eventSource": "sqs.amazonaws.com", "eventName": "SetQueueAttributes",
+    "eventCategory": "Management", "eventType": "AwsApiCall", "managementEvent": true,
+    "readOnly": false, "recipientAccountId": "999999999999", "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T21:00:01Z", "eventID": "synthetic-b82-receive",
+    "userIdentity": {"arn": "arn:aws:sts::999999999999:assumed-role/synthetic-admin/session"},
+    "requestParameters": {
+      "queueUrl": "https://sqs.us-east-1.amazonaws.com/999999999999/synthetic-queue",
+      "attributes": {"Policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"SyntheticPublicRoute\",\"Effect\":\"Allow\",\"Principal\":\"*\",\"Action\":\"sqs:ReceiveMessage\",\"Resource\":\"arn:aws:sqs:us-east-1:999999999999:synthetic-queue\"}]}"}
+    },
+    "responseElements": {}
+  }
+]

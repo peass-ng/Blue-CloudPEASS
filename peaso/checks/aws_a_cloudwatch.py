@@ -1,10 +1,10 @@
 """Reviewed CloudWatch configuration predicates; no log contents or queries."""
 from __future__ import annotations
 
-from . import register, result, unknown
+from . import alias_check, register, result, unknown
 from .facts import get
 from .fixtures import CASES
-from .aws_a_facts import api_optional, complete_items, scope_subject, scope_fixture
+from .aws_a_facts import api_optional
 
 NATIVE_IDS = []
 LOG_PROVENANCE = {"operation": "logs:DescribeLogGroups", "native_response_complete": True}
@@ -66,16 +66,9 @@ CASES["aws.a.cloudwatch.log_retention_at_least_365"] = {"pass": {"logGroupName":
 NATIVE_IDS.append("aws.a.cloudwatch.log_retention_at_least_365")
 
 
-@register("aws.a.cloudwatch.cross_account_role_absent", "aws", "exposure", "aws_account", "CloudWatch cross-account sharing role is absent",
-    "medium", "AC-3", "Review the declared CloudWatch cross-account sharing role and its approved use.", target="scope", dependencies=["iam_role"])
-def cross_account_role(item, index):
-    scope = scope_subject(item)
-    roles = complete_items(index, "iam_role", scope)
-    matching = [get(role, "RoleName", str) for role in roles if get(role, "RoleName", str) == "CloudWatch-CrossAccountSharingRole"]
-    return result(bool(matching), matching_roles=matching, semantics="Exact declared role-name predicate; effective trust/access is separate")
-CASES["aws.a.cloudwatch.cross_account_role_absent"] = {"pass": {"scope": "123456789012/us-east-1"}, "fail": {"scope": "123456789012/us-east-1"}, "missing": {}, "malformed": None,
-    "index": scope_fixture("iam_role", []), "pass_index": scope_fixture("iam_role", []), "fail_index": scope_fixture("iam_role", [{"RoleName": "CloudWatch-CrossAccountSharingRole"}])}
-NATIVE_IDS.append("aws.a.cloudwatch.cross_account_role_absent")
+# The named role alone does not establish external access. The survivor records
+# its trust principals and asks for review only when the role exists.
+alias_check("aws.a.cloudwatch.cross_account_role_absent", "aws.claude2_a.cloudwatch.cross_account_sharing_role_absent")
 
 
 @register("aws.a.cloudwatch.agentcore_data_protection", "aws", "hardening", "log_group", "Default-prefix AgentCore log group has active or inherited data protection",

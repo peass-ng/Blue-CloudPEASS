@@ -1,0 +1,29 @@
+[
+  {
+    "eventSource": "codeartifact.amazonaws.com", "eventName": "PublishPackageVersion",
+    "eventCategory": "Management", "eventType": "AwsApiCall", "managementEvent": true,
+    "readOnly": false, "recipientAccountId": "999999999999", "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T21:00:00Z", "eventID": "synthetic-b80-publish",
+    "userIdentity": {"type": "AssumedRole", "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-admin/session"},
+    "requestParameters": {"domainName": "synthetic-domain", "domainOwner": "999999999999", "repositoryName": "synthetic-repo", "packageName": "synthetic-package", "packageFormat": "npm", "packageVersion": "1.1.0"},
+    "responseElements": {}
+  },
+  {
+    "eventSource": "codeartifact.amazonaws.com", "eventName": "PutPackageMetadata",
+    "eventCategory": "Management", "eventType": "AwsApiCall", "managementEvent": true,
+    "readOnly": false, "recipientAccountId": "999999999999", "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T21:00:01Z", "eventID": "synthetic-b80-metadata",
+    "userIdentity": {"type": "AssumedRole", "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-admin/session"},
+    "requestParameters": {"domainName": "synthetic-domain", "domainOwner": "999999999999", "repositoryName": "synthetic-repo", "packageName": "synthetic-package", "packageFormat": "npm", "packageVersion": "1.1.0"},
+    "responseElements": {}
+  },
+  {
+    "eventSource": "codeartifact.amazonaws.com", "eventName": "ReadFromRepository",
+    "eventCategory": "Management", "eventType": "AwsApiCall", "managementEvent": true,
+    "readOnly": true, "recipientAccountId": "999999999999", "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T21:00:02Z", "eventID": "synthetic-b80-read",
+    "userIdentity": {"type": "AssumedRole", "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-admin/session"},
+    "requestParameters": {"domainName": "synthetic-domain", "domainOwner": "999999999999", "repositoryName": "synthetic-repo", "packageName": "synthetic-package", "packageFormat": "npm"},
+    "responseElements": {}
+  }
+]

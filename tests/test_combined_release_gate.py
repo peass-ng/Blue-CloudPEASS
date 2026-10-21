@@ -352,11 +352,13 @@ def test_historical_waf_k8s_rows_and_exact_remaining_native_batch_scope():
 
 
 def test_materializer_check_mode_is_current_and_writes_nothing():
-    watched = [PACK / name for name in PACKS] + [ROOT / "frontend/src/frameworkCatalog.json"]
+    from scripts.peaso_compliance_materialize import render_documents
+    watched = list(render_documents())
+    assert len(watched) == 8
     before = {path: hashlib.sha256(path.read_bytes()).hexdigest() for path in watched}
     env = {**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}
     run = subprocess.run([sys.executable, "scripts/peaso_compliance_materialize.py"], cwd=ROOT, env=env,
                          capture_output=True, text=True, timeout=600)
     assert run.returncode == 0, run.stdout + run.stderr
-    assert json.loads(run.stdout) == {"stale": [], "checked": 6}
+    assert json.loads(run.stdout) == {"stale": [], "checked": len(watched)}
     assert {path: hashlib.sha256(path.read_bytes()).hexdigest() for path in watched} == before

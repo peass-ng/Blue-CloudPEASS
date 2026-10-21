@@ -1,0 +1,101 @@
+[
+  {
+    "eventSource": "states.amazonaws.com",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "userIdentity": {
+      "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-admin/session"
+    },
+    "eventName": "TestState",
+    "eventID": "synthetic-b85-test",
+    "eventTime": "2026-10-21T00:00:00Z",
+    "requestParameters": {
+      "definition": "HIDDEN_DUE_TO_SECURITY_REASONS",
+      "roleArn": "arn:aws:iam::999999999999:role/synthetic-send",
+      "input": "HIDDEN_DUE_TO_SECURITY_REASONS",
+      "inspectionLevel": "INFO",
+      "revealSecrets": false
+    },
+    "responseElements": {
+      "status": "SUCCEEDED"
+    }
+  },
+  {
+    "eventSource": "states.amazonaws.com",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "userIdentity": {
+      "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-admin/session"
+    },
+    "eventName": "CreateStateMachine",
+    "eventID": "synthetic-b85-create",
+    "eventTime": "2026-10-21T00:00:01Z",
+    "requestParameters": {
+      "name": "synthetic-machine",
+      "definition": "HIDDEN_DUE_TO_SECURITY_REASONS",
+      "roleArn": "arn:aws:iam::999999999999:role/synthetic-pass",
+      "type": "STANDARD",
+      "publish": false
+    },
+    "responseElements": {
+      "stateMachineArn": "arn:aws:states:us-east-1:999999999999:stateMachine:synthetic-machine",
+      "creationDate": "2026-10-21T00:00:01Z"
+    }
+  },
+  {
+    "eventSource": "states.amazonaws.com",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "userIdentity": {
+      "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-admin/session"
+    },
+    "eventName": "StartExecution",
+    "eventID": "synthetic-b85-start",
+    "eventTime": "2026-10-21T00:00:02Z",
+    "requestParameters": {
+      "stateMachineArn": "arn:aws:states:us-east-1:999999999999:stateMachine:synthetic-machine",
+      "input": "HIDDEN_DUE_TO_SECURITY_REASONS"
+    },
+    "responseElements": {
+      "executionArn": "arn:aws:states:us-east-1:999999999999:execution:synthetic-machine:synthetic-run",
+      "startDate": "2026-10-21T00:00:02Z"
+    }
+  },
+  {
+    "eventSource": "states.amazonaws.com",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "userIdentity": {
+      "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-admin/session"
+    },
+    "eventName": "UpdateStateMachine",
+    "eventID": "synthetic-b85-update",
+    "eventTime": "2026-10-21T00:00:03Z",
+    "requestParameters": {
+      "stateMachineArn": "arn:aws:states:us-east-1:999999999999:stateMachine:synthetic-machine",
+      "definition": "HIDDEN_DUE_TO_SECURITY_REASONS",
+      "roleArn": "arn:aws:iam::999999999999:role/synthetic-send",
+      "publish": false
+    },
+    "responseElements": {
+      "revisionId": "synthetic-revision",
+      "updateDate": "2026-10-21T00:00:03Z"
+    }
+  }
+]

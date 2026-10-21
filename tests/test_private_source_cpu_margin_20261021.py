@@ -1,13 +1,26 @@
 """Immutable artifact reuse never replaces a live admission decision."""
 from itertools import product
 from pathlib import Path, PurePosixPath
+import hashlib
 import re
 import sys
 
 import pytest
 from peaso import private_secret_source_epoch_20261021 as source
+from peaso.checks import private_secret_shared_source_successor_20261021 as shared_source
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_published_snapshot_has_exact_predecessor_and_rejects_tamper():
+    relative = 'peaso/snapshot.py'
+    transition = shared_source._private_receipt()['provider_group_files'][relative]
+    current = (ROOT / relative).read_bytes()
+    before = shared_source._private_before(relative, current, ROOT)
+    assert hashlib.sha256(before).hexdigest() == '6dcf7d4953c1b1b17e8669cb5f44960a4340ea8d6e9f93fb356d4df52d570919'
+    assert transition['current_sha256'] == hashlib.sha256(current).hexdigest()
+    with pytest.raises(RuntimeError):
+        shared_source._private_before(relative, current + b'\n# unreviewed\n', ROOT)
 
 
 def test_authenticated_code_artifact_is_reused_after_fresh_self_proof():

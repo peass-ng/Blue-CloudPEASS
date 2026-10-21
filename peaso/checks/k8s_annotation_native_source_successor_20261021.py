@@ -212,6 +212,12 @@ def _current_functions(raw):
         owner = sys.modules.get(owner_name)
         source_path = source_path.resolve(strict=True)
         source = source_path.read_bytes()
+        if owner_name == 'peaso.snapshot':
+            from . import private_secret_shared_source_successor_20261021 as shared_source
+            predecessor = shared_source._private_before('peaso/snapshot.py', source, ROOT)
+            if _sha(predecessor) != SNAPSHOT_SHA:
+                raise RuntimeError('Successor snapshot predecessor changed')
+            source_sha = shared_source._private_receipt()['provider_group_files']['peaso/snapshot.py']['current_sha256']
         if (not isinstance(owner, types.ModuleType)
                 or Path(getattr(owner, '__file__', '')).resolve(strict=True) != source_path
                 or _sha(source) != source_sha):

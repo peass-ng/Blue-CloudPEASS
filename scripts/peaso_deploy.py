@@ -50,6 +50,16 @@ RUNTIME_ADMISSION_INPUTS = {
 # Exact public inputs needed to reproduce the shipped compiler, provenance and
 # tests. Explicit paths/globs only: no .work drafts, caches or private files.
 REPRODUCTION_INPUT_PATTERNS = (
+    'tests/fixtures/aws_codeartifact_npm_batch80_events.json',
+    'tests/fixtures/aws_sfn_role_routes_batch85_events.json',
+    'tests/fixtures/aws_sns_public_policy_batch83_events.json',
+    'tests/fixtures/aws_sns_service_scope_batch84_events.json',
+    'tests/fixtures/aws_sns_subscription_batch81_events.json',
+    'tests/fixtures/aws_sqs_public_policy_batch82_events.json',
+    'docs/exposure-candidate-decisions.json',
+    'docs/exposure-check-dedup-audit.md',
+    'docs/exposure-check-inventory.json',
+    'tests/test_exposed_privileged_workload.py',
     'docs/aws-selected-image-vulnerabilities.md',
     'docs/container-practical-images-20261021.md',
     'docs/azure-acr-image-vulnerabilities-registration-20261021.json',

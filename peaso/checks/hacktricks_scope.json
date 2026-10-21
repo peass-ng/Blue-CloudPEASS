@@ -181,10 +181,6 @@
       "decision": "exclude",
       "group": "observability"
     },
-    "aws.a.cloudwatch.cross_account_role_absent": {
-      "decision": "include",
-      "group": "security_configuration"
-    },
     "aws.a.cloudwatch.finite_retention_365": {
       "decision": "include",
       "group": "log_protection"
@@ -312,10 +308,6 @@
     "aws.a.kms.rotation_source_eligibility": {
       "decision": "include",
       "group": "data_protection"
-    },
-    "aws.a.s3.bucket_account_public_blocks": {
-      "decision": "include",
-      "group": "security_configuration"
     },
     "aws.a.s3.default_encryption_configuration": {
       "decision": "include",
@@ -880,10 +872,6 @@
     "aws.b.redshift.kms_key_declared": {
       "decision": "include",
       "group": "data_protection"
-    },
-    "aws.b.redshift.no_public_endpoint": {
-      "decision": "include",
-      "group": "security_configuration"
     },
     "aws.b.redshift.nondefault_admin": {
       "decision": "include",
@@ -1605,10 +1593,6 @@
       "decision": "exclude",
       "group": "operational"
     },
-    "aws.c2b.ecs.service_no_public_ip": {
-      "decision": "include",
-      "group": "security_configuration"
-    },
     "aws.c2b.ecs.task_set_no_public_ip": {
       "decision": "include",
       "group": "security_configuration"
@@ -1706,10 +1690,6 @@
       "group": "security_configuration"
     },
     "aws.c2b.elasticache.cluster_no_default_subnet_group": {
-      "decision": "include",
-      "group": "security_configuration"
-    },
-    "aws.c2b.elasticache.cluster_public_subnet": {
       "decision": "include",
       "group": "security_configuration"
     },
@@ -2934,10 +2914,6 @@
       "group": "security_configuration"
     },
     "aws.cb.sns.policy_no_unrestricted_wildcard": {
-      "decision": "include",
-      "group": "security_configuration"
-    },
-    "aws.cb.sns.policy_prohibit_public_access_perimeter": {
       "decision": "include",
       "group": "security_configuration"
     },
@@ -6740,10 +6716,6 @@
     "azure.claude.activity_log_storage_private": {
       "decision": "include",
       "group": "access_control"
-    },
-    "azure.claude.aks_authorized_ip_ranges": {
-      "decision": "include",
-      "group": "security_configuration"
     },
     "azure.claude.aks_azure_policy_addon": {
       "decision": "include",
@@ -16663,6 +16635,10 @@
       "group": "security_configuration"
     },
     "aws.review.ecs.selected_environment_file_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "analysis.exposed_privileged_workload": {
       "decision": "include",
       "group": "security_configuration"
     }

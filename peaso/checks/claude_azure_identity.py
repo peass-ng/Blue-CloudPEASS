@@ -8,6 +8,7 @@ from datetime import datetime, timedelta, timezone
 from ipaddress import collapse_addresses, ip_network
 import re
 from fnmatch import fnmatchcase
+from . import alias_check
 from .claude_azure_common import *  # noqa: F401,F403
 from .facts import unique_join
 from .azure_policy_periods import rotation_interval_supported
@@ -1335,28 +1336,7 @@ CASES[cid("aks_container_insights_logging")] = {
     "fail": {"properties": {"addonProfiles": {"omsagent": {"enabled": False}}}}}
 
 
-@claude("aks_authorized_ip_ranges", "aks_cluster", "AKS public API server restricts authorized IP ranges", severity="high", control="SC-7",
-        category="exposure", remediation="Configure apiServerAccessProfile.authorizedIPRanges or make the cluster private.")
-def aks_ranges(item, index):
-    profile = get(item, "properties.apiServerAccessProfile", dict)
-    if optional(profile, "enablePrivateCluster", False, bool):
-        return "NOT_APPLICABLE", {"reason": "Private cluster API server"}
-    ranges = optional(profile, "authorizedIPRanges", [], list)
-    if any(not isinstance(value, str) for value in ranges):
-        return unknown("malformed authorized IP ranges")
-    try:
-        networks = []
-        for value in ranges:
-            if not value or value != value.strip():
-                raise ValueError("empty or padded address")
-            networks.append(ip_network(value, strict=False))
-    except ValueError:
-        return unknown("malformed authorized IP ranges")
-    universal = any(network.prefixlen == 0 for version in (4, 6)
-                    for network in collapse_addresses(n for n in networks if n.version == version))
-    return result(not ranges or universal, authorized_ip_ranges=ranges)
-CASES[cid("aks_authorized_ip_ranges")] = {"pass": {"properties": {"apiServerAccessProfile": {"authorizedIPRanges": ["203.0.113.0/24"]}}},
-                                          "fail": {"properties": {"apiServerAccessProfile": {"enablePrivateCluster": False}}}}
+alias_check("azure.claude.aks_authorized_ip_ranges", "azure.aks.api_server_restricted")
 
 
 @claude("aks_max_pods_at_least_50", "aks_cluster", "AKS node pools allow at least 50 pods per node", severity="low", control="CM-6",

@@ -691,12 +691,49 @@ def _aws_rest_api(snapshot, inventory, resource):
     data = resource["data"]
     a = Assessment(resource, "api")
     types = as_list((data.get("endpointConfiguration") or {}).get("types"))
-    if "PRIVATE" in types or data.get("disableExecuteApiEndpoint") is True:
+    if "PRIVATE" in types:
         a.step("route", "block", endpoint_types=types, disable_execute_api_endpoint=data.get("disableExecuteApiEndpoint"))
         a.ports = {}
         return a
-    a.addresses = [f"https://{native_id(resource)}.execute-api.{resource['scope'].split('/')[-1]}.amazonaws.com"]
-    a.step("route", "allow", endpoint_types=types)
+    domains, unresolved_domains, routing_domains = [], [], []
+    for domain in inventory.items("apigateway_domain_name"):
+        if domain["scope"] != resource["scope"]:
+            continue
+        domain_types = as_list((domain["data"].get("endpointConfiguration") or {}).get("types"))
+        if not domain_types:
+            unresolved_domains.append(domain["data"].get("domainName") or native_id(domain))
+            continue
+        if "PRIVATE" in domain_types:
+            continue
+        if "ROUTING_RULE" in str(domain["data"].get("routingMode", "")):
+            routing_domains.append(domain["data"].get("domainName") or native_id(domain))
+            continue
+        mappings = domain["data"].get("BasePathMappings") or {}
+        if mappings.get("collection_status") != "collected":
+            unresolved_domains.append(domain["data"].get("domainName") or native_id(domain))
+            continue
+        if any(isinstance(mapping, dict) and mapping.get("restApiId") == native_id(resource)
+               for mapping in as_list(mappings.get("items"))):
+            domains.append(str(domain["data"].get("domainName") or native_id(domain)))
+    if data.get("disableExecuteApiEndpoint") is True and not domains:
+        a.step("route", "block", endpoint_types=types, disable_execute_api_endpoint=True)
+        if unresolved_domains or routing_domains or inventory.state("apigateway_domain_name", resource["scope"]) not in {"collected", "empty"}:
+            a.gap("inventory", "custom-domain routing rules are not collected" if routing_domains and not unresolved_domains
+                  else "custom-domain mappings are not fully collected",
+                  "API Gateway domain routing and base-path mappings")
+            a.explicit = "UNKNOWN"
+        a.ports = {}
+        return a
+    if data.get("disableExecuteApiEndpoint") is not True:
+        a.addresses.append(f"https://{native_id(resource)}.execute-api.{resource['scope'].split('/')[-1]}.amazonaws.com")
+    a.addresses.extend(f"https://{name}" for name in sorted(set(domains)))
+    a.step("route", "allow", endpoint_types=types, custom_domains=sorted(set(domains)),
+           disable_execute_api_endpoint=data.get("disableExecuteApiEndpoint"),
+           semantics="Configured API Gateway route; custom-domain DNS and requests were not tested")
+    if unresolved_domains:
+        a.notes.append("Other custom-domain base-path mappings were not fully collected")
+    if routing_domains:
+        a.notes.append("Custom domains using routing rules require separate route resolution")
     policy = data.get("policy")
     if policy:
         from peaso.checks.aws_ip_policy_boundary import normalize
@@ -716,6 +753,14 @@ def _aws_rest_api(snapshot, inventory, resource):
     if public is False and restricted:
         a.step("policy", "allow", restrictive_conditions=restricted)
         a.notes.append("resource policy restricts callers by condition")
+    from .iam import document
+    policy = document(data.get("policy")) or {}
+    conditional_denies = [statement.get("Condition") for statement in as_list(policy.get("Statement"))
+        if isinstance(statement, dict) and statement.get("Effect") == "Deny" and statement.get("Condition")]
+    if conditional_denies:
+        a.step("policy", "allow", conditional_denies=conditional_denies,
+               semantics="Caller source restrictions apply; configured custom domain may still have a public edge")
+        a.authenticated = True
     a.ports = pset("tcp", 443, 443)
     methods = data.get("Methods", data.get("resources"))
     if not methods:
@@ -726,20 +771,59 @@ def _aws_rest_api(snapshot, inventory, resource):
 def _aws_http_api(snapshot, inventory, resource):
     data = resource["data"]
     a = Assessment(resource, "api")
-    if data.get("DisableExecuteApiEndpoint") is True:
+    domains, unresolved_domains = [], []
+    for domain in inventory.items("apigatewayv2_domain_name"):
+        if domain["scope"] != resource["scope"]:
+            continue
+        domain_data = domain["data"]
+        configs = as_list(domain_data.get("DomainNameConfigurations"))
+        if not configs or any(not isinstance(config, dict) or config.get("EndpointType") not in {"REGIONAL", "EDGE", "PRIVATE"}
+                              for config in configs):
+            unresolved_domains.append(domain_data.get("DomainName"))
+            continue
+        if configs and all(isinstance(config, dict) and config.get("EndpointType") == "PRIVATE" for config in configs):
+            continue
+        if "ROUTING_RULE" in str(domain_data.get("RoutingMode", "")):
+            unresolved_domains.append(domain_data.get("DomainName"))
+            continue
+        mappings = domain_data.get("ApiMappings") or {}
+        if mappings.get("collection_status") != "collected":
+            unresolved_domains.append(domain_data.get("DomainName"))
+            continue
+        if any(isinstance(mapping, dict) and mapping.get("ApiId") == data.get("ApiId")
+               for mapping in as_list(mappings.get("items"))):
+            name = domain_data.get("DomainName")
+            if isinstance(name, str) and name:
+                domains.append(name)
+            else:
+                unresolved_domains.append(native_id(domain))
+    if data.get("DisableExecuteApiEndpoint") is True and not domains:
         a.step("route", "block", disable_execute_api_endpoint=True)
+        if unresolved_domains or inventory.state("apigatewayv2_domain_name", resource["scope"]) not in {"collected", "empty"}:
+            a.gap("inventory", "HTTP API custom-domain mappings or routing rules are not fully collected",
+                  "apigatewayv2 get_domain_names + get_api_mappings")
+            a.explicit = "UNKNOWN"
         a.ports = {}
         return a
-    a.addresses = [data.get("ApiEndpoint")] if data.get("ApiEndpoint") else []
-    a.step("route", "allow", protocol=data.get("ProtocolType"))
+    if data.get("DisableExecuteApiEndpoint") is not True and data.get("ApiEndpoint"):
+        a.addresses.append(data["ApiEndpoint"])
+    a.addresses.extend(f"https://{name}" for name in sorted(set(domains)) if name)
+    a.step("route", "allow", protocol=data.get("ProtocolType"), custom_domains=sorted(set(domains)),
+           disable_execute_api_endpoint=data.get("DisableExecuteApiEndpoint"))
     a.ports = pset("tcp", 443, 443)
     routes = data.get("Routes")
     if isinstance(routes, dict) and routes.get("collection_status") == "collected":
         routes = routes.get("items")
     if isinstance(routes, list):
+        if not routes:
+            a.step("authorization", "block", reason="no routes configured")
+            a.ports = {}
+            return a
         open_routes = [r.get("RouteKey") for r in routes if isinstance(r, dict) and r.get("AuthorizationType", "NONE") == "NONE" and not r.get("ApiKeyRequired")]
-        a.step("authorization", "allow" if open_routes else "block", unauthenticated_routes=open_routes)
+        a.step("authorization", "allow" if open_routes else "block", unauthenticated_routes=open_routes,
+               authentication_required=not bool(open_routes))
         if not open_routes:
+            a.authenticated = True
             a.ports = {}
     else:
         a.gap("authorization", "route AuthorizationType not collected", STATIC_GAPS["aws"][1]["fact"])
@@ -1299,15 +1383,19 @@ def _azure_lb(snapshot, inventory, resource):
     if not fronts:
         return None
     a = Assessment(resource, "load_balancer")
-    for front in fronts.values():
+    public_fronts = {}
+    for front_id, front in fronts.items():
         public = inventory.get("public_ip", front["properties"]["publicIPAddress"]["id"])
         if public is not None and _props(public).get("ipAddress"):
-            a.addresses.append(_props(public)["ipAddress"])
+            public_fronts[front_id] = _props(public)["ipAddress"]
     total = {}
+    allowed_backend_nics = set()
+    backend_routes = []
     rules = [("loadBalancingRules", r) for r in as_list(props.get("loadBalancingRules"))] + [("inboundNatRules", r) for r in as_list(props.get("inboundNatRules"))]
     for kind, rule in rules:
         rp = (rule or {}).get("properties") or {}
-        if str((rp.get("frontendIPConfiguration") or {}).get("id", "")).lower() not in fronts:
+        front_id = str((rp.get("frontendIPConfiguration") or {}).get("id", "")).lower()
+        if front_id not in fronts:
             continue
         protocol = rp.get("protocol", "Tcp")
         frontend, backend = rp.get("frontendPort"), rp.get("backendPort", rp.get("frontendPort"))
@@ -1330,7 +1418,20 @@ def _azure_lb(snapshot, inventory, resource):
                                       backend_ports, cp.get("privateIPAddress"), [g.get("id") for g in as_list(cp.get("applicationSecurityGroups")) if isinstance(g, dict)],
                                       "standard" if (resource["data"].get("sku") or {}).get("name", "").lower() == "standard" else "basic", rule.get("name"))
             if not empty(allowed):
+                if front_id not in public_fronts:
+                    a.gap("inventory", f"{kind} {rule.get('name')}: public frontend address not collected",
+                          "Microsoft.Network/publicIPAddresses")
+                    continue
                 total = union(total, frontend_ports)
+                allowed_backend_nics.add(nic["id"])
+                address = public_fronts[front_id]
+                backend_routes.append({"nic_id": nic["id"], "public_ip": address,
+                    "frontend_ports": describe(frontend_ports), "backend_ports": describe(backend_ports),
+                    "rule_name": rule.get("name")})
+                if address not in a.addresses:
+                    a.addresses.append(address)
+    if allowed_backend_nics:
+        a.step("backend", "allow", nic_ids=sorted(allowed_backend_nics), routes=backend_routes)
     a.step("listener", "allow" if not empty(total) else "block", frontend_ports=describe(total))
     a.ports = total if rules else {}
     if not empty(total):
@@ -1592,7 +1693,7 @@ def _k8s_ingress(snapshot, inventory, resource):
 
 AWS_TYPES = ["vpc", "subnet", "route_table", "network_acl", "security_group", "network_interface", "instance", "internet_gateway",
              "load_balancer", "classic_load_balancer", "rds_instance", "rds_snapshot", "rds_cluster_snapshot", "redshift_cluster",
-             "opensearch_domain", "eks_cluster", "lambda_function", "rest_api", "http_api", "bucket", "s3_account_public_access_block",
+             "opensearch_domain", "eks_cluster", "lambda_function", "rest_api", "apigateway_domain_name", "http_api", "apigatewayv2_domain_name", "bucket", "s3_account_public_access_block",
              "organization_account"]
 GCP_TYPES = ["network", "firewall", "firewall_policy", "instance", "forwarding_rule", "target_proxy", "url_map", "backend_service",
              "cloudrun_service", "function", "sql_instance", "gke_cluster", "bucket", "project", "workload_identity_provider"]

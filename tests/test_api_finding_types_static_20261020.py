@@ -59,7 +59,7 @@ assert 'peaso.checks' not in sys.modules
 def test_pinned_registry_and_predecessor_unchanged():
     assert hashlib.sha256(static.REGISTRY_PATH.read_bytes()).hexdigest() == static.REGISTRY_SHA256
     predecessor = ROOT/'peaso/finding_types.py'
-    assert hashlib.sha256(predecessor.read_bytes()).hexdigest() == 'c8f13d627a6a1420b871b7cb2e5fd0684505788caaca7cef65c72c93e784111f'
+    assert hashlib.sha256(predecessor.read_bytes()).hexdigest() == '2103ac2bfe7a1f1feaa852e2547db064a6184f1ea764a75dd9c6dcc98619f299'
 
 
 @pytest.mark.parametrize('damage', ['altered', 'oversize', 'missing'])
@@ -105,8 +105,8 @@ with tempfile.TemporaryDirectory() as tmp:
  from peaso.engine import get_catalog
  from peaso.checks import CHECKS
  catalog=get_catalog()
- assert len(CHECKS)==4115
- assert len(catalog['checks'])==3496
+ assert len(CHECKS)==4133
+ assert len(catalog['checks'])==3512
 '''
     result=subprocess.run([sys.executable,'-c',program],cwd=ROOT,capture_output=True,text=True,timeout=180)
     assert result.returncode==0, result.stderr

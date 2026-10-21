@@ -1,6 +1,6 @@
 """API taxonomy lookup without installing native evaluators.
 
-The exact five signed aliases are build-checked against the native registrar.
+The signed aliases are build-checked against the native registrar.
 This successor changes presentation metadata lookup only. It never supplies
 observations, verdicts, expected contexts, or source-read authorization.
 """
@@ -11,8 +11,8 @@ from pathlib import Path
 from types import MappingProxyType
 
 REGISTRY_PATH = Path(__file__).resolve().parent / 'checks/finding_types.json'
-REGISTRY_SHA256 = 'bbb5b22a1dd5f4c9d1029d7c1ddcada0ec85b31ef8e0aff50ffa83738d7396d6'
-CURRENT_REGISTRY_SHA256 = '1ea892e0a8792f8e10f28edb9abb6a437ab81d2464e93bda386b0fc025265cf1'
+REGISTRY_SHA256 = '309fbb1f5613636d3252bf23732fa201f5c4247f75673ec9777ba995211f0493'
+HISTORICAL_REGISTRY_SHA256 = 'bbb5b22a1dd5f4c9d1029d7c1ddcada0ec85b31ef8e0aff50ffa83738d7396d6'
 MAX_REGISTRY_BYTES = 1024 * 1024
 ALIASES = MappingProxyType({
     'gcp.compute.os_login': 'gcp.ports.compute_oslogin_metadata_precedence',
@@ -20,6 +20,13 @@ ALIASES = MappingProxyType({
     'aws_fedramp_rds_cluster_members_enhanced_monitoring': 'aws.nist.rds_cluster_member_enhanced_monitoring',
     'aws_g6_redshift_automatic_version_upgrade': 'aws.cb.redshift.allow_version_upgrade',
     'aws.pci.cloudtrail.authentication_events': 'aws.gap.cloudtrail.region_logging_management_events',
+    'aws.a.cloudwatch.cross_account_role_absent': 'aws.claude2_a.cloudwatch.cross_account_sharing_role_absent',
+    'aws.a.s3.bucket_account_public_blocks': 'aws.s3.public_access_block',
+    'aws.b.redshift.no_public_endpoint': 'aws.cb.redshift.not_publicly_accessible',
+    'aws.c2b.ecs.service_no_public_ip': 'aws.c2b.ecs.awsvpc_service_no_public_ip',
+    'aws.c2b.elasticache.cluster_public_subnet': 'aws.c2b.elasticache.cluster_public_subnet_prowler',
+    'aws.cb.sns.policy_prohibit_public_access_perimeter': 'aws.cb.sns.policy_no_unrestricted_wildcard',
+    'azure.claude.aks_authorized_ip_ranges': 'azure.aks.api_server_restricted',
 })
 
 
@@ -37,7 +44,7 @@ def _checks():
     with REGISTRY_PATH.open('rb') as stream:
         raw = stream.read(MAX_REGISTRY_BYTES + 1)
     if (len(raw) > MAX_REGISTRY_BYTES
-            or hashlib.sha256(raw).hexdigest() not in (REGISTRY_SHA256, CURRENT_REGISTRY_SHA256)):
+            or hashlib.sha256(raw).hexdigest() not in (REGISTRY_SHA256, HISTORICAL_REGISTRY_SHA256)):
         raise ValueError('API taxonomy source identity differs')
     data = json.loads(raw, object_pairs_hook=_pairs)
     ids = [row['id'] for row in data['types']]
@@ -61,8 +68,8 @@ def install():
 
 
 SCOPE_PATH = Path(__file__).resolve().parent / 'checks/hacktricks_scope.json'
-SCOPE_SHA256 = '9ee1a03f0cdd495c7b8a2e4e4ad2f138f22758d0aad574654c71eb9d2f0d1c77'
-CURRENT_SCOPE_SHA256 = '97207eccdeda1e7c496f8d76ccbba3b5404a80159fda22d9ae83c3a0f38772c1'
+SCOPE_SHA256 = '8a85d7522345279735759c132c87b6bbe80b50ddb02d7fe9c29c959d02542331'
+HISTORICAL_SCOPE_SHA256 = '9ee1a03f0cdd495c7b8a2e4e4ad2f138f22758d0aad574654c71eb9d2f0d1c77'
 
 
 @lru_cache(maxsize=1)
@@ -70,7 +77,7 @@ def _scope():
     with SCOPE_PATH.open('rb') as stream:
         raw = stream.read(MAX_REGISTRY_BYTES + 1)
     if (len(raw) > MAX_REGISTRY_BYTES
-            or hashlib.sha256(raw).hexdigest() not in (SCOPE_SHA256, CURRENT_SCOPE_SHA256)):
+            or hashlib.sha256(raw).hexdigest() not in (SCOPE_SHA256, HISTORICAL_SCOPE_SHA256)):
         raise ValueError('Checklist presentation source identity differs')
     data = json.loads(raw, object_pairs_hook=_pairs)
     if data.get('schema_version') != 1:

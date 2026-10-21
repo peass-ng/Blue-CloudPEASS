@@ -1,0 +1,28 @@
+[
+  {
+    "eventSource": "sns.amazonaws.com", "eventName": "SetTopicAttributes",
+    "eventCategory": "Management", "eventType": "AwsApiCall", "managementEvent": true,
+    "readOnly": false, "recipientAccountId": "999999999999", "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T22:00:00Z", "eventID": "synthetic-b83-publish",
+    "userIdentity": {"arn": "arn:aws:sts::999999999999:assumed-role/synthetic-admin/session"},
+    "requestParameters": {
+      "topicArn": "arn:aws:sns:us-east-1:999999999999:synthetic-topic",
+      "attributeName": "Policy",
+      "attributeValue": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"SyntheticPublicRoute\",\"Effect\":\"Allow\",\"Principal\":\"*\",\"Action\":\"SNS:Publish\",\"Resource\":\"arn:aws:sns:us-east-1:999999999999:synthetic-topic\"}]}"
+    },
+    "responseElements": {}
+  },
+  {
+    "eventSource": "sns.amazonaws.com", "eventName": "SetTopicAttributes",
+    "eventCategory": "Management", "eventType": "AwsApiCall", "managementEvent": true,
+    "readOnly": false, "recipientAccountId": "999999999999", "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T22:00:01Z", "eventID": "synthetic-b83-subscribe",
+    "userIdentity": {"arn": "arn:aws:sts::999999999999:assumed-role/synthetic-admin/session"},
+    "requestParameters": {
+      "topicArn": "arn:aws:sns:us-east-1:999999999999:synthetic-topic",
+      "attributeName": "Policy",
+      "attributeValue": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"SyntheticPublicRoute\",\"Effect\":\"Allow\",\"Principal\":{\"AWS\":\"*\"},\"Action\":[\"SNS:Subscribe\"],\"Resource\":\"arn:aws:sns:us-east-1:999999999999:synthetic-topic\"}]}"
+    },
+    "responseElements": {}
+  }
+]

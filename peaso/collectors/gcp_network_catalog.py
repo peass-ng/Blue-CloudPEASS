@@ -27,7 +27,7 @@ REGIONAL = {
 PRIVATE_SERVICES = json.loads(Path(__file__).with_name('gcp_network_private_services.json').read_text())
 REGIONAL.update({kind: (p['service'], p['version'], p['segment'], p['key']) for kind, p in PRIVATE_SERVICES.items()
                  if not p.get('project_wide') and not p.get('organization_scoped')})
-TYPES = set(REGIONAL) | set(PRIVATE_SERVICES) | {"network_connectivity_hub", "service_networking_connection", "dataflow_network_job", "app_engine_network_version", "dns_record_set"}
+TYPES = set(REGIONAL) | set(PRIVATE_SERVICES) | {"network_connectivity_hub", "service_networking_connection", "dataflow_network_job", "app_engine_network_version", "dns_record_set", "backend_service_health"}
 DATAFLOW_FIELDS = "id,name,location,projectId,currentState,type,environment(workerPools(network,subnetwork,ipConfiguration))"
 APPENGINE_FIELDS = "versions(id,name,servingStatus,env,network,vpcAccessConnector),nextPageToken"
 BATCH_FIELDS = "jobs(name,uid,status(state),allocationPolicy(network,location,instances(instanceTemplate))),nextPageToken,unreachable"
@@ -310,6 +310,49 @@ def apigee(collector, scope, kind):
                     yield [dict(item, name=f'organizations/{name}/instances/{item["name"]}') for item in items], child_receipt
 
 
+def backend_service_health(collector, scope):
+    """Read native backend health separately from the service configuration."""
+    project = scope.split('/', 1)[1]
+    base = f'https://compute.googleapis.com/compute/v1/{scope}'
+    for items, receipt in collector.pages(base + '/aggregated/backendServices', scope,
+            key='backendServices', aggregate='backendServices',
+            params={'returnPartialSuccess': 'true'}, page_size_key='maxResults'):
+        yield [], receipt
+        for item in items:
+            link = item.get('selfLink')
+            expected = (rf'https://(?:www|compute)\.googleapis\.com/compute/v1/projects/'
+                rf'{re.escape(project)}/(?:global|regions/[a-z0-9-]+)/backendServices/[A-Za-z0-9_-]+')
+            if not isinstance(link, str) or not re.fullmatch(expected, link):
+                continue
+            groups = []
+            for backend in item.get('backends') or []:
+                group = backend.get('group') if isinstance(backend, dict) else None
+                if not isinstance(group, str) or not re.fullmatch(
+                        r'https://(?:www|compute)\.googleapis\.com/compute/v1/projects/'
+                        r'[A-Za-z0-9_-]+/(?:zones|regions)/[a-z0-9-]+/'
+                        r'(?:instanceGroups|networkEndpointGroups)/[A-Za-z0-9_-]+', group):
+                    groups.append({'group': group, 'collection_status': 'unknown',
+                        'error': {'code': 'backend_group_identity_missing'}})
+                    continue
+                try:
+                    result, request_id = collector.read(link + '/getHealth', scope,
+                        method='POST', body={'group': group})
+                    if (not isinstance(result, dict) or not isinstance(result.get('healthStatus', []), list)
+                            or any(not isinstance(status, dict) for status in result.get('healthStatus', []))):
+                        raise ReadError('malformed', 'backend_health_malformed')
+                    groups.append({'group': group, 'collection_status': 'collected',
+                        'source_requests': [request_id], 'healthStatus': [
+                            {field: status.get(field) for field in ('instance', 'healthState', 'ipAddress', 'port')
+                             if field in status} for status in result.get('healthStatus', [])]})
+                except ReadError as exc:
+                    groups.append({'group': group, 'collection_status': exc.status,
+                        'source_requests': [exc.request_id] if getattr(exc, 'request_id', None) else [],
+                        'error': exc.error})
+            status = 'collected' if all(group['collection_status'] == 'collected' for group in groups) else 'partial'
+            yield [{'name': link, 'backendService': link, 'collection_status': status,
+                'groups': groups}], receipt
+
+
 def scope_jobs(collector, scope):
     scope_kind = scope.split('/', 1)[0]
     if scope_kind not in {'projects', 'organizations'}:
@@ -319,6 +362,9 @@ def scope_jobs(collector, scope):
             and PRIVATE_SERVICES.get(kind, {}).get('scope_kind', 'projects') == scope_kind]
     if scope_kind != 'projects':
         return jobs
+    if 'backend_service_health' in collector.needed:
+        jobs.append(('backend_service_health', scope, 'compute',
+            lambda: backend_service_health(collector, scope)))
     for kind, plan in PRIVATE_SERVICES.items():
         if kind not in collector.needed:
             continue

@@ -259,6 +259,8 @@ ACTION_ALIASES[('s3control', 'list_regional_buckets')] = 's3-outposts:ListRegion
 
 GATEWAY_PATHS = {
     ("apigatewayv2", "get_integrations"): ("/apis/*/integrations",),
+    ("apigatewayv2", "get_api_mappings"): ("/domainnames/*/apimappings",),
+    ("apigatewayv2", "get_domain_names"): ("/domainnames",),
     ("apigateway", "get_vpc_links"): ("/vpclinks",),
     ("apigatewayv2", "get_vpc_links"): ("/vpclinks",),
     ("apigateway", "get_rest_apis"): ("/restapis",),
@@ -266,6 +268,7 @@ GATEWAY_PATHS = {
     ("apigatewayv2", "get_apis"): ("/apis",),
     ("apigatewayv2", "get_stages"): ("/apis/*/stages",),
     ("apigateway", "get_domain_names"): ("/domainnames",),
+    ("apigateway", "get_base_path_mappings"): ("/domainnames/*/basepathmappings",),
     ("apigateway", "get_resources"): ("/restapis/*/resources",),
     ("apigateway", "get_authorizers"): ("/restapis/*/authorizers",),
     ("apigatewayv2", "get_routes"): ("/apis/*/routes",),
@@ -294,6 +297,8 @@ UNGRANTED_CREDENTIAL_OPERATIONS = frozenset({("lightsail", "get_bucket_access_ke
 # companion grant; never add them to the default metadata-only customer role.
 UNGRANTED_CONTENT_OPERATIONS = frozenset({('ecr','list_image_referrers'),
     ('ecr','batch_get_image'),('ecr','get_download_url_for_layer'),
+    # Selected image provenance reads use separate customer authorization.
+    ('ecr-public','describe_images'),('ecr-public','describe_registries'),
     ('lambda','get_function'),('lambda','get_layer_version'),
     ('codecommit','get_repository'),('codecommit','get_branch'),('codecommit','get_folder'),
     ('codecommit','get_file'),('logs','filter_log_events')})

@@ -1,5 +1,5 @@
 {
-  "native_checks": 4140,
+  "native_checks": 4133,
   "upstream_total": 6407,
   "upstream": {
     "ported": 3487,
@@ -14,7 +14,7 @@
   "outside_runtime_provider_scope": 561,
   "runtime_scope_upstream_total": 5846,
   "limitations": "Unported target references remain pending; other providers are explicitly out of scope. Reference tags are not certification.",
-  "active_native_checks": 3514,
+  "active_native_checks": 3507,
   "automation_scope": {
     "mode": "provider_read_only",
     "manual_attestations": false,
@@ -36,6 +36,7 @@
         "aoss_vpc_endpoint",
         "apigateway_domain_name",
         "apigateway_vpc_link",
+        "apigatewayv2_domain_name",
         "apigatewayv2_vpc_link",
         "app_runner_custom_domain",
         "app_runner_service",
@@ -1188,6 +1189,7 @@
         "autoscaler",
         "backend_bucket",
         "backend_service",
+        "backend_service_health",
         "backup_target",
         "backupdr_management_server",
         "baremetal_instance",

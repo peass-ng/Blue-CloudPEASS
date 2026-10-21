@@ -46,3 +46,8 @@ risk_rules = ["*.yaml", "*.json"]
     "azure_nsp_query_cmk_production_native_20261020.json.gz",
     "azure_sql_tde_parent_identity_predecessor_20261020.json.gz",
 ]
+
+[tool.pytest.ini_options]
+# Runtime admission witnesses under peaso/ are package data, not test modules.
+# Match CI collection and keep every executable test under tests/ enabled.
+testpaths = ["tests"]

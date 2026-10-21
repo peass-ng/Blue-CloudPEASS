@@ -67,6 +67,7 @@ SERVICE_ALIASES = {
 # inventory kinds directly as their service labels.
 ANALYSIS_KIND_SERVICES = {
     "aws": {
+        "apigatewayv2_domain_name": "apigateway",
         "cloudfront_vpc_origin": "cloudfront", "memorydb_subnet_group": "memorydb",
         "redshift_subnet_group": "redshift", "elasticache_subnet_group": "elasticache", "ecs_task": "ecs",
         "rds_db_subnet_group": "rds",

@@ -64,7 +64,7 @@ from peaso.principal_exposure_requirements import REQUIRED_TYPES as _PRINCIPAL_E
 for _provider, _types in _PRINCIPAL_EXPOSURE_TYPES.items():
     # Filter names against provider support when constructing the collection plan.
     from peaso.collectors import supported_types as _supported_types
-    for _category in ("least_privilege", "privesc"):
+    for _category in ("least_privilege", "privesc", "exposure"):
         REQUIRED_TYPES[_provider][_category] = sorted(set(REQUIRED_TYPES[_provider][_category]) | (_types & set(_supported_types(_provider))))
 
 
@@ -88,6 +88,7 @@ ANALYSIS_CHECKS = [
     {"id": "analysis.principal_exposure", "category": "exposure", "title": "Review public or external principal declarations", "severity": "high"},
     {"id": "analysis.coverage", "category": "least_privilege", "title": "Analysis inventory context incomplete", "severity": "info"},
     {"id": "analysis.internet_exposure", "category": "exposure", "title": "Asset reachable from the internet", "severity": "high"},
+    {"id": "analysis.exposed_privileged_workload", "category": "exposure", "title": "Public workload uses a privileged identity", "severity": "high"},
     {"id": "analysis.federated_trust", "category": "exposure", "title": "Federated (OIDC) trust is not pinned to a subject", "severity": "high"},
 ]
 from .finding_clarity import HOW as _CLARITY_HOW, ACTION as _CLARITY_ACTION
@@ -103,6 +104,7 @@ for _check in ANALYSIS_CHECKS:
 
 @with_analysis_context
 def analyze_findings(snapshot, resources=None, index=None, *, include_manual_only=True):
+    from peaso.principal_exposure import exposed_privileged_findings
     if resources is None:
         from peaso.snapshot import resources as snapshot_resources
         resources = snapshot_resources(snapshot)
@@ -125,7 +127,7 @@ def analyze_findings(snapshot, resources=None, index=None, *, include_manual_onl
                            "provider": snapshot["provider"], "service": "iam", "data": {}}
             results.append(finding(snapshot, placeholder, "least_privilege", "analysis.coverage", "Assignment grant review failed on malformed facts", "info",
                 {"reason": "malformed_native_fact", "risk_state": "unknown"}, status="UNKNOWN"))
-    for derived_findings in (internet_findings, federated_findings):
+    for derived_findings in (internet_findings, federated_findings, exposed_privileged_findings):
         try:
             results.extend(derived_findings(snapshot, resources))
         except (TypeError, AttributeError, KeyError, ValueError, IndexError):
@@ -151,7 +153,9 @@ def analyze_findings(snapshot, resources=None, index=None, *, include_manual_onl
             gap_status = "DENIED" if any(gap["status"] == "denied" for gap in gaps) else "UNKNOWN"
             results.append(finding(snapshot, placeholder, "least_privilege", "analysis.coverage",
                 "Analysis inventory context incomplete", "info", {"gaps": gaps, "risk_state": "unknown"}, status=gap_status))
-    return sorted(results, key=lambda f: (RANK[f["severity"]], f["check_id"], f["scope"], f["resource_id"]))
+    from .exposure_dedup import deduplicate_principal_exposure
+    return sorted(deduplicate_principal_exposure(results),
+        key=lambda f: (RANK[f["severity"]], f["check_id"], f["scope"], f["resource_id"]))
 
 
 @with_analysis_context

@@ -131,6 +131,14 @@ def _base_description_for(check_id):
     if check_id == 'azure.review.synapse.selected_notebook_source_secret_indicators':
         path = Path(__file__).with_name('azure_synapse_selected_notebook_secret_review_20261021_descriptions.json')
         return deepcopy(json.loads(path.read_text())[check_id])
+    if check_id == "analysis.exposed_privileged_workload":
+        return {
+            "description": "Links a declared public workload path to the workload's runtime identity and a high-impact allowed grant. The finding depends on an application compromise and does not claim that the grant is effective or used.",
+            "evaluated": ["public endpoint and its resolved workload backend", "workload runtime identity", "allowed high or critical permissions classified by the bundled offline permission catalog"],
+            "pass_when": "Never emits PASS; workloads without both a declared public path and a resolved high-impact runtime grant produce no finding.",
+            "fail_when": "A resolved workload is linked to a declared public endpoint and its runtime identity has a high or critical allowed grant.",
+            "not_applicable_when": "No public workload path or resolved high-impact runtime grant is present.",
+        }
     if check_id == "aws_nist_apigateway_stage_logging_enabled":
         from .aws_apigateway_logging_source_correction import description
         return description()
@@ -186,7 +194,14 @@ def _base_description_for(check_id):
 
 def requirement_tags_for(check_id):
     packed = _compliance()
-    return deepcopy(packed[0]["by_check"].get(check_id, [])) if packed else []
+    if not packed:
+        return []
+    from . import CHECK_ALIASES
+    source_ids = [check_id, *(old for old, survivor in CHECK_ALIASES.items() if survivor == check_id)]
+    tags = []
+    for source_id in source_ids:
+        tags.extend(packed[0]["by_check"].get(source_id, []))
+    return deepcopy(tags)
 
 
 @lru_cache(maxsize=1)

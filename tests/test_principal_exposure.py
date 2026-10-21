@@ -127,7 +127,9 @@ def test_pending_loadbalancer_and_networkpolicy_do_not_raise_criticality():
     card = project(snap, resources(snap))["cluster|system:serviceaccount:app:app"]
     assert card["exposures"][0]["state"] == "unknown" and card["severity"] == "high"
     snap = kube()
-    snap["collections"].append({"type": "networkpolicy", "scope": "cluster", "service": "k8s", "status": "collected", "items": [{"metadata": {"name": "restrict"}}]})
+    snap["collections"].append({"type": "networkpolicy", "scope": "cluster", "service": "k8s", "status": "collected", "items": [{
+        "metadata": {"name": "restrict", "namespace": "app"},
+        "spec": {"podSelector": {"matchLabels": {"app": "web"}}, "policyTypes": ["Ingress"], "ingress": []}}]})
     card = project(snap, resources(snap))["cluster|system:serviceaccount:app:app"]
     assert card["exposures"][0]["state"] == "conditional" and card["severity"] == "high"
 

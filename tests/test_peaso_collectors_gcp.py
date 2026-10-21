@@ -1794,3 +1794,30 @@ def test_service_account_key_activity_attaches_policy_analyzer_key_facts():
     found = collection(result, "service_account_key")
     assert found["status"] == "collected" and len(found["items"]) == 4
     assert all(check.evaluate(item, {})[0] == "UNKNOWN" and item["_coverage"]["_activity"]["status"] == "denied" for item in found["items"])
+
+
+def test_backend_service_collects_healthy_vm_identity_without_guessing_group_members():
+    base = "https://www.googleapis.com/compute/v1/projects/p-one"
+    service = base + "/global/backendServices/web"
+    group = base + "/zones/us-central1-a/instanceGroups/web"
+    vm = base + "/zones/us-central1-a/instances/web"
+    def resolver(request):
+        if request["method"] == "POST":
+            assert request["url"] == service + "/getHealth"
+            assert request["body"] == {"group": group}
+            return {"healthStatus": [{"instance": vm, "healthState": "HEALTHY"}]}
+        return {"items": {"global": {"backendServices": [{"name": "web", "selfLink": service,
+            "backends": [{"group": group}]}]}}}
+    result, transport = snapshot(["backend_service_health"], resolver)
+    health = collection(result, "backend_service_health")["items"][0]
+    assert health["collection_status"] == "collected"
+    assert health["groups"][0]["healthStatus"] == [{"instance": vm, "healthState": "HEALTHY"}]
+    assert [request["method"] for request in transport.requests] == ["GET", "POST"]
+    def denied(request):
+        if request["method"] == "POST":
+            raise gcp.ReadError("denied", "missing_compute_backend_service_get")
+        return resolver(request)
+    result, _ = snapshot(["backend_service_health"], denied)
+    health = collection(result, "backend_service_health")["items"][0]
+    assert health["collection_status"] == "partial"
+    assert health["groups"][0]["collection_status"] == "denied"
