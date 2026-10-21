@@ -865,7 +865,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
 
     @lru_cache(maxsize=8)
     def grouped_download_reference(tenant, scan_id, original_reference, report_format):
-        from peaso.finding_groups import group_report
+        from .finding_groups_static_20261021 import group_report
         original = artifacts.get(tenant, original_reference)
         source = artifacts.get(tenant, original["report_json"]) if original.get("bundle_version") == 1 else original
         presented = group_report(source)
@@ -1049,7 +1049,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         service_groups = None
         type_groups = None
         if aggregation == "check":
-            from peaso.finding_groups import group_findings
+            from .finding_groups_static_20261021 import group_findings
             provider = bundle.get("summary", bundle).get("provider", "")
             def indexed_observations():
                 for value, _ in selected_rows:
@@ -1123,7 +1123,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
                       finding_type: str | None = None,
                       members_offset: int = Query(default=0, ge=0), members_limit: int = Query(default=50, ge=1, le=100),
                       user=Depends(identity)):
-        from peaso.finding_groups import group_id, group_findings, placement, member_scopes, STATUS_ORDER
+        from .finding_groups_static_20261021 import group_id, group_findings, placement, member_scopes, STATUS_ORDER
         row, bundle, selected, _, _, labels, meta, field, _, _ = finding_selection(
             user.tenant_id, ident, categories, framework, severity, service, status, search, finding_type=finding_type)
         provider = bundle.get("summary", bundle).get("provider", "")
@@ -1232,7 +1232,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         value = dict(bundle["summary"]) if bundle.get("bundle_version") == 1 else {key: value for key, value in bundle.items() if key not in {"findings", "resources", "coverage", "graphs", "snapshot", "check_frameworks", "check_meta"}}
         value.update(runtime=store.public_job(row)["runtime"], finding_count=bundle.get("finding_count", len(bundle.get("findings", []))), coverage_count=bundle.get("coverage_count", len(bundle.get("coverage", []))) + len(_credential_target_coverage(bundle)))
         if aggregation == "check":
-            from peaso.finding_groups import group_findings
+            from .finding_groups_static_20261021 import group_findings
             from collections import Counter
             _, _, selected, _, _, _, _, field, _, _ = finding_selection(user.tenant_id, ident)
             provider = value.get("provider", "")
