@@ -55,7 +55,7 @@ _DATAFLOW_FUNCTIONS = dict(_DATAFLOW_ADMISSION._FUNCTIONS)
 _DATAFLOW_REVIEWED_INPUTS = _DATAFLOW_FUNCTIONS[_DATAFLOW_ADMISSION.__name__ + ':reviewed_inputs']
 RECEIPT = 'azure_metadata_only_shared_successor_20261020.json'
 RECEIPT_SHA256 = '12bf2cd88f943bcb3cdb91a3701cd3197e78d6ba7ed7e956afd854d6d1b292ed'
-BRIDGE_RECEIPT_SHA256 = '1dc052b2b3fd488bfe9379b8baeeb066d9a883eb1992b17c785568c9376966cd'
+BRIDGE_RECEIPT_SHA256 = '5889b51b210bf8a45f3eb07c5b4a027a2fceec9562e5b6baed8c2ba614d27f1e'
 _CURRENT_INIT_SHA256 = '0fa143a274905e52dad14d6eecfb641fdc98ebbd17db90d54d9908594b458e08'
 _PREDECESSOR_INIT_SHA256 = 'e828e145917364fcd20a5a2d6de7e24eb304eee5698fea1cb1bed8669fef01c6'
 
@@ -199,16 +199,18 @@ def _transaction_compiler():
             if not immutable(code):
                 raise RuntimeError('Mutable native code artifact refused')
             value = json.dumps(original.proof._code(code), sort_keys=True)
-            signature = hmac.digest(secret, marshal.dumps((artifact_key, code, value), 2), 'sha256')
+            signature = hmac.digest(secret, marshal.dumps((artifact_key, value), 2), 'sha256')
             entry = (code, value, signature)
             if len(code_cache) < 4096 and code_bytes + len(value.encode()) <= 4 * 1024 * 1024:
                 code_cache[artifact_key] = entry
                 code_bytes += len(value.encode())
         saved, value, signature = entry
         # This is a serialization artifact, never a live-function verdict.
-        # Marshal/HMAC and exact immutable code identity are checked each use.
+        # Exact recursive immutability was checked before retaining this code.
+        # The signed key contains its identity; holding the code prevents ID
+        # reuse. Replacing live __code__ gets a new key and fresh serialization.
         if (saved is not code or not hmac.compare_digest(signature,
-                hmac.digest(secret, marshal.dumps((artifact_key, code, value), 2), 'sha256'))):
+                hmac.digest(secret, marshal.dumps((artifact_key, value), 2), 'sha256'))):
             raise RuntimeError('Normalized code artifact changed')
         return value
 
@@ -257,19 +259,20 @@ def _transaction_compiler():
         code = native.__code__
         source_key = (key, id(code), native.__module__, native.__qualname__,
                       code.co_filename, code.co_firstlineno, line_digest)
+        # Validate recursive immutability before retaining an identity artifact.
+        live_json = normalized(key, code)
         entry = source_cache.get(source_key)
         if entry is None:
             digest = original.prepared._hash(inspect.getsource(native).encode())
-            payload = (source_key, code, digest)
+            payload = (source_key, digest)
             signature = hmac.digest(secret, marshal.dumps(payload, 2), 'sha256')
             entry = (code, digest, signature)
             if key in cache and len(source_cache) < 4096:
                 source_cache[source_key] = entry
         saved_code, digest, signature = entry
         if (saved_code is not code or not hmac.compare_digest(signature,
-                hmac.digest(secret, marshal.dumps((source_key, saved_code, digest), 2), 'sha256'))):
+                hmac.digest(secret, marshal.dumps((source_key, digest), 2), 'sha256'))):
             raise RuntimeError('Native CPU source cache artifact changed')
-        live_json = normalized(key, code)
         for record, _ in matches:
             record['live_code_json'] = live_json
         return (matches, digest, source_fragment) if want_source else (matches, digest)

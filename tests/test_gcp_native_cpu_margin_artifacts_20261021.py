@@ -10,7 +10,7 @@ import types
 import pytest
 from peaso import gcp_positive_conservation_source_admission_successor_20261020 as source
 from peaso.checks import gcp_positive_conservation_shared_source_successor_20261020 as bridge
-from tests.gcp_native_cpu_margin_epoch_20261021 import CHANGES, predecessor_bytes
+from tests.gcp_native_cpu_margin_epoch_20261021 import CHANGES, predecessor_bytes, cpu_margin_pre_rawv2_bytes
 
 ROOT = Path(source.__file__).resolve().parents[1]
 
@@ -25,16 +25,16 @@ def test_finite_changed_function_roster_and_unchanged_historical_manifest():
     root = 'peaso/gcp_positive_conservation_source_admission_successor_20261020.py'
     manifest = 'peaso/checks/gcp_positive_conservation_source_bridge_20261020.json'
     assert set(CHANGES) == {shared, root, manifest}
-    old, new = _functions(predecessor_bytes(ROOT, shared)), _functions((ROOT / shared).read_bytes())
+    old, new = _functions(predecessor_bytes(ROOT, shared, cpu_margin_pre_rawv2_bytes(ROOT, shared))), _functions(cpu_margin_pre_rawv2_bytes(ROOT, shared))
     assert old.keys() == new.keys()
     assert {n for n in old if old[n] != new[n]} == {'_transaction_compiler', '_check_function', 'install_s3', 'install_bundle'}
-    old, new = _functions(predecessor_bytes(ROOT, root)), _functions((ROOT / root).read_bytes())
+    old, new = _functions(predecessor_bytes(ROOT, root, cpu_margin_pre_rawv2_bytes(ROOT, root))), _functions(cpu_margin_pre_rawv2_bytes(ROOT, root))
     assert set(new) - set(old) == {'_module_compiler', '_compiled_module'}
     assert not (set(old) - set(new))
     assert {n for n in old if old[n] != new[n]} == {'_bridge_source', '_live_leaf'}
     assert old['_source_delta'] == new['_source_delta']
-    before = json.loads(predecessor_bytes(ROOT, manifest))
-    current = json.loads((ROOT / manifest).read_bytes())
+    before = json.loads(predecessor_bytes(ROOT, manifest, cpu_margin_pre_rawv2_bytes(ROOT, manifest)))
+    current = json.loads(cpu_margin_pre_rawv2_bytes(ROOT, manifest))
     assert set(current['normalized_sources']) == set(before['normalized_sources']) == {shared, root}
     for name in (shared, root):
         current['normalized_sources'][name] = before['normalized_sources'][name]
@@ -44,10 +44,25 @@ def test_finite_changed_function_roster_and_unchanged_historical_manifest():
 
 
 @pytest.mark.parametrize('name', sorted(CHANGES))
-def test_predecessor_projection_rejects_any_unreviewed_current_source(name):
+def test_cpu_margin_projection_rejects_any_unreviewed_current_source(name):
     raw = (ROOT / name).read_bytes()
     with pytest.raises(AssertionError):
-        predecessor_bytes(ROOT, name, raw + b'\n')
+        cpu_margin_pre_rawv2_bytes(ROOT, name, raw + b'\n')
+
+
+def test_cpu_margin_projection_rejects_wrong_tuple_member(tmp_path):
+    from tests.gcp_native_cpu_margin_epoch_20261021 import PRE_RAWV2_FIXTURE
+    for name in CHANGES:
+        path = tmp_path / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes((ROOT / name).read_bytes())
+    fixture = tmp_path / PRE_RAWV2_FIXTURE
+    fixture.parent.mkdir(parents=True, exist_ok=True)
+    fixture.write_bytes((ROOT / PRE_RAWV2_FIXTURE).read_bytes())
+    shared, manifest, _ = CHANGES
+    (tmp_path / manifest).write_bytes((tmp_path / manifest).read_bytes() + b'\n')
+    with pytest.raises(AssertionError):
+        cpu_margin_pre_rawv2_bytes(tmp_path, shared)
 
 
 @pytest.mark.parametrize('mutation', ['code', 'signature', 'source_key'])

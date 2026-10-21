@@ -341,6 +341,18 @@
       "defaults": "None",
       "kwdefaults": "None"
     },
+    "_install_admission": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "_install_selected_aws": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "_install_selected_azure": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
     "_receipt": {
       "defaults": "None",
       "kwdefaults": "None"
@@ -366,6 +378,14 @@
       "kwdefaults": "None"
     },
     "_verify_guard": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "_verify_scanner": {
+      "defaults": "None",
+      "kwdefaults": "None"
+    },
+    "_with_artifacts": {
       "defaults": "None",
       "kwdefaults": "None"
     },
@@ -407,6 +427,9 @@
     "_compiled": "89f1aa0768bd66b5fceb9a601af2f03c6b82b78a172b522ce6d2980fa7ed4523",
     "_digest": "6ee9ae13e740c5491d3a573e7a63bb3dd8cb17c8d9c46540c0a9f902769442b7",
     "_function_sources": "a8e24a487d44fc4af5b736e65e039b5656c0ba9192b9bb559cb9ab0218227295",
+    "_install_admission": "cb9882c059d17263f239cfa8a52687a05c27862f617c5da167cd7cc4fcd4c081",
+    "_install_selected_aws": "979bc47e91f0e17c5584d229ac0c8f2e1d03e432c983eb0946de1e29de2ba19e",
+    "_install_selected_azure": "ae899a33370fa6ffd882dbbb010f3ae0edc5abf2a0aa28aa03de2542ad20d615",
     "_receipt": "c489a410a3ff453c12f47cf562c487388193bf460f406b4a1c4ad8e3cd991ede",
     "_root": "ba9c13583f95cdc82e96f8362b389b18d27b115535f082a4622106f35527b11c",
     "_same_code": "a62514cb342496deb2b7734fdcfd9a63701d2fae3a486357e1d4f17e907a9a8f",
@@ -414,15 +437,17 @@
     "_selected_source": "44fee4b43bebcf85220c542dcc10c1dc71d287cb78132dd7c8927d3ec5755150",
     "_validate_dataproc_proposal": "934b570716334afc4112c6e158f8cf52d329132e1ef487b1d9aee0aa443df086",
     "_verify_guard": "97f600708a810d97cf31b7b61cd19d4e2b842e8be760fd44b3bdd4ef54d276d3",
-    "install_admission": "46c7f28c22eec1389d6b0b01df8942859f9a607b314a51b1a3faecee0f1eae62",
-    "install_selected_aws": "9b84401ddfa1f2ed2bb03202f13e625c9fe01f6e6b878fef8c114fa69e7ed471",
-    "install_selected_azure": "dcd079bdafc8edf8035e81ca0b3110291403ffdfa6f83cc652f24966fb3491d3",
-    "producer_row": "ff4ee9f04df9201016544d80485e3192cafa3634e08d04d517b526eb54204b69",
+    "_verify_scanner": "e9587c4c0b9ffb94321b517fd7a6209156f52e2c44f6487d7a2f039a11ea59c5",
+    "_with_artifacts": "abb2d5e7570e362dc7de28025dfe8133f81c1e5dea3666de218cb594800fe8da",
+    "install_admission": "f54aa6c1750a6732ab4efacf88b07876bc9d103e7100bb63242f6b1facb6c2b7",
+    "install_selected_aws": "f70dff36950f4946491fe194da9343b66c26f69347f8854c833d5ee6226d45de",
+    "install_selected_azure": "ff19bbbba456f260663efafb6a49bef3ca9f8b88fb508ff47aae6d85ee727f09",
+    "producer_row": "2969b4df5574dfb22d4f3093cc8c9ba1edbbea3cbc4c60b040cc31e751e2a801",
     "source_bytes": "1aa423bfe6044c7f72a4b951c140b50d2012148a6fec00a7d1f94aa7b391ec5a",
-    "verify_callable_proof": "ab2e75eeb63b031f99a2646732989b4b315ca131fcc601125b556768356709da",
-    "verify_scanner": "65990fad17159d00469e89d6fd119781e15aa78aefa31763db53ae1f89c3aa4b"
+    "verify_callable_proof": "acf5e1a43c08ef288666f8df6462ddc25509832ce9151efbf843c986b88837f8",
+    "verify_scanner": "b91ddbab49da849989507c2190d7c15931ab44c79ab817bc8d3461ba753ab87e"
   },
-  "helper_source_sha256": "0017b6bccc1ff3ed58e2390549307c4292e53a6ba5b44d3542b71d9409c90152",
+  "helper_source_sha256": "c5cbdada394cd4b472b3691dde405194d38f16d76f2dfb36a911df574cb44e7f",
   "live_functions": {
     "_DetectorMatches.__init__": {
       "defaults": "None",

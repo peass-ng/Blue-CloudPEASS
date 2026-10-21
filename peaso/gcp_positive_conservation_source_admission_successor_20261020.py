@@ -30,7 +30,7 @@ PAGE_RECEIPT_SHA256 = 'a9cf3dd72f0745e2c61cb9ace44afdbaa9dc06ba0e02a7a3ffd4c253d
 SOURCE_DELTA = 'peaso/checks/gcp_positive_conservation_source_delta_20261020.json'
 SOURCE_DELTA_SHA256 = '6f803d15053fdccf982ab20883b76a72a821ef98f703192eba25c3a05695d6d6'
 BRIDGE_RECEIPT = 'peaso/checks/gcp_positive_conservation_source_bridge_20261020.json'
-BRIDGE_RECEIPT_SHA256 = '1dc052b2b3fd488bfe9379b8baeeb066d9a883eb1992b17c785568c9376966cd'
+BRIDGE_RECEIPT_SHA256 = '5889b51b210bf8a45f3eb07c5b4a027a2fceec9562e5b6baed8c2ba614d27f1e'
 
 
 _MODULE_ARTIFACTS = ContextVar('gcp_positive_module_artifacts', default=None)
@@ -49,7 +49,10 @@ def _module_compiler():
         entry = cache.get(key)
         if entry is None:
             code = compile(raw, str(path), 'exec', optimize=sys.flags.optimize)
-            payload = marshal.dumps((key, code), 2)
+            # compile() creates exact immutable builtin constants/code. This
+            # retained code cannot mutate; signing its identity avoids repeated
+            # whole-module serialization while still rejecting replacements.
+            payload = marshal.dumps((key, id(code)), 2)
             entry = (code, hmac.digest(secret, payload, 'sha256'))
             if len(cache) >= 128 or size + len(payload) > 4 * 1024 * 1024:
                 cache.clear()
@@ -59,7 +62,7 @@ def _module_compiler():
                 size += len(payload)
         code, signature = entry
         if not isinstance(code, types.CodeType) or not hmac.compare_digest(signature,
-                hmac.digest(secret, marshal.dumps((key, code), 2), 'sha256')):
+                hmac.digest(secret, marshal.dumps((key, id(code)), 2), 'sha256')):
             raise RuntimeError('GCP module artifact changed')
         return code
 

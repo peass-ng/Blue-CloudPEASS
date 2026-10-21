@@ -19,8 +19,8 @@ SCANNER = 'peaso/secret_scanning.py'
 SCANNER_BEFORE = '72aaf391e3b168d9b8f7a10603a5763c04137b5e7807fef320b4fc22fa1a9d19'
 SCANNER_AFTER = '3897b64c134f88e7ad17c3c1f31df2b5497d34df6c1340d04e536313652f94f6'
 RECEIPT = 'peaso/checks/rawv2_public_source_successor_20261021.json'
-RECEIPT_SHA256 = '7542320bb54c67d2ade71159b49da69999d207f7444f2d4965af1815a23e1b78'
-BRIDGE_RECEIPT_SHA256 = '1dc052b2b3fd488bfe9379b8baeeb066d9a883eb1992b17c785568c9376966cd'
+RECEIPT_SHA256 = '5b9980187330976e2644f41cda18605dc67fdc148ed07c18692785c34e8b226b'
+BRIDGE_RECEIPT_SHA256 = '5889b51b210bf8a45f3eb07c5b4a027a2fceec9562e5b6baed8c2ba614d27f1e'
 
 
 def _compiled(raw, path):
@@ -117,7 +117,10 @@ def _scanner_function(module, name):
 
 def verify_scanner(root=None):
     root = _root(root)
-    receipt = _receipt(root)
+    return _verify_scanner(root, _receipt(root))
+
+
+def _verify_scanner(root, receipt):
     if receipt['scanner'] != SCANNER or receipt['before_sha256'] != SCANNER_BEFORE or receipt['after_sha256'] != SCANNER_AFTER:
         raise RuntimeError('RawV2 scanner source relation changed')
     path = (root / SCANNER).resolve()
@@ -209,7 +212,7 @@ def producer_row(fn, row, root=None):
     old = receipt['before_functions'].get(name)
     if row.get('path') != SCANNER or row.get('sha256') != old or old is None:
         raise RuntimeError('RawV2 scanner historical producer row changed')
-    verify_scanner(root)
+    _verify_scanner(_root(root), receipt)
     module = importlib.import_module('peaso.secret_scanning')
     if _scanner_function(module, name) is not fn:
         raise RuntimeError('RawV2 scanner producer identity changed')
@@ -235,7 +238,7 @@ def verify_callable_proof(fn, expected, actual, root=None):
         raise RuntimeError('RawV2 historical callable path changed')
     if 'module_sha256' in expected and expected['module_sha256'] != SCANNER_BEFORE:
         raise RuntimeError('RawV2 historical module proof changed')
-    verify_scanner(root)
+    _verify_scanner(_root(root), receipt)
     module = importlib.import_module('peaso.secret_scanning')
     if _scanner_function(module, name) is not fn:
         raise RuntimeError('RawV2 callable proof identity changed')
@@ -357,7 +360,49 @@ def _clone_install(module, reviewed):
     return clone()
 
 
+def _with_artifacts(function, *args):
+    """Bound immutable compilation artifacts to this one installer call."""
+    from peaso import gcp_positive_conservation_source_admission_successor_20261020 as artifacts
+    root = _root()
+    context = artifacts._MODULE_ARTIFACTS
+    if context is not artifacts._MODULE_CONTEXT:
+        raise RuntimeError('RawV2 module artifact context changed')
+    # Bootstrap the provider afresh before trusting its signed artifact factory.
+    # No successful source, receipt, callable or evaluator verdict is retained.
+    path = root / 'peaso/gcp_positive_conservation_source_admission_successor_20261020.py'
+    raw = path.read_bytes()
+    bridge = (root / 'peaso/checks/gcp_positive_conservation_source_bridge_20261020.json').read_bytes()
+    if _digest(bridge) != BRIDGE_RECEIPT_SHA256:
+        raise RuntimeError('RawV2 artifact bridge changed')
+    normalized, count = re.subn(rb"(?m)^BRIDGE_RECEIPT_SHA256 = '[0-9a-f]{64}'$",
+        b"BRIDGE_RECEIPT_SHA256 = '" + b'0' * 64 + b"'", raw)
+    if (count != 1 or _digest(normalized) != json.loads(bridge)['normalized_sources'][str(path.relative_to(root))]
+            or Path(artifacts.__file__).resolve() != path
+            or sys.modules.get(artifacts.__name__) is not artifacts):
+        raise RuntimeError('RawV2 artifact provider source changed')
+    compiled = _codes(compile(raw, str(path), 'exec', optimize=sys.flags.optimize))
+    for name in ('_module_compiler', '_compiled_module'):
+        value = vars(artifacts)[name]
+        if (not inspect.isfunction(value) or value.__globals__ is not vars(artifacts)
+                or value.__module__ != artifacts.__name__ or value.__qualname__ != name
+                or not _same_code(value.__code__, compiled[name]) or value.__closure__ is not None
+                or value.__defaults__ is not None or value.__kwdefaults__ is not None):
+            raise RuntimeError('RawV2 artifact provider callable changed')
+    _receipt(root)
+    if context.get() is not None:
+        return function(*args)
+    token = context.set(artifacts._module_compiler())
+    try:
+        return function(*args)
+    finally:
+        context.reset(token)
+
+
 def install_selected_aws():
+    return _with_artifacts(_install_selected_aws)
+
+
+def _install_selected_aws():
     from peaso.checks import aws_selected_configuration_admission_20261020 as original
     verify_scanner()
     _verify_guard(original, _root())
@@ -365,6 +410,10 @@ def install_selected_aws():
 
 
 def install_selected_azure():
+    return _with_artifacts(_install_selected_azure)
+
+
+def _install_selected_azure():
     from peaso.checks import azure_selected_secrets_admission_20261020 as original
     verify_scanner()
     _verify_guard(original, _root())
@@ -418,6 +467,10 @@ def _validate_dataproc_proposal():
 
 
 def install_admission(name):
+    return _with_artifacts(_install_admission, name)
+
+
+def _install_admission(name):
     """Run one immutable later installer with a finite local source view."""
     if name not in _LATER_ADMISSIONS:
         raise RuntimeError('Unreviewed RawV2 admission')

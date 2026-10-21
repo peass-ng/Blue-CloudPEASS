@@ -124,8 +124,8 @@ def test_exact_predecessor_is_retained_and_only_two_function_bodies_change():
         assert hashlib.sha256(bytes.fromhex(row['hex'])).hexdigest() == row['sha256']
     helper = 'peaso/checks/gcp_positive_conservation_shared_source_successor_20261020.py'
     before = bytes.fromhex(baseline[helper]['hex']).decode()
-    from tests.gcp_native_cpu_margin_epoch_20261021 import predecessor_bytes
-    current = predecessor_bytes(ROOT, helper).decode()
+    from tests.gcp_native_cpu_margin_epoch_20261021 import predecessor_bytes, cpu_margin_pre_rawv2_bytes
+    current = predecessor_bytes(ROOT, helper, cpu_margin_pre_rawv2_bytes(ROOT, helper)).decode()
     def bodies(text):
         return {n.name: ast.dump(n, include_attributes=False) for n in ast.parse(text).body if isinstance(n, ast.FunctionDef)}
     old, new = bodies(before), bodies(current)
@@ -133,13 +133,13 @@ def test_exact_predecessor_is_retained_and_only_two_function_bodies_change():
     assert {name for name in old if old[name] != new[name]} == {'_verify_bridge', 'install_s3'}
     manifest = 'peaso/checks/gcp_positive_conservation_source_bridge_20261020.json'
     old_receipt = json.loads(bytes.fromhex(baseline[manifest]['hex']))
-    new_receipt = json.loads(predecessor_bytes(ROOT, manifest))
+    new_receipt = json.loads(predecessor_bytes(ROOT, manifest, cpu_margin_pre_rawv2_bytes(ROOT, manifest)))
     new_receipt['normalized_sources'][helper] = old_receipt['normalized_sources'][helper]
     assert new_receipt == old_receipt  # all historical/live/default/leaf proof rows retained
     leaf = 'peaso/gcp_positive_conservation_source_admission_successor_20261020.py'
     def normalized(raw):
         return re.sub(rb"(?m)^BRIDGE_RECEIPT_SHA256 = '[0-9a-f]{64}'$", b"BRIDGE_RECEIPT_SHA256 = 'PIN'", raw)
-    assert normalized(predecessor_bytes(ROOT, leaf)) == normalized(bytes.fromhex(baseline[leaf]['hex']))
+    assert normalized(predecessor_bytes(ROOT, leaf, cpu_margin_pre_rawv2_bytes(ROOT, leaf))) == normalized(bytes.fromhex(baseline[leaf]['hex']))
     # The immutable historical executable and receipt remain exactly admitted.
     historical = ROOT / 'peaso/checks/azure_metadata_only_shared_successor_20261020.py'
     receipt_raw = (ROOT / 'peaso/checks' / bridge.RECEIPT).read_bytes()
