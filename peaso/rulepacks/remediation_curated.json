@@ -502,7 +502,7 @@
     "cli": [],
     "references": [
       {
-        "title": "AWS security group rules",
+        "title": "AWS VPC working with security group rules",
         "url": "https://docs.aws.amazon.com/vpc/latest/userguide/working-with-security-group-rules.html"
       }
     ],
@@ -524,7 +524,7 @@
     },
     "references": [
       {
-        "title": "AWS security group rules",
+        "title": "AWS VPC working with security group rules",
         "url": "https://docs.aws.amazon.com/vpc/latest/userguide/working-with-security-group-rules.html"
       },
       {
@@ -640,7 +640,7 @@
     "cli": [],
     "references": [
       {
-        "title": "AWS security group rules",
+        "title": "AWS VPC working with security group rules",
         "url": "https://docs.aws.amazon.com/vpc/latest/userguide/working-with-security-group-rules.html"
       }
     ],
@@ -683,7 +683,7 @@
     },
     "references": [
       {
-        "title": "AWS security group rules",
+        "title": "AWS VPC working with security group rules",
         "url": "https://docs.aws.amazon.com/vpc/latest/userguide/working-with-security-group-rules.html"
       }
     ],
@@ -989,7 +989,7 @@
     },
     "references": [
       {
-        "title": "AWS security group rules",
+        "title": "AWS VPC working with security group rules",
         "url": "https://docs.aws.amazon.com/vpc/latest/userguide/working-with-security-group-rules.html"
       },
       {
@@ -1661,7 +1661,7 @@
         "url": "https://cloud.google.com/functions/docs/securing/managing-access-iam"
       },
       {
-        "title": "Resource IAM binding removal command",
+        "title": "Google Cloud functions remove iam policy binding",
         "url": "https://cloud.google.com/sdk/gcloud/reference/functions/remove-iam-policy-binding"
       }
     ],
@@ -1707,7 +1707,7 @@
         "url": "https://cloud.google.com/run/docs/securing/managing-access"
       },
       {
-        "title": "Resource IAM binding removal command",
+        "title": "Google Cloud services remove iam policy binding",
         "url": "https://cloud.google.com/sdk/gcloud/reference/run/services/remove-iam-policy-binding"
       }
     ],
@@ -1861,7 +1861,7 @@
         "url": "https://cloud.google.com/functions/docs/securing/managing-access-iam"
       },
       {
-        "title": "Resource IAM binding removal command",
+        "title": "Google Cloud functions remove iam policy binding",
         "url": "https://cloud.google.com/sdk/gcloud/reference/functions/remove-iam-policy-binding"
       }
     ],
@@ -2891,7 +2891,7 @@
         "url": "https://cloud.google.com/storage/docs/access-control/making-data-public"
       },
       {
-        "title": "Resource IAM binding removal command",
+        "title": "Google Cloud buckets remove iam policy binding",
         "url": "https://cloud.google.com/sdk/gcloud/reference/storage/buckets/remove-iam-policy-binding"
       }
     ],

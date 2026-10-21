@@ -28,7 +28,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS API Gateway V2 apis apiid stages stagename",
         "url": "https://docs.aws.amazon.com/apigatewayv2/latest/api-reference/apis-apiid-stages-stagename.html"
       },
       {
@@ -78,7 +78,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS FIREHOSE Delivery Stream Encryption Configuration API",
         "url": "https://docs.aws.amazon.com/firehose/latest/APIReference/API_DeliveryStreamEncryptionConfiguration.html"
       },
       {
@@ -123,7 +123,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS FSX File System API",
         "url": "https://docs.aws.amazon.com/fsx/latest/APIReference/API_FileSystem.html"
       },
       {
@@ -173,7 +173,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS FSX Open ZFS File System Configuration API",
         "url": "https://docs.aws.amazon.com/fsx/latest/APIReference/API_OpenZFSFileSystemConfiguration.html"
       },
       {
@@ -218,7 +218,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS FSX Lustre File System Configuration API",
         "url": "https://docs.aws.amazon.com/fsx/latest/APIReference/API_LustreFileSystemConfiguration.html"
       },
       {
@@ -263,7 +263,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS FSX File System API",
         "url": "https://docs.aws.amazon.com/fsx/latest/APIReference/API_FileSystem.html"
       },
       {
@@ -319,7 +319,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS FSX Open ZFS File System Configuration API",
         "url": "https://docs.aws.amazon.com/fsx/latest/APIReference/API_OpenZFSFileSystemConfiguration.html"
       },
       {
@@ -364,7 +364,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS FSX File System API",
         "url": "https://docs.aws.amazon.com/fsx/latest/APIReference/API_FileSystem.html"
       },
       {
@@ -419,7 +419,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS Backup Protected Resource API",
         "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/API_ProtectedResource.html"
       },
       {
@@ -464,7 +464,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS FSX File System API",
         "url": "https://docs.aws.amazon.com/fsx/latest/APIReference/API_FileSystem.html"
       },
       {
@@ -514,7 +514,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS FSX File System API",
         "url": "https://docs.aws.amazon.com/fsx/latest/APIReference/API_FileSystem.html"
       },
       {
@@ -564,7 +564,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS AMAZONGLACIER api Get Vault Access Policy",
         "url": "https://docs.aws.amazon.com/amazonglacier/latest/dev/api-GetVaultAccessPolicy.html"
       },
       {
@@ -618,7 +618,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS AMAZONGLACIER access control resource based",
         "url": "https://docs.aws.amazon.com/amazonglacier/latest/dev/access-control-resource-based.html"
       },
       {
@@ -672,7 +672,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS AMAZONGLACIER api Get Vault Access Policy",
         "url": "https://docs.aws.amazon.com/amazonglacier/latest/dev/api-GetVaultAccessPolicy.html"
       },
       {
@@ -926,7 +926,7 @@
     },
     "references": [
       {
-        "title": "Official AWS Glue service guidance",
+        "title": "AWS GLUE Put Resource Policy API",
         "url": "https://docs.aws.amazon.com/glue/latest/webapi/API_PutResourcePolicy.html"
       }
     ],
@@ -1033,7 +1033,7 @@
     },
     "references": [
       {
-        "title": "Official AWS Glue service guidance",
+        "title": "AWS GLUE encryption security configuration",
         "url": "https://docs.aws.amazon.com/glue/latest/dg/encryption-security-configuration.html"
       }
     ],
@@ -1092,7 +1092,7 @@
     },
     "references": [
       {
-        "title": "Official AWS Glue service guidance",
+        "title": "AWS GLUE encryption security configuration",
         "url": "https://docs.aws.amazon.com/glue/latest/dg/encryption-security-configuration.html"
       }
     ],
@@ -1151,7 +1151,7 @@
     },
     "references": [
       {
-        "title": "Official AWS Glue service guidance",
+        "title": "AWS GLUE encryption security configuration",
         "url": "https://docs.aws.amazon.com/glue/latest/dg/encryption-security-configuration.html"
       }
     ],
@@ -1210,7 +1210,7 @@
     },
     "references": [
       {
-        "title": "Official AWS Glue service guidance",
+        "title": "AWS GLUE encryption security configuration",
         "url": "https://docs.aws.amazon.com/glue/latest/dg/encryption-security-configuration.html"
       }
     ],
@@ -1269,7 +1269,7 @@
     },
     "references": [
       {
-        "title": "Official AWS Glue service guidance",
+        "title": "AWS GLUE encryption security configuration",
         "url": "https://docs.aws.amazon.com/glue/latest/dg/encryption-security-configuration.html"
       }
     ],
@@ -1328,7 +1328,7 @@
     },
     "references": [
       {
-        "title": "Official AWS Glue service guidance",
+        "title": "AWS GLUE encryption security configuration",
         "url": "https://docs.aws.amazon.com/glue/latest/dg/encryption-security-configuration.html"
       }
     ],
@@ -1377,7 +1377,7 @@
     },
     "references": [
       {
-        "title": "Official AWS Glue service guidance",
+        "title": "AWS GLUE aws glue programming etl glue arguments",
         "url": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-glue-arguments.html"
       }
     ],
@@ -1433,7 +1433,7 @@
     },
     "references": [
       {
-        "title": "Official AWS Glue service guidance",
+        "title": "AWS GLUE encryption security configuration",
         "url": "https://docs.aws.amazon.com/glue/latest/dg/encryption-security-configuration.html"
       }
     ],
@@ -1492,7 +1492,7 @@
     },
     "references": [
       {
-        "title": "Official AWS Glue service guidance",
+        "title": "AWS GLUE encryption security configuration",
         "url": "https://docs.aws.amazon.com/glue/latest/dg/encryption-security-configuration.html"
       }
     ],
@@ -2325,7 +2325,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS KINESIS Stream Description Summary API",
         "url": "https://docs.aws.amazon.com/kinesis/latest/APIReference/API_StreamDescriptionSummary.html"
       },
       {
@@ -2379,7 +2379,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS KINESIS Stream Description Summary API",
         "url": "https://docs.aws.amazon.com/kinesis/latest/APIReference/API_StreamDescriptionSummary.html"
       },
       {
@@ -2433,7 +2433,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS KINESIS Stream Description Summary API",
         "url": "https://docs.aws.amazon.com/kinesis/latest/APIReference/API_StreamDescriptionSummary.html"
       },
       {
@@ -2492,7 +2492,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS KINESIS Stream Description Summary API",
         "url": "https://docs.aws.amazon.com/kinesis/latest/APIReference/API_StreamDescriptionSummary.html"
       },
       {
@@ -2551,7 +2551,7 @@
     },
     "references": [
       {
-        "title": "Official AWS Lambda or CloudTrail guidance",
+        "title": "AWS AWSCLOUDTRAIL logging data events with cloudtrail",
         "url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-data-events-with-cloudtrail.html"
       }
     ],
@@ -2797,7 +2797,7 @@
     },
     "references": [
       {
-        "title": "Official AWS Lambda or CloudTrail guidance",
+        "title": "AWS LAMBDA lambda runtimes",
         "url": "https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html"
       }
     ],
@@ -2997,7 +2997,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon Lightsail guidance",
+        "title": "AWS LIGHTSAIL amazon lightsail enable disable ipv6",
         "url": "https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-enable-disable-ipv6.html"
       }
     ],
@@ -3146,7 +3146,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon Lightsail guidance",
+        "title": "AWS LIGHTSAIL Put Instance Public Ports API",
         "url": "https://docs.aws.amazon.com/lightsail/2016-11-28/api-reference/API_PutInstancePublicPorts.html"
       }
     ],
@@ -3508,7 +3508,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS AMAZON-MQ brokers broker id",
         "url": "https://docs.aws.amazon.com/amazon-mq/latest/api-reference/brokers-broker-id.html"
       },
       {
@@ -3558,7 +3558,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS AMAZON-MQ brokers broker id",
         "url": "https://docs.aws.amazon.com/amazon-mq/latest/api-reference/brokers-broker-id.html"
       },
       {
@@ -3608,7 +3608,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS AMAZON-MQ brokers broker id",
         "url": "https://docs.aws.amazon.com/amazon-mq/latest/api-reference/brokers-broker-id.html"
       },
       {
@@ -3653,7 +3653,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS AMAZON-MQ brokers broker id",
         "url": "https://docs.aws.amazon.com/amazon-mq/latest/api-reference/brokers-broker-id.html"
       },
       {
@@ -3698,7 +3698,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS AMAZON-MQ brokers broker id",
         "url": "https://docs.aws.amazon.com/amazon-mq/latest/api-reference/brokers-broker-id.html"
       },
       {
@@ -3924,7 +3924,7 @@
         "url": "https://docs.aws.amazon.com/neptune/latest/userguide/auditing.html"
       },
       {
-        "title": "AWS ModifyDBCluster API",
+        "title": "AWS NEPTUNE Modify DB Cluster API",
         "url": "https://docs.aws.amazon.com/neptune/latest/apiref/API_ModifyDBCluster.html"
       }
     ],
@@ -3974,7 +3974,7 @@
         "url": "https://docs.aws.amazon.com/neptune/latest/apiref/API_DBCluster.html"
       },
       {
-        "title": "AWS ModifyDBCluster API",
+        "title": "AWS NEPTUNE Modify DB Cluster API",
         "url": "https://docs.aws.amazon.com/neptune/latest/apiref/API_ModifyDBCluster.html"
       }
     ],
@@ -4024,7 +4024,7 @@
         "url": "https://docs.aws.amazon.com/neptune/latest/apiref/API_DBCluster.html"
       },
       {
-        "title": "AWS ModifyDBCluster API",
+        "title": "AWS NEPTUNE Modify DB Cluster API",
         "url": "https://docs.aws.amazon.com/neptune/latest/apiref/API_ModifyDBCluster.html"
       }
     ],
@@ -4074,7 +4074,7 @@
         "url": "https://docs.aws.amazon.com/neptune/latest/apiref/API_DBCluster.html"
       },
       {
-        "title": "AWS ModifyDBCluster API",
+        "title": "AWS NEPTUNE Modify DB Cluster API",
         "url": "https://docs.aws.amazon.com/neptune/latest/apiref/API_ModifyDBCluster.html"
       }
     ],
@@ -4124,7 +4124,7 @@
         "url": "https://docs.aws.amazon.com/neptune/latest/apiref/API_DBCluster.html"
       },
       {
-        "title": "AWS ModifyDBCluster API",
+        "title": "AWS NEPTUNE Modify DB Cluster API",
         "url": "https://docs.aws.amazon.com/neptune/latest/apiref/API_ModifyDBCluster.html"
       }
     ],
@@ -4239,7 +4239,7 @@
         "url": "https://docs.aws.amazon.com/neptune/latest/userguide/get-started-vpc.html"
       },
       {
-        "title": "AWS ModifyDBCluster API",
+        "title": "AWS NEPTUNE Modify DB Cluster API",
         "url": "https://docs.aws.amazon.com/neptune/latest/apiref/API_ModifyDBCluster.html"
       },
       {
@@ -4306,7 +4306,7 @@
         "url": "https://docs.aws.amazon.com/neptune/latest/userguide/get-started-vpc.html"
       },
       {
-        "title": "AWS ModifyDBCluster API",
+        "title": "AWS NEPTUNE Modify DB Cluster API",
         "url": "https://docs.aws.amazon.com/neptune/latest/apiref/API_ModifyDBCluster.html"
       },
       {
@@ -4564,7 +4564,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon OpenSearch Service guidance",
+        "title": "AWS OPENSEARCH-SERVICE ac",
         "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/ac.html"
       }
     ],
@@ -4615,7 +4615,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon OpenSearch Service guidance",
+        "title": "AWS OPENSEARCH-SERVICE audit logs",
         "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/audit-logs.html"
       }
     ],
@@ -4661,7 +4661,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon OpenSearch Service guidance",
+        "title": "AWS OPENSEARCH-SERVICE cognito auth",
         "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/cognito-auth.html"
       }
     ],
@@ -4707,7 +4707,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon OpenSearch Service guidance",
+        "title": "AWS OPENSEARCH-SERVICE saml",
         "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/saml.html"
       }
     ],
@@ -4753,7 +4753,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon OpenSearch Service guidance",
+        "title": "AWS OPENSEARCH-SERVICE managedomains multiaz",
         "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-multiaz.html"
       }
     ],
@@ -4799,7 +4799,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon OpenSearch Service guidance",
+        "title": "AWS OPENSEARCH-SERVICE managedomains dedicatedmasternodes",
         "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-dedicatedmasternodes.html"
       }
     ],
@@ -4850,7 +4850,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon OpenSearch Service guidance",
+        "title": "AWS OPENSEARCH-SERVICE createdomain configure slow logs",
         "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/createdomain-configure-slow-logs.html"
       }
     ],
@@ -4901,7 +4901,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon OpenSearch Service guidance",
+        "title": "AWS OPENSEARCH-SERVICE encryption at rest",
         "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/encryption-at-rest.html"
       }
     ],
@@ -4947,7 +4947,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon OpenSearch Service guidance",
+        "title": "AWS OPENSEARCH-SERVICE Domain Endpoint Options API",
         "url": "https://docs.aws.amazon.com/opensearch-service/latest/APIReference/API_DomainEndpointOptions.html"
       }
     ],
@@ -4993,7 +4993,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon OpenSearch Service guidance",
+        "title": "AWS OPENSEARCH-SERVICE fgac",
         "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/fgac.html"
       }
     ],
@@ -5044,7 +5044,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon OpenSearch Service guidance",
+        "title": "AWS OPENSEARCH-SERVICE vpc",
         "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/vpc.html"
       }
     ],
@@ -5090,7 +5090,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon OpenSearch Service guidance",
+        "title": "AWS OPENSEARCH-SERVICE fgac",
         "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/fgac.html"
       }
     ],
@@ -5136,7 +5136,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon OpenSearch Service guidance",
+        "title": "AWS OPENSEARCH-SERVICE ntn",
         "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/ntn.html"
       }
     ],
@@ -5182,7 +5182,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon OpenSearch Service guidance",
+        "title": "AWS OPENSEARCH-SERVICE ntn",
         "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/ntn.html"
       }
     ],
@@ -5228,7 +5228,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon OpenSearch Service guidance",
+        "title": "AWS OPENSEARCH-SERVICE service software",
         "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/service-software.html"
       }
     ],
@@ -5279,7 +5279,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon OpenSearch Service guidance",
+        "title": "AWS OPENSEARCH-SERVICE createdomain configure slow logs",
         "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/createdomain-configure-slow-logs.html"
       }
     ],
@@ -5656,7 +5656,7 @@
     },
     "references": [
       {
-        "title": "AWS ModifyDBCluster API",
+        "title": "AWS AMAZONRDS Modify DB Cluster API",
         "url": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_ModifyDBCluster.html"
       },
       {
@@ -5862,7 +5862,7 @@
     },
     "references": [
       {
-        "title": "AWS ModifyDBCluster API",
+        "title": "AWS AMAZONRDS Modify DB Cluster API",
         "url": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_ModifyDBCluster.html"
       },
       {
@@ -6129,7 +6129,7 @@
     },
     "references": [
       {
-        "title": "AWS ModifyDBCluster API",
+        "title": "AWS AMAZONRDS Modify DB Cluster API",
         "url": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_ModifyDBCluster.html"
       },
       {
@@ -6229,7 +6229,7 @@
     },
     "references": [
       {
-        "title": "Official RDS snapshot attribute API",
+        "title": "AWS AMAZONRDS Describe DB Cluster Snapshot Attributes API",
         "url": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DescribeDBClusterSnapshotAttributes.html"
       },
       {
@@ -6283,7 +6283,7 @@
     },
     "references": [
       {
-        "title": "Official RDS snapshot attribute API",
+        "title": "AWS AMAZONRDS Describe DB Cluster Snapshot Attributes API",
         "url": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DescribeDBClusterSnapshotAttributes.html"
       },
       {
@@ -6337,7 +6337,7 @@
     },
     "references": [
       {
-        "title": "Official RDS snapshot attribute API",
+        "title": "AWS AMAZONRDS Describe DB Cluster Snapshot Attributes API",
         "url": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DescribeDBClusterSnapshotAttributes.html"
       },
       {
@@ -7311,7 +7311,7 @@
     },
     "references": [
       {
-        "title": "Official RDS snapshot attribute API",
+        "title": "AWS AMAZONRDS Describe DB Snapshot Attributes API",
         "url": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DescribeDBSnapshotAttributes.html"
       },
       {
@@ -7365,7 +7365,7 @@
     },
     "references": [
       {
-        "title": "Official RDS snapshot attribute API",
+        "title": "AWS AMAZONRDS Describe DB Snapshot Attributes API",
         "url": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DescribeDBSnapshotAttributes.html"
       },
       {
@@ -7419,7 +7419,7 @@
     },
     "references": [
       {
-        "title": "Official RDS snapshot attribute API",
+        "title": "AWS AMAZONRDS Describe DB Snapshot Attributes API",
         "url": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DescribeDBSnapshotAttributes.html"
       },
       {
@@ -7533,7 +7533,7 @@
     },
     "references": [
       {
-        "title": "AWS ModifyDBCluster API",
+        "title": "AWS AMAZONRDS Modify DB Cluster API",
         "url": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_ModifyDBCluster.html"
       }
     ],
@@ -7984,7 +7984,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon Redshift setting or migration guidance",
+        "title": "AWS REDSHIFT Modify Cluster API",
         "url": "https://docs.aws.amazon.com/redshift/latest/APIReference/API_ModifyCluster.html"
       }
     ],
@@ -8032,7 +8032,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon Redshift audit or TLS guidance",
+        "title": "AWS REDSHIFT Enable Logging API",
         "url": "https://docs.aws.amazon.com/redshift/latest/APIReference/API_EnableLogging.html"
       }
     ],
@@ -8083,7 +8083,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon Redshift guidance",
+        "title": "AWS REDSHIFT changing cluster encryption",
         "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/changing-cluster-encryption.html"
       }
     ],
@@ -8129,7 +8129,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon Redshift setting or migration guidance",
+        "title": "AWS REDSHIFT changing cluster encryption",
         "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/changing-cluster-encryption.html"
       }
     ],
@@ -8187,7 +8187,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon Redshift audit or TLS guidance",
+        "title": "AWS REDSHIFT changing cluster encryption",
         "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/changing-cluster-encryption.html"
       }
     ],
@@ -8233,7 +8233,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon Redshift setting or migration guidance",
+        "title": "AWS REDSHIFT enhanced vpc enabling cluster",
         "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/enhanced-vpc-enabling-cluster.html"
       }
     ],
@@ -8286,7 +8286,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon Redshift guidance",
+        "title": "AWS REDSHIFT working with snapshots",
         "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/working-with-snapshots.html"
       }
     ],
@@ -8342,7 +8342,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon Redshift guidance",
+        "title": "AWS REDSHIFT managing clusters vpc",
         "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/managing-clusters-vpc.html"
       }
     ],
@@ -8393,7 +8393,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon Redshift guidance",
+        "title": "AWS REDSHIFT changing cluster encryption",
         "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/changing-cluster-encryption.html"
       }
     ],
@@ -8444,7 +8444,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon Redshift guidance",
+        "title": "AWS REDSHIFT modify cluster",
         "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/modify-cluster.html"
       }
     ],
@@ -8490,7 +8490,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon Redshift setting or migration guidance",
+        "title": "AWS REDSHIFT managing cluster multi az",
         "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/managing-cluster-multi-az.html"
       }
     ],
@@ -8642,7 +8642,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon Redshift setting or migration guidance",
+        "title": "AWS REDSHIFT Modify Cluster API",
         "url": "https://docs.aws.amazon.com/redshift/latest/APIReference/API_ModifyCluster.html"
       }
     ],
@@ -8695,7 +8695,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon Redshift audit or TLS guidance",
+        "title": "AWS REDSHIFT connecting ssl support",
         "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/connecting-ssl-support.html"
       }
     ],
@@ -8746,7 +8746,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon Redshift guidance",
+        "title": "AWS REDSHIFT managing vpc security groups",
         "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/managing-vpc-security-groups.html"
       }
     ],
@@ -8797,7 +8797,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon Redshift guidance",
+        "title": "AWS REDSHIFT working with snapshots",
         "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/working-with-snapshots.html"
       }
     ],
@@ -10119,7 +10119,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon SageMaker notebook API",
+        "title": "AWS SAGEMAKER Create Notebook Instance API",
         "url": "https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_CreateNotebookInstance.html"
       }
     ],
@@ -10165,7 +10165,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon SageMaker notebook API",
+        "title": "AWS SAGEMAKER Create Notebook Instance API",
         "url": "https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_CreateNotebookInstance.html"
       }
     ],
@@ -10216,7 +10216,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon SageMaker notebook API",
+        "title": "AWS SAGEMAKER Create Notebook Instance API",
         "url": "https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_CreateNotebookInstance.html"
       }
     ],
@@ -10262,7 +10262,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon SageMaker notebook API",
+        "title": "AWS SAGEMAKER Create Notebook Instance API",
         "url": "https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_CreateNotebookInstance.html"
       }
     ],
@@ -10311,7 +10311,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon SageMaker notebook API",
+        "title": "AWS SAGEMAKER Update Notebook Instance API",
         "url": "https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_UpdateNotebookInstance.html"
       }
     ],
@@ -10360,7 +10360,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon SageMaker training guidance",
+        "title": "AWS SAGEMAKER Create Training Job API",
         "url": "https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_CreateTrainingJob.html"
       }
     ],
@@ -10409,7 +10409,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon SageMaker training guidance",
+        "title": "AWS SAGEMAKER mkt algo model internet free",
         "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/mkt-algo-model-internet-free.html"
       }
     ],
@@ -10458,7 +10458,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon SageMaker training guidance",
+        "title": "AWS SAGEMAKER your algorithms training algo output",
         "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/your-algorithms-training-algo-output.html"
       }
     ],
@@ -10504,7 +10504,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon SageMaker training guidance",
+        "title": "AWS SAGEMAKER sms security",
         "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/sms-security.html"
       }
     ],
@@ -10550,7 +10550,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon SageMaker training guidance",
+        "title": "AWS SAGEMAKER Create Training Job API",
         "url": "https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_CreateTrainingJob.html"
       }
     ],
@@ -10596,7 +10596,7 @@
     },
     "references": [
       {
-        "title": "Official Amazon SageMaker training guidance",
+        "title": "AWS SAGEMAKER train vpc",
         "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/train-vpc.html"
       }
     ],
@@ -11301,7 +11301,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS SES Get Email Identity API",
         "url": "https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_GetEmailIdentity.html"
       },
       {
@@ -11356,7 +11356,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS SES Get Email Identity API",
         "url": "https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_GetEmailIdentity.html"
       },
       {
@@ -11406,7 +11406,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS STEP-FUNCTIONS Describe State Machine API",
         "url": "https://docs.aws.amazon.com/step-functions/latest/apireference/API_DescribeStateMachine.html"
       },
       {
@@ -12792,7 +12792,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS STEP-FUNCTIONS Describe State Machine API",
         "url": "https://docs.aws.amazon.com/step-functions/latest/apireference/API_DescribeStateMachine.html"
       },
       {
@@ -12842,7 +12842,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS STEP-FUNCTIONS Describe State Machine API",
         "url": "https://docs.aws.amazon.com/step-functions/latest/apireference/API_DescribeStateMachine.html"
       },
       {
@@ -12902,7 +12902,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS STORAGEGATEWAY NFS File Share Info API",
         "url": "https://docs.aws.amazon.com/storagegateway/latest/APIReference/API_NFSFileShareInfo.html"
       },
       {
@@ -12951,7 +12951,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS STORAGEGATEWAY Describe Gateway Information API",
         "url": "https://docs.aws.amazon.com/storagegateway/latest/APIReference/API_DescribeGatewayInformation.html"
       },
       {
@@ -13027,11 +13027,11 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS TRANSFER Described Connector API",
         "url": "https://docs.aws.amazon.com/transfer/latest/APIReference/API_DescribedConnector.html"
       },
       {
-        "title": "AWS CLI Transfer update reference",
+        "title": "AWS CLI update connector",
         "url": "https://docs.aws.amazon.com/cli/latest/reference/transfer/update-connector.html"
       }
     ],
@@ -13077,11 +13077,11 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS TRANSFER security policies",
         "url": "https://docs.aws.amazon.com/transfer/latest/userguide/security-policies.html"
       },
       {
-        "title": "AWS CLI Transfer update reference",
+        "title": "AWS CLI update server",
         "url": "https://docs.aws.amazon.com/cli/latest/reference/transfer/update-server.html"
       }
     ],
@@ -13127,11 +13127,11 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS TRANSFER Described Server API",
         "url": "https://docs.aws.amazon.com/transfer/latest/APIReference/API_DescribedServer.html"
       },
       {
-        "title": "AWS CLI Transfer update reference",
+        "title": "AWS CLI update server",
         "url": "https://docs.aws.amazon.com/cli/latest/reference/transfer/update-server.html"
       }
     ],
@@ -13177,11 +13177,11 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS TRANSFER security policies",
         "url": "https://docs.aws.amazon.com/transfer/latest/userguide/security-policies.html"
       },
       {
-        "title": "AWS CLI Transfer update reference",
+        "title": "AWS CLI update server",
         "url": "https://docs.aws.amazon.com/cli/latest/reference/transfer/update-server.html"
       }
     ],
@@ -13223,7 +13223,7 @@
     },
     "references": [
       {
-        "title": "AWS Support API reference",
+        "title": "AWS AWSSUPPORT Describe Trusted Advisor Check Result API",
         "url": "https://docs.aws.amazon.com/awssupport/latest/APIReference/API_DescribeTrustedAdvisorCheckResult.html"
       },
       {
@@ -13269,7 +13269,7 @@
     },
     "references": [
       {
-        "title": "AWS Support API reference",
+        "title": "AWS AWSSUPPORT Describe Services API",
         "url": "https://docs.aws.amazon.com/awssupport/latest/APIReference/API_DescribeServices.html"
       },
       {
@@ -14059,11 +14059,11 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS WorkSpaces Workspace API",
         "url": "https://docs.aws.amazon.com/workspaces/latest/api/API_Workspace.html"
       },
       {
-        "title": "AWS source API reference",
+        "title": "AWS WorkSpaces amazon workspaces vpc",
         "url": "https://docs.aws.amazon.com/workspaces/latest/adminguide/amazon-workspaces-vpc.html"
       },
       {
@@ -14113,7 +14113,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS WorkSpaces Workspace API",
         "url": "https://docs.aws.amazon.com/workspaces/latest/api/API_Workspace.html"
       },
       {
@@ -14163,7 +14163,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS WorkSpaces Workspace API",
         "url": "https://docs.aws.amazon.com/workspaces/latest/api/API_Workspace.html"
       },
       {
@@ -14213,7 +14213,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS WorkSpaces Workspace API",
         "url": "https://docs.aws.amazon.com/workspaces/latest/api/API_Workspace.html"
       },
       {
@@ -14383,7 +14383,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Volume Attachment API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_VolumeAttachment.html"
       }
     ],
@@ -14424,7 +14424,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Volume API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Volume.html"
       }
     ],
@@ -14465,7 +14465,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Snapshot API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Snapshot.html"
       }
     ],
@@ -14511,11 +14511,11 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Describe Snapshot Attribute API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeSnapshotAttribute.html"
       },
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Create Volume Permission API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateVolumePermission.html"
       },
       {
@@ -14560,7 +14560,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Describe Snapshots API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeSnapshots.html"
       }
     ],
@@ -14616,7 +14616,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS Backup Backup Selection API",
         "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/API_BackupSelection.html"
       },
       {
@@ -14684,7 +14684,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS Backup Backup Selection API",
         "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/API_BackupSelection.html"
       },
       {
@@ -14737,7 +14737,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Volume API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Volume.html"
       }
     ],
@@ -14778,7 +14778,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS Backup List Protected Resources API",
         "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/API_ListProtectedResources.html"
       }
     ],
@@ -14824,7 +14824,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Get Instance Metadata Defaults API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetInstanceMetadataDefaults.html"
       },
       {
@@ -14929,7 +14929,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Get Image Block Public Access State API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetImageBlockPublicAccessState.html"
       },
       {
@@ -14974,7 +14974,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Block Device Mapping API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_BlockDeviceMapping.html"
       }
     ],
@@ -15015,7 +15015,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Image API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Image.html"
       }
     ],
@@ -15056,7 +15056,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Image API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Image.html"
       }
     ],
@@ -15097,7 +15097,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Connection Log Response Options API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ConnectionLogResponseOptions.html"
       }
     ],
@@ -15143,7 +15143,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Get Ebs Encryption By Default API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetEbsEncryptionByDefault.html"
       },
       {
@@ -15193,7 +15193,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Get Ebs Encryption By Default API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetEbsEncryptionByDefault.html"
       },
       {
@@ -15334,7 +15334,7 @@
     },
     "references": [
       {
-        "title": "AWS security group rules",
+        "title": "AWS EC2 security group rules",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-rules.html"
       },
       {
@@ -15631,7 +15631,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Monitoring API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Monitoring.html"
       },
       {
@@ -15727,7 +15727,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Instance API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Instance.html"
       }
     ],
@@ -15868,7 +15868,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Instance API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Instance.html"
       }
     ],
@@ -15923,7 +15923,7 @@
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ModifyInstanceAttribute.html"
       },
       {
-        "title": "AWS Security group rules",
+        "title": "AWS EC2 security group rules",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-rules.html"
       }
     ],
@@ -15964,7 +15964,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Instance API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Instance.html"
       }
     ],
@@ -16005,7 +16005,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Instance API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Instance.html"
       }
     ],
@@ -17327,7 +17327,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Iam Instance Profile API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IamInstanceProfile.html"
       },
       {
@@ -17432,7 +17432,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Iam Instance Profile API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IamInstanceProfile.html"
       },
       {
@@ -18078,7 +18078,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Get Snapshot Block Public Access State API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetSnapshotBlockPublicAccessState.html"
       },
       {
@@ -18123,7 +18123,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Spot Fleet Launch Specification API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_SpotFleetLaunchSpecification.html"
       }
     ],
@@ -18287,7 +18287,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Transit Gateway Options API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_TransitGatewayOptions.html"
       }
     ],
@@ -18390,11 +18390,11 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS GuardDuty Get Detector API",
         "url": "https://docs.aws.amazon.com/guardduty/latest/APIReference/API_GetDetector.html"
       },
       {
-        "title": "AWS source API reference",
+        "title": "AWS Security Hub guardduty controls (guardduty 8)",
         "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/guardduty-controls.html#guardduty-8"
       },
       {
@@ -18452,11 +18452,11 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS GuardDuty Detector Additional Configuration Result API",
         "url": "https://docs.aws.amazon.com/guardduty/latest/APIReference/API_DetectorAdditionalConfigurationResult.html"
       },
       {
-        "title": "AWS source API reference",
+        "title": "AWS Security Hub guardduty controls (guardduty 13)",
         "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/guardduty-controls.html#guardduty-13"
       },
       {
@@ -18514,11 +18514,11 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS GuardDuty Detector Additional Configuration Result API",
         "url": "https://docs.aws.amazon.com/guardduty/latest/APIReference/API_DetectorAdditionalConfigurationResult.html"
       },
       {
-        "title": "AWS source API reference",
+        "title": "AWS Security Hub guardduty controls (guardduty 12)",
         "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/guardduty-controls.html#guardduty-12"
       },
       {
@@ -18576,11 +18576,11 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS GuardDuty Detector Feature Configuration Result API",
         "url": "https://docs.aws.amazon.com/guardduty/latest/APIReference/API_DetectorFeatureConfigurationResult.html"
       },
       {
-        "title": "AWS source API reference",
+        "title": "AWS Security Hub guardduty controls (guardduty 7)",
         "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/guardduty-controls.html#guardduty-7"
       },
       {
@@ -18688,7 +18688,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS GuardDuty Detector Feature Configuration Result API",
         "url": "https://docs.aws.amazon.com/guardduty/latest/APIReference/API_DetectorFeatureConfigurationResult.html"
       },
       {
@@ -18848,7 +18848,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS GuardDuty Malware Protection Configuration Result API",
         "url": "https://docs.aws.amazon.com/guardduty/latest/APIReference/API_MalwareProtectionConfigurationResult.html"
       },
       {
@@ -18906,7 +18906,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS GuardDuty Kubernetes Audit Logs Configuration Result API",
         "url": "https://docs.aws.amazon.com/guardduty/latest/APIReference/API_KubernetesAuditLogsConfigurationResult.html"
       },
       {
@@ -18968,7 +18968,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS GuardDuty Detector Feature Configuration Result API",
         "url": "https://docs.aws.amazon.com/guardduty/latest/APIReference/API_DetectorFeatureConfigurationResult.html"
       },
       {
@@ -19026,7 +19026,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS GuardDuty Detector Feature Configuration Result API",
         "url": "https://docs.aws.amazon.com/guardduty/latest/APIReference/API_DetectorFeatureConfigurationResult.html"
       },
       {
@@ -19134,7 +19134,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS GuardDuty Detector Feature Configuration Result API",
         "url": "https://docs.aws.amazon.com/guardduty/latest/APIReference/API_DetectorFeatureConfigurationResult.html"
       },
       {
@@ -19192,7 +19192,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS GuardDuty Detector Feature Configuration Result API",
         "url": "https://docs.aws.amazon.com/guardduty/latest/APIReference/API_DetectorFeatureConfigurationResult.html"
       },
       {
@@ -19246,7 +19246,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS GuardDuty S3 Logs Configuration Result API",
         "url": "https://docs.aws.amazon.com/guardduty/latest/APIReference/API_S3LogsConfigurationResult.html"
       },
       {
@@ -20253,7 +20253,7 @@
     },
     "references": [
       {
-        "title": "Official IAM principal inline policy APIs",
+        "title": "AWS IAM Get Group Policy API",
         "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetGroupPolicy.html"
       },
       {
@@ -20306,7 +20306,7 @@
     },
     "references": [
       {
-        "title": "Official IAM principal inline policy APIs",
+        "title": "AWS IAM Get Group Policy API",
         "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetGroupPolicy.html"
       },
       {
@@ -20359,7 +20359,7 @@
     },
     "references": [
       {
-        "title": "Official IAM principal inline policy APIs",
+        "title": "AWS IAM Get Group Policy API",
         "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetGroupPolicy.html"
       },
       {
@@ -20412,7 +20412,7 @@
     },
     "references": [
       {
-        "title": "Official IAM principal inline policy APIs",
+        "title": "AWS IAM Get Group Policy API",
         "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetGroupPolicy.html"
       },
       {
@@ -20465,7 +20465,7 @@
     },
     "references": [
       {
-        "title": "Official IAM principal inline policy APIs",
+        "title": "AWS IAM Get Group Policy API",
         "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetGroupPolicy.html"
       },
       {
@@ -21387,7 +21387,7 @@
     },
     "references": [
       {
-        "title": "Official IAM detach managed policy API",
+        "title": "AWS IAM Detach Group Policy API",
         "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_DetachGroupPolicy.html"
       },
       {
@@ -21709,7 +21709,7 @@
     },
     "references": [
       {
-        "title": "Official IAM detach managed policy API",
+        "title": "AWS IAM Detach Role Policy API",
         "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_DetachRolePolicy.html"
       },
       {
@@ -22172,7 +22172,7 @@
     },
     "references": [
       {
-        "title": "Official IAM detach managed policy API",
+        "title": "AWS IAM Detach User Policy API",
         "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_DetachUserPolicy.html"
       },
       {
@@ -22278,7 +22278,7 @@
     },
     "references": [
       {
-        "title": "Official IAM principal inline policy APIs",
+        "title": "AWS IAM Get Role Policy API",
         "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetRolePolicy.html"
       },
       {
@@ -22331,7 +22331,7 @@
     },
     "references": [
       {
-        "title": "Official IAM principal inline policy APIs",
+        "title": "AWS IAM Get Role Policy API",
         "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetRolePolicy.html"
       },
       {
@@ -22384,7 +22384,7 @@
     },
     "references": [
       {
-        "title": "Official IAM principal inline policy APIs",
+        "title": "AWS IAM Get Role Policy API",
         "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetRolePolicy.html"
       },
       {
@@ -22487,7 +22487,7 @@
     },
     "references": [
       {
-        "title": "Official IAM principal inline policy APIs",
+        "title": "AWS IAM Get Role Policy API",
         "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetRolePolicy.html"
       },
       {
@@ -22540,7 +22540,7 @@
     },
     "references": [
       {
-        "title": "Official IAM principal inline policy APIs",
+        "title": "AWS IAM Get Role Policy API",
         "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetRolePolicy.html"
       },
       {
@@ -23138,7 +23138,7 @@
     },
     "references": [
       {
-        "title": "Official IAM principal inline policy APIs",
+        "title": "AWS IAM Get User Policy API",
         "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetUserPolicy.html"
       },
       {
@@ -23191,7 +23191,7 @@
     },
     "references": [
       {
-        "title": "Official IAM principal inline policy APIs",
+        "title": "AWS IAM Get User Policy API",
         "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetUserPolicy.html"
       },
       {
@@ -23294,7 +23294,7 @@
     },
     "references": [
       {
-        "title": "Official IAM principal inline policy APIs",
+        "title": "AWS IAM Get User Policy API",
         "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetUserPolicy.html"
       },
       {
@@ -23402,7 +23402,7 @@
     },
     "references": [
       {
-        "title": "Official IAM principal inline policy APIs",
+        "title": "AWS IAM Get User Policy API",
         "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetUserPolicy.html"
       },
       {
@@ -23455,7 +23455,7 @@
     },
     "references": [
       {
-        "title": "Official IAM principal inline policy APIs",
+        "title": "AWS IAM Get User Policy API",
         "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetUserPolicy.html"
       },
       {
@@ -23617,7 +23617,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS KMS Key Metadata API",
         "url": "https://docs.aws.amazon.com/kms/latest/APIReference/API_KeyMetadata.html"
       },
       {
@@ -23667,11 +23667,11 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS KMS Key Metadata API",
         "url": "https://docs.aws.amazon.com/kms/latest/APIReference/API_KeyMetadata.html"
       },
       {
-        "title": "AWS source API reference",
+        "title": "AWS Security Hub kms controls (kms 3)",
         "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/kms-controls.html#kms-3"
       },
       {
@@ -23726,11 +23726,11 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS KMS Get Key Policy API",
         "url": "https://docs.aws.amazon.com/kms/latest/APIReference/API_GetKeyPolicy.html"
       },
       {
-        "title": "AWS source API reference",
+        "title": "AWS Security Hub kms controls (kms 5)",
         "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/kms-controls.html#kms-5"
       },
       {
@@ -23785,7 +23785,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS KMS Get Key Rotation Status API",
         "url": "https://docs.aws.amazon.com/kms/latest/APIReference/API_GetKeyRotationStatus.html"
       },
       {
@@ -23830,7 +23830,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS KMS Key Metadata API",
         "url": "https://docs.aws.amazon.com/kms/latest/APIReference/API_KeyMetadata.html"
       },
       {
@@ -23880,7 +23880,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS KMS Key Metadata API",
         "url": "https://docs.aws.amazon.com/kms/latest/APIReference/API_KeyMetadata.html"
       },
       {
@@ -23935,7 +23935,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS KMS Get Key Policy API",
         "url": "https://docs.aws.amazon.com/kms/latest/APIReference/API_GetKeyPolicy.html"
       },
       {
@@ -23985,7 +23985,7 @@
     },
     "references": [
       {
-        "title": "Official AWS Network Firewall update API",
+        "title": "AWS NETWORK-FIREWALL Update Firewall Delete Protection API",
         "url": "https://docs.aws.amazon.com/network-firewall/latest/APIReference/API_UpdateFirewallDeleteProtection.html"
       }
     ],
@@ -24036,7 +24036,7 @@
     },
     "references": [
       {
-        "title": "Official AWS Network Firewall policy API",
+        "title": "AWS NETWORK-FIREWALL Update Firewall Policy API",
         "url": "https://docs.aws.amazon.com/network-firewall/latest/APIReference/API_UpdateFirewallPolicy.html"
       }
     ],
@@ -24091,7 +24091,7 @@
     },
     "references": [
       {
-        "title": "Official AWS Network Firewall policy API",
+        "title": "AWS NETWORK-FIREWALL Update Firewall Policy API",
         "url": "https://docs.aws.amazon.com/network-firewall/latest/APIReference/API_UpdateFirewallPolicy.html"
       }
     ],
@@ -24146,7 +24146,7 @@
     },
     "references": [
       {
-        "title": "Official AWS Network Firewall policy API",
+        "title": "AWS NETWORK-FIREWALL Update Firewall Policy API",
         "url": "https://docs.aws.amazon.com/network-firewall/latest/APIReference/API_UpdateFirewallPolicy.html"
       }
     ],
@@ -24197,7 +24197,7 @@
     },
     "references": [
       {
-        "title": "Official AWS Network Firewall guidance",
+        "title": "AWS NETWORK-FIREWALL Create Firewall API",
         "url": "https://docs.aws.amazon.com/network-firewall/latest/APIReference/API_CreateFirewall.html"
       }
     ],
@@ -24243,7 +24243,7 @@
     },
     "references": [
       {
-        "title": "Official AWS Network Firewall guidance",
+        "title": "AWS NETWORK-FIREWALL Update Logging Configuration API",
         "url": "https://docs.aws.amazon.com/network-firewall/latest/APIReference/API_UpdateLoggingConfiguration.html"
       }
     ],
@@ -24289,7 +24289,7 @@
     },
     "references": [
       {
-        "title": "Official AWS Network Firewall guidance",
+        "title": "AWS NETWORK-FIREWALL Associate Subnets API",
         "url": "https://docs.aws.amazon.com/network-firewall/latest/APIReference/API_AssociateSubnets.html"
       }
     ],
@@ -24335,7 +24335,7 @@
     },
     "references": [
       {
-        "title": "Official AWS Network Firewall policy API",
+        "title": "AWS NETWORK-FIREWALL Update Firewall Policy API",
         "url": "https://docs.aws.amazon.com/network-firewall/latest/APIReference/API_UpdateFirewallPolicy.html"
       }
     ],
@@ -24385,7 +24385,7 @@
     },
     "references": [
       {
-        "title": "Official AWS Network Firewall policy API",
+        "title": "AWS NETWORK-FIREWALL Update Firewall Policy API",
         "url": "https://docs.aws.amazon.com/network-firewall/latest/APIReference/API_UpdateFirewallPolicy.html"
       }
     ],
@@ -24435,7 +24435,7 @@
     },
     "references": [
       {
-        "title": "Official AWS Network Firewall policy API",
+        "title": "AWS NETWORK-FIREWALL Update Firewall Policy API",
         "url": "https://docs.aws.amazon.com/network-firewall/latest/APIReference/API_UpdateFirewallPolicy.html"
       }
     ],
@@ -24481,7 +24481,7 @@
     },
     "references": [
       {
-        "title": "Official AWS Network Firewall policy API",
+        "title": "AWS NETWORK-FIREWALL Update Rule Group API",
         "url": "https://docs.aws.amazon.com/network-firewall/latest/APIReference/API_UpdateRuleGroup.html"
       }
     ],
@@ -24527,7 +24527,7 @@
     },
     "references": [
       {
-        "title": "Official AWS Network Firewall update API",
+        "title": "AWS NETWORK-FIREWALL Update Subnet Change Protection API",
         "url": "https://docs.aws.amazon.com/network-firewall/latest/APIReference/API_UpdateSubnetChangeProtection.html"
       }
     ],
@@ -24683,7 +24683,7 @@
     },
     "references": [
       {
-        "title": "Official AWS S3 or CloudFront operational guidance",
+        "title": "AWS AMAZONS3 access points bpa settings",
         "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-points-bpa-settings.html"
       }
     ],
@@ -24729,7 +24729,7 @@
     },
     "references": [
       {
-        "title": "AWS S3 PutPublicAccessBlock API",
+        "title": "AWS AMAZONS3 control Put Public Access Block API",
         "url": "https://docs.aws.amazon.com/AmazonS3/latest/API/API_control_PutPublicAccessBlock.html"
       }
     ],
@@ -24839,7 +24839,7 @@
     },
     "references": [
       {
-        "title": "AWS S3 PutPublicAccessBlock API",
+        "title": "AWS AMAZONS3 Put Public Access Block API",
         "url": "https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutPublicAccessBlock.html"
       }
     ],
@@ -24935,7 +24935,7 @@
     },
     "references": [
       {
-        "title": "Official AWS S3 or CloudFront operational guidance",
+        "title": "AWS AMAZONS3 Put Bucket Lifecycle Configuration API",
         "url": "https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutBucketLifecycleConfiguration.html"
       }
     ],
@@ -25082,7 +25082,7 @@
     },
     "references": [
       {
-        "title": "Official AWS S3 or CloudFront operational guidance",
+        "title": "AWS AMAZONS3 multi region access point block public access",
         "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/multi-region-access-point-block-public-access.html"
       }
     ],
@@ -25182,7 +25182,7 @@
     },
     "references": [
       {
-        "title": "Official AWS data-event or classification job API",
+        "title": "AWS AWSCLOUDTRAIL Put Event Selectors API",
         "url": "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_PutEventSelectors.html"
       }
     ],
@@ -25443,7 +25443,7 @@
     },
     "references": [
       {
-        "title": "Official AWS data-event or classification job API",
+        "title": "AWS MACIE jobs",
         "url": "https://docs.aws.amazon.com/macie/latest/APIReference/jobs.html"
       }
     ],
@@ -25489,7 +25489,7 @@
     },
     "references": [
       {
-        "title": "AWS S3 PutPublicAccessBlock API",
+        "title": "AWS AMAZONS3 control Put Public Access Block API",
         "url": "https://docs.aws.amazon.com/AmazonS3/latest/API/API_control_PutPublicAccessBlock.html"
       }
     ],
@@ -25594,7 +25594,7 @@
     },
     "references": [
       {
-        "title": "AWS S3 PutPublicAccessBlock API",
+        "title": "AWS AMAZONS3 Put Public Access Block API",
         "url": "https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutPublicAccessBlock.html"
       }
     ],
@@ -26207,7 +26207,7 @@
     },
     "references": [
       {
-        "title": "Official AWS S3 or CloudFront operational guidance",
+        "title": "AWS AMAZONCLOUDFRONT private content restricting access to s3",
         "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html"
       }
     ],
@@ -26435,7 +26435,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS VPC default security group",
         "url": "https://docs.aws.amazon.com/vpc/latest/userguide/default-security-group.html"
       },
       {
@@ -26490,7 +26490,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS VPC default security group",
         "url": "https://docs.aws.amazon.com/vpc/latest/userguide/default-security-group.html"
       },
       {
@@ -27388,7 +27388,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Network Acl API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_NetworkAcl.html"
       },
       {
@@ -27433,7 +27433,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Network Acl Entry API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_NetworkAclEntry.html"
       },
       {
@@ -27482,7 +27482,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Network Acl Entry API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_NetworkAclEntry.html"
       },
       {
@@ -27527,7 +27527,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Network Acl Entry API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_NetworkAclEntry.html"
       },
       {
@@ -27576,7 +27576,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Network Acl Entry API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_NetworkAclEntry.html"
       },
       {
@@ -27625,7 +27625,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Network Acl API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_NetworkAcl.html"
       },
       {
@@ -28060,7 +28060,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Security Group API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_SecurityGroup.html"
       },
       {
@@ -28105,7 +28105,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Security Group API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_SecurityGroup.html"
       },
       {
@@ -28155,7 +28155,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Ip Permission API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
       },
       {
@@ -28210,7 +28210,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Ip Range API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpRange.html"
       },
       {
@@ -28260,7 +28260,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Ip Permission API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
       },
       {
@@ -28315,11 +28315,11 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Ip Permission API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
       },
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Network Interface API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_NetworkInterface.html"
       },
       {
@@ -28369,7 +28369,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Ip Permission API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
       },
       {
@@ -28427,7 +28427,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Ip Permission API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
       },
       {
@@ -28485,7 +28485,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Ip Permission API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
       },
       {
@@ -28542,7 +28542,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Ip Permission API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
       },
       {
@@ -28592,7 +28592,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Ip Permission API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
       },
       {
@@ -28648,7 +28648,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Ip Permission API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
       },
       {
@@ -28704,7 +28704,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Ip Permission API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
       },
       {
@@ -28761,7 +28761,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Ip Permission API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
       },
       {
@@ -28817,7 +28817,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Ip Permission API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
       },
       {
@@ -28874,7 +28874,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Ip Permission API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
       },
       {
@@ -28930,7 +28930,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Ip Permission API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
       },
       {
@@ -28986,7 +28986,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Ip Permission API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
       },
       {
@@ -29042,7 +29042,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Ip Permission API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
       },
       {
@@ -29099,7 +29099,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Ip Permission API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
       },
       {
@@ -29155,7 +29155,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Ip Permission API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
       },
       {
@@ -29206,7 +29206,7 @@
     },
     "references": [
       {
-        "title": "AWS source API reference",
+        "title": "AWS EC2 Security Group API",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_SecurityGroup.html"
       },
       {

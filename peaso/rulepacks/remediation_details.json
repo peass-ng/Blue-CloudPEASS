@@ -28,7 +28,7 @@
     },
     "references": [
       {
-        "title": "AWS security group rules",
+        "title": "AWS VPC working with security group rules",
         "url": "https://docs.aws.amazon.com/vpc/latest/userguide/working-with-security-group-rules.html"
       }
     ],
@@ -69,7 +69,7 @@
     },
     "references": [
       {
-        "title": "AWS security group rules",
+        "title": "AWS VPC working with security group rules",
         "url": "https://docs.aws.amazon.com/vpc/latest/userguide/working-with-security-group-rules.html"
       }
     ],
@@ -110,7 +110,7 @@
     },
     "references": [
       {
-        "title": "AWS security group rules",
+        "title": "AWS VPC working with security group rules",
         "url": "https://docs.aws.amazon.com/vpc/latest/userguide/working-with-security-group-rules.html"
       }
     ],
@@ -151,7 +151,7 @@
     },
     "references": [
       {
-        "title": "AWS security group rules",
+        "title": "AWS VPC working with security group rules",
         "url": "https://docs.aws.amazon.com/vpc/latest/userguide/working-with-security-group-rules.html"
       }
     ],
@@ -192,7 +192,7 @@
     },
     "references": [
       {
-        "title": "AWS security group rules",
+        "title": "AWS VPC working with security group rules",
         "url": "https://docs.aws.amazon.com/vpc/latest/userguide/working-with-security-group-rules.html"
       }
     ],
@@ -233,7 +233,7 @@
     },
     "references": [
       {
-        "title": "AWS security group rules",
+        "title": "AWS VPC working with security group rules",
         "url": "https://docs.aws.amazon.com/vpc/latest/userguide/working-with-security-group-rules.html"
       }
     ],
@@ -274,7 +274,7 @@
     },
     "references": [
       {
-        "title": "AWS security group rules",
+        "title": "AWS VPC working with security group rules",
         "url": "https://docs.aws.amazon.com/vpc/latest/userguide/working-with-security-group-rules.html"
       }
     ],
@@ -315,7 +315,7 @@
     },
     "references": [
       {
-        "title": "AWS security group rules",
+        "title": "AWS VPC working with security group rules",
         "url": "https://docs.aws.amazon.com/vpc/latest/userguide/working-with-security-group-rules.html"
       }
     ],
@@ -356,7 +356,7 @@
     },
     "references": [
       {
-        "title": "AWS security group rules",
+        "title": "AWS VPC working with security group rules",
         "url": "https://docs.aws.amazon.com/vpc/latest/userguide/working-with-security-group-rules.html"
       }
     ],
@@ -397,7 +397,7 @@
     },
     "references": [
       {
-        "title": "AWS security group rules",
+        "title": "AWS VPC working with security group rules",
         "url": "https://docs.aws.amazon.com/vpc/latest/userguide/working-with-security-group-rules.html"
       }
     ],
@@ -438,7 +438,7 @@
     },
     "references": [
       {
-        "title": "AWS security group rules",
+        "title": "AWS VPC working with security group rules",
         "url": "https://docs.aws.amazon.com/vpc/latest/userguide/working-with-security-group-rules.html"
       }
     ],
@@ -479,7 +479,7 @@
     },
     "references": [
       {
-        "title": "AWS security group rules",
+        "title": "AWS VPC working with security group rules",
         "url": "https://docs.aws.amazon.com/vpc/latest/userguide/working-with-security-group-rules.html"
       }
     ],
@@ -520,7 +520,7 @@
     },
     "references": [
       {
-        "title": "AWS security group rules",
+        "title": "AWS VPC working with security group rules",
         "url": "https://docs.aws.amazon.com/vpc/latest/userguide/working-with-security-group-rules.html"
       }
     ],
@@ -561,7 +561,7 @@
     },
     "references": [
       {
-        "title": "AWS security group rules",
+        "title": "AWS VPC working with security group rules",
         "url": "https://docs.aws.amazon.com/vpc/latest/userguide/working-with-security-group-rules.html"
       }
     ],
@@ -602,7 +602,7 @@
     },
     "references": [
       {
-        "title": "AWS security group rules",
+        "title": "AWS VPC working with security group rules",
         "url": "https://docs.aws.amazon.com/vpc/latest/userguide/working-with-security-group-rules.html"
       }
     ],
@@ -643,7 +643,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "AWS CLI update trail",
         "url": "https://docs.aws.amazon.com/cli/latest/reference/cloudtrail/update-trail.html"
       }
     ],
@@ -684,7 +684,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "AWS AWSCLOUDTRAIL cloudtrail additional cli commands",
         "url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-additional-cli-commands.html"
       }
     ],
@@ -725,7 +725,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "AWS CLI update trail",
         "url": "https://docs.aws.amazon.com/cli/latest/reference/cloudtrail/update-trail.html"
       }
     ],
@@ -785,7 +785,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "AWS CLI put image tag mutability",
         "url": "https://docs.aws.amazon.com/cli/latest/reference/ecr/put-image-tag-mutability.html"
       }
     ],
@@ -883,7 +883,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "AWS CLI update account password policy",
         "url": "https://docs.aws.amazon.com/cli/latest/reference/iam/update-account-password-policy.html"
       }
     ],
@@ -924,7 +924,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "AWS CLI update account password policy",
         "url": "https://docs.aws.amazon.com/cli/latest/reference/iam/update-account-password-policy.html"
       }
     ],
@@ -965,7 +965,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "AWS CLI update account password policy",
         "url": "https://docs.aws.amazon.com/cli/latest/reference/iam/update-account-password-policy.html"
       }
     ],
@@ -1006,7 +1006,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "AWS CLI update account password policy",
         "url": "https://docs.aws.amazon.com/cli/latest/reference/iam/update-account-password-policy.html"
       }
     ],
@@ -1047,7 +1047,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "AWS CLI modify db instance",
         "url": "https://docs.aws.amazon.com/cli/latest/reference/rds/modify-db-instance.html"
       }
     ],
@@ -1107,7 +1107,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "AWS CLI modify db cluster",
         "url": "https://docs.aws.amazon.com/cli/latest/reference/rds/modify-db-cluster.html"
       }
     ],
@@ -1205,7 +1205,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "AWS AMAZONRDS USER Modify Instance.Settings",
         "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ModifyInstance.Settings.html"
       }
     ],
@@ -1303,7 +1303,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "Microsoft Learn aks manage azure rbac",
         "url": "https://learn.microsoft.com/en-us/azure/aks/manage-azure-rbac?tabs=azure-cli"
       }
     ],
@@ -1363,7 +1363,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "Microsoft Learn aks entra id control plane authentication",
         "url": "https://learn.microsoft.com/en-us/azure/aks/entra-id-control-plane-authentication"
       }
     ],
@@ -1442,7 +1442,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "Microsoft Learn webapp config",
         "url": "https://learn.microsoft.com/en-us/cli/azure/webapp/config?view=azure-cli-latest"
       }
     ],
@@ -1483,7 +1483,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "Microsoft Learn azure webapp",
         "url": "https://learn.microsoft.com/en-us/cli/azure/webapp?view=azure-cli-latest"
       }
     ],
@@ -1524,7 +1524,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "Microsoft Learn webapp config",
         "url": "https://learn.microsoft.com/en-us/cli/azure/webapp/config?view=azure-cli-latest"
       }
     ],
@@ -1565,7 +1565,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "Microsoft Learn webapp log",
         "url": "https://learn.microsoft.com/en-us/cli/azure/webapp/log?view=azure-cli-latest"
       }
     ],
@@ -2729,7 +2729,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "Microsoft Learn network nic",
         "url": "https://learn.microsoft.com/en-us/cli/azure/network/nic?view=azure-cli-latest"
       }
     ],
@@ -2846,7 +2846,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "Microsoft Learn sql server",
         "url": "https://learn.microsoft.com/en-us/cli/azure/sql/server?view=azure-cli-latest"
       }
     ],
@@ -2887,7 +2887,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "Microsoft Learn database connectivity settings",
         "url": "https://learn.microsoft.com/en-us/azure/azure-sql/database/connectivity-settings?view=azuresql-db"
       }
     ],
@@ -2947,7 +2947,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "Microsoft Learn storage account",
         "url": "https://learn.microsoft.com/en-us/cli/azure/storage/account?view=azure-cli-latest"
       }
     ],
@@ -2988,7 +2988,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "Microsoft Learn storage account",
         "url": "https://learn.microsoft.com/en-us/cli/azure/storage/account?view=azure-cli-latest"
       }
     ],
@@ -3084,7 +3084,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "Microsoft Learn storage account",
         "url": "https://learn.microsoft.com/en-us/cli/azure/storage/account?view=azure-cli-latest"
       }
     ],
@@ -3125,7 +3125,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "Microsoft Learn storage account",
         "url": "https://learn.microsoft.com/en-us/cli/azure/storage/account?view=azure-cli-latest"
       }
     ],
@@ -3166,7 +3166,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "Microsoft Learn azure keyvault",
         "url": "https://learn.microsoft.com/en-us/cli/azure/keyvault?view=azure-cli-latest"
       }
     ],
@@ -3207,7 +3207,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "Microsoft Learn general network security",
         "url": "https://learn.microsoft.com/en-us/azure/key-vault/general/network-security"
       }
     ],
@@ -3248,7 +3248,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "Microsoft Learn general key vault recovery",
         "url": "https://learn.microsoft.com/en-us/azure/key-vault/general/key-vault-recovery"
       }
     ],
@@ -3289,7 +3289,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "Microsoft Learn general rbac migration",
         "url": "https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-migration"
       }
     ],
@@ -3349,7 +3349,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "Microsoft Learn linux disks enable host based encryption cli",
         "url": "https://learn.microsoft.com/en-us/azure/virtual-machines/linux/disks-enable-host-based-encryption-cli"
       }
     ],
@@ -4620,7 +4620,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "Google Cloud instances update",
         "url": "https://cloud.google.com/sdk/gcloud/reference/compute/instances/update"
       }
     ],
@@ -4661,7 +4661,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "Google Cloud instances update",
         "url": "https://cloud.google.com/sdk/gcloud/reference/compute/instances/update"
       }
     ],
@@ -4702,7 +4702,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "Google Cloud instances update",
         "url": "https://cloud.google.com/sdk/gcloud/reference/compute/instances/update"
       }
     ],
@@ -4762,7 +4762,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "Google Cloud networks update",
         "url": "https://cloud.google.com/sdk/gcloud/reference/compute/networks/update"
       }
     ],
@@ -4803,7 +4803,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "Google Cloud instances set scheduling",
         "url": "https://cloud.google.com/sdk/gcloud/reference/compute/instances/set-scheduling"
       }
     ],
@@ -4863,7 +4863,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "Google Cloud instances preventing accidental vm deletion",
         "url": "https://cloud.google.com/compute/docs/instances/preventing-accidental-vm-deletion"
       }
     ],
@@ -4942,7 +4942,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "Google Cloud instances patch",
         "url": "https://cloud.google.com/sdk/gcloud/reference/sql/instances/patch"
       }
     ],
@@ -4983,7 +4983,7 @@
     },
     "references": [
       {
-        "title": "Official provider update reference",
+        "title": "Google Cloud instances patch",
         "url": "https://cloud.google.com/sdk/gcloud/reference/sql/instances/patch"
       }
     ],

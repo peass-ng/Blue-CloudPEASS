@@ -1654,7 +1654,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Compares the custom domain TLS security policy with the pinned post-quantum policy allowlist."
     },
-    "remediation_base_sha256": "a0d5aeac64221d7adf4539aaede429e37aad400bf856c6268a96778594c6f5cf",
+    "remediation_base_sha256": "ebef2807dd9620fe1342b8d53e49c902aa32cea8f67ff26e05c8c25700271e0a",
     "remediation_fields": {
       "caveats": [
         "A conventional TLS policy is not automatically unsafe because it lacks this optional profile."
@@ -1719,7 +1719,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Finds APIv2 routes whose authorization type is NONE or omitted."
     },
-    "remediation_base_sha256": "c89255a2878b83b1ebcf0be42e424f03071e8cebceff36167720aa62b6c27b9d",
+    "remediation_base_sha256": "2d0678a71499a85958e35c4cd8e5faa0aa0983c97283681810fa43064d2008e8",
     "remediation_fields": {
       "caveats": [
         "Route configuration does not test requests or prove application-level access controls are absent."
@@ -1749,7 +1749,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Finds APIv2 routes without a nonempty AuthorizerId."
     },
-    "remediation_base_sha256": "520bf5fd0410281a57f2baf5413dae6febb535da63153159ed1ebfd3c9346a0c",
+    "remediation_base_sha256": "d28e74a391bedd6fb2b1f77844ede8c60a66ed17b83337bac884072ef692e4e9",
     "remediation_fields": {
       "caveats": [
         "AWS_IAM routes also fail this literal authorizer-reference profile despite having authorization."
@@ -1956,7 +1956,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks Athena PublishCloudWatchMetricsEnabled=true."
     },
-    "remediation_base_sha256": "38a8b47f73efc453a99ecb2294664fd7d2158ca1a9fd038983ed476a5b5eb7ed",
+    "remediation_base_sha256": "10af87ba4660736ad8fa3f6e508e0348e75bbd755e0e7a34581897fed47b99aa",
     "remediation_fields": {
       "caveats": [
         "The flag does not validate configuration quality or prove metrics delivery."
@@ -1991,7 +1991,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks Athena PublishCloudWatchMetricsEnabled=true for enabled workgroups only."
     },
-    "remediation_base_sha256": "ec3ebfb328904505a41cee5c2aad93cc5dac6364e27e8bccbde7a039d768e525",
+    "remediation_base_sha256": "74e68cfe34072f8102a1bc9df25a554dae5c7f0b0a32e9763f72fa5b3e790a69",
     "remediation_fields": {
       "caveats": [
         "The flag does not validate configuration quality or prove metrics delivery."
@@ -2026,7 +2026,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks Athena EnforceWorkGroupConfiguration=true."
     },
-    "remediation_base_sha256": "8ea78a6f33ca2655bc3a875219406033b3b976ba6f115ed4b339117b739947e1",
+    "remediation_base_sha256": "2a6ef196b2b609b66c043dc4e990206a6572c34689ed53fb64c828f5929bd63d",
     "remediation_fields": {
       "caveats": [
         "The flag does not validate configuration quality or prove metrics delivery."
@@ -2061,7 +2061,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks Athena EnforceWorkGroupConfiguration=true for enabled workgroups only."
     },
-    "remediation_base_sha256": "4400dfaaf708fb8452571e816e631c5b54f6a0bd5adb21820d31fa853f52f2f2",
+    "remediation_base_sha256": "28fb1210301dc7727532811b78cf5f3059474c145c6f796d88fb1d15824c9d27",
     "remediation_fields": {
       "caveats": [
         "The flag does not validate configuration quality or prove metrics delivery."
@@ -2096,7 +2096,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Finds backup-plan rules whose explicit DeleteAfterDays is below 35."
     },
-    "remediation_base_sha256": "e0f1d8b58ab0eb941273fc31ddccb9607076bb94beebf6b4f9d1a3f95730f1d4",
+    "remediation_base_sha256": "c97a703e20e8cb0b853ea52dcecac13b6843a80ae0f2b1d14fd48ac4056e10e0",
     "remediation_fields": {
       "caveats": [
         "Omitted deletion passes this profile; this does not test backup jobs or restores."
@@ -2126,7 +2126,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks that the scoped inventory has at least one backup plan when backup vaults exist."
     },
-    "remediation_base_sha256": "7fa100b15f9bc862b793d425dc1a882fb4570f44b362860c4302baa4c1e61809",
+    "remediation_base_sha256": "dece503c1deaadb365d235fb4dec115961ee29ba6ba8fcb9dde804c6600373e5",
     "remediation_fields": {
       "caveats": [
         "A region-wide plan witness does not establish resource assignment or successful backups."
@@ -2216,7 +2216,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Looks for one Deny statement on Resource:* covering deletion, lifecycle updates and vault-policy updates."
     },
-    "remediation_base_sha256": "a297af4d0d1ab706ab3087631cf525d987ebd0d0087ae27baa09e9ca440b6034",
+    "remediation_base_sha256": "8ce9438e4b180c6b9e6efb1dd08237e6256e9da225b2784c449eee4b3f7cf8ce",
     "remediation_fields": {
       "caveats": [
         "This syntax witness does not evaluate Principal, Condition or every effective permission and is not proof of immutable backups."
@@ -2253,7 +2253,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks the backup-vault policy with the source\u2019s wildcard-principal and restricting-condition model."
     },
-    "remediation_base_sha256": "40fb1e2414ad22592a6e5b2c85ee01a747f4b8ee22f2fbfca86e3296d6436420",
+    "remediation_base_sha256": "17be60935a95bda13f7fa2c5d13cbe07dac17e41a55a5cd6974b61acb0933384",
     "remediation_fields": {
       "caveats": [
         "Policy-model results do not compute effective access across every external control."
@@ -2284,7 +2284,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Counts registered instances on the Classic load balancer."
     },
-    "remediation_base_sha256": "6b175c7028738d5296a65a0e4182ab1bde2141a3ab2051c27e87520644e2fff7",
+    "remediation_base_sha256": "79a772981f8a48c06e0a30eef6390ff83e311a9844c471d1fad859a76746abbd",
     "remediation_fields": {
       "caveats": [
         "Registered instances are not necessarily healthy."
@@ -2313,7 +2313,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks HTTPS listener policy names for the exact ELBSecurityPolicy-TLS-1-2-2017-01 profile."
     },
-    "remediation_base_sha256": "3ecc6d6834d71ec8978633c8e4f065143f7848ab5d5081037a12192299adea86",
+    "remediation_base_sha256": "214233d132a07f61d2e9279cfe2091daced91cea67147f26292a88ac260e0639",
     "remediation_fields": {
       "caveats": [
         "This name comparison does not enumerate actual cipher strength or reject every newer secure policy fairly."
@@ -2374,7 +2374,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks that security groups are attached and every resolved group has at least one inbound rule."
     },
-    "remediation_base_sha256": "831c62dd0b7f9f786ef766279e40f6f0551b529d5a1643b1b809540fbaa4b853",
+    "remediation_base_sha256": "07f446be28bad8a18c2c5014e0391c5bbd6a0eea0ef2b4378d02b327a395ebdb",
     "remediation_fields": {
       "caveats": [
         "This is rule presence, not a test of port coverage or reachability; one group\u2019s rules can complement another\u2019s."
@@ -2406,7 +2406,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks that security groups are attached and every resolved group has at least one outbound rule."
     },
-    "remediation_base_sha256": "4f3cb364d1d1f94c8f2364fedee9bd44b98145257f2b1d5b17a1f7dbff5fb7c1",
+    "remediation_base_sha256": "8a4f95de4ae17415ad027b15ff6819a84baca4731a2c3c6d2c5996d0cdfa7252",
     "remediation_fields": {
       "caveats": [
         "This is rule presence, not a test of port coverage or reachability; one group\u2019s rules can complement another\u2019s."
@@ -2475,7 +2475,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks custom viewer certificates for sni-only SSL support, treating omitted support as static-IP mode."
     },
-    "remediation_base_sha256": "ce16d24550b5a631693bd29ecf51375b953d370c5182b23bc29da828258b0510",
+    "remediation_base_sha256": "424c8031f4133ad9ee6c792ec42a8185a1aa719ef75cd99b11faaebdd72a1b4f",
     "remediation_fields": {
       "caveats": [
         "Dedicated-IP support is a compatibility and cost choice, not evidence of plaintext traffic."
@@ -2505,7 +2505,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Compares the custom viewer certificate\u2019s minimum TLS policy with the pinned TLSv1.3_2025 preference."
     },
-    "remediation_base_sha256": "83f53a201c74cf98a887f01cc0eda7814f71bb07df0d47ec583f83353d26d8b0",
+    "remediation_base_sha256": "0023b94691e565b3ffba1336583437304533fae8508dbddd0f57a80134c5d05c",
     "remediation_fields": {
       "caveats": [
         "A different policy does not by itself prove weak conventional TLS."
@@ -2539,7 +2539,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks that every configured S3 origin references an Origin Access Control."
     },
-    "remediation_base_sha256": "e558295a2a07152cdfc5066bdcdba0bcb85365fadd1787e22a16f9a7c0fe5be9",
+    "remediation_base_sha256": "c9516029fb5bbcded58b97fa802b944a68ff4773b13c7663958298f9c18657ee",
     "remediation_fields": {
       "caveats": [
         "An OAC reference alone does not prove signing settings or a restrictive bucket policy."
@@ -2571,7 +2571,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks the legacy OAI field on origins whose domain ends with s3.amazonaws.com."
     },
-    "remediation_base_sha256": "f1521d28d37eeca7a1a6916f257b278750b2368f306c1ec192e8bf7114417450",
+    "remediation_base_sha256": "5f88ef15baa5685b1df1ddb1993d85d1f961d4f197cf4dc781a108e0f3e9a4da",
     "remediation_fields": {
       "caveats": [
         "An OAC-only origin can fail this legacy OAI profile despite using the recommended mechanism."
@@ -2603,7 +2603,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Reads the DataSync task\u2019s CloudWatch log-group ARN."
     },
-    "remediation_base_sha256": "c0254501a7a383993c2de661f565e57034b7ab61d9c8f7be1bd0db758c8d5343",
+    "remediation_base_sha256": "777c6f355a735570c95f6d0969566a29a11ae842669a4951dd5b2e4edb10f60f",
     "remediation_fields": {
       "caveats": [
         "A reference does not prove log permissions, delivery or retention."
@@ -2634,7 +2634,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks the DataSync task has a log group and log level BASIC or TRANSFER."
     },
-    "remediation_base_sha256": "ca235b00e89d5e26035474b382e8ce6c813570065a2a3d288649e9bb7092afd2",
+    "remediation_base_sha256": "28232c27d47819a76b53f57c672463cc5cd4eb9d3be9acf683a97240110d5932",
     "remediation_fields": {
       "caveats": [
         "Configuration does not prove delivery or coverage outside this task."
@@ -2757,7 +2757,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks for an EBS_SNAPSHOT-prefixed lifecycle policy when the scope contains EBS snapshots."
     },
-    "remediation_base_sha256": "3c1f9a8114ec40befaefc9db776b97f23b869138a4e338c331775ff7d4f194ef",
+    "remediation_base_sha256": "a828fbe95943bbf2f5663c489f580afcf07d2d2495cc88a628633c78eefd2d00",
     "remediation_fields": {
       "caveats": [
         "Policy presence does not prove it is enabled, selects these snapshots or produces backups."
@@ -2789,7 +2789,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks for any lifecycle policy when the scope contains EBS snapshots."
     },
-    "remediation_base_sha256": "14d0f1457fa8641afdfd98c286aa698fd106103dee9c4b290a598ca07bb90275",
+    "remediation_base_sha256": "363d705a9af4eb4280d38aeeb9257f88ea7f81efe086406fbca0e141bb9027ab",
     "remediation_fields": {
       "caveats": [
         "Policy presence does not prove it is enabled, selects these snapshots or produces backups."
@@ -2853,7 +2853,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Flags DMS endpoint SslMode only when it is exactly none."
     },
-    "remediation_base_sha256": "2431716f061c5cbf312dd3404c406c5d9606123df2334a21440e9d5c4254d844",
+    "remediation_base_sha256": "866706ee5811871ebd26ba8a9d06d45f4c951100eab10b4b52cf8bcf48b480d1",
     "remediation_fields": {
       "caveats": [
         "Omitted or other mode values pass this literal profile and do not establish certificate verification."
@@ -2883,7 +2883,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks MongoDB DMS endpoint AuthType and rejects no, including its omission default."
     },
-    "remediation_base_sha256": "634065bb6d77a5b4588401808897e705dee9d26d7251ef85b228c0039dc332ac",
+    "remediation_base_sha256": "cf8702801004270606a64399b95a18226aef673457f7efcc33cd3f7801c2a8bf",
     "remediation_fields": {
       "caveats": [
         "The type declaration does not test credentials or effective database permissions."
@@ -2914,7 +2914,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Reads IamAuthEnabled on Neptune DMS endpoints."
     },
-    "remediation_base_sha256": "b5187a343f31e7c292ba1e22e67b6562250aba052d899c1e73d4af1576ebe974",
+    "remediation_base_sha256": "1fe8a275370fbb590f1e44499d9676f576b515008321b4dbffc084435c82f87d",
     "remediation_fields": {
       "caveats": [
         "The flag does not prove usable role permissions or replace network controls."
@@ -2944,7 +2944,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks Redis DMS endpoint SslSecurityProtocol equals ssl-encryption, including its source omission default."
     },
-    "remediation_base_sha256": "433c06c5a192bf98d59edb3d0a3193aa0c4a6ad884114a185ea6bc7c59d5a1fd",
+    "remediation_base_sha256": "7357ca23aee52519ea59966ed2fdbfc462a7b2ca3ce1fc9d8ba69175b180924d",
     "remediation_fields": {
       "caveats": [
         "The value does not prove certificate validation or a successful connection."
@@ -2975,7 +2975,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks DMS task logging is enabled and SOURCE_CAPTURE and SOURCE_UNLOAD have a default, debug or detailed-debug severity."
     },
-    "remediation_base_sha256": "010470c7047fce96f201358514d45412d511d12a4ba4e96589a9385ebdd4687a",
+    "remediation_base_sha256": "ab2195f6ba29a9bd2f813664fb08b2e465af9ad2d6a08283835a44440fff7d40",
     "remediation_fields": {
       "caveats": [
         "Other log levels fail this exact profile; no logs are inspected or delivery verified."
@@ -3010,7 +3010,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks DMS task logging is enabled and TARGET_APPLY and TARGET_LOAD have a default, debug or detailed-debug severity."
     },
-    "remediation_base_sha256": "17dba560fc4d5d484b162b5481974f61401d6d511cccd5cbb22eace6aaaaf41d",
+    "remediation_base_sha256": "3bb349f430f1217b59bc281f1d6f6929000c8754f58aabf102b5f79e2684ee84",
     "remediation_fields": {
       "caveats": [
         "Other log levels fail this exact profile; no logs are inspected or delivery verified."
@@ -3045,7 +3045,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks all returned DocumentDB snapshot attribute-value lists for the all marker."
     },
-    "remediation_base_sha256": "7f4f5584d6e2a3e99c4f1ce3f62c9eade672a08300ee8f62a8efd6f3e72e4743",
+    "remediation_base_sha256": "8cbca62f17ec3a7f18e911f14f7d5a7432e00b4df46280ad84c2786073262b7a",
     "remediation_fields": {
       "caveats": [
         "This source examines every attribute list, not only restore; the raw attribute identifies the actual declaration."
@@ -3078,7 +3078,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks DocumentDB snapshot restore attributes for the public all value."
     },
-    "remediation_base_sha256": "d160cdd82f975324f89480ecf8650913d7de3452228ef691f7b608b61871b7b1",
+    "remediation_base_sha256": "31d853d484b18929b2014443439f6fb7a5e5fada6f98e858da037adebe878fb5",
     "remediation_fields": {
       "caveats": [
         "This is a declared snapshot share, not network exposure or evidence the snapshot was copied."
@@ -3111,7 +3111,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks DocumentDB automatic-backup retention is at least seven days."
     },
-    "remediation_base_sha256": "8c47fb794730df03483b4e12472cd67ccef68966bbd394262a1b6ec2112386f7",
+    "remediation_base_sha256": "c01f760d5cbae25f9403f121903f55dad367f4bec60a94bd2cda26c19d4e6de4",
     "remediation_fields": {
       "caveats": [
         "Retention settings do not prove successful backups or restores."
@@ -3141,7 +3141,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks DocumentDB exported log types include both audit and profiler."
     },
-    "remediation_base_sha256": "3ec7a10ee1d415455694fd73f4b0c9e3e24b5e549c7d4332e6a3d21c3ef74cdd",
+    "remediation_base_sha256": "7a68eedd975f97f04b637fdd939fc0aefd5e4fa837709e1d452d942411f24cbf",
     "remediation_fields": {
       "caveats": [
         "Declared exports do not prove log generation or delivery."
@@ -3207,7 +3207,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks provisioned tables for read and write scalable-target dimensions; on-demand billing passes."
     },
-    "remediation_base_sha256": "36873196539535b235e8d48708088da69b06c77b4cadd98181758e8258bdf27d",
+    "remediation_base_sha256": "032681949fd5da68d04ce9990b8b5c60bc704ba3e2e2267901706731b2a4dd25",
     "remediation_fields": {
       "caveats": [
         "Scalable-target presence does not prove scaling policies or successful scaling."
@@ -3243,7 +3243,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks the table resource policy with the account-aware public and cross-account grant model."
     },
-    "remediation_base_sha256": "c12388e662c1e33a72c8c78843a9888e3594d89ef96062c63ffad1a3392628f1",
+    "remediation_base_sha256": "f0ae47b5f962eaaeb39c5415d5d806588531d88703a90f680451bcc8b1b7a4b8",
     "remediation_fields": {
       "caveats": [
         "Cross-account grants can be legitimate; this model does not establish business approval or all effective permissions."
@@ -3277,7 +3277,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks DynamoDB SSEType is KMS."
     },
-    "remediation_base_sha256": "99d7de3f9909d4bb8ad0535724d50494ce21cf19080bf3f01b46a99eaf17a11b",
+    "remediation_base_sha256": "64b4aeb083e2d5d4c902e2ed116f7ac7cbfaaffd34c5c3f31a11733f33296ae9",
     "remediation_fields": {
       "caveats": [
         "Default DynamoDB encryption also encrypts data; this is not a plaintext-data test."
@@ -3308,7 +3308,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Matches supported backup resource strings or an overlapping selection tag key against the table."
     },
-    "remediation_base_sha256": "ab2d3efe74f55bc879ed825aff59ba38acdf17147636fd951d8821399146948b",
+    "remediation_base_sha256": "04aa34c449ad6e9179be2eb1b2daa2bdb28569623e9325420890447206fa3e3e",
     "remediation_fields": {
       "caveats": [
         "A tag-key match ignores values and operators, so PASS does not prove effective backup selection."
@@ -3342,7 +3342,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Matches the table ARN against the source\u2019s limited exact and wildcard backup resource strings."
     },
-    "remediation_base_sha256": "d8129d0b4e0b815cbf45113c2a17907c1085d034b6e800cdc69b0634bf423699",
+    "remediation_base_sha256": "e07838a7603eaece94f0052a7feab916d316d632d73871f856f026d955c696fb",
     "remediation_fields": {
       "caveats": [
         "This profile does not evaluate all wildcard patterns, tag selections or exclusion semantics."
@@ -3374,7 +3374,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Joins the table ARN to AWS Backup protected resources of type DynamoDB."
     },
-    "remediation_base_sha256": "7302bfed9e8a310a876e21746465325a875b47b2826ff295548a88674654d0be",
+    "remediation_base_sha256": "e16d010843915e6d909c62939ba36c025b1de02cdb8dcd0c996c4ebb0891aaf8",
     "remediation_fields": {
       "caveats": [
         "A protected-resource record is not proof of the required recovery window or a successful restore."
@@ -3435,7 +3435,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks explicit FARGATE services for LATEST or the pinned Linux 1.4.0 / Windows 1.0.0 platform version."
     },
-    "remediation_base_sha256": "13b5176fa4c959b66aa5ac4d15c3460f7ab4a16edc4c6fc555fb4a60991f397e",
+    "remediation_base_sha256": "5120df85d2b170a5541835b83e182bd945a518e2a184d4d80c5baafb8bc17d1f",
     "remediation_fields": {
       "caveats": [
         "The pinned version preference does not discover new releases or prove running tasks have been replaced."
@@ -3468,7 +3468,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks whether the ECS service loadBalancers list is nonempty."
     },
-    "remediation_base_sha256": "bdd2c24cdb01409ca708d53ec278eaa2e7deba139ce25fbc13f5fe6ccd26ff30",
+    "remediation_base_sha256": "af88f9d6644e155947e7b7894e9230b104bd84bc9c5828574bdef85f4cb82007",
     "remediation_fields": {
       "caveats": [
         "Workers, service-discovery and other private services may legitimately need no load balancer."
@@ -3556,7 +3556,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks whether the cache subnet-group name is exactly default."
     },
-    "remediation_base_sha256": "b6ae05faa309dc86de1c21c8926f23575cae48c540d66132e15117cb265c24ac",
+    "remediation_base_sha256": "42c28c19985b389fc26f13034762f49fc8413d782f72beae3c6b1c75692fac6c",
     "remediation_fields": {
       "caveats": [
         "The name default alone does not prove poor isolation or public reachability."
@@ -3586,7 +3586,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks replication-group snapshot retention is at least 15 days."
     },
-    "remediation_base_sha256": "84bca7ac1580b64844e39c736b95fdfb8ea8656dce586c0bfdbd6cacd688c81e",
+    "remediation_base_sha256": "41651ed3ce3a698fb9f03ab189744d4d5764d7c1d8febe704b07e98d501ab552",
     "remediation_fields": {
       "caveats": [
         "Retention configuration does not prove successful snapshots or restores."
@@ -3615,7 +3615,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks replication-group snapshot retention is at least 7 days."
     },
-    "remediation_base_sha256": "afe4101da35a0df2f24bb603a273db95f8ed432ed80cf7b947b06614c490f319",
+    "remediation_base_sha256": "7488cb0f6b29fff5ebfc26f9d0e5c5923fef449961ef17bf94f9a4389de1d417",
     "remediation_fields": {
       "caveats": [
         "Retention configuration does not prove successful snapshots or restores."
@@ -3676,7 +3676,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Reads the EMR regional BlockPublicSecurityGroupRules flag."
     },
-    "remediation_base_sha256": "675275f35991e46b738431e7bbf38e2f0d9fd9d869ac4051bb323f77fb41dc74",
+    "remediation_base_sha256": "13e4350a7aa2ae9c2df5c16e4a08ee61a1c87d1ed473ece9a193ec727fd9f9ff",
     "remediation_fields": {
       "caveats": [
         "This flag does not prove existing clusters are private or inspect exception ports."
@@ -3705,7 +3705,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks OpenSearch domain publishing settings for enabled application, search-slow and index-slow logs with a CloudWatch log-group ARN."
     },
-    "remediation_base_sha256": "e00cfa645e2510996c9c6424866fc131a8b506377a054464f17fee9ebd46033c",
+    "remediation_base_sha256": "e7b1348947d2a0024d67155501340aec06ef458fa797e5e5091f3cff65995c46",
     "remediation_fields": {
       "caveats": [
         "The declarations do not prove log generation, destination permissions or delivery."
@@ -3736,7 +3736,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks OpenSearch domain publishing settings for enabled audit logs with a CloudWatch log-group ARN."
     },
-    "remediation_base_sha256": "b00228646d9c5ee0a14f2479f78dbc527a53a2d54492e9cd79fc31f4c8f3d9c7",
+    "remediation_base_sha256": "cb598b5c36081e0a14d44208d8c3c7edc8a52c95696436811069722ba2181e94",
     "remediation_fields": {
       "caveats": [
         "The declarations do not prove log generation, destination permissions or delivery."
@@ -3767,7 +3767,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks OpenSearch domain publishing settings for enabled application error logs with a CloudWatch log-group ARN."
     },
-    "remediation_base_sha256": "4e888456061c392292dccdcc77f0bef312c2dc03c7747104592f8cfdbb5a7c83",
+    "remediation_base_sha256": "3a23d2a129ece0ae93ec2fbe2206fae1e2a3e8e891ec5f252a594c8c11d77839",
     "remediation_fields": {
       "caveats": [
         "The declarations do not prove log generation, destination permissions or delivery."
@@ -3829,7 +3829,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks the domain access policy for wildcard-principal grants lacking recognized restricting conditions."
     },
-    "remediation_base_sha256": "de814f6b2a92150f4005f0dc1e19e7903f48485a5bcb8651cc8edfe86171485b",
+    "remediation_base_sha256": "ed19fbcce000316dc638e77ad30ff287114b93bfb21b3062cc1707123dbfa412",
     "remediation_fields": {
       "caveats": [
         "The policy model does not establish effective data access across domain authentication and other controls."
@@ -3862,7 +3862,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Compares the domain TLS policy name with the two pinned TLS1.2 policy names."
     },
-    "remediation_base_sha256": "799dc8e3eddab4aa20f7b85c198deee483a9b43fd26298a0e86322214b4926cb",
+    "remediation_base_sha256": "1823838db185ca6101ce5231270cea9026b95123c4d200eeee45046449ec5bd7",
     "remediation_fields": {
       "caveats": [
         "A name outside the pinned allowlist is not automatically weak or a live TLS negotiation result."
@@ -3897,7 +3897,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Accepts Firehose stream encryption ENABLED or the source\u2019s MSKAsSource encryption alternative."
     },
-    "remediation_base_sha256": "d972dd6488d89a90f3f98417927c0e771400793734762cbf9a1f16ef683c8a20",
+    "remediation_base_sha256": "bcc0b23222bbbfc4effe5a3e3d13d43b236a2fd971dec98b47157d0e97dc69cb",
     "remediation_fields": {
       "caveats": [
         "MSK-source streams use a different encryption boundary; destination encryption is separate."
@@ -3927,7 +3927,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks that APIv2 stage AccessLogSettings is nonempty."
     },
-    "remediation_base_sha256": "ca0b497766bff5e74cba7a0956449174c56447e7099489337e5f3fe078ff01bd",
+    "remediation_base_sha256": "cdaf32802a20f60a9417531db5c43595dc866dcdf754241055ddb1b14d5fbb36",
     "remediation_fields": {
       "caveats": [
         "Object presence does not validate the format, destination permissions or delivery."
@@ -3958,7 +3958,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks Firehose delivery-stream encryption status for ENABLED."
     },
-    "remediation_base_sha256": "44b5c91d4539c53df5ce1d0bfe666ab0b8d61c0659d50dd8d96f77e44b66a6c4",
+    "remediation_base_sha256": "f28f4240d0f0407df2a451dec986730db3112f806ef2f2423f7cce6d9cc8f768",
     "remediation_fields": {
       "caveats": [
         "This status does not assess destination encryption or the special MSK-source alternative."
@@ -3988,7 +3988,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Finds Glacier vault-policy wildcard-principal Allow statements without interpreting conditions."
     },
-    "remediation_base_sha256": "82a73d0a395951728d89542e8d22feef19db79b09da514ddb88178623079443c",
+    "remediation_base_sha256": "42d87f241d10ecf27a3fb37d08897483b522617c83a115fb09f0e9949c0f847f",
     "remediation_fields": {
       "caveats": [
         "Conditioned wildcard grants also fail this literal profile; effective access is not computed."
@@ -4019,7 +4019,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Finds Glacier wildcard-principal grants lacking this policy model\u2019s recognized restricting conditions."
     },
-    "remediation_base_sha256": "d33e6495c03becd6d60a2aab7feae2bffbef75434a82ce61403f039d28315e53",
+    "remediation_base_sha256": "7871952f5b680268b5293979c3fd63d1b7eaa0e4991dc3e76328adf4eff58e44",
     "remediation_fields": {
       "caveats": [
         "The declaration model does not prove effective access across explicit denies or external controls."
@@ -4050,7 +4050,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Finds Allow principals containing * in the principal, AWS or CanonicalUser value."
     },
-    "remediation_base_sha256": "c4a8bd0bf0834226b2788309fef96b73a693344b7942a3131a86afeda42e47b2",
+    "remediation_base_sha256": "a0fa9025b957a53e0cbac2bd2290e168b50c21a620dee100cd7d9701033456fc",
     "remediation_fields": {
       "caveats": [
         "This source uses substring matching and ignores conditions; a match is not proof of effective public access."
@@ -4199,7 +4199,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks the Glue resource policy with the account-aware public-grant model."
     },
-    "remediation_base_sha256": "299dcb726cd1b3335948b45c7f4348162c0e19e532737ec5452d28aaf621f3c9",
+    "remediation_base_sha256": "b1cdd38194164893bbea5cac13912bb827dea3796b9a50bac93bab5ef1fe8be2",
     "remediation_fields": {
       "caveats": [
         "No policy is outside scope; the model does not prove effective access across all controls."
@@ -4261,7 +4261,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Joins the Glue dev endpoint security configuration and rejects missing configuration or job bookmarks mode DISABLED."
     },
-    "remediation_base_sha256": "ca029acb0391ed81d0d2f9334e15cc7704f00cc92edf5409eee963d12d82acae",
+    "remediation_base_sha256": "48cf83770fbc3cf130cd624424f814d7eaee65ae795ea4a27eb75930f6f2efc4",
     "remediation_fields": {
       "caveats": [
         "Only the referenced setting is checked; key usability and existing data encryption are not verified."
@@ -4295,7 +4295,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Joins the Glue dev endpoint security configuration and rejects missing configuration or CloudWatch logs mode DISABLED."
     },
-    "remediation_base_sha256": "09eca25b9fa252f7a1355c88e89f26b508f2d8f5a1bea1f4805216ae0000223a",
+    "remediation_base_sha256": "edc001557a95a381cd706132be13c7cb80978d14dcbd4c8f033ce923a2dad3e4",
     "remediation_fields": {
       "caveats": [
         "Only the referenced setting is checked; key usability and existing data encryption are not verified."
@@ -4329,7 +4329,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Joins the development endpoint security configuration and checks only the first S3 encryption mode for DISABLED."
     },
-    "remediation_base_sha256": "8fe6dee56da72a394f02353d42579fb7e719652e41472e9e050938e182446dc0",
+    "remediation_base_sha256": "7db8058cbd3e030cb715e01ba419b50b2d1898936ef021ffc20c261dd7b1da6d",
     "remediation_fields": {
       "caveats": [
         "Only the first S3 mode is assessed; this does not inspect all destinations or existing objects."
@@ -4362,7 +4362,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Joins the Glue job security configuration and rejects missing configuration or job bookmarks mode DISABLED."
     },
-    "remediation_base_sha256": "a1b156a4deff1852b1f0ee6e4caa0fcac9c021840f0112cbfea5cf0ae712ad8e",
+    "remediation_base_sha256": "a356a7ca18166c82f354973444f20d4315efeafaf7c3c72ea22b026f0c1b25ab",
     "remediation_fields": {
       "caveats": [
         "Only the referenced setting is checked; key usability and existing data encryption are not verified."
@@ -4396,7 +4396,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Joins the Glue job security configuration and rejects missing configuration or CloudWatch logs mode DISABLED."
     },
-    "remediation_base_sha256": "73d30970357988ecb8eaa4de63dd1d5370d53c1a2c18b87191bb2bad90839512",
+    "remediation_base_sha256": "e00313e268c5e4168ce318a7801ff76284d62f481c9cdfea3ed87be95f0d1071",
     "remediation_fields": {
       "caveats": [
         "Only the referenced setting is checked; key usability and existing data encryption are not verified."
@@ -4430,7 +4430,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks the allowlisted --enable-continuous-cloudwatch-log job flag for true."
     },
-    "remediation_base_sha256": "a2a483b936fbba5f05a8c3a411838eada77e648121835c0aa875ec6bbf61dee4",
+    "remediation_base_sha256": "148360bc96227718cca6cd4aaf61de61bd50dcadb326c6b7588e60980deec87c",
     "remediation_fields": {
       "caveats": [
         "The flag does not prove delivered logs or account for every version\u2019s logging defaults."
@@ -4769,7 +4769,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks Kinesis encryption type KMS and rejects the alias/aws/kinesis key identifier."
     },
-    "remediation_base_sha256": "6a937ea063cc4995ebeaaf573a2a3ec7d2e1891f9af3dbed091fa9dc18abb021",
+    "remediation_base_sha256": "99626612da0aa82dd69354e78997b9bb06f57d2f6a2501dca3737f301bb2a2fc",
     "remediation_fields": {
       "caveats": [
         "The literal alias comparison does not verify key ownership; AWS-managed KMS encryption is still encryption."
@@ -4799,7 +4799,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks Kinesis EncryptionType for KMS."
     },
-    "remediation_base_sha256": "b450424b32c5126048e9c2e4cdd70657da0f31cf451e113c1215847347671f1e",
+    "remediation_base_sha256": "824a6d6a6b9f516138103eafb9525dc48f49d536c3c8560ba9302ed771e5fe9a",
     "remediation_fields": {
       "caveats": [
         "This declaration does not validate the key or test data access."
@@ -4829,7 +4829,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Compares Kinesis stream retention with a minimum of 168 hours."
     },
-    "remediation_base_sha256": "699c2cbd3aaf18f64fe48a4065502e0aa35c1779795e7d858bbc634f3eed10fe",
+    "remediation_base_sha256": "6939f0f99eadf8891e33bf401020c37fe2730318a7b5402b55a3229c897ef803",
     "remediation_fields": {
       "caveats": [
         "Retention configuration does not prove consumers can successfully replay retained data."
@@ -4858,7 +4858,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Compares Kinesis stream retention with exactly 168 hours."
     },
-    "remediation_base_sha256": "983f7f3660b856efd3af4f6f02b0926ae9022f2b628212bb10f56bd30e1adc8e",
+    "remediation_base_sha256": "baab45a751749d59165bd765f4f52c51e9cf7928fdd8790c5990395ca3b3bac1",
     "remediation_fields": {
       "caveats": [
         "Longer retention also fails this equality profile and is not a shorter recovery window."
@@ -4904,7 +4904,7 @@ ROWS = json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS service documentation",
+          "title": "AWS MEDIASTORE what is",
           "url": "https://docs.aws.amazon.com/mediastore/latest/ug/what-is.html"
         }
       ],
@@ -4953,7 +4953,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks the ActiveMQ broker deployment mode for ACTIVE_STANDBY_MULTI_AZ."
     },
-    "remediation_base_sha256": "a5ec102f4322dc31afd1165e859e09cb87bbc2226a7904a1add8981442f6091b",
+    "remediation_base_sha256": "6433dab2d431834c7d1729049b85f319387208c2da4d4217dcd9592ab1345427",
     "remediation_fields": {
       "caveats": [
         "Changing deployment type can require a replacement broker and client migration."
@@ -4983,7 +4983,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Reads the ActiveMQ broker audit-log flag; RabbitMQ is outside scope."
     },
-    "remediation_base_sha256": "6309e75ec4eab03ecff0cad3f5b509d92b3817f78c7f06acf538177ab8009af3",
+    "remediation_base_sha256": "960d380515e181c7de4d96427c7271136adc0fb222b9f7f86baa9f88ac15ec86",
     "remediation_fields": {
       "caveats": [
         "The flag does not prove log delivery; RabbitMQ does not support this audit-log setting."
@@ -5013,7 +5013,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks general and audit logs for ActiveMQ, or general logs for RabbitMQ."
     },
-    "remediation_base_sha256": "02ebafcef5c812a518fb15d109d751a85b2fd112791e51b19c7ee44120b71ff7",
+    "remediation_base_sha256": "668f27dfb7ddd6514ae5ae5593b35a4c6a8bad85f4b82b9fc52b9ca3cdde7a44",
     "remediation_fields": {
       "caveats": [
         "Configured streams do not prove delivery; unrecognized engines fail this literal profile."
@@ -5044,7 +5044,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks the RabbitMQ broker deployment mode for CLUSTER_MULTI_AZ."
     },
-    "remediation_base_sha256": "6681d6a88b68170fb68ed49f705ac229455709aba567550ee693f79c90651dac",
+    "remediation_base_sha256": "f3f041813ab8b0d5b93b91fcc41439c5744f9bf46d7fb06f5bbf97db40f6575d",
     "remediation_fields": {
       "caveats": [
         "Changing deployment type can require a replacement broker and client migration."
@@ -5431,7 +5431,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Joins the notebook key reference to KMS metadata and requires KeyManager=CUSTOMER."
     },
-    "remediation_base_sha256": "a6123bfd74d19432eb57c5dfca7e54bb7a6dbd22966d4aba3f51c3e61be5f46d",
+    "remediation_base_sha256": "d0875fc6498413c79e2cb9f10393d22a5858ab0a34dedbfcc27eab95aecc4085",
     "remediation_fields": {
       "caveats": [
         "AWS-managed or service-owned encryption can still protect storage; key ownership does not prove usability."
@@ -5462,7 +5462,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks the SageMaker notebook for a subnet identifier."
     },
-    "remediation_base_sha256": "6315c1d79c69f3b2fa74997b4c15a853bd2240467321c660e95aa7d2db150de2",
+    "remediation_base_sha256": "0cc86715f85924764f0805f35faa89eab9f0006fd195e8d973692a7b87b43f5b",
     "remediation_fields": {
       "caveats": [
         "These metadata declarations do not establish isolation, private reachability or absence of other Internet paths."
@@ -5492,7 +5492,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks the notebook instance for a nonempty KmsKeyId."
     },
-    "remediation_base_sha256": "1637570cf3579b3688a6e50418f6faf6b64b18c42d301d80a57c5da4f7ba955b",
+    "remediation_base_sha256": "f2e1a8164568d3a4e832482d0f328f5bd3f4b7a711b95a0dae9965dc4c059e5d",
     "remediation_fields": {
       "caveats": [
         "A missing customer-selected key is not proof of plaintext; review instance-specific service encryption defaults."
@@ -5539,7 +5539,7 @@ ROWS = json.loads(r'''
       },
       "references": [
         {
-          "title": "Official AWS service documentation",
+          "title": "AWS SAGEMAKER nbi al2023",
           "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/nbi-al2023.html"
         }
       ],
@@ -5569,7 +5569,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks OutputDataConfig for a nonempty KmsKeyId."
     },
-    "remediation_base_sha256": "45b64000f2e104a6594eefe1d915953dfec11af75a5b2485e993dada84670bc4",
+    "remediation_base_sha256": "9f89f049c51258b556d378d0f22340e3c64d398c9d2ec89cdf0efa5686ad925b",
     "remediation_fields": {
       "caveats": [
         "A missing customer-selected key is not proof of plaintext; review instance-specific service encryption defaults."
@@ -5599,7 +5599,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks ResourceConfig for a nonempty VolumeKmsKeyId."
     },
-    "remediation_base_sha256": "3f7e8fe28412879cc8fc6d6762c065e604503d64ec172e49b8a78b0a86d1afad",
+    "remediation_base_sha256": "207e2e7400737d31a4c8820eaeb0c6f4f85e5e7390cd7361f70c160e6f52f22d",
     "remediation_fields": {
       "caveats": [
         "A missing customer-selected key is not proof of plaintext; review instance-specific service encryption defaults."
@@ -5629,7 +5629,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks the SageMaker training job for a VPC configuration object."
     },
-    "remediation_base_sha256": "77dcf150aea7b80554df570a8e0c693c602001c10b2180f3ba178433c760a31b",
+    "remediation_base_sha256": "3d79a7d30807e87aae0f451fab9531323af82f42d19c70ff804672133bb57201",
     "remediation_fields": {
       "caveats": [
         "These metadata declarations do not establish isolation, private reachability or absence of other Internet paths."
@@ -5659,7 +5659,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks the SageMaker training job for at least one VPC subnet."
     },
-    "remediation_base_sha256": "d5bc5af6688709444b0607e39e53045616a31d37ba31f0f41f54eeccd341ef2c",
+    "remediation_base_sha256": "3ee0765621d3bd2958f9483a4b6d7327be11cebd1b01aff6c02a9673b088a419",
     "remediation_fields": {
       "caveats": [
         "These metadata declarations do not establish isolation, private reachability or absence of other Internet paths."
@@ -5690,7 +5690,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks that SES DKIM status is SUCCESS and signing is enabled."
     },
-    "remediation_base_sha256": "42f535bd4af37d1102ea831e4ea97bf49b61bb934a3dc3293a73069c74f5003b",
+    "remediation_base_sha256": "84a732189bcf4d63a0ae4393b5849c111a54906b44fe7d8a05da3779d7fddd5e",
     "remediation_fields": {
       "caveats": [
         "These identity settings do not prove every outgoing message is signed or passes recipient checks."
@@ -5719,7 +5719,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks SES sending-authorization policies for modeled public grants; public Allow with any explicit Deny requires review."
     },
-    "remediation_base_sha256": "9a37264c2bc701efbd072b159f5d5e457915b7ae4babde92f5c0b6cb507bfb1c",
+    "remediation_base_sha256": "782c18b3119e7e45db6392b424f8732a4d85e1c5f6c9f372b2e32a635455560a",
     "remediation_fields": {
       "caveats": [
         "This model does not prove effective authorization when explicit denies or external policies intervene."
@@ -5749,7 +5749,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Flags Step Functions logging only when its declared level is exactly OFF."
     },
-    "remediation_base_sha256": "cbbf5a8f23ff0db26be823bf452ea1a62895a7fbcb6977b682a5dc579e6e90f3",
+    "remediation_base_sha256": "dfd93fee210025863da719ab0638dc4bc4f774b7abdebd6ccc8dda9a92ad8406",
     "remediation_fields": {
       "caveats": [
         "Missing configuration passes this literal profile; PASS is not proof that logging exists."
@@ -6165,7 +6165,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks that Step Functions encryption type is CUSTOMER_MANAGED_KMS_KEY."
     },
-    "remediation_base_sha256": "6c49d619bce89829ad73801ac68ee51389f9d4a23b32b196b80188e7fed9abb5",
+    "remediation_base_sha256": "9379d158e7a9eb0ee7f64c7ee5d623d715e52c6f3362cd21e388e483c8066c72",
     "remediation_fields": {
       "caveats": [
         "AWS-owned encryption still encrypts data; the type does not prove customer-key usability."
@@ -6195,7 +6195,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks that Step Functions logging configuration is nonempty and its level is not OFF."
     },
-    "remediation_base_sha256": "a9686269aab7db98ae656444f41bb4c46e5190e6cbf7c0dd97dfbe541568b0d6",
+    "remediation_base_sha256": "ee1e636eb29eacdd48e6857c55eb45b699df0abdd74ec08c123d5497c4b2141d",
     "remediation_fields": {
       "caveats": [
         "The predicate does not validate destination delivery or every possible level value."
@@ -6225,7 +6225,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Reads the Storage Gateway file-share KMSEncrypted flag."
     },
-    "remediation_base_sha256": "af57368d75a8010d5a0d7b6b835810af3c6dfc451a6e7430ee9399ad4dbbcb0a",
+    "remediation_base_sha256": "8403f2763a60364319829373387dfceeab3000715832f4b9c87a665149766fd2",
     "remediation_fields": {
       "caveats": [
         "The flag does not verify key usability or encrypt every external dependency."
@@ -6254,7 +6254,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks whether the Storage Gateway HostEnvironment equals EC2."
     },
-    "remediation_base_sha256": "3aea86300c8c630647c420ab18bff3a0029f3df918aedc4501246f478ab781bb",
+    "remediation_base_sha256": "cc724346fa1aa000dd1b96ab22f46bb5cd430897c98f589cb9a139947da9be87",
     "remediation_fields": {
       "caveats": [
         "EC2 hosting can be legitimate and does not alone prove a single point of failure."
@@ -6283,7 +6283,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks that the Transfer Family connector declares a nonempty LoggingRole."
     },
-    "remediation_base_sha256": "33bf93c99b813b7c9105e79897ebab22e3e14b6a61065dba0532ddfc33503d11",
+    "remediation_base_sha256": "7cecdcd14de944132cf6010c5afc1734f6003d9101d52a517924aadf24f004f0",
     "remediation_fields": {
       "caveats": [
         "A role reference does not prove its permissions or successful log delivery."
@@ -6313,7 +6313,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks whether the Transfer Family security-policy name contains a dash-separated FIPS token."
     },
-    "remediation_base_sha256": "2c2fa8e1c343916848f2504707d96d57a47a649bc0978acda2bbf15fc3b09722",
+    "remediation_base_sha256": "623d48b5768f11d3934915064183187007e94c8b8d251132745d9235df12b985",
     "remediation_fields": {
       "caveats": [
         "The name test does not establish actual cryptographic operation or general security of non-FIPS policies."
@@ -6342,7 +6342,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks whether the Transfer Family server protocol list contains FTP."
     },
-    "remediation_base_sha256": "e4202d3c316d7c403c970d8767f1b539d0d9f938c7fe1c296b6a22311d0658b6",
+    "remediation_base_sha256": "78b2bc6be588d0615a51fea8bea394db60f58370f8c5e66dbd44f239e2fbcc51",
     "remediation_fields": {
       "caveats": [
         "Protocol configuration is not a live traffic or endpoint test."
@@ -6372,7 +6372,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Compares the Transfer Family security-policy name with this source\u2019s post-quantum SSH policy allowlist."
     },
-    "remediation_base_sha256": "bfa4c56b1c5fe1b80b421294efc3bcb2bfc001bf214455204a553d6d3ef3667f",
+    "remediation_base_sha256": "9f8c426260131daebd39e81bbe375491a9b02a55decc79c2bffc84db1751023b",
     "remediation_fields": {
       "caveats": [
         "A policy outside this optional allowlist is not automatically weak conventional SSH."
@@ -6408,7 +6408,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Joins subnet route tables and requires a private WorkSpace subnet, two private subnets, one public subnet and a NAT route."
     },
-    "remediation_base_sha256": "fd609f36bb400600009e5526d830ec1e5924b7347c13800d809b35fe223dcb23",
+    "remediation_base_sha256": "19b075c90c4a7690b08f80313f10a9b698b87bed039656f81a4d893989a3f7b5",
     "remediation_fields": {
       "caveats": [
         "NAT is outbound connectivity, not public ingress; alternative private egress designs can fail this literal topology profile."
@@ -6440,7 +6440,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks the WorkSpace encryption flags for its root and user volumes."
     },
-    "remediation_base_sha256": "c729040b7b96803f4a517fe00008ce5bd4eee0ff8cc2f070b6afa2d53c59bd83",
+    "remediation_base_sha256": "78c2aa76147f41b78d110d538568aae1596dc8f4e01afd7db204b75f295f9138",
     "remediation_fields": {
       "caveats": [
         "Existing encryption changes can require replacement; the flags do not inspect volume contents."
@@ -6470,7 +6470,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks the WorkSpace encryption flags for its root volume."
     },
-    "remediation_base_sha256": "9c4f2b9e27911246c37154b9ac993594c38eb6a40b03e33e3aceb45f7cc236e0",
+    "remediation_base_sha256": "b44d1a8b1a675697c0ef80e0b2345cd9d41ef870273e68abd409ba10eb7c798a",
     "remediation_fields": {
       "caveats": [
         "Existing encryption changes can require replacement; the flags do not inspect volume contents."
@@ -6502,7 +6502,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks the WorkSpace encryption flags for its user volume."
     },
-    "remediation_base_sha256": "f5903390f4a42f4cb89ba78cbbea7fddc9bd7c304afd7d50d56cc46fb3781ac6",
+    "remediation_base_sha256": "c9eaa025672abd670ae6b0c225fa9c07f0847490ffdb1ced559f630847724ead",
     "remediation_fields": {
       "caveats": [
         "Existing encryption changes can require replacement; the flags do not inspect volume contents."
@@ -6783,7 +6783,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Reads the Client VPN endpoint connection-logging flag."
     },
-    "remediation_base_sha256": "b04523b3f76fb1ca070e99ad4a54999420a8d57964e8c470090304b138309806",
+    "remediation_base_sha256": "6721a09f576a4f1f657ded95e3b03761d65496ea59f7106d60bfe30587f7d4cd",
     "remediation_fields": {
       "caveats": [
         "The flag does not prove log delivery or retention."
@@ -6940,7 +6940,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks that every EBS mapping in Spot Fleet launch specifications explicitly sets Encrypted=true."
     },
-    "remediation_base_sha256": "11fc5a2e1b9bbaa5846b25d62f05c8612a87e910c699aca3c3872935a5de0d10",
+    "remediation_base_sha256": "f1db3ef958ab98ce0b90feb6efe926790a5a4f4919a628d831aa1bc6bb2e5ee0",
     "remediation_fields": {
       "caveats": [
         "Launch-template fleets are outside scope; account defaults and existing volume encryption are not inferred."
@@ -6969,7 +6969,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Reads whether the transit gateway automatically accepts shared attachments."
     },
-    "remediation_base_sha256": "faa807e05f40a2e46810c7503090f0150778f00a3ff18ab56435dec863b77a6a",
+    "remediation_base_sha256": "256a6d2752a0f8930f333c10a7f3c0f07aabc88a1d49b5787ac96fa683e2c8ff",
     "remediation_fields": {
       "caveats": [
         "Automatic acceptance does not itself prove an untrusted attachment exists."
@@ -6998,7 +6998,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks all four account-level S3 Block Public Access flags."
     },
-    "remediation_base_sha256": "4bd1f687b742f4d10eb3baf3dac97f82235911c255d599aaf242a643403783a1",
+    "remediation_base_sha256": "6b95a3776fcca54562b4cb20485e1cadc62a0d8f7f8049d1897744a8518dde8c",
     "remediation_fields": {
       "caveats": [
         "Missing guardrails do not prove any bucket is public."
@@ -7035,7 +7035,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks whether the directory bucket has any lifecycle configuration."
     },
-    "remediation_base_sha256": "281df36c491e2ac8b9809acde564d0066339a616675efecb7e4257f5e9b981b2",
+    "remediation_base_sha256": "bc20747c347e5d2d0aa8988ad583f4159467d8bb820e3e50a2bbb152d1afd878",
     "remediation_fields": {
       "caveats": [
         "Configuration presence does not validate rule coverage or prove cleanup occurred."
@@ -7101,7 +7101,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks all four public-access-block flags on the S3 Multi-Region Access Point."
     },
-    "remediation_base_sha256": "a2199a951b0182e2f11ce0b860c312fcda0cea18c7712086109b8ba4f056ecf8",
+    "remediation_base_sha256": "51604b38ab46a9ffc09f8e123220587d64fef62fb179400da4cb03485a54d7a2",
     "remediation_fields": {
       "caveats": [
         "A disabled guardrail is not proof of a public data path."
@@ -7138,7 +7138,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks account-level IgnorePublicAcls and RestrictPublicBuckets when the account has buckets."
     },
-    "remediation_base_sha256": "c2321dad270da5eb68817b96f55b0b7a8b8668b319e06f71d9d81f82f8f5aa89",
+    "remediation_base_sha256": "6b8593633aa96a6fbc2457889ce7225dea2bfa445f0b42d59a74c783f9cb9560",
     "remediation_fields": {
       "caveats": [
         "The two flags do not establish effective access for every bucket."

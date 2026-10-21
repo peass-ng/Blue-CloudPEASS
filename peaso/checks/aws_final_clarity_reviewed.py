@@ -384,7 +384,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks security-group ingress for world-address sources and the profile\u2019s unrestricted or common sensitive ports."
     },
-    "remediation_base_sha256": "7ce95dcc6f2c59af0e4c8a012f026a06a0b7f52f9a873dbe9bd05799f93272d0",
+    "remediation_base_sha256": "27475eb7538e5091be87c42dfdfbf4240cebcb821132c31439069452697e4db9",
     "remediation_fields": {
       "summary": "Restrict unnecessary Internet-wide ingress to the source networks and ports that need access.",
       "steps": [

@@ -19,7 +19,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                 'observed_failure_phrase': 'Some namespaces lack a '
                                                                            'qualifying admission-policy '
                                                                            'binding for privilege escalation',
-                                                'remediation_base_sha256': 'f79d0a5d481b8813ee19c3839e6299401ed4be227d8ad70f3e34b53cf32605da',
+                                                'remediation_base_sha256': 'bcd74789593bfe12345dd592f3a72b134885c08d1cd8e259d61b4beb7ac4eaef',
                                                 'remediation_fields': {'caveats': ['Only a recognized CEL '
                                                                                    'expression and binding '
                                                                                    'coverage are assessed; '
@@ -63,7 +63,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                         'observed_failure_phrase': 'Some namespaces lack a qualifying '
                                                                    'admission-policy binding for added '
                                                                    'capabilities',
-                                        'remediation_base_sha256': '9546f73495c9eedb9348e35fec067b348cad0882619fe85d16a0da740cd60eed',
+                                        'remediation_base_sha256': 'e21070952955f83cdfcc024f7b049ae12db4aea6897faef599e7ff2bf825bba4',
                                         'remediation_fields': {'caveats': ['Only a recognized CEL expression '
                                                                            'and binding coverage are '
                                                                            'assessed; unsupported policy '
@@ -101,7 +101,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                 'observed_failure_phrase': 'Some namespaces lack a '
                                                                            'qualifying admission-policy '
                                                                            'binding for NET_RAW additions',
-                                                'remediation_base_sha256': '0fa7d6abcf6d9c842c26ed081293ddfac3b708aa4203fcf7d943e1adb0929b35',
+                                                'remediation_base_sha256': '0df6b6c2713f50e75f26bf1a1ef466a51a7826bccdf2a037045ef21c6a2d4dae',
                                                 'remediation_fields': {'caveats': ['Only a recognized CEL '
                                                                                    'expression and binding '
                                                                                    'coverage are assessed; '
@@ -145,7 +145,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                          'observed_failure_phrase': 'Some namespaces lack a qualifying '
                                                                     'admission-policy binding for missing '
                                                                     'ALL capability drops',
-                                         'remediation_base_sha256': '095951437a3b06951db10fb5df50f49d92469673c9e33981d3cf10278e1273b7',
+                                         'remediation_base_sha256': '53ec1c97022f67e6f4cf7ec4906cc1f2fb5187e3ef5514e0da7fcc730408af9a',
                                          'remediation_fields': {'caveats': ['Only a recognized CEL '
                                                                             'expression and binding coverage '
                                                                             'are assessed; unsupported '
@@ -186,7 +186,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                 'observed_failure_phrase': 'Some namespaces lack a '
                                                                            'qualifying admission-policy '
                                                                            'binding for nonzero host ports',
-                                                'remediation_base_sha256': '1f49d20af464a8f555ff951b213b09c522fe82d3a4c8985f66a54fcc82a40c03',
+                                                'remediation_base_sha256': 'd06a72b93f4ff051ed8da79775a7ffd34f40413b20943995ad9775017774a196',
                                                 'remediation_fields': {'caveats': ['Only a recognized CEL '
                                                                                    'expression and binding '
                                                                                    'coverage are assessed; '
@@ -227,7 +227,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                      'host IPC sharing.'},
                                'observed_failure_phrase': 'Some namespaces lack a qualifying '
                                                           'admission-policy binding for host IPC sharing',
-                               'remediation_base_sha256': '915620d48149c02dfa0a17e3dd45be5bfc8ce3efccecab136092586ea6501f5b',
+                               'remediation_base_sha256': '9c9a973b6bfbb19ab8788a735fe1f48c035c1e3a7c1a20ed8721fdbaf288a05d',
                                'remediation_fields': {'caveats': ['Only a recognized CEL expression and '
                                                                   'binding coverage are assessed; '
                                                                   'unsupported policy semantics remain '
@@ -259,7 +259,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                          'networking.'},
                                    'observed_failure_phrase': 'Some namespaces lack a qualifying '
                                                               'admission-policy binding for host networking',
-                                   'remediation_base_sha256': 'd5fb1eab8d679a402758f729ffc1672d9d34287661714e213c7094cacfca9d3b',
+                                   'remediation_base_sha256': 'd3600b9942801e9ed035b83ae777b01cced24284154e0a586689375ce52056b4',
                                    'remediation_fields': {'caveats': ['Only a recognized CEL expression and '
                                                                       'binding coverage are assessed; '
                                                                       'unsupported policy semantics remain '
@@ -293,7 +293,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                       'restricting hostPath volumes.'},
                                 'observed_failure_phrase': 'Some namespaces lack a qualifying '
                                                            'admission-policy binding for hostPath volumes',
-                                'remediation_base_sha256': 'fe72f5829f243cc377727de1091ecfb7e938d100b2e6aae5f66a103eb8b4cef1',
+                                'remediation_base_sha256': '5951234641b9bd91fc5260579c6de8c207aa383a43bb73bcd735a3be8d4dcb15',
                                 'remediation_fields': {'caveats': ['Only a recognized CEL expression and '
                                                                    'binding coverage are assessed; '
                                                                    'unsupported policy semantics remain '
@@ -325,7 +325,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                      'host PID sharing.'},
                                'observed_failure_phrase': 'Some namespaces lack a qualifying '
                                                           'admission-policy binding for host PID sharing',
-                               'remediation_base_sha256': 'f7b72fa40f55d613c7d970b5b4bcf3fc9f60e5f809b0984d548c036a2d8f4db2',
+                               'remediation_base_sha256': 'aede59998502ebdf3a9b6127521863bd4a6b6ff0f574f3bd7a83f6eba18876d3',
                                'remediation_fields': {'caveats': ['Only a recognized CEL expression and '
                                                                   'binding coverage are assessed; '
                                                                   'unsupported policy semantics remain '
@@ -357,7 +357,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                   'observed_failure_phrase': 'Some namespaces lack a qualifying '
                                                              'admission-policy binding for privileged '
                                                              'containers',
-                                  'remediation_base_sha256': 'ba6970f46308e8cdd7348ba92b0d727e7ab2403010757a315d1cd4139c0be3d4',
+                                  'remediation_base_sha256': '75890058d66eff63c687f824f6105c7e289fb94cb1691c4acf4275256aa0ce35',
                                   'remediation_fields': {'caveats': ['Only a recognized CEL expression and '
                                                                      'binding coverage are assessed; '
                                                                      'unsupported policy semantics remain '
@@ -393,7 +393,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                     'observed_failure_phrase': 'Some namespaces lack a qualifying '
                                                                'admission-policy binding for containers '
                                                                'lacking non-root requirements',
-                                    'remediation_base_sha256': 'e2a6910545e6ffacc69611266ba903937bfc47e111ada515ab4ca9472c8f5b0d',
+                                    'remediation_base_sha256': 'c2bb685c668fdb085bf9ded36180cbcbd622edcc0d7b670854937c4e23155799',
                                     'remediation_fields': {'caveats': ['Only a recognized CEL expression and '
                                                                        'binding coverage are assessed; '
                                                                        'unsupported policy semantics remain '
@@ -434,7 +434,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                              'qualifying admission-policy '
                                                                              'binding for Windows '
                                                                              'HostProcess containers',
-                                                  'remediation_base_sha256': '69847457a07cfafa5684f4912ee736c482cd6c355d6f440ee84dc66216538ab5',
+                                                  'remediation_base_sha256': '062bfec158299aad479d3bfd85da62d13a252c8ea2d71d844947cb99c3f4ff47',
                                                   'remediation_fields': {'caveats': ['Only a recognized CEL '
                                                                                      'expression and binding '
                                                                                      'coverage are assessed; '
@@ -479,7 +479,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                                      'subjects.'},
                                                'observed_failure_phrase': 'Observed role bindings include '
                                                                           'the system:masters Group',
-                                               'remediation_base_sha256': '93a20848f22b3d32ddd12940a00844e3585d44c80c42a66effa99f2e6ba6dabb',
+                                               'remediation_base_sha256': '4b62f90b6a634451a2e048161eec27142d4b9abe3e117ee21ff5f2800da907df',
                                                'remediation_fields': {'caveats': ['Absence of such bindings '
                                                                                   'does not establish '
                                                                                   'certificate or provider '
@@ -513,7 +513,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                               'observed_failure_phrase': 'A Pod using native Secret '
                                                                          'references has no Secrets Store '
                                                                          'CSI volume',
-                                              'remediation_base_sha256': 'b6fea6494f94c77e6a3382724d3f7f6af8406846322811b63a533fe276d111c9',
+                                              'remediation_base_sha256': '32d70dde6ec5385a0dfd9f2b1633d06d147f6432ff539d8ec50319bce516d0d4',
                                               'remediation_fields': {'caveats': ['A CSI volume does not '
                                                                                  'prove all Secrets use an '
                                                                                  'external store; native '
@@ -556,7 +556,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                                                   'declaration '
                                                                                                   'disables '
                                                                                                   'RotateKubeletServerCertificate',
-                                                                       'remediation_base_sha256': '13124e46d012f78eef672a37f0e7883286cb09d7109ea8c60a6d2bce77a466d9',
+                                                                       'remediation_base_sha256': '7879ba89c1044246690b2bdb021da771fcf1b84218cdeb24d06d956d78a285a9',
                                                                        'remediation_fields': {'caveats': ['This '
                                                                                                           'checks '
                                                                                                           'a '
@@ -617,7 +617,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                        'observed_failure_phrase': 'Linux containers declare '
                                                                                   'a profile other than '
                                                                                   'RuntimeDefault',
-                                                       'remediation_base_sha256': '6b07ff2d98385b94d133c21064ffc8c55d2524d47be519b4dd0d65303296ec85',
+                                                       'remediation_base_sha256': '9a8dddcc3cf6ccb0467fdd82ca86f1b990f836a8495ca47a82bf0a6256fcf37e',
                                                        'remediation_fields': {'caveats': ['Missing profiles '
                                                                                           'or OS remain '
                                                                                           'UNKNOWN; runtime '
@@ -664,7 +664,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                          'observed_failure_phrase': 'Linux containers '
                                                                                     'declare a profile other '
                                                                                     'than RuntimeDefault',
-                                                         'remediation_base_sha256': '8a939d805560abde8d294c0d2fa455cc3781c042a0f69ce13a3fd03468306b5f',
+                                                         'remediation_base_sha256': 'f5459c2931d7007e9575b1600e4046177df36b53f6a7f6e3e3e32b5f5243d5af',
                                                          'remediation_fields': {'caveats': ['Missing '
                                                                                             'profiles or OS '
                                                                                             'remain UNKNOWN; '
@@ -715,7 +715,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                                      'declare a profile '
                                                                                      'other than '
                                                                                      'RuntimeDefault',
-                                                          'remediation_base_sha256': '8191f9880ce2055f55479cf6da3b5104fe5368f6f36a608d72d252324f43b11b',
+                                                          'remediation_base_sha256': '690f40f1ff6c3878da21e819dbf7bea8dd6c878cbba024cda1e25bfea6265ccc',
                                                           'remediation_fields': {'caveats': ['Missing '
                                                                                              'profiles or OS '
                                                                                              'remain '
@@ -766,7 +766,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                    'observed_failure_phrase': 'Linux containers declare a '
                                                                               'profile other than '
                                                                               'RuntimeDefault',
-                                                   'remediation_base_sha256': '8de8ec3edc196686f12fa274306f7c46e947c04efbde9577dfa94aad1f8e9223',
+                                                   'remediation_base_sha256': '56507ac9140705664355f48f6b42e66de4b40525047c7e1d938e3027c7ec2a79',
                                                    'remediation_fields': {'caveats': ['Missing profiles or '
                                                                                       'OS remain UNKNOWN; '
                                                                                       'runtime kernel '
@@ -808,7 +808,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                    'observed_failure_phrase': 'A namespace-wide '
                                                                               'NetworkPolicy declares a rule '
                                                                               'without peer restrictions',
-                                                   'remediation_base_sha256': '551f1d225786237b23f73117d65f07e15c8dc16a91e47e54eb451794037a5dcb',
+                                                   'remediation_base_sha256': 'ddf01abbb4281dbced1274c35b79cee1d97efa2b2b81ec22f9db6f1cb189690e',
                                                    'remediation_fields': {'caveats': ['Other policies are '
                                                                                       'additive; '
                                                                                       'selected-Pod traffic '
@@ -849,7 +849,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                                'NetworkPolicy declares a '
                                                                                'rule without peer '
                                                                                'restrictions',
-                                                    'remediation_base_sha256': '978cae2a36877c57b15f4433e5faaa027487bde806aaacd7984da62777110c34',
+                                                    'remediation_base_sha256': 'df7cb591eba74a6fb1550169521a126230e4d9978d4f22434eae9f7e984ed621',
                                                     'remediation_fields': {'caveats': ['Other policies are '
                                                                                        'additive; '
                                                                                        'selected-Pod traffic '
@@ -888,7 +888,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                    'observed_failure_phrase': 'Linux containers declare a '
                                                                               'profile other than '
                                                                               'RuntimeDefault',
-                                                   'remediation_base_sha256': '43fcc26e4f4a2162db11e7074dcf6e250014813ecac33f61a09a565186002ff4',
+                                                   'remediation_base_sha256': '8bc273d3190c1fc6c772e1dd859ce826bc19731e28b645696d58fce4101c68a4',
                                                    'remediation_fields': {'caveats': ['Missing profiles or '
                                                                                       'OS remain UNKNOWN; '
                                                                                       'runtime kernel '
@@ -925,7 +925,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                         'grants for usable PSP grants.'},
                                   'observed_failure_phrase': 'A legacy ServiceAccount with Pod-create access '
                                                              'has no matching PSP use grant',
-                                  'remediation_base_sha256': 'b6cca286bf89a4bfc00028333bac014fd0e22667189275671f7b7f380e9418dd',
+                                  'remediation_base_sha256': '7c34fa2e5b7be95d65e16dc15c9d3eb94a1e7dcae3d9999cac5460bc0ff5a7b1',
                                   'remediation_fields': {'caveats': ['Kubernetes 1.25+ is not applicable; '
                                                                      'declared RBAC joins do not prove live '
                                                                      'admission behavior.'],
@@ -961,7 +961,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                                      'declare a profile '
                                                                                      'other than '
                                                                                      'RuntimeDefault',
-                                                          'remediation_base_sha256': '61b9d1d3a566d5e577cf4c25a52d0c914f0dfc43f307956f8b2680b6fff14bea',
+                                                          'remediation_base_sha256': 'd46d3da4f7b08c62256989baefb657b0e274eb8ed02ef1bdf1c66c03ad4ec946',
                                                           'remediation_fields': {'caveats': ['Missing '
                                                                                              'profiles or OS '
                                                                                              'remain '
@@ -1018,7 +1018,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                                                 'profile '
                                                                                                 'other than '
                                                                                                 'RuntimeDefault',
-                                                                     'remediation_base_sha256': '9d30c41b7b55b23d57bef1395c86da10aad483a3eb76d7162ecc1ebcce6c8e6b',
+                                                                     'remediation_base_sha256': '1980b6a27d55510fb9be5389574e3e76670bbbe12ab39de4fd864184929ceb05',
                                                                      'remediation_fields': {'caveats': ['Missing '
                                                                                                         'profiles '
                                                                                                         'or '
@@ -1090,7 +1090,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                                       'declare a profile '
                                                                                       'other than '
                                                                                       'RuntimeDefault',
-                                                           'remediation_base_sha256': '78199624e272147732c80f3b975588cac58079dd3c25ed2351be86ccb4272349',
+                                                           'remediation_base_sha256': '03fda5752e18f7e70fcbbf6412223d5fb6f0b108701360fffc995b6cb7d6cf81',
                                                            'remediation_fields': {'caveats': ['Missing '
                                                                                               'profiles or '
                                                                                               'OS remain '
@@ -1149,7 +1149,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                                                               'ServiceAccount '
                                                                                                               'token '
                                                                                                               'expiration',
-                                                                                   'remediation_base_sha256': '8c3b22d692f1de95a76bd5966ced1b7f31f48248dc78709164f9989e74e38d9b',
+                                                                                   'remediation_base_sha256': '2da0e39b1f98510497710acbae01601403e240464587064e64b4eb9edef99d0f',
                                                                                    'remediation_fields': {'caveats': ['This '
                                                                                                                       'reads '
                                                                                                                       'a '
@@ -4407,9 +4407,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                                                      "_component_config.flags['enable-admission-plugins']"],
                                                                                           'kind': 'pod',
                                                                                           'target': 'resource'},
-                                                                        'references': [{'title': 'Kubernetes '
-                                                                                                 'configuration '
-                                                                                                 'reference',
+                                                                        'references': [{'title': 'Kubernetes Pod Security Standards',
                                                                                         'url': 'https://kubernetes.io/docs/concepts/security/pod-security-standards/'}],
                                                                         'review_status': 'approved',
                                                                         'steps': ['Configure '
@@ -4454,9 +4452,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                                             "_component_config.flags['enable-admission-plugins']"],
                                                                                  'kind': 'pod',
                                                                                  'target': 'resource'},
-                                                               'references': [{'title': 'Kubernetes '
-                                                                                        'configuration '
-                                                                                        'reference',
+                                                               'references': [{'title': 'Kubernetes Pod Security Standards',
                                                                                'url': 'https://kubernetes.io/docs/concepts/security/pod-security-standards/'}],
                                                                'review_status': 'approved',
                                                                'steps': ['Configure EventRateLimit admission '
@@ -5468,9 +5464,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                                                                                                          'ClusterRole.rules[].verbs'],
                                                                                                                                               'kind': 'clusterrole',
                                                                                                                                               'target': 'resource'},
-                                                                                                                            'references': [{'title': 'Kubernetes '
-                                                                                                                                                     'configuration '
-                                                                                                                                                     'reference',
+                                                                                                                            'references': [{'title': 'Kubernetes Pod Security Standards',
                                                                                                                                             'url': 'https://kubernetes.io/docs/concepts/security/pod-security-standards/'}],
                                                                                                                             'review_status': 'approved',
                                                                                                                             'steps': ['Remove '
@@ -5548,9 +5542,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                                                                                    'ClusterRole.rules[].verbs'],
                                                                                                                         'kind': 'clusterrole',
                                                                                                                         'target': 'resource'},
-                                                                                                      'references': [{'title': 'Kubernetes '
-                                                                                                                               'configuration '
-                                                                                                                               'reference',
+                                                                                                      'references': [{'title': 'Kubernetes Pod Security Standards',
                                                                                                                       'url': 'https://kubernetes.io/docs/concepts/security/pod-security-standards/'}],
                                                                                                       'review_status': 'approved',
                                                                                                       'steps': ['Restrict '
@@ -5709,9 +5701,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                                                                                                       'ClusterRoleBinding.subjects[].name'],
                                                                                                                                            'kind': 'clusterrolebinding',
                                                                                                                                            'target': 'resource'},
-                                                                                                                         'references': [{'title': 'Kubernetes '
-                                                                                                                                                  'configuration '
-                                                                                                                                                  'reference',
+                                                                                                                         'references': [{'title': 'Kubernetes Pod Security Standards',
                                                                                                                                          'url': 'https://kubernetes.io/docs/concepts/security/pod-security-standards/'}],
                                                                                                                          'review_status': 'approved',
                                                                                                                          'steps': ['Bind '
@@ -5773,9 +5763,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                                            'field_binding': {'fields': ['ConfigMap.metadata.namespace'],
                                                                                                              'kind': 'configmap_metadata',
                                                                                                              'target': 'resource'},
-                                                                                           'references': [{'title': 'Kubernetes '
-                                                                                                                    'configuration '
-                                                                                                                    'reference',
+                                                                                           'references': [{'title': 'Kubernetes namespaces',
                                                                                                            'url': 'https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/'}],
                                                                                            'review_status': 'approved',
                                                                                            'steps': ['Use a '
@@ -5993,9 +5981,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                              'field_binding': {'fields': ['CronJob.metadata.namespace'],
                                                                                                'kind': 'cronjob',
                                                                                                'target': 'resource'},
-                                                                             'references': [{'title': 'Kubernetes '
-                                                                                                      'configuration '
-                                                                                                      'reference',
+                                                                             'references': [{'title': 'Kubernetes namespaces',
                                                                                              'url': 'https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/'}],
                                                                              'review_status': 'approved',
                                                                              'steps': ['Use a dedicated '
@@ -6572,9 +6558,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                                  'field_binding': {'fields': ['DaemonSet.metadata.namespace'],
                                                                                                    'kind': 'daemonset',
                                                                                                    'target': 'resource'},
-                                                                                 'references': [{'title': 'Kubernetes '
-                                                                                                          'configuration '
-                                                                                                          'reference',
+                                                                                 'references': [{'title': 'Kubernetes namespaces',
                                                                                                  'url': 'https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/'}],
                                                                                  'review_status': 'approved',
                                                                                  'steps': ['Use a dedicated '
@@ -7197,9 +7181,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                                    'field_binding': {'fields': ['deployment.metadata.namespace'],
                                                                                                      'kind': 'deployment',
                                                                                                      'target': 'resource'},
-                                                                                   'references': [{'title': 'Kubernetes '
-                                                                                                            'configuration '
-                                                                                                            'reference',
+                                                                                   'references': [{'title': 'Kubernetes namespaces',
                                                                                                    'url': 'https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/'}],
                                                                                    'review_status': 'approved',
                                                                                    'steps': ['Use a '
@@ -7591,9 +7573,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                              'field_binding': {'fields': ['ingress.metadata.namespace'],
                                                                                                'kind': 'ingress',
                                                                                                'target': 'resource'},
-                                                                             'references': [{'title': 'Kubernetes '
-                                                                                                      'configuration '
-                                                                                                      'reference',
+                                                                             'references': [{'title': 'Kubernetes namespaces',
                                                                                              'url': 'https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/'}],
                                                                              'review_status': 'approved',
                                                                              'steps': ['Use a dedicated '
@@ -7897,9 +7877,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                      'field_binding': {'fields': ['job.metadata.namespace'],
                                                                                        'kind': 'job',
                                                                                        'target': 'resource'},
-                                                                     'references': [{'title': 'Kubernetes '
-                                                                                              'configuration '
-                                                                                              'reference',
+                                                                     'references': [{'title': 'Kubernetes namespaces',
                                                                                      'url': 'https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/'}],
                                                                      'review_status': 'approved',
                                                                      'steps': ['Use a dedicated application '
@@ -9305,9 +9283,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                      'field_binding': {'fields': ['pod.metadata.namespace'],
                                                                                        'kind': 'pod',
                                                                                        'target': 'resource'},
-                                                                     'references': [{'title': 'Kubernetes '
-                                                                                              'configuration '
-                                                                                              'reference',
+                                                                     'references': [{'title': 'Kubernetes namespaces',
                                                                                      'url': 'https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/'}],
                                                                      'review_status': 'approved',
                                                                      'steps': ['Use a dedicated application '
@@ -9424,9 +9400,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                                                                                       'PodSecurityPolicy.spec.privileged'],
                                                                                                                            'kind': 'podsecuritypolicy',
                                                                                                                            'target': 'resource'},
-                                                                                                         'references': [{'title': 'Kubernetes '
-                                                                                                                                  'configuration '
-                                                                                                                                  'reference',
+                                                                                                         'references': [{'title': 'Kubernetes Pod Security Standards',
                                                                                                                          'url': 'https://kubernetes.io/docs/concepts/security/pod-security-standards/'}],
                                                                                                          'review_status': 'approved',
                                                                                                          'steps': ['For '
@@ -9517,9 +9491,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                                                                                                  'PodSecurityPolicy.spec.allowPrivilegeEscalation'],
                                                                                                                                       'kind': 'podsecuritypolicy',
                                                                                                                                       'target': 'resource'},
-                                                                                                                    'references': [{'title': 'Kubernetes '
-                                                                                                                                             'configuration '
-                                                                                                                                             'reference',
+                                                                                                                    'references': [{'title': 'Kubernetes Pod Security Standards',
                                                                                                                                     'url': 'https://kubernetes.io/docs/concepts/security/pod-security-standards/'}],
                                                                                                                     'review_status': 'approved',
                                                                                                                     'steps': ['For '
@@ -9610,9 +9582,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                                                                                       'PodSecurityPolicy.spec.hostNetwork'],
                                                                                                                            'kind': 'podsecuritypolicy',
                                                                                                                            'target': 'resource'},
-                                                                                                         'references': [{'title': 'Kubernetes '
-                                                                                                                                  'configuration '
-                                                                                                                                  'reference',
+                                                                                                         'references': [{'title': 'Kubernetes Pod Security Standards',
                                                                                                                          'url': 'https://kubernetes.io/docs/concepts/security/pod-security-standards/'}],
                                                                                                          'review_status': 'approved',
                                                                                                          'steps': ['For '
@@ -9703,9 +9673,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                                                                                   'PodSecurityPolicy.spec.hostIPC'],
                                                                                                                        'kind': 'podsecuritypolicy',
                                                                                                                        'target': 'resource'},
-                                                                                                     'references': [{'title': 'Kubernetes '
-                                                                                                                              'configuration '
-                                                                                                                              'reference',
+                                                                                                     'references': [{'title': 'Kubernetes Pod Security Standards',
                                                                                                                      'url': 'https://kubernetes.io/docs/concepts/security/pod-security-standards/'}],
                                                                                                      'review_status': 'approved',
                                                                                                      'steps': ['For '
@@ -9796,9 +9764,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                                                                                   'PodSecurityPolicy.spec.hostPID'],
                                                                                                                        'kind': 'podsecuritypolicy',
                                                                                                                        'target': 'resource'},
-                                                                                                     'references': [{'title': 'Kubernetes '
-                                                                                                                              'configuration '
-                                                                                                                              'reference',
+                                                                                                     'references': [{'title': 'Kubernetes Pod Security Standards',
                                                                                                                      'url': 'https://kubernetes.io/docs/concepts/security/pod-security-standards/'}],
                                                                                                      'review_status': 'approved',
                                                                                                      'steps': ['For '
@@ -9889,9 +9855,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                                                                                         'PodSecurityPolicy.spec.readOnlyRootFilesystem'],
                                                                                                                              'kind': 'podsecuritypolicy',
                                                                                                                              'target': 'resource'},
-                                                                                                           'references': [{'title': 'Kubernetes '
-                                                                                                                                    'configuration '
-                                                                                                                                    'reference',
+                                                                                                           'references': [{'title': 'Kubernetes Pod Security Standards',
                                                                                                                            'url': 'https://kubernetes.io/docs/concepts/security/pod-security-standards/'}],
                                                                                                            'review_status': 'approved',
                                                                                                            'steps': ['For '
@@ -9981,9 +9945,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                                                                             'PodSecurityPolicy.spec.runAsUser.rule'],
                                                                                                                  'kind': 'podsecuritypolicy',
                                                                                                                  'target': 'resource'},
-                                                                                               'references': [{'title': 'Kubernetes '
-                                                                                                                        'configuration '
-                                                                                                                        'reference',
+                                                                                               'references': [{'title': 'Kubernetes Pod Security Standards',
                                                                                                                'url': 'https://kubernetes.io/docs/concepts/security/pod-security-standards/'}],
                                                                                                'review_status': 'approved',
                                                                                                'steps': ['For '
@@ -11226,9 +11188,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                                    'field_binding': {'fields': ['metadata.namespace'],
                                                                                                      'kind': 'replicaset',
                                                                                                      'target': 'resource'},
-                                                                                   'references': [{'title': 'Kubernetes '
-                                                                                                            'configuration '
-                                                                                                            'reference',
+                                                                                   'references': [{'title': 'Kubernetes namespaces',
                                                                                                    'url': 'https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/'}],
                                                                                    'review_status': 'approved',
                                                                                    'steps': ['Use a '
@@ -12111,9 +12071,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                                                           'field_binding': {'fields': ['metadata.namespace'],
                                                                                                                             'kind': 'replicationcontroller',
                                                                                                                             'target': 'resource'},
-                                                                                                          'references': [{'title': 'Kubernetes '
-                                                                                                                                   'configuration '
-                                                                                                                                   'reference',
+                                                                                                          'references': [{'title': 'Kubernetes namespaces',
                                                                                                                           'url': 'https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/'}],
                                                                                                           'review_status': 'approved',
                                                                                                           'steps': ['Use '
@@ -12163,9 +12121,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                        'field_binding': {'fields': ['metadata.namespace'],
                                                                                          'kind': 'role',
                                                                                          'target': 'resource'},
-                                                                       'references': [{'title': 'Kubernetes '
-                                                                                                'configuration '
-                                                                                                'reference',
+                                                                       'references': [{'title': 'Kubernetes namespaces',
                                                                                        'url': 'https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/'}],
                                                                        'review_status': 'approved',
                                                                        'steps': ['Use a dedicated '
@@ -12257,9 +12213,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                                       'field_binding': {'fields': ['metadata.namespace'],
                                                                                                         'kind': 'rolebinding',
                                                                                                         'target': 'resource'},
-                                                                                      'references': [{'title': 'Kubernetes '
-                                                                                                               'configuration '
-                                                                                                               'reference',
+                                                                                      'references': [{'title': 'Kubernetes namespaces',
                                                                                                       'url': 'https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/'}],
                                                                                       'review_status': 'approved',
                                                                                       'steps': ['Use a '
@@ -12321,9 +12275,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                                                                                        'subjects[].name'],
                                                                                                                             'kind': 'rolebinding',
                                                                                                                             'target': 'resource'},
-                                                                                                          'references': [{'title': 'Kubernetes '
-                                                                                                                                   'configuration '
-                                                                                                                                   'reference',
+                                                                                                          'references': [{'title': 'Kubernetes Pod Security Standards',
                                                                                                                           'url': 'https://kubernetes.io/docs/concepts/security/pod-security-standards/'}],
                                                                                                           'review_status': 'approved',
                                                                                                           'steps': ['Bind '
@@ -12381,9 +12333,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                                     'field_binding': {'fields': ['metadata.namespace'],
                                                                                                       'kind': 'secret_metadata',
                                                                                                       'target': 'resource'},
-                                                                                    'references': [{'title': 'Kubernetes '
-                                                                                                             'configuration '
-                                                                                                             'reference',
+                                                                                    'references': [{'title': 'Kubernetes namespaces',
                                                                                                     'url': 'https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/'}],
                                                                                     'review_status': 'approved',
                                                                                     'steps': ['Use a '
@@ -12431,9 +12381,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                              'field_binding': {'fields': ['metadata.namespace'],
                                                                                                'kind': 'service',
                                                                                                'target': 'resource'},
-                                                                             'references': [{'title': 'Kubernetes '
-                                                                                                      'configuration '
-                                                                                                      'reference',
+                                                                             'references': [{'title': 'Kubernetes namespaces',
                                                                                              'url': 'https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/'}],
                                                                              'review_status': 'approved',
                                                                              'steps': ['Use a dedicated '
@@ -12516,9 +12464,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                                             'field_binding': {'fields': ['metadata.namespace'],
                                                                                                               'kind': 'serviceaccount',
                                                                                                               'target': 'resource'},
-                                                                                            'references': [{'title': 'Kubernetes '
-                                                                                                                     'configuration '
-                                                                                                                     'reference',
+                                                                                            'references': [{'title': 'Kubernetes namespaces',
                                                                                                             'url': 'https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/'}],
                                                                                             'review_status': 'approved',
                                                                                             'steps': ['Use a '
@@ -13144,9 +13090,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                                      'field_binding': {'fields': ['metadata.namespace'],
                                                                                                        'kind': 'statefulset',
                                                                                                        'target': 'resource'},
-                                                                                     'references': [{'title': 'Kubernetes '
-                                                                                                              'configuration '
-                                                                                                              'reference',
+                                                                                     'references': [{'title': 'Kubernetes namespaces',
                                                                                                      'url': 'https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/'}],
                                                                                      'review_status': 'approved',
                                                                                      'steps': ['Use a '
@@ -13520,7 +13464,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                         'observed_failure_phrase': 'The Deployment has fewer available '
                                                                    'replicas than desired or does not report '
                                                                    'Available=True',
-                                        'remediation_base_sha256': '440daa1b620d58850e20b2d43bcba445ca5841c4260d3b37279322705b310373',
+                                        'remediation_base_sha256': '76e731571f2597b7c27024dd80a28bf751c378558fc72ad01c1f2bb350cebf17',
                                         'remediation_fields': {'caveats': ['This is snapshot status, not a '
                                                                            'continuous availability '
                                                                            'measurement.'],
@@ -13732,7 +13676,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                  'names.'},
                            'observed_failure_phrase': 'Ingress rule hosts lack matching TLS host and '
                                                       'Secret-name declarations',
-                           'remediation_base_sha256': 'ff22f6194a9c4bd9b14590760a8254ae9e1f500d655c67ce8eeb239cdd2e91c9',
+                           'remediation_base_sha256': 'c3792ecbafbae5f2f6489bc2dad764137fca42514807f1e7f3de521c118a3bb8',
                            'remediation_fields': {'caveats': ['This compares host declarations, not '
                                                               'certificate contents, validity or live SNI '
                                                               'behavior.'],
@@ -14022,7 +13966,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                             'observed_failure_phrase': 'The Node advertises '
                                                                                        'a globally routable '
                                                                                        'ExternalIP',
-                                                            'remediation_base_sha256': 'b1cc562d1d1422583fe2dc9f48a6e9ede1e0cb4e8bbfe34030cb164cf305d3f8',
+                                                            'remediation_base_sha256': '1c1e4b7cebff6af04314b74c317105945974ce3f4c93ae7cb6ee3afdded3a777',
                                                             'remediation_fields': {'caveats': ['A globally '
                                                                                                'routable '
                                                                                                'address does '
@@ -14075,7 +14019,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                             'observed_failure_phrase': 'The Pod advertises a '
                                                                                        'globally routable IP '
                                                                                        'address',
-                                                            'remediation_base_sha256': '399dbdcb1d6f33df06e1dbd79396202ce9f247b450fa4bce4a496955f2895613',
+                                                            'remediation_base_sha256': '244560c3d4fc137a083392e18fd06f5fd02b401a578a8b0ff00622e284dd832c',
                                                             'remediation_fields': {'caveats': ['A globally '
                                                                                                'routable Pod '
                                                                                                'IP does not '
@@ -14221,7 +14165,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                                    'subjects.'},
                                              'observed_failure_phrase': 'No matching RBAC binding is '
                                                                         'declared for the Pod ServiceAccount',
-                                             'remediation_base_sha256': '72e4aeefe4afd60938df36e6be83296a0eacf4a2179e99fab033e32c03718388',
+                                             'remediation_base_sha256': 'a44e0c1b9315a0b4d11eb13c49940a216aa7f27d267ed66a1a98a0e014b877c5',
                                              'remediation_fields': {'caveats': ['A workload may '
                                                                                 'intentionally need no RBAC '
                                                                                 'grant; binding presence '
@@ -14292,7 +14236,7 @@ ROWS = {'k8s.cis.admission_allowprivilegeescalation': {'description_base_sha256'
                                                                                             'Service '
                                                                                             'declares TCP '
                                                                                             'port 21',
-                                                                 'remediation_base_sha256': 'c0a444ea199704a022584886e36def4f7bd35d65f8a1bc02dab27fddc69857e0',
+                                                                 'remediation_base_sha256': '57d3c211e9dacf15436a8d5656b5d8daee82e37c8bef2131ece5987488435407',
                                                                  'remediation_fields': {'caveats': ['The '
                                                                                                     'port '
                                                                                                     'number '

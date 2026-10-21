@@ -181,15 +181,15 @@
     ],
     "references": [
       {
-        "title": "Native read API reference",
+        "title": "Microsoft Learn REST container instances container groups get",
         "url": "https://learn.microsoft.com/en-us/rest/api/container-instances/container-groups/get?view=rest-container-instances-2023-05-01"
       },
       {
-        "title": "Native read API reference",
+        "title": "Microsoft Learn REST apimanagement policy get",
         "url": "https://learn.microsoft.com/en-us/rest/api/apimanagement/policy/get?view=rest-apimanagement-2024-05-01"
       },
       {
-        "title": "Native read API reference",
+        "title": "Microsoft Learn REST automation runbook get content",
         "url": "https://learn.microsoft.com/en-us/rest/api/automation/runbook/get-content?view=rest-automation-2023-11-01"
       }
     ],
@@ -208,11 +208,11 @@
     ],
     "references": [
       {
-        "title": "Native read API reference",
+        "title": "Microsoft Learn REST storageservices get blob",
         "url": "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob"
       },
       {
-        "title": "Native read API reference",
+        "title": "Microsoft Learn REST storageservices get file",
         "url": "https://learn.microsoft.com/en-us/rest/api/storageservices/get-file"
       }
     ],
@@ -231,11 +231,11 @@
     ],
     "references": [
       {
-        "title": "Native read API reference",
+        "title": "Microsoft Learn REST devops git items get",
         "url": "https://learn.microsoft.com/en-us/rest/api/azure/devops/git/items/get?view=azure-devops-rest-7.1"
       },
       {
-        "title": "Native read API reference",
+        "title": "Microsoft Learn REST devops build definitions get",
         "url": "https://learn.microsoft.com/en-us/rest/api/azure/devops/build/definitions/get?view=azure-devops-rest-7.1"
       }
     ],
@@ -254,15 +254,15 @@
     ],
     "references": [
       {
-        "title": "Native selected declaration API",
+        "title": "Azure SDK audience configuration",
         "url": "https://github.com/Azure/azure-sdk-for-python/blob/main/sdk/appconfiguration/azure-appconfiguration/azure/appconfiguration/_audience.py"
       },
       {
-        "title": "Native selected declaration API",
+        "title": "Microsoft Learn azure app configuration concept enable rbac",
         "url": "https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac"
       },
       {
-        "title": "Native selected declaration API",
+        "title": "Microsoft Learn azure app configuration rest api authorization azure ad",
         "url": "https://learn.microsoft.com/en-us/azure/azure-app-configuration/rest-api-authorization-azure-ad"
       }
     ],
@@ -281,15 +281,15 @@
     ],
     "references": [
       {
-        "title": "Native selected declaration API",
+        "title": "Microsoft Learn permissions analytics",
         "url": "https://learn.microsoft.com/en-us/azure/role-based-access-control/permissions/analytics"
       },
       {
-        "title": "Native selected declaration API",
+        "title": "Microsoft Learn REST datafactory data flows get",
         "url": "https://learn.microsoft.com/en-us/rest/api/datafactory/data-flows/get?view=rest-datafactory-2018-06-01"
       },
       {
-        "title": "Native selected declaration API",
+        "title": "Microsoft Learn REST resources subscriptions get",
         "url": "https://learn.microsoft.com/en-us/rest/api/resources/subscriptions/get?view=rest-resources-2022-12-01"
       }
     ],
@@ -308,15 +308,15 @@
     ],
     "references": [
       {
-        "title": "Native selected declaration API",
+        "title": "Azure SDK configuration configuration",
         "url": "https://github.com/Azure/azure-sdk-for-python/blob/main/sdk/synapse/azure-synapse-artifacts/azure/synapse/artifacts/_configuration.py"
       },
       {
-        "title": "Native selected declaration API",
+        "title": "Microsoft Learn security synapse workspace synapse rbac roles",
         "url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/security/synapse-workspace-synapse-rbac-roles"
       },
       {
-        "title": "Native selected declaration API",
+        "title": "Microsoft Learn REST resources subscriptions get",
         "url": "https://learn.microsoft.com/en-us/rest/api/resources/subscriptions/get?view=rest-resources-2022-12-01"
       }
     ],
@@ -335,15 +335,15 @@
     ],
     "references": [
       {
-        "title": "Native selected declaration API",
+        "title": "Microsoft Learn app azure ad authentication (query application insights using microsoft entra authentication)",
         "url": "https://learn.microsoft.com/en-us/azure/azure-monitor/app/azure-ad-authentication#query-application-insights-using-microsoft-entra-authentication"
       },
       {
-        "title": "Native selected declaration API",
+        "title": "Microsoft Learn api access api",
         "url": "https://learn.microsoft.com/en-us/azure/azure-monitor/logs/api/access-api"
       },
       {
-        "title": "Native selected declaration API",
+        "title": "Microsoft Learn api request format",
         "url": "https://learn.microsoft.com/en-us/azure/azure-monitor/logs/api/request-format"
       }
     ],
@@ -362,15 +362,15 @@
     ],
     "references": [
       {
-        "title": "Native selected declaration API",
+        "title": "Microsoft Learn app azure ad authentication (query application insights using microsoft entra authentication)",
         "url": "https://learn.microsoft.com/en-us/azure/azure-monitor/app/azure-ad-authentication#query-application-insights-using-microsoft-entra-authentication"
       },
       {
-        "title": "Native selected declaration API",
+        "title": "Microsoft Learn api access api",
         "url": "https://learn.microsoft.com/en-us/azure/azure-monitor/logs/api/access-api"
       },
       {
-        "title": "Native selected declaration API",
+        "title": "Microsoft Learn api request format",
         "url": "https://learn.microsoft.com/en-us/azure/azure-monitor/logs/api/request-format"
       }
     ],
