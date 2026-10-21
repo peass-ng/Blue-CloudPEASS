@@ -52,6 +52,7 @@ from .aws_apigateway_rest_next import correlate as correlate_aws_apigateway_rest
 from .aws_apigateway_authorizer_batch100 import correlate as correlate_aws_apigateway_authorizer_batch100
 from .aws_globalaccelerator_batch101 import normalize as normalize_aws_globalaccelerator_batch101
 from .aws_globalaccelerator_batch102 import normalize as normalize_aws_globalaccelerator_batch102, correlate_replacement as correlate_aws_ga_endpoint_replacement
+from .aws_amp_batch103 import normalize as normalize_aws_amp_batch103
 from .aws_sagemaker_control_next import normalize_aws_sagemaker_control
 from .aws_rolesanywhere_next import normalize as normalize_aws_rolesanywhere
 from .aws_customer_profiles_next import normalize as normalize_aws_customer_profiles
@@ -233,8 +234,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "8470477225a5a077ee4f4a38582ac57936d73226"
-DEFAULT_RULE_PACK_SHA256 = "4fd439f4b94512333cc9cea6c96cff5733d5691f241ba9b82f3abee7eb44be5b"
+DEFAULT_RULE_REF = "9dd4e7aa72d048b4144edc8c151ef97ac8090397"
+DEFAULT_RULE_PACK_SHA256 = "c369acda8d5b49a5073bc0cad7124e16b7f9a65e9eeb185b8e39483da97ec866"
 
 
 @dataclass(frozen=True)
@@ -493,6 +494,7 @@ def detect_aws_events(
         apigateway_controls = normalize_aws_apigateway_controls(record)
         globalaccelerator_batch101 = normalize_aws_globalaccelerator_batch101(record)
         globalaccelerator_batch102 = normalize_aws_globalaccelerator_batch102(record)
+        amp_batch103 = normalize_aws_amp_batch103(record)
         apigateway_http_keys = normalize_aws_apigateway_http_keys(record)
         apigateway_private_vpce = normalize_aws_apigateway_private_vpce(record)
         cloudformation_reads = normalize_aws_cloudformation_reads(record)
@@ -676,6 +678,7 @@ def detect_aws_events(
                 + ([apigateway_controls] if apigateway_controls is not None else [])
                 + ([globalaccelerator_batch101] if globalaccelerator_batch101 is not None else [])
                 + ([globalaccelerator_batch102] if globalaccelerator_batch102 is not None else [])
+                + ([amp_batch103] if amp_batch103 is not None else [])
                 + ([apigateway_http_keys] if apigateway_http_keys is not None else [])
                 + ([apigateway_private_vpce] if apigateway_private_vpce is not None else [])
                 + ([cloudformation_reads] if cloudformation_reads is not None else [])
