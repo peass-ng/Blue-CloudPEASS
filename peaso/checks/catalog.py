@@ -101,6 +101,9 @@ def description_for(check_id):
             "fail_when": "An observed wildcard-principal Allow lacks a positive, non-tautological caller/network boundary and no relevant Deny can constrain it.",
             "not_applicable_when": None,
         }
+    if check_id == 'aws.claude_a.vpc.sg_no_world_any_port_on_customer_enis':
+        from .aws_sg_any_port_description_correction_20261021 import description
+        original = description(original)
     return original
 
 
