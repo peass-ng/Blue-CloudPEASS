@@ -68,6 +68,11 @@ const pages = [
     description: "Understand your observed external exposure.",
   },
   {
+    label: "Leaks",
+    icon: Shield,
+    description: "Inspect detected secrets and credential-related findings and their sources.",
+  },
+  {
     label: "Least Privilege",
     icon: Shield,
     description: "Review identity permissions and reduce unnecessary access.",
@@ -199,6 +204,7 @@ export function App() {
   const insight = [
     "Hardening & Compliance",
     "Exposure",
+    "Leaks",
     "Top 15 Actions",
     "Network Architecture",
     "Least Privilege",
@@ -411,7 +417,7 @@ export function App() {
               }}
             />
           )}
-          {["Hardening & Compliance", "Exposure"].includes(
+          {["Hardening & Compliance", "Exposure", "Leaks"].includes(
             page,
           ) && (
             <>
@@ -423,7 +429,8 @@ export function App() {
                 <Findings
                   key={page}
                   scanId={scanId}
-                  category={page === "Hardening & Compliance" ? "hardening" : "exposure"}
+                  category={page === "Hardening & Compliance" ? "hardening" : page === "Exposure" ? "exposure" : ""}
+                  findingType={page === "Leaks" ? "secrets" : undefined}
                   demo={demo}
                 />
               </State>

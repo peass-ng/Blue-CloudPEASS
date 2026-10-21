@@ -574,3 +574,33 @@ test("framework picker defaults to all, sorts and searches versions, and selects
   await page.getByRole('button', { name: 'Reset filters', exact: true }).click();
   await expect(picker).toHaveText('All compliance frameworks');
 });
+
+test('Leaks navigation filters secret findings across categories and opens retained values and locations', async ({ page }) => {
+  const requests: URL[] = [];
+  const finding = { id: 'leak-1', category: 'hardening', check_id: 'aws.review.lambda.environment_literal_secret_indicators',
+    title: 'Detected secret in Lambda configuration', finding_type: 'secrets', provider: 'aws', service: 'lambda', scope: 'test-account/us-east-1',
+    resource_id: 'lambda-1', status: 'FAIL', severity: 'high', frameworks: [], evidence_summary: 'A secret was detected in a selected environment value.' };
+  await page.route('**/api/**', async route => {
+    const url = new URL(route.request().url()); let json: unknown = { items: [] };
+    if (url.pathname.endsWith('/me')) json = { tenant_id: 'test', plan: 'free' };
+    if (url.pathname.endsWith('/scans')) json = { items: [{ id: 'scan-1', status: 'completed' }] };
+    if (url.pathname.endsWith('/summary')) json = { provider: 'aws', stats: {} };
+    if (url.pathname.endsWith('/findings')) {
+      requests.push(url);
+      json = { items: [finding], total: 1, next_offset: null,
+        service_groups: url.searchParams.has('service') ? [] : [{ service: 'lambda', count: 1, status_counts: { FAIL: 1 } }] };
+    }
+    if (url.pathname.endsWith('/findings/leak-1')) json = { ...finding, evidence: {}, remediation: 'Rotate the exposed value and remove it from source configuration.',
+      secret_evidence: { status: 'available', complete: true, matches: [{ fingerprint: 'synthetic-ui-match', value: 'SYNTHETIC-SECRET-FOR-UI-ONLY', locations: [{ resource_id: 'lambda-1', scope: 'test-account/us-east-1', path: 'configuration.environment', field: 'DEMO_API_KEY', line: null }] }] } };
+    await route.fulfill({ json });
+  });
+  await page.goto('/#Leaks');
+  await expect(page.getByRole('heading', { name: 'Leaks', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: /lambda 1 finding/ }).click();
+  await page.getByRole('button', { name: /Detected secret in Lambda configuration/ }).click();
+  await expect(page.getByRole('dialog').getByText('SYNTHETIC-SECRET-FOR-UI-ONLY', { exact: true })).toBeVisible();
+  await expect(page.getByRole('dialog').getByText('configuration.environment', { exact: true })).toBeVisible();
+  await expect(page.getByRole('dialog').getByText('DEMO_API_KEY', { exact: true })).toBeVisible();
+  expect(requests.length).toBeGreaterThanOrEqual(2);
+  expect(requests.every(url => url.searchParams.get('finding_type') === 'secrets' && url.searchParams.get('status') === 'FAIL' && !url.searchParams.has('categories'))).toBe(true);
+});

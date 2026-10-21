@@ -77,12 +77,13 @@ function accountLabel(finding: Finding): string {
 }
 
 const SERVICE_PAGE_SIZE = 50;
-function ServiceSection({ summary, groupBy, scanId, category, demo, search, severity, status, framework, sort,
+function ServiceSection({ summary, groupBy, scanId, category, findingType, demo, search, severity, status, framework, sort,
   expanded, onToggle, onInspect }: {
   summary: ServiceSummary;
   groupBy: "service" | "finding_type";
   scanId: string;
   category: string;
+  findingType: string;
   demo: boolean;
   search: string;
   severity: string;
@@ -95,14 +96,14 @@ function ServiceSection({ summary, groupBy, scanId, category, demo, search, seve
 }) {
   const [offset, setOffset] = useState(0);
   const query = useQuery({
-    queryKey: [demo ? "demo" : "live", "service-findings", scanId, category, search, severity,
+    queryKey: [demo ? "demo" : "live", "service-findings", scanId, category, findingType, search, severity,
       status, framework, groupBy, summary.service, sort, offset],
     queryFn: ({ signal }) => {
       const params = new URLSearchParams({
         limit: String(SERVICE_PAGE_SIZE), offset: String(offset), group_by: groupBy,
         aggregation: "check", [groupBy]: summary.service || ",",
       });
-      for (const [key, value] of Object.entries({ categories: category, search, severity, status, framework }))
+      for (const [key, value] of Object.entries({ categories: category, finding_type: findingType, search, severity, status, framework }))
         if (value) params.set(key, value);
       if (sort) {
         params.set("sort_by", sort.field);
@@ -191,10 +192,12 @@ function FrameworkPicker({ value, options, onChange }: {
 export function Findings({
   scanId,
   category,
+  findingType = "",
   demo,
 }: {
   scanId: string;
   category: string;
+  findingType?: string;
   demo: boolean;
 }) {
   const [search, setSearch] = useState("");
@@ -227,6 +230,7 @@ export function Findings({
       "findings",
       scanId,
       category,
+      findingType,
       debouncedSearch,
       severity,
       status,
@@ -246,6 +250,7 @@ export function Findings({
       });
       for (const [key, value] of Object.entries({
         categories: category,
+        finding_type: findingType,
         search: debouncedSearch,
         severity,
         status,
@@ -314,6 +319,7 @@ export function Findings({
           (f) =>
             serverFiltered ||
             ((!category || f.category === category) &&
+              (!findingType || f.finding_type === findingType) &&
               (!severity || f.severity === severity) &&
               matchesFindingStatus(f.status, status) &&
               (!service || f.service === service) &&
@@ -353,6 +359,7 @@ export function Findings({
     [
       all,
       category,
+      findingType,
       severity,
       status,
       service,
@@ -462,8 +469,8 @@ export function Findings({
     overscan: 8,
   });
   const lastVisible = virtual.getVirtualItems().at(-1)?.index ?? -1;
-  const browsingKey = JSON.stringify([scanId, category, debouncedSearch, severity, status, service, framework, group, sort]);
-  const serviceScopeKey = JSON.stringify([scanId, category, debouncedSearch, severity, status, service, framework, group]);
+  const browsingKey = JSON.stringify([scanId, category, findingType, debouncedSearch, severity, status, service, framework, group, sort]);
+  const serviceScopeKey = JSON.stringify([scanId, category, findingType, debouncedSearch, severity, status, service, framework, group]);
   useEffect(() => setExpandedServices(new Set()), [browsingKey]);
   useEffect(() => setExpandedService(undefined), [serviceScopeKey]);
   useEffect(() => {
@@ -614,7 +621,7 @@ export function Findings({
                 </thead>
                 <tbody>
                   {serviceGroups?.map(summary => <ServiceSection
-                    key={`${browsingKey}-${summary.service}`} summary={summary} groupBy={group === "finding_type" ? "finding_type" : "service"} scanId={scanId} category={category}
+                    key={`${browsingKey}-${summary.service}`} summary={summary} groupBy={group === "finding_type" ? "finding_type" : "service"} scanId={scanId} category={category} findingType={findingType}
                     demo={demo} search={debouncedSearch} severity={severity} status={status}
                     framework={framework} sort={sort} expanded={expandedService === summary.service}
                     onToggle={() => setExpandedService(current => current === summary.service ? undefined : summary.service)}
