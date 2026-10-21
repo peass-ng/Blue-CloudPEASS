@@ -211,6 +211,11 @@ def test_aws_http_api_custom_domain_maps_to_autodeployed_privileged_lambda():
     result = findings(snap)
     assert len(result) == 1
     assert "https://api.example.com" in result[0]["evidence_summary"]
+    api = next(c for c in snap["collections"] if c["type"] == "http_api")["items"][0]
+    wrapped_routes, wrapped_integrations = api["Routes"], api["Integrations"]
+    api["Routes"], api["Integrations"] = wrapped_routes["items"], wrapped_integrations["items"]
+    assert len(findings(snap)) == 1
+    api["Routes"], api["Integrations"] = wrapped_routes, wrapped_integrations
     domain = next(c for c in snap["collections"] if c["type"] == "apigatewayv2_domain_name")
     unnamed = dict(domain["items"][0])
     unnamed.pop("DomainName")
@@ -221,12 +226,11 @@ def test_aws_http_api_custom_domain_maps_to_autodeployed_privileged_lambda():
     stages["items"][0]["AutoDeploy"] = False
     assert findings(snap) == []
     stages["items"][0]["AutoDeploy"] = True
-    api = next(c for c in snap["collections"] if c["type"] == "http_api")
-    api["items"][0]["Routes"]["items"][0]["AuthorizationType"] = "JWT"
+    api["Routes"]["items"][0]["AuthorizationType"] = "JWT"
     assert len(findings(snap)) == 1
     state = next(a for a in assess(snap, resources(snap)) if a.resource["type"] == "http_api")
     assert state.authenticated and state.verdict() == "PASS"
-    api["items"][0]["Routes"]["items"][0]["AuthorizationType"] = "NONE"
+    api["Routes"]["items"][0]["AuthorizationType"] = "NONE"
     domain["items"][0]["ApiMappings"]["items"] = []
     domain["status"] = "partial"
     assert findings(snap) == []

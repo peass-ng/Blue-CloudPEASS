@@ -3,7 +3,7 @@
 Generated from the two source hashes below. Tests preserve all four service
 projection ASTs and compare the complete registered-check/label cross product.
 """
-SOURCE_SHA256 = '1f051f70a4150f7e27e09d002c6154d7dab0b4fcbfce1a8e1e995bfaa4975222'
+SOURCE_SHA256 = '8d193e3a36e49e419be2a3985f4d1355a9116e546086f7361c467419d19b4fc0'
 NETWORK_SOURCE_SHA256 = '4d7925af412ee580445ce49b1e6f0c44f7a8d5534a6d02c550338a4ece952f09'
 MANIFEST_SHA256 = '1a9c0705c8c95e5d100ef951d0f0689fa6685021a0f39a7159c6c38e95cd4458'
 from functools import lru_cache
@@ -71,6 +71,7 @@ SERVICE_ALIASES = {
 # inventory kinds directly as their service labels.
 ANALYSIS_KIND_SERVICES = {
     "aws": {
+        "apigatewayv2_domain_name": "apigateway",
         "cloudfront_vpc_origin": "cloudfront", "memorydb_subnet_group": "memorydb",
         "redshift_subnet_group": "redshift", "elasticache_subnet_group": "elasticache", "ecs_task": "ecs",
         "rds_db_subnet_group": "rds",

@@ -484,6 +484,13 @@ def _workloads(snapshot, resources, by_type, signal):
             targets = [function for function in by_type["lambda_function"]
                 if base_lambda_arn(function["data"].get("FunctionArn")) in integrations]
         if provider == "aws" and row["type"] == "http_api":
+            def collected_items(value):
+                if isinstance(value, dict):
+                    if value.get("collection_status") not in (None, "collected"):
+                        return []
+                    value = value.get("items")
+                return value if isinstance(value, list) else []
+
             def base_lambda_arn(value):
                 if not isinstance(value, str) or ":function:" not in value:
                     return None
@@ -496,7 +503,7 @@ def _workloads(snapshot, resources, by_type, signal):
                 and "ROUTING_RULE" not in str(domain["data"].get("RoutingMode", ""))
                 and any(isinstance(config, dict) and config.get("EndpointType") in {"REGIONAL", "EDGE"}
                     for config in (domain["data"].get("DomainNameConfigurations") or []))
-                for mapping in ((domain["data"].get("ApiMappings") or {}).get("items") or [])
+                for mapping in collected_items(domain["data"].get("ApiMappings"))
                 if isinstance(mapping, dict) and mapping.get("ApiId") == api_id}
             stages = {stage["data"].get("StageName") for stage in by_type["http_api_stage"]
                 if stage["scope"] == row["scope"] and stage["data"].get("ParentApiId") == api_id
@@ -504,10 +511,10 @@ def _workloads(snapshot, resources, by_type, signal):
                 and (row["data"].get("DisableExecuteApiEndpoint") is not True
                     or stage["data"].get("StageName") in domain_stages)}
             integration_arns = {integration.get("IntegrationId"): base_lambda_arn(integration.get("integrationLambdaArn"))
-                for integration in ((row["data"].get("Integrations") or {}).get("items") or [])
+                for integration in collected_items(row["data"].get("Integrations"))
                 if isinstance(integration, dict)}
             integrations = {integration_arns.get(str(route.get("Target", "")).removeprefix("integrations/"))
-                for route in ((row["data"].get("Routes") or {}).get("items") or [])
+                for route in collected_items(row["data"].get("Routes"))
                 if isinstance(route, dict) and route.get("Target") and stages}
             integrations.discard(None)
             targets = [function for function in by_type["lambda_function"]
