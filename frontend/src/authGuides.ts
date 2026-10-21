@@ -17,8 +17,8 @@ export const awsPolicyArns = [
   "arn:aws:iam::aws:policy/IAMAccessAnalyzerFullAccess",
 ];
 const awsPolicyList = awsPolicyArns.join(" ");
-const awsPermissions = "ReadOnlyAccess or verified equivalent baseline inventory permissions are required. Optional exact secret-content checks need the separate per-surface reads in docs/secret-content-permissions.md; the default metadata role does not provide all of them. SecurityAudit and IAMAccessAnalyzerFullAccess are recommended; missing or unverified recommended policies require acknowledgement because some checks might fail. IAMAccessAnalyzerFullAccess allows the scan to create missing analyzers, wait at least three minutes, collect findings, and delete only analyzers it created. External analyzers are regional; one unused analyzer covers the account and partition and incurs AWS charges.";
-export const awsHostedPermissions = "Deploy the customer role template from Onboarding in each target account. Its metadata grants do not cover every optional exact secret-content check; see docs/secret-content-permissions.md and preserve any separately deployed read grants when updating the role. It creates the role, External ID trust, and collector-specific read policies. Baseline inventory access is required. SecurityAudit and IAMAccessAnalyzerFullAccess are recommended; missing or unverified recommended policies require acknowledgement because some checks might fail. IAMAccessAnalyzerFullAccess enables temporary analyzer creation, findings collection and cleanup of scan-created analyzers.";
+const awsPermissions = "ReadOnlyAccess or SecurityAudit, or verified equivalent baseline inventory permissions, are required. We recommend both read policies for broad inventory and security configuration coverage. Optional exact secret-content checks need separate per-surface reads in docs/secret-content-permissions.md. IAMAccessAnalyzerFullAccess is recommended because the scan creates missing analyzers, waits at least three minutes, collects findings, and deletes only analyzers it created. This managed policy grants full Access Analyzer administration, including writes beyond those the scan uses; the other recommended policies are read-oriented. External analyzers are regional; one unused analyzer covers the account and partition and incurs AWS charges.";
+export const awsHostedPermissions = "Deploy the customer role template from Onboarding in each target account. It creates the role, External ID trust, collector-specific read policies, ReadOnlyAccess, SecurityAudit, and IAMAccessAnalyzerFullAccess. Its metadata grants do not cover every optional exact secret-content check; see docs/secret-content-permissions.md and preserve any separately deployed read grants when updating the role. IAMAccessAnalyzerFullAccess grants full analyzer administration; the scan uses it for temporary analyzer creation and cleanup of scan-created analyzers.";
 const awsRoleGrant = { label: "AWS CLI: attach policies to role", value: [
   "ROLE_NAME='REPLACE_WITH_SCANNING_ROLE_NAME'",
   "for POLICY_ARN in " + awsPolicyList + "; do",
@@ -223,7 +223,7 @@ const azureManagedIdentityAccess = { label: "Azure CLI: enable VM managed identi
   'az vm show --resource-group "$RESOURCE_GROUP" --name "$VM_NAME" --query identity.principalId -o tsv',
 ].join("\n") };
 
-const k8sPermissions = "Bind the identity to the built-in view ClusterRole and the extra RBAC metadata role shown below. Optional exact content targets can use namespace-scoped get/resourceNames Roles; Pod logs need pods/log get and private images need separate registry pull authorization. See docs/secret-content-permissions.md. Secret metadata inventory additionally needs list on Secrets; that permission exposes secret values to the identity even though the collector discards them.";
+const k8sPermissions = "Bind the identity to the built-in view ClusterRole and the extra read-only cluster inventory role shown below. These cover common workload, network, RBAC, node, storage and admission metadata checks; optional custom resources need their own list grants. Optional exact content targets can use namespace-scoped get/resourceNames Roles; Pod logs need pods/log get and private images need separate registry pull authorization. See docs/secret-content-permissions.md. Secret metadata inventory additionally needs list on Secrets; that permission exposes secret values to the identity even though the collector discards them.";
 const k8sCreateServiceAccount = { label: "kubectl: create scanning service account", value: [
   "NAMESPACE='REPLACE_WITH_NAMESPACE'",
   "SERVICE_ACCOUNT='hacktricks-cspm-scan'",
@@ -238,15 +238,15 @@ const k8sUserGrant = { label: "kubectl: bind user or certificate common name to 
   "K8S_USERNAME='REPLACE_WITH_KUBECONFIG_USER_OR_CERTIFICATE_CN'",
   'kubectl create clusterrolebinding hacktricks-cspm-scan-view --clusterrole=view --user="$K8S_USERNAME"',
 ].join("\n") };
-const k8sExtraSaGrant = { label: "kubectl: allow service account to read RBAC metadata", value: [
+const k8sExtraSaGrant = { label: "kubectl: allow service account to read cluster metadata", value: [
   "NAMESPACE='REPLACE_WITH_NAMESPACE'",
   "SERVICE_ACCOUNT='hacktricks-cspm-scan'",
-  "kubectl create clusterrole hacktricks-cspm-scan-rbac-read --verb=get,list,watch --resource=namespaces,roles,rolebindings,clusterroles,clusterrolebindings",
+  "kubectl create clusterrole hacktricks-cspm-scan-rbac-read --verb=get,list,watch --resource=namespaces,roles,rolebindings,clusterroles,clusterrolebindings,nodes,persistentvolumes,storageclasses,validatingwebhookconfigurations,mutatingwebhookconfigurations",
   'kubectl create clusterrolebinding hacktricks-cspm-scan-rbac-read --clusterrole=hacktricks-cspm-scan-rbac-read --serviceaccount="$NAMESPACE:$SERVICE_ACCOUNT"',
 ].join("\n") };
-const k8sExtraUserGrant = { label: "kubectl: allow user to read RBAC metadata", value: [
+const k8sExtraUserGrant = { label: "kubectl: allow user to read cluster metadata", value: [
   "K8S_USERNAME='REPLACE_WITH_KUBECONFIG_USER_OR_CERTIFICATE_CN'",
-  "kubectl create clusterrole hacktricks-cspm-scan-rbac-read --verb=get,list,watch --resource=namespaces,roles,rolebindings,clusterroles,clusterrolebindings",
+  "kubectl create clusterrole hacktricks-cspm-scan-rbac-read --verb=get,list,watch --resource=namespaces,roles,rolebindings,clusterroles,clusterrolebindings,nodes,persistentvolumes,storageclasses,validatingwebhookconfigurations,mutatingwebhookconfigurations",
   'kubectl create clusterrolebinding hacktricks-cspm-scan-rbac-read --clusterrole=hacktricks-cspm-scan-rbac-read --user="$K8S_USERNAME"',
 ].join("\n") };
 const k8sSecretGrant = { label: "kubectl: optional Secret inventory permission", value: [

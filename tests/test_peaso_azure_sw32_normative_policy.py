@@ -44,7 +44,9 @@ def test_each_existing_consumer_criterion_accepted_hosted_local_and_public_colle
  assert all(name not in json.dumps(snap['metadata']['compliance_policy']['sw32'])for name in ('rbac_relevant_scopes_complete','finding_coverage_complete','unapproved_peering_prevention'))
 
 
-def test_mixed_new_and_legacy_criteria_copy_purity_and_real_api_roundtrip(tmp_path):
+def test_mixed_new_and_legacy_criteria_copy_purity_and_real_api_roundtrip(tmp_path,monkeypatch):
+ from tests.connector_access_receipts import checked_create, mock_access_pass
+ mock_access_pass(monkeypatch)
  now=datetime.now(timezone.utc)
  value=policy(**FIELDS,incident_review={'start':(now-timedelta(days=1)).isoformat(),'end':now.isoformat(),'approved':True,'allowed_classifications':['TruePositive'],'allowed_priorities':['High']},vulnerability_severity_criteria={'approved':True,'version':'v1','expectedSeverityByAssessmentName':{GUID:'High'}})
  original=copy.deepcopy(value);result=normalize_sw32(value)
@@ -57,7 +59,7 @@ def test_mixed_new_and_legacy_criteria_copy_purity_and_real_api_roundtrip(tmp_pa
  settings=Settings(state_dir=tmp_path/'state',identity_dir=tmp_path/'identity',local_token='controlled-local-api-token')
  with TestClient(create_app(settings,authenticator=TestIdentities()),base_url='http://127.0.0.1:8000')as client:
   client.headers['Authorization']='Bearer alice'
-  response=client.post('/api/connectors',json={'name':'Explicit SW32 criteria','provider':'azure','scopes':[SCOPE.split('/')[-1]],'auth':{'method':'token','arm_token':'controlled-arm-token'},'options':options(value)})
+  response=client.post('/api/connectors',json=checked_create(client,{'name':'Explicit SW32 criteria','provider':'azure','scopes':[SCOPE.split('/')[-1]],'auth':{'method':'token','arm_token':'controlled-arm-token'},'options':options(value)}))
   assert response.status_code==201,response.text
   assert response.json()['options']['compliance_policy']['sw32']==value
   fetched=client.get('/api/connectors/'+response.json()['id']);assert fetched.status_code==200

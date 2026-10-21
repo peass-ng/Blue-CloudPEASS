@@ -37,6 +37,8 @@ def client(settings, monkeypatch):
     # execution and missing-token/isolation rejection have dedicated tests.
     monkeypatch.setattr('peaso.ai.auth.codex_available', lambda *args: True)
     monkeypatch.setattr('peaso.ai.isolation.available', lambda: True)
+    monkeypatch.setattr('peaso.server.access_check.check_access', lambda *args, **kwargs: {
+        'status': 'pass', 'issues': [], 'principals': []})
     app = create_app(settings, authenticator=TestIdentities())
     with TestClient(app, base_url="http://127.0.0.1:8000") as value:
         value.headers["Authorization"] = "Bearer alice"
@@ -46,6 +48,10 @@ def client(settings, monkeypatch):
 def add_connector(client, **overrides):
     body = {"name": "Fixture", "provider": "aws", "auth": {}, "scopes": ["scope"], "options": {}}
     body.update(overrides)
+    if "snapshot" not in body["options"] and not body["options"].get("demo"):
+        checked = client.post("/api/connectors/check-access", json=body)
+        assert checked.status_code == 200, checked.text
+        body["check_token"] = checked.json()["check_token"]
     response = client.post("/api/connectors", json=body)
     assert response.status_code == 201, response.text
     return response.json()

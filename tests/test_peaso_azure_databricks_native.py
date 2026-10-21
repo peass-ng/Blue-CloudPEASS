@@ -150,7 +150,9 @@ def test_hosted_cannot_store_credential_as_option_or_policy():
  settings=SimpleNamespace(auth_mode='cognito');auth={'method':'token','arm_token':'controlled-arm-token'}
  with pytest.raises(HTTPException):validate_connector('azure',auth,{'databricks_account_token':TOKEN},settings)
 
-def test_real_api_connector_encrypts_and_redacts_account_token(tmp_path,caplog):
+def test_real_api_connector_encrypts_and_redacts_account_token(tmp_path,caplog,monkeypatch):
+ from tests.connector_access_receipts import checked_create, mock_access_pass
+ mock_access_pass(monkeypatch)
  from fastapi.testclient import TestClient
  from peaso.server import create_app
  from peaso.server.config import Settings
@@ -158,7 +160,7 @@ def test_real_api_connector_encrypts_and_redacts_account_token(tmp_path,caplog):
  settings=Settings(state_dir=tmp_path/'state',identity_dir=tmp_path/'identity',local_token='controlled-local-api-token')
  with TestClient(create_app(settings,authenticator=TestIdentities()),base_url='http://127.0.0.1:8000')as client:
   client.headers['Authorization']='Bearer alice'
-  response=client.post('/api/connectors',json={'name':'Databricks fixture','provider':'azure','scopes':[SUB],'auth':{'method':'token','arm_token':'controlled-arm-token','databricks_account_token':TOKEN},'options':{'compliance_policy':policy()}})
+  response=client.post('/api/connectors',json=checked_create(client,{'name':'Databricks fixture','provider':'azure','scopes':[SUB],'auth':{'method':'token','arm_token':'controlled-arm-token','databricks_account_token':TOKEN},'options':{'compliance_policy':policy()}}))
   assert response.status_code==201,response.text
   assert TOKEN not in response.text and 'databricks_account_token'in response.json()['auth']['fields']
   assert TOKEN not in client.get('/api/connectors').text
