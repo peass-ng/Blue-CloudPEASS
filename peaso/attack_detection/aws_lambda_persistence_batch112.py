@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
 from datetime import datetime, timedelta, timezone
+import hashlib
+import json
 import re
 from typing import Any
 
@@ -104,6 +106,38 @@ def normalize(record: Mapping[str, Any]) -> list[dict[str, Any]]:
         return []
     account, region, request, response = base
     name = record.get("eventName")
+    if name == "AddLayerVersionPermission20181031":
+        layer_name = request.get("layerName")
+        version = request.get("versionNumber")
+        if (not isinstance(layer_name, str) or not _LAYER_NAME.fullmatch(layer_name)
+                or not isinstance(version, int) or isinstance(version, bool) or version < 1
+                or request.get("action") != "lambda:GetLayerVersion"
+                or request.get("principal") != "*"
+                or "organizationId" in request):
+            return []
+        statement_id = request.get("statementId")
+        if not isinstance(statement_id, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,100}", statement_id):
+            return []
+        statement_text = response.get("statement")
+        if not isinstance(statement_text, str) or len(statement_text) > 8192:
+            return []
+        try:
+            statement = json.loads(statement_text)
+        except ValueError:
+            return []
+        expected_arn = f"arn:aws:lambda:{region}:{account}:layer:{layer_name}:{version}"
+        if (not isinstance(statement, Mapping)
+                or statement.get("Sid") != statement_id
+                or statement.get("Effect") != "Allow"
+                or statement.get("Principal") != "*"
+                or statement.get("Action") != "lambda:GetLayerVersion"
+                or statement.get("Resource") != expected_arn
+                or not isinstance(response.get("revisionId"), str)
+                or not response["revisionId"]):
+            return []
+        target = "sha256:" + hashlib.sha256(expected_arn.encode()).hexdigest()[:24]
+        return [_finding(record, account, target, name,
+                         "request.lambda_public_layer_version_grant")]
     if name == "PublishLayerVersion20181031":
         layer_name = request.get("layerName")
         version_arn = response.get("layerVersionArn")
