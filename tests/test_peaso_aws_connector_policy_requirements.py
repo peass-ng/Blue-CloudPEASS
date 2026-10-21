@@ -1,4 +1,6 @@
 """Connector readiness must inspect policy grants, not merely authenticate."""
+import json
+from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
@@ -11,6 +13,17 @@ from test_peaso_connector_access_check import IdentityStub
 ACCOUNT = '555566667777'
 PREFIX = 'arn:aws:iam::aws:policy/'
 POLICIES = ['ReadOnlyAccess', 'SecurityAudit', 'IAMAccessAnalyzerFullAccess']
+
+
+def test_hosted_role_attaches_recommended_managed_policies_within_quota():
+    from scripts.peaso_deploy_customer_policy import IAM_MANAGED_POLICIES_PER_ROLE
+
+    template = json.loads((Path(__file__).parents[1] / 'infra/aws/customer-role.json').read_text())
+    role = template['Resources']['AuditRole']['Properties']
+    assert role['ManagedPolicyArns'] == [PREFIX + name for name in POLICIES]
+    custom = sum(resource['Type'] == 'AWS::IAM::ManagedPolicy'
+                 for resource in template['Resources'].values())
+    assert custom + len(role['ManagedPolicyArns']) <= IAM_MANAGED_POLICIES_PER_ROLE
 
 
 class IAM:
