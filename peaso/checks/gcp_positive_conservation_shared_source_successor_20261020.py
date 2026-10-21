@@ -55,14 +55,39 @@ _DATAFLOW_FUNCTIONS = dict(_DATAFLOW_ADMISSION._FUNCTIONS)
 _DATAFLOW_REVIEWED_INPUTS = _DATAFLOW_FUNCTIONS[_DATAFLOW_ADMISSION.__name__ + ':reviewed_inputs']
 RECEIPT = 'azure_metadata_only_shared_successor_20261020.json'
 RECEIPT_SHA256 = '12bf2cd88f943bcb3cdb91a3701cd3197e78d6ba7ed7e956afd854d6d1b292ed'
-BRIDGE_RECEIPT_SHA256 = '833f82de54bc9c0cdae0143ecf09e7b8dbcb0509af958512449bf12ea16397a6'
-_CURRENT_INIT_SHA256 = '8cd818f4733bd8d51d04cab583171ddfdcec6575fbff1a1b2222bdc6da15301e'
+BRIDGE_RECEIPT_SHA256 = '5889b51b210bf8a45f3eb07c5b4a027a2fceec9562e5b6baed8c2ba614d27f1e'
+_CURRENT_INIT_SHA256 = '0fa143a274905e52dad14d6eecfb641fdc98ebbd17db90d54d9908594b458e08'
 _PREDECESSOR_INIT_SHA256 = 'e828e145917364fcd20a5a2d6de7e24eb304eee5698fea1cb1bed8669fef01c6'
+
+
+def _admitted_scanner_bytes(name, raw, expected, root):
+    """A finite historical view after fresh current scanner/source proof."""
+    if name != 'peaso/secret_scanning.py':
+        return raw
+    from peaso.rawv2_public_source_successor_20261021 import source_bytes
+    return source_bytes(name, raw, expected, root)
 
 
 def _initialization_predecessor(raw):
     if hashlib.sha256(raw).hexdigest() != _CURRENT_INIT_SHA256:
         raise RuntimeError('GCP positive conservation initializer changed')
+    rawv2_edits = (
+        (b'collector_noop_authorization_shared_successor_20261020 = aws_workload_command_shared_successor_20261020\n', b''),
+        (b'_rawv2_source.install_admission("gcp_dataproc_source_runtime_admission_20261020")\n', b'gcp_dataproc_source_runtime_admission_20261020.install()\n'),
+        (b'_rawv2_source.install_admission("azure_declaration_secrets_admission_20261020")\n', b'azure_declaration_secrets_admission_20261020.install()\n'),
+        (b'from peaso import rawv2_public_source_successor_20261021 as _rawv2_source\n', b''),
+        (b'_rawv2_source.install_selected_aws()\n', b'aws_selected_configuration_admission_20261020.install()\n'),
+        (b'_rawv2_source.install_selected_azure()\n', b'azure_selected_secrets_admission_20261020.install()\n'),
+        (b'_rawv2_source.install_admission("azure_log_samples_admission_20261020")\n', b'azure_log_samples_admission_20261020.install()\n'),
+        (b'_rawv2_source.install_admission("azure_ml_job_secrets_admission_20261020")\n', b'azure_ml_job_secrets_admission_20261020.install()\n'),
+        (b'_rawv2_source.install_admission("azure_databricks_notebook_secrets_admission_20261020")\n', b'azure_databricks_notebook_secrets_admission_20261020.install()\n'),
+        (b'_rawv2_source.install_admission("azure_ml_asset_secrets_admission_20261020")\n', b'azure_ml_asset_secrets_admission_20261020.install()\n'),
+        (b'_rawv2_source.install_admission("azure_function_settings_runtime_admission_20261020")\n', b'azure_function_settings_runtime_admission_20261020.install()\n'),
+    )
+    for after, before in rawv2_edits:
+        if raw.count(after) != 1:
+            raise RuntimeError('RawV2 initializer successor delta changed')
+        raw = raw.replace(after, before, 1)
     edits = (
         (b'from . import gcp_positive_conservation_shared_source_successor_20261020 as _positive_shared_source\n', b''),
         (b'aws_workload_command_shared_successor_20261020 = _positive_shared_source\n',
@@ -174,16 +199,18 @@ def _transaction_compiler():
             if not immutable(code):
                 raise RuntimeError('Mutable native code artifact refused')
             value = json.dumps(original.proof._code(code), sort_keys=True)
-            signature = hmac.digest(secret, marshal.dumps((artifact_key, code, value), 2), 'sha256')
+            signature = hmac.digest(secret, marshal.dumps((artifact_key, value), 2), 'sha256')
             entry = (code, value, signature)
             if len(code_cache) < 4096 and code_bytes + len(value.encode()) <= 4 * 1024 * 1024:
                 code_cache[artifact_key] = entry
                 code_bytes += len(value.encode())
         saved, value, signature = entry
         # This is a serialization artifact, never a live-function verdict.
-        # Marshal/HMAC and exact immutable code identity are checked each use.
+        # Exact recursive immutability was checked before retaining this code.
+        # The signed key contains its identity; holding the code prevents ID
+        # reuse. Replacing live __code__ gets a new key and fresh serialization.
         if (saved is not code or not hmac.compare_digest(signature,
-                hmac.digest(secret, marshal.dumps((artifact_key, code, value), 2), 'sha256'))):
+                hmac.digest(secret, marshal.dumps((artifact_key, value), 2), 'sha256'))):
             raise RuntimeError('Normalized code artifact changed')
         return value
 
@@ -232,19 +259,20 @@ def _transaction_compiler():
         code = native.__code__
         source_key = (key, id(code), native.__module__, native.__qualname__,
                       code.co_filename, code.co_firstlineno, line_digest)
+        # Validate recursive immutability before retaining an identity artifact.
+        live_json = normalized(key, code)
         entry = source_cache.get(source_key)
         if entry is None:
             digest = original.prepared._hash(inspect.getsource(native).encode())
-            payload = (source_key, code, digest)
+            payload = (source_key, digest)
             signature = hmac.digest(secret, marshal.dumps(payload, 2), 'sha256')
             entry = (code, digest, signature)
             if key in cache and len(source_cache) < 4096:
                 source_cache[source_key] = entry
         saved_code, digest, signature = entry
         if (saved_code is not code or not hmac.compare_digest(signature,
-                hmac.digest(secret, marshal.dumps((source_key, saved_code, digest), 2), 'sha256'))):
+                hmac.digest(secret, marshal.dumps((source_key, digest), 2), 'sha256'))):
             raise RuntimeError('Native CPU source cache artifact changed')
-        live_json = normalized(key, code)
         for record, _ in matches:
             record['live_code_json'] = live_json
         return (matches, digest, source_fragment) if want_source else (matches, digest)
@@ -378,6 +406,7 @@ def reviewed_delta(root=None):
         data = (root / name).read_bytes()
         if row['normalization'] == 'self':
             data = _self(data)
+        data = _admitted_scanner_bytes(name, data, row['sha256'], root)
         if hashlib.sha256(data).hexdigest() != row['sha256']:
             raise RuntimeError('AWS command successor source changed: ' + name)
     sealed = json.loads((root / 'peaso/checks' / historical.RECEIPT).read_bytes())
@@ -571,6 +600,7 @@ def prepared_inputs(root, compiled, successor):
         raw = path.read_bytes()
         if relative == receipt['helper_path']:
             raw = prepared._self(raw)
+        raw = _admitted_scanner_bytes(relative, raw, expected, root)
         if not path.is_relative_to(root) or prepared._hash(raw) != expected:
             raise RuntimeError('metadata predecessor source changed')
     assets = json.loads(gzip.decompress((root / 'peaso/checks' / original.ASSETS).read_bytes()), object_pairs_hook=proof._pairs)
@@ -632,6 +662,7 @@ def reviewed_inputs(root=None):
         raw = path.read_bytes()
         if name == receipt['helper_path']:
             raw = original._self(raw)
+        raw = _admitted_scanner_bytes(name, raw, expected, root)
         if not path.is_relative_to(root) or original.prepared._hash(raw) != expected:
             raise RuntimeError('metadata runtime source changed')
     for row in receipt['fixtures']:
@@ -863,7 +894,8 @@ def _install_bundle():
     try:
         tde.install()
         install()
-        workbench.install()
+        from peaso.rawv2_public_source_successor_20261021 import install_admission
+        install_admission('gcp_workbench_source_runtime_admission_20261020')
         install_dataflow(dataflow)
         codebuild_successor.install()
         package.install()
@@ -915,7 +947,8 @@ def s3_reviewed_inputs():
     reviewed_delta(root)
     for name, digest in receipt['source_hashes'].items():
         path = (root / name).resolve()
-        if not path.is_relative_to(root) or hashlib.sha256(path.read_bytes()).hexdigest() != digest:
+        data = _admitted_scanner_bytes(name, path.read_bytes(), digest, root)
+        if not path.is_relative_to(root) or hashlib.sha256(data).hexdigest() != digest:
             raise RuntimeError('Selected S3 unchanged source changed')
     for expected in receipt['callables']:
         function = importlib.import_module(expected['module'])
@@ -923,6 +956,9 @@ def s3_reviewed_inputs():
             function = getattr(function, name)
         if expected['module'] == 'peaso.collectors.aws' and expected['qualname'] == 'collect':
             check_aws(function, expected)
+        elif expected['module'] == 'peaso.secret_scanning':
+            from peaso.rawv2_public_source_successor_20261021 import verify_callable_proof
+            verify_callable_proof(function, expected, original.proof(function), root)
         elif original.proof(function) != expected:
             raise RuntimeError('Selected S3 unchanged callable changed')
     from peaso.collectors import aws_s3_selected_source_secret_indicators as producer
@@ -1018,6 +1054,9 @@ def verify_package_successor(root):
 
 def predecessor_producer_bytes(relative, raw, root):
     """Reconstruct exactly three former source files; no source reader is changed."""
+    if relative == 'peaso/secret_scanning.py':
+        from peaso.rawv2_public_source_successor_20261021 import source_bytes, SCANNER_BEFORE
+        return source_bytes(relative, raw, SCANNER_BEFORE, root)
     paths = ('peaso/collectors/aws_workload_command_runtime_20261020.py',
              'peaso/collectors/aws_codebuild_buildspec_runtime_20261020.py',
              'peaso/collectors/azure_function_package_integration_20261020.py')
@@ -1038,6 +1077,9 @@ def predecessor_producer_bytes(relative, raw, root):
 
 def current_producer_row(function, historical_row, root):
     """Bind only three current authorizers to their exact historical callable rows."""
+    if historical_row.get('path') == 'peaso/secret_scanning.py':
+        from peaso.rawv2_public_source_successor_20261021 import producer_row
+        return producer_row(function, historical_row, root)
     qualified = function.__module__ + ':' + function.__qualname__
     names = ('peaso.collectors.aws_workload_command_runtime_20261020:authorize_collector',
              'peaso.collectors.aws_codebuild_buildspec_runtime_20261020:authorize_collector',

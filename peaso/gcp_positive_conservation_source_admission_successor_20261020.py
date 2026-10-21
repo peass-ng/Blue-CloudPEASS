@@ -30,7 +30,7 @@ PAGE_RECEIPT_SHA256 = 'a9cf3dd72f0745e2c61cb9ace44afdbaa9dc06ba0e02a7a3ffd4c253d
 SOURCE_DELTA = 'peaso/checks/gcp_positive_conservation_source_delta_20261020.json'
 SOURCE_DELTA_SHA256 = '6f803d15053fdccf982ab20883b76a72a821ef98f703192eba25c3a05695d6d6'
 BRIDGE_RECEIPT = 'peaso/checks/gcp_positive_conservation_source_bridge_20261020.json'
-BRIDGE_RECEIPT_SHA256 = '833f82de54bc9c0cdae0143ecf09e7b8dbcb0509af958512449bf12ea16397a6'
+BRIDGE_RECEIPT_SHA256 = '5889b51b210bf8a45f3eb07c5b4a027a2fceec9562e5b6baed8c2ba614d27f1e'
 
 
 _MODULE_ARTIFACTS = ContextVar('gcp_positive_module_artifacts', default=None)
@@ -49,7 +49,10 @@ def _module_compiler():
         entry = cache.get(key)
         if entry is None:
             code = compile(raw, str(path), 'exec', optimize=sys.flags.optimize)
-            payload = marshal.dumps((key, code), 2)
+            # compile() creates exact immutable builtin constants/code. This
+            # retained code cannot mutate; signing its identity avoids repeated
+            # whole-module serialization while still rejecting replacements.
+            payload = marshal.dumps((key, id(code)), 2)
             entry = (code, hmac.digest(secret, payload, 'sha256'))
             if len(cache) >= 128 or size + len(payload) > 4 * 1024 * 1024:
                 cache.clear()
@@ -59,7 +62,7 @@ def _module_compiler():
                 size += len(payload)
         code, signature = entry
         if not isinstance(code, types.CodeType) or not hmac.compare_digest(signature,
-                hmac.digest(secret, marshal.dumps((key, code), 2), 'sha256')):
+                hmac.digest(secret, marshal.dumps((key, id(code)), 2), 'sha256')):
             raise RuntimeError('GCP module artifact changed')
         return code
 
@@ -139,6 +142,10 @@ def _source_delta(root):
 
 
 def _source_hash(name, data, expected, rows):
+    if name == 'peaso/secret_scanning.py':
+        from peaso.rawv2_public_source_successor_20261021 import source_bytes
+        source_bytes(name, data, expected, Path(__file__).resolve().parents[1])
+        return
     if name in rows:
         if expected != rows[name]['before_sha256'] or hashlib.sha256(data).hexdigest() != rows[name]['after_sha256']:
             raise RuntimeError('GCP positive conservation predecessor/successor changed: ' + name)
@@ -236,6 +243,10 @@ def reviewed_inputs(root=None):
                 if hashlib.sha256(data).hexdigest() != rows[name]['before_sha256']:
                     raise RuntimeError('Functions inherited positive source changed: ' + name)
                 _source_hash(name, actual, rows[name]['before_sha256'], rows)
+            elif name == 'peaso/secret_scanning.py':
+                from peaso.rawv2_public_source_successor_20261021 import source_bytes
+                if source_bytes(name, actual, row['sha256'], root) != data:
+                    raise RuntimeError('Functions inherited scanner predecessor changed')
             elif actual != data:
                 raise RuntimeError('Functions inherited predecessor source changed')
     original = bytes.fromhex(archive['files']['peaso/collectors/gcp.py']['hex'])

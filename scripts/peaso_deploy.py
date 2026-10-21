@@ -50,6 +50,11 @@ RUNTIME_ADMISSION_INPUTS = {
 # Exact public inputs needed to reproduce the shipped compiler, provenance and
 # tests. Explicit paths/globs only: no .work drafts, caches or private files.
 REPRODUCTION_INPUT_PATTERNS = (
+    'tests/test_rawv2_native_startup_margin_20261021.py',
+    'tests/fixtures/gcp_native_cpu_margin_pre_rawv2_20261021.json.gz',
+    'tests/test_rawv2_public_redaction.py',
+    'tests/test_rawv2_public_source_successor_20261021.py',
+    'tests/test_rawv2_public_source_runtime_20261021.py',
     'tests/test_gcp_native_cpu_margin_artifacts_20261021.py',
     'tests/gcp_native_cpu_margin_epoch_20261021.py',
     'tests/fixtures/gcp_native_cpu_margin_predecessor_20261021.json.gz',

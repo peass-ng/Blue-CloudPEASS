@@ -136,11 +136,32 @@ def _trufflehog():
     return executable
 
 
+class _DetectorMatches(list):
+    """Internal plaintext parser result; extra values redact, never identify."""
+    def __init__(self):
+        super().__init__()
+        self.redaction_values = set()
+
+
+def _complete_match_values(primary, full, *, rule):
+    """Privacy redactions from a parsed offline result, not source provenance."""
+    if not isinstance(full, str) or not full:
+        return []
+    values = [full]
+    if rule.casefold() == 'aws' and full.startswith(primary + ':'):
+        component = full[len(primary) + 1:]
+        # The detector can decode the pair from base64. Redact its recognized
+        # component even when those literal bytes are absent from the input.
+        if re.fullmatch(r'[A-Za-z0-9/+=]{40}', component):
+            values.append(component)
+    return values
+
+
 def _scan_trufflehog(payload, path, timeout):
     output = _run([_trufflehog(), 'stdin', '--json', '--no-verification', '--no-update',
                    '--log-level=-1', '--concurrency=1', '--force-skip-archives',
                    '--no-verification-cache', '--fail-on-scan-errors'], payload, timeout)
-    result = []
+    result = _DetectorMatches()
     for line in output.splitlines():
         row = json.loads(line)
         # RawV2 is a composite display representation for some detectors. Raw
@@ -148,6 +169,8 @@ def _scan_trufflehog(payload, path, timeout):
         value = row.get('Raw')
         if not isinstance(value, str) or not value or row.get('Verified') is not False:
             raise ValueError('invalid offline detector result')
+        result.redaction_values.update(_complete_match_values(value, row.get('RawV2'),
+            rule=_label(row.get('DetectorName', 'secret'))))
         # stdin metadata has no file line. Recover all exact plaintext
         # occurrences; decoded-only results have an explicitly unknown line.
         needle, start, found = value.encode('utf-8'), 0, False
@@ -287,6 +310,9 @@ def scan_content(payload, path='content', *, timeout=15, _redact_values=None):
                 if not isinstance(value, str) or not value:
                     raise ValueError('empty secret')
                 known_values.add(value)
+            # Extra credential components redact metadata and paths without
+            # changing the canonical primary-value fingerprints or locations.
+            known_values.update(getattr(matches, 'redaction_values', ()))
             matches_by_engine.append((name, matches))
             engines.append({'engine': name, 'version': version, 'status': 'complete'})
         except Exception:
