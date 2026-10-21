@@ -1621,3 +1621,20 @@ gcp_cloudrun_job_image_secret_review_20261020.install()
 
 from . import aws_ai_recheck_corrections_20261020
 aws_ai_recheck_corrections_20261020.install()
+
+# Final bounded provider-group admission; apply only with its reviewed source closure.
+from pathlib import Path as _ProviderGroupPath
+from . import provider_group_install_20261021 as _provider_group_install_20261021
+from . import storage_immutability_native_successor as _provider_group_storage_20261021
+from . import azure_app_service_runtime_native_20261021 as _provider_group_runtime_20261021
+from . import gcp_job_trivy_vulnerability_review_20261020 as _provider_group_gcp_20261021
+from . import aws_image_vulnerabilities_20261021 as _provider_group_aws_20261021
+_provider_group_root_20261021 = _ProviderGroupPath(__file__).resolve().parents[2]
+_provider_group_install_20261021.install(
+    storage=_provider_group_storage_20261021,
+    runtime=_provider_group_runtime_20261021,
+    gcp=_provider_group_gcp_20261021,
+    aws=_provider_group_aws_20261021,
+    root=_provider_group_root_20261021,
+    source_paths=_provider_group_install_20261021.deployed_sources(_provider_group_root_20261021),
+)

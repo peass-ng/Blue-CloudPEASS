@@ -24,8 +24,8 @@ import sysconfig
 from types import CodeType, FunctionType, MethodType, ModuleType
 import zipfile
 
-_RECEIPT_SHA256 = "dcbaac5a85ff9ba014c44703e9ac7925271ec35c9aa17c37e2c61c4116b9954e"
-_SELF_SHA256 = "babbe500b0dde0f1aeaed631d690608814fd0124c2fa023fe6381ddb4a1b2d65"
+_RECEIPT_SHA256 = "291598772fe59d8758a8b60ce0456dbca809c205032b9c9a7e51bf2267825ecd"
+_SELF_SHA256 = "489f6a0f8098f613fba61e06840de736927acc608553d0055948003c587ac6b1"
 _ARCHIVE_SHA256 = "3eb403fa363c559f7053060d409f60ac8c693350350423a6dc775412df4300c0"
 _HELPER_SHA256 = "15092e316c2331e03fdae7fad4dda5ed92310a1c15a827b0009fbcd54a11693a"
 _BASE = "6b6ee759234d7e2dad978342838cb3af4e1fe767"
@@ -908,7 +908,7 @@ def _check_helper_import(value: object, imported: ModuleType, attr: str | None, 
 _ALIAS_DEPENDENCIES = {
     "peaso/collectors/gcp_git_transport.py": "3b872883dc04776fba11e489b38238e212f15aba78a517ca0c52248efde2c9f0",
     "peaso/collectors/gcp_git_content.py": "dccb7525a2bceab717f80c30fc02f4153b1c2ae440ffa4cf3ca9769c57c0493b",
-    "peaso/collectors/aws_workload_command_runtime_20261020.py": "22252144a2f21c517684ec0f25f362abaa145196dd59f23c4606674b3d1acc5c",
+    "peaso/collectors/aws_workload_command_runtime_20261020.py": "de543276807257ff814980b78e523be21de02cecab7f9b31b2cb7dfb0940b09d",
 }
 
 

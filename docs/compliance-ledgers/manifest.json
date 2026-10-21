@@ -253,12 +253,17 @@
       "path": "native-extensions/workload-content-20261020.json",
       "sha256": "990f38aa7472ec959a524ed52b5652075bbba0d1a0f4c5894747b5a1a9abf9ff",
       "verified": true
+    },
+    {
+      "path": "native-extensions/provider-images-runtime-20261021.json",
+      "sha256": "926cfd9f96df0ef8628bc8a39fcfe10d776d76d2d31544b6dbcb2e5115025e58",
+      "verified": true
     }
   ],
   "new_descriptions": {
-    "checks": 1010,
     "path": "descriptions/implemented-new-checks.json",
-    "sha256": "851bd2d3c62dacd6c3b0b721065aebc3f5a39a72496a885db3afc8188ada4cc9",
+    "checks": 1013,
+    "sha256": "d14e64e1e0159815f4ae1ea7a460ea3ab90e22157fde492ba2e68396e8386544",
     "verified": true
   },
   "slices": {

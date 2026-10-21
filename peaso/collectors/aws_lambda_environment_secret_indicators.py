@@ -20,6 +20,7 @@ PROFILE='aws-lambda-environment-content-v1'
 MARKER='SelectedLambdaEnvironmentSecretIndicators'
 SCHEMA='aws-selected-lambda-environment-secrets-v1'
 MAX_TARGETS=8
+MAX_SELECTED_SCOPES=8
 MAX_RESPONSE=131072
 MAX_RESPONSE_TOTAL=1048576
 MAX_VARIABLES=128
@@ -60,15 +61,17 @@ def selected_targets(options,scopes):
         raise Incomplete('invalid_lambda_selection')
     if OPTION not in options and not enabled(options):return []
     targets=options.get(OPTION)
-    if (not isinstance(scopes,list) or not 1<=len(scopes)<=8
+    if (not isinstance(scopes,list) or not scopes
             or any(not isinstance(s,str) or not SCOPE.fullmatch(s) for s in scopes)
             or len(set(scopes))!=len(scopes) or not isinstance(targets,list) or not 1<=len(targets)<=MAX_TARGETS):
         raise Incomplete('invalid_lambda_selection')
-    seen=set()
+    seen=set();selected_scopes=set()
     for arn in targets:
         match=parse(arn)
         if match[3]+'/'+match[2] not in scopes or arn in seen:raise Incomplete('invalid_lambda_selection')
         seen.add(arn)
+        selected_scopes.add(match[3]+'/'+match[2])
+        if len(selected_scopes)>MAX_SELECTED_SCOPES:raise Incomplete('invalid_lambda_selection')
     return list(targets)
 
 

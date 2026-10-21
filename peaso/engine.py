@@ -222,7 +222,7 @@ def _selection(provider, categories, checks, frameworks):
         frameworks = _expand_frameworks(frameworks)
     selected = [c for c in registry if c.provider == provider and c.category in selected_categories
         and (checks is None or c.id in checks) and (frameworks is None or (set(c.frameworks) | set(getattr(c, "framework_ids", []))).intersection(frameworks))]
-    selected = [c for c in selected if c.id not in {'aws.review.workload.selected_command_literal_secret_indicators', 'gcp.review.cloudrun_job.declared_image_secret_indicators'} or checks is not None and c.id in checks]
+    selected = [c for c in selected if c.id not in {'aws.review.workload.selected_command_literal_secret_indicators', 'gcp.review.cloudrun_job.declared_image_secret_indicators', 'gcp.review.cloud_run.selected_job_image_vulnerabilities', 'azure.review.app_service.runtime_support_declared'} or checks is not None and c.id in checks]
     return selected_categories, selected
 
 
@@ -250,6 +250,11 @@ def _request(request):
     workload_command_targets(content_options, connector.get('scopes', []), request.get('checks') or [], connector['provider'])
     from .collectors.gcp_cloudrun_job_image_runtime_20261020 import validate_request as validate_cloudrun_job_images
     validate_cloudrun_job_images(connector, request)
+    from .collectors.gcp_job_image_vulnerability_runtime_20261021 import validate_request as validate_job_image_vulnerabilities
+    if connector['provider'] == 'gcp':
+        validate_job_image_vulnerabilities(connector, request)
+    from .aws_image_selection_20261021 import validate_request as validate_aws_image_vulnerabilities
+    validate_aws_image_vulnerabilities(connector, request)
     from .collectors.azure_function_package_integration_20261020 import preflight as package_preflight
     package_preflight(content_options, connector.get('scopes', []), request.get('checks') or [], provider=connector['provider'])
     from .collectors.aws_codebuild_buildspec_runtime_20261020 import targets as codebuild_inline_targets
@@ -485,6 +490,9 @@ def collect_snapshot(request):
     # inventory type to the public collection plan.
     if connector["provider"] == "aws":
         _, selected = _selection("aws", request.get("categories"), request.get("checks"), request.get("frameworks"))
+        from .collectors.aws_image_vulnerability_runtime_20261021 import issue_engine_grant as grant_aws_image_vulnerabilities
+        grant_aws_image_vulnerabilities(connector.setdefault('options', {}), connector.get('scopes', []),
+            [check.id for check in selected if check.id in (request.get('checks') or [])])
         connector.setdefault("options", {})["_ecr_latest_scan_requested"] = any(
             check.id == "aws.c2b.ecr.latest_image_no_medium_plus_findings" for check in selected)
         connector.setdefault('options', {})['_ec2_clock_metric_requested'] = any(
@@ -583,6 +591,9 @@ def collect_snapshot(request):
         grant_workbench_source(connector['options'], connector.get('scopes', []), [c.id for c in selected if c.id in named])
         from .collectors.gcp_cloudrun_job_image_runtime_20261020 import issue_engine_grant as grant_cloudrun_job_images
         grant_cloudrun_job_images(connector['options'], connector.get('scopes', []), [c.id for c in selected if c.id in named])
+        from .collectors.gcp_job_image_vulnerability_runtime_20261021 import issue_engine_grant as grant_job_image_vulnerabilities
+        grant_job_image_vulnerabilities(connector['options'], connector.get('scopes', []),
+            [c.id for c in selected if c.id in named])
     if connector["provider"] == "k8s":
         from .collectors.k8s_selected_metadata_runtime_20261020 import authorize as authorize_k8s_metadata
         authorize_k8s_metadata(connector.setdefault('options', {}), connector.get('scopes', []), request.get('checks') or [])
@@ -606,6 +617,7 @@ def collect_snapshot(request):
         connector.setdefault('options', {})['_content_secret_scan_kinds'] = sorted(kind for cid,kind in azure_content_pairs if cid in (request.get('checks') or []))
         from .collectors.azure_function_settings_declarations_20261020 import CHECKS as FUNCTION_SETTINGS_CHECKS
         connector.setdefault('options', {})['_azure_function_settings_checks'] = [cid for cid in (request.get('checks') or []) if cid in FUNCTION_SETTINGS_CHECKS]
+        connector.setdefault('options', {})['_azure_app_service_runtime_checks'] = [c.id for c in selected if c.id == 'azure.review.app_service.runtime_support_declared' and c.id in (request.get('checks') or [])]
         from .collectors.azure_function_package_integration_20261020 import issue_engine_grant as grant_package_source, KIND as PACKAGE_KIND
         grant_package_source(connector['options'], connector.get('scopes', []),
             [c.id for c in selected if c.id in (request.get('checks') or [])])
@@ -650,6 +662,7 @@ BULK_STREAM_TYPES = {
 BULK_STREAM_TYPES['aws'] = BULK_STREAM_TYPES['aws'] | {'codebuild_selected_inline_buildspec'}
 BULK_STREAM_TYPES['aws'] = BULK_STREAM_TYPES['aws'] | {'aws_selected_workload_command_literals'}
 BULK_STREAM_TYPES['azure'] = BULK_STREAM_TYPES['azure'] | {'azure_function_package_portable_20261020'}
+BULK_STREAM_TYPES['gcp'] = BULK_STREAM_TYPES['gcp'] | {'cloud_run_selected_job_image_vulnerabilities'}
 
 
 def _selected_graph_categories(categories, native, analyzed, explicit_categories, checks, frameworks):

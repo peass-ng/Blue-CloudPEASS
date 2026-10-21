@@ -5,7 +5,7 @@ projection ASTs and compare the complete registered-check/label cross product.
 """
 SOURCE_SHA256 = '1f051f70a4150f7e27e09d002c6154d7dab0b4fcbfce1a8e1e995bfaa4975222'
 NETWORK_SOURCE_SHA256 = '4d7925af412ee580445ce49b1e6f0c44f7a8d5534a6d02c550338a4ece952f09'
-MANIFEST_SHA256 = '1a9c0705c8c95e5d100ef951d0f0689fa6685021a0f39a7159c6c38e95cd4458'
+MANIFEST_SHA256 = '4c632711a6d3cce98032390470ac2e2f4d05c07d576c7d074dfee0ff23e91ebf'
 from functools import lru_cache
 import json
 import hashlib

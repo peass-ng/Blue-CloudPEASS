@@ -2520,6 +2520,10 @@ def collect(connector, requirements=None, *, transport=None):
                     jobs.append((child, child_scope, ENDPOINTS[kind][0].split("/")[0], fetch))
         reader.run(jobs)
         jobs = []
+        if options.get("_azure_app_service_runtime_checks") == ["azure.review.app_service.runtime_support_declared"]:
+            from . import azure_app_service_runtime_producer_20261021
+            azure_app_service_runtime_producer_20261021.collect_selected(
+                reader, transport.request, scopes, reader.collections)
         if "key_rotation_policy" in wanted:
             for collection in [c for c in reader.collections if c["type"] == "key_metadata"]:
                 if collection["status"] not in ("collected", "empty"):

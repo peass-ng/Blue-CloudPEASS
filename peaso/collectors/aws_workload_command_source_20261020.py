@@ -10,7 +10,6 @@ from datetime import date, datetime
 import hashlib
 import io
 import json
-import math
 from pathlib import Path
 import re
 import time
@@ -23,7 +22,9 @@ KIND = 'aws_selected_workload_command_literals'
 OPTION = 'selected_aws_workload_commands'
 GRANT = 'aws-workload-selected-command-literals-v1'
 SCHEMA = 'aws-workload-command-source-20261020-v1'
-MAX_TARGETS, MAX_SCOPES, MAX_CALLS = 8, 4, 12
+MAX_TARGETS, MAX_CALLS = 8, 12
+MAX_SCOPES = 4  # Retained selected-content scope bound; metadata scopes are validated separately.
+MAX_SELECTED_SCOPES = 4
 MAX_RESPONSE, MAX_TOTAL = 2 * 1024 * 1024, 4 * 1024 * 1024
 MAX_CONTENT, MAX_LITERALS, MAX_CONTAINERS = 256 * 1024, 256, 32
 MAX_LEAKS, MAX_LOCATIONS, MAX_SECONDS = 128, 512, 90
@@ -77,18 +78,22 @@ def prepare(options, scopes):
             or options.get('content_secret_scan_grants') != [GRANT]):
         raise ValueError('explicit_grant_required')
     targets = options.get(OPTION)
-    if (not isinstance(scopes, list) or not 1 <= len(scopes) <= MAX_SCOPES
+    if (not isinstance(scopes, list) or not scopes
             or any(not isinstance(s, str) or len(s) > 80 or not SCOPE.fullmatch(s) for s in scopes)
             or len(set(scopes)) != len(scopes) or not isinstance(targets, list)
             or not 1 <= len(targets) <= MAX_TARGETS):
         raise ValueError('invalid_selection')
     seen = set()
+    selected_scopes = set()
     for target in targets:
         parse(target)
         ident = locator(target)
         if target['scope'] not in scopes or ident in seen:
             raise ValueError('invalid_selection')
         seen.add(ident)
+        selected_scopes.add(target['scope'])
+        if len(selected_scopes) > MAX_SELECTED_SCOPES:
+            raise ValueError('invalid_selection')
     body = {'targets': deepcopy(targets), 'scopes': list(scopes), 'binding': reviewed_sources()}
     return {'body': body, 'seal': _fingerprint(json.dumps(body, sort_keys=True))}
 

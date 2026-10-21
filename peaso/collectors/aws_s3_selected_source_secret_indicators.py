@@ -30,6 +30,7 @@ SCHEMA = 'aws-selected-s3-source-v1'
 FORMATS = ('text', 'zip', 'tar', 'tar.gz')
 PROJECTION_OPERATIONS = {('sts', 'get_caller_identity'), ('s3', 'get_bucket_location'), ('s3', 'head_object'), ('s3', 'get_object')}
 MAX_TARGETS = 4
+MAX_SELECTED_SCOPES = 8
 MAX_CALLS = 20
 MAX_OBJECT = 2 * 1024 * 1024
 MAX_WIRE_TOTAL = 8 * 1024 * 1024
@@ -88,11 +89,12 @@ def selected_targets(options, scopes):
     if OPTION not in options and not enabled(options):
         return []
     targets = options.get(OPTION)
-    if (not isinstance(scopes, list) or not 1 <= len(scopes) <= 8
+    if (not isinstance(scopes, list) or not scopes
             or any(not isinstance(s, str) or not SCOPE.fullmatch(s) for s in scopes)
             or len(set(scopes)) != len(scopes) or not isinstance(targets, list) or not 1 <= len(targets) <= MAX_TARGETS):
         raise Incomplete('invalid_s3_selection')
     seen = set()
+    selected_scopes = set()
     for target in targets:
         parse(target)
         # One object/version may not acquire ambiguous competing format declarations.
@@ -100,6 +102,9 @@ def selected_targets(options, scopes):
         if target['scope'] not in scopes or locator in seen:
             raise Incomplete('invalid_s3_selection')
         seen.add(locator)
+        selected_scopes.add(target['scope'])
+        if len(selected_scopes) > MAX_SELECTED_SCOPES:
+            raise Incomplete('invalid_s3_selection')
     return deepcopy(targets)
 
 

@@ -37,11 +37,11 @@ RAWV2_EDITS = ((b'collector_noop_authorization_shared_successor_20261020 = aws_w
 def metadata_initializer_bytes(raw):
     """Accept either exact epoch; reverse only the reviewed three hunks."""
     digest = hashlib.sha256(raw).hexdigest()
-    if digest == 'ded9ac527c13d868469a465d7f30e4aa0b43b04adaba651cab8d038d148af7d9':
+    if digest == 'ec7a07be2ec474b98096199868629250d7f16fa17835787bcc377c54d41a64d8':
         from pathlib import Path
         import json
         receipt_raw = (Path(__file__).resolve().parents[1] / 'peaso/checks/private_secret_shared_source_successor_20261021.json').read_bytes()
-        if hashlib.sha256(receipt_raw).hexdigest() != 'fed06f844c138e85464c62204f6b2fd90339c2a3f25fd3897fc0585612d722cd':
+        if hashlib.sha256(receipt_raw).hexdigest() != 'd4b4ccaba051f32e74a743b86eeb388e380bf2f83760e0be5693ff4150df5003':
             raise RuntimeError("Private initializer receipt changed")
         for before, after in reversed(json.loads(receipt_raw)['initializer_edits']):
             before, after = before.encode(), after.encode()

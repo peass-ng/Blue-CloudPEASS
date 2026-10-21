@@ -16565,6 +16565,18 @@
     "gcp.review.cloudrun_job.declared_image_secret_indicators": {
       "decision": "include",
       "group": "security_configuration"
+    },
+    "azure.review.app_service.runtime_support_declared": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "gcp.review.cloud_run.selected_job_image_vulnerabilities": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "aws.review.ecr.selected_image_vulnerabilities": {
+      "decision": "include",
+      "group": "security_configuration"
     }
   }
 }

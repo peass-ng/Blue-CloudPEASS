@@ -4135,6 +4135,7 @@
     "gcp.review.project.literal_configuration_secret_indicators": "secrets",
     "gcp.review.cloudrun_service.literal_configuration_secret_indicators": "secrets",
     "gcp.review.cloudrun_job.literal_configuration_secret_indicators": "secrets",
+    "gcp.review.cloud_run.selected_job_image_vulnerabilities": "vulnerabilities",
     "gcp.review.cloudbuild_trigger.literal_configuration_secret_indicators": "secrets",
     "gcp.review.cloudbuild_build.literal_configuration_secret_indicators": "secrets",
     "gcp.review.logging.application_log_secret_indicators": "secrets",
@@ -4164,6 +4165,7 @@
     "gcp.review.cloudtasks.selected_payload_secret_indicators": "secrets",
     "gcp.review.bigquery.selected_routine_secret_indicators": "secrets",
     "azure.review.app_service.selected_app_settings_secret_indicators": "secrets",
+    "azure.review.app_service.runtime_support_declared": "patching",
     "k8s.review.selected_literals.secret_indicators": "secrets",
     "azure.review.acr.selected_image_secret_indicators": "secrets",
     "aws.review.lambda.selected_environment_secret_indicators": "secrets",
@@ -4220,6 +4222,7 @@
     "gcp.review.workbench.file_download_disabled": "data_privacy",
     "gcp.review.workbench.auto_upgrade_schedule_declared": "patching",
     "aws.review.workload.selected_command_literal_secret_indicators": "secrets",
-    "gcp.review.cloudrun_job.declared_image_secret_indicators": "secrets"
+    "gcp.review.cloudrun_job.declared_image_secret_indicators": "secrets",
+    "aws.review.ecr.selected_image_vulnerabilities": "vulnerabilities"
   }
 }

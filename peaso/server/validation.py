@@ -9,6 +9,7 @@ from fastapi import HTTPException
 
 OPTIONS = {
     "content_secret_scans",
+    "image_vulnerability_scans",
     "selected_gcs_objects",
     "selected_gcs_archives",
     "selected_dataform_files",
@@ -51,6 +52,7 @@ OPTIONS = {
 OPTIONS.add('selected_aws_codebuild_inline_buildspecs')
 OPTIONS.add('selected_aws_workload_commands')
 OPTIONS.add('selected_cloudrun_job_declared_images')
+OPTIONS.add('selected_aws_image_vulnerabilities')
 AUTH = {
     "aws": {"method", "aws_access_key_id", "aws_secret_access_key", "aws_session_token", "role_arn", "external_id", "role_chain", "assume_roles", "region_name", "role_session_name"},
     "gcp": {"method", "token", "sa_json", "quota_project", "external_account_json", "subject_token", "project_proof_label"},
@@ -68,11 +70,17 @@ LEGACY_EXTERNAL_ID_PREFIX = "peaso-"
 
 
 def validate_connector(provider, auth, options, settings, *, server_external_id=False, scopes=None):
+    if 'image_vulnerability_scans' in options or 'selected_aws_image_vulnerabilities' in options:
+        try:
+            from .image_selection_options_20261021 import validate_image_options
+            validate_image_options(provider, options, scopes or [])
+        except (ValueError, TypeError, KeyError, AttributeError):
+            raise HTTPException(422, 'Image vulnerability scans require a boolean and exact AWS image targets or GCP Job image selectors in selected scopes') from None
     if 'selected_cloudrun_job_declared_images' in options:
         try:
             if provider != 'gcp':
                 raise ValueError('Selected Job declared images require GCP')
-            from peaso.collectors.gcp_cloudrun_job_image_runtime_20261020 import validate_options as validate_cloudrun_job_images
+            from .cloudrun_job_selection_static_20261021 import validate_options as validate_cloudrun_job_images
             validate_cloudrun_job_images(options, scopes or [])
         except (ValueError, TypeError, KeyError, AttributeError):
             raise HTTPException(422, 'Selected Cloud Run Job declared images require exact supported selectors in one explicit project') from None
@@ -446,7 +454,7 @@ def validate_connector(provider, auth, options, settings, *, server_external_id=
         except ValueError:
             raise HTTPException(422, "Invalid GCP Data Access owner policy") from None
     # Audit declarations are validated before the local-auth return as owner policies are.
-    from peaso.collectors.gcp_audit_native import validate_audit_options
+    from .gcp_audit_options_static_20261021 import validate_audit_options
     try:
         validate_audit_options(provider, options)
     except ValueError:

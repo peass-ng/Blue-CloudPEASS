@@ -24,6 +24,7 @@ PROFILE = 'aws-selected-configuration-content-v1'
 MARKER = 'SelectedConfigurationSecretIndicators'
 SCHEMA = 'aws-selected-configuration-content-v1'
 MAX_TARGETS = 16
+MAX_SELECTED_SCOPES = 8
 MAX_RESPONSE = 2 * 1024 * 1024
 MAX_TOTAL = 8 * 1024 * 1024
 MAX_CONTENT = 1024 * 1024
@@ -91,14 +92,16 @@ def selected_targets(options,scopes):
     if not isinstance(options,dict) or ('content_secret_scans' in options and type(options['content_secret_scans']) is not bool):raise ValueError('invalid_configuration_selection')
     if OPTION not in options and not enabled(options):return []
     targets=options.get(OPTION)
-    if (not isinstance(scopes,list) or not 1<=len(scopes)<=8
+    if (not isinstance(scopes,list) or not scopes
             or any(not isinstance(s,str) or not SCOPE.fullmatch(s) for s in scopes) or len(set(scopes))!=len(scopes)
             or not isinstance(targets,list) or not 1<=len(targets)<=MAX_TARGETS):raise ValueError('invalid_configuration_selection')
-    seen=set()
+    seen=set();selected_scopes=set()
     for target in targets:
         parse(target);key=identity(target)
         if target['scope'] not in scopes or key in seen:raise ValueError('invalid_configuration_selection')
         seen.add(key)
+        selected_scopes.add(target['scope'])
+        if len(selected_scopes)>MAX_SELECTED_SCOPES:raise ValueError('invalid_configuration_selection')
     return deepcopy(targets)
 
 

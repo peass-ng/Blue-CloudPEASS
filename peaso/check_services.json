@@ -276,7 +276,8 @@
     "configuration_selected_content": "account",
     "s3_selected_source_content": "s3",
     "codebuild_selected_inline_buildspec": "codebuild",
-    "aws_selected_workload_command_literals": "account"
+    "aws_selected_workload_command_literals": "account",
+    "ecr_selected_image_vulnerabilities": "ecr"
   },
   "azure": {
     "access_review_definition": "Microsoft.Graph",
@@ -607,7 +608,8 @@
     "workbench_selected_referenced_source_20261020": "notebooks",
     "dataflow_selected_package_source": "dataflow",
     "batch_selected_mounted_script_source": "batch",
-    "cloudrun_job_declared_image": "run"
+    "cloudrun_job_declared_image": "run",
+    "cloud_run_selected_job_image_vulnerabilities": "run"
   },
   "k8s": {
     "admission_policy": "kubernetes",

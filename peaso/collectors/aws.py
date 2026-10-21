@@ -1840,6 +1840,13 @@ def collect(connector, requirements=None):
     options, auth = connector.get("options", {}), connector.get("auth", {})
     if not isinstance(options, dict) or not isinstance(auth, dict):
         raise ValueError("auth and options must be objects")
+    from . import aws_image_vulnerability_runtime_20261021 as image_vulnerabilities
+    image_vulnerabilities.selections(options, connector.get('scopes') or [])
+    image_targets = (image_vulnerabilities.authorize_collector(options, connector.get('scopes') or [])
+                     if image_vulnerabilities.GRANT in options else [])
+    if (requirements is not None and image_vulnerabilities.KIND in requirements
+            and set(requirements) <= {image_vulnerabilities.KIND, 'aws_account'} and not image_targets):
+        return image_vulnerabilities.disabled_snapshot(connector.get('scopes') or [])
     from . import aws_codebuild_buildspec_runtime_20261020 as codebuild_inline
     from . import aws_workload_command_runtime_20261020 as workload_commands
     workload_command_plan = workload_commands.authorize_collector(options, connector.get('scopes') or [])
@@ -1936,12 +1943,14 @@ def collect(connector, requirements=None):
     requests.ecr_latest_scan_requested = (requirements is None or options.get("_ecr_latest_scan_requested") is True)
     scope_workers = _bound(options, "scope_concurrency", 2, maximum=8)
     region_workers = _bound(options, "region_concurrency", 2, maximum=8)
-    inventories = options.get("inventories", [kind for kind in AWS_TYPES if kind not in (aws_lambda_environment_secret_indicators.KIND, aws_selected_configuration_secret_indicators.KIND, aws_s3_selected_source_secret_indicators.KIND)] if requirements is None else AWS_TYPES)
+    inventories = options.get("inventories", [kind for kind in AWS_TYPES if kind not in (aws_lambda_environment_secret_indicators.KIND, aws_selected_configuration_secret_indicators.KIND, aws_s3_selected_source_secret_indicators.KIND, image_vulnerabilities.KIND)] if requirements is None else AWS_TYPES)
     if not isinstance(inventories, list) or any(kind not in AWS_TYPES for kind in inventories):
         raise ValueError("inventories must be supported AWS resource types")
     if requirements is not None and (not isinstance(requirements, list) or any(not isinstance(x, str) for x in requirements)):
         raise ValueError("requirements must be a list of resource types")
     wanted = set(inventories) & (set(requirements) if requirements is not None else set(AWS_TYPES))
+    if not image_targets:
+        wanted.discard(image_vulnerabilities.KIND)
     if not codebuild_inline_permitted:
         wanted.discard(codebuild_inline.KIND)
     if workload_command_plan is None:
@@ -2409,6 +2418,8 @@ def collect(connector, requirements=None):
         return ReadResult([], "not_collected", {"code": "unsupported_inventory"})
 
     def regional_job(session, identity, region, kind):
+        if kind == image_vulnerabilities.KIND:
+            return image_vulnerabilities.collect_scope(requests, session, identity, region, image_targets)
         if kind == "access_analyzer":
             return analyzer_lifecycle.collect(session, identity, region, ENRICHERS[kind])
         if kind == 'lightsail_bucket' and lightsail_iam_only:
@@ -2684,6 +2695,7 @@ def collect(connector, requirements=None):
     collections, metadata = aws_s3_selected_source_secret_indicators.finalize(requests, collections, metadata)
     collections, metadata = codebuild_inline.finalize(requests, collections, metadata, options)
     collections, metadata = workload_commands.publish(workload_command_capture, workload_command_plan, collections, metadata, options)
+    image_vulnerabilities.attach_metadata(metadata, collections, image_targets)
     return make_snapshot("aws", scopes, collections, created_at=requests.observed_at.isoformat(), metadata=_safe(metadata))
 
 
@@ -2781,3 +2793,8 @@ SPECS['codebuild_selected_inline_buildspec'] = ('codebuild', 'batch_get_projects
 _NATIVE_IDS['codebuild_selected_inline_buildspec'] = 'id'
 AWS_TYPES[:] = sorted(set(SPECS) | GLOBAL_TYPES)
 AWS_TYPES.append('aws_selected_workload_command_literals')
+
+# Explicit immutable image CVE kind, excluded from default inventory reads.
+SPECS['ecr_selected_image_vulnerabilities'] = ('ecr', 'batch_get_image', None)
+_NATIVE_IDS['ecr_selected_image_vulnerabilities'] = 'id'
+AWS_TYPES.append('ecr_selected_image_vulnerabilities')

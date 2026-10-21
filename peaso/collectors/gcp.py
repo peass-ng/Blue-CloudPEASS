@@ -806,6 +806,7 @@ SUPPORTED_TYPES = SUPPORTED_TYPES | {'log_entry', 'scc_finding', 'scc_notificati
 SUPPORTED_TYPES = SUPPORTED_TYPES | {'source_repository_file', 'cloudtasks_selected_task', 'bigquery_selected_routine'}
 SUPPORTED_TYPES = SUPPORTED_TYPES | dataproc_source_runtime.KINDS | workbench_source_runtime.KINDS | selected_job_source_runtime.KINDS
 SUPPORTED_TYPES = SUPPORTED_TYPES | {'cloudrun_job_declared_image'}
+SUPPORTED_TYPES = SUPPORTED_TYPES | {'cloud_run_selected_job_image_vulnerabilities'}
 # These inventories represent optional application content, not metadata.
 # An unselected read cannot establish that no resources/content exist.
 CONTENT_ONLY_TYPES = selected_job_source_runtime.KINDS | dataproc_source_runtime.KINDS | workbench_source_runtime.KINDS | frozenset({
@@ -819,6 +820,7 @@ CONTENT_ONLY_TYPES = selected_job_source_runtime.KINDS | dataproc_source_runtime
     'function_source_archive', 'composer_dag_source', 'artifact_selected_file', 'cloudbuild_log_source', 'appengine_deployment_source',
 })
 CONTENT_ONLY_TYPES = CONTENT_ONLY_TYPES | {'cloudrun_job_declared_image'}
+CONTENT_ONLY_TYPES = CONTENT_ONLY_TYPES | {'cloud_run_selected_job_image_vulnerabilities'}
 # Compute kinds whose resource IAM policy is read with the per-kind GET
 # {resource}/getIamPolicy method (collection path segment, location kind).
 COMPUTE_IAM = {"subnetwork": ("subnetworks", "region"), "image": ("images", None), "node_group": ("nodeGroups", "zone"),
@@ -3827,6 +3829,9 @@ def collect(connector: dict, requirements: list[str] | None = None) -> dict:
     options = connector.get("options") or {}
     inventories = options.get("inventories", [])
     selected = inventories if requirements is None else requirements
+    if 'cloud_run_selected_job_image_vulnerabilities' in selected:
+        from .gcp_job_image_vulnerability_runtime_20261021 import collect_connector
+        return collect_connector(connector, requirements)
     if 'cloudrun_job_declared_image' in selected:
         from .gcp_cloudrun_job_image_runtime_20261020 import collect_connector
         return collect_connector(connector, requirements)
