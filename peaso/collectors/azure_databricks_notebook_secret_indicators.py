@@ -1,4 +1,6 @@
 """Unregistered bounded notebook SOURCE exports; existing workspace principals only."""
+
+from peaso.secret_evidence import scan_with_source, target_source
 from copy import deepcopy
 import base64
 import http.client
@@ -171,8 +173,8 @@ def _scan(reader,transport,target,scope,state,receipts):
         after=read('status_after')
         if notebook(after,path)!=(object_id,language,resource):raise ValueError('object_changed')
         receipts[-1].update(identity_bound=True,object_binding=binding);del after,object_id
-        count=len(raw);result=scan_content(raw,ident+'.notebook_source',timeout=remaining(reader,state)/2,
-            _redact_values=lambda values:remember(reader,'configuration_secret_redactions',values));del raw
+        count=len(raw);result=scan_with_source(scan_content, raw,ident+'.notebook_source',timeout=remaining(reader,state)/2,
+            _redact_values=lambda values:remember(reader,'configuration_secret_redactions',values), source=target_source(target, resource_id=ident, scope=scope));del raw
         marker['parts']=[{'bytes':count,'engines':deepcopy(result['engines']),'complete':result['complete']}]
         leaks=merge_leaks(result['leaks']);bounded=[];locations=0
         for leak in leaks:

@@ -11,6 +11,8 @@ Only existing offline detection adapters run. No credential validation, Secret
 Manager reads, downloads, subprocess output, environment values or snippets are
 returned. The caller must use the original successful unmasked API response.
 """
+
+from peaso.secret_evidence import scan_with_source
 import re
 import time
 from urllib.parse import urlsplit
@@ -114,8 +116,8 @@ def _scan_function(row, scope, location, function, budget, complete, status, che
             remaining = budget[1] - time.monotonic()
             if remaining <= 0:
                 raise TimeoutError('offline scan time budget')
-            outcome = scan_content(payload, surface + '.environmentVariables', timeout=min(10, remaining / 2),
-                                   _redact_values=redactions.update)
+            outcome = scan_with_source(scan_content, payload, surface + '.environmentVariables', timeout=min(10, remaining / 2),
+                                   _redact_values=redactions.update, source={'resource_id': name, 'location_kind': 'configuration', 'scope': scope}, native=row[surface])
             merged = merge_leaks(outcome['leaks'])
             if len(merged) > MAX_LEAKS or sum(len(leak['locations']) for leak in merged) > MAX_LOCATIONS:
                 raise ValueError('redacted result bound')

@@ -3,6 +3,8 @@
 SDK responses are allocated before this projection. Bounds limit inspected and
 retained bytes, not transport allocation. No secret store, execution or writes.
 """
+
+from peaso.secret_evidence import scan_with_source, source_context, target_source
 from copy import deepcopy
 from datetime import date, datetime
 import base64
@@ -463,8 +465,8 @@ def project_response(response,service,operation,arguments,*,request_context=None
             payload,count=extract(response,service,operation,arguments,info)
             if info['surface']=='ssm_document':marker['requests'].insert(0,deepcopy(requests.configuration_content_owned[info['id']]))
             marker.update(native_complete=True,status='collected',literal_count=count,bytes=len(payload))
-            outcome=scan_content(payload,info['id']+'.content',timeout=min(60,remaining(requests)),
-                _redact_values=lambda values:remember_matches(requests,values))
+            outcome=scan_with_source(scan_content, payload,info['id']+'.content',timeout=min(60,remaining(requests)),
+                _redact_values=lambda values:remember_matches(requests,values), source={'scope': info['scope'], 'path': info['surface'], 'location_kind': 'configuration'}, native=response)
             del payload
             leaks=merge_leaks(outcome['leaks'])
             # Literal rendering/JSON decoding can represent the same source
@@ -499,11 +501,12 @@ def collect_selected(requests,session,region,caller,options,scopes):
         service,operation,args=route(target);locator=opaque_arguments(args)['request_locator']
         info=requests.configuration_content_approved[(service,operation,region,locator)]
         try:
-            if surface=='ssm_document':
-                own_service,own_operation,own_args=route(target,ownership=True)
-                owned=requests.call(session,own_service,region,own_operation,_metadata_profile=PROFILE,**own_args)
-                if owned[MARKER]['status']!='owned_document_metadata':raise ValueError('document_owner_unresolved')
-            item=requests.call(session,service,region,operation,_metadata_profile=PROFILE,**args)
+            with source_context(**target_source(target, path=surface, location_kind='configuration')):
+                if surface=='ssm_document':
+                    own_service,own_operation,own_args=route(target,ownership=True)
+                    owned=requests.call(session,own_service,region,own_operation,_metadata_profile=PROFILE,**own_args)
+                    if owned[MARKER]['status']!='owned_document_metadata':raise ValueError('document_owner_unresolved')
+                item=requests.call(session,service,region,operation,_metadata_profile=PROFILE,**args)
         except Exception:
             marker=base(info,requests,locator);marker['principal']=principal
             item={'id':info['id'],MARKER:marker,'_provenance':{'scope':info['scope'],'capture':marker['capture'],'selection_locator':info['id']}}

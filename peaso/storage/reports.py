@@ -85,6 +85,8 @@ def resource_chunks(artifacts, tenant, ident, report, snapshot):
 
 
 def publish_report(artifacts, tenant, ident, report, snapshot=None):
+    from peaso.secret_evidence import without_private_values
+    report = without_private_values(report)
     from peaso.finding_groups import group_report
     from peaso.ai.finding_reviews import apply_report_reviews
     report = apply_report_reviews(report)

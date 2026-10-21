@@ -2,6 +2,8 @@
 
 No registration, datastore credentials, source listing, execution or URL following.
 """
+
+from peaso.secret_evidence import scan_with_source, target_source
 import http.client
 import json
 import re
@@ -227,7 +229,7 @@ def _one(reader,transport,state,ledger,profile,target,scope):
         if _workspace(get('workspace_after',workspace,WORKSPACE_API),workspace,state['authority']['tenant'])!=binding:raise ValueError('workspace_changed')
         ledger[-1]['bound']=True;del closing
         marker['native_complete']=True;remaining(reader,state)
-        result=scan_content(raw,ident+'.'+profile,timeout=remaining(reader,state)/2,_redact_values=lambda values:remember(reader,'configuration_secret_redactions',values));size=len(raw);del raw
+        result=scan_with_source(scan_content, raw,ident+'.'+profile,timeout=remaining(reader,state)/2,_redact_values=lambda values:remember(reader,'configuration_secret_redactions',values), source=target_source(target, resource_id=ident, scope=scope));size=len(raw);del raw
         marker['parts']=[{'bytes':size,'complete':result['complete'],'engines':deepcopy(result['engines'])}]
         leaks=merge_leaks(result['leaks'])
         if len(leaks)>MAX_LEAKS or sum(len(l['locations'])for l in leaks)>MAX_LOCATIONS:raise ValueError('leak_bound')

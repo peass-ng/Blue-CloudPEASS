@@ -626,6 +626,8 @@ class Transport:
                 # including malformed values so pages() can reject them.
                 has_native_cursor = 'nextPageToken' in data
                 native_cursor = copy.deepcopy(data.get('nextPageToken'))
+                from peaso.secret_evidence import native_environment_resources
+                native_environment_resources(data, provider='gcp', scope=scope, method=method, url=url, body=body)
                 if parsed.hostname in {"appengine.googleapis.com", "artifactregistry.googleapis.com",
                                        "integrations.googleapis.com", "www.googleapis.com"}:
                     from .gcp_facts_v4_holds import project_transport_response

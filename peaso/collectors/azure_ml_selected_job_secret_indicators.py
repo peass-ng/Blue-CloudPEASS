@@ -1,4 +1,6 @@
 """Unregistered exact ARM Command-job literals; no source URI following or execution."""
+
+from peaso.secret_evidence import scan_with_source, target_source
 from copy import deepcopy
 import json
 import re
@@ -111,10 +113,10 @@ def _scan(reader, transport, target, scope, state, receipts):
         raw,projection_complete=project(props);marker['projection_complete']=projection_complete
         # Native-declared reference strings are opaque declarations, never asset/read proofs.
         marker['declared_references']={k:_fingerprint(props[k])for k in('codeId','environmentId')if isinstance(props.get(k),str)and props[k]}
-        del native,props
+        del props
         payload_bytes=len(raw)
-        result=scan_content(raw,ident+'.command_environment_literals',timeout=remaining(reader,state)/2,
-            _redact_values=lambda values:remember(reader,'configuration_secret_redactions',values));del raw
+        result=scan_with_source(scan_content, raw,ident+'.command_environment_literals',timeout=remaining(reader,state)/2,
+            _redact_values=lambda values:remember(reader,'configuration_secret_redactions',values), source=target_source(target, resource_id=ident, scope=scope, location_kind='configuration'), native=native);del raw,native
         marker['parts']=[{'bytes':payload_bytes,'engines':deepcopy(result['engines']),'complete':result['complete']}]
         leaks=merge_leaks(result['leaks']);bounded=[];locations=0
         for leak in leaks:

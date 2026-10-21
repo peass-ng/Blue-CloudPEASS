@@ -1039,6 +1039,8 @@ class AzureTransport:
                 if len(raw) > max_response_bytes:
                     raise AzureReadError("response_too_large")
             value = _strict_native_json(raw)
+            from peaso.secret_evidence import native_environment_resources
+            native_environment_resources(value, provider='azure', method='GET' if body is None else 'POST', url=url, body=body)
             if is_network_audience(audience):
                 value = project_response(value, audience)
             if capture_subject:

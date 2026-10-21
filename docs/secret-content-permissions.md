@@ -5,8 +5,10 @@ resource's metadata does not establish access to its source files, settings or i
 layers. Enable `content_secret_scans: true` and explicitly select the relevant content
 check and targets. Bulk check selection does not enable content downloads.
 
-Both Kingfisher and TruffleHog run offline. Detected values are hidden and matching
-values within a provider report are merged into one leak with multiple locations. Detection does not test
+Both Kingfisher and TruffleHog run offline. Native snapshots, shared caches, finding
+lists and normal report downloads remain redacted. Matching values within a provider
+report are merged by the existing exact-value HMAC fingerprint into one leak with
+multiple locations. Detection does not test
 whether a credential works. Incomplete reads or a missing detector cannot establish
 a clean result. Coverage is limited to the selected objects and documented bounds.
 
@@ -177,7 +179,8 @@ object, 512 nonempty supported literals and a 60-second reader deadline. Existin
 shared scan budgets can stop the reader earlier. Both pinned offline detectors
 must complete for a clean result; denied, changed, malformed, oversized or
 incomplete content cannot establish absence of secrets. Raw literal values are
-discarded before snapshots and shared result caches retain only safe results.
+excluded from snapshots and shared result caches; matched values are retained only
+in the separate encrypted private evidence described below.
 An identity-bound hit from a completed detector remains a failure when the other
 runner is unavailable, with coverage explicitly incomplete. Unknown source
 identity or incomplete native reads remain unresolved.
@@ -220,3 +223,88 @@ exec or node access and does not establish which file a process mounted or used.
 - GCP: [Cloud Run Job declared images](peaso-gcp-selected-job-images.md), requiring Job/project/repository/image metadata reads and repository download permission. Metadata-only access is insufficient.
 
 Image vulnerability scanning uses Trivy, separately from Kingfisher/TruffleHog secret detection. Its optional runner is being validated locally; availability in a deployed collector is not yet established. No Snyk authentication is required.
+
+
+## Full matched values and exact origins in finding detail
+
+Fresh scans retain the actual matched value in a separate encrypted per-scan
+secret-evidence artifact. The tenant-authorized individual finding and grouped
+finding detail APIs/UI show that full value directly with its observed resource,
+original file or archive-member path, native field, source version/commit, and
+image manifest/layer digest when those identities were available. File lines are
+reported only when they refer to the original inspected text. Configuration JSON
+serialization and sampled logs do not establish an original file line; the detail
+shows that line as unknown. This includes legacy configuration-pattern and literal
+environment-name findings where the collector actually observed a value.
+For a detector such as TruffleHog that reports both `Raw` and a complete `RawV2`
+credential pair, private detail retains both representations and any exact observed
+secret-key component. Each value has its own encrypted record linked to the original
+public fingerprint. A detector-composed representation that does not occur verbatim
+in the source is explicitly labeled as detector-derived: its scanned input is shown
+separately, with no asserted observed native path/field or line. Its verified observed
+components retain their actual paths, fields and lines.
+Decoded-only matches likewise identify the scanned input without claiming a
+literal native path/field or line. Privacy redaction still covers recognized
+decoded credential components even when their literal bytes are absent; this
+does not turn a detector representation into a literal-source witness.
+The collector keeps an encrypted transient scrub set for such components, so
+copies in other resource metadata are also removed before snapshot publication.
+That scrub set is not a finding witness and is not included in persisted evidence.
+References, masked fields and metadata-only findings never supply invented values,
+and secret-store references are not resolved. Content inspection still requires
+its existing explicit opt-in, named check and exact selectors.
+
+Private evidence uses the deployment's credential encryption key, binds every
+value to its tenant and scan, and is not included in native observations, generic
+finding/member summaries, public JSON/Markdown report artifacts, normal downloads,
+AI prompts or logs. Detail reads require the same tenant authorization as the
+finding, including valid tenant API keys; responses use `private, no-store`.
+The encrypted evidence object is never presigned or attached to report manifests.
+Large private details have bounded pages; use `secret_offset=next_offset` from the
+returned `secret_evidence` object. The UI's **Show more matched values and locations**
+button loads the remaining pages without truncating a matched value or path.
+Deleting the scan/workspace deletes its private artifact with the other scan data.
+
+The CLI includes full values only when explicitly requested in an owned JSON file:
+
+```sh
+hacktricks-cspm scan --request request.json --include-secret-values --output private-findings.json
+```
+
+This option requires a JSON output file; stdout, Markdown, snapshots and normal
+exports remain redacted. The file is created with mode `0600`; matched values are
+inside finding observations (or the deduplicated secret detail) with their origins.
+The local user who owns that file can read `secret_evidence.matches[].value` and
+`secret_evidence.matches[].locations` directly; no hosted API or decrypt command is
+required. Grouped findings place these objects under `findings[].observations[]`;
+deduplicated secrets also expose them on the finding itself. A locally running web
+server offers the same authenticated finding-detail endpoint as the hosted service:
+`GET /api/scans/{scan_id}/findings/{finding_id}`. Listing findings does not reveal
+values; the caller must retrieve the particular finding detail with a valid local
+session or tenant API key. The CLI flag does not recover values from `--snapshot`.
+The CLI uses an ephemeral encryption key during collection and does not persist a
+separate decryptable evidence store.
+
+A historic scan whose values or original paths were discarded cannot recover them.
+Its detail explicitly reports that full values are unavailable and requests a fresh
+scan. Capture is bounded to 10,000 distinct values, 50,000 locations, a 64 MiB
+tracked witness/alias/scrub budget and 2 MiB per value; encryption and index
+serialization add overhead. Exceeding a witness bound marks private capture
+incomplete and never presents a truncated string as the full matched value.
+If the bounded privacy scrub cannot retain the values needed for complete
+redaction, the scan refuses snapshot/report publication rather than publishing
+an unsafe partial result.
+Detection does not validate whether a credential works.
+
+Workload name checks retain values only from the exact admitted native workload
+route, kind, scope and environment field, and only for checks in the requested
+category/check/framework selection. Unrelated responses, metadata objects and
+unselected name checks are not additional capture surfaces. Each finding detail
+joins only its canonical resource/scope/path/layer and check association; a
+deduplicated finding can show multiple origins only when its canonical witnesses
+explicitly bind them. Ambiguous associations are withheld rather than guessed.
+An individual finding cannot use a canonical location that contradicts its resource
+or scope. Environment capture reads only immediate native entries, never nested
+lookalike fields in entry metadata. The existing custom `secretKeys` policy check
+covers both AKS Pods and ACI container groups; selecting it retains only matching
+literal names on those native surfaces.

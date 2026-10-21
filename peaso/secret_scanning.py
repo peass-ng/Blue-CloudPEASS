@@ -1,7 +1,8 @@
 """Offline dual-engine content detection and value-level, redacted correlation.
 
 Only the collector process retains the random HMAC key. It links occurrences
-within that collection, never stores secrets, and cannot link separate scans.
+within that collection and cannot link separate scans. An explicit collector
+sink can retain encrypted private matches separately from this public result.
 """
 from copy import deepcopy
 from functools import lru_cache
@@ -71,7 +72,7 @@ def _scan_kingfisher(payload, path, timeout):
         if not finding.visible:
             continue
         location = finding.location
-        result.append((finding.secret, finding.rule_id, location.get('line', 1)))
+        result.append((finding.secret, finding.rule_id, location.get('line')))
         if len(result) > MAX_FINDINGS:
             raise ValueError('finding bound')
     return result
@@ -161,7 +162,7 @@ def _scan_trufflehog(payload, path, timeout):
     output = _run([_trufflehog(), 'stdin', '--json', '--no-verification', '--no-update',
                    '--log-level=-1', '--concurrency=1', '--force-skip-archives',
                    '--no-verification-cache', '--fail-on-scan-errors'], payload, timeout)
-    result = _DetectorMatches()
+    result, full_matches = _DetectorMatches(), []
     for line in output.splitlines():
         row = json.loads(line)
         # RawV2 is a composite display representation for some detectors. Raw
@@ -171,6 +172,8 @@ def _scan_trufflehog(payload, path, timeout):
             raise ValueError('invalid offline detector result')
         result.redaction_values.update(_complete_match_values(value, row.get('RawV2'),
             rule=_label(row.get('DetectorName', 'secret'))))
+        if isinstance(row.get('RawV2'), str) and row['RawV2'] and row['RawV2'] != value:
+            full_matches.append((value, row['RawV2'], row.get('DetectorName', 'secret')))
         # stdin metadata has no file line. Recover all exact plaintext
         # occurrences; decoded-only results have an explicitly unknown line.
         needle, start, found = value.encode('utf-8'), 0, False
@@ -183,6 +186,11 @@ def _scan_trufflehog(payload, path, timeout):
             result.append((value, row.get('DetectorName', 'secret'), None))
         if len(result) > MAX_FINDINGS:
             raise ValueError('finding bound')
+    # Preserve additional credential components only after this offline engine
+    # completed successfully. Public primary-value fingerprints stay unchanged.
+    from peaso.secret_evidence import remember_full_match
+    for primary, full, rule in full_matches:
+        remember_full_match(primary, full, payload=payload, path=path, engine='trufflehog', rule=_label(rule))
     return result
 
 
@@ -297,7 +305,8 @@ def scan_content(payload, path='content', *, timeout=15, _redact_values=None):
                  hmac.new(_KEY, path.encode('utf-8'), hashlib.sha256).digest())
     with _RESULT_LOCK:
         cached = _RESULTS.get(cache_key)
-    if cached is not None and (_redact_values is None or not cached['leaks']):
+    from .secret_evidence import enabled as private_capture, remember, remember_redactions
+    if cached is not None and not private_capture() and (_redact_values is None or not cached['leaks']):
         if _redact_values is not None:
             _redact_values(frozenset())
         return deepcopy(cached)
@@ -310,8 +319,8 @@ def scan_content(payload, path='content', *, timeout=15, _redact_values=None):
                 if not isinstance(value, str) or not value:
                     raise ValueError('empty secret')
                 known_values.add(value)
-            # Extra credential components redact metadata and paths without
-            # changing the canonical primary-value fingerprints or locations.
+            # Complete pairs/components must also be scrubbed from paths and
+            # metadata when private persistence is disabled or reaches a bound.
             known_values.update(getattr(matches, 'redaction_values', ()))
             matches_by_engine.append((name, matches))
             engines.append({'engine': name, 'version': version, 'status': 'complete'})
@@ -325,10 +334,15 @@ def scan_content(payload, path='content', *, timeout=15, _redact_values=None):
         # The callback may redact a separate metadata projection in memory.
         # Matched values never enter the result/cache or survive this call.
         _redact_values(frozenset(known_values))
+    remember_redactions(known_values)
     for value in sorted(known_values, key=lambda value: (-len(value), value)):
         safe_path = safe_path.replace(value, 'REDACTED')
     for name, matches in matches_by_engine:
         for value, rule, line in matches:
+            # Retain the actual match/value/line association before constructing
+            # redacted canonical witnesses. No raw values enter those witnesses.
+            remember(value, _fingerprint(value), path=path, public_path=safe_path, line=line, engine=name, rule=_label(rule),
+                     observed_bytes=not private_capture() or value.encode('utf-8') in payload)
             observations.append({'fingerprint': _fingerprint(value),
                 'detectors': [{'engine': name, 'rule': _label(rule)}],
                 'locations': [{'path': safe_path, **({'line': line} if type(line) is int and line > 0 else {})}]})

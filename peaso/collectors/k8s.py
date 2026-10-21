@@ -770,6 +770,8 @@ def _native(item, kind, cluster, scope, namespaced):
     if not namespaced and namespace:
         raise ValueError("cluster object has namespace")
     namespace = namespace if namespaced else "_cluster"
+    from peaso.secret_evidence import pod_environment
+    pod_environment(item, kind=kind, resource_id='k8s://' + '/'.join(quote(str(x), safe='') for x in (cluster, kind, namespace, meta.get('uid') or name)), scope=namespace if scope == '*' else scope)
     result = _sanitize(item)
     annotations = meta.get("annotations", {})
     if isinstance(annotations, dict):

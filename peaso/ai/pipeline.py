@@ -21,7 +21,8 @@ from . import isolation
 def private_json(path, value):
     fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     with os.fdopen(fd, 'w') as stream:
-        json.dump(value, stream, default=str)
+        from peaso.secret_evidence import without_private_values
+        json.dump(without_private_values(value), stream, default=str)
 
 
 def kill_tree(process):

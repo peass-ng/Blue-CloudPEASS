@@ -3,6 +3,7 @@
 No challenge-derived hosts, catalog/tag enumeration, registry credentials export,
 container execution, filesystem extraction, credential validation or raw cache.
 """
+from peaso.secret_evidence import scan_with_source, source_context
 from copy import deepcopy
 import base64
 import hashlib
@@ -272,7 +273,7 @@ def _scan_bytes(raw,path,reader):
     remaining=reader.state['deadline']-time.monotonic()
     if remaining<1:raise Incomplete('scanner_deadline')
     from .azure_selected_secret_integration_20261020 import remember
-    result=scan_content(raw,path,timeout=min(30,remaining),
+    result=scan_with_source(scan_content,raw,path,source={},timeout=min(30,remaining),
         _redact_values=lambda values:remember(reader.reader,'acr_image_secret_redactions',values))
     reader.check()
     if result['complete'] is not True:raise Incomplete('scanners_incomplete')
@@ -283,20 +284,21 @@ def _scan_bytes(raw,path,reader):
 def _scan_json(raw, document, path, reader):
     # Inspect original bytes and decoded JSON strings, so an escaped multiline
     # credential in Env/history/annotations is not lost at the JSON boundary.
-    original=_scan_bytes(raw,path,reader)
-    stack=[document];strings=[];size=0;nodes=0
-    while stack:
-        value=stack.pop();nodes+=1
-        if nodes>MAX_MEMBERS*4:raise Incomplete('json_content_bound')
-        if isinstance(value,str):
-            payload=value.encode('utf-8',errors='strict');size+=len(payload)+2
-            if size>MAX_CONFIG*2:raise Incomplete('json_content_bound')
-            strings.append(payload)
-        elif isinstance(value,dict):
-            stack.extend(reversed(list(value.values())));stack.extend(reversed(list(value)))
-        elif isinstance(value,list):stack.extend(reversed(value))
-    if not strings:raise Incomplete('json_content_unavailable')
-    decoded=_scan_bytes(b'\n\n'.join(strings),path,reader)
+    with source_context(native=document, path=path, location_kind='configuration'):
+        original=_scan_bytes(raw,path,reader)
+        stack=[document];strings=[];size=0;nodes=0
+        while stack:
+            value=stack.pop();nodes+=1
+            if nodes>MAX_MEMBERS*4:raise Incomplete('json_content_bound')
+            if isinstance(value,str):
+                payload=value.encode('utf-8',errors='strict');size+=len(payload)+2
+                if size>MAX_CONFIG*2:raise Incomplete('json_content_bound')
+                strings.append(payload)
+            elif isinstance(value,dict):
+                stack.extend(reversed(list(value.values())));stack.extend(reversed(list(value)))
+            elif isinstance(value,list):stack.extend(reversed(value))
+        if not strings:raise Incomplete('json_content_unavailable')
+        decoded=_scan_bytes(b'\n\n'.join(strings),path,reader)
     return {'complete':True,'engines':original['engines'],
             'leaks':merge_leaks(original['leaks']+decoded['leaks'])}
 
@@ -322,7 +324,8 @@ def inspect_image(reader):
             raise Incomplete('duplicate_descriptor')
         if sum(d['size'] for d in [config]+layers)>MAX_IMAGE:raise Incomplete('compressed_image_bound')
         marker['descriptors']=deepcopy([config]+layers)
-        manifest_outcome=_scan_json(manifest_raw,manifest,reader.ident+'.manifest',reader)
+        with source_context(resource_id=reader.ident, scope=reader.scope, image_digest=reader.target['digest'], layer=reader.target['digest']):
+            manifest_outcome=_scan_json(manifest_raw,manifest,reader.ident+'.manifest',reader)
         marker['parts'].append({'part':'manifest','bytes':len(manifest_raw),'complete':True,'engines':manifest_outcome['engines']})
         raw=reader.blob('blobs',config['digest'],MAX_CONFIG,token,config['size']);decoded=_json(raw)
         if (not isinstance(decoded,dict) or set(decoded)&{'error','nextLink','partial','_partial','_coverage','resultTruncated'} or decoded.get('os')!='linux' or decoded.get('architecture') not in ('amd64','arm64')
@@ -330,36 +333,39 @@ def inspect_image(reader):
                 or not isinstance(decoded['rootfs'].get('diff_ids'),list) or len(decoded['rootfs']['diff_ids'])!=len(layers)
                 or any(not isinstance(d,str) or not DIGEST.fullmatch(d) for d in decoded['rootfs']['diff_ids'])):
             raise Incomplete('unsupported_rootfs')
-        outcome=_scan_json(raw,decoded,reader.ident+'.config',reader)
+        with source_context(resource_id=reader.ident, scope=reader.scope, image_digest=reader.target['digest'], layer=config['digest']):
+            outcome=_scan_json(raw,decoded,reader.ident+'.config',reader)
         marker['parts'].append({'part':'config','bytes':len(raw),'complete':True,'engines':outcome['engines']})
         leaks=list(manifest_outcome['leaks'])+list(outcome['leaks']);expanded=len(raw);members=regular=0
         for number,(layer,diff) in enumerate(zip(layers,decoded['rootfs']['diff_ids'])):
             payload=reader.blob('blobs',layer['digest'],MAX_LAYER,token,layer['size'])
-            safe,count=_tar(payload,layer['mediaType'],diff)
-            expanded+=len(safe)
-            if expanded>MAX_EXPANDED or regular+count>MAX_MEMBERS:raise Incomplete('expanded_image_bound')
-            # Original bytes were digest-bound before _tar replaced names. The
-            # reused parser admits only bounded regular files/directories, rejects
-            # links/devices/duplicate paths/nested archives. Never extracts files.
-            if len(safe)%512 or len(safe)<1024 or safe[-1024:]!=bytes(1024):raise Incomplete('tar_truncation')
-            offset=0
-            while offset+512<=len(safe):
-                reader.check();block=safe[offset:offset+512]
-                if block==bytes(512):
-                    if offset+1024>len(safe) or any(safe[offset:]):raise Incomplete('tar_terminator')
-                    break
-                member=tarfile.TarInfo.frombuf(block,'utf-8','strict');members+=1
-                if members>MAX_MEMBERS:raise Incomplete('member_bound')
-                offset+=512;end=offset+member.size;following=offset+((member.size+511)//512)*512
-                if member.size<0 or end>len(safe) or following>len(safe):raise Incomplete('tar_truncation')
-                if member.isfile():
-                    regular+=1
-                    outcome=_scan_bytes(safe[offset:end],reader.ident+'.layer-'+str(number+1)+'.member-'+str(members),reader)
-                    leaks.extend(outcome['leaks'])
-                    marker['parts'].append({'part':'layer-'+str(number+1)+'.member-'+str(members),'bytes':member.size,
-                        'complete':True,'engines':outcome['engines']})
-                offset=following
-            else:raise Incomplete('tar_terminator')
+            with source_context(resource_id=reader.ident, scope=reader.scope, image_digest=reader.target['digest'], layer=layer['digest']):
+                safe,count=_tar(payload,layer['mediaType'],diff)
+                expanded+=len(safe)
+                if expanded>MAX_EXPANDED or regular+count>MAX_MEMBERS:raise Incomplete('expanded_image_bound')
+                # Original bytes were digest-bound before _tar replaced names. The
+                # reused parser admits only bounded regular files/directories, rejects
+                # links/devices/duplicate paths/nested archives. Never extracts files.
+                if len(safe)%512 or len(safe)<1024 or safe[-1024:]!=bytes(1024):raise Incomplete('tar_truncation')
+                offset=0
+                while offset+512<=len(safe):
+                    reader.check();block=safe[offset:offset+512]
+                    if block==bytes(512):
+                        if offset+1024>len(safe) or any(safe[offset:]):raise Incomplete('tar_terminator')
+                        break
+                    member=tarfile.TarInfo.frombuf(block,'utf-8','strict');members+=1
+                    if members>MAX_MEMBERS:raise Incomplete('member_bound')
+                    offset+=512;end=offset+member.size;following=offset+((member.size+511)//512)*512
+                    if member.size<0 or end>len(safe) or following>len(safe):raise Incomplete('tar_truncation')
+                    if member.isfile():
+                        regular+=1
+                        with source_context(path=member.name):
+                            outcome=_scan_bytes(safe[offset:end],reader.ident+'.layer-'+str(number+1)+'.member-'+str(members),reader)
+                        leaks.extend(outcome['leaks'])
+                        marker['parts'].append({'part':'layer-'+str(number+1)+'.member-'+str(members),'bytes':member.size,
+                            'complete':True,'engines':outcome['engines']})
+                    offset=following
+                else:raise Incomplete('tar_terminator')
             marker['layers_scanned'].append(layer['digest'])
         del token
         if not regular:raise Incomplete('no_layer_files')

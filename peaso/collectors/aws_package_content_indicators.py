@@ -3,6 +3,7 @@
 Kingfisher and TruffleHog inspect bounded content offline. The three existing
 resource kinds are enriched; no package is executed or extracted to disk.
 """
+from peaso.secret_evidence import source_context, reuse_image_layer
 import base64
 from copy import deepcopy
 import hashlib
@@ -147,8 +148,9 @@ def _path(value):
 def _scan(raw, name, requests):
     from peaso.secret_scanning import scan_content
     requests.check_deadline()
-    outcome = scan_content(bytes(raw), name)
-    categories = inspect_text(raw.decode('latin-1'), 'unused')['MatchedCategories']
+    with source_context(path=name):
+        outcome = scan_content(bytes(raw), name)
+        categories = inspect_text(raw.decode('latin-1'), 'unused')['MatchedCategories']
     if outcome['leaks']:
         categories = sorted(set(categories) | {'secret'})
     safe_name = outcome['leaks'][0]['locations'][0]['path'] if outcome['leaks'] else name
@@ -292,7 +294,9 @@ def _lambda(response, operation, arguments, requests, region):
     if hashlib.sha256(raw).digest() != expected_digest: raise ValueError('package hash mismatch')
     complete = True
     try:
-        refs, _, _ = scan_zip(raw, requests)
+        with source_context(resource_id=identity, scope=account + '/' + region, source='lambda:' + operation + ':' + str(version),
+                            check_ids={'aws.review.' + ('lambda_function' if operation == 'get_function' else 'lambda_layer_version') + '.package_content_secret_indicators'}):
+            refs, _, _ = scan_zip(raw, requests)
     except PartialArchive as partial:
         refs, complete = partial.refs, False
     return {'PackageSecretIndicators': marker(identity, account, region, 'lambda:' + operation, refs, complete=complete,
@@ -335,7 +339,8 @@ def _layer(response, arguments, requests, region):
                 for entry in history:
                     if not isinstance(entry, dict) or not isinstance(entry.get('created_by'), str): raise ValueError('invalid build history')
                     texts.append(entry['created_by'])
-                refs = _scan('\n'.join(texts).encode('utf-8'), 'image-config', requests)
+                with source_context(native=document, location_kind='configuration', path='image-config'):
+                    refs = _scan('\n'.join(texts).encode('utf-8'), 'image-config', requests)
                 results[typ] = {'References': refs, 'ExpandedBytes': len(raw), 'Members': 1, 'NativeResponseComplete': True}
             else:
                 media = 'application/vnd.oci.image.layer.v1.tar' + ('+gzip' if typ == 'gzip' else '')
@@ -389,11 +394,15 @@ def _image(response, arguments, requests, session, region):
                 fmt = 'gzip' if typ.endswith('gzip') else 'tar'
             compressed += size
             if compressed > IMAGE_LIMIT: raise ValueError('image compressed limit')
-            safe = requests.detail(session, 'ecr', region, 'get_download_url_for_layer', _metadata_profile=PROFILE,
-                                   registryId=account, repositoryName=repo, layerDigest=ld)
+            with source_context(resource_id=identity, scope=account + '/' + region, image_digest=digest, layer=ld,
+                                check_ids={'aws.review.ecr_repository.package_content_secret_indicators'}):
+                safe = requests.detail(session, 'ecr', region, 'get_download_url_for_layer', _metadata_profile=PROFILE,
+                                       registryId=account, repositoryName=repo, layerDigest=ld)
             if (safe.get('collection_status') != 'collected' or safe.get('LayerDigest') != ld or safe.get('RegistryId') != account
                     or safe.get('RepositoryName') != repo or safe.get('CompressedBytes') != size): raise ValueError('layer incomplete')
             result = safe['Formats'][fmt]
+            reuse_image_layer([leak for ref in result['References'] for leak in ref.get('Leaks', [])],
+                              resource_id=identity, scope=account + '/' + region, image_digest=digest, layer=ld)
             if result['NativeResponseComplete'] is not True: complete = False
             expanded += result['ExpandedBytes']; members += result['Members']
             if expanded > EXPANDED_LIMIT or members > MEMBER_LIMIT: raise ValueError('image expansion/member limit')

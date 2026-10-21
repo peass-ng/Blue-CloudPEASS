@@ -3,6 +3,8 @@
 No provider dispatcher imports this file. prepare() must precede all auth.
 The supplied session factory is trusted and must provide only authorized sessions.
 """
+
+from peaso.secret_evidence import scan_with_source, target_source
 from copy import deepcopy
 from datetime import date, datetime
 import hashlib
@@ -390,7 +392,7 @@ def collect(plan, session_factory):
                 row['native_bound'] = True
                 for field, payload, count in sources:
                     path = row['id'] + ':' + _fingerprint(field)
-                    outcome = scan_content(payload, path, timeout=min(15, left(deadline) / 3))
+                    outcome = scan_with_source(scan_content, payload, path, timeout=min(15, left(deadline) / 3), source=target_source(target, resource_id=target['definition_arn'], scope=scope, path=field, location_kind='configuration'), native=response)
                     scan = {'path': path, 'field': field, 'bytes': len(payload), 'literals': count,
                         'engines': outcome['engines'], 'complete': outcome['complete']}
                     # Keep a bounded positive prefix if later fields/detectors fail.

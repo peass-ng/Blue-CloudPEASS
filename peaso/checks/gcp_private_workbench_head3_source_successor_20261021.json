@@ -1,0 +1,20 @@
+{
+  "canonical_receipt_sha256": "2a9fac82c1097446f350ff92354882e25fbce5e98b52a5e21ba7fd0a4c462d9e",
+  "canonical_source_sha256": "0ef9e6772d5f618b279da9204cb620a9484894460926eed6ea2e74d59059713d",
+  "common_receipt_sha256": "86ff3e7630efc8b88954ecafce27e2cd0c7cecdd81e3c657844c6a41dc837366",
+  "common_source_sha256": "d861f588afa9f9524fb1d1ea738c452816c3fef90e34f53ab1bddb79db90f69a",
+  "functions": [
+    "_private_self",
+    "_historical_source",
+    "_reviewed_delta",
+    "_verify_runtime",
+    "reviewed_inputs"
+  ],
+  "gcp_receipt_sha256": "7d984f3927745f4422c6a23e254190b54217df6c8b893a23cded3ed66d6a9a6f",
+  "gcp_source_sha256": "862ce08608f0e7190489548e317b15f75c0798b74a37151f34a47c29a5cb476e",
+  "normalized_source_sha256": "ac205fbc4f8145a8c46b1820d8bf5bfd972cb0ccf57799dd24a7594df2aad602",
+  "raw_receipt_sha256": "518f735d82c14728838f7a7122e14097d8477ac4eedb4930f988044451d7a905",
+  "raw_source_sha256": "3ef9840685cc94829a12c7c54693da901ac6ddb691f493e53290255c5224d940",
+  "schema": "gcp-private-workbench-head3-source-successor-v1",
+  "workbench_receipt_sha256": "2aa8483b6ba2583ab80a261c34e15cacdcf31e79e995210f180e4debd6a65179"
+}

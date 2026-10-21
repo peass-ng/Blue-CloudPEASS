@@ -1117,12 +1117,12 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         return response
 
     @app.get("/api/scans/{ident}/finding-groups/{group_ident}")
-    def finding_group(ident: str, group_ident: str, categories: str | None = None,
+    def finding_group(ident: str, group_ident: str, response: Response, categories: str | None = None,
                       framework: str | None = None, severity: str | None = None,
                       service: str | None = None, status: str | None = None, search: str | None = None,
                       finding_type: str | None = None,
                       members_offset: int = Query(default=0, ge=0), members_limit: int = Query(default=50, ge=1, le=100),
-                      user=Depends(identity)):
+                      secret_offset: int = Query(default=0, ge=0, le=50000), user=Depends(identity)):
         from .finding_groups_static_20261021 import group_id, group_findings, placement, member_scopes, STATUS_ORDER
         row, bundle, selected, _, _, labels, meta, field, _, _ = finding_selection(
             user.tenant_id, ident, categories, framework, severity, service, status, search, finding_type=finding_type)
@@ -1181,13 +1181,27 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             "service": service, "status": status, "search": search, "finding_type": finding_type}.items() if value}
         grouped.update(members=output, members_total=len(members), members_offset=members_offset,
             next_offset=members_offset + len(output) if members_offset + len(output) < len(members) else None)
+        from peaso.secret_evidence import load_group_details
+        private = load_group_details(artifacts, cipher, user.tenant_id, ident, members, offset=secret_offset)
+        if private is not None:
+            response.headers['Cache-Control'] = 'private, no-store'
+            response.headers['Pragma'] = 'no-cache'
+            grouped['secret_evidence'] = private
         return grouped
 
     # :path because finding ids embed ARNs/resource paths with "/" (raw or %2F-encoded both arrive decoded).
     @app.get("/api/scans/{ident}/findings/{finding_id:path}")
-    def finding_detail(ident: str, finding_id: str, user=Depends(identity)):
+    def finding_detail(ident: str, finding_id: str, response: Response, secret_offset: int = Query(default=0, ge=0, le=50000), user=Depends(identity)):
         row, bundle = owned_bundle(user.tenant_id, ident)
         bundle = finding_review_context(user.tenant_id, ident, bundle)
+        def private_detail(presented):
+            from peaso.secret_evidence import eligible, load_details
+            if not eligible(presented):
+                return presented
+            response.headers['Cache-Control'] = 'private, no-store'
+            response.headers['Pragma'] = 'no-cache'
+            private = load_details(artifacts, cipher, user.tenant_id, ident, presented, offset=secret_offset)
+            return dict(presented, secret_evidence=private)
         groups = (artifacts.get(user.tenant_id, chunk["reference"])["items"] for chunk in bundle["finding_chunks"] if chunk["first_id"] <= finding_id <= chunk["last_id"]) if bundle.get("bundle_version") == 1 else [bundle.get("findings", [])]
         for group in groups:
             for value in group:
@@ -1207,11 +1221,18 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
                                 envelope["finding_presentation"] = presentation
                                 if isinstance(presentation.get("remediation_details"), dict):
                                     envelope["remediation_details"] = presentation["remediation_details"]
+                            # The bounded public summary omits canonical secret
+                            # locations. Bind private values to the authorized
+                            # full finding, never to that summary alone.
+                            from peaso.secret_evidence import eligible
+                            private = private_detail(artifacts.get(user.tenant_id, value['_detail_reference'])) if eligible(presented) else presented
+                            if 'secret_evidence' in private:
+                                envelope['secret_evidence'] = private['secret_evidence']
                             return envelope
-                        return with_remediation(artifacts.get(user.tenant_id, value["_detail_reference"]), bundle)
+                        return private_detail(with_remediation(artifacts.get(user.tenant_id, value["_detail_reference"]), bundle))
                     if len(json.dumps(value).encode()) > 4 * 1024 * 1024 and hasattr(artifacts, "presign"):
                         raise HTTPException(413, "Finding exceeds the API detail budget; download the complete JSON report for this evidence")
-                    return with_remediation(with_labels(with_meta(value, check_fields(bundle), bundle), check_labels(bundle)), bundle)
+                    return private_detail(with_remediation(with_labels(with_meta(value, check_fields(bundle), bundle), check_labels(bundle)), bundle))
         raise HTTPException(404, "Finding not found")
 
     @app.get("/api/scans/{ident}/ai")

@@ -3,6 +3,8 @@
 Compose reviewed CRM/GCS streaming, metadata, text and scanner primitives.
 Never synthesize parent collections, delegate optional kinds, or infer executed bytes.
 """
+
+from peaso.secret_evidence import scan_with_source, target_source
 from copy import deepcopy
 from datetime import datetime, timezone
 import http.client
@@ -300,8 +302,8 @@ def collect(transport, options, scopes, *, named=()):
                     raise Incomplete('project_changed')
                 bound()
                 marker.update(native_complete=True, association=association, captured_at=datetime.now(timezone.utc).isoformat())
-                outcome = scan_content(payload, ident + '.source', timeout=min(10, reads.remaining(transport, state) / 2),
-                    _redact_values=state['redactions'].update)
+                outcome = scan_with_source(scan_content, payload, ident + '.source', timeout=min(10, reads.remaining(transport, state) / 2),
+                    _redact_values=state['redactions'].update, source=target_source(target, resource_id=ident, scope=scope))
                 reads.remaining(transport, state)
                 leaks = merge_leaks(outcome['leaks'])
                 if len(leaks) > MAX_LEAKS or sum(len(l['locations']) for l in leaks) > MAX_LOCATIONS:

@@ -4,6 +4,8 @@ No credential refresh/helper, Secret read, token volume resolution, subresource,
 mutation or generic response cache. Only proven native public IP + CA bindings
 and existing Google access tokens are used; native GKE enforces auth and RBAC.
 """
+
+from peaso.secret_evidence import scan_with_source
 import base64
 from datetime import datetime, timezone
 import http.client
@@ -365,7 +367,7 @@ def project_resource(row, kind, namespace, binding, budget, cancelled):
             remaining = budget['deadline'] - time.monotonic()
             if remaining <= 0:
                 raise TimeoutError('scan deadline')
-            outcome = scan_content(payload, path, timeout=min(10, remaining / 2), _redact_values=redactions.update)
+            outcome = scan_with_source(scan_content, payload, path, timeout=min(10, remaining / 2), _redact_values=redactions.update, source={'resource_id': name, 'scope': binding['selection'], 'location_kind': 'configuration'}, native=row)
             marker['surfaces'].append({'path': path, 'bytes': len(payload), 'complete': outcome['complete'], 'engines': outcome['engines']})
             marker['leaks'] = merge_leaks(marker['leaks'] + outcome['leaks'])
             if len(marker['leaks']) > 256 or sum(len(x['locations']) for x in marker['leaks']) > 512:

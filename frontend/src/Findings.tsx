@@ -21,6 +21,7 @@ import { Remediation } from "./Remediation";
 import { GroupedFindingEvidence, findingGroupPath } from "./GroupedFindingEvidence";
 import { FindingStatusBadge, findingStatusCounts, findingStatusOptions, matchesFindingStatus } from "./findingStatus";
 import "./FindingInspector.css";
+import { PrivateSecretEvidence } from "./PrivateSecretEvidence";
 import findingTypes from "./findingTypes.json";
 const findingTypeLabel = (id?: string) => findingTypes.find(type => type.id === id)?.label || "Unclassified";
 type FindingPage = {
@@ -832,6 +833,7 @@ function FindingInspector({
             {!allowCurrentSummary && observed.guidance_refresh?.message && <p className="muted">{observed.guidance_refresh.message}</p>}
             {internetExposure && observed.status === "UNKNOWN" && !!exposure?.reasons.length && <ul>{exposure.reasons.map((reason) => <li key={reason}>{reason}</li>)}</ul>}
           </section>
+          {observed.secret_evidence && <PrivateSecretEvidence key={observed.id} finding={observed} scanId={scanId} />}
           <section className="finding-detail-section">
             <h3>What to do</h3>
             <Remediation legacy={exposureAction || observed.remediation} details={remediationDetails} compact />

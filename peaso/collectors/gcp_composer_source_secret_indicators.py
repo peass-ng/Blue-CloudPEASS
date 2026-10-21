@@ -1,4 +1,6 @@
 """Opted-in native Composer DAG prefix reads; source text never enters JSON cache."""
+
+from peaso.secret_evidence import scan_with_source, target_source
 from copy import deepcopy
 import hashlib
 import http.client
@@ -251,7 +253,7 @@ def collect_sources(collector, scope):
                         raise Incomplete('metadata_changed')
                     payload = objects._read(transport, state, target, media=True, expected=metadata)
                     objects._text(payload)
-                    outcome = scan_content(payload, 'composer.dag.content/' + objects.identity(target).split(':', 1)[1], timeout=min(5, objects._remaining(transport, state) / 2))
+                    outcome = scan_with_source(scan_content,payload, 'composer.dag.content/' + objects.identity(target).split(':', 1)[1], timeout=min(5, objects._remaining(transport, state) / 2), source=target_source(target, resource_id=ident, scope=scope))
                     # The matched generation and media read are already bound. Keep
                     # redacted observations even if a detector or a later file fails.
                     leaks = merge_leaks(leaks + outcome['leaks'])

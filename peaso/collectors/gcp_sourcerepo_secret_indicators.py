@@ -3,6 +3,8 @@
 Git bytes stay in memory. Existing detector-private ephemeral input handling is
 reused; only opaque paths, native binding and redacted findings survive.
 """
+
+from peaso.secret_evidence import scan_with_source, target_source
 from copy import deepcopy
 import hashlib
 import http.client
@@ -262,8 +264,8 @@ def collect_sources(collector, scope):
                     raise Incomplete('unsupported_binary')
                 del text
                 path_hash = path_identity(selected_file.path)
-                outcome = scan_content(payload, 'sourcerepo.selected_file.' + path_hash,
-                    timeout=min(10, _remaining(transport, deadline) / 2))
+                outcome = scan_with_source(scan_content, payload, 'sourcerepo.selected_file.' + path_hash,
+                    timeout=min(10, _remaining(transport, deadline) / 2), source=target_source(target, resource_id=target['repository'], scope=scope, path=selected_file.path))
                 marker['files'].append({'path_sha256': path_hash, 'blob_sha1': selected_file.object_sha,
                     'identity': blob_identity(selected, path_hash, selected_file.object_sha, len(payload)),
                     'bytes': len(payload), 'complete': outcome['complete'], 'engines': outcome['engines']})

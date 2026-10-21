@@ -3,6 +3,7 @@
 No raw response, payload, metadata, cursor or authentication header is cached.
 Only detection runs; the API is read-only and credentials are never verified.
 """
+from peaso.secret_evidence import scan_with_source
 import json
 import re
 import time
@@ -134,18 +135,18 @@ def project_page(data, *, scope, first, last, page_size, page_number, check_canc
                 payload = json.dumps(value, ensure_ascii=False, allow_nan=False, separators=(',', ':')).encode('utf-8')
             if len(payload) > MAX_MESSAGE_BYTES:
                 raise ValueError('message bound')
-            payloads.append((f'page/{page_number}/message/{number}/{surface}', payload))
-        if sum(len(payload) for _, payload in payloads) > remaining_bytes:
+            payloads.append((f'page/{page_number}/message/{number}/{surface}', payload, {'resource_id': name, 'scope': scope, 'source': json.dumps({k: row[k] for k in ('logName', 'timestamp', 'insertId') if k in row}), 'location_kind': 'log'}))
+        if sum(len(payload) for _, payload, _ in payloads) > remaining_bytes:
             raise ValueError('sample byte bound')
         result['entries'] = len(rows)
         if not payloads:
-            payloads = [(f'page/{page_number}/empty', b'')]
-        for path, payload in payloads:
+            payloads = [(f'page/{page_number}/empty', b'', {})]
+        for path, payload, source in payloads:
             check_cancelled()
             remaining = deadline - time.monotonic()
             if remaining <= 0:
                 raise TimeoutError('scan deadline')
-            scan = scan_content(payload, path, timeout=min(10, remaining / 2))
+            scan = scan_with_source(scan_content, payload, path, source=source, timeout=min(10, remaining / 2))
             result['bytes'] += len(payload)
             result['scans'].append({'path': path, 'complete': scan['complete'], 'engines': scan['engines']})
             result['leaks'] = merge_leaks(result['leaks'] + scan['leaks'])

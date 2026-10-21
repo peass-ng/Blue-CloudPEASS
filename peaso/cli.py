@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 import sys
 import tempfile
-from .engine import collect_snapshot, evaluate_snapshot, expand_report, scan, diff_reports, get_catalog, REPORT_SCHEMA_VERSION
+from .engine import collect_snapshot, evaluate_snapshot, expand_report, diff_reports, get_catalog, REPORT_SCHEMA_VERSION
 from .reports import render_markdown
 from .progress import ProgressReporter
 from .snapshot import nothing_readable
@@ -25,7 +25,10 @@ def _load(path):
     return value
 
 
-def _write(value, destination, format):
+def _write(value, destination, format, *, include_private=False):
+    if not include_private:
+        from .secret_evidence import without_private_values
+        value = without_private_values(value)
     from .finding_groups import group_report
     value = group_report(value)
     text = render_markdown(value) if format == "markdown" else json.dumps(value, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
@@ -94,6 +97,9 @@ def build_parser():
         command.add_argument("--quiet", action="store_true", help="suppress stderr progress updates")
         command.add_argument("--embed-snapshot", action="store_true",
                              help="also embed the collected snapshot in the scan report (default: referenced by snapshot_id; see --snapshot-output)")
+        if name == 'scan':
+            command.add_argument('--include-secret-values', action='store_true',
+                                 help='include private matched values in an owned JSON --output file; fresh live scans only')
         _selectors(command)
         _output(command)
         _embed(command)
@@ -153,13 +159,22 @@ def _execute(args, selectors):
             if value is not None:
                 request[key] = value
         include = bool(args.include_not_applicable)
-        if args.command == "scan":
-            request["include_not_applicable"] = include
+        if args.command == 'scan':
+            request['include_not_applicable'] = include
             if related:
-                request["related_snapshots"] = related
-            value, snapshot = scan(request)
+                request['related_snapshots'] = related
+        from .secret_evidence import capture, EphemeralCipher, checks_for_request
+        with capture(EphemeralCipher(), options=options, selected_checks=checks_for_request(request)) as secret_capture:
+            snapshot = collect_snapshot(request)
+        snapshot = secret_capture.public_snapshot(snapshot)
+        if args.command == 'scan':
+            timings = {}
+            value = evaluate_snapshot(snapshot, **selectors, timings=timings,
+                include_not_applicable=include, related_snapshots=related)
+            if timings:
+                value['timings'] = timings
         else:
-            value = snapshot = collect_snapshot(request)
+            value = snapshot
         if args.snapshot_output:
             _write(snapshot, args.snapshot_output, "json")
         if args.command == "collect" and args.format == "markdown":
@@ -189,7 +204,10 @@ def _execute(args, selectors):
         from .least_privilege import project
         from .snapshot import resources
         value["least_privilege"] = project(snapshot["provider"], resources(snapshot), snapshot=snapshot)
-    _write(value, args.output, args.format)
+    if args.command == 'scan' and args.include_secret_values:
+        from .secret_evidence import export_report
+        value = export_report(value, secret_capture)
+    _write(value, args.output, args.format, include_private=bool(getattr(args, 'include_secret_values', False)))
     if args.command in ("scan", "collect") and snapshot is not None and nothing_readable(snapshot):
         codes = sorted({str((c.get("error") or {}).get("code")) for c in snapshot.get("collections", []) if c.get("error")})
         print("hacktricks-cspm: no collection could be read with the supplied credentials (" + ", ".join(codes or ["no collections"]) +
@@ -201,6 +219,8 @@ def _execute(args, selectors):
 def main(argv=None):
     parser = build_parser()
     args = parser.parse_args(argv)
+    if getattr(args, 'include_secret_values', False) and (args.format != 'json' or not args.output or args.output == '-'):
+        parser.error('--include-secret-values requires a JSON --output file')
     selectors = {key: getattr(args, key, None) for key in ("categories", "checks", "frameworks")}
     received = []
     try:

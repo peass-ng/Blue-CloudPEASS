@@ -3,6 +3,8 @@
 Root must explicitly delegate this profile in Requests before its ordinary value
 read prohibition. This module never changes the generic AWS operation allowlist.
 """
+
+from peaso.secret_evidence import scan_with_source, source_context, target_source
 from copy import deepcopy
 import io
 import json
@@ -367,8 +369,8 @@ def _scan_part(requests, marker, data, name):
     # Names are data too. Never expose native archive names or derived line numbers.
     payload = text.encode() + b'\n' + name.encode()
     location = marker['identity'] + '.text' if marker['format'] == 'text' else marker['identity'] + '.member:' + _fingerprint(name)
-    outcome = scan_content(payload, location, timeout=remaining(requests) / 2,
-        _redact_values=requests.s3_source_redactions.update)
+    outcome = scan_with_source(scan_content, payload, location, timeout=remaining(requests) / 2,
+        _redact_values=requests.s3_source_redactions.update, source={'path': name, 'content_lines': str(text.count('\n') + 1)})
     marker['parts'].append({'path': location, 'bytes': len(payload), 'complete': outcome['complete'], 'engines': deepcopy(outcome['engines'])})
     leaks = deepcopy(outcome['leaks'])
     for leak in leaks:
@@ -542,8 +544,9 @@ def collect_selected(requests, session, region, caller, options, scopes):
         try:
             for phase in ('caller', 'location', 'head_before', 'get', 'head_after'):
                 service, operation, args = arguments(target, phase, requests.s3_source_heads.get(ident))
-                requests.call(session, service, region, operation, _metadata_profile=PROFILE,
-                    _projection_context={'target': target, 'phase': phase, 'marker': marker}, **args)
+                with source_context(**target_source(target, resource_id='s3://' + target['bucket'] + '/' + target['key'], scope=target['scope'])):
+                    requests.call(session, service, region, operation, _metadata_profile=PROFILE,
+                        _projection_context={'target': target, 'phase': phase, 'marker': marker}, **args)
             marker['complete'] = marker['content_complete'] and marker['head_coherent'] and bool(marker['parts']) and all(p['complete'] for p in marker['parts'])
         except Exception:
             marker['complete'] = False

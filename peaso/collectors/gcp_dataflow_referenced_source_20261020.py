@@ -3,6 +3,8 @@
 Native uncached exact GETs produce this reader's own receipts. Source bytes live
 only in memory; no generic collector context or other reader receipts are made.
 """
+
+from peaso.secret_evidence import scan_with_source, target_source
 from copy import deepcopy
 from datetime import datetime, timezone
 import hashlib
@@ -244,7 +246,7 @@ def inspect_payload(payload, target, transport, state, item):
             raise Incomplete('unsupported_member')
         objects._text(bytes(raw))
         path = item['identity'] + '.part-' + str(len(item['parts']) + 1)
-        outcome = scan_content(bytes(raw), path, timeout=min(10, remaining(transport, state) / 2))
+        outcome = scan_with_source(scan_content, bytes(raw), path, timeout=min(10, remaining(transport, state) / 2), source=target_source(target, resource_id=item['identity'], path=_name))
         item['parts'].append(dict(path=path, bytes=len(raw), engines=outcome['engines'], complete=outcome['complete']))
         merged = merge_leaks(item['leaks'] + outcome['leaks'])
         if len(merged) > MAX_LEAKS or sum(len(l['locations']) for l in merged) > MAX_LOCATIONS:

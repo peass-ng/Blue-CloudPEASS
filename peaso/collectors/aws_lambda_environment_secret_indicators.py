@@ -3,6 +3,8 @@
 SDK JSON is already in memory on receipt: bounds here limit inspected/retained
 content, not transport streaming. No invoke/update/decrypt or secret-store read.
 """
+
+from peaso.secret_evidence import scan_with_source
 from copy import deepcopy
 import json
 import math
@@ -180,7 +182,7 @@ def project_response(response,service,operation,arguments,*,request_context=None
         if not any(env['Variables'].values()):raise Incomplete('environment_empty')
         payload=b'\n\n'.join(parts)
         if len(payload)>MAX_SCAN_BYTES:raise Incomplete('environment_bound')
-        outcome=scan_content(payload,identity(arn)+'.variables',timeout=min(60,_remaining(requests)))
+        outcome=scan_with_source(scan_content, payload,identity(arn)+'.variables',timeout=min(60,_remaining(requests)), source={'resource_id': arn, 'location_kind': 'configuration'}, native=env['Variables'])
         del payload,parts
         leaks=merge_leaks(outcome['leaks'])
         if len(leaks)>MAX_LEAKS or sum(len(l['locations']) for l in leaks)>MAX_LOCATIONS:raise Incomplete('leak_bound')

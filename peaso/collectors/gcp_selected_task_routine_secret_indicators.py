@@ -3,6 +3,8 @@
 Only redacted scan results and opaque resource identities survive the read.
 No dispatch, execution, URL following, enumeration or credential validation.
 """
+
+from peaso.secret_evidence import scan_with_source
 from copy import deepcopy
 import base64
 import binascii
@@ -283,8 +285,8 @@ def collect_sources(collector, scope, kind):
                 state['bytes'] += size
                 leaks = []
                 for part, raw in parts:
-                    outcome = scan_content(raw, ident + '.' + part,
-                        timeout=min(10, _remaining(transport, state['deadline']) / 2))
+                    outcome = scan_with_source(scan_content, raw, ident + '.' + part,
+                        timeout=min(10, _remaining(transport, state['deadline']) / 2), source={'resource_id': name, 'scope': scope, 'path': part, 'location_kind': 'configuration'})
                     marker['parts'].append({'part': part, 'bytes': len(raw),
                         'complete': outcome['complete'], 'engines': outcome['engines']})
                     leaks.extend(outcome['leaks'])
