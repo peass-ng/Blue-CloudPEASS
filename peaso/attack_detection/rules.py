@@ -68,6 +68,7 @@ from .aws_ivs_sessions_batch115 import normalize as normalize_aws_ivs_sessions_b
 from .aws_ivs_recording_batch116 import normalize as normalize_aws_ivs_recording_batch116
 from .aws_ivs_composition_batch117 import normalize as normalize_aws_ivs_composition_batch117
 from .aws_ivs_realtime_sessions_batch118 import normalize as normalize_aws_ivs_realtime_sessions_batch118
+from .aws_ivs_ad_break_batch119 import normalize as normalize_aws_ivs_ad_break_batch119
 from .aws_sagemaker_control_next import normalize_aws_sagemaker_control
 from .aws_rolesanywhere_next import normalize as normalize_aws_rolesanywhere
 from .aws_customer_profiles_next import normalize as normalize_aws_customer_profiles
@@ -249,8 +250,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "1ed1e2771cae5298d313fe52a0caac72c73cb2f0"
-DEFAULT_RULE_PACK_SHA256 = "6ce7f41d7181f8569f0ccd42e1345aa83b3f14a2e0b36bc6a3e5b2fe4d8b9a28"
+DEFAULT_RULE_REF = "4fc6dc385b6b7291461eab18a93d05f72ee18cd1"
+DEFAULT_RULE_PACK_SHA256 = "27152d38804de54d929f7a19efd49f040e3ce27b8ec3c5b37d71d1cb3ed7350d"
 
 
 @dataclass(frozen=True)
@@ -505,6 +506,7 @@ def detect_aws_events(
         ivs_recording_batch116 = normalize_aws_ivs_recording_batch116(record)
         ivs_composition_batch117 = normalize_aws_ivs_composition_batch117(record)
         ivs_realtime_sessions_batch118 = normalize_aws_ivs_realtime_sessions_batch118(record)
+        ivs_ad_break_batch119 = normalize_aws_ivs_ad_break_batch119(record)
         lambda_controls = normalize_aws_lambda_controls(record)
         lambda_qualified_grant = normalize_aws_lambda_qualified_grant(record)
         lambda_config = normalize_aws_lambda_config(record)
@@ -705,6 +707,7 @@ def detect_aws_events(
                 + ivs_recording_batch116
                 + ivs_composition_batch117
                 + ivs_realtime_sessions_batch118
+                + ivs_ad_break_batch119
                 + ([lambda_controls] if lambda_controls is not None else [])
                 + ([lambda_qualified_grant] if lambda_qualified_grant is not None else [])
                 + ([lambda_config] if lambda_config is not None else [])
