@@ -52,6 +52,9 @@ def test_nonpublic_failed_or_mismatched_layer_grants_fail_closed():
             {**json.loads(e["responseElements"]["statement"]), "Principal": "999999999999"})),
         lambda e: e["responseElements"].update(statement=json.dumps(
             {**json.loads(e["responseElements"]["statement"]),
+             "Condition": {"StringEquals": {"aws:PrincipalOrgID": "o-aaaaaaaaaa"}}})),
+        lambda e: e["responseElements"].update(statement=json.dumps(
+            {**json.loads(e["responseElements"]["statement"]),
              "Resource": "arn:aws:lambda:us-east-1:111111111111:layer:synthetic-layer:1"})),
         lambda e: e.update(errorCode="AccessDeniedException"),
         lambda e: e.update(readOnly=True),

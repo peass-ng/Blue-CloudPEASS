@@ -132,6 +132,7 @@ def normalize(record: Mapping[str, Any]) -> list[dict[str, Any]]:
                 or statement.get("Principal") != "*"
                 or statement.get("Action") != "lambda:GetLayerVersion"
                 or statement.get("Resource") != expected_arn
+                or statement.get("Condition")
                 or not isinstance(response.get("revisionId"), str)
                 or not response["revisionId"]):
             return []
