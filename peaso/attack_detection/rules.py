@@ -85,6 +85,8 @@ from .aws_license_ami_batch132 import normalize as normalize_aws_license_ami_bat
 from .aws_license_hardlimit_batch133 import normalize as normalize_aws_license_hardlimit_batch133
 from .aws_license_instance_batch134 import normalize as normalize_aws_license_instance_batch134
 from .aws_lex_analytics_batch135 import normalize as normalize_aws_lex_analytics_batch135
+from .aws_lex_runtime_batch136 import normalize as normalize_aws_lex_runtime_batch136
+from .aws_lex_testset_batch136 import normalize as normalize_aws_lex_testset_batch136
 from .aws_sagemaker_control_next import normalize_aws_sagemaker_control
 from .aws_rolesanywhere_next import normalize as normalize_aws_rolesanywhere
 from .aws_customer_profiles_next import normalize as normalize_aws_customer_profiles
@@ -266,8 +268,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "5fd13f54026578d32ffb2eaab86a380f63598f80"
-DEFAULT_RULE_PACK_SHA256 = "313974d1ebdca4924d55310e80f5368b90359008199b22bf182b1663e747b874"
+DEFAULT_RULE_REF = "7b1c1f965ea7c541de634bd020d79831e5d28fc9"
+DEFAULT_RULE_PACK_SHA256 = "ae181937e88528457a2598924459ad2182a9b051524cf4d43a12624a7dda7be6"
 
 
 @dataclass(frozen=True)
@@ -539,6 +541,8 @@ def detect_aws_events(
         license_hardlimit_batch133 = normalize_aws_license_hardlimit_batch133(record)
         license_instance_batch134 = normalize_aws_license_instance_batch134(record)
         lex_analytics_batch135 = normalize_aws_lex_analytics_batch135(record)
+        lex_runtime_batch136 = normalize_aws_lex_runtime_batch136(record)
+        lex_testset_batch136 = normalize_aws_lex_testset_batch136(record)
         lambda_controls = normalize_aws_lambda_controls(record)
         lambda_qualified_grant = normalize_aws_lambda_qualified_grant(record)
         lambda_config = normalize_aws_lambda_config(record)
@@ -756,6 +760,8 @@ def detect_aws_events(
                 + license_hardlimit_batch133
                 + license_instance_batch134
                 + lex_analytics_batch135
+                + lex_runtime_batch136
+                + lex_testset_batch136
                 + ([lambda_controls] if lambda_controls is not None else [])
                 + ([lambda_qualified_grant] if lambda_qualified_grant is not None else [])
                 + ([lambda_config] if lambda_config is not None else [])
