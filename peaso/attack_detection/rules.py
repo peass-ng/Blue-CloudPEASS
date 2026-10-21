@@ -302,7 +302,7 @@ def load_rules(directory: Path | None = None, *, product: str | None = None) -> 
         raw_cloudtrail = source.get("x_cloudtrail_raw", False)
         if raw_cloudtrail is not False:
             allowed = {"event.source", "event.name", "event.category", "event.outcome",
-                       "event.read_only", "resource.type"}
+                       "event.read_only", "resource.type", "resource.path_scope_checked"}
             if (raw_cloudtrail is not True or logsource.get("product") != "aws"
                     or not set(selection).issubset(allowed)
                     or not {"event.source", "event.name", "event.category",
@@ -318,6 +318,9 @@ def load_rules(directory: Path | None = None, *, product: str | None = None) -> 
                 raw_cloudtrail is not True
                 or not isinstance(resource_path_prefix, str)
                 or not re.fullmatch(r"/?[A-Za-z0-9][A-Za-z0-9/_:.-]{0,127}", resource_path_prefix)):
+            raise ValueError(f"Unsupported raw CloudTrail resource prefix: {name}")
+        if ((resource_path_prefix is not None and selection.get("resource.path_scope_checked") is not True)
+                or ("resource.path_scope_checked" in selection and resource_path_prefix is None)):
             raise ValueError(f"Unsupported raw CloudTrail resource prefix: {name}")
         if product is not None and logsource["product"] != product:
             continue

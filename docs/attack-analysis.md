@@ -48,7 +48,9 @@ simple service/action detections ship through the latest catalog alone.
 An optional `x_cloudtrail_resource_path_prefix` can narrow such a rule to a
 literal resource path such as `/keyspace/system`; the path is used only for
 matching and is never included in the finding. Wildcards and arbitrary regular
-expressions are rejected.
+expressions are rejected. A rule using this prefix must also select
+`resource.path_scope_checked: true`; older CSPM versions that cannot enforce
+the prefix then reject the rule pack instead of matching too broadly.
 Techniques that require parsing request content, a new provider API read, or
 correlation still require CSPM code. Historical S3 jobs retain their separate
 pinned catalog contract; this selector applies to interactive Attack Analysis.
