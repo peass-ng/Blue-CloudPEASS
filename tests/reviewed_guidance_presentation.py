@@ -31,6 +31,13 @@ def assert_description_preserves_contract(check_id):
     original=_base_description_for(check_id)
     current=description_for(check_id)
     changed_fields={'description'}
+    if check_id == 'aws.claude_a.vpc.sg_no_world_any_port_on_customer_enis':
+        # This exact source-reviewed prose erratum preserves the frozen row
+        # and unchanged evaluator; no other control receives a criterion waiver.
+        from peaso.checks.aws_sg_any_port_description_correction_20261021 import description
+        from peaso.checks.aws_finding_clarity_reviewed import description as reviewed_description
+        assert current == description(reviewed_description(check_id, original))
+        changed_fields.update({'pass_when', 'fail_when', 'description_correction'})
     # Three separately reviewed interval corrections deliberately replace the
     # old exact-endpoint criterion; no other criterion differences are allowed.
     lightsail_ports={
