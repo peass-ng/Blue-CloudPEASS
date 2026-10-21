@@ -74,6 +74,7 @@ def test_incomplete_failed_and_unrelated_events_do_not_match(tmp_path):
         lambda x: x["requestParameters"].update(groupId=""),
         lambda x: x["requestParameters"].update(memberId={}),
         lambda x: x["responseElements"].update(identityStoreId="different-store"),
+        lambda x: x["responseElements"].update(membershipId=""),
     ]
     events = []
     for change in changes:

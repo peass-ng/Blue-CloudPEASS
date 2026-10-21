@@ -43,6 +43,9 @@ def normalize_aws_identitystore_membership(record: Mapping[str, Any]) -> dict[st
         response_store = _field(response, "identityStoreId", "IdentityStoreId")
         if response_store is not None and response_store != store:
             return None
+        membership = _field(response, "membershipId", "MembershipId")
+        if membership is not None and not _id(membership):
+            return None
     identity = record.get("userIdentity")
     identity = identity if isinstance(identity, Mapping) else {}
     target = "sha256:" + hashlib.sha256(
