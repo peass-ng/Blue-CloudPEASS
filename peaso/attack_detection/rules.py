@@ -11,6 +11,7 @@ from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from functools import lru_cache
 import os
+import re
 from pathlib import Path
 from typing import Any
 
@@ -228,6 +229,7 @@ class Rule:
     selection: Mapping[str, Any]
     falsepositives: tuple[str, ...] = ()
     raw_cloudtrail: bool = False
+    resource_path_prefix: str | None = None
 
 
 @dataclass(frozen=True)
@@ -311,6 +313,12 @@ def load_rules(directory: Path | None = None, *, product: str | None = None) -> 
                     or selection["event.outcome"] != "success"
                     or not isinstance(selection["resource.type"], str)):
                 raise ValueError(f"Unsupported raw CloudTrail rule: {name}")
+        resource_path_prefix = source.get("x_cloudtrail_resource_path_prefix")
+        if resource_path_prefix is not None and (
+                raw_cloudtrail is not True
+                or not isinstance(resource_path_prefix, str)
+                or not re.fullmatch(r"/?[A-Za-z0-9][A-Za-z0-9/_:.-]{0,127}", resource_path_prefix)):
+            raise ValueError(f"Unsupported raw CloudTrail resource prefix: {name}")
         if product is not None and logsource["product"] != product:
             continue
         falsepositives = source.get("falsepositives", [])
@@ -325,6 +333,7 @@ def load_rules(directory: Path | None = None, *, product: str | None = None) -> 
             selection=dict(selection),
             falsepositives=tuple(falsepositives),
             raw_cloudtrail=raw_cloudtrail,
+            resource_path_prefix=resource_path_prefix,
         ))
     if not loaded:
         raise ValueError("No detection rules found")
@@ -972,6 +981,9 @@ def _detect_events(
             for index in sorted(candidate_indexes):
                 rule = rules[index]
                 if product == "aws" and rule.raw_cloudtrail is not (event.get("__raw_cloudtrail") is True):
+                    continue
+                if (product == "aws" and rule.resource_path_prefix is not None
+                        and not str(event.get("__resource_path", "")).startswith(rule.resource_path_prefix)):
                     continue
                 if all(any(exact(event.get(field), choice) for choice in expected)
                        if isinstance(expected, list) else exact(event.get(field), expected)

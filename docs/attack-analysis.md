@@ -45,6 +45,10 @@ same-account resource ARN, and exposes only those bounded fields. Its target
 reference is a stable hash of the ARN. It never copies request parameters,
 responses, query text, or object contents into a finding. This lets future
 simple service/action detections ship through the latest catalog alone.
+An optional `x_cloudtrail_resource_path_prefix` can narrow such a rule to a
+literal resource path such as `/keyspace/system`; the path is used only for
+matching and is never included in the finding. Wildcards and arbitrary regular
+expressions are rejected.
 Techniques that require parsing request content, a new provider API read, or
 correlation still require CSPM code. Historical S3 jobs retain their separate
 pinned catalog contract; this selector applies to interactive Attack Analysis.
