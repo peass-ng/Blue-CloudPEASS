@@ -77,6 +77,7 @@ from .aws_iotwireless_group_fuota_batch124 import normalize as normalize_aws_iot
 from .aws_iotwireless_associations_batch125 import normalize as normalize_aws_iotwireless_associations_batch125
 from .aws_appflow_s3_batch126 import normalize as normalize_aws_appflow_s3_batch126
 from .aws_appflow_limited_batch127 import normalize_update as normalize_aws_appflow_update_batch127, correlate_schedule_activation as correlate_aws_appflow_schedule_batch127
+from .aws_codeconnections_control_batch128 import normalize as normalize_aws_codeconnections_control_batch128
 from .aws_sagemaker_control_next import normalize_aws_sagemaker_control
 from .aws_rolesanywhere_next import normalize as normalize_aws_rolesanywhere
 from .aws_customer_profiles_next import normalize as normalize_aws_customer_profiles
@@ -258,8 +259,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "4adb0546eb0bf9e32dded2fd4a8b992850f704f9"
-DEFAULT_RULE_PACK_SHA256 = "e394a09f981b06be31d0ad8f16321af6e48757d972dd4b0536b39ad84cdf8c2f"
+DEFAULT_RULE_REF = "af26396ee6ebb6cf7f58151c56acafa7b379123a"
+DEFAULT_RULE_PACK_SHA256 = "d371dc781cfa0386565b0700dee6a75dfb5f9d44ae2fe28fe29fc2f76427c13d"
 
 
 @dataclass(frozen=True)
@@ -523,6 +524,7 @@ def detect_aws_events(
         iotwireless_associations_batch125 = normalize_aws_iotwireless_associations_batch125(record)
         appflow_s3_batch126 = normalize_aws_appflow_s3_batch126(record)
         appflow_update_batch127 = normalize_aws_appflow_update_batch127(record)
+        codeconnections_control_batch128 = normalize_aws_codeconnections_control_batch128(record)
         lambda_controls = normalize_aws_lambda_controls(record)
         lambda_qualified_grant = normalize_aws_lambda_qualified_grant(record)
         lambda_config = normalize_aws_lambda_config(record)
@@ -732,6 +734,7 @@ def detect_aws_events(
                 + iotwireless_associations_batch125
                 + appflow_s3_batch126
                 + appflow_update_batch127
+                + codeconnections_control_batch128
                 + ([lambda_controls] if lambda_controls is not None else [])
                 + ([lambda_qualified_grant] if lambda_qualified_grant is not None else [])
                 + ([lambda_config] if lambda_config is not None else [])
