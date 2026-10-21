@@ -76,6 +76,7 @@ from .aws_iotwireless_controls_batch123 import normalize as normalize_aws_iotwir
 from .aws_iotwireless_group_fuota_batch124 import normalize as normalize_aws_iotwireless_group_fuota_batch124
 from .aws_iotwireless_associations_batch125 import normalize as normalize_aws_iotwireless_associations_batch125
 from .aws_appflow_s3_batch126 import normalize as normalize_aws_appflow_s3_batch126
+from .aws_appflow_limited_batch127 import normalize_update as normalize_aws_appflow_update_batch127, correlate_schedule_activation as correlate_aws_appflow_schedule_batch127
 from .aws_sagemaker_control_next import normalize_aws_sagemaker_control
 from .aws_rolesanywhere_next import normalize as normalize_aws_rolesanywhere
 from .aws_customer_profiles_next import normalize as normalize_aws_customer_profiles
@@ -257,8 +258,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "3a1a4a7d49e386475d6fc9536edfb6722545f4f3"
-DEFAULT_RULE_PACK_SHA256 = "799b655808d008eb83a9c44c00b51ef48b6bbb258c38e68579733b1bd93830a1"
+DEFAULT_RULE_REF = "53b8a9b88d727b37ef3561898b08c61cc53bf120"
+DEFAULT_RULE_PACK_SHA256 = "e394a09f981b06be31d0ad8f16321af6e48757d972dd4b0536b39ad84cdf8c2f"
 
 
 @dataclass(frozen=True)
@@ -521,6 +522,7 @@ def detect_aws_events(
         iotwireless_group_fuota_batch124 = normalize_aws_iotwireless_group_fuota_batch124(record)
         iotwireless_associations_batch125 = normalize_aws_iotwireless_associations_batch125(record)
         appflow_s3_batch126 = normalize_aws_appflow_s3_batch126(record)
+        appflow_update_batch127 = normalize_aws_appflow_update_batch127(record)
         lambda_controls = normalize_aws_lambda_controls(record)
         lambda_qualified_grant = normalize_aws_lambda_qualified_grant(record)
         lambda_config = normalize_aws_lambda_config(record)
@@ -729,6 +731,7 @@ def detect_aws_events(
                 + iotwireless_group_fuota_batch124
                 + iotwireless_associations_batch125
                 + appflow_s3_batch126
+                + appflow_update_batch127
                 + ([lambda_controls] if lambda_controls is not None else [])
                 + ([lambda_qualified_grant] if lambda_qualified_grant is not None else [])
                 + ([lambda_config] if lambda_config is not None else [])
@@ -840,6 +843,7 @@ def detect_aws_events(
     firehose_sns_batch111_records: list[Mapping[str, Any]] = []
     lambda_persistence_batch112_records: list[Mapping[str, Any]] = []
     inspector_filters_batch113_records: list[Mapping[str, Any]] = []
+    appflow_schedule_batch127_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
             if (not isinstance(record, Mapping)
@@ -854,6 +858,8 @@ def detect_aws_events(
                 lambda_persistence_batch112_records.append(record)
             if record.get("eventSource") == "inspector2.amazonaws.com":
                 inspector_filters_batch113_records.append(record)
+            if record.get("eventSource") == "appflow.amazonaws.com" and record.get("eventName") in {"UpdateFlow", "StartFlow"}:
+                appflow_schedule_batch127_records.append(record)
             if record.get("eventSource") == "dynamodb.amazonaws.com":
                 dynamodb_data_batch106_records.append(record)
             if (isinstance(record.get("eventSource"), str)
@@ -1043,6 +1049,7 @@ def detect_aws_events(
     correlated += correlate_aws_sns_firehose_role_batch111(firehose_sns_batch111_records)
     correlated += correlate_aws_lambda_persistence_batch112(lambda_persistence_batch112_records)
     correlated += correlate_aws_inspector_criteria_batch113(inspector_filters_batch113_records)
+    correlated += correlate_aws_appflow_schedule_batch127(appflow_schedule_batch127_records)
     correlated += correlate_aws_apigateway_portal(apigateway_portal_records)
     correlated += correlate_aws_cloudformation_triggers(cloudformation_trigger_records)
     correlated += correlate_aws_cloudformation_inputs(cloudformation_input_records)
