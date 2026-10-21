@@ -55,6 +55,7 @@ from .aws_globalaccelerator_batch102 import normalize as normalize_aws_globalacc
 from .aws_amp_batch103 import normalize as normalize_aws_amp_batch103
 from .aws_resource_policy_batch104 import normalize_dynamodb_grant as normalize_aws_dynamodb_grant_batch104, correlate_validation as correlate_aws_resource_policy_validation_batch104
 from .aws_dynamodb_data_batch105 import normalize as normalize_aws_dynamodb_data_batch105
+from .aws_dynamodb_data_batch106 import normalize as normalize_aws_dynamodb_data_batch106, correlate_partiql_after_denials as correlate_aws_dynamodb_partiql_denials_batch106
 from .aws_sagemaker_control_next import normalize_aws_sagemaker_control
 from .aws_rolesanywhere_next import normalize as normalize_aws_rolesanywhere
 from .aws_customer_profiles_next import normalize as normalize_aws_customer_profiles
@@ -236,8 +237,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "bab681e73ba8275531882d28edfa606c1e54ae49"
-DEFAULT_RULE_PACK_SHA256 = "6615f74dea9fae7e0d6ae25fd54780d88df6e22cdfd9f3644d5156be74978bc4"
+DEFAULT_RULE_REF = "db0ae304acbe088f9f3b2764c564e3b793c83cd6"
+DEFAULT_RULE_PACK_SHA256 = "ec270ff3b2b69a7cc07eca3675011c9c02a1aa73e1644bc5ef02584bd9ee3e7c"
 
 
 @dataclass(frozen=True)
@@ -499,6 +500,7 @@ def detect_aws_events(
         amp_batch103 = normalize_aws_amp_batch103(record)
         dynamodb_grant_batch104 = normalize_aws_dynamodb_grant_batch104(record)
         dynamodb_data_batch105 = normalize_aws_dynamodb_data_batch105(record)
+        dynamodb_data_batch106 = normalize_aws_dynamodb_data_batch106(record)
         apigateway_http_keys = normalize_aws_apigateway_http_keys(record)
         apigateway_private_vpce = normalize_aws_apigateway_private_vpce(record)
         cloudformation_reads = normalize_aws_cloudformation_reads(record)
@@ -623,6 +625,7 @@ def detect_aws_events(
                 + ([dynamodb_controls] if dynamodb_controls is not None else [])
                 + ([dynamodb_backup_stream] if dynamodb_backup_stream is not None else [])
                 + ([dynamodb_data_batch105] if dynamodb_data_batch105 is not None else [])
+                + ([dynamodb_data_batch106] if dynamodb_data_batch106 is not None else [])
                 + ([sns_sqs_controls] if sns_sqs_controls is not None else [])
                 + ([sns_subscription] if sns_subscription is not None else [])
                 + ([sqs_followup] if sqs_followup is not None else [])
@@ -774,8 +777,11 @@ def detect_aws_events(
     ecr_image_records: list[Mapping[str, Any]] = []
     chime_media_pipeline_records: list[Mapping[str, Any]] = []
     chime_media_insights_records: list[Mapping[str, Any]] = []
+    dynamodb_data_batch106_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
+            if record.get("eventSource") == "dynamodb.amazonaws.com":
+                dynamodb_data_batch106_records.append(record)
             if (isinstance(record.get("eventSource"), str)
                     and record.get("eventSource") in {"kinesis.amazonaws.com", "codeartifact.amazonaws.com", "s3tables.amazonaws.com", "s3vectors.amazonaws.com", "aps.amazonaws.com"}
                     and isinstance(record.get("eventName"), str)
@@ -954,6 +960,7 @@ def detect_aws_events(
     correlated += correlate_aws_apigateway_authorizer_batch100(apigateway_rest_records)
     correlated += correlate_aws_ga_endpoint_replacement(globalaccelerator_records)
     correlated += correlate_aws_resource_policy_validation_batch104(resource_policy_validation_records)
+    correlated += correlate_aws_dynamodb_partiql_denials_batch106(dynamodb_data_batch106_records)
     correlated += correlate_aws_apigateway_portal(apigateway_portal_records)
     correlated += correlate_aws_cloudformation_triggers(cloudformation_trigger_records)
     correlated += correlate_aws_cloudformation_inputs(cloudformation_input_records)
