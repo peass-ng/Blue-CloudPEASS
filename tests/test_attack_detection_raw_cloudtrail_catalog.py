@@ -114,6 +114,47 @@ x_cloudtrail_raw: true
     assert detect_aws_events([malformed, denied], selected) == []
 
 
+def test_console_signin_token_event_uses_private_bounded_envelope(tmp_path):
+    (tmp_path / "signin.yml").write_text("""title: Synthetic console federation token
+id: 16100000-0000-4000-8000-000000000002
+status: experimental
+description: Synthetic sign-in test.
+references: [https://example.test/source]
+logsource: {product: aws, service: cloudtrail}
+detection:
+  selection:
+    event.source: signin.amazonaws.com
+    event.name: GetSigninToken
+    event.category: Management
+    event.outcome: success
+    event.read_only: false
+    resource.type: CloudTrail::UnscopedEvent
+  condition: selection
+falsepositives: [Approved federation]
+level: low
+x_hacktricks_technique_id: synthetic-console-federation-token
+x_cloudtrail_raw: true
+""", encoding="utf-8")
+    selected = load_rules(tmp_path, product="aws")
+    item = event()
+    item.update({"eventSource": "signin.amazonaws.com", "eventName": "GetSigninToken",
+                 "eventType": "AwsConsoleSignIn", "eventCategory": "Management",
+                 "managementEvent": True, "readOnly": False, "resources": None,
+                 "responseElements": {"GetSigninToken": "Success",
+                                      "credentials": {"accessKeyId": "private-key"}},
+                 "userIdentity": {"arn": f"arn:aws:sts::{ACCOUNT}:federated-user/private-name"}})
+    hits = detect_aws_events([item], selected)
+    assert len(hits) == 1
+    assert hits[0].target_id.startswith("sha256:")
+    assert "private-name" not in str(hits)
+    assert "private-key" not in str(hits)
+    for field, value in (("responseElements", {}), ("eventType", "AwsApiCall"),
+                         ("resources", "malformed"), ("errorCode", "AccessDenied")):
+        denied = deepcopy(item)
+        denied[field] = value
+        assert detect_aws_events([denied], selected) == []
+
+
 def test_raw_rule_grammar_rejects_request_fields_and_unsafe_modes(tmp_path):
     with pytest.raises(ValueError, match="Unsupported raw CloudTrail rule"):
         rule(tmp_path, selection_extra="    request.shard_iterator: private\n")
