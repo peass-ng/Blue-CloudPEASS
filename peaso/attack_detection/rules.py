@@ -74,6 +74,7 @@ from .aws_b2bi_partnership_batch121 import normalize as normalize_aws_b2bi_partn
 from .aws_b2bi_lifecycle_batch122 import normalize as normalize_aws_b2bi_lifecycle_batch122
 from .aws_iotwireless_controls_batch123 import normalize as normalize_aws_iotwireless_controls_batch123
 from .aws_iotwireless_group_fuota_batch124 import normalize as normalize_aws_iotwireless_group_fuota_batch124
+from .aws_iotwireless_associations_batch125 import normalize as normalize_aws_iotwireless_associations_batch125
 from .aws_sagemaker_control_next import normalize_aws_sagemaker_control
 from .aws_rolesanywhere_next import normalize as normalize_aws_rolesanywhere
 from .aws_customer_profiles_next import normalize as normalize_aws_customer_profiles
@@ -255,8 +256,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "38083d763d216eb4323bbfbac3dde53d9d5068f4"
-DEFAULT_RULE_PACK_SHA256 = "882672b371d7e5169fbd2a2cb053b732a1c72a6361ef906f0b103e498493882a"
+DEFAULT_RULE_REF = "e782c881798caed88603750f76d1b227efffd2ba"
+DEFAULT_RULE_PACK_SHA256 = "2f2a9a4813d9d6536fa30be54330a7110fdc25b8dadc3b95a16a6aed318ad5f9"
 
 
 @dataclass(frozen=True)
@@ -517,6 +518,7 @@ def detect_aws_events(
         b2bi_lifecycle_batch122 = normalize_aws_b2bi_lifecycle_batch122(record)
         iotwireless_controls_batch123 = normalize_aws_iotwireless_controls_batch123(record)
         iotwireless_group_fuota_batch124 = normalize_aws_iotwireless_group_fuota_batch124(record)
+        iotwireless_associations_batch125 = normalize_aws_iotwireless_associations_batch125(record)
         lambda_controls = normalize_aws_lambda_controls(record)
         lambda_qualified_grant = normalize_aws_lambda_qualified_grant(record)
         lambda_config = normalize_aws_lambda_config(record)
@@ -723,6 +725,7 @@ def detect_aws_events(
                 + b2bi_lifecycle_batch122
                 + iotwireless_controls_batch123
                 + iotwireless_group_fuota_batch124
+                + iotwireless_associations_batch125
                 + ([lambda_controls] if lambda_controls is not None else [])
                 + ([lambda_qualified_grant] if lambda_qualified_grant is not None else [])
                 + ([lambda_config] if lambda_config is not None else [])
