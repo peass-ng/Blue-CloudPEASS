@@ -74,6 +74,49 @@ def test_denials_cross_account_resources_and_wrong_categories_fail_closed(tmp_pa
     assert detect_aws_events([denied, foreign, wrong, no_resources], selected) == []
 
 
+def test_aws_owned_artifact_report_arn_is_allowed_only_for_artifact_reports(tmp_path):
+    (tmp_path / "artifact.yml").write_text("""title: Synthetic Artifact report read
+id: 17300000-0000-4000-8000-000000000099
+status: experimental
+description: Synthetic Artifact test.
+references: [https://example.test/artifact]
+logsource: {product: aws, service: cloudtrail}
+detection:
+  selection:
+    event.source: artifact.amazonaws.com
+    event.name: GetReportMetadata
+    event.category: Management
+    event.outcome: success
+    event.read_only: true
+    resource.type: AWS::Artifact::Report
+  condition: selection
+falsepositives: [Approved report review]
+level: low
+x_hacktricks_technique_id: synthetic-artifact-report-read
+x_cloudtrail_raw: true
+""", encoding="utf-8")
+    selected = load_rules(tmp_path, product="aws")
+    item = event()
+    report = "arn:aws:artifact:us-east-1::report/report-synthetic:1"
+    item.update({"eventSource": "artifact.amazonaws.com", "eventName": "GetReportMetadata",
+                 "eventCategory": "Management", "managementEvent": True, "readOnly": True,
+                 "resources": [{"type": "AWS::Artifact::Report", "ARN": report}]})
+    hits = detect_aws_events([item], selected)
+    assert len(hits) == 1
+    assert hits[0].target_id.startswith("sha256:")
+    assert report not in str(hits)
+    for field, value in (
+        ("eventSource", "other.amazonaws.com"),
+        ("resources", [{"type": "AWS::Other::Report", "ARN": report}]),
+        ("resources", [{"type": "AWS::Artifact::Report", "ARN": report.replace("us-east-1", "us-west-2")}]),
+        ("resources", [{"type": "AWS::Artifact::Report", "ARN": "arn:aws:artifact:us-east-1::report/../private"}]),
+        ("errorCode", "AccessDeniedException"),
+    ):
+        rejected = deepcopy(item)
+        rejected[field] = value
+        assert detect_aws_events([rejected], selected) == []
+
+
 def test_unscoped_management_event_keeps_request_token_private(tmp_path):
     (tmp_path / "unscoped.yml").write_text("""title: Synthetic request status read
 id: 15300000-0000-4000-8000-000000000001

@@ -15,6 +15,7 @@ _SOURCE = re.compile(r"[a-z0-9-]+\.amazonaws\.com\Z")
 _NAME = re.compile(r"[A-Za-z][A-Za-z0-9]{0,127}\Z")
 _TYPE = re.compile(r"AWS::[A-Za-z][A-Za-z0-9]*::[A-Za-z][A-Za-z0-9]*\Z")
 _ARN = re.compile(r"arn:(aws(?:-[a-z-]+)?):[a-z0-9-]+:([a-z0-9-]*):([0-9]{12}):([^\s]+)\Z")
+_ARTIFACT_REPORT_PATH = re.compile(r"report/(?:[A-Za-z0-9_-]+|\*)(?::(?:[0-9]+|\*))?\Z")
 _UNSCOPED_TYPE = "CloudTrail::UnscopedEvent"
 
 
@@ -80,7 +81,18 @@ def normalize(record: Mapping[str, Any]) -> list[dict[str, Any]]:
                 or not isinstance(arn, str) or len(arn) > 2048):
             continue
         match = _ARN.fullmatch(arn)
-        if not match or match.group(3) != account or match.group(2) not in {"", region}:
+        if match and match.group(3) == account and match.group(2) in {"", region}:
+            resource_path = match.group(4)
+        elif source == "artifact.amazonaws.com" and kind == "AWS::Artifact::Report":
+            # Artifact reports belong to AWS, so their CloudTrail ARNs have no
+            # account component. Keep this exception limited to report paths.
+            parts = arn.split(":", 5)
+            if (len(parts) != 6 or parts[:3] != ["arn", "aws", "artifact"]
+                    or parts[3] != region or parts[4] != ""
+                    or not _ARTIFACT_REPORT_PATH.fullmatch(parts[5])):
+                continue
+            resource_path = parts[5]
+        else:
             continue
         key = (kind, arn)
         if key in seen:
@@ -95,7 +107,7 @@ def normalize(record: Mapping[str, Any]) -> list[dict[str, Any]]:
             "event.time": stamp, "account.id": account,
             "actor.id": actor, "target.id": target,
             "__raw_cloudtrail": True,
-            "__resource_path": match.group(4),
+            "__resource_path": resource_path,
             "resource.path_scope_checked": True,
         })
     return result
