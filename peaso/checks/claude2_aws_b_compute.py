@@ -11,7 +11,7 @@ from __future__ import annotations
 import json
 import re
 
-from . import result, unknown
+from . import alias_check, result, unknown
 from .facts import Unavailable, get, list_of_objects, complete_items, optional
 from .claude2_aws_b_common import (install, flag, manual_case, detail, absent_or, strings, policy_document, is_policy_public,  # noqa: F401
     account, inventory, indexes, CONTEXT, ABSENT, P, C, X)
@@ -24,6 +24,8 @@ MERGED = {
         "Every container declares readonlyRootFilesystem true (absent = false)."),
     P + "ecs_task_definitions_host_namespace_not_shared": (["aws.b.ecs.no_host_pid"], "Task definition pidMode is not host."),
     P + "ecs_task_definitions_no_privileged_containers": (["aws.b.ecs.no_privileged_containers"], "No container sets privileged true (absent = false)."),
+    P + "ecs_service_no_assign_public_ip": (["aws.c2b.ecs.awsvpc_service_no_public_ip"],
+        "The awsvpc service predicate covers assignPublicIp; other network modes are not applicable."),
     P + "eks_cluster_private_nodes_enabled": (["aws.eks.private_endpoint"], "Cluster resourcesVpcConfig.endpointPrivateAccess is true."),
 }
 
@@ -59,7 +61,7 @@ COLLECTOR_FACTS = [
                 "aws.c2b.autoscaling.group_lc_no_public_ip", "aws.c2b.autoscaling.group_lc_imdsv2"]},
     {"kind": "ecs_service", "api": "ecs:ListServices + ecs:DescribeServices",
      "fields": ["serviceArn", "clusterArn", "launchType", "capacityProviderStrategy", "desiredCount", "platformVersion", "platformFamily", "taskDefinition", "networkConfiguration.awsvpcConfiguration.assignPublicIp", "loadBalancers"],
-     "checks": ["aws.c2b.ecs.service_no_public_ip", "aws.c2b.ecs.awsvpc_service_no_public_ip", "aws.c2b.ecs.fargate_latest_platform", "aws.c2b.ecs.service_load_balancer_attached", "aws.c2b.ecs.cluster_has_registered_instances"]},
+     "checks": ["aws.c2b.ecs.awsvpc_service_no_public_ip", "aws.c2b.ecs.fargate_latest_platform", "aws.c2b.ecs.service_load_balancer_attached", "aws.c2b.ecs.cluster_has_registered_instances"]},
     {"kind": "ecs_task_set", "api": "ecs:DescribeTaskSets (per service)", "fields": ["taskSetArn", "networkConfiguration.awsvpcConfiguration.assignPublicIp"],
      "checks": ["aws.c2b.ecs.task_set_no_public_ip"]},
     {"kind": "ecs_container_instance", "api": "ecs:ListContainerInstances + ecs:DescribeContainerInstances (per cluster)",
@@ -592,16 +594,6 @@ def _svc(assign=None, **fields):
     return out
 
 
-@install("aws.c2b.ecs.service_no_public_ip", "ecs_service", "ECS service does not automatically assign public IP addresses",
-    _svc("DISABLED"), _svc("ENABLED"), rows=[P + "ecs_service_no_assign_public_ip"], severity="high", category="exposure", control="SC-7",
-    remediation="Set networkConfiguration.awsvpcConfiguration.assignPublicIp to DISABLED and reach the service through a load balancer or NAT.",
-    docs=[D_ECS_SVC, "https://docs.aws.amazon.com/securityhub/latest/userguide/ecs-controls.html#ecs-2"], extra={"no_network_pass": _svc()},
-    note="Prowler: FAIL only when assignPublicIp is ENABLED; services without an awsvpc network configuration PASS.")
-def ecs_svc_ip(item, index):
-    value = absent_or(item, "serviceArn", "networkConfiguration.awsvpcConfiguration.assignPublicIp", "DISABLED", str)
-    return result(value == "ENABLED", assign_public_ip=value)
-
-
 def _tds(mode):
     return inventory("ecs_task_definition", [_td([{"name": "app"}], networkMode=mode)])
 
@@ -626,6 +618,11 @@ def ecs_svc_awsvpc(item, index):
     vpc = get(item, "networkConfiguration.awsvpcConfiguration", dict)
     value = optional(vpc, "assignPublicIp", "DISABLED", str)
     return result(value != "DISABLED", assign_public_ip=value)
+
+
+# The older check asked the same question but reported a non-awsvpc service as
+# PASS and could fail without its task definition. Keep its ID for stored scans.
+alias_check("aws.c2b.ecs.service_no_public_ip", "aws.c2b.ecs.awsvpc_service_no_public_ip")
 
 
 LATEST_LINUX, LATEST_WINDOWS = "1.4.0", "1.0.0"

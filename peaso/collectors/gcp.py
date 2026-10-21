@@ -2028,6 +2028,46 @@ class GCPCollector:
                 scope, params={"optionsRequestedPolicyVersion": 3})
         for kind, endpoint, key, aggregated in COMPUTE:
             def compute_list(kind=kind, endpoint=endpoint, key=key, aggregated=aggregated):
+                def backend_health(item):
+                    output = dict(item)
+                    link = item.get("selfLink")
+                    expected = (rf"https://(?:www|compute)\.googleapis\.com/compute/v1/projects/"
+                        rf"{re.escape(project)}/(?:global|regions/[a-z0-9-]+)/backendServices/[A-Za-z0-9_-]+")
+                    if not isinstance(link, str) or not re.fullmatch(expected, link):
+                        output["BackendHealth"] = {"collection_status": "unknown", "groups": [],
+                            "error": {"code": "backend_service_identity_missing"}}
+                        return output
+                    groups = []
+                    for backend in item.get("backends") or []:
+                        group = backend.get("group") if isinstance(backend, dict) else None
+                        if not isinstance(group, str) or not re.fullmatch(
+                            r"https://(?:www|compute)\.googleapis\.com/compute/v1/projects/"
+                            r"[A-Za-z0-9_-]+/(?:zones|regions)/[a-z0-9-]+/"
+                            r"(?:instanceGroups|networkEndpointGroups)/[A-Za-z0-9_-]+", group):
+                            groups.append({"group": group, "collection_status": "unknown",
+                                "error": {"code": "backend_group_identity_missing"}})
+                            continue
+                        try:
+                            result, request_id = self.read(link + "/getHealth", scope,
+                                method="POST", body={"group": group})
+                            if (not isinstance(result, dict) or not isinstance(result.get("healthStatus", []), list)
+                                    or any(not isinstance(status, dict) for status in result.get("healthStatus", []))):
+                                raise ReadError("malformed", "backend_health_malformed")
+                            groups.append({"group": group, "collection_status": "collected",
+                                "source_requests": [request_id], "healthStatus": [
+                                    {field: status.get(field) for field in ("instance", "healthState", "ipAddress", "port")
+                                     if field in status}
+                                    for status in result.get("healthStatus", [])]})
+                        except ReadError as exc:
+                            groups.append({"group": group, "collection_status": wire_status(exc.status),
+                                "source_requests": [exc.request_id] if getattr(exc, "request_id", None) else [],
+                                "error": exc.error})
+                    status = "collected" if all(group["collection_status"] == "collected" for group in groups) else "partial"
+                    output["BackendHealth"] = {"collection_status": status, "groups": groups}
+                    output.setdefault("_coverage", {})["BackendHealth"] = {"status": status,
+                        "collection_status": status, "source_requests": [request_id for group in groups
+                            for request_id in group.get("source_requests", [])]}
+                    return output
                 for items, request_id in self.pages(
                     f"{compute}/{endpoint}", scope, key=key, aggregate=key if aggregated else None,
                     params={"returnPartialSuccess": "true"} if aggregated else None, page_size_key="maxResults",
@@ -2036,6 +2076,8 @@ class GCPCollector:
                         **({"_proxy_type": endpoint.rsplit("/", 1)[-1]} if kind == "target_proxy" else {})}):
                     if kind in COMPUTE_IAM and self.options.get("compute_resource_iam", True):
                         items = self.parallel(lambda item, kind=kind: compute_policy(kind, item), items)
+                    if kind == "backend_service":
+                        items = self.parallel(backend_health, items)
                     yield items, request_id
             add(kind, "compute", compute_list)
         def policy_based_routes():

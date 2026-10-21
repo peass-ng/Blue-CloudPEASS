@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 import re
 
-from . import result
+from . import alias_check, result
 from .facts import Unavailable, get, list_of_objects, complete_items
 from .claude_aws_b_common import (install, flag, absent_or, strings, account, policy_document, is_policy_public, kms_manager,
     has_public_principal, has_restrictive_source_arn_condition, is_condition_block_restrictive, is_condition_block_restrictive_organization,
@@ -388,16 +388,7 @@ def sns_public_c(item, index):
     return result(bool(hits), public_statements=len(hits))
 
 
-@install("aws.cb.sns.policy_prohibit_public_access_perimeter", "sns_topic", "SNS topic policy does not allow public access (perimeter)",
-    _topic(OWN), _topic(PUBLIC), rows=[X + "sns_topic_policy_prohibit_public_access"], severity="high", category="exposure", control="AC-3",
-    remediation="Remove wildcard principals or add restricting conditions to the topic policy.", docs=[D_SNS], extra={"not_applicable": _topic(None)},
-    note="aws-perimeter resource_policy_public_sql; a topic without a readable policy is info (NOT_APPLICABLE).")
-def sns_public_x(item, index):
-    statements = _topic_policy(item)
-    if statements is None:
-        return "NOT_APPLICABLE", {"policy": None}
-    hits = turbot_public_statements(statements)
-    return result(bool(hits), public_statements=len(hits))
+alias_check("aws.cb.sns.policy_prohibit_public_access_perimeter", "aws.cb.sns.policy_no_unrestricted_wildcard")
 
 
 def _unconditioned_actions(statements, actions):

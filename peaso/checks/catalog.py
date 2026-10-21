@@ -163,7 +163,14 @@ def _base_description_for(check_id):
 
 def requirement_tags_for(check_id):
     packed = _compliance()
-    return deepcopy(packed[0]["by_check"].get(check_id, [])) if packed else []
+    if not packed:
+        return []
+    from . import CHECK_ALIASES
+    source_ids = [check_id, *(old for old, survivor in CHECK_ALIASES.items() if survivor == check_id)]
+    tags = []
+    for source_id in source_ids:
+        tags.extend(packed[0]["by_check"].get(source_id, []))
+    return deepcopy(tags)
 
 
 @lru_cache(maxsize=1)
