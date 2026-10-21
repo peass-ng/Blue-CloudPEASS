@@ -531,6 +531,34 @@ def test_kubernetes_ingress_joins_only_a_declared_service_port():
     assert len(findings(snap)) == 1
 
 
+def test_kubernetes_public_service_inherits_privilege_from_service_account_group():
+    snap = snapshot("k8s", {
+        "networkpolicy": [],
+        "service": [{"metadata": {"name": "web", "namespace": "app"},
+            "spec": {"type": "LoadBalancer", "selector": {"app": "web"}, "ports": [{"port": 80}]},
+            "status": {"loadBalancer": {"ingress": [{"ip": "8.8.8.8"}]}}}],
+        "pod": [{"metadata": {"name": "web", "namespace": "app", "labels": {"app": "web"}},
+            "spec": {"serviceAccountName": "app", "automountServiceAccountToken": True}}],
+        "serviceaccount": [{"metadata": {"name": "app", "namespace": "app"}}],
+        "clusterrole": [{"metadata": {"name": "admin"}, "rules": [{"apiGroups": ["*"],
+            "resources": ["*"], "verbs": ["*"]}]}],
+        "clusterrolebinding": [{"metadata": {"name": "admin"},
+            "roleRef": {"kind": "ClusterRole", "name": "admin"},
+            "subjects": [{"kind": "Group", "name": "system:serviceaccounts:app"}]}],
+    }, "cluster")
+    result = findings(snap)
+    assert len(result) == 1
+    assert result[0]["evidence"]["principal"] == "system:serviceaccount:app:app"
+    assert result[0]["evidence"]["grant_sources"][0]["via_group"] == "system:serviceaccounts:app"
+    assert "belongs to system:serviceaccounts:app" in result[0]["evidence_summary"]
+    subject = next(c for c in snap["collections"] if c["type"] == "clusterrolebinding")["items"][0]["subjects"][0]
+    subject["name"] = "system:serviceaccounts:other"
+    assert findings(snap) == []
+    for group in ("system:serviceaccounts", "system:authenticated"):
+        subject["name"] = group
+        assert len(findings(snap)) == 1
+
+
 def test_unrelated_network_policy_does_not_hide_public_privileged_pod():
     snap = snapshot("k8s", {
         "networkpolicy": [{"metadata": {"name": "other", "namespace": "app"},

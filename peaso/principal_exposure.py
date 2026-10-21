@@ -77,7 +77,7 @@ def project(snapshot, resources):
         if item not in card["exposures"]:
             card["exposures"].append(item)
 
-    def review(identity, row, values=None, source_row=None):
+    def review(identity, row, values=None, source_row=None, via_group=None):
         values = grants(row) if values is None else values
         high = [g for g in values if g.get("allowed_declaration") and RANK.get(g.get("severity"), 4) <= 1]
         if high and identity:
@@ -87,6 +87,8 @@ def project(snapshot, resources):
             detail = {"resource_id": row.get("id", str(native_id(row))), "scope": row.get("scope", ""),
                 "grant_source_id": grant_source.get("id", str(native_id(grant_source))),
                 "grant_count": len(high), "grants": high[:3]}
+            if via_group:
+                detail["via_group"] = via_group
             if detail not in card["grant_reviews"]:
                 card["grant_reviews"].append(detail)
 
@@ -196,6 +198,12 @@ def project(snapshot, resources):
     elif provider == "k8s":
         roles = {(_cluster(r), r["type"], r["data"].get("metadata", {}).get("namespace", "default"), r["data"].get("metadata", {}).get("name")): r
                  for r in by_type["role"] + by_type["clusterrole"]}
+        accounts_by_cluster = defaultdict(list)
+        accounts_by_namespace = defaultdict(list)
+        for sa in by_type["serviceaccount"]:
+            sa_namespace = sa["data"].get("metadata", {}).get("namespace", "default")
+            accounts_by_cluster[_cluster(sa)].append(sa)
+            accounts_by_namespace[(_cluster(sa), sa_namespace)].append(sa)
         for row in by_type["rolebinding"] + by_type["clusterrolebinding"]:
             if _k8s_self_info_binding(snapshot, row):
                 continue
@@ -207,6 +215,19 @@ def project(snapshot, resources):
                 identity = f"system:serviceaccount:{subject.get('namespace', namespace)}:{subject.get('name')}" if subject.get("kind") == "ServiceAccount" else subject.get("name")
                 if role:
                     review(identity, row, grants(role), source_row=role)
+                    # Kubernetes authenticates a ServiceAccount with these built-in groups.
+                    if subject.get("kind") == "Group" and isinstance(identity, str) and (
+                            identity in {"system:serviceaccounts", "system:authenticated"}
+                            or identity.startswith("system:serviceaccounts:")):
+                        candidates = (accounts_by_cluster[_cluster(row)] if identity in {
+                            "system:serviceaccounts", "system:authenticated"} else
+                            accounts_by_namespace[(_cluster(row), identity.removeprefix("system:serviceaccounts:"))])
+                        for sa in candidates:
+                            sa_namespace = sa["data"].get("metadata", {}).get("namespace", "default")
+                            sa_name = sa["data"].get("metadata", {}).get("name")
+                            if sa_name:
+                                review(f"system:serviceaccount:{sa_namespace}:{sa_name}", row,
+                                    grants(role), source_row=role, via_group=identity)
                 classification = externality(snapshot, identity)
                 if classification in {"external", "public", "everyone_authenticated", "unknown"}:
                     state = "unknown" if classification == "unknown" else "declared"
@@ -591,10 +612,11 @@ def exposed_privileged_findings(snapshot, resources):
                 workloads.setdefault(workload_id, []).append(exposure)
         for workload_id, paths in workloads.items():
             workload = by_id[workload_id]
-            sample = next((grant for review in reviews for grant in review.get("grants", [])
+            match = next(((grant, review) for review in reviews for grant in review.get("grants", [])
                 if grant.get("allowed_declaration") and RANK.get(grant.get("severity"), 4) <= 1), None)
-            if sample is None:
+            if match is None:
                 continue
+            sample, grant_review = match
             native = sample.get("native_grant")
             label = "high-impact permissions"
             if isinstance(native, dict):
@@ -613,10 +635,12 @@ def exposed_privileged_findings(snapshot, resources):
                 continue
             name = native_id(workload)
             principal = card["principal"]
+            grant_line = (f"That identity belongs to {grant_review['via_group']}, which has a declared high-impact grant for {label}."
+                if grant_review.get("via_group") else f"That identity has a declared high-impact grant for {label}.")
             observation = (f"{name} is linked to a public endpoint configured at {endpoint}" +
                 (f" on {', '.join(ports[:3])}." if ports else ".") + "\n" +
                 f"The workload uses {principal} as its runtime identity.\n" +
-                f"That identity has a declared high-impact grant for {label}.\n" +
+                grant_line + "\n" +
                 "If the public workload is compromised, those permissions could be used against the resources they cover, which may affect users or their data.")
             evidence = {"source": source(snapshot, workload, "data"), "principal": principal,
                 "endpoints": [{"resource_id": path.get("endpoint_resource"),
