@@ -19,6 +19,8 @@
     all_of:
       - action: iam:PassRole
         resource: "{target.arn}"
+        request_context:
+          iam:PassedToService: finspace.amazonaws.com
       - action: finspace:CreateKxCluster
         resource: "*"
   target:
@@ -28,6 +30,7 @@
       resource_permission_covers_target: iam:PassRole
     scope: same_account
     aggregate_as: "Roles trusting finspace.amazonaws.com passable in {account}"
+    outcome: workload_execution
   conditions:
     - id: existing_kx_environment
       description: A Managed kdb environment must already exist in the CreateKxCluster Resource scope.
@@ -55,6 +58,8 @@
     all_of:
       - action: iam:PassRole
         resource: "{target.arn}"
+        request_context:
+          iam:PassedToService: kafkaconnect.amazonaws.com
       - action: kafkaconnect:CreateConnector
         resource: "*"
       - action: kafkaconnect:CreateCustomPlugin

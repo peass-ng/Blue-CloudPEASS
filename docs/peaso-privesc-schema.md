@@ -23,6 +23,30 @@ most a conditional path and is shown as MANUAL; it never gives a definite
 finding from configuration alone. The evidence producer must include provenance
 and must not set `VerifiedPreconditions` merely because an API grant exists.
 
+The EC2 changed-user-data route uses a source-dependent precondition on this
+collection. Its record must name `TechniqueId=aws-ec2-modifyinstanceattribute-userdata`,
+`SourceArn`, `TargetKind=aws_role`, `TargetId`, `TargetScope`, `TargetRoleId`,
+`TargetProfileArn`, `TargetProfileId`, and `InstanceArn`. It also requires
+`Status=verified`, `VerifiedPreconditions=true`, `UserDataRunsOnRestart=true`,
+`RoleCredentialsReachable=true`, a nonempty `EvidenceRef`, and timestamps
+`EvidenceObservedAt` and `EvidenceExpiresAt` no more than 15 minutes apart.
+For a running instance, include `StopProtectionDisabled` as a boolean; when
+false, the source must be authorized to disable stop protection. The producer
+must verify guest restart behavior and credential availability for that exact
+instance. A new user-data script, IAM grants, or an instance profile alone
+cannot establish those facts. No script or credential value is stored.
+
+For the AWS App Runner, Lambda, and CodeBuild direct IAM-user-key routes, a
+verified item also needs `CredentialResourceArn`, `AccessAction`,
+`CredentialSubjectArn`, `CredentialKind=aws_iam_user_access_key`,
+`CredentialUsable`, `CredentialReadSucceeded`, and
+`CredentialAuthenticatedAsSubject`. To establish an actual privilege gain,
+record `NewEffectiveAction` and `NewEffectiveResource`, with
+`SourcePreviouslyDenied=true` and `TargetAccessAfterAllowed=true` from the
+same reviewed comparison. A `codebuild:BatchGetBuilds` item must also name
+`CredentialObservedInBuildArn` under the authorized project. These fields
+are evidence metadata; do not store the key or secret value.
+
 The catalog's `requires` actions select one documented branch per technique.
 The evidence item must validate every additional permission and condition for
 that branch, including exact resource scope; a wildcard `requires.resource`
@@ -103,7 +127,7 @@ k8s: `k8s_service_account`, `k8s_user`, `k8s_group`, `k8s_node`(node credentials
 - `same_as_source: true` (self-escalation: e.g. iam:CreatePolicyVersion on own policy → source becomes admin)
 - `resource_permission_covers_target: <action>` (target must be within the Resource/scope of that permission)
 - `gcp_actas_granted_on_target: true` · `gcp_sa_in_scope_of_permission: true`
-- `azure_identity_assignable_in_scope: true` · `entra_role_assignable: <role>`
+- `azure_identity_assignable_in_scope: true` · `azure_aci_assignable_uami: true` · `entra_role_assignable: <role>`
 - `k8s_sa_in_namespace: "{source.namespace}"|"*"` · `k8s_node_hosting_pods_with_sa: true`
 - `any_principal_in_scope: true` (e.g. GCP/Azure/K8s setIamPolicy-like control → `*_scope_owner` entity)
 
@@ -157,15 +181,26 @@ so a condition that would otherwise be "undecidable -> conditional" becomes prov
 - action: iam:AttachUserPolicy
   resource: "{source.arn}"
   request_context:
-    iam:PolicyARN: [arn:aws:iam::aws:policy/AdministratorAccess, arn:aws:iam::aws:policy/IAMFullAccess]  # requester picks ONE
+    iam:PolicyARN: {admin_managed_policy: true}  # AdministratorAccess or a proven customer-managed admin policy
 - action: iam:CreateRole
   request_context:
     iam:PermissionsBoundary: {absent: true}     # the attacker does not attach a boundary
     aws:TagKeys: {values: [team, env]}          # multi-valued key carrying all listed values
     aws:RequestTag/team: {chosen: true}         # the requester controls the value
+- action: lambda:AddPermission
+  request_context:
+    lambda:Principal: {source_principal: true}   # grant the current IAM user or role
 ```
 A string is one value; a list is a choice of one value (best verdict over the choices, at most 16 combinations);
 `{values: [...]}` a multi-valued key; `{absent: true}` / `{chosen: true}` a provably missing / requester-chosen key.
+`{admin_managed_policy: true}` is valid only for `iam:PolicyARN`. It tries AdministratorAccess and same-account
+customer-managed policies whose collected default version grants `Action: "*"` on `Resource: "*"` without conditions
+or explicit denies. A restriction to another policy does not satisfy this administrator path.
+`{source_principal: true}` is valid only for `lambda:Principal` and checks a grant to the current IAM user or role.
+For an existing IAM user, group, or role, the evaluator also checks its managed-policy attachment count against
+the quota recorded in `iam_account_summary` when available. If the quota is full, a permitted detach step makes the
+path conditional; without it the attachment path is excluded. Reattaching a policy already on the principal does
+not add permissions. Without a recorded quota, a principal with ten or more attached policies stays unresolved.
 Values are literals (no placeholders). Edges note the choice used (`request_context_<key>=<value>` condition).
 Without `request_context` the v1 context is used (e.g. `iam:PassedToService` inferred from the target selector).
 Only AWS evaluates it; GCP IAM Conditions and Azure ABAC conditions remain evaluated as before.
@@ -287,7 +322,19 @@ whose resources were not collected keep one unresolved placeholder (`not_collect
   stale, ambiguous, or unverifiable records produce no target and no unknown-principal path. The proof's
   `PriorAccessCheckedAt < ActionObservedAt <= AfterAccessCheckedAt <= EvidenceObservedAt <= snapshot.created_at`
   must hold within a 15-minute window, and `CredentialExpiresAt` must be later than the snapshot.
-- `gcp_resource_self_grant: true` (kind `gcp_verified_authority`, outcome `permission_grant`) requires a unique,
+  For the Agent Registry service redirect technique, the record also names the quota project, the exact
+  Service and unchanged projected URN, the existing Binding and auth provider, the old and capture URLs,
+  the victim identity and binding-aware invocation, and the credential received at the controlled endpoint.
+  Invocation and capture must follow the Service update and precede the successful target-plane test.
+- `gcp_agentregistry_skill_evidence: true` (kind `gcp_verified_authority`, outcome `bounded_authority`)
+  needs one complete reviewed record for the exact customer-created Agent Registry Skill, quota project,
+  consumer and floating Skill reference. The record binds the old, replacement, and consumer-resolved
+  revisions, the consumer's runtime principal, and one downstream permission and resource that the source
+  was denied before the replacement but the consumer used afterward. A create-only path needs revision
+  creation and quota-project use; an explicit pointer update additionally needs Skill update permission.
+  Pinned revisions, Agent Platform Skill Registry references, missing execution, partial evidence, and
+  duplicate records create no authority target.
+- `gcp_resource_self_grant: true` (kind `gcp_verified_authority`, outcome `permission_grant`) can use a unique,
   complete `gcp_resource_self_grant_evidence` record. `TargetResource` names the exact resource governed by the
   changed IAM or row-access policy; `GrantedResource` names the same resource or an exact descendant where the new
   permission was tested.
@@ -296,6 +343,14 @@ whose resources were not collected keep one unresolved placeholder (`not_collect
   `GrantedResource`. A parent policy write alone cannot produce a child permission path without this exact
   child-resource evidence. BigQuery row-policy self-grants also require the documented create, set-policy,
   table-read, and query-job permissions; the reviewed grant must name the acting principal on the exact table.
+  Selected resource kinds also have prospective paths when the exact resource, complete native IAM policy,
+  source's policy-write permission, absent prior access, organization policies and deny rules are available.
+  These include Secret Manager secrets, Pub/Sub topics and subscriptions, Cloud KMS keys, standard Artifact
+  Registry repositories and Analytics Hub data exchanges and listings. The Analytics Hub paths read Cloud Asset
+  resource names and native IAM policies; the listing path also checks its parent exchange policy because
+  exchange bindings can grant listing access. A missing policy or unresolved inherited access stays unknown.
+  A reviewed exchange or listing mutation additionally binds the same resource and subscription permission in the
+  before and after tests, the accepted self-binding, and a recent check that the binding remains present.
 - `gcp_bounded_access_gain: true` with one `gcp_bounded_mechanism` (kind `gcp_verified_authority`, outcome
   `bounded_authority`) covers only a connection-backed BigLake table, a BigQuery remote function, an authorized
   routine, an authorized view, or one preexisting view in an authorized dataset. A unique complete
@@ -352,6 +407,13 @@ reports it in coverage). GCP `attached_to_service` values must be in `SERVICE_HO
 `UNCOLLECTED_ATTACHMENTS` (reported as `attached_to_service <v> attachment inventory not collected`).
 
 ### 12. Azure additions
+- `azure_aci_exec_running_identity: true` joins a native Container Instances group, its attached managed identity,
+  a running container, and the source's exec permission on that same group. Missing runtime state stays unresolved.
+- `azure_aci_existing_write_identity: true` joins the native existing group, its attached identity, running state,
+  and the source's write permission on that group. Terminated groups do not qualify for in-place updates.
+- `azure_aci_assignable_uami: true` checks the exact user-assigned identity's assignment right and an inventoried
+  container group with write access, or a known resource group where a new group can be written. Missing identity
+  or ACI inventory stays unresolved; successful deployment and token use remain conditional.
 - Requirement kinds: `fabric_workspace_role: Admin|Member|Contributor|Viewer` (+ optional `fabric_workspace`, rank
   compared, groups included), `intune_permission: <resourceAction glob>` (always conditional
   `intune_scope_tags_not_evaluated`), `entra_catalog_role: <role>` + `catalog: '{target.catalog}'` (`appScopeId "/"` =

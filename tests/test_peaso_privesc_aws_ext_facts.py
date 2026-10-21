@@ -115,9 +115,12 @@ def test_codedeploy_auto_scaling_group_matched_by_instance_tag():
 def test_rolesanywhere_profile_membership_and_profile_arn():
     profile = f"arn:aws:rolesanywhere:{REGION}:{ACCOUNT}:profile/p1"
     anchor = f"arn:aws:rolesanywhere:{REGION}:{ACCOUNT}:trust-anchor/t1"
-    roles = [role("edge", trust_service("rolesanywhere.amazonaws.com")), role("spare", trust_service("rolesanywhere.amazonaws.com"))]
+    roles_anywhere_trust = pol({"Effect": "Allow", "Principal": {"Service": "rolesanywhere.amazonaws.com"},
+                                "Action": ["sts:AssumeRole", "sts:TagSession", "sts:SetSourceIdentity"]})
+    roles = [role("edge", roles_anywhere_trust), role("spare", roles_anywhere_trust)]
     extra = [("rolesanywhere_profile", SCOPE, [{"profileArn": profile, "enabled": True, "roleArns": [arn("edge")]}]),
-             ("rolesanywhere_trust_anchor", SCOPE, [{"trustAnchorArn": anchor, "enabled": True}])]
+             ("rolesanywhere_trust_anchor", SCOPE, [{"trustAnchorArn": anchor, "enabled": True,
+                                                     "source": {"sourceType": "CERTIFICATE_BUNDLE"}}])]
     result = privesc.analyze(aws_snap([user("alice", allow("rolesanywhere:UpdateProfile", profile))], roles, extra),
                              entries=[catalog_entry("aws-rolesanywhere-updateprofile-remove-session-policy")])
     assert set(reached(result, ALICE)) == {arn("edge")}
@@ -129,15 +132,92 @@ def test_rolesanywhere_profile_membership_and_profile_arn():
     assert reached(result, ALICE) == {}
 
 
+def test_rolesanywhere_anchor_update_matches_profile_region_and_role_trust():
+    profile = f"arn:aws:rolesanywhere:{REGION}:{ACCOUNT}:profile/p1"
+    anchor = f"arn:aws:rolesanywhere:{REGION}:{ACCOUNT}:trust-anchor/t1"
+    other = f"arn:aws:rolesanywhere:{REGION}:{ACCOUNT}:trust-anchor/t2"
+    target = role("edge", pol({"Effect": "Allow", "Principal": {"Service": "rolesanywhere.amazonaws.com"},
+                               "Action": ["sts:AssumeRole", "sts:TagSession", "sts:SetSourceIdentity"],
+                               "Condition": {"ArnEquals": {"aws:SourceArn": anchor}}}))
+    profile_row = {"profileArn": profile, "enabled": True, "roleArns": [arn("edge")]}
+    anchor_rows = [{"trustAnchorArn": anchor, "enabled": True, "source": {"sourceType": "CERTIFICATE_BUNDLE"}},
+                   {"trustAnchorArn": other, "enabled": True, "source": {"sourceType": "CERTIFICATE_BUNDLE"}}]
+    technique = catalog_entry("aws-rolesanywhere-updatetrustanchor")
+
+    def evaluate(permission):
+        extra = [("rolesanywhere_profile", SCOPE, [profile_row]),
+                 ("rolesanywhere_trust_anchor", SCOPE, anchor_rows)]
+        snap = aws_snap([user("alice", allow("rolesanywhere:UpdateTrustAnchor", permission))], [target], extra)
+        return reached(privesc.analyze(snap, entries=[technique]), ALICE)
+
+    assert set(evaluate(anchor)) == {arn("edge")}
+    target["AssumeRolePolicyDocument"]["Statement"][0]["Action"].remove("sts:TagSession")
+    assert evaluate(anchor) == {}
+    target["AssumeRolePolicyDocument"]["Statement"][0]["Action"].append("sts:TagSession")
+    assert evaluate(other) == {}
+    anchor_rows[0]["enabled"] = False
+    assert evaluate(anchor) == {}
+    anchor_rows[0]["enabled"] = True
+    anchor_rows[0]["source"]["sourceType"] = "AWS_ACM_PCA"
+    assert evaluate(anchor) == {}
+    anchor_rows[0]["source"]["sourceType"] = "CERTIFICATE_BUNDLE"
+    profile_row["enabled"] = False
+    assert evaluate(anchor) == {}
+    profile_row["enabled"] = True
+    profile_row["sessionPolicy"] = '{"Version":"2012-10-17","Statement":[]}'
+    assert evaluate(anchor) == {}
+    profile_row.pop("sessionPolicy")
+    anchor_rows[0]["trustAnchorArn"] = anchor.replace(f":{REGION}:", ":us-west-2:")
+    assert evaluate(anchor_rows[0]["trustAnchorArn"]) == {}
+    anchor_rows[0]["trustAnchorArn"] = anchor
+    target["AssumeRolePolicyDocument"]["Statement"].append({
+        "Effect": "Deny", "Principal": {"Service": "rolesanywhere.amazonaws.com"},
+        "Action": "sts:AssumeRole", "Condition": {"ArnEquals": {"aws:SourceArn": anchor}}})
+    assert evaluate(anchor) == {}
+
+
 # --- SageMaker / Image Builder hosts ---------------------------------------------------------------------
 def test_sagemaker_user_profile_execution_role_host():
     profile = f"arn:aws:sagemaker:{REGION}:{ACCOUNT}:user-profile/d-1/alice"
     roles = [role("sm", trust_service("sagemaker.amazonaws.com")), role("sm2", trust_service("sagemaker.amazonaws.com"))]
-    extra = [("sagemaker_user_profile", SCOPE, [{"DomainId": "d-1", "UserProfileName": "alice", "UserProfileArn": profile,
-                                                 "ExecutionRole": arn("sm"), "ExecutionRoleSource": "user_settings"}])]
-    result = privesc.analyze(aws_snap([user("alice", allow("sagemaker:CreatePresignedDomainUrl", profile))], roles, extra),
-                             entries=[catalog_entry("aws-sagemaker-createpresigneddomainurl")])
-    assert set(reached(result, ALICE)) == {arn("sm")}
+    user_profile = {"DomainId": "d-1", "UserProfileName": "alice", "UserProfileArn": profile,
+                    "ExecutionRole": arn("sm"), "ExecutionRoleSource": "user_settings", "Status": "InService"}
+    domain = {"DomainId": "d-1", "AuthMode": "IAM", "Status": "InService",
+              "AppNetworkAccessType": "PublicInternetOnly"}
+    app = {"DomainId": "d-1", "UserProfileName": "alice", "AppType": "KernelGateway",
+           "AppName": "default", "Status": "InService"}
+    def analyze(apps=(app,), create=False, add_tags=True, url_resource=profile):
+        extra = [("sagemaker_user_profile", SCOPE, [user_profile]), ("sagemaker_domain", SCOPE, [domain]),
+                 ("sagemaker_app", SCOPE, list(apps))]
+        grants = [allow("sagemaker:CreatePresignedDomainUrl", url_resource)]
+        if create:
+            app_arn = f"arn:aws:sagemaker:{REGION}:{ACCOUNT}:app/d-1/alice/KernelGateway/default"
+            grants.append(allow("sagemaker:CreateApp", app_arn))
+            if add_tags:
+                grants.append(allow("sagemaker:AddTags", app_arn))
+        return privesc.analyze(aws_snap([user("alice", *grants)], roles, extra),
+                               entries=[catalog_entry("aws-sagemaker-createpresigneddomainurl")])
+    assert set(reached(analyze(), ALICE)) == {arn("sm")}
+    assert reached(analyze(url_resource=profile + "-other"), ALICE) == {}
+    assert reached(analyze(apps=()), ALICE) == {}
+    assert set(reached(analyze(apps=(), create=True), ALICE)) == {arn("sm")}
+    assert reached(analyze(apps=(), create=True, add_tags=False), ALICE) == {}
+    app["SpaceName"] = "other-role-space"
+    assert reached(analyze(), ALICE) == {}
+    app.pop("SpaceName")
+    domain["AuthMode"] = "SSO"
+    assert reached(analyze(), ALICE) == {}
+    domain["AuthMode"] = "IAM"
+    user_profile["Status"] = "Failed"
+    assert reached(analyze(), ALICE) == {}
+    user_profile["Status"] = "InService"
+    domain["Status"] = "Deleting"
+    assert reached(analyze(), ALICE) == {}
+    domain["Status"] = "InService"
+    domain["AppNetworkAccessType"] = "VpcOnly"
+    assert set(reached(analyze(), ALICE)) == {arn("sm")}
+    domain["DomainId"] = "d-other"
+    assert reached(analyze(), ALICE) == {}
 
 
 def test_imagebuilder_and_hyperpod_hosts_loaded():
@@ -179,6 +259,119 @@ def test_quicksight_subscription_found_in_any_region():
     result = privesc.analyze(aws_snap([user("alice", allow("quicksight:UpdateUser"))], [], users),
                              entries=[catalog_entry("aws-quicksight-updateuser-admin")])
     assert set(reached(result, ALICE)) == {f"aws_service_plane_admin:quicksight:arn:aws:quicksight:*:{ACCOUNT}:user/*"}
+
+
+def test_quicksight_registeruser_requires_iam_subscription_and_controlled_identity():
+    technique = catalog_entry("aws-quicksight-registeruser-admin")
+    qs_user = ("quicksight_user", SCOPE, [{"Arn": f"arn:aws:quicksight:{REGION}:{ACCOUNT}:user/default/bob",
+        "UserName": "bob", "PrincipalId": "federated/iam/AIDABOB123456789", "IdentityType": "IAM", "Role": "AUTHOR"}])
+    subscription = ("quicksight_account_subscription", SCOPE, [{"id": ACCOUNT,
+        "AccountSubscriptionStatus": "ACCOUNT_CREATED", "AuthenticationType": "IAM_ONLY"}])
+
+    def route(source, sub=subscription, users=qs_user):
+        return privesc.analyze(aws_snap([source], [], [users, sub]), entries=[technique])
+
+    def alice_user(*statements):
+        source = user("alice", *statements)
+        source["UserId"] = "AIDAALICE123456789"
+        return source
+
+    alice = alice_user(allow("quicksight:RegisterUser"))
+    new_user_arn = f"arn:aws:quicksight:{REGION}:{ACCOUNT}:user/default/alice"
+    target_id = f"aws_service_plane_admin:quicksight:{SCOPE}"
+    assert set(reached(route(alice), ALICE)) == {target_id}
+    assert set(reached(route(alice_user(allow("quicksight:RegisterUser", new_user_arn))), ALICE)) == {target_id}
+    assert reached(route(alice_user(allow("quicksight:RegisterUser", new_user_arn + "x"))), ALICE) == {}
+    assert set(reached(route(alice, users=("quicksight_user", SCOPE, [], "empty")), ALICE)) == {target_id}
+    collision = ("quicksight_user", SCOPE, [{"Arn": new_user_arn, "UserName": "alice", "Role": "READER"}])
+    assert reached(route(alice, users=collision), ALICE) == {}
+    same_identity = ("quicksight_user", SCOPE, [{"Arn": f"arn:aws:quicksight:{REGION}:{ACCOUNT}:user/default/other",
+        "UserName": "other", "PrincipalId": "federated/iam/AIDAALICE123456789", "IdentityType": "IAM", "Role": "AUTHOR"}])
+    assert reached(route(alice, users=same_identity), ALICE) == {}
+    assert reached(route(alice, users=("quicksight_user", SCOPE, [], "denied")), ALICE) == {}
+    no_identity_id = ("quicksight_user", SCOPE, [{"Arn": qs_user[2][0]["Arn"],
+        "UserName": "bob", "IdentityType": "IAM", "Role": "AUTHOR"}])
+    assert reached(route(alice, users=no_identity_id), ALICE) == {}
+    directory = ("quicksight_account_subscription", SCOPE, [{"id": ACCOUNT,
+        "AccountSubscriptionStatus": "ACCOUNT_CREATED", "AuthenticationType": "ACTIVE_DIRECTORY"}])
+    assert reached(route(alice, directory), ALICE) == {}
+    denied = ("quicksight_account_subscription", SCOPE, [], "denied")
+    assert reached(route(alice, denied), ALICE) == {}
+    wrong_identity = alice_user({"Effect": "Allow", "Action": "quicksight:RegisterUser", "Resource": "*",
+        "Condition": {"ArnEquals": {"quicksight:IamArn": f"arn:aws:iam::{ACCOUNT}:user/bob"}}})
+    assert reached(route(wrong_identity), ALICE) == {}
+    role_session_only = alice_user({"Effect": "Allow", "Action": "quicksight:RegisterUser", "Resource": "*",
+        "Condition": {"StringEquals": {"quicksight:SessionName": "special-session"}}})
+    assert reached(route(role_session_only), ALICE) == {}
+
+
+def test_flink_passrole_binds_service_condition():
+    technique = catalog_entry("aws-flink-passrole-createapplication")
+    target = role("flink", trust_service("kinesisanalytics.amazonaws.com"))
+    actions = allow(["kinesisanalytics:CreateApplication", "kinesisanalytics:StartApplication"])
+    empty = ("flink_application", SCOPE, [], "empty")
+    valid = user("alice", actions, {"Effect": "Allow", "Action": "iam:PassRole", "Resource": target["Arn"],
+        "Condition": {"StringEquals": {"iam:PassedToService": "kinesisanalytics.amazonaws.com"}}})
+    wrong = user("alice", actions, {"Effect": "Allow", "Action": "iam:PassRole", "Resource": target["Arn"],
+        "Condition": {"StringEquals": {"iam:PassedToService": "lambda.amazonaws.com"}}})
+    assert target["Arn"] in reached(privesc.analyze(aws_snap([valid], [target], [empty]), entries=[technique]), ALICE)
+    assert reached(privesc.analyze(aws_snap([wrong], [target], [empty]), entries=[technique]), ALICE) == {}
+
+
+def test_flink_start_permission_selects_one_unused_application_name():
+    technique = catalog_entry("aws-flink-passrole-createapplication")
+    target = role("flink", trust_service("kinesisanalytics.amazonaws.com"))
+    application = f"arn:aws:kinesisanalytics:{REGION}:{ACCOUNT}:application/new-app"
+    base = [allow("iam:PassRole", target["Arn"]), allow("kinesisanalytics:CreateApplication")]
+
+    def route(start_arn, names=(), inventory_status="collected"):
+        apps = ("flink_application", SCOPE, [{"ApplicationARN": f"arn:aws:kinesisanalytics:{REGION}:{ACCOUNT}:application/{name}",
+            "ApplicationName": name} for name in names], inventory_status)
+        source = user("alice", *base, allow("kinesisanalytics:StartApplication", start_arn))
+        return privesc.analyze(aws_snap([source], [target], [apps]), entries=[technique])
+
+    assert target["Arn"] in reached(route(application), ALICE)
+    assert reached(route(application, names=("new-app",)), ALICE) == {}
+    assert reached(route(application.replace(ACCOUNT, "999999999999")), ALICE) == {}
+    assert reached(route(application, inventory_status="denied"), ALICE) == {}
+
+
+def test_spot_fleet_requires_passable_fleet_role_and_service_linked_roles():
+    technique = catalog_entry("aws-ec2-passrole-requestspotfleet")
+    target = role("power", trust_service("ec2.amazonaws.com"), profile=True)
+    fleet = role("fleet", trust_service("spotfleet.amazonaws.com"))
+
+    def service_linked(service, name):
+        item = role(name, trust_service(service))
+        item["Arn"] = f"arn:aws:iam::{ACCOUNT}:role/aws-service-role/{service}/{name}"
+        item["Path"] = f"/aws-service-role/{service}/"
+        return item
+
+    service_roles = [service_linked("spotfleet.amazonaws.com", "AWSServiceRoleForEC2SpotFleet"),
+                     service_linked("spot.amazonaws.com", "AWSServiceRoleForEC2Spot")]
+
+    def route(pass_fleet=True, roles=service_roles, create=False):
+        passed = [target["Arn"], fleet["Arn"]] if pass_fleet else [target["Arn"]]
+        statements = [allow(["ec2:RequestSpotFleet", "ec2:RunInstances"]), allow("iam:PassRole", passed)]
+        if create:
+            statements.append(allow("iam:CreateServiceLinkedRole"))
+        return privesc.analyze(aws_snap([user("alice", *statements)], [target, fleet, *roles]), entries=[technique])
+
+    assert target["Arn"] in reached(route(), ALICE)
+    assert reached(route(pass_fleet=False), ALICE) == {}
+    assert reached(route(roles=[]), ALICE) == {}
+    assert target["Arn"] in reached(route(roles=[], create=True), ALICE)
+    wrong_service = user("alice", allow(["ec2:RequestSpotFleet", "ec2:RunInstances"]),
+        allow("iam:PassRole", target["Arn"]), {"Effect": "Allow", "Action": "iam:PassRole",
+        "Resource": fleet["Arn"], "Condition": {"StringEquals": {"iam:PassedToService": "lambda.amazonaws.com"}}})
+    result = privesc.analyze(aws_snap([wrong_service], [target, fleet, *service_roles]), entries=[technique])
+    assert reached(result, ALICE) == {}
+    for passed_to in ("ec2.amazonaws.com", "spotfleet.amazonaws.com"):
+        conditioned = user("alice", allow(["ec2:RequestSpotFleet", "ec2:RunInstances"]),
+            allow("iam:PassRole", target["Arn"]), {"Effect": "Allow", "Action": "iam:PassRole",
+            "Resource": fleet["Arn"], "Condition": {"StringEquals": {"iam:PassedToService": passed_to}}})
+        result = privesc.analyze(aws_snap([conditioned], [target, fleet, *service_roles]), entries=[technique])
+        assert target["Arn"] in reached(result, ALICE)
 
 
 def test_identity_center_group_assignments_decide_creategroupmembership():

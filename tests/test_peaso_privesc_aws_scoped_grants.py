@@ -8,8 +8,9 @@ import pytest
 import yaml
 
 from peaso import privesc
+from peaso.privesc.effective_permissions.aws_scoped_grants import _valid
 from peaso.privesc.schema import validate_entry
-from tests.test_peaso_privesc_schema_ext import ACCOUNT, ALICE, allow, aws_snap, reached, user
+from tests.test_peaso_privesc_schema_ext import ACCOUNT, ALICE, allow, aws_snap, reached, role, user
 
 
 ENTRIES = {entry["id"]: entry for entry in yaml.safe_load(
@@ -145,3 +146,16 @@ def test_reviewed_authority_selector_must_be_exclusive():
     entry = copy.deepcopy(ENTRIES["aws-efs-putfilesystempolicy-self-grant"])
     entry["target"]["selector"]["aws_cases_tag_self_grant"] = True
     assert any("exactly one reviewed authority selector" in error for error in validate_entry(entry)[0])
+
+
+def test_sitewise_access_policy_cannot_name_an_iam_role_identity():
+    technique = "aws-sitewise-createaccesspolicy-portal-self-grant"
+    source_arn = f"arn:aws:iam::{ACCOUNT}:role/operator"
+    record = proof(technique)
+    for field in ("SourceArn", "TargetIdentityArn", "AccessPolicyIdentityArn"):
+        record[field] = source_arn
+    assert not _valid(record, ACCOUNT, REGION, "aws_sitewise_portal_self_grant")
+    snap = aws_snap([], [role("operator", "lambda.amazonaws.com")])
+    snap["collections"].append({"type": CONFIG[technique][0], "scope": f"{ACCOUNT}/{REGION}",
+                                "service": "iotsitewise", "status": "collected", "items": [record], "error": None})
+    assert reached(privesc.analyze(snap, entries=[ENTRIES[technique]]), source_arn, technique) == {}

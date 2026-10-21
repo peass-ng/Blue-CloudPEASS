@@ -13,23 +13,25 @@
   title: Create an enhanced-bus subscriber with a universal target and a passed role
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-eventbridge-privesc/README.md#eventscreatesubscriber--iampassrole--execute-supported-aws-apis-through-an-enhanced-bus-universal-target
   source_revision: 6fb9ac51fd
-  summary: The source can obtain the write privileges of any passable role trusting events.amazonaws.com, exercised through the supported service actions of a universal target.
+  summary: A subscriber may invoke a supported write action through a passed EventBridge role. This does not give the source the role's identity or all its permissions.
   requires:
     all_of:
     - action: iam:PassRole
       resource: '{target.arn}'
-    - action: events:CreateSubscriber
-      resource: '*'
+      request_context:
+        iam:PassedToService: events.amazonaws.com
   target:
     kind: aws_role
     selector:
       trust_allows_service: events.amazonaws.com
-      resource_permission_covers_target: iam:PassRole
     scope: same_account
     aggregate_as: Roles trusting events.amazonaws.com passable in {account}
+    outcome: impersonation
+  preconditions:
+  - eventbridge_subscriber_has_active_bus_and_bound_permissions
   conditions:
   - id: enhanced_bus_and_event
-    description: An enhanced custom event bus must exist in the source's account and a matching retained or live event must reach the subscriber (events:PutEvents on the bus, or natural traffic).
+    description: An operational custom event bus must exist in the source's account, and the source must be able to publish a matching event to it.
   - id: supported_target_action
     description: EventBridge validates the universal-target action at creation and blocks some services and actions; reach is the role's permissions on supported actions only, and results are not returned.
   - id: passrole_condition_key
@@ -41,5 +43,4 @@
   mitigation: Restrict events:CreateSubscriber to bus owners, scope iam:PassRole on EventBridge roles with iam:PassedToService=events.amazonaws.com, and keep delivery roles least-privileged.
   references:
   - https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-use-identity-based.html
-  notes: events:CreateSubscriber is authorized on both the bus ARN and the subscriber ARN; the "*" requirement matches any CreateSubscriber grant by overlap, so a grant scoped to a different bus can produce
-    a false positive. A subscriber on a cross-account shared bus runs as a role of the subscriber owner's account.
+  notes: CreateSubscriber needs permission on the same operational custom event bus and on the new subscriber ARN. The evaluator requires both grants and PutEvents on that bus, but withholds a privilege edge until a supported target action, its exact resource, the role's effective permission, and an actual privilege gain are bound together. A customer KMS key also keeps bus access unresolved until key access is verified.

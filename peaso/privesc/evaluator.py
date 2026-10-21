@@ -31,13 +31,21 @@ DYNAMIC_SELECTORS = {
     "aws_challenge_fact", "aws_s3_policy_self_grant", "aws_s3_access_grants_self_grant",
     "aws_secretsmanager_policy_self_grant", "aws_efs_policy_self_grant",
     "aws_cases_tag_self_grant", "aws_sitewise_portal_self_grant",
-    "gcp_challenge_fact", "gcp_resource_self_grant", "gcp_external_principal_evidence",
-    "gcp_bounded_access_gain",
-    "azure_challenge_fact", "azure_external_principal_evidence", "k8s_challenge_fact", "k8s_helm_values_rbac", "k8s_verified_pivot",
+    "gcp_challenge_fact", "gcp_resource_self_grant", "gcp_external_principal_evidence", "gcp_agentregistry_skill_evidence",
+    "gcp_appengine_deploy_path", "gcp_appengine_legacy_actas_unenforced",
+    "gcp_appintegration_run_as_path",
+    "gcp_gcr_namespace_path",
+    "gcp_artifact_policy_consumer_path",
+    "gcp_agentidentity_retrieve_path",
+    "gcp_agentidentity_update_path",
+    "gcp_bounded_access_gain", "gcp_wif_active_path", "gcp_wif_restorable_path", "gcp_workforce_control_path", "gcp_clouddeploy_custom_render_path", "gcp_clouddeploy_existing_custom_render_path", "gcp_clouddeploy_pipeline_policy_custom_render_path", "gcp_clouddeploy_configurable_custom_render_path", "gcp_cloudbuild_writable_trigger_token_path", "gcp_cloudbuild_writable_trigger_policy_path", "gcp_vertex_batch_prediction_path", "gcp_vertex_new_model_endpoint_path", "gcp_workbench_existing_takeover_path", "gcp_run_job_override_path", "gcp_run_job_policy_override_path", "gcp_run_service_update_path", "gcp_run_job_update_execute_path", "gcp_run_instance_create_or_update_path", "gcp_run_instance_ssh_path", "gcp_run_service_ssh_path", "gcp_appengine_instance_ssh_path", "gcp_batch_agent_reporter_on_target", "gcp_run_worker_pool_create_or_update_path", "gcp_cross_project_run_service", "gcp_cross_project_run_job", "gcp_cross_project_cloudbuild",
+    "gcp_cross_project_workflows", "gcp_workflows_update_execute_same_workflow", "gcp_workflows_update_attach_path", "gcp_workflows_observed_external_execution", "gcp_cloudscheduler_update_job_path", "gcp_cloudscheduler_authenticated_delivery", "gcp_cloudtasks_enqueue_path", "gcp_cloudtasks_authenticated_delivery", "gcp_cloudtasks_queue_policy_path", "gcp_cloudfunctions_create_path", "gcp_cloudfunctions_existing_source_update_path", "gcp_cloudfunctions_env_startup_path", "gcp_cloudfunctions_source_deploy_build_path",
+    "azure_challenge_fact", "azure_external_principal_evidence", "azure_apim_restorable_backup", "azure_automation_assignable_uami", "azure_automation_runbook_identity_path", "azure_automation_hybrid_worker_path", "azure_batch_job_pool_identity", "azure_batch_pool_starttask_identity", "azure_batch_shared_key_pool_identity", "azure_batch_pool_assignable_uami", "azure_confidential_ledger_admin_path", "azure_containerapp_assignable_uami", "azure_containerapp_create_uami_path", "azure_containerapp_exec_identity", "azure_containerapp_job_assignable_uami", "azure_appservice_assignable_uami", "azure_appservice_backup_restore_code_path", "azure_appservice_config_code_path", "azure_appservice_enable_publishing_credentials_code_path", "azure_appservice_kudu_code_path", "azure_appservice_onedeploy_code_path", "azure_appservice_publishing_credentials_code_path", "azure_appservice_sitecontainers_code_path", "azure_appservice_siteextensions_code_path", "azure_appservice_slot_code_path", "azure_appservice_slot_swap_code_path", "azure_appservice_sourcecontrol_code_path", "azure_arc_entra_admin_ssh_path", "azure_arc_custom_script_code_path", "azure_arc_run_command_code_path", "azure_deployment_script_uami_path", "azure_appservice_slot_publishing_credentials_code_path", "azure_acr_assignable_uami", "azure_acr_existing_task_identity", "azure_aks_rbac_group_impersonation", "azure_aks_rbac_cluster_binding", "azure_flux_cluster_path", "azure_vmss_instance_identity", "azure_aci_assignable_uami", "azure_aci_exec_running_identity", "azure_aci_existing_write_identity", "k8s_challenge_fact", "k8s_helm_values_rbac", "k8s_verified_pivot", "k8s_bound_role_gain", "k8s_clusterrolebinding_gain", "k8s_existing_clusterrolebinding_gain", "k8s_aggregated_rolebinding_namespace",
     "same_as_source", "trust_allows_principal_of_source", "source_kind", "source_group_covered_by",
     "source_attached_policy_covered_by", "via_assumable_role_covered_by",
     "via_assumable_role_attached_policy_covered_by", "custom_role_assigned_to_source",
     "entra_source_is_owner_of_application", "entra_source_is_owner_of_service_principal", "entra_source_is_owner_of_group",
+    "entra_group_source_self_membership",
     "entra_custom_role_assigned_to_source", "entra_pim_eligible_for_source", "entra_dynamic_rule_attributes_writable_by_source",
     "entra_role_assignment_scope_covers_target", "entra_reset_matrix_column", "ml_compute_assigned_to_source",
     "k8s_sa_cloud_binding", "trust_allows_k8s_sa_oidc_subject", "gcp_workload_identity_user_granted_to_k8s_sa",
@@ -166,9 +174,6 @@ _SHARED_SEMANTIC_HOLDS = frozenset({
     "aws-codecommit-gitpush-pipeline-source",
     "aws-ec2-passrole-associate-instance-profile",
     "aws-v3-05-add-or-replace-a-workspaces-web-portal-saml-oidc-identi",
-    "gcp-appengine-versions-create-actas",
-    "gcp-appintegration-runas-sa-actas",
-    "gcp-artifactregistry-gcrio-namespace-squat",
     "gcp-privatecatalog-product-version-poison",
 })
 
@@ -230,7 +235,8 @@ class Evaluator:
                     mode, localized = "target", True
                 reqs.append(CReq(raw, key, template, mode, localized))
             alternatives.append(reqs)
-        if target.get("kind") in ("azure_dataplane_admin", "k8s_cluster_admin") and model.provider == "azure":
+        if (target.get("kind") in ("azure_dataplane_admin", "k8s_cluster_admin")
+                and model.provider == "azure" and "azure_flux_cluster_path" not in selector):
             first = next((r.raw for alt in alternatives for r in alt if "action" in r.raw), None)
             if first is not None:
                 selector["_resource_type_from_action"] = first["action"]
@@ -254,6 +260,11 @@ class Evaluator:
                 static_sel[key] = value
         blockers = [b if isinstance(b, str) else b.get("id") for b in entry.get("blockers") or []]
         model_blockers = [b for b in blockers if b in MODEL_BLOCKERS.get(model.provider, ())]
+        if model.provider == "gcp" and target.get("kind") == "gcp_service_account":
+            model_blockers.append("disabled_service_account")
+        if model.provider == "azure" and target.get("kind") in (
+                "azure_user", "azure_service_principal", "azure_managed_identity"):
+            model_blockers.append("disabled_azure_identity")
         return {"entry": entry, "alternatives": alternatives, "static": static_sel, "dynamic": dynamic_sel,
                 "kind": target.get("kind"), "scope": scope_rule, "selector": selector,
                 "floor": entry.get("confidence", "derived"),
@@ -276,6 +287,7 @@ class Evaluator:
     def candidates(self, compiled):
         kind = compiled["kind"]
         model = self.model
+        model.current_entry = compiled["entry"]
         variant = model.target_variant(kind, compiled["selector"])
         managed = model.include_service_managed(compiled)
         # GCP challenge evidence creates a technique-specific exact candidate set. It
@@ -286,6 +298,8 @@ class Evaluator:
         if compiled["selector"].get("gcp_resource_self_grant"):
             challenge = compiled["entry"]["id"]
         if compiled["selector"].get("gcp_external_principal_evidence"):
+            challenge = compiled["entry"]["id"]
+        if compiled["selector"].get("gcp_agentregistry_skill_evidence"):
             challenge = compiled["entry"]["id"]
         if compiled["selector"].get("gcp_bounded_access_gain"):
             challenge = compiled["entry"]["id"]
@@ -414,7 +428,19 @@ class Evaluator:
                 from .effective_permissions.ec2_profile_association import evaluate as evaluate_profile_association
                 reaches.extend(evaluate_profile_association(self, compiled))
                 continue
-            if technique_id in _SHARED_SEMANTIC_HOLDS:
+            if (technique_id in _SHARED_SEMANTIC_HOLDS or
+                    (technique_id == "gcp-appengine-versions-create-actas" and
+                     compiled["selector"].get("gcp_appengine_deploy_path") is not True) or
+                    (technique_id == "gcp-appintegration-runas-sa-actas" and
+                     compiled["selector"].get("gcp_appintegration_run_as_path") is not True) or
+                    (technique_id == "gcp-artifactregistry-gcrio-namespace-squat" and
+                     compiled["selector"].get("gcp_gcr_namespace_path") is not True) or
+                    (technique_id == "gcp-artifactregistry-repositories-setiampolicy" and
+                     compiled["selector"].get("gcp_artifact_policy_consumer_path") is not True) or
+                    (technique_id == "gcp-agentidentity-retrieve-credentials" and
+                     compiled["selector"].get("gcp_agentidentity_retrieve_path") is not True) or
+                    (technique_id == "gcp-agentidentity-update-token-url" and
+                     compiled["selector"].get("gcp_agentidentity_update_path") is not True)):
                 self.note("technique", "*", "unresolved", f"{technique_id} exact semantic join held",
                           "No principal edge until the exact source, target, scope and execution facts are collected "
                           "and the corrected technique semantics are admitted")
@@ -706,7 +732,10 @@ class Evaluator:
                     why = f"blocker_{blocker}_not_evaluated"
                     self.note("blocker", "*", "not_evaluated", f"blocker {blocker} not evaluated",
                               "Edges kept; needs " + FACTS_NEEDED.get(blocker, "facts not in snapshot"))
-                    fn = lambda g, why=why: downgrade(g, g.confidence, why)
+                    # An uncollected admission control can reject the workload.
+                    # Preserve the route, but do not call it definite.
+                    level = "conditional" if self.model.provider == "k8s" else None
+                    fn = lambda g, why=why, level=level: downgrade(g, level or g.confidence, why)
                 if tid is None:
                     reached = _map_grants(reached, fn)
                 else:

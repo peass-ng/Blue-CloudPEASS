@@ -30,6 +30,7 @@
       resource_permission_covers_target: iam:PassRole
     scope: same_account
     aggregate_as: "Instance-profile roles passable in {account}"
+    outcome: workload_execution
   conditions:
     - id: forward_access_session
       description: ec2:RunInstances is evaluated through a forward access session; aws:CalledVia conditions must admit workspaces-instances.amazonaws.com.

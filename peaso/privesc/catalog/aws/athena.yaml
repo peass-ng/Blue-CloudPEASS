@@ -20,12 +20,17 @@
     all_of:
       - action: iam:PassRole
         resource: "{target.arn}"
+        request_context:
+          iam:PassedToService: athena.amazonaws.com
       - action: athena:CreateWorkGroup
-        resource: "*"
+        resource: arn:{source.partition}:athena:*:{source.account}:workgroup/*
+        bind: new_workgroup
       - action: athena:StartSession
-        resource: "*"
+        resource: arn:{source.partition}:athena:*:{source.account}:workgroup/*
+        bind: new_workgroup
       - action: athena:StartCalculationExecution
-        resource: "*"
+        resource: arn:{source.partition}:athena:*:{source.account}:workgroup/*
+        bind: new_workgroup
   target:
     kind: aws_role
     selector:
@@ -33,14 +38,17 @@
       resource_permission_covers_target: iam:PassRole
     scope: same_account
     aggregate_as: "Roles trusting athena.amazonaws.com passable in {account}"
+    outcome: workload_execution
   conditions:
     - id: passrole_condition_key
       description: iam:PassedToService conditions may restrict which roles can be passed.
     - id: spark_region_support
       description: Athena for Apache Spark must be available in the region.
+    - id: usable_workgroup
+      description: One available workgroup name must be covered by CreateWorkGroup, StartSession and StartCalculationExecution; the caller must select a Spark engine version that supports the calculation API, since Spark 3.5 uses Spark Connect instead.
   blockers:
     - scp_or_boundary_deny
-  confidence: derived
+  confidence: conditional
   severity: critical
   mitigation: Restrict iam:PassRole on Athena Spark execution roles with iam:PassedToService=athena.amazonaws.com and restrict athena:CreateWorkGroup to administrators.
   references:

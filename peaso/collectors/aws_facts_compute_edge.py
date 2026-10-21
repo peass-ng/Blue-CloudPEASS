@@ -17,6 +17,9 @@ SPECS = {
     "ecs_task_set": ("ecs", "describe_services", None),
     "ecs_account_setting": ("ecs", "list_account_settings", "settings"),
     "appstream_fleet": ("appstream", "describe_fleets", "Fleets"),
+    "appstream_image": ("appstream", "describe_images", "Images"),
+    "appstream_app_block": ("appstream", "describe_app_blocks", "AppBlocks"),
+    "appstream_app_block_builder_association": ("appstream", "describe_app_block_builder_app_block_associations", "AppBlockBuilderAppBlockAssociations"),
     "elastic_beanstalk_environment": ("elasticbeanstalk", "describe_environments", "Environments"),
     "apigateway_domain_name": ("apigateway", "get_domain_names", "items"),
     "apigatewayv2_domain_name": ("apigatewayv2", "get_domain_names", "Items"),
@@ -35,7 +38,7 @@ SPECS = {
 }
 NATIVE_IDS = {
     "launch_configuration": "LaunchConfigurationARN", "ecs_service": "serviceArn", "ecs_task_set": "taskSetArn", "ecs_account_setting": "name",
-    "appstream_fleet": "Arn", "elastic_beanstalk_environment": "EnvironmentArn", "apigateway_domain_name": "domainName", "apigatewayv2_domain_name": "DomainName", "appsync_graphql_api": "arn",
+    "appstream_fleet": "Arn", "appstream_image": "Arn", "appstream_app_block": "Arn", "appstream_app_block_builder_association": "AppBlockBuilderName", "elastic_beanstalk_environment": "EnvironmentArn", "apigateway_domain_name": "domainName", "apigatewayv2_domain_name": "DomainName", "appsync_graphql_api": "arn",
     "directconnect_connection": "connectionId", "directconnect_virtual_interface": "virtualInterfaceId", "managed_prefix_list": "PrefixListId",
     "wafv2_web_acl": "ARN", "wafv2_rule_group": "ARN", "waf_web_acl": "WebACLId", "waf_rule": "RuleId", "waf_rule_group": "RuleGroupId",
     "wafregional_web_acl": "WebACLId", "wafregional_rule": "RuleId", "wafregional_rule_group": "RuleGroupId",
@@ -45,6 +48,7 @@ GLOBAL_TYPES = {"waf_web_acl", "waf_rule", "waf_rule_group"}
 READ_ACTIONS = {(service, operation) for service, operation, expression in SPECS.values()}
 READ_ACTIONS.update({
     ("ecs", "list_clusters"), ("ecs", "list_services"), ("ecs", "describe_task_definition"),
+    ("appstream", "list_associated_stacks"),
     ("elasticbeanstalk", "describe_configuration_settings"),
     ("apigateway", "get_resources"), ("apigateway", "get_authorizers"),
     ("apigateway", "get_base_path_mappings"),
@@ -375,7 +379,24 @@ def _cluster_snapshot_attributes(requests, session, region, items):
 
 
 def _appstream_fleets(requests, session, region, items):
-    return [_strip(item) for item in items]
+    output = []
+    for item in items:
+        current = _strip(item)
+        name = current.get("Name")
+        current["AssociatedStacks"] = (_child(requests.pages(
+            session, "appstream", region, "list_associated_stacks", "Names", FleetName=name))
+            if isinstance(name, str) and name else {"collection_status": "malformed"})
+        output.append(current)
+    return output
+
+
+def _appstream_images(requests, session, region, items):
+    return [_pick(item, ("Arn", "Name", "State", "Visibility", "ImageType", "ImageBuilderSupported",
+                         "ImagePermissions", "SupportedInstanceFamilies", "Platform")) for item in items]
+
+
+def _appstream_app_blocks(requests, session, region, items):
+    return [_pick(item, ("Arn", "Name", "PackagingType", "State")) for item in items]
 
 
 # ---- edge --------------------------------------------------------------
@@ -658,6 +679,8 @@ FETCHERS = {
 ENRICHERS = {
     "launch_configuration": _launch_configurations,
     "appstream_fleet": _appstream_fleets,
+    "appstream_image": _appstream_images,
+    "appstream_app_block": _appstream_app_blocks,
     "elastic_beanstalk_environment": _beanstalk_configuration,
     "lambda_function": _lambda_variable_count,
     "ecs_task_definition": _ecs_environment_names,

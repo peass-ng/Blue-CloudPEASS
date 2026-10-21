@@ -15,14 +15,15 @@ Outputs are explicit field allowlists:
 * Cognito: identity-pool role map (GetIdentityPoolRoles), user-pool identity
   providers (name/type only), MFA mode and groups with their IAM role.
 * Route 53 record sets (record values only for A/AAAA/CNAME/NS; other types keep
-  a value count), CloudFormation StackSet instances, EC2 Instance Connect
+  a value count), CloudFormation StackSet instances and Organizations access status, EC2 Instance Connect
   endpoints, IAM Roles Anywhere profiles.
 * Workload hosts: Image Builder pipelines with their infrastructure instance
   profile and their image recipe's component ARNs (GetImageRecipe; no recipe
   content, parameters or user data), SageMaker user profiles / HyperPod clusters with their execution roles,
   SageMaker domain default execution roles.
 * Application planes: Managed Grafana workspaces, QuickSight users (role and
-  identity type, no e-mail), Supply Chain instances, Amplify apps with their
+  identity type, no e-mail) and subscription status/authentication type,
+  Supply Chain instances, Amplify apps with their
   Gen 1 backend environments (no environment variables, build specs or basic-auth
   credentials).
 * IAM Identity Center account assignments (permission set, account, principal
@@ -49,6 +50,7 @@ SPECS = {
     "opensearch_connection": ("opensearch", "describe_outbound_connections", "Connections"),
     "route53_record_set": ("route53", "list_resource_record_sets", "ResourceRecordSets"),
     "cloudformation_stack_instance": ("cloudformation", "list_stack_instances", "Summaries"),
+    "cloudformation_organizations_access": ("cloudformation", "describe_organizations_access", None),
     "ec2_instance_connect_endpoint": ("ec2", "describe_instance_connect_endpoints", "InstanceConnectEndpoints"),
     "rolesanywhere_profile": ("rolesanywhere", "list_profiles", "profiles"),
     "imagebuilder_pipeline": ("imagebuilder", "list_image_pipelines", "imagePipelineList"),
@@ -56,6 +58,7 @@ SPECS = {
     "sagemaker_cluster": ("sagemaker", "list_clusters", "ClusterSummaries"),
     "grafana_workspace": ("grafana", "list_workspaces", "workspaces"),
     "quicksight_user": ("quicksight", "list_users", "UserList"),
+    "quicksight_account_subscription": ("quicksight", "describe_account_subscription", None),
     "supplychain_instance": ("supplychain", "list_instances", "instances"),
     "amplify_app": ("amplify", "list_apps", "apps"),
     "aws_identity_center_account_assignment": ("sso-admin", "list_account_assignments", "AccountAssignments"),
@@ -74,9 +77,11 @@ READ_ACTIONS = {
     ("opensearch", "describe_inbound_connections"),
     ("route53", "list_hosted_zones"),
     ("cloudformation", "list_stack_sets"),
+    ("cloudformation", "describe_organizations_access"),
     ("imagebuilder", "list_infrastructure_configurations"), ("imagebuilder", "get_image_recipe"),
     ("sagemaker", "describe_user_profile"), ("sagemaker", "describe_cluster"), ("sagemaker", "describe_domain"),
     ("amplify", "list_backend_environments"),
+    ("quicksight", "describe_account_subscription"),
     ("sso-admin", "list_instances"), ("sso-admin", "list_permission_sets"),
     ("sso-admin", "list_accounts_for_provisioned_permission_set"), ("identitystore", "list_groups"),
 }
@@ -500,6 +505,16 @@ def _stack_instances(requests, session, region, account):
     return _finish(items, failure)
 
 
+def _stackset_organizations_access(requests, session, region, account):
+    response, failure = _raw(requests, session, "cloudformation", region, "describe_organizations_access")
+    if failure:
+        return _finish([], failure)
+    status = response.get("Status") if isinstance(response, dict) else None
+    if status not in {"ENABLED", "DISABLED", "DISABLED_PERMANENTLY"}:
+        return _finish([], ("malformed", {"code": "invalid_organizations_access_status"}))
+    return _finish([{"id": f"{account}/{region}", "Status": status}], None)
+
+
 def _instance_connect_endpoints(requests, session, region, account):
     read = requests.pages(session, "ec2", region, "describe_instance_connect_endpoints", "InstanceConnectEndpoints")
     keys = ("InstanceConnectEndpointId", "InstanceConnectEndpointArn", "OwnerId", "State", "VpcId", "SubnetId", "AvailabilityZone",
@@ -692,9 +707,24 @@ def _quicksight_users(requests, session, region, account):
     items = []
     for user in read.items:
         if isinstance(user, dict) and isinstance(user.get("Arn"), str):
-            items.append({**_pick(user, ("Arn", "Role", "IdentityType", "Active")), "id": user["Arn"]})
+            items.append({**_pick(user, ("Arn", "UserName", "PrincipalId", "Role", "IdentityType", "Active")), "id": user["Arn"]})
     read.items = items
     return read
+
+
+def _quicksight_account_subscription(requests, session, region, account):
+    response, failure = _raw(requests, session, "quicksight", region, "describe_account_subscription", AwsAccountId=account)
+    if failure:
+        status, code = failure
+        if code in ("ResourceNotFoundException", "UnsupportedUserEditionException"):
+            return _aws().ReadResult([], "empty", {"code": "service_not_enabled"})
+        return _aws().ReadResult([], status, {"code": code})
+    info = response.get("AccountInfo") if isinstance(response, dict) else None
+    if not isinstance(info, dict) or not isinstance(info.get("AccountSubscriptionStatus"), str) or not isinstance(info.get("AuthenticationType"), str):
+        return _aws().ReadResult([], "malformed", {"code": "missing_subscription_state"})
+    row = _pick(info, ("AccountSubscriptionStatus", "AuthenticationType"))
+    row["id"] = account
+    return _aws().ReadResult([row], "collected")
 
 
 def _supplychain_instances(requests, session, region, account):
@@ -791,6 +821,7 @@ FETCHERS = {
     "opensearch_connection": _opensearch_connections,
     "route53_record_set": _record_sets,
     "cloudformation_stack_instance": _stack_instances,
+    "cloudformation_organizations_access": _stackset_organizations_access,
     "ec2_instance_connect_endpoint": _instance_connect_endpoints,
     "rolesanywhere_profile": _rolesanywhere_profiles,
     "imagebuilder_pipeline": _image_pipelines,
@@ -798,6 +829,7 @@ FETCHERS = {
     "sagemaker_cluster": _hyperpod_clusters,
     "grafana_workspace": _grafana_workspaces,
     "quicksight_user": _quicksight_users,
+    "quicksight_account_subscription": _quicksight_account_subscription,
     "supplychain_instance": _supplychain_instances,
     "amplify_app": _amplify_apps,
     "aws_identity_center_account_assignment": _account_assignments,

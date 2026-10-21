@@ -25,6 +25,9 @@
       source_attached_policy_covered_by: iam:CreatePolicyVersion
     scope: same_account
     aggregate_as: "Administrator of {account} (self-escalation)"
+  preconditions:
+    - source_boundary_allows_account_admin
+    - source_attached_policy_version_capacity
   conditions:
     - id: policy_version_limit
       description: A managed policy holds at most 5 versions; when full, iam:DeletePolicyVersion on that policy is also needed. iam:SetDefaultPolicyVersion is NOT required (the set-as-default flag is part of CreatePolicyVersion).
@@ -55,6 +58,9 @@
       source_attached_policy_covered_by: iam:SetDefaultPolicyVersion
     scope: same_account
     aggregate_as: "Administrator of {account} (self-escalation)"
+  preconditions:
+    - source_boundary_allows_account_admin
+    - source_attached_admin_policy_version_exists
   conditions:
     - id: more_permissive_version_exists
       description: Only escalates if a non-default version of a covered policy grants more (ideally admin) permissions than the current default; the evaluator should compare stored policy versions.
@@ -84,9 +90,11 @@
       resource_permission_covers_target: iam:CreateAccessKey
     scope: same_account
     aggregate_as: "IAM users covered by iam:CreateAccessKey in {account}"
+  preconditions:
+    - iam_user_access_key_capacity
   conditions:
     - id: access_key_limit
-      description: A user can hold at most two access keys; if the target already has two, iam:DeleteAccessKey on the target is also required.
+      description: A user can hold at most two access keys; if the target already has two, the caller needs iam:DeleteAccessKey and a way to learn an existing key ID, such as iam:ListAccessKeys on that user.
   blockers:
     - scp_or_boundary_deny
   confidence: derived
@@ -114,6 +122,8 @@
       has_login_profile: false
     scope: same_account
     aggregate_as: "IAM users without a console password covered by iam:CreateLoginProfile in {account}"
+  preconditions:
+    - target_console_login_without_mfa
   conditions:
     - id: target_mfa
       description: If the target has an MFA device enrolled, console sign-in requires it and the technique is blocked.
@@ -144,6 +154,8 @@
       has_login_profile: true
     scope: same_account
     aggregate_as: "IAM users with a console password covered by iam:UpdateLoginProfile in {account}"
+  preconditions:
+    - target_console_login_without_mfa
   conditions:
     - id: target_mfa
       description: If the target has an MFA device enrolled, console sign-in requires it and the technique is blocked.
@@ -162,7 +174,7 @@
   title: Create or reset service-specific credentials for another IAM user
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/README.md#iamcreateservicespecificcredential--iamresetservicespecificcredential
   source_revision: 171e422299
-  summary: The source can obtain the service-scoped privileges (CodeCommit, Keyspaces, Bedrock) of IAM users for which it can create or reset service-specific credentials.
+  summary: The source may obtain service-scoped privileges of IAM users for which it can create or reset service-specific credentials.
   requires:
     all_of: []
     any_of:
@@ -172,13 +184,13 @@
           resource: "{target.arn}"
   target:
     kind: aws_user
-    selector:
-      resource_permission_covers_target: iam:CreateServiceSpecificCredential
     scope: same_account
     aggregate_as: "IAM users covered by service-specific credential management in {account}"
+  preconditions:
+    - service_specific_credential_ready
   conditions:
     - id: service_scoped_credential
-      description: The credential only works against the specific service (CodeCommit, Keyspaces, Bedrock), so only the target's permissions on that service are gained.
+      description: The credential works only for the selected service; the target must have a usable service permission, and API-key services also need bearer-token authorization.
     - id: reset_requires_existing_credential
       description: The Reset variant only applies when the target already has a service-specific credential.
   blockers:
@@ -188,7 +200,7 @@
   mitigation: Restrict service-specific credential management to self (${aws:username}) and administrators.
   references:
     - https://docs.aws.amazon.com/IAM/latest/APIReference/API_CreateServiceSpecificCredential.html
-  notes: The selector key resource_permission_covers_target uses whichever of the any_of actions matched. Partial privilege gain only.
+  notes: Create and Reset use their own target-scoped IAM action. An inactive credential also needs UpdateServiceSpecificCredential, and a full two-credential slot needs DeleteServiceSpecificCredential before Create. Partial privilege gain only.
 
 - id: aws-iam-uploadsshpublickey-other-user
   provider: aws
@@ -196,7 +208,7 @@
   title: Upload an SSH public key for another IAM user (CodeCommit)
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/README.md#iamuploadsshpublickey--iamdeactivatemfadevice
   source_revision: 171e422299
-  summary: The source can obtain the CodeCommit privileges of IAM users for which it can upload an SSH public key.
+  summary: The source may gain the target IAM user's CodeCommit GitPull or GitPush access by uploading an SSH public key.
   requires:
     all_of:
       - action: iam:UploadSSHPublicKey
@@ -207,9 +219,14 @@
       resource_permission_covers_target: iam:UploadSSHPublicKey
     scope: same_account
     aggregate_as: "IAM users covered by iam:UploadSSHPublicKey in {account}"
+  preconditions:
+    - target_codecommit_git_permission
+    - target_ssh_public_key_capacity
   conditions:
     - id: service_scoped_credential
-      description: IAM SSH keys are only accepted by CodeCommit; only the target's CodeCommit permissions are gained (CodeCommit is closed to new customers since 2024).
+      description: IAM SSH keys authenticate CodeCommit Git operations, subject to the target user's GitPull or GitPush permissions; they do not authorize CodeCommit API actions.
+    - id: ssh_key_limit
+      description: An IAM user can hold at most five SSH public keys; replacing one requires DeleteSSHPublicKey and a way to learn its key ID, such as ListSSHPublicKeys.
   blockers:
     - scp_or_boundary_deny
   confidence: conditional
@@ -230,6 +247,9 @@
     all_of:
       - action: iam:AttachUserPolicy
         resource: "{source.arn}"
+        request_context:
+          iam:PolicyARN:
+            admin_managed_policy: true
   target:
     kind: aws_account_admin
     selector:
@@ -237,6 +257,8 @@
       source_kind: aws_user
     scope: same_account
     aggregate_as: "Administrator of {account} (self-escalation)"
+  preconditions:
+    - source_boundary_allows_account_admin
   conditions:
     - id: policyarn_condition
       description: An iam:PolicyARN condition limiting which managed policies may be attached removes or limits the escalation.
@@ -266,6 +288,8 @@
       source_kind: aws_user
     scope: same_account
     aggregate_as: "Administrator of {account} (self-escalation)"
+  preconditions:
+    - source_boundary_allows_account_admin
   conditions: []
   blockers:
     - scp_or_boundary_deny
@@ -286,6 +310,9 @@
     all_of:
       - action: iam:AttachGroupPolicy
         resource: "{source.group_arn}"
+        request_context:
+          iam:PolicyARN:
+            admin_managed_policy: true
   target:
     kind: aws_account_admin
     selector:
@@ -294,6 +321,8 @@
       source_group_covered_by: iam:AttachGroupPolicy
     scope: same_account
     aggregate_as: "Administrator of {account} (self-escalation)"
+  preconditions:
+    - source_boundary_allows_account_admin
   conditions:
     - id: policyarn_condition
       description: An iam:PolicyARN condition limiting attachable policies removes or limits the escalation.
@@ -324,6 +353,8 @@
       source_group_covered_by: iam:PutGroupPolicy
     scope: same_account
     aggregate_as: "Administrator of {account} (self-escalation)"
+  preconditions:
+    - source_boundary_allows_account_admin
   conditions: []
   blockers:
     - scp_or_boundary_deny
@@ -344,6 +375,9 @@
     all_of:
       - action: iam:AttachRolePolicy
         resource: "{source.arn}"
+        request_context:
+          iam:PolicyARN:
+            admin_managed_policy: true
   target:
     kind: aws_account_admin
     selector:
@@ -351,6 +385,8 @@
       source_kind: aws_role
     scope: same_account
     aggregate_as: "Administrator of {account} (self-escalation)"
+  preconditions:
+    - source_boundary_allows_account_admin
   conditions:
     - id: policyarn_condition
       description: An iam:PolicyARN condition limiting attachable policies removes or limits the escalation.
@@ -380,6 +416,8 @@
       source_kind: aws_role
     scope: same_account
     aggregate_as: "Administrator of {account} (self-escalation)"
+  preconditions:
+    - source_boundary_allows_account_admin
   conditions: []
   blockers:
     - scp_or_boundary_deny
@@ -400,6 +438,9 @@
     any_of:
       - - action: iam:AttachRolePolicy
           resource: "{source.assumable_role_arn}"
+          request_context:
+            iam:PolicyARN:
+              admin_managed_policy: true
       - - action: iam:PutRolePolicy
           resource: "{source.assumable_role_arn}"
   target:
@@ -408,6 +449,8 @@
       via_assumable_role_covered_by: iam:AttachRolePolicy
     scope: same_account
     aggregate_as: "Administrator of {account} (via an assumable role)"
+  preconditions:
+    - assumable_role_allows_account_admin
   conditions:
     - id: same_assumable_role
       description: The role whose policies the source can change must be one it can assume; {source.assumable_role_arn} already restricts the requirement to such roles.
@@ -430,11 +473,20 @@
     all_of:
       - action: iam:CreateRole
         resource: "*"
+        bind: new_role
+        request_context:
+          iam:PermissionsBoundary:
+            absent: true
     any_of:
       - - action: iam:AttachRolePolicy
           resource: "*"
+          bind: new_role
+          request_context:
+            iam:PolicyARN:
+              admin_managed_policy: true
       - - action: iam:PutRolePolicy
           resource: "*"
+          bind: new_role
   target:
     kind: aws_account_admin
     selector:
@@ -443,7 +495,7 @@
     aggregate_as: "Administrator of {account} (via a newly created role)"
   conditions:
     - id: permissions_boundary_condition
-      description: An iam:PermissionsBoundary condition on CreateRole forces new roles to carry a boundary and removes the escalation.
+      description: Creating an unbounded administrator role requires CreateRole to allow a request without iam:PermissionsBoundary. A role forced to carry a boundary needs a separate assessment of that boundary's effective permissions.
     - id: resource_path_restriction
       description: If CreateRole/AttachRolePolicy/PutRolePolicy are restricted to a role path or name pattern, the actions must all cover the same role ARN.
     - id: same_account_trust_no_assumerole_needed
@@ -455,7 +507,7 @@
   mitigation: Require iam:PermissionsBoundary on iam:CreateRole for delegated administrators and restrict role attach/put to boundary-carrying roles.
   references:
     - https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html
-  notes: "Resource \"*\" means the actions must cover a common (newly creatable) role ARN; the evaluator should intersect their Resources."
+  notes: "The AttachRolePolicy branch tries AdministratorAccess and collected customer-managed policies whose default version clearly grants unrestricted actions and resources. Every action must cover the same newly creatable role ARN, and the source must be able to assume that role after creation."
 
 - id: aws-iam-addusertogroup
   provider: aws
@@ -475,14 +527,16 @@
       source_kind: aws_user
     scope: same_account
     aggregate_as: "IAM groups covered by iam:AddUserToGroup in {account}"
+  preconditions:
+    - group_adds_policy_to_source
   conditions: []
   blockers:
     - scp_or_boundary_deny
-  confidence: derived
+  confidence: conditional
   severity: critical
   mitigation: Restrict iam:AddUserToGroup to administrators or to specific low-privilege groups.
   references: []
-  notes: The Resource of iam:AddUserToGroup is the group ARN. Only IAM users can be group members; role sources cannot use this (they could add some other user they control, covered by user-credential techniques).
+  notes: The Resource of iam:AddUserToGroup is the group ARN. Only IAM users can be group members. The evaluator confirms a new effective self-policy edit, administrator policy attachment, or assumption of a specific trusted role; other policy gains remain unresolved until their action and resource are joined to an outcome.
 
 - id: aws-iam-updateassumerolepolicy
   provider: aws
@@ -501,6 +555,8 @@
       resource_permission_covers_target: iam:UpdateAssumeRolePolicy
     scope: same_account
     aggregate_as: "IAM roles covered by iam:UpdateAssumeRolePolicy in {account}"
+  preconditions:
+    - role_trust_rewrite_assumable
   conditions:
     - id: assumerole_grant
       description: If the rewritten trust names the source principal ARN (same account) no identity-policy sts:AssumeRole is needed; if it names only the account root, sts:AssumeRole on the role is also required.
@@ -615,7 +671,7 @@
   requires:
     all_of:
       - action: iam:CreateVirtualMFADevice
-        resource: "arn:aws:iam::{target.account}:mfa/*"
+        resource: "arn:{source.partition}:iam::{target.account}:mfa/*"
       - action: iam:EnableMFADevice
         resource: "{target.arn}"
     any_of:
@@ -632,14 +688,16 @@
     scope: same_account
     aggregate_as: IAM users on which the source can enrol its own MFA device and mint credentials in {account}
     outcome: credentials
+  preconditions:
+    - mfa_enrollment_credential_ready
   conditions:
     - id: mfa_device_limit
       description: An IAM user can hold at most eight MFA devices; a user already at the limit also needs iam:DeactivateMFADevice on the target.
     - id: credential_state
-      description: CreateAccessKey needs fewer than two existing keys (or iam:DeleteAccessKey); CreateLoginProfile needs the user to have no console password; UpdateLoginProfile needs an existing one.
+      description: CreateAccessKey needs fewer than two existing keys (or iam:DeleteAccessKey plus a known existing key ID); CreateLoginProfile needs the user to have no console password; UpdateLoginProfile needs an existing one.
   blockers:
     - scp_or_boundary_deny
-  confidence: derived
+  confidence: conditional
   severity: critical
   mitigation: Restrict iam:EnableMFADevice and iam:CreateVirtualMFADevice to self-service on the caller's own user (aws:username), and alert on a second MFA enrolment for a user that already has one.
   references:
@@ -671,6 +729,8 @@
     scope: same_account
     aggregate_as: IAM users whose MFA the source can remove and whose password it can set in {account}
     outcome: credentials
+  preconditions:
+    - mfa_removal_password_ready
   conditions:
     - id: all_devices_removed
       description: Every MFA device of the target must be deactivated (one DeactivateMFADevice per device serial) before password-only sign-in works.
@@ -680,7 +740,7 @@
       description: Permissions conditioned on aws:MultiFactorAuthPresent are not usable from the resulting password-only session.
   blockers:
     - scp_or_boundary_deny
-  confidence: derived
+  confidence: conditional
   severity: critical
   mitigation: Restrict iam:DeactivateMFADevice and login-profile management on other users to break-glass administrators and alert on DeactivateMFADevice.
   references:
@@ -723,18 +783,21 @@
   requires:
     all_of:
     - action: iam:CreateUser
-      resource: arn:aws:iam::{source.account}:user/*
+      resource: arn:{source.partition}:iam::{source.account}:user/*
       bind: new_user
     - action: iam:CreateAccessKey
-      resource: arn:aws:iam::{source.account}:user/*
+      resource: arn:{source.partition}:iam::{source.account}:user/*
       bind: new_user
     any_of:
     - - action: iam:PutUserPolicy
-        resource: arn:aws:iam::{source.account}:user/*
+        resource: arn:{source.partition}:iam::{source.account}:user/*
         bind: new_user
     - - action: iam:AttachUserPolicy
-        resource: arn:aws:iam::{source.account}:user/*
+        resource: arn:{source.partition}:iam::{source.account}:user/*
         bind: new_user
+        request_context:
+          iam:PolicyARN:
+            admin_managed_policy: true
   target:
     kind: aws_account_admin
     selector:

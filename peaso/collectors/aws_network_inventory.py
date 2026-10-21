@@ -93,6 +93,22 @@ class MetadataClient:
                 body = {key: value for key, value in body.items() if key not in
                     {'IpRestrictionRuleMap', 'VpcIdRestrictionRuleMap', 'VpcEndpointIdRestrictionRuleMap'}} | {'NetworkAttributes': facts}
             projected = projected_metadata(body, identity_fields=READ_IDENTITIES.get((self.service, operation), ()))
+            if self.service == 'emr-containers' and operation == 'list_virtual_clusters' and isinstance(body, list):
+                # Keep the EKS namespace needed to bind a job execution role's
+                # service-account trust to this exact virtual cluster.
+                for raw, row in zip(body, projected):
+                    if not isinstance(raw, dict) or not isinstance(row, dict):
+                        continue
+                    provider = raw.get('containerProvider') or {}
+                    if not isinstance(provider, dict) or provider.get('type') != 'EKS':
+                        continue
+                    info = provider.get('info') or {}
+                    eks_info = (info.get('eksInfo') or {}) if isinstance(info, dict) else {}
+                    namespace = eks_info.get('namespace') if isinstance(eks_info, dict) else None
+                    if isinstance(namespace, str) and namespace:
+                        row['EksNamespace'] = namespace
+                    if isinstance(provider.get('id'), str) and provider['id']:
+                        row['EksClusterName'] = provider['id']
             result = {root: projected} if root else projected
             if not isinstance(result, dict):
                 return {}

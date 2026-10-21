@@ -92,6 +92,9 @@ class GraphBuilder:
         if node.kind == "azure_storage_local_user":
             out["storage_account"] = node.attrs["storage_account"]
             out["effective_rights"] = node.attrs.get("effective_rights", [])
+            if node.attrs.get("prospective") is True:
+                out["prospective"] = True
+                out["assignable_rights"] = node.attrs.get("assignable_rights", [])
         if node.incomplete:
             out["incomplete"] = sorted(set(node.incomplete))[:10]
         if node.kind in self._admin_kinds():

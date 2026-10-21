@@ -15,14 +15,14 @@
   title: Create and start a Managed Flink application with a passed execution role
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-managed-flink-privesc/README.md#createapplication--iampassrole--malicious-code
   source_revision: 171e422299
-  summary: The source can obtain the IAM privileges of any passable role trusting kinesisanalytics.amazonaws.com by running its own application code under it.
+  summary: The source can start Flink application code it controls using a passable service role.
   requires:
     all_of:
       - action: iam:PassRole
         resource: "{target.arn}"
+        request_context:
+          iam:PassedToService: kinesisanalytics.amazonaws.com
       - action: kinesisanalytics:CreateApplication
-        resource: "*"
-      - action: kinesisanalytics:StartApplication
         resource: "*"
   target:
     kind: aws_role
@@ -31,16 +31,19 @@
       resource_permission_covers_target: iam:PassRole
     scope: same_account
     aggregate_as: "Roles trusting kinesisanalytics.amazonaws.com passable in {account}"
+    outcome: workload_execution
+  preconditions:
+    - flink_new_application_startable
   conditions:
-    - id: code_readable_by_role
-      description: The passed role must be able to read the application code the source supplies.
+    - id: controlled_code
+      description: The source can provide application ZIP content in CreateApplication; code supplied from S3 instead needs the execution role to read that object.
     - id: passrole_condition_key
       description: iam:PassedToService conditions may restrict which roles can be passed.
   blockers:
     - scp_or_boundary_deny
-  confidence: derived
+  confidence: conditional
   severity: high
   mitigation: Restrict iam:PassRole on Flink roles with iam:PassedToService=kinesisanalytics.amazonaws.com and restrict CreateApplication to the deployment pipeline.
   references:
     - https://docs.aws.amazon.com/managed-flink/latest/apiv2/API_CreateApplication.html
-  notes: The service does not expose role credentials directly; the code acts with the role's permissions.
+  notes: The service does not expose role credentials directly; the code acts with the role's permissions. CreateApplication is authorized on * and StartApplication on the new application's ARN.

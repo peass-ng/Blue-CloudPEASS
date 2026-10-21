@@ -29,6 +29,7 @@
       resource_permission_covers_target: iam:PassRole
     scope: same_account
     aggregate_as: "Roles trusting devicefarm.amazonaws.com passable in {account}"
+    outcome: workload_execution
   conditions:
     - id: project_available
       description: A project the source can schedule runs in (existing, or devicefarm:CreateProject) and a compatible device or device pool are required.

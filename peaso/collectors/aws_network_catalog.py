@@ -91,6 +91,7 @@ class MetadataClient:
     """Project configuration responses before the shared request cache sees them."""
     ROOTS = {("apprunner", "describe_service"): "Service", ("osis", "get_pipeline"): "Pipeline",
              ("apigateway", "get_resources"): "items", ("apigatewayv2", "get_integrations"): "Items",
+             ("emr-serverless", "get_application"): "application",
              ("elasticbeanstalk", "describe_configuration_settings"): "ConfigurationSettings",
              ("lightsail", "get_container_services"): "containerServices",
              ("vpc-lattice", "get_listener"): None, ("vpc-lattice", "get_rule"): None}
@@ -112,6 +113,17 @@ class MetadataClient:
             if not isinstance(body, (dict, list)):
                 return {}  # Ordinary detail handling records malformed coverage.
             projected = project_network_data(body)
+            if (self.service, name) == ("apprunner", "describe_service") and isinstance(projected, dict):
+                source = body.get("SourceConfiguration")
+                if isinstance(source, dict):
+                    image = isinstance(source.get("ImageRepository"), dict)
+                    code = isinstance(source.get("CodeRepository"), dict)
+                    if image != code:
+                        projected["SourceType"] = "IMAGE" if image else "CODE"
+            if (self.service, name) == ("emr-serverless", "get_application") and isinstance(projected, dict):
+                auto_start = body.get("autoStartConfiguration")
+                if isinstance(auto_start, dict) and type(auto_start.get("enabled")) is bool:
+                    projected["AutoStartEnabled"] = auto_start["enabled"]
             if (self.service, name) == ("elasticbeanstalk", "describe_configuration_settings") and isinstance(projected, list):
                 # The shared secret-indicator producer intentionally removes all
                 # option values. Keep this already-filtered network subset in a
@@ -278,6 +290,8 @@ def detail_enricher(kind):
             body = body.get(root) if isinstance(body, dict) and root else body
             if isinstance(body, dict):
                 row["NetworkDetails"] = project_network_data(body)
+                if kind == "emr_serverless_application" and type(body.get("AutoStartEnabled")) is bool:
+                    row["NetworkDetails"]["AutoStartEnabled"] = body["AutoStartEnabled"]
                 from peaso.analysis.network_observations import network_observations
                 row["NetworkDetails"]["NetworkAttributes"] = network_observations(body)
             else:

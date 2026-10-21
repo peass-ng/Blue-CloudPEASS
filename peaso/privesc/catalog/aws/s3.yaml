@@ -52,11 +52,13 @@
   requires:
     all_of:
       - action: s3:CreateAccessGrantsLocation
-        resource: "{target.arn}"
+        resource: "{target.location_arn}"
       - action: iam:PassRole
         resource: "{target.role_arn}"
+        request_context:
+          iam:PassedToService: access-grants.s3.amazonaws.com
       - action: s3:CreateAccessGrant
-        resource: "{target.location_arn}"
+        resource: "{target.grant_arn}"
       - action: s3:GetDataAccess
         resource: "{target.arn}"
   target:

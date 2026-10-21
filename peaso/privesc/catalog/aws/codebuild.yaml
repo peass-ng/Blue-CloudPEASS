@@ -19,26 +19,46 @@
     any_of:
       - - action: codebuild:StartBuild
           resource: "{target.attached_resource_arn}"
+          request_context:
+            codebuild:source.buildspec: |
+              version: 0.2
+              phases:
+                build:
+                  commands:
+                    - aws sts get-caller-identity
       - - action: codebuild:StartBuildBatch
           resource: "{target.attached_resource_arn}"
+          request_context:
+            codebuild:source.buildspec: |
+              version: 0.2
+              batch:
+                build-list:
+                  - identifier: run
+              phases:
+                build:
+                  commands:
+                    - aws sts get-caller-identity
   target:
     kind: aws_role
     selector:
       attached_to_service: codebuild
-      attached_resource_covered_by: codebuild:StartBuild
     scope: same_account
-    aggregate_as: "Service roles of CodeBuild projects covered by codebuild:StartBuild in {account}"
+    aggregate_as: "Service roles of CodeBuild projects the source can start in {account}"
+  preconditions:
+    - codebuild_existing_project_buildspec_override
   conditions:
     - id: override_available
-      description: StartBuild accepts buildspec, source and environment-variable overrides without extra permissions; StartBuildBatch requires the project to have batch configuration.
+      description: StartBuild accepts buildspec, source and environment-variable overrides without extra permissions; StartBuildBatch needs a batch service role able to start child builds.
+    - id: runnable_project
+      description: The project must be able to start a build and reach the attacker-controlled inline buildspec.
   blockers:
     - scp_or_boundary_deny
-  confidence: derived
+  confidence: conditional
   severity: critical
   mitigation: Restrict codebuild:StartBuild/StartBuildBatch to pipelines and keep project service roles least-privileged.
   references:
     - https://docs.aws.amazon.com/codebuild/latest/APIReference/API_StartBuild.html
-  notes: The selector applies to whichever any_of action matched. Environment-variable overrides (StartBuild Env Var Override subsection) are a variant of the same edge.
+  notes: The selected build action applies to the same project carrying the target role. Environment-variable overrides (StartBuild Env Var Override subsection) are a variant of the same edge.
 
 - id: aws-codebuild-startcommandexecution
   provider: aws
@@ -51,15 +71,17 @@
   requires:
     all_of:
     - action: codebuild:StartCommandExecution
-      resource: '{target.codebuild_sandbox_arn}'
+      resource: '{target.codebuild_running_sandbox_arn}'
   target:
     kind: aws_role
     selector:
-      attached_to_service: codebuild
+      attached_to_service: codebuild_sandbox
     scope: same_account
     aggregate_as: Service roles of CodeBuild projects with sandboxes covered by codebuild:StartCommandExecution
       in {account}
     outcome: workload_execution
+  preconditions:
+  - codebuild_running_sandbox_command
   conditions:
   - id: running_sandbox
     description: A sandbox must be running for the project (or the source must also hold codebuild:StartSandbox).
@@ -69,8 +91,7 @@
   severity: critical
   mitigation: Restrict sandbox actions and stop idle sandboxes.
   references: []
-  notes: No iam:PassRole, StartBuild or UpdateProject is needed. The API resource is the sandbox ARN; {target.codebuild_sandbox_arn}
-    expands to sandbox/<project>:* of each project running as the target role.
+  notes: No iam:PassRole, StartBuild or UpdateProject is needed. The evaluator checks StartCommandExecution on the exact ARN of a recorded running sandbox using the target role.
 
 
 - id: aws-codebuild-startsandboxconnection
@@ -84,15 +105,17 @@
   requires:
     all_of:
     - action: codebuild:StartSandboxConnection
-      resource: '{target.codebuild_sandbox_arn}'
+      resource: '{target.codebuild_running_sandbox_arn}'
   target:
     kind: aws_role
     selector:
-      attached_to_service: codebuild
+      attached_to_service: codebuild_sandbox
     scope: same_account
     aggregate_as: Service roles of CodeBuild projects with sandboxes covered by codebuild:StartSandboxConnection
       in {account}
     outcome: workload_execution
+  preconditions:
+  - codebuild_running_sandbox_connection
   conditions:
   - id: running_sandbox
     description: A sandbox must be running for the project and its ID known to the source.
@@ -106,8 +129,7 @@
   mitigation: Scope codebuild:StartSandboxConnection to exact sandbox ARNs of trusted operators and stop idle sandboxes.
   references:
   - https://docs.aws.amazon.com/codebuild/latest/APIReference/API_StartSandboxConnection.html
-  notes: Caller-side ssm:StartSession and iam:PassRole are not required. The API resource is the sandbox ARN; {target.codebuild_sandbox_arn}
-    expands to sandbox/<project>:* of each project running as the target role.
+  notes: Caller-side ssm:StartSession and iam:PassRole are not required. The evaluator checks StartSandboxConnection on the exact ARN of a recorded running sandbox using the target role.
 
 
 - id: aws-codebuild-passrole-createproject
@@ -121,25 +143,35 @@
     all_of:
       - action: iam:PassRole
         resource: "{target.arn}"
+        request_context:
+          iam:PassedToService: codebuild.amazonaws.com
       - action: codebuild:CreateProject
-        resource: "*"
+        resource: arn:{source.partition}:codebuild:*:{source.account}:project/*
+        bind: new_project
     any_of:
       - - action: codebuild:StartBuild
-          resource: "*"
+          resource: arn:{source.partition}:codebuild:*:{source.account}:project/*
+          bind: new_project
       - - action: codebuild:StartBuildBatch
-          resource: "*"
+          resource: arn:{source.partition}:codebuild:*:{source.account}:project/*
+          bind: new_project
   target:
     kind: aws_role
     selector:
       trust_allows_service: codebuild.amazonaws.com
     scope: same_account
     aggregate_as: "Roles trusting codebuild.amazonaws.com in {account}"
+    outcome: workload_execution
+  preconditions:
+    - codebuild_new_project_role_and_build
   conditions:
     - id: passrole_condition_key
       description: iam:PassedToService conditions may restrict this.
+    - id: same_new_project
+      description: CreateProject and the chosen build action must cover one available project name in the same Region.
   blockers:
     - scp_or_boundary_deny
-  confidence: derived
+  confidence: conditional
   severity: critical
   mitigation: Restrict iam:PassRole on CodeBuild service roles and limit codebuild:CreateProject.
   references: []
@@ -156,25 +188,23 @@
     all_of:
       - action: iam:PassRole
         resource: "{target.arn}"
-      - action: codebuild:UpdateProject
-        resource: "*"
-    any_of:
-      - - action: codebuild:StartBuild
-          resource: "*"
-      - - action: codebuild:StartBuildBatch
-          resource: "*"
+        request_context:
+          iam:PassedToService: codebuild.amazonaws.com
   target:
     kind: aws_role
     selector:
       trust_allows_service: codebuild.amazonaws.com
     scope: same_account
     aggregate_as: "Roles trusting codebuild.amazonaws.com in {account}"
+    outcome: workload_execution
+  preconditions:
+    - codebuild_existing_project_role_and_build
   conditions:
     - id: existing_project
-      description: At least one existing project must be covered by both UpdateProject and StartBuild/StartBuildBatch.
+      description: At least one existing project must be covered by both UpdateProject and StartBuild or StartBuildBatch; batch mode also needs a batch role able to start child builds.
   blockers:
     - scp_or_boundary_deny
-  confidence: derived
+  confidence: conditional
   severity: critical
   mitigation: Restrict iam:PassRole on CodeBuild service roles and codebuild:UpdateProject.
   references: []
@@ -191,11 +221,24 @@
     all_of:
       - action: codebuild:UpdateProject
         resource: "{target.attached_resource_arn}"
+        request_context:
+          codebuild:source.buildspec: |
+            version: 0.2
+            phases:
+              build:
+                commands:
+                  - aws sts get-caller-identity
     any_of:
       - - action: codebuild:StartBuild
           resource: "{target.attached_resource_arn}"
+          request_context:
+            codebuild:source.buildspec:
+              absent: true
       - - action: codebuild:StartBuildBatch
           resource: "{target.attached_resource_arn}"
+          request_context:
+            codebuild:source.buildspec:
+              absent: true
   target:
     kind: aws_role
     selector:
@@ -203,16 +246,18 @@
       attached_resource_covered_by: codebuild:UpdateProject
     scope: same_account
     aggregate_as: "Service roles of CodeBuild projects covered by codebuild:UpdateProject in {account}"
+  preconditions:
+    - codebuild_existing_project_update_buildspec
   conditions:
-    - id: automatic_trigger
-      description: Without StartBuild, a webhook or pipeline trigger may still run the modified project (delayed).
+    - id: project_build_path
+      description: UpdateProject must permit a buildspec change, and the project must be able to run the changed buildspec with its existing service role; batch mode needs a batch role able to start child builds.
   blockers:
     - scp_or_boundary_deny
-  confidence: derived
+  confidence: conditional
   severity: critical
   mitigation: Restrict codebuild:UpdateProject to administrators.
   references: []
-  notes: Largely subsumed by aws-codebuild-startbuild-attached-role (StartBuild alone allows overrides); kept as a distinct permission combination.
+  notes: This path can remain when StartBuild buildspec overrides are blocked, because UpdateProject changes the stored buildspec and StartBuild can run it without an override.
 
 - id: aws-codebuild-startsandbox-exec
   provider: aws
@@ -234,16 +279,19 @@
     kind: aws_role
     selector:
       attached_to_service: codebuild
+      trust_allows_service: codebuild.amazonaws.com
       attached_resource_covered_by: codebuild:StartSandbox
     scope: same_account
     aggregate_as: "Service roles of CodeBuild projects covered by codebuild:StartSandbox in {account}"
     outcome: workload_execution
   conditions:
+    - id: sandbox_starts
+      description: The selected project must be able to start a sandbox and reach a running state before a command or connection can be opened.
     - id: ssm_agent_in_image
       description: The interactive-shell alternative needs a working SSM Agent in the sandbox image and a project configuration that lets CodeBuild start the Session Manager session.
   blockers:
     - scp_or_boundary_deny
-  confidence: derived
+  confidence: conditional
   severity: critical
   mitigation: Restrict codebuild:StartSandbox, StartCommandExecution and StartSandboxConnection to trusted operators on exact projects and keep project service roles least-privileged.
   references:
@@ -275,8 +323,8 @@
   conditions:
   - id: exact_credential_subject_resource
     description: A reviewed evidence record must bind the source IAM principal, exact readable resource
-      and action, credential subject IAM user, usable access key and evidence reference; the source must
-      hold effective permission on that resource.
+      and action, a read and authentication as the named IAM user, and an exact action and resource denied
+      to the source but allowed with that key; the source must hold effective read permission.
   confidence: conditional
   severity: high
   mitigation: Restrict the named operation to trusted administrators and review downstream grants.

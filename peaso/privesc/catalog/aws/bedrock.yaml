@@ -21,10 +21,14 @@
       resource: '*'
     - action: iam:PassRole
       resource: '{target.arn}'
+      request_context:
+        iam:PassedToService: bedrock-agentcore.amazonaws.com
     - action: bedrock-agentcore:StartCodeInterpreterSession
-      resource: '*'
+      resource: arn:{source.partition}:bedrock-agentcore:*:{source.account}:code-interpreter-custom/*
+      bind: new_interpreter
     - action: bedrock-agentcore:InvokeCodeInterpreter
-      resource: '*'
+      resource: arn:{source.partition}:bedrock-agentcore:*:{source.account}:code-interpreter-custom/*
+      bind: new_interpreter
   target:
     kind: aws_role
     selector:
@@ -33,12 +37,16 @@
     scope: same_account
     aggregate_as: Roles trusting bedrock-agentcore.amazonaws.com passable in {account}
     outcome: workload_execution
+  preconditions:
+    - agentcore_new_interpreter_broad_name_and_role_ready
   conditions:
   - id: passrole_condition_key
     description: iam:PassedToService conditions may restrict this.
+  - id: generated_interpreter_id
+    description: StartCodeInterpreterSession and InvokeCodeInterpreter must cover a fresh custom interpreter name and every service-generated suffix of its ID.
   blockers:
   - scp_or_boundary_deny
-  confidence: derived
+  confidence: conditional
   severity: critical
   mitigation: Restrict iam:PassRole for AgentCore execution roles and bedrock-agentcore:CreateCodeInterpreter.
   references: []
@@ -106,6 +114,7 @@
       resource_permission_covers_target: iam:PassRole
     scope: same_account
     aggregate_as: "Roles trusting bedrock-agentcore.amazonaws.com passable in {account}"
+    outcome: workload_execution
   conditions:
     - id: passrole_condition_key
       description: iam:PassedToService conditions may restrict which roles can be passed.
@@ -146,6 +155,7 @@
       resource_permission_covers_target: iam:PassRole
     scope: same_account
     aggregate_as: "Roles trusting bedrock-agentcore.amazonaws.com passable in {account}"
+    outcome: workload_execution
   conditions:
     - id: passrole_condition_key
       description: iam:PassedToService conditions may restrict which roles can be passed.
@@ -182,6 +192,7 @@
       resource_permission_covers_target: iam:PassRole
     scope: same_account
     aggregate_as: "Roles trusting bedrock-agentcore.amazonaws.com passable in {account}"
+    outcome: workload_execution
   conditions:
     - id: passrole_condition_key
       description: iam:PassedToService conditions may restrict which roles can be passed.

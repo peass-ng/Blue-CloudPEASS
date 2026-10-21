@@ -31,6 +31,7 @@
       has_instance_profile: true
     scope: same_account
     aggregate_as: "EC2 instance-profile roles in {account} (Data Pipeline resource role)"
+    outcome: workload_execution
   conditions:
     - id: passable_pipeline_role
       description: iam:PassRole must also cover a pipeline role trusting datapipeline.amazonaws.com (and elasticmapreduce.amazonaws.com for EMR resources) that can launch the resources.

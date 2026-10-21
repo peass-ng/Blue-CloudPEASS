@@ -8,6 +8,8 @@ missing inventory must give an unresolved placeholder, never a concrete edge or 
 from __future__ import annotations
 
 import json
+import hashlib
+import copy
 
 from peaso import privesc
 from peaso.privesc.versioned_catalog import _verified_prior
@@ -34,7 +36,7 @@ def col(kind, items, status="collected", scope=SCOPE):
 
 def aws_snap(users=(), roles=(), extra=(), other_roles=()):
     cols = [col("iam_user", users), col("iam_role", roles), col("iam_group", []), col("iam_policy", []),
-            col("scp_policy", [], "empty"), *extra]
+            col("scp_policy", [], "empty"), col("eks_access_entry", [], "empty"), *extra]
     for account, items in other_roles:
         scope = f"{account}/{REGION}"
         cols += [col("iam_role", items, scope=scope), col("iam_user", [], scope=scope), col("iam_group", [], scope=scope),
@@ -115,13 +117,418 @@ def role_arn(name, account=ACCOUNT):
     return f"arn:aws:iam::{account}:role/{name}"
 
 
+def test_ec2_launch_template_asg_requires_matching_unpinned_version_and_template_grants():
+    technique = "aws-ec2-launchtemplate-version-asg"
+    template = f"arn:aws:ec2:{REGION}:{ACCOUNT}:launch-template/lt-0123456789abcdef0"
+    group = f"arn:aws:autoscaling:{REGION}:{ACCOUNT}:autoScalingGroup:abc:autoScalingGroupName/web"
+    target = role("target", "ec2.amazonaws.com", profiles=[profile_arn("target")])
+
+    def evaluate(version, grants, *, template_status="collected", group_status="collected", max_size=2):
+        caller = user("caller", *grants)
+        group_items = [{"AutoScalingGroupARN": group, "MaxSize": max_size,
+                        "LaunchTemplate": {"LaunchTemplateId": "lt-0123456789abcdef0", "Version": version}}]
+        template_items = [{"LaunchTemplateId": "lt-0123456789abcdef0",
+                           "LaunchTemplateName": "web", "LaunchTemplateArn": template}]
+        extra = [col("autoscaling_group", group_items if group_status == "collected" else [], group_status),
+                 col("ec2_launch_template", template_items if template_status == "collected" else [], template_status)]
+        result = real(aws_snap([caller], [target], extra), technique, include_unknown=True)
+        return reached(result, caller["Arn"], technique), result, caller["Arn"]
+
+    create = allow("ec2:CreateLaunchTemplateVersion", resource=template)
+    modify = allow("ec2:ModifyLaunchTemplate", resource=template)
+    latest, _, _ = evaluate("$Latest", [create])
+    assert target["Arn"] in latest
+    default, _, _ = evaluate("$Default", [create, modify])
+    assert target["Arn"] in default
+    assert target["Arn"] not in evaluate("$Default", [create])[0]
+    assert target["Arn"] not in evaluate("$Default", [create, modify,
+        {"Effect": "Deny", "Action": "ec2:ModifyLaunchTemplate", "Resource": template}])[0]
+    assert target["Arn"] not in evaluate("7", [create, modify])[0]
+    assert target["Arn"] not in evaluate("$Latest", [allow("ec2:CreateLaunchTemplateVersion",
+                                                           resource=template + "-other")])[0]
+    assert target["Arn"] not in evaluate("$Latest", [create], max_size=0)[0]
+    for missing in ("template", "group"):
+        kwargs = {f"{missing}_status": "denied"}
+        members, result, source = evaluate("$Latest", [create], **kwargs)
+        assert target["Arn"] not in members
+        assert_unresolved(result, source, technique)
+
+
+def test_ec2_launch_template_asg_mixed_override_uses_its_own_template():
+    technique = "aws-ec2-launchtemplate-version-asg"
+    base = f"arn:aws:ec2:{REGION}:{ACCOUNT}:launch-template/lt-11111111111111111"
+    override = f"arn:aws:ec2:{REGION}:{ACCOUNT}:launch-template/lt-22222222222222222"
+    group = f"arn:aws:autoscaling:{REGION}:{ACCOUNT}:autoScalingGroup:abc:autoScalingGroupName/mixed"
+    target = role("target", "ec2.amazonaws.com", profiles=[profile_arn("target")])
+    templates = [col("ec2_launch_template", [
+        {"LaunchTemplateId": "lt-11111111111111111", "LaunchTemplateArn": base},
+        {"LaunchTemplateId": "lt-22222222222222222", "LaunchTemplateArn": override}])]
+    group_row = {"AutoScalingGroupARN": group, "MaxSize": 3, "MixedInstancesPolicy": {"LaunchTemplate": {
+        "LaunchTemplateSpecification": {"LaunchTemplateId": "lt-11111111111111111", "Version": "$Latest"},
+        "Overrides": [{"InstanceType": "t3.micro", "LaunchTemplateSpecification": {
+            "LaunchTemplateId": "lt-22222222222222222", "Version": "$Default"}}]}}}
+
+    def run(grants):
+        caller = user("caller", *grants)
+        result = real(aws_snap([caller], [target], [col("autoscaling_group", [group_row]), *templates]), technique)
+        return reached(result, caller["Arn"], technique)
+
+    assert target["Arn"] not in run([allow("ec2:CreateLaunchTemplateVersion", resource=base)])
+    assert target["Arn"] not in run([allow("ec2:CreateLaunchTemplateVersion", resource=override)])
+    assert target["Arn"] in run([allow("ec2:CreateLaunchTemplateVersion", resource=override),
+                                  allow("ec2:ModifyLaunchTemplate", resource=override)])
+
+
+def test_ec2_changed_user_data_needs_reviewed_reexecution_on_same_instance():
+    technique = "aws-ec2-modifyinstanceattribute-userdata"
+    instance_arn = f"arn:aws:ec2:{REGION}:{ACCOUNT}:instance/i-1234567890abcdef0"
+    target = role("target", "ec2.amazonaws.com", profiles=[profile_arn("target")])
+    target["RoleId"] = "AROATARGET123456789"
+    instance = {"InstanceId": "i-1234567890abcdef0", "RootDeviceType": "ebs",
+                "State": {"Name": "running"},
+                "IamInstanceProfile": {"Arn": profile_arn("target"), "Id": "AIPATARGET123456789"},
+                "MetadataOptions": {"HttpEndpoint": "enabled", "State": "applied"}}
+    proof = {"TechniqueId": technique, "SourceArn": f"arn:aws:iam::{ACCOUNT}:user/caller",
+             "TargetKind": "aws_role", "TargetId": target["Arn"], "TargetScope": SCOPE,
+             "TargetRoleId": target["RoleId"], "TargetProfileArn": profile_arn("target"),
+             "TargetProfileId": "AIPATARGET123456789", "InstanceArn": instance_arn,
+             "Status": "verified", "VerifiedPreconditions": True,
+             "UserDataRunsOnRestart": True, "RoleCredentialsReachable": True,
+             "StopProtectionDisabled": True, "EvidenceRef": "host-review",
+             "EvidenceObservedAt": "2026-10-21T11:59:00+00:00",
+             "EvidenceExpiresAt": "2026-10-21T12:05:00+00:00"}
+
+    def evaluate(*, state="running", attested=True, actions=None, changed=None):
+        row, fact = copy.deepcopy(instance), copy.deepcopy(proof)
+        row["State"]["Name"] = state
+        if changed:
+            row.update(changed.get("instance", {}))
+            fact.update(changed.get("proof", {}))
+        grants = actions if actions is not None else [allow("ec2:ModifyInstanceAttribute", "ec2:StartInstances",
+                                                              "ec2:StopInstances", resource=instance_arn)]
+        caller = user("caller", *grants)
+        snap = aws_snap([caller], [target], [col("instance", [row]),
+                                            col("aws_privesc_challenge_evidence", [fact] if attested else [],
+                                                "collected" if attested else "empty")])
+        snap["created_at"] = "2026-10-21T12:00:00+00:00"
+        result = real(snap, technique, include_unknown=True)
+        return reached(result, caller["Arn"], technique), result, caller["Arn"]
+
+    assert target["Arn"] in evaluate()[0]
+    assert target["Arn"] in evaluate(actions=[
+        allow("ec2:StartInstances", "ec2:StopInstances", resource=instance_arn),
+        {"Effect": "Allow", "Action": "ec2:ModifyInstanceAttribute", "Resource": instance_arn,
+         "Condition": {"StringEquals": {"ec2:Attribute": "userData"}}}])[0]
+    assert target["Arn"] in evaluate(state="stopped", actions=[
+        allow("ec2:ModifyInstanceAttribute", "ec2:StartInstances", resource=instance_arn)])[0]
+    assert target["Arn"] in evaluate(changed={"proof": {"StopProtectionDisabled": False}})[0]
+    missing, unresolved, source = evaluate(attested=False)
+    assert target["Arn"] not in missing
+    assert_unresolved(unresolved, source, technique)
+    for kwargs in ({"attested": False},
+                   {"actions": [allow("ec2:ModifyInstanceAttribute", "ec2:StartInstances", resource=instance_arn)]},
+                   {"actions": [allow("ec2:StartInstances", "ec2:StopInstances", resource=instance_arn),
+                                {"Effect": "Allow", "Action": "ec2:ModifyInstanceAttribute", "Resource": instance_arn,
+                                 "Condition": {"StringEquals": {"ec2:Attribute": "groupSet"}}}]},
+                   {"changed": {"instance": {"RootDeviceType": "instance-store"}}},
+                   {"changed": {"proof": {"UserDataRunsOnRestart": False}}},
+                   {"changed": {"proof": {"StopProtectionDisabled": False}},
+                    "actions": [allow("ec2:StartInstances", "ec2:StopInstances", resource=instance_arn),
+                                {"Effect": "Allow", "Action": "ec2:ModifyInstanceAttribute", "Resource": instance_arn,
+                                 "Condition": {"StringEquals": {"ec2:Attribute": "userData"}}}]},
+                   {"changed": {"proof": {"TargetRoleId": "old-role"}}},
+                   {"changed": {"proof": {"EvidenceExpiresAt": "2026-10-21T11:59:30+00:00"}}}):
+        reached_roles, _, _ = evaluate(**kwargs)
+        assert target["Arn"] not in reached_roles
+
+
+def test_cloudcontrol_passrole_needs_a_creatable_admin_user_path():
+    technique = "aws-cloudcontrol-passrole-createresource"
+    caller = user("caller", allow("iam:PassRole", "cloudformation:CreateResource"))
+    complete = role("complete", "cloudformation.amazonaws.com",
+                    allow("iam:CreateUser", "iam:GetUser", "iam:CreateLoginProfile", "iam:AttachUserPolicy"))
+    no_password = role("no-password", "cloudformation.amazonaws.com",
+                       allow("iam:CreateUser", "iam:GetUser", "iam:AttachUserPolicy"))
+    no_read = role("no-read", "cloudformation.amazonaws.com",
+                   allow("iam:CreateUser", "iam:CreateLoginProfile", "iam:AttachUserPolicy"))
+    inline = role("inline", "cloudformation.amazonaws.com",
+                  allow("iam:CreateUser", "iam:GetUser", "iam:CreateLoginProfile", "iam:PutUserPolicy"))
+    blocked = role("blocked-policy", "cloudformation.amazonaws.com",
+                   allow("iam:CreateUser", "iam:GetUser", "iam:CreateLoginProfile"),
+                   {"Effect": "Allow", "Action": "iam:AttachUserPolicy", "Resource": "*",
+                    "Condition": {"StringEquals": {"iam:PolicyARN":
+                                   "arn:aws:iam::aws:policy/ReadOnlyAccess"}}})
+    admin = f"aws_account_admin:{ACCOUNT}"
+    for usable in (complete, inline):
+        result = real(aws_snap([caller], [usable]), technique)
+        assert admin in reached(result, caller["Arn"], technique)
+    for unusable in (no_password, no_read, blocked):
+        result = real(aws_snap([caller], [unusable]), technique)
+        assert admin not in reached(result, caller["Arn"], technique)
+    without_passrole = user("without-passrole", allow("cloudformation:CreateResource"))
+    result = real(aws_snap([without_passrole], [complete]), technique)
+    assert admin not in reached(result, without_passrole["Arn"], technique)
+    wrong_trust = role("wrong-trust", "lambda.amazonaws.com",
+                       allow("iam:CreateUser", "iam:GetUser", "iam:CreateLoginProfile", "iam:AttachUserPolicy"))
+    result = real(aws_snap([caller], [wrong_trust]), technique)
+    assert admin not in reached(result, caller["Arn"], technique)
+    existing = user("reserved")
+    exact_existing = role("exact-existing", "cloudformation.amazonaws.com",
+                          allow("iam:CreateUser", "iam:GetUser", "iam:CreateLoginProfile",
+                                "iam:AttachUserPolicy", resource=existing["Arn"]))
+    result = real(aws_snap([caller, existing], [exact_existing]), technique)
+    assert admin not in reached(result, caller["Arn"], technique)
+
+
+def test_stepfunctions_teststate_is_a_conditional_service_action():
+    technique = "aws-stepfunctions-teststate-passrole"
+    caller = user("caller", allow("iam:PassRole", "states:TestState"))
+    execution_role = role("execution", "states.amazonaws.com", allow("iam:AttachUserPolicy"))
+    result = real(aws_snap([caller], [execution_role]), technique)
+    matches = [detail for edge in edges(result, caller["Arn"], technique)
+               for detail in edge["technique_details"] if detail["id"] == technique]
+    assert len(matches) == 1
+    assert matches[0]["outcome"] == "impersonation"
+    assert matches[0]["confidence"] == "conditional"
+
+
+def test_new_iam_user_routes_do_not_reuse_an_existing_exact_name():
+    technique = "aws-iam-createuser-policy-accesskey"
+    existing = user("reserved")
+    exact = user("exact", allow("iam:CreateUser", "iam:CreateAccessKey", "iam:AttachUserPolicy",
+                                resource=existing["Arn"]))
+    admin = f"aws_account_admin:{ACCOUNT}"
+    result = real(aws_snap([existing, exact]), technique)
+    assert admin not in reached(result, exact["Arn"], technique)
+    other_path = user("Reserved")
+    other_path["Arn"] = f"arn:aws:iam::{ACCOUNT}:user/other/Reserved"
+    other_path["Path"] = "/other/"
+    same_name = f"arn:aws:iam::{ACCOUNT}:user/team/reserved"
+    path_scoped = user("path-scoped", allow("iam:CreateUser", "iam:CreateAccessKey", "iam:AttachUserPolicy",
+                                     resource=same_name))
+    result = real(aws_snap([other_path, path_scoped]), technique)
+    assert admin not in reached(result, path_scoped["Arn"], technique)
+    path_wildcard = f"arn:aws:iam::{ACCOUNT}:user/*/reserved"
+    wildcard_path = user("wildcard-path", allow("iam:CreateUser", "iam:CreateAccessKey", "iam:AttachUserPolicy",
+                                           resource=path_wildcard))
+    result = real(aws_snap([other_path, wildcard_path]), technique)
+    assert admin not in reached(result, wildcard_path["Arn"], technique)
+    collision = user("peasobound")
+    broad = user("broad", allow("iam:CreateUser", "iam:CreateAccessKey", "iam:AttachUserPolicy"))
+    result = real(aws_snap([collision, broad]), technique)
+    assert admin in reached(result, broad["Arn"], technique)
+
+
+def test_appstream_new_resources_need_a_startable_streaming_path():
+    target = role("target", "appstream.amazonaws.com")
+    builder_arn = f"arn:aws:appstream:{REGION}:{ACCOUNT}:app-block-builder/team-a"
+    other_builder_arn = f"arn:aws:appstream:{REGION}:{ACCOUNT}:app-block-builder/team-b"
+    block_arn = f"arn:aws:appstream:{REGION}:{ACCOUNT}:app-block/app-a"
+    subnets = [{"SubnetId": "subnet-a", "VpcId": "vpc-1", "AvailabilityZone": "us-east-1a", "State": "available"},
+               {"SubnetId": "subnet-b", "VpcId": "vpc-1", "AvailabilityZone": "us-east-1b", "State": "available"}]
+    bucket = {"Name": "packages", "Location": {"collection_status": "collected", "LocationConstraint": REGION}}
+
+    def reach(start=True, stream_arn=builder_arn, subnet_rows=subnets, bucket_row=bucket, occupied=()):
+        grants = [allow("iam:PassRole", resource=target["Arn"]),
+                  allow("appstream:CreateAppBlockBuilder", resource=builder_arn),
+                  allow("appstream:CreateAppBlock"),
+                  allow("appstream:AssociateAppBlockBuilderAppBlock", resource=[builder_arn, block_arn]),
+                  allow("appstream:CreateAppBlockBuilderStreamingURL", resource=stream_arn)]
+        if start:
+            grants.append(allow("appstream:StartAppBlockBuilder", resource=builder_arn))
+        snap = aws_snap([user("alice", *grants)], roles=[target], extra=[
+            col("appstream_app_block_builder", [{"Name": name} for name in occupied]),
+            col("appstream_app_block", []), col("subnet", subnet_rows),
+            col("bucket", [bucket_row], scope=f"{ACCOUNT}/global")])
+        return reached(real(snap, "aws-appstream-passrole-createappblockbuilder"), ALICE)
+
+    expected = {target["Arn"]: "conditional"}
+    assert reach() == expected
+    assert reach(start=False) == {}
+    assert reach(stream_arn=other_builder_arn) == {}
+    assert reach(subnet_rows=subnets[:1]) == {}
+    assert reach(bucket_row={**bucket, "Location": {"collection_status": "collected", "LocationConstraint": "eu-west-1"}}) == {}
+    assert reach(occupied=("team-a",)) == {}
+
+
+def test_appstream_new_builder_can_use_existing_unassociated_app_block():
+    target = role("target", "appstream.amazonaws.com")
+    builder_arn = f"arn:aws:appstream:{REGION}:{ACCOUNT}:app-block-builder/new"
+    block_arn = f"arn:aws:appstream:{REGION}:{ACCOUNT}:app-block/existing"
+    subnets = [{"SubnetId": "subnet-a", "VpcId": "vpc-1", "AvailabilityZone": "us-east-1a", "State": "available"},
+               {"SubnetId": "subnet-b", "VpcId": "vpc-1", "AvailabilityZone": "us-east-1b", "State": "available"}]
+    grants = [allow("iam:PassRole", resource=target["Arn"]),
+              allow("appstream:CreateAppBlockBuilder", "appstream:StartAppBlockBuilder",
+                    "appstream:CreateAppBlockBuilderStreamingURL", resource=builder_arn),
+              allow("appstream:AssociateAppBlockBuilderAppBlock", resource=[builder_arn, block_arn])]
+    block = {"Arn": block_arn, "Name": "existing", "PackagingType": "APPSTREAM2", "State": "INACTIVE"}
+
+    def reach(associations=(), package_type="APPSTREAM2"):
+        snap = aws_snap([user("alice", *grants)], roles=[target], extra=[
+            col("appstream_app_block_builder", []),
+            col("appstream_app_block", [{**block, "PackagingType": package_type}]),
+            col("appstream_app_block_builder_association", list(associations)),
+            col("subnet", subnets)])
+        return reached(real(snap, "aws-appstream-passrole-createappblockbuilder"), ALICE)
+
+    assert reach() == {target["Arn"]: "conditional"}
+    assert reach(associations=({"AppBlockArn": block_arn, "AppBlockBuilderName": "other"},)) == {}
+    assert reach(package_type="CUSTOM") == {}
+
+
+def test_appstream_new_fleet_binds_image_fleet_and_stack_permissions():
+    technique = "aws-appstream-passrole-createimagebuilder-createfleet"
+    target = role("target", "appstream.amazonaws.com")
+    image_arn = f"arn:aws:appstream:{REGION}:{ACCOUNT}:image/base"
+    fleet_arn = f"arn:aws:appstream:{REGION}:{ACCOUNT}:fleet/team-a"
+    other_fleet_arn = f"arn:aws:appstream:{REGION}:{ACCOUNT}:fleet/team-b"
+    stack_arn = f"arn:aws:appstream:{REGION}:{ACCOUNT}:stack/prod"
+    image = {"Arn": image_arn, "Name": "base", "State": "AVAILABLE", "Visibility": "PRIVATE"}
+    stack = {"Arn": stack_arn, "Name": "prod"}
+
+    def reach(stream_arn=fleet_arn, image_row=image, stacks=(stack,), occupied=(), create_stack=False,
+              stack_url=True):
+        grants = [allow("iam:PassRole", resource=target["Arn"]),
+                  allow("appstream:CreateFleet", resource=[image_arn, fleet_arn]),
+                  allow("appstream:StartFleet", "appstream:AssociateFleet", resource=fleet_arn),
+                  allow("appstream:CreateStreamingURL", resource=stream_arn),
+                  allow("appstream:AssociateFleet", resource=stack_arn)]
+        if stack_url:
+            grants.append(allow("appstream:CreateStreamingURL", resource=stack_arn))
+        if create_stack:
+            grants.append(allow("appstream:CreateStack", "appstream:AssociateFleet",
+                                "appstream:CreateStreamingURL"))
+        snap = aws_snap([user("alice", *grants)], roles=[target], extra=[
+            col("appstream_image", [image_row]),
+            col("appstream_fleet", [{"Name": name} for name in occupied]),
+            col("appstream_stack", list(stacks))])
+        return reached(real(snap, technique), ALICE)
+
+    expected = {target["Arn"]: "conditional"}
+    assert reach() == expected
+    assert reach(stack_url=False) == {}
+    assert reach(stream_arn=other_fleet_arn) == {}
+    assert reach(image_row={**image, "State": "FAILED"}) == {}
+    assert reach(occupied=("team-a",)) == {}
+    assert reach(stacks=()) == {}
+    assert reach(stacks=(), create_stack=True) == expected
+
+
+def test_appstream_new_image_builder_uses_available_image_and_one_builder_arn():
+    technique = "aws-appstream-passrole-createimagebuilder"
+    target = role("target", "appstream.amazonaws.com")
+    image_arn = f"arn:aws:appstream:{REGION}:{ACCOUNT}:image/base"
+    builder_arn = f"arn:aws:appstream:{REGION}:{ACCOUNT}:image-builder/team-a"
+    other_arn = f"arn:aws:appstream:{REGION}:{ACCOUNT}:image-builder/team-b"
+    image = {"Arn": image_arn, "Name": "base", "State": "AVAILABLE",
+             "ImageBuilderSupported": True, "Visibility": "PRIVATE"}
+
+    def reach(image_row=image, create_arn=builder_arn, stream_arn=builder_arn, occupied=()):
+        grants = [allow("iam:PassRole", resource=target["Arn"]),
+                  allow("appstream:CreateImageBuilder", resource=[image_arn, create_arn]),
+                  allow("appstream:CreateImageBuilderStreamingURL", resource=stream_arn)]
+        snap = aws_snap([user("alice", *grants)], roles=[target], extra=[
+            col("appstream_image", [image_row]),
+            col("appstream_image_builder", [{"Name": name} for name in occupied])])
+        return reached(real(snap, technique), ALICE)
+
+    assert reach() == {target["Arn"]: "conditional"}
+    assert reach(stream_arn=other_arn) == {}
+    assert reach(image_row={**image, "State": "FAILED"}) == {}
+    assert reach(image_row={**image, "ImageBuilderSupported": False}) == {}
+    assert reach(occupied=("team-a",)) == {}
+
+
+def test_appstream_fleet_role_swap_uses_one_associated_fleet_and_its_state():
+    technique = "aws-appstream-passrole-updatefleet"
+    target = role("target", "appstream.amazonaws.com")
+    fleet_arn = f"arn:aws:appstream:{REGION}:{ACCOUNT}:fleet/team-a"
+    other_arn = f"arn:aws:appstream:{REGION}:{ACCOUNT}:fleet/team-b"
+    expected = {target["Arn"]: "conditional"}
+
+    def reach(state="STOPPED", stacks=("prod",), extra_actions=(), url_arn=fleet_arn,
+              associations=True, stack_url=True):
+        fleet = {"Arn": fleet_arn, "Name": "team-a", "State": state}
+        if associations:
+            fleet["AssociatedStacks"] = {"collection_status": "collected", "items": list(stacks)}
+        grants = [allow("iam:PassRole", resource=target["Arn"]),
+                  allow("appstream:UpdateFleet", "appstream:StartFleet", resource=fleet_arn),
+                  allow("appstream:CreateStreamingURL", resource=url_arn)]
+        if stack_url:
+            grants.append(allow("appstream:CreateStreamingURL",
+                                resource=f"arn:aws:appstream:{REGION}:{ACCOUNT}:stack/prod"))
+        grants += [allow(action, resource=fleet_arn) for action in extra_actions]
+        snap = aws_snap([user("alice", *grants)], roles=[target], extra=[col("appstream_fleet", [fleet])])
+        return reached(real(snap, technique), ALICE)
+
+    assert reach() == expected
+    assert reach(stack_url=False) == {}
+    assert reach(url_arn=other_arn) == {}
+    assert reach(state="RUNNING") == {}
+    assert reach(state="RUNNING", extra_actions=("appstream:StopFleet",)) == expected
+    assert reach(stacks=()) == {}
+    assert reach(associations=False) == {}
+
+
+def test_appstream_unassociated_fleet_needs_creatable_stack_in_same_region():
+    technique = "aws-appstream-passrole-updatefleet"
+    target = role("target", "appstream.amazonaws.com")
+    fleet_arn = f"arn:aws:appstream:{REGION}:{ACCOUNT}:fleet/f"
+    fleet = {"Arn": fleet_arn, "Name": "f", "State": "STOPPED",
+             "AssociatedStacks": {"collection_status": "collected", "items": []}}
+    base = [allow("iam:PassRole", resource=target["Arn"]),
+            allow("appstream:UpdateFleet", "appstream:StartFleet", "appstream:CreateStreamingURL", resource=fleet_arn)]
+
+    def reach(stack_status="empty", extra_grants=()):
+        snap = aws_snap([user("alice", *(base + list(extra_grants)))], roles=[target],
+                        extra=[col("appstream_fleet", [fleet]), col("appstream_stack", [], stack_status)])
+        return reached(real(snap, technique), ALICE)
+
+    create = [allow("appstream:CreateStack", "appstream:AssociateFleet",
+                    "appstream:CreateStreamingURL")]
+    assert reach() == {}
+    assert reach(extra_grants=[allow("appstream:CreateStack", "appstream:AssociateFleet")]) == {}
+    assert reach(extra_grants=create) == {target["Arn"]: "conditional"}
+    assert reach(stack_status="denied", extra_grants=create) == {}
+
+
+def test_appstream_builder_role_swap_needs_one_associated_startable_builder():
+    technique = "aws-appstream-passrole-updateappblockbuilder"
+    target = role("target", "appstream.amazonaws.com")
+    builder_arn = f"arn:aws:appstream:{REGION}:{ACCOUNT}:app-block-builder/team-a"
+    other_arn = f"arn:aws:appstream:{REGION}:{ACCOUNT}:app-block-builder/team-b"
+    block_arn = f"arn:aws:appstream:{REGION}:{ACCOUNT}:app-block/app-a"
+    expected = {target["Arn"]: "conditional"}
+
+    def reach(state="STOPPED", association=True, stop=False, stream_arn=builder_arn, assoc_status="collected"):
+        builder = {"Arn": builder_arn, "Name": "team-a", "State": state}
+        grants = [allow("iam:PassRole", resource=target["Arn"]),
+                  allow("appstream:UpdateAppBlockBuilder", "appstream:StartAppBlockBuilder", resource=builder_arn),
+                  allow("appstream:CreateAppBlockBuilderStreamingURL", resource=stream_arn)]
+        if stop:
+            grants.append(allow("appstream:StopAppBlockBuilder", resource=builder_arn))
+        associations = [{"AppBlockBuilderName": "team-a", "AppBlockArn": block_arn}] if association else []
+        snap = aws_snap([user("alice", *grants)], roles=[target], extra=[
+            col("appstream_app_block_builder", [builder]),
+            col("appstream_app_block_builder_association", associations, assoc_status)])
+        return reached(real(snap, technique), ALICE)
+
+    assert reach() == expected
+    assert reach(stream_arn=other_arn) == {}
+    assert reach(state="RUNNING") == {}
+    assert reach(state="RUNNING", stop=True) == expected
+    assert reach(association=False) == {}
+    assert reach(assoc_status="denied") == {}
+
+
 # --------------------------------------------------------------------------- EKS
 EKS_ADMIN = allow("eks:CreateAccessEntry", "eks:AssociateAccessPolicy")
 
 
 def eks_cluster(mode="API_AND_CONFIG_MAP", name="prod"):
     cluster = {"name": name, "arn": f"arn:aws:eks:{REGION}:{ACCOUNT}:cluster/{name}",
-               "endpoint": f"https://{name.upper()}.gr7.{REGION}.eks.amazonaws.com"}
+               "endpoint": f"https://{name.upper()}.gr7.{REGION}.eks.amazonaws.com",
+               "status": "ACTIVE", "version": "1.31", "platformVersion": "eks.1"}
     if mode:
         cluster["accessConfig"] = {"authenticationMode": mode}
     return {"Cluster": {"cluster": cluster}}
@@ -148,6 +555,104 @@ def test_eks_access_policy_scoped_to_other_cluster_is_not_an_edge():
               allow("eks:AssociateAccessPolicy", resource=f"arn:aws:eks:*:{ACCOUNT}:access-entry/other/*")]
     snap = aws_snap([user("alice", *scoped)], extra=[col("eks_cluster", [eks_cluster("API")])])
     assert edges(real(snap, "aws-eks-createaccessentry-associateaccesspolicy"), ALICE) == []
+
+
+def test_eks_admin_routes_require_cluster_admin_policy_and_cluster_scope():
+    admin_policy = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+    edit_policy = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSAdminPolicy"
+
+    def association(condition):
+        statement = allow("eks:AssociateAccessPolicy")
+        statement["Condition"] = {"StringEquals": condition}
+        return statement
+
+    for condition in ({"eks:policyArn": edit_policy}, {"eks:accessScope": "namespace"}):
+        principal = user("alice", allow("eks:CreateAccessEntry"), association(condition))
+        snap = aws_snap([principal], extra=[col("eks_cluster", [eks_cluster("API")])])
+        assert reached(real(snap, "aws-eks-createaccessentry-associateaccesspolicy"), ALICE) == {}
+
+    allowed = association({"eks:policyArn": admin_policy, "eks:accessScope": "cluster"})
+    principal = user("alice", allow("eks:CreateAccessEntry"), allowed)
+    snap = aws_snap([principal], extra=[col("eks_cluster", [eks_cluster("API")])])
+    assert reached(real(snap, "aws-eks-createaccessentry-associateaccesspolicy"), ALICE) == {
+        f"k8s_cluster_admin:{EKS_ARN}": "conditional"}
+
+    for mode, expected in (("API", {}), ("API_AND_CONFIG_MAP", {f"k8s_cluster_admin:{EKS_ARN}": "conditional"})):
+        change = allow("eks:UpdateClusterConfig")
+        change["Condition"] = {"StringEquals": {"eks:authenticationMode": mode}}
+        principal = user("alice", change, allow("eks:CreateAccessEntry"), allowed)
+        snap = aws_snap([principal], extra=[col("eks_cluster", [eks_cluster("CONFIG_MAP")])])
+        assert reached(real(snap, "aws-eks-updateclusterconfig-enable-access-entries"), ALICE) == expected
+    principal = user("alice", allow("eks:UpdateClusterConfig", "eks:CreateAccessEntry",
+                                    "eks:AssociateAccessPolicy"))
+    for version, platform, status, allowed_result in (("1.28", "eks.5", "ACTIVE", False),
+                                                       ("1.28", "eks.6", "ACTIVE", True),
+                                                       ("1.30", "eks.1", "ACTIVE", False),
+                                                       ("1.30", "eks.2", "ACTIVE", True),
+                                                       ("1.31", "eks.1", "UPDATING", False)):
+        cluster = eks_cluster("CONFIG_MAP")
+        cluster["Cluster"]["cluster"].update(version=version, platformVersion=platform, status=status)
+        snap = aws_snap([principal], extra=[col("eks_cluster", [cluster])])
+        found = reached(real(snap, "aws-eks-updateclusterconfig-enable-access-entries"), ALICE)
+        assert bool(found) is allowed_result, (version, platform, status, found)
+    missing = eks_cluster("CONFIG_MAP")
+    missing["Cluster"]["cluster"].pop("version")
+    snap = aws_snap([principal], extra=[col("eks_cluster", [missing])])
+    assert_unresolved(real(snap, "aws-eks-updateclusterconfig-enable-access-entries",
+                           include_unknown=True), ALICE)
+
+
+def test_eks_new_admin_entry_is_bound_to_the_callers_iam_principal():
+    entry = f"arn:aws:eks:{REGION}:{ACCOUNT}:access-entry/prod/user/{ACCOUNT}/alice/*"
+    other = entry.replace("/alice/", "/bob/")
+    associated = allow("eks:AssociateAccessPolicy", resource=entry)
+
+    def check(create, associate=associated, entries=(), status="empty"):
+        snap = aws_snap([user("alice", create, associate)], extra=[col("eks_cluster", [eks_cluster("API")])])
+        collection = next(c for c in snap["collections"] if c["type"] == "eks_access_entry")
+        collection.update(items=list(entries), status=status)
+        return reached(real(snap, "aws-eks-createaccessentry-associateaccesspolicy"), ALICE)
+
+    expected = {f"k8s_cluster_admin:{EKS_ARN}": "conditional"}
+    own = allow("eks:CreateAccessEntry")
+    own["Condition"] = {"ArnEquals": {"eks:principalArn": ALICE}}
+    assert check(own) == expected
+    bob = allow("eks:CreateAccessEntry")
+    bob["Condition"] = {"ArnEquals": {"eks:principalArn": f"arn:aws:iam::{ACCOUNT}:user/bob"}}
+    assert check(bob) == {}
+    assert check(own, allow("eks:AssociateAccessPolicy", resource=other)) == {}
+    assert check(own, entries=[{"clusterName": "prod", "principalArn": ALICE}]) == {}
+    assert check(own, status="denied") == {}
+
+
+def test_eks_existing_admin_entry_requires_exact_controlled_standard_entry():
+    technique = "aws-eks-associateaccesspolicy-existing-entry"
+    arn = f"arn:aws:eks:{REGION}:{ACCOUNT}:access-entry/prod/user/{ACCOUNT}/alice/" + "a" * 32
+    policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+    row = {"clusterName": "prod", "principalArn": ALICE, "accessEntryArn": arn, "type": "STANDARD",
+           "AssociatedAccessPolicies": {"collection_status": "empty", "items": []}}
+
+    def check(entries, statement=None):
+        snap = aws_snap([user("alice", statement or allow("eks:AssociateAccessPolicy", resource=arn))],
+                        extra=[col("eks_cluster", [eks_cluster("API")])])
+        collection = next(c for c in snap["collections"] if c["type"] == "eks_access_entry")
+        collection.update(items=entries, status="collected" if entries else "empty")
+        return reached(real(snap, technique), ALICE)
+
+    expected = {f"k8s_cluster_admin:{EKS_ARN}": "conditional"}
+    assert check([row]) == expected
+    assert check([dict(row, principalArn=f"arn:aws:iam::{ACCOUNT}:user/bob")]) == {}
+    assert check([dict(row, type="EC2_LINUX")]) == {}
+    assert check([dict(row, AssociatedAccessPolicies={"collection_status": "collected", "items": [
+        {"policyArn": policy_arn, "accessScope": {"type": "cluster"}}]})]) == {}
+    assert check([row], allow("eks:AssociateAccessPolicy", resource=arn.replace("/alice/", "/bob/"))) == {}
+    namespace = allow("eks:AssociateAccessPolicy", resource=arn)
+    namespace["Condition"] = {"StringEquals": {"eks:accessScope": "namespace"}}
+    assert check([row], namespace) == {}
+    other_policy = allow("eks:AssociateAccessPolicy", resource=arn)
+    other_policy["Condition"] = {"ArnEquals": {
+        "eks:policyArn": "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"}}
+    assert check([row], other_policy) == {}
 
 
 def test_eks_mode_or_inventory_missing_is_unknown_not_fail():
@@ -284,6 +789,14 @@ def test_createaccount_reaches_principalorgid_trusts_from_management_account():
     assert set(reached(real(snap, CREATE_ACCOUNT), ALICE)) == {role_arn("shared", OTHER)}
 
 
+def test_createaccount_does_not_override_explicit_role_trust_deny():
+    alice = user("alice", allow("organizations:CreateAccount", "sts:AssumeRole"))
+    denied = role("denied", [*org_trust(), {"Effect": "Deny", "Principal": "*",
+                                            "Action": "sts:AssumeRole"}], account=OTHER)
+    snap = aws_snap([alice], extra=[org_accounts(OTHER)], other_roles=[(OTHER, [denied])])
+    assert role_arn("denied", OTHER) not in reached(real(snap, CREATE_ACCOUNT), ALICE)
+
+
 def test_createaccount_from_member_account_is_not_an_edge():
     bob = user("bob", allow("organizations:CreateAccount", "sts:AssumeRole"), account=OTHER)
     snap = aws_snap([], extra=[org_accounts(OTHER), col("iam_user", [bob], scope=f"{OTHER}/{REGION}")],
@@ -342,18 +855,63 @@ def emr_roles():
 
 
 def emr_cluster(security=True):
-    cluster = {"Id": "j-1", "Ec2InstanceAttributes": {"IamInstanceProfile": "emr-ec2"}}
+    cluster = {"Id": "j-1", "Status": {"State": "WAITING"},
+               "Ec2InstanceAttributes": {"IamInstanceProfile": "emr-ec2"}}
     if security:
         cluster["SecurityConfiguration"] = "runtime-roles"
     return {"Cluster": {"Cluster": cluster}}
 
 
+def emr_security_config(enabled, external_id=None):
+    iam = {"EnableApplicationScopedIAMRole": enabled}
+    if external_id is not None:
+        iam["ExternalIdSha256"] = hashlib.sha256(external_id.encode()).hexdigest()
+    return {"Name": "runtime-roles", "Configuration": {"collection_status": "collected",
+            "SecurityConfiguration": json.dumps({"AuthorizationConfiguration": {"IAMConfiguration": iam}})}}
+
+
 def test_emr_getclustersessioncredentials_reaches_runtime_roles():
     tid = "aws-emr-getclustersessioncredentials-runtime-role"
     alice = user("alice", allow("elasticmapreduce:GetClusterSessionCredentials"))
-    assert set(reached(real(aws_snap([alice], emr_roles(), [col("emr_cluster", [emr_cluster()])]), tid), ALICE)) == \
+    active = [col("emr_cluster", [emr_cluster()]), col("emr_security_configuration", [emr_security_config(True)])]
+    assert set(reached(real(aws_snap([alice], emr_roles(), active), tid), ALICE)) == \
         {role_arn("runtime")}
-    assert edges(real(aws_snap([alice], emr_roles(), [col("emr_cluster", [emr_cluster(False)])]), tid), ALICE) == []
+    cluster_arn = f"arn:aws:elasticmapreduce:{REGION}:{ACCOUNT}:cluster/j-1"
+    scoped = user("alice", allow("elasticmapreduce:GetClusterSessionCredentials", resource=cluster_arn))
+    assert set(reached(real(aws_snap([scoped], emr_roles(), active), tid), ALICE)) == {role_arn("runtime")}
+    wrong_cluster = user("alice", allow("elasticmapreduce:GetClusterSessionCredentials",
+                                resource=cluster_arn.replace("j-1", "j-other")))
+    assert edges(real(aws_snap([wrong_cluster], emr_roles(), active), tid), ALICE) == []
+    wrong_role_condition = user("alice", {"Effect": "Allow",
+        "Action": "elasticmapreduce:GetClusterSessionCredentials", "Resource": cluster_arn,
+        "Condition": {"ArnEquals": {"elasticmapreduce:ExecutionRoleArn": role_arn("other")}}})
+    assert edges(real(aws_snap([wrong_role_condition], emr_roles(), active), tid), ALICE) == []
+    matching_role_condition = user("alice", {"Effect": "Allow",
+        "Action": "elasticmapreduce:GetClusterSessionCredentials", "Resource": cluster_arn,
+        "Condition": {"ArnEquals": {"elasticmapreduce:ExecutionRoleArn": role_arn("runtime")}}})
+    assert set(reached(real(aws_snap([matching_role_condition], emr_roles(), active), tid), ALICE)) == {role_arn("runtime")}
+    external_id_roles = emr_roles()
+    external_id_roles[1]["AssumeRolePolicyDocument"]["Statement"][0]["Condition"] = {
+        "StringEquals": {"sts:ExternalId": "uncollected-emr-external-id"}}
+    conditional_trust = real(aws_snap([alice], external_id_roles, active), tid, include_unknown=True)
+    assert all(finding["status"] != "FAIL" for finding in conditional_trust["findings"])
+    matched_external = [col("emr_cluster", [emr_cluster()]),
+                        col("emr_security_configuration", [emr_security_config(True, "uncollected-emr-external-id")])]
+    assert set(reached(real(aws_snap([alice], external_id_roles, matched_external), tid), ALICE)) == {role_arn("runtime")}
+    wrong_external = [col("emr_cluster", [emr_cluster()]),
+                      col("emr_security_configuration", [emr_security_config(True, "different-external-id")])]
+    assert edges(real(aws_snap([alice], external_id_roles, wrong_external), tid), ALICE) == []
+    denied_roles = emr_roles()
+    denied_roles[1]["AssumeRolePolicyDocument"]["Statement"].append({
+        "Effect": "Deny", "Principal": "*", "Action": "sts:AssumeRole"})
+    assert edges(real(aws_snap([alice], denied_roles, active), tid), ALICE) == []
+    disabled = [col("emr_cluster", [emr_cluster()]), col("emr_security_configuration", [emr_security_config(False)])]
+    assert edges(real(aws_snap([alice], emr_roles(), disabled), tid), ALICE) == []
+    assert edges(real(aws_snap([alice], emr_roles(), [col("emr_cluster", [emr_cluster(False)]),
+                             col("emr_security_configuration", [emr_security_config(True)])]), tid), ALICE) == []
+    missing_config = real(aws_snap([alice], emr_roles(), [col("emr_cluster", [emr_cluster()])]),
+                          tid, include_unknown=True)
+    assert all(finding["status"] != "FAIL" for finding in missing_config["findings"])
     assert_unresolved(real(aws_snap([alice], emr_roles()), tid, include_unknown=True), ALICE)
 
 
@@ -366,11 +924,134 @@ def test_emr_on_eks_execution_roles_trust_the_cluster_oidc_provider():
                           "Condition": {"StringEquals": {f"oidc.eks.{REGION}.amazonaws.com/id/ABC:sub": "system:serviceaccount:a:b"}}}])
     alice = user("alice", allow("iam:PassRole", "emr-containers:StartJobRun", "emr-containers:GetManagedEndpointSessionCredentials"))
     ids = ("aws-emr-containers-passrole-startjobrun", "aws-emr-containers-getmanagedendpointsessioncredentials")
-    result = real(aws_snap([alice], [job, irsa]), *ids)
+    virtual_cluster = f"arn:aws:emr-containers:{REGION}:{ACCOUNT}:/virtualclusters/abc123"
+    endpoint = virtual_cluster + "/endpoints/def456"
+    inventory = [col("emr_container_virtual_cluster", [{"arn": virtual_cluster, "state": "RUNNING",
+                  "EksNamespace": "spark", "EksClusterName": "cluster-one"}]),
+                 col("emr_container_endpoint", [{"arn": endpoint, "state": "ACTIVE"}]),
+                 col("eks_cluster", [{"cluster": {"name": "cluster-one",
+                     "arn": f"arn:aws:eks:{REGION}:{ACCOUNT}:cluster/cluster-one",
+                     "status": "ACTIVE", "identity": {"oidc": {
+                         "issuer": f"https://oidc.eks.{REGION}.amazonaws.com/id/ABC"}}}}])]
+    result = real(aws_snap([alice], [job, irsa], inventory), *ids)
     for tid in ids:
         assert set(reached(result, ALICE, tid)) == {role_arn("emr-job")}
     no_pass = user("alice", allow("emr-containers:StartJobRun"))
-    assert edges(real(aws_snap([no_pass], [job]), *ids), ALICE) == []
+    assert edges(real(aws_snap([no_pass], [job], inventory), *ids), ALICE) == []
+    wrong_action = copy.deepcopy(job)
+    wrong_action["RoleName"] = "wrong-action"
+    wrong_action["Arn"] = role_arn("wrong-action")
+    wrong_action["AssumeRolePolicyDocument"]["Statement"][0]["Action"] = "sts:AssumeRole"
+    denied = copy.deepcopy(job)
+    denied["RoleName"] = "denied"
+    denied["Arn"] = role_arn("denied")
+    denied["AssumeRolePolicyDocument"]["Statement"].append(
+        {"Effect": "Deny", "Principal": "*", "Action": "sts:AssumeRoleWithWebIdentity"})
+    assert edges(real(aws_snap([alice], [wrong_action, denied], inventory), *ids), ALICE) == []
+    missing = real(aws_snap([alice], [job]), *ids, include_unknown=True)
+    assert {edge["confidence"] for edge in edges(missing, ALICE)} == {"unknown"}
+    assert all(finding["status"] != "FAIL" for finding in missing["findings"])
+    inactive = [col("emr_container_virtual_cluster", [{"arn": virtual_cluster, "state": "ARRESTED",
+                 "EksNamespace": "spark", "EksClusterName": "cluster-one"}]),
+                col("emr_container_endpoint", [{"arn": endpoint, "state": "TERMINATED"}])]
+    assert edges(real(aws_snap([alice], [job], inactive), *ids), ALICE) == []
+    wrong_scope = user("alice", allow("iam:PassRole"), allow("emr-containers:StartJobRun",
+                       resource=f"arn:aws:emr-containers:{REGION}:{ACCOUNT}:/virtualclusters/other"),
+                       allow("emr-containers:GetManagedEndpointSessionCredentials",
+                             resource=virtual_cluster + "/endpoints/other"))
+    assert edges(real(aws_snap([wrong_scope], [job], inventory), *ids), ALICE) == []
+    wrong_namespace = copy.deepcopy(inventory)
+    wrong_namespace[0][2][0]["EksNamespace"] = "other"
+    assert edges(real(aws_snap([alice], [job], wrong_namespace), *ids), ALICE) == []
+    wrong_issuer = copy.deepcopy(inventory)
+    wrong_issuer[2][2][0]["cluster"]["identity"]["oidc"]["issuer"] = "https://oidc.eks.us-east-1.amazonaws.com/id/OTHER"
+    assert edges(real(aws_snap([alice], [job], wrong_issuer), *ids), ALICE) == []
+    wrong_audience = copy.deepcopy(job)
+    wrong_audience["AssumeRolePolicyDocument"]["Statement"][0]["Condition"]["StringEquals"] = {
+        f"oidc.eks.{REGION}.amazonaws.com/id/ABC:aud": "not-sts.example"}
+    assert edges(real(aws_snap([alice], [wrong_audience], inventory), *ids), ALICE) == []
+    provider_deny = copy.deepcopy(job)
+    provider_deny["AssumeRolePolicyDocument"]["Statement"].append({
+        "Effect": "Deny", "Principal": {"Federated": oidc}, "Action": "sts:AssumeRoleWithWebIdentity"})
+    assert edges(real(aws_snap([alice], [provider_deny], inventory), *ids), ALICE) == []
+    exact_subject = copy.deepcopy(job)
+    exact_subject["AssumeRolePolicyDocument"]["Statement"][0]["Condition"] = {
+        "StringEquals": {f"oidc.eks.{REGION}.amazonaws.com/id/ABC:sub":
+            f"system:serviceaccount:spark:emr-containers-sa-spark-client-{ACCOUNT}-sample"}}
+    assert edges(real(aws_snap([alice], [exact_subject], inventory), *ids), ALICE) == []
+    exact_subject["AssumeRolePolicyDocument"]["Statement"][0]["Condition"]["StringEquals"][
+        f"oidc.eks.{REGION}.amazonaws.com/id/ABC:sub"] = (
+            f"system:serviceaccount:spark:emr-containers-sa-spark-client-{ACCOUNT}-7t3vvv3mh5u")
+    for tid in ids:
+        assert set(reached(real(aws_snap([alice], [exact_subject], inventory), tid), ALICE)) == {role_arn("emr-job")}
+    scoped = user("alice", allow("iam:PassRole", resource=role_arn("emr-job")),
+                  allow("emr-containers:StartJobRun", resource=virtual_cluster),
+                  allow("emr-containers:GetManagedEndpointSessionCredentials", resource=endpoint))
+    scoped_result = real(aws_snap([scoped], [job], inventory), *ids)
+    for tid in ids:
+        assert set(reached(scoped_result, ALICE, tid)) == {role_arn("emr-job")}
+    wrong_role_context = user("alice", allow("iam:PassRole", resource=role_arn("emr-job")),
+                              {"Effect": "Allow", "Action": "emr-containers:StartJobRun",
+                               "Resource": virtual_cluster,
+                               "Condition": {"StringEquals": {"emr-containers:ExecutionRoleArn": role_arn("other")}}})
+    assert edges(real(aws_snap([wrong_role_context], [job], inventory), ids[0]), ALICE) == []
+
+
+def test_eks_pod_identity_passrole_cluster_condition_is_not_rejected_as_wrong_service():
+    from peaso.privesc.effective_permissions.aws_conditions import Context, evaluate
+    condition = {"ArnLike": {"iam:AssociatedResourceArn":
+                 f"arn:aws:eks:{REGION}:{ACCOUNT}:cluster/*"}}
+    ctx = Context(action="iam:passrole", resource=role_arn("pod-job"),
+                  passed_to=("pods.eks.amazonaws.com",))
+    verdict, reason = evaluate(condition, ctx)
+    assert verdict is None and reason
+    wrong = {"ArnLike": {"iam:AssociatedResourceArn":
+             f"arn:aws:lambda:{REGION}:{ACCOUNT}:function:*"}}
+    assert evaluate(wrong, ctx)[0] is False
+
+
+def test_emr_on_eks_pod_identity_requires_matching_associations_and_exact_grants():
+    tid = "aws-emr-containers-passrole-startjobrun-pod-identity"
+    target = role("pod-job", [{"Effect": "Allow", "Principal": {"Service": "pods.eks.amazonaws.com"},
+                               "Action": ["sts:AssumeRole", "sts:TagSession"]}])
+    cluster_arn = f"arn:aws:eks:{REGION}:{ACCOUNT}:cluster/cluster-one"
+    vc_arn = f"arn:aws:emr-containers:{REGION}:{ACCOUNT}:/virtualclusters/abc123"
+    passrole = {"Effect": "Allow", "Action": "iam:PassRole", "Resource": role_arn("pod-job"),
+                "Condition": {"StringEquals": {"iam:PassedToService": "pods.eks.amazonaws.com"},
+                              "ArnLike": {"iam:AssociatedResourceArn": cluster_arn}}}
+    start = {"Effect": "Allow", "Action": "emr-containers:StartJobRun", "Resource": vc_arn,
+             "Condition": {"ArnEquals": {"emr-containers:ExecutionRoleArn": role_arn("pod-job")}}}
+    alice = user("alice", passrole, start)
+    associations = [{"clusterName": "cluster-one", "namespace": "spark", "roleArn": role_arn("pod-job"),
+                     "serviceAccount": f"emr-containers-sa-spark-{kind}-{ACCOUNT}-8nm5wgw14yq"}
+                    for kind in ("client", "driver", "executor")]
+    inventory = [col("emr_container_virtual_cluster", [{"arn": vc_arn, "state": "RUNNING",
+                  "EksNamespace": "spark", "EksClusterName": "cluster-one"}]),
+                 col("eks_cluster", [{"cluster": {"name": "cluster-one", "arn": cluster_arn,
+                     "status": "ACTIVE"}}]),
+                 col("eks_pod_identity_association", associations)]
+    assert set(reached(real(aws_snap([alice], [target], inventory), tid), ALICE)) == {role_arn("pod-job")}
+    missing_executor = copy.deepcopy(inventory)
+    missing_executor[2][2].pop()
+    assert edges(real(aws_snap([alice], [target], missing_executor), tid), ALICE) == []
+    wrong_suffix = copy.deepcopy(inventory)
+    for association in wrong_suffix[2][2]:
+        association["serviceAccount"] = association["serviceAccount"].replace("8nm5wgw14yq", "abc123")
+    assert edges(real(aws_snap([alice], [target], wrong_suffix), tid), ALICE) == []
+    wrong_namespace = copy.deepcopy(inventory)
+    wrong_namespace[0][2][0]["EksNamespace"] = "other"
+    assert edges(real(aws_snap([alice], [target], wrong_namespace), tid), ALICE) == []
+    wrong_service = user("alice", {**passrole, "Condition": {"StringEquals": {
+        "iam:PassedToService": "emr-containers.amazonaws.com"}}}, start)
+    assert edges(real(aws_snap([wrong_service], [target], inventory), tid), ALICE) == []
+    missing_tag_session = copy.deepcopy(target)
+    missing_tag_session["AssumeRolePolicyDocument"]["Statement"][0]["Action"] = "sts:AssumeRole"
+    assert edges(real(aws_snap([alice], [missing_tag_session], inventory), tid), ALICE) == []
+    wrong_start = user("alice", passrole, {**start, "Resource": vc_arn.replace("abc123", "other")})
+    assert edges(real(aws_snap([wrong_start], [target], inventory), tid), ALICE) == []
+    no_associations = inventory[:2]
+    missing = real(aws_snap([alice], [target], no_associations), tid, include_unknown=True)
+    assert all(finding["status"] != "FAIL" for finding in missing["findings"])
 
 
 # --------------------------------------------------------------------------- PCS / Service Catalog / PCA
@@ -436,3 +1117,770 @@ def test_lambda_dynamodb_stream_variant_needs_table_and_item_write():
     roles = [role("fn", "lambda.amazonaws.com"), role("ec2", "ec2.amazonaws.com")]
     assert set(reached(real(aws_snap([user("alice", allow(*base, "dynamodb:PutItem"))], roles), tid), ALICE)) == {role_arn("fn")}
     assert edges(real(aws_snap([user("alice", allow(*base))], roles), tid), ALICE) == []
+
+
+def test_lambda_new_function_url_requires_both_invoke_actions_on_one_function():
+    tid = "aws-lambda-passrole-createfunction-functionurl"
+    fn_a = f"arn:aws:lambda:{REGION}:{ACCOUNT}:function:alpha"
+    fn_b = f"arn:aws:lambda:{REGION}:{ACCOUNT}:function:beta"
+    base = (allow("iam:PassRole", resource=role_arn("fn")),
+            allow("lambda:CreateFunction", resource=fn_a),
+            allow("lambda:CreateFunctionUrlConfig", resource=fn_a),
+            allow("lambda:InvokeFunctionUrl", resource=fn_a))
+    via_url = {"Effect": "Allow", "Action": "lambda:InvokeFunction", "Resource": fn_a,
+               "Condition": {"Bool": {"lambda:InvokedViaFunctionUrl": "true"}}}
+    roles = [role("fn", "lambda.amazonaws.com")]
+    def snap(principal, functions=()):
+        return aws_snap([principal], roles, [col("lambda_function", functions, "empty" if not functions else "collected")])
+    permitted = user("alice", *base, via_url)
+    assert reached(real(snap(permitted), tid), ALICE) == {role_arn("fn"): "conditional"}
+    assert edges(real(snap(user("alice", *base)), tid), ALICE) == []
+    disjoint = user("alice", *base, allow("lambda:InvokeFunction", resource=fn_b))
+    assert edges(real(snap(disjoint), tid), ALICE) == []
+    wrong_auth = user("alice", *base[:-1], {"Effect": "Allow", "Action": "lambda:InvokeFunctionUrl",
+                   "Resource": fn_a, "Condition": {"StringEquals": {"lambda:FunctionUrlAuthType": "NONE"}}}, via_url)
+    assert edges(real(snap(wrong_auth), tid), ALICE) == []
+    wrong_create_auth = user("alice", base[0], base[1],
+                             {"Effect": "Allow", "Action": "lambda:CreateFunctionUrlConfig",
+                              "Resource": fn_a, "Condition": {"StringEquals": {"lambda:FunctionUrlAuthType": "NONE"}}},
+                             base[3], via_url)
+    assert edges(real(snap(wrong_create_auth), tid), ALICE) == []
+    assert edges(real(snap(permitted, ({"FunctionName": "alpha", "FunctionArn": fn_a},)), tid), ALICE) == []
+    associated = {"Effect": "Allow", "Action": "iam:PassRole", "Resource": role_arn("fn"),
+                  "Condition": {"ArnEquals": {"iam:AssociatedResourceArn": fn_b}}}
+    assert edges(real(snap(user("alice", associated, *base[1:], via_url)), tid), ALICE) == []
+    associated["Condition"]["ArnEquals"]["iam:AssociatedResourceArn"] = fn_a
+    assert reached(real(snap(user("alice", associated, *base[1:], via_url)), tid), ALICE) == {
+        role_arn("fn"): "conditional"}
+
+
+def test_lambda_eventbridge_trigger_joins_rule_region_and_passrole_function():
+    tid = "aws-lambda-passrole-createfunction-eventbridge-trigger"
+    function = f"arn:aws:lambda:{REGION}:{ACCOUNT}:function:alpha"
+    rule = f"arn:aws:events:{REGION}:{ACCOUNT}:rule/trigger"
+    other_rule = f"arn:aws:events:us-west-2:{ACCOUNT}:rule/trigger"
+    roles = [role("fn", "lambda.amazonaws.com")]
+    def snap(principal, rules=(), rule_status="empty"):
+        return aws_snap([principal], roles, [col("lambda_function", [], "empty"),
+                                           col("event_rule", rules, rule_status)])
+    def principal(rule_arn, associated=function, grant_principal=None):
+        add_permission = allow("lambda:AddPermission", resource=function)
+        if grant_principal:
+            add_permission["Condition"] = {"StringEquals": {"lambda:Principal": grant_principal}}
+        return user("alice",
+                    allow("iam:PassRole", resource=role_arn("fn")) |
+                    {"Condition": {"ArnEquals": {"iam:AssociatedResourceArn": associated}}},
+                    allow("lambda:CreateFunction", resource=function),
+                    add_permission,
+                    allow("events:PutRule", resource=rule_arn),
+                    allow("events:PutTargets", resource=rule_arn))
+    assert reached(real(snap(principal(rule)), tid), ALICE) == {role_arn("fn"): "conditional"}
+    wildcard_rule = f"arn:aws:events:*:{ACCOUNT}:rule/*"
+    assert reached(real(snap(principal(wildcard_rule)), tid), ALICE) == {
+        role_arn("fn"): "conditional"}
+    assert edges(real(snap(principal(other_rule)), tid), ALICE) == []
+    assert edges(real(snap(principal(rule, function.replace("alpha", "beta"))), tid), ALICE) == []
+    assert edges(real(snap(principal(rule, grant_principal="s3.amazonaws.com")), tid), ALICE) == []
+    assert reached(real(snap(principal(rule, grant_principal="events.amazonaws.com")), tid), ALICE) == {
+        role_arn("fn"): "conditional"}
+    assert edges(real(snap(principal(rule), [{"Arn": rule, "ManagedBy": "aws.events"}],
+                           "collected"), tid), ALICE) == []
+    assert edges(real(snap(principal(rule), [{"Arn": rule}], "collected"), tid), ALICE) == []
+    assert role_arn("fn") not in reached(real(aws_snap([principal(rule)], roles,
+                                                        [col("lambda_function", [], "empty")]), tid), ALICE)
+
+
+def test_lambda_new_function_routes_reject_disjoint_exact_function_names():
+    fn_a = f"arn:aws:lambda:{REGION}:{ACCOUNT}:function:alpha"
+    fn_b = f"arn:aws:lambda:{REGION}:{ACCOUNT}:function:beta"
+    roles = [role("fn", "lambda.amazonaws.com")]
+    def snap(principal, functions=()):
+        return aws_snap([principal], roles, [col("lambda_function", functions, "empty" if not functions else "collected")])
+    for tid, last_action in (
+            ("aws-lambda-passrole-createfunction-invokefunction", "lambda:InvokeFunction"),
+            ("aws-lambda-passrole-createfunction-addpermission", "lambda:AddPermission")):
+        base = (allow("iam:PassRole", resource=role_arn("fn")),
+                allow("lambda:CreateFunction", resource=fn_a))
+        possible = user("alice", *base, allow(last_action, resource=fn_a))
+        assert reached(real(snap(possible), tid), ALICE) == {role_arn("fn"): "conditional"}
+        assert role_arn("fn") not in reached(real(aws_snap([possible], roles), tid, include_unknown=True), ALICE)
+        impossible = user("alice", *base, allow(last_action, resource=fn_b))
+        assert edges(real(snap(impossible), tid), ALICE) == []
+        assert edges(real(snap(possible, ({"FunctionName": "alpha", "FunctionArn": fn_a},)), tid), ALICE) == []
+        wrong_association = user("alice", allow("iam:PassRole", resource=role_arn("fn")) |
+                                 {"Condition": {"ArnEquals": {"iam:AssociatedResourceArn": fn_b}}},
+                                 *base[1:], allow(last_action, resource=fn_a))
+        assert edges(real(snap(wrong_association), tid), ALICE) == []
+        right_association = user("alice", allow("iam:PassRole", resource=role_arn("fn")) |
+                                 {"Condition": {"ArnEquals": {"iam:AssociatedResourceArn": fn_a}}},
+                                 *base[1:], allow(last_action, resource=fn_a))
+        assert reached(real(snap(right_association), tid), ALICE) == {role_arn("fn"): "conditional"}
+        two_functions = user("alice", allow("iam:PassRole", resource=role_arn("fn")) |
+                             {"Condition": {"ArnEquals": {"iam:AssociatedResourceArn": fn_b}}},
+                             allow("lambda:CreateFunction", resource=[fn_a, fn_b]),
+                             allow(last_action, resource=[fn_a, fn_b]))
+        result = real(snap(two_functions), tid)
+        assert reached(result, ALICE) == {role_arn("fn"): "conditional"}
+        detail = next(d for e in edges(result, ALICE, tid) for d in e["technique_details"] if d["id"] == tid)
+        assert [ref["bound_resource"] for ref in detail["evidence_refs"]
+                if isinstance(ref, dict) and "bound_resource" in ref] == [fn_b]
+
+
+def test_lambda_addpermission_must_allow_grant_to_the_source_principal():
+    tid = "aws-lambda-passrole-createfunction-addpermission"
+    fn = f"arn:aws:lambda:{REGION}:{ACCOUNT}:function:alpha"
+    base = (allow("iam:PassRole", resource=role_arn("fn")),
+            allow("lambda:CreateFunction", resource=fn))
+    def scoped(principal):
+        return {"Effect": "Allow", "Action": "lambda:AddPermission", "Resource": fn,
+                "Condition": {"StringEquals": {"lambda:Principal": principal}}}
+    roles = [role("fn", "lambda.amazonaws.com")]
+    def snap(principal):
+        return aws_snap([principal], roles, [col("lambda_function", (), "empty")])
+    correct = user("alice", *base, scoped(ALICE))
+    assert reached(real(snap(correct), tid), ALICE) == {role_arn("fn"): "conditional"}
+    service_only = user("alice", *base, scoped("events.amazonaws.com"))
+    assert edges(real(snap(service_only), tid), ALICE) == []
+    explicit_deny = user("alice", *base, scoped(ALICE),
+                         {"Effect": "Deny", "Action": "lambda:InvokeFunction", "Resource": fn})
+    assert edges(real(snap(explicit_deny), tid), ALICE) == []
+    other_function_deny = user("alice", *base, scoped(ALICE),
+                               {"Effect": "Deny", "Action": "lambda:InvokeFunction",
+                                "Resource": fn.replace(":alpha", ":beta")})
+    assert reached(real(snap(other_function_deny), tid), ALICE) == {role_arn("fn"): "conditional"}
+    boundary_arn = f"arn:aws:iam::{ACCOUNT}:policy/limit"
+    bounded = user("alice", *base, scoped(ALICE))
+    bounded["PermissionsBoundary"] = {"PermissionsBoundaryArn": boundary_arn}
+    bounded_snap = snap(bounded)
+    boundary = {"Arn": boundary_arn, "PolicyName": "limit", "PolicyVersionList": [
+        {"IsDefaultVersion": True, "Document": policy(
+            allow("*"), {"Effect": "Deny", "Action": "lambda:InvokeFunction", "Resource": fn})}]}
+    next(c for c in bounded_snap["collections"] if c["type"] == "iam_policy")["items"] = [boundary]
+    assert edges(real(bounded_snap, tid), ALICE) == []
+    scp_snap = snap(correct)
+    scp = {"Id": "p-invoke-deny", "TargetId": ACCOUNT,
+           "Detail": {"Policy": {"Content": policy(
+               allow("*"), {"Effect": "Deny", "Action": "lambda:InvokeFunction", "Resource": fn})}}}
+    scp_collection = next(c for c in scp_snap["collections"] if c["type"] == "scp_policy")
+    scp_collection.update(status="collected", items=[scp])
+    assert edges(real(scp_snap, tid), ALICE) == []
+
+
+def test_athena_spark_route_needs_one_creatable_executable_workgroup():
+    tid = "aws-athena-passrole-createworkgroup-spark"
+    group_a = f"arn:aws:athena:{REGION}:{ACCOUNT}:workgroup/alpha"
+    group_b = f"arn:aws:athena:{REGION}:{ACCOUNT}:workgroup/beta"
+    roles = [role("spark", "athena.amazonaws.com")]
+    base = (allow("iam:PassRole", resource=role_arn("spark")),
+            allow("athena:CreateWorkGroup", resource=group_a),
+            allow("athena:StartSession", resource=group_a))
+    def snap(principal, groups=(), status="empty"):
+        return aws_snap([principal], roles, [col("athena_workgroup", groups, status)])
+    possible = user("alice", *base, allow("athena:StartCalculationExecution", resource=group_a))
+    assert reached(real(snap(possible), tid), ALICE) == {role_arn("spark"): "conditional"}
+    disjoint = user("alice", *base, allow("athena:StartCalculationExecution", resource=group_b))
+    assert edges(real(snap(disjoint), tid), ALICE) == []
+    assert edges(real(snap(possible, ({"Name": "alpha"},), "collected"), tid), ALICE) == []
+    assert reached(real(snap(possible, ({"Name": "beta"},), "collected"), tid), ALICE) == {
+        role_arn("spark"): "conditional"}
+    assert edges(real(snap(possible, status="denied"), tid), ALICE) == []
+    wildcard = user("alice", allow("iam:PassRole", resource=role_arn("spark")),
+                    allow("athena:CreateWorkGroup", "athena:StartSession",
+                          "athena:StartCalculationExecution",
+                          resource=f"arn:aws:athena:{REGION}:{ACCOUNT}:workgroup/team-*"))
+    occupied = ({"Name": "team-peasobound"},)
+    assert reached(real(snap(wildcard, occupied, "collected"), tid), ALICE) == {
+        role_arn("spark"): "conditional"}
+    invalid_region = user("alice", allow("iam:PassRole", resource=role_arn("spark")),
+                          allow("athena:CreateWorkGroup", "athena:StartSession",
+                                "athena:StartCalculationExecution",
+                                resource=f"arn:aws:athena:invalid:{ACCOUNT}:workgroup/alpha"))
+    assert edges(real(snap(invalid_region), tid), ALICE) == []
+    def passrole_for(workgroup):
+        return {"Effect": "Allow", "Action": "iam:PassRole", "Resource": role_arn("spark"),
+                "Condition": {"ArnEquals": {"iam:AssociatedResourceArn": workgroup},
+                              "StringEquals": {"iam:PassedToService": "athena.amazonaws.com"}}}
+    wrong_binding = user("alice", passrole_for(group_b), *base[1:],
+                         allow("athena:StartCalculationExecution", resource=group_a))
+    assert edges(real(snap(wrong_binding), tid), ALICE) == []
+    right_binding = user("alice", passrole_for(group_a), *base[1:],
+                         allow("athena:StartCalculationExecution", resource=group_a))
+    assert reached(real(snap(right_binding), tid), ALICE) == {role_arn("spark"): "conditional"}
+
+
+def test_grafana_api_key_admin_requires_supported_active_workspace():
+    tid = "aws-grafana-createworkspaceapikey-admin"
+    arn = f"arn:aws:grafana:{REGION}:{ACCOUNT}:/workspaces/g-0123456789"
+    principal = user("alice", allow("grafana:CreateWorkspaceApiKey", resource=arn))
+    def snap(version, status="ACTIVE"):
+        workspace = {"id": "g-0123456789", "Arn": arn, "status": status}
+        if version is not None:
+            workspace["grafanaVersion"] = version
+        return aws_snap([principal], extra=[col("grafana_workspace", [workspace])])
+    assert reached(real(snap("10.4"), tid), ALICE)
+    assert reached(real(snap("11.0"), tid), ALICE)
+    assert edges(real(snap("12.0"), tid), ALICE) == []
+    assert edges(real(snap("10.4", "DELETING"), tid), ALICE) == []
+    assert edges(real(snap(None), tid), ALICE) == []
+    assert_unresolved(real(snap(None), tid, include_unknown=True), ALICE)
+
+
+def test_grafana_service_account_admin_requires_version_nine_and_both_actions():
+    tid = "aws-grafana-serviceaccounttoken-admin"
+    arn = f"arn:aws:grafana:{REGION}:{ACCOUNT}:/workspaces/g-0123456789"
+    def snap(version, *actions):
+        workspace = {"id": "g-0123456789", "Arn": arn, "status": "ACTIVE",
+                     "grafanaVersion": version}
+        return aws_snap([user("alice", allow(*actions, resource=arn))],
+                        extra=[col("grafana_workspace", [workspace])])
+    actions = ("grafana:CreateWorkspaceServiceAccount",
+               "grafana:CreateWorkspaceServiceAccountToken")
+    assert reached(real(snap("9.5", *actions), tid), ALICE)
+    assert reached(real(snap("12.0", *actions), tid), ALICE)
+    assert edges(real(snap("8.4", *actions), tid), ALICE) == []
+    assert edges(real(snap("9.5", actions[0]), tid), ALICE) == []
+    assert edges(real(snap("9.5", actions[1]), tid), ALICE) == []
+
+
+def test_grafana_saml_admin_requires_active_workspace():
+    tid = "aws-grafana-updateworkspaceauthentication-saml-admin"
+    arn = f"arn:aws:grafana:{REGION}:{ACCOUNT}:/workspaces/g-0123456789"
+    def snap(status, action="grafana:UpdateWorkspaceAuthentication"):
+        row = {"id": "g-0123456789", "Arn": arn}
+        if status is not None:
+            row["status"] = status
+        return aws_snap([user("alice", allow(action, resource=arn))],
+                        extra=[col("grafana_workspace", [row])])
+    assert reached(real(snap("ACTIVE"), tid), ALICE)
+    assert edges(real(snap("DELETING"), tid), ALICE) == []
+    assert edges(real(snap("ACTIVE", "grafana:DescribeWorkspace"), tid), ALICE) == []
+    assert_unresolved(real(snap(None), tid, include_unknown=True), ALICE)
+
+
+def test_braket_passrole_service_condition_is_evaluated():
+    tid = "aws-braket-passrole-createjob"
+    def snap(service):
+        passrole = {"Effect": "Allow", "Action": "iam:PassRole",
+                    "Resource": role_arn("job"),
+                    "Condition": {"StringEquals": {"iam:PassedToService": service}}}
+        return aws_snap([user("alice", passrole, allow("braket:CreateJob"))],
+                        [role("job", "braket.amazonaws.com")])
+    assert edges(real(snap("lambda.amazonaws.com"), tid), ALICE) == []
+    assert reached(real(snap("braket.amazonaws.com"), tid), ALICE) == {
+        role_arn("job"): "conditional"}
+
+
+def test_agentcore_created_interpreter_needs_grants_covering_its_generated_id():
+    tid = "aws-bedrock-agentcore-createcodeinterpreter-passrole"
+    prefix = f"arn:aws:bedrock-agentcore:{REGION}:{ACCOUNT}:code-interpreter-custom/"
+    roles = [role("core", "bedrock-agentcore.amazonaws.com")]
+    base = (allow("iam:PassRole", resource=role_arn("core")),
+            allow("bedrock-agentcore:CreateCodeInterpreter"))
+    def candidate(start, invoke):
+        return user("alice", *base,
+                    allow("bedrock-agentcore:StartCodeInterpreterSession", resource=start),
+                    allow("bedrock-agentcore:InvokeCodeInterpreter", resource=invoke))
+    permitted = candidate(prefix + "alpha-*", prefix + "alpha-??????????")
+    assert edges(real(aws_snap([permitted], roles), tid), ALICE) == []
+    assert any(row.get("status") == "unresolved" for row in
+               real(aws_snap([permitted], roles), tid, include_unknown=True)["coverage"])
+    broad = candidate(prefix + "*", prefix + "*")
+    assert reached(real(aws_snap([broad], roles), tid), ALICE) == {role_arn("core"): "conditional"}
+    restricted_role = role("core", [{"Effect": "Allow", "Principal": {
+        "Service": "bedrock-agentcore.amazonaws.com"}, "Action": "sts:AssumeRole",
+        "Condition": {"ArnEquals": {"aws:SourceArn": prefix + "other-1234567890"}}}])
+    assert edges(real(aws_snap([broad], [restricted_role]), tid), ALICE) == []
+    exact = candidate(prefix + "alpha-1234567890", prefix + "alpha-1234567890")
+    assert edges(real(aws_snap([exact], roles), tid), ALICE) == []
+    disjoint = candidate(prefix + "alpha-*", prefix + "beta-*")
+    assert edges(real(aws_snap([disjoint], roles), tid), ALICE) == []
+
+
+def test_lambda_edge_requires_both_replication_permissions_in_us_east_1():
+    tid = "aws-cloudfront-lambda-edge-passrole"
+    edge_role = role("edge", [{"Effect": "Allow", "Principal": {"Service": [
+        "lambda.amazonaws.com", "edgelambda.amazonaws.com"]}, "Action": "sts:AssumeRole"}])
+    actions = ("lambda:CreateFunction", "lambda:PublishVersion", "lambda:GetFunction",
+               "lambda:EnableReplication", "lambda:DisableReplication", "cloudfront:UpdateDistribution",
+               "iam:CreateServiceLinkedRole")
+    distribution = {"ARN": f"arn:aws:cloudfront::{ACCOUNT}:distribution/DIST1",
+                    "Id": "DIST1", "Status": "Deployed"}
+    def snap(principal, distributions=(distribution,), functions=()):
+        return aws_snap([principal], [edge_role],
+                        [col("cloudfront_distribution", distributions, scope=f"{ACCOUNT}/global"),
+                         col("lambda_function", functions, scope=f"{ACCOUNT}/us-east-1")])
+    permitted = user("alice", allow("iam:PassRole", resource=role_arn("edge")), allow(*actions))
+    assert reached(real(snap(permitted), tid), ALICE) == {role_arn("edge"): "conditional"}
+    assert edges(real(snap(permitted, ()), tid), ALICE) == []
+    no_slr = user("alice", allow("iam:PassRole", resource=role_arn("edge")),
+                  allow(*(action for action in actions if action != "iam:CreateServiceLinkedRole")))
+    assert edges(real(snap(no_slr), tid), ALICE) == []
+    no_disable = user("alice", allow("iam:PassRole", resource=role_arn("edge")),
+                      allow(*(action for action in actions if action != "lambda:DisableReplication")))
+    assert edges(real(snap(no_disable), tid), ALICE) == []
+    ohio = f"arn:aws:lambda:us-east-2:{ACCOUNT}:function:demo"
+    wrong_region = user("alice", allow("iam:PassRole", resource=role_arn("edge")),
+                        allow("lambda:CreateFunction", resource=ohio),
+                        allow(*(action for action in actions if action != "lambda:CreateFunction")))
+    assert edges(real(snap(wrong_region), tid), ALICE) == []
+    alpha = f"arn:aws:lambda:us-east-1:{ACCOUNT}:function:alpha"
+    beta = f"arn:aws:lambda:us-east-1:{ACCOUNT}:function:beta"
+    disjoint = user("alice", allow("iam:PassRole", resource=role_arn("edge")),
+                    allow("lambda:CreateFunction", resource=alpha),
+                    allow("lambda:PublishVersion", resource=beta),
+                    allow(*(action for action in actions if action not in (
+                        "lambda:CreateFunction", "lambda:PublishVersion"))))
+    assert edges(real(snap(disjoint), tid), ALICE) == []
+    exact = user("alice", allow("iam:PassRole", resource=role_arn("edge")),
+                 allow("lambda:CreateFunction", resource=alpha),
+                 allow("lambda:PublishVersion", resource=alpha),
+                 allow("lambda:GetFunction", "lambda:EnableReplication", "lambda:DisableReplication",
+                       resource=alpha + ":1"),
+                 allow("cloudfront:UpdateDistribution", "iam:CreateServiceLinkedRole"))
+    assert reached(real(snap(exact), tid), ALICE) == {role_arn("edge"): "conditional"}
+    assert edges(real(snap(exact, functions=({"FunctionName": "alpha", "FunctionArn": alpha},)), tid), ALICE) == []
+
+
+def test_codebuild_startbuild_requires_permission_for_a_buildspec_override():
+    tid = "aws-codebuild-startbuild-attached-role"
+    project = f"arn:aws:codebuild:{REGION}:{ACCOUNT}:project/demo"
+    item = {"name": "demo", "Configuration": {"collection_status": "collected", "projects": [
+        {"name": "demo", "arn": project, "serviceRole": role_arn("builder")}]}}
+    def snap(principal, service="codebuild.amazonaws.com"):
+        return aws_snap([principal], [role("builder", service)],
+                        [col("codebuild_project", [item])])
+    allowed = user("alice", allow("codebuild:StartBuild", resource=project))
+    assert reached(real(snap(allowed), tid), ALICE) == {role_arn("builder"): "conditional"}
+    assert edges(real(snap(allowed, service="lambda.amazonaws.com"), tid), ALICE) == []
+    mismatched = snap(allowed)
+    mismatched["collections"][-1]["items"][0]["Configuration"]["projects"][0]["arn"] = project.replace(REGION, "us-west-2")
+    assert edges(real(mismatched, tid), ALICE) == []
+    item["Configuration"]["projects"][0]["arn"] = project
+    no_override = user("alice", {"Effect": "Allow", "Action": "codebuild:StartBuild", "Resource": project,
+                                 "Condition": {"Null": {"codebuild:source.buildspec": "true"}}})
+    assert edges(real(snap(no_override), tid), ALICE) == []
+    batch_only = user("alice", allow("codebuild:StartBuildBatch", resource=project))
+    assert edges(real(snap(batch_only), tid), ALICE) == []
+    batch_item = {"name": "demo", "Configuration": {"collection_status": "collected", "projects": [
+        {"name": "demo", "arn": project, "serviceRole": role_arn("builder"),
+         "buildBatchConfig": {"serviceRole": role_arn("batch")}}]}}
+    batch_snap = aws_snap([batch_only], [role("builder", "codebuild.amazonaws.com"),
+                                         role("batch", "codebuild.amazonaws.com",
+                                              allow("codebuild:StartBuild", resource=project))],
+                          [col("codebuild_project", [batch_item])])
+    assert reached(real(batch_snap, tid), ALICE) == {role_arn("builder"): "conditional"}
+    missing_child_permission = aws_snap([batch_only], [role("builder", "codebuild.amazonaws.com"),
+                                                     role("batch", "codebuild.amazonaws.com")],
+                                        [col("codebuild_project", [batch_item])])
+    assert edges(real(missing_child_permission, tid), ALICE) == []
+
+
+def test_codebuild_existing_sandbox_routes_need_an_exact_running_sandbox():
+    project = f"arn:aws:codebuild:{REGION}:{ACCOUNT}:project/demo"
+    sandbox = f"arn:aws:codebuild:{REGION}:{ACCOUNT}:sandbox/demo:" + "a" * 36
+    project_item = {"name": "demo", "Configuration": {"collection_status": "collected", "projects": [
+        {"name": "demo", "arn": project, "serviceRole": role_arn("builder")}]}}
+    running = {"id": "demo:" + "a" * 36, "Detail": {"collection_status": "collected",
+               "arn": sandbox, "projectName": "demo", "status": "RUN_SANDBOX",
+               "serviceRole": role_arn("builder")}}
+    def snap(principal, sandboxes=None, with_project=True):
+        extra = [col("codebuild_project", [project_item])] if with_project else []
+        if sandboxes is not None:
+            extra.append(col("codebuild_sandbox", sandboxes))
+        return aws_snap([principal], [role("builder", "codebuild.amazonaws.com")], extra)
+    for tid, action in (("aws-codebuild-startcommandexecution", "codebuild:StartCommandExecution"),
+                        ("aws-codebuild-startsandboxconnection", "codebuild:StartSandboxConnection")):
+        permitted = user("alice", allow(action, resource=sandbox))
+        assert reached(real(snap(permitted, [running]), tid), ALICE) == {role_arn("builder"): "conditional"}
+        assert reached(real(snap(permitted, [running], with_project=False), tid), ALICE) == {
+            role_arn("builder"): "conditional"}
+        assert edges(real(snap(permitted, []), tid), ALICE) == []
+        assert edges(real(snap(permitted, [dict(running, Detail={**running["Detail"],
+                           "status": "STOPPED"})]), tid), ALICE) == []
+        assert edges(real(snap(permitted, [dict(running, Detail={**running["Detail"],
+                           "serviceRole": role_arn("other")})]), tid), ALICE) == []
+        assert_unresolved(real(snap(permitted), tid, include_unknown=True), ALICE, tid)
+
+
+def test_codebuild_sandbox_detail_keeps_only_role_and_running_state():
+    from peaso.collectors.aws_codebuild_redaction import project_batch_get_sandboxes
+    from peaso.collectors.aws_b_services import _codebuild_sandboxes
+
+    sandbox_id = "demo:" + "a" * 36
+    sandbox_arn = f"arn:aws:codebuild:{REGION}:{ACCOUNT}:sandbox/{sandbox_id}"
+    raw = {"sandboxes": [{"id": sandbox_id, "arn": sandbox_arn, "projectName": "demo",
+                          "status": "RUN_SANDBOX", "serviceRole": role_arn("builder"),
+                          "environment": {"environmentVariables": [{"value": "sensitive"}]},
+                          "source": {"buildspec": "sensitive"}}], "sandboxesNotFound": []}
+    projected = project_batch_get_sandboxes(raw)
+    assert "sensitive" not in repr(projected)
+    class Requests:
+        def detail(self, session, service, region, operation, **kwargs):
+            assert (service, region, operation, kwargs) == (
+                "codebuild", REGION, "batch_get_sandboxes", {"ids": [sandbox_id]})
+            return {**projected, "collection_status": "collected"}
+    rows = _codebuild_sandboxes(Requests(), None, REGION, [{"id": sandbox_id}])
+    assert rows[0]["Detail"] == {**projected["sandboxes"][0], "collection_status": "collected"}
+
+
+def test_codebuild_start_new_sandbox_needs_project_and_future_sandbox_permissions():
+    tid = "aws-codebuild-startsandbox-exec"
+    project = f"arn:aws:codebuild:{REGION}:{ACCOUNT}:project/demo"
+    sandbox = f"arn:aws:codebuild:{REGION}:{ACCOUNT}:sandbox/demo:*"
+    item = {"name": "demo", "Configuration": {"collection_status": "collected", "projects": [
+        {"name": "demo", "arn": project, "serviceRole": role_arn("builder")}]}}
+    def snap(principal, service="codebuild.amazonaws.com"):
+        return aws_snap([principal], [role("builder", service)],
+                        [col("codebuild_project", [item])])
+    permitted = user("alice", allow("codebuild:StartSandbox", resource=project),
+                     allow("codebuild:StartCommandExecution", resource=sandbox))
+    assert reached(real(snap(permitted), tid), ALICE) == {role_arn("builder"): "conditional"}
+    assert edges(real(snap(permitted, service="lambda.amazonaws.com"), tid), ALICE) == []
+    disjoint = user("alice", allow("codebuild:StartSandbox", resource=project),
+                    allow("codebuild:StartCommandExecution", resource=sandbox.replace("demo", "other")))
+    assert edges(real(snap(disjoint), tid), ALICE) == []
+    no_start = user("alice", allow("codebuild:StartCommandExecution", resource=sandbox))
+    assert edges(real(snap(no_start), tid), ALICE) == []
+
+
+def test_codebuild_updateproject_requires_permission_to_change_the_buildspec():
+    tid = "aws-codebuild-updateproject-attached-role"
+    project = f"arn:aws:codebuild:{REGION}:{ACCOUNT}:project/demo"
+    item = {"name": "demo", "Configuration": {"collection_status": "collected", "projects": [
+        {"name": "demo", "arn": project, "serviceRole": role_arn("builder")}]}}
+    def snap(principal, service="codebuild.amazonaws.com"):
+        return aws_snap([principal], [role("builder", service)],
+                        [col("codebuild_project", [item])])
+    allowed = user("alice", allow("codebuild:UpdateProject", resource=project),
+                   allow("codebuild:StartBuild", resource=project))
+    assert reached(real(snap(allowed), tid), ALICE) == {role_arn("builder"): "conditional"}
+    assert edges(real(snap(allowed, service="lambda.amazonaws.com"), tid), ALICE) == []
+    mismatched = snap(allowed)
+    mismatched["collections"][-1]["items"][0]["Configuration"]["projects"][0]["arn"] = project.replace(REGION, "us-west-2")
+    assert edges(real(mismatched, tid), ALICE) == []
+    item["Configuration"]["projects"][0]["arn"] = project
+    no_change = user("alice", {"Effect": "Allow", "Action": "codebuild:UpdateProject", "Resource": project,
+                               "Condition": {"Null": {"codebuild:source.buildspec": "true"}}},
+                     allow("codebuild:StartBuild", resource=project))
+    assert edges(real(snap(no_change), tid), ALICE) == []
+    no_start = user("alice", allow("codebuild:UpdateProject", resource=project),
+                    {"Effect": "Allow", "Action": "codebuild:StartBuild", "Resource": project,
+                     "Condition": {"Null": {"codebuild:source.buildspec": "false"}}})
+    assert edges(real(snap(no_start), tid), ALICE) == []
+    batch_only = user("alice", allow("codebuild:UpdateProject", resource=project),
+                      allow("codebuild:StartBuildBatch", resource=project))
+    assert edges(real(snap(batch_only), tid), ALICE) == []
+    batch_item = {"name": "demo", "Configuration": {"collection_status": "collected", "projects": [
+        {"name": "demo", "arn": project, "serviceRole": role_arn("builder"),
+         "buildBatchConfig": {"serviceRole": role_arn("batch")}}]}}
+    def batch_snap(batch_role):
+        return aws_snap([batch_only], [role("builder", "codebuild.amazonaws.com"), batch_role],
+                        [col("codebuild_project", [batch_item])])
+    assert reached(real(batch_snap(role("batch", "codebuild.amazonaws.com",
+                                        allow("codebuild:StartBuild", resource=project))), tid), ALICE) == {
+                                            role_arn("builder"): "conditional"}
+    assert edges(real(batch_snap(role("batch", "codebuild.amazonaws.com")), tid), ALICE) == []
+    role_bound_update = {"Effect": "Allow", "Action": "codebuild:UpdateProject", "Resource": project,
+                         "Condition": {"StringEquals": {"codebuild:serviceRole": role_arn("builder")}}}
+    with_passrole = user("alice", role_bound_update, allow("iam:PassRole", resource=role_arn("builder")),
+                         allow("codebuild:StartBuild", resource=project))
+    assert reached(real(snap(with_passrole), tid), ALICE) == {role_arn("builder"): "conditional"}
+    without_passrole = user("alice", role_bound_update, allow("codebuild:StartBuild", resource=project))
+    assert edges(real(snap(without_passrole), tid), ALICE) == []
+
+
+def test_codepipeline_updateproject_uses_one_configured_pipeline_and_project():
+    tid = "aws-codepipeline-updatepipeline-codebuild-updateproject"
+    pipeline_arn = f"arn:aws:codepipeline:{REGION}:{ACCOUNT}:pipe"
+    project_arn = f"arn:aws:codebuild:{REGION}:{ACCOUNT}:project/demo"
+    builder = role_arn("builder")
+    pipeline_role = role_arn("pipeline")
+    def snap(principal, *, artifact="src-out", override=None, action_role=None,
+             pipeline_start=True, pipeline_passrole=False, buildspec_override=False,
+             batch_enabled=False, batch_role_can_start=True):
+        build_action = {"name": "build", "owner": "AWS", "category": "Build", "provider": "CodeBuild",
+                        "region": REGION, "runOrder": 1,
+                        "BuildspecOverridePresent": buildspec_override,
+                        "configuration": {"ProjectName": "demo", "ServiceRoleArnOverride": override,
+                                          "BatchEnabled": "true" if batch_enabled else "false"},
+                        "inputArtifacts": [{"name": artifact}]}
+        if action_role:
+            build_action["roleArn"] = action_role
+        pipeline = {"name": "pipe", "ActionMetadata": {"collection_status": "collected", "pipeline": {
+            "name": "pipe", "roleArn": pipeline_role, "stages": [
+                {"name": "Source", "actions": [{"name": "source", "category": "Source", "provider": "S3",
+                    "region": REGION, "runOrder": 1, "outputArtifacts": [{"name": "src-out"}]}]},
+                {"name": "Build", "actions": [build_action]}]}}}
+        project = {"name": "demo", "Configuration": {"collection_status": "collected", "projects": [
+            {"name": "demo", "arn": project_arn, "serviceRole": builder,
+             "source": {"type": "CODEPIPELINE"},
+             **({"buildBatchConfig": {"serviceRole": role_arn("batch")}} if batch_enabled else {})}]}}
+        pipeline_permissions = [allow("codebuild:StartBuildBatch" if batch_enabled else "codebuild:StartBuild",
+                                      resource=project_arn)] if pipeline_start else []
+        if pipeline_passrole:
+            pipeline_permissions.append(allow("iam:PassRole", resource=override))
+        roles = [role("builder", "codebuild.amazonaws.com"),
+                 role("pipeline", "codepipeline.amazonaws.com", *pipeline_permissions)]
+        if override:
+            roles.append(role("override", "codebuild.amazonaws.com"))
+        if batch_enabled:
+            roles.append(role("batch", "codebuild.amazonaws.com",
+                              *( [allow("codebuild:StartBuild", resource=project_arn)] if batch_role_can_start else [])))
+        if action_role:
+            roles[1]["RolePolicyList"][0]["PolicyDocument"]["Statement"].append(
+                allow("sts:AssumeRole", resource=action_role))
+            roles.append(role("action", [{"Effect": "Allow", "Principal": {"AWS": pipeline_role},
+                                          "Action": "sts:AssumeRole"}],
+                              allow("codebuild:StartBuild", resource=project_arn)))
+        return aws_snap([principal], roles, [col("codepipeline_pipeline", [pipeline]),
+                                               col("codebuild_project", [project])])
+    allowed = user("alice", allow("codebuild:UpdateProject", resource=project_arn),
+                   allow("codepipeline:StartPipelineExecution", resource=pipeline_arn))
+    assert_unresolved(real(snap(allowed), tid, include_unknown=True), ALICE, tid)
+    wrong_pipeline = user("alice", allow("codebuild:UpdateProject", resource=project_arn),
+                          allow("codepipeline:StartPipelineExecution", resource=pipeline_arn + "-other"))
+    assert edges(real(snap(wrong_pipeline), tid), ALICE) == []
+    wrong_project = user("alice", allow("codebuild:UpdateProject", resource=project_arn + "-other"),
+                         allow("codepipeline:StartPipelineExecution", resource=pipeline_arn))
+    assert edges(real(snap(wrong_project), tid), ALICE) == []
+    assert edges(real(snap(allowed, artifact="unrelated"), tid), ALICE) == []
+    assert edges(real(snap(allowed, pipeline_start=False), tid), ALICE) == []
+    assert edges(real(snap(allowed, buildspec_override=True), tid), ALICE) == []
+    assert_unresolved(real(snap(allowed, action_role=role_arn("action")), tid, include_unknown=True), ALICE, tid)
+    override = role_arn("override")
+    assert edges(real(snap(allowed, override=override), tid), ALICE) == []
+    assert_unresolved(real(snap(allowed, override=override, pipeline_passrole=True),
+                           tid, include_unknown=True), ALICE, tid)
+    assert_unresolved(real(snap(allowed, batch_enabled=True), tid, include_unknown=True), ALICE, tid)
+    assert edges(real(snap(allowed, batch_enabled=True, batch_role_can_start=False), tid), ALICE) == []
+    incomplete = snap(allowed)
+    incomplete["collections"][-2]["items"][0]["ActionMetadata"]["pipeline"]["roleArn"] = [pipeline_role]
+    assert_unresolved(real(incomplete, tid, include_unknown=True), ALICE, tid)
+
+
+def test_codepipeline_new_s3_project_requires_names_roles_and_versioned_bucket():
+    tid = "aws-codepipeline-passrole-createpipeline-codebuild"
+    seed = hashlib.sha256(ALICE.encode()).hexdigest()[:10]
+    pipeline_name, project_name = "PeasoPipe" + seed, "PeasoBuild" + seed
+    pipeline_arn = f"arn:aws:codepipeline:{REGION}:{ACCOUNT}:{pipeline_name}"
+    project_arn = f"arn:aws:codebuild:{REGION}:{ACCOUNT}:project/{project_name}"
+    bucket_arn = "arn:aws:s3:::pipeline-source"
+    target_arn, pipeline_role_arn = role_arn("builder"), role_arn("pipeline")
+    def snap(principal, *, versioning="Enabled", pipeline_can_start=True):
+        bucket = {"Name": "pipeline-source", "Location": {"collection_status": "collected",
+                  "LocationConstraint": REGION}, "Versioning": {"collection_status": "collected",
+                  "Status": versioning}, "Encryption": {"collection_status": "absent"}}
+        pipeline_permissions = [allow("codebuild:StartBuild", resource=project_arn)] if pipeline_can_start else []
+        pipeline_permissions.extend((allow("s3:GetObject", "s3:GetObjectVersion", "s3:PutObject",
+                                           resource=bucket_arn + "/*"),
+                                     allow("s3:GetBucketVersioning", "s3:GetBucketLocation", "s3:GetBucketAcl",
+                                           resource=bucket_arn)))
+        roles = [role("builder", "codebuild.amazonaws.com",
+                      allow("s3:GetObject", "s3:GetObjectVersion", resource=bucket_arn + "/*")),
+                 role("pipeline", "codepipeline.amazonaws.com", *pipeline_permissions)]
+        return aws_snap([principal], roles, [col("codepipeline_pipeline", []),
+                                            col("codebuild_project", []), col("bucket", [bucket])])
+    granted = user("alice", allow("iam:PassRole", resource=[target_arn, pipeline_role_arn]),
+                   allow("codepipeline:CreatePipeline", resource=pipeline_arn),
+                   allow("codepipeline:StartPipelineExecution", resource=pipeline_arn),
+                   allow("codebuild:CreateProject", resource=project_arn),
+                   allow("s3:PutObject", resource=bucket_arn + "/*"))
+    assert reached(real(snap(granted), tid), ALICE) == {target_arn: "conditional"}
+    assert edges(real(snap(granted, versioning="Suspended"), tid), ALICE) == []
+    assert edges(real(snap(granted, pipeline_can_start=False), tid), ALICE) == []
+    disjoint = user("alice", allow("iam:PassRole", resource=[target_arn, pipeline_role_arn]),
+                    allow("codepipeline:CreatePipeline", resource=pipeline_arn),
+                    allow("codepipeline:StartPipelineExecution", resource=pipeline_arn + "-other"),
+                    allow("codebuild:CreateProject", resource=project_arn),
+                    allow("s3:PutObject", resource=bucket_arn + "/*"))
+    assert edges(real(snap(disjoint), tid), ALICE) == []
+    no_pipeline_pass = user("alice", allow("iam:PassRole", resource=target_arn),
+                            allow("codepipeline:CreatePipeline", resource=pipeline_arn),
+                            allow("codepipeline:StartPipelineExecution", resource=pipeline_arn),
+                            allow("codebuild:CreateProject", resource=project_arn),
+                            allow("s3:PutObject", resource=bucket_arn + "/*"))
+    assert edges(real(snap(no_pipeline_pass), tid), ALICE) == []
+    no_target_pass = user("alice", allow("iam:PassRole", resource=pipeline_role_arn),
+                          allow("codepipeline:CreatePipeline", resource=pipeline_arn),
+                          allow("codepipeline:StartPipelineExecution", resource=pipeline_arn),
+                          allow("codebuild:CreateProject", resource=project_arn),
+                          allow("s3:PutObject", resource=bucket_arn + "/*"))
+    assert edges(real(snap(no_target_pass), tid), ALICE) == []
+    kms_bucket = snap(granted)
+    kms_bucket["collections"][-1]["items"][0]["Encryption"] = {
+        "collection_status": "collected", "ServerSideEncryptionConfiguration": {"Rules": [
+            {"ApplyServerSideEncryptionByDefault": {"SSEAlgorithm": "aws:kms"}}]}}
+    assert_unresolved(real(kms_bucket, tid, include_unknown=True), ALICE, tid)
+
+
+def test_codepipeline_new_codecommit_project_uses_pushable_branch_and_artifact_bucket():
+    tid = "aws-codepipeline-passrole-createpipeline-codebuild-codecommit"
+    seed = hashlib.sha256(ALICE.encode()).hexdigest()[:10]
+    pipeline_name, project_name = "PeasoPipe" + seed, "PeasoBuild" + seed
+    pipeline_arn = f"arn:aws:codepipeline:{REGION}:{ACCOUNT}:{pipeline_name}"
+    project_arn = f"arn:aws:codebuild:{REGION}:{ACCOUNT}:project/{project_name}"
+    repository_arn = f"arn:aws:codecommit:{REGION}:{ACCOUNT}:repo"
+    bucket_arn = "arn:aws:s3:::pipeline-artifacts"
+    target_arn, pipeline_role_arn = role_arn("builder"), role_arn("pipeline")
+    codecommit_reads = ("codecommit:GetRepository", "codecommit:GetBranch", "codecommit:GetCommit",
+                        "codecommit:UploadArchive", "codecommit:GetUploadArchiveStatus",
+                        "codecommit:CancelUploadArchive")
+    def snap(principal, *, can_read_repository=True, versioning="Suspended", recorded_branch=None):
+        bucket = {"Name": "pipeline-artifacts", "Location": {"collection_status": "collected",
+                  "LocationConstraint": REGION}, "Versioning": {"collection_status": "collected",
+                  "Status": versioning}, "Encryption": {"collection_status": "absent"}}
+        pipeline_statements = [allow("codebuild:StartBuild", resource=project_arn),
+                               allow("s3:GetObject", "s3:GetObjectVersion", "s3:PutObject",
+                                     resource=bucket_arn + "/*"),
+                               allow("s3:GetBucketVersioning", "s3:GetBucketLocation", "s3:GetBucketAcl",
+                                     resource=bucket_arn)]
+        if can_read_repository:
+            pipeline_statements.append(allow(*codecommit_reads, resource=repository_arn))
+        repository = {"repositoryName": "repo"}
+        if recorded_branch:
+            repository["ContentSecretIndicators"] = {"collection_status": "collected",
+                "identity": repository_arn, "branch": recorded_branch, "commit": "a" * 40}
+        return aws_snap([principal], [
+            role("builder", "codebuild.amazonaws.com",
+                 allow("s3:GetObject", "s3:GetObjectVersion", resource=bucket_arn + "/*")),
+            role("pipeline", "codepipeline.amazonaws.com", *pipeline_statements)], [
+                col("codepipeline_pipeline", []), col("codebuild_project", []),
+                col("bucket", [bucket]), col("codecommit_repository", [repository])])
+    push_main = {"Effect": "Allow", "Action": "codecommit:GitPush", "Resource": repository_arn,
+                 "Condition": {"StringEquals": {"codecommit:References": "refs/heads/main"}}}
+    granted = user("alice", allow("iam:PassRole", resource=[target_arn, pipeline_role_arn]),
+                   allow("codepipeline:CreatePipeline", resource=pipeline_arn),
+                   allow("codepipeline:StartPipelineExecution", resource=pipeline_arn),
+                   allow("codebuild:CreateProject", resource=project_arn), push_main)
+    assert reached(real(snap(granted), tid), ALICE) == {target_arn: "conditional"}
+    assert reached(real(snap(granted, versioning="Disabled"), tid), ALICE) == {target_arn: "conditional"}
+    assert edges(real(snap(granted, can_read_repository=False), tid), ALICE) == []
+    no_push = user("alice", allow("iam:PassRole", resource=[target_arn, pipeline_role_arn]),
+                   allow("codepipeline:CreatePipeline", resource=pipeline_arn),
+                   allow("codepipeline:StartPipelineExecution", resource=pipeline_arn),
+                   allow("codebuild:CreateProject", resource=project_arn))
+    assert_unresolved(real(snap(no_push), tid, include_unknown=True), ALICE, tid)
+    assert reached(real(snap(no_push, recorded_branch="main"), tid), ALICE) == {target_arn: "conditional"}
+
+
+def test_codepipeline_new_ecr_project_uses_existing_tagged_image():
+    tid = "aws-codepipeline-passrole-createpipeline-codebuild-ecr"
+    seed = hashlib.sha256(ALICE.encode()).hexdigest()[:10]
+    pipeline_name, project_name = "PeasoPipe" + seed, "PeasoBuild" + seed
+    pipeline_arn = f"arn:aws:codepipeline:{REGION}:{ACCOUNT}:{pipeline_name}"
+    project_arn = f"arn:aws:codebuild:{REGION}:{ACCOUNT}:project/{project_name}"
+    repository_arn = f"arn:aws:ecr:{REGION}:{ACCOUNT}:repository/application"
+    bucket_arn = "arn:aws:s3:::pipeline-artifacts"
+    target_arn, pipeline_role_arn = role_arn("builder"), role_arn("pipeline")
+    def snap(*, tags=("release",), can_describe=True, images_status="collected", digest=None):
+        bucket = {"Name": "pipeline-artifacts", "Location": {"collection_status": "collected",
+                  "LocationConstraint": REGION}, "Encryption": {"collection_status": "absent"}}
+        images = {"collection_status": images_status, "items": [{"imageDigest": digest or "sha256:" + "a" * 64,
+                  "imageTags": list(tags)}]}
+        pipeline_statements = [allow("codebuild:StartBuild", resource=project_arn),
+                               allow("s3:GetObject", "s3:GetObjectVersion", "s3:PutObject",
+                                     resource=bucket_arn + "/*"),
+                               allow("s3:GetBucketVersioning", "s3:GetBucketLocation", "s3:GetBucketAcl",
+                                     resource=bucket_arn)]
+        if can_describe:
+            pipeline_statements.append(allow("ecr:DescribeImages", resource=repository_arn))
+        principal = user("alice", allow("iam:PassRole", resource=[target_arn, pipeline_role_arn]),
+                         allow("codepipeline:CreatePipeline", resource=pipeline_arn),
+                         allow("codepipeline:StartPipelineExecution", resource=pipeline_arn),
+                         allow("codebuild:CreateProject", resource=project_arn))
+        return aws_snap([principal], [
+            role("builder", "codebuild.amazonaws.com",
+                 allow("s3:GetObject", "s3:GetObjectVersion", resource=bucket_arn + "/*")),
+            role("pipeline", "codepipeline.amazonaws.com", *pipeline_statements)], [
+                col("codepipeline_pipeline", []), col("codebuild_project", []),
+                col("bucket", [bucket]), col("ecr_repository", [{"repositoryArn": repository_arn,
+                    "repositoryName": "application", "Images": images}])])
+    assert reached(real(snap(), tid), ALICE) == {target_arn: "conditional"}
+    assert edges(real(snap(tags=()), tid), ALICE) == []
+    assert edges(real(snap(can_describe=False), tid), ALICE) == []
+    assert_unresolved(real(snap(images_status="denied"), tid, include_unknown=True), ALICE, tid)
+    assert_unresolved(real(snap(digest="malformed"), tid, include_unknown=True), ALICE, tid)
+
+
+def test_codebuild_createproject_needs_create_and_start_on_one_new_project():
+    tid = "aws-codebuild-passrole-createproject"
+    a = f"arn:aws:codebuild:{REGION}:{ACCOUNT}:project/alpha"
+    b = f"arn:aws:codebuild:{REGION}:{ACCOUNT}:project/beta"
+    roles = [role("builder", "codebuild.amazonaws.com")]
+    def snap(principal, projects=()):
+        return aws_snap([principal], roles, [col("codebuild_project", projects)])
+    base = (allow("iam:PassRole", resource=role_arn("builder")),
+            allow("codebuild:CreateProject", resource=a))
+    possible = user("alice", *base, allow("codebuild:StartBuild", resource=a))
+    assert reached(real(snap(possible), tid), ALICE) == {role_arn("builder"): "conditional"}
+    assert_unresolved(real(aws_snap([possible], roles), tid, include_unknown=True), ALICE, tid)
+    assert edges(real(snap(possible, ({"name": "alpha"},)), tid), ALICE) == []
+    disjoint = user("alice", *base, allow("codebuild:StartBuild", resource=b))
+    assert edges(real(snap(disjoint), tid), ALICE) == []
+    wrong_role = user("alice", base[0],
+                      {"Effect": "Allow", "Action": "codebuild:CreateProject", "Resource": a,
+                       "Condition": {"StringEquals": {"codebuild:serviceRole": role_arn("old")}}},
+                      allow("codebuild:StartBuild", resource=a))
+    assert edges(real(snap(wrong_role), tid), ALICE) == []
+    batch = user("alice", base[0], base[1], allow("codebuild:StartBuildBatch", resource=a))
+    assert edges(real(snap(batch), tid), ALICE) == []
+    batch_role = role("builder", "codebuild.amazonaws.com", allow("codebuild:StartBuild", resource=a))
+    batch_snap = aws_snap([batch], [batch_role], [col("codebuild_project", [])])
+    assert reached(real(batch_snap, tid), ALICE) == {role_arn("builder"): "conditional"}
+    separate_batch = user("alice", base[0], allow("iam:PassRole", resource=role_arn("batch")),
+                          base[1], allow("codebuild:StartBuildBatch", resource=a))
+    separate_roles = [roles[0], role("batch", "codebuild.amazonaws.com",
+                                   allow("codebuild:StartBuild", resource=a))]
+    separate_snap = aws_snap([separate_batch], separate_roles, [col("codebuild_project", [])])
+    assert reached(real(separate_snap, tid), ALICE)[role_arn("builder")] == "conditional"
+    no_batch_passrole = aws_snap([batch], separate_roles, [col("codebuild_project", [])])
+    assert edges(real(no_batch_passrole, tid), ALICE) == []
+    no_batch_role = user("alice", base[0],
+                         {"Effect": "Allow", "Action": "codebuild:CreateProject", "Resource": a,
+                          "Condition": {"Null": {"codebuild:buildBatchConfig.serviceRole": "true"}}},
+                         allow("codebuild:StartBuildBatch", resource=a))
+    assert edges(real(snap(no_batch_role), tid), ALICE) == []
+
+
+def test_codebuild_updateproject_needs_existing_project_and_target_role_allowed():
+    tid = "aws-codebuild-passrole-updateproject"
+    project = f"arn:aws:codebuild:{REGION}:{ACCOUNT}:project/demo"
+    other = f"arn:aws:codebuild:{REGION}:{ACCOUNT}:project/other"
+    item = {"name": "demo", "Configuration": {"collection_status": "collected", "projects": [
+        {"name": "demo", "arn": project, "serviceRole": role_arn("old")}]}}
+    roles = [role("builder", "codebuild.amazonaws.com"), role("old", "codebuild.amazonaws.com")]
+    def snap(principal, projects=(item,)):
+        return aws_snap([principal], roles, [col("codebuild_project", projects)])
+    base = allow("iam:PassRole", resource=role_arn("builder"))
+    possible = user("alice", base, allow("codebuild:UpdateProject", resource=project),
+                    allow("codebuild:StartBuild", resource=project))
+    assert reached(real(snap(possible), tid), ALICE) == {role_arn("builder"): "conditional"}
+    wrong_region = {"name": "demo", "Configuration": {"collection_status": "collected", "projects": [
+        {"name": "demo", "arn": project.replace(REGION, "us-west-2"), "serviceRole": role_arn("old")}]}}
+    assert edges(real(snap(possible, (wrong_region,)), tid), ALICE) == []
+    assert edges(real(snap(possible, ()), tid), ALICE) == []
+    disjoint = user("alice", base, allow("codebuild:UpdateProject", resource=project),
+                    allow("codebuild:StartBuild", resource=other))
+    assert edges(real(snap(disjoint), tid), ALICE) == []
+    wrong_role = user("alice", base,
+                      {"Effect": "Allow", "Action": "codebuild:UpdateProject", "Resource": project,
+                       "Condition": {"StringEquals": {"codebuild:serviceRole": role_arn("old")}}},
+                      allow("codebuild:StartBuild", resource=project))
+    assert edges(real(snap(wrong_role), tid), ALICE) == []
+    batch_only = user("alice", base, allow("codebuild:UpdateProject", resource=project),
+                      allow("codebuild:StartBuildBatch", resource=project))
+    assert edges(real(snap(batch_only), tid), ALICE) == []
+    batch_capable = role("builder", "codebuild.amazonaws.com", allow("codebuild:StartBuild", resource=project))
+    created_batch_config = aws_snap([batch_only], [batch_capable, roles[1]],
+                                    [col("codebuild_project", [item])])
+    assert reached(real(created_batch_config, tid), ALICE) == {role_arn("builder"): "conditional"}
+    existing_batch = {"name": "demo", "Configuration": {"collection_status": "collected", "projects": [
+        {"name": "demo", "arn": project, "serviceRole": role_arn("old"),
+         "buildBatchConfig": {"serviceRole": role_arn("batch")}}]}}
+    batch_role = role("batch", "codebuild.amazonaws.com", allow("codebuild:StartBuild", resource=project))
+    reuse_batch_config = aws_snap([batch_only], [roles[0], roles[1], batch_role],
+                                  [col("codebuild_project", [existing_batch])])
+    assert reached(real(reuse_batch_config, tid), ALICE) == {role_arn("builder"): "conditional"}
+    no_child_grant = aws_snap([batch_only], [roles[0], roles[1], role("batch", "codebuild.amazonaws.com")],
+                              [col("codebuild_project", [existing_batch])])
+    assert edges(real(no_child_grant, tid), ALICE) == []

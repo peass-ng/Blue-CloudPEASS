@@ -49,6 +49,7 @@ def test_reviewed_s3_policy_self_grant_has_only_bounded_permission_target():
 @pytest.mark.parametrize("field,value", [
     ("SourceArn", "arn:aws:iam::111111111111:user/bob"),
     ("BucketOwnerAccount", "222222222222"),
+    ("BucketArn", "arn:aws-cn:s3:::reviewed-bucket"),
     ("PolicyPrincipalArn", "arn:aws:iam::111111111111:user/bob"),
     ("PolicyResourceArn", BUCKET + "/public/*"),
     ("GrantedAction", "s3:PutObject"),
@@ -73,5 +74,6 @@ def test_every_s3_review_field_is_required(field):
 
 
 def test_missing_duplicate_partial_or_nonwriter_has_no_path():
-    for snap in (case([]), case([proof(), proof()]), case(status="partial"), case(writer=False)):
+    for snap in (case([]), case([proof(), proof()]), case(status="partial"), case(status="empty"),
+                 case(writer=False)):
         assert reached(privesc.analyze(snap, entries=[ENTRY]), ALICE, ENTRY["id"]) == {}

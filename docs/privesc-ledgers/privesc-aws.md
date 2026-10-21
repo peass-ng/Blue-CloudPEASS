@@ -1,9 +1,9 @@
 # AWS privilege-escalation coverage ledger
 
 Upstream: hacktricks-cloud branch `feat/privesc-v3-challenge` at `5129659964f0c932367df87d11bd26dec2c150b5` (based on PR #468). Catalog: `peaso/privesc/catalog/aws/*.yaml`.
-Regenerate with `work_awspe/gen_ledger.py`; `tests/test_peaso_privesc_coverage_aws.py` checks it.
+`tests/test_peaso_privesc_coverage_aws.py` checks it.
 
-The strict 2026-10-16 review reconciles those historical headings with the 165 active AWS entries. Newly relocated source headings follow HackTricks Cloud PR #482; historical headings remain listed with their exclusion reasons.
+The historical review reconciled those headings with the catalog at that point. Newly relocated source headings follow HackTricks Cloud PR #482; historical headings remain listed with their exclusion reasons.
 
 Scope: every heading of every page under `aws-privilege-escalation/**`, plus every heading elsewhere under `aws-security/` (post-exploitation, persistence, services, unauthenticated, basic information) whose heading or section mentions privilege escalation, PassRole, execution/instance-profile roles or role credentials.
 
@@ -11,12 +11,12 @@ Status legend: COVERED (catalog ids), EXCLUDED (an `_excluded*.yaml` line explai
 
 ## Summary
 
-- COVERED: 176
-- EXCLUDED: 662
+- COVERED: 179
+- EXCLUDED: 659
 - NEEDS SCHEMA: 0
 - NOT PRIVESC: 133
 - STRUCTURAL: 661
-- Headings: 1632; distinct active catalog ids referenced: 165; AWS active catalog entries: 165
+- Headings: 1632; distinct active catalog ids referenced: 176; AWS active catalog entries: 176
 
 ## Headings by page
 
@@ -702,7 +702,7 @@ Status legend: COVERED (catalog ids), EXCLUDED (an `_excluded*.yaml` line explai
 | `apigatewaypost` | `apigateway:POST` | apigateway:POST | EXCLUDED | Creates API keys for API access; application-level, no IAM identity. |
 | `apigatewayget` | `apigateway:GET` | apigateway:GET | STRUCTURAL | Historical pointer to bounded data access in AWS post exploitation. |
 | `apigatewayupdaterestapipolicy--apigatewaypatch` | `apigateway:UpdateRestApiPolicy` / `apigateway:PATCH` | apigateway:UpdateRestApiPolicy, apigateway:PATCH | STRUCTURAL | Legacy anchor points to the post-exploitation section; the bounded operation is excluded there. |
-| `apigatewayput-apigatewaypost-and-sometimes-iampassrole` | `apigateway:PUT`, `apigateway:POST` (and sometimes `iam:PassRole`) | apigateway:PUT, apigateway:POST, iam:PassRole | COVERED | `aws-apigateway-integration-credentials-passrole` |
+| `apigatewayput-apigatewaypost-and-sometimes-iampassrole` | `apigateway:PUT`, `apigateway:POST` (and sometimes `iam:PassRole`) | apigateway:PUT, apigateway:POST, iam:PassRole | EXCLUDED | The demonstrated integration invokes a Lambda function, but does not give the caller the integration role or the function execution role; an exact privileged backend action is not joined. See `_excluded_apigateway_generic_integration.yaml`. |
 | `apigatewaypatch-apigatewaypost` | `apigateway:PATCH`, `apigateway:POST` | apigateway:PATCH, apigateway:POST | EXCLUDED | Bypasses API authorization of backend apps; application-level, no IAM identity gained. |
 | `http-apis--apigatewayv2-variant` | HTTP APIs / `apigatewayv2` variant |  | EXCLUDED | Same application-level authorizer/route manipulation as REST variant. |
 | `apigatewaypatch-on-a-rest-vpc-link-does-not-permit-nlb-redirection` | `apigateway:PATCH` on a REST VPC link does not permit NLB redirection | apigateway:PATCH | EXCLUDED | HackTricks itself documents this as not exploitable. |
@@ -755,7 +755,7 @@ Status legend: COVERED (catalog ids), EXCLUDED (an `_excluded*.yaml` line explai
 | `appstreamcreateappblockbuilderstreamingurl--take-over-an-existing-app-package-builder` | `appstream:CreateAppBlockBuilderStreamingURL` — take over an existing app-package builder | appstream:CreateAppBlockBuilderStreamingURL | EXCLUDED | Excluded: The appstream_app_block_builder resource-to-role attachment is not loaded by the AWS evaluator (absent from HOST_KIND); service trust or a guessed resource cannot identify the exact role that the source operation reaches. |
 | `appstreamupdateapplication--poison-an-elastic-fleet-application-launch` | `appstream:UpdateApplication` — poison an Elastic-fleet application launch | appstream:UpdateApplication | EXCLUDED | Excluded: The appstream:UpdateApplication source operation is not joined to an exact consumed input and target role: the AWS evaluator implements consumer_input_writable_via and target.consumer_input_arn only for Image Builder. This entry cannot prove the later consumer execution or authority gain. |
 | `appstreamupdatefleet--replace-an-existing-fleet-image-while-retaining-its-role` | `appstream:UpdateFleet` — replace an existing fleet image while retaining its role | appstream:UpdateFleet | EXCLUDED | Excluded: The appstream_fleet resource-to-role attachment is not loaded by the AWS evaluator (absent from HOST_KIND); service trust or a guessed resource cannot identify the exact role that the source operation reaches. |
-| `appstreamcreateimagebuilder--createfleet--iampassrole--session-with-the-passed-roles-credentials` | `appstream:CreateImageBuilder` / `CreateFleet` + `iam:PassRole` → session with the passed role's credentials | iam:PassRole, appstream:CreateImageBuilder, appstream:CreateImageBuilderStreamingURL, appstream:CreateFleet, appstream:CreateStack, appstream:AssociateFleet, appstream:CreateStreamingURL | COVERED | `aws-appstream-passrole-createimagebuilder-createfleet` |
+| `appstreamcreateimagebuilder--createfleet--iampassrole--session-with-the-passed-roles-credentials` | `appstream:CreateImageBuilder` / `CreateFleet` + `iam:PassRole` → session with the passed role's credentials | iam:PassRole, appstream:CreateImageBuilder, appstream:CreateImageBuilderStreamingURL, appstream:CreateFleet, appstream:CreateStack, appstream:AssociateFleet, appstream:CreateStreamingURL | COVERED | `aws-appstream-passrole-createimagebuilder-createfleet`, `aws-appstream-passrole-createimagebuilder`, `aws-appstream-passrole-createappblockbuilder`, `aws-appstream-passrole-updatefleet`, `aws-appstream-passrole-updateappblockbuilder` |
 | `references` | References |  | STRUCTURAL | Page title / references list |
 
 ### aws-privilege-escalation/aws-appsync-privesc/README.md
@@ -919,11 +919,11 @@ Status legend: COVERED (catalog ids), EXCLUDED (an `_excluded*.yaml` line explai
 | `cloudformation-1` | cloudformation |  | STRUCTURAL | Section heading grouping the CloudFormation techniques mapped below. |
 | `iampassrole-cloudformationcreatestack` | `iam:PassRole`, `cloudformation:CreateStack` | iam:PassRole, cloudformation:CreateStack | COVERED | `aws-cloudformation-passrole-createstack` |
 | `iampassrole-cloudformationupdatestack-and-where-needed-cloudformationsetstackpolicy` | `iam:PassRole`, `cloudformation:UpdateStack` (and, where needed, `cloudformation:SetStackPolicy`) | iam:PassRole, cloudformation:UpdateStack | COVERED | `aws-cloudformation-passrole-updatestack` |
-| `cloudformationupdatestack-and-where-needed-cloudformationsetstackpolicy` | `cloudformation:UpdateStack` (and, where needed, `cloudformation:SetStackPolicy`) | cloudformation:UpdateStack | EXCLUDED | Resource-to-role attachment is not collected; exact target cannot be proven (`_excluded_uncollected_service_join_final_reaudit_20261016.yaml`). |
+| `cloudformationupdatestack-and-where-needed-cloudformationsetstackpolicy` | `cloudformation:UpdateStack` (and, where needed, `cloudformation:SetStackPolicy`) | cloudformation:UpdateStack | COVERED | `aws-cloudformation-updatestack-attached-role` |
 | `iampassrole-cloudformationcreatechangeset-cloudformationexecutechangeset-and-where-needed-cloudformationsetstackpolicy` | `iam:PassRole`, `cloudformation:CreateChangeSet`, `cloudformation:ExecuteChangeSet` (and, where needed, `cloudformation:SetStackPolicy`) | iam:PassRole, cloudformation:CreateChangeSet, cloudformation:ExecuteChangeSet | COVERED | `aws-cloudformation-passrole-changeset` |
 | `cloudformationexecutechangeset-on-a-pre-staged-change-set` | `cloudformation:ExecuteChangeSet` on a pre-staged change set | cloudformation:ExecuteChangeSet | EXCLUDED | The source executes content it did not author; it only triggers an already-reviewed change. No attacker-controlled code under the role. |
 | `cloudformationsignalresource--release-a-stack-waiting-on-a-success-signal` | `cloudformation:SignalResource` — Release a stack waiting on a success signal | cloudformation:SignalResource | EXCLUDED | Releases a gate for a fixed workload; no attacker-controlled execution under the role. |
-| `cloudformationcreatechangeset-cloudformationexecutechangeset-and-where-needed-cloudformationsetstackpolicy` | `cloudformation:CreateChangeSet`, `cloudformation:ExecuteChangeSet` (and, where needed, `cloudformation:SetStackPolicy`) | cloudformation:CreateChangeSet, cloudformation:ExecuteChangeSet | EXCLUDED | Resource-to-role attachment is not collected; exact target cannot be proven (`_excluded_uncollected_service_join_final_reaudit_20261016.yaml`). |
+| `cloudformationcreatechangeset-cloudformationexecutechangeset-and-where-needed-cloudformationsetstackpolicy` | `cloudformation:CreateChangeSet`, `cloudformation:ExecuteChangeSet` (and, where needed, `cloudformation:SetStackPolicy`) | cloudformation:CreateChangeSet, cloudformation:ExecuteChangeSet | COVERED | `aws-cloudformation-changeset-attached-role` |
 | `iampassrole-cloudformationcreatestackset--cloudformationupdatestackset` | `iam:PassRole`, (`cloudformation:CreateStackSet` \| `cloudformation:UpdateStackSet`) | iam:PassRole, cloudformation:CreateStackSet, cloudformation:CreateStackInstances, cloudformation:UpdateStackSet | COVERED | `aws-cloudformation-passrole-stackset` |
 | `cloudformationupdatestackset` | `cloudformation:UpdateStackSet` | cloudformation:UpdateStackSet | EXCLUDED | Excluded: UpdateStackSet changes an existing StackSet, but no collected StackSet-to-administration-role or execution-role join identifies the target; service trust alone overclaims the pivot. |
 | `s3putobject-on-a-nested-stack-template--delayed-cloudformation-role-escalation` | `s3:PutObject` on a nested-stack template — delayed CloudFormation-role escalation | s3:PutObject | EXCLUDED | Excluded: The s3:PutObject source operation is not joined to an exact consumed input and target role: the AWS evaluator implements consumer_input_writable_via and target.consumer_input_arn only for Image Builder. This entry cannot prove the later consumer execution or authority gain. |
@@ -1033,7 +1033,7 @@ Status legend: COVERED (catalog ids), EXCLUDED (an `_excluded*.yaml` line explai
 | `aws---codepipeline-privesc` | AWS - Codepipeline Privesc |  | STRUCTURAL | Page title / references list |
 | `codepipeline` | CodePipeline |  | EXCLUDED | Introductory section (links to enumeration); no technique. |
 | `codepipeline-1` | codepipeline |  | STRUCTURAL | Service introduction / enumeration link; techniques are rows of their own |
-| `iampassrole-codepipelinecreatepipeline-codebuildcreateproject-codepipelinestartpipelineexecution` | `iam:PassRole`, `codepipeline:CreatePipeline`, `codebuild:CreateProject`, `codepipeline:StartPipelineExecution` | iam:PassRole, codepipeline:CreatePipeline, codebuild:CreateProject, codepipeline:StartPipelineExecution | COVERED | `aws-codepipeline-passrole-createpipeline-codebuild` |
+| `iampassrole-codepipelinecreatepipeline-codebuildcreateproject-codepipelinestartpipelineexecution` | `iam:PassRole`, `codepipeline:CreatePipeline`, `codebuild:CreateProject`, `codepipeline:StartPipelineExecution` | iam:PassRole, codepipeline:CreatePipeline, codebuild:CreateProject, codepipeline:StartPipelineExecution | COVERED | `aws-codepipeline-passrole-createpipeline-codebuild`, `aws-codepipeline-passrole-createpipeline-codebuild-codecommit`, `aws-codepipeline-passrole-createpipeline-codebuild-ecr` |
 | `codebuildupdateproject-codepipelineupdatepipeline-codepipelinestartpipelineexecution` | `codebuild:UpdateProject`, `codepipeline:UpdatePipeline`, `codepipeline:StartPipelineExecution` | codebuild:UpdateProject, codepipeline:UpdatePipeline, codepipeline:StartPipelineExecution | COVERED | `aws-codepipeline-updatepipeline-codebuild-updateproject` |
 | `codepipelinestartpipelineexecution--inject-a-v2-pipeline-variable` | `codepipeline:StartPipelineExecution` — inject a V2 pipeline variable | codepipeline:StartPipelineExecution | EXCLUDED | Value-only injection whose impact depends on pipeline action semantics; not generically evaluable. |
 | `codepipelineretrystageexecution--replay-a-failed-privileged-stage` | `codepipeline:RetryStageExecution` — Replay a failed privileged stage | codepipeline:RetryStageExecution | EXCLUDED | Replays a fixed workload; no attacker-controlled execution. |
@@ -1443,7 +1443,7 @@ Status legend: COVERED (catalog ids), EXCLUDED (an `_excluded*.yaml` line explai
 | `aws---emr-serverless--emr-on-eks-privesc` | AWS - EMR Serverless & EMR on EKS Privesc |  | STRUCTURAL | Page title / references list |
 | `amazon-emr-serverless` | Amazon EMR Serverless |  | EXCLUDED | Introductory section (links to enumeration); no technique. |
 | `emr-serverless--emr-on-eks` | EMR Serverless / EMR on EKS |  | STRUCTURAL | Service overview; the job-run, managed-endpoint, session and application techniques are their own headings. |
-| `emr-serverlessstartjobrun--emr-containersstartjobrun--iampassrole` | `emr-serverless:StartJobRun` / `emr-containers:StartJobRun` + `iam:PassRole` | iam:PassRole, emr-serverless:StartJobRun, emr-containers:StartJobRun | COVERED | `aws-emr-serverless-passrole-startjobrun`, `aws-emr-containers-passrole-startjobrun` |
+| `emr-serverlessstartjobrun--emr-containersstartjobrun--iampassrole` | `emr-serverless:StartJobRun` / `emr-containers:StartJobRun` + `iam:PassRole` | iam:PassRole, emr-serverless:StartJobRun, emr-containers:StartJobRun | COVERED | `aws-emr-serverless-passrole-startjobrun`, `aws-emr-containers-passrole-startjobrun`, `aws-emr-containers-passrole-startjobrun-pod-identity` |
 | `emr-containersgetmanagedendpointsessioncredentials--iampassrole--interactive-spark-session-as-the-execution-role` | `emr-containers:GetManagedEndpointSessionCredentials` (+ `iam:PassRole`) — interactive Spark session as the execution role | iam:PassRole, emr-containers:GetManagedEndpointSessionCredentials | COVERED | `aws-emr-containers-getmanagedendpointsessioncredentials` |
 | `emr-serverlessgetsessionendpoint--take-over-an-existing-spark-connect-session` | `emr-serverless:GetSessionEndpoint` — take over an existing Spark Connect session | emr-serverless:GetSessionEndpoint | EXCLUDED | Excluded: The emr-serverless_session resource-to-role attachment is not loaded by the AWS evaluator (absent from HOST_KIND); service trust or a guessed resource cannot identify the exact role that the source operation reaches. |
 | `emr-serverlessupdateapplication` | `emr-serverless:UpdateApplication` | emr-serverless:UpdateApplication | EXCLUDED | Excluded: The emr-serverless_application resource-to-role attachment is not loaded by the AWS evaluator (absent from HOST_KIND); service trust or a guessed resource cannot identify the exact role that the source operation reaches. |
@@ -1531,10 +1531,10 @@ Status legend: COVERED (catalog ids), EXCLUDED (an `_excluded*.yaml` line explai
 | `aws---glue-privesc` | AWS - Glue Privesc |  | STRUCTURAL | Page title / references list |
 | `glue` | Glue |  | EXCLUDED | Introductory section (links to enumeration); no technique. |
 | `create-an-interactive-session-with-a-privileged-role` | Create an interactive session with a privileged role | iam:PassRole, glue:CreateSession, glue:RunStatement | COVERED | `aws-glue-passrole-createsession` |
-| `execute-code-in-an-existing-interactive-session` | Execute code in an existing interactive session | glue:RunStatement | EXCLUDED | Excluded: The glue_session resource-to-role attachment is not loaded by the AWS evaluator (absent from HOST_KIND); service trust or a guessed resource cannot identify the exact role that the source operation reaches. |
+| `execute-code-in-an-existing-interactive-session` | Execute code in an existing interactive session | glue:RunStatement | COVERED | `aws-glue-runstatement-interactive-session` |
 | `create-or-modify-and-run-a-glue-job` | Create or modify and run a Glue job | glue:StartJobRun, s3:PutObject, iam:PassRole, glue:CreateJob, glue:CreateTrigger, glue:UpdateJob | COVERED | `aws-glue-startjobrun-override-script`, [excluded former aws-glue-s3-putobject-job-script], `aws-glue-passrole-createjob-or-updatejob-run`, `aws-glue-updatejob-existing-role` |
 | `create-a-legacy-development-endpoint-with-a-privileged-role` | Create a legacy development endpoint with a privileged role | iam:PassRole, glue:CreateDevEndpoint, glue:GetDevEndpoint, glue:GetDevEndpoints | COVERED | `aws-glue-passrole-createdevendpoint` |
-| `replace-the-ssh-key-on-a-legacy-development-endpoint` | Replace the SSH key on a legacy development endpoint | glue:UpdateDevEndpoint | EXCLUDED | Excluded: The glue_dev_endpoint resource-to-role attachment is not loaded by the AWS evaluator (absent from HOST_KIND); service trust or a guessed resource cannot identify the exact role that the source operation reaches. |
+| `replace-the-ssh-key-on-a-legacy-development-endpoint` | Replace the SSH key on a legacy development endpoint | glue:UpdateDevEndpoint | COVERED | `aws-glue-updatedevendpoint` |
 | `references` | References |  | STRUCTURAL | Page title / references list |
 
 ### aws-privilege-escalation/aws-healthomics-privesc/README.md
@@ -3742,7 +3742,7 @@ These entries were added after the historical heading sweep. Catalog binding: `4
 
 | Anchor | Heading | Permissions | Status | Catalog ids / reason |
 |---|---|---|---|---|
-| `associate-a-cluster-admin-access-policy-with-an-existing-eks-access-entry-the-source-controls` | associate a cluster admin access policy with an existing eks access entry the source controls |  | COVERED | [excluded former aws-eks-associateaccesspolicy-existing-entry], `aws-eks-updateclusterconfig-enable-access-entries` |
+| `associate-a-cluster-admin-access-policy-with-an-existing-eks-access-entry-the-source-controls` | associate a cluster admin access policy with an existing eks access entry the source controls |  | COVERED | `aws-eks-associateaccesspolicy-existing-entry`, `aws-eks-updateclusterconfig-enable-access-entries` |
 | `eksassociateidentityproviderconfig-with-a-matching-privileged-rbac-group` | eksassociateidentityproviderconfig with a matching privileged rbac group |  | EXCLUDED | excluded: "Associate an attacker-controlled OIDC identity provider with an EKS cluster that binds a privileged RBAC group"; exact source-controlled identity or Kubernetes execution/RBAC join is unproved. |
 
 ### aws-privilege-escalation/aws-gamelift/README.md

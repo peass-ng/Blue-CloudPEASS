@@ -114,7 +114,8 @@ def evaluate(evaluator, compiled):
                         current=item.get('IamInstanceProfile');rows=by_instance.get(iid,[])
                         if current is None and not rows:branches=[('AssociateIamInstanceProfile',)]
                         elif isinstance(current,dict)and len(rows)==1 and rows[0].get('State')=='associated'and rows[0].get('IamInstanceProfile',{}).get('Arn')==current.get('Arn')and current.get('Arn')in mapping and current.get('Id')==rows[0].get('IamInstanceProfile',{}).get('Id')==profile_ids[current['Arn']]:
-                            branches=[('ReplaceIamInstanceProfileAssociation',),('DisassociateIamInstanceProfile','AssociateIamInstanceProfile')]
+                            branches=([('ReplaceIamInstanceProfileAssociation',)] if state=='running' else [])+[
+                                ('DisassociateIamInstanceProfile','AssociateIamInstanceProfile')]
                         else:continue
                         for profile in profiles:
                             if mapping.get(profile)!=role_id or (isinstance(current,dict)and current.get('Arn')==profile):continue

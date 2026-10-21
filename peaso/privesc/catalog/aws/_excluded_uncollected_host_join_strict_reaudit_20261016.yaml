@@ -120,20 +120,6 @@
     (absent from HOST_KIND); service trust or a guessed resource cannot identify the exact role
     that the source operation reaches.
   prior_id: aws-synthetics-startcanarydryrun-replacement-code
-- source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-glue-privesc/README.md#replace-the-ssh-key-on-a-legacy-development-endpoint
-  source_revision: 171e422299
-  technique: Replace the SSH key of an existing Glue development endpoint
-  reason: The glue_dev_endpoint resource-to-role attachment is not loaded by the AWS evaluator
-    (absent from HOST_KIND); service trust or a guessed resource cannot identify the exact role
-    that the source operation reaches.
-  prior_id: aws-glue-updatedevendpoint
-- source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-glue-privesc/README.md#execute-code-in-an-existing-interactive-session
-  source_revision: 171e422299
-  technique: Execute code in an existing Glue interactive session
-  reason: The glue_session resource-to-role attachment is not loaded by the AWS evaluator (absent
-    from HOST_KIND); service trust or a guessed resource cannot identify the exact role that the
-    source operation reaches.
-  prior_id: aws-glue-runstatement-interactive-session
 - source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-stepfunctions-privesc/README.md#statesupdatestatemachine--not-always-required-iampassrole
   source_revision: 171e422299
   technique: Modify the definition of an existing state machine keeping its role
