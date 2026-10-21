@@ -45,6 +45,8 @@ class NativeDataFixtureTransport(FixtureTransport):
         data, request_id = super().request(method, url, **kwargs)
         receipt = next(r for r in self.evidence if r['id'] == request_id)
         receipt.update(scope=kwargs['scope'], http_status=200, query=kwargs.get('params', {}))
+        if kwargs.get('body'):
+            receipt['request'] = copy.deepcopy(kwargs['body'])
         return data, request_id
 
 
@@ -520,8 +522,10 @@ def test_native_service_coverage_and_configuration_fixture():
                 "attributeCondition": "assertion.repository_owner == 'trusted'", "oidc": {"issuerUri": "https://token.actions.githubusercontent.com"}}]}
         if url.endswith("/recommendations"):
             return {"recommendations": [{"name": "recommendation", "content": {"overview": {"removedPermissions": ["compute.instances.delete"]}}}]}
+        if '/insightTypes/google.iam.serviceAccount.Insight/' in url:
+            return {'insights': []}
         if url.endswith("/insights"):
-            return {"insights": [{"name": "insight", "content": {"unusedPermissions": ["compute.instances.delete"]}}]}
+            return {"insights": [{"name": "projects/p-one/locations/global/insightTypes/google.iam.policy.Insight/insights/fixture", "content": {"unusedPermissions": ["compute.instances.delete"]}}]}
         if url.endswith("/sinks"):
             return {"sinks": [{"name": "sink", "destination": "storage.googleapis.com/log-bucket"}]}
         if url.endswith("/getXpnHost"):
@@ -1643,12 +1647,15 @@ def test_disabled_service_after_rows_keeps_partial_inventory_and_metadata():
 def test_service_account_activity_attaches_policy_analyzer_facts_only_for_listed_accounts():
     from peaso.checks import CHECKS
     check = next(c for c in CHECKS if c.id == "gcp.claude.service_account.recently_used")
-    period = {"startTime": "2024-11-28T08:00:00Z", "endTime": "2026-10-05T07:00:00Z"}
+    from datetime import datetime, timedelta, timezone
+    recent = (datetime.now(timezone.utc) - timedelta(days=2)).strftime("%Y-%m-%dT00:00:00Z")
+    observed = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%dT00:00:00Z")
+    period = {"startTime": "2024-11-28T08:00:00Z", "endTime": observed}
     def account(name):
         return {"name": f"projects/p-one/serviceAccounts/{name}@p-one.iam.gserviceaccount.com",
-                "email": f"{name}@p-one.iam.gserviceaccount.com", "uniqueId": "id-" + name}
+                "email": f"{name}@p-one.iam.gserviceaccount.com", "uniqueId": str(123456789000000000000 + ["recent", "stale", "never", "unlisted"].index(name))}
     def activity(name, last=None):
-        body = {"serviceAccount": {"serviceAccountId": "id-" + name}}
+        body = {"serviceAccount": {"serviceAccountId": str(123456789000000000000 + ["recent", "stale", "never", "unlisted"].index(name))}}
         if last:
             body["lastAuthenticatedTime"] = last
         return {"fullResourceName": f"//iam.googleapis.com/projects/p-one/serviceAccounts/{name}@p-one.iam.gserviceaccount.com",
@@ -1662,13 +1669,13 @@ def test_service_account_activity_attaches_policy_analyzer_facts_only_for_listed
             assert url.endswith("/locations/global/activityTypes/serviceAccountLastAuthentication/activities:query")
             if denied:
                 raise gcp.ReadError("denied", "api_error", http_status=403)
-            return {"activities": [activity("recent", "2026-09-29T07:00:00Z"), activity("stale", "2025-01-01T00:00:00Z"),
+            return {"activities": [activity("recent", recent), activity("stale", "2025-01-01T00:00:00Z"),
                                    activity("never")]}
         return {"bindings": []}
     result, _ = snapshot(["service_account"], resolve)
     items = {item["email"].split("@")[0]: item for item in collection(result, "service_account")["items"]}
     status = {name: check.evaluate(item, {})[0] for name, item in items.items()}
-    assert status == {"recent": "PASS", "stale": "FAIL", "never": "FAIL", "unlisted": "UNKNOWN"}
+    assert status == {"recent": "PASS", "stale": "FAIL", "never": "UNKNOWN", "unlisted": "UNKNOWN"}
     for name in ("recent", "stale", "never"):
         coverage = items[name]["_coverage"]["_activity"]
         assert coverage["status"] == "collected" and coverage["source_requests"]
@@ -1678,7 +1685,7 @@ def test_service_account_activity_attaches_policy_analyzer_facts_only_for_listed
     found = collection(result, "service_account")
     assert found["status"] == "collected" and len(found["items"]) == 4
     assert all("_activity" not in item and item["_coverage"]["_activity"]["status"] == "denied" for item in found["items"])
-    assert all(check.evaluate(item, {})[0] == "UNKNOWN" for item in found["items"])
+    assert all(check.evaluate(item, {})[0] == "DENIED" for item in found["items"])
 
 
 def test_default_service_usage_selection_reads_container_scanning_state():
@@ -1759,10 +1766,13 @@ def test_app_engine_not_found_for_this_project_application_is_empty_not_unknown(
 def test_service_account_key_activity_attaches_policy_analyzer_key_facts():
     from peaso.checks import CHECKS
     check = next(c for c in CHECKS if c.id == "gcp.claude.service_account_key.recently_used")
-    period = {"startTime": "2024-05-13T07:00:00Z", "endTime": "2026-10-05T07:00:00Z"}
+    from datetime import datetime, timedelta, timezone
+    recent = (datetime.now(timezone.utc) - timedelta(days=2)).strftime("%Y-%m-%dT00:00:00Z")
+    observed = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%dT00:00:00Z")
+    period = {"startTime": "2024-05-13T07:00:00Z", "endTime": observed}
     sa = "projects/p-one/serviceAccounts/a@p-one.iam.gserviceaccount.com"
     def key(name):
-        return {"name": f"{sa}/keys/{name}", "keyType": "USER_MANAGED", "keyAlgorithm": "KEY_ALG_RSA_2048"}
+        return {"name": f"{sa}/keys/{name}", "keyType": "USER_MANAGED", "keyAlgorithm": "KEY_ALG_RSA_2048", "validAfterTime": period["startTime"]}
     def activity(name, last=None):
         body = {"serviceAccountKey": {"fullResourceName": f"//iam.googleapis.com/{sa}/keys/{name}", "serviceAccountId": "1"}}
         if last:
@@ -1779,7 +1789,7 @@ def test_service_account_key_activity_attaches_policy_analyzer_key_facts():
             assert request["method"] == "GET"
             if denied:
                 raise gcp.ReadError("denied", "api_error", http_status=403)
-            return {"activities": [activity("recent", "2026-10-05T07:00:00Z"), activity("stale", "2024-06-23T07:00:00Z"), activity("never")]}
+            return {"activities": [activity("recent", recent), activity("stale", "2024-06-23T07:00:00Z"), activity("never")]}
         if "policyanalyzer" in url:
             return {"activities": []}
         return {"bindings": []}
@@ -1793,7 +1803,354 @@ def test_service_account_key_activity_attaches_policy_analyzer_key_facts():
     result, _ = snapshot(["service_account", "service_account_key"], lambda r: resolve(r, denied=True))
     found = collection(result, "service_account_key")
     assert found["status"] == "collected" and len(found["items"]) == 4
-    assert all(check.evaluate(item, {})[0] == "UNKNOWN" and item["_coverage"]["_activity"]["status"] == "denied" for item in found["items"])
+    assert all(check.evaluate(item, {})[0] == "DENIED" and item["_coverage"]["_activity"]["status"] == "denied" for item in found["items"])
+
+
+@pytest.mark.parametrize('numeric_alias', [False, True])
+def test_unused_account_insight_collector_to_hardening_json(numeric_alias):
+    from datetime import datetime, timedelta, timezone
+    from peaso.engine import evaluate_snapshot, hydrate_frameworks
+    from peaso.unused_iam_gcp import INSIGHT_CHECK
+    scope = 'projects/usage-project'
+    email = 'unused@usage-project.iam.gserviceaccount.com'
+    uid = '123456789012345678901'
+    token = '123456789012' if numeric_alias else 'usage-project'
+    refresh = (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()
+    prefix = f'projects/{token}/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights/'
+    def resolve(request):
+        url = request['url']
+        if url.endswith('/serviceAccounts'):
+            return {'accounts': [{'name': scope+'/serviceAccounts/'+email, 'email': email,
+                                  'uniqueId': uid, 'disabled': False}]}
+        if url == 'https://cloudresourcemanager.googleapis.com/v3/'+scope:
+            return {'name': 'projects/123456789012', 'projectId': 'usage-project'}
+        if url.endswith('/insights'):
+            assert request['method'] == 'GET'
+            if request.get('params', {}).get('pageToken') == 'next-page':
+                return {'insights': [{'name': prefix+'unused', 'insightSubtype': 'SERVICE_ACCOUNT_USAGE',
+                    'category': 'SECURITY', 'content': {'email': email, 'serviceAccountId': uid},
+                    'stateInfo': {'state': 'ACTIVE'}, 'lastRefreshTime': refresh,
+                    'observationPeriod': '7776000s',
+                    'targetResources': ['//cloudresourcemanager.googleapis.com/projects/'+token]}]}
+            return {'insights': [], 'nextPageToken': 'next-page'}
+        if 'policyanalyzer' in url:
+            return {'activities': []}
+        return {'bindings': []}
+    transport = NativeDataFixtureTransport(resolve)
+    result = gcp.GCPCollector(connector(['service_account', 'service_account_insight'], scopes=[scope]), transport=transport).collect()
+    found = collection(result, 'service_account_insight', scope=scope)
+    assert found['status'] == 'collected', found
+    assert len(found['items']) == 1
+    assert sum(request['url'].endswith('/insights') for request in transport.requests) == 2
+    report = hydrate_frameworks(evaluate_snapshot(result, categories=['hardening'], checks=[INSIGHT_CHECK]))
+    finding = json.loads(json.dumps(report))['findings'][0]
+    assert finding['check_id'] == INSIGHT_CHECK
+    assert finding['status'] == 'FAIL', finding
+    assert finding['category'] == 'hardening'
+    assert 'HackTricks Cloud Best Practices' in finding['frameworks']
+    assert finding['evidence']['service_account_id'] == uid
+    assert not any('secret' in request['url'].lower() for request in transport.requests)
+
+
+def test_unused_group_collector_keeps_per_group_pagination_and_independent_failures():
+    from peaso.engine import evaluate_snapshot
+    from peaso.unused_iam_gcp_authorization import GROUP
+    scope = 'projects/usage-project'
+    def resolve(request):
+        url = request['url']
+        if url == 'https://cloudidentity.googleapis.com/v1/groups':
+            assert request['params']['view'] == 'FULL'
+            return {'groups': [{'name': 'groups/'+name, 'parent': 'customers/Csynthetic',
+                'groupKey': {'id': name+'@example.test'},
+                **({'dynamicGroupMetadata': {'status': {'status': 'UPDATING_MEMBERSHIPS'}}} if name == 'dynamic' else {})}
+                for name in ('empty', 'denied', 'dynamic')]}
+        if url.endswith('/memberships:searchTransitiveMemberships') or '/groups/denied/' in url:
+            raise gcp.ReadError('denied', 'api_error', http_status=403)
+        if url.endswith('/memberships'):
+            if request.get('params', {}).get('pageToken') == 'finish':
+                return {'memberships': []}
+            return {'memberships': [], 'nextPageToken': 'finish'}
+        return {}
+    transport = NativeDataFixtureTransport(resolve)
+    result = gcp.GCPCollector(connector(['group', 'group_membership'], scopes=[scope],
+        cloud_identity_customers=['Csynthetic']), transport=transport).collect()
+    groups = {item['name']: item for item in collection(result, 'group', scope=scope)['items']}
+    assert groups['groups/empty']['_coverage']['directMemberships']['status'] == 'collected'
+    assert len(groups['groups/empty']['_coverage']['directMemberships']['source_requests']) == 2
+    assert groups['groups/denied']['_coverage']['directMemberships']['status'] == 'denied'
+    report = evaluate_snapshot(result, categories=['hardening'], checks=[GROUP])
+    statuses = {row['resource_name']: row['status'] for row in report['findings']}
+    assert statuses == {'groups/empty': 'FAIL', 'groups/denied': 'DENIED', 'groups/dynamic': 'UNKNOWN'}, [(r['resource_name'], r['status'], r['evidence']) for r in report['findings']]
+
+
+@pytest.mark.parametrize('numeric_alias', [False, True])
+def test_unused_policy_grant_collector_to_hardening_matches_current_binding(numeric_alias):
+    from datetime import datetime, timedelta, timezone
+    from peaso.engine import evaluate_snapshot, hydrate_frameworks
+    from peaso.unused_iam_gcp_authorization import GRANT
+    scope = 'projects/usage-project'
+    member = 'group:obsolete@example.test'
+    returned_scope = 'projects/123456789012' if numeric_alias else scope
+    refreshed = (datetime.now(timezone.utc)-timedelta(days=1)).isoformat()
+    def resolve(request):
+        url = request['url']
+        if url.endswith(':getIamPolicy'):
+            assert request['method'] == 'POST'
+            return {'bindings': [{'role': 'roles/viewer', 'members': [member]}]}
+        if url == 'https://cloudresourcemanager.googleapis.com/v3/'+scope:
+            return {'name': 'projects/123456789012', 'projectId': 'usage-project'}
+        if url.endswith('/insights'):
+            return {'insights': [{'name': returned_scope+'/locations/global/insightTypes/google.iam.policy.Insight/insights/unused',
+                'content': {'role': 'roles/viewer', 'member': member, 'exercisedPermissions': [], 'inferredPermissions': []},
+                'category': 'SECURITY', 'insightSubtype': 'PERMISSIONS_USAGE',
+                'stateInfo': {'state': 'ACTIVE'}, 'lastRefreshTime': refreshed, 'observationPeriod': '7776000s',
+                'targetResources': ['//cloudresourcemanager.googleapis.com/'+returned_scope]}]}
+        return {}
+    transport = NativeDataFixtureTransport(resolve)
+    result = gcp.GCPCollector(connector(['insight', 'iam_policy'], scopes=[scope], resource_iam=False), transport=transport).collect()
+    report = hydrate_frameworks(evaluate_snapshot(result, categories=['hardening'], checks=[GRANT]))
+    finding = json.loads(json.dumps(report))['findings'][0]
+    assert finding['status'] == 'FAIL', finding['evidence']
+    assert finding['evidence']['principal'] == member
+    assert finding['evidence']['role'] == 'roles/viewer'
+    assert 'HackTricks Cloud Best Practices' in finding['frameworks']
+
+
+@pytest.mark.parametrize('mode,expected', [('old', 'FAIL'), ('recent', 'PASS'), ('denied', 'DENIED'),
+    ('foreign', 'UNKNOWN'), ('missing', 'UNKNOWN'), ('new', 'PASS'), ('suspended', 'NOT_APPLICABLE')])
+def test_unused_directory_user_uses_individual_metadata_not_inaccurate_list_login(mode, expected):
+    from datetime import datetime, timedelta, timezone
+    from peaso.engine import evaluate_snapshot, hydrate_frameworks
+    from peaso.unused_iam_gcp_directory import USER
+    from peaso.gcp_directory_usage_contract import KIND, FIELDS, USERS
+    scope, org, customer = 'projects/usage-project', 'organizations/123456789012', 'Csynthetic'
+    uid, email = '123456789012345678901', 'user@example.test'
+    recent = (datetime.now(timezone.utc)-timedelta(days=1)).isoformat()
+    def resolve(request):
+        url = request['url']
+        if url == 'https://cloudresourcemanager.googleapis.com/v3/'+scope:
+            return {'name': 'projects/987654321012', 'projectId': 'usage-project', 'parent': org}
+        if url == 'https://cloudresourcemanager.googleapis.com/v3/'+org:
+            return {'name': org, 'directoryCustomerId': customer}
+        if url == USERS:
+            return {'users': [{'id': uid, 'customerId': customer, 'primaryEmail': email,
+                'suspended': mode == 'suspended', 'archived': False, 'lastLoginTime': recent}]}
+        if url == USERS+'/'+uid:
+            assert request['method'] == 'GET'
+            assert request['params']['fields'] == FIELDS
+            assert 'password' not in request['params']['fields'] and 'token' not in request['params']['fields']
+            if mode == 'denied':
+                raise gcp.ReadError('denied', 'api_error', http_status=403)
+            return {'id': 'different-user' if mode == 'foreign' else uid, 'customerId': customer,
+                'primaryEmail': email, 'suspended': False, 'archived': False,
+                'creationTime': recent if mode == 'new' else '2024-01-01T00:00:00Z',
+                **({} if mode == 'missing' else {'lastLoginTime': recent if mode in ('new', 'recent') else '2025-01-01T00:00:00Z'})}
+        return {}
+    transport = NativeDataFixtureTransport(resolve)
+    result = gcp.GCPCollector(connector(['workspace_user', KIND], scopes=[scope],
+        workspace_customers=[customer]), transport=transport).collect()
+    report = hydrate_frameworks(evaluate_snapshot(result, categories=['hardening'], checks=[USER]))
+    finding = json.loads(json.dumps(report))['findings'][0]
+    assert finding['status'] == expected, finding['evidence']
+    assert finding['service'] == 'admin.googleapis.com'
+    assert 'HackTricks Cloud Best Practices' in finding['frameworks']
+    if mode == 'old':
+        assert finding['evidence']['last_recorded_login'].startswith('2025-01-01')
+    assert sum(request['url'] == USERS+'/'+uid for request in transport.requests) == int(mode != 'suspended')
+
+
+@pytest.mark.parametrize('workforce,numeric_alias', [(False, False), (False, True), (True, False)])
+def test_unused_federation_pool_collector_to_hardening(workforce, numeric_alias):
+    from peaso.engine import evaluate_snapshot, hydrate_frameworks
+    from peaso.unused_iam_gcp_directory import WORKLOAD, WORKFORCE
+    scope = 'organizations/123456789012' if workforce else 'projects/usage-project'
+    kind, child = ('workforce_pool', 'workforce_provider') if workforce else ('workload_identity_pool', 'workload_identity_provider')
+    name = ('locations/global/workforcePools/synthetic' if workforce else
+            ('projects/987654321012' if numeric_alias else scope)+'/locations/global/workloadIdentityPools/synthetic')
+    def resolve(request):
+        url = request['url']
+        if url == 'https://cloudresourcemanager.googleapis.com/v3/'+scope:
+            return {'name': 'projects/987654321012', 'projectId': 'usage-project'}
+        if url.endswith('/workforcePools'):
+            assert request['params']['parent'] == scope
+            return {'workforcePools': [{'name': name, 'parent': scope, 'state': 'ACTIVE'}]}
+        if url.endswith('/workloadIdentityPools'):
+            return {'workloadIdentityPools': [{'name': name, 'state': 'ACTIVE'}]}
+        if url.endswith('/providers'):
+            assert url == 'https://iam.googleapis.com/v1/'+name+'/providers'
+            return {'workforcePoolProviders' if workforce else 'workloadIdentityPoolProviders': []}
+        return {}
+    transport = NativeDataFixtureTransport(resolve)
+    result = gcp.GCPCollector(connector([kind, child], scopes=[scope]), transport=transport).collect()
+    report = hydrate_frameworks(evaluate_snapshot(result, categories=['hardening'], checks=[WORKFORCE if workforce else WORKLOAD]))
+    finding = json.loads(json.dumps(report))['findings'][0]
+    assert finding['status'] == 'FAIL', finding['evidence']
+    assert finding['service'] == 'iam.googleapis.com'
+    assert finding['evidence']['pool_name'] == name
+    assert 'HackTricks Cloud Best Practices' in finding['frameworks']
+
+
+def test_unused_directory_parallel_reads_preserve_other_users_when_one_get_is_denied():
+    from peaso.engine import evaluate_snapshot
+    from peaso.unused_iam_gcp_directory import USER
+    from peaso.gcp_directory_usage_contract import KIND, USERS
+    scope, org, customer = 'projects/usage-project', 'organizations/123456789012', 'Csynthetic'
+    users = [{'id': uid, 'customerId': customer, 'primaryEmail': uid+'@example.test', 'suspended': False, 'archived': False}
+             for uid in ('123456789012345678901', '123456789012345678902')]
+    def resolve(request):
+        url = request['url']
+        if url == 'https://cloudresourcemanager.googleapis.com/v3/'+scope:
+            return {'name': 'projects/987654321012', 'projectId': 'usage-project', 'parent': org}
+        if url == 'https://cloudresourcemanager.googleapis.com/v3/'+org:
+            return {'name': org, 'directoryCustomerId': customer}
+        if url == USERS:
+            return {'users': users}
+        for user in users:
+            if url == USERS+'/'+user['id']:
+                if user['id'].endswith('2'):
+                    raise gcp.ReadError('denied', 'api_error', http_status=403)
+                return {**user, 'creationTime': '2024-01-01T00:00:00Z', 'lastLoginTime': '2025-01-01T00:00:00Z'}
+        return {}
+    transport = NativeDataFixtureTransport(resolve)
+    result = gcp.GCPCollector(connector(['workspace_user', KIND], scopes=[scope],
+        workspace_customers=[customer], concurrency=2), transport=transport).collect()
+    report = evaluate_snapshot(result, categories=['hardening'], checks=[USER])
+    statuses = {row['resource_name']: row['status'] for row in report['findings']}
+    assert statuses == {f'customers/{customer}/workspace_user/{users[0]["id"]}': 'FAIL',
+                        f'customers/{customer}/workspace_user/{users[1]["id"]}': 'DENIED'}
+    assert len(transport.requests) == 5
+
+
+@pytest.mark.parametrize('hmac', [False, True])
+@pytest.mark.parametrize('mode,expected', [('old', 'FAIL'), ('recent', 'PASS'), ('empty', 'UNKNOWN'),
+    ('failed', 'UNKNOWN'), ('denied', 'DENIED'), ('pagination', 'PASS'), ('partial', 'UNKNOWN'), ('foreign', 'UNKNOWN')])
+def test_recorded_key_usage_collector_to_hardening(hmac, mode, expected):
+    from datetime import datetime, timedelta, timezone
+    from peaso.engine import evaluate_snapshot, hydrate_frameworks
+    from peaso.unused_iam_gcp_keys import API_CHECK, HMAC_CHECK
+    from peaso.gcp_key_usage_contract import API, HMAC, PARENTS, METRICS, RESOURCES
+    kind = HMAC if hmac else API
+    scope, ident = 'projects/usage-project', 'GOOG1syntheticPublicAccessId' if hmac else 'synthetic-key-uid'
+    now = datetime.now(timezone.utc)
+    def counts(recent=False):
+        start = now-timedelta(days=3 if recent else 180)
+        labels = {'response_code_class': '4xx' if mode == 'failed' else '2xx'} if not hmac else {
+            'access_id': ident, 'authentication_method': 'HMAC', 'response_code': '403' if mode == 'failed' else '200'}
+        resource = {'project_id': 'foreign-project' if mode == 'foreign' else 'usage-project'}
+        if not hmac: resource['credential_id'] = 'apikey:'+ident
+        return {'metric': {'type': METRICS[kind], 'labels': labels}, 'resource': {'type': RESOURCES[kind], 'labels': resource},
+            'metricKind': 'DELTA', 'valueType': 'INT64', 'points': [{'interval': {'startTime': start.isoformat(),
+                'endTime': (start+timedelta(days=1)).isoformat()}, 'value': {'int64Value': '3'}}]}
+    def resolve(request):
+        url, params = request['url'], request.get('params', {})
+        if url == 'https://cloudresourcemanager.googleapis.com/v3/'+scope:
+            return {'name': 'projects/123456789012', 'projectId': 'usage-project'}
+        if url.endswith('/keys'):
+            assert 'keyString' not in params['fields']
+            return {'keys': [{'name': 'projects/123456789012/locations/global/keys/example', 'uid': ident,
+                'createTime': '2024-01-01T00:00:00Z'}]}
+        if url.endswith('/hmacKeys'):
+            return {'items': [{'accessId': ident, 'projectId': 'usage-project', 'serviceAccountEmail': 'worker@usage-project.iam.gserviceaccount.com',
+                              'state': 'ACTIVE', 'timeCreated': '2024-01-01T00:00:00Z'}]}
+        if url.endswith('/timeSeries'):
+            assert request['method'] == 'GET'
+            assert ident in params['filter'] and 'project="usage-project"' in params['filter']
+            assert params['aggregation.crossSeriesReducer'] == 'REDUCE_SUM'
+            if mode == 'denied': raise gcp.ReadError('denied', 'api_error', http_status=403)
+            if mode == 'empty': return {'timeSeries': []}
+            if mode == 'pagination' and not params.get('pageToken'):
+                return {'timeSeries': [counts()], 'nextPageToken': 'next'}
+            body = {'timeSeries': [counts(mode in ('recent', 'pagination'))]}
+            if mode == 'partial': body['executionErrors'] = [{'code': 14, 'message': 'partial test response'}]
+            return body
+        return {}
+    transport = NativeDataFixtureTransport(resolve)
+    result = gcp.GCPCollector(connector([PARENTS[kind], kind], scopes=[scope]), transport=transport).collect()
+    report = hydrate_frameworks(evaluate_snapshot(result, categories=['hardening'], checks=[HMAC_CHECK if hmac else API_CHECK]))
+    finding = json.loads(json.dumps(report))['findings'][0]
+    assert finding['status'] == expected, finding['evidence']
+    assert 'HackTricks Cloud Best Practices' in finding['frameworks']
+    assert all(request['method'] == 'GET' for request in transport.requests)
+    assert not any('getKeyString' in request['url'] or ':create' in request['url'] for request in transport.requests)
+    if expected == 'FAIL':
+        assert finding['evidence']['days_since_recorded_successful_interval'] >= 178
+        assert finding['evidence']['universal_inactivity_established'] is False
+
+
+def test_hmac_key_usage_reads_only_selected_bucket_projects_and_preserves_independent_use():
+    from datetime import datetime, timedelta, timezone
+    from peaso.engine import evaluate_snapshot
+    from peaso.unused_iam_gcp_keys import HMAC_CHECK
+    from peaso.gcp_key_usage_contract import HMAC, METRICS
+    owner, bucket = 'projects/usage-project', 'projects/bucket-project'
+    ident = 'GOOG1syntheticPublicAccessId'
+    now = datetime.now(timezone.utc)
+    def resolve(request):
+        url, scope = request['url'], request['scope']
+        if url.startswith('https://cloudresourcemanager.googleapis.com/v3/'):
+            project = scope.split('/')[1]
+            return {'name': 'projects/'+('123456789012' if scope == owner else '123456789013'), 'projectId': project}
+        if url.endswith('/hmacKeys'):
+            return {'items': [] if scope == bucket else [{'accessId': ident, 'projectId': 'usage-project',
+                'serviceAccountEmail': 'worker@usage-project.iam.gserviceaccount.com', 'state': 'ACTIVE', 'timeCreated': '2024-01-01T00:00:00Z'}]}
+        if url.endswith('/timeSeries'):
+            assert scope in (owner, bucket)
+            if scope == owner: raise gcp.ReadError('denied', 'api_error', http_status=403)
+            return {'timeSeries': [{'metric': {'type': METRICS[HMAC], 'labels': {'access_id': ident, 'authentication_method': 'HMAC', 'response_code': '200'}},
+                'resource': {'type': 'gcs_bucket', 'labels': {'project_id': 'bucket-project'}}, 'metricKind': 'DELTA', 'valueType': 'INT64',
+                'points': [{'interval': {'startTime': (now-timedelta(days=3)).isoformat(), 'endTime': (now-timedelta(days=2)).isoformat()}, 'value': {'int64Value': '1'}}]}]}
+        return {}
+    transport = NativeDataFixtureTransport(resolve)
+    result = gcp.GCPCollector(connector(['storage_hmac_key', HMAC], scopes=[owner, bucket]), transport=transport).collect()
+    report = evaluate_snapshot(result, categories=['hardening'], checks=[HMAC_CHECK])
+    finding = next(row for row in report['findings'] if row['evidence'].get('credential_id') == ident)
+    assert finding['status'] == 'PASS', finding['evidence']
+    assert finding['evidence']['latest_recorded_successful_interval']['project_scope'] == bucket
+    assert {request['scope'] for request in transport.requests} == {owner, bucket}
+
+
+@pytest.mark.parametrize('org,numeric_alias', [(False, False), (False, True), (True, False)])
+@pytest.mark.parametrize('mode,expected', [('bound', 'PASS'), ('unbound', 'FAIL'), ('filtered', 'UNKNOWN'), ('denied', 'DENIED')])
+def test_custom_role_consumers_require_root_and_complete_resource_policy_inventory(org, numeric_alias, mode, expected):
+    from peaso.engine import evaluate_snapshot, hydrate_frameworks
+    from peaso.unused_iam_gcp_roles import CHECK
+    scope = 'organizations/123456789012' if org else 'projects/usage-project'
+    listed_name = ('projects/987654321012' if numeric_alias else scope)+'/roles/synthetic'
+    granted_name = scope+'/roles/synthetic'
+    role = {'name': listed_name, 'includedPermissions': ['compute.instances.get', 'compute.instances.delete'], 'stage': 'GA'}
+    def resolve(request):
+        url = request['url']
+        if url == 'https://cloudresourcemanager.googleapis.com/v3/'+scope:
+            return {'name': 'projects/987654321012', 'projectId': 'usage-project'}
+        if url == 'https://iam.googleapis.com/v1/'+scope+'/roles':
+            assert request['params']['view'] == 'FULL'
+            return {'roles': [role]}
+        if url == 'https://iam.googleapis.com/v1/'+granted_name:
+            return role
+        if url.endswith(':getIamPolicy'):
+            assert request['body'] == {'options': {'requestedPolicyVersion': 3}}
+            return {'bindings': []}
+        if url.endswith(':searchAllIamPolicies'):
+            assert not request.get('params', {}).get('query')
+            if mode == 'denied': raise gcp.ReadError('denied', 'api_error', http_status=403)
+            if request.get('params', {}).get('pageToken') == 'final':
+                return {'results': [] if mode != 'bound' else [{'resource': '//storage.googleapis.com/example-bucket',
+                    'project': 'projects/987654321012', 'policy': {'bindings': [{'role': granted_name, 'members': ['group:team@example.test']}]}}]}
+            return {'results': [], 'nextPageToken': 'final'}
+        return {}
+    transport = NativeDataFixtureTransport(resolve)
+    result = gcp.GCPCollector(connector(['iam_role', 'iam_policy'], scopes=[scope], resource_iam=mode != 'filtered'), transport=transport).collect()
+    role_collection = collection(result, 'iam_role', scope)
+    assert role_collection['status'] == 'collected', role_collection
+    # A numeric project alias for a listed role must not trigger an extra GET
+    # and falsely classify the same role as a duplicate provider identity.
+    assert not any(request['url'] == 'https://iam.googleapis.com/v1/'+granted_name for request in transport.requests)
+    report = hydrate_frameworks(evaluate_snapshot(result, categories=['hardening'], checks=[CHECK]))
+    finding = json.loads(json.dumps(report))['findings'][0]
+    assert finding['status'] == expected, finding['evidence']
+    assert 'HackTricks Cloud Best Practices' in finding['frameworks']
+    if expected == 'FAIL': assert finding['evidence']['included_permissions'] == role['includedPermissions']
+
 
 
 def test_backend_service_collects_healthy_vm_identity_without_guessing_group_members():

@@ -2838,6 +2838,8 @@ EXTENSION_MODULES += ("peaso.collectors.aws_network_inventory",)
 for _extension in EXTENSION_MODULES:
     _load_metadata_extension(_extension)
 
+_load_metadata_extension("peaso.collectors.unused_iam_aws_completion")
+
 # Explicit selected S3 source profile; never a generic listing/read fallback.
 SPECS['s3_selected_source_content'] = ('s3', 'head_object', None)
 SPECS['ecs_selected_environment_file_content'] = ('ecs', 'describe_task_definition', None)

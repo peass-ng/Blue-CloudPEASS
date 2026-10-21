@@ -1,0 +1,1336 @@
+{
+  "azure.network.nic_has_owner_reference": {
+    "fail": {
+      "_provenance": {
+        "api_version": "2025-07-01",
+        "read_only": true,
+        "representation": "full",
+        "source_operation": "get"
+      },
+      "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/example",
+      "name": "example",
+      "properties": {},
+      "type": "Microsoft.Network/networkInterfaces"
+    },
+    "fail_index": {
+      "collections": {
+        "nic": [
+          {
+            "items": [
+              {
+                "_provenance": {
+                  "api_version": "2025-07-01",
+                  "read_only": true,
+                  "representation": "full",
+                  "source_operation": "get"
+                },
+                "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/example",
+                "name": "example",
+                "properties": {},
+                "type": "Microsoft.Network/networkInterfaces"
+              }
+            ],
+            "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+            "service": "Microsoft.Network",
+            "status": "collected",
+            "type": "nic"
+          }
+        ]
+      },
+      "context": {
+        "provider": "azure",
+        "scope": "/subscriptions/00000000-1111-2222-3333-444444444444"
+      },
+      "nic": [
+        {
+          "data": {
+            "_provenance": {
+              "api_version": "2025-07-01",
+              "read_only": true,
+              "representation": "full",
+              "source_operation": "get"
+            },
+            "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/example",
+            "name": "example",
+            "properties": {},
+            "type": "Microsoft.Network/networkInterfaces"
+          },
+          "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+          "type": "nic"
+        }
+      ]
+    },
+    "index": {
+      "collections": {
+        "nic": [
+          {
+            "items": [
+              {
+                "_provenance": {
+                  "api_version": "2025-07-01",
+                  "read_only": true,
+                  "representation": "full",
+                  "source_operation": "get"
+                },
+                "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/example",
+                "name": "example",
+                "properties": {},
+                "type": "Microsoft.Network/networkInterfaces"
+              }
+            ],
+            "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+            "service": "Microsoft.Network",
+            "status": "collected",
+            "type": "nic"
+          }
+        ]
+      },
+      "context": {
+        "provider": "azure",
+        "scope": "/subscriptions/00000000-1111-2222-3333-444444444444"
+      },
+      "nic": [
+        {
+          "data": {
+            "_provenance": {
+              "api_version": "2025-07-01",
+              "read_only": true,
+              "representation": "full",
+              "source_operation": "get"
+            },
+            "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/example",
+            "name": "example",
+            "properties": {},
+            "type": "Microsoft.Network/networkInterfaces"
+          },
+          "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+          "type": "nic"
+        }
+      ]
+    },
+    "pass": {
+      "_provenance": {
+        "api_version": "2025-07-01",
+        "read_only": true,
+        "representation": "full",
+        "source_operation": "get"
+      },
+      "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/example",
+      "name": "example",
+      "properties": {
+        "virtualMachine": {
+          "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm"
+        }
+      },
+      "type": "Microsoft.Network/networkInterfaces"
+    },
+    "pass_index": {
+      "collections": {
+        "nic": [
+          {
+            "items": [
+              {
+                "_provenance": {
+                  "api_version": "2025-07-01",
+                  "read_only": true,
+                  "representation": "full",
+                  "source_operation": "get"
+                },
+                "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/example",
+                "name": "example",
+                "properties": {
+                  "virtualMachine": {
+                    "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm"
+                  }
+                },
+                "type": "Microsoft.Network/networkInterfaces"
+              }
+            ],
+            "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+            "service": "Microsoft.Network",
+            "status": "collected",
+            "type": "nic"
+          }
+        ]
+      },
+      "context": {
+        "provider": "azure",
+        "scope": "/subscriptions/00000000-1111-2222-3333-444444444444"
+      },
+      "nic": [
+        {
+          "data": {
+            "_provenance": {
+              "api_version": "2025-07-01",
+              "read_only": true,
+              "representation": "full",
+              "source_operation": "get"
+            },
+            "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/example",
+            "name": "example",
+            "properties": {
+              "virtualMachine": {
+                "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm"
+              }
+            },
+            "type": "Microsoft.Network/networkInterfaces"
+          },
+          "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+          "type": "nic"
+        }
+      ]
+    }
+  },
+  "azure.network.route_table_has_subnet_reference": {
+    "fail": {
+      "_provenance": {
+        "api_version": "2025-07-01",
+        "read_only": true,
+        "representation": "full",
+        "source_operation": "get"
+      },
+      "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/routeTables/example",
+      "name": "example",
+      "properties": {
+        "subnets": []
+      },
+      "type": "Microsoft.Network/routeTables"
+    },
+    "fail_index": {
+      "collections": {
+        "route_table": [
+          {
+            "items": [
+              {
+                "_provenance": {
+                  "api_version": "2025-07-01",
+                  "read_only": true,
+                  "representation": "full",
+                  "source_operation": "get"
+                },
+                "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/routeTables/example",
+                "name": "example",
+                "properties": {
+                  "subnets": []
+                },
+                "type": "Microsoft.Network/routeTables"
+              }
+            ],
+            "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+            "service": "Microsoft.Network",
+            "status": "collected",
+            "type": "route_table"
+          }
+        ]
+      },
+      "context": {
+        "provider": "azure",
+        "scope": "/subscriptions/00000000-1111-2222-3333-444444444444"
+      },
+      "route_table": [
+        {
+          "data": {
+            "_provenance": {
+              "api_version": "2025-07-01",
+              "read_only": true,
+              "representation": "full",
+              "source_operation": "get"
+            },
+            "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/routeTables/example",
+            "name": "example",
+            "properties": {
+              "subnets": []
+            },
+            "type": "Microsoft.Network/routeTables"
+          },
+          "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+          "type": "route_table"
+        }
+      ]
+    },
+    "index": {
+      "collections": {
+        "route_table": [
+          {
+            "items": [
+              {
+                "_provenance": {
+                  "api_version": "2025-07-01",
+                  "read_only": true,
+                  "representation": "full",
+                  "source_operation": "get"
+                },
+                "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/routeTables/example",
+                "name": "example",
+                "properties": {
+                  "subnets": []
+                },
+                "type": "Microsoft.Network/routeTables"
+              }
+            ],
+            "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+            "service": "Microsoft.Network",
+            "status": "collected",
+            "type": "route_table"
+          }
+        ]
+      },
+      "context": {
+        "provider": "azure",
+        "scope": "/subscriptions/00000000-1111-2222-3333-444444444444"
+      },
+      "route_table": [
+        {
+          "data": {
+            "_provenance": {
+              "api_version": "2025-07-01",
+              "read_only": true,
+              "representation": "full",
+              "source_operation": "get"
+            },
+            "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/routeTables/example",
+            "name": "example",
+            "properties": {
+              "subnets": []
+            },
+            "type": "Microsoft.Network/routeTables"
+          },
+          "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+          "type": "route_table"
+        }
+      ]
+    },
+    "pass": {
+      "_provenance": {
+        "api_version": "2025-07-01",
+        "read_only": true,
+        "representation": "full",
+        "source_operation": "get"
+      },
+      "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/routeTables/example",
+      "name": "example",
+      "properties": {
+        "subnets": [
+          {
+            "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v/subnets/s"
+          }
+        ]
+      },
+      "type": "Microsoft.Network/routeTables"
+    },
+    "pass_index": {
+      "collections": {
+        "route_table": [
+          {
+            "items": [
+              {
+                "_provenance": {
+                  "api_version": "2025-07-01",
+                  "read_only": true,
+                  "representation": "full",
+                  "source_operation": "get"
+                },
+                "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/routeTables/example",
+                "name": "example",
+                "properties": {
+                  "subnets": [
+                    {
+                      "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v/subnets/s"
+                    }
+                  ]
+                },
+                "type": "Microsoft.Network/routeTables"
+              }
+            ],
+            "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+            "service": "Microsoft.Network",
+            "status": "collected",
+            "type": "route_table"
+          }
+        ]
+      },
+      "context": {
+        "provider": "azure",
+        "scope": "/subscriptions/00000000-1111-2222-3333-444444444444"
+      },
+      "route_table": [
+        {
+          "data": {
+            "_provenance": {
+              "api_version": "2025-07-01",
+              "read_only": true,
+              "representation": "full",
+              "source_operation": "get"
+            },
+            "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/routeTables/example",
+            "name": "example",
+            "properties": {
+              "subnets": [
+                {
+                  "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v/subnets/s"
+                }
+              ]
+            },
+            "type": "Microsoft.Network/routeTables"
+          },
+          "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+          "type": "route_table"
+        }
+      ]
+    }
+  },
+  "azure.network.public_ip_has_network_reference": {
+    "fail": {
+      "_provenance": {
+        "api_version": "2025-07-01",
+        "read_only": true,
+        "representation": "full",
+        "source_operation": "get"
+      },
+      "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/example",
+      "name": "example",
+      "properties": {
+        "provisioningState": "Succeeded"
+      },
+      "type": "Microsoft.Network/publicIPAddresses"
+    },
+    "fail_index": {
+      "collections": {
+        "public_ip": [
+          {
+            "items": [
+              {
+                "_provenance": {
+                  "api_version": "2025-07-01",
+                  "read_only": true,
+                  "representation": "full",
+                  "source_operation": "get"
+                },
+                "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/example",
+                "name": "example",
+                "properties": {
+                  "provisioningState": "Succeeded"
+                },
+                "type": "Microsoft.Network/publicIPAddresses"
+              }
+            ],
+            "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+            "service": "Microsoft.Network",
+            "status": "collected",
+            "type": "public_ip"
+          }
+        ]
+      },
+      "context": {
+        "provider": "azure",
+        "scope": "/subscriptions/00000000-1111-2222-3333-444444444444"
+      },
+      "public_ip": [
+        {
+          "data": {
+            "_provenance": {
+              "api_version": "2025-07-01",
+              "read_only": true,
+              "representation": "full",
+              "source_operation": "get"
+            },
+            "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/example",
+            "name": "example",
+            "properties": {
+              "provisioningState": "Succeeded"
+            },
+            "type": "Microsoft.Network/publicIPAddresses"
+          },
+          "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+          "type": "public_ip"
+        }
+      ]
+    },
+    "index": {
+      "collections": {
+        "public_ip": [
+          {
+            "items": [
+              {
+                "_provenance": {
+                  "api_version": "2025-07-01",
+                  "read_only": true,
+                  "representation": "full",
+                  "source_operation": "get"
+                },
+                "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/example",
+                "name": "example",
+                "properties": {
+                  "provisioningState": "Succeeded"
+                },
+                "type": "Microsoft.Network/publicIPAddresses"
+              }
+            ],
+            "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+            "service": "Microsoft.Network",
+            "status": "collected",
+            "type": "public_ip"
+          }
+        ]
+      },
+      "context": {
+        "provider": "azure",
+        "scope": "/subscriptions/00000000-1111-2222-3333-444444444444"
+      },
+      "public_ip": [
+        {
+          "data": {
+            "_provenance": {
+              "api_version": "2025-07-01",
+              "read_only": true,
+              "representation": "full",
+              "source_operation": "get"
+            },
+            "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/example",
+            "name": "example",
+            "properties": {
+              "provisioningState": "Succeeded"
+            },
+            "type": "Microsoft.Network/publicIPAddresses"
+          },
+          "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+          "type": "public_ip"
+        }
+      ]
+    },
+    "pass": {
+      "_provenance": {
+        "api_version": "2025-07-01",
+        "read_only": true,
+        "representation": "full",
+        "source_operation": "get"
+      },
+      "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/example",
+      "name": "example",
+      "properties": {
+        "provisioningState": "Succeeded",
+        "ipConfiguration": {
+          "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic/ipConfigurations/default"
+        }
+      },
+      "type": "Microsoft.Network/publicIPAddresses"
+    },
+    "pass_index": {
+      "collections": {
+        "public_ip": [
+          {
+            "items": [
+              {
+                "_provenance": {
+                  "api_version": "2025-07-01",
+                  "read_only": true,
+                  "representation": "full",
+                  "source_operation": "get"
+                },
+                "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/example",
+                "name": "example",
+                "properties": {
+                  "provisioningState": "Succeeded",
+                  "ipConfiguration": {
+                    "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic/ipConfigurations/default"
+                  }
+                },
+                "type": "Microsoft.Network/publicIPAddresses"
+              }
+            ],
+            "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+            "service": "Microsoft.Network",
+            "status": "collected",
+            "type": "public_ip"
+          }
+        ]
+      },
+      "context": {
+        "provider": "azure",
+        "scope": "/subscriptions/00000000-1111-2222-3333-444444444444"
+      },
+      "public_ip": [
+        {
+          "data": {
+            "_provenance": {
+              "api_version": "2025-07-01",
+              "read_only": true,
+              "representation": "full",
+              "source_operation": "get"
+            },
+            "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/example",
+            "name": "example",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "ipConfiguration": {
+                "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic/ipConfigurations/default"
+              }
+            },
+            "type": "Microsoft.Network/publicIPAddresses"
+          },
+          "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+          "type": "public_ip"
+        }
+      ]
+    }
+  },
+  "azure.network.subnet_has_consumer_or_reservation_reference": {
+    "fail": {
+      "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v/subnets/example",
+      "name": "example",
+      "type": "Microsoft.Network/virtualNetworks/subnets",
+      "properties": {
+        "provisioningState": "Succeeded",
+        "addressPrefix": "10.1.0.0/24"
+      },
+      "_provenance": {
+        "api_version": "2023-09-01",
+        "read_only": true,
+        "representation": "full",
+        "source_operation": "get",
+        "credential_context_id": "abcdef1234567890abcdef1234567890",
+        "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+        "metadata": {
+          "collection": "read-only",
+          "credential_context_id": "abcdef1234567890abcdef1234567890",
+          "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+        }
+      },
+      "collections": {
+        "vnet": [
+          {
+            "type": "vnet",
+            "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+            "service": "Microsoft.Network",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v",
+                "name": "v",
+                "type": "Microsoft.Network/virtualNetworks",
+                "properties": {
+                  "subnets": [
+                    {
+                      "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v/subnets/example"
+                    }
+                  ]
+                },
+                "_provenance": {
+                  "api_version": "2023-09-01",
+                  "read_only": true,
+                  "representation": "full",
+                  "source_operation": "get",
+                  "credential_context_id": "abcdef1234567890abcdef1234567890",
+                  "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+                }
+              }
+            ],
+            "_provenance": {
+              "credential_context_id": "abcdef1234567890abcdef1234567890",
+              "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+            }
+          }
+        ],
+        "subnet": [
+          {
+            "type": "subnet",
+            "scope": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v",
+            "service": "Microsoft.Network",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v/subnets/example",
+                "name": "example",
+                "type": "Microsoft.Network/virtualNetworks/subnets",
+                "properties": {
+                  "provisioningState": "Succeeded",
+                  "addressPrefix": "10.1.0.0/24"
+                },
+                "_provenance": {
+                  "api_version": "2023-09-01",
+                  "read_only": true,
+                  "representation": "full",
+                  "source_operation": "get",
+                  "credential_context_id": "abcdef1234567890abcdef1234567890",
+                  "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+                }
+              }
+            ],
+            "_provenance": {
+              "credential_context_id": "abcdef1234567890abcdef1234567890",
+              "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+            }
+          }
+        ]
+      },
+      "vnet": [
+        {
+          "type": "vnet",
+          "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+          "data": {
+            "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v",
+            "name": "v",
+            "type": "Microsoft.Network/virtualNetworks",
+            "properties": {
+              "subnets": [
+                {
+                  "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v/subnets/example"
+                }
+              ]
+            },
+            "_provenance": {
+              "api_version": "2023-09-01",
+              "read_only": true,
+              "representation": "full",
+              "source_operation": "get",
+              "credential_context_id": "abcdef1234567890abcdef1234567890",
+              "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+            }
+          }
+        }
+      ],
+      "subnet": [
+        {
+          "type": "subnet",
+          "scope": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v",
+          "data": {
+            "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v/subnets/example",
+            "name": "example",
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "addressPrefix": "10.1.0.0/24"
+            },
+            "_provenance": {
+              "api_version": "2023-09-01",
+              "read_only": true,
+              "representation": "full",
+              "source_operation": "get",
+              "credential_context_id": "abcdef1234567890abcdef1234567890",
+              "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+            }
+          }
+        }
+      ]
+    },
+    "pass": {
+      "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v/subnets/example",
+      "name": "example",
+      "type": "Microsoft.Network/virtualNetworks/subnets",
+      "properties": {
+        "provisioningState": "Succeeded",
+        "addressPrefix": "10.1.0.0/24",
+        "ipConfigurations": [
+          {
+            "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/n/ipConfigurations/default"
+          }
+        ]
+      },
+      "_provenance": {
+        "api_version": "2023-09-01",
+        "read_only": true,
+        "representation": "full",
+        "source_operation": "get",
+        "credential_context_id": "abcdef1234567890abcdef1234567890",
+        "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+        "metadata": {
+          "collection": "read-only",
+          "credential_context_id": "abcdef1234567890abcdef1234567890",
+          "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+        }
+      },
+      "collections": {
+        "vnet": [
+          {
+            "type": "vnet",
+            "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+            "service": "Microsoft.Network",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v",
+                "name": "v",
+                "type": "Microsoft.Network/virtualNetworks",
+                "properties": {
+                  "subnets": [
+                    {
+                      "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v/subnets/example"
+                    }
+                  ]
+                },
+                "_provenance": {
+                  "api_version": "2023-09-01",
+                  "read_only": true,
+                  "representation": "full",
+                  "source_operation": "get",
+                  "credential_context_id": "abcdef1234567890abcdef1234567890",
+                  "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+                }
+              }
+            ],
+            "_provenance": {
+              "credential_context_id": "abcdef1234567890abcdef1234567890",
+              "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+            }
+          }
+        ],
+        "subnet": [
+          {
+            "type": "subnet",
+            "scope": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v",
+            "service": "Microsoft.Network",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v/subnets/example",
+                "name": "example",
+                "type": "Microsoft.Network/virtualNetworks/subnets",
+                "properties": {
+                  "provisioningState": "Succeeded",
+                  "addressPrefix": "10.1.0.0/24",
+                  "ipConfigurations": [
+                    {
+                      "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/n/ipConfigurations/default"
+                    }
+                  ]
+                },
+                "_provenance": {
+                  "api_version": "2023-09-01",
+                  "read_only": true,
+                  "representation": "full",
+                  "source_operation": "get",
+                  "credential_context_id": "abcdef1234567890abcdef1234567890",
+                  "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+                }
+              }
+            ],
+            "_provenance": {
+              "credential_context_id": "abcdef1234567890abcdef1234567890",
+              "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+            }
+          }
+        ]
+      },
+      "vnet": [
+        {
+          "type": "vnet",
+          "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+          "data": {
+            "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v",
+            "name": "v",
+            "type": "Microsoft.Network/virtualNetworks",
+            "properties": {
+              "subnets": [
+                {
+                  "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v/subnets/example"
+                }
+              ]
+            },
+            "_provenance": {
+              "api_version": "2023-09-01",
+              "read_only": true,
+              "representation": "full",
+              "source_operation": "get",
+              "credential_context_id": "abcdef1234567890abcdef1234567890",
+              "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+            }
+          }
+        }
+      ],
+      "subnet": [
+        {
+          "type": "subnet",
+          "scope": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v",
+          "data": {
+            "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v/subnets/example",
+            "name": "example",
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "addressPrefix": "10.1.0.0/24",
+              "ipConfigurations": [
+                {
+                  "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/n/ipConfigurations/default"
+                }
+              ]
+            },
+            "_provenance": {
+              "api_version": "2023-09-01",
+              "read_only": true,
+              "representation": "full",
+              "source_operation": "get",
+              "credential_context_id": "abcdef1234567890abcdef1234567890",
+              "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+            }
+          }
+        }
+      ]
+    },
+    "index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+        "metadata": {
+          "collection": "read-only",
+          "credential_context_id": "abcdef1234567890abcdef1234567890",
+          "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+        }
+      },
+      "collections": {
+        "vnet": [
+          {
+            "type": "vnet",
+            "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+            "service": "Microsoft.Network",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v",
+                "name": "v",
+                "type": "Microsoft.Network/virtualNetworks",
+                "properties": {
+                  "subnets": [
+                    {
+                      "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v/subnets/example"
+                    }
+                  ]
+                },
+                "_provenance": {
+                  "api_version": "2023-09-01",
+                  "read_only": true,
+                  "representation": "full",
+                  "source_operation": "get",
+                  "credential_context_id": "abcdef1234567890abcdef1234567890",
+                  "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+                }
+              }
+            ],
+            "_provenance": {
+              "credential_context_id": "abcdef1234567890abcdef1234567890",
+              "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+            }
+          }
+        ],
+        "subnet": [
+          {
+            "type": "subnet",
+            "scope": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v",
+            "service": "Microsoft.Network",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v/subnets/example",
+                "name": "example",
+                "type": "Microsoft.Network/virtualNetworks/subnets",
+                "properties": {
+                  "provisioningState": "Succeeded",
+                  "addressPrefix": "10.1.0.0/24"
+                },
+                "_provenance": {
+                  "api_version": "2023-09-01",
+                  "read_only": true,
+                  "representation": "full",
+                  "source_operation": "get",
+                  "credential_context_id": "abcdef1234567890abcdef1234567890",
+                  "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+                }
+              }
+            ],
+            "_provenance": {
+              "credential_context_id": "abcdef1234567890abcdef1234567890",
+              "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+            }
+          }
+        ]
+      },
+      "vnet": [
+        {
+          "type": "vnet",
+          "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+          "data": {
+            "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v",
+            "name": "v",
+            "type": "Microsoft.Network/virtualNetworks",
+            "properties": {
+              "subnets": [
+                {
+                  "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v/subnets/example"
+                }
+              ]
+            },
+            "_provenance": {
+              "api_version": "2023-09-01",
+              "read_only": true,
+              "representation": "full",
+              "source_operation": "get",
+              "credential_context_id": "abcdef1234567890abcdef1234567890",
+              "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+            }
+          }
+        }
+      ],
+      "subnet": [
+        {
+          "type": "subnet",
+          "scope": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v",
+          "data": {
+            "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/v/subnets/example",
+            "name": "example",
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "addressPrefix": "10.1.0.0/24"
+            },
+            "_provenance": {
+              "api_version": "2023-09-01",
+              "read_only": true,
+              "representation": "full",
+              "source_operation": "get",
+              "credential_context_id": "abcdef1234567890abcdef1234567890",
+              "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "azure.network.load_balancer_backend_pools_have_declaration_or_consumer": {
+    "fail": {
+      "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/loadBalancers/lb",
+      "name": "lb",
+      "type": "Microsoft.Network/loadBalancers",
+      "properties": {
+        "provisioningState": "Succeeded",
+        "backendAddressPools": [
+          {
+            "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/loadBalancers/lb/backendAddressPools/example",
+            "name": "example",
+            "properties": {}
+          }
+        ],
+        "loadBalancingRules": [],
+        "outboundRules": [],
+        "inboundNatRules": []
+      },
+      "_provenance": {
+        "api_version": "2023-09-01",
+        "read_only": true,
+        "representation": "full",
+        "source_operation": "get",
+        "credential_context_id": "abcdef1234567890abcdef1234567890",
+        "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+        "metadata": {
+          "collection": "read-only",
+          "credential_context_id": "abcdef1234567890abcdef1234567890",
+          "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+        }
+      },
+      "collections": {
+        "load_balancer": [
+          {
+            "type": "load_balancer",
+            "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+            "service": "Microsoft.Network",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/loadBalancers/lb",
+                "name": "lb",
+                "type": "Microsoft.Network/loadBalancers",
+                "properties": {
+                  "provisioningState": "Succeeded",
+                  "backendAddressPools": [
+                    {
+                      "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/loadBalancers/lb/backendAddressPools/example",
+                      "name": "example",
+                      "properties": {}
+                    }
+                  ],
+                  "loadBalancingRules": [],
+                  "outboundRules": [],
+                  "inboundNatRules": []
+                },
+                "_provenance": {
+                  "api_version": "2023-09-01",
+                  "read_only": true,
+                  "representation": "full",
+                  "source_operation": "get",
+                  "credential_context_id": "abcdef1234567890abcdef1234567890",
+                  "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+                }
+              }
+            ],
+            "_provenance": {
+              "credential_context_id": "abcdef1234567890abcdef1234567890",
+              "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+            }
+          }
+        ]
+      },
+      "load_balancer": [
+        {
+          "type": "load_balancer",
+          "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+          "data": {
+            "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/loadBalancers/lb",
+            "name": "lb",
+            "type": "Microsoft.Network/loadBalancers",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "backendAddressPools": [
+                {
+                  "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/loadBalancers/lb/backendAddressPools/example",
+                  "name": "example",
+                  "properties": {}
+                }
+              ],
+              "loadBalancingRules": [],
+              "outboundRules": [],
+              "inboundNatRules": []
+            },
+            "_provenance": {
+              "api_version": "2023-09-01",
+              "read_only": true,
+              "representation": "full",
+              "source_operation": "get",
+              "credential_context_id": "abcdef1234567890abcdef1234567890",
+              "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+            }
+          }
+        }
+      ]
+    },
+    "pass": {
+      "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/loadBalancers/lb",
+      "name": "lb",
+      "type": "Microsoft.Network/loadBalancers",
+      "properties": {
+        "provisioningState": "Succeeded",
+        "backendAddressPools": [
+          {
+            "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/loadBalancers/lb/backendAddressPools/example",
+            "name": "example",
+            "properties": {
+              "backendIPConfigurations": [
+                {
+                  "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/n/ipConfigurations/default"
+                }
+              ]
+            }
+          }
+        ],
+        "loadBalancingRules": [],
+        "outboundRules": [],
+        "inboundNatRules": []
+      },
+      "_provenance": {
+        "api_version": "2023-09-01",
+        "read_only": true,
+        "representation": "full",
+        "source_operation": "get",
+        "credential_context_id": "abcdef1234567890abcdef1234567890",
+        "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+        "metadata": {
+          "collection": "read-only",
+          "credential_context_id": "abcdef1234567890abcdef1234567890",
+          "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+        }
+      },
+      "collections": {
+        "load_balancer": [
+          {
+            "type": "load_balancer",
+            "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+            "service": "Microsoft.Network",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/loadBalancers/lb",
+                "name": "lb",
+                "type": "Microsoft.Network/loadBalancers",
+                "properties": {
+                  "provisioningState": "Succeeded",
+                  "backendAddressPools": [
+                    {
+                      "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/loadBalancers/lb/backendAddressPools/example",
+                      "name": "example",
+                      "properties": {
+                        "backendIPConfigurations": [
+                          {
+                            "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/n/ipConfigurations/default"
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "loadBalancingRules": [],
+                  "outboundRules": [],
+                  "inboundNatRules": []
+                },
+                "_provenance": {
+                  "api_version": "2023-09-01",
+                  "read_only": true,
+                  "representation": "full",
+                  "source_operation": "get",
+                  "credential_context_id": "abcdef1234567890abcdef1234567890",
+                  "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+                }
+              }
+            ],
+            "_provenance": {
+              "credential_context_id": "abcdef1234567890abcdef1234567890",
+              "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+            }
+          }
+        ]
+      },
+      "load_balancer": [
+        {
+          "type": "load_balancer",
+          "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+          "data": {
+            "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/loadBalancers/lb",
+            "name": "lb",
+            "type": "Microsoft.Network/loadBalancers",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "backendAddressPools": [
+                {
+                  "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/loadBalancers/lb/backendAddressPools/example",
+                  "name": "example",
+                  "properties": {
+                    "backendIPConfigurations": [
+                      {
+                        "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/n/ipConfigurations/default"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "loadBalancingRules": [],
+              "outboundRules": [],
+              "inboundNatRules": []
+            },
+            "_provenance": {
+              "api_version": "2023-09-01",
+              "read_only": true,
+              "representation": "full",
+              "source_operation": "get",
+              "credential_context_id": "abcdef1234567890abcdef1234567890",
+              "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+            }
+          }
+        }
+      ]
+    },
+    "index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+        "metadata": {
+          "collection": "read-only",
+          "credential_context_id": "abcdef1234567890abcdef1234567890",
+          "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+        }
+      },
+      "collections": {
+        "load_balancer": [
+          {
+            "type": "load_balancer",
+            "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+            "service": "Microsoft.Network",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/loadBalancers/lb",
+                "name": "lb",
+                "type": "Microsoft.Network/loadBalancers",
+                "properties": {
+                  "provisioningState": "Succeeded",
+                  "backendAddressPools": [
+                    {
+                      "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/loadBalancers/lb/backendAddressPools/example",
+                      "name": "example",
+                      "properties": {}
+                    }
+                  ],
+                  "loadBalancingRules": [],
+                  "outboundRules": [],
+                  "inboundNatRules": []
+                },
+                "_provenance": {
+                  "api_version": "2023-09-01",
+                  "read_only": true,
+                  "representation": "full",
+                  "source_operation": "get",
+                  "credential_context_id": "abcdef1234567890abcdef1234567890",
+                  "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+                }
+              }
+            ],
+            "_provenance": {
+              "credential_context_id": "abcdef1234567890abcdef1234567890",
+              "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+            }
+          }
+        ]
+      },
+      "load_balancer": [
+        {
+          "type": "load_balancer",
+          "scope": "/subscriptions/00000000-1111-2222-3333-444444444444",
+          "data": {
+            "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/loadBalancers/lb",
+            "name": "lb",
+            "type": "Microsoft.Network/loadBalancers",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "backendAddressPools": [
+                {
+                  "id": "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/rg/providers/Microsoft.Network/loadBalancers/lb/backendAddressPools/example",
+                  "name": "example",
+                  "properties": {}
+                }
+              ],
+              "loadBalancingRules": [],
+              "outboundRules": [],
+              "inboundNatRules": []
+            },
+            "_provenance": {
+              "api_version": "2023-09-01",
+              "read_only": true,
+              "representation": "full",
+              "source_operation": "get",
+              "credential_context_id": "abcdef1234567890abcdef1234567890",
+              "customer_context_id": "scan-local:abcdef1234567890abcdef1234567890"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

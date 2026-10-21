@@ -1329,6 +1329,7 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
         if code is not None:
             coverage[-1]["error_code"] = code
     scoped_indexes = {}
+    evaluation_metadata = freeze(snapshot.get("metadata", {}))
     native_ids = {resource["id"]: resource["native_id"] for resource in inventory}
     by_scope = defaultdict(list)
     for resource in inventory:
@@ -1392,9 +1393,14 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
             resource_scopes = {(c["type"], c["scope"]) for c in selected_collections}
             # MemoIndex: joins that checks derive from this read-only index are computed once per scope.
             scoped_indexes[scope] = MemoIndex({kind: [r for r in rows if (r["type"], r["scope"]) in resource_scopes] for kind, rows in index.items() if kind != "collections"})
+            # Cross-scope joins over one immutable snapshot can reuse the first
+            # existing memo; ordinary collection joins remain scope-local.
+            first_index = next(iter(scoped_indexes.values()))
+            if first_index is not scoped_indexes[scope]:
+                scoped_indexes[scope].memo[("_shared_snapshot_memo",)] = first_index.memo
             scoped_indexes[scope]["collections"] = {kind: [c for c in rows if relevant(c)] for kind, rows in index["collections"].items()}
             context = {"provider": provider, "scope": scope, "_scope": scope, "created_at": snapshot["created_at"],
-                "snapshot_id": snapshot["snapshot_id"], "metadata": snapshot.get("metadata", {})}
+                "snapshot_id": snapshot["snapshot_id"], "metadata": evaluation_metadata}
             if account:
                 context["Account"] = account
                 if scope == account + "/global":

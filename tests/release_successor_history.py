@@ -102,29 +102,28 @@ def registered_before_bulk(checks):
     # Bind the cohort to the retained, digest-verified historical catalog.
     # Later native admissions must not silently enter the old conservation view.
     signed = json.loads(historical_bytes(PUBLISHED_SPRINT_ARCHIVE, SOURCE414_NATIVE_MEMBER))
-    signed_rows = {row["id"]: row for row in signed["checks"]}
-    expected = set(signed_rows) - BULK_IDS
+    prior = {row["id"]: row for row in signed["checks"] if row["id"] not in BULK_IDS}
+    expected = set(prior)
     assert len(expected) == BULK["baseline_native_checks"] == 3434
-    retired = expected - set(ids)
-    assert retired == set(REVIEWED_NATIVE_ALIASES_20261021)
-    assert all(CHECK_ALIASES.get(cid) == survivor and survivor in ids
-               for cid, survivor in REVIEWED_NATIVE_ALIASES_20261021.items())
-    old = [check for check in checks if check.id in expected]
-    live = {check.id: check for check in checks}
-    for cid in sorted(retired):
-        row = signed_rows[cid]
-        survivor = live[REVIEWED_NATIVE_ALIASES_20261021[cid]]
-        assert row["provider"] == survivor.provider and row["type"] == survivor.kind
-        old.append(replace(survivor, id=cid, category=row["category"],
-                           title=row["title"], severity=row["severity"],
-                           remediation=row["remediation"], target=row["target"],
-                           declared_dependencies=tuple(row["dependencies"])))
+    current = {check.id: check for check in checks}
+    missing = expected - set(current)
+    assert missing <= set(REVIEWED_NATIVE_ALIASES_20261021), 'Unreviewed historical registry removal'
+    assert missing == set(REVIEWED_NATIVE_ALIASES_20261021), 'Historical retired alias set changed'
+    for ident in missing:
+        survivor = REVIEWED_NATIVE_ALIASES_20261021[ident]
+        assert CHECK_ALIASES.get(ident) == survivor and survivor in current
+        metadata = prior[ident]
+        def not_runnable(item, index):
+            raise AssertionError('Historical alias metadata is not a runnable current predicate')
+        current[ident] = replace(current[survivor], id=ident, provider=metadata['provider'],
+            category=metadata['category'], kind=metadata['type'], title=metadata['title'],
+            severity=metadata['severity'], target=metadata['target'], remediation=metadata['remediation'],
+            declared_dependencies=tuple(metadata.get('dependencies', [])), evaluate=not_runnable)
+    # Preserve the digest-verified ancestor order; never insert aliases into live CHECKS.
+    old = [current[ident] for ident in prior]
     assert len(old) == 3434
     assert {check.id for check in old} == expected
-    # Recover registration order from the same digest-verified predecessor,
-    # including retired aliases at their original positions.
-    by_id = {check.id: check for check in old}
-    return [by_id[row["id"]] for row in signed["checks"] if row["id"] in expected]
+    return old
 
 
 def registry_source_before_bulk():

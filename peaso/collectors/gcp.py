@@ -773,12 +773,12 @@ COMPUTE = (
 )
 SUPPORTED_TYPES = frozenset({x[0] for x in COMPUTE} | {
     "asset", "iam_policy", "iam_role", "iam_deny_policy", "project", "organization", "folder",
-    "service_account", "service_account_key", "activity", "recommendation", "insight", "shared_vpc",
+    "service_account", "service_account_key", "service_account_insight", "activity", "recommendation", "insight", "shared_vpc",
     "bucket", "sql_instance", "gke_cluster", "kms_key_ring", "kms_key", "secret", "log_sink",
     "workload_identity_pool", "workload_identity_provider", "workforce_pool", "workforce_provider",
     "bigquery_dataset", "artifact_repository", "cloudrun_service", "function", "group", "group_membership",
     "principal_access_boundary_policy", "policy_binding", "app_engine_application", "app_engine_service", "app_engine_version", "workspace_user", "workspace_role",
-    "workspace_role_assignment", "api_key", "bigquery_table", "dataproc_cluster", "dns_managed_zone", "dns_policy",
+    "workspace_role_assignment", "workspace_user_activity", "api_key_usage", "storage_hmac_key_usage", "api_key", "bigquery_table", "dataproc_cluster", "dns_managed_zone", "dns_policy",
     "logging_metric", "monitoring_alert_policy", "alloydb_cluster", "alloydb_instance", "essential_contact",
     "access_approval_settings", "service_usage", "bigtable_instance", "billing_account", "cloudrun_job",
     "vpc_flow_logs_config", "policy_based_route", "firewall_policy_association", "effective_firewall", "monitoring_notification_channel", "org_policy_effective",
@@ -844,6 +844,9 @@ DEPENDENCIES = {"service_account_key": {"service_account"}, "workload_identity_p
                 "workforce_provider": {"workforce_pool"}, "kms_key": {"kms_key_ring"},
                 "group": {"iam_policy", "organization"}, "group_membership": {"group", "iam_policy", "organization"}}
 DEPENDENCIES["bigquery_table"] = {"bigquery_dataset"}
+DEPENDENCIES["workspace_user_activity"] = {"workspace_user"}
+DEPENDENCIES["api_key_usage"] = {"api_key"}
+DEPENDENCIES["storage_hmac_key_usage"] = {"storage_hmac_key"}
 # Dedicated Dataproc source jobs independently GET exact parents; no list dependency.
 for _selected_job_source_kind in selected_job_source_runtime.KINDS:
     DEPENDENCIES[_selected_job_source_kind] = set()
@@ -1626,9 +1629,17 @@ class GCPCollector:
                     if not isinstance(name, str) or not isinstance(period, dict) or not isinstance(period.get("endTime"), str) \
                             or not isinstance(body, dict):
                         raise ReadError("malformed", "malformed_activity")
-                    fact = {"observationStartTime": period.get("startTime"), "observationEndTime": period["endTime"]}
+                    from peaso.gcp_iam_usage_contract import project_activity
+                    tokens = {scope.split('/')[1]}
+                    resource_project = name.removeprefix('//iam.googleapis.com/').split('/')[1]
+                    if resource_project not in tokens:
+                        binding = self._data_project_binding(scope, require_alias=True)
+                        tokens.update(str(binding[key]) for key in ('project_id', 'project_number'))
+                    fact = project_activity(row, scope, 'service_account_key', tokens)
                     if body.get("lastAuthenticatedTime") is not None:
                         fact["lastAuthenticatedTime"] = body["lastAuthenticatedTime"]
+                    if name.removeprefix("//iam.googleapis.com/") in activities:
+                        raise ReadError("malformed", "duplicate_key_activity")
                     activities[name.removeprefix("//iam.googleapis.com/")] = (fact, request_id)
             return activities, {"status": "collected", "collection_status": "collected", "source_requests": requests}
         except ReadError as exc:
@@ -1914,10 +1925,40 @@ class GCPCollector:
                 if not isinstance(locations, list) or len(locations) > 50 or any(not re.fullmatch(r"[a-z0-9-]+", x) for x in locations):
                     raise ValueError("invalid recommender_locations")
                 for location in locations:
-                    yield from self.pages(f"https://recommender.googleapis.com/v1/{scope}/locations/{location}/{suffix}", scope, key=key)
+                    for rows, request_id in self.pages(f"https://recommender.googleapis.com/v1/{scope}/locations/{location}/{suffix}", scope, key=key):
+                        if key == "insights":
+                            for row in rows:
+                                match = re.fullmatch(r"((?:projects|folders|organizations)/[^/]+)/locations/" + re.escape(location) +
+                                    r"/insightTypes/google\.iam\.policy\.Insight/insights/[^/?#]+", row.get("name", ""))
+                                if not match:
+                                    raise ReadError("malformed", "invalid_policy_insight_identity")
+                                authorities = {scope}
+                                if scope_type == "project" and match[1] not in authorities:
+                                    binding = self._data_project_binding(scope, require_alias=True)
+                                    authorities.update("projects/" + str(binding[field]) for field in ("project_id", "project_number"))
+                                if match[1] not in authorities:
+                                    raise ReadError("malformed", "foreign_policy_insight_identity")
+                        yield rows, request_id
             add(kind, "recommender", rec_pages)
         if scope_type != "project":
             return jobs
+        def unused_account_insights():
+            suffix = '/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights'
+            for rows, request_id in self.pages('https://recommender.googleapis.com/v1/' + scope + suffix,
+                                               scope, key='insights'):
+                for row in rows:
+                    name = row.get('name') if isinstance(row, dict) else None
+                    match = re.fullmatch(r'projects/([^/]+)/locations/global/insightTypes/google\.iam\.serviceAccount\.Insight/insights/[^/?#]+', name or '')
+                    if not match:
+                        raise ReadError('malformed', 'malformed_service_account_insight')
+                    tokens = {scope.split('/')[1]}
+                    if match.group(1) not in tokens:
+                        binding = self._data_project_binding(scope, require_alias=True)
+                        tokens.update(str(binding[key]) for key in ('project_id', 'project_number'))
+                    if match.group(1) not in tokens:
+                        raise ReadError('malformed', 'foreign_service_account_insight')
+                yield rows, request_id
+        add('service_account_insight', 'recommender', unused_account_insights)
         project = quote(scope.split("/", 1)[1], safe="")
         compute = f"https://compute.googleapis.com/compute/v1/projects/{project}"
         add("service_usage", "serviceusage", lambda: self.pages(
@@ -2202,9 +2243,17 @@ class GCPCollector:
                         if not isinstance(name, str) or not isinstance(period, dict) or not isinstance(period.get("endTime"), str) \
                                 or not isinstance(body, dict):
                             raise ReadError("malformed", "malformed_activity")
-                        fact = {"observationStartTime": period.get("startTime"), "observationEndTime": period["endTime"]}
+                        from peaso.gcp_iam_usage_contract import project_activity
+                        tokens = {scope.split('/')[1]}
+                        resource_project = name.removeprefix('//iam.googleapis.com/').split('/')[1]
+                        if resource_project not in tokens:
+                            binding = self._data_project_binding(scope, require_alias=True)
+                            tokens.update(str(binding[key]) for key in ('project_id', 'project_number'))
+                        fact = project_activity(row, scope, 'service_account', tokens)
                         if body.get("lastAuthenticatedTime") is not None:
                             fact["lastAuthenticatedTime"] = body["lastAuthenticatedTime"]
+                        if name.removeprefix("//iam.googleapis.com/") in activities:
+                            raise ReadError("malformed", "duplicate_account_activity")
                         activities[name.removeprefix("//iam.googleapis.com/")] = (fact, request_id)
                         account_id = body.get("serviceAccount", {}).get("serviceAccountId") if isinstance(body.get("serviceAccount"), dict) else None
                         if isinstance(account_id, str):
@@ -3026,7 +3075,10 @@ class GCPCollector:
             self.run_jobs(table_jobs)
         if self.needed.intersection({"group", "group_membership"}):
             self.directory_groups()
-        if self.needed.intersection({"workspace_user", "workspace_role", "workspace_role_assignment"}):
+        if "workspace_user" in self.needed:
+            from .gcp_unused_iam_directory_completion_20261021 import collect_users
+            collect_users(self)
+        if self.needed.intersection({"workspace_role", "workspace_role_assignment"}):
             self.workspace_directory()
         if "iam_role" in self.needed:
             role_scopes = {}
@@ -3036,6 +3088,8 @@ class GCPCollector:
                     if isinstance(role, str) and re.fullmatch(r"(?:roles/[\w.]+|(?:projects|organizations)/[\w.-]+/roles/[\w.]+)", role):
                         role_scopes.setdefault(role, set()).add(scope)
             known = {(scope, item.get("name")) for scope, item in self.items("iam_role")}
+            from .gcp_unused_directory_20261021 import known_role_aliases
+            known.update(known_role_aliases(self, role_scopes, known))
             selected_projects = set(self.scopes)
             for _, project in self.items("project"):
                 if isinstance(project.get("name"), str):
@@ -3413,8 +3467,9 @@ class GCPCollector:
             failures = []
             for customer in sorted(customers):
                 try:
-                    yield from self.pages("https://cloudidentity.googleapis.com/v1/groups", scope, key="groups",
-                        params={"parent": "customers/" + customer, "view": "FULL", "pageSize": min(self.page_size, 500)})
+                    for rows, request_id in self.pages("https://cloudidentity.googleapis.com/v1/groups", scope, key="groups",
+                        params={"parent": "customers/" + customer, "view": "FULL", "pageSize": min(self.page_size, 500)}):
+                        yield [{**row, "_representation": "full"} for row in rows], request_id
                 except ReadError as exc:
                     failures.append(exc)
             for email in references:
@@ -3428,6 +3483,7 @@ class GCPCollector:
                         "groupDetails", f"https://cloudidentity.googleapis.com/v1/{name}", scope)
                     if item["_coverage"]["groupDetails"]["status"] == "collected":
                         item.update(item.pop("groupDetails"))
+                        item["_representation"] = "full"
                     yield [item], request_id
                 except ReadError as exc:
                     failures.append(exc)
@@ -3450,9 +3506,18 @@ class GCPCollector:
                     failures.append(ReadError("malformed", "invalid_group_reference"))
                     continue
                 for relation, endpoint in (("direct", "memberships"), ("transitive", "memberships:searchTransitiveMemberships")):
+                    member_names, member_requests = [], []
                     try:
                         for items, request_id in self.pages(f"https://cloudidentity.googleapis.com/v1/{name}/{endpoint}", scope,
                             key="memberships", params={"view": "FULL", "pageSize": min(self.page_size, 500)} if relation == "direct" else None):
+                            member_requests.append(request_id)
+                            if relation == "direct":
+                                for member in items:
+                                    native_name = member.get("name")
+                                    if (not isinstance(native_name, str) or not re.fullmatch(re.escape(name) + r"/memberships/[A-Za-z0-9_-]+", native_name)
+                                            or native_name in member_names):
+                                        raise ReadError("malformed", "invalid_direct_membership_identity")
+                                    member_names.append(native_name)
                             transformed = []
                             for index, member in enumerate(items):
                                 identifier = member.get("name") or member.get("member") or str(member.get("preferredMemberKey") or member.get("memberKey"))
@@ -3460,11 +3525,19 @@ class GCPCollector:
                                     "membershipKind": relation, "groupKey": group.get("groupKey"),
                                     "membershipCoverage": {"status": "observed", "completeTransitiveClosure": False}})
                             yield transformed, request_id
+                        group.setdefault("_coverage", {})[relation + "Memberships"] = {
+                            "status": "collected", "scope": scope, "group": name,
+                            "collected_at": self.read_time, "source_requests": member_requests}
                     except ReadError as exc:
                         failures.append(exc)
                         group.setdefault("_coverage", {})[relation + "Memberships"] = {
                             "status": exc.status, "error": exc.error,
-                            "source_requests": [exc.request_id] if getattr(exc, "request_id", None) else []}
+                            "scope": scope, "group": name, "collected_at": self.read_time,
+                            "source_requests": sorted(set(member_requests + ([exc.request_id] if getattr(exc, "request_id", None) else [])))}
+                    finally:
+                        if relation == "direct":
+                            group["_direct_membership_names"] = member_names
+                            group["_direct_membership_requests"] = member_requests
             if group_collection["status"] not in ("collected", "empty"):
                 failures.append(ReadError("unavailable", "group_inventory_incomplete"))
             if failures:
@@ -3607,7 +3680,7 @@ class GCPCollector:
                     failures.append(exc)
             if failures:
                 raise failures[0]
-        for kind in sorted(self.needed.intersection({"workspace_user", "workspace_role", "workspace_role_assignment"})):
+        for kind in sorted(self.needed.intersection({"workspace_role", "workspace_role_assignment"})):
             self.add(kind, scope, "workspace-directory", lambda kind=kind: pages(kind))
 
     def remember_selected_image_matches(self, matches):
@@ -3818,6 +3891,8 @@ class GCPCollector:
             self.discover()
             self.progress("collecting")
             self.run_jobs([job for scope in self.scopes for job in self.scope_jobs(scope)])
+            from .gcp_network_forwarding_completion_20261021 import collect as collect_global_forwarding_rules
+            collect_global_forwarding_rules(self)
             if self.api_key_alias_mode:
                 from .gcp_api_key_alias_native import materialize
                 self.proven_api_key_alias_scopes = materialize(self)
@@ -3847,6 +3922,10 @@ class GCPCollector:
             self.derive_sw52_native()
             self.perimeter_jobs()
             self.dependent_jobs()
+            from .gcp_unused_directory_20261021 import collect as collect_unused_directory
+            collect_unused_directory(self)
+            from .gcp_key_usage_20261021 import collect as collect_key_usage
+            collect_key_usage(self)
             self.annotate_effective_audit()
             self.annotate_inherited_sinks()
             self.annotate_inherited_policies()

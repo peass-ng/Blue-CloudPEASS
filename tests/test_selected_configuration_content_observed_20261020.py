@@ -33,34 +33,39 @@ MODULES += [pytest.param(SimpleNamespace(CHECK=notebook.DECLARATION['id'],evalua
 from peaso.checks import azure_ml_selected_asset_secret_review_20261020 as ml_assets
 MODULES += [pytest.param(SimpleNamespace(CHECK=d['id'],evaluate=ml_assets.environment if 'environment_conda' in d['id'] else ml_assets.code),'azure_ml_asset_secrets_admission_20261020_fixtures.json',id='azure_ml_asset_'+d['kind'])for d in ml_assets.DECLARATIONS]
 
-from peaso.checks import CHECKS as CURRENT_CHECKS
-from peaso.checks.gcp_dataproc_source_runtime_admission_20261020 import CHECK_IDS as DATAPROC_IDS
+from peaso.checks.gcp_dataproc_source_runtime_admission_20261020 import CHECK_IDS as dataproc_ids
+from peaso.checks import CHECKS, fixtures
 
-def current_native_cases(ids, fixture, prefix):
-    # Normal registry import has already checked the finite current-source admission.
-    # These tests exercise current presentation, rather than replaying an immutable
-    # predecessor proof against a later collector source. Require exact ID coverage.
-    checks = [c for c in CURRENT_CHECKS if c.id in ids]
-    assert {c.id for c in checks} == set(ids) and len(checks) == len(ids)
-    return [pytest.param(SimpleNamespace(CHECK=c.id, evaluate=c.evaluate), fixture,
-                         id=prefix+c.kind) for c in checks]
+def current_registered_inputs(identities):
+    # Startup already verifies the sealed current producers. Exercise current
+    # registered facts here, leaving the immutable older loaders to history tests.
+    registered = {check.id: check for check in CHECKS}
+    assert len(identities) == len(set(identities))
+    assert set(identities) <= set(registered)
+    return [(dict(id=ident, kind=registered[ident].kind), registered[ident].evaluate) for ident in identities]
 
-MODULES += current_native_cases(DATAPROC_IDS, 'gcp_dataproc_source_runtime_cases_20261020.json', 'gcp_dataproc_')
+MODULES += [pytest.param(SimpleNamespace(CHECK=d['id'],evaluate=fn,current_native=True),'gcp_dataproc_source_runtime_cases_20261020.json',id='gcp_dataproc_'+d['kind'])for d,fn in current_registered_inputs(dataproc_ids)]
 
 from peaso.checks import k8s_selected_metadata_secret_review_20261020 as k8s_metadata
 MODULES += [pytest.param(k8s_metadata,'k8s_selected_metadata_secret_cases_20261020.json',id='k8s_metadata')]
 
-from peaso.checks.gcp_workbench_source_runtime_admission_20261020 import CHECK_IDS as WORKBENCH_IDS
-MODULES += current_native_cases(WORKBENCH_IDS, 'gcp_workbench_source_runtime_cases_20261020.json', 'gcp_workbench_')
+from peaso.checks.gcp_workbench_source_runtime_admission_20261020 import CHECK_IDS as workbench_ids
+MODULES += [pytest.param(SimpleNamespace(CHECK=d['id'],evaluate=fn,current_native=True),'gcp_workbench_source_runtime_cases_20261020.json',id='gcp_workbench_'+d['kind'])for d,fn in current_registered_inputs(workbench_ids)]
 
 from peaso.checks.gcp_dataflow_batch_source_runtime_consumer_20261020 import DECLARATIONS as JOB_DECLARATIONS
-MODULES += current_native_cases(tuple(d['id'] for d in JOB_DECLARATIONS), 'gcp_dataflow_batch_source_runtime_cases_20261020.json', 'gcp_job_source_')
+jobs_ids = tuple(row["id"] for row in JOB_DECLARATIONS)
+MODULES += [pytest.param(SimpleNamespace(CHECK=d['id'],evaluate=fn,current_native=True),'gcp_dataflow_batch_source_runtime_cases_20261020.json',id='gcp_job_source_'+d['kind'])for d,fn in current_registered_inputs(jobs_ids)]
 
 from peaso.checks import aws_codebuild_buildspec_runtime_consumer_20261020 as codebuild
 MODULES += [pytest.param(SimpleNamespace(CHECK=codebuild.DECLARATION['id'], evaluate=codebuild.evaluate), 'aws_codebuild_buildspec_runtime_cases_20261020.json', id='aws_codebuild_inline')]
 
 def native(module,file,branch):
-    data=json.loads((Path('peaso/checks')/file).read_text());cid=module.CHECK
+    cid=module.CHECK
+    if getattr(module, 'current_native', False):
+        from tests.shared_admission_epoch_compatibility_20261020 import snapshot_cases
+        data = {cid: snapshot_cases(fixtures.CASES[cid])}
+    else:
+        data=json.loads((Path('peaso/checks')/file).read_text())
     if 'captures' in data:
         row=next(r for r in data['captures'] if r['expected_status']==branch.upper())
         return deepcopy(next(f for f in row['findings'] if f['check_id']==cid and f['status']==branch.upper()))

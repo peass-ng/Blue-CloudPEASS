@@ -335,7 +335,7 @@ export function App() {
             </button>}
           </div>
         </header>
-        <main id="main-content">
+        <main id="main-content" className={page === "Network Map" ? "network-map-page" : undefined}>
           <div className="page-heading">
             <div>
               <div className="eyebrow page-kicker"><span>//</span> PEASS'o INTELLIGENCE</div>

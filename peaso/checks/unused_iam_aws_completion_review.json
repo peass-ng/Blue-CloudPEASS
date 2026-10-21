@@ -1,0 +1,22 @@
+{
+  "check_ids": [
+    "aws.iam.identity_center.permission_set_has_consumer_all_accounts",
+    "aws.a.iam.unused_credentials_45_days",
+    "aws.a.iam.unused_credentials_90_days",
+    "aws.gap.iam.active_keys_used_within_45_days",
+    "aws.claude_a.iam.console_password_used_45",
+    "aws.claude_a.iam.prowler_console_password_used_45",
+    "aws.claude_a.iam.access_keys_used_45"
+  ],
+  "sources": [
+    "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_getting-report.html",
+    "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetCredentialReport.html",
+    "https://docs.aws.amazon.com/singlesignon/latest/APIReference/API_ListAccountsForProvisionedPermissionSet.html",
+    "https://docs.aws.amazon.com/singlesignon/latest/APIReference/API_ListAccountAssignments.html",
+    "https://docs.aws.amazon.com/organizations/latest/APIReference/API_ListAccounts.html"
+  ],
+  "sources_sha256": "e079a6ac75b644fb34fb495059e867700c560f24a0675e395bb44254863aa2b6",
+  "semantics": "Permission-set absence is structural across fully enumerated organization accounts. Credential-report no-use markers are bounded by AWS tracking start, current credential date and generated report time; missing or unsupported values are unresolved.",
+  "limits": "No Identity Center permission-use history, service-specific credential use, SSH/signing use, or SAML/OIDC successful federation use is inferred.",
+  "legacy_successor_reason": "The former console-null branch alarmed on newly created passwords. All report-based inactivity successors now require fresh report time and a sufficient current-credential interval, with console-only and key-only populations kept separate."
+}

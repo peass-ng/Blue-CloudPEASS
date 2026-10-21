@@ -37,6 +37,17 @@ RAWV2_EDITS = ((b'collector_noop_authorization_shared_successor_20261020 = aws_w
 def metadata_initializer_bytes(raw):
     """Accept either exact epoch; reverse only the reviewed three hunks."""
     digest = hashlib.sha256(raw).hexdigest()
+    # The live finite successor proves every inverse against its pinned current
+    # receipt. Retain the exact old metadata hash rather than accepting new bytes.
+    from pathlib import Path
+    live = Path(__file__).resolve().parents[1] / 'peaso/checks/__init__.py'
+    if b'private_secret_shared_source_successor_20261021' in raw and raw == live.read_bytes():
+        from peaso.checks import private_secret_shared_source_successor_20261021 as current
+        current._private_self()
+        previous = current._initialization_predecessor(raw)
+        if hashlib.sha256(previous).hexdigest() != METADATA_INITIALIZER_SHA256:
+            raise RuntimeError('Private metadata initializer predecessor changed')
+        return previous
     if digest == 'ec7a07be2ec474b98096199868629250d7f16fa17835787bcc377c54d41a64d8':
         from pathlib import Path
         import json

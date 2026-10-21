@@ -7,23 +7,23 @@
         "provider": "azure",
         "resource_kind": "acr_selected_image_vulnerabilities",
         "data_source": "Explicit selected ACR immutable digest, verified manifest/config/layer bytes, and fresh offline Trivy scan.",
-        "predicate": "PASS only for complete bound fresh scan without HIGH or CRITICAL package findings; FAIL for typed bound findings; missing or incomplete evidence remains UNKNOWN.",
+        "predicate": "PASS only for a complete bound fresh scan without HIGH or CRITICAL package findings; FAIL for typed bound findings even with incomplete coverage; incomplete evidence without a confirmed positive remains UNKNOWN.",
         "severity": "high",
         "category": "hardening",
         "title": "Selected ACR image has no HIGH or CRITICAL package vulnerabilities",
-        "description": "Reviews an explicitly selected immutable ACR image with a fresh offline package vulnerability database. The selected digest does not prove a workload runs the image or that a finding is exploitable.",
+        "description": "Reviews an explicitly selected immutable ACR image with an offline package vulnerability database. Verified HIGH or CRITICAL findings remain visible when scan coverage is incomplete; a clean result requires a fresh complete scan. The selected digest does not prove a workload runs the image or that a finding is exploitable.",
         "remediation_hint": "Update affected packages, rebuild the image, and select a reviewed immutable digest."
       },
       "target": "resource",
       "description": {
-        "description": "Reviews an explicitly selected immutable ACR image with a fresh offline package vulnerability database. The selected digest does not prove a workload runs the image or that a finding is exploitable.",
+        "description": "Reviews an explicitly selected immutable ACR image with an offline package vulnerability database. Verified HIGH or CRITICAL findings remain visible when scan coverage is incomplete; a clean result requires a fresh complete scan. The selected digest does not prove a workload runs the image or that a finding is exploitable.",
         "evaluated": [
           "exact selected registry and repository pull identity",
           "verified manifest, config, compressed layer and rootfs digests",
           "complete offline Trivy HIGH and CRITICAL package findings"
         ],
         "pass_when": "The bound image and fresh complete scan have no HIGH or CRITICAL findings.",
-        "fail_when": "The bound image and fresh complete scan have at least one typed HIGH or CRITICAL finding.",
+        "fail_when": "The bound image has at least one typed HIGH or CRITICAL finding, including when scan coverage is incomplete.",
         "not_applicable_when": null
       },
       "requirements": [],

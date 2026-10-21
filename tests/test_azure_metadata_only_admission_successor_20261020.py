@@ -89,15 +89,18 @@ def test_all168_prior_callable_rows_receipts_and_exact_source_epochs_preserved()
     for key in ('shared_functions', 'integration_functions', 'azure_collect', 'file_deltas', 'parent_file_deltas', 'integration_file_deltas', 'prior_epoch_file_deltas', 'native_epoch_file_deltas', 'producer_file_deltas', 'producer_functions'):
         assert receipt[key] == prior[key]
     assert set(receipt['metadata_only_epoch_file_deltas']) == {'peaso/checks/__init__.py', 'peaso/collectors/azure.py'}
-    assert sha((ROOT / 'peaso/collectors/azure.py').read_bytes()) == 'd27a5f2b861fef622c20bff80bf5e8f559d7f5d70604606643eb9267254101e5'
+    raw = (ROOT / 'peaso/collectors/azure.py').read_bytes()
+    if hasattr(bridge, '_private_before'):
+        raw = bridge._private_before('peaso/collectors/azure.py', raw, ROOT)
+    assert sha(raw) == 'd27a5f2b861fef622c20bff80bf5e8f559d7f5d70604606643eb9267254101e5'
     assert sha(bridge.predecessor_epoch_bytes('peaso/collectors/azure.py', (ROOT / 'peaso/collectors/azure.py').read_bytes(), ROOT)) == 'b69db967e65722174e847116620b63c7de4f0da835e3edde1a882456dc37afea'
     assert bridge.predecessor_epoch_bytes('unlisted/path.py', b'unmodified', ROOT) == b'unmodified'
     assert bridge._COMPILED_TRANSACTION.get() is None
 
 
-def test_catalog_metadata_stays_exact_and_new_tde_lineage_admitted():
-    from peaso.engine import get_catalog
-    value = get_catalog()
+def test_historical_catalog_metadata_stays_exact_and_new_tde_lineage_admitted():
+    from tests.shared_admission_epoch_compatibility_20261020 import historical_metadata_catalog
+    value = historical_metadata_catalog()
     assert len(value['checks']) == 3496
     for row in value['checks']: row.pop('clarity_evaluation_contract', None)
     assert sha(json.dumps(value, sort_keys=True, separators=(',', ':')).encode()) == '55e4ef383df3d4408654b95b46789264d024bb8eb4197ca926f37b7eb0d7a718'
@@ -185,13 +188,14 @@ def blocked(*a,**k):raise AssertionError('No network in disk tamper proof')
 for owner,names in ((socket,('create_connection','getaddrinfo')),(socket.socket,('connect','connect_ex','sendto'))):
  for name in names:setattr(owner,name,blocked)
 from tests.shared_admission_epoch_compatibility_20261020 import active_shared
+from peaso.private_secret_source_epoch_20261021 import AdmissionError
 bridge = active_shared()
 root=pathlib.Path.cwd();path=root/sys.argv[1];raw=path.read_bytes()
 try:
  bridge.reviewed_delta(root);bridge.verify_metadata_only(root)
  path.write_bytes(raw+b'\n# unreviewed source mutation\n')
  try:bridge.reviewed_delta(root);bridge.verify_metadata_only(root)
- except RuntimeError:print('rejected')
+ except (RuntimeError, AdmissionError):print('rejected')
  else:raise AssertionError('Unreviewed disk mutation admitted')
 finally:path.write_bytes(raw)
 '''

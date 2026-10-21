@@ -1,0 +1,1743 @@
+{
+  "gcp.iam.api_key_recent_recorded_successful_requests": {
+    "pass": {
+      "name": "projects/usage-project/locations/global/keys/synthetic",
+      "uid": "synthetic-key-uid",
+      "createTime": "2024-01-01T00:00:00Z",
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "collected_at": "2026-10-21T12:00:00Z",
+        "source_requests": [
+          "credential-read"
+        ]
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "asset_read_time": "2026-10-21T12:00:00Z",
+          "source_requests": [
+            {
+              "id": "credential-read",
+              "scope": "projects/usage-project",
+              "url": "https://apikeys.googleapis.com/v2/projects/usage-project/locations/global/keys",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "crm-0",
+              "scope": "projects/usage-project",
+              "url": "https://cloudresourcemanager.googleapis.com/v3/projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "metric-0",
+              "scope": "projects/usage-project",
+              "url": "https://monitoring.googleapis.com/v3/projects/usage-project/timeSeries",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {
+                "filter": "metric.type=\"serviceruntime.googleapis.com/api/request_count\" AND resource.type=\"consumed_api\" AND project=\"usage-project\" AND resource.labels.credential_id=\"apikey:synthetic-key-uid\"",
+                "interval.startTime": "2025-10-21T11:30:00+00:00",
+                "interval.endTime": "2026-10-21T11:30:00+00:00",
+                "view": "FULL",
+                "aggregation.alignmentPeriod": "86400s",
+                "aggregation.perSeriesAligner": "ALIGN_SUM",
+                "aggregation.crossSeriesReducer": "REDUCE_SUM",
+                "aggregation.groupByFields": [
+                  "resource.labels.project_id",
+                  "resource.labels.credential_id",
+                  "metric.labels.response_code_class"
+                ]
+              }
+            }
+          ],
+          "resolved_scopes": [
+            "projects/usage-project"
+          ],
+          "data_service_project_bindings": {
+            "projects/usage-project": {
+              "status": "collected",
+              "scope": "projects/usage-project",
+              "project_id": "usage-project",
+              "project_number": "123456789012",
+              "source_requests": [
+                "crm-0"
+              ]
+            }
+          }
+        }
+      },
+      "collections": {
+        "api_key": [
+          {
+            "type": "api_key",
+            "scope": "projects/usage-project",
+            "service": "apikeys",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project/locations/global/keys/synthetic",
+                "uid": "synthetic-key-uid",
+                "createTime": "2024-01-01T00:00:00Z",
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "collected_at": "2026-10-21T12:00:00Z",
+                  "source_requests": [
+                    "credential-read"
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "api_key_usage": [
+          {
+            "type": "api_key_usage",
+            "scope": "projects/usage-project",
+            "service": "monitoring",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project/api_key_usage/synthetic-key-uid",
+                "credential_id": "synthetic-key-uid",
+                "credential_name": "projects/usage-project/locations/global/keys/synthetic",
+                "owner_scope": "projects/usage-project",
+                "observation_start": "2025-10-21T11:30:00+00:00",
+                "observation_end": "2026-10-21T11:30:00+00:00",
+                "selected_project_scopes": [
+                  "projects/usage-project"
+                ],
+                "views": [
+                  {
+                    "scope": "projects/usage-project",
+                    "status": "collected",
+                    "project_id": "usage-project",
+                    "project_number": "123456789012",
+                    "source_requests": [
+                      "metric-0"
+                    ],
+                    "query": {
+                      "filter": "metric.type=\"serviceruntime.googleapis.com/api/request_count\" AND resource.type=\"consumed_api\" AND project=\"usage-project\" AND resource.labels.credential_id=\"apikey:synthetic-key-uid\"",
+                      "interval.startTime": "2025-10-21T11:30:00+00:00",
+                      "interval.endTime": "2026-10-21T11:30:00+00:00",
+                      "view": "FULL",
+                      "aggregation.alignmentPeriod": "86400s",
+                      "aggregation.perSeriesAligner": "ALIGN_SUM",
+                      "aggregation.crossSeriesReducer": "REDUCE_SUM",
+                      "aggregation.groupByFields": [
+                        "resource.labels.project_id",
+                        "resource.labels.credential_id",
+                        "metric.labels.response_code_class"
+                      ]
+                    },
+                    "series": [
+                      {
+                        "metric": {
+                          "type": "serviceruntime.googleapis.com/api/request_count",
+                          "labels": {
+                            "response_code_class": "2xx"
+                          }
+                        },
+                        "resource": {
+                          "type": "consumed_api",
+                          "labels": {
+                            "project_id": "usage-project",
+                            "credential_id": "apikey:synthetic-key-uid"
+                          }
+                        },
+                        "metricKind": "DELTA",
+                        "valueType": "INT64",
+                        "points": [
+                          {
+                            "interval": {
+                              "startTime": "2026-10-19T00:00:00Z",
+                              "endTime": "2026-10-20T00:00:00Z"
+                            },
+                            "value": {
+                              "int64Value": "2"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "metric_source_requests": [
+                  "metric-0"
+                ],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "collected_at": "2026-10-21T12:00:00Z",
+                  "source_requests": [
+                    "metric-0"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "api_key": [
+        {
+          "type": "api_key",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/locations/global/keys/synthetic",
+            "uid": "synthetic-key-uid",
+            "createTime": "2024-01-01T00:00:00Z",
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "credential-read"
+              ]
+            }
+          }
+        }
+      ],
+      "api_key_usage": [
+        {
+          "type": "api_key_usage",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/api_key_usage/synthetic-key-uid",
+            "credential_id": "synthetic-key-uid",
+            "credential_name": "projects/usage-project/locations/global/keys/synthetic",
+            "owner_scope": "projects/usage-project",
+            "observation_start": "2025-10-21T11:30:00+00:00",
+            "observation_end": "2026-10-21T11:30:00+00:00",
+            "selected_project_scopes": [
+              "projects/usage-project"
+            ],
+            "views": [
+              {
+                "scope": "projects/usage-project",
+                "status": "collected",
+                "project_id": "usage-project",
+                "project_number": "123456789012",
+                "source_requests": [
+                  "metric-0"
+                ],
+                "query": {
+                  "filter": "metric.type=\"serviceruntime.googleapis.com/api/request_count\" AND resource.type=\"consumed_api\" AND project=\"usage-project\" AND resource.labels.credential_id=\"apikey:synthetic-key-uid\"",
+                  "interval.startTime": "2025-10-21T11:30:00+00:00",
+                  "interval.endTime": "2026-10-21T11:30:00+00:00",
+                  "view": "FULL",
+                  "aggregation.alignmentPeriod": "86400s",
+                  "aggregation.perSeriesAligner": "ALIGN_SUM",
+                  "aggregation.crossSeriesReducer": "REDUCE_SUM",
+                  "aggregation.groupByFields": [
+                    "resource.labels.project_id",
+                    "resource.labels.credential_id",
+                    "metric.labels.response_code_class"
+                  ]
+                },
+                "series": [
+                  {
+                    "metric": {
+                      "type": "serviceruntime.googleapis.com/api/request_count",
+                      "labels": {
+                        "response_code_class": "2xx"
+                      }
+                    },
+                    "resource": {
+                      "type": "consumed_api",
+                      "labels": {
+                        "project_id": "usage-project",
+                        "credential_id": "apikey:synthetic-key-uid"
+                      }
+                    },
+                    "metricKind": "DELTA",
+                    "valueType": "INT64",
+                    "points": [
+                      {
+                        "interval": {
+                          "startTime": "2026-10-19T00:00:00Z",
+                          "endTime": "2026-10-20T00:00:00Z"
+                        },
+                        "value": {
+                          "int64Value": "2"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "metric_source_requests": [
+              "metric-0"
+            ],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "metric-0"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "fail": {
+      "name": "projects/usage-project/locations/global/keys/synthetic",
+      "uid": "synthetic-key-uid",
+      "createTime": "2024-01-01T00:00:00Z",
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "collected_at": "2026-10-21T12:00:00Z",
+        "source_requests": [
+          "credential-read"
+        ]
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "asset_read_time": "2026-10-21T12:00:00Z",
+          "source_requests": [
+            {
+              "id": "credential-read",
+              "scope": "projects/usage-project",
+              "url": "https://apikeys.googleapis.com/v2/projects/usage-project/locations/global/keys",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "crm-0",
+              "scope": "projects/usage-project",
+              "url": "https://cloudresourcemanager.googleapis.com/v3/projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "metric-0",
+              "scope": "projects/usage-project",
+              "url": "https://monitoring.googleapis.com/v3/projects/usage-project/timeSeries",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {
+                "filter": "metric.type=\"serviceruntime.googleapis.com/api/request_count\" AND resource.type=\"consumed_api\" AND project=\"usage-project\" AND resource.labels.credential_id=\"apikey:synthetic-key-uid\"",
+                "interval.startTime": "2025-10-21T11:30:00+00:00",
+                "interval.endTime": "2026-10-21T11:30:00+00:00",
+                "view": "FULL",
+                "aggregation.alignmentPeriod": "86400s",
+                "aggregation.perSeriesAligner": "ALIGN_SUM",
+                "aggregation.crossSeriesReducer": "REDUCE_SUM",
+                "aggregation.groupByFields": [
+                  "resource.labels.project_id",
+                  "resource.labels.credential_id",
+                  "metric.labels.response_code_class"
+                ]
+              }
+            }
+          ],
+          "resolved_scopes": [
+            "projects/usage-project"
+          ],
+          "data_service_project_bindings": {
+            "projects/usage-project": {
+              "status": "collected",
+              "scope": "projects/usage-project",
+              "project_id": "usage-project",
+              "project_number": "123456789012",
+              "source_requests": [
+                "crm-0"
+              ]
+            }
+          }
+        }
+      },
+      "collections": {
+        "api_key": [
+          {
+            "type": "api_key",
+            "scope": "projects/usage-project",
+            "service": "apikeys",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project/locations/global/keys/synthetic",
+                "uid": "synthetic-key-uid",
+                "createTime": "2024-01-01T00:00:00Z",
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "collected_at": "2026-10-21T12:00:00Z",
+                  "source_requests": [
+                    "credential-read"
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "api_key_usage": [
+          {
+            "type": "api_key_usage",
+            "scope": "projects/usage-project",
+            "service": "monitoring",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project/api_key_usage/synthetic-key-uid",
+                "credential_id": "synthetic-key-uid",
+                "credential_name": "projects/usage-project/locations/global/keys/synthetic",
+                "owner_scope": "projects/usage-project",
+                "observation_start": "2025-10-21T11:30:00+00:00",
+                "observation_end": "2026-10-21T11:30:00+00:00",
+                "selected_project_scopes": [
+                  "projects/usage-project"
+                ],
+                "views": [
+                  {
+                    "scope": "projects/usage-project",
+                    "status": "collected",
+                    "project_id": "usage-project",
+                    "project_number": "123456789012",
+                    "source_requests": [
+                      "metric-0"
+                    ],
+                    "query": {
+                      "filter": "metric.type=\"serviceruntime.googleapis.com/api/request_count\" AND resource.type=\"consumed_api\" AND project=\"usage-project\" AND resource.labels.credential_id=\"apikey:synthetic-key-uid\"",
+                      "interval.startTime": "2025-10-21T11:30:00+00:00",
+                      "interval.endTime": "2026-10-21T11:30:00+00:00",
+                      "view": "FULL",
+                      "aggregation.alignmentPeriod": "86400s",
+                      "aggregation.perSeriesAligner": "ALIGN_SUM",
+                      "aggregation.crossSeriesReducer": "REDUCE_SUM",
+                      "aggregation.groupByFields": [
+                        "resource.labels.project_id",
+                        "resource.labels.credential_id",
+                        "metric.labels.response_code_class"
+                      ]
+                    },
+                    "series": [
+                      {
+                        "metric": {
+                          "type": "serviceruntime.googleapis.com/api/request_count",
+                          "labels": {
+                            "response_code_class": "2xx"
+                          }
+                        },
+                        "resource": {
+                          "type": "consumed_api",
+                          "labels": {
+                            "project_id": "usage-project",
+                            "credential_id": "apikey:synthetic-key-uid"
+                          }
+                        },
+                        "metricKind": "DELTA",
+                        "valueType": "INT64",
+                        "points": [
+                          {
+                            "interval": {
+                              "startTime": "2026-01-01T00:00:00Z",
+                              "endTime": "2026-01-02T00:00:00Z"
+                            },
+                            "value": {
+                              "int64Value": "2"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "metric_source_requests": [
+                  "metric-0"
+                ],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "collected_at": "2026-10-21T12:00:00Z",
+                  "source_requests": [
+                    "metric-0"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "api_key": [
+        {
+          "type": "api_key",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/locations/global/keys/synthetic",
+            "uid": "synthetic-key-uid",
+            "createTime": "2024-01-01T00:00:00Z",
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "credential-read"
+              ]
+            }
+          }
+        }
+      ],
+      "api_key_usage": [
+        {
+          "type": "api_key_usage",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/api_key_usage/synthetic-key-uid",
+            "credential_id": "synthetic-key-uid",
+            "credential_name": "projects/usage-project/locations/global/keys/synthetic",
+            "owner_scope": "projects/usage-project",
+            "observation_start": "2025-10-21T11:30:00+00:00",
+            "observation_end": "2026-10-21T11:30:00+00:00",
+            "selected_project_scopes": [
+              "projects/usage-project"
+            ],
+            "views": [
+              {
+                "scope": "projects/usage-project",
+                "status": "collected",
+                "project_id": "usage-project",
+                "project_number": "123456789012",
+                "source_requests": [
+                  "metric-0"
+                ],
+                "query": {
+                  "filter": "metric.type=\"serviceruntime.googleapis.com/api/request_count\" AND resource.type=\"consumed_api\" AND project=\"usage-project\" AND resource.labels.credential_id=\"apikey:synthetic-key-uid\"",
+                  "interval.startTime": "2025-10-21T11:30:00+00:00",
+                  "interval.endTime": "2026-10-21T11:30:00+00:00",
+                  "view": "FULL",
+                  "aggregation.alignmentPeriod": "86400s",
+                  "aggregation.perSeriesAligner": "ALIGN_SUM",
+                  "aggregation.crossSeriesReducer": "REDUCE_SUM",
+                  "aggregation.groupByFields": [
+                    "resource.labels.project_id",
+                    "resource.labels.credential_id",
+                    "metric.labels.response_code_class"
+                  ]
+                },
+                "series": [
+                  {
+                    "metric": {
+                      "type": "serviceruntime.googleapis.com/api/request_count",
+                      "labels": {
+                        "response_code_class": "2xx"
+                      }
+                    },
+                    "resource": {
+                      "type": "consumed_api",
+                      "labels": {
+                        "project_id": "usage-project",
+                        "credential_id": "apikey:synthetic-key-uid"
+                      }
+                    },
+                    "metricKind": "DELTA",
+                    "valueType": "INT64",
+                    "points": [
+                      {
+                        "interval": {
+                          "startTime": "2026-01-01T00:00:00Z",
+                          "endTime": "2026-01-02T00:00:00Z"
+                        },
+                        "value": {
+                          "int64Value": "2"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "metric_source_requests": [
+              "metric-0"
+            ],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "metric-0"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "missing": {},
+    "index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "asset_read_time": "2026-10-21T12:00:00Z",
+          "source_requests": [
+            {
+              "id": "credential-read",
+              "scope": "projects/usage-project",
+              "url": "https://apikeys.googleapis.com/v2/projects/usage-project/locations/global/keys",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "crm-0",
+              "scope": "projects/usage-project",
+              "url": "https://cloudresourcemanager.googleapis.com/v3/projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "metric-0",
+              "scope": "projects/usage-project",
+              "url": "https://monitoring.googleapis.com/v3/projects/usage-project/timeSeries",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {
+                "filter": "metric.type=\"serviceruntime.googleapis.com/api/request_count\" AND resource.type=\"consumed_api\" AND project=\"usage-project\" AND resource.labels.credential_id=\"apikey:synthetic-key-uid\"",
+                "interval.startTime": "2025-10-21T11:30:00+00:00",
+                "interval.endTime": "2026-10-21T11:30:00+00:00",
+                "view": "FULL",
+                "aggregation.alignmentPeriod": "86400s",
+                "aggregation.perSeriesAligner": "ALIGN_SUM",
+                "aggregation.crossSeriesReducer": "REDUCE_SUM",
+                "aggregation.groupByFields": [
+                  "resource.labels.project_id",
+                  "resource.labels.credential_id",
+                  "metric.labels.response_code_class"
+                ]
+              }
+            }
+          ],
+          "resolved_scopes": [
+            "projects/usage-project"
+          ],
+          "data_service_project_bindings": {
+            "projects/usage-project": {
+              "status": "collected",
+              "scope": "projects/usage-project",
+              "project_id": "usage-project",
+              "project_number": "123456789012",
+              "source_requests": [
+                "crm-0"
+              ]
+            }
+          }
+        }
+      },
+      "collections": {
+        "api_key": [
+          {
+            "type": "api_key",
+            "scope": "projects/usage-project",
+            "service": "apikeys",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project/locations/global/keys/synthetic",
+                "uid": "synthetic-key-uid",
+                "createTime": "2024-01-01T00:00:00Z",
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "collected_at": "2026-10-21T12:00:00Z",
+                  "source_requests": [
+                    "credential-read"
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "api_key_usage": [
+          {
+            "type": "api_key_usage",
+            "scope": "projects/usage-project",
+            "service": "monitoring",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project/api_key_usage/synthetic-key-uid",
+                "credential_id": "synthetic-key-uid",
+                "credential_name": "projects/usage-project/locations/global/keys/synthetic",
+                "owner_scope": "projects/usage-project",
+                "observation_start": "2025-10-21T11:30:00+00:00",
+                "observation_end": "2026-10-21T11:30:00+00:00",
+                "selected_project_scopes": [
+                  "projects/usage-project"
+                ],
+                "views": [
+                  {
+                    "scope": "projects/usage-project",
+                    "status": "collected",
+                    "project_id": "usage-project",
+                    "project_number": "123456789012",
+                    "source_requests": [
+                      "metric-0"
+                    ],
+                    "query": {
+                      "filter": "metric.type=\"serviceruntime.googleapis.com/api/request_count\" AND resource.type=\"consumed_api\" AND project=\"usage-project\" AND resource.labels.credential_id=\"apikey:synthetic-key-uid\"",
+                      "interval.startTime": "2025-10-21T11:30:00+00:00",
+                      "interval.endTime": "2026-10-21T11:30:00+00:00",
+                      "view": "FULL",
+                      "aggregation.alignmentPeriod": "86400s",
+                      "aggregation.perSeriesAligner": "ALIGN_SUM",
+                      "aggregation.crossSeriesReducer": "REDUCE_SUM",
+                      "aggregation.groupByFields": [
+                        "resource.labels.project_id",
+                        "resource.labels.credential_id",
+                        "metric.labels.response_code_class"
+                      ]
+                    },
+                    "series": [
+                      {
+                        "metric": {
+                          "type": "serviceruntime.googleapis.com/api/request_count",
+                          "labels": {
+                            "response_code_class": "2xx"
+                          }
+                        },
+                        "resource": {
+                          "type": "consumed_api",
+                          "labels": {
+                            "project_id": "usage-project",
+                            "credential_id": "apikey:synthetic-key-uid"
+                          }
+                        },
+                        "metricKind": "DELTA",
+                        "valueType": "INT64",
+                        "points": [
+                          {
+                            "interval": {
+                              "startTime": "2026-01-01T00:00:00Z",
+                              "endTime": "2026-01-02T00:00:00Z"
+                            },
+                            "value": {
+                              "int64Value": "2"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "metric_source_requests": [
+                  "metric-0"
+                ],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "collected_at": "2026-10-21T12:00:00Z",
+                  "source_requests": [
+                    "metric-0"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "api_key": [
+        {
+          "type": "api_key",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/locations/global/keys/synthetic",
+            "uid": "synthetic-key-uid",
+            "createTime": "2024-01-01T00:00:00Z",
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "credential-read"
+              ]
+            }
+          }
+        }
+      ],
+      "api_key_usage": [
+        {
+          "type": "api_key_usage",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/api_key_usage/synthetic-key-uid",
+            "credential_id": "synthetic-key-uid",
+            "credential_name": "projects/usage-project/locations/global/keys/synthetic",
+            "owner_scope": "projects/usage-project",
+            "observation_start": "2025-10-21T11:30:00+00:00",
+            "observation_end": "2026-10-21T11:30:00+00:00",
+            "selected_project_scopes": [
+              "projects/usage-project"
+            ],
+            "views": [
+              {
+                "scope": "projects/usage-project",
+                "status": "collected",
+                "project_id": "usage-project",
+                "project_number": "123456789012",
+                "source_requests": [
+                  "metric-0"
+                ],
+                "query": {
+                  "filter": "metric.type=\"serviceruntime.googleapis.com/api/request_count\" AND resource.type=\"consumed_api\" AND project=\"usage-project\" AND resource.labels.credential_id=\"apikey:synthetic-key-uid\"",
+                  "interval.startTime": "2025-10-21T11:30:00+00:00",
+                  "interval.endTime": "2026-10-21T11:30:00+00:00",
+                  "view": "FULL",
+                  "aggregation.alignmentPeriod": "86400s",
+                  "aggregation.perSeriesAligner": "ALIGN_SUM",
+                  "aggregation.crossSeriesReducer": "REDUCE_SUM",
+                  "aggregation.groupByFields": [
+                    "resource.labels.project_id",
+                    "resource.labels.credential_id",
+                    "metric.labels.response_code_class"
+                  ]
+                },
+                "series": [
+                  {
+                    "metric": {
+                      "type": "serviceruntime.googleapis.com/api/request_count",
+                      "labels": {
+                        "response_code_class": "2xx"
+                      }
+                    },
+                    "resource": {
+                      "type": "consumed_api",
+                      "labels": {
+                        "project_id": "usage-project",
+                        "credential_id": "apikey:synthetic-key-uid"
+                      }
+                    },
+                    "metricKind": "DELTA",
+                    "valueType": "INT64",
+                    "points": [
+                      {
+                        "interval": {
+                          "startTime": "2026-01-01T00:00:00Z",
+                          "endTime": "2026-01-02T00:00:00Z"
+                        },
+                        "value": {
+                          "int64Value": "2"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "metric_source_requests": [
+              "metric-0"
+            ],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "metric-0"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "gcp.iam.hmac_key_recent_recorded_successful_requests": {
+    "pass": {
+      "accessId": "GOOG1syntheticPublicAccessId",
+      "projectId": "usage-project",
+      "serviceAccountEmail": "worker@usage-project.iam.gserviceaccount.com",
+      "state": "ACTIVE",
+      "timeCreated": "2024-01-01T00:00:00Z",
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "collected_at": "2026-10-21T12:00:00Z",
+        "source_requests": [
+          "credential-read"
+        ]
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "asset_read_time": "2026-10-21T12:00:00Z",
+          "source_requests": [
+            {
+              "id": "credential-read",
+              "scope": "projects/usage-project",
+              "url": "https://storage.googleapis.com/storage/v1/projects/usage-project/hmacKeys",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "crm-0",
+              "scope": "projects/usage-project",
+              "url": "https://cloudresourcemanager.googleapis.com/v3/projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "metric-0",
+              "scope": "projects/usage-project",
+              "url": "https://monitoring.googleapis.com/v3/projects/usage-project/timeSeries",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {
+                "filter": "metric.type=\"storage.googleapis.com/authn/authentication_count\" AND resource.type=\"gcs_bucket\" AND project=\"usage-project\" AND metric.labels.access_id=\"GOOG1syntheticPublicAccessId\" AND metric.labels.authentication_method=\"HMAC\"",
+                "interval.startTime": "2025-10-21T11:30:00+00:00",
+                "interval.endTime": "2026-10-21T11:30:00+00:00",
+                "view": "FULL",
+                "aggregation.alignmentPeriod": "86400s",
+                "aggregation.perSeriesAligner": "ALIGN_SUM",
+                "aggregation.crossSeriesReducer": "REDUCE_SUM",
+                "aggregation.groupByFields": [
+                  "resource.labels.project_id",
+                  "metric.labels.access_id",
+                  "metric.labels.authentication_method",
+                  "metric.labels.response_code"
+                ]
+              }
+            }
+          ],
+          "resolved_scopes": [
+            "projects/usage-project"
+          ],
+          "data_service_project_bindings": {
+            "projects/usage-project": {
+              "status": "collected",
+              "scope": "projects/usage-project",
+              "project_id": "usage-project",
+              "project_number": "123456789012",
+              "source_requests": [
+                "crm-0"
+              ]
+            }
+          }
+        }
+      },
+      "collections": {
+        "storage_hmac_key": [
+          {
+            "type": "storage_hmac_key",
+            "scope": "projects/usage-project",
+            "service": "storage",
+            "status": "collected",
+            "items": [
+              {
+                "accessId": "GOOG1syntheticPublicAccessId",
+                "projectId": "usage-project",
+                "serviceAccountEmail": "worker@usage-project.iam.gserviceaccount.com",
+                "state": "ACTIVE",
+                "timeCreated": "2024-01-01T00:00:00Z",
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "collected_at": "2026-10-21T12:00:00Z",
+                  "source_requests": [
+                    "credential-read"
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "storage_hmac_key_usage": [
+          {
+            "type": "storage_hmac_key_usage",
+            "scope": "projects/usage-project",
+            "service": "monitoring",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project/storage_hmac_key_usage/GOOG1syntheticPublicAccessId",
+                "credential_id": "GOOG1syntheticPublicAccessId",
+                "credential_name": "GOOG1syntheticPublicAccessId",
+                "owner_scope": "projects/usage-project",
+                "observation_start": "2025-10-21T11:30:00+00:00",
+                "observation_end": "2026-10-21T11:30:00+00:00",
+                "selected_project_scopes": [
+                  "projects/usage-project"
+                ],
+                "views": [
+                  {
+                    "scope": "projects/usage-project",
+                    "status": "collected",
+                    "project_id": "usage-project",
+                    "project_number": "123456789012",
+                    "source_requests": [
+                      "metric-0"
+                    ],
+                    "query": {
+                      "filter": "metric.type=\"storage.googleapis.com/authn/authentication_count\" AND resource.type=\"gcs_bucket\" AND project=\"usage-project\" AND metric.labels.access_id=\"GOOG1syntheticPublicAccessId\" AND metric.labels.authentication_method=\"HMAC\"",
+                      "interval.startTime": "2025-10-21T11:30:00+00:00",
+                      "interval.endTime": "2026-10-21T11:30:00+00:00",
+                      "view": "FULL",
+                      "aggregation.alignmentPeriod": "86400s",
+                      "aggregation.perSeriesAligner": "ALIGN_SUM",
+                      "aggregation.crossSeriesReducer": "REDUCE_SUM",
+                      "aggregation.groupByFields": [
+                        "resource.labels.project_id",
+                        "metric.labels.access_id",
+                        "metric.labels.authentication_method",
+                        "metric.labels.response_code"
+                      ]
+                    },
+                    "series": [
+                      {
+                        "metric": {
+                          "type": "storage.googleapis.com/authn/authentication_count",
+                          "labels": {
+                            "access_id": "GOOG1syntheticPublicAccessId",
+                            "authentication_method": "HMAC",
+                            "response_code": "200"
+                          }
+                        },
+                        "resource": {
+                          "type": "gcs_bucket",
+                          "labels": {
+                            "project_id": "usage-project"
+                          }
+                        },
+                        "metricKind": "DELTA",
+                        "valueType": "INT64",
+                        "points": [
+                          {
+                            "interval": {
+                              "startTime": "2026-10-19T00:00:00Z",
+                              "endTime": "2026-10-20T00:00:00Z"
+                            },
+                            "value": {
+                              "int64Value": "2"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "metric_source_requests": [
+                  "metric-0"
+                ],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "collected_at": "2026-10-21T12:00:00Z",
+                  "source_requests": [
+                    "metric-0"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "storage_hmac_key": [
+        {
+          "type": "storage_hmac_key",
+          "scope": "projects/usage-project",
+          "data": {
+            "accessId": "GOOG1syntheticPublicAccessId",
+            "projectId": "usage-project",
+            "serviceAccountEmail": "worker@usage-project.iam.gserviceaccount.com",
+            "state": "ACTIVE",
+            "timeCreated": "2024-01-01T00:00:00Z",
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "credential-read"
+              ]
+            }
+          }
+        }
+      ],
+      "storage_hmac_key_usage": [
+        {
+          "type": "storage_hmac_key_usage",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/storage_hmac_key_usage/GOOG1syntheticPublicAccessId",
+            "credential_id": "GOOG1syntheticPublicAccessId",
+            "credential_name": "GOOG1syntheticPublicAccessId",
+            "owner_scope": "projects/usage-project",
+            "observation_start": "2025-10-21T11:30:00+00:00",
+            "observation_end": "2026-10-21T11:30:00+00:00",
+            "selected_project_scopes": [
+              "projects/usage-project"
+            ],
+            "views": [
+              {
+                "scope": "projects/usage-project",
+                "status": "collected",
+                "project_id": "usage-project",
+                "project_number": "123456789012",
+                "source_requests": [
+                  "metric-0"
+                ],
+                "query": {
+                  "filter": "metric.type=\"storage.googleapis.com/authn/authentication_count\" AND resource.type=\"gcs_bucket\" AND project=\"usage-project\" AND metric.labels.access_id=\"GOOG1syntheticPublicAccessId\" AND metric.labels.authentication_method=\"HMAC\"",
+                  "interval.startTime": "2025-10-21T11:30:00+00:00",
+                  "interval.endTime": "2026-10-21T11:30:00+00:00",
+                  "view": "FULL",
+                  "aggregation.alignmentPeriod": "86400s",
+                  "aggregation.perSeriesAligner": "ALIGN_SUM",
+                  "aggregation.crossSeriesReducer": "REDUCE_SUM",
+                  "aggregation.groupByFields": [
+                    "resource.labels.project_id",
+                    "metric.labels.access_id",
+                    "metric.labels.authentication_method",
+                    "metric.labels.response_code"
+                  ]
+                },
+                "series": [
+                  {
+                    "metric": {
+                      "type": "storage.googleapis.com/authn/authentication_count",
+                      "labels": {
+                        "access_id": "GOOG1syntheticPublicAccessId",
+                        "authentication_method": "HMAC",
+                        "response_code": "200"
+                      }
+                    },
+                    "resource": {
+                      "type": "gcs_bucket",
+                      "labels": {
+                        "project_id": "usage-project"
+                      }
+                    },
+                    "metricKind": "DELTA",
+                    "valueType": "INT64",
+                    "points": [
+                      {
+                        "interval": {
+                          "startTime": "2026-10-19T00:00:00Z",
+                          "endTime": "2026-10-20T00:00:00Z"
+                        },
+                        "value": {
+                          "int64Value": "2"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "metric_source_requests": [
+              "metric-0"
+            ],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "metric-0"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "fail": {
+      "accessId": "GOOG1syntheticPublicAccessId",
+      "projectId": "usage-project",
+      "serviceAccountEmail": "worker@usage-project.iam.gserviceaccount.com",
+      "state": "ACTIVE",
+      "timeCreated": "2024-01-01T00:00:00Z",
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "collected_at": "2026-10-21T12:00:00Z",
+        "source_requests": [
+          "credential-read"
+        ]
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "asset_read_time": "2026-10-21T12:00:00Z",
+          "source_requests": [
+            {
+              "id": "credential-read",
+              "scope": "projects/usage-project",
+              "url": "https://storage.googleapis.com/storage/v1/projects/usage-project/hmacKeys",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "crm-0",
+              "scope": "projects/usage-project",
+              "url": "https://cloudresourcemanager.googleapis.com/v3/projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "metric-0",
+              "scope": "projects/usage-project",
+              "url": "https://monitoring.googleapis.com/v3/projects/usage-project/timeSeries",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {
+                "filter": "metric.type=\"storage.googleapis.com/authn/authentication_count\" AND resource.type=\"gcs_bucket\" AND project=\"usage-project\" AND metric.labels.access_id=\"GOOG1syntheticPublicAccessId\" AND metric.labels.authentication_method=\"HMAC\"",
+                "interval.startTime": "2025-10-21T11:30:00+00:00",
+                "interval.endTime": "2026-10-21T11:30:00+00:00",
+                "view": "FULL",
+                "aggregation.alignmentPeriod": "86400s",
+                "aggregation.perSeriesAligner": "ALIGN_SUM",
+                "aggregation.crossSeriesReducer": "REDUCE_SUM",
+                "aggregation.groupByFields": [
+                  "resource.labels.project_id",
+                  "metric.labels.access_id",
+                  "metric.labels.authentication_method",
+                  "metric.labels.response_code"
+                ]
+              }
+            }
+          ],
+          "resolved_scopes": [
+            "projects/usage-project"
+          ],
+          "data_service_project_bindings": {
+            "projects/usage-project": {
+              "status": "collected",
+              "scope": "projects/usage-project",
+              "project_id": "usage-project",
+              "project_number": "123456789012",
+              "source_requests": [
+                "crm-0"
+              ]
+            }
+          }
+        }
+      },
+      "collections": {
+        "storage_hmac_key": [
+          {
+            "type": "storage_hmac_key",
+            "scope": "projects/usage-project",
+            "service": "storage",
+            "status": "collected",
+            "items": [
+              {
+                "accessId": "GOOG1syntheticPublicAccessId",
+                "projectId": "usage-project",
+                "serviceAccountEmail": "worker@usage-project.iam.gserviceaccount.com",
+                "state": "ACTIVE",
+                "timeCreated": "2024-01-01T00:00:00Z",
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "collected_at": "2026-10-21T12:00:00Z",
+                  "source_requests": [
+                    "credential-read"
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "storage_hmac_key_usage": [
+          {
+            "type": "storage_hmac_key_usage",
+            "scope": "projects/usage-project",
+            "service": "monitoring",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project/storage_hmac_key_usage/GOOG1syntheticPublicAccessId",
+                "credential_id": "GOOG1syntheticPublicAccessId",
+                "credential_name": "GOOG1syntheticPublicAccessId",
+                "owner_scope": "projects/usage-project",
+                "observation_start": "2025-10-21T11:30:00+00:00",
+                "observation_end": "2026-10-21T11:30:00+00:00",
+                "selected_project_scopes": [
+                  "projects/usage-project"
+                ],
+                "views": [
+                  {
+                    "scope": "projects/usage-project",
+                    "status": "collected",
+                    "project_id": "usage-project",
+                    "project_number": "123456789012",
+                    "source_requests": [
+                      "metric-0"
+                    ],
+                    "query": {
+                      "filter": "metric.type=\"storage.googleapis.com/authn/authentication_count\" AND resource.type=\"gcs_bucket\" AND project=\"usage-project\" AND metric.labels.access_id=\"GOOG1syntheticPublicAccessId\" AND metric.labels.authentication_method=\"HMAC\"",
+                      "interval.startTime": "2025-10-21T11:30:00+00:00",
+                      "interval.endTime": "2026-10-21T11:30:00+00:00",
+                      "view": "FULL",
+                      "aggregation.alignmentPeriod": "86400s",
+                      "aggregation.perSeriesAligner": "ALIGN_SUM",
+                      "aggregation.crossSeriesReducer": "REDUCE_SUM",
+                      "aggregation.groupByFields": [
+                        "resource.labels.project_id",
+                        "metric.labels.access_id",
+                        "metric.labels.authentication_method",
+                        "metric.labels.response_code"
+                      ]
+                    },
+                    "series": [
+                      {
+                        "metric": {
+                          "type": "storage.googleapis.com/authn/authentication_count",
+                          "labels": {
+                            "access_id": "GOOG1syntheticPublicAccessId",
+                            "authentication_method": "HMAC",
+                            "response_code": "200"
+                          }
+                        },
+                        "resource": {
+                          "type": "gcs_bucket",
+                          "labels": {
+                            "project_id": "usage-project"
+                          }
+                        },
+                        "metricKind": "DELTA",
+                        "valueType": "INT64",
+                        "points": [
+                          {
+                            "interval": {
+                              "startTime": "2026-01-01T00:00:00Z",
+                              "endTime": "2026-01-02T00:00:00Z"
+                            },
+                            "value": {
+                              "int64Value": "2"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "metric_source_requests": [
+                  "metric-0"
+                ],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "collected_at": "2026-10-21T12:00:00Z",
+                  "source_requests": [
+                    "metric-0"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "storage_hmac_key": [
+        {
+          "type": "storage_hmac_key",
+          "scope": "projects/usage-project",
+          "data": {
+            "accessId": "GOOG1syntheticPublicAccessId",
+            "projectId": "usage-project",
+            "serviceAccountEmail": "worker@usage-project.iam.gserviceaccount.com",
+            "state": "ACTIVE",
+            "timeCreated": "2024-01-01T00:00:00Z",
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "credential-read"
+              ]
+            }
+          }
+        }
+      ],
+      "storage_hmac_key_usage": [
+        {
+          "type": "storage_hmac_key_usage",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/storage_hmac_key_usage/GOOG1syntheticPublicAccessId",
+            "credential_id": "GOOG1syntheticPublicAccessId",
+            "credential_name": "GOOG1syntheticPublicAccessId",
+            "owner_scope": "projects/usage-project",
+            "observation_start": "2025-10-21T11:30:00+00:00",
+            "observation_end": "2026-10-21T11:30:00+00:00",
+            "selected_project_scopes": [
+              "projects/usage-project"
+            ],
+            "views": [
+              {
+                "scope": "projects/usage-project",
+                "status": "collected",
+                "project_id": "usage-project",
+                "project_number": "123456789012",
+                "source_requests": [
+                  "metric-0"
+                ],
+                "query": {
+                  "filter": "metric.type=\"storage.googleapis.com/authn/authentication_count\" AND resource.type=\"gcs_bucket\" AND project=\"usage-project\" AND metric.labels.access_id=\"GOOG1syntheticPublicAccessId\" AND metric.labels.authentication_method=\"HMAC\"",
+                  "interval.startTime": "2025-10-21T11:30:00+00:00",
+                  "interval.endTime": "2026-10-21T11:30:00+00:00",
+                  "view": "FULL",
+                  "aggregation.alignmentPeriod": "86400s",
+                  "aggregation.perSeriesAligner": "ALIGN_SUM",
+                  "aggregation.crossSeriesReducer": "REDUCE_SUM",
+                  "aggregation.groupByFields": [
+                    "resource.labels.project_id",
+                    "metric.labels.access_id",
+                    "metric.labels.authentication_method",
+                    "metric.labels.response_code"
+                  ]
+                },
+                "series": [
+                  {
+                    "metric": {
+                      "type": "storage.googleapis.com/authn/authentication_count",
+                      "labels": {
+                        "access_id": "GOOG1syntheticPublicAccessId",
+                        "authentication_method": "HMAC",
+                        "response_code": "200"
+                      }
+                    },
+                    "resource": {
+                      "type": "gcs_bucket",
+                      "labels": {
+                        "project_id": "usage-project"
+                      }
+                    },
+                    "metricKind": "DELTA",
+                    "valueType": "INT64",
+                    "points": [
+                      {
+                        "interval": {
+                          "startTime": "2026-01-01T00:00:00Z",
+                          "endTime": "2026-01-02T00:00:00Z"
+                        },
+                        "value": {
+                          "int64Value": "2"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "metric_source_requests": [
+              "metric-0"
+            ],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "metric-0"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "missing": {},
+    "index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "asset_read_time": "2026-10-21T12:00:00Z",
+          "source_requests": [
+            {
+              "id": "credential-read",
+              "scope": "projects/usage-project",
+              "url": "https://storage.googleapis.com/storage/v1/projects/usage-project/hmacKeys",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "crm-0",
+              "scope": "projects/usage-project",
+              "url": "https://cloudresourcemanager.googleapis.com/v3/projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "metric-0",
+              "scope": "projects/usage-project",
+              "url": "https://monitoring.googleapis.com/v3/projects/usage-project/timeSeries",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {
+                "filter": "metric.type=\"storage.googleapis.com/authn/authentication_count\" AND resource.type=\"gcs_bucket\" AND project=\"usage-project\" AND metric.labels.access_id=\"GOOG1syntheticPublicAccessId\" AND metric.labels.authentication_method=\"HMAC\"",
+                "interval.startTime": "2025-10-21T11:30:00+00:00",
+                "interval.endTime": "2026-10-21T11:30:00+00:00",
+                "view": "FULL",
+                "aggregation.alignmentPeriod": "86400s",
+                "aggregation.perSeriesAligner": "ALIGN_SUM",
+                "aggregation.crossSeriesReducer": "REDUCE_SUM",
+                "aggregation.groupByFields": [
+                  "resource.labels.project_id",
+                  "metric.labels.access_id",
+                  "metric.labels.authentication_method",
+                  "metric.labels.response_code"
+                ]
+              }
+            }
+          ],
+          "resolved_scopes": [
+            "projects/usage-project"
+          ],
+          "data_service_project_bindings": {
+            "projects/usage-project": {
+              "status": "collected",
+              "scope": "projects/usage-project",
+              "project_id": "usage-project",
+              "project_number": "123456789012",
+              "source_requests": [
+                "crm-0"
+              ]
+            }
+          }
+        }
+      },
+      "collections": {
+        "storage_hmac_key": [
+          {
+            "type": "storage_hmac_key",
+            "scope": "projects/usage-project",
+            "service": "storage",
+            "status": "collected",
+            "items": [
+              {
+                "accessId": "GOOG1syntheticPublicAccessId",
+                "projectId": "usage-project",
+                "serviceAccountEmail": "worker@usage-project.iam.gserviceaccount.com",
+                "state": "ACTIVE",
+                "timeCreated": "2024-01-01T00:00:00Z",
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "collected_at": "2026-10-21T12:00:00Z",
+                  "source_requests": [
+                    "credential-read"
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "storage_hmac_key_usage": [
+          {
+            "type": "storage_hmac_key_usage",
+            "scope": "projects/usage-project",
+            "service": "monitoring",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project/storage_hmac_key_usage/GOOG1syntheticPublicAccessId",
+                "credential_id": "GOOG1syntheticPublicAccessId",
+                "credential_name": "GOOG1syntheticPublicAccessId",
+                "owner_scope": "projects/usage-project",
+                "observation_start": "2025-10-21T11:30:00+00:00",
+                "observation_end": "2026-10-21T11:30:00+00:00",
+                "selected_project_scopes": [
+                  "projects/usage-project"
+                ],
+                "views": [
+                  {
+                    "scope": "projects/usage-project",
+                    "status": "collected",
+                    "project_id": "usage-project",
+                    "project_number": "123456789012",
+                    "source_requests": [
+                      "metric-0"
+                    ],
+                    "query": {
+                      "filter": "metric.type=\"storage.googleapis.com/authn/authentication_count\" AND resource.type=\"gcs_bucket\" AND project=\"usage-project\" AND metric.labels.access_id=\"GOOG1syntheticPublicAccessId\" AND metric.labels.authentication_method=\"HMAC\"",
+                      "interval.startTime": "2025-10-21T11:30:00+00:00",
+                      "interval.endTime": "2026-10-21T11:30:00+00:00",
+                      "view": "FULL",
+                      "aggregation.alignmentPeriod": "86400s",
+                      "aggregation.perSeriesAligner": "ALIGN_SUM",
+                      "aggregation.crossSeriesReducer": "REDUCE_SUM",
+                      "aggregation.groupByFields": [
+                        "resource.labels.project_id",
+                        "metric.labels.access_id",
+                        "metric.labels.authentication_method",
+                        "metric.labels.response_code"
+                      ]
+                    },
+                    "series": [
+                      {
+                        "metric": {
+                          "type": "storage.googleapis.com/authn/authentication_count",
+                          "labels": {
+                            "access_id": "GOOG1syntheticPublicAccessId",
+                            "authentication_method": "HMAC",
+                            "response_code": "200"
+                          }
+                        },
+                        "resource": {
+                          "type": "gcs_bucket",
+                          "labels": {
+                            "project_id": "usage-project"
+                          }
+                        },
+                        "metricKind": "DELTA",
+                        "valueType": "INT64",
+                        "points": [
+                          {
+                            "interval": {
+                              "startTime": "2026-01-01T00:00:00Z",
+                              "endTime": "2026-01-02T00:00:00Z"
+                            },
+                            "value": {
+                              "int64Value": "2"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "metric_source_requests": [
+                  "metric-0"
+                ],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "collected_at": "2026-10-21T12:00:00Z",
+                  "source_requests": [
+                    "metric-0"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "storage_hmac_key": [
+        {
+          "type": "storage_hmac_key",
+          "scope": "projects/usage-project",
+          "data": {
+            "accessId": "GOOG1syntheticPublicAccessId",
+            "projectId": "usage-project",
+            "serviceAccountEmail": "worker@usage-project.iam.gserviceaccount.com",
+            "state": "ACTIVE",
+            "timeCreated": "2024-01-01T00:00:00Z",
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "credential-read"
+              ]
+            }
+          }
+        }
+      ],
+      "storage_hmac_key_usage": [
+        {
+          "type": "storage_hmac_key_usage",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/storage_hmac_key_usage/GOOG1syntheticPublicAccessId",
+            "credential_id": "GOOG1syntheticPublicAccessId",
+            "credential_name": "GOOG1syntheticPublicAccessId",
+            "owner_scope": "projects/usage-project",
+            "observation_start": "2025-10-21T11:30:00+00:00",
+            "observation_end": "2026-10-21T11:30:00+00:00",
+            "selected_project_scopes": [
+              "projects/usage-project"
+            ],
+            "views": [
+              {
+                "scope": "projects/usage-project",
+                "status": "collected",
+                "project_id": "usage-project",
+                "project_number": "123456789012",
+                "source_requests": [
+                  "metric-0"
+                ],
+                "query": {
+                  "filter": "metric.type=\"storage.googleapis.com/authn/authentication_count\" AND resource.type=\"gcs_bucket\" AND project=\"usage-project\" AND metric.labels.access_id=\"GOOG1syntheticPublicAccessId\" AND metric.labels.authentication_method=\"HMAC\"",
+                  "interval.startTime": "2025-10-21T11:30:00+00:00",
+                  "interval.endTime": "2026-10-21T11:30:00+00:00",
+                  "view": "FULL",
+                  "aggregation.alignmentPeriod": "86400s",
+                  "aggregation.perSeriesAligner": "ALIGN_SUM",
+                  "aggregation.crossSeriesReducer": "REDUCE_SUM",
+                  "aggregation.groupByFields": [
+                    "resource.labels.project_id",
+                    "metric.labels.access_id",
+                    "metric.labels.authentication_method",
+                    "metric.labels.response_code"
+                  ]
+                },
+                "series": [
+                  {
+                    "metric": {
+                      "type": "storage.googleapis.com/authn/authentication_count",
+                      "labels": {
+                        "access_id": "GOOG1syntheticPublicAccessId",
+                        "authentication_method": "HMAC",
+                        "response_code": "200"
+                      }
+                    },
+                    "resource": {
+                      "type": "gcs_bucket",
+                      "labels": {
+                        "project_id": "usage-project"
+                      }
+                    },
+                    "metricKind": "DELTA",
+                    "valueType": "INT64",
+                    "points": [
+                      {
+                        "interval": {
+                          "startTime": "2026-01-01T00:00:00Z",
+                          "endTime": "2026-01-02T00:00:00Z"
+                        },
+                        "value": {
+                          "int64Value": "2"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "metric_source_requests": [
+              "metric-0"
+            ],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "metric-0"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

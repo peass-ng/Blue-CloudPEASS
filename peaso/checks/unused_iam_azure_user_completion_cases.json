@@ -1,0 +1,541 @@
+{
+  "azure.claude.entra_user_recent_sign_in": {
+    "fail": {
+      "_provenance": {
+        "credential_context_id": "capture-one",
+        "customer_context_id": "customer-one",
+        "endpoint": "/v1.0/users",
+        "read_only": true,
+        "tenant_id": "11111111-1111-4111-8111-111111111111",
+        "tenant_verified": true
+      },
+      "accountEnabled": true,
+      "displayName": "Synthetic user",
+      "id": "22222222-2222-4222-8222-222222222222",
+      "signInActivity": {
+        "lastSuccessfulSignInDateTime": "2026-01-01T00:00:00Z"
+      }
+    },
+    "fail_index": {
+      "azure_unused_iam_user_success_evidence": [
+        {
+          "data": {
+            "_provenance": {
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-user-success-projection",
+              "observed_at": "2026-10-21T12:00:00Z",
+              "read_only": true,
+              "schema": "azure-unused-user-success-v1",
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true
+            },
+            "id": "/tenants/11111111-1111-4111-8111-111111111111/userSuccessEvidence",
+            "schema": "azure-unused-user-success-v1",
+            "source": {
+              "audience": "https://graph.microsoft.com",
+              "body": null,
+              "endpoint": "/v1.0/users?$select=id,displayName,accountEnabled,createdDateTime,signInActivity",
+              "integrity_error": false,
+              "items": [
+                {
+                  "accountEnabled": true,
+                  "createdDateTime": "2025-01-01T00:00:00Z",
+                  "displayName": "Synthetic user",
+                  "id": "22222222-2222-4222-8222-222222222222",
+                  "signInActivity": {
+                    "lastSuccessfulSignInDateTime": "2026-01-01T00:00:00Z"
+                  }
+                }
+              ],
+              "items_sha256": "eff309c6cc810e5d4933aa4e86e0cc375d590fc5ea5c26f4eaca26413a3150d4",
+              "method": "GET",
+              "status": "collected"
+            }
+          },
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "type": "azure_unused_iam_user_success_evidence"
+        }
+      ],
+      "collections": {
+        "azure_unused_iam_user_success_evidence": [
+          {
+            "_provenance": {
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-user-success-projection",
+              "observed_at": "2026-10-21T12:00:00Z",
+              "read_only": true,
+              "schema": "azure-unused-user-success-v1",
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true
+            },
+            "items": [
+              {
+                "_provenance": {
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "native-user-success-projection",
+                  "observed_at": "2026-10-21T12:00:00Z",
+                  "read_only": true,
+                  "schema": "azure-unused-user-success-v1",
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true
+                },
+                "id": "/tenants/11111111-1111-4111-8111-111111111111/userSuccessEvidence",
+                "schema": "azure-unused-user-success-v1",
+                "source": {
+                  "audience": "https://graph.microsoft.com",
+                  "body": null,
+                  "endpoint": "/v1.0/users?$select=id,displayName,accountEnabled,createdDateTime,signInActivity",
+                  "integrity_error": false,
+                  "items": [
+                    {
+                      "accountEnabled": true,
+                      "createdDateTime": "2025-01-01T00:00:00Z",
+                      "displayName": "Synthetic user",
+                      "id": "22222222-2222-4222-8222-222222222222",
+                      "signInActivity": {
+                        "lastSuccessfulSignInDateTime": "2026-01-01T00:00:00Z"
+                      }
+                    }
+                  ],
+                  "items_sha256": "eff309c6cc810e5d4933aa4e86e0cc375d590fc5ea5c26f4eaca26413a3150d4",
+                  "method": "GET",
+                  "status": "collected"
+                }
+              }
+            ],
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "type": "azure_unused_iam_user_success_evidence"
+          }
+        ],
+        "directory_user": [
+          {
+            "_provenance": {
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true
+            },
+            "items": [
+              {
+                "_provenance": {
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "/v1.0/users",
+                  "read_only": true,
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true
+                },
+                "accountEnabled": true,
+                "displayName": "Synthetic user",
+                "id": "22222222-2222-4222-8222-222222222222",
+                "signInActivity": {
+                  "lastSuccessfulSignInDateTime": "2026-01-01T00:00:00Z"
+                }
+              }
+            ],
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "type": "directory_user"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "credential_context_id": "capture-one",
+          "customer_context_id": "customer-one",
+          "tenant_id": "11111111-1111-4111-8111-111111111111",
+          "tenant_verified": true
+        },
+        "provider": "azure",
+        "scope": "/tenants/11111111-1111-4111-8111-111111111111"
+      },
+      "directory_user": [
+        {
+          "data": {
+            "_provenance": {
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "/v1.0/users",
+              "read_only": true,
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true
+            },
+            "accountEnabled": true,
+            "displayName": "Synthetic user",
+            "id": "22222222-2222-4222-8222-222222222222",
+            "signInActivity": {
+              "lastSuccessfulSignInDateTime": "2026-01-01T00:00:00Z"
+            }
+          },
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "type": "directory_user"
+        }
+      ]
+    },
+    "pass": {
+      "_provenance": {
+        "credential_context_id": "capture-one",
+        "customer_context_id": "customer-one",
+        "endpoint": "/v1.0/users",
+        "read_only": true,
+        "tenant_id": "11111111-1111-4111-8111-111111111111",
+        "tenant_verified": true
+      },
+      "accountEnabled": true,
+      "displayName": "Synthetic user",
+      "id": "22222222-2222-4222-8222-222222222222",
+      "signInActivity": {
+        "lastSuccessfulSignInDateTime": "2026-10-01T00:00:00Z"
+      }
+    },
+    "pass_index": {
+      "azure_unused_iam_user_success_evidence": [
+        {
+          "data": {
+            "_provenance": {
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-user-success-projection",
+              "observed_at": "2026-10-21T12:00:00Z",
+              "read_only": true,
+              "schema": "azure-unused-user-success-v1",
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true
+            },
+            "id": "/tenants/11111111-1111-4111-8111-111111111111/userSuccessEvidence",
+            "schema": "azure-unused-user-success-v1",
+            "source": {
+              "audience": "https://graph.microsoft.com",
+              "body": null,
+              "endpoint": "/v1.0/users?$select=id,displayName,accountEnabled,createdDateTime,signInActivity",
+              "integrity_error": false,
+              "items": [
+                {
+                  "accountEnabled": true,
+                  "createdDateTime": "2025-01-01T00:00:00Z",
+                  "displayName": "Synthetic user",
+                  "id": "22222222-2222-4222-8222-222222222222",
+                  "signInActivity": {
+                    "lastSuccessfulSignInDateTime": "2026-10-01T00:00:00Z"
+                  }
+                }
+              ],
+              "items_sha256": "9212e74bfd23ed53c75d29b952faf74a746377f9e0fa242333a4aac6279ff410",
+              "method": "GET",
+              "status": "collected"
+            }
+          },
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "type": "azure_unused_iam_user_success_evidence"
+        }
+      ],
+      "collections": {
+        "azure_unused_iam_user_success_evidence": [
+          {
+            "_provenance": {
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-user-success-projection",
+              "observed_at": "2026-10-21T12:00:00Z",
+              "read_only": true,
+              "schema": "azure-unused-user-success-v1",
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true
+            },
+            "items": [
+              {
+                "_provenance": {
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "native-user-success-projection",
+                  "observed_at": "2026-10-21T12:00:00Z",
+                  "read_only": true,
+                  "schema": "azure-unused-user-success-v1",
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true
+                },
+                "id": "/tenants/11111111-1111-4111-8111-111111111111/userSuccessEvidence",
+                "schema": "azure-unused-user-success-v1",
+                "source": {
+                  "audience": "https://graph.microsoft.com",
+                  "body": null,
+                  "endpoint": "/v1.0/users?$select=id,displayName,accountEnabled,createdDateTime,signInActivity",
+                  "integrity_error": false,
+                  "items": [
+                    {
+                      "accountEnabled": true,
+                      "createdDateTime": "2025-01-01T00:00:00Z",
+                      "displayName": "Synthetic user",
+                      "id": "22222222-2222-4222-8222-222222222222",
+                      "signInActivity": {
+                        "lastSuccessfulSignInDateTime": "2026-10-01T00:00:00Z"
+                      }
+                    }
+                  ],
+                  "items_sha256": "9212e74bfd23ed53c75d29b952faf74a746377f9e0fa242333a4aac6279ff410",
+                  "method": "GET",
+                  "status": "collected"
+                }
+              }
+            ],
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "type": "azure_unused_iam_user_success_evidence"
+          }
+        ],
+        "directory_user": [
+          {
+            "_provenance": {
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true
+            },
+            "items": [
+              {
+                "_provenance": {
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "/v1.0/users",
+                  "read_only": true,
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true
+                },
+                "accountEnabled": true,
+                "displayName": "Synthetic user",
+                "id": "22222222-2222-4222-8222-222222222222",
+                "signInActivity": {
+                  "lastSuccessfulSignInDateTime": "2026-10-01T00:00:00Z"
+                }
+              }
+            ],
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "type": "directory_user"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "credential_context_id": "capture-one",
+          "customer_context_id": "customer-one",
+          "tenant_id": "11111111-1111-4111-8111-111111111111",
+          "tenant_verified": true
+        },
+        "provider": "azure",
+        "scope": "/tenants/11111111-1111-4111-8111-111111111111"
+      },
+      "directory_user": [
+        {
+          "data": {
+            "_provenance": {
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "/v1.0/users",
+              "read_only": true,
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true
+            },
+            "accountEnabled": true,
+            "displayName": "Synthetic user",
+            "id": "22222222-2222-4222-8222-222222222222",
+            "signInActivity": {
+              "lastSuccessfulSignInDateTime": "2026-10-01T00:00:00Z"
+            }
+          },
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "type": "directory_user"
+        }
+      ]
+    },
+    "unknown": {
+      "_provenance": {
+        "credential_context_id": "capture-one",
+        "customer_context_id": "customer-one",
+        "endpoint": "/v1.0/users",
+        "read_only": true,
+        "tenant_id": "11111111-1111-4111-8111-111111111111",
+        "tenant_verified": true
+      },
+      "accountEnabled": true,
+      "displayName": "Synthetic user",
+      "id": "22222222-2222-4222-8222-222222222222",
+      "signInActivity": {
+        "lastSuccessfulSignInDateTime": "2025-12-01T00:00:00Z"
+      }
+    },
+    "unknown_index": {
+      "azure_unused_iam_user_success_evidence": [
+        {
+          "data": {
+            "_provenance": {
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-user-success-projection",
+              "observed_at": "2026-10-21T12:00:00Z",
+              "read_only": true,
+              "schema": "azure-unused-user-success-v1",
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true
+            },
+            "id": "/tenants/11111111-1111-4111-8111-111111111111/userSuccessEvidence",
+            "schema": "azure-unused-user-success-v1",
+            "source": {
+              "audience": "https://graph.microsoft.com",
+              "body": null,
+              "endpoint": "/v1.0/users?$select=id,displayName,accountEnabled,createdDateTime,signInActivity",
+              "integrity_error": false,
+              "items": [
+                {
+                  "accountEnabled": true,
+                  "createdDateTime": "2025-01-01T00:00:00Z",
+                  "displayName": "Synthetic user",
+                  "id": "22222222-2222-4222-8222-222222222222",
+                  "signInActivity": {
+                    "lastSuccessfulSignInDateTime": "2025-12-01T00:00:00Z"
+                  }
+                }
+              ],
+              "items_sha256": "d8d265caa9c6b7deaadcdb429643176cd1af177172ade57d66abbb891b61652e",
+              "method": "GET",
+              "status": "partial"
+            }
+          },
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "type": "azure_unused_iam_user_success_evidence"
+        }
+      ],
+      "collections": {
+        "azure_unused_iam_user_success_evidence": [
+          {
+            "_provenance": {
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-user-success-projection",
+              "observed_at": "2026-10-21T12:00:00Z",
+              "read_only": true,
+              "schema": "azure-unused-user-success-v1",
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true
+            },
+            "items": [
+              {
+                "_provenance": {
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "native-user-success-projection",
+                  "observed_at": "2026-10-21T12:00:00Z",
+                  "read_only": true,
+                  "schema": "azure-unused-user-success-v1",
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true
+                },
+                "id": "/tenants/11111111-1111-4111-8111-111111111111/userSuccessEvidence",
+                "schema": "azure-unused-user-success-v1",
+                "source": {
+                  "audience": "https://graph.microsoft.com",
+                  "body": null,
+                  "endpoint": "/v1.0/users?$select=id,displayName,accountEnabled,createdDateTime,signInActivity",
+                  "integrity_error": false,
+                  "items": [
+                    {
+                      "accountEnabled": true,
+                      "createdDateTime": "2025-01-01T00:00:00Z",
+                      "displayName": "Synthetic user",
+                      "id": "22222222-2222-4222-8222-222222222222",
+                      "signInActivity": {
+                        "lastSuccessfulSignInDateTime": "2025-12-01T00:00:00Z"
+                      }
+                    }
+                  ],
+                  "items_sha256": "d8d265caa9c6b7deaadcdb429643176cd1af177172ade57d66abbb891b61652e",
+                  "method": "GET",
+                  "status": "partial"
+                }
+              }
+            ],
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "type": "azure_unused_iam_user_success_evidence"
+          }
+        ],
+        "directory_user": [
+          {
+            "_provenance": {
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true
+            },
+            "items": [
+              {
+                "_provenance": {
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "/v1.0/users",
+                  "read_only": true,
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true
+                },
+                "accountEnabled": true,
+                "displayName": "Synthetic user",
+                "id": "22222222-2222-4222-8222-222222222222",
+                "signInActivity": {
+                  "lastSuccessfulSignInDateTime": "2025-12-01T00:00:00Z"
+                }
+              }
+            ],
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "type": "directory_user"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "credential_context_id": "capture-one",
+          "customer_context_id": "customer-one",
+          "tenant_id": "11111111-1111-4111-8111-111111111111",
+          "tenant_verified": true
+        },
+        "provider": "azure",
+        "scope": "/tenants/11111111-1111-4111-8111-111111111111"
+      },
+      "directory_user": [
+        {
+          "data": {
+            "_provenance": {
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "/v1.0/users",
+              "read_only": true,
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true
+            },
+            "accountEnabled": true,
+            "displayName": "Synthetic user",
+            "id": "22222222-2222-4222-8222-222222222222",
+            "signInActivity": {
+              "lastSuccessfulSignInDateTime": "2025-12-01T00:00:00Z"
+            }
+          },
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "type": "directory_user"
+        }
+      ]
+    }
+  }
+}

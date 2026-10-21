@@ -33,6 +33,13 @@ def evidence_summary(finding):
                         'This access remains available to its principals despite the reported lack of use.')
         if status == 'PASS' and evidence.get('findings') == 0:
             return 'The active regional IAM Access Analyzers returned no active findings after complete collection.'
+    if cid == 'azure.review.acr.selected_image_high_critical_vulnerabilities' and finding.get('provider') == 'azure':
+        return _image_observation(status, {'vulnerabilities': evidence.get('Vulnerabilities'), 'coverage_status': evidence.get('Coverage')})
+    if cid == 'gcp.review.artifact_image.selected_image_vulnerabilities' and finding.get('provider') == 'gcp':
+        return _image_observation(status, evidence)
+    if cid == 'k8s.review.selected_text_content.secret_indicators' and finding.get('provider') == 'k8s':
+        observation = evidence.get('observed')
+        return observation.strip() if isinstance(observation, str) and observation.strip() else None
     if cid == STORAGE and finding.get('provider') == 'azure':
         if status in ('UNKNOWN', 'DENIED'):
             return 'Native container metadata did not establish an effective inherited default retention policy.'
@@ -71,7 +78,7 @@ def _image_observation(status, evidence):
     for row in rows:
         if type(row) is not dict or row.get('severity') not in ('HIGH', 'CRITICAL'):
             return None
-        fields = [row.get(k) for k in ('vulnerability_id', 'package', 'version')]
+        fields = [row.get('vulnerability_id'), row.get('package'), row.get('version') or row.get('installed_version')]
         if any(type(value) is not str or not _TOKEN.fullmatch(value) for value in fields):
             return None
         names.append(f'{fields[0]} ({fields[1]} {fields[2]})')

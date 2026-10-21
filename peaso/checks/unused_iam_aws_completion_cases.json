@@ -1,0 +1,170 @@
+{
+  "aws_identity_center_permission_set_consumer": {
+    "pass": {
+      "PermissionSetArn": "arn:aws:sso:::permissionSet/ssoins-1234567890abcdef/ps-1234567890abcdef",
+      "OrganizationAccounts": [
+        "111111111111"
+      ],
+      "ProvisionedAccounts": [
+        "111111111111"
+      ],
+      "ProvisioningStates": {
+        "111111111111": "latest_provisioned"
+      },
+      "Assignments": [],
+      "status": "collected",
+      "_provenance": {
+        "organization_accounts_complete": true,
+        "all_accounts_checked": true
+      },
+      "AuditedAccountId": "111111111111",
+      "Region": "eu-west-1",
+      "OwnerAccountId": "111111111111"
+    },
+    "fail": {
+      "PermissionSetArn": "arn:aws:sso:::permissionSet/ssoins-1234567890abcdef/ps-1234567890abcdef",
+      "OrganizationAccounts": [
+        "111111111111"
+      ],
+      "ProvisionedAccounts": [],
+      "ProvisioningStates": {},
+      "Assignments": [],
+      "status": "collected",
+      "_provenance": {
+        "organization_accounts_complete": true,
+        "all_accounts_checked": true
+      },
+      "AuditedAccountId": "111111111111",
+      "Region": "eu-west-1",
+      "OwnerAccountId": "111111111111"
+    },
+    "unknown": {
+      "PermissionSetArn": "arn:aws:sso:::permissionSet/ssoins-1234567890abcdef/ps-1234567890abcdef",
+      "OrganizationAccounts": [
+        "111111111111"
+      ],
+      "ProvisionedAccounts": [],
+      "ProvisioningStates": {},
+      "Assignments": [],
+      "status": "denied",
+      "_provenance": {
+        "organization_accounts_complete": true,
+        "all_accounts_checked": false
+      },
+      "AuditedAccountId": "111111111111",
+      "Region": "eu-west-1",
+      "OwnerAccountId": "111111111111"
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "111111111111/eu-west-1"
+      },
+      "collections": {
+        "aws_identity_center_permission_set_consumer": [
+          {
+            "type": "aws_identity_center_permission_set_consumer",
+            "scope": "111111111111/eu-west-1",
+            "service": "sso-admin",
+            "status": "collected",
+            "items": [
+              {
+                "PermissionSetArn": "arn:aws:sso:::permissionSet/ssoins-1234567890abcdef/ps-1234567890abcdef",
+                "OrganizationAccounts": [
+                  "111111111111"
+                ],
+                "ProvisionedAccounts": [
+                  "111111111111"
+                ],
+                "ProvisioningStates": {
+                  "111111111111": "latest_provisioned"
+                },
+                "Assignments": [],
+                "status": "collected",
+                "_provenance": {
+                  "organization_accounts_complete": true,
+                  "all_accounts_checked": true
+                },
+                "AuditedAccountId": "111111111111",
+                "Region": "eu-west-1",
+                "OwnerAccountId": "111111111111"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "111111111111/eu-west-1"
+      },
+      "collections": {
+        "aws_identity_center_permission_set_consumer": [
+          {
+            "type": "aws_identity_center_permission_set_consumer",
+            "scope": "111111111111/eu-west-1",
+            "service": "sso-admin",
+            "status": "collected",
+            "items": [
+              {
+                "PermissionSetArn": "arn:aws:sso:::permissionSet/ssoins-1234567890abcdef/ps-1234567890abcdef",
+                "OrganizationAccounts": [
+                  "111111111111"
+                ],
+                "ProvisionedAccounts": [],
+                "ProvisioningStates": {},
+                "Assignments": [],
+                "status": "collected",
+                "_provenance": {
+                  "organization_accounts_complete": true,
+                  "all_accounts_checked": true
+                },
+                "AuditedAccountId": "111111111111",
+                "Region": "eu-west-1",
+                "OwnerAccountId": "111111111111"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "unknown_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "111111111111/eu-west-1"
+      },
+      "collections": {
+        "aws_identity_center_permission_set_consumer": [
+          {
+            "type": "aws_identity_center_permission_set_consumer",
+            "scope": "111111111111/eu-west-1",
+            "service": "sso-admin",
+            "status": "partial",
+            "items": [
+              {
+                "PermissionSetArn": "arn:aws:sso:::permissionSet/ssoins-1234567890abcdef/ps-1234567890abcdef",
+                "OrganizationAccounts": [
+                  "111111111111"
+                ],
+                "ProvisionedAccounts": [],
+                "ProvisioningStates": {},
+                "Assignments": [],
+                "status": "denied",
+                "_provenance": {
+                  "organization_accounts_complete": true,
+                  "all_accounts_checked": false
+                },
+                "AuditedAccountId": "111111111111",
+                "Region": "eu-west-1",
+                "OwnerAccountId": "111111111111"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "missing": {},
+    "malformed": null
+  }
+}

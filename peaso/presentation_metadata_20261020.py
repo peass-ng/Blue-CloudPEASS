@@ -11,7 +11,7 @@ from pathlib import Path
 from types import MappingProxyType
 
 REGISTRY_PATH = Path(__file__).resolve().parent / 'checks/finding_types.json'
-REGISTRY_SHA256 = '309fbb1f5613636d3252bf23732fa201f5c4247f75673ec9777ba995211f0493'
+REGISTRY_SHA256 = '533306fc7e6c2eb6db6cbadf33857e1d3d04bcdaf4270cb09ee142772ea3fe4a'
 HISTORICAL_REGISTRY_SHA256 = 'bbb5b22a1dd5f4c9d1029d7c1ddcada0ec85b31ef8e0aff50ffa83738d7396d6'
 MAX_REGISTRY_BYTES = 1024 * 1024
 ALIASES = MappingProxyType({
@@ -68,7 +68,7 @@ def install():
 
 
 SCOPE_PATH = Path(__file__).resolve().parent / 'checks/hacktricks_scope.json'
-SCOPE_SHA256 = '8a85d7522345279735759c132c87b6bbe80b50ddb02d7fe9c29c959d02542331'
+SCOPE_SHA256 = '6f72dba0f23c0c93d8e5ea9227714705f8b22fb83ba3e30c0622cc03b90f915c'
 HISTORICAL_SCOPE_SHA256 = '9ee1a03f0cdd495c7b8a2e4e4ad2f138f22758d0aad574654c71eb9d2f0d1c77'
 
 

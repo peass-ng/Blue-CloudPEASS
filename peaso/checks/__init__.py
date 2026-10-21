@@ -1694,3 +1694,12 @@ _install_ecr_public_image(register)
 
 from . import azure_flex_deployment_archives_review_20261021
 azure_flex_deployment_archives_review_20261021.install(register)
+
+# Unused identities and grants are native Hardening controls.
+from peaso import unused_iam_hardening as _unused_iam_hardening
+from peaso import unused_iam_k8s as _unused_iam_k8s
+_unused_iam_hardening.install(__import__(__name__, fromlist=['CHECKS']))
+_unused_iam_k8s.install(__import__(__name__, fromlist=['CHECKS']))
+
+from peaso import unused_iam_azure as _unused_iam_azure
+_unused_iam_azure.install(__import__(__name__, fromlist=['CHECKS']))

@@ -1,0 +1,1762 @@
+{
+  "k8s.network.endpoints_controller_service_reference_resolves": {
+    "fail": {
+      "metadata": {
+        "labels": {
+          "endpoints.kubernetes.io/managed-by": "endpoint-controller"
+        },
+        "name": "web",
+        "namespace": "app",
+        "ownerReferences": [
+          {
+            "apiVersion": "v1",
+            "controller": true,
+            "kind": "Service",
+            "name": "web",
+            "uid": "uid-service-web"
+          }
+        ],
+        "uid": "uid-endpoints-web"
+      },
+      "provenance": {
+        "cluster_id": "cluster-example",
+        "evidence": "read-only list",
+        "namespace": "app",
+        "uid": "uid-endpoints-web"
+      },
+      "subsets": []
+    },
+    "fail_index": {
+      "collections": {
+        "endpoints": [
+          {
+            "items": [
+              {
+                "metadata": {
+                  "labels": {
+                    "endpoints.kubernetes.io/managed-by": "endpoint-controller"
+                  },
+                  "name": "web",
+                  "namespace": "app",
+                  "ownerReferences": [
+                    {
+                      "apiVersion": "v1",
+                      "controller": true,
+                      "kind": "Service",
+                      "name": "web",
+                      "uid": "uid-service-web"
+                    }
+                  ],
+                  "uid": "uid-endpoints-web"
+                },
+                "provenance": {
+                  "cluster_id": "cluster-example",
+                  "evidence": "read-only list",
+                  "namespace": "app",
+                  "uid": "uid-endpoints-web"
+                },
+                "subsets": []
+              }
+            ],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "collected",
+            "type": "endpoints"
+          }
+        ],
+        "service": [
+          {
+            "items": [],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "empty",
+            "type": "service"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "cluster-example"
+        },
+        "provider": "k8s",
+        "scope": "*"
+      },
+      "endpoints": [
+        {
+          "data": {
+            "metadata": {
+              "labels": {
+                "endpoints.kubernetes.io/managed-by": "endpoint-controller"
+              },
+              "name": "web",
+              "namespace": "app",
+              "ownerReferences": [
+                {
+                  "apiVersion": "v1",
+                  "controller": true,
+                  "kind": "Service",
+                  "name": "web",
+                  "uid": "uid-service-web"
+                }
+              ],
+              "uid": "uid-endpoints-web"
+            },
+            "provenance": {
+              "cluster_id": "cluster-example",
+              "evidence": "read-only list",
+              "namespace": "app",
+              "uid": "uid-endpoints-web"
+            },
+            "subsets": []
+          },
+          "scope": "*",
+          "type": "endpoints"
+        }
+      ],
+      "service": []
+    },
+    "index": {
+      "collections": {
+        "endpoints": [
+          {
+            "items": [
+              {
+                "metadata": {
+                  "labels": {
+                    "endpoints.kubernetes.io/managed-by": "endpoint-controller"
+                  },
+                  "name": "web",
+                  "namespace": "app",
+                  "ownerReferences": [
+                    {
+                      "apiVersion": "v1",
+                      "controller": true,
+                      "kind": "Service",
+                      "name": "web",
+                      "uid": "uid-service-web"
+                    }
+                  ],
+                  "uid": "uid-endpoints-web"
+                },
+                "provenance": {
+                  "cluster_id": "cluster-example",
+                  "evidence": "read-only list",
+                  "namespace": "app",
+                  "uid": "uid-endpoints-web"
+                },
+                "subsets": []
+              }
+            ],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "collected",
+            "type": "endpoints"
+          }
+        ],
+        "service": [
+          {
+            "items": [],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "empty",
+            "type": "service"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "cluster-example"
+        },
+        "provider": "k8s",
+        "scope": "*"
+      },
+      "endpoints": [
+        {
+          "data": {
+            "metadata": {
+              "labels": {
+                "endpoints.kubernetes.io/managed-by": "endpoint-controller"
+              },
+              "name": "web",
+              "namespace": "app",
+              "ownerReferences": [
+                {
+                  "apiVersion": "v1",
+                  "controller": true,
+                  "kind": "Service",
+                  "name": "web",
+                  "uid": "uid-service-web"
+                }
+              ],
+              "uid": "uid-endpoints-web"
+            },
+            "provenance": {
+              "cluster_id": "cluster-example",
+              "evidence": "read-only list",
+              "namespace": "app",
+              "uid": "uid-endpoints-web"
+            },
+            "subsets": []
+          },
+          "scope": "*",
+          "type": "endpoints"
+        }
+      ],
+      "service": []
+    },
+    "pass": {
+      "metadata": {
+        "labels": {
+          "endpoints.kubernetes.io/managed-by": "endpoint-controller"
+        },
+        "name": "web",
+        "namespace": "app",
+        "ownerReferences": [
+          {
+            "apiVersion": "v1",
+            "controller": true,
+            "kind": "Service",
+            "name": "web",
+            "uid": "uid-service-web"
+          }
+        ],
+        "uid": "uid-endpoints-web"
+      },
+      "provenance": {
+        "cluster_id": "cluster-example",
+        "evidence": "read-only list",
+        "namespace": "app",
+        "uid": "uid-endpoints-web"
+      },
+      "subsets": []
+    },
+    "pass_index": {
+      "collections": {
+        "endpoints": [
+          {
+            "items": [
+              {
+                "metadata": {
+                  "labels": {
+                    "endpoints.kubernetes.io/managed-by": "endpoint-controller"
+                  },
+                  "name": "web",
+                  "namespace": "app",
+                  "ownerReferences": [
+                    {
+                      "apiVersion": "v1",
+                      "controller": true,
+                      "kind": "Service",
+                      "name": "web",
+                      "uid": "uid-service-web"
+                    }
+                  ],
+                  "uid": "uid-endpoints-web"
+                },
+                "provenance": {
+                  "cluster_id": "cluster-example",
+                  "evidence": "read-only list",
+                  "namespace": "app",
+                  "uid": "uid-endpoints-web"
+                },
+                "subsets": []
+              }
+            ],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "collected",
+            "type": "endpoints"
+          }
+        ],
+        "service": [
+          {
+            "items": [
+              {
+                "metadata": {
+                  "labels": {},
+                  "name": "web",
+                  "namespace": "app",
+                  "uid": "uid-service-web"
+                },
+                "provenance": {
+                  "cluster_id": "cluster-example",
+                  "evidence": "read-only list",
+                  "namespace": "app",
+                  "uid": "uid-service-web"
+                },
+                "spec": {
+                  "selector": {
+                    "app": "web"
+                  },
+                  "type": "ClusterIP"
+                }
+              }
+            ],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "collected",
+            "type": "service"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "cluster-example"
+        },
+        "provider": "k8s",
+        "scope": "*"
+      },
+      "endpoints": [
+        {
+          "data": {
+            "metadata": {
+              "labels": {
+                "endpoints.kubernetes.io/managed-by": "endpoint-controller"
+              },
+              "name": "web",
+              "namespace": "app",
+              "ownerReferences": [
+                {
+                  "apiVersion": "v1",
+                  "controller": true,
+                  "kind": "Service",
+                  "name": "web",
+                  "uid": "uid-service-web"
+                }
+              ],
+              "uid": "uid-endpoints-web"
+            },
+            "provenance": {
+              "cluster_id": "cluster-example",
+              "evidence": "read-only list",
+              "namespace": "app",
+              "uid": "uid-endpoints-web"
+            },
+            "subsets": []
+          },
+          "scope": "*",
+          "type": "endpoints"
+        }
+      ],
+      "service": [
+        {
+          "data": {
+            "metadata": {
+              "labels": {},
+              "name": "web",
+              "namespace": "app",
+              "uid": "uid-service-web"
+            },
+            "provenance": {
+              "cluster_id": "cluster-example",
+              "evidence": "read-only list",
+              "namespace": "app",
+              "uid": "uid-service-web"
+            },
+            "spec": {
+              "selector": {
+                "app": "web"
+              },
+              "type": "ClusterIP"
+            }
+          },
+          "scope": "*",
+          "type": "service"
+        }
+      ]
+    }
+  },
+  "k8s.network.endpointslice_service_reference_resolves": {
+    "fail": {
+      "metadata": {
+        "labels": {
+          "kubernetes.io/service-name": "web"
+        },
+        "name": "web-slice",
+        "namespace": "app",
+        "uid": "uid-endpointslice-web-slice"
+      },
+      "provenance": {
+        "cluster_id": "cluster-example",
+        "evidence": "read-only list",
+        "namespace": "app",
+        "uid": "uid-endpointslice-web-slice"
+      }
+    },
+    "fail_index": {
+      "collections": {
+        "endpointslice": [
+          {
+            "items": [
+              {
+                "metadata": {
+                  "labels": {
+                    "kubernetes.io/service-name": "web"
+                  },
+                  "name": "web-slice",
+                  "namespace": "app",
+                  "uid": "uid-endpointslice-web-slice"
+                },
+                "provenance": {
+                  "cluster_id": "cluster-example",
+                  "evidence": "read-only list",
+                  "namespace": "app",
+                  "uid": "uid-endpointslice-web-slice"
+                }
+              }
+            ],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "collected",
+            "type": "endpointslice"
+          }
+        ],
+        "service": [
+          {
+            "items": [],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "empty",
+            "type": "service"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "cluster-example"
+        },
+        "provider": "k8s",
+        "scope": "*"
+      },
+      "endpointslice": [
+        {
+          "data": {
+            "metadata": {
+              "labels": {
+                "kubernetes.io/service-name": "web"
+              },
+              "name": "web-slice",
+              "namespace": "app",
+              "uid": "uid-endpointslice-web-slice"
+            },
+            "provenance": {
+              "cluster_id": "cluster-example",
+              "evidence": "read-only list",
+              "namespace": "app",
+              "uid": "uid-endpointslice-web-slice"
+            }
+          },
+          "scope": "*",
+          "type": "endpointslice"
+        }
+      ],
+      "service": []
+    },
+    "index": {
+      "collections": {
+        "endpointslice": [
+          {
+            "items": [
+              {
+                "metadata": {
+                  "labels": {
+                    "kubernetes.io/service-name": "web"
+                  },
+                  "name": "web-slice",
+                  "namespace": "app",
+                  "uid": "uid-endpointslice-web-slice"
+                },
+                "provenance": {
+                  "cluster_id": "cluster-example",
+                  "evidence": "read-only list",
+                  "namespace": "app",
+                  "uid": "uid-endpointslice-web-slice"
+                }
+              }
+            ],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "collected",
+            "type": "endpointslice"
+          }
+        ],
+        "service": [
+          {
+            "items": [],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "empty",
+            "type": "service"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "cluster-example"
+        },
+        "provider": "k8s",
+        "scope": "*"
+      },
+      "endpointslice": [
+        {
+          "data": {
+            "metadata": {
+              "labels": {
+                "kubernetes.io/service-name": "web"
+              },
+              "name": "web-slice",
+              "namespace": "app",
+              "uid": "uid-endpointslice-web-slice"
+            },
+            "provenance": {
+              "cluster_id": "cluster-example",
+              "evidence": "read-only list",
+              "namespace": "app",
+              "uid": "uid-endpointslice-web-slice"
+            }
+          },
+          "scope": "*",
+          "type": "endpointslice"
+        }
+      ],
+      "service": []
+    },
+    "pass": {
+      "metadata": {
+        "labels": {
+          "kubernetes.io/service-name": "web"
+        },
+        "name": "web-slice",
+        "namespace": "app",
+        "uid": "uid-endpointslice-web-slice"
+      },
+      "provenance": {
+        "cluster_id": "cluster-example",
+        "evidence": "read-only list",
+        "namespace": "app",
+        "uid": "uid-endpointslice-web-slice"
+      }
+    },
+    "pass_index": {
+      "collections": {
+        "endpointslice": [
+          {
+            "items": [
+              {
+                "metadata": {
+                  "labels": {
+                    "kubernetes.io/service-name": "web"
+                  },
+                  "name": "web-slice",
+                  "namespace": "app",
+                  "uid": "uid-endpointslice-web-slice"
+                },
+                "provenance": {
+                  "cluster_id": "cluster-example",
+                  "evidence": "read-only list",
+                  "namespace": "app",
+                  "uid": "uid-endpointslice-web-slice"
+                }
+              }
+            ],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "collected",
+            "type": "endpointslice"
+          }
+        ],
+        "service": [
+          {
+            "items": [
+              {
+                "metadata": {
+                  "labels": {},
+                  "name": "web",
+                  "namespace": "app",
+                  "uid": "uid-service-web"
+                },
+                "provenance": {
+                  "cluster_id": "cluster-example",
+                  "evidence": "read-only list",
+                  "namespace": "app",
+                  "uid": "uid-service-web"
+                },
+                "spec": {
+                  "selector": {
+                    "app": "web"
+                  },
+                  "type": "ClusterIP"
+                }
+              }
+            ],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "collected",
+            "type": "service"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "cluster-example"
+        },
+        "provider": "k8s",
+        "scope": "*"
+      },
+      "endpointslice": [
+        {
+          "data": {
+            "metadata": {
+              "labels": {
+                "kubernetes.io/service-name": "web"
+              },
+              "name": "web-slice",
+              "namespace": "app",
+              "uid": "uid-endpointslice-web-slice"
+            },
+            "provenance": {
+              "cluster_id": "cluster-example",
+              "evidence": "read-only list",
+              "namespace": "app",
+              "uid": "uid-endpointslice-web-slice"
+            }
+          },
+          "scope": "*",
+          "type": "endpointslice"
+        }
+      ],
+      "service": [
+        {
+          "data": {
+            "metadata": {
+              "labels": {},
+              "name": "web",
+              "namespace": "app",
+              "uid": "uid-service-web"
+            },
+            "provenance": {
+              "cluster_id": "cluster-example",
+              "evidence": "read-only list",
+              "namespace": "app",
+              "uid": "uid-service-web"
+            },
+            "spec": {
+              "selector": {
+                "app": "web"
+              },
+              "type": "ClusterIP"
+            }
+          },
+          "scope": "*",
+          "type": "service"
+        }
+      ]
+    }
+  },
+  "k8s.network.ingress_service_backends_resolve": {
+    "fail": {
+      "metadata": {
+        "labels": {},
+        "name": "site",
+        "namespace": "app",
+        "uid": "uid-ingress-site"
+      },
+      "provenance": {
+        "cluster_id": "cluster-example",
+        "evidence": "read-only list",
+        "namespace": "app",
+        "uid": "uid-ingress-site"
+      },
+      "spec": {
+        "rules": [
+          {
+            "http": {
+              "paths": [
+                {
+                  "backend": {
+                    "service": {
+                      "name": "web",
+                      "port": {
+                        "number": 80
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "fail_index": {
+      "collections": {
+        "ingress": [
+          {
+            "items": [
+              {
+                "metadata": {
+                  "labels": {},
+                  "name": "site",
+                  "namespace": "app",
+                  "uid": "uid-ingress-site"
+                },
+                "provenance": {
+                  "cluster_id": "cluster-example",
+                  "evidence": "read-only list",
+                  "namespace": "app",
+                  "uid": "uid-ingress-site"
+                },
+                "spec": {
+                  "rules": [
+                    {
+                      "http": {
+                        "paths": [
+                          {
+                            "backend": {
+                              "service": {
+                                "name": "web",
+                                "port": {
+                                  "number": 80
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "collected",
+            "type": "ingress"
+          }
+        ],
+        "service": [
+          {
+            "items": [],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "empty",
+            "type": "service"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "cluster-example"
+        },
+        "provider": "k8s",
+        "scope": "*"
+      },
+      "ingress": [
+        {
+          "data": {
+            "metadata": {
+              "labels": {},
+              "name": "site",
+              "namespace": "app",
+              "uid": "uid-ingress-site"
+            },
+            "provenance": {
+              "cluster_id": "cluster-example",
+              "evidence": "read-only list",
+              "namespace": "app",
+              "uid": "uid-ingress-site"
+            },
+            "spec": {
+              "rules": [
+                {
+                  "http": {
+                    "paths": [
+                      {
+                        "backend": {
+                          "service": {
+                            "name": "web",
+                            "port": {
+                              "number": 80
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "scope": "*",
+          "type": "ingress"
+        }
+      ],
+      "service": []
+    },
+    "index": {
+      "collections": {
+        "ingress": [
+          {
+            "items": [
+              {
+                "metadata": {
+                  "labels": {},
+                  "name": "site",
+                  "namespace": "app",
+                  "uid": "uid-ingress-site"
+                },
+                "provenance": {
+                  "cluster_id": "cluster-example",
+                  "evidence": "read-only list",
+                  "namespace": "app",
+                  "uid": "uid-ingress-site"
+                },
+                "spec": {
+                  "rules": [
+                    {
+                      "http": {
+                        "paths": [
+                          {
+                            "backend": {
+                              "service": {
+                                "name": "web",
+                                "port": {
+                                  "number": 80
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "collected",
+            "type": "ingress"
+          }
+        ],
+        "service": [
+          {
+            "items": [],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "empty",
+            "type": "service"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "cluster-example"
+        },
+        "provider": "k8s",
+        "scope": "*"
+      },
+      "ingress": [
+        {
+          "data": {
+            "metadata": {
+              "labels": {},
+              "name": "site",
+              "namespace": "app",
+              "uid": "uid-ingress-site"
+            },
+            "provenance": {
+              "cluster_id": "cluster-example",
+              "evidence": "read-only list",
+              "namespace": "app",
+              "uid": "uid-ingress-site"
+            },
+            "spec": {
+              "rules": [
+                {
+                  "http": {
+                    "paths": [
+                      {
+                        "backend": {
+                          "service": {
+                            "name": "web",
+                            "port": {
+                              "number": 80
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "scope": "*",
+          "type": "ingress"
+        }
+      ],
+      "service": []
+    },
+    "pass": {
+      "metadata": {
+        "labels": {},
+        "name": "site",
+        "namespace": "app",
+        "uid": "uid-ingress-site"
+      },
+      "provenance": {
+        "cluster_id": "cluster-example",
+        "evidence": "read-only list",
+        "namespace": "app",
+        "uid": "uid-ingress-site"
+      },
+      "spec": {
+        "rules": [
+          {
+            "http": {
+              "paths": [
+                {
+                  "backend": {
+                    "service": {
+                      "name": "web",
+                      "port": {
+                        "number": 80
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "pass_index": {
+      "collections": {
+        "ingress": [
+          {
+            "items": [
+              {
+                "metadata": {
+                  "labels": {},
+                  "name": "site",
+                  "namespace": "app",
+                  "uid": "uid-ingress-site"
+                },
+                "provenance": {
+                  "cluster_id": "cluster-example",
+                  "evidence": "read-only list",
+                  "namespace": "app",
+                  "uid": "uid-ingress-site"
+                },
+                "spec": {
+                  "rules": [
+                    {
+                      "http": {
+                        "paths": [
+                          {
+                            "backend": {
+                              "service": {
+                                "name": "web",
+                                "port": {
+                                  "number": 80
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "collected",
+            "type": "ingress"
+          }
+        ],
+        "service": [
+          {
+            "items": [
+              {
+                "metadata": {
+                  "labels": {},
+                  "name": "web",
+                  "namespace": "app",
+                  "uid": "uid-service-web"
+                },
+                "provenance": {
+                  "cluster_id": "cluster-example",
+                  "evidence": "read-only list",
+                  "namespace": "app",
+                  "uid": "uid-service-web"
+                },
+                "spec": {
+                  "selector": {
+                    "app": "web"
+                  },
+                  "type": "ClusterIP"
+                }
+              }
+            ],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "collected",
+            "type": "service"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "cluster-example"
+        },
+        "provider": "k8s",
+        "scope": "*"
+      },
+      "ingress": [
+        {
+          "data": {
+            "metadata": {
+              "labels": {},
+              "name": "site",
+              "namespace": "app",
+              "uid": "uid-ingress-site"
+            },
+            "provenance": {
+              "cluster_id": "cluster-example",
+              "evidence": "read-only list",
+              "namespace": "app",
+              "uid": "uid-ingress-site"
+            },
+            "spec": {
+              "rules": [
+                {
+                  "http": {
+                    "paths": [
+                      {
+                        "backend": {
+                          "service": {
+                            "name": "web",
+                            "port": {
+                              "number": 80
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "scope": "*",
+          "type": "ingress"
+        }
+      ],
+      "service": [
+        {
+          "data": {
+            "metadata": {
+              "labels": {},
+              "name": "web",
+              "namespace": "app",
+              "uid": "uid-service-web"
+            },
+            "provenance": {
+              "cluster_id": "cluster-example",
+              "evidence": "read-only list",
+              "namespace": "app",
+              "uid": "uid-service-web"
+            },
+            "spec": {
+              "selector": {
+                "app": "web"
+              },
+              "type": "ClusterIP"
+            }
+          },
+          "scope": "*",
+          "type": "service"
+        }
+      ]
+    }
+  },
+  "k8s.network.networkpolicy_selects_current_pod": {
+    "fail": {
+      "metadata": {
+        "labels": {},
+        "name": "web-policy",
+        "namespace": "app",
+        "uid": "uid-networkpolicy-web-policy"
+      },
+      "provenance": {
+        "cluster_id": "cluster-example",
+        "evidence": "read-only list",
+        "namespace": "app",
+        "uid": "uid-networkpolicy-web-policy"
+      },
+      "spec": {
+        "podSelector": {
+          "matchLabels": {
+            "app": "web"
+          }
+        }
+      }
+    },
+    "fail_index": {
+      "collections": {
+        "networkpolicy": [
+          {
+            "items": [
+              {
+                "metadata": {
+                  "labels": {},
+                  "name": "web-policy",
+                  "namespace": "app",
+                  "uid": "uid-networkpolicy-web-policy"
+                },
+                "provenance": {
+                  "cluster_id": "cluster-example",
+                  "evidence": "read-only list",
+                  "namespace": "app",
+                  "uid": "uid-networkpolicy-web-policy"
+                },
+                "spec": {
+                  "podSelector": {
+                    "matchLabels": {
+                      "app": "web"
+                    }
+                  }
+                }
+              }
+            ],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "collected",
+            "type": "networkpolicy"
+          }
+        ],
+        "pod": [
+          {
+            "items": [],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "empty",
+            "type": "pod"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "cluster-example"
+        },
+        "provider": "k8s",
+        "scope": "*"
+      },
+      "networkpolicy": [
+        {
+          "data": {
+            "metadata": {
+              "labels": {},
+              "name": "web-policy",
+              "namespace": "app",
+              "uid": "uid-networkpolicy-web-policy"
+            },
+            "provenance": {
+              "cluster_id": "cluster-example",
+              "evidence": "read-only list",
+              "namespace": "app",
+              "uid": "uid-networkpolicy-web-policy"
+            },
+            "spec": {
+              "podSelector": {
+                "matchLabels": {
+                  "app": "web"
+                }
+              }
+            }
+          },
+          "scope": "*",
+          "type": "networkpolicy"
+        }
+      ],
+      "pod": []
+    },
+    "index": {
+      "collections": {
+        "networkpolicy": [
+          {
+            "items": [
+              {
+                "metadata": {
+                  "labels": {},
+                  "name": "web-policy",
+                  "namespace": "app",
+                  "uid": "uid-networkpolicy-web-policy"
+                },
+                "provenance": {
+                  "cluster_id": "cluster-example",
+                  "evidence": "read-only list",
+                  "namespace": "app",
+                  "uid": "uid-networkpolicy-web-policy"
+                },
+                "spec": {
+                  "podSelector": {
+                    "matchLabels": {
+                      "app": "web"
+                    }
+                  }
+                }
+              }
+            ],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "collected",
+            "type": "networkpolicy"
+          }
+        ],
+        "pod": [
+          {
+            "items": [],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "empty",
+            "type": "pod"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "cluster-example"
+        },
+        "provider": "k8s",
+        "scope": "*"
+      },
+      "networkpolicy": [
+        {
+          "data": {
+            "metadata": {
+              "labels": {},
+              "name": "web-policy",
+              "namespace": "app",
+              "uid": "uid-networkpolicy-web-policy"
+            },
+            "provenance": {
+              "cluster_id": "cluster-example",
+              "evidence": "read-only list",
+              "namespace": "app",
+              "uid": "uid-networkpolicy-web-policy"
+            },
+            "spec": {
+              "podSelector": {
+                "matchLabels": {
+                  "app": "web"
+                }
+              }
+            }
+          },
+          "scope": "*",
+          "type": "networkpolicy"
+        }
+      ],
+      "pod": []
+    },
+    "pass": {
+      "metadata": {
+        "labels": {},
+        "name": "web-policy",
+        "namespace": "app",
+        "uid": "uid-networkpolicy-web-policy"
+      },
+      "provenance": {
+        "cluster_id": "cluster-example",
+        "evidence": "read-only list",
+        "namespace": "app",
+        "uid": "uid-networkpolicy-web-policy"
+      },
+      "spec": {
+        "podSelector": {
+          "matchLabels": {
+            "app": "web"
+          }
+        }
+      }
+    },
+    "pass_index": {
+      "collections": {
+        "networkpolicy": [
+          {
+            "items": [
+              {
+                "metadata": {
+                  "labels": {},
+                  "name": "web-policy",
+                  "namespace": "app",
+                  "uid": "uid-networkpolicy-web-policy"
+                },
+                "provenance": {
+                  "cluster_id": "cluster-example",
+                  "evidence": "read-only list",
+                  "namespace": "app",
+                  "uid": "uid-networkpolicy-web-policy"
+                },
+                "spec": {
+                  "podSelector": {
+                    "matchLabels": {
+                      "app": "web"
+                    }
+                  }
+                }
+              }
+            ],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "collected",
+            "type": "networkpolicy"
+          }
+        ],
+        "pod": [
+          {
+            "items": [
+              {
+                "metadata": {
+                  "labels": {
+                    "app": "web"
+                  },
+                  "name": "web-pod",
+                  "namespace": "app",
+                  "uid": "uid-pod-web-pod"
+                },
+                "provenance": {
+                  "cluster_id": "cluster-example",
+                  "evidence": "read-only list",
+                  "namespace": "app",
+                  "uid": "uid-pod-web-pod"
+                }
+              }
+            ],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "collected",
+            "type": "pod"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "cluster-example"
+        },
+        "provider": "k8s",
+        "scope": "*"
+      },
+      "networkpolicy": [
+        {
+          "data": {
+            "metadata": {
+              "labels": {},
+              "name": "web-policy",
+              "namespace": "app",
+              "uid": "uid-networkpolicy-web-policy"
+            },
+            "provenance": {
+              "cluster_id": "cluster-example",
+              "evidence": "read-only list",
+              "namespace": "app",
+              "uid": "uid-networkpolicy-web-policy"
+            },
+            "spec": {
+              "podSelector": {
+                "matchLabels": {
+                  "app": "web"
+                }
+              }
+            }
+          },
+          "scope": "*",
+          "type": "networkpolicy"
+        }
+      ],
+      "pod": [
+        {
+          "data": {
+            "metadata": {
+              "labels": {
+                "app": "web"
+              },
+              "name": "web-pod",
+              "namespace": "app",
+              "uid": "uid-pod-web-pod"
+            },
+            "provenance": {
+              "cluster_id": "cluster-example",
+              "evidence": "read-only list",
+              "namespace": "app",
+              "uid": "uid-pod-web-pod"
+            }
+          },
+          "scope": "*",
+          "type": "pod"
+        }
+      ]
+    }
+  },
+  "k8s.network.service_has_current_backend_declaration": {
+    "fail": {
+      "metadata": {
+        "labels": {},
+        "name": "web",
+        "namespace": "app",
+        "uid": "uid-service-web"
+      },
+      "provenance": {
+        "cluster_id": "cluster-example",
+        "evidence": "read-only list",
+        "namespace": "app",
+        "uid": "uid-service-web"
+      },
+      "spec": {
+        "selector": {
+          "app": "web"
+        },
+        "type": "ClusterIP"
+      }
+    },
+    "fail_index": {
+      "collections": {
+        "endpointslice": [
+          {
+            "items": [],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "empty",
+            "type": "endpointslice"
+          }
+        ],
+        "pod": [
+          {
+            "items": [],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "empty",
+            "type": "pod"
+          }
+        ],
+        "service": [
+          {
+            "items": [
+              {
+                "metadata": {
+                  "labels": {},
+                  "name": "web",
+                  "namespace": "app",
+                  "uid": "uid-service-web"
+                },
+                "provenance": {
+                  "cluster_id": "cluster-example",
+                  "evidence": "read-only list",
+                  "namespace": "app",
+                  "uid": "uid-service-web"
+                },
+                "spec": {
+                  "selector": {
+                    "app": "web"
+                  },
+                  "type": "ClusterIP"
+                }
+              }
+            ],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "collected",
+            "type": "service"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "cluster-example"
+        },
+        "provider": "k8s",
+        "scope": "*"
+      },
+      "endpointslice": [],
+      "pod": [],
+      "service": [
+        {
+          "data": {
+            "metadata": {
+              "labels": {},
+              "name": "web",
+              "namespace": "app",
+              "uid": "uid-service-web"
+            },
+            "provenance": {
+              "cluster_id": "cluster-example",
+              "evidence": "read-only list",
+              "namespace": "app",
+              "uid": "uid-service-web"
+            },
+            "spec": {
+              "selector": {
+                "app": "web"
+              },
+              "type": "ClusterIP"
+            }
+          },
+          "scope": "*",
+          "type": "service"
+        }
+      ]
+    },
+    "index": {
+      "collections": {
+        "endpointslice": [
+          {
+            "items": [],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "empty",
+            "type": "endpointslice"
+          }
+        ],
+        "pod": [
+          {
+            "items": [],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "empty",
+            "type": "pod"
+          }
+        ],
+        "service": [
+          {
+            "items": [
+              {
+                "metadata": {
+                  "labels": {},
+                  "name": "web",
+                  "namespace": "app",
+                  "uid": "uid-service-web"
+                },
+                "provenance": {
+                  "cluster_id": "cluster-example",
+                  "evidence": "read-only list",
+                  "namespace": "app",
+                  "uid": "uid-service-web"
+                },
+                "spec": {
+                  "selector": {
+                    "app": "web"
+                  },
+                  "type": "ClusterIP"
+                }
+              }
+            ],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "collected",
+            "type": "service"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "cluster-example"
+        },
+        "provider": "k8s",
+        "scope": "*"
+      },
+      "endpointslice": [],
+      "pod": [],
+      "service": [
+        {
+          "data": {
+            "metadata": {
+              "labels": {},
+              "name": "web",
+              "namespace": "app",
+              "uid": "uid-service-web"
+            },
+            "provenance": {
+              "cluster_id": "cluster-example",
+              "evidence": "read-only list",
+              "namespace": "app",
+              "uid": "uid-service-web"
+            },
+            "spec": {
+              "selector": {
+                "app": "web"
+              },
+              "type": "ClusterIP"
+            }
+          },
+          "scope": "*",
+          "type": "service"
+        }
+      ]
+    },
+    "pass": {
+      "metadata": {
+        "labels": {},
+        "name": "web",
+        "namespace": "app",
+        "uid": "uid-service-web"
+      },
+      "provenance": {
+        "cluster_id": "cluster-example",
+        "evidence": "read-only list",
+        "namespace": "app",
+        "uid": "uid-service-web"
+      },
+      "spec": {
+        "selector": {
+          "app": "web"
+        },
+        "type": "ClusterIP"
+      }
+    },
+    "pass_index": {
+      "collections": {
+        "endpointslice": [
+          {
+            "items": [],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "empty",
+            "type": "endpointslice"
+          }
+        ],
+        "pod": [
+          {
+            "items": [
+              {
+                "metadata": {
+                  "labels": {
+                    "app": "web"
+                  },
+                  "name": "web-pod",
+                  "namespace": "app",
+                  "uid": "uid-pod-web-pod"
+                },
+                "provenance": {
+                  "cluster_id": "cluster-example",
+                  "evidence": "read-only list",
+                  "namespace": "app",
+                  "uid": "uid-pod-web-pod"
+                }
+              }
+            ],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "collected",
+            "type": "pod"
+          }
+        ],
+        "service": [
+          {
+            "items": [
+              {
+                "metadata": {
+                  "labels": {},
+                  "name": "web",
+                  "namespace": "app",
+                  "uid": "uid-service-web"
+                },
+                "provenance": {
+                  "cluster_id": "cluster-example",
+                  "evidence": "read-only list",
+                  "namespace": "app",
+                  "uid": "uid-service-web"
+                },
+                "spec": {
+                  "selector": {
+                    "app": "web"
+                  },
+                  "type": "ClusterIP"
+                }
+              }
+            ],
+            "scope": "*",
+            "service": "kubernetes",
+            "status": "collected",
+            "type": "service"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "cluster-example"
+        },
+        "provider": "k8s",
+        "scope": "*"
+      },
+      "endpointslice": [],
+      "pod": [
+        {
+          "data": {
+            "metadata": {
+              "labels": {
+                "app": "web"
+              },
+              "name": "web-pod",
+              "namespace": "app",
+              "uid": "uid-pod-web-pod"
+            },
+            "provenance": {
+              "cluster_id": "cluster-example",
+              "evidence": "read-only list",
+              "namespace": "app",
+              "uid": "uid-pod-web-pod"
+            }
+          },
+          "scope": "*",
+          "type": "pod"
+        }
+      ],
+      "service": [
+        {
+          "data": {
+            "metadata": {
+              "labels": {},
+              "name": "web",
+              "namespace": "app",
+              "uid": "uid-service-web"
+            },
+            "provenance": {
+              "cluster_id": "cluster-example",
+              "evidence": "read-only list",
+              "namespace": "app",
+              "uid": "uid-service-web"
+            },
+            "spec": {
+              "selector": {
+                "app": "web"
+              },
+              "type": "ClusterIP"
+            }
+          },
+          "scope": "*",
+          "type": "service"
+        }
+      ]
+    }
+  }
+}

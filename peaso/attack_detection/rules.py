@@ -31,6 +31,8 @@ from .aws_user_boundary_self_next import normalize_aws_self_user_boundary_delete
 from .aws_wildcard_trust_next import normalize_aws_wildcard_role_trust
 from .aws_keyspaces_next import normalize_keyspaces_other_user_credential
 from .aws_keyspaces_timestamps_next import normalize as normalize_keyspaces_timestamps
+from .aws_keyspaces_management_batch142 import normalize as normalize_aws_keyspaces_management_batch142
+from .aws_keyspaces_data_batch143 import normalize as normalize_aws_keyspaces_data_batch143
 from .aws_sagemaker_pipeline_execution_next import normalize as normalize_sagemaker_pipeline_execution
 from .aws_codebuild_next import normalize_aws_codebuild_change
 from .aws_codebuild_execution_next import normalize_codebuild_execution
@@ -85,6 +87,16 @@ from .aws_codeconnections_control_batch128 import normalize as normalize_aws_cod
 from .aws_codeconnections_host_batch129 import normalize as normalize_aws_codeconnections_host_batch129
 from .aws_license_config_batch130 import normalize as normalize_aws_license_config_batch130
 from .aws_license_seller_batch131 import normalize as normalize_aws_license_seller_batch131
+from .aws_license_ami_batch132 import normalize as normalize_aws_license_ami_batch132
+from .aws_license_hardlimit_batch133 import normalize as normalize_aws_license_hardlimit_batch133
+from .aws_license_instance_batch134 import normalize as normalize_aws_license_instance_batch134
+from .aws_lex_analytics_batch135 import normalize as normalize_aws_lex_analytics_batch135
+from .aws_lex_runtime_batch136 import normalize as normalize_aws_lex_runtime_batch136
+from .aws_lex_testset_batch136 import normalize as normalize_aws_lex_testset_batch136
+from .aws_lex_hook_batch137 import normalize as normalize_aws_lex_hook_batch137, correlate_role_hook as correlate_aws_lex_role_hook_batch137
+from .aws_route53_profiles_batch139 import normalize as normalize_aws_route53_profiles_batch139, correlate_resource_vpc as correlate_aws_route53_profiles_batch139
+from .aws_devicefarm_batch140 import normalize as normalize_aws_devicefarm_batch140
+from .aws_devicefarm_sessions_batch141 import normalize as normalize_aws_devicefarm_sessions_batch141
 from .aws_sagemaker_control_next import normalize_aws_sagemaker_control
 from .aws_rolesanywhere_next import normalize as normalize_aws_rolesanywhere
 from .aws_customer_profiles_next import normalize as normalize_aws_customer_profiles
@@ -266,8 +278,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "70a1ba3d04cca219d641646135d5765c69e0e40c"
-DEFAULT_RULE_PACK_SHA256 = "e175f453d7fa51d547d5ba94ddbd39617bfcff8e2311bd3e19dd071e1a55462a"
+DEFAULT_RULE_REF = "14812629ff5f0fd10fd451e248f50aa89f5acd38"
+DEFAULT_RULE_PACK_SHA256 = "35435e7b8fab2abdb5f0611bfd5cb790de94a7fdfe51f87eea222cd75c34f894"
 
 
 @dataclass(frozen=True)
@@ -421,6 +433,8 @@ def detect_aws_events(
         trust = normalize_aws_wildcard_role_trust(record)
         keyspaces_credential = normalize_keyspaces_other_user_credential(record)
         keyspaces_timestamps = normalize_keyspaces_timestamps(record)
+        keyspaces_management_batch142 = normalize_aws_keyspaces_management_batch142(record)
+        keyspaces_data_batch143 = normalize_aws_keyspaces_data_batch143(record)
         sagemaker_pipeline_execution = normalize_sagemaker_pipeline_execution(record)
         codebuild_change = normalize_aws_codebuild_change(record)
         codebuild_execution = normalize_codebuild_execution(record)
@@ -564,6 +578,16 @@ def detect_aws_events(
         codeconnections_host_batch129 = normalize_aws_codeconnections_host_batch129(record)
         license_config_batch130 = normalize_aws_license_config_batch130(record)
         license_seller_batch131 = normalize_aws_license_seller_batch131(record)
+        license_ami_batch132 = normalize_aws_license_ami_batch132(record)
+        license_hardlimit_batch133 = normalize_aws_license_hardlimit_batch133(record)
+        license_instance_batch134 = normalize_aws_license_instance_batch134(record)
+        lex_analytics_batch135 = normalize_aws_lex_analytics_batch135(record)
+        lex_runtime_batch136 = normalize_aws_lex_runtime_batch136(record)
+        lex_testset_batch136 = normalize_aws_lex_testset_batch136(record)
+        lex_hook_batch137 = normalize_aws_lex_hook_batch137(record)
+        route53_profiles_batch139 = normalize_aws_route53_profiles_batch139(record)
+        devicefarm_batch140 = normalize_aws_devicefarm_batch140(record)
+        devicefarm_sessions_batch141 = normalize_aws_devicefarm_sessions_batch141(record)
         lambda_controls = normalize_aws_lambda_controls(record)
         lambda_qualified_grant = normalize_aws_lambda_qualified_grant(record)
         lambda_config = normalize_aws_lambda_config(record)
@@ -634,6 +658,8 @@ def detect_aws_events(
                 + ([trust] if trust is not None else [])
                 + ([keyspaces_credential] if keyspaces_credential is not None else [])
                 + ([keyspaces_timestamps] if keyspaces_timestamps is not None else [])
+                + keyspaces_management_batch142
+                + ([keyspaces_data_batch143] if keyspaces_data_batch143 is not None else [])
                 + ([sagemaker_pipeline_execution] if sagemaker_pipeline_execution is not None else [])
                 + ([codebuild_change] if codebuild_change is not None else [])
                 + ([codebuild_execution] if codebuild_execution is not None else [])
@@ -779,6 +805,16 @@ def detect_aws_events(
                 + codeconnections_host_batch129
                 + license_config_batch130
                 + license_seller_batch131
+                + license_ami_batch132
+                + license_hardlimit_batch133
+                + license_instance_batch134
+                + lex_analytics_batch135
+                + lex_runtime_batch136
+                + lex_testset_batch136
+                + lex_hook_batch137
+                + route53_profiles_batch139
+                + devicefarm_batch140
+                + devicefarm_sessions_batch141
                 + ([lambda_controls] if lambda_controls is not None else [])
                 + ([lambda_qualified_grant] if lambda_qualified_grant is not None else [])
                 + ([lambda_config] if lambda_config is not None else [])
@@ -893,6 +929,8 @@ def detect_aws_events(
     lambda_persistence_batch112_records: list[Mapping[str, Any]] = []
     inspector_filters_batch113_records: list[Mapping[str, Any]] = []
     appflow_schedule_batch127_records: list[Mapping[str, Any]] = []
+    lex_hook_batch137_records: list[Mapping[str, Any]] = []
+    route53_profiles_batch139_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
             if (not isinstance(record, Mapping)
@@ -909,6 +947,13 @@ def detect_aws_events(
                 inspector_filters_batch113_records.append(record)
             if record.get("eventSource") == "appflow.amazonaws.com" and record.get("eventName") in {"UpdateFlow", "StartFlow"}:
                 appflow_schedule_batch127_records.append(record)
+            if (record.get("eventSource") == "lex.amazonaws.com"
+                    and record.get("eventName") in {"CreateBot", "UpdateBot",
+                                                    "CreateBotAlias", "UpdateBotAlias"}):
+                lex_hook_batch137_records.append(record)
+            if (record.get("eventSource") == "route53profiles.amazonaws.com"
+                    and record.get("eventName") in {"AssociateResourceToProfile", "AssociateProfile"}):
+                route53_profiles_batch139_records.append(record)
             if record.get("eventSource") == "dynamodb.amazonaws.com":
                 dynamodb_data_batch106_records.append(record)
             if (isinstance(record.get("eventSource"), str)
@@ -1099,6 +1144,8 @@ def detect_aws_events(
     correlated += correlate_aws_lambda_persistence_batch112(lambda_persistence_batch112_records)
     correlated += correlate_aws_inspector_criteria_batch113(inspector_filters_batch113_records)
     correlated += correlate_aws_appflow_schedule_batch127(appflow_schedule_batch127_records)
+    correlated += correlate_aws_lex_role_hook_batch137(lex_hook_batch137_records)
+    correlated += correlate_aws_route53_profiles_batch139(route53_profiles_batch139_records)
     correlated += correlate_aws_apigateway_portal(apigateway_portal_records)
     correlated += correlate_aws_cloudformation_triggers(cloudformation_trigger_records)
     correlated += correlate_aws_cloudformation_inputs(cloudformation_input_records)

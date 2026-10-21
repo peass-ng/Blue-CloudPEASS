@@ -652,7 +652,7 @@ DIRECTORY = {
     "directory_setting": "groupSettings",
     "directory_user": "users?$select=id,displayName,userPrincipalName,accountEnabled,userType,signInActivity",
     "directory_group": "groups?$select=id,displayName,securityEnabled,groupTypes,isAssignableToRole,membershipRule,membershipRuleProcessingState,visibility",
-    "directory_service_principal": "servicePrincipals?$select=id,appId,appOwnerOrganizationId,displayName,servicePrincipalType,alternativeNames,accountEnabled,appRoles,passwordCredentials,keyCredentials,preferredSingleSignOnMode",
+    "directory_service_principal": "servicePrincipals?$select=id,appId,appOwnerOrganizationId,displayName,servicePrincipalType,alternativeNames,accountEnabled,appRoles,passwordCredentials,keyCredentials,preferredSingleSignOnMode,createdDateTime",
     "directory_application": "applications?$select=id,appId,displayName,requiredResourceAccess,signInAudience,passwordCredentials,keyCredentials",
     "directory_role_assignment": "roleManagement/directory/roleAssignments",
     "directory_role_definition": "roleManagement/directory/roleDefinitions",
@@ -682,7 +682,7 @@ TYPES = tuple(ENDPOINTS) + tuple(AUTHORIZATION) + tuple(DIRECTORY) + tuple(DIREC
     "subscription", "tenant", "management_group", "resource_graph", "activity_log", "activity_log_coverage",
     "subnet", "vnet_peering", "effective_route", "security_admin_rule", "service_tag", "diagnostic_setting", "storage_service", "sql_database",
     "sql_firewall_rule", "sql_audit", "sql_security", "secret_metadata", "dns_record",
-    "private_dns_link", "directory_membership",
+    "private_dns_link", "directory_membership", "azure_unused_iam_evidence", "azure_unused_role_evidence", "azure_unused_arm_role_evidence", "azure_unused_iam_user_success_evidence",
     "app_service_config", "app_service_identity_detail", "sql_tde",
     "directory_app_role_assignment", "directory_owner", "directory_administrative_unit_member",
     "managed_identity_federated_credential", "key_metadata", "key_rotation_policy", "key_vault_certificate_current",
@@ -706,7 +706,7 @@ TYPES = tuple(ENDPOINTS) + tuple(AUTHORIZATION) + tuple(DIRECTORY) + tuple(DIREC
 
 # A LIST containing properties is not a full GET. These evaluators apply
 # documented omitted defaults only to a verified resource detail response.
-FULL_GET_KINDS = frozenset({"recovery_vault", "vm", "vm_scale_set", "nic", "vnet", "nsg", "route_table", "storage_account", "security_pricing", "web_application_firewall_policy",
+FULL_GET_KINDS = frozenset({"load_balancer", "public_ip", "recovery_vault", "vm", "vm_scale_set", "nic", "vnet", "nsg", "route_table", "storage_account", "security_pricing", "web_application_firewall_policy",
     "frontdoor", "cdn_profile", "frontdoor_waf_policy",
                             "hdinsight_cluster", "firewall_policy", "log_analytics_cluster",
                             "image_template",
@@ -1559,6 +1559,8 @@ def _selected(options, requirements):
     if not isinstance(wanted, (list, tuple)) or any(kind not in TYPES for kind in wanted):
         raise ValueError("unsupported Azure inventory requirement")
     selected = set(wanted)
+    from .azure_unused_iam_20261021 import required_types as unused_iam_required_types
+    selected.update(unused_iam_required_types(selected))
     if selected.intersection(azure_nsp_query_cmk_runtime_20261020.KINDS):
         selected.add("subscription")
     selected.update(azure_identity_enforcement_review_20261020.required_types(selected))
@@ -3124,6 +3126,8 @@ def collect(connector, requirements=None, *, transport=None):
             verified_tenant=getattr(transport, "verified_tenant", None)))
     # Scan-local opaque binding is generated here, never accepted from portable
     # connector input, and is unique across credentials/captures/customers.
+    from .azure_unused_iam_20261021 import collect as collect_unused_iam
+    collect_unused_iam(reader, request, scopes, wanted, transport, credential_context_id, customer_context_id)
     for collection in reader.collections:
         _bind_service_diagnostic_receipt(collection, reader)
         proof = {"credential_context_id": credential_context_id, "customer_context_id": customer_context_id}
@@ -3137,6 +3141,7 @@ def collect(connector, requirements=None, *, transport=None):
         azure_identity_enforcement_review_20261020.collect(reader, request, scopes, wanted, transport,
             credential_context_id, customer_context_id)
     metadata = reader.metadata()
+    metadata.update(getattr(reader, 'unused_arm_role_metadata', {}))
     metadata.update(getattr(reader, "nsp_query_cmk_metadata", {}))
     metadata.update(getattr(reader, 'configuration_secret_metadata', {}))
     metadata.update(getattr(reader, 'declaration_secret_metadata', {}))

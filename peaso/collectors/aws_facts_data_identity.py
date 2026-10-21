@@ -275,9 +275,11 @@ def _firehose_streams(requests, session, region, account):
 # ----------------------------------------------------------------------------- devtools
 
 def _service_specific_credentials(requests, session, region, account):
-    # AllUsers is the account-wide batch form: one paginated read, no per-user loop.
+    # AllUsers is account-wide; omitting ServiceName includes every supported
+    # service rather than silently excluding CodeCommit, Keyspaces or Logs.
+    # This metadata API has no last-used field: creation age is not inactivity.
     read = requests.pages(session, "iam", region, "list_service_specific_credentials", "ServiceSpecificCredentials",
-        _tokens=("Marker", "Marker"), AllUsers=True, ServiceName="bedrock.amazonaws.com")
+        _tokens=("Marker", "Marker"), AllUsers=True)
     read.items = [_pick(row, ["ServiceSpecificCredentialId", "UserName", "ServiceName", "Status", "CreateDate", "ExpirationDate"]) for row in read.items]
     return read
 

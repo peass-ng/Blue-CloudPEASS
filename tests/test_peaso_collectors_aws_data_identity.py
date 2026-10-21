@@ -205,12 +205,80 @@ def test_iam_service_specific_credentials_marker_pagination(sdk):
     iam = add("iam")
     cred = {"UserName": "u", "Status": "Active", "ServiceUserName": "u-at-1", "CreateDate": NOW, "ServiceSpecificCredentialId": "ACCA1234567890123456",
         "ServiceName": "bedrock.amazonaws.com"}
-    base = {"AllUsers": True, "ServiceName": "bedrock.amazonaws.com"}
+    base = {"AllUsers": True}
     iam.add_response("list_service_specific_credentials", {"ServiceSpecificCredentials": [cred], "IsTruncated": True, "Marker": "m"}, base)
     iam.add_response("list_service_specific_credentials", {"ServiceSpecificCredentials": [dict(cred, ServiceSpecificCredentialId="ACCA1234567890123457")], "IsTruncated": False},
         dict(base, Marker="m"))
     read = facts.FETCHERS["iam_service_specific_credential"](aws.Requests({}), session, REGION, ACCOUNT)
     assert read.status == "collected" and len(read.items) == 2 and "ServiceUserName" not in read.items[0]
+
+
+@pytest.mark.parametrize("service", ["bedrock.amazonaws.com", "codecommit.amazonaws.com", "cassandra.amazonaws.com", "logs.amazonaws.com"])
+def test_service_specific_inventory_keeps_other_services_without_inventing_activity(sdk, service):
+    session, add = sdk
+    credential = {"UserName": "u", "Status": "Active", "ServiceUserName": "u-at-1", "CreateDate": NOW,
+        "ServiceSpecificCredentialId": "ACCA1234567890123456", "ServiceName": service}
+    add("iam").add_response("list_service_specific_credentials", {"ServiceSpecificCredentials": [credential], "IsTruncated": False}, {"AllUsers": True})
+    read = facts.FETCHERS["iam_service_specific_credential"](aws.Requests({}), session, REGION, ACCOUNT)
+    assert read.status == "collected"
+    assert read.items == [{key: credential[key] for key in ("ServiceSpecificCredentialId", "UserName", "ServiceName", "Status", "CreateDate")}]
+    if service != "bedrock.amazonaws.com":
+        assert status("aws.c2b.bedrock.api_key_long_term_expired", read.items[0]) == "NOT_APPLICABLE"
+
+
+@pytest.mark.parametrize("mode", ["denied", "second_page_denied", "resource_limit", "page_limit", "repeated_token"])
+def test_service_specific_incomplete_inventory_is_never_empty_success(sdk, mode):
+    session, add = sdk
+    iam = add("iam")
+    credential = {"UserName": "u", "Status": "Active", "CreateDate": NOW,
+        "ServiceSpecificCredentialId": "ACCA1234567890123456", "ServiceName": "codecommit.amazonaws.com"}
+    options = {}
+    if mode == "denied":
+        iam.add_client_error("list_service_specific_credentials", "AccessDenied", expected_params={"AllUsers": True})
+    else:
+        iam.add_response("list_service_specific_credentials", {"ServiceSpecificCredentials": [credential], "IsTruncated": True, "Marker": "next"}, {"AllUsers": True})
+        if mode == "second_page_denied":
+            iam.add_client_error("list_service_specific_credentials", "AccessDenied", expected_params={"AllUsers": True, "Marker": "next"})
+        elif mode == "resource_limit": options["max_resources"] = 1
+        elif mode == "page_limit": options["max_pages"] = 1
+        else:
+            iam.add_response("list_service_specific_credentials", {"ServiceSpecificCredentials": [], "IsTruncated": True, "Marker": "next"}, {"AllUsers": True, "Marker": "next"})
+    read = facts.FETCHERS["iam_service_specific_credential"](aws.Requests(options), session, REGION, ACCOUNT)
+    assert read.status == ("denied" if mode == "denied" else "partial"), read
+    if mode != "denied":
+        assert read.items[0]["ServiceName"] == "codecommit.amazonaws.com"
+        assert read.error["cause_status"] in ("denied", "not_collected", "malformed")
+
+
+@pytest.mark.parametrize("bound,partial,expected", [(False, False, "FAIL"), (True, False, "PASS"), (False, True, "DENIED"), (True, True, "PASS")])
+def test_native_authorization_details_feed_inline_policy_consumers(sdk, bound, partial, expected):
+    from peaso import unused_iam_aws_inline
+    session, add = sdk
+    iam = add("iam")
+    group = {"GroupName": "synthetic", "GroupId": "AGPA0123456789ABCDE", "Arn": f"arn:aws:iam::{ACCOUNT}:group/synthetic",
+        "GroupPolicyList": [{"PolicyName": "StorageReader", "PolicyDocument": json.dumps({"Statement": [{"Effect": "Allow", "Action": "s3:GetObject", "Resource": "*"}]})}]}
+    user = {"UserName": "synthetic-user", "UserId": "AIDA0123456789ABCDE", "Arn": f"arn:aws:iam::{ACCOUNT}:user/synthetic-user",
+        "GroupList": ["synthetic"] if bound else []}
+    payload = {"UserDetailList": [user], "GroupDetailList": [group], "IsTruncated": partial}
+    if partial: payload["Marker"] = "next"
+    iam.add_response("get_account_authorization_details", payload, {})
+    if partial:
+        iam.add_client_error("get_account_authorization_details", "AccessDenied", expected_params={"Marker": "next"})
+    iam.add_response("list_access_keys", {"AccessKeyMetadata": [], "IsTruncated": False}, {"UserName": user["UserName"]})
+    iam.add_client_error("get_login_profile", "NoSuchEntity", expected_params={"UserName": user["UserName"]})
+    iam.add_response("list_mfa_devices", {"MFADevices": [], "IsTruncated": False}, {"UserName": user["UserName"]})
+    native = aws._iam(aws.Requests({}), session, REGION, {"iam_group", "iam_user"})
+    scope = ACCOUNT + "/global"
+    index = {"context": {"provider": "aws", "scope": scope}, "collections": {}}
+    for kind, read in native.items():
+        index[kind] = [{"type": kind, "scope": scope, "data": row} for row in read.items]
+        index["collections"][kind] = [{"type": kind, "scope": scope, "service": "iam", "status": read.status,
+            "items": read.items, **({"error": read.error} if read.error else {})}]
+    item = native["iam_group"].items[0]
+    result, evidence = unused_iam_aws_inline.evaluate(item, index)
+    assert result == expected, evidence
+    if result in ("PASS", "FAIL"):
+        assert evidence["inline_policies"][0]["PolicyDocument"]["Statement"][0]["Action"] == "s3:GetObject"
 
 
 def test_drs_uninitialized_is_empty_but_denied_is_denied(sdk):

@@ -1,0 +1,3918 @@
+{
+  "azure.iam.static_group_has_members": {
+    "pass": {
+      "id": "22222222-2222-4222-8222-222222222222",
+      "appId": "33333333-3333-4333-8333-333333333333",
+      "displayName": "Synthetic identity",
+      "accountEnabled": true,
+      "servicePrincipalType": "Application",
+      "createdDateTime": "2025-01-01T00:00:00Z",
+      "visibility": "Private",
+      "signInAudience": "AzureADMyOrg",
+      "groupTypes": [],
+      "passwordCredentials": [],
+      "keyCredentials": [],
+      "_provenance": {
+        "tenant_id": "11111111-1111-4111-8111-111111111111",
+        "tenant_verified": true,
+        "credential_context_id": "capture-one",
+        "customer_context_id": "customer-one",
+        "endpoint": "/v1.0/groups",
+        "read_only": true
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "tenant_id": "11111111-1111-4111-8111-111111111111",
+          "tenant_verified": true,
+          "credential_context_id": "capture-one",
+          "customer_context_id": "customer-one"
+        }
+      },
+      "collections": {
+        "directory_group": [
+          {
+            "type": "directory_group",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "22222222-2222-4222-8222-222222222222",
+                "appId": "33333333-3333-4333-8333-333333333333",
+                "displayName": "Synthetic identity",
+                "accountEnabled": true,
+                "servicePrincipalType": "Application",
+                "createdDateTime": "2025-01-01T00:00:00Z",
+                "visibility": "Private",
+                "signInAudience": "AzureADMyOrg",
+                "groupTypes": [],
+                "passwordCredentials": [],
+                "keyCredentials": [],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "/v1.0/groups",
+                  "read_only": true
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one"
+            }
+          }
+        ],
+        "azure_unused_iam_evidence": [
+          {
+            "type": "azure_unused_iam_evidence",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedIamEvidence",
+                "schema": "azure-unused-iam-evidence-v1",
+                "native_collections": [
+                  {
+                    "type": "directory_group",
+                    "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                    "service": "Microsoft.Graph",
+                    "status": "collected",
+                    "items": [
+                      {
+                        "id": "22222222-2222-4222-8222-222222222222",
+                        "appId": "33333333-3333-4333-8333-333333333333",
+                        "displayName": "Synthetic identity",
+                        "accountEnabled": true,
+                        "servicePrincipalType": "Application",
+                        "signInAudience": "AzureADMyOrg",
+                        "groupTypes": [],
+                        "visibility": "Private",
+                        "createdDateTime": "2025-01-01T00:00:00Z",
+                        "passwordCredentials": [],
+                        "keyCredentials": []
+                      }
+                    ]
+                  },
+                  {
+                    "type": "directory_membership",
+                    "scope": "/tenants/11111111-1111-4111-8111-111111111111/groups/22222222-2222-4222-8222-222222222222",
+                    "service": "Microsoft.Graph",
+                    "status": "collected",
+                    "items": [
+                      {
+                        "id": "55555555-5555-4555-8555-555555555555"
+                      }
+                    ],
+                    "membership_api": "beta",
+                    "endpoint": "/beta/groups/22222222-2222-4222-8222-222222222222/members?$select=id"
+                  }
+                ],
+                "reports": [
+                  {
+                    "name": "service_principal_activity",
+                    "endpoint": "/beta/reports/servicePrincipalSignInActivities",
+                    "audience": "https://graph.microsoft.com",
+                    "method": "GET",
+                    "body": null,
+                    "items": [],
+                    "status": "empty",
+                    "integrity_error": false
+                  },
+                  {
+                    "name": "credential_activity",
+                    "endpoint": "/beta/reports/appCredentialSignInActivities",
+                    "audience": "https://graph.microsoft.com",
+                    "method": "GET",
+                    "body": null,
+                    "items": [],
+                    "status": "empty",
+                    "integrity_error": false
+                  }
+                ],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "native-unused-iam-projection",
+                  "read_only": true,
+                  "schema": "azure-unused-iam-evidence-v1",
+                  "observed_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-iam-projection",
+              "read_only": true,
+              "schema": "azure-unused-iam-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        ]
+      },
+      "directory_group": [
+        {
+          "type": "directory_group",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "22222222-2222-4222-8222-222222222222",
+            "appId": "33333333-3333-4333-8333-333333333333",
+            "displayName": "Synthetic identity",
+            "accountEnabled": true,
+            "servicePrincipalType": "Application",
+            "createdDateTime": "2025-01-01T00:00:00Z",
+            "visibility": "Private",
+            "signInAudience": "AzureADMyOrg",
+            "groupTypes": [],
+            "passwordCredentials": [],
+            "keyCredentials": [],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "/v1.0/groups",
+              "read_only": true
+            }
+          }
+        }
+      ],
+      "azure_unused_iam_evidence": [
+        {
+          "type": "azure_unused_iam_evidence",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedIamEvidence",
+            "schema": "azure-unused-iam-evidence-v1",
+            "native_collections": [
+              {
+                "type": "directory_group",
+                "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                "service": "Microsoft.Graph",
+                "status": "collected",
+                "items": [
+                  {
+                    "id": "22222222-2222-4222-8222-222222222222",
+                    "appId": "33333333-3333-4333-8333-333333333333",
+                    "displayName": "Synthetic identity",
+                    "accountEnabled": true,
+                    "servicePrincipalType": "Application",
+                    "signInAudience": "AzureADMyOrg",
+                    "groupTypes": [],
+                    "visibility": "Private",
+                    "createdDateTime": "2025-01-01T00:00:00Z",
+                    "passwordCredentials": [],
+                    "keyCredentials": []
+                  }
+                ]
+              },
+              {
+                "type": "directory_membership",
+                "scope": "/tenants/11111111-1111-4111-8111-111111111111/groups/22222222-2222-4222-8222-222222222222",
+                "service": "Microsoft.Graph",
+                "status": "collected",
+                "items": [
+                  {
+                    "id": "55555555-5555-4555-8555-555555555555"
+                  }
+                ],
+                "membership_api": "beta",
+                "endpoint": "/beta/groups/22222222-2222-4222-8222-222222222222/members?$select=id"
+              }
+            ],
+            "reports": [
+              {
+                "name": "service_principal_activity",
+                "endpoint": "/beta/reports/servicePrincipalSignInActivities",
+                "audience": "https://graph.microsoft.com",
+                "method": "GET",
+                "body": null,
+                "items": [],
+                "status": "empty",
+                "integrity_error": false
+              },
+              {
+                "name": "credential_activity",
+                "endpoint": "/beta/reports/appCredentialSignInActivities",
+                "audience": "https://graph.microsoft.com",
+                "method": "GET",
+                "body": null,
+                "items": [],
+                "status": "empty",
+                "integrity_error": false
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-iam-projection",
+              "read_only": true,
+              "schema": "azure-unused-iam-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        }
+      ]
+    },
+    "fail": {
+      "id": "22222222-2222-4222-8222-222222222222",
+      "appId": "33333333-3333-4333-8333-333333333333",
+      "displayName": "Synthetic identity",
+      "accountEnabled": true,
+      "servicePrincipalType": "Application",
+      "createdDateTime": "2025-01-01T00:00:00Z",
+      "visibility": "Private",
+      "signInAudience": "AzureADMyOrg",
+      "groupTypes": [],
+      "passwordCredentials": [],
+      "keyCredentials": [],
+      "_provenance": {
+        "tenant_id": "11111111-1111-4111-8111-111111111111",
+        "tenant_verified": true,
+        "credential_context_id": "capture-one",
+        "customer_context_id": "customer-one",
+        "endpoint": "/v1.0/groups",
+        "read_only": true
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "tenant_id": "11111111-1111-4111-8111-111111111111",
+          "tenant_verified": true,
+          "credential_context_id": "capture-one",
+          "customer_context_id": "customer-one"
+        }
+      },
+      "collections": {
+        "directory_group": [
+          {
+            "type": "directory_group",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "22222222-2222-4222-8222-222222222222",
+                "appId": "33333333-3333-4333-8333-333333333333",
+                "displayName": "Synthetic identity",
+                "accountEnabled": true,
+                "servicePrincipalType": "Application",
+                "createdDateTime": "2025-01-01T00:00:00Z",
+                "visibility": "Private",
+                "signInAudience": "AzureADMyOrg",
+                "groupTypes": [],
+                "passwordCredentials": [],
+                "keyCredentials": [],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "/v1.0/groups",
+                  "read_only": true
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one"
+            }
+          }
+        ],
+        "azure_unused_iam_evidence": [
+          {
+            "type": "azure_unused_iam_evidence",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedIamEvidence",
+                "schema": "azure-unused-iam-evidence-v1",
+                "native_collections": [
+                  {
+                    "type": "directory_group",
+                    "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                    "service": "Microsoft.Graph",
+                    "status": "collected",
+                    "items": [
+                      {
+                        "id": "22222222-2222-4222-8222-222222222222",
+                        "appId": "33333333-3333-4333-8333-333333333333",
+                        "displayName": "Synthetic identity",
+                        "accountEnabled": true,
+                        "servicePrincipalType": "Application",
+                        "signInAudience": "AzureADMyOrg",
+                        "groupTypes": [],
+                        "visibility": "Private",
+                        "createdDateTime": "2025-01-01T00:00:00Z",
+                        "passwordCredentials": [],
+                        "keyCredentials": []
+                      }
+                    ]
+                  },
+                  {
+                    "type": "directory_membership",
+                    "scope": "/tenants/11111111-1111-4111-8111-111111111111/groups/22222222-2222-4222-8222-222222222222",
+                    "service": "Microsoft.Graph",
+                    "status": "empty",
+                    "items": [],
+                    "membership_api": "beta",
+                    "endpoint": "/beta/groups/22222222-2222-4222-8222-222222222222/members?$select=id"
+                  }
+                ],
+                "reports": [
+                  {
+                    "name": "service_principal_activity",
+                    "endpoint": "/beta/reports/servicePrincipalSignInActivities",
+                    "audience": "https://graph.microsoft.com",
+                    "method": "GET",
+                    "body": null,
+                    "items": [],
+                    "status": "empty",
+                    "integrity_error": false
+                  },
+                  {
+                    "name": "credential_activity",
+                    "endpoint": "/beta/reports/appCredentialSignInActivities",
+                    "audience": "https://graph.microsoft.com",
+                    "method": "GET",
+                    "body": null,
+                    "items": [],
+                    "status": "empty",
+                    "integrity_error": false
+                  }
+                ],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "native-unused-iam-projection",
+                  "read_only": true,
+                  "schema": "azure-unused-iam-evidence-v1",
+                  "observed_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-iam-projection",
+              "read_only": true,
+              "schema": "azure-unused-iam-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        ]
+      },
+      "directory_group": [
+        {
+          "type": "directory_group",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "22222222-2222-4222-8222-222222222222",
+            "appId": "33333333-3333-4333-8333-333333333333",
+            "displayName": "Synthetic identity",
+            "accountEnabled": true,
+            "servicePrincipalType": "Application",
+            "createdDateTime": "2025-01-01T00:00:00Z",
+            "visibility": "Private",
+            "signInAudience": "AzureADMyOrg",
+            "groupTypes": [],
+            "passwordCredentials": [],
+            "keyCredentials": [],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "/v1.0/groups",
+              "read_only": true
+            }
+          }
+        }
+      ],
+      "azure_unused_iam_evidence": [
+        {
+          "type": "azure_unused_iam_evidence",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedIamEvidence",
+            "schema": "azure-unused-iam-evidence-v1",
+            "native_collections": [
+              {
+                "type": "directory_group",
+                "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                "service": "Microsoft.Graph",
+                "status": "collected",
+                "items": [
+                  {
+                    "id": "22222222-2222-4222-8222-222222222222",
+                    "appId": "33333333-3333-4333-8333-333333333333",
+                    "displayName": "Synthetic identity",
+                    "accountEnabled": true,
+                    "servicePrincipalType": "Application",
+                    "signInAudience": "AzureADMyOrg",
+                    "groupTypes": [],
+                    "visibility": "Private",
+                    "createdDateTime": "2025-01-01T00:00:00Z",
+                    "passwordCredentials": [],
+                    "keyCredentials": []
+                  }
+                ]
+              },
+              {
+                "type": "directory_membership",
+                "scope": "/tenants/11111111-1111-4111-8111-111111111111/groups/22222222-2222-4222-8222-222222222222",
+                "service": "Microsoft.Graph",
+                "status": "empty",
+                "items": [],
+                "membership_api": "beta",
+                "endpoint": "/beta/groups/22222222-2222-4222-8222-222222222222/members?$select=id"
+              }
+            ],
+            "reports": [
+              {
+                "name": "service_principal_activity",
+                "endpoint": "/beta/reports/servicePrincipalSignInActivities",
+                "audience": "https://graph.microsoft.com",
+                "method": "GET",
+                "body": null,
+                "items": [],
+                "status": "empty",
+                "integrity_error": false
+              },
+              {
+                "name": "credential_activity",
+                "endpoint": "/beta/reports/appCredentialSignInActivities",
+                "audience": "https://graph.microsoft.com",
+                "method": "GET",
+                "body": null,
+                "items": [],
+                "status": "empty",
+                "integrity_error": false
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-iam-projection",
+              "read_only": true,
+              "schema": "azure-unused-iam-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        }
+      ]
+    },
+    "missing": {},
+    "index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "tenant_id": "11111111-1111-4111-8111-111111111111",
+          "tenant_verified": true,
+          "credential_context_id": "capture-one",
+          "customer_context_id": "customer-one"
+        }
+      },
+      "collections": {
+        "directory_group": [
+          {
+            "type": "directory_group",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "22222222-2222-4222-8222-222222222222",
+                "appId": "33333333-3333-4333-8333-333333333333",
+                "displayName": "Synthetic identity",
+                "accountEnabled": true,
+                "servicePrincipalType": "Application",
+                "createdDateTime": "2025-01-01T00:00:00Z",
+                "visibility": "Private",
+                "signInAudience": "AzureADMyOrg",
+                "groupTypes": [],
+                "passwordCredentials": [],
+                "keyCredentials": [],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "/v1.0/groups",
+                  "read_only": true
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one"
+            }
+          }
+        ],
+        "azure_unused_iam_evidence": [
+          {
+            "type": "azure_unused_iam_evidence",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedIamEvidence",
+                "schema": "azure-unused-iam-evidence-v1",
+                "native_collections": [
+                  {
+                    "type": "directory_group",
+                    "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                    "service": "Microsoft.Graph",
+                    "status": "collected",
+                    "items": [
+                      {
+                        "id": "22222222-2222-4222-8222-222222222222",
+                        "appId": "33333333-3333-4333-8333-333333333333",
+                        "displayName": "Synthetic identity",
+                        "accountEnabled": true,
+                        "servicePrincipalType": "Application",
+                        "signInAudience": "AzureADMyOrg",
+                        "groupTypes": [],
+                        "visibility": "Private",
+                        "createdDateTime": "2025-01-01T00:00:00Z",
+                        "passwordCredentials": [],
+                        "keyCredentials": []
+                      }
+                    ]
+                  },
+                  {
+                    "type": "directory_membership",
+                    "scope": "/tenants/11111111-1111-4111-8111-111111111111/groups/22222222-2222-4222-8222-222222222222",
+                    "service": "Microsoft.Graph",
+                    "status": "empty",
+                    "items": [],
+                    "membership_api": "beta",
+                    "endpoint": "/beta/groups/22222222-2222-4222-8222-222222222222/members?$select=id"
+                  }
+                ],
+                "reports": [
+                  {
+                    "name": "service_principal_activity",
+                    "endpoint": "/beta/reports/servicePrincipalSignInActivities",
+                    "audience": "https://graph.microsoft.com",
+                    "method": "GET",
+                    "body": null,
+                    "items": [],
+                    "status": "empty",
+                    "integrity_error": false
+                  },
+                  {
+                    "name": "credential_activity",
+                    "endpoint": "/beta/reports/appCredentialSignInActivities",
+                    "audience": "https://graph.microsoft.com",
+                    "method": "GET",
+                    "body": null,
+                    "items": [],
+                    "status": "empty",
+                    "integrity_error": false
+                  }
+                ],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "native-unused-iam-projection",
+                  "read_only": true,
+                  "schema": "azure-unused-iam-evidence-v1",
+                  "observed_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-iam-projection",
+              "read_only": true,
+              "schema": "azure-unused-iam-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        ]
+      },
+      "directory_group": [
+        {
+          "type": "directory_group",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "22222222-2222-4222-8222-222222222222",
+            "appId": "33333333-3333-4333-8333-333333333333",
+            "displayName": "Synthetic identity",
+            "accountEnabled": true,
+            "servicePrincipalType": "Application",
+            "createdDateTime": "2025-01-01T00:00:00Z",
+            "visibility": "Private",
+            "signInAudience": "AzureADMyOrg",
+            "groupTypes": [],
+            "passwordCredentials": [],
+            "keyCredentials": [],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "/v1.0/groups",
+              "read_only": true
+            }
+          }
+        }
+      ],
+      "azure_unused_iam_evidence": [
+        {
+          "type": "azure_unused_iam_evidence",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedIamEvidence",
+            "schema": "azure-unused-iam-evidence-v1",
+            "native_collections": [
+              {
+                "type": "directory_group",
+                "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                "service": "Microsoft.Graph",
+                "status": "collected",
+                "items": [
+                  {
+                    "id": "22222222-2222-4222-8222-222222222222",
+                    "appId": "33333333-3333-4333-8333-333333333333",
+                    "displayName": "Synthetic identity",
+                    "accountEnabled": true,
+                    "servicePrincipalType": "Application",
+                    "signInAudience": "AzureADMyOrg",
+                    "groupTypes": [],
+                    "visibility": "Private",
+                    "createdDateTime": "2025-01-01T00:00:00Z",
+                    "passwordCredentials": [],
+                    "keyCredentials": []
+                  }
+                ]
+              },
+              {
+                "type": "directory_membership",
+                "scope": "/tenants/11111111-1111-4111-8111-111111111111/groups/22222222-2222-4222-8222-222222222222",
+                "service": "Microsoft.Graph",
+                "status": "empty",
+                "items": [],
+                "membership_api": "beta",
+                "endpoint": "/beta/groups/22222222-2222-4222-8222-222222222222/members?$select=id"
+              }
+            ],
+            "reports": [
+              {
+                "name": "service_principal_activity",
+                "endpoint": "/beta/reports/servicePrincipalSignInActivities",
+                "audience": "https://graph.microsoft.com",
+                "method": "GET",
+                "body": null,
+                "items": [],
+                "status": "empty",
+                "integrity_error": false
+              },
+              {
+                "name": "credential_activity",
+                "endpoint": "/beta/reports/appCredentialSignInActivities",
+                "audience": "https://graph.microsoft.com",
+                "method": "GET",
+                "body": null,
+                "items": [],
+                "status": "empty",
+                "integrity_error": false
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-iam-projection",
+              "read_only": true,
+              "schema": "azure-unused-iam-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "azure.iam.service_principal_recent_activity": {
+    "pass": {
+      "id": "22222222-2222-4222-8222-222222222222",
+      "appId": "33333333-3333-4333-8333-333333333333",
+      "displayName": "Synthetic identity",
+      "accountEnabled": true,
+      "servicePrincipalType": "Application",
+      "createdDateTime": "2025-01-01T00:00:00Z",
+      "visibility": "Private",
+      "signInAudience": "AzureADMyOrg",
+      "groupTypes": [],
+      "passwordCredentials": [],
+      "keyCredentials": [],
+      "_provenance": {
+        "tenant_id": "11111111-1111-4111-8111-111111111111",
+        "tenant_verified": true,
+        "credential_context_id": "capture-one",
+        "customer_context_id": "customer-one",
+        "endpoint": "/v1.0/servicePrincipals",
+        "read_only": true
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "tenant_id": "11111111-1111-4111-8111-111111111111",
+          "tenant_verified": true,
+          "credential_context_id": "capture-one",
+          "customer_context_id": "customer-one"
+        }
+      },
+      "collections": {
+        "directory_service_principal": [
+          {
+            "type": "directory_service_principal",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "22222222-2222-4222-8222-222222222222",
+                "appId": "33333333-3333-4333-8333-333333333333",
+                "displayName": "Synthetic identity",
+                "accountEnabled": true,
+                "servicePrincipalType": "Application",
+                "createdDateTime": "2025-01-01T00:00:00Z",
+                "visibility": "Private",
+                "signInAudience": "AzureADMyOrg",
+                "groupTypes": [],
+                "passwordCredentials": [],
+                "keyCredentials": [],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "/v1.0/servicePrincipals",
+                  "read_only": true
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one"
+            }
+          }
+        ],
+        "azure_unused_iam_evidence": [
+          {
+            "type": "azure_unused_iam_evidence",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedIamEvidence",
+                "schema": "azure-unused-iam-evidence-v1",
+                "native_collections": [
+                  {
+                    "type": "directory_service_principal",
+                    "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                    "service": "Microsoft.Graph",
+                    "status": "collected",
+                    "items": [
+                      {
+                        "id": "22222222-2222-4222-8222-222222222222",
+                        "appId": "33333333-3333-4333-8333-333333333333",
+                        "displayName": "Synthetic identity",
+                        "accountEnabled": true,
+                        "servicePrincipalType": "Application",
+                        "signInAudience": "AzureADMyOrg",
+                        "groupTypes": [],
+                        "visibility": "Private",
+                        "createdDateTime": "2025-01-01T00:00:00Z",
+                        "passwordCredentials": [],
+                        "keyCredentials": []
+                      }
+                    ]
+                  }
+                ],
+                "reports": [
+                  {
+                    "name": "service_principal_activity",
+                    "endpoint": "/beta/reports/servicePrincipalSignInActivities",
+                    "audience": "https://graph.microsoft.com",
+                    "method": "GET",
+                    "body": null,
+                    "items": [
+                      {
+                        "id": "opaque-principal-report",
+                        "appId": "33333333-3333-4333-8333-333333333333",
+                        "lastSignInActivity": {
+                          "lastSignInDateTime": "2026-10-20T12:00:00Z",
+                          "lastSuccessfulSignInDateTime": "2026-10-20T11:00:00Z"
+                        }
+                      }
+                    ],
+                    "status": "collected",
+                    "integrity_error": false
+                  }
+                ],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "native-unused-iam-projection",
+                  "read_only": true,
+                  "schema": "azure-unused-iam-evidence-v1",
+                  "observed_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-iam-projection",
+              "read_only": true,
+              "schema": "azure-unused-iam-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        ]
+      },
+      "directory_service_principal": [
+        {
+          "type": "directory_service_principal",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "22222222-2222-4222-8222-222222222222",
+            "appId": "33333333-3333-4333-8333-333333333333",
+            "displayName": "Synthetic identity",
+            "accountEnabled": true,
+            "servicePrincipalType": "Application",
+            "createdDateTime": "2025-01-01T00:00:00Z",
+            "visibility": "Private",
+            "signInAudience": "AzureADMyOrg",
+            "groupTypes": [],
+            "passwordCredentials": [],
+            "keyCredentials": [],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "/v1.0/servicePrincipals",
+              "read_only": true
+            }
+          }
+        }
+      ],
+      "azure_unused_iam_evidence": [
+        {
+          "type": "azure_unused_iam_evidence",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedIamEvidence",
+            "schema": "azure-unused-iam-evidence-v1",
+            "native_collections": [
+              {
+                "type": "directory_service_principal",
+                "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                "service": "Microsoft.Graph",
+                "status": "collected",
+                "items": [
+                  {
+                    "id": "22222222-2222-4222-8222-222222222222",
+                    "appId": "33333333-3333-4333-8333-333333333333",
+                    "displayName": "Synthetic identity",
+                    "accountEnabled": true,
+                    "servicePrincipalType": "Application",
+                    "signInAudience": "AzureADMyOrg",
+                    "groupTypes": [],
+                    "visibility": "Private",
+                    "createdDateTime": "2025-01-01T00:00:00Z",
+                    "passwordCredentials": [],
+                    "keyCredentials": []
+                  }
+                ]
+              }
+            ],
+            "reports": [
+              {
+                "name": "service_principal_activity",
+                "endpoint": "/beta/reports/servicePrincipalSignInActivities",
+                "audience": "https://graph.microsoft.com",
+                "method": "GET",
+                "body": null,
+                "items": [
+                  {
+                    "id": "opaque-principal-report",
+                    "appId": "33333333-3333-4333-8333-333333333333",
+                    "lastSignInActivity": {
+                      "lastSignInDateTime": "2026-10-20T12:00:00Z",
+                      "lastSuccessfulSignInDateTime": "2026-10-20T11:00:00Z"
+                    }
+                  }
+                ],
+                "status": "collected",
+                "integrity_error": false
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-iam-projection",
+              "read_only": true,
+              "schema": "azure-unused-iam-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        }
+      ]
+    },
+    "fail": {
+      "id": "22222222-2222-4222-8222-222222222222",
+      "appId": "33333333-3333-4333-8333-333333333333",
+      "displayName": "Synthetic identity",
+      "accountEnabled": true,
+      "servicePrincipalType": "Application",
+      "createdDateTime": "2025-01-01T00:00:00Z",
+      "visibility": "Private",
+      "signInAudience": "AzureADMyOrg",
+      "groupTypes": [],
+      "passwordCredentials": [],
+      "keyCredentials": [],
+      "_provenance": {
+        "tenant_id": "11111111-1111-4111-8111-111111111111",
+        "tenant_verified": true,
+        "credential_context_id": "capture-one",
+        "customer_context_id": "customer-one",
+        "endpoint": "/v1.0/servicePrincipals",
+        "read_only": true
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "tenant_id": "11111111-1111-4111-8111-111111111111",
+          "tenant_verified": true,
+          "credential_context_id": "capture-one",
+          "customer_context_id": "customer-one"
+        }
+      },
+      "collections": {
+        "directory_service_principal": [
+          {
+            "type": "directory_service_principal",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "22222222-2222-4222-8222-222222222222",
+                "appId": "33333333-3333-4333-8333-333333333333",
+                "displayName": "Synthetic identity",
+                "accountEnabled": true,
+                "servicePrincipalType": "Application",
+                "createdDateTime": "2025-01-01T00:00:00Z",
+                "visibility": "Private",
+                "signInAudience": "AzureADMyOrg",
+                "groupTypes": [],
+                "passwordCredentials": [],
+                "keyCredentials": [],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "/v1.0/servicePrincipals",
+                  "read_only": true
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one"
+            }
+          }
+        ],
+        "azure_unused_iam_evidence": [
+          {
+            "type": "azure_unused_iam_evidence",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedIamEvidence",
+                "schema": "azure-unused-iam-evidence-v1",
+                "native_collections": [
+                  {
+                    "type": "directory_service_principal",
+                    "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                    "service": "Microsoft.Graph",
+                    "status": "collected",
+                    "items": [
+                      {
+                        "id": "22222222-2222-4222-8222-222222222222",
+                        "appId": "33333333-3333-4333-8333-333333333333",
+                        "displayName": "Synthetic identity",
+                        "accountEnabled": true,
+                        "servicePrincipalType": "Application",
+                        "signInAudience": "AzureADMyOrg",
+                        "groupTypes": [],
+                        "visibility": "Private",
+                        "createdDateTime": "2025-01-01T00:00:00Z",
+                        "passwordCredentials": [],
+                        "keyCredentials": []
+                      }
+                    ]
+                  }
+                ],
+                "reports": [
+                  {
+                    "name": "service_principal_activity",
+                    "endpoint": "/beta/reports/servicePrincipalSignInActivities",
+                    "audience": "https://graph.microsoft.com",
+                    "method": "GET",
+                    "body": null,
+                    "items": [
+                      {
+                        "id": "opaque-principal-report",
+                        "appId": "33333333-3333-4333-8333-333333333333",
+                        "lastSignInActivity": {
+                          "lastSignInDateTime": "2026-01-01T00:00:00Z"
+                        }
+                      }
+                    ],
+                    "status": "collected",
+                    "integrity_error": false
+                  }
+                ],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "native-unused-iam-projection",
+                  "read_only": true,
+                  "schema": "azure-unused-iam-evidence-v1",
+                  "observed_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-iam-projection",
+              "read_only": true,
+              "schema": "azure-unused-iam-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        ]
+      },
+      "directory_service_principal": [
+        {
+          "type": "directory_service_principal",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "22222222-2222-4222-8222-222222222222",
+            "appId": "33333333-3333-4333-8333-333333333333",
+            "displayName": "Synthetic identity",
+            "accountEnabled": true,
+            "servicePrincipalType": "Application",
+            "createdDateTime": "2025-01-01T00:00:00Z",
+            "visibility": "Private",
+            "signInAudience": "AzureADMyOrg",
+            "groupTypes": [],
+            "passwordCredentials": [],
+            "keyCredentials": [],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "/v1.0/servicePrincipals",
+              "read_only": true
+            }
+          }
+        }
+      ],
+      "azure_unused_iam_evidence": [
+        {
+          "type": "azure_unused_iam_evidence",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedIamEvidence",
+            "schema": "azure-unused-iam-evidence-v1",
+            "native_collections": [
+              {
+                "type": "directory_service_principal",
+                "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                "service": "Microsoft.Graph",
+                "status": "collected",
+                "items": [
+                  {
+                    "id": "22222222-2222-4222-8222-222222222222",
+                    "appId": "33333333-3333-4333-8333-333333333333",
+                    "displayName": "Synthetic identity",
+                    "accountEnabled": true,
+                    "servicePrincipalType": "Application",
+                    "signInAudience": "AzureADMyOrg",
+                    "groupTypes": [],
+                    "visibility": "Private",
+                    "createdDateTime": "2025-01-01T00:00:00Z",
+                    "passwordCredentials": [],
+                    "keyCredentials": []
+                  }
+                ]
+              }
+            ],
+            "reports": [
+              {
+                "name": "service_principal_activity",
+                "endpoint": "/beta/reports/servicePrincipalSignInActivities",
+                "audience": "https://graph.microsoft.com",
+                "method": "GET",
+                "body": null,
+                "items": [
+                  {
+                    "id": "opaque-principal-report",
+                    "appId": "33333333-3333-4333-8333-333333333333",
+                    "lastSignInActivity": {
+                      "lastSignInDateTime": "2026-01-01T00:00:00Z"
+                    }
+                  }
+                ],
+                "status": "collected",
+                "integrity_error": false
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-iam-projection",
+              "read_only": true,
+              "schema": "azure-unused-iam-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        }
+      ]
+    },
+    "missing": {},
+    "index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "tenant_id": "11111111-1111-4111-8111-111111111111",
+          "tenant_verified": true,
+          "credential_context_id": "capture-one",
+          "customer_context_id": "customer-one"
+        }
+      },
+      "collections": {
+        "directory_service_principal": [
+          {
+            "type": "directory_service_principal",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "22222222-2222-4222-8222-222222222222",
+                "appId": "33333333-3333-4333-8333-333333333333",
+                "displayName": "Synthetic identity",
+                "accountEnabled": true,
+                "servicePrincipalType": "Application",
+                "createdDateTime": "2025-01-01T00:00:00Z",
+                "visibility": "Private",
+                "signInAudience": "AzureADMyOrg",
+                "groupTypes": [],
+                "passwordCredentials": [],
+                "keyCredentials": [],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "/v1.0/servicePrincipals",
+                  "read_only": true
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one"
+            }
+          }
+        ],
+        "azure_unused_iam_evidence": [
+          {
+            "type": "azure_unused_iam_evidence",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedIamEvidence",
+                "schema": "azure-unused-iam-evidence-v1",
+                "native_collections": [
+                  {
+                    "type": "directory_service_principal",
+                    "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                    "service": "Microsoft.Graph",
+                    "status": "collected",
+                    "items": [
+                      {
+                        "id": "22222222-2222-4222-8222-222222222222",
+                        "appId": "33333333-3333-4333-8333-333333333333",
+                        "displayName": "Synthetic identity",
+                        "accountEnabled": true,
+                        "servicePrincipalType": "Application",
+                        "signInAudience": "AzureADMyOrg",
+                        "groupTypes": [],
+                        "visibility": "Private",
+                        "createdDateTime": "2025-01-01T00:00:00Z",
+                        "passwordCredentials": [],
+                        "keyCredentials": []
+                      }
+                    ]
+                  }
+                ],
+                "reports": [
+                  {
+                    "name": "service_principal_activity",
+                    "endpoint": "/beta/reports/servicePrincipalSignInActivities",
+                    "audience": "https://graph.microsoft.com",
+                    "method": "GET",
+                    "body": null,
+                    "items": [
+                      {
+                        "id": "opaque-principal-report",
+                        "appId": "33333333-3333-4333-8333-333333333333",
+                        "lastSignInActivity": {
+                          "lastSignInDateTime": "2026-01-01T00:00:00Z"
+                        }
+                      }
+                    ],
+                    "status": "collected",
+                    "integrity_error": false
+                  }
+                ],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "native-unused-iam-projection",
+                  "read_only": true,
+                  "schema": "azure-unused-iam-evidence-v1",
+                  "observed_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-iam-projection",
+              "read_only": true,
+              "schema": "azure-unused-iam-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        ]
+      },
+      "directory_service_principal": [
+        {
+          "type": "directory_service_principal",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "22222222-2222-4222-8222-222222222222",
+            "appId": "33333333-3333-4333-8333-333333333333",
+            "displayName": "Synthetic identity",
+            "accountEnabled": true,
+            "servicePrincipalType": "Application",
+            "createdDateTime": "2025-01-01T00:00:00Z",
+            "visibility": "Private",
+            "signInAudience": "AzureADMyOrg",
+            "groupTypes": [],
+            "passwordCredentials": [],
+            "keyCredentials": [],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "/v1.0/servicePrincipals",
+              "read_only": true
+            }
+          }
+        }
+      ],
+      "azure_unused_iam_evidence": [
+        {
+          "type": "azure_unused_iam_evidence",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedIamEvidence",
+            "schema": "azure-unused-iam-evidence-v1",
+            "native_collections": [
+              {
+                "type": "directory_service_principal",
+                "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                "service": "Microsoft.Graph",
+                "status": "collected",
+                "items": [
+                  {
+                    "id": "22222222-2222-4222-8222-222222222222",
+                    "appId": "33333333-3333-4333-8333-333333333333",
+                    "displayName": "Synthetic identity",
+                    "accountEnabled": true,
+                    "servicePrincipalType": "Application",
+                    "signInAudience": "AzureADMyOrg",
+                    "groupTypes": [],
+                    "visibility": "Private",
+                    "createdDateTime": "2025-01-01T00:00:00Z",
+                    "passwordCredentials": [],
+                    "keyCredentials": []
+                  }
+                ]
+              }
+            ],
+            "reports": [
+              {
+                "name": "service_principal_activity",
+                "endpoint": "/beta/reports/servicePrincipalSignInActivities",
+                "audience": "https://graph.microsoft.com",
+                "method": "GET",
+                "body": null,
+                "items": [
+                  {
+                    "id": "opaque-principal-report",
+                    "appId": "33333333-3333-4333-8333-333333333333",
+                    "lastSignInActivity": {
+                      "lastSignInDateTime": "2026-01-01T00:00:00Z"
+                    }
+                  }
+                ],
+                "status": "collected",
+                "integrity_error": false
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-iam-projection",
+              "read_only": true,
+              "schema": "azure-unused-iam-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "azure.iam.application_credentials_recent_activity": {
+    "pass": {
+      "id": "22222222-2222-4222-8222-222222222222",
+      "appId": "33333333-3333-4333-8333-333333333333",
+      "displayName": "Synthetic identity",
+      "accountEnabled": true,
+      "servicePrincipalType": "Application",
+      "createdDateTime": "2025-01-01T00:00:00Z",
+      "visibility": "Private",
+      "signInAudience": "AzureADMyOrg",
+      "groupTypes": [],
+      "passwordCredentials": [
+        {
+          "keyId": "44444444-4444-4444-8444-444444444444",
+          "startDateTime": "2025-01-01T00:00:00Z",
+          "endDateTime": "2027-01-01T00:00:00Z"
+        }
+      ],
+      "keyCredentials": [],
+      "_provenance": {
+        "tenant_id": "11111111-1111-4111-8111-111111111111",
+        "tenant_verified": true,
+        "credential_context_id": "capture-one",
+        "customer_context_id": "customer-one",
+        "endpoint": "/v1.0/applications",
+        "read_only": true
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "tenant_id": "11111111-1111-4111-8111-111111111111",
+          "tenant_verified": true,
+          "credential_context_id": "capture-one",
+          "customer_context_id": "customer-one"
+        }
+      },
+      "collections": {
+        "directory_application": [
+          {
+            "type": "directory_application",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "22222222-2222-4222-8222-222222222222",
+                "appId": "33333333-3333-4333-8333-333333333333",
+                "displayName": "Synthetic identity",
+                "accountEnabled": true,
+                "servicePrincipalType": "Application",
+                "createdDateTime": "2025-01-01T00:00:00Z",
+                "visibility": "Private",
+                "signInAudience": "AzureADMyOrg",
+                "groupTypes": [],
+                "passwordCredentials": [
+                  {
+                    "keyId": "44444444-4444-4444-8444-444444444444",
+                    "startDateTime": "2025-01-01T00:00:00Z",
+                    "endDateTime": "2027-01-01T00:00:00Z"
+                  }
+                ],
+                "keyCredentials": [],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "/v1.0/applications",
+                  "read_only": true
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one"
+            }
+          }
+        ],
+        "azure_unused_iam_evidence": [
+          {
+            "type": "azure_unused_iam_evidence",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedIamEvidence",
+                "schema": "azure-unused-iam-evidence-v1",
+                "native_collections": [
+                  {
+                    "type": "directory_application",
+                    "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                    "service": "Microsoft.Graph",
+                    "status": "collected",
+                    "items": [
+                      {
+                        "id": "22222222-2222-4222-8222-222222222222",
+                        "appId": "33333333-3333-4333-8333-333333333333",
+                        "displayName": "Synthetic identity",
+                        "accountEnabled": true,
+                        "servicePrincipalType": "Application",
+                        "signInAudience": "AzureADMyOrg",
+                        "groupTypes": [],
+                        "visibility": "Private",
+                        "createdDateTime": "2025-01-01T00:00:00Z",
+                        "passwordCredentials": [
+                          {
+                            "keyId": "44444444-4444-4444-8444-444444444444",
+                            "startDateTime": "2025-01-01T00:00:00Z",
+                            "endDateTime": "2027-01-01T00:00:00Z"
+                          }
+                        ],
+                        "keyCredentials": []
+                      }
+                    ]
+                  }
+                ],
+                "reports": [
+                  {
+                    "name": "credential_activity",
+                    "endpoint": "/beta/reports/appCredentialSignInActivities",
+                    "audience": "https://graph.microsoft.com",
+                    "method": "GET",
+                    "body": null,
+                    "items": [
+                      {
+                        "id": "opaque-credential-report",
+                        "appId": "33333333-3333-4333-8333-333333333333",
+                        "keyId": "44444444-4444-4444-8444-444444444444",
+                        "keyType": "clientSecret",
+                        "credentialOrigin": "application",
+                        "appObjectId": "22222222-2222-4222-8222-222222222222",
+                        "servicePrincipalObjectId": "55555555-5555-4555-8555-555555555555",
+                        "signInActivity": {
+                          "lastSignInDateTime": "2026-10-20T12:00:00Z",
+                          "lastSuccessfulSignInDateTime": "2026-10-20T11:00:00Z"
+                        }
+                      }
+                    ],
+                    "status": "collected",
+                    "integrity_error": false
+                  }
+                ],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "native-unused-iam-projection",
+                  "read_only": true,
+                  "schema": "azure-unused-iam-evidence-v1",
+                  "observed_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-iam-projection",
+              "read_only": true,
+              "schema": "azure-unused-iam-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        ]
+      },
+      "directory_application": [
+        {
+          "type": "directory_application",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "22222222-2222-4222-8222-222222222222",
+            "appId": "33333333-3333-4333-8333-333333333333",
+            "displayName": "Synthetic identity",
+            "accountEnabled": true,
+            "servicePrincipalType": "Application",
+            "createdDateTime": "2025-01-01T00:00:00Z",
+            "visibility": "Private",
+            "signInAudience": "AzureADMyOrg",
+            "groupTypes": [],
+            "passwordCredentials": [
+              {
+                "keyId": "44444444-4444-4444-8444-444444444444",
+                "startDateTime": "2025-01-01T00:00:00Z",
+                "endDateTime": "2027-01-01T00:00:00Z"
+              }
+            ],
+            "keyCredentials": [],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "/v1.0/applications",
+              "read_only": true
+            }
+          }
+        }
+      ],
+      "azure_unused_iam_evidence": [
+        {
+          "type": "azure_unused_iam_evidence",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedIamEvidence",
+            "schema": "azure-unused-iam-evidence-v1",
+            "native_collections": [
+              {
+                "type": "directory_application",
+                "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                "service": "Microsoft.Graph",
+                "status": "collected",
+                "items": [
+                  {
+                    "id": "22222222-2222-4222-8222-222222222222",
+                    "appId": "33333333-3333-4333-8333-333333333333",
+                    "displayName": "Synthetic identity",
+                    "accountEnabled": true,
+                    "servicePrincipalType": "Application",
+                    "signInAudience": "AzureADMyOrg",
+                    "groupTypes": [],
+                    "visibility": "Private",
+                    "createdDateTime": "2025-01-01T00:00:00Z",
+                    "passwordCredentials": [
+                      {
+                        "keyId": "44444444-4444-4444-8444-444444444444",
+                        "startDateTime": "2025-01-01T00:00:00Z",
+                        "endDateTime": "2027-01-01T00:00:00Z"
+                      }
+                    ],
+                    "keyCredentials": []
+                  }
+                ]
+              }
+            ],
+            "reports": [
+              {
+                "name": "credential_activity",
+                "endpoint": "/beta/reports/appCredentialSignInActivities",
+                "audience": "https://graph.microsoft.com",
+                "method": "GET",
+                "body": null,
+                "items": [
+                  {
+                    "id": "opaque-credential-report",
+                    "appId": "33333333-3333-4333-8333-333333333333",
+                    "keyId": "44444444-4444-4444-8444-444444444444",
+                    "keyType": "clientSecret",
+                    "credentialOrigin": "application",
+                    "appObjectId": "22222222-2222-4222-8222-222222222222",
+                    "servicePrincipalObjectId": "55555555-5555-4555-8555-555555555555",
+                    "signInActivity": {
+                      "lastSignInDateTime": "2026-10-20T12:00:00Z",
+                      "lastSuccessfulSignInDateTime": "2026-10-20T11:00:00Z"
+                    }
+                  }
+                ],
+                "status": "collected",
+                "integrity_error": false
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-iam-projection",
+              "read_only": true,
+              "schema": "azure-unused-iam-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        }
+      ]
+    },
+    "fail": {
+      "id": "22222222-2222-4222-8222-222222222222",
+      "appId": "33333333-3333-4333-8333-333333333333",
+      "displayName": "Synthetic identity",
+      "accountEnabled": true,
+      "servicePrincipalType": "Application",
+      "createdDateTime": "2025-01-01T00:00:00Z",
+      "visibility": "Private",
+      "signInAudience": "AzureADMyOrg",
+      "groupTypes": [],
+      "passwordCredentials": [
+        {
+          "keyId": "44444444-4444-4444-8444-444444444444",
+          "startDateTime": "2025-01-01T00:00:00Z",
+          "endDateTime": "2027-01-01T00:00:00Z"
+        }
+      ],
+      "keyCredentials": [],
+      "_provenance": {
+        "tenant_id": "11111111-1111-4111-8111-111111111111",
+        "tenant_verified": true,
+        "credential_context_id": "capture-one",
+        "customer_context_id": "customer-one",
+        "endpoint": "/v1.0/applications",
+        "read_only": true
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "tenant_id": "11111111-1111-4111-8111-111111111111",
+          "tenant_verified": true,
+          "credential_context_id": "capture-one",
+          "customer_context_id": "customer-one"
+        }
+      },
+      "collections": {
+        "directory_application": [
+          {
+            "type": "directory_application",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "22222222-2222-4222-8222-222222222222",
+                "appId": "33333333-3333-4333-8333-333333333333",
+                "displayName": "Synthetic identity",
+                "accountEnabled": true,
+                "servicePrincipalType": "Application",
+                "createdDateTime": "2025-01-01T00:00:00Z",
+                "visibility": "Private",
+                "signInAudience": "AzureADMyOrg",
+                "groupTypes": [],
+                "passwordCredentials": [
+                  {
+                    "keyId": "44444444-4444-4444-8444-444444444444",
+                    "startDateTime": "2025-01-01T00:00:00Z",
+                    "endDateTime": "2027-01-01T00:00:00Z"
+                  }
+                ],
+                "keyCredentials": [],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "/v1.0/applications",
+                  "read_only": true
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one"
+            }
+          }
+        ],
+        "azure_unused_iam_evidence": [
+          {
+            "type": "azure_unused_iam_evidence",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedIamEvidence",
+                "schema": "azure-unused-iam-evidence-v1",
+                "native_collections": [
+                  {
+                    "type": "directory_application",
+                    "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                    "service": "Microsoft.Graph",
+                    "status": "collected",
+                    "items": [
+                      {
+                        "id": "22222222-2222-4222-8222-222222222222",
+                        "appId": "33333333-3333-4333-8333-333333333333",
+                        "displayName": "Synthetic identity",
+                        "accountEnabled": true,
+                        "servicePrincipalType": "Application",
+                        "signInAudience": "AzureADMyOrg",
+                        "groupTypes": [],
+                        "visibility": "Private",
+                        "createdDateTime": "2025-01-01T00:00:00Z",
+                        "passwordCredentials": [
+                          {
+                            "keyId": "44444444-4444-4444-8444-444444444444",
+                            "startDateTime": "2025-01-01T00:00:00Z",
+                            "endDateTime": "2027-01-01T00:00:00Z"
+                          }
+                        ],
+                        "keyCredentials": []
+                      }
+                    ]
+                  }
+                ],
+                "reports": [
+                  {
+                    "name": "credential_activity",
+                    "endpoint": "/beta/reports/appCredentialSignInActivities",
+                    "audience": "https://graph.microsoft.com",
+                    "method": "GET",
+                    "body": null,
+                    "items": [
+                      {
+                        "id": "opaque-credential-report",
+                        "appId": "33333333-3333-4333-8333-333333333333",
+                        "keyId": "44444444-4444-4444-8444-444444444444",
+                        "keyType": "clientSecret",
+                        "credentialOrigin": "application",
+                        "appObjectId": "22222222-2222-4222-8222-222222222222",
+                        "servicePrincipalObjectId": "55555555-5555-4555-8555-555555555555",
+                        "signInActivity": {
+                          "lastSignInDateTime": "2026-01-01T00:00:00Z"
+                        }
+                      }
+                    ],
+                    "status": "collected",
+                    "integrity_error": false
+                  }
+                ],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "native-unused-iam-projection",
+                  "read_only": true,
+                  "schema": "azure-unused-iam-evidence-v1",
+                  "observed_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-iam-projection",
+              "read_only": true,
+              "schema": "azure-unused-iam-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        ]
+      },
+      "directory_application": [
+        {
+          "type": "directory_application",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "22222222-2222-4222-8222-222222222222",
+            "appId": "33333333-3333-4333-8333-333333333333",
+            "displayName": "Synthetic identity",
+            "accountEnabled": true,
+            "servicePrincipalType": "Application",
+            "createdDateTime": "2025-01-01T00:00:00Z",
+            "visibility": "Private",
+            "signInAudience": "AzureADMyOrg",
+            "groupTypes": [],
+            "passwordCredentials": [
+              {
+                "keyId": "44444444-4444-4444-8444-444444444444",
+                "startDateTime": "2025-01-01T00:00:00Z",
+                "endDateTime": "2027-01-01T00:00:00Z"
+              }
+            ],
+            "keyCredentials": [],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "/v1.0/applications",
+              "read_only": true
+            }
+          }
+        }
+      ],
+      "azure_unused_iam_evidence": [
+        {
+          "type": "azure_unused_iam_evidence",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedIamEvidence",
+            "schema": "azure-unused-iam-evidence-v1",
+            "native_collections": [
+              {
+                "type": "directory_application",
+                "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                "service": "Microsoft.Graph",
+                "status": "collected",
+                "items": [
+                  {
+                    "id": "22222222-2222-4222-8222-222222222222",
+                    "appId": "33333333-3333-4333-8333-333333333333",
+                    "displayName": "Synthetic identity",
+                    "accountEnabled": true,
+                    "servicePrincipalType": "Application",
+                    "signInAudience": "AzureADMyOrg",
+                    "groupTypes": [],
+                    "visibility": "Private",
+                    "createdDateTime": "2025-01-01T00:00:00Z",
+                    "passwordCredentials": [
+                      {
+                        "keyId": "44444444-4444-4444-8444-444444444444",
+                        "startDateTime": "2025-01-01T00:00:00Z",
+                        "endDateTime": "2027-01-01T00:00:00Z"
+                      }
+                    ],
+                    "keyCredentials": []
+                  }
+                ]
+              }
+            ],
+            "reports": [
+              {
+                "name": "credential_activity",
+                "endpoint": "/beta/reports/appCredentialSignInActivities",
+                "audience": "https://graph.microsoft.com",
+                "method": "GET",
+                "body": null,
+                "items": [
+                  {
+                    "id": "opaque-credential-report",
+                    "appId": "33333333-3333-4333-8333-333333333333",
+                    "keyId": "44444444-4444-4444-8444-444444444444",
+                    "keyType": "clientSecret",
+                    "credentialOrigin": "application",
+                    "appObjectId": "22222222-2222-4222-8222-222222222222",
+                    "servicePrincipalObjectId": "55555555-5555-4555-8555-555555555555",
+                    "signInActivity": {
+                      "lastSignInDateTime": "2026-01-01T00:00:00Z"
+                    }
+                  }
+                ],
+                "status": "collected",
+                "integrity_error": false
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-iam-projection",
+              "read_only": true,
+              "schema": "azure-unused-iam-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        }
+      ]
+    },
+    "missing": {},
+    "index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "tenant_id": "11111111-1111-4111-8111-111111111111",
+          "tenant_verified": true,
+          "credential_context_id": "capture-one",
+          "customer_context_id": "customer-one"
+        }
+      },
+      "collections": {
+        "directory_application": [
+          {
+            "type": "directory_application",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "22222222-2222-4222-8222-222222222222",
+                "appId": "33333333-3333-4333-8333-333333333333",
+                "displayName": "Synthetic identity",
+                "accountEnabled": true,
+                "servicePrincipalType": "Application",
+                "createdDateTime": "2025-01-01T00:00:00Z",
+                "visibility": "Private",
+                "signInAudience": "AzureADMyOrg",
+                "groupTypes": [],
+                "passwordCredentials": [
+                  {
+                    "keyId": "44444444-4444-4444-8444-444444444444",
+                    "startDateTime": "2025-01-01T00:00:00Z",
+                    "endDateTime": "2027-01-01T00:00:00Z"
+                  }
+                ],
+                "keyCredentials": [],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "/v1.0/applications",
+                  "read_only": true
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one"
+            }
+          }
+        ],
+        "azure_unused_iam_evidence": [
+          {
+            "type": "azure_unused_iam_evidence",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedIamEvidence",
+                "schema": "azure-unused-iam-evidence-v1",
+                "native_collections": [
+                  {
+                    "type": "directory_application",
+                    "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                    "service": "Microsoft.Graph",
+                    "status": "collected",
+                    "items": [
+                      {
+                        "id": "22222222-2222-4222-8222-222222222222",
+                        "appId": "33333333-3333-4333-8333-333333333333",
+                        "displayName": "Synthetic identity",
+                        "accountEnabled": true,
+                        "servicePrincipalType": "Application",
+                        "signInAudience": "AzureADMyOrg",
+                        "groupTypes": [],
+                        "visibility": "Private",
+                        "createdDateTime": "2025-01-01T00:00:00Z",
+                        "passwordCredentials": [
+                          {
+                            "keyId": "44444444-4444-4444-8444-444444444444",
+                            "startDateTime": "2025-01-01T00:00:00Z",
+                            "endDateTime": "2027-01-01T00:00:00Z"
+                          }
+                        ],
+                        "keyCredentials": []
+                      }
+                    ]
+                  }
+                ],
+                "reports": [
+                  {
+                    "name": "credential_activity",
+                    "endpoint": "/beta/reports/appCredentialSignInActivities",
+                    "audience": "https://graph.microsoft.com",
+                    "method": "GET",
+                    "body": null,
+                    "items": [
+                      {
+                        "id": "opaque-credential-report",
+                        "appId": "33333333-3333-4333-8333-333333333333",
+                        "keyId": "44444444-4444-4444-8444-444444444444",
+                        "keyType": "clientSecret",
+                        "credentialOrigin": "application",
+                        "appObjectId": "22222222-2222-4222-8222-222222222222",
+                        "servicePrincipalObjectId": "55555555-5555-4555-8555-555555555555",
+                        "signInActivity": {
+                          "lastSignInDateTime": "2026-01-01T00:00:00Z"
+                        }
+                      }
+                    ],
+                    "status": "collected",
+                    "integrity_error": false
+                  }
+                ],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "native-unused-iam-projection",
+                  "read_only": true,
+                  "schema": "azure-unused-iam-evidence-v1",
+                  "observed_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-iam-projection",
+              "read_only": true,
+              "schema": "azure-unused-iam-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        ]
+      },
+      "directory_application": [
+        {
+          "type": "directory_application",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "22222222-2222-4222-8222-222222222222",
+            "appId": "33333333-3333-4333-8333-333333333333",
+            "displayName": "Synthetic identity",
+            "accountEnabled": true,
+            "servicePrincipalType": "Application",
+            "createdDateTime": "2025-01-01T00:00:00Z",
+            "visibility": "Private",
+            "signInAudience": "AzureADMyOrg",
+            "groupTypes": [],
+            "passwordCredentials": [
+              {
+                "keyId": "44444444-4444-4444-8444-444444444444",
+                "startDateTime": "2025-01-01T00:00:00Z",
+                "endDateTime": "2027-01-01T00:00:00Z"
+              }
+            ],
+            "keyCredentials": [],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "/v1.0/applications",
+              "read_only": true
+            }
+          }
+        }
+      ],
+      "azure_unused_iam_evidence": [
+        {
+          "type": "azure_unused_iam_evidence",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedIamEvidence",
+            "schema": "azure-unused-iam-evidence-v1",
+            "native_collections": [
+              {
+                "type": "directory_application",
+                "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                "service": "Microsoft.Graph",
+                "status": "collected",
+                "items": [
+                  {
+                    "id": "22222222-2222-4222-8222-222222222222",
+                    "appId": "33333333-3333-4333-8333-333333333333",
+                    "displayName": "Synthetic identity",
+                    "accountEnabled": true,
+                    "servicePrincipalType": "Application",
+                    "signInAudience": "AzureADMyOrg",
+                    "groupTypes": [],
+                    "visibility": "Private",
+                    "createdDateTime": "2025-01-01T00:00:00Z",
+                    "passwordCredentials": [
+                      {
+                        "keyId": "44444444-4444-4444-8444-444444444444",
+                        "startDateTime": "2025-01-01T00:00:00Z",
+                        "endDateTime": "2027-01-01T00:00:00Z"
+                      }
+                    ],
+                    "keyCredentials": []
+                  }
+                ]
+              }
+            ],
+            "reports": [
+              {
+                "name": "credential_activity",
+                "endpoint": "/beta/reports/appCredentialSignInActivities",
+                "audience": "https://graph.microsoft.com",
+                "method": "GET",
+                "body": null,
+                "items": [
+                  {
+                    "id": "opaque-credential-report",
+                    "appId": "33333333-3333-4333-8333-333333333333",
+                    "keyId": "44444444-4444-4444-8444-444444444444",
+                    "keyType": "clientSecret",
+                    "credentialOrigin": "application",
+                    "appObjectId": "22222222-2222-4222-8222-222222222222",
+                    "servicePrincipalObjectId": "55555555-5555-4555-8555-555555555555",
+                    "signInActivity": {
+                      "lastSignInDateTime": "2026-01-01T00:00:00Z"
+                    }
+                  }
+                ],
+                "status": "collected",
+                "integrity_error": false
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-iam-projection",
+              "read_only": true,
+              "schema": "azure-unused-iam-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "azure.iam.service_principal_credentials_recent_activity": {
+    "pass": {
+      "id": "22222222-2222-4222-8222-222222222222",
+      "appId": "33333333-3333-4333-8333-333333333333",
+      "displayName": "Synthetic identity",
+      "accountEnabled": true,
+      "servicePrincipalType": "Application",
+      "createdDateTime": "2025-01-01T00:00:00Z",
+      "visibility": "Private",
+      "signInAudience": "AzureADMyOrg",
+      "groupTypes": [],
+      "passwordCredentials": [
+        {
+          "keyId": "44444444-4444-4444-8444-444444444444",
+          "startDateTime": "2025-01-01T00:00:00Z",
+          "endDateTime": "2027-01-01T00:00:00Z"
+        }
+      ],
+      "keyCredentials": [],
+      "_provenance": {
+        "tenant_id": "11111111-1111-4111-8111-111111111111",
+        "tenant_verified": true,
+        "credential_context_id": "capture-one",
+        "customer_context_id": "customer-one",
+        "endpoint": "/v1.0/servicePrincipals",
+        "read_only": true
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "tenant_id": "11111111-1111-4111-8111-111111111111",
+          "tenant_verified": true,
+          "credential_context_id": "capture-one",
+          "customer_context_id": "customer-one"
+        }
+      },
+      "collections": {
+        "directory_service_principal": [
+          {
+            "type": "directory_service_principal",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "22222222-2222-4222-8222-222222222222",
+                "appId": "33333333-3333-4333-8333-333333333333",
+                "displayName": "Synthetic identity",
+                "accountEnabled": true,
+                "servicePrincipalType": "Application",
+                "createdDateTime": "2025-01-01T00:00:00Z",
+                "visibility": "Private",
+                "signInAudience": "AzureADMyOrg",
+                "groupTypes": [],
+                "passwordCredentials": [
+                  {
+                    "keyId": "44444444-4444-4444-8444-444444444444",
+                    "startDateTime": "2025-01-01T00:00:00Z",
+                    "endDateTime": "2027-01-01T00:00:00Z"
+                  }
+                ],
+                "keyCredentials": [],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "/v1.0/servicePrincipals",
+                  "read_only": true
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one"
+            }
+          }
+        ],
+        "azure_unused_iam_evidence": [
+          {
+            "type": "azure_unused_iam_evidence",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedIamEvidence",
+                "schema": "azure-unused-iam-evidence-v1",
+                "native_collections": [
+                  {
+                    "type": "directory_service_principal",
+                    "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                    "service": "Microsoft.Graph",
+                    "status": "collected",
+                    "items": [
+                      {
+                        "id": "22222222-2222-4222-8222-222222222222",
+                        "appId": "33333333-3333-4333-8333-333333333333",
+                        "displayName": "Synthetic identity",
+                        "accountEnabled": true,
+                        "servicePrincipalType": "Application",
+                        "signInAudience": "AzureADMyOrg",
+                        "groupTypes": [],
+                        "visibility": "Private",
+                        "createdDateTime": "2025-01-01T00:00:00Z",
+                        "passwordCredentials": [
+                          {
+                            "keyId": "44444444-4444-4444-8444-444444444444",
+                            "startDateTime": "2025-01-01T00:00:00Z",
+                            "endDateTime": "2027-01-01T00:00:00Z"
+                          }
+                        ],
+                        "keyCredentials": []
+                      }
+                    ]
+                  }
+                ],
+                "reports": [
+                  {
+                    "name": "credential_activity",
+                    "endpoint": "/beta/reports/appCredentialSignInActivities",
+                    "audience": "https://graph.microsoft.com",
+                    "method": "GET",
+                    "body": null,
+                    "items": [
+                      {
+                        "id": "opaque-credential-report",
+                        "appId": "33333333-3333-4333-8333-333333333333",
+                        "keyId": "44444444-4444-4444-8444-444444444444",
+                        "keyType": "clientSecret",
+                        "credentialOrigin": "servicePrincipal",
+                        "appObjectId": "55555555-5555-4555-8555-555555555555",
+                        "servicePrincipalObjectId": "22222222-2222-4222-8222-222222222222",
+                        "signInActivity": {
+                          "lastSignInDateTime": "2026-10-20T12:00:00Z",
+                          "lastSuccessfulSignInDateTime": "2026-10-20T11:00:00Z"
+                        }
+                      }
+                    ],
+                    "status": "collected",
+                    "integrity_error": false
+                  }
+                ],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "native-unused-iam-projection",
+                  "read_only": true,
+                  "schema": "azure-unused-iam-evidence-v1",
+                  "observed_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-iam-projection",
+              "read_only": true,
+              "schema": "azure-unused-iam-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        ]
+      },
+      "directory_service_principal": [
+        {
+          "type": "directory_service_principal",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "22222222-2222-4222-8222-222222222222",
+            "appId": "33333333-3333-4333-8333-333333333333",
+            "displayName": "Synthetic identity",
+            "accountEnabled": true,
+            "servicePrincipalType": "Application",
+            "createdDateTime": "2025-01-01T00:00:00Z",
+            "visibility": "Private",
+            "signInAudience": "AzureADMyOrg",
+            "groupTypes": [],
+            "passwordCredentials": [
+              {
+                "keyId": "44444444-4444-4444-8444-444444444444",
+                "startDateTime": "2025-01-01T00:00:00Z",
+                "endDateTime": "2027-01-01T00:00:00Z"
+              }
+            ],
+            "keyCredentials": [],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "/v1.0/servicePrincipals",
+              "read_only": true
+            }
+          }
+        }
+      ],
+      "azure_unused_iam_evidence": [
+        {
+          "type": "azure_unused_iam_evidence",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedIamEvidence",
+            "schema": "azure-unused-iam-evidence-v1",
+            "native_collections": [
+              {
+                "type": "directory_service_principal",
+                "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                "service": "Microsoft.Graph",
+                "status": "collected",
+                "items": [
+                  {
+                    "id": "22222222-2222-4222-8222-222222222222",
+                    "appId": "33333333-3333-4333-8333-333333333333",
+                    "displayName": "Synthetic identity",
+                    "accountEnabled": true,
+                    "servicePrincipalType": "Application",
+                    "signInAudience": "AzureADMyOrg",
+                    "groupTypes": [],
+                    "visibility": "Private",
+                    "createdDateTime": "2025-01-01T00:00:00Z",
+                    "passwordCredentials": [
+                      {
+                        "keyId": "44444444-4444-4444-8444-444444444444",
+                        "startDateTime": "2025-01-01T00:00:00Z",
+                        "endDateTime": "2027-01-01T00:00:00Z"
+                      }
+                    ],
+                    "keyCredentials": []
+                  }
+                ]
+              }
+            ],
+            "reports": [
+              {
+                "name": "credential_activity",
+                "endpoint": "/beta/reports/appCredentialSignInActivities",
+                "audience": "https://graph.microsoft.com",
+                "method": "GET",
+                "body": null,
+                "items": [
+                  {
+                    "id": "opaque-credential-report",
+                    "appId": "33333333-3333-4333-8333-333333333333",
+                    "keyId": "44444444-4444-4444-8444-444444444444",
+                    "keyType": "clientSecret",
+                    "credentialOrigin": "servicePrincipal",
+                    "appObjectId": "55555555-5555-4555-8555-555555555555",
+                    "servicePrincipalObjectId": "22222222-2222-4222-8222-222222222222",
+                    "signInActivity": {
+                      "lastSignInDateTime": "2026-10-20T12:00:00Z",
+                      "lastSuccessfulSignInDateTime": "2026-10-20T11:00:00Z"
+                    }
+                  }
+                ],
+                "status": "collected",
+                "integrity_error": false
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-iam-projection",
+              "read_only": true,
+              "schema": "azure-unused-iam-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        }
+      ]
+    },
+    "fail": {
+      "id": "22222222-2222-4222-8222-222222222222",
+      "appId": "33333333-3333-4333-8333-333333333333",
+      "displayName": "Synthetic identity",
+      "accountEnabled": true,
+      "servicePrincipalType": "Application",
+      "createdDateTime": "2025-01-01T00:00:00Z",
+      "visibility": "Private",
+      "signInAudience": "AzureADMyOrg",
+      "groupTypes": [],
+      "passwordCredentials": [
+        {
+          "keyId": "44444444-4444-4444-8444-444444444444",
+          "startDateTime": "2025-01-01T00:00:00Z",
+          "endDateTime": "2027-01-01T00:00:00Z"
+        }
+      ],
+      "keyCredentials": [],
+      "_provenance": {
+        "tenant_id": "11111111-1111-4111-8111-111111111111",
+        "tenant_verified": true,
+        "credential_context_id": "capture-one",
+        "customer_context_id": "customer-one",
+        "endpoint": "/v1.0/servicePrincipals",
+        "read_only": true
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "tenant_id": "11111111-1111-4111-8111-111111111111",
+          "tenant_verified": true,
+          "credential_context_id": "capture-one",
+          "customer_context_id": "customer-one"
+        }
+      },
+      "collections": {
+        "directory_service_principal": [
+          {
+            "type": "directory_service_principal",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "22222222-2222-4222-8222-222222222222",
+                "appId": "33333333-3333-4333-8333-333333333333",
+                "displayName": "Synthetic identity",
+                "accountEnabled": true,
+                "servicePrincipalType": "Application",
+                "createdDateTime": "2025-01-01T00:00:00Z",
+                "visibility": "Private",
+                "signInAudience": "AzureADMyOrg",
+                "groupTypes": [],
+                "passwordCredentials": [
+                  {
+                    "keyId": "44444444-4444-4444-8444-444444444444",
+                    "startDateTime": "2025-01-01T00:00:00Z",
+                    "endDateTime": "2027-01-01T00:00:00Z"
+                  }
+                ],
+                "keyCredentials": [],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "/v1.0/servicePrincipals",
+                  "read_only": true
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one"
+            }
+          }
+        ],
+        "azure_unused_iam_evidence": [
+          {
+            "type": "azure_unused_iam_evidence",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedIamEvidence",
+                "schema": "azure-unused-iam-evidence-v1",
+                "native_collections": [
+                  {
+                    "type": "directory_service_principal",
+                    "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                    "service": "Microsoft.Graph",
+                    "status": "collected",
+                    "items": [
+                      {
+                        "id": "22222222-2222-4222-8222-222222222222",
+                        "appId": "33333333-3333-4333-8333-333333333333",
+                        "displayName": "Synthetic identity",
+                        "accountEnabled": true,
+                        "servicePrincipalType": "Application",
+                        "signInAudience": "AzureADMyOrg",
+                        "groupTypes": [],
+                        "visibility": "Private",
+                        "createdDateTime": "2025-01-01T00:00:00Z",
+                        "passwordCredentials": [
+                          {
+                            "keyId": "44444444-4444-4444-8444-444444444444",
+                            "startDateTime": "2025-01-01T00:00:00Z",
+                            "endDateTime": "2027-01-01T00:00:00Z"
+                          }
+                        ],
+                        "keyCredentials": []
+                      }
+                    ]
+                  }
+                ],
+                "reports": [
+                  {
+                    "name": "credential_activity",
+                    "endpoint": "/beta/reports/appCredentialSignInActivities",
+                    "audience": "https://graph.microsoft.com",
+                    "method": "GET",
+                    "body": null,
+                    "items": [
+                      {
+                        "id": "opaque-credential-report",
+                        "appId": "33333333-3333-4333-8333-333333333333",
+                        "keyId": "44444444-4444-4444-8444-444444444444",
+                        "keyType": "clientSecret",
+                        "credentialOrigin": "servicePrincipal",
+                        "appObjectId": "55555555-5555-4555-8555-555555555555",
+                        "servicePrincipalObjectId": "22222222-2222-4222-8222-222222222222",
+                        "signInActivity": {
+                          "lastSignInDateTime": "2026-01-01T00:00:00Z"
+                        }
+                      }
+                    ],
+                    "status": "collected",
+                    "integrity_error": false
+                  }
+                ],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "native-unused-iam-projection",
+                  "read_only": true,
+                  "schema": "azure-unused-iam-evidence-v1",
+                  "observed_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-iam-projection",
+              "read_only": true,
+              "schema": "azure-unused-iam-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        ]
+      },
+      "directory_service_principal": [
+        {
+          "type": "directory_service_principal",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "22222222-2222-4222-8222-222222222222",
+            "appId": "33333333-3333-4333-8333-333333333333",
+            "displayName": "Synthetic identity",
+            "accountEnabled": true,
+            "servicePrincipalType": "Application",
+            "createdDateTime": "2025-01-01T00:00:00Z",
+            "visibility": "Private",
+            "signInAudience": "AzureADMyOrg",
+            "groupTypes": [],
+            "passwordCredentials": [
+              {
+                "keyId": "44444444-4444-4444-8444-444444444444",
+                "startDateTime": "2025-01-01T00:00:00Z",
+                "endDateTime": "2027-01-01T00:00:00Z"
+              }
+            ],
+            "keyCredentials": [],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "/v1.0/servicePrincipals",
+              "read_only": true
+            }
+          }
+        }
+      ],
+      "azure_unused_iam_evidence": [
+        {
+          "type": "azure_unused_iam_evidence",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedIamEvidence",
+            "schema": "azure-unused-iam-evidence-v1",
+            "native_collections": [
+              {
+                "type": "directory_service_principal",
+                "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                "service": "Microsoft.Graph",
+                "status": "collected",
+                "items": [
+                  {
+                    "id": "22222222-2222-4222-8222-222222222222",
+                    "appId": "33333333-3333-4333-8333-333333333333",
+                    "displayName": "Synthetic identity",
+                    "accountEnabled": true,
+                    "servicePrincipalType": "Application",
+                    "signInAudience": "AzureADMyOrg",
+                    "groupTypes": [],
+                    "visibility": "Private",
+                    "createdDateTime": "2025-01-01T00:00:00Z",
+                    "passwordCredentials": [
+                      {
+                        "keyId": "44444444-4444-4444-8444-444444444444",
+                        "startDateTime": "2025-01-01T00:00:00Z",
+                        "endDateTime": "2027-01-01T00:00:00Z"
+                      }
+                    ],
+                    "keyCredentials": []
+                  }
+                ]
+              }
+            ],
+            "reports": [
+              {
+                "name": "credential_activity",
+                "endpoint": "/beta/reports/appCredentialSignInActivities",
+                "audience": "https://graph.microsoft.com",
+                "method": "GET",
+                "body": null,
+                "items": [
+                  {
+                    "id": "opaque-credential-report",
+                    "appId": "33333333-3333-4333-8333-333333333333",
+                    "keyId": "44444444-4444-4444-8444-444444444444",
+                    "keyType": "clientSecret",
+                    "credentialOrigin": "servicePrincipal",
+                    "appObjectId": "55555555-5555-4555-8555-555555555555",
+                    "servicePrincipalObjectId": "22222222-2222-4222-8222-222222222222",
+                    "signInActivity": {
+                      "lastSignInDateTime": "2026-01-01T00:00:00Z"
+                    }
+                  }
+                ],
+                "status": "collected",
+                "integrity_error": false
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-iam-projection",
+              "read_only": true,
+              "schema": "azure-unused-iam-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        }
+      ]
+    },
+    "missing": {},
+    "index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "tenant_id": "11111111-1111-4111-8111-111111111111",
+          "tenant_verified": true,
+          "credential_context_id": "capture-one",
+          "customer_context_id": "customer-one"
+        }
+      },
+      "collections": {
+        "directory_service_principal": [
+          {
+            "type": "directory_service_principal",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "22222222-2222-4222-8222-222222222222",
+                "appId": "33333333-3333-4333-8333-333333333333",
+                "displayName": "Synthetic identity",
+                "accountEnabled": true,
+                "servicePrincipalType": "Application",
+                "createdDateTime": "2025-01-01T00:00:00Z",
+                "visibility": "Private",
+                "signInAudience": "AzureADMyOrg",
+                "groupTypes": [],
+                "passwordCredentials": [
+                  {
+                    "keyId": "44444444-4444-4444-8444-444444444444",
+                    "startDateTime": "2025-01-01T00:00:00Z",
+                    "endDateTime": "2027-01-01T00:00:00Z"
+                  }
+                ],
+                "keyCredentials": [],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "/v1.0/servicePrincipals",
+                  "read_only": true
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one"
+            }
+          }
+        ],
+        "azure_unused_iam_evidence": [
+          {
+            "type": "azure_unused_iam_evidence",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedIamEvidence",
+                "schema": "azure-unused-iam-evidence-v1",
+                "native_collections": [
+                  {
+                    "type": "directory_service_principal",
+                    "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                    "service": "Microsoft.Graph",
+                    "status": "collected",
+                    "items": [
+                      {
+                        "id": "22222222-2222-4222-8222-222222222222",
+                        "appId": "33333333-3333-4333-8333-333333333333",
+                        "displayName": "Synthetic identity",
+                        "accountEnabled": true,
+                        "servicePrincipalType": "Application",
+                        "signInAudience": "AzureADMyOrg",
+                        "groupTypes": [],
+                        "visibility": "Private",
+                        "createdDateTime": "2025-01-01T00:00:00Z",
+                        "passwordCredentials": [
+                          {
+                            "keyId": "44444444-4444-4444-8444-444444444444",
+                            "startDateTime": "2025-01-01T00:00:00Z",
+                            "endDateTime": "2027-01-01T00:00:00Z"
+                          }
+                        ],
+                        "keyCredentials": []
+                      }
+                    ]
+                  }
+                ],
+                "reports": [
+                  {
+                    "name": "credential_activity",
+                    "endpoint": "/beta/reports/appCredentialSignInActivities",
+                    "audience": "https://graph.microsoft.com",
+                    "method": "GET",
+                    "body": null,
+                    "items": [
+                      {
+                        "id": "opaque-credential-report",
+                        "appId": "33333333-3333-4333-8333-333333333333",
+                        "keyId": "44444444-4444-4444-8444-444444444444",
+                        "keyType": "clientSecret",
+                        "credentialOrigin": "servicePrincipal",
+                        "appObjectId": "55555555-5555-4555-8555-555555555555",
+                        "servicePrincipalObjectId": "22222222-2222-4222-8222-222222222222",
+                        "signInActivity": {
+                          "lastSignInDateTime": "2026-01-01T00:00:00Z"
+                        }
+                      }
+                    ],
+                    "status": "collected",
+                    "integrity_error": false
+                  }
+                ],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "native-unused-iam-projection",
+                  "read_only": true,
+                  "schema": "azure-unused-iam-evidence-v1",
+                  "observed_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-iam-projection",
+              "read_only": true,
+              "schema": "azure-unused-iam-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        ]
+      },
+      "directory_service_principal": [
+        {
+          "type": "directory_service_principal",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "22222222-2222-4222-8222-222222222222",
+            "appId": "33333333-3333-4333-8333-333333333333",
+            "displayName": "Synthetic identity",
+            "accountEnabled": true,
+            "servicePrincipalType": "Application",
+            "createdDateTime": "2025-01-01T00:00:00Z",
+            "visibility": "Private",
+            "signInAudience": "AzureADMyOrg",
+            "groupTypes": [],
+            "passwordCredentials": [
+              {
+                "keyId": "44444444-4444-4444-8444-444444444444",
+                "startDateTime": "2025-01-01T00:00:00Z",
+                "endDateTime": "2027-01-01T00:00:00Z"
+              }
+            ],
+            "keyCredentials": [],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "/v1.0/servicePrincipals",
+              "read_only": true
+            }
+          }
+        }
+      ],
+      "azure_unused_iam_evidence": [
+        {
+          "type": "azure_unused_iam_evidence",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedIamEvidence",
+            "schema": "azure-unused-iam-evidence-v1",
+            "native_collections": [
+              {
+                "type": "directory_service_principal",
+                "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                "service": "Microsoft.Graph",
+                "status": "collected",
+                "items": [
+                  {
+                    "id": "22222222-2222-4222-8222-222222222222",
+                    "appId": "33333333-3333-4333-8333-333333333333",
+                    "displayName": "Synthetic identity",
+                    "accountEnabled": true,
+                    "servicePrincipalType": "Application",
+                    "signInAudience": "AzureADMyOrg",
+                    "groupTypes": [],
+                    "visibility": "Private",
+                    "createdDateTime": "2025-01-01T00:00:00Z",
+                    "passwordCredentials": [
+                      {
+                        "keyId": "44444444-4444-4444-8444-444444444444",
+                        "startDateTime": "2025-01-01T00:00:00Z",
+                        "endDateTime": "2027-01-01T00:00:00Z"
+                      }
+                    ],
+                    "keyCredentials": []
+                  }
+                ]
+              }
+            ],
+            "reports": [
+              {
+                "name": "credential_activity",
+                "endpoint": "/beta/reports/appCredentialSignInActivities",
+                "audience": "https://graph.microsoft.com",
+                "method": "GET",
+                "body": null,
+                "items": [
+                  {
+                    "id": "opaque-credential-report",
+                    "appId": "33333333-3333-4333-8333-333333333333",
+                    "keyId": "44444444-4444-4444-8444-444444444444",
+                    "keyType": "clientSecret",
+                    "credentialOrigin": "servicePrincipal",
+                    "appObjectId": "55555555-5555-4555-8555-555555555555",
+                    "servicePrincipalObjectId": "22222222-2222-4222-8222-222222222222",
+                    "signInActivity": {
+                      "lastSignInDateTime": "2026-01-01T00:00:00Z"
+                    }
+                  }
+                ],
+                "status": "collected",
+                "integrity_error": false
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-iam-projection",
+              "read_only": true,
+              "schema": "azure-unused-iam-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "azure.iam.single_tenant_application_has_consumer": {
+    "pass": {
+      "id": "22222222-2222-4222-8222-222222222222",
+      "appId": "33333333-3333-4333-8333-333333333333",
+      "displayName": "Synthetic identity",
+      "accountEnabled": true,
+      "servicePrincipalType": "Application",
+      "createdDateTime": "2025-01-01T00:00:00Z",
+      "visibility": "Private",
+      "signInAudience": "AzureADMyOrg",
+      "groupTypes": [],
+      "passwordCredentials": [],
+      "keyCredentials": [],
+      "_provenance": {
+        "tenant_id": "11111111-1111-4111-8111-111111111111",
+        "tenant_verified": true,
+        "credential_context_id": "capture-one",
+        "customer_context_id": "customer-one",
+        "endpoint": "/v1.0/applications",
+        "read_only": true
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "tenant_id": "11111111-1111-4111-8111-111111111111",
+          "tenant_verified": true,
+          "credential_context_id": "capture-one",
+          "customer_context_id": "customer-one"
+        }
+      },
+      "collections": {
+        "directory_application": [
+          {
+            "type": "directory_application",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "22222222-2222-4222-8222-222222222222",
+                "appId": "33333333-3333-4333-8333-333333333333",
+                "displayName": "Synthetic identity",
+                "accountEnabled": true,
+                "servicePrincipalType": "Application",
+                "createdDateTime": "2025-01-01T00:00:00Z",
+                "visibility": "Private",
+                "signInAudience": "AzureADMyOrg",
+                "groupTypes": [],
+                "passwordCredentials": [],
+                "keyCredentials": [],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "/v1.0/applications",
+                  "read_only": true
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one"
+            }
+          }
+        ],
+        "azure_unused_iam_evidence": [
+          {
+            "type": "azure_unused_iam_evidence",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedIamEvidence",
+                "schema": "azure-unused-iam-evidence-v1",
+                "native_collections": [
+                  {
+                    "type": "directory_application",
+                    "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                    "service": "Microsoft.Graph",
+                    "status": "collected",
+                    "items": [
+                      {
+                        "id": "22222222-2222-4222-8222-222222222222",
+                        "appId": "33333333-3333-4333-8333-333333333333",
+                        "displayName": "Synthetic identity",
+                        "accountEnabled": true,
+                        "servicePrincipalType": "Application",
+                        "signInAudience": "AzureADMyOrg",
+                        "groupTypes": [],
+                        "visibility": "Private",
+                        "createdDateTime": "2025-01-01T00:00:00Z",
+                        "passwordCredentials": [],
+                        "keyCredentials": []
+                      }
+                    ]
+                  },
+                  {
+                    "type": "directory_service_principal",
+                    "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                    "service": "Microsoft.Graph",
+                    "status": "collected",
+                    "items": [
+                      {
+                        "id": "55555555-5555-4555-8555-555555555555",
+                        "appId": "33333333-3333-4333-8333-333333333333",
+                        "displayName": "Synthetic identity",
+                        "accountEnabled": true,
+                        "servicePrincipalType": "Application",
+                        "createdDateTime": "2025-01-01T00:00:00Z",
+                        "visibility": "Private",
+                        "signInAudience": "AzureADMyOrg",
+                        "groupTypes": [],
+                        "passwordCredentials": [],
+                        "keyCredentials": [],
+                        "_provenance": {
+                          "tenant_id": "11111111-1111-4111-8111-111111111111",
+                          "tenant_verified": true,
+                          "credential_context_id": "capture-one",
+                          "customer_context_id": "customer-one",
+                          "endpoint": "/v1.0/servicePrincipals",
+                          "read_only": true
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "reports": [
+                  {
+                    "name": "service_principal_activity",
+                    "endpoint": "/beta/reports/servicePrincipalSignInActivities",
+                    "audience": "https://graph.microsoft.com",
+                    "method": "GET",
+                    "body": null,
+                    "items": [],
+                    "status": "empty",
+                    "integrity_error": false
+                  },
+                  {
+                    "name": "credential_activity",
+                    "endpoint": "/beta/reports/appCredentialSignInActivities",
+                    "audience": "https://graph.microsoft.com",
+                    "method": "GET",
+                    "body": null,
+                    "items": [],
+                    "status": "empty",
+                    "integrity_error": false
+                  }
+                ],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "native-unused-iam-projection",
+                  "read_only": true,
+                  "schema": "azure-unused-iam-evidence-v1",
+                  "observed_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-iam-projection",
+              "read_only": true,
+              "schema": "azure-unused-iam-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        ]
+      },
+      "directory_application": [
+        {
+          "type": "directory_application",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "22222222-2222-4222-8222-222222222222",
+            "appId": "33333333-3333-4333-8333-333333333333",
+            "displayName": "Synthetic identity",
+            "accountEnabled": true,
+            "servicePrincipalType": "Application",
+            "createdDateTime": "2025-01-01T00:00:00Z",
+            "visibility": "Private",
+            "signInAudience": "AzureADMyOrg",
+            "groupTypes": [],
+            "passwordCredentials": [],
+            "keyCredentials": [],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "/v1.0/applications",
+              "read_only": true
+            }
+          }
+        }
+      ],
+      "azure_unused_iam_evidence": [
+        {
+          "type": "azure_unused_iam_evidence",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedIamEvidence",
+            "schema": "azure-unused-iam-evidence-v1",
+            "native_collections": [
+              {
+                "type": "directory_application",
+                "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                "service": "Microsoft.Graph",
+                "status": "collected",
+                "items": [
+                  {
+                    "id": "22222222-2222-4222-8222-222222222222",
+                    "appId": "33333333-3333-4333-8333-333333333333",
+                    "displayName": "Synthetic identity",
+                    "accountEnabled": true,
+                    "servicePrincipalType": "Application",
+                    "signInAudience": "AzureADMyOrg",
+                    "groupTypes": [],
+                    "visibility": "Private",
+                    "createdDateTime": "2025-01-01T00:00:00Z",
+                    "passwordCredentials": [],
+                    "keyCredentials": []
+                  }
+                ]
+              },
+              {
+                "type": "directory_service_principal",
+                "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                "service": "Microsoft.Graph",
+                "status": "collected",
+                "items": [
+                  {
+                    "id": "55555555-5555-4555-8555-555555555555",
+                    "appId": "33333333-3333-4333-8333-333333333333",
+                    "displayName": "Synthetic identity",
+                    "accountEnabled": true,
+                    "servicePrincipalType": "Application",
+                    "createdDateTime": "2025-01-01T00:00:00Z",
+                    "visibility": "Private",
+                    "signInAudience": "AzureADMyOrg",
+                    "groupTypes": [],
+                    "passwordCredentials": [],
+                    "keyCredentials": [],
+                    "_provenance": {
+                      "tenant_id": "11111111-1111-4111-8111-111111111111",
+                      "tenant_verified": true,
+                      "credential_context_id": "capture-one",
+                      "customer_context_id": "customer-one",
+                      "endpoint": "/v1.0/servicePrincipals",
+                      "read_only": true
+                    }
+                  }
+                ]
+              }
+            ],
+            "reports": [
+              {
+                "name": "service_principal_activity",
+                "endpoint": "/beta/reports/servicePrincipalSignInActivities",
+                "audience": "https://graph.microsoft.com",
+                "method": "GET",
+                "body": null,
+                "items": [],
+                "status": "empty",
+                "integrity_error": false
+              },
+              {
+                "name": "credential_activity",
+                "endpoint": "/beta/reports/appCredentialSignInActivities",
+                "audience": "https://graph.microsoft.com",
+                "method": "GET",
+                "body": null,
+                "items": [],
+                "status": "empty",
+                "integrity_error": false
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-iam-projection",
+              "read_only": true,
+              "schema": "azure-unused-iam-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        }
+      ]
+    },
+    "fail": {
+      "id": "22222222-2222-4222-8222-222222222222",
+      "appId": "33333333-3333-4333-8333-333333333333",
+      "displayName": "Synthetic identity",
+      "accountEnabled": true,
+      "servicePrincipalType": "Application",
+      "createdDateTime": "2025-01-01T00:00:00Z",
+      "visibility": "Private",
+      "signInAudience": "AzureADMyOrg",
+      "groupTypes": [],
+      "passwordCredentials": [],
+      "keyCredentials": [],
+      "_provenance": {
+        "tenant_id": "11111111-1111-4111-8111-111111111111",
+        "tenant_verified": true,
+        "credential_context_id": "capture-one",
+        "customer_context_id": "customer-one",
+        "endpoint": "/v1.0/applications",
+        "read_only": true
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "tenant_id": "11111111-1111-4111-8111-111111111111",
+          "tenant_verified": true,
+          "credential_context_id": "capture-one",
+          "customer_context_id": "customer-one"
+        }
+      },
+      "collections": {
+        "directory_application": [
+          {
+            "type": "directory_application",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "22222222-2222-4222-8222-222222222222",
+                "appId": "33333333-3333-4333-8333-333333333333",
+                "displayName": "Synthetic identity",
+                "accountEnabled": true,
+                "servicePrincipalType": "Application",
+                "createdDateTime": "2025-01-01T00:00:00Z",
+                "visibility": "Private",
+                "signInAudience": "AzureADMyOrg",
+                "groupTypes": [],
+                "passwordCredentials": [],
+                "keyCredentials": [],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "/v1.0/applications",
+                  "read_only": true
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one"
+            }
+          }
+        ],
+        "azure_unused_iam_evidence": [
+          {
+            "type": "azure_unused_iam_evidence",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedIamEvidence",
+                "schema": "azure-unused-iam-evidence-v1",
+                "native_collections": [
+                  {
+                    "type": "directory_application",
+                    "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                    "service": "Microsoft.Graph",
+                    "status": "collected",
+                    "items": [
+                      {
+                        "id": "22222222-2222-4222-8222-222222222222",
+                        "appId": "33333333-3333-4333-8333-333333333333",
+                        "displayName": "Synthetic identity",
+                        "accountEnabled": true,
+                        "servicePrincipalType": "Application",
+                        "signInAudience": "AzureADMyOrg",
+                        "groupTypes": [],
+                        "visibility": "Private",
+                        "createdDateTime": "2025-01-01T00:00:00Z",
+                        "passwordCredentials": [],
+                        "keyCredentials": []
+                      }
+                    ]
+                  },
+                  {
+                    "type": "directory_service_principal",
+                    "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                    "service": "Microsoft.Graph",
+                    "status": "empty",
+                    "items": []
+                  }
+                ],
+                "reports": [
+                  {
+                    "name": "service_principal_activity",
+                    "endpoint": "/beta/reports/servicePrincipalSignInActivities",
+                    "audience": "https://graph.microsoft.com",
+                    "method": "GET",
+                    "body": null,
+                    "items": [],
+                    "status": "empty",
+                    "integrity_error": false
+                  },
+                  {
+                    "name": "credential_activity",
+                    "endpoint": "/beta/reports/appCredentialSignInActivities",
+                    "audience": "https://graph.microsoft.com",
+                    "method": "GET",
+                    "body": null,
+                    "items": [],
+                    "status": "empty",
+                    "integrity_error": false
+                  }
+                ],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "native-unused-iam-projection",
+                  "read_only": true,
+                  "schema": "azure-unused-iam-evidence-v1",
+                  "observed_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-iam-projection",
+              "read_only": true,
+              "schema": "azure-unused-iam-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        ]
+      },
+      "directory_application": [
+        {
+          "type": "directory_application",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "22222222-2222-4222-8222-222222222222",
+            "appId": "33333333-3333-4333-8333-333333333333",
+            "displayName": "Synthetic identity",
+            "accountEnabled": true,
+            "servicePrincipalType": "Application",
+            "createdDateTime": "2025-01-01T00:00:00Z",
+            "visibility": "Private",
+            "signInAudience": "AzureADMyOrg",
+            "groupTypes": [],
+            "passwordCredentials": [],
+            "keyCredentials": [],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "/v1.0/applications",
+              "read_only": true
+            }
+          }
+        }
+      ],
+      "azure_unused_iam_evidence": [
+        {
+          "type": "azure_unused_iam_evidence",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedIamEvidence",
+            "schema": "azure-unused-iam-evidence-v1",
+            "native_collections": [
+              {
+                "type": "directory_application",
+                "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                "service": "Microsoft.Graph",
+                "status": "collected",
+                "items": [
+                  {
+                    "id": "22222222-2222-4222-8222-222222222222",
+                    "appId": "33333333-3333-4333-8333-333333333333",
+                    "displayName": "Synthetic identity",
+                    "accountEnabled": true,
+                    "servicePrincipalType": "Application",
+                    "signInAudience": "AzureADMyOrg",
+                    "groupTypes": [],
+                    "visibility": "Private",
+                    "createdDateTime": "2025-01-01T00:00:00Z",
+                    "passwordCredentials": [],
+                    "keyCredentials": []
+                  }
+                ]
+              },
+              {
+                "type": "directory_service_principal",
+                "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                "service": "Microsoft.Graph",
+                "status": "empty",
+                "items": []
+              }
+            ],
+            "reports": [
+              {
+                "name": "service_principal_activity",
+                "endpoint": "/beta/reports/servicePrincipalSignInActivities",
+                "audience": "https://graph.microsoft.com",
+                "method": "GET",
+                "body": null,
+                "items": [],
+                "status": "empty",
+                "integrity_error": false
+              },
+              {
+                "name": "credential_activity",
+                "endpoint": "/beta/reports/appCredentialSignInActivities",
+                "audience": "https://graph.microsoft.com",
+                "method": "GET",
+                "body": null,
+                "items": [],
+                "status": "empty",
+                "integrity_error": false
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-iam-projection",
+              "read_only": true,
+              "schema": "azure-unused-iam-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        }
+      ]
+    },
+    "missing": {},
+    "index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "tenant_id": "11111111-1111-4111-8111-111111111111",
+          "tenant_verified": true,
+          "credential_context_id": "capture-one",
+          "customer_context_id": "customer-one"
+        }
+      },
+      "collections": {
+        "directory_application": [
+          {
+            "type": "directory_application",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "22222222-2222-4222-8222-222222222222",
+                "appId": "33333333-3333-4333-8333-333333333333",
+                "displayName": "Synthetic identity",
+                "accountEnabled": true,
+                "servicePrincipalType": "Application",
+                "createdDateTime": "2025-01-01T00:00:00Z",
+                "visibility": "Private",
+                "signInAudience": "AzureADMyOrg",
+                "groupTypes": [],
+                "passwordCredentials": [],
+                "keyCredentials": [],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "/v1.0/applications",
+                  "read_only": true
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one"
+            }
+          }
+        ],
+        "azure_unused_iam_evidence": [
+          {
+            "type": "azure_unused_iam_evidence",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedIamEvidence",
+                "schema": "azure-unused-iam-evidence-v1",
+                "native_collections": [
+                  {
+                    "type": "directory_application",
+                    "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                    "service": "Microsoft.Graph",
+                    "status": "collected",
+                    "items": [
+                      {
+                        "id": "22222222-2222-4222-8222-222222222222",
+                        "appId": "33333333-3333-4333-8333-333333333333",
+                        "displayName": "Synthetic identity",
+                        "accountEnabled": true,
+                        "servicePrincipalType": "Application",
+                        "signInAudience": "AzureADMyOrg",
+                        "groupTypes": [],
+                        "visibility": "Private",
+                        "createdDateTime": "2025-01-01T00:00:00Z",
+                        "passwordCredentials": [],
+                        "keyCredentials": []
+                      }
+                    ]
+                  },
+                  {
+                    "type": "directory_service_principal",
+                    "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                    "service": "Microsoft.Graph",
+                    "status": "empty",
+                    "items": []
+                  }
+                ],
+                "reports": [
+                  {
+                    "name": "service_principal_activity",
+                    "endpoint": "/beta/reports/servicePrincipalSignInActivities",
+                    "audience": "https://graph.microsoft.com",
+                    "method": "GET",
+                    "body": null,
+                    "items": [],
+                    "status": "empty",
+                    "integrity_error": false
+                  },
+                  {
+                    "name": "credential_activity",
+                    "endpoint": "/beta/reports/appCredentialSignInActivities",
+                    "audience": "https://graph.microsoft.com",
+                    "method": "GET",
+                    "body": null,
+                    "items": [],
+                    "status": "empty",
+                    "integrity_error": false
+                  }
+                ],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "native-unused-iam-projection",
+                  "read_only": true,
+                  "schema": "azure-unused-iam-evidence-v1",
+                  "observed_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-iam-projection",
+              "read_only": true,
+              "schema": "azure-unused-iam-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        ]
+      },
+      "directory_application": [
+        {
+          "type": "directory_application",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "22222222-2222-4222-8222-222222222222",
+            "appId": "33333333-3333-4333-8333-333333333333",
+            "displayName": "Synthetic identity",
+            "accountEnabled": true,
+            "servicePrincipalType": "Application",
+            "createdDateTime": "2025-01-01T00:00:00Z",
+            "visibility": "Private",
+            "signInAudience": "AzureADMyOrg",
+            "groupTypes": [],
+            "passwordCredentials": [],
+            "keyCredentials": [],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "/v1.0/applications",
+              "read_only": true
+            }
+          }
+        }
+      ],
+      "azure_unused_iam_evidence": [
+        {
+          "type": "azure_unused_iam_evidence",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedIamEvidence",
+            "schema": "azure-unused-iam-evidence-v1",
+            "native_collections": [
+              {
+                "type": "directory_application",
+                "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                "service": "Microsoft.Graph",
+                "status": "collected",
+                "items": [
+                  {
+                    "id": "22222222-2222-4222-8222-222222222222",
+                    "appId": "33333333-3333-4333-8333-333333333333",
+                    "displayName": "Synthetic identity",
+                    "accountEnabled": true,
+                    "servicePrincipalType": "Application",
+                    "signInAudience": "AzureADMyOrg",
+                    "groupTypes": [],
+                    "visibility": "Private",
+                    "createdDateTime": "2025-01-01T00:00:00Z",
+                    "passwordCredentials": [],
+                    "keyCredentials": []
+                  }
+                ]
+              },
+              {
+                "type": "directory_service_principal",
+                "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+                "service": "Microsoft.Graph",
+                "status": "empty",
+                "items": []
+              }
+            ],
+            "reports": [
+              {
+                "name": "service_principal_activity",
+                "endpoint": "/beta/reports/servicePrincipalSignInActivities",
+                "audience": "https://graph.microsoft.com",
+                "method": "GET",
+                "body": null,
+                "items": [],
+                "status": "empty",
+                "integrity_error": false
+              },
+              {
+                "name": "credential_activity",
+                "endpoint": "/beta/reports/appCredentialSignInActivities",
+                "audience": "https://graph.microsoft.com",
+                "method": "GET",
+                "body": null,
+                "items": [],
+                "status": "empty",
+                "integrity_error": false
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-iam-projection",
+              "read_only": true,
+              "schema": "azure-unused-iam-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "aws.claude_a.iam.role_used_within_60_days": {
+    "pass": {
+      "RoleName": "synthetic",
+      "RoleId": "AROASYNTHETIC",
+      "Arn": "arn:aws:iam::123456789012:role/synthetic",
+      "CreateDate": "2026-10-20T12:00:00Z",
+      "RoleLastUsed": {},
+      "_provenance": {
+        "collected_at": "2026-10-21T12:00:00Z",
+        "scope": "123456789012/global"
+      }
+    },
+    "fail": {
+      "RoleName": "synthetic",
+      "RoleId": "AROASYNTHETIC",
+      "Arn": "arn:aws:iam::123456789012:role/synthetic",
+      "CreateDate": "2024-01-01T00:00:00Z",
+      "RoleLastUsed": {
+        "LastUsedDate": "2026-01-01T00:00:00Z"
+      },
+      "_provenance": {
+        "collected_at": "2026-10-21T12:00:00Z",
+        "scope": "123456789012/global"
+      }
+    },
+    "missing": {},
+    "malformed": null,
+    "index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/global",
+        "created_at": "2026-10-21T12:00:00Z"
+      }
+    }
+  }
+}

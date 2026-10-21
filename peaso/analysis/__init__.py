@@ -154,8 +154,7 @@ def analyze_findings(snapshot, resources=None, index=None, *, include_manual_onl
             results.append(finding(snapshot, placeholder, "least_privilege", "analysis.coverage",
                 "Analysis inventory context incomplete", "info", {"gaps": gaps, "risk_state": "unknown"}, status=gap_status))
     from .exposure_dedup import deduplicate_principal_exposure
-    return sorted(deduplicate_principal_exposure(results),
-        key=lambda f: (RANK[f["severity"]], f["check_id"], f["scope"], f["resource_id"]))
+    return sorted(deduplicate_principal_exposure(results), key=lambda f: (RANK[f["severity"]], f["check_id"], f["scope"], f["resource_id"]))
 
 
 @with_analysis_context

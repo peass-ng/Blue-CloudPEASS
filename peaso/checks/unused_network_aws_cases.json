@@ -1,0 +1,922 @@
+{
+  "aws.network.route_table_associated": {
+    "pass": {
+      "RouteTableId": "rtb-1",
+      "Associations": [
+        {
+          "Main": true,
+          "RouteTableAssociationId": "rtbassoc-1"
+        }
+      ]
+    },
+    "fail": {
+      "RouteTableId": "rtb-1",
+      "Associations": []
+    },
+    "unknown": {
+      "RouteTableId": "rtb-1",
+      "_coverage": {
+        "Associations": {
+          "status": "denied"
+        }
+      }
+    },
+    "missing": {},
+    "malformed": {
+      "RouteTableId": "rtb-1",
+      "Associations": "unreadable"
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      },
+      "collections": {
+        "route_table": [
+          {
+            "type": "route_table",
+            "scope": "123456789012/us-east-1",
+            "service": "ec2",
+            "status": "collected",
+            "account_id": "123456789012",
+            "items": [
+              {
+                "RouteTableId": "rtb-1",
+                "Associations": [
+                  {
+                    "Main": true,
+                    "RouteTableAssociationId": "rtbassoc-1"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "route_table": [
+        {
+          "type": "route_table",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "RouteTableId": "rtb-1",
+            "Associations": [
+              {
+                "Main": true,
+                "RouteTableAssociationId": "rtbassoc-1"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      },
+      "collections": {
+        "route_table": [
+          {
+            "type": "route_table",
+            "scope": "123456789012/us-east-1",
+            "service": "ec2",
+            "status": "collected",
+            "account_id": "123456789012",
+            "items": [
+              {
+                "RouteTableId": "rtb-1",
+                "Associations": []
+              }
+            ]
+          }
+        ]
+      },
+      "route_table": [
+        {
+          "type": "route_table",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "RouteTableId": "rtb-1",
+            "Associations": []
+          }
+        }
+      ]
+    },
+    "unknown_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      },
+      "collections": {
+        "route_table": [
+          {
+            "type": "route_table",
+            "scope": "123456789012/us-east-1",
+            "service": "ec2",
+            "status": "collected",
+            "account_id": "123456789012",
+            "items": [
+              {
+                "RouteTableId": "rtb-1",
+                "_coverage": {
+                  "Associations": {
+                    "status": "denied"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "route_table": [
+        {
+          "type": "route_table",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "RouteTableId": "rtb-1",
+            "_coverage": {
+              "Associations": {
+                "status": "denied"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "missing_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      },
+      "collections": {
+        "route_table": [
+          {
+            "type": "route_table",
+            "scope": "123456789012/us-east-1",
+            "service": "ec2",
+            "status": "collected",
+            "account_id": "123456789012",
+            "items": [
+              {}
+            ]
+          }
+        ]
+      },
+      "route_table": [
+        {
+          "type": "route_table",
+          "scope": "123456789012/us-east-1",
+          "data": {}
+        }
+      ]
+    },
+    "malformed_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      },
+      "collections": {
+        "route_table": [
+          {
+            "type": "route_table",
+            "scope": "123456789012/us-east-1",
+            "service": "ec2",
+            "status": "collected",
+            "account_id": "123456789012",
+            "items": [
+              {
+                "RouteTableId": "rtb-1",
+                "Associations": "unreadable"
+              }
+            ]
+          }
+        ]
+      },
+      "route_table": [
+        {
+          "type": "route_table",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "RouteTableId": "rtb-1",
+            "Associations": "unreadable"
+          }
+        }
+      ]
+    },
+    "index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      },
+      "collections": {
+        "route_table": [
+          {
+            "type": "route_table",
+            "scope": "123456789012/us-east-1",
+            "service": "ec2",
+            "status": "collected",
+            "account_id": "123456789012",
+            "items": [
+              {
+                "RouteTableId": "rtb-1",
+                "Associations": []
+              }
+            ]
+          }
+        ]
+      },
+      "route_table": [
+        {
+          "type": "route_table",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "RouteTableId": "rtb-1",
+            "Associations": []
+          }
+        }
+      ]
+    }
+  },
+  "aws.network.internet_gateway_attached": {
+    "pass": {
+      "InternetGatewayId": "igw-1",
+      "Attachments": [
+        {
+          "VpcId": "vpc-1",
+          "State": "available"
+        }
+      ]
+    },
+    "fail": {
+      "InternetGatewayId": "igw-1",
+      "Attachments": []
+    },
+    "unknown": {
+      "InternetGatewayId": "igw-1",
+      "_coverage": {
+        "Attachments": {
+          "status": "denied"
+        }
+      }
+    },
+    "missing": {},
+    "malformed": {
+      "InternetGatewayId": "igw-1",
+      "Attachments": "unreadable"
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      },
+      "collections": {
+        "internet_gateway": [
+          {
+            "type": "internet_gateway",
+            "scope": "123456789012/us-east-1",
+            "service": "ec2",
+            "status": "collected",
+            "account_id": "123456789012",
+            "items": [
+              {
+                "InternetGatewayId": "igw-1",
+                "Attachments": [
+                  {
+                    "VpcId": "vpc-1",
+                    "State": "available"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "internet_gateway": [
+        {
+          "type": "internet_gateway",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "InternetGatewayId": "igw-1",
+            "Attachments": [
+              {
+                "VpcId": "vpc-1",
+                "State": "available"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      },
+      "collections": {
+        "internet_gateway": [
+          {
+            "type": "internet_gateway",
+            "scope": "123456789012/us-east-1",
+            "service": "ec2",
+            "status": "collected",
+            "account_id": "123456789012",
+            "items": [
+              {
+                "InternetGatewayId": "igw-1",
+                "Attachments": []
+              }
+            ]
+          }
+        ]
+      },
+      "internet_gateway": [
+        {
+          "type": "internet_gateway",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "InternetGatewayId": "igw-1",
+            "Attachments": []
+          }
+        }
+      ]
+    },
+    "unknown_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      },
+      "collections": {
+        "internet_gateway": [
+          {
+            "type": "internet_gateway",
+            "scope": "123456789012/us-east-1",
+            "service": "ec2",
+            "status": "collected",
+            "account_id": "123456789012",
+            "items": [
+              {
+                "InternetGatewayId": "igw-1",
+                "_coverage": {
+                  "Attachments": {
+                    "status": "denied"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "internet_gateway": [
+        {
+          "type": "internet_gateway",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "InternetGatewayId": "igw-1",
+            "_coverage": {
+              "Attachments": {
+                "status": "denied"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "missing_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      },
+      "collections": {
+        "internet_gateway": [
+          {
+            "type": "internet_gateway",
+            "scope": "123456789012/us-east-1",
+            "service": "ec2",
+            "status": "collected",
+            "account_id": "123456789012",
+            "items": [
+              {}
+            ]
+          }
+        ]
+      },
+      "internet_gateway": [
+        {
+          "type": "internet_gateway",
+          "scope": "123456789012/us-east-1",
+          "data": {}
+        }
+      ]
+    },
+    "malformed_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      },
+      "collections": {
+        "internet_gateway": [
+          {
+            "type": "internet_gateway",
+            "scope": "123456789012/us-east-1",
+            "service": "ec2",
+            "status": "collected",
+            "account_id": "123456789012",
+            "items": [
+              {
+                "InternetGatewayId": "igw-1",
+                "Attachments": "unreadable"
+              }
+            ]
+          }
+        ]
+      },
+      "internet_gateway": [
+        {
+          "type": "internet_gateway",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "InternetGatewayId": "igw-1",
+            "Attachments": "unreadable"
+          }
+        }
+      ]
+    },
+    "index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      },
+      "collections": {
+        "internet_gateway": [
+          {
+            "type": "internet_gateway",
+            "scope": "123456789012/us-east-1",
+            "service": "ec2",
+            "status": "collected",
+            "account_id": "123456789012",
+            "items": [
+              {
+                "InternetGatewayId": "igw-1",
+                "Attachments": []
+              }
+            ]
+          }
+        ]
+      },
+      "internet_gateway": [
+        {
+          "type": "internet_gateway",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "InternetGatewayId": "igw-1",
+            "Attachments": []
+          }
+        }
+      ]
+    }
+  },
+  "aws.network.vpn_gateway_attached": {
+    "pass": {
+      "VpnGatewayId": "vgw-1",
+      "VpcAttachments": [
+        {
+          "VpcId": "vpc-1",
+          "State": "attached"
+        }
+      ]
+    },
+    "fail": {
+      "VpnGatewayId": "vgw-1",
+      "VpcAttachments": []
+    },
+    "unknown": {
+      "VpnGatewayId": "vgw-1",
+      "_coverage": {
+        "VpcAttachments": {
+          "status": "denied"
+        }
+      }
+    },
+    "missing": {},
+    "malformed": {
+      "VpnGatewayId": "vgw-1",
+      "VpcAttachments": "unreadable"
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      },
+      "collections": {
+        "vpn_gateway": [
+          {
+            "type": "vpn_gateway",
+            "scope": "123456789012/us-east-1",
+            "service": "ec2",
+            "status": "collected",
+            "account_id": "123456789012",
+            "items": [
+              {
+                "VpnGatewayId": "vgw-1",
+                "VpcAttachments": [
+                  {
+                    "VpcId": "vpc-1",
+                    "State": "attached"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "vpn_gateway": [
+        {
+          "type": "vpn_gateway",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "VpnGatewayId": "vgw-1",
+            "VpcAttachments": [
+              {
+                "VpcId": "vpc-1",
+                "State": "attached"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      },
+      "collections": {
+        "vpn_gateway": [
+          {
+            "type": "vpn_gateway",
+            "scope": "123456789012/us-east-1",
+            "service": "ec2",
+            "status": "collected",
+            "account_id": "123456789012",
+            "items": [
+              {
+                "VpnGatewayId": "vgw-1",
+                "VpcAttachments": []
+              }
+            ]
+          }
+        ]
+      },
+      "vpn_gateway": [
+        {
+          "type": "vpn_gateway",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "VpnGatewayId": "vgw-1",
+            "VpcAttachments": []
+          }
+        }
+      ]
+    },
+    "unknown_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      },
+      "collections": {
+        "vpn_gateway": [
+          {
+            "type": "vpn_gateway",
+            "scope": "123456789012/us-east-1",
+            "service": "ec2",
+            "status": "collected",
+            "account_id": "123456789012",
+            "items": [
+              {
+                "VpnGatewayId": "vgw-1",
+                "_coverage": {
+                  "VpcAttachments": {
+                    "status": "denied"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "vpn_gateway": [
+        {
+          "type": "vpn_gateway",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "VpnGatewayId": "vgw-1",
+            "_coverage": {
+              "VpcAttachments": {
+                "status": "denied"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "missing_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      },
+      "collections": {
+        "vpn_gateway": [
+          {
+            "type": "vpn_gateway",
+            "scope": "123456789012/us-east-1",
+            "service": "ec2",
+            "status": "collected",
+            "account_id": "123456789012",
+            "items": [
+              {}
+            ]
+          }
+        ]
+      },
+      "vpn_gateway": [
+        {
+          "type": "vpn_gateway",
+          "scope": "123456789012/us-east-1",
+          "data": {}
+        }
+      ]
+    },
+    "malformed_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      },
+      "collections": {
+        "vpn_gateway": [
+          {
+            "type": "vpn_gateway",
+            "scope": "123456789012/us-east-1",
+            "service": "ec2",
+            "status": "collected",
+            "account_id": "123456789012",
+            "items": [
+              {
+                "VpnGatewayId": "vgw-1",
+                "VpcAttachments": "unreadable"
+              }
+            ]
+          }
+        ]
+      },
+      "vpn_gateway": [
+        {
+          "type": "vpn_gateway",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "VpnGatewayId": "vgw-1",
+            "VpcAttachments": "unreadable"
+          }
+        }
+      ]
+    },
+    "index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      },
+      "collections": {
+        "vpn_gateway": [
+          {
+            "type": "vpn_gateway",
+            "scope": "123456789012/us-east-1",
+            "service": "ec2",
+            "status": "collected",
+            "account_id": "123456789012",
+            "items": [
+              {
+                "VpnGatewayId": "vgw-1",
+                "VpcAttachments": []
+              }
+            ]
+          }
+        ]
+      },
+      "vpn_gateway": [
+        {
+          "type": "vpn_gateway",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "VpnGatewayId": "vgw-1",
+            "VpcAttachments": []
+          }
+        }
+      ]
+    }
+  },
+  "aws.network.target_group_has_load_balancer": {
+    "pass": {
+      "TargetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/test/0123456789abcdef",
+      "LoadBalancerArns": [
+        "arn:aws:elasticloadbalancing:us-east-1:123456789012:loadbalancer/app/test/0123456789abcdef"
+      ]
+    },
+    "fail": {
+      "TargetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/test/0123456789abcdef",
+      "LoadBalancerArns": []
+    },
+    "unknown": {
+      "TargetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/test/0123456789abcdef"
+    },
+    "missing": {},
+    "malformed": {
+      "TargetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/test/0123456789abcdef",
+      "LoadBalancerArns": "bad"
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      },
+      "target_group": [
+        {
+          "type": "target_group",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "TargetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/test/0123456789abcdef",
+            "LoadBalancerArns": [
+              "arn:aws:elasticloadbalancing:us-east-1:123456789012:loadbalancer/app/test/0123456789abcdef"
+            ]
+          }
+        }
+      ],
+      "collections": {
+        "target_group": [
+          {
+            "type": "target_group",
+            "scope": "123456789012/us-east-1",
+            "service": "elbv2",
+            "status": "collected",
+            "items": [
+              {
+                "TargetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/test/0123456789abcdef",
+                "LoadBalancerArns": [
+                  "arn:aws:elasticloadbalancing:us-east-1:123456789012:loadbalancer/app/test/0123456789abcdef"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      },
+      "target_group": [
+        {
+          "type": "target_group",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "TargetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/test/0123456789abcdef",
+            "LoadBalancerArns": []
+          }
+        }
+      ],
+      "collections": {
+        "target_group": [
+          {
+            "type": "target_group",
+            "scope": "123456789012/us-east-1",
+            "service": "elbv2",
+            "status": "collected",
+            "items": [
+              {
+                "TargetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/test/0123456789abcdef",
+                "LoadBalancerArns": []
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "unknown_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      },
+      "target_group": [
+        {
+          "type": "target_group",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "TargetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/test/0123456789abcdef"
+          }
+        }
+      ],
+      "collections": {
+        "target_group": [
+          {
+            "type": "target_group",
+            "scope": "123456789012/us-east-1",
+            "service": "elbv2",
+            "status": "collected",
+            "items": [
+              {
+                "TargetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/test/0123456789abcdef"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "missing_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      },
+      "target_group": [
+        {
+          "type": "target_group",
+          "scope": "123456789012/us-east-1",
+          "data": {}
+        }
+      ],
+      "collections": {
+        "target_group": [
+          {
+            "type": "target_group",
+            "scope": "123456789012/us-east-1",
+            "service": "elbv2",
+            "status": "collected",
+            "items": [
+              {}
+            ]
+          }
+        ]
+      }
+    },
+    "malformed_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      },
+      "target_group": [
+        {
+          "type": "target_group",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "TargetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/test/0123456789abcdef",
+            "LoadBalancerArns": "bad"
+          }
+        }
+      ],
+      "collections": {
+        "target_group": [
+          {
+            "type": "target_group",
+            "scope": "123456789012/us-east-1",
+            "service": "elbv2",
+            "status": "collected",
+            "items": [
+              {
+                "TargetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/test/0123456789abcdef",
+                "LoadBalancerArns": "bad"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      },
+      "target_group": [
+        {
+          "type": "target_group",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "TargetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/test/0123456789abcdef"
+          }
+        }
+      ],
+      "collections": {
+        "target_group": [
+          {
+            "type": "target_group",
+            "scope": "123456789012/us-east-1",
+            "service": "elbv2",
+            "status": "collected",
+            "items": [
+              {
+                "TargetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/test/0123456789abcdef"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

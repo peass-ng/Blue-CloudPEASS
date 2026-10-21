@@ -247,7 +247,8 @@ def test_secret_native_package_pipeline_clean(image,monkeypatch,positive,mutatio
     from peaso.collectors.aws import Requests
     if positive:
         configuration=json.loads(image.config)
-        configuration['config']['Env']=['GITHUB_TOKEN=ghp_7mQ2zR9wL4cV8nK1sF6aH3jP5uD0xB2yE9rT']
+        # Deliberately synthetic PAT; fixture credentials are never verified.
+        configuration['config']['Env']=['GITHUB_TOKEN=ghp_SYNTHETICSYNTHETICSYNTHETICSYNTHETIC']
         image.config=json.dumps(configuration,separators=(',',':')).encode()
         manifest=json.loads(image.manifest)
         manifest['config']['size']=len(image.config)

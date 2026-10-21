@@ -1,0 +1,684 @@
+{
+  "azure.iam.custom_directory_role_has_declared_consumers": {
+    "pass": {
+      "id": "22222222-2222-4222-8222-222222222222",
+      "displayName": "Synthetic application role",
+      "isBuiltIn": false,
+      "isEnabled": true,
+      "rolePermissions": [
+        {
+          "allowedResourceActions": [
+            "microsoft.directory/applications/credentials/update",
+            "microsoft.directory/applications/basic/read"
+          ]
+        }
+      ],
+      "_provenance": {
+        "tenant_id": "11111111-1111-4111-8111-111111111111",
+        "tenant_verified": true,
+        "credential_context_id": "capture-one",
+        "customer_context_id": "customer-one",
+        "endpoint": "/v1.0/roleManagement/directory/roleDefinitions",
+        "read_only": true
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "tenant_id": "11111111-1111-4111-8111-111111111111",
+          "tenant_verified": true,
+          "credential_context_id": "capture-one",
+          "customer_context_id": "customer-one"
+        }
+      },
+      "collections": {
+        "directory_role_definition": [
+          {
+            "type": "directory_role_definition",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "22222222-2222-4222-8222-222222222222",
+                "displayName": "Synthetic application role",
+                "isBuiltIn": false,
+                "isEnabled": true,
+                "rolePermissions": [
+                  {
+                    "allowedResourceActions": [
+                      "microsoft.directory/applications/credentials/update",
+                      "microsoft.directory/applications/basic/read"
+                    ]
+                  }
+                ],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "/v1.0/roleManagement/directory/roleDefinitions",
+                  "read_only": true
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one"
+            }
+          }
+        ],
+        "azure_unused_role_evidence": [
+          {
+            "type": "azure_unused_role_evidence",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedRoleEvidence",
+                "schema": "azure-unused-role-evidence-v1",
+                "reports": [
+                  {
+                    "name": "assignments",
+                    "endpoint": "/v1.0/roleManagement/directory/roleAssignments",
+                    "audience": "https://graph.microsoft.com",
+                    "method": "GET",
+                    "body": null,
+                    "filter": null,
+                    "projection": "full",
+                    "items": [
+                      {
+                        "id": "opaque-consumer-one",
+                        "roleDefinitionId": "22222222-2222-4222-8222-222222222222",
+                        "principalId": "33333333-3333-4333-8333-333333333333",
+                        "directoryScopeId": "/"
+                      }
+                    ],
+                    "status": "collected",
+                    "integrity_error": false
+                  },
+                  {
+                    "name": "assignment_schedules",
+                    "endpoint": "/v1.0/roleManagement/directory/roleAssignmentSchedules",
+                    "audience": "https://graph.microsoft.com",
+                    "method": "GET",
+                    "body": null,
+                    "filter": null,
+                    "projection": "full",
+                    "items": [],
+                    "status": "empty",
+                    "integrity_error": false
+                  },
+                  {
+                    "name": "eligibility_schedules",
+                    "endpoint": "/v1.0/roleManagement/directory/roleEligibilitySchedules",
+                    "audience": "https://graph.microsoft.com",
+                    "method": "GET",
+                    "body": null,
+                    "filter": null,
+                    "projection": "full",
+                    "items": [],
+                    "status": "empty",
+                    "integrity_error": false
+                  }
+                ],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "native-unused-role-projection",
+                  "read_only": true,
+                  "schema": "azure-unused-role-evidence-v1",
+                  "observed_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one"
+            }
+          }
+        ]
+      },
+      "directory_role_definition": [
+        {
+          "type": "directory_role_definition",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "22222222-2222-4222-8222-222222222222",
+            "displayName": "Synthetic application role",
+            "isBuiltIn": false,
+            "isEnabled": true,
+            "rolePermissions": [
+              {
+                "allowedResourceActions": [
+                  "microsoft.directory/applications/credentials/update",
+                  "microsoft.directory/applications/basic/read"
+                ]
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "/v1.0/roleManagement/directory/roleDefinitions",
+              "read_only": true
+            }
+          }
+        }
+      ],
+      "azure_unused_role_evidence": [
+        {
+          "type": "azure_unused_role_evidence",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedRoleEvidence",
+            "schema": "azure-unused-role-evidence-v1",
+            "reports": [
+              {
+                "name": "assignments",
+                "endpoint": "/v1.0/roleManagement/directory/roleAssignments",
+                "audience": "https://graph.microsoft.com",
+                "method": "GET",
+                "body": null,
+                "filter": null,
+                "projection": "full",
+                "items": [
+                  {
+                    "id": "opaque-consumer-one",
+                    "roleDefinitionId": "22222222-2222-4222-8222-222222222222",
+                    "principalId": "33333333-3333-4333-8333-333333333333",
+                    "directoryScopeId": "/"
+                  }
+                ],
+                "status": "collected",
+                "integrity_error": false
+              },
+              {
+                "name": "assignment_schedules",
+                "endpoint": "/v1.0/roleManagement/directory/roleAssignmentSchedules",
+                "audience": "https://graph.microsoft.com",
+                "method": "GET",
+                "body": null,
+                "filter": null,
+                "projection": "full",
+                "items": [],
+                "status": "empty",
+                "integrity_error": false
+              },
+              {
+                "name": "eligibility_schedules",
+                "endpoint": "/v1.0/roleManagement/directory/roleEligibilitySchedules",
+                "audience": "https://graph.microsoft.com",
+                "method": "GET",
+                "body": null,
+                "filter": null,
+                "projection": "full",
+                "items": [],
+                "status": "empty",
+                "integrity_error": false
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-role-projection",
+              "read_only": true,
+              "schema": "azure-unused-role-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        }
+      ]
+    },
+    "fail": {
+      "id": "22222222-2222-4222-8222-222222222222",
+      "displayName": "Synthetic application role",
+      "isBuiltIn": false,
+      "isEnabled": true,
+      "rolePermissions": [
+        {
+          "allowedResourceActions": [
+            "microsoft.directory/applications/credentials/update",
+            "microsoft.directory/applications/basic/read"
+          ]
+        }
+      ],
+      "_provenance": {
+        "tenant_id": "11111111-1111-4111-8111-111111111111",
+        "tenant_verified": true,
+        "credential_context_id": "capture-one",
+        "customer_context_id": "customer-one",
+        "endpoint": "/v1.0/roleManagement/directory/roleDefinitions",
+        "read_only": true
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "tenant_id": "11111111-1111-4111-8111-111111111111",
+          "tenant_verified": true,
+          "credential_context_id": "capture-one",
+          "customer_context_id": "customer-one"
+        }
+      },
+      "collections": {
+        "directory_role_definition": [
+          {
+            "type": "directory_role_definition",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "22222222-2222-4222-8222-222222222222",
+                "displayName": "Synthetic application role",
+                "isBuiltIn": false,
+                "isEnabled": true,
+                "rolePermissions": [
+                  {
+                    "allowedResourceActions": [
+                      "microsoft.directory/applications/credentials/update",
+                      "microsoft.directory/applications/basic/read"
+                    ]
+                  }
+                ],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "/v1.0/roleManagement/directory/roleDefinitions",
+                  "read_only": true
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one"
+            }
+          }
+        ],
+        "azure_unused_role_evidence": [
+          {
+            "type": "azure_unused_role_evidence",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedRoleEvidence",
+                "schema": "azure-unused-role-evidence-v1",
+                "reports": [
+                  {
+                    "name": "assignments",
+                    "endpoint": "/v1.0/roleManagement/directory/roleAssignments",
+                    "audience": "https://graph.microsoft.com",
+                    "method": "GET",
+                    "body": null,
+                    "filter": null,
+                    "projection": "full",
+                    "items": [],
+                    "status": "empty",
+                    "integrity_error": false
+                  },
+                  {
+                    "name": "assignment_schedules",
+                    "endpoint": "/v1.0/roleManagement/directory/roleAssignmentSchedules",
+                    "audience": "https://graph.microsoft.com",
+                    "method": "GET",
+                    "body": null,
+                    "filter": null,
+                    "projection": "full",
+                    "items": [],
+                    "status": "empty",
+                    "integrity_error": false
+                  },
+                  {
+                    "name": "eligibility_schedules",
+                    "endpoint": "/v1.0/roleManagement/directory/roleEligibilitySchedules",
+                    "audience": "https://graph.microsoft.com",
+                    "method": "GET",
+                    "body": null,
+                    "filter": null,
+                    "projection": "full",
+                    "items": [],
+                    "status": "empty",
+                    "integrity_error": false
+                  }
+                ],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "native-unused-role-projection",
+                  "read_only": true,
+                  "schema": "azure-unused-role-evidence-v1",
+                  "observed_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one"
+            }
+          }
+        ]
+      },
+      "directory_role_definition": [
+        {
+          "type": "directory_role_definition",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "22222222-2222-4222-8222-222222222222",
+            "displayName": "Synthetic application role",
+            "isBuiltIn": false,
+            "isEnabled": true,
+            "rolePermissions": [
+              {
+                "allowedResourceActions": [
+                  "microsoft.directory/applications/credentials/update",
+                  "microsoft.directory/applications/basic/read"
+                ]
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "/v1.0/roleManagement/directory/roleDefinitions",
+              "read_only": true
+            }
+          }
+        }
+      ],
+      "azure_unused_role_evidence": [
+        {
+          "type": "azure_unused_role_evidence",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedRoleEvidence",
+            "schema": "azure-unused-role-evidence-v1",
+            "reports": [
+              {
+                "name": "assignments",
+                "endpoint": "/v1.0/roleManagement/directory/roleAssignments",
+                "audience": "https://graph.microsoft.com",
+                "method": "GET",
+                "body": null,
+                "filter": null,
+                "projection": "full",
+                "items": [],
+                "status": "empty",
+                "integrity_error": false
+              },
+              {
+                "name": "assignment_schedules",
+                "endpoint": "/v1.0/roleManagement/directory/roleAssignmentSchedules",
+                "audience": "https://graph.microsoft.com",
+                "method": "GET",
+                "body": null,
+                "filter": null,
+                "projection": "full",
+                "items": [],
+                "status": "empty",
+                "integrity_error": false
+              },
+              {
+                "name": "eligibility_schedules",
+                "endpoint": "/v1.0/roleManagement/directory/roleEligibilitySchedules",
+                "audience": "https://graph.microsoft.com",
+                "method": "GET",
+                "body": null,
+                "filter": null,
+                "projection": "full",
+                "items": [],
+                "status": "empty",
+                "integrity_error": false
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-role-projection",
+              "read_only": true,
+              "schema": "azure-unused-role-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        }
+      ]
+    },
+    "missing": {},
+    "index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "tenant_id": "11111111-1111-4111-8111-111111111111",
+          "tenant_verified": true,
+          "credential_context_id": "capture-one",
+          "customer_context_id": "customer-one"
+        }
+      },
+      "collections": {
+        "directory_role_definition": [
+          {
+            "type": "directory_role_definition",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "22222222-2222-4222-8222-222222222222",
+                "displayName": "Synthetic application role",
+                "isBuiltIn": false,
+                "isEnabled": true,
+                "rolePermissions": [
+                  {
+                    "allowedResourceActions": [
+                      "microsoft.directory/applications/credentials/update",
+                      "microsoft.directory/applications/basic/read"
+                    ]
+                  }
+                ],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "/v1.0/roleManagement/directory/roleDefinitions",
+                  "read_only": true
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one"
+            }
+          }
+        ],
+        "azure_unused_role_evidence": [
+          {
+            "type": "azure_unused_role_evidence",
+            "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+            "service": "Microsoft.Graph",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedRoleEvidence",
+                "schema": "azure-unused-role-evidence-v1",
+                "reports": [
+                  {
+                    "name": "assignments",
+                    "endpoint": "/v1.0/roleManagement/directory/roleAssignments",
+                    "audience": "https://graph.microsoft.com",
+                    "method": "GET",
+                    "body": null,
+                    "filter": null,
+                    "projection": "full",
+                    "items": [],
+                    "status": "empty",
+                    "integrity_error": false
+                  },
+                  {
+                    "name": "assignment_schedules",
+                    "endpoint": "/v1.0/roleManagement/directory/roleAssignmentSchedules",
+                    "audience": "https://graph.microsoft.com",
+                    "method": "GET",
+                    "body": null,
+                    "filter": null,
+                    "projection": "full",
+                    "items": [],
+                    "status": "empty",
+                    "integrity_error": false
+                  },
+                  {
+                    "name": "eligibility_schedules",
+                    "endpoint": "/v1.0/roleManagement/directory/roleEligibilitySchedules",
+                    "audience": "https://graph.microsoft.com",
+                    "method": "GET",
+                    "body": null,
+                    "filter": null,
+                    "projection": "full",
+                    "items": [],
+                    "status": "empty",
+                    "integrity_error": false
+                  }
+                ],
+                "_provenance": {
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "endpoint": "native-unused-role-projection",
+                  "read_only": true,
+                  "schema": "azure-unused-role-evidence-v1",
+                  "observed_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one"
+            }
+          }
+        ]
+      },
+      "directory_role_definition": [
+        {
+          "type": "directory_role_definition",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "22222222-2222-4222-8222-222222222222",
+            "displayName": "Synthetic application role",
+            "isBuiltIn": false,
+            "isEnabled": true,
+            "rolePermissions": [
+              {
+                "allowedResourceActions": [
+                  "microsoft.directory/applications/credentials/update",
+                  "microsoft.directory/applications/basic/read"
+                ]
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "/v1.0/roleManagement/directory/roleDefinitions",
+              "read_only": true
+            }
+          }
+        }
+      ],
+      "azure_unused_role_evidence": [
+        {
+          "type": "azure_unused_role_evidence",
+          "scope": "/tenants/11111111-1111-4111-8111-111111111111",
+          "data": {
+            "id": "/tenants/11111111-1111-4111-8111-111111111111/unusedRoleEvidence",
+            "schema": "azure-unused-role-evidence-v1",
+            "reports": [
+              {
+                "name": "assignments",
+                "endpoint": "/v1.0/roleManagement/directory/roleAssignments",
+                "audience": "https://graph.microsoft.com",
+                "method": "GET",
+                "body": null,
+                "filter": null,
+                "projection": "full",
+                "items": [],
+                "status": "empty",
+                "integrity_error": false
+              },
+              {
+                "name": "assignment_schedules",
+                "endpoint": "/v1.0/roleManagement/directory/roleAssignmentSchedules",
+                "audience": "https://graph.microsoft.com",
+                "method": "GET",
+                "body": null,
+                "filter": null,
+                "projection": "full",
+                "items": [],
+                "status": "empty",
+                "integrity_error": false
+              },
+              {
+                "name": "eligibility_schedules",
+                "endpoint": "/v1.0/roleManagement/directory/roleEligibilitySchedules",
+                "audience": "https://graph.microsoft.com",
+                "method": "GET",
+                "body": null,
+                "filter": null,
+                "projection": "full",
+                "items": [],
+                "status": "empty",
+                "integrity_error": false
+              }
+            ],
+            "_provenance": {
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "endpoint": "native-unused-role-projection",
+              "read_only": true,
+              "schema": "azure-unused-role-evidence-v1",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
