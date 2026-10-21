@@ -9,16 +9,24 @@ the environment was attack free.
 ## Rule and event format
 
 The canonical detection rules are Sigma YAML in the public
-`peass-ng/peasso-cspm-detections` repository. The server can load the reviewed
-pack at pinned commit `bbf89c5e54cf970a24f13c3c91038efa33388baa` by
-default. Rule YAML is not shipped in
+`peass-ng/peasso-cspm-detections` repository. The server loads an immutable,
+reviewed commit by default. In Attack Analysis, **Detection rules** can instead
+select **Latest version from detections main**. The access check resolves
+`main` to a commit, downloads and validates its complete rule pack, and binds
+that exact commit and pack digest to the short-lived analysis token. The run
+uses the same commit even if `main` moves meanwhile. If the latest pack cannot
+be read or parsed, the access check blocks analysis; it does not silently fall
+back to an older pack. The result and downloaded JSON include the selected
+commit and digest. Rule YAML is not shipped in
 this public source repository or its Python package. If the pinned source
 cannot be read, the access check blocks analysis instead of silently running
 without detections. Public tests use synthetic rules only.
 
-Hosted loading needs outbound HTTPS to `codeload.github.com`. A single bounded
-archive from the pinned commit avoids GitHub's anonymous REST API quota. The
-default pack also has an expected SHA-256 digest over its rule files. No GitHub
+Hosted loading needs outbound HTTPS to `codeload.github.com`; the latest option
+also needs `api.github.com` to resolve `main`. The latest option uses one bounded
+GitHub REST request per access check, subject to GitHub's anonymous API quota,
+then downloads the archive by immutable commit. The default pinned pack has an
+expected SHA-256 digest over its rule files. No GitHub
 token or AWS Secrets Manager access is needed. An operator may override the default with
 `HACKTRICKS_CSPM_RULES_GITHUB_REF`; overriding the repository through
 `HACKTRICKS_CSPM_RULES_GITHUB_REPO` also requires an exact commit ref. A custom
@@ -26,6 +34,12 @@ pack may set `HACKTRICKS_CSPM_RULES_PACK_SHA256` for its reviewed rule-file
 digest. The first successful read is cached per process for that commit. Local development may
 use `HACKTRICKS_CSPM_RULES_DIR` to point at a checkout; hosted Cognito mode
 never falls back to this directory.
+
+New Sigma rules can be used without a CSPM release when they match fields the
+installed normalizers already produce. Techniques that require a new event
+normalizer, a new provider API read, or a new correlation still require CSPM
+code. Historical S3 jobs retain their separate pinned catalog contract; this
+selector applies to the interactive Attack Analysis preview.
 
 The current evaluator deliberately
 accepts a small portable subset: one exact-match selection, conjunction across

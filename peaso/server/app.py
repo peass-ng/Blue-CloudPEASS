@@ -748,20 +748,23 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         if result["source_status"] != "accessible":
             return {"status": "warning", **result}
         try:
-            from peaso.attack_detection import load_rules
+            from peaso.attack_detection.catalog import select_catalog
             product = "kubernetes" if body.kind == "gke_audit" else provider
-            rules = load_rules(product=product)
+            catalog = select_catalog(body.catalog_mode, product=product)
+            rules = catalog.rules
             if (body.kind == "entra_directory_audit" and not any(
                     rule.selection.get("event.source") == "entra.directoryAudit" for rule in rules)):
-                return {"status": "warning", **result,
+                return {"status": "warning", **result, "catalog": catalog.public_metadata(),
                         "reason": "No reviewed Entra role-assignment rule is available in the pinned pack."}
         except Exception:
-            return {"status": "blocked", **result, "reason": "Reviewed detection rules are unavailable. Check the pinned rule repository and retry."}
+            return {"status": "blocked", **result, "reason": "Reviewed detection rules are unavailable. Check the rule repository and retry."}
         payload = body.model_dump()
         token = cipher.encrypt({"tenant": user.tenant_id, "digest": connector_digest(payload),
                                 "connector_fingerprint": connector_fingerprint,
+                                "catalog": {"mode": catalog.mode, "commit": catalog.commit,
+                                            "sha256": catalog.sha256},
                                 "expires": time.time() + 600})
-        return {"status": "pass", **result, "check_token": token}
+        return {"status": "pass", **result, "catalog": catalog.public_metadata(), "check_token": token}
 
     @app.post("/api/attack-analysis/run")
     def attack_log_run(body: AttackLogRun, user=Depends(identity)):
@@ -781,20 +784,32 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         from .gcp_attack_logs import GcpLogAccessError
         from peaso.attack_detection.rules import RuleSourceError
         try:
+            from peaso.attack_detection.catalog import select_catalog
+            selected_catalog = checked.get("catalog")
+            if not isinstance(selected_catalog, dict) or selected_catalog.get("mode") != body.catalog_mode:
+                raise HTTPException(422, "Check log access again before starting analysis.")
+            product = "kubernetes" if body.kind == "gke_audit" else provider
+            catalog = select_catalog(body.catalog_mode, product=product,
+                                     commit=selected_catalog.get("commit"),
+                                     digest=selected_catalog.get("sha256"))
             if provider == "aws":
-                return analyze_aws_source(auth, options, body, scopes)
-            if provider == "gcp":
+                analyzed = analyze_aws_source(auth, options, body, scopes, rules=catalog.rules)
+            elif provider == "gcp":
                 from .gcp_attack_logs import analyze_gcp_source
-                return analyze_gcp_source(auth, scopes, options, settings, body)
-            if body.kind == "entra_directory_audit":
+                analyzed = analyze_gcp_source(auth, scopes, options, settings, body, rules=catalog.rules)
+            elif body.kind == "entra_directory_audit":
                 from .entra_attack_logs import analyze_entra_source
-                return analyze_entra_source(auth, scopes, options, body)
-            from .azure_attack_logs import analyze_azure_source
-            return analyze_azure_source(auth, scopes, options, body)
+                analyzed = analyze_entra_source(auth, scopes, options, body, rules=catalog.rules)
+            else:
+                from .azure_attack_logs import analyze_azure_source
+                analyzed = analyze_azure_source(auth, scopes, options, body, rules=catalog.rules)
+            return {**analyzed, "catalog": catalog.public_metadata()}
+        except HTTPException:
+            raise
         except (LogAccessError, GcpLogAccessError) as exc:
             raise HTTPException(422, "Log analysis stopped: " + attack_log_error(exc.code)) from None
         except RuleSourceError:
-            raise HTTPException(503, "Reviewed detection rules are unavailable; retry after the pinned rule repository is restored.") from None
+            raise HTTPException(503, "Reviewed detection rules are unavailable; check the selected repository version and retry.") from None
         except Exception:
             raise HTTPException(502, "Log source could not be read. Check connector and log access again.") from None
 

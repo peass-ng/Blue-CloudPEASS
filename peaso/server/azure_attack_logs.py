@@ -181,7 +181,7 @@ def _read_pages(transport, subscription, *, analyze):
     return read_count, events, role_rows, diagnostic_candidates, vm_dcr_candidates, keyvault_diagnostic_candidates, ignored, relevant, truncated
 
 
-def _run(auth, scopes, options, source, *, analyze):
+def _run(auth, scopes, options, source, *, analyze, rules=None):
     if _value(source, "kind") != "azure_activity_log":
         raise LogAccessError("unsupported_log_source")
     subscription = _selected_subscription(scopes, source)
@@ -204,7 +204,7 @@ def _run(auth, scopes, options, source, *, analyze):
     candidates.extend(vm_dcr_candidates)
     candidates.extend(keyvault_diagnostic_candidates)
     from peaso.attack_detection import detect_azure_events
-    detections = detect_azure_events(candidates)
+    detections = detect_azure_events(candidates) if rules is None else detect_azure_events(candidates, rules)
     return {
         "coverage": {"subscription_id": subscription, "source": "azure_activity_log",
                      "window_hours": 24, "events_read": read_count,
@@ -224,5 +224,5 @@ def check_azure_source(auth, scopes, options, source):
     return _run(auth, scopes, options, source, analyze=False)
 
 
-def analyze_azure_source(auth, scopes, options, source):
-    return _run(auth, scopes, options, source, analyze=True)
+def analyze_azure_source(auth, scopes, options, source, *, rules=None):
+    return _run(auth, scopes, options, source, analyze=True, rules=rules)

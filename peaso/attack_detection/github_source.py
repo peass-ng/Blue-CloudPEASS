@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import io
+import json
 import re
 import tarfile
 from contextlib import closing
@@ -25,6 +26,7 @@ _BASENAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}\.yml\Z")
 _SCRIPT_BASENAME = re.compile(r"[a-z][a-z0-9_]{0,63}\.py\Z")
 _SERVICE = re.compile(r"[a-z][a-z0-9_-]{0,63}\Z")
 _PROVIDERS = {"aws", "azure", "gcp", "kubernetes"}
+MAX_REF_BYTES = 16_384
 
 
 def _valid_rule_path(name: str) -> bool:
@@ -56,6 +58,46 @@ class RuleSourceError(Exception):
 class _NoRedirect(HTTPRedirectHandler):
     def redirect_request(self, request, fp, code, msg, headers, newurl):
         raise RuleSourceError("redirect_rejected")
+
+
+def resolve_main_commit(repo: str) -> str:
+    """Resolve the public main branch once, then fetch rules by immutable SHA."""
+    if not isinstance(repo, str) or repo.count("/") != 1:
+        raise RuleSourceError("invalid_repo")
+    owner, name = repo.split("/")
+    if not _OWNER.fullmatch(owner) or not _REPO.fullmatch(name):
+        raise RuleSourceError("invalid_repo")
+    request = Request(
+        f"https://api.github.com/repos/{owner}/{name}/branches/main",
+        headers={"User-Agent": "peasso-cspm-rule-reader", "Accept": "application/vnd.github+json"},
+        method="GET",
+    )
+    try:
+        with closing(build_opener(_NoRedirect()).open(request, timeout=15)) as response:
+            if response.status != 200:
+                raise RuleSourceError("rule_ref_read_failed")
+            body = response.read(MAX_REF_BYTES + 1)
+    except RuleSourceError:
+        raise
+    except (HTTPError, URLError, OSError, TimeoutError, ValueError):
+        raise RuleSourceError("rule_ref_read_failed") from None
+    if len(body) > MAX_REF_BYTES:
+        raise RuleSourceError("rule_ref_too_large")
+    try:
+        document = json.loads(body)
+        sha = document["commit"]["sha"]
+    except (TypeError, ValueError, KeyError):
+        raise RuleSourceError("invalid_rule_ref") from None
+    if not isinstance(sha, str) or not _SHA.fullmatch(sha):
+        raise RuleSourceError("invalid_rule_ref")
+    return sha.lower()
+
+
+def rule_pack_sha256(texts: dict[str, str]) -> str:
+    digest = hashlib.sha256()
+    for name in sorted(texts):
+        digest.update(name.encode("utf-8") + b"\0" + texts[name].encode("utf-8") + b"\0")
+    return digest.hexdigest()
 
 
 def _read_archive(url: str) -> bytes:
