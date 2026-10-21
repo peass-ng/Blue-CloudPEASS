@@ -212,6 +212,7 @@ from .aws_lambda_privesc_next import normalize_aws_lambda_role_assignment, corre
 from .aws_ec2_controls_next import normalize_aws_ec2_controls
 from .aws_ec2_ssm_batch96 import normalize_aws_ec2_ssm_batch96
 from .aws_verified_permissions_batch97 import normalize_aws_verified_permissions_batch97
+from .aws_identitystore_membership_next import normalize_aws_identitystore_membership
 from .aws_ec2_persistence_batch98 import normalize_aws_ec2_persistence_batch98
 from .aws_vpc_network_next import normalize_aws_vpc_network, correlate_aws_vpc_custom_dns
 from .aws_vpc_endpoint_egress_next import normalize_aws_vpc_endpoint_egress
@@ -595,6 +596,7 @@ def detect_aws_events(
         ec2_controls = normalize_aws_ec2_controls(record)
         ec2_ssm_batch96 = normalize_aws_ec2_ssm_batch96(record)
         verified_permissions_batch97 = normalize_aws_verified_permissions_batch97(record)
+        identitystore_membership = normalize_aws_identitystore_membership(record)
         ec2_persistence_batch98 = normalize_aws_ec2_persistence_batch98(record)
         vpc_network = normalize_aws_vpc_network(record)
         vpc_endpoint_egress = normalize_aws_vpc_endpoint_egress(record)
@@ -822,6 +824,7 @@ def detect_aws_events(
                 + ([ec2_controls] if ec2_controls is not None else [])
                 + ([ec2_ssm_batch96] if ec2_ssm_batch96 is not None else [])
                 + ([verified_permissions_batch97] if verified_permissions_batch97 is not None else [])
+                + ([identitystore_membership] if identitystore_membership is not None else [])
                 + ([ec2_persistence_batch98] if ec2_persistence_batch98 is not None else [])
                 + ([vpc_network] if vpc_network is not None else [])
                 + ([vpc_endpoint_egress] if vpc_endpoint_egress is not None else [])
