@@ -50,6 +50,7 @@ RUNTIME_ADMISSION_INPUTS = {
 # Exact public inputs needed to reproduce the shipped compiler, provenance and
 # tests. Explicit paths/globs only: no .work drafts, caches or private files.
 REPRODUCTION_INPUT_PATTERNS = (
+    'tests/test_private_receipt_fast_path_20261021.py',
     'tests/fixtures/aws_codeartifact_npm_batch80_events.json',
     'tests/fixtures/aws_sfn_role_routes_batch85_events.json',
     'tests/fixtures/aws_sns_public_policy_batch83_events.json',
