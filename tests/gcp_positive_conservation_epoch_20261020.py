@@ -41,7 +41,7 @@ def metadata_initializer_bytes(raw):
         from pathlib import Path
         import json
         receipt_raw = (Path(__file__).resolve().parents[1] / 'peaso/checks/private_secret_shared_source_successor_20261021.json').read_bytes()
-        if hashlib.sha256(receipt_raw).hexdigest() != '9210192c6cbc37b63c802359fecec6970d5bf4c34b9499c9ed6115d02f9d5ff2':
+        if hashlib.sha256(receipt_raw).hexdigest() != 'fed06f844c138e85464c62204f6b2fd90339c2a3f25fd3897fc0585612d722cd':
             raise RuntimeError("Private initializer receipt changed")
         for before, after in reversed(json.loads(receipt_raw)['initializer_edits']):
             before, after = before.encode(), after.encode()

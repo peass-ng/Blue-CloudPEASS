@@ -24,8 +24,8 @@ import sysconfig
 from types import CodeType, FunctionType, MethodType, ModuleType
 import zipfile
 
-_RECEIPT_SHA256 = "86ff3e7630efc8b88954ecafce27e2cd0c7cecdd81e3c657844c6a41dc837366"
-_SELF_SHA256 = "8079ffe95fad1678cde2f8975fa59b311bb55ba6476b61094f3dc1c06dbff821"
+_RECEIPT_SHA256 = "dcbaac5a85ff9ba014c44703e9ac7925271ec35c9aa17c37e2c61c4116b9954e"
+_SELF_SHA256 = "babbe500b0dde0f1aeaed631d690608814fd0124c2fa023fe6381ddb4a1b2d65"
 _ARCHIVE_SHA256 = "3eb403fa363c559f7053060d409f60ac8c693350350423a6dc775412df4300c0"
 _HELPER_SHA256 = "15092e316c2331e03fdae7fad4dda5ed92310a1c15a827b0009fbcd54a11693a"
 _BASE = "6b6ee759234d7e2dad978342838cb3af4e1fe767"
@@ -49,6 +49,9 @@ def _same(a: object, b: object) -> bool:
     if isinstance(a, (tuple, list)):
         return len(a) == len(b) and all(_same(x, y) for x, y in zip(a, b))
     if isinstance(a, dict):
+        if all(type(k) is str for k in a) and all(type(k) is str for k in b):
+            return (len(a) == len(b) and all(k in b and _same(v, b[k])
+                                            for k, v in a.items()))
         return len(a) == len(b) and all(any(_same(k, q) and _same(v, w) for q, w in b.items()) for k, v in a.items())
     if isinstance(a, (set, frozenset)):
         return len(a) == len(b) and all(any(_same(x, y) for y in b) for x in a)
@@ -58,10 +61,57 @@ def _same(a: object, b: object) -> bool:
 def _relative(value: str) -> str:
     if not isinstance(value, str) or not value or "\\" in value:
         raise AdmissionError("invalid relative path")
-    p = PurePosixPath(value)
-    if p.is_absolute() or str(p) != value or any(x in (".", "..") for x in p.parts):
+    if type(value) is not str:
+        p = PurePosixPath(value)
+        if p.is_absolute() or str(p) != value or any(x in (".", "..") for x in p.parts):
+            raise AdmissionError("noncanonical relative path")
+        return value
+    # Preserve the predecessor's lexical '.' case; _root_path still rejects
+    # it as a non-file. This CPU change does not broaden or narrow admission.
+    if value == ".":
+        return value
+    if value.startswith("/") or any(x in ("", ".", "..") for x in value.split("/")):
         raise AdmissionError("noncanonical relative path")
     return value
+
+
+# BEGIN BOOTSTRAP ARTIFACT FACTORY
+def _bootstrap_artifact_factory():
+    import hashlib as h
+    import hmac as a
+    import marshal as m
+    import os as o
+    import sys as sy
+    import types as t
+    cache, secret = {}, o.urandom(32)
+    def lookup(raw, filename, flags):
+        key = (h.sha256(raw).digest(), filename, sy.implementation.cache_tag, sy.flags.optimize, flags)
+        entry = cache.get(key)
+        if entry is None:
+            code = compile(raw, filename, "exec", flags=flags, dont_inherit=True, optimize=sy.flags.optimize)
+            pending = [code]
+            while pending:
+                value = pending.pop()
+                kind = type(value)
+                if kind is t.CodeType: pending.extend(value.co_consts)
+                elif kind in (tuple, frozenset): pending.extend(value)
+                elif not (value is None or value is Ellipsis or kind in (bool, int, float, complex, str, bytes)):
+                    raise ValueError("mutable bootstrap artifact")
+            entry = (code, a.digest(secret, m.dumps((key, id(code)), 2), "sha256"))
+            if len(cache) >= 4: cache.clear()
+            cache[key] = entry
+        if (type(entry) is not tuple or len(entry) != 2 or type(entry[0]) is not t.CodeType
+                or type(entry[1]) is not bytes or not a.compare_digest(entry[1],
+                    a.digest(secret, m.dumps((key, id(entry[0])), 2), "sha256"))):
+            raise ValueError("bootstrap artifact mismatch")
+        return entry[0]
+    return lookup
+# END BOOTSTRAP ARTIFACT FACTORY
+
+_BOOTSTRAP_ARTIFACT = _bootstrap_artifact_factory()
+_BOOTSTRAP_ARTIFACT_ANCHOR = _BOOTSTRAP_ARTIFACT
+_BOOTSTRAP_ARTIFACT_STORAGE = dict(zip(_BOOTSTRAP_ARTIFACT.__code__.co_freevars,
+    (cell.cell_contents for cell in _BOOTSTRAP_ARTIFACT.__closure__)))["cache"]
 
 
 # BEGIN SELF CODE CACHE FACTORY
@@ -78,12 +128,54 @@ def _self_code_cache():
     entries = {}
     secret = local_os.urandom(32)
 
-    def lookup(path, raw):
+    def lookup(path, raw, code_vectors=None):
         if local_os is not local_sys.modules.get("os"):
             raise local_builtins.ValueError("attestor random source binding mismatch")
         key = (local_builtins.str(path), local_builtins.str(path.resolve(strict=True)),
                local_hashlib.sha256(raw).digest(), local_sys.implementation.cache_tag,
                local_sys.flags.optimize)
+        if code_vectors is not None:
+            if (local_builtins.type(code_vectors) is not local_builtins.tuple
+                    or local_builtins.len(code_vectors) != 2
+                    or any(local_builtins.type(v) is not local_builtins.tuple for v in code_vectors)
+                    or local_builtins.len(code_vectors[0]) != local_builtins.len(code_vectors[1])
+                    or any(local_builtins.type(c) is not local_types.CodeType
+                           for v in code_vectors for c in v)):
+                raise local_builtins.ValueError("code vector shape mismatch")
+            key += ("code-vectors-v1", tuple(tuple(local_builtins.id(c) for c in v)
+                                            for v in code_vectors))
+            entry = entries.get(key)
+            if entry is None:
+                pending = [c for vector in code_vectors for c in vector]
+                while pending:
+                    value = pending.pop()
+                    kind = local_builtins.type(value)
+                    if kind is local_types.CodeType:
+                        pending.extend(value.co_consts)
+                    elif kind in (tuple, frozenset):
+                        pending.extend(value)
+                    elif not (value is None or value is Ellipsis or kind in
+                              (bool, int, float, complex, str, bytes)):
+                        raise local_builtins.ValueError("mutable code vector refused")
+                if local_marshal.dumps(code_vectors[0], 2) != local_marshal.dumps(code_vectors[1], 2):
+                    raise local_builtins.ValueError("code vector source mismatch")
+                entry = (code_vectors, local_hmac.digest(secret, local_marshal.dumps(key, 2), "sha256"))
+                if local_builtins.len(entries) >= 64:
+                    entries.clear()
+                entries[key] = entry
+            if (local_builtins.type(entry) is not local_builtins.tuple
+                    or local_builtins.len(entry) != 2
+                    or local_builtins.type(entry[0]) is not local_builtins.tuple
+                    or local_builtins.len(entry[0]) != 2
+                    or any(local_builtins.type(v) is not local_builtins.tuple for v in entry[0])
+                    or any(local_builtins.len(saved) != local_builtins.len(current)
+                           or any(a is not b for a, b in zip(saved, current))
+                           for saved, current in zip(entry[0], code_vectors))
+                    or local_builtins.type(entry[1]) is not local_builtins.bytes
+                    or not local_hmac.compare_digest(entry[1], local_hmac.digest(
+                        secret, local_marshal.dumps(key, 2), "sha256"))):
+                raise local_builtins.ValueError("code vector artifact mismatch")
+            return entry[0]
         entry = entries.get(key)
         if entry is None:
             return None
@@ -140,8 +232,8 @@ def _self_metadata(tree: ast.Module, source_constants: dict) -> tuple:
             raise AdmissionError("attestor scalar metadata mismatch")
         constants.append((name, value))
     specs = tuple((node.name,
-                   tuple(ast.unparse(expr) for expr in node.args.defaults),
-                   tuple((arg.arg, ast.unparse(expr)) for arg, expr in
+                   tuple(ast.literal_eval(expr) for expr in node.args.defaults),
+                   tuple((arg.arg, ast.literal_eval(expr)) for arg, expr in
                          zip(node.args.kwonlyargs, node.args.kw_defaults) if expr is not None))
                   for node in tree.body
                   if type(node) in (ast.FunctionDef, ast.AsyncFunctionDef))
@@ -151,6 +243,46 @@ def _self_metadata(tree: ast.Module, source_constants: dict) -> tuple:
 def _self_cached_code(path: Path, raw: bytes) -> tuple | None:
     """Freshly prove the small cache code from this read before consulting it."""
     lines = raw.splitlines(keepends=True)
+    boot_begin = [i for i, line in enumerate(lines) if line == b"# BEGIN BOOTSTRAP ARTIFACT FACTORY\n"]
+    boot_end = [i for i, line in enumerate(lines) if line == b"# END BOOTSTRAP ARTIFACT FACTORY\n"]
+    if len(boot_begin) != 1 or len(boot_end) != 1 or boot_end[0] <= boot_begin[0]:
+        raise AdmissionError("bootstrap artifact source mismatch")
+    boot_raw = b"\n" * (boot_begin[0] + 1) + b"".join(lines[boot_begin[0] + 1:boot_end[0]])
+    boot = compile(boot_raw, __file__, "exec", flags=__future__.annotations.compiler_flag,
+                   dont_inherit=True, optimize=sys.flags.optimize)
+    factories = [c for c in boot.co_consts if type(c) is CodeType
+                 and c.co_name == "_bootstrap_artifact_factory"]
+    if len(factories) != 1:
+        raise AdmissionError("bootstrap artifact factory ambiguity")
+    boot_factory = factories[0]
+    lookups = [c for c in boot_factory.co_consts if type(c) is CodeType and c.co_name == "lookup"]
+    if len(lookups) != 1:
+        raise AdmissionError("bootstrap artifact lookup ambiguity")
+    boot_lookup = lookups[0]
+    provider = globals().get("_BOOTSTRAP_ARTIFACT")
+    factory = globals().get("_bootstrap_artifact_factory")
+    if (type(factory) is not FunctionType or factory.__globals__ is not globals()
+            or factory.__defaults__ is not None or factory.__kwdefaults__ is not None
+            or factory.__closure__ is not None or factory.__qualname__ != "_bootstrap_artifact_factory"
+            or factory.__module__ != __name__ or factory.__name__ != "_bootstrap_artifact_factory"
+            or marshal.dumps(factory.__code__, 2) != marshal.dumps(boot_factory, 2)
+            or type(provider) is not FunctionType or provider is not _BOOTSTRAP_ARTIFACT_ANCHOR
+            or provider.__globals__ is not globals() or provider.__defaults__ is not None
+            or provider.__kwdefaults__ is not None or provider.__closure__ is None
+            or provider.__qualname__ != "_bootstrap_artifact_factory.<locals>.lookup"
+            or provider.__module__ != __name__ or provider.__name__ != "lookup"
+            or marshal.dumps(provider.__code__, 2) != marshal.dumps(boot_lookup, 2)):
+        raise AdmissionError("bootstrap artifact binding mismatch")
+    cells = dict(zip(provider.__code__.co_freevars,
+                     (cell.cell_contents for cell in provider.__closure__)))
+    if (set(cells) != {"cache", "secret", "h", "a", "m", "sy", "t"}
+            or cells["h"] is not hashlib
+            or cells["a"] is not hmac or cells["m"] is not marshal
+            or cells["sy"] is not sys or cells["t"] is not sys.modules.get("types")
+            or cells["cache"] is not _BOOTSTRAP_ARTIFACT_STORAGE
+            or type(cells["cache"]) is not dict or type(cells["secret"]) is not bytes
+            or len(cells["secret"]) != 32):
+        raise AdmissionError("bootstrap artifact closure mismatch")
     begin = [i for i, line in enumerate(lines) if line == b"# BEGIN SELF CODE CACHE FACTORY\n"]
     end = [i for i, line in enumerate(lines) if line == b"# END SELF CODE CACHE FACTORY\n"]
     if len(begin) != 1 or len(end) != 1 or end[0] <= begin[0] + 1:
@@ -158,9 +290,10 @@ def _self_cached_code(path: Path, raw: bytes) -> tuple | None:
     # Prefix blank lines so the freshly compiled code retains original line
     # numbers.  No cached parser/compiler participates in this bootstrap.
     fragment = b"\n" * (begin[0] + 1) + b"".join(lines[begin[0] + 1:end[0]])
-    expected = compile(fragment, __file__, "exec", flags=__future__.annotations.compiler_flag,
-                       dont_inherit=True,
-                       optimize=sys.flags.optimize)
+    try:
+        expected = provider(fragment, __file__, __future__.annotations.compiler_flag)
+    except ValueError as exc:
+        raise AdmissionError("bootstrap artifact mismatch") from exc
     factory_code = [c for c in expected.co_consts
                     if type(c) is CodeType and c.co_name == "_self_code_cache"]
     if len(factory_code) != 1:
@@ -188,7 +321,7 @@ def _self_cached_code(path: Path, raw: bytes) -> tuple | None:
             or type(lookup) is not FunctionType or lookup is not _SELF_CODE_CACHE_ANCHOR
             or lookup.__name__ != "lookup" or lookup.__qualname__ != "_self_code_cache.<locals>.lookup"
             or lookup.__module__ != __name__
-            or lookup.__globals__ is not globals() or lookup.__defaults__ is not None
+            or lookup.__globals__ is not globals() or lookup.__defaults__ != (None,)
             or lookup.__kwdefaults__ is not None
             or lookup_code_bytes != marshal.dumps(lookup_code[0], 2)
             or set(closure) != expected_cells
@@ -218,7 +351,10 @@ def _self_cached_code(path: Path, raw: bytes) -> tuple | None:
     def immutable(value: object) -> bool:
         return (type(value) is tuple and all(immutable(item) for item in value)
                 or type(value) in (str, bytes, int, bool) or value is None)
-    if not _immutable_code_constants(code) or not immutable(metadata):
+    # This exact CodeType identity was recursively proved immutable before
+    # insertion. The authenticated cache holds its reference; replacing it
+    # fails lookup's MAC, and immutable constants cannot change in place.
+    if not immutable(metadata):
         raise AdmissionError("attestor cached artifact is mutable")
     return code, metadata
 
@@ -251,7 +387,8 @@ def _self() -> None:
             raise AdmissionError("attestor constant binding mismatch")
     actual = {name: value for name, value in globals().items()
               if type(value) is FunctionType and value.__module__ == __name__
-              and name not in ("_SELF_CODE_CACHE", "_SELF_CODE_CACHE_ANCHOR")}
+              and name not in ("_SELF_CODE_CACHE", "_SELF_CODE_CACHE_ANCHOR",
+                               "_BOOTSTRAP_ARTIFACT", "_BOOTSTRAP_ARTIFACT_ANCHOR")}
     if set(actual) != (set(nodes) if artifact is None else set(specs)):
         raise AdmissionError("attestor function roster mismatch")
     expected_codes = {}
@@ -259,27 +396,39 @@ def _self() -> None:
         if isinstance(code, CodeType):
             name = code.co_name
             expected_codes[name] = code if name not in expected_codes else None
-    empty_defaults = ast.parse("def f(): pass").body[0] if artifact is not None else None
+    ordered_names = sorted(actual)
+    expected_live = tuple(expected_codes.get(name) for name in ordered_names)
+    if any(code is None for code in expected_live):
+        raise AdmissionError("attestor live code mismatch")
+    try:
+        # Reuse only a source-keyed correspondence between these exact immutable
+        # CodeType objects. Current bindings are collected anew on every entry;
+        # a replaced code object takes a fresh immutable/full-byte comparison.
+        _SELF_CODE_CACHE(Path(__file__), raw,
+                         (tuple(actual[name].__code__ for name in ordered_names), expected_live))
+    except ValueError as exc:
+        raise AdmissionError("attestor live code mismatch") from exc
     for name, fn in actual.items():
         expected_code = expected_codes.get(name)
         if expected_code is None:
             raise AdmissionError("compiled definition missing or ambiguous")
-        if (fn.__globals__ is not globals() or fn.__qualname__ != name
-                or not _immutable_code_constants(fn.__code__)
-                or marshal.dumps(fn.__code__, 2) != marshal.dumps(expected_code, 2)):
+        # Full recursive marshal equality above also proves that the actual
+        # constants have the canonical immutable types. The cached canonical
+        # module itself still passes its original recursive immutability guard.
+        if fn.__globals__ is not globals() or fn.__qualname__ != name:
             raise AdmissionError("attestor live code mismatch: " + name)
         if artifact is None:
             node = nodes[name]
+            _check_defaults(fn, node, source_constants, __file__)
         else:
             defaults, keywords = specs[name]
-            if defaults or keywords:
-                arguments = ["p%d=%s" % (index, expr) for index, expr in enumerate(defaults)]
-                if keywords:
-                    arguments.extend(["*"] + [key + "=" + expr for key, expr in keywords])
-                node = ast.parse("def f(" + ", ".join(arguments) + "): pass").body[0]
-            else:
-                node = empty_defaults
-        _check_defaults(fn, node, source_constants, __file__)
+            # These are authenticated immutable literal AST artifacts, not a
+            # cached default verdict. Compare the current defaults and closure
+            # every time without reparsing synthetic function declarations.
+            if (not _same(fn.__defaults__ or (), defaults)
+                    or not _same(fn.__kwdefaults__ or {}, dict(keywords))
+                    or fn.__closure__ is not None or fn.__code__.co_freevars):
+                raise AdmissionError("attestor live default or closure mismatch")
     if artifact is None:
         metadata = _self_metadata(tree, source_constants)
         if not _immutable_code_constants(compiled):
@@ -291,7 +440,7 @@ def _self() -> None:
                           (cell.cell_contents for cell in _SELF_CODE_CACHE.__closure__)))["secret"]
         signature = hmac.digest(secret,
                                 marshal.dumps((key, id(compiled), metadata), 2), "sha256")
-        if len(_SELF_CODE_CACHE_STORAGE) >= 4:
+        if len(_SELF_CODE_CACHE_STORAGE) >= 64:
             _SELF_CODE_CACHE_STORAGE.clear()
         _SELF_CODE_CACHE_STORAGE[key] = (compiled, metadata, signature)
 
@@ -302,6 +451,23 @@ def _receipt() -> tuple[dict, dict[str, dict]]:
     data = file.read_bytes()
     if _sha(data) != _RECEIPT_SHA256:
         raise AdmissionError("receipt identity mismatch")
+    try:
+        artifact = _SELF_CODE_CACHE(file, data)
+    except ValueError as exc:
+        raise AdmissionError("receipt parsed artifact mismatch") from exc
+    if artifact is not None:
+        _, metadata = artifact
+        if (type(metadata) is not tuple or len(metadata) != 2
+                or metadata[0] != "parsed-private-receipt-v1"
+                or type(metadata[1]) is not bytes):
+            raise AdmissionError("receipt parsed artifact mismatch")
+        try:
+            # Decode a fresh object graph. Caller mutation cannot alter the
+            # retained immutable artifact, and no live-source result is stored.
+            receipt = marshal.loads(metadata[1])
+            return receipt, {row["path"]: row for row in receipt["sources"]}
+        except (ValueError, TypeError, EOFError) as exc:
+            raise AdmissionError("receipt parsed artifact mismatch") from exc
     receipt = json.loads(data)
     rows = receipt.get("sources")
     if (receipt.get("version") != 1 or receipt.get("base") != _BASE
@@ -324,6 +490,16 @@ def _receipt() -> tuple[dict, dict[str, dict]]:
         names = [d["name"] for d in row["definitions"]]
         if len(names) != len(set(names)):
             raise AdmissionError("duplicate definition")
+    metadata = ("parsed-private-receipt-v1", marshal.dumps(receipt, 2))
+    sentinel = compile("None", str(file), "eval", dont_inherit=True)
+    key = (str(file), str(file.resolve(strict=True)), hashlib.sha256(data).digest(),
+           sys.implementation.cache_tag, sys.flags.optimize)
+    secret = dict(zip(_SELF_CODE_CACHE.__code__.co_freevars,
+                      (cell.cell_contents for cell in _SELF_CODE_CACHE.__closure__)))["secret"]
+    signature = hmac.digest(secret, marshal.dumps((key, id(sentinel), metadata), 2), "sha256")
+    if len(_SELF_CODE_CACHE_STORAGE) >= 64:
+        _SELF_CODE_CACHE_STORAGE.clear()
+    _SELF_CODE_CACHE_STORAGE[key] = (sentinel, metadata, signature)
     return receipt, by_path
 
 
@@ -635,12 +811,12 @@ def _expected_helper_code(path: Path, data: bytes, filename: str) -> CodeType:
         secret = dict(zip(_SELF_CODE_CACHE.__code__.co_freevars,
                           (cell.cell_contents for cell in _SELF_CODE_CACHE.__closure__)))["secret"]
         signature = hmac.digest(secret, marshal.dumps((key, id(code), ()), 2), "sha256")
-        if len(_SELF_CODE_CACHE_STORAGE) >= 4:
+        if len(_SELF_CODE_CACHE_STORAGE) >= 64:
             _SELF_CODE_CACHE_STORAGE.clear()
         _SELF_CODE_CACHE_STORAGE[key] = (code, (), signature)
     else:
         code, metadata = artifact
-        if type(metadata) is not tuple or metadata or not _immutable_code_constants(code):
+        if type(metadata) is not tuple or metadata:
             raise AdmissionError("helper code cache artifact mismatch")
     return code
 
@@ -755,7 +931,7 @@ def _alias_source(module: ModuleType, root: str | Path) -> tuple[ast.Module, Cod
     data = _root_path(root, relative).read_bytes()
     if _sha(data) != expected:
         raise AdmissionError("alias origin source mismatch")
-    return ast.parse(data, filename=file), compile(data, file, "exec", dont_inherit=True)
+    return ast.parse(data, filename=file), _expected_helper_code(Path(file).resolve(strict=True), data, file)
 
 
 def _alias_binding(module: ModuleType, name: str, root: str | Path,
@@ -1236,7 +1412,7 @@ def trusted_definition(fn: FunctionType | MethodType, root: str | Path) -> dict:
     if Path(file).resolve(strict=True) != path or Path(fn.__code__.co_filename).resolve(strict=True) != path:
         raise AdmissionError("callable source location mismatch")
     tree = ast.parse(data, filename=str(path))
-    compiled = compile(data, fn.__code__.co_filename, "exec", dont_inherit=True)
+    compiled = _expected_helper_code(path, data, fn.__code__.co_filename)
     constants = _constants(tree, str(path))
     if len(parts) == 1:
         name = parts[0]
