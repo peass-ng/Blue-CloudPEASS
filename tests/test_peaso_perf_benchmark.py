@@ -54,9 +54,10 @@ BUDGETS = {
 #    resources per check type, so its rate is the 1x rate scaled by 10 (not separately re-measured).
 # Native source admissions are a one-off process startup cost. Keep their
 # own bound visible instead of charging them to each snapshot evaluation.
-# Reviewed Linux 3.12 cold evaluation: 12.51 CPU s including startup; warm
-# macOS 3.12 evaluation: 1.04 CPU s, native startup: 5.37 CPU s.
-NATIVE_CATALOG_BUDGETS = {"native_catalog_cpu_sec": 15, "native_catalog_wall_sec": 60}
+# The combined native registry includes source admission at process startup.
+# Reviewed Linux 3.12 cold startup reached 35.48 CPU s; keep a finite 45 s
+# startup bound while preserving separate evaluation, wall-time and RSS limits.
+NATIVE_CATALOG_BUDGETS = {"native_catalog_cpu_sec": 45, "native_catalog_wall_sec": 60}
 FINDING_BYTES = 600
 REPORT_KB_PER_CHECK = {"1x": 14, "10x": 140}
 
