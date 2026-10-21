@@ -49,7 +49,7 @@ def project(provider, resources, snapshot=None):
                     continue
                 principal = _text(finding.get("resource"))
                 details = finding.get("UnusedPermissionDetails") or {}
-                if not isinstance(details, Mapping) or details.get("collection_status") not in {"collected", "empty"}:
+                if not isinstance(details, Mapping) or details.get("collection_status") not in {"collected", "empty", "partial"}:
                     continue
                 for detail in details.get("items") or []:
                     unused = detail.get("unusedPermissionDetails") if isinstance(detail, Mapping) else None
@@ -63,11 +63,13 @@ def project(provider, resources, snapshot=None):
                         permission = name if ":" in name else f"{namespace}:{name}" if namespace else name
                         add(principal, row.get("scope", ""), {"kind": "permission", "value": permission,
                             "source": "AWS IAM Access Analyzer unused access", "evidence_id": finding.get("id"),
-                            "last_accessed": action.get("lastAccessed"), "confidence": "provider_recommendation"})
+                            "last_accessed": action.get("lastAccessed"), "confidence": "provider_recommendation",
+                            "details_complete": details.get("collection_status") in {"collected", "empty"}})
                     if not unused.get("actions") and namespace:
                         add(principal, row.get("scope", ""), {"kind": "service", "value": namespace,
                             "source": "AWS IAM Access Analyzer unused access", "evidence_id": finding.get("id"),
-                            "last_accessed": unused.get("lastAccessed"), "confidence": "provider_recommendation"})
+                            "last_accessed": unused.get("lastAccessed"), "confidence": "provider_recommendation",
+                            "details_complete": details.get("collection_status") in {"collected", "empty"}})
         coverage["unused_access_analyzers"] = analyzers
     elif provider == "gcp":
         coverage["limitations"].append("IAM Recommender proposes role removal or replacement; individual permissions are shown only when the provider supplies them. Review conditions and business need before applying.")

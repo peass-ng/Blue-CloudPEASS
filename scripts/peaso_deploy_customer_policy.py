@@ -108,7 +108,11 @@ VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(NETWORK_SERVICE_READ_REFERENCES)
 TRANSIT_GATEWAY_ROUTE_READ_ACTIONS = frozenset({
     'ec2:DescribeTransitGatewayVpcAttachments',
     'ec2:GetTransitGatewayRouteTableAssociations', 'ec2:SearchTransitGatewayRoutes'})
-VERIFIED_ACTIONS = VERIFIED_ACTIONS | TRANSIT_GATEWAY_ROUTE_READ_ACTIONS | frozenset({"access-analyzer:GetFinding"})
+# GetAnalyzer returns the unused-access window and exclusions omitted by ListAnalyzers.
+ACCESS_ANALYZER_CONFIGURATION_REFERENCE = {
+    "access-analyzer:GetAnalyzer": "https://docs.aws.amazon.com/access-analyzer/latest/APIReference/API_GetAnalyzer.html",
+}
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | TRANSIT_GATEWAY_ROUTE_READ_ACTIONS | frozenset({"access-analyzer:GetFinding"}) | frozenset(ACCESS_ANALYZER_CONFIGURATION_REFERENCE)
 NATIVE_BATCH_REFERENCE_SHA256 = '72e537c6b0c83b43f1c818b7d7b8db0e434dd54c304352b35875f2c46376d7c2'
 NATIVE_BATCH_ACTIONS = frozenset({'organizations:DescribeResourcePolicy', 'cloudwatch:ListMetrics'})
 VERIFIED_ACTIONS = VERIFIED_ACTIONS | NATIVE_BATCH_ACTIONS

@@ -1194,3 +1194,11 @@ A separate named optional check inspects returned inline buildspecs. It does not
 ## Selected ECS and Batch command literals
 
 The optional [selected workload command reader](peaso-aws-selected-workload-commands.md) reads exact ECS task-definition or classic Batch job-definition revisions. It requires the explicit check, content-scan opt-in, and `ecs:DescribeTaskDefinition` or `batch:DescribeJobDefinitions`; it does not execute workloads or fetch referenced environment files. Local native acceptance does not certify deployment.
+
+### Unused access from IAM Access Analyzer
+
+The collector reuses existing account or organization analyzers. It reads every page of active findings and every page of each finding’s details, including unused roles, access keys, console passwords, services and individual actions. Analyzer configuration supplies the analysis window and exclusions; available last-access timestamps and current finding status are retained. Existing analyzers are never deleted by the scan.
+
+The Hardening Access Analyzer control records all active unused-access findings, including identities and credentials that have no Least Privilege permission recommendation. Its details list the principal, unused access, available last-use date and configured analysis window. Least Privilege separately shows the provider-reported unused actions or services; it does not invent an action’s last-use date from service-level activity.
+
+Findings already read remain visible if later pagination or detail collection fails. Coverage errors remain attached, an incomplete empty read cannot pass, and a finding resolved during collection is not treated as active. A missing last-use timestamp means AWS did not return a date; it does not establish that the principal has never been used.

@@ -268,3 +268,14 @@ def test_cleanup_retries_transient_failures(monkeypatch):
     assert len(attempts) == 4
     assert not requests.records
     assert all(event["cleanup_status"] == "deleted" for event in requests.events)
+
+
+def test_organization_analyzers_are_reused_without_creating_account_duplicates(monkeypatch):
+    external = {"arn": "existing-org-external", "type": "ORGANIZATION", "status": "ACTIVE"}
+    unused = {"arn": "existing-org-unused", "type": "ORGANIZATION_UNUSED_ACCESS", "status": "ACTIVE"}
+    requests = FakeRequests(monkeypatch, {
+        REGIONS[0]: aws.ReadResult([external]), REGIONS[1]: aws.ReadResult([external, unused])})
+    with lifecycle.AnalyzerLifecycle(requests, requests.events) as manager:
+        manager.prepare(SESSION, IDENTITY, REGIONS)
+    assert requests.calls == []
+    assert manager.owned == {}

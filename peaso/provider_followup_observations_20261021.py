@@ -15,6 +15,24 @@ def evidence_summary(finding):
     cid, status, evidence = finding.get('check_id'), finding.get('status'), finding['evidence']
     if status not in ('PASS', 'FAIL', 'UNKNOWN', 'DENIED'):
         return None
+    if cid == 'aws.claude_a.accessanalyzer.active_without_findings' and finding.get('provider') == 'aws':
+        rows = evidence.get('access_analyzer_findings')
+        if status == 'FAIL' and isinstance(rows, list) and rows:
+            unused = [row for row in rows if isinstance(row, dict) and str(row.get('findingType', '')).startswith('Unused')]
+            if unused:
+                types = {'UnusedIAMRole': ('role', 'roles'), 'UnusedIAMUserAccessKey': ('access key', 'access keys'),
+                         'UnusedIAMUserPassword': ('console password', 'console passwords'), 'UnusedPermission': ('permission finding', 'permission findings')}
+                counts = []
+                for kind, labels in types.items():
+                    count = sum(row.get('findingType') == kind for row in unused)
+                    if count:
+                        counts.append(f'{count} {labels[0] if count == 1 else labels[1]}')
+                counts = ', '.join(counts) or f'{len(unused)} unused-access findings'
+                return (f'AWS Access Analyzer reports unused access: {counts}. '
+                        'The affected principals, permissions, configured analysis windows and available last-use dates are listed below. '
+                        'This access remains available to its principals despite the reported lack of use.')
+        if status == 'PASS' and evidence.get('findings') == 0:
+            return 'The active regional IAM Access Analyzers returned no active findings after complete collection.'
     if cid == STORAGE and finding.get('provider') == 'azure':
         if status in ('UNKNOWN', 'DENIED'):
             return 'Native container metadata did not establish an effective inherited default retention policy.'

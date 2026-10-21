@@ -68,7 +68,7 @@ def idx(**kinds):
 
 def install(cid, kind, title, passing, failing, *, rows, severity, remediation, docs=(), note=None,
             category="hardening", control="CM-6", target="resource", dependencies=None, extra=None,
-            index=None, pass_index=None, fail_index=None, unknown_case=None, unknown_index=None):
+            index=None, pass_index=None, fail_index=None, unknown_case=None, unknown_index=None, allow_incomplete_failure=False):
     """Register a native check, its behaviour fixtures and its upstream row provenance."""
     if not cid.startswith(PREFIX):
         raise ValueError("claude_aws_a predicate ids must use the partition prefix")
@@ -78,7 +78,7 @@ def install(cid, kind, title, passing, failing, *, rows, severity, remediation, 
         dependencies = [kind]
 
     def decorate(function):
-        register(cid, "aws", category, kind, title, severity, control, remediation, target=target, dependencies=dependencies)(function)
+        register(cid, "aws", category, kind, title, severity, control, remediation, target=target, dependencies=dependencies, allow_incomplete_failure=allow_incomplete_failure)(function)
         CHECK_IDS.append(cid)
         ROWS[cid] = list(rows)
         DOCS[cid] = list(docs)

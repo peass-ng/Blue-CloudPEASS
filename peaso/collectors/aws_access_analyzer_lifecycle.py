@@ -44,7 +44,7 @@ class AnalyzerLifecycle:
             self.inventories[(id(session), region)] = read
         # Unused IAM analysis is account-global within a partition. Prefer an
         # existing analyzer anywhere in the scanned Regions; never duplicate it.
-        unused_exists = any(item.get("type") == "ACCOUNT_UNUSED_ACCESS"
+        unused_exists = any(item.get("type") in {"ACCOUNT_UNUSED_ACCESS", "ORGANIZATION_UNUSED_ACCESS"}
                             for read in reads.values() for item in read.items)
         unused_regions = {}
         for region in regions:
@@ -57,7 +57,7 @@ class AnalyzerLifecycle:
             if not unused_exists and region == unused_regions.get(partition) and all(r.status in OK for r in reads.values()):
                 required.append("ACCOUNT_UNUSED_ACCESS")
             for analyzer_type in required:
-                if analyzer_type in types:
+                if analyzer_type in types or (analyzer_type == "ACCOUNT" and "ORGANIZATION" in types):
                     continue
                 self.requests.check_deadline()
                 name = "peaso-scan-" + uuid.uuid4().hex + ("-unused" if analyzer_type.endswith("UNUSED_ACCESS") else "-external")
@@ -77,7 +77,8 @@ class AnalyzerLifecycle:
                     if response.get("arn") != arn:
                         raise ValueError("unexpected analyzer ARN")
                     read.items.append({"arn": arn, "name": name, "type": analyzer_type,
-                                       "status": "CREATING", "_scan_temporary": True})
+                                       "status": "CREATING", "_scan_temporary": True,
+                                       **({"configuration": args["configuration"]} if "configuration" in args else {})})
                     read.status = "collected" if read.status in OK else "partial"
                 except Exception as exc:
                     failure = _failure(exc)

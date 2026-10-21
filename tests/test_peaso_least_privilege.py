@@ -49,7 +49,7 @@ def test_azure_broad_assignment_is_review_only_without_usage_proof():
     assert result["items"][0]["suggestions"][0]["confidence"] == "declared_grant_only"
 
 
-def test_aws_collector_reads_only_unused_permission_details():
+def test_aws_collector_reads_details_for_every_active_finding():
     calls = []
 
     class Requests:
@@ -59,13 +59,13 @@ def test_aws_collector_reads_only_unused_permission_details():
                 return ReadResult([{"id": "unused", "status": "ACTIVE", "findingType": "UnusedPermission",
                     "resource": "arn:aws:iam::123456789012:role/App"},
                     {"id": "external", "status": "ACTIVE", "findingType": "ExternalAccess"}], "collected")
-            return ReadResult([{"unusedPermissionDetails": {"serviceNamespace": "s3",
-                "actions": [{"action": "DeleteBucket"}]}}], "collected")
+            return ReadResult([{"id": arguments["id"], "findingDetails": [{"unusedPermissionDetails": {"serviceNamespace": "s3",
+                "actions": [{"action": "DeleteBucket"}]}}]}], "collected")
 
     result = _analyzer_findings(Requests(), object(), "us-east-1", [{
         "arn": "arn:aws:access-analyzer:us-east-1:123456789012:analyzer/unused",
         "type": "ACCOUNT_UNUSED_ACCESS", "status": "ACTIVE"}])
-    assert [operation for operation, _ in calls] == ["list_findings_v2", "get_finding_v2"]
+    assert [operation for operation, _ in calls] == ["list_findings_v2", "get_finding_v2", "get_finding_v2"]
     assert result[0]["Findings"][0]["UnusedPermissionDetails"]["items"][0]["unusedPermissionDetails"]["actions"][0]["action"] == "DeleteBucket"
 
 

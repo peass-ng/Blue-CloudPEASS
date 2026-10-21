@@ -9,6 +9,7 @@ documents. Membership of groups comes from each user's GAAD ``GroupList``.
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from datetime import timedelta
 
 from .facts import MemoIndex, Unavailable, get, list_of_objects, guard, memoized, optional
@@ -687,15 +688,35 @@ ANALYZER = {"arn": "arn:aws:access-analyzer:us-east-1:%s:analyzer/a" % ACCOUNT, 
     remediation="Enable an analyzer in every region and resolve or archive its findings after review.",
     docs=["https://docs.aws.amazon.com/access-analyzer/latest/APIReference/API_ListFindingsV2.html"],
     extra={"fail_none": ({}, idx(access_analyzer=[])), "fail_inactive": ({}, idx(access_analyzer=[w(ANALYZER, status="DISABLED", Findings=DROP)]))},
-    note="Any finding row (any status) alarms; needs per-analyzer Findings (collector fact), otherwise UNKNOWN unless an analyzer is non-ACTIVE or none exist.")
+    allow_incomplete_failure=True,
+    note="Active finding rows alarm; all unused roles, credentials and permissions remain Hardening evidence independently of Least Privilege. Missing or incomplete finding inventory cannot pass.")
 def analyzer_without_findings(context, index):
+    # Positive provider findings remain failures even if another page/analyzer
+    # was unreadable. Missing inventory must never turn into a clean result.
+    rows = index.get("access_analyzer", [])
+    observed = []
+    for row in rows:
+        analyzer = row.get("data", row) if isinstance(row, Mapping) else {}
+        for finding in analyzer.get("Findings", []) or []:
+            if not isinstance(finding, Mapping) or finding.get("status") not in (None, "ACTIVE"):
+                continue
+            observed.append({"analyzer": analyzer.get("arn"), "analyzer_type": analyzer.get("type"),
+                "unused_access_days": ((analyzer.get("configuration") or {}).get("unusedAccess") or {}).get("unusedAccessAge"),
+                **finding})
+    if observed:
+        return result(True, findings=len(observed), access_analyzer_findings=observed,
+            unused_access_findings=sum(str(f.get("findingType", "")).startswith("Unused") for f in observed))
     analyzers = items(index, "access_analyzer")
     if not analyzers:
         return result(True, analyzers=0)
     if any(get(a, "status", str) != "ACTIVE" for a in analyzers):
         return result(True, statuses=[a["status"] for a in analyzers])
-    findings = sum(len(list_of_objects(get(a, "Findings", list))) for a in analyzers)
-    return result(findings > 0, findings=findings)
+    for analyzer in analyzers:
+        initial = analyzer.get("_coverage", {}).get("InitialAnalysis", {})
+        if initial.get("status") not in (None, "collected", "empty"):
+            raise Unavailable("Access Analyzer initial analysis is incomplete")
+        list_of_objects(get(analyzer, "Findings", list))
+    return result(False, findings=0)
 
 
 # =========================================================================== credential report helpers

@@ -369,6 +369,6 @@
   "peaso/privesc/finding_explanation.py": "6b42ec83d0e09fb182ac238870c31c0eaa92008408c671fcb1c7a418dde4d13a",
   "peaso/privesc/schema.py": "6de9324c85af2bd58d1e2feab6cf255b4b2c2f17704668371c8cc4fcad2de674",
   "peaso/privesc/versioned_catalog.py": "b14f581917d7c626600cf9ebb0eecfec69f2055787efaa143bda0faff7683b36",
-  "peaso/provider_followup_observations_20261021.py": "69a321db8f0467c1af34020bce858e1c1012dcc50ad80f35cb26929f92ce5b79",
+  "peaso/provider_followup_observations_20261021.py": "783055b039f6632fc2343cb8dc455c0f61c56ae673874d1a4da59723901a4098",
   "risk_rules/hacktricks-privesc-source.json": "6d994be99fd3fd696c05dd0a352c0cb348da2dc62648e7caf99f03a113162f18"
 }
