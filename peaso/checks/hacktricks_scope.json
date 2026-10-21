@@ -3162,8 +3162,8 @@
       "group": "access_control"
     },
     "aws.claude_a.accessanalyzer.active_without_findings": {
-      "decision": "exclude",
-      "group": "analyzer"
+      "decision": "include",
+      "group": "unused_assets"
     },
     "aws.claude_a.cloudtrail.account_has_logging_multi_region_trail": {
       "decision": "exclude",
@@ -16577,6 +16577,202 @@
     "aws.review.ecr.selected_image_vulnerabilities": {
       "decision": "include",
       "group": "security_configuration"
+    },
+    "azure.review.acr.selected_image_high_critical_vulnerabilities": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "k8s.review.selected_text_content.secret_indicators": {
+      "decision": "include",
+      "group": "data_protection"
+    },
+    "gcp.review.artifact_image.selected_image_vulnerabilities": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "k8s.iam.serviceaccount_has_declared_consumers": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "k8s.iam.role_has_declared_consumers": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "k8s.iam.clusterrole_has_declared_consumers": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "k8s.iam.rolebinding_subjects_exist": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "k8s.iam.clusterrolebinding_subjects_exist": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "k8s.iam.legacy_serviceaccount_token_recently_used": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "azure.iam.static_group_has_members": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "azure.iam.service_principal_recent_activity": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "azure.iam.application_credentials_recent_activity": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "azure.iam.service_principal_credentials_recent_activity": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "azure.iam.single_tenant_application_has_consumer": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "gcp.iam.service_account_no_active_unused_insight": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "gcp.iam.static_group_has_members": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "gcp.iam.role_grant_has_observed_permission_use": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "gcp.iam.directory_user_recent_recorded_login": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "gcp.iam.workload_identity_pool_has_enabled_provider": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "gcp.iam.workforce_pool_has_enabled_provider": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "gcp.iam.api_key_recent_recorded_successful_requests": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "gcp.iam.hmac_key_recent_recorded_successful_requests": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "gcp.iam.custom_role_has_declared_grants": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "aws.iam.group_inline_policies_have_members": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "azure.iam.custom_directory_role_has_declared_consumers": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "azure.iam.custom_arm_role_has_declared_consumers": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "aws.iam.identity_center.permission_set_has_consumer_all_accounts": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "aws.iam.saml_provider_has_role_consumer": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "aws.iam.oidc_provider_has_role_consumer": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "gcp.network.address_reserved_without_users": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "gcp.network.firewall_policy_without_associations": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "gcp.network.endpoint_group_without_endpoints": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "azure.network.route_table_has_subnet_reference": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "azure.network.nic_has_owner_reference": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "k8s.network.service_has_current_backend_declaration": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "k8s.network.endpointslice_service_reference_resolves": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "k8s.network.ingress_service_backends_resolve": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "k8s.network.networkpolicy_selects_current_pod": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "aws.network.route_table_associated": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "aws.network.internet_gateway_attached": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "aws.network.vpn_gateway_attached": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "azure.network.public_ip_has_network_reference": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "aws.network.target_group_has_load_balancer": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "gcp.network.http_proxy_forwarding_rule_reference": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "gcp.network.https_proxy_forwarding_rule_reference": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "gcp.network.backend_service_has_members": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "azure.network.subnet_has_consumer_or_reservation_reference": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "azure.network.load_balancer_backend_pools_have_declaration_or_consumer": {
+      "decision": "include",
+      "group": "unused_assets"
+    },
+    "k8s.network.endpoints_controller_service_reference_resolves": {
+      "decision": "include",
+      "group": "unused_assets"
     }
   }
 }

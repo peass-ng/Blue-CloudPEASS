@@ -19,6 +19,7 @@ OPTIONS = {
     "selected_dataproc_referenced_sources",
     "selected_azure_app_settings",
     "selected_azure_acr_images",
+    "selected_azure_acr_image_vulnerabilities",
     "selected_azure_ml_command_jobs",
     "selected_azure_ml_environment_versions", "selected_azure_ml_code_files",
     "selected_azure_function_settings",
@@ -33,6 +34,7 @@ OPTIONS = {
     "selected_k8s_literal_resources",
     "selected_k8s_log_samples",
     "selected_k8s_metadata_resources",
+    "selected_k8s_text_resources",
     "selected_gke_clusters", "selected_gke_namespaces",
     "selected_artifact_images", "selected_artifact_files",
     "selected_cloudrun_services",
@@ -52,6 +54,7 @@ OPTIONS = {
 OPTIONS.add('selected_aws_codebuild_inline_buildspecs')
 OPTIONS.add('selected_aws_workload_commands')
 OPTIONS.add('selected_cloudrun_job_declared_images')
+OPTIONS.add('selected_gcp_registry_image_vulnerabilities')
 OPTIONS.add('selected_aws_image_vulnerabilities')
 AUTH = {
     "aws": {"method", "aws_access_key_id", "aws_secret_access_key", "aws_session_token", "role_arn", "external_id", "role_chain", "assume_roles", "region_name", "role_session_name"},
@@ -70,12 +73,14 @@ LEGACY_EXTERNAL_ID_PREFIX = "peaso-"
 
 
 def validate_connector(provider, auth, options, settings, *, server_external_id=False, scopes=None):
-    if 'image_vulnerability_scans' in options or 'selected_aws_image_vulnerabilities' in options:
+    if ('image_vulnerability_scans' in options or 'selected_aws_image_vulnerabilities' in options
+            or 'selected_gcp_registry_image_vulnerabilities' in options
+            or 'selected_azure_acr_image_vulnerabilities' in options):
         try:
             from .image_selection_options_20261021 import validate_image_options
             validate_image_options(provider, options, scopes or [])
         except (ValueError, TypeError, KeyError, AttributeError):
-            raise HTTPException(422, 'Image vulnerability scans require a boolean and exact AWS image targets or GCP Job image selectors in selected scopes') from None
+            raise HTTPException(422, 'Image vulnerability scans require a boolean and exact AWS image targets, GCP Job image selectors, or Azure ACR digests in selected scopes') from None
     if 'selected_cloudrun_job_declared_images' in options:
         try:
             if provider != 'gcp':
@@ -216,6 +221,14 @@ def validate_connector(provider, auth, options, settings, *, server_external_id=
             preflight(options, scopes or [], [])
         except Exception:
             raise HTTPException(422, 'Selected metadata requires 1–8 exact supported namespaced object targets of one configured Kubernetes cluster') from None
+    if 'selected_k8s_text_resources' in options:
+        try:
+            if provider != 'k8s':
+                raise ValueError('Kubernetes-only text selection')
+            from peaso.collectors.k8s_selected_text_content import selected_targets
+            selected_targets(options, scopes or [])
+        except Exception:
+            raise HTTPException(422, 'Selected text requires 1–8 exact Event, Ingress, Gateway or CRD objects of one cluster') from None
     if 'selected_k8s_log_samples' in options:
         try:
             if provider != 'k8s':

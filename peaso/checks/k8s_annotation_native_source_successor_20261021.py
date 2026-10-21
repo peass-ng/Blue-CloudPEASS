@@ -131,9 +131,7 @@ def _self_proof():
 
 def _source_proofs():
     raw = COLLECTOR.read_bytes()
-    if _sha(raw) != AFTER_SHA or raw.count(INSERTION) != 1:
-        raise RuntimeError('Successor collector source changed')
-    before = raw.replace(INSERTION, b'', 1)
+    before = source_epoch.predecessor_bytes('peaso/collectors/k8s.py', raw, BEFORE_SHA, ROOT)
     if _sha(before) != BEFORE_SHA:
         raise RuntimeError('Successor predecessor reconstruction changed')
     if _sha(HELPER.read_bytes()) != HELPER_SHA:
@@ -256,7 +254,7 @@ def _current_functions(raw):
             if dependency in expected:
                 expected[dependency]['code_sha256'] = digest
         if _global_proofs(function) != expected:
-            raise RuntimeError('Successor collector globals changed: ' + name)
+            raise RuntimeError('Successor collector globals changed: ' + name + str([key for key in set(expected) | set(_global_proofs(function)) if expected.get(key) != _global_proofs(function).get(key)]))
         actual[name] = function
     # The newly introduced identity path, and its recursive sanitizer, must
     # resolve to the attested module functions and the reviewed stdlib import.

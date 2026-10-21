@@ -73,7 +73,7 @@ def test_new_priority_reviews_bind_the_actual_registered_sources():
     path = Path(__file__).resolve().parents[1] / "peaso/checks/reviewed_release_priorities_20261020.json"
     rows = json.loads(path.read_text())
     registered = {check.id: check for check in CHECKS}
-    assert len(rows) == 69
+    assert len(rows) == 181
     for cid, row in rows.items():
         check = registered[cid]
         assert (row["source_module"], row["source_kind"], row["source_title"]) == (

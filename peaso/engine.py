@@ -222,7 +222,7 @@ def _selection(provider, categories, checks, frameworks):
         frameworks = _expand_frameworks(frameworks)
     selected = [c for c in registry if c.provider == provider and c.category in selected_categories
         and (checks is None or c.id in checks) and (frameworks is None or (set(c.frameworks) | set(getattr(c, "framework_ids", []))).intersection(frameworks))]
-    selected = [c for c in selected if c.id not in {'aws.review.workload.selected_command_literal_secret_indicators', 'gcp.review.cloudrun_job.declared_image_secret_indicators', 'gcp.review.cloud_run.selected_job_image_vulnerabilities', 'azure.review.app_service.runtime_support_declared'} or checks is not None and c.id in checks]
+    selected = [c for c in selected if c.id not in {'aws.review.workload.selected_command_literal_secret_indicators', 'gcp.review.cloudrun_job.declared_image_secret_indicators', 'gcp.review.cloud_run.selected_job_image_vulnerabilities', 'gcp.review.artifact_image.selected_image_vulnerabilities', 'azure.review.app_service.runtime_support_declared'} or checks is not None and c.id in checks]
     return selected_categories, selected
 
 
@@ -246,6 +246,11 @@ def _request(request):
         _string_list(connector["scopes"], "scopes")
     _selection(connector["provider"], request.get("categories"), request.get("checks"), request.get("frameworks"))
     content_options = connector.get('options', {})
+    from .gcp_image_selection_20261021 import OPTION as REGISTRY_CVE_OPTION, selections as registry_cve_selection
+    if REGISTRY_CVE_OPTION in content_options:
+        if connector['provider'] != 'gcp':
+            raise ValueError('Selected registry images require GCP')
+        registry_cve_selection(content_options, connector.get('scopes', []))
     from .collectors.aws_workload_command_runtime_20261020 import targets as workload_command_targets
     workload_command_targets(content_options, connector.get('scopes', []), request.get('checks') or [], connector['provider'])
     from .collectors.gcp_cloudrun_job_image_runtime_20261020 import validate_request as validate_cloudrun_job_images
@@ -334,6 +339,9 @@ def _request(request):
             raise ValueError('content_secret_scans must be a boolean')
         if K8S_LITERAL_OPTION in content_options or (content_options.get('content_secret_scans') is True and K8S_LITERAL_CHECK in (request.get('checks') or [])):
             k8s_literal_targets({**content_options, '_content_secret_scan_kinds': [K8S_LITERAL_KIND]}, connector.get('scopes', []))
+        from .collectors.k8s_selected_text_content import selected_targets as k8s_text_targets, KIND as K8S_TEXT_KIND, CHECK as K8S_TEXT_CHECK, OPTION as K8S_TEXT_OPTION
+        if K8S_TEXT_OPTION in content_options or (content_options.get('content_secret_scans') is True and K8S_TEXT_CHECK in (request.get('checks') or [])):
+            k8s_text_targets({**content_options, '_content_secret_scan_kinds': [K8S_TEXT_KIND] if K8S_TEXT_CHECK in (request.get('checks') or []) else []}, connector.get('scopes', []))
         from .collectors.k8s_selected_log_sample_secret_indicators import selected_targets as k8s_log_targets, KIND as K8S_LOG_KIND, CHECK as K8S_LOG_CHECK, OPTION as K8S_LOG_OPTION
         if K8S_LOG_OPTION in content_options or (content_options.get('content_secret_scans') is True and K8S_LOG_CHECK in (request.get('checks') or [])):
             k8s_log_targets({**content_options, '_content_secret_scan_kinds': [K8S_LOG_KIND]}, connector.get('scopes', []))
@@ -344,8 +352,11 @@ def _request(request):
         if AZURE_SETTINGS_OPTION in content_options or (content_options.get('content_secret_scans') is True and AZURE_SETTINGS_CHECK in (request.get('checks') or [])):
             azure_settings_targets({**content_options, '_content_secret_scan_kinds': [AZURE_SETTINGS_KIND]}, connector.get('scopes', []))
         from .collectors.azure_acr_image_secret_indicators import selected_targets as azure_acr_targets, KIND as AZURE_ACR_KIND, CHECK as AZURE_ACR_CHECK, OPTION as AZURE_ACR_OPTION
+        from .collectors.azure_acr_image_vulnerabilities_20261021 import selected_targets as azure_acr_vuln_targets, KIND as AZURE_ACR_VULN_KIND, CHECK as AZURE_ACR_VULN_CHECK, OPTION as AZURE_ACR_VULN_OPTION
         if AZURE_ACR_OPTION in content_options or (content_options.get('content_secret_scans') is True and AZURE_ACR_CHECK in (request.get('checks') or [])):
             azure_acr_targets({**content_options, '_content_secret_scan_kinds': [AZURE_ACR_KIND]}, connector.get('scopes', []))
+        if AZURE_ACR_VULN_OPTION in content_options or (content_options.get('image_vulnerability_scans') is True and AZURE_ACR_VULN_CHECK in (request.get('checks') or [])):
+            azure_acr_vuln_targets(content_options, connector.get('scopes', []))
         from .collectors.azure_selected_configuration_secret_indicators import selected_targets as azure_configuration_targets, KIND as AZURE_CONFIG_KIND, CHECK as AZURE_CONFIG_CHECK, OPTION as AZURE_CONFIG_OPTION
         if AZURE_CONFIG_OPTION in content_options or (content_options.get('content_secret_scans') is True and AZURE_CONFIG_CHECK in (request.get('checks') or [])):
             azure_configuration_targets({**content_options, '_content_secret_scan_kinds': [AZURE_CONFIG_KIND]}, connector.get('scopes', []))
@@ -594,17 +605,21 @@ def collect_snapshot(request):
         from .collectors.gcp_job_image_vulnerability_runtime_20261021 import issue_engine_grant as grant_job_image_vulnerabilities
         grant_job_image_vulnerabilities(connector['options'], connector.get('scopes', []),
             [c.id for c in selected if c.id in named])
+        from .collectors.gcp_registry_trivy_runtime_20261021 import issue_engine_grant as grant_registry_cves
+        grant_registry_cves(connector['options'], connector.get('scopes', []), [c.id for c in selected if c.id in named])
     if connector["provider"] == "k8s":
         from .collectors.k8s_selected_metadata_runtime_20261020 import authorize as authorize_k8s_metadata
         authorize_k8s_metadata(connector.setdefault('options', {}), connector.get('scopes', []), request.get('checks') or [])
         from .collectors.k8s_literal_secret_indicators import KIND as K8S_LITERAL_KIND, CHECK as K8S_LITERAL_CHECK
         from .collectors.k8s_selected_log_sample_secret_indicators import KIND as K8S_LOG_KIND, CHECK as K8S_LOG_CHECK
+        from .collectors.k8s_selected_text_content import KIND as K8S_TEXT_KIND, CHECK as K8S_TEXT_CHECK
         connector.setdefault('options', {})['_content_secret_scan_kinds'] = [kind for cid, kind in (
-            (K8S_LITERAL_CHECK, K8S_LITERAL_KIND), (K8S_LOG_CHECK, K8S_LOG_KIND)) if cid in (request.get('checks') or [])]
+            (K8S_LITERAL_CHECK, K8S_LITERAL_KIND), (K8S_LOG_CHECK, K8S_LOG_KIND), (K8S_TEXT_CHECK, K8S_TEXT_KIND)) if cid in (request.get('checks') or [])]
     if connector["provider"] == "azure":
         _, selected = _selection("azure", request.get("categories"), request.get("checks"), request.get("frameworks"))
         from .collectors.azure_app_settings_secret_indicators import KIND as AZURE_SETTINGS_KIND, CHECK as AZURE_SETTINGS_CHECK
         from .collectors.azure_acr_image_secret_indicators import KIND as AZURE_ACR_KIND, CHECK as AZURE_ACR_CHECK
+        from .collectors.azure_acr_image_vulnerabilities_20261021 import KIND as AZURE_ACR_VULN_KIND, CHECK as AZURE_ACR_VULN_CHECK
         from .collectors.azure_selected_configuration_secret_indicators import KIND as AZURE_CONFIG_KIND, CHECK as AZURE_CONFIG_CHECK
         from .collectors.azure_selected_storage_secret_indicators import KIND as STORAGE_KIND, CHECK as STORAGE_CHECK
         from .collectors.azure_devops_selected_content_secret_indicators import KIND as DEVOPS_KIND, CHECK as DEVOPS_CHECK
@@ -615,6 +630,7 @@ def collect_snapshot(request):
         from .collectors.azure_ml_selected_asset_secret_indicators import PROFILES as ML_ASSET_PROFILES
         azure_content_pairs = ((AZURE_SETTINGS_CHECK,AZURE_SETTINGS_KIND),(AZURE_ACR_CHECK,AZURE_ACR_KIND),(AZURE_CONFIG_CHECK,AZURE_CONFIG_KIND),(STORAGE_CHECK,STORAGE_KIND),(DEVOPS_CHECK,DEVOPS_KIND)) + tuple((p['check'],p['kind']) for p in DECLARATION_PROFILES.values()) + tuple((p['check'],p['kind']) for p in LOG_SAMPLE_PROFILES.values()) + ((ML_JOB_CHECK,ML_JOB_KIND),(NOTEBOOK_CHECK,NOTEBOOK_KIND)) + tuple((p['check'],p['kind']) for p in ML_ASSET_PROFILES.values())
         connector.setdefault('options', {})['_content_secret_scan_kinds'] = sorted(kind for cid,kind in azure_content_pairs if cid in (request.get('checks') or []))
+        connector['options']['_image_vulnerability_scan_kinds'] = [AZURE_ACR_VULN_KIND] if (connector['options'].get('image_vulnerability_scans') is True and AZURE_ACR_VULN_CHECK in (request.get('checks') or [])) else []
         from .collectors.azure_function_settings_declarations_20261020 import CHECKS as FUNCTION_SETTINGS_CHECKS
         connector.setdefault('options', {})['_azure_function_settings_checks'] = [cid for cid in (request.get('checks') or []) if cid in FUNCTION_SETTINGS_CHECKS]
         connector.setdefault('options', {})['_azure_app_service_runtime_checks'] = [c.id for c in selected if c.id == 'azure.review.app_service.runtime_support_declared' and c.id in (request.get('checks') or [])]
@@ -654,15 +670,15 @@ def _analysis_selection(provider, categories, checks, frameworks):
 # large tenants they dominate the snapshot (Azure: ~75% of items and peak memory). They are collected
 # only on explicit request (options.inventories, or collect_all) or when a selected check declares them.
 BULK_STREAM_TYPES = {
-    "azure": frozenset({"azure_selected_function_settings_declaration", "azure_ml_selected_environment_conda", "azure_ml_selected_code_file", "azure_databricks_selected_notebook", "azure_ml_selected_command_job", "azure_selected_workspace_log_sample", "azure_selected_application_trace_sample", "azure_app_configuration_selected_values", "azure_data_factory_selected_declarations", "azure_synapse_selected_pipelines", "azure_storage_selected_source", "azure_devops_selected_content", "azure_configuration_selected_content", "acr_selected_image", "app_service_selected_settings", "activity_log", "directory_audit", "sign_in_log", "directory_sign_in"}),
+    "azure": frozenset({"azure_selected_function_settings_declaration", "azure_ml_selected_environment_conda", "azure_ml_selected_code_file", "azure_databricks_selected_notebook", "azure_ml_selected_command_job", "azure_selected_workspace_log_sample", "azure_selected_application_trace_sample", "azure_app_configuration_selected_values", "azure_data_factory_selected_declarations", "azure_synapse_selected_pipelines", "azure_storage_selected_source", "azure_devops_selected_content", "azure_configuration_selected_content", "acr_selected_image", "acr_selected_image_vulnerabilities", "app_service_selected_settings", "activity_log", "directory_audit", "sign_in_log", "directory_sign_in"}),
     "gcp": frozenset({"dataflow_selected_package_source", "batch_selected_mounted_script_source", "workbench_selected_referenced_source_20261020", "dataproc_selected_job_source", "dataproc_selected_initialization_source", "activity", "log_entry", "audit_log_entry", "log_secret_sample", "app_engine_version_secret", "workflow_source", "gke_workload_literal", "function_source_archive", "artifact_selected_file", "composer_dag_source", "cloudbuild_log_source", "source_repository_file", "clouddeploy_release_source", "cloudbuild_artifact_source", "appengine_deployment_source", "cloudtasks_selected_task", "bigquery_selected_routine", "gcs_selected_object", "gcs_selected_archive", "dataform_selected_file", "dataflow_job", "batch_job", "dataproc_job"}),
     "aws": frozenset({"s3_selected_source_content", "lambda_selected_environment", "cloudtrail_event", "cloudtrail_lookup_event"}),
-    "k8s": frozenset({"event", "audit_event", "k8s_selected_literals", "k8s_selected_log_samples", "k8s_selected_metadata"}),
+    "k8s": frozenset({"event", "audit_event", "k8s_selected_literals", "k8s_selected_log_samples", "k8s_selected_metadata", "k8s_selected_text_content"}),
 }
 BULK_STREAM_TYPES['aws'] = BULK_STREAM_TYPES['aws'] | {'codebuild_selected_inline_buildspec'}
 BULK_STREAM_TYPES['aws'] = BULK_STREAM_TYPES['aws'] | {'aws_selected_workload_command_literals'}
 BULK_STREAM_TYPES['azure'] = BULK_STREAM_TYPES['azure'] | {'azure_function_package_portable_20261020'}
-BULK_STREAM_TYPES['gcp'] = BULK_STREAM_TYPES['gcp'] | {'cloud_run_selected_job_image_vulnerabilities'}
+BULK_STREAM_TYPES['gcp'] = BULK_STREAM_TYPES['gcp'] | {'cloud_run_selected_job_image_vulnerabilities', 'artifact_selected_image_vulnerabilities'}
 
 
 def _selected_graph_categories(categories, native, analyzed, explicit_categories, checks, frameworks):
@@ -1225,6 +1241,7 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
         if code is not None:
             coverage[-1]["error_code"] = code
     scoped_indexes = {}
+    evaluation_metadata = freeze(snapshot.get("metadata", {}))
     native_ids = {resource["id"]: resource["native_id"] for resource in inventory}
     by_scope = defaultdict(list)
     for resource in inventory:
@@ -1288,9 +1305,14 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
             resource_scopes = {(c["type"], c["scope"]) for c in selected_collections}
             # MemoIndex: joins that checks derive from this read-only index are computed once per scope.
             scoped_indexes[scope] = MemoIndex({kind: [r for r in rows if (r["type"], r["scope"]) in resource_scopes] for kind, rows in index.items() if kind != "collections"})
+            # Cross-scope joins over one immutable snapshot can reuse the first
+            # existing memo; ordinary collection joins remain scope-local.
+            first_index = next(iter(scoped_indexes.values()))
+            if first_index is not scoped_indexes[scope]:
+                scoped_indexes[scope].memo[("_shared_snapshot_memo",)] = first_index.memo
             scoped_indexes[scope]["collections"] = {kind: [c for c in rows if relevant(c)] for kind, rows in index["collections"].items()}
             context = {"provider": provider, "scope": scope, "_scope": scope, "created_at": snapshot["created_at"],
-                "snapshot_id": snapshot["snapshot_id"], "metadata": snapshot.get("metadata", {})}
+                "snapshot_id": snapshot["snapshot_id"], "metadata": evaluation_metadata}
             if account:
                 context["Account"] = account
                 if scope == account + "/global":

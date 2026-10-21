@@ -5,7 +5,7 @@ import re
 from peaso.secret_scanning import merge_leaks,KINGFISHER_VERSION,TRUFFLEHOG_VERSION
 from peaso.collectors.azure_acr_image_secret_indicators import (
     KIND,CHECK,MARKER,SCHEMA,_SCOPE,MODES,MAX_IMAGES,MAX_LAYERS,MAX_MANIFEST,
-    MAX_CONFIG,MAX_LAYER,MAX_IMAGE,MAX_EXPANDED,MAX_MEMBERS,MAX_CALLS,MAX_LEAKS,MAX_LOCATIONS,
+    MAX_CONFIG,MAX_LAYER,MAX_IMAGE,MAX_EXPANDED,MAX_MEMBERS,MAX_CALLS,MAX_LEAKS,MAX_LOCATIONS,MAX_PARTS,
     DIGEST,TAR_TYPES,CONFIG_TYPES,_descriptor)
 
 DECLARATIONS=[{'id':CHECK,'provider':'azure','category':'hardening','kind':KIND,
@@ -34,6 +34,8 @@ def evaluate(item,index):
             if any(not isinstance(meta[k],str) or not meta[k] or row['_provenance'][k]!=meta[k]
                    for k in ('credential_context_id','customer_context_id')):raise ValueError('capture')
         ident=item['id'];m=item[MARKER]
+        if m.get('complete') is False and m.get('leaks'):
+            return _partial_positive(item,index,scope,meta,ident,m)
         if (set(m)!={'schema','kind','identity','scope','complete','verification','descriptors','layers_scanned','parts','leaks','source_requests','mode','auth_audience','expanded_bytes','members','regular_files','manifest_digest'}
                 or m['schema']!=SCHEMA or m['kind']!=KIND or m['identity']!=ident or m['scope']!=scope
                 or m['auth_audience'] not in ('arm','acr') or m['complete'] is not True or m['verification']!='not_attempted' or m['mode'] not in MODES
@@ -81,13 +83,13 @@ def evaluate(item,index):
             if r['status']!='collected' or r['http_status']!=200 or r['bytes']!=d['size']:raise ValueError('blob completeness')
         if cursor!=len(receipts):raise ValueError('extra requests')
         parts=m['parts'];versions={'kingfisher':KINGFISHER_VERSION,'trufflehog':TRUFFLEHOG_VERSION}
-        if not isinstance(parts,list) or len(parts)!=m['regular_files']+2 or parts[0].get('part')!='manifest' or parts[1].get('part')!='config':raise ValueError('parts')
+        if not isinstance(parts,list) or not m['regular_files']+2<=len(parts)<=MAX_PARTS or parts[0].get('part')!='manifest' or parts[1].get('part')!='config':raise ValueError('parts')
         names=[]
         for pos,p in enumerate(parts):
             if (set(p)!={'part','bytes','complete','engines'} or type(p['bytes']) is not int or not 0<=p['bytes']<=MAX_LAYER
                     or p['complete'] is not True or not isinstance(p['part'],str)):raise ValueError('part')
             if pos>=2:
-                match=re.fullmatch(r'layer-([1-9][0-9]*)\.member-([1-9][0-9]*)',p['part'])
+                match=re.fullmatch(r'layer-([1-9][0-9]*)\.member-([1-9][0-9]*)\.(?:name|chunk-[1-9][0-9]*)',p['part'])
                 if not match or int(match[1])>len(desc)-1 or int(match[2])>m['members']:raise ValueError('member')
             es=p['engines']
             if (not isinstance(es,list) or len(es)!=2 or {e.get('engine') for e in es}!=set(versions)
@@ -105,6 +107,97 @@ def evaluate(item,index):
             'coverage':'selected_observed_image_content_only','parts':deepcopy(parts),'source_requests':list(refs),'observed':observed}
     except (KeyError,TypeError,ValueError,AttributeError,OverflowError,IndexError):
         return 'UNKNOWN',{'observed':'The selected ACR image was disabled, unsupported, incomplete or unbound. Secret absence could not be assessed.'}
+
+
+def _partial_positive(item,index,scope,meta,ident,m):
+    """Admit a verified positive prefix without treating incomplete layers as clean."""
+    try:
+        expected={'schema','kind','identity','scope','complete','verification','descriptors',
+            'layers_scanned','parts','leaks','source_requests','mode','auth_audience',
+            'expanded_bytes','members','regular_files','manifest_digest','inspected_digests'}
+        if (set(m)!=expected or m['schema']!=SCHEMA or m['kind']!=KIND or m['identity']!=ident
+                or m['scope']!=scope or m['verification']!='not_attempted'
+                or m['manifest_digest']!=meta[KIND+'_digests'][ident]
+                or m['auth_audience'] not in ('arm','acr') or m['mode'] not in MODES
+                or item['_provenance']['scope']!=scope):raise ValueError('partial marker')
+        desc=m['descriptors'];inspected=m['inspected_digests']
+        if (not isinstance(desc,list) or not 2<=len(desc)<=MAX_LAYERS+1
+                or _descriptor(desc[0],CONFIG_TYPES,MAX_CONFIG)!=desc[0]
+                or any(_descriptor(d,TAR_TYPES,MAX_LAYER)!=d for d in desc[1:])
+                or sum(d['size'] for d in desc)>MAX_IMAGE
+                or len({d['digest'] for d in desc})!=len(desc)
+                or not isinstance(inspected,list) or len(inspected)<2
+                or inspected[:2]!=[m['manifest_digest'],desc[0]['digest']]
+                or inspected[2:]!=[d['digest'] for d in desc[1:1+len(inspected)-2]]
+                or m['layers_scanned']!=inspected[2:]):raise ValueError('partial descriptors')
+        refs=m['source_requests'];ledger=meta[KIND+'_receipts']
+        if (not isinstance(refs,list) or not isinstance(ledger,list) or len(ledger)>MAX_CALLS
+                or len(set(refs))!=len(refs) or len(refs)<5
+                or item['_provenance']['source_requests']!=refs):raise ValueError('partial receipts')
+        rows=[]
+        for ref in refs:
+            found=[r for r in ledger if r.get('id')==ref]
+            if len(found)!=1 or found[0].get('identity')!=ident or found[0].get('scope')!=scope:
+                raise ValueError('partial receipt identity')
+            rows.append(found[0])
+        if [r.get('operation') for r in rows[:4]]!=['registry_identity','oauth_exchange','oauth_pull','manifest']:
+            raise ValueError('partial auth receipts')
+        for r,operation,method,endpoint in zip(rows[:3],
+                ('registry_identity','oauth_exchange','oauth_pull'),
+                ('GET','POST','POST'),('arm','registry','registry')):
+            if (set(r)!={'id','identity','scope','method','operation','endpoint','status','http_status',
+                    'bytes','digest','verified','bound'} or r['operation']!=operation
+                    or r['method']!=method or r['endpoint']!=endpoint or r['status']!='collected'
+                    or r['http_status']!=200 or r['verified'] is not True or r['bound'] is not True
+                    or r['digest'] is not None or type(r['bytes']) is not int or not 1<=r['bytes']<=MAX_CONFIG):
+                raise ValueError('partial auth binding')
+        manifest=rows[3]
+        if (manifest.get('operation')!='manifest' or manifest.get('method')!='GET'
+                or manifest.get('endpoint')!='registry' or manifest.get('status')!='collected'
+                or manifest.get('http_status')!=200 or manifest.get('verified') is not True
+                or manifest.get('bound') is not True or manifest.get('digest')!=m['manifest_digest']
+                or type(manifest.get('bytes')) is not int or not 1<=manifest['bytes']<=MAX_MANIFEST):
+            raise ValueError('partial manifest binding')
+        cursor=4
+        for d in desc[:len(inspected)-1]:
+            if cursor>=len(rows):raise ValueError('partial blob receipt')
+            r=rows[cursor];cursor+=1
+            if r.get('status')=='redirect':
+                if r.get('operation')!='blob' or cursor>=len(rows):raise ValueError('partial redirect')
+                r=rows[cursor];cursor+=1
+            if (r.get('status')!='collected' or r.get('verified') is not True
+                    or r.get('bound') is not True or r.get('digest')!=d['digest']
+                    or r.get('bytes')!=d['size'] or r.get('http_status')!=200):
+                raise ValueError('partial blob binding')
+        parts=m['parts'];leaks=m['leaks']
+        if (not isinstance(parts,list) or not 1<=len(parts)<=MAX_PARTS or not isinstance(leaks,list)
+                or not leaks or merge_leaks(leaks)!=leaks or len(leaks)>MAX_LEAKS
+                or sum(len(l['locations']) for l in leaks)>MAX_LOCATIONS
+                or any(p.get('complete') is not True for p in parts)):
+            raise ValueError('partial witness')
+        versions={'kingfisher':KINGFISHER_VERSION,'trufflehog':TRUFFLEHOG_VERSION}
+        for part in parts:
+            es=part.get('engines')
+            if (set(part)!={'part','bytes','complete','engines'} or type(part.get('bytes')) is not int
+                    or not 0<=part['bytes']<=MAX_LAYER or not isinstance(es,list) or len(es)!=2
+                    or {e.get('engine') for e in es}!=set(versions)
+                    or any(set(e)!={'engine','version','status'} or e['version']!=versions[e['engine']]
+                           or e['status']!='complete' for e in es)):
+                raise ValueError('partial part binding')
+        paths={ident+'.'+p['part'] for p in parts if isinstance(p,dict) and isinstance(p.get('part'),str)}
+        if any(loc.get('path') not in paths for leak in leaks for loc in leak['locations']):
+            raise ValueError('partial location')
+        for part in parts:
+            name=part['part']
+            match=re.fullmatch(r'layer-([1-9][0-9]*)\.member-([1-9][0-9]*)\.(?:name|chunk-[1-9][0-9]*)',name)
+            if name not in ('manifest','config') and (match is None or int(match[1])>len(inspected)-2):
+                raise ValueError('unverified partial layer')
+        return 'FAIL',{'secret_leaks':deepcopy(leaks),'credential_validation':'not_attempted',
+            'complete':False,'coverage':'verified_image_prefix_only','parts':deepcopy(parts),
+            'source_requests':list(refs),'observed':
+            'A likely secret was detected in the verified content of a selected immutable ACR image. The value is hidden; later image content was incomplete.'}
+    except (KeyError,TypeError,ValueError,AttributeError,OverflowError,IndexError):
+        return 'UNKNOWN',{'observed':'The selected ACR image content was incomplete or unbound, so its secret exposure is unclear.'}
 
 
 def install():

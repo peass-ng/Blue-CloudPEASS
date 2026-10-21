@@ -59,7 +59,7 @@ SERVICE_ALIASES = {
         "waf-regional": "waf",
         "wafv2": "waf",
     },
-    "gcp": {"iam/cloudasset": "iam"},
+    "gcp": {"iam/cloudasset": "iam", "iam.googleapis.com": "iam", "recommender.googleapis.com": "recommender"},
 }
 
 # Exposure and network analysis can emit findings for supporting inventories
@@ -96,9 +96,6 @@ ANALYSIS_KIND_SERVICES = {
 }
 
 
-from peaso.analysis.network_catalog import NETWORK_SERVICE_LABELS
-for _provider, _labels in NETWORK_SERVICE_LABELS.items():
-    ANALYSIS_KIND_SERVICES[_provider].update(_labels)
 
 
 @lru_cache(maxsize=1)
@@ -150,3 +147,10 @@ def finding_service(finding):
     if pair:
         return service_for_check(finding["check_id"], *pair, finding.get("service"))
     return canonical_observed_service(finding.get("provider"), finding.get("service"))
+
+
+# Publish lookup functions before network catalog imports can load collectors.
+# Azure collectors use service_for while analysis initializes its provider types.
+from peaso.analysis.network_catalog import NETWORK_SERVICE_LABELS
+for _provider, _labels in NETWORK_SERVICE_LABELS.items():
+    ANALYSIS_KIND_SERVICES[_provider].update(_labels)

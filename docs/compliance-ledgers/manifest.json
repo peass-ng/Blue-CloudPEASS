@@ -2,7 +2,7 @@
   "check_index_sha256": "b79f5bc4c243e40e462bcd63f1eb0b1e2c8dd5cd12410182a57bccbcb6e71c32",
   "description_errata": {
     "path": "descriptions/accepted-base-corrections-20261019.json",
-    "sha256": "b12f49f508b529e79e213fcc4dac94e74acfa619037f244d0089105809b1ae78",
+    "sha256": "3112ad1ad38c37d003d7401ea6464f2e084ddb0c2480a92653feb9e14cc5a5a8",
     "verified": true
   },
   "descriptions": {
@@ -258,12 +258,112 @@
       "path": "native-extensions/provider-images-runtime-20261021.json",
       "sha256": "926cfd9f96df0ef8628bc8a39fcfe10d776d76d2d31544b6dbcb2e5115025e58",
       "verified": true
+    },
+    {
+      "path": "native-extensions/provider-content-images-followup-20261021.json",
+      "sha256": "510eaac8fec1f1f9b17ef9159ef29abb333243a2a441450382a1fa390462a6e8",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/unused-iam-k8s-20261021.json",
+      "sha256": "8a3acf8938d21214728d75006759ccf28a37ed0785f4029761f523d54c5e857d",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/unused-iam-azure-20261021.json",
+      "sha256": "fcbca2b71a6344b998f5da3d8de2c80d15a786fa206d2d2a7387b5cd1ac2be63",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/unused-iam-gcp-20261021.json",
+      "sha256": "68c681b68a4dd32954614772c60b0d72bdae0d37f59a1a318776a5a72d023592",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/unused-iam-gcp-authorization-20261021.json",
+      "sha256": "b59ddf39465d1168450054639c6d841c1d43b790e4f6c0bf552a1df8f2329d4e",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/unused-iam-gcp-directory-20261021.json",
+      "sha256": "64b17babcdbb90b22b0f7bdf7cfaca0eea365a278e16df9349cec56414596399",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/unused-iam-gcp-keys-20261021.json",
+      "sha256": "829c3cab7e7529f209c8badf797f1a6ddfd591b6144b0b8fe5a1b4968131075a",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/unused-iam-gcp-roles-20261021.json",
+      "sha256": "3dca0d7c59f26b88f06af8a718da4dc383aa46f2645b7aec06c91a26da3f244a",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/unused-iam-aws-inline-20261021.json",
+      "sha256": "7c4fe1cccf84b7c5e42841ba39e30feb8ae72419253ea12df384fa8a7d274458",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/unused-iam-azure-roles-20261021.json",
+      "sha256": "c125ceedb43699c8297e4d909e247dbcdfa20aea04866bb6f1bb5678496f8d4e",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/unused-iam-azure-arm-roles-20261021.json",
+      "sha256": "a679d1f496b292e9e75b3cb00ad903dc7f5b67a0491892ebeac06fe601975638",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/unused-iam-aws-completion-20261021.json",
+      "sha256": "b201e0436532e23a0001784508ffd67bda3fdbe8d7f2f31fd925cac2f0384f7b",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/unused-iam-aws-saml-consumers-20261021.json",
+      "sha256": "eb072f88748ec0f45ec081c1b7d1bc33afbbdbbf8a62f82fdefed8f55eedbdfa",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/unused-iam-aws-oidc-consumers-20261021.json",
+      "sha256": "e4748cb8a83136a4f82753b2dabe2d2514c653f805ae86a92e62bdf5256cee47",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/reviewed-gcp-unused-network-check-specs-20261021.json",
+      "sha256": "f2ba7cd385286b5d408caeae13af90920cffc08d09a2be7402c553752c5a038d",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/reviewed-unused-network-provider-specs-20261021.json",
+      "sha256": "204c5a28d2f9c58cc8fa3172a4c945fb9d1a39c19b8046627f257e431f803507",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/reviewed-unused-network-aws-20261021.json",
+      "sha256": "e30a887fa6bbab9f68ba096662a587b428484abefe4910d29b268f7eef24cfa6",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/reviewed-gcp-network-completion-specs-20261021.json",
+      "sha256": "92b1182e1c9cd7e6fe2dba7d93d7b01d3ad53bb4a22d8b962019407af625eae3",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/reviewed-azure-network-completion-specs-20261021.json",
+      "sha256": "a6a9c6941a56b4b785e93aa9a76608a56119993493668c42faa9ce9f6b2d5f45",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/reviewed-k8s-network-completion-specs-20261021.json",
+      "sha256": "e8d542a536827de03a17d667dec6ea0cae1b50a708feba609af34c47be91bd05",
+      "verified": true
     }
   ],
   "new_descriptions": {
     "path": "descriptions/implemented-new-checks.json",
-    "checks": 1013,
-    "sha256": "d14e64e1e0159815f4ae1ea7a460ea3ab90e22157fde492ba2e68396e8386544",
+    "checks": 1062,
+    "sha256": "c2e59e7c360ac6b2b756f1966835a25542ac8c3ad72140f6366ddfa9644b2372",
     "verified": true
   },
   "slices": {

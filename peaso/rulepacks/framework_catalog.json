@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "compliance_source_manifest_sha256": "9bee24013d92976c77d41b3a0f09fb4c1d95a31226bc09a702acf1e2f2bfc88b",
+  "compliance_source_manifest_sha256": "5a3d6db7d83f683aeeb6646bd60e5275e6e8345fdc383be25f30f281da2fc2f2",
   "frameworks": [
     {
       "id": "cis_2.0_alibabacloud",
@@ -7350,6 +7350,7 @@
         "azure.gap.nsg_declared_internet_rdp",
         "azure.gap.nsg_declared_internet_ssh",
         "azure.iam.no_full_custom_role",
+        "azure.iam.static_group_has_members",
         "azure.network.ddos_configured",
         "azure.port.keyvault_with_non_rbac_key_expiration_set",
         "azure.port.redis_cache_in_virtual_network",
@@ -7411,7 +7412,7 @@
         "azure_vm_app_function_identity_is_configured_bdb10d4",
         "azure_vm_monitor_diagnostic_setting_with_appropriate_categories_4e20679"
       ],
-      "supported_native_checks": 96,
+      "supported_native_checks": 97,
       "source_checks": 48,
       "pending_source_checks": 0,
       "manual_requirements": 1,
@@ -7420,10 +7421,10 @@
       "source_supported_native_checks": 47,
       "requirements_total": 1669,
       "requirements_by_status": {
-        "automated": 828,
+        "automated": 826,
         "manual": 71,
         "not_applicable": 466,
-        "partial": 304
+        "partial": 306
       },
       "pending_automatable_requirements": 0,
       "requirement_counts_scope": "reviewed_source_reference",
@@ -8673,6 +8674,13 @@
         "gcp.claude2.api_key.created_within_90_days",
         "gcp.claude2.bigquery_dataset.default_cmek",
         "gcp.gap.iam_user_managed_sa_no_admin_roles",
+        "gcp.iam.api_key_recent_recorded_successful_requests",
+        "gcp.iam.directory_user_recent_recorded_login",
+        "gcp.iam.hmac_key_recent_recorded_successful_requests",
+        "gcp.iam.role_grant_has_observed_permission_use",
+        "gcp.iam.service_account_no_active_unused_insight",
+        "gcp.iam.workforce_pool_has_enabled_provider",
+        "gcp.iam.workload_identity_pool_has_enabled_provider",
         "gcp.ports.bigquery_table_encrypted_with_cmk",
         "gcp.ports.compute_firewall_rule_rdp_access_restricted",
         "gcp.ports.compute_firewall_rule_ssh_access_restricted",
@@ -8689,7 +8697,7 @@
         "gcp.reviewed.sql.postgres_log_connections",
         "gcp.sql.backups"
       ],
-      "supported_native_checks": 31,
+      "supported_native_checks": 38,
       "source_checks": 62,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -8722,6 +8730,7 @@
         "gcp.claude.target_proxy.https_custom_ssl_policy",
         "gcp.claude.target_proxy.https_min_tls_1_2",
         "gcp.claude2.function.not_publicly_accessible",
+        "gcp.iam.static_group_has_members",
         "gcp.ports.compute_firewall_rule_rdp_access_restricted",
         "gcp.ports.compute_firewall_rule_ssh_access_restricted",
         "gcp.review.workbench.public_ip_disabled",
@@ -8753,7 +8762,7 @@
         "gcp_pci_url_map_9ed56c323a05",
         "gcp_sql_instance_sql_instance_does_have_iam_4b5fe00566e6"
       ],
-      "supported_native_checks": 38,
+      "supported_native_checks": 39,
       "source_checks": 59,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -8763,9 +8772,9 @@
       "requirements_total": 1672,
       "requirements_by_status": {
         "automated": 207,
-        "manual": 1341,
+        "manual": 1340,
         "not_applicable": 61,
-        "partial": 63
+        "partial": 64
       },
       "pending_automatable_requirements": 0,
       "requirement_counts_scope": "reviewed_source_reference",
@@ -9857,6 +9866,9 @@
         "k8s.claude.pod.no_host_pid",
         "k8s.claude.pod.no_secret_env",
         "k8s.deployment.no_privileged",
+        "k8s.iam.clusterrole_has_declared_consumers",
+        "k8s.iam.legacy_serviceaccount_token_recently_used",
+        "k8s.iam.role_has_declared_consumers",
         "k8s.pod.no_privileged_containers",
         "k8s.pod.non_root",
         "k8s.pod.read_only_root",
@@ -9891,7 +9903,7 @@
         "k8s_secret_no_deletion_timestamp",
         "k8s_service_service_uses_ftp_endpoint_connection_e9b0a5f836"
       ],
-      "supported_native_checks": 36,
+      "supported_native_checks": 39,
       "source_checks": 32,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -9901,9 +9913,9 @@
       "requirements_total": 1586,
       "requirements_by_status": {
         "automated": 89,
-        "manual": 1229,
+        "manual": 1227,
         "not_applicable": 9,
-        "partial": 259
+        "partial": 261
       },
       "pending_automatable_requirements": 0,
       "requirement_counts_scope": "reviewed_source_reference",

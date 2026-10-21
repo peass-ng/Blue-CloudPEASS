@@ -1,0 +1,1613 @@
+{
+  "gcp.claude.service_account.recently_used": {
+    "pass": {
+      "name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com",
+      "email": "worker@usage-project.iam.gserviceaccount.com",
+      "uniqueId": "123456789012345678901",
+      "disabled": false,
+      "_activity": {
+        "observationStartTime": "2024-01-01T07:00:00Z",
+        "observationEndTime": "2026-10-20T07:00:00Z",
+        "resource_name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com",
+        "activity_type": "serviceAccountLastAuthentication",
+        "project_scope": "projects/usage-project",
+        "lastAuthenticatedTime": "2026-10-19T07:00:00Z",
+        "service_account_id": "123456789012345678901"
+      },
+      "_coverage": {
+        "_activity": {
+          "status": "collected",
+          "source_requests": [
+            "activity-read"
+          ]
+        }
+      },
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "collected_at": "2026-10-21T12:00:00Z",
+        "source_requests": [
+          "identity-read",
+          "activity-read"
+        ]
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "activity-read",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "url": "https://policyanalyzer.googleapis.com/v1/projects/usage-project/locations/global/activityTypes/serviceAccountLastAuthentication/activities:query"
+            },
+            {
+              "id": "insight-read",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "url": "https://recommender.googleapis.com/v1/projects/usage-project/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights"
+            }
+          ]
+        }
+      },
+      "service_account": [
+        {
+          "type": "service_account",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com",
+            "email": "worker@usage-project.iam.gserviceaccount.com",
+            "uniqueId": "123456789012345678901",
+            "disabled": false,
+            "_activity": {
+              "observationStartTime": "2024-01-01T07:00:00Z",
+              "observationEndTime": "2026-10-20T07:00:00Z",
+              "resource_name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com",
+              "activity_type": "serviceAccountLastAuthentication",
+              "project_scope": "projects/usage-project",
+              "lastAuthenticatedTime": "2026-10-19T07:00:00Z",
+              "service_account_id": "123456789012345678901"
+            },
+            "_coverage": {
+              "_activity": {
+                "status": "collected",
+                "source_requests": [
+                  "activity-read"
+                ]
+              }
+            },
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "identity-read",
+                "activity-read"
+              ]
+            }
+          }
+        }
+      ],
+      "service_account_insight": [
+        {
+          "type": "service_account_insight",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights/synthetic",
+            "insightSubtype": "SERVICE_ACCOUNT_USAGE",
+            "category": "SECURITY",
+            "content": {
+              "email": "worker@usage-project.iam.gserviceaccount.com",
+              "serviceAccountId": "123456789012345678901",
+              "lastAuthenticatedTime": "2025-01-01T07:00:00Z"
+            },
+            "lastRefreshTime": "2026-10-20T07:00:00Z",
+            "observationPeriod": "15552000s",
+            "stateInfo": {
+              "state": "ACTIVE"
+            },
+            "targetResources": [
+              "//cloudresourcemanager.googleapis.com/projects/usage-project"
+            ],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "source_requests": [
+                "insight-read"
+              ]
+            }
+          }
+        }
+      ],
+      "collections": {
+        "service_account_insight": [
+          {
+            "type": "service_account_insight",
+            "scope": "projects/usage-project",
+            "service": "recommender",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights/synthetic",
+                "insightSubtype": "SERVICE_ACCOUNT_USAGE",
+                "category": "SECURITY",
+                "content": {
+                  "email": "worker@usage-project.iam.gserviceaccount.com",
+                  "serviceAccountId": "123456789012345678901",
+                  "lastAuthenticatedTime": "2025-01-01T07:00:00Z"
+                },
+                "lastRefreshTime": "2026-10-20T07:00:00Z",
+                "observationPeriod": "15552000s",
+                "stateInfo": {
+                  "state": "ACTIVE"
+                },
+                "targetResources": [
+                  "//cloudresourcemanager.googleapis.com/projects/usage-project"
+                ],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "source_requests": [
+                    "insight-read"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "fail": {
+      "name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com",
+      "email": "worker@usage-project.iam.gserviceaccount.com",
+      "uniqueId": "123456789012345678901",
+      "disabled": false,
+      "_activity": {
+        "observationStartTime": "2024-01-01T07:00:00Z",
+        "observationEndTime": "2026-10-20T07:00:00Z",
+        "resource_name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com",
+        "activity_type": "serviceAccountLastAuthentication",
+        "project_scope": "projects/usage-project",
+        "lastAuthenticatedTime": "2025-01-01T07:00:00Z",
+        "service_account_id": "123456789012345678901"
+      },
+      "_coverage": {
+        "_activity": {
+          "status": "collected",
+          "source_requests": [
+            "activity-read"
+          ]
+        }
+      },
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "collected_at": "2026-10-21T12:00:00Z",
+        "source_requests": [
+          "identity-read",
+          "activity-read"
+        ]
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "activity-read",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "url": "https://policyanalyzer.googleapis.com/v1/projects/usage-project/locations/global/activityTypes/serviceAccountLastAuthentication/activities:query"
+            },
+            {
+              "id": "insight-read",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "url": "https://recommender.googleapis.com/v1/projects/usage-project/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights"
+            }
+          ]
+        }
+      },
+      "service_account": [
+        {
+          "type": "service_account",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com",
+            "email": "worker@usage-project.iam.gserviceaccount.com",
+            "uniqueId": "123456789012345678901",
+            "disabled": false,
+            "_activity": {
+              "observationStartTime": "2024-01-01T07:00:00Z",
+              "observationEndTime": "2026-10-20T07:00:00Z",
+              "resource_name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com",
+              "activity_type": "serviceAccountLastAuthentication",
+              "project_scope": "projects/usage-project",
+              "lastAuthenticatedTime": "2025-01-01T07:00:00Z",
+              "service_account_id": "123456789012345678901"
+            },
+            "_coverage": {
+              "_activity": {
+                "status": "collected",
+                "source_requests": [
+                  "activity-read"
+                ]
+              }
+            },
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "identity-read",
+                "activity-read"
+              ]
+            }
+          }
+        }
+      ],
+      "service_account_insight": [
+        {
+          "type": "service_account_insight",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights/synthetic",
+            "insightSubtype": "SERVICE_ACCOUNT_USAGE",
+            "category": "SECURITY",
+            "content": {
+              "email": "worker@usage-project.iam.gserviceaccount.com",
+              "serviceAccountId": "123456789012345678901",
+              "lastAuthenticatedTime": "2025-01-01T07:00:00Z"
+            },
+            "lastRefreshTime": "2026-10-20T07:00:00Z",
+            "observationPeriod": "15552000s",
+            "stateInfo": {
+              "state": "ACTIVE"
+            },
+            "targetResources": [
+              "//cloudresourcemanager.googleapis.com/projects/usage-project"
+            ],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "source_requests": [
+                "insight-read"
+              ]
+            }
+          }
+        }
+      ],
+      "collections": {
+        "service_account_insight": [
+          {
+            "type": "service_account_insight",
+            "scope": "projects/usage-project",
+            "service": "recommender",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights/synthetic",
+                "insightSubtype": "SERVICE_ACCOUNT_USAGE",
+                "category": "SECURITY",
+                "content": {
+                  "email": "worker@usage-project.iam.gserviceaccount.com",
+                  "serviceAccountId": "123456789012345678901",
+                  "lastAuthenticatedTime": "2025-01-01T07:00:00Z"
+                },
+                "lastRefreshTime": "2026-10-20T07:00:00Z",
+                "observationPeriod": "15552000s",
+                "stateInfo": {
+                  "state": "ACTIVE"
+                },
+                "targetResources": [
+                  "//cloudresourcemanager.googleapis.com/projects/usage-project"
+                ],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "source_requests": [
+                    "insight-read"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "not_applicable": {
+      "name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com",
+      "email": "worker@usage-project.iam.gserviceaccount.com",
+      "uniqueId": "123456789012345678901",
+      "disabled": true,
+      "_activity": {
+        "observationStartTime": "2024-01-01T07:00:00Z",
+        "observationEndTime": "2026-10-20T07:00:00Z",
+        "resource_name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com",
+        "activity_type": "serviceAccountLastAuthentication",
+        "project_scope": "projects/usage-project",
+        "lastAuthenticatedTime": "2026-10-19T07:00:00Z",
+        "service_account_id": "123456789012345678901"
+      },
+      "_coverage": {
+        "_activity": {
+          "status": "collected",
+          "source_requests": [
+            "activity-read"
+          ]
+        }
+      },
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "collected_at": "2026-10-21T12:00:00Z",
+        "source_requests": [
+          "identity-read",
+          "activity-read"
+        ]
+      }
+    },
+    "not_applicable_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "activity-read",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "url": "https://policyanalyzer.googleapis.com/v1/projects/usage-project/locations/global/activityTypes/serviceAccountLastAuthentication/activities:query"
+            },
+            {
+              "id": "insight-read",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "url": "https://recommender.googleapis.com/v1/projects/usage-project/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights"
+            }
+          ]
+        }
+      },
+      "service_account": [
+        {
+          "type": "service_account",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com",
+            "email": "worker@usage-project.iam.gserviceaccount.com",
+            "uniqueId": "123456789012345678901",
+            "disabled": true,
+            "_activity": {
+              "observationStartTime": "2024-01-01T07:00:00Z",
+              "observationEndTime": "2026-10-20T07:00:00Z",
+              "resource_name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com",
+              "activity_type": "serviceAccountLastAuthentication",
+              "project_scope": "projects/usage-project",
+              "lastAuthenticatedTime": "2026-10-19T07:00:00Z",
+              "service_account_id": "123456789012345678901"
+            },
+            "_coverage": {
+              "_activity": {
+                "status": "collected",
+                "source_requests": [
+                  "activity-read"
+                ]
+              }
+            },
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "identity-read",
+                "activity-read"
+              ]
+            }
+          }
+        }
+      ],
+      "service_account_insight": [
+        {
+          "type": "service_account_insight",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights/synthetic",
+            "insightSubtype": "SERVICE_ACCOUNT_USAGE",
+            "category": "SECURITY",
+            "content": {
+              "email": "worker@usage-project.iam.gserviceaccount.com",
+              "serviceAccountId": "123456789012345678901",
+              "lastAuthenticatedTime": "2025-01-01T07:00:00Z"
+            },
+            "lastRefreshTime": "2026-10-20T07:00:00Z",
+            "observationPeriod": "15552000s",
+            "stateInfo": {
+              "state": "ACTIVE"
+            },
+            "targetResources": [
+              "//cloudresourcemanager.googleapis.com/projects/usage-project"
+            ],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "source_requests": [
+                "insight-read"
+              ]
+            }
+          }
+        }
+      ],
+      "collections": {
+        "service_account_insight": [
+          {
+            "type": "service_account_insight",
+            "scope": "projects/usage-project",
+            "service": "recommender",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights/synthetic",
+                "insightSubtype": "SERVICE_ACCOUNT_USAGE",
+                "category": "SECURITY",
+                "content": {
+                  "email": "worker@usage-project.iam.gserviceaccount.com",
+                  "serviceAccountId": "123456789012345678901",
+                  "lastAuthenticatedTime": "2025-01-01T07:00:00Z"
+                },
+                "lastRefreshTime": "2026-10-20T07:00:00Z",
+                "observationPeriod": "15552000s",
+                "stateInfo": {
+                  "state": "ACTIVE"
+                },
+                "targetResources": [
+                  "//cloudresourcemanager.googleapis.com/projects/usage-project"
+                ],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "source_requests": [
+                    "insight-read"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "missing": {},
+    "index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "activity-read",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "url": "https://policyanalyzer.googleapis.com/v1/projects/usage-project/locations/global/activityTypes/serviceAccountLastAuthentication/activities:query"
+            },
+            {
+              "id": "insight-read",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "url": "https://recommender.googleapis.com/v1/projects/usage-project/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights"
+            }
+          ]
+        }
+      },
+      "service_account": [
+        {
+          "type": "service_account",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com",
+            "email": "worker@usage-project.iam.gserviceaccount.com",
+            "uniqueId": "123456789012345678901",
+            "disabled": false,
+            "_activity": {
+              "observationStartTime": "2024-01-01T07:00:00Z",
+              "observationEndTime": "2026-10-20T07:00:00Z",
+              "resource_name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com",
+              "activity_type": "serviceAccountLastAuthentication",
+              "project_scope": "projects/usage-project",
+              "lastAuthenticatedTime": "2025-01-01T07:00:00Z",
+              "service_account_id": "123456789012345678901"
+            },
+            "_coverage": {
+              "_activity": {
+                "status": "collected",
+                "source_requests": [
+                  "activity-read"
+                ]
+              }
+            },
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "identity-read",
+                "activity-read"
+              ]
+            }
+          }
+        }
+      ],
+      "service_account_insight": [
+        {
+          "type": "service_account_insight",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights/synthetic",
+            "insightSubtype": "SERVICE_ACCOUNT_USAGE",
+            "category": "SECURITY",
+            "content": {
+              "email": "worker@usage-project.iam.gserviceaccount.com",
+              "serviceAccountId": "123456789012345678901",
+              "lastAuthenticatedTime": "2025-01-01T07:00:00Z"
+            },
+            "lastRefreshTime": "2026-10-20T07:00:00Z",
+            "observationPeriod": "15552000s",
+            "stateInfo": {
+              "state": "ACTIVE"
+            },
+            "targetResources": [
+              "//cloudresourcemanager.googleapis.com/projects/usage-project"
+            ],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "source_requests": [
+                "insight-read"
+              ]
+            }
+          }
+        }
+      ],
+      "collections": {
+        "service_account_insight": [
+          {
+            "type": "service_account_insight",
+            "scope": "projects/usage-project",
+            "service": "recommender",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights/synthetic",
+                "insightSubtype": "SERVICE_ACCOUNT_USAGE",
+                "category": "SECURITY",
+                "content": {
+                  "email": "worker@usage-project.iam.gserviceaccount.com",
+                  "serviceAccountId": "123456789012345678901",
+                  "lastAuthenticatedTime": "2025-01-01T07:00:00Z"
+                },
+                "lastRefreshTime": "2026-10-20T07:00:00Z",
+                "observationPeriod": "15552000s",
+                "stateInfo": {
+                  "state": "ACTIVE"
+                },
+                "targetResources": [
+                  "//cloudresourcemanager.googleapis.com/projects/usage-project"
+                ],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "source_requests": [
+                    "insight-read"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "gcp.claude.service_account_key.recently_used": {
+    "pass": {
+      "name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com/keys/synthetic-key",
+      "email": "worker@usage-project.iam.gserviceaccount.com",
+      "uniqueId": "123456789012345678901",
+      "disabled": false,
+      "_activity": {
+        "observationStartTime": "2024-01-01T07:00:00Z",
+        "observationEndTime": "2026-10-20T07:00:00Z",
+        "resource_name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com/keys/synthetic-key",
+        "activity_type": "serviceAccountKeyLastAuthentication",
+        "project_scope": "projects/usage-project",
+        "lastAuthenticatedTime": "2026-10-19T07:00:00Z"
+      },
+      "_coverage": {
+        "_activity": {
+          "status": "collected",
+          "source_requests": [
+            "activity-read"
+          ]
+        }
+      },
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "collected_at": "2026-10-21T12:00:00Z",
+        "source_requests": [
+          "identity-read",
+          "activity-read"
+        ]
+      },
+      "keyType": "USER_MANAGED",
+      "validAfterTime": "2024-01-01T07:00:00Z"
+    },
+    "pass_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "activity-read",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "url": "https://policyanalyzer.googleapis.com/v1/projects/usage-project/locations/global/activityTypes/serviceAccountKeyLastAuthentication/activities:query"
+            },
+            {
+              "id": "insight-read",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "url": "https://recommender.googleapis.com/v1/projects/usage-project/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights"
+            }
+          ]
+        }
+      },
+      "service_account_key": [
+        {
+          "type": "service_account_key",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com/keys/synthetic-key",
+            "email": "worker@usage-project.iam.gserviceaccount.com",
+            "uniqueId": "123456789012345678901",
+            "disabled": false,
+            "_activity": {
+              "observationStartTime": "2024-01-01T07:00:00Z",
+              "observationEndTime": "2026-10-20T07:00:00Z",
+              "resource_name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com/keys/synthetic-key",
+              "activity_type": "serviceAccountKeyLastAuthentication",
+              "project_scope": "projects/usage-project",
+              "lastAuthenticatedTime": "2026-10-19T07:00:00Z"
+            },
+            "_coverage": {
+              "_activity": {
+                "status": "collected",
+                "source_requests": [
+                  "activity-read"
+                ]
+              }
+            },
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "identity-read",
+                "activity-read"
+              ]
+            },
+            "keyType": "USER_MANAGED",
+            "validAfterTime": "2024-01-01T07:00:00Z"
+          }
+        }
+      ],
+      "service_account_insight": [
+        {
+          "type": "service_account_insight",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights/synthetic",
+            "insightSubtype": "SERVICE_ACCOUNT_USAGE",
+            "category": "SECURITY",
+            "content": {
+              "email": "worker@usage-project.iam.gserviceaccount.com",
+              "serviceAccountId": "123456789012345678901",
+              "lastAuthenticatedTime": "2025-01-01T07:00:00Z"
+            },
+            "lastRefreshTime": "2026-10-20T07:00:00Z",
+            "observationPeriod": "15552000s",
+            "stateInfo": {
+              "state": "ACTIVE"
+            },
+            "targetResources": [
+              "//cloudresourcemanager.googleapis.com/projects/usage-project"
+            ],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "source_requests": [
+                "insight-read"
+              ]
+            }
+          }
+        }
+      ],
+      "collections": {
+        "service_account_insight": [
+          {
+            "type": "service_account_insight",
+            "scope": "projects/usage-project",
+            "service": "recommender",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights/synthetic",
+                "insightSubtype": "SERVICE_ACCOUNT_USAGE",
+                "category": "SECURITY",
+                "content": {
+                  "email": "worker@usage-project.iam.gserviceaccount.com",
+                  "serviceAccountId": "123456789012345678901",
+                  "lastAuthenticatedTime": "2025-01-01T07:00:00Z"
+                },
+                "lastRefreshTime": "2026-10-20T07:00:00Z",
+                "observationPeriod": "15552000s",
+                "stateInfo": {
+                  "state": "ACTIVE"
+                },
+                "targetResources": [
+                  "//cloudresourcemanager.googleapis.com/projects/usage-project"
+                ],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "source_requests": [
+                    "insight-read"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "fail": {
+      "name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com/keys/synthetic-key",
+      "email": "worker@usage-project.iam.gserviceaccount.com",
+      "uniqueId": "123456789012345678901",
+      "disabled": false,
+      "_activity": {
+        "observationStartTime": "2024-01-01T07:00:00Z",
+        "observationEndTime": "2026-10-20T07:00:00Z",
+        "resource_name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com/keys/synthetic-key",
+        "activity_type": "serviceAccountKeyLastAuthentication",
+        "project_scope": "projects/usage-project",
+        "lastAuthenticatedTime": "2025-01-01T07:00:00Z"
+      },
+      "_coverage": {
+        "_activity": {
+          "status": "collected",
+          "source_requests": [
+            "activity-read"
+          ]
+        }
+      },
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "collected_at": "2026-10-21T12:00:00Z",
+        "source_requests": [
+          "identity-read",
+          "activity-read"
+        ]
+      },
+      "keyType": "USER_MANAGED",
+      "validAfterTime": "2024-01-01T07:00:00Z"
+    },
+    "fail_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "activity-read",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "url": "https://policyanalyzer.googleapis.com/v1/projects/usage-project/locations/global/activityTypes/serviceAccountKeyLastAuthentication/activities:query"
+            },
+            {
+              "id": "insight-read",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "url": "https://recommender.googleapis.com/v1/projects/usage-project/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights"
+            }
+          ]
+        }
+      },
+      "service_account_key": [
+        {
+          "type": "service_account_key",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com/keys/synthetic-key",
+            "email": "worker@usage-project.iam.gserviceaccount.com",
+            "uniqueId": "123456789012345678901",
+            "disabled": false,
+            "_activity": {
+              "observationStartTime": "2024-01-01T07:00:00Z",
+              "observationEndTime": "2026-10-20T07:00:00Z",
+              "resource_name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com/keys/synthetic-key",
+              "activity_type": "serviceAccountKeyLastAuthentication",
+              "project_scope": "projects/usage-project",
+              "lastAuthenticatedTime": "2025-01-01T07:00:00Z"
+            },
+            "_coverage": {
+              "_activity": {
+                "status": "collected",
+                "source_requests": [
+                  "activity-read"
+                ]
+              }
+            },
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "identity-read",
+                "activity-read"
+              ]
+            },
+            "keyType": "USER_MANAGED",
+            "validAfterTime": "2024-01-01T07:00:00Z"
+          }
+        }
+      ],
+      "service_account_insight": [
+        {
+          "type": "service_account_insight",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights/synthetic",
+            "insightSubtype": "SERVICE_ACCOUNT_USAGE",
+            "category": "SECURITY",
+            "content": {
+              "email": "worker@usage-project.iam.gserviceaccount.com",
+              "serviceAccountId": "123456789012345678901",
+              "lastAuthenticatedTime": "2025-01-01T07:00:00Z"
+            },
+            "lastRefreshTime": "2026-10-20T07:00:00Z",
+            "observationPeriod": "15552000s",
+            "stateInfo": {
+              "state": "ACTIVE"
+            },
+            "targetResources": [
+              "//cloudresourcemanager.googleapis.com/projects/usage-project"
+            ],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "source_requests": [
+                "insight-read"
+              ]
+            }
+          }
+        }
+      ],
+      "collections": {
+        "service_account_insight": [
+          {
+            "type": "service_account_insight",
+            "scope": "projects/usage-project",
+            "service": "recommender",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights/synthetic",
+                "insightSubtype": "SERVICE_ACCOUNT_USAGE",
+                "category": "SECURITY",
+                "content": {
+                  "email": "worker@usage-project.iam.gserviceaccount.com",
+                  "serviceAccountId": "123456789012345678901",
+                  "lastAuthenticatedTime": "2025-01-01T07:00:00Z"
+                },
+                "lastRefreshTime": "2026-10-20T07:00:00Z",
+                "observationPeriod": "15552000s",
+                "stateInfo": {
+                  "state": "ACTIVE"
+                },
+                "targetResources": [
+                  "//cloudresourcemanager.googleapis.com/projects/usage-project"
+                ],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "source_requests": [
+                    "insight-read"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "not_applicable": {
+      "name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com/keys/synthetic-key",
+      "email": "worker@usage-project.iam.gserviceaccount.com",
+      "uniqueId": "123456789012345678901",
+      "disabled": true,
+      "_activity": {
+        "observationStartTime": "2024-01-01T07:00:00Z",
+        "observationEndTime": "2026-10-20T07:00:00Z",
+        "resource_name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com/keys/synthetic-key",
+        "activity_type": "serviceAccountKeyLastAuthentication",
+        "project_scope": "projects/usage-project",
+        "lastAuthenticatedTime": "2026-10-19T07:00:00Z"
+      },
+      "_coverage": {
+        "_activity": {
+          "status": "collected",
+          "source_requests": [
+            "activity-read"
+          ]
+        }
+      },
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "collected_at": "2026-10-21T12:00:00Z",
+        "source_requests": [
+          "identity-read",
+          "activity-read"
+        ]
+      },
+      "keyType": "USER_MANAGED",
+      "validAfterTime": "2024-01-01T07:00:00Z"
+    },
+    "not_applicable_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "activity-read",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "url": "https://policyanalyzer.googleapis.com/v1/projects/usage-project/locations/global/activityTypes/serviceAccountKeyLastAuthentication/activities:query"
+            },
+            {
+              "id": "insight-read",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "url": "https://recommender.googleapis.com/v1/projects/usage-project/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights"
+            }
+          ]
+        }
+      },
+      "service_account_key": [
+        {
+          "type": "service_account_key",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com/keys/synthetic-key",
+            "email": "worker@usage-project.iam.gserviceaccount.com",
+            "uniqueId": "123456789012345678901",
+            "disabled": true,
+            "_activity": {
+              "observationStartTime": "2024-01-01T07:00:00Z",
+              "observationEndTime": "2026-10-20T07:00:00Z",
+              "resource_name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com/keys/synthetic-key",
+              "activity_type": "serviceAccountKeyLastAuthentication",
+              "project_scope": "projects/usage-project",
+              "lastAuthenticatedTime": "2026-10-19T07:00:00Z"
+            },
+            "_coverage": {
+              "_activity": {
+                "status": "collected",
+                "source_requests": [
+                  "activity-read"
+                ]
+              }
+            },
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "identity-read",
+                "activity-read"
+              ]
+            },
+            "keyType": "USER_MANAGED",
+            "validAfterTime": "2024-01-01T07:00:00Z"
+          }
+        }
+      ],
+      "service_account_insight": [
+        {
+          "type": "service_account_insight",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights/synthetic",
+            "insightSubtype": "SERVICE_ACCOUNT_USAGE",
+            "category": "SECURITY",
+            "content": {
+              "email": "worker@usage-project.iam.gserviceaccount.com",
+              "serviceAccountId": "123456789012345678901",
+              "lastAuthenticatedTime": "2025-01-01T07:00:00Z"
+            },
+            "lastRefreshTime": "2026-10-20T07:00:00Z",
+            "observationPeriod": "15552000s",
+            "stateInfo": {
+              "state": "ACTIVE"
+            },
+            "targetResources": [
+              "//cloudresourcemanager.googleapis.com/projects/usage-project"
+            ],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "source_requests": [
+                "insight-read"
+              ]
+            }
+          }
+        }
+      ],
+      "collections": {
+        "service_account_insight": [
+          {
+            "type": "service_account_insight",
+            "scope": "projects/usage-project",
+            "service": "recommender",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights/synthetic",
+                "insightSubtype": "SERVICE_ACCOUNT_USAGE",
+                "category": "SECURITY",
+                "content": {
+                  "email": "worker@usage-project.iam.gserviceaccount.com",
+                  "serviceAccountId": "123456789012345678901",
+                  "lastAuthenticatedTime": "2025-01-01T07:00:00Z"
+                },
+                "lastRefreshTime": "2026-10-20T07:00:00Z",
+                "observationPeriod": "15552000s",
+                "stateInfo": {
+                  "state": "ACTIVE"
+                },
+                "targetResources": [
+                  "//cloudresourcemanager.googleapis.com/projects/usage-project"
+                ],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "source_requests": [
+                    "insight-read"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "missing": {},
+    "index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "activity-read",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "url": "https://policyanalyzer.googleapis.com/v1/projects/usage-project/locations/global/activityTypes/serviceAccountKeyLastAuthentication/activities:query"
+            },
+            {
+              "id": "insight-read",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "url": "https://recommender.googleapis.com/v1/projects/usage-project/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights"
+            }
+          ]
+        }
+      },
+      "service_account_key": [
+        {
+          "type": "service_account_key",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com/keys/synthetic-key",
+            "email": "worker@usage-project.iam.gserviceaccount.com",
+            "uniqueId": "123456789012345678901",
+            "disabled": false,
+            "_activity": {
+              "observationStartTime": "2024-01-01T07:00:00Z",
+              "observationEndTime": "2026-10-20T07:00:00Z",
+              "resource_name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com/keys/synthetic-key",
+              "activity_type": "serviceAccountKeyLastAuthentication",
+              "project_scope": "projects/usage-project",
+              "lastAuthenticatedTime": "2025-01-01T07:00:00Z"
+            },
+            "_coverage": {
+              "_activity": {
+                "status": "collected",
+                "source_requests": [
+                  "activity-read"
+                ]
+              }
+            },
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "identity-read",
+                "activity-read"
+              ]
+            },
+            "keyType": "USER_MANAGED",
+            "validAfterTime": "2024-01-01T07:00:00Z"
+          }
+        }
+      ],
+      "service_account_insight": [
+        {
+          "type": "service_account_insight",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights/synthetic",
+            "insightSubtype": "SERVICE_ACCOUNT_USAGE",
+            "category": "SECURITY",
+            "content": {
+              "email": "worker@usage-project.iam.gserviceaccount.com",
+              "serviceAccountId": "123456789012345678901",
+              "lastAuthenticatedTime": "2025-01-01T07:00:00Z"
+            },
+            "lastRefreshTime": "2026-10-20T07:00:00Z",
+            "observationPeriod": "15552000s",
+            "stateInfo": {
+              "state": "ACTIVE"
+            },
+            "targetResources": [
+              "//cloudresourcemanager.googleapis.com/projects/usage-project"
+            ],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "source_requests": [
+                "insight-read"
+              ]
+            }
+          }
+        }
+      ],
+      "collections": {
+        "service_account_insight": [
+          {
+            "type": "service_account_insight",
+            "scope": "projects/usage-project",
+            "service": "recommender",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights/synthetic",
+                "insightSubtype": "SERVICE_ACCOUNT_USAGE",
+                "category": "SECURITY",
+                "content": {
+                  "email": "worker@usage-project.iam.gserviceaccount.com",
+                  "serviceAccountId": "123456789012345678901",
+                  "lastAuthenticatedTime": "2025-01-01T07:00:00Z"
+                },
+                "lastRefreshTime": "2026-10-20T07:00:00Z",
+                "observationPeriod": "15552000s",
+                "stateInfo": {
+                  "state": "ACTIVE"
+                },
+                "targetResources": [
+                  "//cloudresourcemanager.googleapis.com/projects/usage-project"
+                ],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "source_requests": [
+                    "insight-read"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "gcp.iam.service_account_no_active_unused_insight": {
+    "pass": {
+      "name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com",
+      "email": "worker@usage-project.iam.gserviceaccount.com",
+      "uniqueId": "123456789012345678901",
+      "disabled": false,
+      "_activity": {
+        "observationStartTime": "2024-01-01T07:00:00Z",
+        "observationEndTime": "2026-10-20T07:00:00Z",
+        "resource_name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com",
+        "activity_type": "serviceAccountLastAuthentication",
+        "project_scope": "projects/usage-project",
+        "service_account_id": "123456789012345678901"
+      },
+      "_coverage": {
+        "_activity": {
+          "status": "collected",
+          "source_requests": [
+            "activity-read"
+          ]
+        }
+      },
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "collected_at": "2026-10-21T12:00:00Z",
+        "source_requests": [
+          "identity-read",
+          "activity-read"
+        ]
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "activity-read",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "url": "https://policyanalyzer.googleapis.com/v1/projects/usage-project/locations/global/activityTypes/serviceAccountLastAuthentication/activities:query"
+            },
+            {
+              "id": "insight-read",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "url": "https://recommender.googleapis.com/v1/projects/usage-project/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights"
+            }
+          ]
+        }
+      },
+      "service_account": [
+        {
+          "type": "service_account",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com",
+            "email": "worker@usage-project.iam.gserviceaccount.com",
+            "uniqueId": "123456789012345678901",
+            "disabled": false,
+            "_activity": {
+              "observationStartTime": "2024-01-01T07:00:00Z",
+              "observationEndTime": "2026-10-20T07:00:00Z",
+              "resource_name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com",
+              "activity_type": "serviceAccountLastAuthentication",
+              "project_scope": "projects/usage-project",
+              "service_account_id": "123456789012345678901"
+            },
+            "_coverage": {
+              "_activity": {
+                "status": "collected",
+                "source_requests": [
+                  "activity-read"
+                ]
+              }
+            },
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "identity-read",
+                "activity-read"
+              ]
+            }
+          }
+        }
+      ],
+      "service_account_insight": [],
+      "collections": {
+        "service_account_insight": [
+          {
+            "type": "service_account_insight",
+            "scope": "projects/usage-project",
+            "service": "recommender",
+            "status": "empty",
+            "items": []
+          }
+        ]
+      }
+    },
+    "fail": {
+      "name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com",
+      "email": "worker@usage-project.iam.gserviceaccount.com",
+      "uniqueId": "123456789012345678901",
+      "disabled": false,
+      "_activity": {
+        "observationStartTime": "2024-01-01T07:00:00Z",
+        "observationEndTime": "2026-10-20T07:00:00Z",
+        "resource_name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com",
+        "activity_type": "serviceAccountLastAuthentication",
+        "project_scope": "projects/usage-project",
+        "service_account_id": "123456789012345678901"
+      },
+      "_coverage": {
+        "_activity": {
+          "status": "collected",
+          "source_requests": [
+            "activity-read"
+          ]
+        }
+      },
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "collected_at": "2026-10-21T12:00:00Z",
+        "source_requests": [
+          "identity-read",
+          "activity-read"
+        ]
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "activity-read",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "url": "https://policyanalyzer.googleapis.com/v1/projects/usage-project/locations/global/activityTypes/serviceAccountLastAuthentication/activities:query"
+            },
+            {
+              "id": "insight-read",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "url": "https://recommender.googleapis.com/v1/projects/usage-project/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights"
+            }
+          ]
+        }
+      },
+      "service_account": [
+        {
+          "type": "service_account",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com",
+            "email": "worker@usage-project.iam.gserviceaccount.com",
+            "uniqueId": "123456789012345678901",
+            "disabled": false,
+            "_activity": {
+              "observationStartTime": "2024-01-01T07:00:00Z",
+              "observationEndTime": "2026-10-20T07:00:00Z",
+              "resource_name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com",
+              "activity_type": "serviceAccountLastAuthentication",
+              "project_scope": "projects/usage-project",
+              "service_account_id": "123456789012345678901"
+            },
+            "_coverage": {
+              "_activity": {
+                "status": "collected",
+                "source_requests": [
+                  "activity-read"
+                ]
+              }
+            },
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "identity-read",
+                "activity-read"
+              ]
+            }
+          }
+        }
+      ],
+      "service_account_insight": [
+        {
+          "type": "service_account_insight",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights/synthetic",
+            "insightSubtype": "SERVICE_ACCOUNT_USAGE",
+            "category": "SECURITY",
+            "content": {
+              "email": "worker@usage-project.iam.gserviceaccount.com",
+              "serviceAccountId": "123456789012345678901"
+            },
+            "lastRefreshTime": "2026-10-20T07:00:00Z",
+            "observationPeriod": "15552000s",
+            "stateInfo": {
+              "state": "ACTIVE"
+            },
+            "targetResources": [
+              "//cloudresourcemanager.googleapis.com/projects/usage-project"
+            ],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "source_requests": [
+                "insight-read"
+              ]
+            }
+          }
+        }
+      ],
+      "collections": {
+        "service_account_insight": [
+          {
+            "type": "service_account_insight",
+            "scope": "projects/usage-project",
+            "service": "recommender",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights/synthetic",
+                "insightSubtype": "SERVICE_ACCOUNT_USAGE",
+                "category": "SECURITY",
+                "content": {
+                  "email": "worker@usage-project.iam.gserviceaccount.com",
+                  "serviceAccountId": "123456789012345678901"
+                },
+                "lastRefreshTime": "2026-10-20T07:00:00Z",
+                "observationPeriod": "15552000s",
+                "stateInfo": {
+                  "state": "ACTIVE"
+                },
+                "targetResources": [
+                  "//cloudresourcemanager.googleapis.com/projects/usage-project"
+                ],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "source_requests": [
+                    "insight-read"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "missing": {},
+    "index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "activity-read",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "url": "https://policyanalyzer.googleapis.com/v1/projects/usage-project/locations/global/activityTypes/serviceAccountLastAuthentication/activities:query"
+            },
+            {
+              "id": "insight-read",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "url": "https://recommender.googleapis.com/v1/projects/usage-project/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights"
+            }
+          ]
+        }
+      },
+      "service_account": [
+        {
+          "type": "service_account",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com",
+            "email": "worker@usage-project.iam.gserviceaccount.com",
+            "uniqueId": "123456789012345678901",
+            "disabled": false,
+            "_activity": {
+              "observationStartTime": "2024-01-01T07:00:00Z",
+              "observationEndTime": "2026-10-20T07:00:00Z",
+              "resource_name": "projects/usage-project/serviceAccounts/worker@usage-project.iam.gserviceaccount.com",
+              "activity_type": "serviceAccountLastAuthentication",
+              "project_scope": "projects/usage-project",
+              "service_account_id": "123456789012345678901"
+            },
+            "_coverage": {
+              "_activity": {
+                "status": "collected",
+                "source_requests": [
+                  "activity-read"
+                ]
+              }
+            },
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "identity-read",
+                "activity-read"
+              ]
+            }
+          }
+        }
+      ],
+      "service_account_insight": [
+        {
+          "type": "service_account_insight",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights/synthetic",
+            "insightSubtype": "SERVICE_ACCOUNT_USAGE",
+            "category": "SECURITY",
+            "content": {
+              "email": "worker@usage-project.iam.gserviceaccount.com",
+              "serviceAccountId": "123456789012345678901",
+              "lastAuthenticatedTime": "2025-01-01T07:00:00Z"
+            },
+            "lastRefreshTime": "2026-10-20T07:00:00Z",
+            "observationPeriod": "15552000s",
+            "stateInfo": {
+              "state": "ACTIVE"
+            },
+            "targetResources": [
+              "//cloudresourcemanager.googleapis.com/projects/usage-project"
+            ],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "source_requests": [
+                "insight-read"
+              ]
+            }
+          }
+        }
+      ],
+      "collections": {
+        "service_account_insight": [
+          {
+            "type": "service_account_insight",
+            "scope": "projects/usage-project",
+            "service": "recommender",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project/locations/global/insightTypes/google.iam.serviceAccount.Insight/insights/synthetic",
+                "insightSubtype": "SERVICE_ACCOUNT_USAGE",
+                "category": "SECURITY",
+                "content": {
+                  "email": "worker@usage-project.iam.gserviceaccount.com",
+                  "serviceAccountId": "123456789012345678901",
+                  "lastAuthenticatedTime": "2025-01-01T07:00:00Z"
+                },
+                "lastRefreshTime": "2026-10-20T07:00:00Z",
+                "observationPeriod": "15552000s",
+                "stateInfo": {
+                  "state": "ACTIVE"
+                },
+                "targetResources": [
+                  "//cloudresourcemanager.googleapis.com/projects/usage-project"
+                ],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "source_requests": [
+                    "insight-read"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

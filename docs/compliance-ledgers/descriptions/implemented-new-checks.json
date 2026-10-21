@@ -6053,7 +6053,7 @@
   "azure.other.monitor_alert_ack_authorization": {
     "description": "Checks effective Azure Monitor alert-management permissions against an approved responder list. Complete scoped evidence is required; unavailable native projections or omitted operator inputs remain UNKNOWN. Signed check: azure.other.monitor_alert_ack_authorization.",
     "evaluated": [
-      "Paged ARM Microsoft.Authorization/roleAssignments and roleDefinitions at alert scopes and ancestors, including actions/notActions, conditions, transitive groups and PIM. Resolve Microsoft.AlertsManagement/alerts/changeState/action or relevant alert-management action and approvedResponders. For alerts acknowledged in Sentinel/ITSM, obtain that system’s effective permissions and audit events.",
+      "Paged ARM Microsoft.Authorization/roleAssignments and roleDefinitions at alert scopes and ancestors, including actions/notActions, conditions, transitive groups and PIM. Resolve Microsoft.AlertsManagement/alerts/changeState/action or relevant alert-management action and approvedResponders. For alerts acknowledged in Sentinel/ITSM, obtain that system\u2019s effective permissions and audit events.",
       "Complete inventories: action_group"
     ],
     "fail_when": "Complete evidence conclusively violates the signed predicate: For each in-scope alert workflow, FAIL if a concrete unapproved effective principal can change state, silence or acknowledge an alert. PASS only if all effective principals with the actual acknowledgment/silence action, including inherited and external-system access, are approvedResponders. UNKNOWN if action mapping, scopes, groups, PIM, conditions, external workflow or inventory is unresolved; generic alert write permission alone is not proof of acknowledgement authority.",
@@ -6269,6 +6269,18 @@
     "not_applicable_when": null,
     "pass_when": "Complete evidence satisfies the signed predicate: For every configured peering returned by complete child peering LIST pages, compare properties.remoteVirtualNetwork.id with approved peer ARM IDs. FAIL for a configured unapproved target or a successful controlled request to an unapproved peer. PASS for the frozen request-time prevention rule only when an enforced deny policy or controlled rejected request proves unapproved peering requests are blocked and complete current configuration has no unapproved peerings. UNKNOWN for missing remote ID, policy, deny enforcement or pages; current configuration alone is PARTIAL.",
     "proposed_spec_sha256": "d2cb0b28f63bddb9d4f7a42cef4c4ff2af3383d651d2b2c0dda126d655d0c95b"
+  },
+  "azure.review.acr.selected_image_high_critical_vulnerabilities": {
+    "description": "Reviews an explicitly selected immutable ACR image with an offline package vulnerability database. Verified HIGH or CRITICAL findings remain visible when scan coverage is incomplete; a clean result requires a fresh complete scan. The selected digest does not prove a workload runs the image or that a finding is exploitable.",
+    "evaluated": [
+      "exact selected registry and repository pull identity",
+      "verified manifest, config, compressed layer and rootfs digests",
+      "complete offline Trivy HIGH and CRITICAL package findings"
+    ],
+    "fail_when": "The bound image has at least one typed HIGH or CRITICAL finding, including when scan coverage is incomplete.",
+    "not_applicable_when": null,
+    "pass_when": "The bound image and fresh complete scan have no HIGH or CRITICAL findings.",
+    "proposed_spec_sha256": "381bdc2b78e1859089615959f1d6441a235296a5f485b81428c54619dcbbd8c6"
   },
   "azure.review.acr.selected_image_secret_indicators": {
     "description": "Inspect only explicitly selected immutable ACR images with both offline detectors after binding native registry identity, repository pull authorization and content digests. Only selected image content is assessed, with detected values hidden and repeated leaks merged.",
@@ -6821,7 +6833,7 @@
     "proposed_spec_sha256": "975ca416ea9047612ec6b2f0eb6269b6cac001b82c30c61bd6cd254174eb3683"
   },
   "azure_application_gateway_app_ensure_http_is_redirected_to_https_e598c17": {
-    "description": "Each applicable HTTPS listener uses the frozen requirement’s approved predefined SSL policy. Complete scoped evidence is required; unavailable native projections or omitted operator inputs remain UNKNOWN. Signed check: azure_application_gateway_app_ensure_http_is_redirected_to_https_e598c17.",
+    "description": "Each applicable HTTPS listener uses the frozen requirement\u2019s approved predefined SSL policy. Complete scoped evidence is required; unavailable native projections or omitted operator inputs remain UNKNOWN. Signed check: azure_application_gateway_app_ensure_http_is_redirected_to_https_e598c17.",
     "evaluated": [
       "Paged Application Gateway and Front Door inventory; Application Gateway GET listener sslProfileId, gateway properties.sslPolicy and sslProfiles[].properties.sslPolicy; Front Door GET frontend endpoint HTTPS/TLS policy settings; policy-approved predefinedPolicyName values.",
       "Complete inventories: application_gateway_and_frontdoor"
@@ -7387,9 +7399,9 @@
       "Existing azure.py sql_server and mysql/postgresql flexible server items, sql_firewall_rule child for SQL only; new paged firewallRules list per MySQL/PostgreSQL server using each provider API; properties.startIpAddress/endIpAddress IPv4 strings.",
       "Complete inventories: sql_server, mysql_flexible_server, postgresql_flexible_server"
     ],
-    "fail_when": "Complete evidence conclusively violates the signed predicate: For every SQL, MySQL and PostgreSQL server, evaluate all child firewall rules against the frozen rule: custom non-default rules that allow unrestricted inbound access fail. FAIL on a measured custom rule spanning the public IPv4 range, and evaluate Azure-services 0.0.0.0 sentinel separately against the rule’s approved-source policy. PASS only when all paged child lists and effective public-access settings are complete and no unrestricted custom rule exists. UNKNOWN for absent lists, malformed IPs, unresolved default-rule classification, approved-source policy or unsupported server generation. No servers is NOT_APPLICABLE.",
+    "fail_when": "Complete evidence conclusively violates the signed predicate: For every SQL, MySQL and PostgreSQL server, evaluate all child firewall rules against the frozen rule: custom non-default rules that allow unrestricted inbound access fail. FAIL on a measured custom rule spanning the public IPv4 range, and evaluate Azure-services 0.0.0.0 sentinel separately against the rule\u2019s approved-source policy. PASS only when all paged child lists and effective public-access settings are complete and no unrestricted custom rule exists. UNKNOWN for absent lists, malformed IPs, unresolved default-rule classification, approved-source policy or unsupported server generation. No servers is NOT_APPLICABLE.",
     "not_applicable_when": null,
-    "pass_when": "Complete evidence satisfies the signed predicate: For every SQL, MySQL and PostgreSQL server, evaluate all child firewall rules against the frozen rule: custom non-default rules that allow unrestricted inbound access fail. FAIL on a measured custom rule spanning the public IPv4 range, and evaluate Azure-services 0.0.0.0 sentinel separately against the rule’s approved-source policy. PASS only when all paged child lists and effective public-access settings are complete and no unrestricted custom rule exists. UNKNOWN for absent lists, malformed IPs, unresolved default-rule classification, approved-source policy or unsupported server generation. No servers is NOT_APPLICABLE.",
+    "pass_when": "Complete evidence satisfies the signed predicate: For every SQL, MySQL and PostgreSQL server, evaluate all child firewall rules against the frozen rule: custom non-default rules that allow unrestricted inbound access fail. FAIL on a measured custom rule spanning the public IPv4 range, and evaluate Azure-services 0.0.0.0 sentinel separately against the rule\u2019s approved-source policy. PASS only when all paged child lists and effective public-access settings are complete and no unrestricted custom rule exists. UNKNOWN for absent lists, malformed IPs, unresolved default-rule classification, approved-source policy or unsupported server generation. No servers is NOT_APPLICABLE.",
     "proposed_spec_sha256": "c736ee942c8e94b6d35517be09be88e252e47a8e30ae2a605971d10e5a0ccec4"
   },
   "azure_frontdoor_1_2_5_4_ccc7b8f": {
@@ -8423,6 +8435,18 @@
     "pass_when": "Both offline detectors complete without a supported match in this explicitly selected supported content.",
     "proposed_spec_sha256": "5729b92f59a387dace5cdeed2d21ee8cedf87b362d135447c8d7ef5f7df65131"
   },
+  "gcp.review.artifact_image.selected_image_vulnerabilities": {
+    "description": "Reads a selected immutable registry image and scans its verified layers with Trivy.",
+    "evaluated": [
+      "native project, repository and DockerImage identity before and after download",
+      "manifest, config, compressed layer and rootfs digests",
+      "fresh complete offline HIGH and CRITICAL package findings"
+    ],
+    "fail_when": "The bound image has at least one typed HIGH or CRITICAL package finding.",
+    "not_applicable_when": null,
+    "pass_when": "The selected image has no HIGH or CRITICAL findings in a fresh complete scan.",
+    "proposed_spec_sha256": "53313b2e52a935f3e3debb120b45ce8cb8bca1d6d212d246e330969c23a5f46d"
+  },
   "gcp.review.artifactregistry.selected_file_secret_indicators": {
     "description": "Uses offline Kingfisher and TruffleHog to inspect only the explicitly selected supported content: Exact selected Artifact Registry package file verified against native SHA256 metadata selected expected digest and downloaded bytes; bounded UTF8 or archive text members. It retains redacted fingerprints and locations, never raw values; a negative is limited to inspected content.",
     "evaluated": [
@@ -8512,7 +8536,7 @@
     "proposed_spec_sha256": "af2f4d6eea601579f1703892916e07aee53cb523b643ea4a2117cc6942aa980d"
   },
   "gcp.review.cloudbuild_build.literal_configuration_secret_indicators": {
-    "description": "Scans this resource’s returned literal configuration (substitutions, options.env[], steps[].env[], steps[].script, steps[].args[]) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
+    "description": "Scans this resource\u2019s returned literal configuration (substitutions, options.env[], steps[].env[], steps[].script, steps[].args[]) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
     "evaluated": [
       "native resource/project identity and complete matching collection",
       "substitutions",
@@ -8528,7 +8552,7 @@
     "proposed_spec_sha256": "12960339a7a3c5b1f8c639a1a0bce1c9c2ef6d478d76d6b006a86971dd73bc6d"
   },
   "gcp.review.cloudbuild_trigger.literal_configuration_secret_indicators": {
-    "description": "Scans this resource’s returned literal configuration (substitutions, build.substitutions, build.options.env[], build.steps[].env[], build.steps[].script, build.steps[].args[]) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
+    "description": "Scans this resource\u2019s returned literal configuration (substitutions, build.substitutions, build.options.env[], build.steps[].env[], build.steps[].script, build.steps[].args[]) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
     "evaluated": [
       "native resource/project identity and complete matching collection",
       "substitutions",
@@ -8569,7 +8593,7 @@
     "proposed_spec_sha256": "5433d8c501f141f4b408eadd9d522dab08e60dee1f7bd5824aaeffd133d3d42a"
   },
   "gcp.review.cloudrun_job.literal_configuration_secret_indicators": {
-    "description": "Scans this resource’s returned literal configuration (template.template.containers[].env[].value, template.template.containers[].args[], template.template.containers[].command[]) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
+    "description": "Scans this resource\u2019s returned literal configuration (template.template.containers[].env[].value, template.template.containers[].args[], template.template.containers[].command[]) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
     "evaluated": [
       "native resource/project identity and complete matching collection",
       "template.template.containers[].env[].value",
@@ -8583,7 +8607,7 @@
     "proposed_spec_sha256": "3c90e7ffa9998daee7ce5cba0751263510f82dcf3a116625965c0a2f123e6ac0"
   },
   "gcp.review.cloudrun_service.literal_configuration_secret_indicators": {
-    "description": "Scans this resource’s returned literal configuration (template.containers[].env[].value, template.containers[].args[], template.containers[].command[]) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
+    "description": "Scans this resource\u2019s returned literal configuration (template.containers[].env[].value, template.containers[].args[], template.containers[].command[]) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
     "evaluated": [
       "native resource/project identity and complete matching collection",
       "template.containers[].env[].value",
@@ -8762,7 +8786,7 @@
     "proposed_spec_sha256": "564671c6fb69029750f1f703b4615c2eb13300e73ccd566671b8347cfffcaab0"
   },
   "gcp.review.instance.literal_configuration_secret_indicators": {
-    "description": "Scans this resource’s returned literal configuration (metadata.items[].value) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
+    "description": "Scans this resource\u2019s returned literal configuration (metadata.items[].value) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
     "evaluated": [
       "native resource/project identity and complete matching collection",
       "metadata.items[].value",
@@ -8774,7 +8798,7 @@
     "proposed_spec_sha256": "3e9f184d8abaa939659ea00f175b9caa3bc5ac940248a180a1e7393545914cec"
   },
   "gcp.review.instance_template.literal_configuration_secret_indicators": {
-    "description": "Scans this resource’s returned literal configuration (properties.metadata.items[].value) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
+    "description": "Scans this resource\u2019s returned literal configuration (properties.metadata.items[].value) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
     "evaluated": [
       "native resource/project identity and complete matching collection",
       "properties.metadata.items[].value",
@@ -8799,7 +8823,7 @@
     "proposed_spec_sha256": "b18b3e1fc32d8ad5c259cdad94e029bb35d07659aa230e4edbc4c6d2d8ea780b"
   },
   "gcp.review.project.literal_configuration_secret_indicators": {
-    "description": "Scans this resource’s returned literal configuration (commonInstanceMetadata.items[].value) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
+    "description": "Scans this resource\u2019s returned literal configuration (commonInstanceMetadata.items[].value) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
     "evaluated": [
       "native resource/project identity and complete matching collection",
       "commonInstanceMetadata.items[].value",
@@ -11312,6 +11336,18 @@
     "pass_when": "Both detectors finish without a supported secret in the fully collected selected metadata.",
     "proposed_spec_sha256": "6796a20ff3efa1d628d710b0a80b22144c648e902b3ab81724caababb4a6b217"
   },
+  "k8s.review.selected_text_content.secret_indicators": {
+    "description": "Reviews bounded text fields from explicitly selected Kubernetes objects using offline detectors and exact native identity receipts. A detector finding does not validate a credential or prove access.",
+    "evaluated": [
+      "named native object GET with UID and resourceVersion",
+      "explicit supported text fields",
+      "complete offline detector results"
+    ],
+    "fail_when": "A selected text field has a recorded likely secret finding.",
+    "not_applicable_when": null,
+    "pass_when": "All named text fields were read and no supported offline detector found a likely secret.",
+    "proposed_spec_sha256": "762a764b8430ae87d0e46c4e32e108d718bb8e83dbe69df99c7daa166df231a7"
+  },
   "k8s_approved_image_installation": {
     "description": "Checks each Pod container, init container and ephemeral container image against a cluster-bound owner list of exact registry/path@sha256:digest references, then requires a matching Deny admission binding with a recognized CEL expression using that same list for Pod CREATE and UPDATE. A proved unapproved Pod image or proved absence of a Deny binding fails. Missing or stale owner policy, incomplete inventory, partial PodSpec, unresolved selectors, exclusions or arbitrary CEL remain UNKNOWN. This proves declarations, not image signature verification or actual admission traffic.",
     "evaluated": [
@@ -11837,5 +11873,542 @@
     "not_applicable_when": "No automatic exemption: missing or changed selected identity, incomplete Service inventory, or selected Services outside a restricted scan are UNKNOWN unless another selected Service has a definite observed wrong type.",
     "pass_when": "Every owner-selected Service identity is observed with matching UID and LoadBalancer type across the complete assessed scope.",
     "proposed_spec_sha256": "2dd036156f8c5d7e59523c3f64a1eb44cc5244f7c3d1f6918532a96e3ab06e17"
+  },
+  "k8s.iam.serviceaccount_has_declared_consumers": {
+    "description": "Identifies ServiceAccounts without a captured workload, RBAC, legacy-token or workload-identity association. Complete controller and identity inventories are required; external client authentication is not inferred.",
+    "evaluated": [
+      "ServiceAccount UID and namespace",
+      "complete Pod and controller-template inventories",
+      "RBAC ServiceAccount and universal group subjects",
+      "legacy-token UID association and cloud workload-identity annotations"
+    ],
+    "pass_when": "At least one captured declaration consumes or grants this identity.",
+    "fail_when": "Complete inventories contain no recorded consumer for the ServiceAccount.",
+    "not_applicable_when": "Provider-managed objects follow the existing managed-object policy; ordinary assessed objects with missing evidence remain UNKNOWN.",
+    "proposed_spec_sha256": "aa99c0291b14d8d76ff9e19e7c26fa472fcda20f6e77cd2b487c9ee03fb70344"
+  },
+  "k8s.iam.role_has_declared_consumers": {
+    "description": "Identifies namespaced Roles without a nonempty RoleBinding that references their exact name and namespace. This identifies leftover permission definitions, not measured authentication inactivity.",
+    "evaluated": [
+      "complete Role and RoleBinding inventories",
+      "roleRef API group, kind and name",
+      "RoleBinding namespace and nonempty subjects"
+    ],
+    "pass_when": "A nonempty valid RoleBinding in the same namespace references this Role.",
+    "fail_when": "No valid nonempty RoleBinding references this namespaced Role.",
+    "not_applicable_when": "Provider-managed objects follow the existing managed-object policy; ordinary assessed objects with missing evidence remain UNKNOWN.",
+    "proposed_spec_sha256": "b468afdc162946fd4d487101da0ab31f393a5dbd88dec5dc397db4d4c37a0cd1"
+  },
+  "k8s.iam.clusterrole_has_declared_consumers": {
+    "description": "Identifies ClusterRoles without a nonempty RoleBinding, ClusterRoleBinding or aggregation selector consumer. Complete cluster-wide inventories and valid selector expressions are required; aggregated roles are retained.",
+    "evaluated": [
+      "complete cluster-wide RBAC inventories",
+      "valid nonempty RoleBinding and ClusterRoleBinding roleRef",
+      "aggregationRule clusterRoleSelectors matchLabels and matchExpressions"
+    ],
+    "pass_when": "A declared binding or another ClusterRole aggregation selector consumes this ClusterRole.",
+    "fail_when": "Complete cluster-wide inventory has no binding or aggregation consumer for this ClusterRole.",
+    "not_applicable_when": "Provider-managed objects follow the existing managed-object policy; ordinary assessed objects with missing evidence remain UNKNOWN.",
+    "proposed_spec_sha256": "4e65c8025190bb2c475db010dfba3905243f602ce9e79a1a7d0f9668209869f7"
+  },
+  "k8s.iam.rolebinding_subjects_exist": {
+    "description": "Identifies RoleBindings with no subjects or references to ServiceAccounts absent from a complete captured namespace inventory. External User and Group existence requires separate identity-provider evidence and remains unresolved.",
+    "evaluated": [
+      "RoleBinding subjects and roleRef",
+      "exact subject namespace and ServiceAccount names",
+      "complete ServiceAccount inventory in the assessed scope"
+    ],
+    "pass_when": "All declared subjects are ServiceAccounts present in the complete scoped inventory.",
+    "fail_when": "The binding has no subjects or a ServiceAccount subject is absent from a complete applicable inventory.",
+    "not_applicable_when": "Provider-managed objects follow the existing managed-object policy; ordinary assessed objects with missing evidence remain UNKNOWN.",
+    "proposed_spec_sha256": "fc3112991cedda904a1105a9e1c9979760ca2ebaf6e2117c4ab7f63aafb618cb"
+  },
+  "k8s.iam.clusterrolebinding_subjects_exist": {
+    "description": "Identifies ClusterRoleBindings without subjects or with references to absent ServiceAccounts. Explicit ServiceAccount namespaces and complete cluster-wide inventory are required; external directory users and groups are not guessed.",
+    "evaluated": [
+      "cluster-wide ClusterRoleBinding and ServiceAccount inventories",
+      "subject API group, kind, name and explicit namespace",
+      "current capture cluster authority"
+    ],
+    "pass_when": "All declared ServiceAccount subjects exist in the complete captured cluster inventory.",
+    "fail_when": "The binding has no subjects or a ServiceAccount subject is absent from complete cluster inventory.",
+    "not_applicable_when": "Provider-managed objects follow the existing managed-object policy; ordinary assessed objects with missing evidence remain UNKNOWN.",
+    "proposed_spec_sha256": "891b322f22070b24000a66556c8b191a9da2f3886f58ebf4fd51753da96a972e"
+  },
+  "k8s.iam.legacy_serviceaccount_token_recently_used": {
+    "description": "Identifies automatically generated legacy ServiceAccount tokens whose recorded last-used day is more than 90 days before capture. Requires matching ServiceAccount UID and reciprocal Secret reference; Secret contents are never read.",
+    "evaluated": [
+      "metadata-only Secret type, UID, creation time and last-used calendar date",
+      "matching ServiceAccount name, namespace and UID",
+      "reciprocal ServiceAccount Secret reference",
+      "captured UTC observation timestamp"
+    ],
+    "pass_when": "The tracked legacy token was used within 90 days or was created within that interval.",
+    "fail_when": "The matching automatically generated legacy token has a recorded last-use day older than 90 days with sufficient native evidence.",
+    "not_applicable_when": "Provider-managed objects follow the existing managed-object policy; ordinary assessed objects with missing evidence remain UNKNOWN.",
+    "proposed_spec_sha256": "40392ebb036e1cbd65cee07a66606aa096789c19692070319aac24913d7c6488"
+  },
+  "azure.iam.static_group_has_members": {
+    "description": "Identifies static directory groups without direct members after a complete Graph beta membership read. The beta confirmation avoids the documented v1.0 service-principal membership omission. Dynamic, hidden, denied or incomplete empty memberships remain unresolved.",
+    "evaluated": [
+      "current tenant and capture-bound group metadata",
+      "complete beta group member IDs for candidate empty static groups",
+      "explicit dynamic and hidden membership treatment"
+    ],
+    "pass_when": "A current direct member is observed, including a member retained in an incomplete read.",
+    "fail_when": "A static non-hidden group has a complete empty beta membership list.",
+    "not_applicable_when": "Disabled service principals or objects with no active password or certificate credentials, where applicable; absent usage evidence remains UNKNOWN or DENIED.",
+    "proposed_spec_sha256": "51f00e1c7facd93db085a6cb26f1ab0e0a3ff5b1f63f4029da04792f3c353143"
+  },
+  "azure.iam.service_principal_recent_activity": {
+    "description": "Reviews the latest tenant report activity for a current enabled service principal, including managed identities when the report supplies them. Requires the object creation date to reject predecessor activity. Recent attempts without successful-use evidence remain unresolved; report absence is never proof of inactivity.",
+    "evaluated": [
+      "current service principal object ID, app ID, enabled state and creation date",
+      "Graph servicePrincipalSignInActivities last aggregate activity and flow dates",
+      "successful-use timestamps when supplied by the native report",
+      "90-day interval measured from the captured observation"
+    ],
+    "pass_when": "A current successful-use timestamp is within 90 days, or the principal was created within that interval.",
+    "fail_when": "The current principal has a valid last recorded activity date more than 90 days old, without a contradictory newer flow.",
+    "not_applicable_when": "Disabled service principals or objects with no active password or certificate credentials, where applicable; absent usage evidence remains UNKNOWN or DENIED.",
+    "proposed_spec_sha256": "aac66e9b91123135a97ae497e3a9fc7868cdcec69c833b69c88a02a9ea3fdf64"
+  },
+  "azure.iam.application_credentials_recent_activity": {
+    "description": "Reviews password and certificate metadata on application registrations against exact tenant activity records. Origin, app ID, application object ID, key ID, credential type and available lifetime metadata must match. Missing reports or recent attempts without successful-use evidence remain unresolved; no credential value is requested.",
+    "evaluated": [
+      "current application passwordCredentials and keyCredentials metadata",
+      "Graph appCredentialSignInActivities application origin and appObjectId",
+      "exact keyId, keyType, creation and expiry association",
+      "last recorded activity and successful-use timestamps when available"
+    ],
+    "pass_when": "Every active credential has recent successful use or was created within 90 days, with no unresolved credential evidence.",
+    "fail_when": "At least one current unexpired application credential has matching recorded activity older than 90 days; unrelated unresolved credentials do not hide it.",
+    "not_applicable_when": "Disabled service principals or objects with no active password or certificate credentials, where applicable; absent usage evidence remains UNKNOWN or DENIED.",
+    "proposed_spec_sha256": "91ddea2a4a0ee7af2909e6032aedb9b2a9abab0e0bea9811ea8b04d6c5f25a22"
+  },
+  "azure.iam.service_principal_credentials_recent_activity": {
+    "description": "Reviews service-principal password and certificate metadata against exact native activity records. Service-principal-origin credentials are kept distinct from application-origin credentials even when an app ID is shared. Expired credentials are identified separately and never described as active unused access.",
+    "evaluated": [
+      "current service principal passwordCredentials and keyCredentials metadata",
+      "Graph appCredentialSignInActivities servicePrincipal origin and servicePrincipalObjectId",
+      "exact appId, keyId, keyType and credential lifetime",
+      "90-day activity interval and successful-use semantics"
+    ],
+    "pass_when": "Every active service-principal credential has recent successful use or was created within 90 days, with no unresolved evidence.",
+    "fail_when": "At least one current unexpired service-principal credential has matching recorded activity older than 90 days.",
+    "not_applicable_when": "Disabled service principals or objects with no active password or certificate credentials, where applicable; absent usage evidence remains UNKNOWN or DENIED.",
+    "proposed_spec_sha256": "0a4a28f135f057412c747150313f7e5781645ac50274af940383159381cd23ec"
+  },
+  "azure.iam.single_tenant_application_has_consumer": {
+    "description": "Identifies single-tenant application registrations without a matching local enterprise application in a complete tenant inventory. Multi-tenant applications without a local consumer remain unresolved because other tenants may still use them. A local declaration does not establish recent authentication.",
+    "evaluated": [
+      "current application object ID, appId and signInAudience",
+      "complete tenant service principal inventory",
+      "exact appId association without display-name matching"
+    ],
+    "pass_when": "A current local service principal has the same app ID.",
+    "fail_when": "A single-tenant application has no matching service principal in a complete current tenant inventory.",
+    "not_applicable_when": "Disabled service principals or objects with no active password or certificate credentials, where applicable; absent usage evidence remains UNKNOWN or DENIED.",
+    "proposed_spec_sha256": "c23f6628d883e5e9f5e4a3dedf0d3b3c321c441d2a5b26ea289a576b43b2af13"
+  },
+  "gcp.iam.service_account_no_active_unused_insight": {
+    "description": "Reviews explicit ACTIVE SERVICE_ACCOUNT_USAGE insights from Google IAM Recommender. The current service account email and immutable numeric unique ID must both match, with at least 90 days of observation and a fresh insight. This captures provider-classified unused accounts even when no authentication timestamp exists; recent bound authentication contradicts an unused classification.",
+    "evaluated": [
+      "current service account email, numeric unique ID and disabled state",
+      "project-bound google.iam.serviceAccount.Insight paginated results",
+      "ACTIVE SECURITY SERVICE_ACCOUNT_USAGE identity and target project",
+      "observationPeriod of at least 90 days and lastRefreshTime within three days",
+      "contradictory bound recent authentication"
+    ],
+    "pass_when": "A complete current insight inventory has no ACTIVE unused-usage insight matching the current service account identity.",
+    "fail_when": "A fresh ACTIVE unused-service-account insight names the current immutable service account identity with at least 90 days of observation and no contradictory bound recent authentication.",
+    "not_applicable_when": "The service account is disabled; missing, denied or inconsistent insight evidence remains unresolved.",
+    "proposed_spec_sha256": "1e4e6d4c9973ec99056e95f39e954002cd0850518ec4f562af673aa3b830cc72"
+  },
+  "gcp.iam.static_group_has_members": {
+    "description": "Identifies static Cloud Identity groups with a complete empty direct membership list. Each group retains its own paginated read authority, so unrelated directory or transitive-list failures do not erase a confirmed empty group. Dynamic or external identity-mapped groups remain unresolved.",
+    "evaluated": [
+      "current complete Google directory group resource name and parent",
+      "per-group direct membership names, pagination completion and scope",
+      "exact successful Cloud Identity membership read requests",
+      "dynamic group metadata"
+    ],
+    "pass_when": "At least one bound direct membership is observed.",
+    "fail_when": "A static Google directory group has a complete empty direct membership list.",
+    "not_applicable_when": null,
+    "proposed_spec_sha256": "4d087267974990407952180513536fc63e9cb3e4b60f3b4fb18267441a546ddc"
+  },
+  "gcp.iam.role_grant_has_observed_permission_use": {
+    "description": "Reviews ACTIVE Google PERMISSIONS_USAGE insights against currently captured IAM grants. The resource, principal, role and condition expression must match. A fresh insight covering at least 90 days and listing neither exercised nor inferred permissions identifies a grant with no provider-observed permission use; it is not a claim that every role permission can safely be removed.",
+    "evaluated": [
+      "exact native google.iam.policy.Insight request and identity",
+      "ACTIVE SECURITY PERMISSIONS_USAGE and 90-day observation duration",
+      "provider refresh within three days of capture",
+      "current resource IAM role, principal and condition expression",
+      "exercisedPermissions and inferredPermissions"
+    ],
+    "pass_when": "The current matching grant has at least one permission recorded as exercised in this insight.",
+    "fail_when": "The current matching grant has a fresh ACTIVE insight with at least 90 days of observation and no exercised or inferred permissions.",
+    "not_applicable_when": "A non-ACTIVE insight or another insight subtype is outside the permission-use predicate; missing or inconsistent evidence remains UNKNOWN or DENIED.",
+    "proposed_spec_sha256": "7c1cb5183ff8e7221e03c9cafd72ecfe309ac901a3d25112b6aa23f445e7a273"
+  },
+  "gcp.iam.directory_user_recent_recorded_login": {
+    "description": "Reviews the latest recorded login on an individual enabled Google Directory user, using the immutable user ID rather than the potentially inaccurate users-list login field. The current project-to-organization-to-directory-customer chain, individual metadata request, user ID, email, creation time and account state must match. Missing, sentinel or contradictory dates remain unresolved.",
+    "evaluated": [
+      "current Directory user ID, email, customer, suspended and archived state",
+      "independent CRM project and ancestor GET chain to directoryCustomerId",
+      "individual Directory users.get metadata projection and source request",
+      "creationTime and lastLoginTime with a 90-day recorded-login threshold"
+    ],
+    "pass_when": "The individual user has a recorded login within 90 days, or the user was created within that interval.",
+    "fail_when": "The enabled individual Directory user has a valid last recorded login older than 90 days, within the current user lifetime.",
+    "not_applicable_when": "Suspended or archived accounts are not active unused-account candidates.",
+    "proposed_spec_sha256": "eb0f3c686aa26677a535284ff7c5ce17668c8e8bc6686069842d02fa3ca2c800"
+  },
+  "gcp.iam.workload_identity_pool_has_enabled_provider": {
+    "description": "Identifies active federation-only workload identity pools without an enabled provider after complete current provider enumeration. Pool project identity, native IAM list authority, provider parent, ACTIVE/deleted state and disabled flags are checked. Trust-domain pools are excluded because they use managed workload identities and cannot have external federation providers. Provider presence is structural evidence, not token-use history.",
+    "evaluated": [
+      "current selected-project workload pool name and exact project ID/number binding",
+      "unfiltered complete IAM pool and provider lists and source receipts",
+      "pool and provider state/disabled fields",
+      "pool mode: federation-only versus managed workload trust domain"
+    ],
+    "pass_when": "At least one current ACTIVE provider is enabled for the pool.",
+    "fail_when": "An active federation-only pool has no enabled provider in a complete current provider list.",
+    "not_applicable_when": "Disabled or deleted pools and managed-workload trust-domain pools are outside this external-provider predicate.",
+    "proposed_spec_sha256": "977149fea35bd6d51f8ce268e99f9a89af73ea738e5d14f18f9b7346368c8187"
+  },
+  "gcp.iam.workforce_pool_has_enabled_provider": {
+    "description": "Identifies active workforce identity pools without an enabled provider after complete current provider enumeration. The workforce pool parent must match the selected organization, and IAM list receipts must retain that organization parent and exact provider-list path. This identifies a structurally obsolete federation namespace without asserting that any token or IAM permission has never been used.",
+    "evaluated": [
+      "current workforce pool name and parent organization",
+      "organization-bound unfiltered workforce pool list",
+      "exact complete provider enumeration and provider parent",
+      "pool and provider state/disabled fields"
+    ],
+    "pass_when": "At least one current ACTIVE provider is enabled for the workforce pool.",
+    "fail_when": "An active workforce pool has no enabled provider in a complete current provider list.",
+    "not_applicable_when": "Disabled or deleted pools are not active federation candidates.",
+    "proposed_spec_sha256": "803de059181a665cfd04323fe8d39d897eb10999795bf9377dcf40aa8f29cf9a"
+  },
+  "gcp.iam.api_key_recent_recorded_successful_requests": {
+    "description": "Reviews the latest recorded successful Service Runtime API requests identified by the current API key UID in its verified owner project. Current credential identity, active/deleted state, creation time, project bindings, exact native metric query, daily aggregation and observation interval must match. An old recorded successful interval with complete selected views fails as a cleanup-review candidate; it does not establish universal credential inactivity. Empty metrics, failed requests alone and incomplete observations remain unresolved. Recent positive use can survive another selected view failure.",
+    "evaluated": [
+      "current credential metadata identifier, owning project, creation time and active/deleted state",
+      "verified project ID/number bindings and selected project views",
+      "exact native Cloud Monitoring request filter, interval and aggregation",
+      "matching metric/resource/credential/project labels and successful response class",
+      "nonnegative daily request counts and timestamp bounds"
+    ],
+    "pass_when": "A matching successful request interval lies within the 90-day review period, or the credential was created within that period.",
+    "fail_when": "Complete selected metric views contain an older successful request interval and no newer successful interval within 90 days; empty series alone cannot fail and this is a recorded-activity review signal.",
+    "not_applicable_when": "The HMAC key is inactive/deleted or the API key has a valid past deletion time; unknown usage remains UNKNOWN or DENIED.",
+    "proposed_spec_sha256": "91b44005fc0019a91715a91a486859045b038099236f0e6b185cb8c73ba04833"
+  },
+  "gcp.iam.hmac_key_recent_recorded_successful_requests": {
+    "description": "Reviews the latest recorded successful Cloud Storage HMAC requests across every selected project, since HMAC metrics belong to the bucket project rather than necessarily the key owner. Current credential identity, active/deleted state, creation time, project bindings, exact native metric query, daily aggregation and observation interval must match. An old recorded successful interval with complete selected views fails as a cleanup-review candidate; it does not establish universal credential inactivity. Empty metrics, failed requests alone and incomplete observations remain unresolved. Recent positive use can survive another selected view failure.",
+    "evaluated": [
+      "current credential metadata identifier, owning project, creation time and active/deleted state",
+      "verified project ID/number bindings and selected project views",
+      "exact native Cloud Monitoring request filter, interval and aggregation",
+      "matching metric/resource/credential/project labels and successful response class",
+      "nonnegative daily request counts and timestamp bounds"
+    ],
+    "pass_when": "A matching successful request interval lies within the 90-day review period, or the credential was created within that period.",
+    "fail_when": "Complete selected metric views contain an older successful request interval and no newer successful interval within 90 days; empty series alone cannot fail and this is a recorded-activity review signal.",
+    "not_applicable_when": "The HMAC key is inactive/deleted or the API key has a valid past deletion time; unknown usage remains UNKNOWN or DENIED.",
+    "proposed_spec_sha256": "951defddabba760c65728d5ab088002a42ed2a35cf73ddfa28dc7137aba29699"
+  },
+  "gcp.iam.custom_role_has_declared_grants": {
+    "description": "Reviews current custom-role definitions for declared consumers in the owning project or organization. The role metadata must be fully read, project-number aliases independently verified, and the exact role must have no principal-bearing grant in the complete direct root policy and unfiltered paginated Cloud Asset scoped IAM search before it can fail. Scope restrictions and Cloud Asset supported-resource coverage remain explicit. This is structural cleanup evidence, not authentication history or a safe-deletion assertion.",
+    "evaluated": [
+      "current role name, owner scope, deletion state and full includedPermissions metadata",
+      "exact native IAM roles.list FULL or roles.get source receipt",
+      "independent project ID/number aliases",
+      "complete current owning-scope IAM policy requested with conditional policy version 3",
+      "unfiltered, unprojected paginated Cloud Asset searchAllIamPolicies and exact binding role/principals"
+    ],
+    "pass_when": "A successful captured scoped IAM policy contains the current role with at least one declared principal; conditional grants remain declared consumers.",
+    "fail_when": "A current non-deleted custom role has no principal-bearing grant in the complete owning-scope version-3 IAM policy and unfiltered complete Cloud Asset IAM search.",
+    "not_applicable_when": "Google predefined roles, soft-deleted definitions, or roles referenced outside their owning scope; unproven project aliases remain UNKNOWN or DENIED.",
+    "proposed_spec_sha256": "d22154cdd261ff6ce7835a652faed385b530cc65a2efca95a79e092c88afe9b3"
+  },
+  "aws.iam.group_inline_policies_have_members": {
+    "description": "Reviews inline policies embedded in current IAM groups for declared user consumers. A group with inline policies fails only when a complete account-wide GetAccountAuthorizationDetails user inventory contains no member of that group. The current group ARN, stable identity, native source, complete policy documents and membership projection are checked. A known current member is positive structural evidence even when unrelated user enumeration is partial. This is not authentication or action-use history, and no unused-day count is inferred.",
+    "evaluated": [
+      "native group name, ARN, stable GroupId and matching account-wide projection",
+      "inline policy names and complete policy documents with action/resource clauses",
+      "native IAM user IDs, ARNs and complete GroupList values",
+      "complete user enumeration before absence; independent positive membership survives partial reads"
+    ],
+    "pass_when": "At least one current IAM user declares membership in the exact group with inline policies.",
+    "fail_when": "A current group has inline policies but a complete, valid account-wide IAM user inventory contains no member of that group.",
+    "not_applicable_when": "The current native group has no inline policy; missing or denied policy/membership evidence remains UNKNOWN or DENIED.",
+    "proposed_spec_sha256": "1ff85016d6662ede3ce11a47660c1c6d23e290634b20f1accb89c138a3109564"
+  },
+  "azure.iam.custom_directory_role_has_declared_consumers": {
+    "description": "Reviews current custom Entra role definitions for declared consumers through directory role assignments and PIM assignment or eligibility schedules. Complete unfiltered paginated sources from the same verified tenant and capture are required before absence can fail. Future and unexpired PIM consumers count, while expired, canceled, denied, failed or revoked schedules do not. Missing or contradictory lifetime evidence remains unresolved. Permission declarations and exact principal scopes are retained. This structural cleanup review does not establish permission-use history, business approval or safe deletion; Azure Resource Manager roles are a separate inventory.",
+    "evaluated": [
+      "current native role definition, immutable ID, verified directory tenant and scan-local credential/customer binding",
+      "complete native rolePermissions declarations",
+      "unfiltered paginated directory role assignments and both PIM schedule inventories",
+      "exact role and principal IDs, declared directory/application scopes, schedule states and lifetimes"
+    ],
+    "pass_when": "A current assignment or unexpired/future assignment or eligibility schedule declares a principal and scope for the exact custom Entra role.",
+    "fail_when": "A current custom Entra role has no declared consumer in the complete native directory role assignments and PIM assignment and eligibility schedule inventories.",
+    "not_applicable_when": "Microsoft built-in role definitions. Missing, denied, filtered, partial or inconsistent assignment and PIM evidence remains UNKNOWN or DENIED.",
+    "proposed_spec_sha256": "34cfc7aa4eabf096b927f2104d946e9676a2c4ab704f5e967982fe78ab28548e"
+  },
+  "azure.iam.custom_arm_role_has_declared_consumers": {
+    "description": "Reviews current custom Azure Resource Manager roles for declared assignment or PIM consumers. Complete unfiltered native role assignment and assignment/eligibility schedule reads are required for every declared assignable scope. Management-group scopes additionally require a verified owning tenant and a complete descendant hierarchy whose subscriptions are all selected and tenant-bound, with required descendant scope reads. Native roles with DataActions cannot be assigned directly at management-group scope. Denied, partial, out-of-scope or inconsistent evidence cannot establish absence. Exact Actions, NotActions, DataActions and NotDataActions declarations are retained. This is structural cleanup evidence, not permission-use history, business-need approval or safe deletion.",
+    "evaluated": [
+      "native current role definition ID/name/type and full permission/exclusion declarations",
+      "scan-local credential/customer authority, verified authentication tenant and native owning-scope tenant reads",
+      "every declared assignable subscription/resource scope and complete management-group descendants",
+      "unfiltered paginated ARM role assignments and PIM assignment/eligibility schedules, exact principal/role/scope/conditions and schedule lifetime"
+    ],
+    "pass_when": "A verified native assignment or unexpired/future PIM schedule references the exact role definition in the selected verified tenant.",
+    "fail_when": "The current custom role has no captured consumer after complete assignment and PIM reads cover all its declared assignable scopes and required management-group descendants.",
+    "not_applicable_when": "Microsoft built-in ARM roles. Missing tenant, scope, hierarchy, assignment or PIM evidence remains UNKNOWN or DENIED.",
+    "proposed_spec_sha256": "11cebadb5f2ea7ae682b108974db688b1a6862bac594efd128c1f3cdf967fe24"
+  },
+  "aws.iam.identity_center.permission_set_has_consumer_all_accounts": {
+    "description": "Reviews IAM Identity Center permission-set consumers across a complete organization account universe. Native Organizations account lists, instance/permission-set lists, all provisioning states and account assignments must be complete before reporting structural absence. Any verified assignment or provisioned account is a consumer. Denied, incomplete, inconsistent or foreign-scope evidence remains unresolved. This does not measure successful permission use or authorize deletion.",
+    "evaluated": [
+      "verified organization instance, owner account and native permission-set identity",
+      "all organization accounts including accounts without provisioned permission sets",
+      "unfiltered native provisioning lists and both latest-provisioning filters",
+      "paginated assignments in every organization account"
+    ],
+    "pass_when": "A current bound assignment or provisioned account consumes this permission set.",
+    "fail_when": "Complete native organization-wide account, assignment and provisioning reads found no current consumer.",
+    "not_applicable_when": "Unresolved home region, authority or missing organization account universe remains UNKNOWN or DENIED.",
+    "proposed_spec_sha256": "75880354175419660677cc6557d758dca34dfd4747cd1f5e1e265d533df21e93"
+  },
+  "aws.iam.saml_provider_has_role_consumer": {
+    "description": "Reviews current IAM SAML provider role consumers using complete account-wide native role trust inventory. An Allow trust statement naming the exact provider ARN with the matching STS federation action establishes a declared consumer even when conditions apply. Complete role enumeration and every valid trust document are required for structural absence; partial, denied, malformed, wildcard or negative-principal semantics leave absence unresolved. This does not measure authentication history or establish safe deletion.",
+    "evaluated": [
+      "same-account global native provider ARN and resource projection",
+      "complete native IAM role enumeration and trust document provenance",
+      "Allow Federated principals and compatible STS assume actions",
+      "wildcard, negative-principal, malformed or incomplete trust semantics"
+    ],
+    "pass_when": "A current native role trust declares the exact provider and compatible STS federation action.",
+    "fail_when": "Complete current native role trust inventory has no declared consumer of this provider.",
+    "not_applicable_when": "Unavailable source or unsupported trust semantics remains UNKNOWN or DENIED.",
+    "proposed_spec_sha256": "a9ffdf5fd90ad5bad51729da9030cd25c9964f7583c1cea1c1b982a274edf8ad"
+  },
+  "aws.iam.oidc_provider_has_role_consumer": {
+    "description": "Reviews current IAM OIDC provider role consumers using complete account-wide native role trust inventory. An Allow trust statement naming the exact provider ARN with the matching STS federation action establishes a declared consumer even when conditions apply. Complete role enumeration and every valid trust document are required for structural absence; partial, denied, malformed, wildcard or negative-principal semantics leave absence unresolved. This does not measure authentication history or establish safe deletion.",
+    "evaluated": [
+      "same-account global native provider ARN and resource projection",
+      "complete native IAM role enumeration and trust document provenance",
+      "Allow Federated principals and compatible STS assume actions",
+      "wildcard, negative-principal, malformed or incomplete trust semantics"
+    ],
+    "pass_when": "A current native role trust declares the exact provider and compatible STS federation action.",
+    "fail_when": "Complete current native role trust inventory has no declared consumer of this provider.",
+    "not_applicable_when": "Unavailable source or unsupported trust semantics remains UNKNOWN or DENIED.",
+    "proposed_spec_sha256": "731616cf8cec59ff9a6a8e9a15732cff35de83b2498617951f3d63b0603f11d5"
+  },
+  "gcp.network.address_reserved_without_users": {
+    "description": "Checks a current Compute reserved address for a provider reported attachment. A RESERVED address with no users is a cleanup review candidate; this does not establish traffic inactivity.",
+    "evaluated": [
+      "Compute addresses aggregatedList full item: selfLink, status, users, native project and GET receipt."
+    ],
+    "pass_when": "PASS when status IN_USE and users is nonempty; FAIL when status RESERVED and users is empty; UNKNOWN on RESERVING, disagreement, partial representation, bad identity or source.",
+    "fail_when": "PASS when status IN_USE and users is nonempty; FAIL when status RESERVED and users is empty; UNKNOWN on RESERVING, disagreement, partial representation, bad identity or source.",
+    "not_applicable_when": "Unsupported or incomplete current source evidence remains UNKNOWN or DENIED; explicit applicability rules are retained.",
+    "proposed_spec_sha256": "84e092731d909deef3822587a8a8a76ea906f507009fc17ade43407065d54266"
+  },
+  "gcp.network.firewall_policy_without_associations": {
+    "description": "Checks whether a project network firewall policy has a current policy association in its full native representation.",
+    "evaluated": [
+      "Compute aggregated firewallPolicies full item: selfLink, associations[].attachmentTarget, native project and GET receipt."
+    ],
+    "pass_when": "PASS when associations contains a valid target; FAIL when the complete policy has no associations; UNKNOWN on partial representation, bad identity or source.",
+    "fail_when": "PASS when associations contains a valid target; FAIL when the complete policy has no associations; UNKNOWN on partial representation, bad identity or source.",
+    "not_applicable_when": "Unsupported or incomplete current source evidence remains UNKNOWN or DENIED; explicit applicability rules are retained.",
+    "proposed_spec_sha256": "57decab374b355e46defd801b5206a410419f734750ae90ca1a569c50bc61448"
+  },
+  "gcp.network.endpoint_group_without_endpoints": {
+    "description": "Checks provider reported endpoint count on applicable Compute network endpoint groups. Zero endpoints is current structural absence; this does not establish load balancer traffic inactivity.",
+    "evaluated": [
+      "Compute networkEndpointGroups aggregatedList or global list full item: selfLink, networkEndpointType, size, native project and GET receipt."
+    ],
+    "pass_when": "PASS when size is positive; FAIL when size is zero; NOT_APPLICABLE to SERVERLESS and PRIVATE_SERVICE_CONNECT; UNKNOWN on missing count, partial representation, bad identity or source.",
+    "fail_when": "PASS when size is positive; FAIL when size is zero; NOT_APPLICABLE to SERVERLESS and PRIVATE_SERVICE_CONNECT; UNKNOWN on missing count, partial representation, bad identity or source.",
+    "not_applicable_when": "Unsupported or incomplete current source evidence remains UNKNOWN or DENIED; explicit applicability rules are retained.",
+    "proposed_spec_sha256": "6f80eab49c0bab3fe92ed3f5badd4f7848634d3583ce7bdf71c7b8ef818b9d77"
+  },
+  "azure.network.route_table_has_subnet_reference": {
+    "description": "A complete current ARM route table GET exposes no subnet association. This is a structural attachment signal, not traffic inactivity.",
+    "evaluated": [
+      "Native provider inventory; reviewed source contracts: https://learn.microsoft.com/en-us/azure/templates/microsoft.network/2025-07-01/routetables"
+    ],
+    "pass_when": "PASS when properties.subnets contains valid subnet ARM IDs; FAIL only when a complete read-only GET and complete native inventory establish an empty collection; UNKNOWN on partial, foreign, malformed or unbound evidence.",
+    "fail_when": "PASS when properties.subnets contains valid subnet ARM IDs; FAIL only when a complete read-only GET and complete native inventory establish an empty collection; UNKNOWN on partial, foreign, malformed or unbound evidence.",
+    "not_applicable_when": "Unsupported or incomplete current source evidence remains UNKNOWN or DENIED; explicit applicability rules are retained.",
+    "proposed_spec_sha256": "64b0ca3b41fc3a4c48e425d426103e628ca0e8212f137c18cc4f8afc0543ab9d"
+  },
+  "azure.network.nic_has_owner_reference": {
+    "description": "A complete current ARM NIC GET exposes no VM, private endpoint, private link service or hosted workload owner.",
+    "evaluated": [
+      "Native provider inventory; reviewed source contracts: https://learn.microsoft.com/en-us/azure/templates/microsoft.network/2023-09-01/networkinterfaces"
+    ],
+    "pass_when": "PASS when virtualMachine, privateEndpoint, privateLinkService or hostedWorkloads names an owner; FAIL only when all are absent in a complete read-only GET; UNKNOWN on partial, foreign or malformed evidence.",
+    "fail_when": "PASS when virtualMachine, privateEndpoint, privateLinkService or hostedWorkloads names an owner; FAIL only when all are absent in a complete read-only GET; UNKNOWN on partial, foreign or malformed evidence.",
+    "not_applicable_when": "Unsupported or incomplete current source evidence remains UNKNOWN or DENIED; explicit applicability rules are retained.",
+    "proposed_spec_sha256": "0aa297819fad26ab4c9cfe7b0b9cee582fe2799256c6c992ae4b054cef2d3bdc"
+  },
+  "k8s.network.service_has_current_backend_declaration": {
+    "description": "A selector-based Service has no currently selected Pod and no same-namespace EndpointSlice declaring its name. This does not prove the Service unused.",
+    "evaluated": [
+      "Native provider inventory; reviewed source contracts: https://kubernetes.io/docs/concepts/services-networking/service/, https://kubernetes.io/docs/concepts/services-networking/endpoint-slices/"
+    ],
+    "pass_when": "PASS on a same-namespace Pod selector match or EndpointSlice service-name label; FAIL only with complete Pod and EndpointSlice inventories and neither match; ExternalName and selectorless Services are NOT_APPLICABLE because external/manual backends are valid; UNKNOWN on incomplete source.",
+    "fail_when": "PASS on a same-namespace Pod selector match or EndpointSlice service-name label; FAIL only with complete Pod and EndpointSlice inventories and neither match; ExternalName and selectorless Services are NOT_APPLICABLE because external/manual backends are valid; UNKNOWN on incomplete source.",
+    "not_applicable_when": "Unsupported or incomplete current source evidence remains UNKNOWN or DENIED; explicit applicability rules are retained.",
+    "proposed_spec_sha256": "dcc16694fdda1e3a89fbe01df7287bf1b4fca1ccb210361cd9df529b50c01f5d"
+  },
+  "k8s.network.endpointslice_service_reference_resolves": {
+    "description": "An EndpointSlice labels a Service name that is absent from the same-namespace native Service inventory.",
+    "evaluated": [
+      "Native provider inventory; reviewed source contracts: https://kubernetes.io/docs/concepts/services-networking/endpoint-slices/, https://kubernetes.io/docs/concepts/services-networking/service/"
+    ],
+    "pass_when": "PASS on current same-namespace Service match with compatible owner UID; FAIL on missing Service only with complete inventory; unlabeled slices are NOT_APPLICABLE; UNKNOWN on partial or mismatched UID.",
+    "fail_when": "PASS on current same-namespace Service match with compatible owner UID; FAIL on missing Service only with complete inventory; unlabeled slices are NOT_APPLICABLE; UNKNOWN on partial or mismatched UID.",
+    "not_applicable_when": "Unsupported or incomplete current source evidence remains UNKNOWN or DENIED; explicit applicability rules are retained.",
+    "proposed_spec_sha256": "1b554bf2f7e350031b83c6d4ee30fcb1f1d9108a967299e0c640215888be467e"
+  },
+  "k8s.network.ingress_service_backends_resolve": {
+    "description": "An Ingress native Service backend does not resolve to a current Service in the Ingress namespace.",
+    "evaluated": [
+      "Native provider inventory; reviewed source contracts: https://kubernetes.io/docs/concepts/services-networking/ingress/"
+    ],
+    "pass_when": "PASS when every native Service backend resolves; FAIL only when complete Service inventory establishes a missing backend; resource-only or no native Service backend is NOT_APPLICABLE.",
+    "fail_when": "PASS when every native Service backend resolves; FAIL only when complete Service inventory establishes a missing backend; resource-only or no native Service backend is NOT_APPLICABLE.",
+    "not_applicable_when": "Unsupported or incomplete current source evidence remains UNKNOWN or DENIED; explicit applicability rules are retained.",
+    "proposed_spec_sha256": "cb8bcd371a11ebb55b9d01527afa7e5797d7683721a38fadc0cca2fd15113553"
+  },
+  "k8s.network.networkpolicy_selects_current_pod": {
+    "description": "A NetworkPolicy podSelector matches no current Pod in the policy namespace. The policy may intentionally target future Pods.",
+    "evaluated": [
+      "Native provider inventory; reviewed source contracts: https://kubernetes.io/docs/concepts/services-networking/network-policies/"
+    ],
+    "pass_when": "PASS on a same-namespace Pod selector match; FAIL only when complete Pod inventory has no match; UNKNOWN on malformed selectors or incomplete inventory.",
+    "fail_when": "PASS on a same-namespace Pod selector match; FAIL only when complete Pod inventory has no match; UNKNOWN on malformed selectors or incomplete inventory.",
+    "not_applicable_when": "Unsupported or incomplete current source evidence remains UNKNOWN or DENIED; explicit applicability rules are retained.",
+    "proposed_spec_sha256": "70ccbab8d96c558e7f48042083c848056590b60621165d749bec91b716afa23f"
+  },
+  "aws.network.route_table_associated": {
+    "description": "Current native Associations records a structural consumer of the route_table; no traffic inactivity is inferred.",
+    "evaluated": [
+      "ec2:DescribeRouteTables / Associations"
+    ],
+    "pass_when": "Associations has a main, subnet, gateway, or VPC consumer => PASS; verified empty Associations => FAIL; incomplete or malformed => UNKNOWN.",
+    "fail_when": "Associations has a main, subnet, gateway, or VPC consumer => PASS; verified empty Associations => FAIL; incomplete or malformed => UNKNOWN.",
+    "not_applicable_when": "Unsupported or incomplete current source evidence remains UNKNOWN or DENIED; explicit applicability rules are retained.",
+    "proposed_spec_sha256": "6531dca40b5e4f1291548cdc855aabca52b6222fcc2341846f367783c2b496f7"
+  },
+  "aws.network.internet_gateway_attached": {
+    "description": "Current native Attachments records a structural consumer of the internet_gateway; no traffic inactivity is inferred.",
+    "evaluated": [
+      "ec2:DescribeInternetGateways / Attachments"
+    ],
+    "pass_when": "Attachments has a main, subnet, gateway, or VPC consumer => PASS; verified empty Attachments => FAIL; incomplete or malformed => UNKNOWN.",
+    "fail_when": "Attachments has a main, subnet, gateway, or VPC consumer => PASS; verified empty Attachments => FAIL; incomplete or malformed => UNKNOWN.",
+    "not_applicable_when": "Unsupported or incomplete current source evidence remains UNKNOWN or DENIED; explicit applicability rules are retained.",
+    "proposed_spec_sha256": "c5a77eabd58b291cef4646c0e0339d778d6f93aad475d1e88b6561ccf4d604b3"
+  },
+  "aws.network.vpn_gateway_attached": {
+    "description": "Current native VpcAttachments records a structural consumer of the vpn_gateway; no traffic inactivity is inferred.",
+    "evaluated": [
+      "ec2:DescribeVpnGateways / VpcAttachments"
+    ],
+    "pass_when": "VpcAttachments has a main, subnet, gateway, or VPC consumer => PASS; verified empty VpcAttachments => FAIL; incomplete or malformed => UNKNOWN.",
+    "fail_when": "VpcAttachments has a main, subnet, gateway, or VPC consumer => PASS; verified empty VpcAttachments => FAIL; incomplete or malformed => UNKNOWN.",
+    "not_applicable_when": "Unsupported or incomplete current source evidence remains UNKNOWN or DENIED; explicit applicability rules are retained.",
+    "proposed_spec_sha256": "a114564c9f945a19468e69a49f0a397af63f7a8b941345d93984f1966e265fe8"
+  },
+  "azure.network.public_ip_has_network_reference": {
+    "description": "A complete current successful ARM public IP GET is checked for IP configuration, NAT gateway, linked/service public IP and prefix references. Absence is a structural reservation review signal, not traffic inactivity or safe deletion.",
+    "evaluated": [
+      "Native provider inventory; reviewed source contracts: https://learn.microsoft.com/en-us/rest/api/virtualnetwork/public-ip-addresses/get?view=rest-virtualnetwork-2025-01-01"
+    ],
+    "pass_when": "PASS when a current native network attachment or allocation reference is declared; FAIL when all optional reference fields are absent in a verified complete Succeeded GET; UNKNOWN for incomplete, foreign, malformed or denied evidence.",
+    "fail_when": "PASS when a current native network attachment or allocation reference is declared; FAIL when all optional reference fields are absent in a verified complete Succeeded GET; UNKNOWN for incomplete, foreign, malformed or denied evidence.",
+    "not_applicable_when": "Unsupported or incomplete current source evidence remains UNKNOWN or DENIED; explicit applicability rules are retained.",
+    "proposed_spec_sha256": "cc9fd1ebc6b2e6e31e0b20193fe7ca09b024c55adc2a982e0aad82008b15ee1b"
+  },
+  "aws.network.target_group_has_load_balancer": {
+    "description": "Reviews the current target-group load-balancer association recorded by ELB. A target group without this association is a cleanup review candidate; this does not establish global workload inactivity or the absence of planned deployment and autoscaling dependencies.",
+    "evaluated": [
+      "elbv2:DescribeTargetGroups / explicit LoadBalancerArns"
+    ],
+    "pass_when": "Valid same-account/region associated load balancer => PASS; explicit empty association in complete current native inventory => FAIL; omitted, denied, foreign, partial-negative or malformed evidence => UNKNOWN.",
+    "fail_when": "Valid same-account/region associated load balancer => PASS; explicit empty association in complete current native inventory => FAIL; omitted, denied, foreign, partial-negative or malformed evidence => UNKNOWN.",
+    "not_applicable_when": "Unsupported or incomplete current source evidence remains UNKNOWN or DENIED; explicit applicability rules are retained.",
+    "proposed_spec_sha256": "3f118490fc715c0c1358fad80ba163830c6862f63bc91b24d301578424e688b6"
+  },
+  "gcp.network.http_proxy_forwarding_rule_reference": {
+    "description": "Checks an exact HTTP target proxy URL against the complete observed project forwarding-rule inventory. An exact reference establishes use. No local match is UNKNOWN because the reviewed documentation does not rule out every cross-project proxy reference.",
+    "evaluated": [
+      "Unfiltered Compute targetHttpProxies aggregatedList plus forwardingRules aggregatedList and globalForwardingRules list, with full objects, source receipts, and exact project identity."
+    ],
+    "pass_when": "PASS on an exact canonical forwarding-rule target reference; UNKNOWN on no observed reference, incomplete global or regional inventory, filtered/failed receipts, malformed identity, or partial representation.",
+    "fail_when": "PASS on an exact canonical forwarding-rule target reference; UNKNOWN on no observed reference, incomplete global or regional inventory, filtered/failed receipts, malformed identity, or partial representation.",
+    "not_applicable_when": "Unsupported or incomplete current source evidence remains UNKNOWN or DENIED; explicit applicability rules are retained.",
+    "proposed_spec_sha256": "96f21c3b75597af25dc7c02a88e438f4da299dab50f7580613a2bafc9a81336e"
+  },
+  "gcp.network.https_proxy_forwarding_rule_reference": {
+    "description": "Checks an exact HTTPS target proxy URL against the complete observed project forwarding-rule inventory. An exact reference establishes use. No local match is UNKNOWN because the reviewed documentation does not rule out every cross-project proxy reference.",
+    "evaluated": [
+      "Unfiltered Compute targetHttpsProxies aggregatedList plus forwardingRules aggregatedList and globalForwardingRules list, with full objects, source receipts, and exact project identity."
+    ],
+    "pass_when": "PASS on an exact canonical forwarding-rule target reference; UNKNOWN on no observed reference, incomplete global or regional inventory, filtered/failed receipts, malformed identity, or partial representation.",
+    "fail_when": "PASS on an exact canonical forwarding-rule target reference; UNKNOWN on no observed reference, incomplete global or regional inventory, filtered/failed receipts, malformed identity, or partial representation.",
+    "not_applicable_when": "Unsupported or incomplete current source evidence remains UNKNOWN or DENIED; explicit applicability rules are retained.",
+    "proposed_spec_sha256": "ae163f95393500e11504e7b69981413f3bf4ab6a05c0efda81b97902f8d5473e"
+  },
+  "gcp.network.backend_service_has_members": {
+    "description": "Checks direct backend groups and service bindings on a full native BackendService. Empty membership is a configuration review candidate even if the service is referenced by an active frontend; this is not a global unused-service claim.",
+    "evaluated": [
+      "Unfiltered Compute backendServices aggregatedList full item, backends[].group, serviceBindings[], native project identity, and GET receipt."
+    ],
+    "pass_when": "PASS when a backend group or service binding is present; FAIL when both are empty or omitted on a complete item; UNKNOWN on malformed, partial, or unbound source evidence.",
+    "fail_when": "PASS when a backend group or service binding is present; FAIL when both are empty or omitted on a complete item; UNKNOWN on malformed, partial, or unbound source evidence.",
+    "not_applicable_when": "Unsupported or incomplete current source evidence remains UNKNOWN or DENIED; explicit applicability rules are retained.",
+    "proposed_spec_sha256": "dacdaed47030941e87a8fb48116ee942ef1dd803c732906dab31d1ee573a81d1"
+  },
+  "azure.network.subnet_has_consumer_or_reservation_reference": {
+    "description": "A complete current subnet ARM GET is checked for native IP configurations, private endpoints, application gateway configurations, delegations, service links and IP allocations. An absence is a structural review signal, not traffic inactivity or safe deletion.",
+    "evaluated": [
+      "Native provider inventory; reviewed source contracts: https://learn.microsoft.com/en-us/rest/api/virtualnetwork/subnets/get?view=rest-virtualnetwork-2023-09-01"
+    ],
+    "pass_when": "PASS when a current consumer or reservation declaration exists; FAIL when all reviewed native fields are empty or absent in a complete bound subnet GET; UNKNOWN for incomplete, foreign, malformed or denied evidence.",
+    "fail_when": "PASS when a current consumer or reservation declaration exists; FAIL when all reviewed native fields are empty or absent in a complete bound subnet GET; UNKNOWN for incomplete, foreign, malformed or denied evidence.",
+    "not_applicable_when": "Unsupported or incomplete current source evidence remains UNKNOWN or DENIED; explicit applicability rules are retained.",
+    "proposed_spec_sha256": "787ffd00f1e6cf085f1b7e47397891f0c752fe1e17fb8fce181422b1159d61fa"
+  },
+  "azure.network.load_balancer_backend_pools_have_declaration_or_consumer": {
+    "description": "A complete current load balancer ARM GET is checked for each backend pool\u2019s NIC or IP backend declarations and load balancing, outbound or inbound NAT rule consumers. An empty unreferenced pool is a structural review signal, not traffic inactivity or safe deletion.",
+    "evaluated": [
+      "Native provider inventory; reviewed source contracts: https://learn.microsoft.com/en-us/rest/api/load-balancer/load-balancers/get?view=rest-load-balancer-2023-09-01"
+    ],
+    "pass_when": "FAIL when at least one pool has neither backend declarations nor rule, outbound or NAT consumers in a complete bound parent GET; PASS when each pool has at least one; NOT_APPLICABLE when no pool exists; UNKNOWN for incomplete, foreign, malformed or denied evidence.",
+    "fail_when": "FAIL when at least one pool has neither backend declarations nor rule, outbound or NAT consumers in a complete bound parent GET; PASS when each pool has at least one; NOT_APPLICABLE when no pool exists; UNKNOWN for incomplete, foreign, malformed or denied evidence.",
+    "not_applicable_when": "Unsupported or incomplete current source evidence remains UNKNOWN or DENIED; explicit applicability rules are retained.",
+    "proposed_spec_sha256": "f879359d006e7e83997f1edd54e46106afa6ad21ff9095225b69e55ab82f91c2"
+  },
+  "k8s.network.endpoints_controller_service_reference_resolves": {
+    "description": "Reviews only legacy Endpoints marked as Kubernetes endpoint-controller managed with one controlling v1 Service owner of the same name and a nonempty UID. A missing Service is a dangling structural reference, not evidence that the Endpoints has no traffic or custom consumers.",
+    "evaluated": [
+      "Read-only core/v1 Endpoints and Service LIST inventories from the same selected cluster and namespace scope, with projected rows and cluster/namespace/UID provenance bound to the native response."
+    ],
+    "pass_when": "NOT_APPLICABLE for unmarked or custom-managed Endpoints, or without a unique controlling v1 Service owner; PASS when the same-namespace, same-name Service has the exact owner UID; FAIL only when a complete Service inventory has no Service by that name; UNKNOWN for partial inventory, malformed owner/identity, or current Service UID disagreement.",
+    "fail_when": "NOT_APPLICABLE for unmarked or custom-managed Endpoints, or without a unique controlling v1 Service owner; PASS when the same-namespace, same-name Service has the exact owner UID; FAIL only when a complete Service inventory has no Service by that name; UNKNOWN for partial inventory, malformed owner/identity, or current Service UID disagreement.",
+    "not_applicable_when": "Unsupported or incomplete current source evidence remains UNKNOWN or DENIED; explicit applicability rules are retained.",
+    "proposed_spec_sha256": "8799377413ca7621c07c29a328f7cd251e04c2fc63c744c5be3cd69f473ec13d"
   }
 }

@@ -11,7 +11,7 @@ import json
 from . import k8s_literal_secret_review_20261020 as predecessor
 
 CHECK = 'k8s.review.selected_literals.secret_indicators'
-PREDICATE_SHA256 = '6a825cbbe6e1b0efe3df29b5e81443eb00ea3cb7636e3b5995227daba0639c8c'
+PREDICATE_SHA256 = '558a18b816db57f4a6972b2fdb76bb039a11305a3c8223992a7b002b0e2227b8'
 DECLARATIONS_SHA256 = '19c6043989b98d3d9efd6af62964c1afaf8a352e4f87a4af203bea1b7a6bc706'
 CURRENT_FIELDS = {
     'title': 'Selected workload and ConfigMap literals have no detected secrets',
@@ -35,7 +35,7 @@ CURRENT_FIELDS = {
 
 def fields():
     """Return a fresh exact canonical proposal only after the source guard passes."""
-    fn = inspect.unwrap(predecessor.evaluate)
+    fn = inspect.unwrap(getattr(predecessor, 'evaluate_associated', predecessor.evaluate))
     body = inspect.getsource(fn)
     declarations = json.dumps(predecessor.DECLARATIONS, sort_keys=True, separators=(',', ':'))
     if (hashlib.sha256(body.encode()).hexdigest() != PREDICATE_SHA256
@@ -53,7 +53,7 @@ def install():
         raise ValueError('Kubernetes literal check is not uniquely registered')
     position, = positions
     check = CHECKS[position]
-    if (check.kind != predecessor.KIND or inspect.unwrap(check.evaluate) is not inspect.unwrap(predecessor.evaluate)
+    if (check.kind != predecessor.KIND or inspect.unwrap(check.evaluate) is not inspect.unwrap(getattr(predecessor, 'evaluate_associated', predecessor.evaluate))
             or check.title not in (predecessor.DECLARATIONS[0]['title'], current['title'])
             or check.remediation not in (predecessor.DECLARATIONS[0]['remediation'], current['remediation'])):
         raise ValueError('Kubernetes literal registered predecessor changed')

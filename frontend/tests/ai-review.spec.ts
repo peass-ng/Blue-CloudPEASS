@@ -86,6 +86,11 @@ test('network findings have a separate page below Network Map', async ({ page })
   await page.route('**/api/scans/scan/ai?*', route => route.fulfill({ json: { status: 'completed', actions: [], reviews: {}, network } }));
   await page.goto('/#Network%20Map');
   await expect(page.getByRole('heading', { name: 'Network Map', exact: true })).toBeVisible();
+  await page.setViewportSize({ width: 2560, height: 1440 });
+  const widths = await page.locator('#main-content').evaluate(main => ({ main: main.getBoundingClientRect().width, workspace: main.parentElement!.getBoundingClientRect().width }));
+  expect(Math.abs(widths.main - widths.workspace)).toBeLessThanOrEqual(1);
+  await page.setViewportSize({ width: 1440, height: 1080 });
+
   await expect(page.getByText(explanation, { exact: true })).toHaveCount(0);
   const nav = page.getByRole('navigation', { name: 'Primary navigation' });
   const labels = await nav.getByRole('button').evaluateAll(buttons => buttons.map(button => button.getAttribute('aria-label')));
@@ -95,8 +100,16 @@ test('network findings have a separate page below Network Map', async ({ page })
   await expect(nav.getByRole('button', { name: 'Network Architecture', exact: true }).locator('.feature-ai')).toHaveText('✦ AI');
   await nav.getByRole('button', { name: 'Network Architecture', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Network Architecture', exact: true })).toBeVisible();
+  const summary = page.locator('details.network-summary');
+  await expect(summary).not.toHaveAttribute('open', '');
+  await expect(summary.locator('.network-summary-preview')).toHaveText(explanation.replace(/\s+/g, ' ').slice(0, 200) + '…');
+  await expect(page.getByRole('region', { name: 'Network findings table' })).toBeVisible();
+  await summary.locator('summary').click();
+  await expect(summary).toHaveAttribute('open', '');
   for (const paragraph of paragraphs) await expect(page.getByText(paragraph, { exact: true })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Network architecture' }).locator('p')).toHaveCount(2);
+  await summary.locator('summary').click();
+  await expect(page.getByRole('region', { name: 'Network architecture' })).toBeHidden();
   await expect(page.getByText('Required traffic must be confirmed.', { exact: true })).toHaveCount(0);
   await expect(page.getByText(/AI suggestions|Validate workload dependencies before changing connectivity/)).toHaveCount(0);
   const networkTable = page.getByRole('region', { name: 'Network findings table' });
@@ -274,12 +287,13 @@ for (const width of [1280, 390]) {
 }
 
 
-test('network architecture has clear network and tier sections below the findings table', async ({ page }) => {
+test('network architecture expands above the findings table with clear network and tier sections', async ({ page }) => {
   await setup(page);
   await page.route('**/api/scans', route => route.fulfill({ json: { items: [{ id: 'scan', status: 'completed' }] } }));
   const explanation = '### Application VPC\n\nus-east-1 · 10.0.0.0/16. Hosts the API and its private database.\n\n#### Public edge\n\n- 10.0.101.0/24 hosts the NAT gateway; its route table sends internet traffic to the IGW.\n\n#### Private application tier\n\n- 10.0.1.0/24 hosts the API. Outbound traffic uses the NAT gateway.\n\n#### Database boundary\n\n- `10.0.21.0/24` hosts the **database**. Its SG permits TCP 5432 from the application SG.\n\n### Default networks\n\n- Regional default VPCs use 172.31.0.0/16 and IGW routes.\n- No attached workloads were collected.';
   await page.route('**/api/scans/scan/ai?*', route => route.fulfill({ json: { actions: [], network: { status: 'completed', explanation, findings: [] } } }));
   await page.goto('/#Network%20Findings');
+  await page.locator('details.network-summary > summary').click();
   const architecture = page.getByRole('region', { name: 'Network architecture', exact: true });
   for (const name of ['Application VPC', 'Public edge', 'Private application tier', 'Database boundary', 'Default networks'])
     await expect(architecture.getByRole('heading', { name, exact: true })).toBeVisible();
@@ -287,7 +301,7 @@ test('network architecture has clear network and tier sections below the finding
   await expect(architecture.locator('code')).toHaveText('10.0.21.0/24');
   await expect(architecture.locator('strong')).toHaveText('database');
   const table = page.getByRole('region', { name: 'Network findings table' });
-  expect(await table.evaluate(element => Boolean(element.compareDocumentPosition(document.querySelector('section[aria-label="Network architecture"]')!) & Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
+  expect(await table.evaluate(element => Boolean(element.compareDocumentPosition(document.querySelector('section[aria-label="Network architecture"]')!) & Node.DOCUMENT_POSITION_PRECEDING))).toBe(true);
 });
 
 test('older dense architecture paragraphs become readable blocks without losing content', async ({ page }) => {
@@ -296,6 +310,7 @@ test('older dense architecture paragraphs become readable blocks without losing 
   const sentences = ['The public edge tier hosts the NAT gateway.', 'Its route points to the internet gateway.', 'The private application tier hosts the API.', 'Outbound traffic uses NAT.', 'The database tier holds the database.', 'Only the approved API SG is allowed on TCP 5432.'];
   await page.route('**/api/scans/scan/ai?*', route => route.fulfill({ json: { actions: [], network: { status: 'completed', explanation: 'Application VPC — ' + sentences.join(' '), findings: [] } } }));
   await page.goto('/#Network%20Findings');
+  await page.locator('details.network-summary > summary').click();
   const architecture = page.getByRole('region', { name: 'Network architecture', exact: true });
   await expect(architecture.getByRole('heading', { name: 'Application VPC', exact: true })).toBeVisible();
   await expect(architecture.locator('p')).toHaveCount(3);

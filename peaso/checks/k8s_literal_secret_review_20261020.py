@@ -99,6 +99,11 @@ def evaluate(item, index):
         return 'UNKNOWN', {'observed': 'Selected Kubernetes literals were disabled, unsupported, incomplete or unbound. Secret absence could not be assessed.'}
 
 
+def evaluate_associated(item, index):
+    from .k8s_literal_configmap_association_evaluator import evaluate as extended
+    return extended(item, index)
+
+
 def install():
     from pathlib import Path
     from . import CHECKS, register
@@ -107,6 +112,6 @@ def install():
         return
     declaration = DECLARATIONS[0]
     register(CHECK, 'k8s', 'hardening', KIND, declaration['title'], 'high',
-        'security_configuration', declaration['remediation'], dependencies=[KIND])(evaluate)
+        'security_configuration', declaration['remediation'], dependencies=[KIND])(evaluate_associated)
     CASES[CHECK] = json.loads(Path(__file__).with_name(
         'k8s_literal_secret_review_20261020_fixtures.json').read_text()).get(CHECK, {})

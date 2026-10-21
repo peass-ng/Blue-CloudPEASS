@@ -1,0 +1,475 @@
+{
+  "gcp.iam.custom_role_has_declared_grants": {
+    "pass": {
+      "name": "projects/usage-project/roles/synthetic",
+      "includedPermissions": [
+        "compute.instances.get",
+        "compute.instances.delete"
+      ],
+      "stage": "GA",
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "collected_at": "2026-10-21T12:00:00Z",
+        "source_requests": [
+          "roles-read"
+        ]
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "asset_read_time": "2026-10-21T12:00:00Z",
+          "source_requests": [
+            {
+              "id": "roles-read",
+              "url": "https://iam.googleapis.com/v1/projects/usage-project/roles",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {
+                "view": "FULL",
+                "showDeleted": "true"
+              }
+            },
+            {
+              "id": "root-read",
+              "url": "https://cloudresourcemanager.googleapis.com/v3/projects/usage-project:getIamPolicy",
+              "scope": "projects/usage-project",
+              "method": "POST",
+              "status": "collected",
+              "http_status": 200,
+              "query": {},
+              "request": {
+                "options": {
+                  "requestedPolicyVersion": 3
+                }
+              }
+            },
+            {
+              "id": "search-read",
+              "url": "https://cloudasset.googleapis.com/v1/projects/usage-project:searchAllIamPolicies",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            }
+          ]
+        }
+      },
+      "collections": {
+        "iam_role": [
+          {
+            "type": "iam_role",
+            "scope": "projects/usage-project",
+            "service": "iam",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project/roles/synthetic",
+                "includedPermissions": [
+                  "compute.instances.get",
+                  "compute.instances.delete"
+                ],
+                "stage": "GA",
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "collected_at": "2026-10-21T12:00:00Z",
+                  "source_requests": [
+                    "roles-read"
+                  ]
+                }
+              }
+            ],
+            "source_requests": [
+              "roles-read"
+            ]
+          }
+        ],
+        "iam_policy": [
+          {
+            "type": "iam_policy",
+            "scope": "projects/usage-project",
+            "service": "iam/cloudasset",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project",
+                "bindings": [
+                  {
+                    "role": "projects/usage-project/roles/synthetic",
+                    "members": [
+                      "user:owner@example.test"
+                    ]
+                  }
+                ],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "collected_at": "2026-10-21T12:00:00Z",
+                  "source_requests": [
+                    "root-read"
+                  ],
+                  "representation": "full"
+                }
+              }
+            ],
+            "source_requests": [
+              "root-read",
+              "search-read"
+            ]
+          }
+        ]
+      },
+      "iam_role": [
+        {
+          "type": "iam_role",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/roles/synthetic",
+            "includedPermissions": [
+              "compute.instances.get",
+              "compute.instances.delete"
+            ],
+            "stage": "GA",
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "roles-read"
+              ]
+            }
+          }
+        }
+      ],
+      "iam_policy": [
+        {
+          "type": "iam_policy",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project",
+            "bindings": [
+              {
+                "role": "projects/usage-project/roles/synthetic",
+                "members": [
+                  "user:owner@example.test"
+                ]
+              }
+            ],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "root-read"
+              ],
+              "representation": "full"
+            }
+          }
+        }
+      ]
+    },
+    "fail": {
+      "name": "projects/usage-project/roles/synthetic",
+      "includedPermissions": [
+        "compute.instances.get",
+        "compute.instances.delete"
+      ],
+      "stage": "GA",
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "collected_at": "2026-10-21T12:00:00Z",
+        "source_requests": [
+          "roles-read"
+        ]
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "asset_read_time": "2026-10-21T12:00:00Z",
+          "source_requests": [
+            {
+              "id": "roles-read",
+              "url": "https://iam.googleapis.com/v1/projects/usage-project/roles",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {
+                "view": "FULL",
+                "showDeleted": "true"
+              }
+            },
+            {
+              "id": "root-read",
+              "url": "https://cloudresourcemanager.googleapis.com/v3/projects/usage-project:getIamPolicy",
+              "scope": "projects/usage-project",
+              "method": "POST",
+              "status": "collected",
+              "http_status": 200,
+              "query": {},
+              "request": {
+                "options": {
+                  "requestedPolicyVersion": 3
+                }
+              }
+            },
+            {
+              "id": "search-read",
+              "url": "https://cloudasset.googleapis.com/v1/projects/usage-project:searchAllIamPolicies",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            }
+          ]
+        }
+      },
+      "collections": {
+        "iam_role": [
+          {
+            "type": "iam_role",
+            "scope": "projects/usage-project",
+            "service": "iam",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project/roles/synthetic",
+                "includedPermissions": [
+                  "compute.instances.get",
+                  "compute.instances.delete"
+                ],
+                "stage": "GA",
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "collected_at": "2026-10-21T12:00:00Z",
+                  "source_requests": [
+                    "roles-read"
+                  ]
+                }
+              }
+            ],
+            "source_requests": [
+              "roles-read"
+            ]
+          }
+        ],
+        "iam_policy": [
+          {
+            "type": "iam_policy",
+            "scope": "projects/usage-project",
+            "service": "iam/cloudasset",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project",
+                "bindings": [],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "collected_at": "2026-10-21T12:00:00Z",
+                  "source_requests": [
+                    "root-read"
+                  ],
+                  "representation": "full"
+                }
+              }
+            ],
+            "source_requests": [
+              "root-read",
+              "search-read"
+            ]
+          }
+        ]
+      },
+      "iam_role": [
+        {
+          "type": "iam_role",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/roles/synthetic",
+            "includedPermissions": [
+              "compute.instances.get",
+              "compute.instances.delete"
+            ],
+            "stage": "GA",
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "roles-read"
+              ]
+            }
+          }
+        }
+      ],
+      "iam_policy": [
+        {
+          "type": "iam_policy",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project",
+            "bindings": [],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "root-read"
+              ],
+              "representation": "full"
+            }
+          }
+        }
+      ]
+    },
+    "missing": {},
+    "index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "asset_read_time": "2026-10-21T12:00:00Z",
+          "source_requests": [
+            {
+              "id": "roles-read",
+              "url": "https://iam.googleapis.com/v1/projects/usage-project/roles",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {
+                "view": "FULL",
+                "showDeleted": "true"
+              }
+            },
+            {
+              "id": "root-read",
+              "url": "https://cloudresourcemanager.googleapis.com/v3/projects/usage-project:getIamPolicy",
+              "scope": "projects/usage-project",
+              "method": "POST",
+              "status": "collected",
+              "http_status": 200,
+              "query": {},
+              "request": {
+                "options": {
+                  "requestedPolicyVersion": 3
+                }
+              }
+            },
+            {
+              "id": "search-read",
+              "url": "https://cloudasset.googleapis.com/v1/projects/usage-project:searchAllIamPolicies",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            }
+          ]
+        }
+      },
+      "collections": {
+        "iam_role": [
+          {
+            "type": "iam_role",
+            "scope": "projects/usage-project",
+            "service": "iam",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project/roles/synthetic",
+                "includedPermissions": [
+                  "compute.instances.get",
+                  "compute.instances.delete"
+                ],
+                "stage": "GA",
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "collected_at": "2026-10-21T12:00:00Z",
+                  "source_requests": [
+                    "roles-read"
+                  ]
+                }
+              }
+            ],
+            "source_requests": [
+              "roles-read"
+            ]
+          }
+        ],
+        "iam_policy": [
+          {
+            "type": "iam_policy",
+            "scope": "projects/usage-project",
+            "service": "iam/cloudasset",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project",
+                "bindings": [],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "collected_at": "2026-10-21T12:00:00Z",
+                  "source_requests": [
+                    "root-read"
+                  ],
+                  "representation": "full"
+                }
+              }
+            ],
+            "source_requests": [
+              "root-read",
+              "search-read"
+            ]
+          }
+        ]
+      },
+      "iam_role": [
+        {
+          "type": "iam_role",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project/roles/synthetic",
+            "includedPermissions": [
+              "compute.instances.get",
+              "compute.instances.delete"
+            ],
+            "stage": "GA",
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "roles-read"
+              ]
+            }
+          }
+        }
+      ],
+      "iam_policy": [
+        {
+          "type": "iam_policy",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "projects/usage-project",
+            "bindings": [],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "root-read"
+              ],
+              "representation": "full"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

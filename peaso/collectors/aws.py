@@ -242,7 +242,8 @@ def _project_user_data_indicators(response, instance_id, *, dual_scanner=False):
         raw = base64.b64decode(encoded, validate=True)
         if len(raw) > 16384:
             raise ReadFailure("malformed", "user_data_size_exceeds_documented_limit")
-        value = raw.decode("utf-8")
+        from .aws_user_data_payload_20261021 import decoded_text
+        value = decoded_text(raw)
     except (ValueError, UnicodeError):
         raise ReadFailure("malformed", "malformed_user_data_encoding") from None
     keyword = any(word in value for word in ("pass", "secret", "token", "key"))
@@ -2782,6 +2783,8 @@ EXTENSION_MODULES += ("peaso.collectors.aws_ai_recheck_facts_20261020",)
 EXTENSION_MODULES += ("peaso.collectors.aws_network_inventory",)
 for _extension in EXTENSION_MODULES:
     _load_metadata_extension(_extension)
+
+_load_metadata_extension("peaso.collectors.unused_iam_aws_completion")
 
 # Explicit selected S3 source profile; never a generic listing/read fallback.
 SPECS['s3_selected_source_content'] = ('s3', 'head_object', None)

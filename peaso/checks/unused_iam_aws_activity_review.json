@@ -1,0 +1,32 @@
+{
+  "check_id": "aws.claude_a.iam.role_used_within_60_days",
+  "prior_description_sha256": "b566a8a8b18a0a7a30f76f4a2fdef17e1d9fc4ac7ed9e486ceb69d18a71d1ba4",
+  "prior_description": {
+    "description": "Checks role last-use time against a 60-day midnight cutoff; absent last-use data also fails this source's inactivity criterion.",
+    "evaluated": [
+      "iam_role.RoleName",
+      "iam_role.RoleLastUsed.LastUsedDate",
+      "collection time (60-day midnight cutoff)"
+    ],
+    "pass_when": "RoleLastUsed.LastUsedDate is later than the 60-day cutoff.",
+    "fail_when": "RoleLastUsed.LastUsedDate is absent (never used or not tracked) or is on/before the 60-day cutoff.",
+    "not_applicable_when": null
+  },
+  "updated_description_fields": {
+    "description": "Reviews the current IAM role creation date and AWS RoleLastUsed timestamp against the captured UTC 60-day interval. New roles do not fail merely because no usage is recorded. Known last-use dates must be within the current role lifetime. An old role without a recorded date remains unresolved because the available AWS tracking interval is not an explicit complete inactivity proof; ACTIVE unused-access analyzer findings are independent evidence.",
+    "evaluated": [
+      "RoleName, RoleId and role ARN/account consistency",
+      "CreateDate and captured observation time",
+      "RoleLastUsed.LastUsedDate with current role lifetime and future-date validation",
+      "native field coverage; null or missing usage remains unresolved for an old role"
+    ],
+    "pass_when": "The role was created within 60 days or its valid recorded AWS use is within 60 days of capture.",
+    "fail_when": "The current role is older than 60 days and its valid recorded AWS use is more than 60 days before capture.",
+    "not_applicable_when": null
+  },
+  "reason": "Correct creation-age false positives, future/pre-creation timestamps and ambiguous empty usage. Retain the original signed source, ID and formal mappings; current criteria use an exact captured UTC 60-day interval.",
+  "sources": [
+    "https://docs.aws.amazon.com/IAM/latest/APIReference/API_RoleLastUsed.html",
+    "https://aws.amazon.com/blogs/security/continuously-monitor-unused-iam-roles-aws-config/"
+  ]
+}

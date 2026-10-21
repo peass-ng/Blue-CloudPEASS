@@ -18024,6 +18024,11 @@ def _apply(check_id, original, kind):
     row = ROWS.get(check_id)
     if row is None:
         return deepcopy(original)
+    if kind == "description" and check_id in ("gcp.claude.service_account.recently_used", "gcp.claude.service_account_key.recently_used"):
+        from peaso.unused_iam_gcp import reviewed_description_successor
+        successor = reviewed_description_successor(check_id, original, row["description_base_sha256"])
+        if successor is not None:
+            return successor
     if _digest(original) != row[kind + "_base_sha256"] or (not isinstance(original, dict) and not (kind == "remediation" and original is None)):
         raise ValueError("Reviewed GCP clarity base changed: " + check_id + " (" + kind + ")")
     updated = deepcopy(original) if original is not None else {}

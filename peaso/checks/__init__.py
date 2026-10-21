@@ -1506,9 +1506,13 @@ from . import k8s_literal_secret_review_20261020
 k8s_literal_secret_review_20261020.install()
 from . import k8s_literal_current_metadata_20261020
 k8s_literal_current_metadata_20261020.install()
+from . import k8s_selected_text_content_review
+k8s_selected_text_content_review.install()
 
 from . import azure_acr_image_secret_review_20261020
 azure_acr_image_secret_review_20261020.install()
+from . import azure_acr_image_vulnerabilities_20261021
+azure_acr_image_vulnerabilities_20261021.install()
 
 from . import aws_lambda_environment_secret_review_20261020
 aws_lambda_environment_secret_review_20261020.install()
@@ -1638,3 +1642,20 @@ _provider_group_install_20261021.install(
     root=_provider_group_root_20261021,
     source_paths=_provider_group_install_20261021.deployed_sources(_provider_group_root_20261021),
 )
+
+# Practical bounded selected GCP image reads; grouped provider integration.
+from . import gcp_image_stream_review_20261021 as _gcp_image_stream
+_gcp_image_stream.install()
+
+# Default-off selected standalone immutable registry image vulnerabilities.
+from .gcp_registry_trivy_review_20261021 import install as _install_registry_image_cves
+_install_registry_image_cves(__import__(__name__, fromlist=['CHECKS']))
+
+# Unused identities and grants are native Hardening controls.
+from peaso import unused_iam_hardening as _unused_iam_hardening
+from peaso import unused_iam_k8s as _unused_iam_k8s
+_unused_iam_hardening.install(__import__(__name__, fromlist=['CHECKS']))
+_unused_iam_k8s.install(__import__(__name__, fromlist=['CHECKS']))
+
+from peaso import unused_iam_azure as _unused_iam_azure
+_unused_iam_azure.install(__import__(__name__, fromlist=['CHECKS']))

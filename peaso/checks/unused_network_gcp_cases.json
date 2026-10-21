@@ -1,0 +1,2159 @@
+{
+  "gcp.network.address_reserved_without_users": {
+    "pass": {
+      "name": "a",
+      "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/regions/us-central1/addresses/a",
+      "status": "IN_USE",
+      "users": [
+        "https://www.googleapis.com/compute/v1/projects/usage-project/zones/us-central1-a/instances/vm"
+      ],
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "representation": "full",
+        "source_requests": [
+          "compute-read"
+        ]
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "compute-read",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/aggregated/addresses",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {
+                "returnPartialSuccess": "true"
+              }
+            }
+          ]
+        }
+      },
+      "collections": {
+        "address": [
+          {
+            "type": "address",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "a",
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/regions/us-central1/addresses/a",
+                "status": "IN_USE",
+                "users": [
+                  "https://www.googleapis.com/compute/v1/projects/usage-project/zones/us-central1-a/instances/vm"
+                ],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "representation": "full",
+                  "source_requests": [
+                    "compute-read"
+                  ]
+                }
+              }
+            ],
+            "source_requests": [
+              "compute-read"
+            ]
+          }
+        ]
+      },
+      "address": [
+        {
+          "type": "address",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "a",
+            "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/regions/us-central1/addresses/a",
+            "status": "IN_USE",
+            "users": [
+              "https://www.googleapis.com/compute/v1/projects/usage-project/zones/us-central1-a/instances/vm"
+            ],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "representation": "full",
+              "source_requests": [
+                "compute-read"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "fail": {
+      "name": "a",
+      "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/regions/us-central1/addresses/a",
+      "status": "RESERVED",
+      "users": [],
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "representation": "full",
+        "source_requests": [
+          "compute-read"
+        ]
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "compute-read",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/aggregated/addresses",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {
+                "returnPartialSuccess": "true"
+              }
+            }
+          ]
+        }
+      },
+      "collections": {
+        "address": [
+          {
+            "type": "address",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "a",
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/regions/us-central1/addresses/a",
+                "status": "RESERVED",
+                "users": [],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "representation": "full",
+                  "source_requests": [
+                    "compute-read"
+                  ]
+                }
+              }
+            ],
+            "source_requests": [
+              "compute-read"
+            ]
+          }
+        ]
+      },
+      "address": [
+        {
+          "type": "address",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "a",
+            "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/regions/us-central1/addresses/a",
+            "status": "RESERVED",
+            "users": [],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "representation": "full",
+              "source_requests": [
+                "compute-read"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "missing": {
+      "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/regions/us-central1/addresses/a"
+    },
+    "missing_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "compute-read",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/aggregated/addresses",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {
+                "returnPartialSuccess": "true"
+              }
+            }
+          ]
+        }
+      },
+      "collections": {
+        "address": [
+          {
+            "type": "address",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "a",
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/regions/us-central1/addresses/a",
+                "status": "IN_USE",
+                "users": [
+                  "https://www.googleapis.com/compute/v1/projects/usage-project/zones/us-central1-a/instances/vm"
+                ],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "representation": "full",
+                  "source_requests": [
+                    "compute-read"
+                  ]
+                }
+              }
+            ],
+            "source_requests": [
+              "compute-read"
+            ]
+          }
+        ]
+      },
+      "address": [
+        {
+          "type": "address",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "a",
+            "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/regions/us-central1/addresses/a",
+            "status": "IN_USE",
+            "users": [
+              "https://www.googleapis.com/compute/v1/projects/usage-project/zones/us-central1-a/instances/vm"
+            ],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "representation": "full",
+              "source_requests": [
+                "compute-read"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "malformed": {
+      "name": "a",
+      "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/regions/us-central1/addresses/a",
+      "status": "RESERVED",
+      "users": [],
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "representation": "partial",
+        "source_requests": [
+          "compute-read"
+        ]
+      }
+    },
+    "malformed_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "compute-read",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/aggregated/addresses",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {
+                "returnPartialSuccess": "true"
+              }
+            }
+          ]
+        }
+      },
+      "collections": {
+        "address": [
+          {
+            "type": "address",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "a",
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/regions/us-central1/addresses/a",
+                "status": "RESERVED",
+                "users": [],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "representation": "full",
+                  "source_requests": [
+                    "compute-read"
+                  ]
+                }
+              }
+            ],
+            "source_requests": [
+              "compute-read"
+            ]
+          }
+        ]
+      },
+      "address": [
+        {
+          "type": "address",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "a",
+            "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/regions/us-central1/addresses/a",
+            "status": "RESERVED",
+            "users": [],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "representation": "full",
+              "source_requests": [
+                "compute-read"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "gcp.network.firewall_policy_without_associations": {
+    "pass": {
+      "name": "p",
+      "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/firewallPolicies/p",
+      "associations": [
+        {
+          "attachmentTarget": "https://www.googleapis.com/compute/v1/projects/usage-project/global/networks/vpc"
+        }
+      ],
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "representation": "full",
+        "source_requests": [
+          "compute-read"
+        ]
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "compute-read",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/aggregated/firewallPolicies",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {
+                "returnPartialSuccess": "true"
+              }
+            }
+          ]
+        }
+      },
+      "collections": {
+        "firewall_policy": [
+          {
+            "type": "firewall_policy",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "p",
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/firewallPolicies/p",
+                "associations": [
+                  {
+                    "attachmentTarget": "https://www.googleapis.com/compute/v1/projects/usage-project/global/networks/vpc"
+                  }
+                ],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "representation": "full",
+                  "source_requests": [
+                    "compute-read"
+                  ]
+                }
+              }
+            ],
+            "source_requests": [
+              "compute-read"
+            ]
+          }
+        ]
+      },
+      "firewall_policy": [
+        {
+          "type": "firewall_policy",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "p",
+            "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/firewallPolicies/p",
+            "associations": [
+              {
+                "attachmentTarget": "https://www.googleapis.com/compute/v1/projects/usage-project/global/networks/vpc"
+              }
+            ],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "representation": "full",
+              "source_requests": [
+                "compute-read"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "fail": {
+      "name": "p",
+      "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/firewallPolicies/p",
+      "associations": [],
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "representation": "full",
+        "source_requests": [
+          "compute-read"
+        ]
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "compute-read",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/aggregated/firewallPolicies",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {
+                "returnPartialSuccess": "true"
+              }
+            }
+          ]
+        }
+      },
+      "collections": {
+        "firewall_policy": [
+          {
+            "type": "firewall_policy",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "p",
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/firewallPolicies/p",
+                "associations": [],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "representation": "full",
+                  "source_requests": [
+                    "compute-read"
+                  ]
+                }
+              }
+            ],
+            "source_requests": [
+              "compute-read"
+            ]
+          }
+        ]
+      },
+      "firewall_policy": [
+        {
+          "type": "firewall_policy",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "p",
+            "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/firewallPolicies/p",
+            "associations": [],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "representation": "full",
+              "source_requests": [
+                "compute-read"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "missing": {
+      "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/firewallPolicies/p"
+    },
+    "missing_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "compute-read",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/aggregated/firewallPolicies",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {
+                "returnPartialSuccess": "true"
+              }
+            }
+          ]
+        }
+      },
+      "collections": {
+        "firewall_policy": [
+          {
+            "type": "firewall_policy",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "p",
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/firewallPolicies/p",
+                "associations": [
+                  {
+                    "attachmentTarget": "https://www.googleapis.com/compute/v1/projects/usage-project/global/networks/vpc"
+                  }
+                ],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "representation": "full",
+                  "source_requests": [
+                    "compute-read"
+                  ]
+                }
+              }
+            ],
+            "source_requests": [
+              "compute-read"
+            ]
+          }
+        ]
+      },
+      "firewall_policy": [
+        {
+          "type": "firewall_policy",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "p",
+            "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/firewallPolicies/p",
+            "associations": [
+              {
+                "attachmentTarget": "https://www.googleapis.com/compute/v1/projects/usage-project/global/networks/vpc"
+              }
+            ],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "representation": "full",
+              "source_requests": [
+                "compute-read"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "malformed": {
+      "name": "p",
+      "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/firewallPolicies/p",
+      "associations": [],
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "representation": "partial",
+        "source_requests": [
+          "compute-read"
+        ]
+      }
+    },
+    "malformed_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "compute-read",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/aggregated/firewallPolicies",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {
+                "returnPartialSuccess": "true"
+              }
+            }
+          ]
+        }
+      },
+      "collections": {
+        "firewall_policy": [
+          {
+            "type": "firewall_policy",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "p",
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/firewallPolicies/p",
+                "associations": [],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "representation": "full",
+                  "source_requests": [
+                    "compute-read"
+                  ]
+                }
+              }
+            ],
+            "source_requests": [
+              "compute-read"
+            ]
+          }
+        ]
+      },
+      "firewall_policy": [
+        {
+          "type": "firewall_policy",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "p",
+            "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/firewallPolicies/p",
+            "associations": [],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "representation": "full",
+              "source_requests": [
+                "compute-read"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "gcp.network.endpoint_group_without_endpoints": {
+    "pass": {
+      "name": "neg",
+      "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/zones/us-central1-a/networkEndpointGroups/neg",
+      "networkEndpointType": "GCE_VM_IP_PORT",
+      "size": 1,
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "representation": "full",
+        "source_requests": [
+          "compute-read"
+        ]
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "compute-read",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/aggregated/networkEndpointGroups",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {
+                "returnPartialSuccess": "true"
+              }
+            }
+          ]
+        }
+      },
+      "collections": {
+        "network_endpoint_group": [
+          {
+            "type": "network_endpoint_group",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "neg",
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/zones/us-central1-a/networkEndpointGroups/neg",
+                "networkEndpointType": "GCE_VM_IP_PORT",
+                "size": 1,
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "representation": "full",
+                  "source_requests": [
+                    "compute-read"
+                  ]
+                }
+              }
+            ],
+            "source_requests": [
+              "compute-read"
+            ]
+          }
+        ]
+      },
+      "network_endpoint_group": [
+        {
+          "type": "network_endpoint_group",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "neg",
+            "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/zones/us-central1-a/networkEndpointGroups/neg",
+            "networkEndpointType": "GCE_VM_IP_PORT",
+            "size": 1,
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "representation": "full",
+              "source_requests": [
+                "compute-read"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "fail": {
+      "name": "neg",
+      "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/zones/us-central1-a/networkEndpointGroups/neg",
+      "networkEndpointType": "GCE_VM_IP_PORT",
+      "size": 0,
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "representation": "full",
+        "source_requests": [
+          "compute-read"
+        ]
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "compute-read",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/aggregated/networkEndpointGroups",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {
+                "returnPartialSuccess": "true"
+              }
+            }
+          ]
+        }
+      },
+      "collections": {
+        "network_endpoint_group": [
+          {
+            "type": "network_endpoint_group",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "neg",
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/zones/us-central1-a/networkEndpointGroups/neg",
+                "networkEndpointType": "GCE_VM_IP_PORT",
+                "size": 0,
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "representation": "full",
+                  "source_requests": [
+                    "compute-read"
+                  ]
+                }
+              }
+            ],
+            "source_requests": [
+              "compute-read"
+            ]
+          }
+        ]
+      },
+      "network_endpoint_group": [
+        {
+          "type": "network_endpoint_group",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "neg",
+            "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/zones/us-central1-a/networkEndpointGroups/neg",
+            "networkEndpointType": "GCE_VM_IP_PORT",
+            "size": 0,
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "representation": "full",
+              "source_requests": [
+                "compute-read"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "missing": {
+      "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/zones/us-central1-a/networkEndpointGroups/neg"
+    },
+    "missing_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "compute-read",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/aggregated/networkEndpointGroups",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {
+                "returnPartialSuccess": "true"
+              }
+            }
+          ]
+        }
+      },
+      "collections": {
+        "network_endpoint_group": [
+          {
+            "type": "network_endpoint_group",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "neg",
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/zones/us-central1-a/networkEndpointGroups/neg",
+                "networkEndpointType": "GCE_VM_IP_PORT",
+                "size": 1,
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "representation": "full",
+                  "source_requests": [
+                    "compute-read"
+                  ]
+                }
+              }
+            ],
+            "source_requests": [
+              "compute-read"
+            ]
+          }
+        ]
+      },
+      "network_endpoint_group": [
+        {
+          "type": "network_endpoint_group",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "neg",
+            "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/zones/us-central1-a/networkEndpointGroups/neg",
+            "networkEndpointType": "GCE_VM_IP_PORT",
+            "size": 1,
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "representation": "full",
+              "source_requests": [
+                "compute-read"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "malformed": {
+      "name": "neg",
+      "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/zones/us-central1-a/networkEndpointGroups/neg",
+      "networkEndpointType": "GCE_VM_IP_PORT",
+      "size": 0,
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "representation": "partial",
+        "source_requests": [
+          "compute-read"
+        ]
+      }
+    },
+    "malformed_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "compute-read",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/aggregated/networkEndpointGroups",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {
+                "returnPartialSuccess": "true"
+              }
+            }
+          ]
+        }
+      },
+      "collections": {
+        "network_endpoint_group": [
+          {
+            "type": "network_endpoint_group",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "neg",
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/zones/us-central1-a/networkEndpointGroups/neg",
+                "networkEndpointType": "GCE_VM_IP_PORT",
+                "size": 0,
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "representation": "full",
+                  "source_requests": [
+                    "compute-read"
+                  ]
+                }
+              }
+            ],
+            "source_requests": [
+              "compute-read"
+            ]
+          }
+        ]
+      },
+      "network_endpoint_group": [
+        {
+          "type": "network_endpoint_group",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "neg",
+            "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/zones/us-central1-a/networkEndpointGroups/neg",
+            "networkEndpointType": "GCE_VM_IP_PORT",
+            "size": 0,
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "representation": "full",
+              "source_requests": [
+                "compute-read"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "gcp.network.http_proxy_forwarding_rule_reference": {
+    "pass": {
+      "name": "proxy",
+      "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/targetHttpProxies/proxy",
+      "_proxy_type": "targetHttpProxies",
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "representation": "full",
+        "source_requests": [
+          "proxy-list"
+        ]
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "proxy-list",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/aggregated/targetHttpProxies",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "regional-list",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/aggregated/forwardingRules",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "global-list",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/global/forwardingRules",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            }
+          ]
+        }
+      },
+      "collections": {
+        "target_proxy": [
+          {
+            "type": "target_proxy",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "proxy",
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/targetHttpProxies/proxy",
+                "_proxy_type": "targetHttpProxies",
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "representation": "full",
+                  "source_requests": [
+                    "proxy-list"
+                  ]
+                }
+              }
+            ],
+            "source_requests": [
+              "proxy-list"
+            ]
+          }
+        ],
+        "forwarding_rule": [
+          {
+            "type": "forwarding_rule",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "frontend",
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/forwardingRules/frontend",
+                "target": "https://www.googleapis.com/compute/v1/projects/usage-project/global/targetHttpProxies/proxy",
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "representation": "full",
+                  "source_requests": [
+                    "global-list"
+                  ]
+                }
+              }
+            ],
+            "source_requests": [
+              "regional-list",
+              "global-list"
+            ]
+          }
+        ]
+      },
+      "target_proxy": [
+        {
+          "type": "target_proxy",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "proxy",
+            "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/targetHttpProxies/proxy",
+            "_proxy_type": "targetHttpProxies",
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "representation": "full",
+              "source_requests": [
+                "proxy-list"
+              ]
+            }
+          }
+        }
+      ],
+      "forwarding_rule": [
+        {
+          "type": "forwarding_rule",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "frontend",
+            "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/forwardingRules/frontend",
+            "target": "https://www.googleapis.com/compute/v1/projects/usage-project/global/targetHttpProxies/proxy",
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "representation": "full",
+              "source_requests": [
+                "global-list"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "fail": {
+      "name": "proxy",
+      "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/targetHttpProxies/proxy",
+      "_proxy_type": "targetHttpProxies",
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "representation": "full",
+        "source_requests": [
+          "proxy-list"
+        ]
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "proxy-list",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/aggregated/targetHttpProxies",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "regional-list",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/aggregated/forwardingRules",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "global-list",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/global/forwardingRules",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            }
+          ]
+        }
+      },
+      "collections": {
+        "target_proxy": [
+          {
+            "type": "target_proxy",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "proxy",
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/targetHttpProxies/proxy",
+                "_proxy_type": "targetHttpProxies",
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "representation": "full",
+                  "source_requests": [
+                    "proxy-list"
+                  ]
+                }
+              }
+            ],
+            "source_requests": [
+              "proxy-list"
+            ]
+          }
+        ],
+        "forwarding_rule": [
+          {
+            "type": "forwarding_rule",
+            "scope": "projects/usage-project",
+            "status": "empty",
+            "items": [],
+            "source_requests": [
+              "regional-list",
+              "global-list"
+            ]
+          }
+        ]
+      },
+      "target_proxy": [
+        {
+          "type": "target_proxy",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "proxy",
+            "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/targetHttpProxies/proxy",
+            "_proxy_type": "targetHttpProxies",
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "representation": "full",
+              "source_requests": [
+                "proxy-list"
+              ]
+            }
+          }
+        }
+      ],
+      "forwarding_rule": []
+    },
+    "missing": {
+      "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/targetHttpProxies/proxy"
+    },
+    "missing_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "proxy-list",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/aggregated/targetHttpProxies",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "regional-list",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/aggregated/forwardingRules",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "global-list",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/global/forwardingRules",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            }
+          ]
+        }
+      },
+      "collections": {
+        "target_proxy": [
+          {
+            "type": "target_proxy",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "proxy",
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/targetHttpProxies/proxy",
+                "_proxy_type": "targetHttpProxies",
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "representation": "full",
+                  "source_requests": [
+                    "proxy-list"
+                  ]
+                }
+              }
+            ],
+            "source_requests": [
+              "proxy-list"
+            ]
+          }
+        ],
+        "forwarding_rule": [
+          {
+            "type": "forwarding_rule",
+            "scope": "projects/usage-project",
+            "status": "empty",
+            "items": [],
+            "source_requests": [
+              "regional-list",
+              "global-list"
+            ]
+          }
+        ]
+      },
+      "target_proxy": [
+        {
+          "type": "target_proxy",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "proxy",
+            "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/targetHttpProxies/proxy",
+            "_proxy_type": "targetHttpProxies",
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "representation": "full",
+              "source_requests": [
+                "proxy-list"
+              ]
+            }
+          }
+        }
+      ],
+      "forwarding_rule": []
+    },
+    "malformed": {
+      "name": "proxy",
+      "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/targetHttpProxies/proxy",
+      "_proxy_type": "targetTcpProxies",
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "representation": "full",
+        "source_requests": [
+          "proxy-list"
+        ]
+      }
+    },
+    "malformed_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "proxy-list",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/aggregated/targetHttpProxies",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "regional-list",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/aggregated/forwardingRules",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "global-list",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/global/forwardingRules",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            }
+          ]
+        }
+      },
+      "collections": {
+        "target_proxy": [
+          {
+            "type": "target_proxy",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "proxy",
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/targetHttpProxies/proxy",
+                "_proxy_type": "targetHttpProxies",
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "representation": "full",
+                  "source_requests": [
+                    "proxy-list"
+                  ]
+                }
+              }
+            ],
+            "source_requests": [
+              "proxy-list"
+            ]
+          }
+        ],
+        "forwarding_rule": [
+          {
+            "type": "forwarding_rule",
+            "scope": "projects/usage-project",
+            "status": "empty",
+            "items": [],
+            "source_requests": [
+              "regional-list",
+              "global-list"
+            ]
+          }
+        ]
+      },
+      "target_proxy": [
+        {
+          "type": "target_proxy",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "proxy",
+            "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/targetHttpProxies/proxy",
+            "_proxy_type": "targetHttpProxies",
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "representation": "full",
+              "source_requests": [
+                "proxy-list"
+              ]
+            }
+          }
+        }
+      ],
+      "forwarding_rule": []
+    }
+  },
+  "gcp.network.https_proxy_forwarding_rule_reference": {
+    "pass": {
+      "name": "proxy",
+      "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/targetHttpsProxies/proxy",
+      "_proxy_type": "targetHttpsProxies",
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "representation": "full",
+        "source_requests": [
+          "proxy-list"
+        ]
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "proxy-list",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/aggregated/targetHttpsProxies",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "regional-list",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/aggregated/forwardingRules",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "global-list",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/global/forwardingRules",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            }
+          ]
+        }
+      },
+      "collections": {
+        "target_proxy": [
+          {
+            "type": "target_proxy",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "proxy",
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/targetHttpsProxies/proxy",
+                "_proxy_type": "targetHttpsProxies",
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "representation": "full",
+                  "source_requests": [
+                    "proxy-list"
+                  ]
+                }
+              }
+            ],
+            "source_requests": [
+              "proxy-list"
+            ]
+          }
+        ],
+        "forwarding_rule": [
+          {
+            "type": "forwarding_rule",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "frontend",
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/forwardingRules/frontend",
+                "target": "https://www.googleapis.com/compute/v1/projects/usage-project/global/targetHttpsProxies/proxy",
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "representation": "full",
+                  "source_requests": [
+                    "global-list"
+                  ]
+                }
+              }
+            ],
+            "source_requests": [
+              "regional-list",
+              "global-list"
+            ]
+          }
+        ]
+      },
+      "target_proxy": [
+        {
+          "type": "target_proxy",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "proxy",
+            "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/targetHttpsProxies/proxy",
+            "_proxy_type": "targetHttpsProxies",
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "representation": "full",
+              "source_requests": [
+                "proxy-list"
+              ]
+            }
+          }
+        }
+      ],
+      "forwarding_rule": [
+        {
+          "type": "forwarding_rule",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "frontend",
+            "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/forwardingRules/frontend",
+            "target": "https://www.googleapis.com/compute/v1/projects/usage-project/global/targetHttpsProxies/proxy",
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "representation": "full",
+              "source_requests": [
+                "global-list"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "fail": {
+      "name": "proxy",
+      "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/targetHttpsProxies/proxy",
+      "_proxy_type": "targetHttpsProxies",
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "representation": "full",
+        "source_requests": [
+          "proxy-list"
+        ]
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "proxy-list",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/aggregated/targetHttpsProxies",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "regional-list",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/aggregated/forwardingRules",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "global-list",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/global/forwardingRules",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            }
+          ]
+        }
+      },
+      "collections": {
+        "target_proxy": [
+          {
+            "type": "target_proxy",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "proxy",
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/targetHttpsProxies/proxy",
+                "_proxy_type": "targetHttpsProxies",
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "representation": "full",
+                  "source_requests": [
+                    "proxy-list"
+                  ]
+                }
+              }
+            ],
+            "source_requests": [
+              "proxy-list"
+            ]
+          }
+        ],
+        "forwarding_rule": [
+          {
+            "type": "forwarding_rule",
+            "scope": "projects/usage-project",
+            "status": "empty",
+            "items": [],
+            "source_requests": [
+              "regional-list",
+              "global-list"
+            ]
+          }
+        ]
+      },
+      "target_proxy": [
+        {
+          "type": "target_proxy",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "proxy",
+            "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/targetHttpsProxies/proxy",
+            "_proxy_type": "targetHttpsProxies",
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "representation": "full",
+              "source_requests": [
+                "proxy-list"
+              ]
+            }
+          }
+        }
+      ],
+      "forwarding_rule": []
+    },
+    "missing": {
+      "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/targetHttpsProxies/proxy"
+    },
+    "missing_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "proxy-list",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/aggregated/targetHttpsProxies",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "regional-list",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/aggregated/forwardingRules",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "global-list",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/global/forwardingRules",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            }
+          ]
+        }
+      },
+      "collections": {
+        "target_proxy": [
+          {
+            "type": "target_proxy",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "proxy",
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/targetHttpsProxies/proxy",
+                "_proxy_type": "targetHttpsProxies",
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "representation": "full",
+                  "source_requests": [
+                    "proxy-list"
+                  ]
+                }
+              }
+            ],
+            "source_requests": [
+              "proxy-list"
+            ]
+          }
+        ],
+        "forwarding_rule": [
+          {
+            "type": "forwarding_rule",
+            "scope": "projects/usage-project",
+            "status": "empty",
+            "items": [],
+            "source_requests": [
+              "regional-list",
+              "global-list"
+            ]
+          }
+        ]
+      },
+      "target_proxy": [
+        {
+          "type": "target_proxy",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "proxy",
+            "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/targetHttpsProxies/proxy",
+            "_proxy_type": "targetHttpsProxies",
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "representation": "full",
+              "source_requests": [
+                "proxy-list"
+              ]
+            }
+          }
+        }
+      ],
+      "forwarding_rule": []
+    },
+    "malformed": {
+      "name": "proxy",
+      "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/targetHttpsProxies/proxy",
+      "_proxy_type": "targetTcpProxies",
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "representation": "full",
+        "source_requests": [
+          "proxy-list"
+        ]
+      }
+    },
+    "malformed_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "proxy-list",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/aggregated/targetHttpsProxies",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "regional-list",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/aggregated/forwardingRules",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "global-list",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/global/forwardingRules",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            }
+          ]
+        }
+      },
+      "collections": {
+        "target_proxy": [
+          {
+            "type": "target_proxy",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "proxy",
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/targetHttpsProxies/proxy",
+                "_proxy_type": "targetHttpsProxies",
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "representation": "full",
+                  "source_requests": [
+                    "proxy-list"
+                  ]
+                }
+              }
+            ],
+            "source_requests": [
+              "proxy-list"
+            ]
+          }
+        ],
+        "forwarding_rule": [
+          {
+            "type": "forwarding_rule",
+            "scope": "projects/usage-project",
+            "status": "empty",
+            "items": [],
+            "source_requests": [
+              "regional-list",
+              "global-list"
+            ]
+          }
+        ]
+      },
+      "target_proxy": [
+        {
+          "type": "target_proxy",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "proxy",
+            "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/targetHttpsProxies/proxy",
+            "_proxy_type": "targetHttpsProxies",
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "representation": "full",
+              "source_requests": [
+                "proxy-list"
+              ]
+            }
+          }
+        }
+      ],
+      "forwarding_rule": []
+    }
+  },
+  "gcp.network.backend_service_has_members": {
+    "pass": {
+      "name": "backend",
+      "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/backendServices/backend",
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "representation": "full",
+        "source_requests": [
+          "backend-list"
+        ]
+      },
+      "serviceBindings": [
+        "https://networkservices.googleapis.com/v1/projects/usage-project/locations/global/serviceBindings/binding"
+      ]
+    },
+    "pass_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "backend-list",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/aggregated/backendServices",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            }
+          ]
+        }
+      },
+      "collections": {
+        "backend_service": [
+          {
+            "type": "backend_service",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "backend",
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/backendServices/backend",
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "representation": "full",
+                  "source_requests": [
+                    "backend-list"
+                  ]
+                },
+                "serviceBindings": [
+                  "https://networkservices.googleapis.com/v1/projects/usage-project/locations/global/serviceBindings/binding"
+                ]
+              }
+            ],
+            "source_requests": [
+              "backend-list"
+            ]
+          }
+        ]
+      },
+      "backend_service": [
+        {
+          "type": "backend_service",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "backend",
+            "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/backendServices/backend",
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "representation": "full",
+              "source_requests": [
+                "backend-list"
+              ]
+            },
+            "serviceBindings": [
+              "https://networkservices.googleapis.com/v1/projects/usage-project/locations/global/serviceBindings/binding"
+            ]
+          }
+        }
+      ]
+    },
+    "fail": {
+      "name": "backend",
+      "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/backendServices/backend",
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "representation": "full",
+        "source_requests": [
+          "backend-list"
+        ]
+      },
+      "backends": [],
+      "serviceBindings": []
+    },
+    "fail_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "backend-list",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/aggregated/backendServices",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            }
+          ]
+        }
+      },
+      "collections": {
+        "backend_service": [
+          {
+            "type": "backend_service",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "backend",
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/backendServices/backend",
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "representation": "full",
+                  "source_requests": [
+                    "backend-list"
+                  ]
+                },
+                "backends": [],
+                "serviceBindings": []
+              }
+            ],
+            "source_requests": [
+              "backend-list"
+            ]
+          }
+        ]
+      },
+      "backend_service": [
+        {
+          "type": "backend_service",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "backend",
+            "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/backendServices/backend",
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "representation": "full",
+              "source_requests": [
+                "backend-list"
+              ]
+            },
+            "backends": [],
+            "serviceBindings": []
+          }
+        }
+      ]
+    },
+    "missing": {
+      "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/backendServices/backend"
+    },
+    "missing_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "backend-list",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/aggregated/backendServices",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            }
+          ]
+        }
+      },
+      "collections": {
+        "backend_service": [
+          {
+            "type": "backend_service",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "backend",
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/backendServices/backend",
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "representation": "full",
+                  "source_requests": [
+                    "backend-list"
+                  ]
+                },
+                "backends": [],
+                "serviceBindings": []
+              }
+            ],
+            "source_requests": [
+              "backend-list"
+            ]
+          }
+        ]
+      },
+      "backend_service": [
+        {
+          "type": "backend_service",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "backend",
+            "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/backendServices/backend",
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "representation": "full",
+              "source_requests": [
+                "backend-list"
+              ]
+            },
+            "backends": [],
+            "serviceBindings": []
+          }
+        }
+      ]
+    },
+    "malformed": {
+      "name": "backend",
+      "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/backendServices/backend",
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "representation": "full",
+        "source_requests": [
+          "backend-list"
+        ]
+      },
+      "backends": [
+        {}
+      ]
+    },
+    "malformed_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "backend-list",
+              "scope": "projects/usage-project",
+              "url": "https://compute.googleapis.com/compute/v1/projects/usage-project/aggregated/backendServices",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            }
+          ]
+        }
+      },
+      "collections": {
+        "backend_service": [
+          {
+            "type": "backend_service",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "backend",
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/backendServices/backend",
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "representation": "full",
+                  "source_requests": [
+                    "backend-list"
+                  ]
+                },
+                "backends": [],
+                "serviceBindings": []
+              }
+            ],
+            "source_requests": [
+              "backend-list"
+            ]
+          }
+        ]
+      },
+      "backend_service": [
+        {
+          "type": "backend_service",
+          "scope": "projects/usage-project",
+          "data": {
+            "name": "backend",
+            "selfLink": "https://www.googleapis.com/compute/v1/projects/usage-project/global/backendServices/backend",
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "representation": "full",
+              "source_requests": [
+                "backend-list"
+              ]
+            },
+            "backends": [],
+            "serviceBindings": []
+          }
+        }
+      ]
+    }
+  }
+}

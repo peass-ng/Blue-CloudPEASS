@@ -1,0 +1,770 @@
+{
+  "azure.iam.custom_arm_role_has_declared_consumers": {
+    "pass": {
+      "id": "/subscriptions/22222222-2222-4222-8222-222222222222/providers/Microsoft.Authorization/roleDefinitions/44444444-4444-4444-8444-444444444444",
+      "name": "44444444-4444-4444-8444-444444444444",
+      "type": "Microsoft.Authorization/roleDefinitions",
+      "properties": {
+        "type": "CustomRole",
+        "roleName": "Synthetic storage role",
+        "assignableScopes": [
+          "/subscriptions/22222222-2222-4222-8222-222222222222"
+        ],
+        "permissions": [
+          {
+            "actions": [
+              "Microsoft.Storage/storageAccounts/read"
+            ],
+            "notActions": [],
+            "dataActions": [],
+            "notDataActions": []
+          }
+        ]
+      },
+      "_provenance": {
+        "credential_context_id": "capture-one",
+        "customer_context_id": "customer-one"
+      },
+      "_authorization_native_list": {
+        "source_operation": "roleDefinitions_ListForScope",
+        "read_only": true,
+        "api_version": "2022-04-01",
+        "requested_scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+        "request_path": "/subscriptions/22222222-2222-4222-8222-222222222222/providers/Microsoft.Authorization/roleDefinitions",
+        "filter": null
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "credential_context_id": "capture-one",
+          "customer_context_id": "customer-one",
+          "tenant_id": "11111111-1111-4111-8111-111111111111",
+          "tenant_verified": true,
+          "read_only": true,
+          "schema": "azure-unused-arm-role-evidence-v1",
+          "endpoint": "native-unused-arm-role-projection",
+          "observed_at": "2026-10-21T12:00:00Z",
+          "azure_unused_arm_roles": {
+            "schema": "azure-unused-arm-role-evidence-v1",
+            "selected_subscriptions": [
+              "/subscriptions/22222222-2222-4222-8222-222222222222"
+            ],
+            "bindings": {
+              "/subscriptions/22222222-2222-4222-8222-222222222222": {
+                "scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+                "path": "/subscriptions/22222222-2222-4222-8222-222222222222",
+                "api_version": "2022-12-01",
+                "method": "GET",
+                "body": null,
+                "audience": "https://management.azure.com",
+                "status": "collected",
+                "tenant_id": "11111111-1111-4111-8111-111111111111"
+              }
+            },
+            "hierarchies": {},
+            "sources": [
+              {
+                "scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+                "name": "assignments",
+                "path": "/subscriptions/22222222-2222-4222-8222-222222222222/providers/Microsoft.Authorization/roleAssignments",
+                "api_version": "2022-04-01",
+                "audience": "https://management.azure.com",
+                "method": "GET",
+                "body": null,
+                "filter": null,
+                "status": "collected",
+                "items": [
+                  {
+                    "id": "/subscriptions/22222222-2222-4222-8222-222222222222/providers/Microsoft.Authorization/roleAssignments/66666666-6666-4666-8666-666666666666",
+                    "name": "66666666-6666-4666-8666-666666666666",
+                    "type": "Microsoft.Authorization/roleAssignments",
+                    "properties": {
+                      "scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+                      "roleDefinitionId": "/subscriptions/22222222-2222-4222-8222-222222222222/providers/Microsoft.Authorization/roleDefinitions/44444444-4444-4444-8444-444444444444",
+                      "principalId": "55555555-5555-4555-8555-555555555555",
+                      "principalType": "ServicePrincipal",
+                      "condition": null
+                    }
+                  }
+                ],
+                "integrity_error": false
+              },
+              {
+                "scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+                "name": "assignment_schedules",
+                "path": "/subscriptions/22222222-2222-4222-8222-222222222222/providers/Microsoft.Authorization/roleAssignmentSchedules",
+                "api_version": "2020-10-01",
+                "audience": "https://management.azure.com",
+                "method": "GET",
+                "body": null,
+                "filter": null,
+                "status": "empty",
+                "items": [],
+                "integrity_error": false
+              },
+              {
+                "scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+                "name": "eligibility_schedules",
+                "path": "/subscriptions/22222222-2222-4222-8222-222222222222/providers/Microsoft.Authorization/roleEligibilitySchedules",
+                "api_version": "2020-10-01",
+                "audience": "https://management.azure.com",
+                "method": "GET",
+                "body": null,
+                "filter": null,
+                "status": "empty",
+                "items": [],
+                "integrity_error": false
+              }
+            ],
+            "unresolved_assignable_scopes": [],
+            "_provenance": {
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "read_only": true,
+              "schema": "azure-unused-arm-role-evidence-v1",
+              "endpoint": "native-unused-arm-role-projection",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        }
+      },
+      "collections": {
+        "role_definition": [
+          {
+            "type": "role_definition",
+            "scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+            "service": "Microsoft.Authorization",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/subscriptions/22222222-2222-4222-8222-222222222222/providers/Microsoft.Authorization/roleDefinitions/44444444-4444-4444-8444-444444444444",
+                "name": "44444444-4444-4444-8444-444444444444",
+                "type": "Microsoft.Authorization/roleDefinitions",
+                "properties": {
+                  "type": "CustomRole",
+                  "roleName": "Synthetic storage role",
+                  "assignableScopes": [
+                    "/subscriptions/22222222-2222-4222-8222-222222222222"
+                  ],
+                  "permissions": [
+                    {
+                      "actions": [
+                        "Microsoft.Storage/storageAccounts/read"
+                      ],
+                      "notActions": [],
+                      "dataActions": [],
+                      "notDataActions": []
+                    }
+                  ]
+                },
+                "_provenance": {
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one"
+                },
+                "_authorization_native_list": {
+                  "source_operation": "roleDefinitions_ListForScope",
+                  "read_only": true,
+                  "api_version": "2022-04-01",
+                  "requested_scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+                  "request_path": "/subscriptions/22222222-2222-4222-8222-222222222222/providers/Microsoft.Authorization/roleDefinitions",
+                  "filter": null
+                }
+              }
+            ],
+            "_provenance": {
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one"
+            }
+          }
+        ],
+        "azure_unused_arm_role_evidence": [
+          {
+            "type": "azure_unused_arm_role_evidence",
+            "scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+            "service": "Microsoft.Authorization",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/subscriptions/22222222-2222-4222-8222-222222222222/unusedArmRoleEvidence",
+                "schema": "azure-unused-arm-role-evidence-v1",
+                "metadata_key": "azure_unused_arm_roles",
+                "_provenance": {
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "read_only": true,
+                  "schema": "azure-unused-arm-role-evidence-v1",
+                  "endpoint": "native-unused-arm-role-projection",
+                  "observed_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "_provenance": {
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one"
+            }
+          }
+        ]
+      },
+      "role_definition": [
+        {
+          "type": "role_definition",
+          "scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+          "data": {
+            "id": "/subscriptions/22222222-2222-4222-8222-222222222222/providers/Microsoft.Authorization/roleDefinitions/44444444-4444-4444-8444-444444444444",
+            "name": "44444444-4444-4444-8444-444444444444",
+            "type": "Microsoft.Authorization/roleDefinitions",
+            "properties": {
+              "type": "CustomRole",
+              "roleName": "Synthetic storage role",
+              "assignableScopes": [
+                "/subscriptions/22222222-2222-4222-8222-222222222222"
+              ],
+              "permissions": [
+                {
+                  "actions": [
+                    "Microsoft.Storage/storageAccounts/read"
+                  ],
+                  "notActions": [],
+                  "dataActions": [],
+                  "notDataActions": []
+                }
+              ]
+            },
+            "_provenance": {
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one"
+            },
+            "_authorization_native_list": {
+              "source_operation": "roleDefinitions_ListForScope",
+              "read_only": true,
+              "api_version": "2022-04-01",
+              "requested_scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+              "request_path": "/subscriptions/22222222-2222-4222-8222-222222222222/providers/Microsoft.Authorization/roleDefinitions",
+              "filter": null
+            }
+          }
+        }
+      ],
+      "azure_unused_arm_role_evidence": [
+        {
+          "type": "azure_unused_arm_role_evidence",
+          "scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+          "data": {
+            "id": "/subscriptions/22222222-2222-4222-8222-222222222222/unusedArmRoleEvidence",
+            "schema": "azure-unused-arm-role-evidence-v1",
+            "metadata_key": "azure_unused_arm_roles",
+            "_provenance": {
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "read_only": true,
+              "schema": "azure-unused-arm-role-evidence-v1",
+              "endpoint": "native-unused-arm-role-projection",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        }
+      ]
+    },
+    "fail": {
+      "id": "/subscriptions/22222222-2222-4222-8222-222222222222/providers/Microsoft.Authorization/roleDefinitions/44444444-4444-4444-8444-444444444444",
+      "name": "44444444-4444-4444-8444-444444444444",
+      "type": "Microsoft.Authorization/roleDefinitions",
+      "properties": {
+        "type": "CustomRole",
+        "roleName": "Synthetic storage role",
+        "assignableScopes": [
+          "/subscriptions/22222222-2222-4222-8222-222222222222"
+        ],
+        "permissions": [
+          {
+            "actions": [
+              "Microsoft.Storage/storageAccounts/read"
+            ],
+            "notActions": [],
+            "dataActions": [],
+            "notDataActions": []
+          }
+        ]
+      },
+      "_provenance": {
+        "credential_context_id": "capture-one",
+        "customer_context_id": "customer-one"
+      },
+      "_authorization_native_list": {
+        "source_operation": "roleDefinitions_ListForScope",
+        "read_only": true,
+        "api_version": "2022-04-01",
+        "requested_scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+        "request_path": "/subscriptions/22222222-2222-4222-8222-222222222222/providers/Microsoft.Authorization/roleDefinitions",
+        "filter": null
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "credential_context_id": "capture-one",
+          "customer_context_id": "customer-one",
+          "tenant_id": "11111111-1111-4111-8111-111111111111",
+          "tenant_verified": true,
+          "read_only": true,
+          "schema": "azure-unused-arm-role-evidence-v1",
+          "endpoint": "native-unused-arm-role-projection",
+          "observed_at": "2026-10-21T12:00:00Z",
+          "azure_unused_arm_roles": {
+            "schema": "azure-unused-arm-role-evidence-v1",
+            "selected_subscriptions": [
+              "/subscriptions/22222222-2222-4222-8222-222222222222"
+            ],
+            "bindings": {
+              "/subscriptions/22222222-2222-4222-8222-222222222222": {
+                "scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+                "path": "/subscriptions/22222222-2222-4222-8222-222222222222",
+                "api_version": "2022-12-01",
+                "method": "GET",
+                "body": null,
+                "audience": "https://management.azure.com",
+                "status": "collected",
+                "tenant_id": "11111111-1111-4111-8111-111111111111"
+              }
+            },
+            "hierarchies": {},
+            "sources": [
+              {
+                "scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+                "name": "assignments",
+                "path": "/subscriptions/22222222-2222-4222-8222-222222222222/providers/Microsoft.Authorization/roleAssignments",
+                "api_version": "2022-04-01",
+                "audience": "https://management.azure.com",
+                "method": "GET",
+                "body": null,
+                "filter": null,
+                "status": "empty",
+                "items": [],
+                "integrity_error": false
+              },
+              {
+                "scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+                "name": "assignment_schedules",
+                "path": "/subscriptions/22222222-2222-4222-8222-222222222222/providers/Microsoft.Authorization/roleAssignmentSchedules",
+                "api_version": "2020-10-01",
+                "audience": "https://management.azure.com",
+                "method": "GET",
+                "body": null,
+                "filter": null,
+                "status": "empty",
+                "items": [],
+                "integrity_error": false
+              },
+              {
+                "scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+                "name": "eligibility_schedules",
+                "path": "/subscriptions/22222222-2222-4222-8222-222222222222/providers/Microsoft.Authorization/roleEligibilitySchedules",
+                "api_version": "2020-10-01",
+                "audience": "https://management.azure.com",
+                "method": "GET",
+                "body": null,
+                "filter": null,
+                "status": "empty",
+                "items": [],
+                "integrity_error": false
+              }
+            ],
+            "unresolved_assignable_scopes": [],
+            "_provenance": {
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "read_only": true,
+              "schema": "azure-unused-arm-role-evidence-v1",
+              "endpoint": "native-unused-arm-role-projection",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        }
+      },
+      "collections": {
+        "role_definition": [
+          {
+            "type": "role_definition",
+            "scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+            "service": "Microsoft.Authorization",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/subscriptions/22222222-2222-4222-8222-222222222222/providers/Microsoft.Authorization/roleDefinitions/44444444-4444-4444-8444-444444444444",
+                "name": "44444444-4444-4444-8444-444444444444",
+                "type": "Microsoft.Authorization/roleDefinitions",
+                "properties": {
+                  "type": "CustomRole",
+                  "roleName": "Synthetic storage role",
+                  "assignableScopes": [
+                    "/subscriptions/22222222-2222-4222-8222-222222222222"
+                  ],
+                  "permissions": [
+                    {
+                      "actions": [
+                        "Microsoft.Storage/storageAccounts/read"
+                      ],
+                      "notActions": [],
+                      "dataActions": [],
+                      "notDataActions": []
+                    }
+                  ]
+                },
+                "_provenance": {
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one"
+                },
+                "_authorization_native_list": {
+                  "source_operation": "roleDefinitions_ListForScope",
+                  "read_only": true,
+                  "api_version": "2022-04-01",
+                  "requested_scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+                  "request_path": "/subscriptions/22222222-2222-4222-8222-222222222222/providers/Microsoft.Authorization/roleDefinitions",
+                  "filter": null
+                }
+              }
+            ],
+            "_provenance": {
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one"
+            }
+          }
+        ],
+        "azure_unused_arm_role_evidence": [
+          {
+            "type": "azure_unused_arm_role_evidence",
+            "scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+            "service": "Microsoft.Authorization",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/subscriptions/22222222-2222-4222-8222-222222222222/unusedArmRoleEvidence",
+                "schema": "azure-unused-arm-role-evidence-v1",
+                "metadata_key": "azure_unused_arm_roles",
+                "_provenance": {
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "read_only": true,
+                  "schema": "azure-unused-arm-role-evidence-v1",
+                  "endpoint": "native-unused-arm-role-projection",
+                  "observed_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "_provenance": {
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one"
+            }
+          }
+        ]
+      },
+      "role_definition": [
+        {
+          "type": "role_definition",
+          "scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+          "data": {
+            "id": "/subscriptions/22222222-2222-4222-8222-222222222222/providers/Microsoft.Authorization/roleDefinitions/44444444-4444-4444-8444-444444444444",
+            "name": "44444444-4444-4444-8444-444444444444",
+            "type": "Microsoft.Authorization/roleDefinitions",
+            "properties": {
+              "type": "CustomRole",
+              "roleName": "Synthetic storage role",
+              "assignableScopes": [
+                "/subscriptions/22222222-2222-4222-8222-222222222222"
+              ],
+              "permissions": [
+                {
+                  "actions": [
+                    "Microsoft.Storage/storageAccounts/read"
+                  ],
+                  "notActions": [],
+                  "dataActions": [],
+                  "notDataActions": []
+                }
+              ]
+            },
+            "_provenance": {
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one"
+            },
+            "_authorization_native_list": {
+              "source_operation": "roleDefinitions_ListForScope",
+              "read_only": true,
+              "api_version": "2022-04-01",
+              "requested_scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+              "request_path": "/subscriptions/22222222-2222-4222-8222-222222222222/providers/Microsoft.Authorization/roleDefinitions",
+              "filter": null
+            }
+          }
+        }
+      ],
+      "azure_unused_arm_role_evidence": [
+        {
+          "type": "azure_unused_arm_role_evidence",
+          "scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+          "data": {
+            "id": "/subscriptions/22222222-2222-4222-8222-222222222222/unusedArmRoleEvidence",
+            "schema": "azure-unused-arm-role-evidence-v1",
+            "metadata_key": "azure_unused_arm_roles",
+            "_provenance": {
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "read_only": true,
+              "schema": "azure-unused-arm-role-evidence-v1",
+              "endpoint": "native-unused-arm-role-projection",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        }
+      ]
+    },
+    "missing": {},
+    "index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "credential_context_id": "capture-one",
+          "customer_context_id": "customer-one",
+          "tenant_id": "11111111-1111-4111-8111-111111111111",
+          "tenant_verified": true,
+          "read_only": true,
+          "schema": "azure-unused-arm-role-evidence-v1",
+          "endpoint": "native-unused-arm-role-projection",
+          "observed_at": "2026-10-21T12:00:00Z",
+          "azure_unused_arm_roles": {
+            "schema": "azure-unused-arm-role-evidence-v1",
+            "selected_subscriptions": [
+              "/subscriptions/22222222-2222-4222-8222-222222222222"
+            ],
+            "bindings": {
+              "/subscriptions/22222222-2222-4222-8222-222222222222": {
+                "scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+                "path": "/subscriptions/22222222-2222-4222-8222-222222222222",
+                "api_version": "2022-12-01",
+                "method": "GET",
+                "body": null,
+                "audience": "https://management.azure.com",
+                "status": "collected",
+                "tenant_id": "11111111-1111-4111-8111-111111111111"
+              }
+            },
+            "hierarchies": {},
+            "sources": [
+              {
+                "scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+                "name": "assignments",
+                "path": "/subscriptions/22222222-2222-4222-8222-222222222222/providers/Microsoft.Authorization/roleAssignments",
+                "api_version": "2022-04-01",
+                "audience": "https://management.azure.com",
+                "method": "GET",
+                "body": null,
+                "filter": null,
+                "status": "empty",
+                "items": [],
+                "integrity_error": false
+              },
+              {
+                "scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+                "name": "assignment_schedules",
+                "path": "/subscriptions/22222222-2222-4222-8222-222222222222/providers/Microsoft.Authorization/roleAssignmentSchedules",
+                "api_version": "2020-10-01",
+                "audience": "https://management.azure.com",
+                "method": "GET",
+                "body": null,
+                "filter": null,
+                "status": "empty",
+                "items": [],
+                "integrity_error": false
+              },
+              {
+                "scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+                "name": "eligibility_schedules",
+                "path": "/subscriptions/22222222-2222-4222-8222-222222222222/providers/Microsoft.Authorization/roleEligibilitySchedules",
+                "api_version": "2020-10-01",
+                "audience": "https://management.azure.com",
+                "method": "GET",
+                "body": null,
+                "filter": null,
+                "status": "empty",
+                "items": [],
+                "integrity_error": false
+              }
+            ],
+            "unresolved_assignable_scopes": [],
+            "_provenance": {
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "read_only": true,
+              "schema": "azure-unused-arm-role-evidence-v1",
+              "endpoint": "native-unused-arm-role-projection",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        }
+      },
+      "collections": {
+        "role_definition": [
+          {
+            "type": "role_definition",
+            "scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+            "service": "Microsoft.Authorization",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/subscriptions/22222222-2222-4222-8222-222222222222/providers/Microsoft.Authorization/roleDefinitions/44444444-4444-4444-8444-444444444444",
+                "name": "44444444-4444-4444-8444-444444444444",
+                "type": "Microsoft.Authorization/roleDefinitions",
+                "properties": {
+                  "type": "CustomRole",
+                  "roleName": "Synthetic storage role",
+                  "assignableScopes": [
+                    "/subscriptions/22222222-2222-4222-8222-222222222222"
+                  ],
+                  "permissions": [
+                    {
+                      "actions": [
+                        "Microsoft.Storage/storageAccounts/read"
+                      ],
+                      "notActions": [],
+                      "dataActions": [],
+                      "notDataActions": []
+                    }
+                  ]
+                },
+                "_provenance": {
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one"
+                },
+                "_authorization_native_list": {
+                  "source_operation": "roleDefinitions_ListForScope",
+                  "read_only": true,
+                  "api_version": "2022-04-01",
+                  "requested_scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+                  "request_path": "/subscriptions/22222222-2222-4222-8222-222222222222/providers/Microsoft.Authorization/roleDefinitions",
+                  "filter": null
+                }
+              }
+            ],
+            "_provenance": {
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one"
+            }
+          }
+        ],
+        "azure_unused_arm_role_evidence": [
+          {
+            "type": "azure_unused_arm_role_evidence",
+            "scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+            "service": "Microsoft.Authorization",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/subscriptions/22222222-2222-4222-8222-222222222222/unusedArmRoleEvidence",
+                "schema": "azure-unused-arm-role-evidence-v1",
+                "metadata_key": "azure_unused_arm_roles",
+                "_provenance": {
+                  "credential_context_id": "capture-one",
+                  "customer_context_id": "customer-one",
+                  "tenant_id": "11111111-1111-4111-8111-111111111111",
+                  "tenant_verified": true,
+                  "read_only": true,
+                  "schema": "azure-unused-arm-role-evidence-v1",
+                  "endpoint": "native-unused-arm-role-projection",
+                  "observed_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "_provenance": {
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one"
+            }
+          }
+        ]
+      },
+      "role_definition": [
+        {
+          "type": "role_definition",
+          "scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+          "data": {
+            "id": "/subscriptions/22222222-2222-4222-8222-222222222222/providers/Microsoft.Authorization/roleDefinitions/44444444-4444-4444-8444-444444444444",
+            "name": "44444444-4444-4444-8444-444444444444",
+            "type": "Microsoft.Authorization/roleDefinitions",
+            "properties": {
+              "type": "CustomRole",
+              "roleName": "Synthetic storage role",
+              "assignableScopes": [
+                "/subscriptions/22222222-2222-4222-8222-222222222222"
+              ],
+              "permissions": [
+                {
+                  "actions": [
+                    "Microsoft.Storage/storageAccounts/read"
+                  ],
+                  "notActions": [],
+                  "dataActions": [],
+                  "notDataActions": []
+                }
+              ]
+            },
+            "_provenance": {
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one"
+            },
+            "_authorization_native_list": {
+              "source_operation": "roleDefinitions_ListForScope",
+              "read_only": true,
+              "api_version": "2022-04-01",
+              "requested_scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+              "request_path": "/subscriptions/22222222-2222-4222-8222-222222222222/providers/Microsoft.Authorization/roleDefinitions",
+              "filter": null
+            }
+          }
+        }
+      ],
+      "azure_unused_arm_role_evidence": [
+        {
+          "type": "azure_unused_arm_role_evidence",
+          "scope": "/subscriptions/22222222-2222-4222-8222-222222222222",
+          "data": {
+            "id": "/subscriptions/22222222-2222-4222-8222-222222222222/unusedArmRoleEvidence",
+            "schema": "azure-unused-arm-role-evidence-v1",
+            "metadata_key": "azure_unused_arm_roles",
+            "_provenance": {
+              "credential_context_id": "capture-one",
+              "customer_context_id": "customer-one",
+              "tenant_id": "11111111-1111-4111-8111-111111111111",
+              "tenant_verified": true,
+              "read_only": true,
+              "schema": "azure-unused-arm-role-evidence-v1",
+              "endpoint": "native-unused-arm-role-projection",
+              "observed_at": "2026-10-21T12:00:00Z"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

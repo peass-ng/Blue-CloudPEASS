@@ -277,7 +277,11 @@
     "s3_selected_source_content": "s3",
     "codebuild_selected_inline_buildspec": "codebuild",
     "aws_selected_workload_command_literals": "account",
-    "ecr_selected_image_vulnerabilities": "ecr"
+    "ecr_selected_image_vulnerabilities": "ecr",
+    "aws_identity_center_permission_set_consumer": "sso-admin",
+    "iam_oidc_provider": "iam",
+    "target_group": "elasticloadbalancing",
+    "vpn_gateway": "ec2"
   },
   "azure": {
     "access_review_definition": "Microsoft.Graph",
@@ -475,6 +479,7 @@
     "web_pubsub": "Microsoft.SignalRService",
     "app_service_selected_settings": "appservice",
     "acr_selected_image": "containerregistry",
+    "acr_selected_image_vulnerabilities": "containerregistry",
     "cognitive_account_audit_logging": "Microsoft.CognitiveServices",
     "cognitive_account_managed_identity": "Microsoft.CognitiveServices",
     "cognitive_account_outbound_restriction": "Microsoft.CognitiveServices",
@@ -501,7 +506,12 @@
     "azure_selected_function_settings_declaration": "Microsoft.Web",
     "network_security_perimeter_association_declaration": "Microsoft.Network",
     "workspace_query_storage_cmk_declaration": "Microsoft.OperationalInsights",
-    "azure_function_package_portable_20261020": "Microsoft.Web"
+    "azure_function_package_portable_20261020": "Microsoft.Web",
+    "azure_unused_iam_evidence": "Microsoft.Graph",
+    "azure_unused_role_evidence": "Microsoft.Graph",
+    "directory_role_definition": "Microsoft.Graph",
+    "azure_unused_arm_role_evidence": "Microsoft.Authorization",
+    "azure_unused_iam_user_success_evidence": "Microsoft.Graph"
   },
   "gcp": {
     "access_approval_settings": "accessapproval",
@@ -600,16 +610,30 @@
     "worker_pool": "cloudbuild",
     "workflow_source": "workflows",
     "workforce_pool": "iam",
-    "workload_identity_provider": "iam",
+    "workload_identity_provider": "iam.googleapis.com",
     "workspace_role_assignment": "workspace-directory",
-    "workspace_user": "workspace-directory",
+    "workspace_user": "admin.googleapis.com",
     "dataproc_selected_job_source": "dataproc",
     "dataproc_selected_initialization_source": "dataproc",
     "workbench_selected_referenced_source_20261020": "notebooks",
     "dataflow_selected_package_source": "dataflow",
     "batch_selected_mounted_script_source": "batch",
     "cloudrun_job_declared_image": "run",
-    "cloud_run_selected_job_image_vulnerabilities": "run"
+    "cloud_run_selected_job_image_vulnerabilities": "run",
+    "artifact_selected_image_vulnerabilities": "artifactregistry",
+    "service_account_insight": "recommender",
+    "group": "cloudidentity.googleapis.com",
+    "group_membership": "cloudidentity.googleapis.com",
+    "insight": "recommender",
+    "workspace_user_activity": "admin.googleapis.com",
+    "workload_identity_pool": "iam",
+    "workforce_provider": "iam.googleapis.com",
+    "api_key_usage": "monitoring.googleapis.com",
+    "storage_hmac_key_usage": "monitoring.googleapis.com",
+    "iam_role": "iam",
+    "firewall_policy": "compute",
+    "address": "compute",
+    "network_endpoint_group": "compute"
   },
   "k8s": {
     "admission_policy": "kubernetes",
@@ -643,6 +667,8 @@
     "k8s_selected_literals": "kubernetes",
     "kubelet_configmap_declaration": "kubernetes",
     "k8s_selected_log_samples": "kubernetes",
-    "k8s_selected_metadata": "kubernetes"
+    "k8s_selected_metadata": "kubernetes",
+    "k8s_selected_text_content": "kubernetes",
+    "endpoints": "kubernetes"
   }
 }

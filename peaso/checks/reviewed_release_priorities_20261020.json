@@ -55,6 +55,14 @@
     "source_module": "peaso.checks.aws_review_20261019",
     "source_title": "Sampled log window has no supported secret indicators"
   },
+  "aws.review.codebuild.selected_inline_buildspec_secret_indicators": {
+    "current": "high",
+    "reason": "A credential literal in an inline build instruction can disclose access; detected values are hidden and validity is not tested.",
+    "recommended": "high",
+    "source_kind": "codebuild_selected_inline_buildspec",
+    "source_module": "peaso.checks.aws_codebuild_buildspec_runtime_consumer_20261020",
+    "source_title": "Selected inline CodeBuild buildspec has no detected secrets"
+  },
   "aws.review.codebuild_project.configuration_secret_indicators": {
     "current": "high",
     "reason": "codebuild_project review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
@@ -102,6 +110,14 @@
     "source_kind": "ec2_launch_template",
     "source_module": "peaso.checks.aws_review_20261019",
     "source_title": "Launch-template version user data has no observed selected secret indicators"
+  },
+  "aws.review.ecr.selected_image_vulnerabilities": {
+    "current": "high",
+    "reason": "A bound selected immutable image reports a HIGH or CRITICAL package vulnerability; retain high priority without asserting exploitability or execution.",
+    "recommended": "high",
+    "source_kind": "ecr_selected_image_vulnerabilities",
+    "source_module": "peaso.checks.aws_image_vulnerabilities_20261021",
+    "source_title": "Selected ECR or Lambda container image has no HIGH or CRITICAL vulnerabilities"
   },
   "aws.review.ecr_repository.package_content_secret_indicators": {
     "current": "high",
@@ -303,6 +319,14 @@
     "source_module": "peaso.checks.aws_review_20261019",
     "source_title": "Owned SSM document version content has no observed selected secret indicators"
   },
+  "aws.review.workload.selected_command_literal_secret_indicators": {
+    "current": "high",
+    "reason": "Detected credential literals in selected identity-bound application content can disclose access; values and credential validity are not exposed or tested.",
+    "recommended": "high",
+    "source_kind": "aws_selected_workload_command_literals",
+    "source_module": "peaso.checks.aws_workload_command_runtime_consumer_20261020",
+    "source_title": "Selected ECS and Batch command literals have no detected secrets"
+  },
   "azure.encryption.automation_cmk_declared": {
     "current": "medium",
     "reason": "Read-only declared configuration, with no demonstrated key-use or log-delivery claim.",
@@ -359,6 +383,14 @@
     "source_module": "peaso.checks.azure_acr_public_ip_review_20261020",
     "source_title": "ACR public network rules do not allow every IPv4 address"
   },
+  "azure.review.acr.selected_image_high_critical_vulnerabilities": {
+    "current": "high",
+    "reason": "Bound immutable image package evidence reports HIGH or CRITICAL vulnerabilities; incomplete coverage cannot establish a clean result and exploitation is not inferred.",
+    "recommended": "high",
+    "source_kind": "acr_selected_image_vulnerabilities",
+    "source_module": "peaso.checks.azure_acr_image_vulnerabilities_20261021",
+    "source_title": "Selected ACR image has no HIGH or CRITICAL package vulnerabilities"
+  },
   "azure.review.acr.selected_image_secret_indicators": {
     "current": "high",
     "reason": "Potential credential disclosure in explicitly selected literal content; credential validity is not tested.",
@@ -406,6 +438,14 @@
     "source_kind": "azure_app_configuration_selected_values",
     "source_module": "peaso.checks.azure_selected_declaration_secret_review_20261020",
     "source_title": "Selected App Configuration literal values have no detected secrets"
+  },
+  "azure.review.app_service.runtime_support_declared": {
+    "current": "medium",
+    "reason": "The exact declared Linux runtime is deprecated or past its stated support date; retain medium priority without claiming application compromise.",
+    "recommended": "medium",
+    "source_kind": "app_service",
+    "source_module": "peaso.checks.provider_group_install_20261021",
+    "source_title": "Linux App Service runtime is not deprecated"
   },
   "azure.review.app_service.selected_app_settings_secret_indicators": {
     "current": "high",
@@ -478,6 +518,14 @@
     "source_kind": "azure_selected_function_settings_declaration",
     "source_module": "peaso.checks.azure_function_settings_runtime_consumer_20261020",
     "source_title": "Selected classic Function declares the automatic major4 runtime update channel"
+  },
+  "azure.review.function.selected_package_source_secret_indicators": {
+    "current": "high",
+    "reason": "Credential literals in package source can disclose access; detected values are hidden and credential validity is not tested.",
+    "recommended": "high",
+    "source_kind": "azure_function_package_portable_20261020",
+    "source_module": "peaso.checks.azure_function_package_integrated_consumer_20261020",
+    "source_title": "Selected configured deployment package source has no detected secrets"
   },
   "azure.review.log_analytics.query_storage_cmk_declared": {
     "current": "medium",
@@ -591,6 +639,14 @@
     "source_module": "peaso.checks.gcp_image_secret_review_20261019",
     "source_title": "Selected Artifact Registry image has no detected secrets"
   },
+  "gcp.review.artifact_image.selected_image_vulnerabilities": {
+    "current": "high",
+    "reason": "Bound immutable image package evidence reports HIGH or CRITICAL vulnerabilities; incomplete coverage cannot establish a clean result and exploitation is not inferred.",
+    "recommended": "high",
+    "source_kind": "artifact_selected_image_vulnerabilities",
+    "source_module": "peaso.checks.gcp_registry_trivy_review_20261021",
+    "source_title": "Selected registry image has no HIGH or CRITICAL package vulnerabilities"
+  },
   "gcp.review.artifactregistry.selected_file_secret_indicators": {
     "current": "high",
     "reason": "artifact_selected_file review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
@@ -598,6 +654,14 @@
     "source_kind": "artifact_selected_file",
     "source_module": "peaso.checks.gcp_artifact_file_secret_review_20261019",
     "source_title": "Selected Artifact Registry file has no detected secrets"
+  },
+  "gcp.review.batch.selected_mounted_script_source_secret_indicators": {
+    "current": "high",
+    "reason": "A credential literal in currently referenced source can disclose access; credential validity and executed bytes are not tested.",
+    "recommended": "high",
+    "source_kind": "batch_selected_mounted_script_source",
+    "source_module": "peaso.checks.gcp_dataflow_batch_source_runtime_consumer_20261020",
+    "source_title": "Captured selected Batch mounted script source has no detected secrets"
   },
   "gcp.review.batch_job.literal_configuration_secret_indicators": {
     "current": "high",
@@ -614,6 +678,14 @@
     "source_kind": "bigquery_selected_routine",
     "source_module": "peaso.checks.gcp_task_routine_secret_review_20261020",
     "source_title": "Selected BigQuery routine definitions have no detected secrets"
+  },
+  "gcp.review.cloud_run.selected_job_image_vulnerabilities": {
+    "current": "high",
+    "reason": "A bound selected immutable image reports a HIGH or CRITICAL package vulnerability; retain high priority without asserting exploitability or execution.",
+    "recommended": "high",
+    "source_kind": "cloud_run_selected_job_image_vulnerabilities",
+    "source_module": "peaso.checks.provider_group_install_20261021",
+    "source_title": "Selected Cloud Run Job image has no HIGH or CRITICAL vulnerabilities"
   },
   "gcp.review.cloudbuild.artifact_secret_indicators": {
     "current": "high",
@@ -655,6 +727,14 @@
     "source_module": "peaso.checks.gcp_clouddeploy_source_secret_review_20261019",
     "source_title": "Observed Cloud Deploy release source archive has no detected secrets"
   },
+  "gcp.review.cloudrun_job.declared_image_secret_indicators": {
+    "current": "high",
+    "reason": "Detected credential literals in selected identity-bound application content can disclose access; values and credential validity are not exposed or tested.",
+    "recommended": "high",
+    "source_kind": "cloudrun_job_declared_image",
+    "source_module": "peaso.checks.gcp_cloudrun_job_image_secret_review_20261020",
+    "source_title": "Selected Cloud Run Job declared image has no detected secrets"
+  },
   "gcp.review.cloudrun_job.literal_configuration_secret_indicators": {
     "current": "high",
     "reason": "cloudrun_job review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
@@ -694,6 +774,14 @@
     "source_kind": "composer_environment",
     "source_module": "peaso.checks.gcp_notebook_airflow_secret_review_20261019",
     "source_title": "Cloud Composer literal configuration has no detected secrets"
+  },
+  "gcp.review.dataflow.selected_package_referenced_source_secret_indicators": {
+    "current": "high",
+    "reason": "A credential literal in currently referenced source can disclose access; credential validity and executed bytes are not tested.",
+    "recommended": "high",
+    "source_kind": "dataflow_selected_package_source",
+    "source_module": "peaso.checks.gcp_dataflow_batch_source_runtime_consumer_20261020",
+    "source_title": "Captured selected Dataflow package source has no detected secrets"
   },
   "gcp.review.dataflow_job.literal_configuration_secret_indicators": {
     "current": "high",
@@ -748,7 +836,7 @@
     "reason": "function review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
     "recommended": "high",
     "source_kind": "function",
-    "source_module": "peaso.checks.gcp_function_secret_review_20261019",
+    "source_module": "peaso.checks.gcp_function_secret_partial_page_20261020",
     "source_title": "Cloud Function literal environment has no detected secrets"
   },
   "gcp.review.function.resolved_source_archive_secret_indicators": {
@@ -831,6 +919,22 @@
     "source_module": "peaso.checks.gcp_selected_object_secret_review_20261019",
     "source_title": "Selected Cloud Storage text object has no detected secrets"
   },
+  "gcp.review.workbench.auto_upgrade_schedule_declared": {
+    "current": "low",
+    "reason": "Bounded Workbench setting declaration; runtime enforcement, approval and workload sensitivity are not established.",
+    "recommended": "low",
+    "source_kind": "workbench_instance",
+    "source_module": "peaso.checks.gcp_workbench_head3_admission_20261020",
+    "source_title": "Workbench automatic upgrade schedule is declared"
+  },
+  "gcp.review.workbench.file_download_disabled": {
+    "current": "medium",
+    "reason": "Bounded Workbench setting declaration; runtime enforcement, approval and workload sensitivity are not established.",
+    "recommended": "medium",
+    "source_kind": "workbench_instance",
+    "source_module": "peaso.checks.gcp_workbench_head3_admission_20261020",
+    "source_title": "Workbench JupyterLab file downloads are disabled"
+  },
   "gcp.review.workbench.public_ip_disabled": {
     "current": "medium",
     "reason": "Workbench public-IP or root-access setting is a configuration exposure, not observed access. Retain medium.",
@@ -846,6 +950,22 @@
     "source_kind": "workbench_instance",
     "source_module": "peaso.checks.gcp_workbench_review_20261019",
     "source_title": "Workbench notebook root access is disabled"
+  },
+  "gcp.review.workbench.selected_referenced_source_secret_indicators_20261020": {
+    "current": "high",
+    "reason": "A credential literal in a current referenced startup source can disclose access; credential validity and executed bytes are not tested.",
+    "recommended": "high",
+    "source_kind": "workbench_selected_referenced_source_20261020",
+    "source_module": "peaso.checks.gcp_workbench_source_runtime_consumer_20261020",
+    "source_title": "Captured selected Workbench startup source has no detected secrets"
+  },
+  "gcp.review.workbench.terminal_access_disabled": {
+    "current": "medium",
+    "reason": "Bounded Workbench setting declaration; runtime enforcement, approval and workload sensitivity are not established.",
+    "recommended": "medium",
+    "source_kind": "workbench_instance",
+    "source_module": "peaso.checks.gcp_workbench_head3_admission_20261020",
+    "source_title": "Workbench notebook terminal access is disabled"
   },
   "gcp.review.workbench_instance.literal_configuration_secret_indicators": {
     "current": "high",
@@ -941,7 +1061,7 @@
     "recommended": "high",
     "source_kind": "k8s_selected_literals",
     "source_module": "peaso.checks.k8s_literal_secret_review_20261020",
-    "source_title": "Selected Pod and ConfigMap literals have no detected secrets"
+    "source_title": "Selected workload and ConfigMap literals have no detected secrets"
   },
   "k8s.review.selected_metadata.secret_indicators": {
     "current": "high",
@@ -951,84 +1071,380 @@
     "source_module": "peaso.checks.k8s_selected_metadata_secret_review_20261020",
     "source_title": "Selected object labels and annotations have no detected secrets"
   },
-  "gcp.review.workbench.selected_referenced_source_secret_indicators_20261020": {
+  "k8s.review.selected_text_content.secret_indicators": {
     "current": "high",
+    "reason": "Selected declared text contains a supported offline secret indicator; the source high rating reflects potential credential exposure without verifying or using credentials.",
     "recommended": "high",
-    "reason": "A credential literal in a current referenced startup source can disclose access; credential validity and executed bytes are not tested.",
-    "source_kind": "workbench_selected_referenced_source_20261020",
-    "source_module": "peaso.checks.gcp_workbench_source_runtime_consumer_20261020",
-    "source_title": "Captured selected Workbench startup source has no detected secrets"
+    "source_kind": "k8s_selected_text_content",
+    "source_module": "peaso.checks.k8s_selected_text_content_review",
+    "source_title": "Selected Kubernetes text fields have no detected secrets"
   },
-  "gcp.review.dataflow.selected_package_referenced_source_secret_indicators": {
-    "current": "high",
-    "recommended": "high",
-    "reason": "A credential literal in currently referenced source can disclose access; credential validity and executed bytes are not tested.",
-    "source_kind": "dataflow_selected_package_source",
-    "source_module": "peaso.checks.gcp_dataflow_batch_source_runtime_consumer_20261020",
-    "source_title": "Captured selected Dataflow package source has no detected secrets"
-  },
-  "gcp.review.batch.selected_mounted_script_source_secret_indicators": {
-    "current": "high",
-    "recommended": "high",
-    "reason": "A credential literal in currently referenced source can disclose access; credential validity and executed bytes are not tested.",
-    "source_kind": "batch_selected_mounted_script_source",
-    "source_module": "peaso.checks.gcp_dataflow_batch_source_runtime_consumer_20261020",
-    "source_title": "Captured selected Batch mounted script source has no detected secrets"
-  },
-  "aws.review.codebuild.selected_inline_buildspec_secret_indicators": {
-    "current": "high",
-    "recommended": "high",
-    "reason": "A credential literal in an inline build instruction can disclose access; detected values are hidden and validity is not tested.",
-    "source_kind": "codebuild_selected_inline_buildspec",
-    "source_module": "peaso.checks.aws_codebuild_buildspec_runtime_consumer_20261020",
-    "source_title": "Selected inline CodeBuild buildspec has no detected secrets"
-  },
-  "azure.review.function.selected_package_source_secret_indicators": {
-    "current": "high",
-    "recommended": "high",
-    "reason": "Credential literals in package source can disclose access; detected values are hidden and credential validity is not tested.",
-    "source_kind": "azure_function_package_portable_20261020",
-    "source_module": "peaso.checks.azure_function_package_integrated_consumer_20261020",
-    "source_title": "Selected configured deployment package source has no detected secrets"
-  },
-  "gcp.review.workbench.terminal_access_disabled": {
-    "current": "medium",
-    "recommended": "medium",
-    "reason": "Bounded Workbench setting declaration; runtime enforcement, approval and workload sensitivity are not established.",
-    "source_kind": "workbench_instance",
-    "source_module": "peaso.checks.gcp_workbench_head3_admission_20261020",
-    "source_title": "Workbench notebook terminal access is disabled"
-  },
-  "gcp.review.workbench.file_download_disabled": {
-    "current": "medium",
-    "recommended": "medium",
-    "reason": "Bounded Workbench setting declaration; runtime enforcement, approval and workload sensitivity are not established.",
-    "source_kind": "workbench_instance",
-    "source_module": "peaso.checks.gcp_workbench_head3_admission_20261020",
-    "source_title": "Workbench JupyterLab file downloads are disabled"
-  },
-  "gcp.review.workbench.auto_upgrade_schedule_declared": {
+  "k8s.iam.serviceaccount_has_declared_consumers": {
     "current": "low",
     "recommended": "low",
-    "reason": "Bounded Workbench setting declaration; runtime enforcement, approval and workload sensitivity are not established.",
-    "source_kind": "workbench_instance",
-    "source_module": "peaso.checks.gcp_workbench_head3_admission_20261020",
-    "source_title": "Workbench automatic upgrade schedule is declared"
+    "reason": "A structural unused-object or tracked legacy-token lifecycle signal; no exploitation or universal authentication inactivity is asserted.",
+    "source_kind": "serviceaccount",
+    "source_module": "peaso.unused_iam_k8s",
+    "source_title": "ServiceAccount has a declared identity consumer"
   },
-  "aws.review.workload.selected_command_literal_secret_indicators": {
-    "current": "high",
-    "recommended": "high",
-    "reason": "Detected credential literals in selected identity-bound application content can disclose access; values and credential validity are not exposed or tested.",
-    "source_kind": "aws_selected_workload_command_literals",
-    "source_module": "peaso.checks.aws_workload_command_runtime_consumer_20261020",
-    "source_title": "Selected ECS and Batch command literals have no detected secrets"
+  "k8s.iam.role_has_declared_consumers": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "A structural unused-object or tracked legacy-token lifecycle signal; no exploitation or universal authentication inactivity is asserted.",
+    "source_kind": "role",
+    "source_module": "peaso.unused_iam_k8s",
+    "source_title": "Role has a declared RBAC consumer"
   },
-  "gcp.review.cloudrun_job.declared_image_secret_indicators": {
-    "current": "high",
-    "recommended": "high",
-    "reason": "Detected credential literals in selected identity-bound application content can disclose access; values and credential validity are not exposed or tested.",
-    "source_kind": "cloudrun_job_declared_image",
-    "source_module": "peaso.checks.gcp_cloudrun_job_image_secret_review_20261020",
-    "source_title": "Selected Cloud Run Job declared image has no detected secrets"
+  "k8s.iam.clusterrole_has_declared_consumers": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "A structural unused-object or tracked legacy-token lifecycle signal; no exploitation or universal authentication inactivity is asserted.",
+    "source_kind": "clusterrole",
+    "source_module": "peaso.unused_iam_k8s",
+    "source_title": "ClusterRole has a declared binding or aggregation consumer"
+  },
+  "k8s.iam.rolebinding_subjects_exist": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "A structural unused-object or tracked legacy-token lifecycle signal; no exploitation or universal authentication inactivity is asserted.",
+    "source_kind": "rolebinding",
+    "source_module": "peaso.unused_iam_k8s",
+    "source_title": "RoleBinding has existing subjects"
+  },
+  "k8s.iam.clusterrolebinding_subjects_exist": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "A structural unused-object or tracked legacy-token lifecycle signal; no exploitation or universal authentication inactivity is asserted.",
+    "source_kind": "clusterrolebinding",
+    "source_module": "peaso.unused_iam_k8s",
+    "source_title": "ClusterRoleBinding has existing subjects"
+  },
+  "k8s.iam.legacy_serviceaccount_token_recently_used": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "A structural unused-object or tracked legacy-token lifecycle signal; no exploitation or universal authentication inactivity is asserted.",
+    "source_kind": "secret_metadata",
+    "source_module": "peaso.unused_iam_k8s",
+    "source_title": "Tracked legacy ServiceAccount token was used within 90 days"
+  },
+  "azure.iam.static_group_has_members": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "Native identity lifecycle evidence identifies candidate cleanup or old recorded activity; no exploitation, universal inactivity or safe automatic deletion is asserted.",
+    "source_kind": "directory_group",
+    "source_module": "peaso.unused_iam_azure",
+    "source_title": "Static directory group has members"
+  },
+  "azure.iam.service_principal_recent_activity": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "Native identity lifecycle evidence identifies candidate cleanup or old recorded activity; no exploitation, universal inactivity or safe automatic deletion is asserted.",
+    "source_kind": "directory_service_principal",
+    "source_module": "peaso.unused_iam_azure",
+    "source_title": "Service principal has no confirmed activity older than 90 days"
+  },
+  "azure.iam.application_credentials_recent_activity": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "Native identity lifecycle evidence identifies candidate cleanup or old recorded activity; no exploitation, universal inactivity or safe automatic deletion is asserted.",
+    "source_kind": "directory_application",
+    "source_module": "peaso.unused_iam_azure",
+    "source_title": "Application credentials have no confirmed stale activity"
+  },
+  "azure.iam.service_principal_credentials_recent_activity": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "Native identity lifecycle evidence identifies candidate cleanup or old recorded activity; no exploitation, universal inactivity or safe automatic deletion is asserted.",
+    "source_kind": "directory_service_principal",
+    "source_module": "peaso.unused_iam_azure",
+    "source_title": "Service principal credentials have no confirmed stale activity"
+  },
+  "azure.iam.single_tenant_application_has_consumer": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "Native identity lifecycle evidence identifies candidate cleanup or old recorded activity; no exploitation, universal inactivity or safe automatic deletion is asserted.",
+    "source_kind": "directory_application",
+    "source_module": "peaso.unused_iam_azure",
+    "source_title": "Single-tenant application has a local enterprise application"
+  },
+  "gcp.iam.service_account_no_active_unused_insight": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "Provider-classified unused-account evidence is an identity lifecycle signal; no exploitation or safe automatic removal is asserted.",
+    "source_kind": "service_account",
+    "source_module": "peaso.unused_iam_gcp",
+    "source_title": "Service account has no active unused-access insight"
+  },
+  "gcp.iam.static_group_has_members": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "Bounded identity lifecycle or provider-observed grant usage supports manual cleanup review without asserting exploitation or safe automatic removal.",
+    "source_kind": "group",
+    "source_module": "peaso.unused_iam_gcp_authorization",
+    "source_title": "Static Cloud Identity group has direct members"
+  },
+  "gcp.iam.role_grant_has_observed_permission_use": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "Bounded identity lifecycle or provider-observed grant usage supports manual cleanup review without asserting exploitation or safe automatic removal.",
+    "source_kind": "insight",
+    "source_module": "peaso.unused_iam_gcp_authorization",
+    "source_title": "Current IAM role grant has observed permission use"
+  },
+  "gcp.iam.directory_user_recent_recorded_login": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "Bounded recorded-login or structural federation availability evidence supports identity lifecycle review; no exploitation or safe automatic removal is asserted.",
+    "source_kind": "workspace_user",
+    "source_module": "peaso.unused_iam_gcp_directory",
+    "source_title": "Enabled directory user has a recent recorded login"
+  },
+  "gcp.iam.workload_identity_pool_has_enabled_provider": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "Bounded recorded-login or structural federation availability evidence supports identity lifecycle review; no exploitation or safe automatic removal is asserted.",
+    "source_kind": "workload_identity_pool",
+    "source_module": "peaso.unused_iam_gcp_directory",
+    "source_title": "Active workload identity pool has an enabled federation provider"
+  },
+  "gcp.iam.workforce_pool_has_enabled_provider": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "Bounded recorded-login or structural federation availability evidence supports identity lifecycle review; no exploitation or safe automatic removal is asserted.",
+    "source_kind": "workforce_pool",
+    "source_module": "peaso.unused_iam_gcp_directory",
+    "source_title": "Active workforce pool has an enabled federation provider"
+  },
+  "gcp.iam.api_key_recent_recorded_successful_requests": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "Old recorded request activity is a credential cleanup-review signal within the stated metric and project coverage, not proof of universal inactivity or safe deletion.",
+    "source_kind": "api_key",
+    "source_module": "peaso.unused_iam_gcp_keys",
+    "source_title": "API key has recent recorded successful requests"
+  },
+  "gcp.iam.hmac_key_recent_recorded_successful_requests": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "Old recorded request activity is a credential cleanup-review signal within the stated metric and project coverage, not proof of universal inactivity or safe deletion.",
+    "source_kind": "storage_hmac_key",
+    "source_module": "peaso.unused_iam_gcp_keys",
+    "source_title": "HMAC key has recent recorded successful requests in selected projects"
+  },
+  "gcp.iam.custom_role_has_declared_grants": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "A role definition with no captured grants is a structural cleanup-review candidate; it does not grant permissions by itself or prove complete provider-wide inactivity.",
+    "source_kind": "iam_role",
+    "source_module": "peaso.unused_iam_gcp_roles",
+    "source_title": "Custom role has a declared grant in scoped IAM inventory"
+  },
+  "aws.iam.group_inline_policies_have_members": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "Group inline policies with no declared user members are structural cleanup candidates. No current member inherits these grants, so this does not demonstrate exploitable access or a quantified inactivity interval.",
+    "source_kind": "iam_group",
+    "source_module": "peaso.unused_iam_aws_inline",
+    "source_title": "Group inline policies have member identities"
+  },
+  "azure.iam.custom_directory_role_has_declared_consumers": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "Unassigned custom role definitions are structural cleanup candidates without a current assignment path; this does not demonstrate effective access, exploitation or quantified inactivity.",
+    "source_kind": "directory_role_definition",
+    "source_module": "peaso.unused_iam_azure_roles",
+    "source_title": "Custom Entra role has declared assignment or PIM consumers"
+  },
+  "azure.iam.custom_arm_role_has_declared_consumers": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "Unassigned custom role definitions are structural cleanup candidates without a current assignment path; this does not demonstrate effective access, exploitation or quantified inactivity.",
+    "source_kind": "role_definition",
+    "source_module": "peaso.unused_iam_azure_arm_roles",
+    "source_title": "Custom ARM role has consumers across its assignable scopes"
+  },
+  "aws.iam.identity_center.permission_set_has_consumer_all_accounts": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "Permission sets without assignments or provisioning are structural cleanup candidates; absence does not demonstrate successful use or business approval.",
+    "source_kind": "aws_identity_center_permission_set_consumer",
+    "source_module": "peaso.unused_iam_aws_completion",
+    "source_title": "Identity Center permission set has a consumer across organization accounts"
+  },
+  "aws.iam.saml_provider_has_role_consumer": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "Federation providers without declared role consumers are structural cleanup candidates; absence does not measure successful authentication or establish safe deletion.",
+    "source_kind": "iam_saml_provider",
+    "source_module": "peaso.unused_iam_aws_federation_consumers",
+    "source_title": "SAML provider has a role consumer"
+  },
+  "aws.iam.oidc_provider_has_role_consumer": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "Federation providers without declared role consumers are structural cleanup candidates; absence does not measure successful authentication or establish safe deletion.",
+    "source_kind": "iam_oidc_provider",
+    "source_module": "peaso.unused_iam_aws_federation_consumers",
+    "source_title": "OIDC provider has a role consumer"
+  },
+  "gcp.network.address_reserved_without_users": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "A current network declaration has no captured structural consumer; this is a cleanup review candidate and does not establish exploitation or measured traffic inactivity.",
+    "source_kind": "address",
+    "source_module": "peaso.unused_network_gcp",
+    "source_title": "Reserved address has a resource user"
+  },
+  "gcp.network.firewall_policy_without_associations": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "A current network declaration has no captured structural consumer; this is a cleanup review candidate and does not establish exploitation or measured traffic inactivity.",
+    "source_kind": "firewall_policy",
+    "source_module": "peaso.unused_network_gcp",
+    "source_title": "Firewall policy has an association"
+  },
+  "gcp.network.endpoint_group_without_endpoints": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "A current network declaration has no captured structural consumer; this is a cleanup review candidate and does not establish exploitation or measured traffic inactivity.",
+    "source_kind": "network_endpoint_group",
+    "source_module": "peaso.unused_network_gcp",
+    "source_title": "Network endpoint group contains endpoints"
+  },
+  "azure.network.route_table_has_subnet_reference": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "A current network declaration has no captured structural consumer; this is a cleanup review candidate and does not establish exploitation or measured traffic inactivity.",
+    "source_kind": "route_table",
+    "source_module": "peaso.unused_network_azure_20261021",
+    "source_title": "Route table has a subnet association"
+  },
+  "azure.network.nic_has_owner_reference": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "A current network declaration has no captured structural consumer; this is a cleanup review candidate and does not establish exploitation or measured traffic inactivity.",
+    "source_kind": "nic",
+    "source_module": "peaso.unused_network_azure_20261021",
+    "source_title": "Network interface has a VM, private link or hosted workload owner"
+  },
+  "k8s.network.service_has_current_backend_declaration": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "A current network declaration has no captured structural consumer; this is a cleanup review candidate and does not establish exploitation or measured traffic inactivity.",
+    "source_kind": "service",
+    "source_module": "peaso.unused_network_k8s_20261021",
+    "source_title": "Service has a current Pod or EndpointSlice backend declaration"
+  },
+  "k8s.network.endpointslice_service_reference_resolves": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "A current network declaration has no captured structural consumer; this is a cleanup review candidate and does not establish exploitation or measured traffic inactivity.",
+    "source_kind": "endpointslice",
+    "source_module": "peaso.unused_network_k8s_20261021",
+    "source_title": "EndpointSlice Service-name label resolves in its namespace"
+  },
+  "k8s.network.ingress_service_backends_resolve": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "A current network declaration has no captured structural consumer; this is a cleanup review candidate and does not establish exploitation or measured traffic inactivity.",
+    "source_kind": "ingress",
+    "source_module": "peaso.unused_network_k8s_20261021",
+    "source_title": "Ingress Service backends resolve in the same namespace"
+  },
+  "k8s.network.networkpolicy_selects_current_pod": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "A current network declaration has no captured structural consumer; this is a cleanup review candidate and does not establish exploitation or measured traffic inactivity.",
+    "source_kind": "networkpolicy",
+    "source_module": "peaso.unused_network_k8s_20261021",
+    "source_title": "NetworkPolicy selects a current Pod in its namespace"
+  },
+  "aws.network.route_table_associated": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "A current network declaration has no captured structural consumer; this is a cleanup review candidate and does not establish exploitation or measured traffic inactivity.",
+    "source_kind": "route_table",
+    "source_module": "peaso.unused_network_aws",
+    "source_title": "Route table has a main, subnet, or gateway association"
+  },
+  "aws.network.internet_gateway_attached": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "A current network declaration has no captured structural consumer; this is a cleanup review candidate and does not establish exploitation or measured traffic inactivity.",
+    "source_kind": "internet_gateway",
+    "source_module": "peaso.unused_network_aws",
+    "source_title": "Internet gateway is attached to a VPC"
+  },
+  "aws.network.vpn_gateway_attached": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "A current network declaration has no captured structural consumer; this is a cleanup review candidate and does not establish exploitation or measured traffic inactivity.",
+    "source_kind": "vpn_gateway",
+    "source_module": "peaso.unused_network_aws",
+    "source_title": "Virtual private gateway is attached to a VPC"
+  },
+  "azure.network.public_ip_has_network_reference": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "A current network declaration has no captured structural consumer; this is a cleanup review candidate and does not establish exploitation or measured traffic inactivity.",
+    "source_kind": "public_ip",
+    "source_module": "peaso.unused_network_azure_20261021",
+    "source_title": "Public IP address has a network attachment or allocation reference"
+  },
+  "aws.network.target_group_has_load_balancer": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "A current network declaration has no captured structural consumer; this is a cleanup review candidate and does not establish exploitation or measured traffic inactivity.",
+    "source_kind": "target_group",
+    "source_module": "peaso.unused_network_aws",
+    "source_title": "Target group has an associated load balancer"
+  },
+  "gcp.network.http_proxy_forwarding_rule_reference": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "A current network declaration has no captured structural consumer; this is a cleanup review candidate and does not establish exploitation or measured traffic inactivity.",
+    "source_kind": "target_proxy",
+    "source_module": "peaso.unused_network_gcp",
+    "source_title": "HTTP target proxy has an observed forwarding rule"
+  },
+  "gcp.network.https_proxy_forwarding_rule_reference": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "A current network declaration has no captured structural consumer; this is a cleanup review candidate and does not establish exploitation or measured traffic inactivity.",
+    "source_kind": "target_proxy",
+    "source_module": "peaso.unused_network_gcp",
+    "source_title": "HTTPS target proxy has an observed forwarding rule"
+  },
+  "gcp.network.backend_service_has_members": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "A current network declaration has no captured structural consumer; this is a cleanup review candidate and does not establish exploitation or measured traffic inactivity.",
+    "source_kind": "backend_service",
+    "source_module": "peaso.unused_network_gcp",
+    "source_title": "Backend service has a declared member"
+  },
+  "azure.network.subnet_has_consumer_or_reservation_reference": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "A current network declaration has no captured structural consumer; this is a cleanup review candidate and does not establish exploitation or measured traffic inactivity.",
+    "source_kind": "subnet",
+    "source_module": "peaso.unused_network_azure_20261021",
+    "source_title": "Subnet has a current consumer or reservation declaration"
+  },
+  "azure.network.load_balancer_backend_pools_have_declaration_or_consumer": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "A current network declaration has no captured structural consumer; this is a cleanup review candidate and does not establish exploitation or measured traffic inactivity.",
+    "source_kind": "load_balancer",
+    "source_module": "peaso.unused_network_azure_20261021",
+    "source_title": "Load balancer backend pools have a backend or consumer declaration"
+  },
+  "k8s.network.endpoints_controller_service_reference_resolves": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "A current network declaration has no captured structural consumer; this is a cleanup review candidate and does not establish exploitation or measured traffic inactivity.",
+    "source_kind": "endpoints",
+    "source_module": "peaso.unused_network_k8s_20261021",
+    "source_title": "Controller-managed Endpoints Service owner resolves in its namespace"
   }
 }

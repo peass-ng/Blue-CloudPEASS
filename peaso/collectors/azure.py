@@ -48,6 +48,7 @@ from . import azure_key_rotation_evidence_native
 from . import azure_selected_configuration_secret_indicators
 from . import azure_app_settings_secret_indicators
 from . import azure_acr_image_secret_indicators
+from . import azure_acr_image_vulnerabilities_20261021
 from . import azure_sql_ltr_native
 from . import azure_alert_routing_native
 from . import azure_ai_services_native
@@ -650,7 +651,7 @@ DIRECTORY = {
     "directory_setting": "groupSettings",
     "directory_user": "users?$select=id,displayName,userPrincipalName,accountEnabled,userType,signInActivity",
     "directory_group": "groups?$select=id,displayName,securityEnabled,groupTypes,isAssignableToRole,membershipRule,membershipRuleProcessingState,visibility",
-    "directory_service_principal": "servicePrincipals?$select=id,appId,appOwnerOrganizationId,displayName,servicePrincipalType,alternativeNames,accountEnabled,appRoles,passwordCredentials,keyCredentials,preferredSingleSignOnMode",
+    "directory_service_principal": "servicePrincipals?$select=id,appId,appOwnerOrganizationId,displayName,servicePrincipalType,alternativeNames,accountEnabled,appRoles,passwordCredentials,keyCredentials,preferredSingleSignOnMode,createdDateTime",
     "directory_application": "applications?$select=id,appId,displayName,requiredResourceAccess,signInAudience,passwordCredentials,keyCredentials",
     "directory_role_assignment": "roleManagement/directory/roleAssignments",
     "directory_role_definition": "roleManagement/directory/roleDefinitions",
@@ -680,7 +681,7 @@ TYPES = tuple(ENDPOINTS) + tuple(AUTHORIZATION) + tuple(DIRECTORY) + tuple(DIREC
     "subscription", "tenant", "management_group", "resource_graph", "activity_log", "activity_log_coverage",
     "subnet", "vnet_peering", "effective_route", "security_admin_rule", "service_tag", "diagnostic_setting", "storage_service", "sql_database",
     "sql_firewall_rule", "sql_audit", "sql_security", "secret_metadata", "dns_record",
-    "private_dns_link", "directory_membership",
+    "private_dns_link", "directory_membership", "azure_unused_iam_evidence", "azure_unused_role_evidence", "azure_unused_arm_role_evidence", "azure_unused_iam_user_success_evidence",
     "app_service_config", "app_service_identity_detail", "sql_tde",
     "directory_app_role_assignment", "directory_owner", "directory_administrative_unit_member",
     "managed_identity_federated_credential", "key_metadata", "key_rotation_policy", "key_vault_certificate_current",
@@ -697,14 +698,14 @@ TYPES = tuple(ENDPOINTS) + tuple(AUTHORIZATION) + tuple(DIRECTORY) + tuple(DIREC
     *azure_defender_network_native.NATIVE_TYPES, *azure_adaptive_network_native.NATIVE_TYPES, *azure_entra_user_native.NATIVE_TYPES, "directory_user_group_membership", "sql_managed_instance_administrator", "intune_diagnostic_setting",
     "storage_local_user", "sql_backup_short_term_policy", "eventgrid_subscription",
     *azure_vault_key_versions_native.NATIVE_TYPES, *azure_iot_policy_native.NATIVE_TYPES, *azure_function_limits_native.NATIVE_TYPES, *azure_functions_runtime_native.NATIVE_TYPES, *azure_secret_versions_native.NATIVE_TYPES, *azure_storage_recovery_metadata_native.NATIVE_TYPES, "sentinel_workspace", *azure_incident_inventory_native.NATIVE_TYPES, *azure_security_correlation_native.NATIVE_TYPES, *azure_apim_diagnostic_evidence_native.NATIVE_TYPES, *azure_storage_blob_keys_native.NATIVE_TYPES, *azure_audit_storage_native.NATIVE_TYPES, "assessment_metadata",
-    azure_app_settings_secret_indicators.KIND, azure_acr_image_secret_indicators.KIND, azure_selected_configuration_secret_indicators.KIND,
+    azure_app_settings_secret_indicators.KIND, azure_acr_image_secret_indicators.KIND, azure_acr_image_vulnerabilities_20261021.KIND, azure_selected_configuration_secret_indicators.KIND,
     *azure_ai_services_native.NATIVE_TYPES,
     *azure_public_edge_native.NATIVE_TYPES, *azure_storage_lifecycle_native.NATIVE_TYPES, *azure_key_rotation_evidence_native.NATIVE_TYPES, "frontdoor_and_cdn_endpoint", "afd_profile", "afd_domain", "afd_route", "afd_security_policy",
 )
 
 # A LIST containing properties is not a full GET. These evaluators apply
 # documented omitted defaults only to a verified resource detail response.
-FULL_GET_KINDS = frozenset({"recovery_vault", "vm", "vm_scale_set", "nic", "vnet", "nsg", "route_table", "storage_account", "security_pricing", "web_application_firewall_policy",
+FULL_GET_KINDS = frozenset({"load_balancer", "public_ip", "recovery_vault", "vm", "vm_scale_set", "nic", "vnet", "nsg", "route_table", "storage_account", "security_pricing", "web_application_firewall_policy",
     "frontdoor", "cdn_profile", "frontdoor_waf_policy",
                             "hdinsight_cluster", "firewall_policy", "log_analytics_cluster",
                             "image_template",
@@ -1553,10 +1554,12 @@ class _Reader:
 
 
 def _selected(options, requirements):
-    wanted = options.get("inventories", [kind for kind in TYPES if kind not in ("app_service_identity_detail", azure_app_settings_secret_indicators.KIND, azure_acr_image_secret_indicators.KIND, azure_selected_configuration_secret_indicators.KIND, azure_selected_storage_secret_indicators.KIND, azure_devops_selected_content_secret_indicators.KIND) + azure_selected_declaration_secret_indicators.KINDS + azure_selected_log_sample_secret_indicators.KINDS + (azure_ml_selected_job_secret_indicators.KIND, azure_databricks_notebook_secret_indicators.KIND, azure_function_settings_declarations_20261020.KIND) + azure_ml_selected_asset_secret_indicators.KINDS]) if requirements is None else requirements
+    wanted = options.get("inventories", [kind for kind in TYPES if kind not in ("app_service_identity_detail", azure_app_settings_secret_indicators.KIND, azure_acr_image_secret_indicators.KIND, azure_acr_image_vulnerabilities_20261021.KIND, azure_selected_configuration_secret_indicators.KIND, azure_selected_storage_secret_indicators.KIND, azure_devops_selected_content_secret_indicators.KIND) + azure_selected_declaration_secret_indicators.KINDS + azure_selected_log_sample_secret_indicators.KINDS + (azure_ml_selected_job_secret_indicators.KIND, azure_databricks_notebook_secret_indicators.KIND, azure_function_settings_declarations_20261020.KIND) + azure_ml_selected_asset_secret_indicators.KINDS]) if requirements is None else requirements
     if not isinstance(wanted, (list, tuple)) or any(kind not in TYPES for kind in wanted):
         raise ValueError("unsupported Azure inventory requirement")
     selected = set(wanted)
+    from .azure_unused_iam_20261021 import required_types as unused_iam_required_types
+    selected.update(unused_iam_required_types(selected))
     if selected.intersection(azure_nsp_query_cmk_runtime_20261020.KINDS):
         selected.add("subscription")
     selected.update(azure_identity_enforcement_review_20261020.required_types(selected))
@@ -1861,6 +1864,7 @@ def collect(connector, requirements=None, *, transport=None):
     azure_devops_selected_content_secret_indicators.selected_targets(options, connector.get('scopes', []), auth)
     azure_app_settings_secret_indicators.selected_targets(options, connector.get('scopes', []))
     azure_acr_image_secret_indicators.selected_targets(options, connector.get('scopes', []))
+    azure_acr_image_vulnerabilities_20261021.selected_targets(options, connector.get('scopes', []))
     azure_databricks_native.validate_auth(auth)
     azure_databricks_native.normalize(options)
     wanted = _selected(options, requirements)
@@ -3051,6 +3055,7 @@ def collect(connector, requirements=None, *, transport=None):
         azure_devops_selected_content_secret_indicators.collect(reader, request, transport, scopes, wanted, options, auth)
         azure_app_settings_secret_indicators.collect(reader, transport, scopes, wanted, options)
         azure_acr_image_secret_indicators.collect(reader, transport, scopes, wanted, options)
+        azure_acr_image_vulnerabilities_20261021.collect(reader, transport, scopes, wanted, options)
         azure_ai_services_native.collect(reader, request, scopes, wanted)
         azure_disclosure_native.collect(reader, transport, scopes, options,
                                         credential_context_id, customer_context_id)
@@ -3112,6 +3117,8 @@ def collect(connector, requirements=None, *, transport=None):
             verified_tenant=getattr(transport, "verified_tenant", None)))
     # Scan-local opaque binding is generated here, never accepted from portable
     # connector input, and is unique across credentials/captures/customers.
+    from .azure_unused_iam_20261021 import collect as collect_unused_iam
+    collect_unused_iam(reader, request, scopes, wanted, transport, credential_context_id, customer_context_id)
     for collection in reader.collections:
         _bind_service_diagnostic_receipt(collection, reader)
         proof = {"credential_context_id": credential_context_id, "customer_context_id": customer_context_id}
@@ -3125,6 +3132,7 @@ def collect(connector, requirements=None, *, transport=None):
         azure_identity_enforcement_review_20261020.collect(reader, request, scopes, wanted, transport,
             credential_context_id, customer_context_id)
     metadata = reader.metadata()
+    metadata.update(getattr(reader, 'unused_arm_role_metadata', {}))
     metadata.update(getattr(reader, "nsp_query_cmk_metadata", {}))
     metadata.update(getattr(reader, 'configuration_secret_metadata', {}))
     metadata.update(getattr(reader, 'declaration_secret_metadata', {}))
@@ -3137,6 +3145,7 @@ def collect(connector, requirements=None, *, transport=None):
     metadata.update(getattr(reader, 'devops_selected_metadata', {}))
     metadata.update(getattr(reader, 'app_setting_secret_metadata', {}))
     metadata.update(getattr(reader, 'acr_image_secret_metadata', {}))
+    metadata.update(getattr(reader, 'acr_image_vulnerability_metadata', {}))
     if "security_admin_rule" in wanted:
         admin_rows = [c for c in reader.collections if c["type"] == "security_admin_rule" and c["scope"] in scopes]
         vnet_rows = {c["scope"]: c for c in reader.collections if c["type"] == "vnet" and c["scope"] in scopes}

@@ -1,0 +1,984 @@
+{
+  "gcp.iam.static_group_has_members": {
+    "pass": {
+      "name": "groups/synthetic",
+      "parent": "customers/Csynthetic",
+      "groupKey": {
+        "id": "team@example.test"
+      },
+      "labels": {
+        "cloudidentity.googleapis.com/groups.discussion_forum": ""
+      },
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "collected_at": "2026-10-21T12:00:00Z",
+        "source_requests": [
+          "group-read"
+        ],
+        "representation": "full"
+      },
+      "_coverage": {
+        "directMemberships": {
+          "status": "collected",
+          "scope": "projects/usage-project",
+          "group": "groups/synthetic",
+          "collected_at": "2026-10-21T12:00:00Z",
+          "source_requests": [
+            "members-read"
+          ]
+        }
+      },
+      "_direct_membership_names": [
+        "groups/synthetic/memberships/member"
+      ],
+      "_direct_membership_requests": [
+        "members-read"
+      ]
+    },
+    "pass_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "group-read",
+              "url": "https://cloudidentity.googleapis.com/v1/groups",
+              "method": "GET",
+              "status": "collected",
+              "scope": "projects/usage-project",
+              "http_status": 200
+            },
+            {
+              "id": "members-read",
+              "url": "https://cloudidentity.googleapis.com/v1/groups/synthetic/memberships",
+              "method": "GET",
+              "status": "collected",
+              "scope": "projects/usage-project",
+              "http_status": 200
+            }
+          ]
+        }
+      },
+      "collections": {
+        "group": [
+          {
+            "type": "group",
+            "service": "cloudidentity",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "groups/synthetic",
+                "parent": "customers/Csynthetic",
+                "groupKey": {
+                  "id": "team@example.test"
+                },
+                "labels": {
+                  "cloudidentity.googleapis.com/groups.discussion_forum": ""
+                },
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "collected_at": "2026-10-21T12:00:00Z",
+                  "source_requests": [
+                    "group-read"
+                  ],
+                  "representation": "full"
+                },
+                "_coverage": {
+                  "directMemberships": {
+                    "status": "collected",
+                    "scope": "projects/usage-project",
+                    "group": "groups/synthetic",
+                    "collected_at": "2026-10-21T12:00:00Z",
+                    "source_requests": [
+                      "members-read"
+                    ]
+                  }
+                },
+                "_direct_membership_names": [
+                  "groups/synthetic/memberships/member"
+                ],
+                "_direct_membership_requests": [
+                  "members-read"
+                ]
+              }
+            ]
+          }
+        ],
+        "group_membership": [
+          {
+            "type": "group_membership",
+            "service": "cloudidentity",
+            "scope": "projects/usage-project",
+            "status": "empty",
+            "items": []
+          }
+        ]
+      },
+      "group": [
+        {
+          "data": {
+            "name": "groups/synthetic",
+            "parent": "customers/Csynthetic",
+            "groupKey": {
+              "id": "team@example.test"
+            },
+            "labels": {
+              "cloudidentity.googleapis.com/groups.discussion_forum": ""
+            },
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "group-read"
+              ],
+              "representation": "full"
+            },
+            "_coverage": {
+              "directMemberships": {
+                "status": "collected",
+                "scope": "projects/usage-project",
+                "group": "groups/synthetic",
+                "collected_at": "2026-10-21T12:00:00Z",
+                "source_requests": [
+                  "members-read"
+                ]
+              }
+            },
+            "_direct_membership_names": [
+              "groups/synthetic/memberships/member"
+            ],
+            "_direct_membership_requests": [
+              "members-read"
+            ]
+          },
+          "type": "group",
+          "scope": "projects/usage-project"
+        }
+      ],
+      "group_membership": []
+    },
+    "fail": {
+      "name": "groups/synthetic",
+      "parent": "customers/Csynthetic",
+      "groupKey": {
+        "id": "team@example.test"
+      },
+      "labels": {
+        "cloudidentity.googleapis.com/groups.discussion_forum": ""
+      },
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "collected_at": "2026-10-21T12:00:00Z",
+        "source_requests": [
+          "group-read"
+        ],
+        "representation": "full"
+      },
+      "_coverage": {
+        "directMemberships": {
+          "status": "collected",
+          "scope": "projects/usage-project",
+          "group": "groups/synthetic",
+          "collected_at": "2026-10-21T12:00:00Z",
+          "source_requests": [
+            "members-read"
+          ]
+        }
+      },
+      "_direct_membership_names": [],
+      "_direct_membership_requests": [
+        "members-read"
+      ]
+    },
+    "fail_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "group-read",
+              "url": "https://cloudidentity.googleapis.com/v1/groups",
+              "method": "GET",
+              "status": "collected",
+              "scope": "projects/usage-project",
+              "http_status": 200
+            },
+            {
+              "id": "members-read",
+              "url": "https://cloudidentity.googleapis.com/v1/groups/synthetic/memberships",
+              "method": "GET",
+              "status": "collected",
+              "scope": "projects/usage-project",
+              "http_status": 200
+            }
+          ]
+        }
+      },
+      "collections": {
+        "group": [
+          {
+            "type": "group",
+            "service": "cloudidentity",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "groups/synthetic",
+                "parent": "customers/Csynthetic",
+                "groupKey": {
+                  "id": "team@example.test"
+                },
+                "labels": {
+                  "cloudidentity.googleapis.com/groups.discussion_forum": ""
+                },
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "collected_at": "2026-10-21T12:00:00Z",
+                  "source_requests": [
+                    "group-read"
+                  ],
+                  "representation": "full"
+                },
+                "_coverage": {
+                  "directMemberships": {
+                    "status": "collected",
+                    "scope": "projects/usage-project",
+                    "group": "groups/synthetic",
+                    "collected_at": "2026-10-21T12:00:00Z",
+                    "source_requests": [
+                      "members-read"
+                    ]
+                  }
+                },
+                "_direct_membership_names": [],
+                "_direct_membership_requests": [
+                  "members-read"
+                ]
+              }
+            ]
+          }
+        ],
+        "group_membership": [
+          {
+            "type": "group_membership",
+            "service": "cloudidentity",
+            "scope": "projects/usage-project",
+            "status": "empty",
+            "items": []
+          }
+        ]
+      },
+      "group": [
+        {
+          "data": {
+            "name": "groups/synthetic",
+            "parent": "customers/Csynthetic",
+            "groupKey": {
+              "id": "team@example.test"
+            },
+            "labels": {
+              "cloudidentity.googleapis.com/groups.discussion_forum": ""
+            },
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "group-read"
+              ],
+              "representation": "full"
+            },
+            "_coverage": {
+              "directMemberships": {
+                "status": "collected",
+                "scope": "projects/usage-project",
+                "group": "groups/synthetic",
+                "collected_at": "2026-10-21T12:00:00Z",
+                "source_requests": [
+                  "members-read"
+                ]
+              }
+            },
+            "_direct_membership_names": [],
+            "_direct_membership_requests": [
+              "members-read"
+            ]
+          },
+          "type": "group",
+          "scope": "projects/usage-project"
+        }
+      ],
+      "group_membership": []
+    },
+    "missing": {},
+    "index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "group-read",
+              "url": "https://cloudidentity.googleapis.com/v1/groups",
+              "method": "GET",
+              "status": "collected",
+              "scope": "projects/usage-project",
+              "http_status": 200
+            },
+            {
+              "id": "members-read",
+              "url": "https://cloudidentity.googleapis.com/v1/groups/synthetic/memberships",
+              "method": "GET",
+              "status": "collected",
+              "scope": "projects/usage-project",
+              "http_status": 200
+            }
+          ]
+        }
+      },
+      "collections": {
+        "group": [
+          {
+            "type": "group",
+            "service": "cloudidentity",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "groups/synthetic",
+                "parent": "customers/Csynthetic",
+                "groupKey": {
+                  "id": "team@example.test"
+                },
+                "labels": {
+                  "cloudidentity.googleapis.com/groups.discussion_forum": ""
+                },
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "collected_at": "2026-10-21T12:00:00Z",
+                  "source_requests": [
+                    "group-read"
+                  ],
+                  "representation": "full"
+                },
+                "_coverage": {
+                  "directMemberships": {
+                    "status": "collected",
+                    "scope": "projects/usage-project",
+                    "group": "groups/synthetic",
+                    "collected_at": "2026-10-21T12:00:00Z",
+                    "source_requests": [
+                      "members-read"
+                    ]
+                  }
+                },
+                "_direct_membership_names": [],
+                "_direct_membership_requests": [
+                  "members-read"
+                ]
+              }
+            ]
+          }
+        ],
+        "group_membership": [
+          {
+            "type": "group_membership",
+            "service": "cloudidentity",
+            "scope": "projects/usage-project",
+            "status": "empty",
+            "items": []
+          }
+        ]
+      },
+      "group": [
+        {
+          "data": {
+            "name": "groups/synthetic",
+            "parent": "customers/Csynthetic",
+            "groupKey": {
+              "id": "team@example.test"
+            },
+            "labels": {
+              "cloudidentity.googleapis.com/groups.discussion_forum": ""
+            },
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "group-read"
+              ],
+              "representation": "full"
+            },
+            "_coverage": {
+              "directMemberships": {
+                "status": "collected",
+                "scope": "projects/usage-project",
+                "group": "groups/synthetic",
+                "collected_at": "2026-10-21T12:00:00Z",
+                "source_requests": [
+                  "members-read"
+                ]
+              }
+            },
+            "_direct_membership_names": [],
+            "_direct_membership_requests": [
+              "members-read"
+            ]
+          },
+          "type": "group",
+          "scope": "projects/usage-project"
+        }
+      ],
+      "group_membership": []
+    }
+  },
+  "gcp.iam.role_grant_has_observed_permission_use": {
+    "pass": {
+      "name": "projects/usage-project/locations/global/insightTypes/google.iam.policy.Insight/insights/synthetic",
+      "content": {
+        "role": "roles/viewer",
+        "member": "serviceAccount:worker@usage-project.iam.gserviceaccount.com",
+        "condition": {
+          "expression": ""
+        },
+        "exercisedPermissions": [
+          {
+            "permission": "compute.instances.get"
+          }
+        ],
+        "inferredPermissions": []
+      },
+      "stateInfo": {
+        "state": "ACTIVE"
+      },
+      "category": "SECURITY",
+      "insightSubtype": "PERMISSIONS_USAGE",
+      "observationPeriod": "7776000s",
+      "lastRefreshTime": "2026-10-20T07:00:00Z",
+      "targetResources": [
+        "//cloudresourcemanager.googleapis.com/projects/usage-project"
+      ],
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "collected_at": "2026-10-21T12:00:00Z",
+        "source_requests": [
+          "insight-read"
+        ]
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "insight-read",
+              "url": "https://recommender.googleapis.com/v1/projects/usage-project/locations/global/insightTypes/google.iam.policy.Insight/insights",
+              "method": "GET",
+              "status": "collected",
+              "scope": "projects/usage-project",
+              "http_status": 200
+            },
+            {
+              "id": "policy-read",
+              "url": "https://cloudresourcemanager.googleapis.com/v3/projects/usage-project:getIamPolicy",
+              "method": "POST",
+              "status": "collected",
+              "scope": "projects/usage-project",
+              "http_status": 200
+            }
+          ]
+        }
+      },
+      "collections": {
+        "insight": [
+          {
+            "type": "insight",
+            "service": "recommender",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project/locations/global/insightTypes/google.iam.policy.Insight/insights/synthetic",
+                "content": {
+                  "role": "roles/viewer",
+                  "member": "serviceAccount:worker@usage-project.iam.gserviceaccount.com",
+                  "condition": {
+                    "expression": ""
+                  },
+                  "exercisedPermissions": [
+                    {
+                      "permission": "compute.instances.get"
+                    }
+                  ],
+                  "inferredPermissions": []
+                },
+                "stateInfo": {
+                  "state": "ACTIVE"
+                },
+                "category": "SECURITY",
+                "insightSubtype": "PERMISSIONS_USAGE",
+                "observationPeriod": "7776000s",
+                "lastRefreshTime": "2026-10-20T07:00:00Z",
+                "targetResources": [
+                  "//cloudresourcemanager.googleapis.com/projects/usage-project"
+                ],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "collected_at": "2026-10-21T12:00:00Z",
+                  "source_requests": [
+                    "insight-read"
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "iam_policy": [
+          {
+            "type": "iam_policy",
+            "service": "iam/cloudasset",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project",
+                "bindings": [
+                  {
+                    "role": "roles/viewer",
+                    "members": [
+                      "serviceAccount:worker@usage-project.iam.gserviceaccount.com"
+                    ]
+                  }
+                ],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "collected_at": "2026-10-21T12:00:00Z",
+                  "source_requests": [
+                    "policy-read"
+                  ],
+                  "representation": "full"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "insight": [
+        {
+          "data": {
+            "name": "projects/usage-project/locations/global/insightTypes/google.iam.policy.Insight/insights/synthetic",
+            "content": {
+              "role": "roles/viewer",
+              "member": "serviceAccount:worker@usage-project.iam.gserviceaccount.com",
+              "condition": {
+                "expression": ""
+              },
+              "exercisedPermissions": [
+                {
+                  "permission": "compute.instances.get"
+                }
+              ],
+              "inferredPermissions": []
+            },
+            "stateInfo": {
+              "state": "ACTIVE"
+            },
+            "category": "SECURITY",
+            "insightSubtype": "PERMISSIONS_USAGE",
+            "observationPeriod": "7776000s",
+            "lastRefreshTime": "2026-10-20T07:00:00Z",
+            "targetResources": [
+              "//cloudresourcemanager.googleapis.com/projects/usage-project"
+            ],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "insight-read"
+              ]
+            }
+          },
+          "type": "insight",
+          "scope": "projects/usage-project"
+        }
+      ],
+      "iam_policy": [
+        {
+          "data": {
+            "name": "projects/usage-project",
+            "bindings": [
+              {
+                "role": "roles/viewer",
+                "members": [
+                  "serviceAccount:worker@usage-project.iam.gserviceaccount.com"
+                ]
+              }
+            ],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "policy-read"
+              ],
+              "representation": "full"
+            }
+          },
+          "type": "iam_policy",
+          "scope": "projects/usage-project"
+        }
+      ]
+    },
+    "fail": {
+      "name": "projects/usage-project/locations/global/insightTypes/google.iam.policy.Insight/insights/synthetic",
+      "content": {
+        "role": "roles/viewer",
+        "member": "serviceAccount:worker@usage-project.iam.gserviceaccount.com",
+        "condition": {
+          "expression": ""
+        },
+        "exercisedPermissions": [],
+        "inferredPermissions": []
+      },
+      "stateInfo": {
+        "state": "ACTIVE"
+      },
+      "category": "SECURITY",
+      "insightSubtype": "PERMISSIONS_USAGE",
+      "observationPeriod": "7776000s",
+      "lastRefreshTime": "2026-10-20T07:00:00Z",
+      "targetResources": [
+        "//cloudresourcemanager.googleapis.com/projects/usage-project"
+      ],
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "collected_at": "2026-10-21T12:00:00Z",
+        "source_requests": [
+          "insight-read"
+        ]
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "insight-read",
+              "url": "https://recommender.googleapis.com/v1/projects/usage-project/locations/global/insightTypes/google.iam.policy.Insight/insights",
+              "method": "GET",
+              "status": "collected",
+              "scope": "projects/usage-project",
+              "http_status": 200
+            },
+            {
+              "id": "policy-read",
+              "url": "https://cloudresourcemanager.googleapis.com/v3/projects/usage-project:getIamPolicy",
+              "method": "POST",
+              "status": "collected",
+              "scope": "projects/usage-project",
+              "http_status": 200
+            }
+          ]
+        }
+      },
+      "collections": {
+        "insight": [
+          {
+            "type": "insight",
+            "service": "recommender",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project/locations/global/insightTypes/google.iam.policy.Insight/insights/synthetic",
+                "content": {
+                  "role": "roles/viewer",
+                  "member": "serviceAccount:worker@usage-project.iam.gserviceaccount.com",
+                  "condition": {
+                    "expression": ""
+                  },
+                  "exercisedPermissions": [],
+                  "inferredPermissions": []
+                },
+                "stateInfo": {
+                  "state": "ACTIVE"
+                },
+                "category": "SECURITY",
+                "insightSubtype": "PERMISSIONS_USAGE",
+                "observationPeriod": "7776000s",
+                "lastRefreshTime": "2026-10-20T07:00:00Z",
+                "targetResources": [
+                  "//cloudresourcemanager.googleapis.com/projects/usage-project"
+                ],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "collected_at": "2026-10-21T12:00:00Z",
+                  "source_requests": [
+                    "insight-read"
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "iam_policy": [
+          {
+            "type": "iam_policy",
+            "service": "iam/cloudasset",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project",
+                "bindings": [
+                  {
+                    "role": "roles/viewer",
+                    "members": [
+                      "serviceAccount:worker@usage-project.iam.gserviceaccount.com"
+                    ]
+                  }
+                ],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "collected_at": "2026-10-21T12:00:00Z",
+                  "source_requests": [
+                    "policy-read"
+                  ],
+                  "representation": "full"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "insight": [
+        {
+          "data": {
+            "name": "projects/usage-project/locations/global/insightTypes/google.iam.policy.Insight/insights/synthetic",
+            "content": {
+              "role": "roles/viewer",
+              "member": "serviceAccount:worker@usage-project.iam.gserviceaccount.com",
+              "condition": {
+                "expression": ""
+              },
+              "exercisedPermissions": [],
+              "inferredPermissions": []
+            },
+            "stateInfo": {
+              "state": "ACTIVE"
+            },
+            "category": "SECURITY",
+            "insightSubtype": "PERMISSIONS_USAGE",
+            "observationPeriod": "7776000s",
+            "lastRefreshTime": "2026-10-20T07:00:00Z",
+            "targetResources": [
+              "//cloudresourcemanager.googleapis.com/projects/usage-project"
+            ],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "insight-read"
+              ]
+            }
+          },
+          "type": "insight",
+          "scope": "projects/usage-project"
+        }
+      ],
+      "iam_policy": [
+        {
+          "data": {
+            "name": "projects/usage-project",
+            "bindings": [
+              {
+                "role": "roles/viewer",
+                "members": [
+                  "serviceAccount:worker@usage-project.iam.gserviceaccount.com"
+                ]
+              }
+            ],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "policy-read"
+              ],
+              "representation": "full"
+            }
+          },
+          "type": "iam_policy",
+          "scope": "projects/usage-project"
+        }
+      ]
+    },
+    "missing": {},
+    "index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "insight-read",
+              "url": "https://recommender.googleapis.com/v1/projects/usage-project/locations/global/insightTypes/google.iam.policy.Insight/insights",
+              "method": "GET",
+              "status": "collected",
+              "scope": "projects/usage-project",
+              "http_status": 200
+            },
+            {
+              "id": "policy-read",
+              "url": "https://cloudresourcemanager.googleapis.com/v3/projects/usage-project:getIamPolicy",
+              "method": "POST",
+              "status": "collected",
+              "scope": "projects/usage-project",
+              "http_status": 200
+            }
+          ]
+        }
+      },
+      "collections": {
+        "insight": [
+          {
+            "type": "insight",
+            "service": "recommender",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project/locations/global/insightTypes/google.iam.policy.Insight/insights/synthetic",
+                "content": {
+                  "role": "roles/viewer",
+                  "member": "serviceAccount:worker@usage-project.iam.gserviceaccount.com",
+                  "condition": {
+                    "expression": ""
+                  },
+                  "exercisedPermissions": [],
+                  "inferredPermissions": []
+                },
+                "stateInfo": {
+                  "state": "ACTIVE"
+                },
+                "category": "SECURITY",
+                "insightSubtype": "PERMISSIONS_USAGE",
+                "observationPeriod": "7776000s",
+                "lastRefreshTime": "2026-10-20T07:00:00Z",
+                "targetResources": [
+                  "//cloudresourcemanager.googleapis.com/projects/usage-project"
+                ],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "collected_at": "2026-10-21T12:00:00Z",
+                  "source_requests": [
+                    "insight-read"
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "iam_policy": [
+          {
+            "type": "iam_policy",
+            "service": "iam/cloudasset",
+            "scope": "projects/usage-project",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project",
+                "bindings": [
+                  {
+                    "role": "roles/viewer",
+                    "members": [
+                      "serviceAccount:worker@usage-project.iam.gserviceaccount.com"
+                    ]
+                  }
+                ],
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "collected_at": "2026-10-21T12:00:00Z",
+                  "source_requests": [
+                    "policy-read"
+                  ],
+                  "representation": "full"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "insight": [
+        {
+          "data": {
+            "name": "projects/usage-project/locations/global/insightTypes/google.iam.policy.Insight/insights/synthetic",
+            "content": {
+              "role": "roles/viewer",
+              "member": "serviceAccount:worker@usage-project.iam.gserviceaccount.com",
+              "condition": {
+                "expression": ""
+              },
+              "exercisedPermissions": [],
+              "inferredPermissions": []
+            },
+            "stateInfo": {
+              "state": "ACTIVE"
+            },
+            "category": "SECURITY",
+            "insightSubtype": "PERMISSIONS_USAGE",
+            "observationPeriod": "7776000s",
+            "lastRefreshTime": "2026-10-20T07:00:00Z",
+            "targetResources": [
+              "//cloudresourcemanager.googleapis.com/projects/usage-project"
+            ],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "insight-read"
+              ]
+            }
+          },
+          "type": "insight",
+          "scope": "projects/usage-project"
+        }
+      ],
+      "iam_policy": [
+        {
+          "data": {
+            "name": "projects/usage-project",
+            "bindings": [
+              {
+                "role": "roles/viewer",
+                "members": [
+                  "serviceAccount:worker@usage-project.iam.gserviceaccount.com"
+                ]
+              }
+            ],
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "collected_at": "2026-10-21T12:00:00Z",
+              "source_requests": [
+                "policy-read"
+              ],
+              "representation": "full"
+            }
+          },
+          "type": "iam_policy",
+          "scope": "projects/usage-project"
+        }
+      ]
+    }
+  }
+}

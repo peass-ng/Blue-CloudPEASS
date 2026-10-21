@@ -1,0 +1,400 @@
+{
+  "aws.iam.group_inline_policies_have_members": {
+    "pass": {
+      "GroupName": "synthetic",
+      "GroupId": "AGPA0123456789ABCDE",
+      "Arn": "arn:aws:iam::123456789012:group/team/synthetic",
+      "GroupPolicyList": [
+        {
+          "PolicyName": "StorageReader",
+          "PolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "s3:GetObject"
+                ],
+                "Resource": "arn:aws:s3:::synthetic-data/*"
+              }
+            ]
+          }
+        }
+      ],
+      "_provenance": {
+        "operation": "iam:GetAccountAuthorizationDetails",
+        "native_response_complete": true
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/global",
+        "created_at": "2026-10-21T12:00:00Z"
+      },
+      "collections": {
+        "iam_group": [
+          {
+            "type": "iam_group",
+            "scope": "123456789012/global",
+            "service": "iam",
+            "status": "collected",
+            "items": [
+              {
+                "GroupName": "synthetic",
+                "GroupId": "AGPA0123456789ABCDE",
+                "Arn": "arn:aws:iam::123456789012:group/team/synthetic",
+                "GroupPolicyList": [
+                  {
+                    "PolicyName": "StorageReader",
+                    "PolicyDocument": {
+                      "Version": "2012-10-17",
+                      "Statement": [
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "s3:GetObject"
+                          ],
+                          "Resource": "arn:aws:s3:::synthetic-data/*"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "_provenance": {
+                  "operation": "iam:GetAccountAuthorizationDetails",
+                  "native_response_complete": true
+                }
+              }
+            ]
+          }
+        ],
+        "iam_user": [
+          {
+            "type": "iam_user",
+            "scope": "123456789012/global",
+            "service": "iam",
+            "status": "collected",
+            "items": [
+              {
+                "UserName": "synthetic-user",
+                "UserId": "AIDA0123456789ABCDE",
+                "Arn": "arn:aws:iam::123456789012:user/synthetic-user",
+                "GroupList": [
+                  "synthetic"
+                ],
+                "_provenance": {
+                  "operation": "iam:GetAccountAuthorizationDetails",
+                  "native_response_complete": true
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "iam_group": [
+        {
+          "type": "iam_group",
+          "scope": "123456789012/global",
+          "data": {
+            "GroupName": "synthetic",
+            "GroupId": "AGPA0123456789ABCDE",
+            "Arn": "arn:aws:iam::123456789012:group/team/synthetic",
+            "GroupPolicyList": [
+              {
+                "PolicyName": "StorageReader",
+                "PolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "s3:GetObject"
+                      ],
+                      "Resource": "arn:aws:s3:::synthetic-data/*"
+                    }
+                  ]
+                }
+              }
+            ],
+            "_provenance": {
+              "operation": "iam:GetAccountAuthorizationDetails",
+              "native_response_complete": true
+            }
+          }
+        }
+      ],
+      "iam_user": [
+        {
+          "type": "iam_user",
+          "scope": "123456789012/global",
+          "data": {
+            "UserName": "synthetic-user",
+            "UserId": "AIDA0123456789ABCDE",
+            "Arn": "arn:aws:iam::123456789012:user/synthetic-user",
+            "GroupList": [
+              "synthetic"
+            ],
+            "_provenance": {
+              "operation": "iam:GetAccountAuthorizationDetails",
+              "native_response_complete": true
+            }
+          }
+        }
+      ]
+    },
+    "fail": {
+      "GroupName": "synthetic",
+      "GroupId": "AGPA0123456789ABCDE",
+      "Arn": "arn:aws:iam::123456789012:group/team/synthetic",
+      "GroupPolicyList": [
+        {
+          "PolicyName": "StorageReader",
+          "PolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "s3:GetObject"
+                ],
+                "Resource": "arn:aws:s3:::synthetic-data/*"
+              }
+            ]
+          }
+        }
+      ],
+      "_provenance": {
+        "operation": "iam:GetAccountAuthorizationDetails",
+        "native_response_complete": true
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/global",
+        "created_at": "2026-10-21T12:00:00Z"
+      },
+      "collections": {
+        "iam_group": [
+          {
+            "type": "iam_group",
+            "scope": "123456789012/global",
+            "service": "iam",
+            "status": "collected",
+            "items": [
+              {
+                "GroupName": "synthetic",
+                "GroupId": "AGPA0123456789ABCDE",
+                "Arn": "arn:aws:iam::123456789012:group/team/synthetic",
+                "GroupPolicyList": [
+                  {
+                    "PolicyName": "StorageReader",
+                    "PolicyDocument": {
+                      "Version": "2012-10-17",
+                      "Statement": [
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "s3:GetObject"
+                          ],
+                          "Resource": "arn:aws:s3:::synthetic-data/*"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "_provenance": {
+                  "operation": "iam:GetAccountAuthorizationDetails",
+                  "native_response_complete": true
+                }
+              }
+            ]
+          }
+        ],
+        "iam_user": [
+          {
+            "type": "iam_user",
+            "scope": "123456789012/global",
+            "service": "iam",
+            "status": "collected",
+            "items": [
+              {
+                "UserName": "synthetic-user",
+                "UserId": "AIDA0123456789ABCDE",
+                "Arn": "arn:aws:iam::123456789012:user/synthetic-user",
+                "GroupList": [],
+                "_provenance": {
+                  "operation": "iam:GetAccountAuthorizationDetails",
+                  "native_response_complete": true
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "iam_group": [
+        {
+          "type": "iam_group",
+          "scope": "123456789012/global",
+          "data": {
+            "GroupName": "synthetic",
+            "GroupId": "AGPA0123456789ABCDE",
+            "Arn": "arn:aws:iam::123456789012:group/team/synthetic",
+            "GroupPolicyList": [
+              {
+                "PolicyName": "StorageReader",
+                "PolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "s3:GetObject"
+                      ],
+                      "Resource": "arn:aws:s3:::synthetic-data/*"
+                    }
+                  ]
+                }
+              }
+            ],
+            "_provenance": {
+              "operation": "iam:GetAccountAuthorizationDetails",
+              "native_response_complete": true
+            }
+          }
+        }
+      ],
+      "iam_user": [
+        {
+          "type": "iam_user",
+          "scope": "123456789012/global",
+          "data": {
+            "UserName": "synthetic-user",
+            "UserId": "AIDA0123456789ABCDE",
+            "Arn": "arn:aws:iam::123456789012:user/synthetic-user",
+            "GroupList": [],
+            "_provenance": {
+              "operation": "iam:GetAccountAuthorizationDetails",
+              "native_response_complete": true
+            }
+          }
+        }
+      ]
+    },
+    "missing": {},
+    "index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/global",
+        "created_at": "2026-10-21T12:00:00Z"
+      },
+      "collections": {
+        "iam_group": [
+          {
+            "type": "iam_group",
+            "scope": "123456789012/global",
+            "service": "iam",
+            "status": "collected",
+            "items": [
+              {
+                "GroupName": "synthetic",
+                "GroupId": "AGPA0123456789ABCDE",
+                "Arn": "arn:aws:iam::123456789012:group/team/synthetic",
+                "GroupPolicyList": [
+                  {
+                    "PolicyName": "StorageReader",
+                    "PolicyDocument": {
+                      "Version": "2012-10-17",
+                      "Statement": [
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "s3:GetObject"
+                          ],
+                          "Resource": "arn:aws:s3:::synthetic-data/*"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "_provenance": {
+                  "operation": "iam:GetAccountAuthorizationDetails",
+                  "native_response_complete": true
+                }
+              }
+            ]
+          }
+        ],
+        "iam_user": [
+          {
+            "type": "iam_user",
+            "scope": "123456789012/global",
+            "service": "iam",
+            "status": "collected",
+            "items": [
+              {
+                "UserName": "synthetic-user",
+                "UserId": "AIDA0123456789ABCDE",
+                "Arn": "arn:aws:iam::123456789012:user/synthetic-user",
+                "GroupList": [],
+                "_provenance": {
+                  "operation": "iam:GetAccountAuthorizationDetails",
+                  "native_response_complete": true
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "iam_group": [
+        {
+          "type": "iam_group",
+          "scope": "123456789012/global",
+          "data": {
+            "GroupName": "synthetic",
+            "GroupId": "AGPA0123456789ABCDE",
+            "Arn": "arn:aws:iam::123456789012:group/team/synthetic",
+            "GroupPolicyList": [
+              {
+                "PolicyName": "StorageReader",
+                "PolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "s3:GetObject"
+                      ],
+                      "Resource": "arn:aws:s3:::synthetic-data/*"
+                    }
+                  ]
+                }
+              }
+            ],
+            "_provenance": {
+              "operation": "iam:GetAccountAuthorizationDetails",
+              "native_response_complete": true
+            }
+          }
+        }
+      ],
+      "iam_user": [
+        {
+          "type": "iam_user",
+          "scope": "123456789012/global",
+          "data": {
+            "UserName": "synthetic-user",
+            "UserId": "AIDA0123456789ABCDE",
+            "Arn": "arn:aws:iam::123456789012:user/synthetic-user",
+            "GroupList": [],
+            "_provenance": {
+              "operation": "iam:GetAccountAuthorizationDetails",
+              "native_response_complete": true
+            }
+          }
+        }
+      ]
+    }
+  }
+}

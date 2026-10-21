@@ -1,0 +1,666 @@
+{
+  "aws.iam.saml_provider_has_role_consumer": {
+    "pass": {
+      "Arn": "arn:aws:iam::123456789012:saml-provider/idp.example.com",
+      "AccountId": "123456789012"
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/global",
+        "created_at": "2026-10-21T12:00:00Z"
+      },
+      "collections": {
+        "iam_saml_provider": [
+          {
+            "type": "iam_saml_provider",
+            "scope": "123456789012/global",
+            "service": "iam",
+            "status": "collected",
+            "items": [
+              {
+                "Arn": "arn:aws:iam::123456789012:saml-provider/idp.example.com",
+                "AccountId": "123456789012"
+              }
+            ],
+            "account_id": "123456789012",
+            "global": true
+          }
+        ],
+        "iam_role": [
+          {
+            "type": "iam_role",
+            "scope": "123456789012/global",
+            "service": "iam",
+            "status": "collected",
+            "items": [
+              {
+                "RoleName": "federated-reader",
+                "RoleId": "AROA0123456789ABCDE",
+                "Arn": "arn:aws:iam::123456789012:role/team/federated-reader",
+                "AssumeRolePolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Action": "sts:AssumeRoleWithSAML",
+                      "Principal": {
+                        "Federated": "arn:aws:iam::123456789012:saml-provider/idp.example.com"
+                      },
+                      "Condition": {
+                        "StringEquals": {
+                          "synthetic:aud": "example"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "_provenance": {
+                  "operation": "iam:GetAccountAuthorizationDetails",
+                  "native_response_complete": true
+                }
+              }
+            ],
+            "account_id": "123456789012",
+            "global": true
+          }
+        ]
+      },
+      "iam_saml_provider": [
+        {
+          "type": "iam_saml_provider",
+          "scope": "123456789012/global",
+          "data": {
+            "Arn": "arn:aws:iam::123456789012:saml-provider/idp.example.com",
+            "AccountId": "123456789012"
+          }
+        }
+      ],
+      "iam_role": [
+        {
+          "type": "iam_role",
+          "scope": "123456789012/global",
+          "data": {
+            "RoleName": "federated-reader",
+            "RoleId": "AROA0123456789ABCDE",
+            "Arn": "arn:aws:iam::123456789012:role/team/federated-reader",
+            "AssumeRolePolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": "sts:AssumeRoleWithSAML",
+                  "Principal": {
+                    "Federated": "arn:aws:iam::123456789012:saml-provider/idp.example.com"
+                  },
+                  "Condition": {
+                    "StringEquals": {
+                      "synthetic:aud": "example"
+                    }
+                  }
+                }
+              ]
+            },
+            "_provenance": {
+              "operation": "iam:GetAccountAuthorizationDetails",
+              "native_response_complete": true
+            }
+          }
+        }
+      ]
+    },
+    "fail": {
+      "Arn": "arn:aws:iam::123456789012:saml-provider/idp.example.com",
+      "AccountId": "123456789012"
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/global",
+        "created_at": "2026-10-21T12:00:00Z"
+      },
+      "collections": {
+        "iam_saml_provider": [
+          {
+            "type": "iam_saml_provider",
+            "scope": "123456789012/global",
+            "service": "iam",
+            "status": "collected",
+            "items": [
+              {
+                "Arn": "arn:aws:iam::123456789012:saml-provider/idp.example.com",
+                "AccountId": "123456789012"
+              }
+            ],
+            "account_id": "123456789012",
+            "global": true
+          }
+        ],
+        "iam_role": [
+          {
+            "type": "iam_role",
+            "scope": "123456789012/global",
+            "service": "iam",
+            "status": "collected",
+            "items": [
+              {
+                "RoleName": "federated-reader",
+                "RoleId": "AROA0123456789ABCDE",
+                "Arn": "arn:aws:iam::123456789012:role/team/federated-reader",
+                "AssumeRolePolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Action": "sts:AssumeRoleWithSAML",
+                      "Principal": {
+                        "Federated": "arn:aws:iam::123456789012:saml-provider/different"
+                      },
+                      "Condition": {
+                        "StringEquals": {
+                          "synthetic:aud": "example"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "_provenance": {
+                  "operation": "iam:GetAccountAuthorizationDetails",
+                  "native_response_complete": true
+                }
+              }
+            ],
+            "account_id": "123456789012",
+            "global": true
+          }
+        ]
+      },
+      "iam_saml_provider": [
+        {
+          "type": "iam_saml_provider",
+          "scope": "123456789012/global",
+          "data": {
+            "Arn": "arn:aws:iam::123456789012:saml-provider/idp.example.com",
+            "AccountId": "123456789012"
+          }
+        }
+      ],
+      "iam_role": [
+        {
+          "type": "iam_role",
+          "scope": "123456789012/global",
+          "data": {
+            "RoleName": "federated-reader",
+            "RoleId": "AROA0123456789ABCDE",
+            "Arn": "arn:aws:iam::123456789012:role/team/federated-reader",
+            "AssumeRolePolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": "sts:AssumeRoleWithSAML",
+                  "Principal": {
+                    "Federated": "arn:aws:iam::123456789012:saml-provider/different"
+                  },
+                  "Condition": {
+                    "StringEquals": {
+                      "synthetic:aud": "example"
+                    }
+                  }
+                }
+              ]
+            },
+            "_provenance": {
+              "operation": "iam:GetAccountAuthorizationDetails",
+              "native_response_complete": true
+            }
+          }
+        }
+      ]
+    },
+    "unknown": {
+      "Arn": "arn:aws:iam::123456789012:saml-provider/idp.example.com",
+      "AccountId": "123456789012"
+    },
+    "unknown_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/global",
+        "created_at": "2026-10-21T12:00:00Z"
+      },
+      "collections": {
+        "iam_saml_provider": [
+          {
+            "type": "iam_saml_provider",
+            "scope": "123456789012/global",
+            "service": "iam",
+            "status": "collected",
+            "items": [
+              {
+                "Arn": "arn:aws:iam::123456789012:saml-provider/idp.example.com",
+                "AccountId": "123456789012"
+              }
+            ],
+            "account_id": "123456789012",
+            "global": true
+          }
+        ],
+        "iam_role": [
+          {
+            "type": "iam_role",
+            "scope": "123456789012/global",
+            "service": "iam",
+            "status": "partial",
+            "items": [
+              {
+                "RoleName": "federated-reader",
+                "RoleId": "AROA0123456789ABCDE",
+                "Arn": "arn:aws:iam::123456789012:role/team/federated-reader",
+                "AssumeRolePolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Action": "sts:AssumeRoleWithSAML",
+                      "Principal": {
+                        "Federated": "arn:aws:iam::123456789012:saml-provider/different"
+                      },
+                      "Condition": {
+                        "StringEquals": {
+                          "synthetic:aud": "example"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "_provenance": {
+                  "operation": "iam:GetAccountAuthorizationDetails",
+                  "native_response_complete": true
+                }
+              }
+            ],
+            "account_id": "123456789012",
+            "global": true,
+            "error": {
+              "cause_status": "unknown"
+            }
+          }
+        ]
+      },
+      "iam_saml_provider": [
+        {
+          "type": "iam_saml_provider",
+          "scope": "123456789012/global",
+          "data": {
+            "Arn": "arn:aws:iam::123456789012:saml-provider/idp.example.com",
+            "AccountId": "123456789012"
+          }
+        }
+      ],
+      "iam_role": [
+        {
+          "type": "iam_role",
+          "scope": "123456789012/global",
+          "data": {
+            "RoleName": "federated-reader",
+            "RoleId": "AROA0123456789ABCDE",
+            "Arn": "arn:aws:iam::123456789012:role/team/federated-reader",
+            "AssumeRolePolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": "sts:AssumeRoleWithSAML",
+                  "Principal": {
+                    "Federated": "arn:aws:iam::123456789012:saml-provider/different"
+                  },
+                  "Condition": {
+                    "StringEquals": {
+                      "synthetic:aud": "example"
+                    }
+                  }
+                }
+              ]
+            },
+            "_provenance": {
+              "operation": "iam:GetAccountAuthorizationDetails",
+              "native_response_complete": true
+            }
+          }
+        }
+      ]
+    }
+  },
+  "aws.iam.oidc_provider_has_role_consumer": {
+    "pass": {
+      "Arn": "arn:aws:iam::123456789012:oidc-provider/idp.example.com",
+      "AccountId": "123456789012"
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/global",
+        "created_at": "2026-10-21T12:00:00Z"
+      },
+      "collections": {
+        "iam_oidc_provider": [
+          {
+            "type": "iam_oidc_provider",
+            "scope": "123456789012/global",
+            "service": "iam",
+            "status": "collected",
+            "items": [
+              {
+                "Arn": "arn:aws:iam::123456789012:oidc-provider/idp.example.com",
+                "AccountId": "123456789012"
+              }
+            ],
+            "account_id": "123456789012",
+            "global": true
+          }
+        ],
+        "iam_role": [
+          {
+            "type": "iam_role",
+            "scope": "123456789012/global",
+            "service": "iam",
+            "status": "collected",
+            "items": [
+              {
+                "RoleName": "federated-reader",
+                "RoleId": "AROA0123456789ABCDE",
+                "Arn": "arn:aws:iam::123456789012:role/team/federated-reader",
+                "AssumeRolePolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Action": "sts:AssumeRoleWithWebIdentity",
+                      "Principal": {
+                        "Federated": "arn:aws:iam::123456789012:oidc-provider/idp.example.com"
+                      },
+                      "Condition": {
+                        "StringEquals": {
+                          "synthetic:aud": "example"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "_provenance": {
+                  "operation": "iam:GetAccountAuthorizationDetails",
+                  "native_response_complete": true
+                }
+              }
+            ],
+            "account_id": "123456789012",
+            "global": true
+          }
+        ]
+      },
+      "iam_oidc_provider": [
+        {
+          "type": "iam_oidc_provider",
+          "scope": "123456789012/global",
+          "data": {
+            "Arn": "arn:aws:iam::123456789012:oidc-provider/idp.example.com",
+            "AccountId": "123456789012"
+          }
+        }
+      ],
+      "iam_role": [
+        {
+          "type": "iam_role",
+          "scope": "123456789012/global",
+          "data": {
+            "RoleName": "federated-reader",
+            "RoleId": "AROA0123456789ABCDE",
+            "Arn": "arn:aws:iam::123456789012:role/team/federated-reader",
+            "AssumeRolePolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": "sts:AssumeRoleWithWebIdentity",
+                  "Principal": {
+                    "Federated": "arn:aws:iam::123456789012:oidc-provider/idp.example.com"
+                  },
+                  "Condition": {
+                    "StringEquals": {
+                      "synthetic:aud": "example"
+                    }
+                  }
+                }
+              ]
+            },
+            "_provenance": {
+              "operation": "iam:GetAccountAuthorizationDetails",
+              "native_response_complete": true
+            }
+          }
+        }
+      ]
+    },
+    "fail": {
+      "Arn": "arn:aws:iam::123456789012:oidc-provider/idp.example.com",
+      "AccountId": "123456789012"
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/global",
+        "created_at": "2026-10-21T12:00:00Z"
+      },
+      "collections": {
+        "iam_oidc_provider": [
+          {
+            "type": "iam_oidc_provider",
+            "scope": "123456789012/global",
+            "service": "iam",
+            "status": "collected",
+            "items": [
+              {
+                "Arn": "arn:aws:iam::123456789012:oidc-provider/idp.example.com",
+                "AccountId": "123456789012"
+              }
+            ],
+            "account_id": "123456789012",
+            "global": true
+          }
+        ],
+        "iam_role": [
+          {
+            "type": "iam_role",
+            "scope": "123456789012/global",
+            "service": "iam",
+            "status": "collected",
+            "items": [
+              {
+                "RoleName": "federated-reader",
+                "RoleId": "AROA0123456789ABCDE",
+                "Arn": "arn:aws:iam::123456789012:role/team/federated-reader",
+                "AssumeRolePolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Action": "sts:AssumeRoleWithWebIdentity",
+                      "Principal": {
+                        "Federated": "arn:aws:iam::123456789012:oidc-provider/different"
+                      },
+                      "Condition": {
+                        "StringEquals": {
+                          "synthetic:aud": "example"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "_provenance": {
+                  "operation": "iam:GetAccountAuthorizationDetails",
+                  "native_response_complete": true
+                }
+              }
+            ],
+            "account_id": "123456789012",
+            "global": true
+          }
+        ]
+      },
+      "iam_oidc_provider": [
+        {
+          "type": "iam_oidc_provider",
+          "scope": "123456789012/global",
+          "data": {
+            "Arn": "arn:aws:iam::123456789012:oidc-provider/idp.example.com",
+            "AccountId": "123456789012"
+          }
+        }
+      ],
+      "iam_role": [
+        {
+          "type": "iam_role",
+          "scope": "123456789012/global",
+          "data": {
+            "RoleName": "federated-reader",
+            "RoleId": "AROA0123456789ABCDE",
+            "Arn": "arn:aws:iam::123456789012:role/team/federated-reader",
+            "AssumeRolePolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": "sts:AssumeRoleWithWebIdentity",
+                  "Principal": {
+                    "Federated": "arn:aws:iam::123456789012:oidc-provider/different"
+                  },
+                  "Condition": {
+                    "StringEquals": {
+                      "synthetic:aud": "example"
+                    }
+                  }
+                }
+              ]
+            },
+            "_provenance": {
+              "operation": "iam:GetAccountAuthorizationDetails",
+              "native_response_complete": true
+            }
+          }
+        }
+      ]
+    },
+    "unknown": {
+      "Arn": "arn:aws:iam::123456789012:oidc-provider/idp.example.com",
+      "AccountId": "123456789012"
+    },
+    "unknown_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/global",
+        "created_at": "2026-10-21T12:00:00Z"
+      },
+      "collections": {
+        "iam_oidc_provider": [
+          {
+            "type": "iam_oidc_provider",
+            "scope": "123456789012/global",
+            "service": "iam",
+            "status": "collected",
+            "items": [
+              {
+                "Arn": "arn:aws:iam::123456789012:oidc-provider/idp.example.com",
+                "AccountId": "123456789012"
+              }
+            ],
+            "account_id": "123456789012",
+            "global": true
+          }
+        ],
+        "iam_role": [
+          {
+            "type": "iam_role",
+            "scope": "123456789012/global",
+            "service": "iam",
+            "status": "partial",
+            "items": [
+              {
+                "RoleName": "federated-reader",
+                "RoleId": "AROA0123456789ABCDE",
+                "Arn": "arn:aws:iam::123456789012:role/team/federated-reader",
+                "AssumeRolePolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Action": "sts:AssumeRoleWithWebIdentity",
+                      "Principal": {
+                        "Federated": "arn:aws:iam::123456789012:oidc-provider/different"
+                      },
+                      "Condition": {
+                        "StringEquals": {
+                          "synthetic:aud": "example"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "_provenance": {
+                  "operation": "iam:GetAccountAuthorizationDetails",
+                  "native_response_complete": true
+                }
+              }
+            ],
+            "account_id": "123456789012",
+            "global": true,
+            "error": {
+              "cause_status": "unknown"
+            }
+          }
+        ]
+      },
+      "iam_oidc_provider": [
+        {
+          "type": "iam_oidc_provider",
+          "scope": "123456789012/global",
+          "data": {
+            "Arn": "arn:aws:iam::123456789012:oidc-provider/idp.example.com",
+            "AccountId": "123456789012"
+          }
+        }
+      ],
+      "iam_role": [
+        {
+          "type": "iam_role",
+          "scope": "123456789012/global",
+          "data": {
+            "RoleName": "federated-reader",
+            "RoleId": "AROA0123456789ABCDE",
+            "Arn": "arn:aws:iam::123456789012:role/team/federated-reader",
+            "AssumeRolePolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": "sts:AssumeRoleWithWebIdentity",
+                  "Principal": {
+                    "Federated": "arn:aws:iam::123456789012:oidc-provider/different"
+                  },
+                  "Condition": {
+                    "StringEquals": {
+                      "synthetic:aud": "example"
+                    }
+                  }
+                }
+              ]
+            },
+            "_provenance": {
+              "operation": "iam:GetAccountAuthorizationDetails",
+              "native_response_complete": true
+            }
+          }
+        }
+      ]
+    }
+  }
+}

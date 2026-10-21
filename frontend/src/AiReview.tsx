@@ -25,6 +25,7 @@ function NetworkReviewPanel({ data }: { data: NetworkResult }) {
   const [sort, setSort] = useState<{ field: "severity" | "title" | "service" | "resource" | "scope" | "status"; descending: boolean }>({ field: "severity", descending: false });
   const [selected, setSelected] = useState<NetworkFinding>();
   const trigger = useRef<HTMLButtonElement | null>(null);
+  const architecturePreview = data.explanation.replace(/^#{1,6}\s+/gm, "").replace(/[*`]/g, "").replace(/\s+/g, " ").trim();
   const term = search.trim().toLocaleLowerCase();
   const rows = data.findings.filter(row => (!severity || row.severity === severity) && matchesFindingStatus(row.status, status) &&
     [row.title, row.description, row.rationale, row.evidence_summary, row.resource_name, row.native_resource_id, row.resource_id,
@@ -43,6 +44,12 @@ function NetworkReviewPanel({ data }: { data: NetworkResult }) {
   const columns = [{ field: "severity", label: "Severity" }, { field: "title", label: "Finding" }, { field: "service", label: "Service" },
     { field: "resource", label: "Asset" }, { field: "scope", label: "Scope" }, { field: "status", label: "Status" }] as const;
   return <div className="ai-review-view">
+    {data.explanation && <Panel className="network-summary-panel">
+      <details className="network-summary">
+        <summary><h2>Network architecture</h2><span className="network-summary-preview">{architecturePreview.slice(0, 200)}{architecturePreview.length > 200 ? "…" : ""}</span><span className="network-summary-expand">Expand architecture</span><span className="network-summary-collapse">Collapse architecture</span></summary>
+        <NetworkArchitecture text={data.explanation} />
+      </details>
+    </Panel>}
     <Panel className="findings-panel network-findings-panel">
       {data.status === "unavailable" && <p>The network review could not be completed. Run a scan with AI enabled to retry it.</p>}
       <div className="filters">
@@ -68,7 +75,7 @@ function NetworkReviewPanel({ data }: { data: NetworkResult }) {
       </div>
       {rows.length > NETWORK_PAGE_SIZE && <div className="service-page-controls"><span>{offset + 1}–{Math.min(offset + NETWORK_PAGE_SIZE, rows.length)} of {rows.length} findings</span><button className="text-button" disabled={!currentPage} onClick={() => setPage(currentPage - 1)}>Previous page</button><button className="text-button" disabled={offset + NETWORK_PAGE_SIZE >= rows.length} onClick={() => setPage(currentPage + 1)}>Next page</button></div>}
     </Panel>
-    {data.explanation && <Panel title="Network architecture"><NetworkArchitecture text={data.explanation} /></Panel>}
+
     {selected && <Inspector title={selected.title} onClose={closeFinding} className="network-finding-inspector">
       <div className="button-row"><Badge value={selected.severity} /><FindingStatusBadge status={selected.status} /></div>
       <h3>Affected resource</h3><p>{networkAsset(selected)}</p>{selected.resource_name && selected.native_resource_id && selected.resource_name !== selected.native_resource_id && <p>{selected.native_resource_id}</p>}<p>{selected.provider.toUpperCase()} · {selected.service} · {selected.scope}</p>

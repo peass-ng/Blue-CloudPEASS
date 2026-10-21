@@ -293,7 +293,7 @@ def register_component(kind, suffix, spec):
     if operation in ("contains", "contains_any"):
         good = expected[0] if isinstance(expected, tuple) else expected
     elif operation == "excludes":
-        good = "RBAC" if fields[0] == "authorization-mode" else "NodeRestriction"
+        good = ("Webhook" if component == "kubelet" else "RBAC") if fields[0] == "authorization-mode" else "NodeRestriction"
     elif operation == "subset":
         good = "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
     elif operation in ("duration", "nonzero_duration"):

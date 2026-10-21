@@ -3656,3 +3656,5 @@ textarea:focus-visible,
 
 .feature-ai { display: inline-flex; align-items: center; gap: 5px; margin-left: 12px; padding: 3px 9px; border: 1px solid #9cdbd96b; border-radius: 999px; background: linear-gradient(120deg, #80dfc524, #b3a0ff26); color: #c4f9ed; box-shadow: inset 0 0 10px #b3a0ff12, 0 0 14px #80dfc510; font: 600 10px/1.4 'IBM Plex Sans', sans-serif; letter-spacing: .08em; vertical-align: middle; white-space: nowrap; }
 .nav-ai { margin-left: auto; padding: 2px 7px; font-size: 9px; }
+
+main.network-map-page { max-width: none; width: 100%; min-width: 0; }

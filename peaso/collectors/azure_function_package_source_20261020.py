@@ -78,7 +78,7 @@ def preflight(options, scopes, named_checks, *, shared_service_account=False):
             service, scope, *rest = storage.parse(target['blob'])
         except Exception:
             raise Incomplete('invalid_selection') from None
-        if (not match or match[4] is not None or '/.' in site or service != 'blob'
+        if (not match or '/.' in site or service != 'blob'
                 or target['blob']['format'] != 'zip' or not target['blob']['object'].endswith('.zip')
                 or scope.casefold() != match[1].casefold()
                 or scope.casefold() not in {s.casefold() for s in scopes}
@@ -102,32 +102,54 @@ def authentic(envelope):
 
 
 def _hosting(data, site):
-    # Function helper is read-only and strict about classic hosting/config.
-    kind = data.get('kind') if isinstance(data, dict) else None
+    # Bind the exact native slot identity before accepting any hosting facts.
+    match = settings._RESOURCE.fullmatch(site)
+    if match is None:
+        raise Incomplete('unsupported_hosting')
+    slot = match[4] is not None
+    expected_type = 'microsoft.web/sites/slots' if slot else 'microsoft.web/sites'
+    expected_name = match[3] + '/' + match[4] if slot else site.rsplit('/', 1)[1]
+    if (not isinstance(data, dict) or str(data.get('id', '')).casefold() != site.casefold()
+            or str(data.get('type', '')).casefold() != expected_type
+            or str(data.get('name', '')).casefold() != expected_name.casefold()
+            or not isinstance(data.get('properties'), dict)):
+        raise Incomplete('unsupported_hosting')
+    kind = data.get('kind')
     if not isinstance(kind, str):
         raise Incomplete('unsupported_hosting')
-    if 'functionapp' in {k.strip().casefold() for k in kind.split(',')}:
-        if _site(data, site).get('hosting') != 'classic':
+    parts = [k.strip().casefold() for k in kind.split(',')]
+    kinds = set(parts)
+    if 'functionapp' in kinds:
+        if slot:
+            # This bounded slot slice accepts only classic Windows Function code.
+            # Flex, containers, Linux and unresolved host declarations stay unknown.
+            props = data['properties']
+            config = props.get('siteConfig')
+            if (parts != ['functionapp'] or type(props.get('reserved')) is not bool
+                    or props['reserved'] is not False or props.get('functionAppConfig') is not None
+                    or not isinstance(config, dict) or not isinstance(config.get('windowsFxVersion'), str)
+                    or config['windowsFxVersion'].upper().startswith('DOCKER|')):
+                raise Incomplete('unsupported_hosting')
+        elif _site(data, site).get('hosting') != 'classic':
             raise Incomplete('unsupported_hosting')
-        return 'function'
-    if (str(data.get('id', '')).casefold() != site.casefold()
-            or str(data.get('type', '')).casefold() != 'microsoft.web/sites'
-            or str(data.get('name', '')).casefold() != site.rsplit('/', 1)[1].casefold()
-            or kind.casefold() != 'app' or not isinstance(data.get('properties'), dict)):
-        raise Incomplete('unsupported_hosting')
-    props = data['properties']
-    config = props.get('siteConfig')
-    # Conservative App Service subset: classic Windows code sites only.
-    if (props.get('reserved') is not False or props.get('functionAppConfig') is not None
-            or not isinstance(config, dict) or config.get('windowsFxVersion') != ''):
-        raise Incomplete('unsupported_hosting')
-    return 'app_service'
+        hosting = 'function'
+    else:
+        props = data['properties']
+        config = props.get('siteConfig')
+        if (kind.casefold() != 'app' or props.get('reserved') is not False
+                or props.get('functionAppConfig') is not None
+                or not isinstance(config, dict) or config.get('windowsFxVersion') != ''):
+            raise Incomplete('unsupported_hosting')
+        hosting = 'app_service'
+    # Existing production-site projection stays unchanged. The slot's full
+    # native metadata must remain stable over the Blob read window.
+    return (hosting, _seal(data)) if slot else hosting
 
 
 def _association(data, target):
     site, blob = target['site_resource_id'], target['blob']
     if (str(data.get('id', '')).casefold() != (site + '/config/appsettings').casefold()
-            or str(data.get('type', '')).casefold() != 'microsoft.web/sites/config'
+            or str(data.get('type', '')).casefold() != ('microsoft.web/sites/slots/config' if settings._RESOURCE.fullmatch(site)[4] is not None else 'microsoft.web/sites/config')
             or data.get('name') != 'appsettings' or not isinstance(data.get('properties'), dict)
             or not 1 <= len(data['properties']) <= settings.MAX_SETTINGS):
         raise Incomplete('settings_unbound')
@@ -276,7 +298,7 @@ def _one(reader, transport, state, target, receipts):
         after_hosting = web('site_after')
         if before_ref != after_ref or hosting != after_hosting:
             raise Incomplete('package_reference_changed')
-        marker.update(**state['authority'], **before_ref, hosting=hosting, association_complete=True,
+        marker.update(**state['authority'], **before_ref, hosting=hosting[0] if isinstance(hosting, tuple) else hosting, association_complete=True,
             object_bytes=len(raw), etag_locator='package-etag:' + _fingerprint(before['etag']),
             version_locator='package-version:' + _fingerprint(json.dumps(before, sort_keys=True)))
         # Shared parser and REAL dual scanners preserve their native receipt identity:

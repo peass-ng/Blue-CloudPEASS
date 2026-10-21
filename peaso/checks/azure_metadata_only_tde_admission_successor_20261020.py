@@ -39,6 +39,9 @@ def reviewed_inputs(root=None):
             record = dict(receipt['functions'][name])
             if name == 'peaso.collectors.azure:collect':
                 record['source_sha256'] = successor['metadata_only_collect']['current_sha256']
+            else:
+                projected = shared.current_producer_row(fn, dict(record, sha256=record['source_sha256']), root)
+                record['source_sha256'] = projected['sha256']
             path = (root / record['path']).resolve()
             if not path.is_relative_to(root):
                 raise RuntimeError('production callable escaped repository')

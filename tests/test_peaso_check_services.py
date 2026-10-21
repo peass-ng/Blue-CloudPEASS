@@ -13,7 +13,9 @@ from peaso.snapshot import resources
 def test_every_registered_check_has_a_non_generic_service():
     manifest = _manifest()
     assert len(CHECKS) >= 4000
-    assert {(check.provider, check.kind) for check in CHECKS} == {
+    # Every registered target must have a reviewed label. The manifest also
+    # retains dependency-only inventories and archived target labels.
+    assert {(check.provider, check.kind) for check in CHECKS} <= {
         (provider, kind) for provider, kinds in manifest.items() for kind in kinds
     }
     for check in CHECKS:
@@ -56,7 +58,10 @@ def test_manifest_covers_collector_services_and_all_kubernetes_kinds():
                    "waf-regional": "waf", "redshift-serverless": "redshift", "bedrock-agent": "bedrock"}
     for kind, (service, *_) in SPECS.items():
         if ("aws", kind) in kinds:
-            assert service_for("aws", kind) == aws_aliases.get(service, service)
+            # Selected configuration content has a custom regional_job branch
+            # combining account services; SPECS is only its discovery fallback.
+            expected = "account" if kind == "configuration_selected_content" else aws_aliases.get(service, service)
+            assert service_for("aws", kind) == expected
     azure_sources = {**{kind: spec[0].split("/")[0] for kind, spec in ENDPOINTS.items()},
                      **{kind: "Microsoft.Authorization" for kind in AUTHORIZATION},
                      **{kind: "Microsoft.Graph" for kind in DIRECTORY},

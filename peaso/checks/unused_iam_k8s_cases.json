@@ -1,0 +1,2268 @@
+{
+  "k8s.iam.serviceaccount_has_declared_consumers": {
+    "pass": {
+      "metadata": {
+        "name": "worker",
+        "uid": "uid-worker",
+        "creationTimestamp": "2025-01-01T00:00:00Z",
+        "namespace": "app"
+      },
+      "provenance": {
+        "cluster_id": "synthetic-cluster",
+        "uid": "uid-worker",
+        "evidence": "read-only list"
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "k8s",
+        "scope": "*",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "synthetic-cluster"
+        }
+      },
+      "collections": {
+        "pod": [
+          {
+            "type": "pod",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "collected",
+            "items": [
+              {
+                "metadata": {
+                  "name": "api",
+                  "uid": "uid-api",
+                  "creationTimestamp": "2025-01-01T00:00:00Z",
+                  "namespace": "app"
+                },
+                "provenance": {
+                  "cluster_id": "synthetic-cluster",
+                  "uid": "uid-api",
+                  "evidence": "read-only list"
+                },
+                "spec": {
+                  "serviceAccountName": "worker"
+                }
+              }
+            ]
+          }
+        ],
+        "deployment": [
+          {
+            "type": "deployment",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "daemonset": [
+          {
+            "type": "daemonset",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "statefulset": [
+          {
+            "type": "statefulset",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "replicaset": [
+          {
+            "type": "replicaset",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "replicationcontroller": [
+          {
+            "type": "replicationcontroller",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "job": [
+          {
+            "type": "job",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "cronjob": [
+          {
+            "type": "cronjob",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "podtemplate": [
+          {
+            "type": "podtemplate",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "serviceaccount": [
+          {
+            "type": "serviceaccount",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "collected",
+            "items": [
+              {
+                "metadata": {
+                  "name": "worker",
+                  "uid": "uid-worker",
+                  "creationTimestamp": "2025-01-01T00:00:00Z",
+                  "namespace": "app"
+                },
+                "provenance": {
+                  "cluster_id": "synthetic-cluster",
+                  "uid": "uid-worker",
+                  "evidence": "read-only list"
+                }
+              }
+            ]
+          }
+        ],
+        "rolebinding": [
+          {
+            "type": "rolebinding",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "clusterrolebinding": [
+          {
+            "type": "clusterrolebinding",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "secret_metadata": [
+          {
+            "type": "secret_metadata",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ]
+      },
+      "pod": [
+        {
+          "type": "pod",
+          "scope": "*",
+          "data": {
+            "metadata": {
+              "name": "api",
+              "uid": "uid-api",
+              "creationTimestamp": "2025-01-01T00:00:00Z",
+              "namespace": "app"
+            },
+            "provenance": {
+              "cluster_id": "synthetic-cluster",
+              "uid": "uid-api",
+              "evidence": "read-only list"
+            },
+            "spec": {
+              "serviceAccountName": "worker"
+            }
+          }
+        }
+      ],
+      "deployment": [],
+      "daemonset": [],
+      "statefulset": [],
+      "replicaset": [],
+      "replicationcontroller": [],
+      "job": [],
+      "cronjob": [],
+      "podtemplate": [],
+      "serviceaccount": [
+        {
+          "type": "serviceaccount",
+          "scope": "*",
+          "data": {
+            "metadata": {
+              "name": "worker",
+              "uid": "uid-worker",
+              "creationTimestamp": "2025-01-01T00:00:00Z",
+              "namespace": "app"
+            },
+            "provenance": {
+              "cluster_id": "synthetic-cluster",
+              "uid": "uid-worker",
+              "evidence": "read-only list"
+            }
+          }
+        }
+      ],
+      "rolebinding": [],
+      "clusterrolebinding": [],
+      "secret_metadata": []
+    },
+    "fail": {
+      "metadata": {
+        "name": "worker",
+        "uid": "uid-worker",
+        "creationTimestamp": "2025-01-01T00:00:00Z",
+        "namespace": "app"
+      },
+      "provenance": {
+        "cluster_id": "synthetic-cluster",
+        "uid": "uid-worker",
+        "evidence": "read-only list"
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "k8s",
+        "scope": "*",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "synthetic-cluster"
+        }
+      },
+      "collections": {
+        "pod": [
+          {
+            "type": "pod",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "deployment": [
+          {
+            "type": "deployment",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "daemonset": [
+          {
+            "type": "daemonset",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "statefulset": [
+          {
+            "type": "statefulset",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "replicaset": [
+          {
+            "type": "replicaset",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "replicationcontroller": [
+          {
+            "type": "replicationcontroller",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "job": [
+          {
+            "type": "job",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "cronjob": [
+          {
+            "type": "cronjob",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "podtemplate": [
+          {
+            "type": "podtemplate",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "serviceaccount": [
+          {
+            "type": "serviceaccount",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "collected",
+            "items": [
+              {
+                "metadata": {
+                  "name": "worker",
+                  "uid": "uid-worker",
+                  "creationTimestamp": "2025-01-01T00:00:00Z",
+                  "namespace": "app"
+                },
+                "provenance": {
+                  "cluster_id": "synthetic-cluster",
+                  "uid": "uid-worker",
+                  "evidence": "read-only list"
+                }
+              }
+            ]
+          }
+        ],
+        "rolebinding": [
+          {
+            "type": "rolebinding",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "clusterrolebinding": [
+          {
+            "type": "clusterrolebinding",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "secret_metadata": [
+          {
+            "type": "secret_metadata",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ]
+      },
+      "pod": [],
+      "deployment": [],
+      "daemonset": [],
+      "statefulset": [],
+      "replicaset": [],
+      "replicationcontroller": [],
+      "job": [],
+      "cronjob": [],
+      "podtemplate": [],
+      "serviceaccount": [
+        {
+          "type": "serviceaccount",
+          "scope": "*",
+          "data": {
+            "metadata": {
+              "name": "worker",
+              "uid": "uid-worker",
+              "creationTimestamp": "2025-01-01T00:00:00Z",
+              "namespace": "app"
+            },
+            "provenance": {
+              "cluster_id": "synthetic-cluster",
+              "uid": "uid-worker",
+              "evidence": "read-only list"
+            }
+          }
+        }
+      ],
+      "rolebinding": [],
+      "clusterrolebinding": [],
+      "secret_metadata": []
+    },
+    "missing": {},
+    "index": {
+      "context": {
+        "provider": "k8s",
+        "scope": "*",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "synthetic-cluster"
+        }
+      },
+      "collections": {
+        "pod": [
+          {
+            "type": "pod",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "deployment": [
+          {
+            "type": "deployment",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "daemonset": [
+          {
+            "type": "daemonset",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "statefulset": [
+          {
+            "type": "statefulset",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "replicaset": [
+          {
+            "type": "replicaset",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "replicationcontroller": [
+          {
+            "type": "replicationcontroller",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "job": [
+          {
+            "type": "job",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "cronjob": [
+          {
+            "type": "cronjob",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "podtemplate": [
+          {
+            "type": "podtemplate",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "serviceaccount": [
+          {
+            "type": "serviceaccount",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "collected",
+            "items": [
+              {
+                "metadata": {
+                  "name": "worker",
+                  "uid": "uid-worker",
+                  "creationTimestamp": "2025-01-01T00:00:00Z",
+                  "namespace": "app"
+                },
+                "provenance": {
+                  "cluster_id": "synthetic-cluster",
+                  "uid": "uid-worker",
+                  "evidence": "read-only list"
+                }
+              }
+            ]
+          }
+        ],
+        "rolebinding": [
+          {
+            "type": "rolebinding",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "clusterrolebinding": [
+          {
+            "type": "clusterrolebinding",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "secret_metadata": [
+          {
+            "type": "secret_metadata",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ]
+      },
+      "pod": [],
+      "deployment": [],
+      "daemonset": [],
+      "statefulset": [],
+      "replicaset": [],
+      "replicationcontroller": [],
+      "job": [],
+      "cronjob": [],
+      "podtemplate": [],
+      "serviceaccount": [
+        {
+          "type": "serviceaccount",
+          "scope": "*",
+          "data": {
+            "metadata": {
+              "name": "worker",
+              "uid": "uid-worker",
+              "creationTimestamp": "2025-01-01T00:00:00Z",
+              "namespace": "app"
+            },
+            "provenance": {
+              "cluster_id": "synthetic-cluster",
+              "uid": "uid-worker",
+              "evidence": "read-only list"
+            }
+          }
+        }
+      ],
+      "rolebinding": [],
+      "clusterrolebinding": [],
+      "secret_metadata": []
+    }
+  },
+  "k8s.iam.role_has_declared_consumers": {
+    "pass": {
+      "metadata": {
+        "name": "reader",
+        "uid": "uid-reader",
+        "creationTimestamp": "2025-01-01T00:00:00Z",
+        "namespace": "app"
+      },
+      "provenance": {
+        "cluster_id": "synthetic-cluster",
+        "uid": "uid-reader",
+        "evidence": "read-only list"
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "k8s",
+        "scope": "*",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "synthetic-cluster"
+        }
+      },
+      "collections": {
+        "role": [
+          {
+            "type": "role",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "collected",
+            "items": [
+              {
+                "metadata": {
+                  "name": "reader",
+                  "uid": "uid-reader",
+                  "creationTimestamp": "2025-01-01T00:00:00Z",
+                  "namespace": "app"
+                },
+                "provenance": {
+                  "cluster_id": "synthetic-cluster",
+                  "uid": "uid-reader",
+                  "evidence": "read-only list"
+                }
+              }
+            ]
+          }
+        ],
+        "rolebinding": [
+          {
+            "type": "rolebinding",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "collected",
+            "items": [
+              {
+                "metadata": {
+                  "name": "binding",
+                  "uid": "uid-binding",
+                  "creationTimestamp": "2025-01-01T00:00:00Z",
+                  "namespace": "app"
+                },
+                "provenance": {
+                  "cluster_id": "synthetic-cluster",
+                  "uid": "uid-binding",
+                  "evidence": "read-only list"
+                },
+                "roleRef": {
+                  "apiGroup": "rbac.authorization.k8s.io",
+                  "kind": "Role",
+                  "name": "reader"
+                },
+                "subjects": [
+                  {
+                    "kind": "ServiceAccount",
+                    "name": "worker",
+                    "namespace": "app"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "role": [
+        {
+          "type": "role",
+          "scope": "*",
+          "data": {
+            "metadata": {
+              "name": "reader",
+              "uid": "uid-reader",
+              "creationTimestamp": "2025-01-01T00:00:00Z",
+              "namespace": "app"
+            },
+            "provenance": {
+              "cluster_id": "synthetic-cluster",
+              "uid": "uid-reader",
+              "evidence": "read-only list"
+            }
+          }
+        }
+      ],
+      "rolebinding": [
+        {
+          "type": "rolebinding",
+          "scope": "*",
+          "data": {
+            "metadata": {
+              "name": "binding",
+              "uid": "uid-binding",
+              "creationTimestamp": "2025-01-01T00:00:00Z",
+              "namespace": "app"
+            },
+            "provenance": {
+              "cluster_id": "synthetic-cluster",
+              "uid": "uid-binding",
+              "evidence": "read-only list"
+            },
+            "roleRef": {
+              "apiGroup": "rbac.authorization.k8s.io",
+              "kind": "Role",
+              "name": "reader"
+            },
+            "subjects": [
+              {
+                "kind": "ServiceAccount",
+                "name": "worker",
+                "namespace": "app"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "fail": {
+      "metadata": {
+        "name": "reader",
+        "uid": "uid-reader",
+        "creationTimestamp": "2025-01-01T00:00:00Z",
+        "namespace": "app"
+      },
+      "provenance": {
+        "cluster_id": "synthetic-cluster",
+        "uid": "uid-reader",
+        "evidence": "read-only list"
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "k8s",
+        "scope": "*",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "synthetic-cluster"
+        }
+      },
+      "collections": {
+        "role": [
+          {
+            "type": "role",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "collected",
+            "items": [
+              {
+                "metadata": {
+                  "name": "reader",
+                  "uid": "uid-reader",
+                  "creationTimestamp": "2025-01-01T00:00:00Z",
+                  "namespace": "app"
+                },
+                "provenance": {
+                  "cluster_id": "synthetic-cluster",
+                  "uid": "uid-reader",
+                  "evidence": "read-only list"
+                }
+              }
+            ]
+          }
+        ],
+        "rolebinding": [
+          {
+            "type": "rolebinding",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ]
+      },
+      "role": [
+        {
+          "type": "role",
+          "scope": "*",
+          "data": {
+            "metadata": {
+              "name": "reader",
+              "uid": "uid-reader",
+              "creationTimestamp": "2025-01-01T00:00:00Z",
+              "namespace": "app"
+            },
+            "provenance": {
+              "cluster_id": "synthetic-cluster",
+              "uid": "uid-reader",
+              "evidence": "read-only list"
+            }
+          }
+        }
+      ],
+      "rolebinding": []
+    },
+    "missing": {},
+    "index": {
+      "context": {
+        "provider": "k8s",
+        "scope": "*",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "synthetic-cluster"
+        }
+      },
+      "collections": {
+        "role": [
+          {
+            "type": "role",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "collected",
+            "items": [
+              {
+                "metadata": {
+                  "name": "reader",
+                  "uid": "uid-reader",
+                  "creationTimestamp": "2025-01-01T00:00:00Z",
+                  "namespace": "app"
+                },
+                "provenance": {
+                  "cluster_id": "synthetic-cluster",
+                  "uid": "uid-reader",
+                  "evidence": "read-only list"
+                }
+              }
+            ]
+          }
+        ],
+        "rolebinding": [
+          {
+            "type": "rolebinding",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ]
+      },
+      "role": [
+        {
+          "type": "role",
+          "scope": "*",
+          "data": {
+            "metadata": {
+              "name": "reader",
+              "uid": "uid-reader",
+              "creationTimestamp": "2025-01-01T00:00:00Z",
+              "namespace": "app"
+            },
+            "provenance": {
+              "cluster_id": "synthetic-cluster",
+              "uid": "uid-reader",
+              "evidence": "read-only list"
+            }
+          }
+        }
+      ],
+      "rolebinding": []
+    }
+  },
+  "k8s.iam.clusterrole_has_declared_consumers": {
+    "pass": {
+      "metadata": {
+        "name": "reader",
+        "uid": "uid-reader",
+        "creationTimestamp": "2025-01-01T00:00:00Z"
+      },
+      "provenance": {
+        "cluster_id": "synthetic-cluster",
+        "uid": "uid-reader",
+        "evidence": "read-only list"
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "k8s",
+        "scope": "*",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "synthetic-cluster"
+        }
+      },
+      "collections": {
+        "clusterrole": [
+          {
+            "type": "clusterrole",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "collected",
+            "items": [
+              {
+                "metadata": {
+                  "name": "reader",
+                  "uid": "uid-reader",
+                  "creationTimestamp": "2025-01-01T00:00:00Z"
+                },
+                "provenance": {
+                  "cluster_id": "synthetic-cluster",
+                  "uid": "uid-reader",
+                  "evidence": "read-only list"
+                }
+              }
+            ]
+          }
+        ],
+        "rolebinding": [
+          {
+            "type": "rolebinding",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "collected",
+            "items": [
+              {
+                "metadata": {
+                  "name": "binding",
+                  "uid": "uid-binding",
+                  "creationTimestamp": "2025-01-01T00:00:00Z",
+                  "namespace": "app"
+                },
+                "provenance": {
+                  "cluster_id": "synthetic-cluster",
+                  "uid": "uid-binding",
+                  "evidence": "read-only list"
+                },
+                "roleRef": {
+                  "apiGroup": "rbac.authorization.k8s.io",
+                  "kind": "ClusterRole",
+                  "name": "reader"
+                },
+                "subjects": [
+                  {
+                    "kind": "ServiceAccount",
+                    "name": "worker",
+                    "namespace": "app"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "clusterrolebinding": [
+          {
+            "type": "clusterrolebinding",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ]
+      },
+      "clusterrole": [
+        {
+          "type": "clusterrole",
+          "scope": "*",
+          "data": {
+            "metadata": {
+              "name": "reader",
+              "uid": "uid-reader",
+              "creationTimestamp": "2025-01-01T00:00:00Z"
+            },
+            "provenance": {
+              "cluster_id": "synthetic-cluster",
+              "uid": "uid-reader",
+              "evidence": "read-only list"
+            }
+          }
+        }
+      ],
+      "rolebinding": [
+        {
+          "type": "rolebinding",
+          "scope": "*",
+          "data": {
+            "metadata": {
+              "name": "binding",
+              "uid": "uid-binding",
+              "creationTimestamp": "2025-01-01T00:00:00Z",
+              "namespace": "app"
+            },
+            "provenance": {
+              "cluster_id": "synthetic-cluster",
+              "uid": "uid-binding",
+              "evidence": "read-only list"
+            },
+            "roleRef": {
+              "apiGroup": "rbac.authorization.k8s.io",
+              "kind": "ClusterRole",
+              "name": "reader"
+            },
+            "subjects": [
+              {
+                "kind": "ServiceAccount",
+                "name": "worker",
+                "namespace": "app"
+              }
+            ]
+          }
+        }
+      ],
+      "clusterrolebinding": []
+    },
+    "fail": {
+      "metadata": {
+        "name": "reader",
+        "uid": "uid-reader",
+        "creationTimestamp": "2025-01-01T00:00:00Z"
+      },
+      "provenance": {
+        "cluster_id": "synthetic-cluster",
+        "uid": "uid-reader",
+        "evidence": "read-only list"
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "k8s",
+        "scope": "*",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "synthetic-cluster"
+        }
+      },
+      "collections": {
+        "clusterrole": [
+          {
+            "type": "clusterrole",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "collected",
+            "items": [
+              {
+                "metadata": {
+                  "name": "reader",
+                  "uid": "uid-reader",
+                  "creationTimestamp": "2025-01-01T00:00:00Z"
+                },
+                "provenance": {
+                  "cluster_id": "synthetic-cluster",
+                  "uid": "uid-reader",
+                  "evidence": "read-only list"
+                }
+              }
+            ]
+          }
+        ],
+        "rolebinding": [
+          {
+            "type": "rolebinding",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "clusterrolebinding": [
+          {
+            "type": "clusterrolebinding",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ]
+      },
+      "clusterrole": [
+        {
+          "type": "clusterrole",
+          "scope": "*",
+          "data": {
+            "metadata": {
+              "name": "reader",
+              "uid": "uid-reader",
+              "creationTimestamp": "2025-01-01T00:00:00Z"
+            },
+            "provenance": {
+              "cluster_id": "synthetic-cluster",
+              "uid": "uid-reader",
+              "evidence": "read-only list"
+            }
+          }
+        }
+      ],
+      "rolebinding": [],
+      "clusterrolebinding": []
+    },
+    "missing": {},
+    "index": {
+      "context": {
+        "provider": "k8s",
+        "scope": "*",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "synthetic-cluster"
+        }
+      },
+      "collections": {
+        "clusterrole": [
+          {
+            "type": "clusterrole",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "collected",
+            "items": [
+              {
+                "metadata": {
+                  "name": "reader",
+                  "uid": "uid-reader",
+                  "creationTimestamp": "2025-01-01T00:00:00Z"
+                },
+                "provenance": {
+                  "cluster_id": "synthetic-cluster",
+                  "uid": "uid-reader",
+                  "evidence": "read-only list"
+                }
+              }
+            ]
+          }
+        ],
+        "rolebinding": [
+          {
+            "type": "rolebinding",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "clusterrolebinding": [
+          {
+            "type": "clusterrolebinding",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ]
+      },
+      "clusterrole": [
+        {
+          "type": "clusterrole",
+          "scope": "*",
+          "data": {
+            "metadata": {
+              "name": "reader",
+              "uid": "uid-reader",
+              "creationTimestamp": "2025-01-01T00:00:00Z"
+            },
+            "provenance": {
+              "cluster_id": "synthetic-cluster",
+              "uid": "uid-reader",
+              "evidence": "read-only list"
+            }
+          }
+        }
+      ],
+      "rolebinding": [],
+      "clusterrolebinding": []
+    }
+  },
+  "k8s.iam.rolebinding_subjects_exist": {
+    "pass": {
+      "metadata": {
+        "name": "binding",
+        "uid": "uid-binding",
+        "creationTimestamp": "2025-01-01T00:00:00Z",
+        "namespace": "app"
+      },
+      "provenance": {
+        "cluster_id": "synthetic-cluster",
+        "uid": "uid-binding",
+        "evidence": "read-only list"
+      },
+      "roleRef": {
+        "apiGroup": "rbac.authorization.k8s.io",
+        "kind": "Role",
+        "name": "reader"
+      },
+      "subjects": [
+        {
+          "kind": "ServiceAccount",
+          "name": "worker",
+          "namespace": "app"
+        }
+      ]
+    },
+    "pass_index": {
+      "context": {
+        "provider": "k8s",
+        "scope": "*",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "synthetic-cluster"
+        }
+      },
+      "collections": {
+        "rolebinding": [
+          {
+            "type": "rolebinding",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "collected",
+            "items": [
+              {
+                "metadata": {
+                  "name": "binding",
+                  "uid": "uid-binding",
+                  "creationTimestamp": "2025-01-01T00:00:00Z",
+                  "namespace": "app"
+                },
+                "provenance": {
+                  "cluster_id": "synthetic-cluster",
+                  "uid": "uid-binding",
+                  "evidence": "read-only list"
+                },
+                "roleRef": {
+                  "apiGroup": "rbac.authorization.k8s.io",
+                  "kind": "Role",
+                  "name": "reader"
+                },
+                "subjects": [
+                  {
+                    "kind": "ServiceAccount",
+                    "name": "worker",
+                    "namespace": "app"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "serviceaccount": [
+          {
+            "type": "serviceaccount",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "collected",
+            "items": [
+              {
+                "metadata": {
+                  "name": "worker",
+                  "uid": "uid-worker",
+                  "creationTimestamp": "2025-01-01T00:00:00Z",
+                  "namespace": "app"
+                },
+                "provenance": {
+                  "cluster_id": "synthetic-cluster",
+                  "uid": "uid-worker",
+                  "evidence": "read-only list"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "rolebinding": [
+        {
+          "type": "rolebinding",
+          "scope": "*",
+          "data": {
+            "metadata": {
+              "name": "binding",
+              "uid": "uid-binding",
+              "creationTimestamp": "2025-01-01T00:00:00Z",
+              "namespace": "app"
+            },
+            "provenance": {
+              "cluster_id": "synthetic-cluster",
+              "uid": "uid-binding",
+              "evidence": "read-only list"
+            },
+            "roleRef": {
+              "apiGroup": "rbac.authorization.k8s.io",
+              "kind": "Role",
+              "name": "reader"
+            },
+            "subjects": [
+              {
+                "kind": "ServiceAccount",
+                "name": "worker",
+                "namespace": "app"
+              }
+            ]
+          }
+        }
+      ],
+      "serviceaccount": [
+        {
+          "type": "serviceaccount",
+          "scope": "*",
+          "data": {
+            "metadata": {
+              "name": "worker",
+              "uid": "uid-worker",
+              "creationTimestamp": "2025-01-01T00:00:00Z",
+              "namespace": "app"
+            },
+            "provenance": {
+              "cluster_id": "synthetic-cluster",
+              "uid": "uid-worker",
+              "evidence": "read-only list"
+            }
+          }
+        }
+      ]
+    },
+    "fail": {
+      "metadata": {
+        "name": "binding",
+        "uid": "uid-binding",
+        "creationTimestamp": "2025-01-01T00:00:00Z",
+        "namespace": "app"
+      },
+      "provenance": {
+        "cluster_id": "synthetic-cluster",
+        "uid": "uid-binding",
+        "evidence": "read-only list"
+      },
+      "roleRef": {
+        "apiGroup": "rbac.authorization.k8s.io",
+        "kind": "Role",
+        "name": "reader"
+      },
+      "subjects": [
+        {
+          "kind": "ServiceAccount",
+          "name": "worker",
+          "namespace": "app"
+        }
+      ]
+    },
+    "fail_index": {
+      "context": {
+        "provider": "k8s",
+        "scope": "*",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "synthetic-cluster"
+        }
+      },
+      "collections": {
+        "rolebinding": [
+          {
+            "type": "rolebinding",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "collected",
+            "items": [
+              {
+                "metadata": {
+                  "name": "binding",
+                  "uid": "uid-binding",
+                  "creationTimestamp": "2025-01-01T00:00:00Z",
+                  "namespace": "app"
+                },
+                "provenance": {
+                  "cluster_id": "synthetic-cluster",
+                  "uid": "uid-binding",
+                  "evidence": "read-only list"
+                },
+                "roleRef": {
+                  "apiGroup": "rbac.authorization.k8s.io",
+                  "kind": "Role",
+                  "name": "reader"
+                },
+                "subjects": [
+                  {
+                    "kind": "ServiceAccount",
+                    "name": "worker",
+                    "namespace": "app"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "serviceaccount": [
+          {
+            "type": "serviceaccount",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ]
+      },
+      "rolebinding": [
+        {
+          "type": "rolebinding",
+          "scope": "*",
+          "data": {
+            "metadata": {
+              "name": "binding",
+              "uid": "uid-binding",
+              "creationTimestamp": "2025-01-01T00:00:00Z",
+              "namespace": "app"
+            },
+            "provenance": {
+              "cluster_id": "synthetic-cluster",
+              "uid": "uid-binding",
+              "evidence": "read-only list"
+            },
+            "roleRef": {
+              "apiGroup": "rbac.authorization.k8s.io",
+              "kind": "Role",
+              "name": "reader"
+            },
+            "subjects": [
+              {
+                "kind": "ServiceAccount",
+                "name": "worker",
+                "namespace": "app"
+              }
+            ]
+          }
+        }
+      ],
+      "serviceaccount": []
+    },
+    "missing": {},
+    "index": {
+      "context": {
+        "provider": "k8s",
+        "scope": "*",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "synthetic-cluster"
+        }
+      },
+      "collections": {
+        "rolebinding": [
+          {
+            "type": "rolebinding",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "collected",
+            "items": [
+              {
+                "metadata": {
+                  "name": "binding",
+                  "uid": "uid-binding",
+                  "creationTimestamp": "2025-01-01T00:00:00Z",
+                  "namespace": "app"
+                },
+                "provenance": {
+                  "cluster_id": "synthetic-cluster",
+                  "uid": "uid-binding",
+                  "evidence": "read-only list"
+                },
+                "roleRef": {
+                  "apiGroup": "rbac.authorization.k8s.io",
+                  "kind": "Role",
+                  "name": "reader"
+                },
+                "subjects": [
+                  {
+                    "kind": "ServiceAccount",
+                    "name": "worker",
+                    "namespace": "app"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "serviceaccount": [
+          {
+            "type": "serviceaccount",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ]
+      },
+      "rolebinding": [
+        {
+          "type": "rolebinding",
+          "scope": "*",
+          "data": {
+            "metadata": {
+              "name": "binding",
+              "uid": "uid-binding",
+              "creationTimestamp": "2025-01-01T00:00:00Z",
+              "namespace": "app"
+            },
+            "provenance": {
+              "cluster_id": "synthetic-cluster",
+              "uid": "uid-binding",
+              "evidence": "read-only list"
+            },
+            "roleRef": {
+              "apiGroup": "rbac.authorization.k8s.io",
+              "kind": "Role",
+              "name": "reader"
+            },
+            "subjects": [
+              {
+                "kind": "ServiceAccount",
+                "name": "worker",
+                "namespace": "app"
+              }
+            ]
+          }
+        }
+      ],
+      "serviceaccount": []
+    }
+  },
+  "k8s.iam.clusterrolebinding_subjects_exist": {
+    "pass": {
+      "metadata": {
+        "name": "binding",
+        "uid": "uid-binding",
+        "creationTimestamp": "2025-01-01T00:00:00Z"
+      },
+      "provenance": {
+        "cluster_id": "synthetic-cluster",
+        "uid": "uid-binding",
+        "evidence": "read-only list"
+      },
+      "roleRef": {
+        "apiGroup": "rbac.authorization.k8s.io",
+        "kind": "ClusterRole",
+        "name": "reader"
+      },
+      "subjects": [
+        {
+          "kind": "ServiceAccount",
+          "name": "worker",
+          "namespace": "app"
+        }
+      ]
+    },
+    "pass_index": {
+      "context": {
+        "provider": "k8s",
+        "scope": "*",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "synthetic-cluster"
+        }
+      },
+      "collections": {
+        "clusterrolebinding": [
+          {
+            "type": "clusterrolebinding",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "collected",
+            "items": [
+              {
+                "metadata": {
+                  "name": "binding",
+                  "uid": "uid-binding",
+                  "creationTimestamp": "2025-01-01T00:00:00Z"
+                },
+                "provenance": {
+                  "cluster_id": "synthetic-cluster",
+                  "uid": "uid-binding",
+                  "evidence": "read-only list"
+                },
+                "roleRef": {
+                  "apiGroup": "rbac.authorization.k8s.io",
+                  "kind": "ClusterRole",
+                  "name": "reader"
+                },
+                "subjects": [
+                  {
+                    "kind": "ServiceAccount",
+                    "name": "worker",
+                    "namespace": "app"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "serviceaccount": [
+          {
+            "type": "serviceaccount",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "collected",
+            "items": [
+              {
+                "metadata": {
+                  "name": "worker",
+                  "uid": "uid-worker",
+                  "creationTimestamp": "2025-01-01T00:00:00Z",
+                  "namespace": "app"
+                },
+                "provenance": {
+                  "cluster_id": "synthetic-cluster",
+                  "uid": "uid-worker",
+                  "evidence": "read-only list"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "clusterrolebinding": [
+        {
+          "type": "clusterrolebinding",
+          "scope": "*",
+          "data": {
+            "metadata": {
+              "name": "binding",
+              "uid": "uid-binding",
+              "creationTimestamp": "2025-01-01T00:00:00Z"
+            },
+            "provenance": {
+              "cluster_id": "synthetic-cluster",
+              "uid": "uid-binding",
+              "evidence": "read-only list"
+            },
+            "roleRef": {
+              "apiGroup": "rbac.authorization.k8s.io",
+              "kind": "ClusterRole",
+              "name": "reader"
+            },
+            "subjects": [
+              {
+                "kind": "ServiceAccount",
+                "name": "worker",
+                "namespace": "app"
+              }
+            ]
+          }
+        }
+      ],
+      "serviceaccount": [
+        {
+          "type": "serviceaccount",
+          "scope": "*",
+          "data": {
+            "metadata": {
+              "name": "worker",
+              "uid": "uid-worker",
+              "creationTimestamp": "2025-01-01T00:00:00Z",
+              "namespace": "app"
+            },
+            "provenance": {
+              "cluster_id": "synthetic-cluster",
+              "uid": "uid-worker",
+              "evidence": "read-only list"
+            }
+          }
+        }
+      ]
+    },
+    "fail": {
+      "metadata": {
+        "name": "binding",
+        "uid": "uid-binding",
+        "creationTimestamp": "2025-01-01T00:00:00Z"
+      },
+      "provenance": {
+        "cluster_id": "synthetic-cluster",
+        "uid": "uid-binding",
+        "evidence": "read-only list"
+      },
+      "roleRef": {
+        "apiGroup": "rbac.authorization.k8s.io",
+        "kind": "ClusterRole",
+        "name": "reader"
+      },
+      "subjects": [
+        {
+          "kind": "ServiceAccount",
+          "name": "worker",
+          "namespace": "app"
+        }
+      ]
+    },
+    "fail_index": {
+      "context": {
+        "provider": "k8s",
+        "scope": "*",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "synthetic-cluster"
+        }
+      },
+      "collections": {
+        "clusterrolebinding": [
+          {
+            "type": "clusterrolebinding",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "collected",
+            "items": [
+              {
+                "metadata": {
+                  "name": "binding",
+                  "uid": "uid-binding",
+                  "creationTimestamp": "2025-01-01T00:00:00Z"
+                },
+                "provenance": {
+                  "cluster_id": "synthetic-cluster",
+                  "uid": "uid-binding",
+                  "evidence": "read-only list"
+                },
+                "roleRef": {
+                  "apiGroup": "rbac.authorization.k8s.io",
+                  "kind": "ClusterRole",
+                  "name": "reader"
+                },
+                "subjects": [
+                  {
+                    "kind": "ServiceAccount",
+                    "name": "worker",
+                    "namespace": "app"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "serviceaccount": [
+          {
+            "type": "serviceaccount",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ]
+      },
+      "clusterrolebinding": [
+        {
+          "type": "clusterrolebinding",
+          "scope": "*",
+          "data": {
+            "metadata": {
+              "name": "binding",
+              "uid": "uid-binding",
+              "creationTimestamp": "2025-01-01T00:00:00Z"
+            },
+            "provenance": {
+              "cluster_id": "synthetic-cluster",
+              "uid": "uid-binding",
+              "evidence": "read-only list"
+            },
+            "roleRef": {
+              "apiGroup": "rbac.authorization.k8s.io",
+              "kind": "ClusterRole",
+              "name": "reader"
+            },
+            "subjects": [
+              {
+                "kind": "ServiceAccount",
+                "name": "worker",
+                "namespace": "app"
+              }
+            ]
+          }
+        }
+      ],
+      "serviceaccount": []
+    },
+    "missing": {},
+    "index": {
+      "context": {
+        "provider": "k8s",
+        "scope": "*",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "synthetic-cluster"
+        }
+      },
+      "collections": {
+        "clusterrolebinding": [
+          {
+            "type": "clusterrolebinding",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "collected",
+            "items": [
+              {
+                "metadata": {
+                  "name": "binding",
+                  "uid": "uid-binding",
+                  "creationTimestamp": "2025-01-01T00:00:00Z"
+                },
+                "provenance": {
+                  "cluster_id": "synthetic-cluster",
+                  "uid": "uid-binding",
+                  "evidence": "read-only list"
+                },
+                "roleRef": {
+                  "apiGroup": "rbac.authorization.k8s.io",
+                  "kind": "ClusterRole",
+                  "name": "reader"
+                },
+                "subjects": [
+                  {
+                    "kind": "ServiceAccount",
+                    "name": "worker",
+                    "namespace": "app"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "serviceaccount": [
+          {
+            "type": "serviceaccount",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "empty",
+            "items": []
+          }
+        ]
+      },
+      "clusterrolebinding": [
+        {
+          "type": "clusterrolebinding",
+          "scope": "*",
+          "data": {
+            "metadata": {
+              "name": "binding",
+              "uid": "uid-binding",
+              "creationTimestamp": "2025-01-01T00:00:00Z"
+            },
+            "provenance": {
+              "cluster_id": "synthetic-cluster",
+              "uid": "uid-binding",
+              "evidence": "read-only list"
+            },
+            "roleRef": {
+              "apiGroup": "rbac.authorization.k8s.io",
+              "kind": "ClusterRole",
+              "name": "reader"
+            },
+            "subjects": [
+              {
+                "kind": "ServiceAccount",
+                "name": "worker",
+                "namespace": "app"
+              }
+            ]
+          }
+        }
+      ],
+      "serviceaccount": []
+    }
+  },
+  "k8s.iam.legacy_serviceaccount_token_recently_used": {
+    "pass": {
+      "metadata": {
+        "name": "legacy",
+        "uid": "uid-legacy",
+        "creationTimestamp": "2025-01-01T00:00:00Z",
+        "namespace": "app",
+        "annotations": {
+          "kubernetes.io/service-account.name": "worker",
+          "kubernetes.io/service-account.uid": "uid-worker"
+        },
+        "labels": {
+          "kubernetes.io/legacy-token-last-used": "2026-10-20"
+        }
+      },
+      "provenance": {
+        "cluster_id": "synthetic-cluster",
+        "uid": "uid-legacy",
+        "evidence": "read-only list"
+      },
+      "type": "kubernetes.io/service-account-token"
+    },
+    "pass_index": {
+      "context": {
+        "provider": "k8s",
+        "scope": "*",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "synthetic-cluster"
+        }
+      },
+      "collections": {
+        "secret_metadata": [
+          {
+            "type": "secret_metadata",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "collected",
+            "items": [
+              {
+                "metadata": {
+                  "name": "legacy",
+                  "uid": "uid-legacy",
+                  "creationTimestamp": "2025-01-01T00:00:00Z",
+                  "namespace": "app",
+                  "annotations": {
+                    "kubernetes.io/service-account.name": "worker",
+                    "kubernetes.io/service-account.uid": "uid-worker"
+                  },
+                  "labels": {
+                    "kubernetes.io/legacy-token-last-used": "2026-10-20"
+                  }
+                },
+                "provenance": {
+                  "cluster_id": "synthetic-cluster",
+                  "uid": "uid-legacy",
+                  "evidence": "read-only list"
+                },
+                "type": "kubernetes.io/service-account-token"
+              }
+            ]
+          }
+        ],
+        "serviceaccount": [
+          {
+            "type": "serviceaccount",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "collected",
+            "items": [
+              {
+                "metadata": {
+                  "name": "worker",
+                  "uid": "uid-worker",
+                  "creationTimestamp": "2025-01-01T00:00:00Z",
+                  "namespace": "app"
+                },
+                "provenance": {
+                  "cluster_id": "synthetic-cluster",
+                  "uid": "uid-worker",
+                  "evidence": "read-only list"
+                },
+                "secrets": [
+                  {
+                    "name": "legacy"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "secret_metadata": [
+        {
+          "type": "secret_metadata",
+          "scope": "*",
+          "data": {
+            "metadata": {
+              "name": "legacy",
+              "uid": "uid-legacy",
+              "creationTimestamp": "2025-01-01T00:00:00Z",
+              "namespace": "app",
+              "annotations": {
+                "kubernetes.io/service-account.name": "worker",
+                "kubernetes.io/service-account.uid": "uid-worker"
+              },
+              "labels": {
+                "kubernetes.io/legacy-token-last-used": "2026-10-20"
+              }
+            },
+            "provenance": {
+              "cluster_id": "synthetic-cluster",
+              "uid": "uid-legacy",
+              "evidence": "read-only list"
+            },
+            "type": "kubernetes.io/service-account-token"
+          }
+        }
+      ],
+      "serviceaccount": [
+        {
+          "type": "serviceaccount",
+          "scope": "*",
+          "data": {
+            "metadata": {
+              "name": "worker",
+              "uid": "uid-worker",
+              "creationTimestamp": "2025-01-01T00:00:00Z",
+              "namespace": "app"
+            },
+            "provenance": {
+              "cluster_id": "synthetic-cluster",
+              "uid": "uid-worker",
+              "evidence": "read-only list"
+            },
+            "secrets": [
+              {
+                "name": "legacy"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "fail": {
+      "metadata": {
+        "name": "legacy",
+        "uid": "uid-legacy",
+        "creationTimestamp": "2025-01-01T00:00:00Z",
+        "namespace": "app",
+        "annotations": {
+          "kubernetes.io/service-account.name": "worker",
+          "kubernetes.io/service-account.uid": "uid-worker"
+        },
+        "labels": {
+          "kubernetes.io/legacy-token-last-used": "2026-01-01"
+        }
+      },
+      "provenance": {
+        "cluster_id": "synthetic-cluster",
+        "uid": "uid-legacy",
+        "evidence": "read-only list"
+      },
+      "type": "kubernetes.io/service-account-token"
+    },
+    "fail_index": {
+      "context": {
+        "provider": "k8s",
+        "scope": "*",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "synthetic-cluster"
+        }
+      },
+      "collections": {
+        "secret_metadata": [
+          {
+            "type": "secret_metadata",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "collected",
+            "items": [
+              {
+                "metadata": {
+                  "name": "legacy",
+                  "uid": "uid-legacy",
+                  "creationTimestamp": "2025-01-01T00:00:00Z",
+                  "namespace": "app",
+                  "annotations": {
+                    "kubernetes.io/service-account.name": "worker",
+                    "kubernetes.io/service-account.uid": "uid-worker"
+                  },
+                  "labels": {
+                    "kubernetes.io/legacy-token-last-used": "2026-01-01"
+                  }
+                },
+                "provenance": {
+                  "cluster_id": "synthetic-cluster",
+                  "uid": "uid-legacy",
+                  "evidence": "read-only list"
+                },
+                "type": "kubernetes.io/service-account-token"
+              }
+            ]
+          }
+        ],
+        "serviceaccount": [
+          {
+            "type": "serviceaccount",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "collected",
+            "items": [
+              {
+                "metadata": {
+                  "name": "worker",
+                  "uid": "uid-worker",
+                  "creationTimestamp": "2025-01-01T00:00:00Z",
+                  "namespace": "app"
+                },
+                "provenance": {
+                  "cluster_id": "synthetic-cluster",
+                  "uid": "uid-worker",
+                  "evidence": "read-only list"
+                },
+                "secrets": [
+                  {
+                    "name": "legacy"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "secret_metadata": [
+        {
+          "type": "secret_metadata",
+          "scope": "*",
+          "data": {
+            "metadata": {
+              "name": "legacy",
+              "uid": "uid-legacy",
+              "creationTimestamp": "2025-01-01T00:00:00Z",
+              "namespace": "app",
+              "annotations": {
+                "kubernetes.io/service-account.name": "worker",
+                "kubernetes.io/service-account.uid": "uid-worker"
+              },
+              "labels": {
+                "kubernetes.io/legacy-token-last-used": "2026-01-01"
+              }
+            },
+            "provenance": {
+              "cluster_id": "synthetic-cluster",
+              "uid": "uid-legacy",
+              "evidence": "read-only list"
+            },
+            "type": "kubernetes.io/service-account-token"
+          }
+        }
+      ],
+      "serviceaccount": [
+        {
+          "type": "serviceaccount",
+          "scope": "*",
+          "data": {
+            "metadata": {
+              "name": "worker",
+              "uid": "uid-worker",
+              "creationTimestamp": "2025-01-01T00:00:00Z",
+              "namespace": "app"
+            },
+            "provenance": {
+              "cluster_id": "synthetic-cluster",
+              "uid": "uid-worker",
+              "evidence": "read-only list"
+            },
+            "secrets": [
+              {
+                "name": "legacy"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "missing": {},
+    "index": {
+      "context": {
+        "provider": "k8s",
+        "scope": "*",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "cluster_id": "synthetic-cluster"
+        }
+      },
+      "collections": {
+        "secret_metadata": [
+          {
+            "type": "secret_metadata",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "collected",
+            "items": [
+              {
+                "metadata": {
+                  "name": "legacy",
+                  "uid": "uid-legacy",
+                  "creationTimestamp": "2025-01-01T00:00:00Z",
+                  "namespace": "app",
+                  "annotations": {
+                    "kubernetes.io/service-account.name": "worker",
+                    "kubernetes.io/service-account.uid": "uid-worker"
+                  },
+                  "labels": {
+                    "kubernetes.io/legacy-token-last-used": "2026-01-01"
+                  }
+                },
+                "provenance": {
+                  "cluster_id": "synthetic-cluster",
+                  "uid": "uid-legacy",
+                  "evidence": "read-only list"
+                },
+                "type": "kubernetes.io/service-account-token"
+              }
+            ]
+          }
+        ],
+        "serviceaccount": [
+          {
+            "type": "serviceaccount",
+            "service": "kubernetes",
+            "scope": "*",
+            "status": "collected",
+            "items": [
+              {
+                "metadata": {
+                  "name": "worker",
+                  "uid": "uid-worker",
+                  "creationTimestamp": "2025-01-01T00:00:00Z",
+                  "namespace": "app"
+                },
+                "provenance": {
+                  "cluster_id": "synthetic-cluster",
+                  "uid": "uid-worker",
+                  "evidence": "read-only list"
+                },
+                "secrets": [
+                  {
+                    "name": "legacy"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "secret_metadata": [
+        {
+          "type": "secret_metadata",
+          "scope": "*",
+          "data": {
+            "metadata": {
+              "name": "legacy",
+              "uid": "uid-legacy",
+              "creationTimestamp": "2025-01-01T00:00:00Z",
+              "namespace": "app",
+              "annotations": {
+                "kubernetes.io/service-account.name": "worker",
+                "kubernetes.io/service-account.uid": "uid-worker"
+              },
+              "labels": {
+                "kubernetes.io/legacy-token-last-used": "2026-01-01"
+              }
+            },
+            "provenance": {
+              "cluster_id": "synthetic-cluster",
+              "uid": "uid-legacy",
+              "evidence": "read-only list"
+            },
+            "type": "kubernetes.io/service-account-token"
+          }
+        }
+      ],
+      "serviceaccount": [
+        {
+          "type": "serviceaccount",
+          "scope": "*",
+          "data": {
+            "metadata": {
+              "name": "worker",
+              "uid": "uid-worker",
+              "creationTimestamp": "2025-01-01T00:00:00Z",
+              "namespace": "app"
+            },
+            "provenance": {
+              "cluster_id": "synthetic-cluster",
+              "uid": "uid-worker",
+              "evidence": "read-only list"
+            },
+            "secrets": [
+              {
+                "name": "legacy"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

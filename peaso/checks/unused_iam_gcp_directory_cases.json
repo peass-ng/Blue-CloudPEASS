@@ -1,0 +1,1491 @@
+{
+  "gcp.iam.directory_user_recent_recorded_login": {
+    "pass": {
+      "name": "customers/Csynthetic/workspace_user/123456789012345678901",
+      "id": "123456789012345678901",
+      "customerId": "Csynthetic",
+      "directoryCustomer": "Csynthetic",
+      "primaryEmail": "user@example.test",
+      "suspended": false,
+      "archived": false,
+      "_directoryBinding": {
+        "status": "collected",
+        "scope": "projects/usage-project",
+        "customer": "Csynthetic",
+        "organization": "organizations/123456789012",
+        "chain": [
+          {
+            "requested": "projects/usage-project",
+            "name": "projects/987654321012",
+            "projectId": "usage-project",
+            "parent": "organizations/123456789012",
+            "source_request": "project-read"
+          },
+          {
+            "requested": "organizations/123456789012",
+            "name": "organizations/123456789012",
+            "directoryCustomerId": "Csynthetic",
+            "source_request": "org-read"
+          }
+        ]
+      },
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "source_requests": [
+          "users-read"
+        ],
+        "collected_at": "2026-10-21T12:00:00Z"
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "project-read",
+              "url": "https://cloudresourcemanager.googleapis.com/v3/projects/usage-project",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "org-read",
+              "url": "https://cloudresourcemanager.googleapis.com/v3/organizations/123456789012",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "users-read",
+              "url": "https://admin.googleapis.com/admin/directory/v1/users",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "user-get",
+              "url": "https://admin.googleapis.com/admin/directory/v1/users/123456789012345678901",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {
+                "projection": "full",
+                "viewType": "admin_view",
+                "fields": "id,customerId,primaryEmail,suspended,archived,creationTime,lastLoginTime"
+              }
+            }
+          ],
+          "asset_read_time": "2026-10-21T12:00:00Z"
+        }
+      },
+      "collections": {
+        "workspace_user": [
+          {
+            "type": "workspace_user",
+            "scope": "projects/usage-project",
+            "service": "workspace-directory",
+            "status": "collected",
+            "items": [
+              {
+                "name": "customers/Csynthetic/workspace_user/123456789012345678901",
+                "id": "123456789012345678901",
+                "customerId": "Csynthetic",
+                "directoryCustomer": "Csynthetic",
+                "primaryEmail": "user@example.test",
+                "suspended": false,
+                "archived": false,
+                "_directoryBinding": {
+                  "status": "collected",
+                  "scope": "projects/usage-project",
+                  "customer": "Csynthetic",
+                  "organization": "organizations/123456789012",
+                  "chain": [
+                    {
+                      "requested": "projects/usage-project",
+                      "name": "projects/987654321012",
+                      "projectId": "usage-project",
+                      "parent": "organizations/123456789012",
+                      "source_request": "project-read"
+                    },
+                    {
+                      "requested": "organizations/123456789012",
+                      "name": "organizations/123456789012",
+                      "directoryCustomerId": "Csynthetic",
+                      "source_request": "org-read"
+                    }
+                  ]
+                },
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "source_requests": [
+                    "users-read"
+                  ],
+                  "collected_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "source_requests": [
+              "users-read"
+            ]
+          }
+        ],
+        "workspace_user_activity": [
+          {
+            "type": "workspace_user_activity",
+            "scope": "projects/usage-project",
+            "service": "workspace-directory",
+            "status": "collected",
+            "items": [
+              {
+                "name": "customers/Csynthetic/users/123456789012345678901/loginActivity",
+                "user_id": "123456789012345678901",
+                "directory_customer": "Csynthetic",
+                "user_name": "customers/Csynthetic/workspace_user/123456789012345678901",
+                "status": "collected",
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "source_requests": [
+                    "user-get"
+                  ],
+                  "collected_at": "2026-10-21T12:00:00Z"
+                },
+                "detail": {
+                  "id": "123456789012345678901",
+                  "customerId": "Csynthetic",
+                  "primaryEmail": "user@example.test",
+                  "suspended": false,
+                  "archived": false,
+                  "creationTime": "2024-01-01T00:00:00Z",
+                  "lastLoginTime": "2026-10-20T12:00:00Z"
+                }
+              }
+            ],
+            "source_requests": [
+              "user-get"
+            ]
+          }
+        ]
+      },
+      "workspace_user": [
+        {
+          "data": {
+            "name": "customers/Csynthetic/workspace_user/123456789012345678901",
+            "id": "123456789012345678901",
+            "customerId": "Csynthetic",
+            "directoryCustomer": "Csynthetic",
+            "primaryEmail": "user@example.test",
+            "suspended": false,
+            "archived": false,
+            "_directoryBinding": {
+              "status": "collected",
+              "scope": "projects/usage-project",
+              "customer": "Csynthetic",
+              "organization": "organizations/123456789012",
+              "chain": [
+                {
+                  "requested": "projects/usage-project",
+                  "name": "projects/987654321012",
+                  "projectId": "usage-project",
+                  "parent": "organizations/123456789012",
+                  "source_request": "project-read"
+                },
+                {
+                  "requested": "organizations/123456789012",
+                  "name": "organizations/123456789012",
+                  "directoryCustomerId": "Csynthetic",
+                  "source_request": "org-read"
+                }
+              ]
+            },
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "source_requests": [
+                "users-read"
+              ],
+              "collected_at": "2026-10-21T12:00:00Z"
+            }
+          },
+          "scope": "projects/usage-project",
+          "type": "workspace_user"
+        }
+      ],
+      "workspace_user_activity": [
+        {
+          "data": {
+            "name": "customers/Csynthetic/users/123456789012345678901/loginActivity",
+            "user_id": "123456789012345678901",
+            "directory_customer": "Csynthetic",
+            "user_name": "customers/Csynthetic/workspace_user/123456789012345678901",
+            "status": "collected",
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "source_requests": [
+                "user-get"
+              ],
+              "collected_at": "2026-10-21T12:00:00Z"
+            },
+            "detail": {
+              "id": "123456789012345678901",
+              "customerId": "Csynthetic",
+              "primaryEmail": "user@example.test",
+              "suspended": false,
+              "archived": false,
+              "creationTime": "2024-01-01T00:00:00Z",
+              "lastLoginTime": "2026-10-20T12:00:00Z"
+            }
+          },
+          "scope": "projects/usage-project",
+          "type": "workspace_user_activity"
+        }
+      ]
+    },
+    "fail": {
+      "name": "customers/Csynthetic/workspace_user/123456789012345678901",
+      "id": "123456789012345678901",
+      "customerId": "Csynthetic",
+      "directoryCustomer": "Csynthetic",
+      "primaryEmail": "user@example.test",
+      "suspended": false,
+      "archived": false,
+      "_directoryBinding": {
+        "status": "collected",
+        "scope": "projects/usage-project",
+        "customer": "Csynthetic",
+        "organization": "organizations/123456789012",
+        "chain": [
+          {
+            "requested": "projects/usage-project",
+            "name": "projects/987654321012",
+            "projectId": "usage-project",
+            "parent": "organizations/123456789012",
+            "source_request": "project-read"
+          },
+          {
+            "requested": "organizations/123456789012",
+            "name": "organizations/123456789012",
+            "directoryCustomerId": "Csynthetic",
+            "source_request": "org-read"
+          }
+        ]
+      },
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "source_requests": [
+          "users-read"
+        ],
+        "collected_at": "2026-10-21T12:00:00Z"
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "project-read",
+              "url": "https://cloudresourcemanager.googleapis.com/v3/projects/usage-project",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "org-read",
+              "url": "https://cloudresourcemanager.googleapis.com/v3/organizations/123456789012",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "users-read",
+              "url": "https://admin.googleapis.com/admin/directory/v1/users",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "user-get",
+              "url": "https://admin.googleapis.com/admin/directory/v1/users/123456789012345678901",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {
+                "projection": "full",
+                "viewType": "admin_view",
+                "fields": "id,customerId,primaryEmail,suspended,archived,creationTime,lastLoginTime"
+              }
+            }
+          ],
+          "asset_read_time": "2026-10-21T12:00:00Z"
+        }
+      },
+      "collections": {
+        "workspace_user": [
+          {
+            "type": "workspace_user",
+            "scope": "projects/usage-project",
+            "service": "workspace-directory",
+            "status": "collected",
+            "items": [
+              {
+                "name": "customers/Csynthetic/workspace_user/123456789012345678901",
+                "id": "123456789012345678901",
+                "customerId": "Csynthetic",
+                "directoryCustomer": "Csynthetic",
+                "primaryEmail": "user@example.test",
+                "suspended": false,
+                "archived": false,
+                "_directoryBinding": {
+                  "status": "collected",
+                  "scope": "projects/usage-project",
+                  "customer": "Csynthetic",
+                  "organization": "organizations/123456789012",
+                  "chain": [
+                    {
+                      "requested": "projects/usage-project",
+                      "name": "projects/987654321012",
+                      "projectId": "usage-project",
+                      "parent": "organizations/123456789012",
+                      "source_request": "project-read"
+                    },
+                    {
+                      "requested": "organizations/123456789012",
+                      "name": "organizations/123456789012",
+                      "directoryCustomerId": "Csynthetic",
+                      "source_request": "org-read"
+                    }
+                  ]
+                },
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "source_requests": [
+                    "users-read"
+                  ],
+                  "collected_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "source_requests": [
+              "users-read"
+            ]
+          }
+        ],
+        "workspace_user_activity": [
+          {
+            "type": "workspace_user_activity",
+            "scope": "projects/usage-project",
+            "service": "workspace-directory",
+            "status": "collected",
+            "items": [
+              {
+                "name": "customers/Csynthetic/users/123456789012345678901/loginActivity",
+                "user_id": "123456789012345678901",
+                "directory_customer": "Csynthetic",
+                "user_name": "customers/Csynthetic/workspace_user/123456789012345678901",
+                "status": "collected",
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "source_requests": [
+                    "user-get"
+                  ],
+                  "collected_at": "2026-10-21T12:00:00Z"
+                },
+                "detail": {
+                  "id": "123456789012345678901",
+                  "customerId": "Csynthetic",
+                  "primaryEmail": "user@example.test",
+                  "suspended": false,
+                  "archived": false,
+                  "creationTime": "2024-01-01T00:00:00Z",
+                  "lastLoginTime": "2025-01-01T00:00:00Z"
+                }
+              }
+            ],
+            "source_requests": [
+              "user-get"
+            ]
+          }
+        ]
+      },
+      "workspace_user": [
+        {
+          "data": {
+            "name": "customers/Csynthetic/workspace_user/123456789012345678901",
+            "id": "123456789012345678901",
+            "customerId": "Csynthetic",
+            "directoryCustomer": "Csynthetic",
+            "primaryEmail": "user@example.test",
+            "suspended": false,
+            "archived": false,
+            "_directoryBinding": {
+              "status": "collected",
+              "scope": "projects/usage-project",
+              "customer": "Csynthetic",
+              "organization": "organizations/123456789012",
+              "chain": [
+                {
+                  "requested": "projects/usage-project",
+                  "name": "projects/987654321012",
+                  "projectId": "usage-project",
+                  "parent": "organizations/123456789012",
+                  "source_request": "project-read"
+                },
+                {
+                  "requested": "organizations/123456789012",
+                  "name": "organizations/123456789012",
+                  "directoryCustomerId": "Csynthetic",
+                  "source_request": "org-read"
+                }
+              ]
+            },
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "source_requests": [
+                "users-read"
+              ],
+              "collected_at": "2026-10-21T12:00:00Z"
+            }
+          },
+          "scope": "projects/usage-project",
+          "type": "workspace_user"
+        }
+      ],
+      "workspace_user_activity": [
+        {
+          "data": {
+            "name": "customers/Csynthetic/users/123456789012345678901/loginActivity",
+            "user_id": "123456789012345678901",
+            "directory_customer": "Csynthetic",
+            "user_name": "customers/Csynthetic/workspace_user/123456789012345678901",
+            "status": "collected",
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "source_requests": [
+                "user-get"
+              ],
+              "collected_at": "2026-10-21T12:00:00Z"
+            },
+            "detail": {
+              "id": "123456789012345678901",
+              "customerId": "Csynthetic",
+              "primaryEmail": "user@example.test",
+              "suspended": false,
+              "archived": false,
+              "creationTime": "2024-01-01T00:00:00Z",
+              "lastLoginTime": "2025-01-01T00:00:00Z"
+            }
+          },
+          "scope": "projects/usage-project",
+          "type": "workspace_user_activity"
+        }
+      ]
+    },
+    "missing": {},
+    "index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "project-read",
+              "url": "https://cloudresourcemanager.googleapis.com/v3/projects/usage-project",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "org-read",
+              "url": "https://cloudresourcemanager.googleapis.com/v3/organizations/123456789012",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "users-read",
+              "url": "https://admin.googleapis.com/admin/directory/v1/users",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "user-get",
+              "url": "https://admin.googleapis.com/admin/directory/v1/users/123456789012345678901",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {
+                "projection": "full",
+                "viewType": "admin_view",
+                "fields": "id,customerId,primaryEmail,suspended,archived,creationTime,lastLoginTime"
+              }
+            }
+          ],
+          "asset_read_time": "2026-10-21T12:00:00Z"
+        }
+      },
+      "collections": {
+        "workspace_user": [
+          {
+            "type": "workspace_user",
+            "scope": "projects/usage-project",
+            "service": "workspace-directory",
+            "status": "collected",
+            "items": [
+              {
+                "name": "customers/Csynthetic/workspace_user/123456789012345678901",
+                "id": "123456789012345678901",
+                "customerId": "Csynthetic",
+                "directoryCustomer": "Csynthetic",
+                "primaryEmail": "user@example.test",
+                "suspended": false,
+                "archived": false,
+                "_directoryBinding": {
+                  "status": "collected",
+                  "scope": "projects/usage-project",
+                  "customer": "Csynthetic",
+                  "organization": "organizations/123456789012",
+                  "chain": [
+                    {
+                      "requested": "projects/usage-project",
+                      "name": "projects/987654321012",
+                      "projectId": "usage-project",
+                      "parent": "organizations/123456789012",
+                      "source_request": "project-read"
+                    },
+                    {
+                      "requested": "organizations/123456789012",
+                      "name": "organizations/123456789012",
+                      "directoryCustomerId": "Csynthetic",
+                      "source_request": "org-read"
+                    }
+                  ]
+                },
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "source_requests": [
+                    "users-read"
+                  ],
+                  "collected_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "source_requests": [
+              "users-read"
+            ]
+          }
+        ],
+        "workspace_user_activity": [
+          {
+            "type": "workspace_user_activity",
+            "scope": "projects/usage-project",
+            "service": "workspace-directory",
+            "status": "collected",
+            "items": [
+              {
+                "name": "customers/Csynthetic/users/123456789012345678901/loginActivity",
+                "user_id": "123456789012345678901",
+                "directory_customer": "Csynthetic",
+                "user_name": "customers/Csynthetic/workspace_user/123456789012345678901",
+                "status": "collected",
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "source_requests": [
+                    "user-get"
+                  ],
+                  "collected_at": "2026-10-21T12:00:00Z"
+                },
+                "detail": {
+                  "id": "123456789012345678901",
+                  "customerId": "Csynthetic",
+                  "primaryEmail": "user@example.test",
+                  "suspended": false,
+                  "archived": false,
+                  "creationTime": "2024-01-01T00:00:00Z",
+                  "lastLoginTime": "2025-01-01T00:00:00Z"
+                }
+              }
+            ],
+            "source_requests": [
+              "user-get"
+            ]
+          }
+        ]
+      },
+      "workspace_user": [
+        {
+          "data": {
+            "name": "customers/Csynthetic/workspace_user/123456789012345678901",
+            "id": "123456789012345678901",
+            "customerId": "Csynthetic",
+            "directoryCustomer": "Csynthetic",
+            "primaryEmail": "user@example.test",
+            "suspended": false,
+            "archived": false,
+            "_directoryBinding": {
+              "status": "collected",
+              "scope": "projects/usage-project",
+              "customer": "Csynthetic",
+              "organization": "organizations/123456789012",
+              "chain": [
+                {
+                  "requested": "projects/usage-project",
+                  "name": "projects/987654321012",
+                  "projectId": "usage-project",
+                  "parent": "organizations/123456789012",
+                  "source_request": "project-read"
+                },
+                {
+                  "requested": "organizations/123456789012",
+                  "name": "organizations/123456789012",
+                  "directoryCustomerId": "Csynthetic",
+                  "source_request": "org-read"
+                }
+              ]
+            },
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "source_requests": [
+                "users-read"
+              ],
+              "collected_at": "2026-10-21T12:00:00Z"
+            }
+          },
+          "scope": "projects/usage-project",
+          "type": "workspace_user"
+        }
+      ],
+      "workspace_user_activity": [
+        {
+          "data": {
+            "name": "customers/Csynthetic/users/123456789012345678901/loginActivity",
+            "user_id": "123456789012345678901",
+            "directory_customer": "Csynthetic",
+            "user_name": "customers/Csynthetic/workspace_user/123456789012345678901",
+            "status": "collected",
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "source_requests": [
+                "user-get"
+              ],
+              "collected_at": "2026-10-21T12:00:00Z"
+            },
+            "detail": {
+              "id": "123456789012345678901",
+              "customerId": "Csynthetic",
+              "primaryEmail": "user@example.test",
+              "suspended": false,
+              "archived": false,
+              "creationTime": "2024-01-01T00:00:00Z",
+              "lastLoginTime": "2025-01-01T00:00:00Z"
+            }
+          },
+          "scope": "projects/usage-project",
+          "type": "workspace_user_activity"
+        }
+      ]
+    }
+  },
+  "gcp.iam.workload_identity_pool_has_enabled_provider": {
+    "pass": {
+      "name": "projects/usage-project/locations/global/workloadIdentityPools/synthetic",
+      "state": "ACTIVE",
+      "disabled": false,
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "source_requests": [
+          "pools-read"
+        ],
+        "collected_at": "2026-10-21T12:00:00Z"
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "pools-read",
+              "url": "https://iam.googleapis.com/v1/projects/usage-project/locations/global/workloadIdentityPools",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "providers-read",
+              "url": "https://iam.googleapis.com/v1/projects/usage-project/locations/global/workloadIdentityPools/synthetic/providers",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            }
+          ],
+          "asset_read_time": "2026-10-21T12:00:00Z"
+        }
+      },
+      "collections": {
+        "workload_identity_pool": [
+          {
+            "type": "workload_identity_pool",
+            "scope": "projects/usage-project",
+            "service": "iam",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project/locations/global/workloadIdentityPools/synthetic",
+                "state": "ACTIVE",
+                "disabled": false,
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "source_requests": [
+                    "pools-read"
+                  ],
+                  "collected_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "source_requests": [
+              "pools-read"
+            ]
+          }
+        ],
+        "workload_identity_provider": [
+          {
+            "type": "workload_identity_provider",
+            "scope": "projects/usage-project",
+            "service": "iam",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project/locations/global/workloadIdentityPools/synthetic/providers/disabled",
+                "state": "ACTIVE",
+                "disabled": false,
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "source_requests": [
+                    "providers-read"
+                  ],
+                  "collected_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "source_requests": [
+              "providers-read"
+            ]
+          }
+        ]
+      },
+      "workload_identity_pool": [
+        {
+          "data": {
+            "name": "projects/usage-project/locations/global/workloadIdentityPools/synthetic",
+            "state": "ACTIVE",
+            "disabled": false,
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "source_requests": [
+                "pools-read"
+              ],
+              "collected_at": "2026-10-21T12:00:00Z"
+            }
+          },
+          "scope": "projects/usage-project",
+          "type": "workload_identity_pool"
+        }
+      ],
+      "workload_identity_provider": [
+        {
+          "data": {
+            "name": "projects/usage-project/locations/global/workloadIdentityPools/synthetic/providers/disabled",
+            "state": "ACTIVE",
+            "disabled": false,
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "source_requests": [
+                "providers-read"
+              ],
+              "collected_at": "2026-10-21T12:00:00Z"
+            }
+          },
+          "scope": "projects/usage-project",
+          "type": "workload_identity_provider"
+        }
+      ]
+    },
+    "fail": {
+      "name": "projects/usage-project/locations/global/workloadIdentityPools/synthetic",
+      "state": "ACTIVE",
+      "disabled": false,
+      "_provenance": {
+        "scope": "projects/usage-project",
+        "source_requests": [
+          "pools-read"
+        ],
+        "collected_at": "2026-10-21T12:00:00Z"
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "pools-read",
+              "url": "https://iam.googleapis.com/v1/projects/usage-project/locations/global/workloadIdentityPools",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "providers-read",
+              "url": "https://iam.googleapis.com/v1/projects/usage-project/locations/global/workloadIdentityPools/synthetic/providers",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            }
+          ],
+          "asset_read_time": "2026-10-21T12:00:00Z"
+        }
+      },
+      "collections": {
+        "workload_identity_pool": [
+          {
+            "type": "workload_identity_pool",
+            "scope": "projects/usage-project",
+            "service": "iam",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project/locations/global/workloadIdentityPools/synthetic",
+                "state": "ACTIVE",
+                "disabled": false,
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "source_requests": [
+                    "pools-read"
+                  ],
+                  "collected_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "source_requests": [
+              "pools-read"
+            ]
+          }
+        ],
+        "workload_identity_provider": [
+          {
+            "type": "workload_identity_provider",
+            "scope": "projects/usage-project",
+            "service": "iam",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project/locations/global/workloadIdentityPools/synthetic/providers/disabled",
+                "state": "ACTIVE",
+                "disabled": true,
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "source_requests": [
+                    "providers-read"
+                  ],
+                  "collected_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "source_requests": [
+              "providers-read"
+            ]
+          }
+        ]
+      },
+      "workload_identity_pool": [
+        {
+          "data": {
+            "name": "projects/usage-project/locations/global/workloadIdentityPools/synthetic",
+            "state": "ACTIVE",
+            "disabled": false,
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "source_requests": [
+                "pools-read"
+              ],
+              "collected_at": "2026-10-21T12:00:00Z"
+            }
+          },
+          "scope": "projects/usage-project",
+          "type": "workload_identity_pool"
+        }
+      ],
+      "workload_identity_provider": [
+        {
+          "data": {
+            "name": "projects/usage-project/locations/global/workloadIdentityPools/synthetic/providers/disabled",
+            "state": "ACTIVE",
+            "disabled": true,
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "source_requests": [
+                "providers-read"
+              ],
+              "collected_at": "2026-10-21T12:00:00Z"
+            }
+          },
+          "scope": "projects/usage-project",
+          "type": "workload_identity_provider"
+        }
+      ]
+    },
+    "missing": {},
+    "index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/usage-project",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "pools-read",
+              "url": "https://iam.googleapis.com/v1/projects/usage-project/locations/global/workloadIdentityPools",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            },
+            {
+              "id": "providers-read",
+              "url": "https://iam.googleapis.com/v1/projects/usage-project/locations/global/workloadIdentityPools/synthetic/providers",
+              "scope": "projects/usage-project",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            }
+          ],
+          "asset_read_time": "2026-10-21T12:00:00Z"
+        }
+      },
+      "collections": {
+        "workload_identity_pool": [
+          {
+            "type": "workload_identity_pool",
+            "scope": "projects/usage-project",
+            "service": "iam",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project/locations/global/workloadIdentityPools/synthetic",
+                "state": "ACTIVE",
+                "disabled": false,
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "source_requests": [
+                    "pools-read"
+                  ],
+                  "collected_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "source_requests": [
+              "pools-read"
+            ]
+          }
+        ],
+        "workload_identity_provider": [
+          {
+            "type": "workload_identity_provider",
+            "scope": "projects/usage-project",
+            "service": "iam",
+            "status": "collected",
+            "items": [
+              {
+                "name": "projects/usage-project/locations/global/workloadIdentityPools/synthetic/providers/disabled",
+                "state": "ACTIVE",
+                "disabled": true,
+                "_provenance": {
+                  "scope": "projects/usage-project",
+                  "source_requests": [
+                    "providers-read"
+                  ],
+                  "collected_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "source_requests": [
+              "providers-read"
+            ]
+          }
+        ]
+      },
+      "workload_identity_pool": [
+        {
+          "data": {
+            "name": "projects/usage-project/locations/global/workloadIdentityPools/synthetic",
+            "state": "ACTIVE",
+            "disabled": false,
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "source_requests": [
+                "pools-read"
+              ],
+              "collected_at": "2026-10-21T12:00:00Z"
+            }
+          },
+          "scope": "projects/usage-project",
+          "type": "workload_identity_pool"
+        }
+      ],
+      "workload_identity_provider": [
+        {
+          "data": {
+            "name": "projects/usage-project/locations/global/workloadIdentityPools/synthetic/providers/disabled",
+            "state": "ACTIVE",
+            "disabled": true,
+            "_provenance": {
+              "scope": "projects/usage-project",
+              "source_requests": [
+                "providers-read"
+              ],
+              "collected_at": "2026-10-21T12:00:00Z"
+            }
+          },
+          "scope": "projects/usage-project",
+          "type": "workload_identity_provider"
+        }
+      ]
+    }
+  },
+  "gcp.iam.workforce_pool_has_enabled_provider": {
+    "pass": {
+      "name": "locations/global/workforcePools/synthetic",
+      "state": "ACTIVE",
+      "disabled": false,
+      "_provenance": {
+        "scope": "organizations/123456789012",
+        "source_requests": [
+          "pools-read"
+        ],
+        "collected_at": "2026-10-21T12:00:00Z"
+      },
+      "parent": "organizations/123456789012"
+    },
+    "pass_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "organizations/123456789012",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "pools-read",
+              "url": "https://iam.googleapis.com/v1/locations/global/workforcePools",
+              "scope": "organizations/123456789012",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {
+                "parent": "organizations/123456789012"
+              }
+            },
+            {
+              "id": "providers-read",
+              "url": "https://iam.googleapis.com/v1/locations/global/workforcePools/synthetic/providers",
+              "scope": "organizations/123456789012",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            }
+          ],
+          "asset_read_time": "2026-10-21T12:00:00Z"
+        }
+      },
+      "collections": {
+        "workforce_pool": [
+          {
+            "type": "workforce_pool",
+            "scope": "organizations/123456789012",
+            "service": "iam",
+            "status": "collected",
+            "items": [
+              {
+                "name": "locations/global/workforcePools/synthetic",
+                "state": "ACTIVE",
+                "disabled": false,
+                "_provenance": {
+                  "scope": "organizations/123456789012",
+                  "source_requests": [
+                    "pools-read"
+                  ],
+                  "collected_at": "2026-10-21T12:00:00Z"
+                },
+                "parent": "organizations/123456789012"
+              }
+            ],
+            "source_requests": [
+              "pools-read"
+            ]
+          }
+        ],
+        "workforce_provider": [
+          {
+            "type": "workforce_provider",
+            "scope": "organizations/123456789012",
+            "service": "iam",
+            "status": "collected",
+            "items": [
+              {
+                "name": "locations/global/workforcePools/synthetic/providers/disabled",
+                "state": "ACTIVE",
+                "disabled": false,
+                "_provenance": {
+                  "scope": "organizations/123456789012",
+                  "source_requests": [
+                    "providers-read"
+                  ],
+                  "collected_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "source_requests": [
+              "providers-read"
+            ]
+          }
+        ]
+      },
+      "workforce_pool": [
+        {
+          "data": {
+            "name": "locations/global/workforcePools/synthetic",
+            "state": "ACTIVE",
+            "disabled": false,
+            "_provenance": {
+              "scope": "organizations/123456789012",
+              "source_requests": [
+                "pools-read"
+              ],
+              "collected_at": "2026-10-21T12:00:00Z"
+            },
+            "parent": "organizations/123456789012"
+          },
+          "scope": "organizations/123456789012",
+          "type": "workforce_pool"
+        }
+      ],
+      "workforce_provider": [
+        {
+          "data": {
+            "name": "locations/global/workforcePools/synthetic/providers/disabled",
+            "state": "ACTIVE",
+            "disabled": false,
+            "_provenance": {
+              "scope": "organizations/123456789012",
+              "source_requests": [
+                "providers-read"
+              ],
+              "collected_at": "2026-10-21T12:00:00Z"
+            }
+          },
+          "scope": "organizations/123456789012",
+          "type": "workforce_provider"
+        }
+      ]
+    },
+    "fail": {
+      "name": "locations/global/workforcePools/synthetic",
+      "state": "ACTIVE",
+      "disabled": false,
+      "_provenance": {
+        "scope": "organizations/123456789012",
+        "source_requests": [
+          "pools-read"
+        ],
+        "collected_at": "2026-10-21T12:00:00Z"
+      },
+      "parent": "organizations/123456789012"
+    },
+    "fail_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "organizations/123456789012",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "pools-read",
+              "url": "https://iam.googleapis.com/v1/locations/global/workforcePools",
+              "scope": "organizations/123456789012",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {
+                "parent": "organizations/123456789012"
+              }
+            },
+            {
+              "id": "providers-read",
+              "url": "https://iam.googleapis.com/v1/locations/global/workforcePools/synthetic/providers",
+              "scope": "organizations/123456789012",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            }
+          ],
+          "asset_read_time": "2026-10-21T12:00:00Z"
+        }
+      },
+      "collections": {
+        "workforce_pool": [
+          {
+            "type": "workforce_pool",
+            "scope": "organizations/123456789012",
+            "service": "iam",
+            "status": "collected",
+            "items": [
+              {
+                "name": "locations/global/workforcePools/synthetic",
+                "state": "ACTIVE",
+                "disabled": false,
+                "_provenance": {
+                  "scope": "organizations/123456789012",
+                  "source_requests": [
+                    "pools-read"
+                  ],
+                  "collected_at": "2026-10-21T12:00:00Z"
+                },
+                "parent": "organizations/123456789012"
+              }
+            ],
+            "source_requests": [
+              "pools-read"
+            ]
+          }
+        ],
+        "workforce_provider": [
+          {
+            "type": "workforce_provider",
+            "scope": "organizations/123456789012",
+            "service": "iam",
+            "status": "collected",
+            "items": [
+              {
+                "name": "locations/global/workforcePools/synthetic/providers/disabled",
+                "state": "ACTIVE",
+                "disabled": true,
+                "_provenance": {
+                  "scope": "organizations/123456789012",
+                  "source_requests": [
+                    "providers-read"
+                  ],
+                  "collected_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "source_requests": [
+              "providers-read"
+            ]
+          }
+        ]
+      },
+      "workforce_pool": [
+        {
+          "data": {
+            "name": "locations/global/workforcePools/synthetic",
+            "state": "ACTIVE",
+            "disabled": false,
+            "_provenance": {
+              "scope": "organizations/123456789012",
+              "source_requests": [
+                "pools-read"
+              ],
+              "collected_at": "2026-10-21T12:00:00Z"
+            },
+            "parent": "organizations/123456789012"
+          },
+          "scope": "organizations/123456789012",
+          "type": "workforce_pool"
+        }
+      ],
+      "workforce_provider": [
+        {
+          "data": {
+            "name": "locations/global/workforcePools/synthetic/providers/disabled",
+            "state": "ACTIVE",
+            "disabled": true,
+            "_provenance": {
+              "scope": "organizations/123456789012",
+              "source_requests": [
+                "providers-read"
+              ],
+              "collected_at": "2026-10-21T12:00:00Z"
+            }
+          },
+          "scope": "organizations/123456789012",
+          "type": "workforce_provider"
+        }
+      ]
+    },
+    "missing": {},
+    "index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "organizations/123456789012",
+        "created_at": "2026-10-21T12:00:00Z",
+        "metadata": {
+          "source_requests": [
+            {
+              "id": "pools-read",
+              "url": "https://iam.googleapis.com/v1/locations/global/workforcePools",
+              "scope": "organizations/123456789012",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {
+                "parent": "organizations/123456789012"
+              }
+            },
+            {
+              "id": "providers-read",
+              "url": "https://iam.googleapis.com/v1/locations/global/workforcePools/synthetic/providers",
+              "scope": "organizations/123456789012",
+              "method": "GET",
+              "status": "collected",
+              "http_status": 200,
+              "query": {}
+            }
+          ],
+          "asset_read_time": "2026-10-21T12:00:00Z"
+        }
+      },
+      "collections": {
+        "workforce_pool": [
+          {
+            "type": "workforce_pool",
+            "scope": "organizations/123456789012",
+            "service": "iam",
+            "status": "collected",
+            "items": [
+              {
+                "name": "locations/global/workforcePools/synthetic",
+                "state": "ACTIVE",
+                "disabled": false,
+                "_provenance": {
+                  "scope": "organizations/123456789012",
+                  "source_requests": [
+                    "pools-read"
+                  ],
+                  "collected_at": "2026-10-21T12:00:00Z"
+                },
+                "parent": "organizations/123456789012"
+              }
+            ],
+            "source_requests": [
+              "pools-read"
+            ]
+          }
+        ],
+        "workforce_provider": [
+          {
+            "type": "workforce_provider",
+            "scope": "organizations/123456789012",
+            "service": "iam",
+            "status": "collected",
+            "items": [
+              {
+                "name": "locations/global/workforcePools/synthetic/providers/disabled",
+                "state": "ACTIVE",
+                "disabled": true,
+                "_provenance": {
+                  "scope": "organizations/123456789012",
+                  "source_requests": [
+                    "providers-read"
+                  ],
+                  "collected_at": "2026-10-21T12:00:00Z"
+                }
+              }
+            ],
+            "source_requests": [
+              "providers-read"
+            ]
+          }
+        ]
+      },
+      "workforce_pool": [
+        {
+          "data": {
+            "name": "locations/global/workforcePools/synthetic",
+            "state": "ACTIVE",
+            "disabled": false,
+            "_provenance": {
+              "scope": "organizations/123456789012",
+              "source_requests": [
+                "pools-read"
+              ],
+              "collected_at": "2026-10-21T12:00:00Z"
+            },
+            "parent": "organizations/123456789012"
+          },
+          "scope": "organizations/123456789012",
+          "type": "workforce_pool"
+        }
+      ],
+      "workforce_provider": [
+        {
+          "data": {
+            "name": "locations/global/workforcePools/synthetic/providers/disabled",
+            "state": "ACTIVE",
+            "disabled": true,
+            "_provenance": {
+              "scope": "organizations/123456789012",
+              "source_requests": [
+                "providers-read"
+              ],
+              "collected_at": "2026-10-21T12:00:00Z"
+            }
+          },
+          "scope": "organizations/123456789012",
+          "type": "workforce_provider"
+        }
+      ]
+    }
+  }
+}
