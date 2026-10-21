@@ -107,7 +107,8 @@ def test_latest_catalog_preserves_raw_rule_opt_in(monkeypatch, tmp_path):
 
 
 def test_resource_path_prefix_scopes_raw_rule_without_exposing_arn(tmp_path):
-    selected = rule(tmp_path, extra="x_cloudtrail_resource_path_prefix: /keyspace/system\n")
+    selected = rule(tmp_path, extra="x_cloudtrail_resource_path_prefix: /keyspace/system\n",
+                    selection_extra="    resource.path_scope_checked: true\n")
     assert detect_aws_events([event()], selected) == []
     system = deepcopy(event())
     system["resources"] = [{
@@ -122,3 +123,5 @@ def test_resource_path_prefix_scopes_raw_rule_without_exposing_arn(tmp_path):
 def test_resource_path_prefix_rejects_unsafe_or_nonraw_values(tmp_path):
     with pytest.raises(ValueError, match="Unsupported raw CloudTrail resource prefix"):
         rule(tmp_path, extra="x_cloudtrail_resource_path_prefix: ../private\n")
+    with pytest.raises(ValueError, match="Unsupported raw CloudTrail resource prefix"):
+        rule(tmp_path, extra="x_cloudtrail_resource_path_prefix: /keyspace/system\n")

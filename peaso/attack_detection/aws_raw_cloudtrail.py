@@ -69,5 +69,6 @@ def normalize(record: Mapping[str, Any]) -> list[dict[str, Any]]:
             "actor.id": actor, "target.id": target,
             "__raw_cloudtrail": True,
             "__resource_path": match.group(4),
+            "resource.path_scope_checked": True,
         })
     return result
