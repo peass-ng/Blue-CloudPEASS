@@ -164,6 +164,7 @@ from .aws_lambda_privesc_next import normalize_aws_lambda_role_assignment, corre
 from .aws_ec2_controls_next import normalize_aws_ec2_controls
 from .aws_ec2_ssm_batch96 import normalize_aws_ec2_ssm_batch96
 from .aws_verified_permissions_batch97 import normalize_aws_verified_permissions_batch97
+from .aws_ec2_persistence_batch98 import normalize_aws_ec2_persistence_batch98
 from .aws_vpc_network_next import normalize_aws_vpc_network, correlate_aws_vpc_custom_dns
 from .aws_vpc_endpoint_egress_next import normalize_aws_vpc_endpoint_egress
 from .aws_eic_endpoint_next import normalize_aws_eic_endpoint, normalize_aws_eic_connection, correlate_aws_eic_ssh_ingress
@@ -229,8 +230,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "2f47441424863ac694bdab4a7bbd1a1b9b55f80b"
-DEFAULT_RULE_PACK_SHA256 = "9064ddd46f8d34d706c7e7383903c8b6c9219127b79d2d138b6b028a087df0fd"
+DEFAULT_RULE_REF = "61845b66a5b1d99e2e46cf8f80cf1cbebdd7de0e"
+DEFAULT_RULE_PACK_SHA256 = "8fb75320c7a0359bfb537c2c31cd3880c2978f6c18b2b1325d5cc0f1dcfdc6a6"
 
 
 @dataclass(frozen=True)
@@ -481,6 +482,7 @@ def detect_aws_events(
         ec2_controls = normalize_aws_ec2_controls(record)
         ec2_ssm_batch96 = normalize_aws_ec2_ssm_batch96(record)
         verified_permissions_batch97 = normalize_aws_verified_permissions_batch97(record)
+        ec2_persistence_batch98 = normalize_aws_ec2_persistence_batch98(record)
         vpc_network = normalize_aws_vpc_network(record)
         vpc_endpoint_egress = normalize_aws_vpc_endpoint_egress(record)
         eic_endpoint = normalize_aws_eic_endpoint(record)
@@ -661,6 +663,7 @@ def detect_aws_events(
                 + ([ec2_controls] if ec2_controls is not None else [])
                 + ([ec2_ssm_batch96] if ec2_ssm_batch96 is not None else [])
                 + ([verified_permissions_batch97] if verified_permissions_batch97 is not None else [])
+                + ([ec2_persistence_batch98] if ec2_persistence_batch98 is not None else [])
                 + ([vpc_network] if vpc_network is not None else [])
                 + ([vpc_endpoint_egress] if vpc_endpoint_egress is not None else [])
                 + ([eic_endpoint] if eic_endpoint is not None else [])
