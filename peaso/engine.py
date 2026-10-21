@@ -845,6 +845,67 @@ def _safe_collection_error_code(collection):
     return code if isinstance(code, str) and code in known else None
 
 
+def _unsupported_aws_region(snapshot, collection):
+    """Recognize the collector's SDK-backed proof that a service has no regional endpoint."""
+    return (snapshot.get("provider") == "aws"
+        and collection.get("scope") in snapshot.get("scopes", ())
+        and collection.get("status") == "not_collected"
+        and collection.get("items") == []
+        and isinstance(collection.get("error"), dict)
+        and collection["error"].get("code") == "unsupported_region_service")
+
+
+def _unsupported_aws_region_evidence(collection):
+    return {"reason": "service is unavailable in this AWS Region",
+        "region": collection["scope"].rsplit("/", 1)[-1],
+        "collection_status": collection["status"],
+        "semantics": "Regional service applicability, not a resource security pass."}
+
+
+_AWS_MANAGEMENT_ACCOUNT_ONLY_CHECKS = frozenset({
+    "aws.claude_a.guardduty.prowler_delegated_admin_region",
+    "aws.claude_a.securityhub.prowler_delegated_admin_region",
+    "aws.claude_a.iam.root_credentials_management",
+    "aws.claude_a.organizations.ai_services_opt_out",
+    "aws.claude_a.organizations.scp_restricts_regions",
+    "aws.claude_a.organizations.tag_policy_attached",
+    "aws_cis_organizations_policy_management_delegated",
+})
+
+
+def _aws_management_account_only_evidence(snapshot, check_id, scope):
+    """Use a collected Organizations identity to exclude management-only API checks."""
+    import re
+    if snapshot.get("provider") != "aws" or check_id not in _AWS_MANAGEMENT_ACCOUNT_ONLY_CHECKS:
+        return None
+    account = scope.split("/", 1)[0]
+    if not re.fullmatch(r"[0-9]{12}", account):
+        return None
+    matches = [collection for collection in snapshot["collections"]
+        if collection.get("type") == "aws_account_configuration"
+        and collection.get("scope") == account + "/global"
+        and collection.get("status") == "collected"
+        and len(collection.get("items", [])) == 1]
+    if len(matches) != 1:
+        return None
+    item = matches[0]["items"][0]
+    if not isinstance(item, dict):
+        return None
+    org = item.get("Organization")
+    if (item.get("AccountId") != account or not isinstance(org, dict)
+            or org.get("collection_status") != "collected"
+            or not isinstance(org.get("OrganizationId"), str)
+            or not org["OrganizationId"].startswith("o-")
+            or not isinstance(org.get("MasterAccountId"), str)
+            or not re.fullmatch(r"[0-9]{12}", org["MasterAccountId"])):
+        return None
+    if org["MasterAccountId"] == account:
+        return None
+    return {"reason": "organization management account differs from audited account",
+        "audited_account": account, "management_account": org["MasterAccountId"],
+        "organization_id": org["OrganizationId"]}
+
+
 def _retired_collection_evidence(provider, snapshot, collection):
     """Interpret a no-call marker only for a reviewed exact kind and clock."""
     from datetime import datetime
@@ -1152,11 +1213,12 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
     for collection in snapshot["collections"]:
         retirement = _retired_collection_evidence(provider, snapshot, collection)
         psp_absence = _psp_resource_absence_evidence(provider, snapshot, collection)
-        coverage_status = "unknown" if retirement and retirement[0] == "unknown" else "not_applicable" if psp_absence else collection["status"]
+        unsupported_region = _unsupported_aws_region(snapshot, collection)
+        coverage_status = "unknown" if retirement and retirement[0] == "unknown" else "not_applicable" if psp_absence or unsupported_region else collection["status"]
         from .check_services import service_for
         coverage.append({"level": "collection", "type": collection["type"], "scope": collection["scope"],
             "service": service_for(provider, collection["type"], collection.get("service")), "status": coverage_status,
-            "resource_count": len(collection["items"]), "reason": retirement[1]["reason"] if retirement else psp_absence["reason"] if psp_absence else
+            "resource_count": len(collection["items"]), "reason": retirement[1]["reason"] if retirement else psp_absence["reason"] if psp_absence else _unsupported_aws_region_evidence(collection)["reason"] if unsupported_region else
                 _unknown_coverage_reason(collection_status=collection["status"])
                 if collection["status"] not in ("collected", "empty") else ""})
         code = "retired_service" if retirement else "pod_security_policy_api_absent" if psp_absence else _safe_collection_error_code(collection)
@@ -1249,9 +1311,12 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
         if getattr(check, "target", "resource") == "scope":
             for scope in _scope_check_scopes(snapshot, check):
                 scoped = scoped_index(scope)
+                management_only = _aws_management_account_only_evidence(snapshot, check.id, scope)
                 incomplete = [{"type": kind, "status": "not_collected"} for kind in check.dependencies if not scoped["collections"].get(kind)]
                 incomplete += [{"type": kind, "status": c["status"]} for kind in check.dependencies for c in scoped["collections"].get(kind, []) if c["status"] not in ("collected", "empty")]
-                if incomplete:
+                if management_only:
+                    status, evidence = "NOT_APPLICABLE", management_only
+                elif incomplete:
                     status, evidence = "DENIED" if any(row["status"] == "denied" for row in incomplete) else "UNKNOWN", {"reason": "required scoped inventory incomplete", "dependencies": incomplete, "target": "scope"}
                     empty_dependencies = getattr(check, "empty_applicability_dependencies", ())
                     empty_applicable = bool(empty_dependencies) and set(empty_dependencies) <= set(check.dependencies) and all(
@@ -1301,6 +1366,7 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
             collections = [{"type": check.kind, "scope": scope, "service": check.kind, "status": "not_collected", "items": []} for scope in missing_scopes]
         for collection in collections:
             scope, collection_status = collection["scope"], collection["status"]
+            management_only = _aws_management_account_only_evidence(snapshot, check.id, scope)
             scope_account = scope.split("/", 1)[0]
             global_binding_conflict = bool(provider == "aws" and collection.get("global") is True
                 and re.fullmatch(r"[0-9]{12}", scope_account)
@@ -1311,6 +1377,7 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
             psp_absence = (_psp_resource_absence_evidence(provider, snapshot, collection)
                 if check.id in _PSP_RESOURCE_CHECK_IDS and check.kind == "podsecuritypolicy"
                 and getattr(check, "target", "resource") == "resource" else None)
+            unsupported_region = _unsupported_aws_region(snapshot, collection)
             scope_findings = []
             for resource in by_scope.get((check.kind, scope), []):
                 # The rule index is scoped; foreign subscriptions/namespaces cannot satisfy a check.
@@ -1319,13 +1386,13 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
                     # Sealed native data is a read-only view: checks share it instead of deep-copying it.
                     if global_binding_conflict:
                         raise ValueError("contradictory AWS global account provenance")
-                    status, evidence = check.evaluate(resource["data"], scoped)
+                    status, evidence = ("NOT_APPLICABLE", management_only) if management_only else check.evaluate(resource["data"], scoped)
                     if status not in ("PASS", "FAIL", "UNKNOWN", "DENIED", "EMPTY", "MANUAL", "NOT_APPLICABLE") or not isinstance(evidence, dict):
                         raise ValueError("invalid check result")
                 except (KeyError, TypeError, ValueError, AttributeError, IndexError) as exc:
                     status, evidence = "UNKNOWN", {"reason": "missing or malformed provider facts", "error_kind": type(exc).__name__}
                 scope_findings.append(_finding(check, provider, scope, resource["id"], resource["service"], status, evidence, check_frameworks))
-            unavailable = (collection_status not in ("collected", "empty") and not psp_absence) or bool(retirement and retirement[0] == "unknown")
+            unavailable = (collection_status not in ("collected", "empty") and not psp_absence and not unsupported_region and not management_only) or bool(retirement and retirement[0] == "unknown")
             empty_evaluated = False
             if (not retirement and not scope_findings and collection_status == "empty"
                     and collection.get("type") == check.kind and collection.get("scope") == scope
@@ -1361,13 +1428,13 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
                         scope_findings.append(_finding(check, provider, scope, "scope:" + scope,
                             collection.get("service", check.kind), status, evidence, check_frameworks))
             if unavailable or not scope_findings:
-                status = "UNKNOWN" if retirement and retirement[0] == "unknown" else "NOT_APPLICABLE" if retirement or psp_absence else "DENIED" if collection_status == "denied" else "EMPTY" if collection_status == "empty" else "UNKNOWN"
+                status = "UNKNOWN" if retirement and retirement[0] == "unknown" else "NOT_APPLICABLE" if retirement or psp_absence or unsupported_region or management_only else "DENIED" if collection_status == "denied" else "EMPTY" if collection_status == "empty" else "UNKNOWN"
                 scope_findings.append(_finding(check, provider, scope, "inventory:" + check.kind, collection.get("service", check.kind), status,
-                    retirement[1] if retirement else psp_absence if psp_absence else {"collection_status": collection_status, "reason": collection.get("error", {}).get("code", "no collected resources"),
+                    retirement[1] if retirement else psp_absence if psp_absence else _unsupported_aws_region_evidence(collection) if unsupported_region else management_only if management_only else {"collection_status": collection_status, "reason": collection.get("error", {}).get("code", "no collected resources"),
                      "semantics": "Inventory coverage, not a resource security pass."}, check_frameworks))
             check_findings.extend(scope_findings)
             counts = dict(Counter(f["status"] for f in scope_findings))
-            check_status = "partial" if unavailable and collection_status == "partial" else "denied" if collection_status == "denied" else "unknown" if unavailable or counts.get("UNKNOWN") or counts.get("DENIED") else "empty" if collection_status == "empty" else "manual" if counts.get("MANUAL") else "evaluated"
+            check_status = "not_applicable" if management_only or unsupported_region else "partial" if unavailable and collection_status == "partial" else "denied" if collection_status == "denied" else "unknown" if unavailable or counts.get("UNKNOWN") or counts.get("DENIED") else "empty" if collection_status == "empty" else "manual" if counts.get("MANUAL") else "evaluated"
             if empty_evaluated:
                 check_status = "unknown" if counts.get("UNKNOWN") or counts.get("DENIED") else "manual" if counts.get("MANUAL") else "evaluated"
             coverage.append({"level": "check", "check_id": check.id, "type": check.kind, "scope": scope,
@@ -1388,7 +1455,7 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
         if analysis_selected:
             from .analysis import analyze_findings
             expected_ids = {c["id"] for c in analysis_selected}
-            analyzed = [f for f in analyze_findings(snapshot, inventory, index) if f["check_id"] in expected_ids and f["category"] in selected_categories]
+            analyzed = [f for f in analyze_findings(snapshot, inventory, index, include_manual_only=False) if f["check_id"] in expected_ids and f["category"] in selected_categories]
             # Group once (order kept) instead of rescanning every analyzed finding per analysis check.
             analyzed_by_check = defaultdict(list)
             for f in analyzed:

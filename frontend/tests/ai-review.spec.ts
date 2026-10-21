@@ -172,6 +172,7 @@ for (const width of [1280, 390]) {
       verification: 'Verify the allowed deployment succeeds and other identities are denied',
     }));
     await page.route('**/api/scans/scan/ai?*', route => route.fulfill({ json: { actions: [...actions].reverse() } }));
+    await page.route('**/api/scans/scan/findings/finding-1', route => route.fulfill({ json: { id: 'finding-1', title: 'Related identity finding' } }));
     await page.goto('/#Top%2015%20Recommended%20Actions');
     const table = page.getByRole('region', { name: 'Prioritized actions' });
     await expect(table.locator('tbody tr')).toHaveCount(15);
@@ -194,11 +195,12 @@ for (const width of [1280, 390]) {
     await expect(dialog.getByText(actions[0].steps[1], { exact: true })).toBeVisible();
     await expect(dialog.getByText(actions[0].verification, { exact: true })).toBeVisible();
     await dialog.getByText('Supporting evidence', { exact: true }).click();
-    await expect(dialog.getByText('resource-1', { exact: true })).toBeVisible();
+    await expect(dialog.getByText('resource-1', { exact: true })).toHaveCount(0);
+    await expect(dialog.getByRole('button', { name: 'Related identity finding', exact: true })).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(dialog).toHaveCount(0);
     await expect(title).toBeFocused();
-    await page.getByRole('textbox', { name: 'Search actions' }).fill('resource-15');
+    await page.getByRole('textbox', { name: 'Search actions' }).fill('finding-15');
     await expect(table.locator('tbody tr')).toHaveCount(1);
     await expect(page.getByText('1 / 15 actions', { exact: true })).toBeVisible();
     await table.getByRole('button', { name: actions[14].title, exact: true }).click();
