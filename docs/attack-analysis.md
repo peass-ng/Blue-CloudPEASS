@@ -36,10 +36,18 @@ use `HACKTRICKS_CSPM_RULES_DIR` to point at a checkout; hosted Cognito mode
 never falls back to this directory.
 
 New Sigma rules can be used without a CSPM release when they match fields the
-installed normalizers already produce. Techniques that require a new event
-normalizer, a new provider API read, or a new correlation still require CSPM
-code. Historical S3 jobs retain their separate pinned catalog contract; this
-selector applies to the interactive Attack Analysis preview.
+installed normalizers already produce. Simple account-scoped AWS CloudTrail
+API rules can opt into `x_cloudtrail_raw: true` in the rules repository. These
+rules must match an exact `event.source`, `event.name`, `event.category`,
+`event.outcome: success`, and `resource.type`; they may also match
+`event.read_only`. The adapter validates a successful CloudTrail envelope and
+same-account resource ARN, and exposes only those bounded fields. Its target
+reference is a stable hash of the ARN. It never copies request parameters,
+responses, query text, or object contents into a finding. This lets future
+simple service/action detections ship through the latest catalog alone.
+Techniques that require parsing request content, a new provider API read, or
+correlation still require CSPM code. Historical S3 jobs retain their separate
+pinned catalog contract; this selector applies to interactive Attack Analysis.
 
 The current evaluator deliberately
 accepts a small portable subset: one exact-match selection, conjunction across

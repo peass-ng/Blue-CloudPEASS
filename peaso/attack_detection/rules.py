@@ -17,6 +17,7 @@ from typing import Any
 import yaml
 
 from .aws import normalize_aws_cloudtrail
+from .aws_raw_cloudtrail import normalize as normalize_aws_raw_cloudtrail
 from .aws_login_profile_next import normalize_aws_other_user_login_profile, normalize_aws_other_user_login_profile_update
 from .aws_security_controls import normalize_aws_security_control
 from .aws_trail_update import normalize_aws_trail_update
@@ -213,7 +214,7 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
 DEFAULT_RULE_REF = "08725c62951dc198b13e03d98879bbf2dd2cf167"
-DEFAULT_RULE_PACK_SHA256 = "2a9a4f001f5f1ed8c35e88205b6c92e735267f99f3f7215773103626d5609bce"
+DEFAULT_RULE_PACK_SHA256 = "d4819d8924be714a41fe29230fcb44ae9866ed364d80b187db04359e9c4c1217"
 
 
 @dataclass(frozen=True)
@@ -226,6 +227,7 @@ class Rule:
     product: str
     selection: Mapping[str, Any]
     falsepositives: tuple[str, ...] = ()
+    raw_cloudtrail: bool = False
 
 
 @dataclass(frozen=True)
@@ -295,6 +297,20 @@ def load_rules(directory: Path | None = None, *, product: str | None = None) -> 
             raise ValueError(f"Unsupported detection selection: {name}")
         if any(not isinstance(v, (str, bool, int, list)) or isinstance(v, list) and (not v or any(not isinstance(x, (str, bool, int)) for x in v)) for v in selection.values()):
             raise ValueError(f"Unsupported detection values: {name}")
+        raw_cloudtrail = source.get("x_cloudtrail_raw", False)
+        if raw_cloudtrail is not False:
+            allowed = {"event.source", "event.name", "event.category", "event.outcome",
+                       "event.read_only", "resource.type"}
+            if (raw_cloudtrail is not True or logsource.get("product") != "aws"
+                    or not set(selection).issubset(allowed)
+                    or not {"event.source", "event.name", "event.category",
+                            "event.outcome", "resource.type"}.issubset(selection)
+                    or not isinstance(selection["event.source"], str)
+                    or not isinstance(selection["event.name"], str)
+                    or selection["event.category"] not in {"Management", "Data"}
+                    or selection["event.outcome"] != "success"
+                    or not isinstance(selection["resource.type"], str)):
+                raise ValueError(f"Unsupported raw CloudTrail rule: {name}")
         if product is not None and logsource["product"] != product:
             continue
         falsepositives = source.get("falsepositives", [])
@@ -308,6 +324,7 @@ def load_rules(directory: Path | None = None, *, product: str | None = None) -> 
             product=logsource["product"],
             selection=dict(selection),
             falsepositives=tuple(falsepositives),
+            raw_cloudtrail=raw_cloudtrail,
         ))
     if not loaded:
         raise ValueError("No detection rules found")
@@ -645,9 +662,11 @@ def detect_aws_events(
                 + ([iam_credential_boundary] if iam_credential_boundary is not None else [])
                 + ([iam_identity_deletion] if iam_identity_deletion is not None else [])
                 + ([iam_credential_deletion] if iam_credential_deletion is not None else [])
-                + ([iam_cert_key_controls] if iam_cert_key_controls is not None else []))
+                + ([iam_cert_key_controls] if iam_cert_key_controls is not None else [])
+                + (normalize_aws_raw_cloudtrail(record) if raw_enabled else []))
 
     selected = rules if rules is not None else load_rules(product="aws")
+    raw_enabled = any(rule.raw_cloudtrail for rule in selected)
     glue_correlation_records: list[Mapping[str, Any]] = []
     cognito_group_records: list[Mapping[str, Any]] = []
     sts_records: list[Mapping[str, Any]] = []
@@ -952,6 +971,8 @@ def _detect_events(
                 candidate_indexes.update(buckets.get(key, ()))
             for index in sorted(candidate_indexes):
                 rule = rules[index]
+                if product == "aws" and rule.raw_cloudtrail is not (event.get("__raw_cloudtrail") is True):
+                    continue
                 if all(any(exact(event.get(field), choice) for choice in expected)
                        if isinstance(expected, list) else exact(event.get(field), expected)
                        for field, expected in rule.selection.items()):
