@@ -78,6 +78,7 @@ from .aws_iotwireless_associations_batch125 import normalize as normalize_aws_io
 from .aws_appflow_s3_batch126 import normalize as normalize_aws_appflow_s3_batch126
 from .aws_appflow_limited_batch127 import normalize_update as normalize_aws_appflow_update_batch127, correlate_schedule_activation as correlate_aws_appflow_schedule_batch127
 from .aws_codeconnections_control_batch128 import normalize as normalize_aws_codeconnections_control_batch128
+from .aws_codeconnections_host_batch129 import normalize as normalize_aws_codeconnections_host_batch129
 from .aws_sagemaker_control_next import normalize_aws_sagemaker_control
 from .aws_rolesanywhere_next import normalize as normalize_aws_rolesanywhere
 from .aws_customer_profiles_next import normalize as normalize_aws_customer_profiles
@@ -259,8 +260,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "b7643573c658afc8e7665a30a83954c2b0a5a8f3"
-DEFAULT_RULE_PACK_SHA256 = "d371dc781cfa0386565b0700dee6a75dfb5f9d44ae2fe28fe29fc2f76427c13d"
+DEFAULT_RULE_REF = "3a511262e611d1783bce8c1e58c85e6e69bb55e3"
+DEFAULT_RULE_PACK_SHA256 = "42f2df024c4dc6e7cdb3af57499253235bfc3232c2fbe73bffc358850ecbce44"
 
 
 @dataclass(frozen=True)
@@ -525,6 +526,7 @@ def detect_aws_events(
         appflow_s3_batch126 = normalize_aws_appflow_s3_batch126(record)
         appflow_update_batch127 = normalize_aws_appflow_update_batch127(record)
         codeconnections_control_batch128 = normalize_aws_codeconnections_control_batch128(record)
+        codeconnections_host_batch129 = normalize_aws_codeconnections_host_batch129(record)
         lambda_controls = normalize_aws_lambda_controls(record)
         lambda_qualified_grant = normalize_aws_lambda_qualified_grant(record)
         lambda_config = normalize_aws_lambda_config(record)
@@ -735,6 +737,7 @@ def detect_aws_events(
                 + appflow_s3_batch126
                 + appflow_update_batch127
                 + codeconnections_control_batch128
+                + codeconnections_host_batch129
                 + ([lambda_controls] if lambda_controls is not None else [])
                 + ([lambda_qualified_grant] if lambda_qualified_grant is not None else [])
                 + ([lambda_config] if lambda_config is not None else [])
