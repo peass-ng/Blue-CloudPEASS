@@ -312,13 +312,16 @@ def _workloads(snapshot, resources, by_type, signal):
             def compute_path(value):
                 return value.split("/compute/v1/", 1)[-1] if isinstance(value, str) and "/compute/v1/" in value else None
 
+            health_by_service = {compute_path(health["data"].get("backendService")): health["data"]
+                for health in by_type["backend_service_health"]
+                if health["scope"] == row["scope"] and health["data"].get("backendService")}
             services = {compute_path(item.get("backend_service")) for step in assessment.path
                 if step.get("layer") == "cloud_armor"
                 for item in step.get("unprotected", []) if isinstance(item, dict)}
             for backend in by_type["backend_service"]:
                 if backend["scope"] != row["scope"] or compute_path(backend["data"].get("selfLink")) not in services:
                     continue
-                for group in (backend["data"].get("BackendHealth") or {}).get("groups") or []:
+                for group in (health_by_service.get(compute_path(backend["data"].get("selfLink"))) or {}).get("groups") or []:
                     if group.get("collection_status") != "collected":
                         continue
                     for status in group.get("healthStatus") or []:

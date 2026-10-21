@@ -366,15 +366,16 @@ def test_gcp_public_load_balancer_links_only_healthy_backend_vm():
             "target": base + "/global/targetHttpsProxies/web"}],
         "target_proxy": [{"name": "web", "selfLink": base + "/global/targetHttpsProxies/web",
             "service": service}],
-        "backend_service": [{"name": "web", "selfLink": service,
-            "BackendHealth": {"collection_status": "collected", "groups": [{"collection_status": "collected",
+        "backend_service": [{"name": "web", "selfLink": service}],
+        "backend_service_health": [{"name": service, "backendService": service,
+            "collection_status": "collected", "groups": [{"collection_status": "collected",
                 "group": base + "/zones/us-central1-a/instanceGroups/web",
-                "healthStatus": [{"instance": vm, "healthState": "HEALTHY"}]}]}}],
+                "healthStatus": [{"instance": vm, "healthState": "HEALTHY"}]}]}],
     }, "projects/home")
     result = findings(snap)
     assert len(result) == 1 and result[0]["evidence"]["principal"] == email
     assert result[0]["evidence"]["endpoints"][0]["backend_evidence"]["health_state"] == "HEALTHY"
-    health = next(c for c in snap["collections"] if c["type"] == "backend_service")["items"][0]["BackendHealth"]
+    health = next(c for c in snap["collections"] if c["type"] == "backend_service_health")["items"][0]
     health["groups"][0]["healthStatus"][0]["healthState"] = "UNHEALTHY"
     assert findings(snap) == []
     health["groups"][0]["healthStatus"][0]["healthState"] = "HEALTHY"
@@ -389,8 +390,7 @@ def test_gcp_public_load_balancer_links_only_healthy_backend_vm():
     protected["securityPolicy"] = base + "/global/securityPolicies/protected"
     open_service = base + "/global/backendServices/other"
     next(c for c in snap["collections"] if c["type"] == "backend_service")["items"].append({
-        "name": "other", "selfLink": open_service,
-        "BackendHealth": {"collection_status": "collected", "groups": []}})
+        "name": "other", "selfLink": open_service})
     proxy = next(c for c in snap["collections"] if c["type"] == "target_proxy")["items"][0]
     proxy.pop("service")
     proxy["urlMap"] = base + "/global/urlMaps/web"
