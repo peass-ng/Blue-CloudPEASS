@@ -64,6 +64,7 @@ from .aws_firehose_sns_batch111 import normalize as normalize_aws_firehose_sns_b
 from .aws_lambda_persistence_batch112 import normalize as normalize_aws_lambda_persistence_batch112, correlate as correlate_aws_lambda_persistence_batch112
 from .aws_inspector_filters_batch113 import normalize as normalize_aws_inspector_filters_batch113, correlate_criteria_change as correlate_aws_inspector_criteria_batch113
 from .aws_ivs_access_batch114 import normalize as normalize_aws_ivs_access_batch114
+from .aws_ivs_sessions_batch115 import normalize as normalize_aws_ivs_sessions_batch115
 from .aws_sagemaker_control_next import normalize_aws_sagemaker_control
 from .aws_rolesanywhere_next import normalize as normalize_aws_rolesanywhere
 from .aws_customer_profiles_next import normalize as normalize_aws_customer_profiles
@@ -245,8 +246,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "7a57156abe8dec05aa92f47794e495830242992d"
-DEFAULT_RULE_PACK_SHA256 = "ea3306261872d3b4c801a91f2f4db6fd7a859759af4aa1732978ecf92a69e724"
+DEFAULT_RULE_REF = "b89b99d1ceb0ad66ba7a30f792c4b9bebf8c2a20"
+DEFAULT_RULE_PACK_SHA256 = "1bf55909d50af4dea521a021f48fd5bc68b410641a99a2e46a687d150ee4f3ea"
 
 
 @dataclass(frozen=True)
@@ -497,6 +498,7 @@ def detect_aws_events(
         lambda_persistence_batch112 = normalize_aws_lambda_persistence_batch112(record)
         inspector_filters_batch113 = normalize_aws_inspector_filters_batch113(record)
         ivs_access_batch114 = normalize_aws_ivs_access_batch114(record)
+        ivs_sessions_batch115 = normalize_aws_ivs_sessions_batch115(record)
         lambda_controls = normalize_aws_lambda_controls(record)
         lambda_qualified_grant = normalize_aws_lambda_qualified_grant(record)
         lambda_config = normalize_aws_lambda_config(record)
@@ -693,6 +695,7 @@ def detect_aws_events(
                 + lambda_persistence_batch112
                 + inspector_filters_batch113
                 + ivs_access_batch114
+                + ivs_sessions_batch115
                 + ([lambda_controls] if lambda_controls is not None else [])
                 + ([lambda_qualified_grant] if lambda_qualified_grant is not None else [])
                 + ([lambda_config] if lambda_config is not None else [])
