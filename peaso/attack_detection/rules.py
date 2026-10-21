@@ -8,7 +8,8 @@ and ``condition: selection``. Unsupported constructs fail closed at load time.
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping, Sequence
-from dataclasses import dataclass
+from copy import deepcopy
+from dataclasses import dataclass, replace
 from functools import lru_cache
 import os
 from pathlib import Path
@@ -290,8 +291,17 @@ def _rule_texts(directory: Path | None) -> tuple[tuple[str, str], ...]:
 
 
 def load_rules(directory: Path | None = None, *, product: str | None = None) -> tuple[Rule, ...]:
+    # The pinned catalog is immutable, while explicit local directories are read
+    # afresh by _rule_texts. Keying the parsed result by the actual texts keeps
+    # local edits visible and avoids parsing hundreds of YAML files per event.
+    cached = _parsed_rules(_rule_texts(directory), product)
+    return tuple(replace(rule, selection=deepcopy(rule.selection)) for rule in cached)
+
+
+@lru_cache(maxsize=4)
+def _parsed_rules(texts: tuple[tuple[str, str], ...], product: str | None) -> tuple[Rule, ...]:
     loaded: list[Rule] = []
-    for name, text in _rule_texts(directory):
+    for name, text in texts:
         source = yaml.safe_load(text)
         if not isinstance(source, Mapping):
             raise ValueError(f"Invalid detection rule: {name}")
