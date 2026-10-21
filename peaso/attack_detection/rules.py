@@ -90,6 +90,7 @@ from .aws_lex_testset_batch136 import normalize as normalize_aws_lex_testset_bat
 from .aws_lex_hook_batch137 import normalize as normalize_aws_lex_hook_batch137, correlate_role_hook as correlate_aws_lex_role_hook_batch137
 from .aws_route53_profiles_batch139 import normalize as normalize_aws_route53_profiles_batch139, correlate_resource_vpc as correlate_aws_route53_profiles_batch139
 from .aws_devicefarm_batch140 import normalize as normalize_aws_devicefarm_batch140
+from .aws_devicefarm_sessions_batch141 import normalize as normalize_aws_devicefarm_sessions_batch141
 from .aws_sagemaker_control_next import normalize_aws_sagemaker_control
 from .aws_rolesanywhere_next import normalize as normalize_aws_rolesanywhere
 from .aws_customer_profiles_next import normalize as normalize_aws_customer_profiles
@@ -271,8 +272,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "fc8ebc9783d5f36ca90392709d3ee9c1047530d1"
-DEFAULT_RULE_PACK_SHA256 = "8dd90257eb50e26c0cdb408da8d28cb1076af2fcdfddd10ea42b8bc5265b168b"
+DEFAULT_RULE_REF = "bd8d0a578bd83350ea0aab3d277ff1908f11ec6f"
+DEFAULT_RULE_PACK_SHA256 = "b679434b5e7045ace01b27b819eb85daf951468bc79382c2194358392ca0fc73"
 
 
 @dataclass(frozen=True)
@@ -549,6 +550,7 @@ def detect_aws_events(
         lex_hook_batch137 = normalize_aws_lex_hook_batch137(record)
         route53_profiles_batch139 = normalize_aws_route53_profiles_batch139(record)
         devicefarm_batch140 = normalize_aws_devicefarm_batch140(record)
+        devicefarm_sessions_batch141 = normalize_aws_devicefarm_sessions_batch141(record)
         lambda_controls = normalize_aws_lambda_controls(record)
         lambda_qualified_grant = normalize_aws_lambda_qualified_grant(record)
         lambda_config = normalize_aws_lambda_config(record)
@@ -771,6 +773,7 @@ def detect_aws_events(
                 + lex_hook_batch137
                 + route53_profiles_batch139
                 + devicefarm_batch140
+                + devicefarm_sessions_batch141
                 + ([lambda_controls] if lambda_controls is not None else [])
                 + ([lambda_qualified_grant] if lambda_qualified_grant is not None else [])
                 + ([lambda_config] if lambda_config is not None else [])
