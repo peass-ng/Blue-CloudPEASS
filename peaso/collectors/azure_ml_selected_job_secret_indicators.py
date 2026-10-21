@@ -1,4 +1,4 @@
-"""Unregistered exact ARM Command-job literals; no source URI following or execution."""
+"""Exact selected ARM job literals; no source URI following or execution."""
 
 from peaso.secret_evidence import scan_with_source, target_source
 from copy import deepcopy
@@ -17,13 +17,15 @@ SERVICE = 'Microsoft.MachineLearningServices'
 API = '2024-04-01'
 WORKSPACE_API = '2026-03-01'
 MARKER = 'SelectedMLCommandJobSecretIndicators'
-SCHEMA = 'azure-selected-ml-command-job-v1'
+SCHEMA = 'azure-selected-ml-job-literals-v2'
 MAX_TARGETS = 4
 MAX_CALLS = 12
 MAX_WIRE = 2 * 1024 * 1024  # Shared immutable native reader bound.
 MAX_TOTAL = 8 * 1024 * 1024
 MAX_CONTENT = 256 * 1024
 MAX_VALUES = 128
+MAX_NODES = 16
+MAX_DEPTH = 2
 MAX_SECONDS = 120
 MAX_LEAKS = 256
 MAX_LOCATIONS = 512
@@ -65,23 +67,64 @@ def selected_targets(options, scopes):
     return deepcopy(targets)
 
 
+def _literal_component(component, prefix, values, remaining_values):
+    """Project a documented CommandJob or TrialComponent literal only."""
+    if not isinstance(component, dict):
+        return False, remaining_values
+    command = component.get('command'); environment = component.get('environmentVariables')
+    complete = True
+    if (isinstance(command, str) and command.strip() and len(command.encode('utf-8')) <= MAX_CONTENT
+            and '@microsoft.keyvault(' not in command.lower() and '${{' not in command
+            and command.strip().lower() not in ('***', '[redacted]', '<redacted>') and remaining_values):
+        values.append({'field': prefix + 'command', 'value': command}); remaining_values -= 1
+    else:
+        complete = False
+    if not isinstance(environment, dict):
+        return False, remaining_values
+    budget = remaining_values
+    if len(environment) > budget:
+        complete = False
+    for index, (key, value) in enumerate(environment.items()):
+        if index >= budget:
+            break
+        if (not isinstance(key, str) or not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]{0,127}', key)
+                or not isinstance(value, str) or len(value.encode('utf-8')) > MAX_CONTENT
+                or '@microsoft.keyvault(' in value.lower() or '${{' in value
+                or value.strip().lower() in ('***', '[redacted]', '<redacted>')):
+            complete = False; continue
+        values.append({'field': prefix + 'environmentVariables', 'name': key, 'value': value})
+        remaining_values -= 1
+    return complete, remaining_values
+
+
 def project(properties):
-    """Only command text and explicit literal environment map; not all job fields."""
-    if properties.get('jobType') != 'Command': raise ValueError('unsupported_job')
-    command = properties.get('command'); environment = properties.get('environmentVariables')
-    complete = isinstance(command, str) and bool(command.strip()) and isinstance(environment, dict) and len(environment) <= MAX_VALUES
-    values = []
-    if isinstance(command, str) and command.strip() and '@microsoft.keyvault(' not in command.lower():
-        values.append({'field': 'command', 'value': command})
-    else: complete = False
-    if isinstance(environment, dict) and len(environment) <= MAX_VALUES:
-        for key, value in environment.items():
-            if (not isinstance(key, str) or not key or not isinstance(value, str)
-                    or '@microsoft.keyvault(' in value.lower() or '${{' in value
-                    or value.strip().lower() in ('***','[redacted]','<redacted>')):
+    """Inspect only inline job command and literal environment fields of supported DTOs."""
+    if not isinstance(properties, dict): raise ValueError('unsupported_job')
+    job_type = properties.get('jobType'); values = []; remaining_values = MAX_VALUES
+    if job_type == 'Command':
+        complete, remaining_values = _literal_component(properties, '', values, remaining_values)
+    elif job_type == 'Sweep':
+        complete, remaining_values = _literal_component(properties.get('trial'), 'trial.', values, remaining_values)
+    elif job_type == 'Pipeline':
+        jobs = properties.get('jobs')
+        if not isinstance(jobs, dict) or not jobs: raise ValueError('empty_pipeline_jobs')
+        complete = len(jobs) <= MAX_NODES
+        for index, (name, child) in enumerate(jobs.items()):
+            if index >= MAX_NODES: break
+            if not isinstance(name, str) or not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_.-]{0,127}', name) or not isinstance(child, dict):
                 complete = False; continue
-            values.append({'field': 'environmentVariables', 'name': key, 'value': value})
-    else: complete = False
+            child_type = child.get('jobType')
+            if child_type == 'Command':
+                part, remaining_values = _literal_component(child, 'jobs.' + name + '.', values, remaining_values)
+            elif child_type == 'Sweep' and MAX_DEPTH >= 2:
+                part, remaining_values = _literal_component(child.get('trial'), 'jobs.' + name + '.trial.', values, remaining_values)
+            else:
+                # Component references, nested pipelines and other job DTOs have
+                # no proven inline command/environment surface here.
+                complete = False; continue
+            complete = complete and part
+    else:
+        raise ValueError('unsupported_job')
     if not values: raise ValueError('empty_projection')
     raw = json.dumps(values, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
     if not 0 < len(raw) <= MAX_CONTENT: raise ValueError('content_limit')
@@ -91,7 +134,7 @@ def project(properties):
 def _scan(reader, transport, target, scope, state, receipts):
     ident = identity(target); _, rid, workspace = parse(target); start = len(receipts)
     marker = {'schema':SCHEMA,'identity':ident,'scope':scope,'capture':state['capture'],'complete':False,
-        'projection_complete':False,'job_type':None,'workspace_binding':None,'declared_references':{},
+        'projection_complete':False,'native_stable':False,'job_type':None,'workspace_binding':None,'declared_references':{},
         'parts':[],'leaks':[],'source_requests':[],'verification':'not_attempted'}
     try:
         def read(operation,path):
@@ -109,20 +152,26 @@ def _scan(reader, transport, target, scope, state, receipts):
         native = read('job',rid+'?api-version='+API)
         _bound(native,rid,SERVICE+'/workspaces/jobs')
         if native['id'].rsplit('/',1)[1]!=rid.rsplit('/',1)[1] or native['name']!=rid.rsplit('/',1)[1]:raise ValueError('job_unbound')
-        receipts[-1]['identity_bound']=True;props=native['properties'];marker['job_type']=props.get('jobType')if props.get('jobType')=='Command'else None
+        receipts[-1]['identity_bound']=True;before=native;props=native['properties'];marker['job_type']=props.get('jobType')if props.get('jobType')in('Command','Pipeline','Sweep')else None
         raw,projection_complete=project(props);marker['projection_complete']=projection_complete
         # Native-declared reference strings are opaque declarations, never asset/read proofs.
         marker['declared_references']={k:_fingerprint(props[k])for k in('codeId','environmentId')if isinstance(props.get(k),str)and props[k]}
         del props
         payload_bytes=len(raw)
         result=scan_with_source(scan_content, raw,ident+'.command_environment_literals',timeout=remaining(reader,state)/2,
-            _redact_values=lambda values:remember(reader,'configuration_secret_redactions',values), source=target_source(target, resource_id=ident, scope=scope, location_kind='configuration'), native=native);del raw,native
+            _redact_values=lambda values:remember(reader,'configuration_secret_redactions',values), source={**target_source(target, scope=scope, location_kind='configuration'), 'resource_id':ident}, native=native);del raw,native
         marker['parts']=[{'bytes':payload_bytes,'engines':deepcopy(result['engines']),'complete':result['complete']}]
         leaks=merge_leaks(result['leaks']);bounded=[];locations=0
         for leak in leaks:
             if len(bounded)>=MAX_LEAKS or locations+len(leak['locations'])>MAX_LOCATIONS:break
             bounded.append(leak);locations+=len(leak['locations'])
         marker['leaks']=bounded;remaining(reader,state)
+        after=read('job_after',rid+'?api-version='+API)
+        _bound(after,rid,SERVICE+'/workspaces/jobs')
+        if after['id'].rsplit('/',1)[1]!=rid.rsplit('/',1)[1] or after['name']!=rid.rsplit('/',1)[1]:raise ValueError('job_unbound')
+        receipts[-1]['identity_bound']=True
+        if after!=before:raise ValueError('job_drift')
+        marker['native_stable']=True
         marker['complete']=projection_complete and result['complete']is True and len(bounded)==len(leaks)
     except Exception:
         marker['complete']=False

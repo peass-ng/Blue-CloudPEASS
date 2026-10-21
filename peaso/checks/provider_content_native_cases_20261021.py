@@ -1,21 +1,27 @@
-"""Captured offline native cases for the three reviewed provider controls."""
+"""Captured offline native cases for the selected ACR and Artifact Registry checks.
+
+Runtime registration loads only package data; native snapshots were captured by
+focused offline collector fixtures and are verified by evaluator tests.
+"""
+from copy import deepcopy
 import hashlib
 import json
 from pathlib import Path
 
-SHA256 = 'c1f459d1b83a5a2895f49c06067e5f2357d3a6634bd4102d2c0b1f757ff3c1f9'
-IDS = frozenset({
-    'azure.review.acr.selected_image_high_critical_vulnerabilities',
-    'gcp.review.artifact_image.selected_image_vulnerabilities',
-    'k8s.review.selected_text_content.secret_indicators',
-})
+SHA256 = '2932cf82bc227fd6da7b13fa6eafbfa3357ccb75ca64d8f26a3361d8333bf454'
+IDS = frozenset(('azure.review.acr.selected_image_high_critical_vulnerabilities', 'gcp.review.artifact_image.selected_image_vulnerabilities'))
+REQUIRED = frozenset(('pass', 'pass_index', 'fail', 'fail_index',
+                      'unknown', 'unknown_index', 'missing', 'missing_index'))
 
 
 def native_case(check_id):
+    if check_id not in IDS:
+        raise ValueError('unrecognized provider native case')
     raw = Path(__file__).with_suffix('.json').read_bytes()
     if hashlib.sha256(raw).hexdigest() != SHA256:
         raise RuntimeError('Provider native reproduction cases changed')
     cases = json.loads(raw)
-    if set(cases) != IDS or check_id not in IDS:
-        raise RuntimeError('Provider native reproduction IDs changed')
-    return cases[check_id]
+    if set(cases) != IDS or any(not isinstance(case, dict) or not REQUIRED <= set(case)
+                                 for case in cases.values()):
+        raise RuntimeError('Provider native reproduction IDs or cases changed')
+    return deepcopy(cases[check_id])

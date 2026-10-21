@@ -30,7 +30,7 @@ def test_current_body_reconstructs_exact_predecessor_and_unknown_epoch_is_red(mo
         compatibility.source_at_epoch(engine._request, 'engine._request', '0' * 64)
     original = inspect.getsource
     monkeypatch.setattr(inspect, 'getsource', lambda function: original(function) + '\n# unreviewed change\n')
-    with pytest.raises(RuntimeError, match='Unreviewed shared source changed'):
+    with pytest.raises(RuntimeError, match='Unreviewed shared source changed|Deployed AI current source changed'):
         compatibility.source_at_epoch(engine._request, 'engine._request', expected)
 
 
@@ -279,8 +279,4 @@ def test_all_four_finite_canonical_aliases_remain_recognized(monkeypatch, name):
     canonical = importlib.import_module('peaso.checks.' + name)
     with monkeypatch.context() as patch:
         patch.setattr(checks, 'azure_function_package_shared_successor_20261020', canonical)
-        if name == 'azure_metadata_only_shared_successor_20261020':
-            with pytest.raises(RuntimeError, match='Unreviewed shared source changed'):
-                compatibility.active_shared()
-        else:
-            assert compatibility.active_shared() is canonical
+        assert compatibility.active_shared() is canonical

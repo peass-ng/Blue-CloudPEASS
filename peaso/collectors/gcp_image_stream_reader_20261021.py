@@ -13,11 +13,12 @@ import shutil
 from urllib.parse import urlsplit
 
 from . import gcp_image_secret_indicators as native
+from peaso import oci_index_20261021 as oci_index
 
 CHUNK = 64 * 1024
 MAX_LAYER = 512 * 1024 * 1024
 MAX_IMAGE = 1024 * 1024 * 1024
-MAX_CALLS = native.MAX_IMAGES * (64 + 2)  # manifest + config + all 64 layers
+MAX_CALLS = 1 + oci_index.MAX_CHILDREN * (64 + 2)  # parent + bounded child manifests/configs/layers
 MIN_FREE_DISK = 256 * 1024 * 1024
 
 
@@ -90,7 +91,8 @@ class Reader(native.Reader):
             raise ValueError('native access token unavailable')
         basic = base64.b64encode(('oauth2accesstoken:' + authorization[7:]).encode()).decode()
         headers = {'Authorization': 'Basic ' + basic, 'Accept-Encoding': 'identity',
-                   'Accept': native.OCI + ', ' + native.DOCKER if category == 'manifests' else 'application/octet-stream'}
+                   'Accept': ', '.join((native.OCI, native.DOCKER, oci_index.OCI_INDEX,
+                       oci_index.DOCKER_LIST)) if category == 'manifests' else 'application/octet-stream'}
         if hasattr(self.session, 'cookies'):
             self.session.cookies.clear()
         self.current_receipt['http_attempts'] = 1

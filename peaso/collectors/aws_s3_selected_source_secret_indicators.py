@@ -50,9 +50,23 @@ class Incomplete(ValueError):
     pass
 
 
+def _codecommit_only(options):
+    kinds=options.get('_content_secret_scan_kinds',())
+    targets=options.get('selected_aws_build_deployment_sources')
+    return (OPTION not in options and isinstance(kinds,list)
+        and 'build_deployment_referenced_source_content' in kinds
+        and not {'s3_selected_source_content','ecs_selected_environment_file_content',
+                 'workload_referenced_source_content'}.intersection(kinds)
+        and isinstance(targets,list) and bool(targets)
+        and all(isinstance(t,dict) and t.get('profile')=='codebuild_codecommit_source' for t in targets))
+
+
 def enabled(options):
     return (options.get('content_secret_scans') is True and isinstance(options.get('_content_secret_scan_kinds'), list)
-            and KIND in options['_content_secret_scan_kinds'])
+            and not _codecommit_only(options)
+            and (KIND in options['_content_secret_scan_kinds'] or 'ecs_selected_environment_file_content' in options['_content_secret_scan_kinds']
+                or 'workload_referenced_source_content' in options['_content_secret_scan_kinds']
+                or 'build_deployment_referenced_source_content' in options['_content_secret_scan_kinds']))
 
 
 def parse(target):
@@ -170,6 +184,27 @@ def validate_request(requests, session, service, region, operation, args, contex
     ident = identity(target); scope = target['scope']
     if ident not in requests.s3_source_metadata[KIND + '_selection'].get(scope, []) or selected_region != region:
         raise Incomplete('selected_s3_profile_scope')
+    if KIND not in getattr(requests, 'content_secret_scan_kinds', ()):
+        from .aws_ecs_environment_file_secret_indicators import source_target as ecs_source_target
+        grant = getattr(requests, 'ecs_envfile_grants', {}).get(ident)
+        ecs_target = getattr(requests, 'ecs_envfile_targets', {}).get(grant[2]) if isinstance(grant, tuple) and len(grant) == 3 else None
+        ecs_bound = ('ecs_selected_environment_file_content' in getattr(requests, 'content_secret_scan_kinds', ())
+            and isinstance(grant, tuple) and len(grant) == 3 and grant[:2] == (id(session), scope)
+            and isinstance(ecs_target, dict) and ecs_source_target(ecs_target) == target)
+        from .aws_workload_referenced_source_indicators import source_target as workload_source_target
+        other = getattr(requests, 'workload_source_grants', {}).get(ident)
+        work_target = getattr(requests, 'workload_source_targets', {}).get(other[2]) if isinstance(other, tuple) and len(other) == 3 else None
+        workload_bound = ('workload_referenced_source_content' in getattr(requests, 'content_secret_scan_kinds', ())
+            and isinstance(other, tuple) and len(other) == 3 and other[:2] == (id(session), scope)
+            and isinstance(work_target, dict) and workload_source_target(work_target) == target)
+        from .aws_build_deployment_referenced_source_indicators import source_target as build_source_target
+        build_grant = getattr(requests, 'build_deployment_grants', {}).get(ident)
+        build_target = getattr(requests, 'build_deployment_targets', {}).get(build_grant[2]) if isinstance(build_grant, tuple) and len(build_grant) == 3 else None
+        build_bound = ('build_deployment_referenced_source_content' in getattr(requests, 'content_secret_scan_kinds', ())
+            and isinstance(build_grant, tuple) and len(build_grant) == 3 and build_grant[:2] == (id(session), scope)
+            and isinstance(build_target, dict) and build_source_target(build_target) == target)
+        if not (ecs_bound or workload_bound or build_bound):
+            raise Incomplete('selected_s3_delegated_grant_unbound')
     expected_service, expected_operation, expected_args = arguments(target, phase, requests.s3_source_heads.get(ident))
     if (service, operation) not in PROJECTION_OPERATIONS or (service, operation, args) != (expected_service, expected_operation, expected_args):
         raise Incomplete('undeclared_selected_s3_operation')

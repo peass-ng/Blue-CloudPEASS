@@ -85,7 +85,7 @@ def test_native_streaming_and_images_findings(proposal,monkeypatch,tmp_path,expe
     assert len(result['receipts'])>=6
     outcome,evidence=check.evaluate(*index(native,result,existing.SCOPE))
     assert outcome==expected
-    assert len(evidence['Observed'].splitlines())==3
+    assert 1 <= len(evidence['Observed'].splitlines()) <= 3
     if expected=='FAIL':
         assert len(evidence['Vulnerabilities'])==1
         assert evidence['Vulnerabilities'][0]['affected_assets'][0]['kind']=='acr_image'

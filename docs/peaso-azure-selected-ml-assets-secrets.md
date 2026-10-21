@@ -4,10 +4,28 @@ These two optional controls inspect captured text with pinned offline Kingfisher
 
 | Optional check | Option (1–4 targets, four combined) | Inspected bytes |
 | --- | --- | --- |
-| `azure.review.machine_learning.selected_environment_conda_secret_indicators` | `selected_azure_ml_environment_versions` | Returned inline `properties.condaFile` text from an exact workspace environment version |
+| `azure.review.machine_learning.selected_environment_conda_secret_indicators` | `selected_azure_ml_environment_versions` | Returned inline `properties.condaFile` text, or one explicitly selected Dockerfile under `properties.build.contextUri`, from an exact workspace environment version |
 | `azure.review.machine_learning.selected_code_file_secret_indicators` | `selected_azure_ml_code_files` | One exact selected plain file associated with a native code-version URI, named datastore and explicit storage account |
 
-An environment selector is `{ "resource_id": "/subscriptions/SUB/resourceGroups/RG/providers/Microsoft.MachineLearningServices/workspaces/WS/environments/NAME/versions/VERSION" }`. Names and versions retain case. The supported inline subset is nonempty UTF-8 text containing a `dependencies:` declaration; pointers, empty/masked text, unsupported text and missing fields remain unresolved. Image and build-context declarations are ignored. The [Environment Versions Get API](https://learn.microsoft.com/en-us/rest/api/azureml/environment-versions/get?view=rest-azureml-2026-05-01) defines the returned field; reading it does not install anything.
+An inline Conda selector is `{ "resource_id": "/subscriptions/SUB/resourceGroups/RG/providers/Microsoft.MachineLearningServices/workspaces/WS/environments/NAME/versions/VERSION" }`. Names and versions retain case. The supported inline subset is nonempty UTF-8 text containing a `dependencies:` declaration; pointers, empty/masked text, unsupported text and missing fields remain unresolved. Image contents are not inspected. The [Environment Versions Get API](https://learn.microsoft.com/en-us/rest/api/azureml/environment-versions/get?view=rest-azureml-2026-05-01) defines the returned `condaFile` and `build` fields; reading them does not build an image.
+
+To inspect one Dockerfile instead, use the same environment-version ID plus `datastore` and `storage` fields:
+
+```json
+{
+  "resource_id": "/subscriptions/SUB/resourceGroups/RG/providers/Microsoft.MachineLearningServices/workspaces/WS/environments/NAME/versions/VERSION",
+  "datastore": "source_store",
+  "storage": {
+    "service": "blob",
+    "resource_id": "/subscriptions/SUB/resourceGroups/STORAGE_RG/providers/Microsoft.Storage/storageAccounts/ACCOUNT",
+    "container": "sources",
+    "object": "build/prod/Dockerfile",
+    "format": "text"
+  }
+}
+```
+
+The returned `properties.build.contextUri` must identify a supported `azureml://datastores/NAME/paths/build/`, fully scoped datastore URI, or exact `https://ACCOUNT.blob.core.windows.net/CONTAINER/build/` directory. The declared `dockerfilePath` must be a safe relative path; the selected Blob object must equal the context directory plus that path, byte for byte. Git, local, foreign or query-bearing contexts are unresolved. One file is read; the build context directory is never listed, cloned, downloaded or built. The [ARM environment build schema](https://learn.microsoft.com/en-us/azure/templates/microsoft.machinelearningservices/2026-05-01/workspaces/environments/versions) defines `contextUri` and `dockerfilePath`.
 
 A code selector uses this structure:
 
@@ -27,6 +45,8 @@ A code selector uses this structure:
 
 For Azure Files use `service: "file"` and `share` instead of `container`. Optional `storage.version` is an existing Blob version timestamp or File share-snapshot timestamp, following the existing selected-storage contract. No snapshot is created. Only supported plain files are admitted here; archives remain a separate manually selected stored-source surface.
 
+To bind that selected code file to a native Command job, add `job_resource_id` with the exact `/subscriptions/SUB/resourceGroups/RG/providers/Microsoft.MachineLearningServices/workspaces/WS/jobs/JOB` ID in the same workspace. The read-only [Jobs Get API](https://learn.microsoft.com/en-us/rest/api/azureml/jobs/get?view=rest-azureml-2024-04-01) documents `properties.codeId` as the code asset ARM ID. The reader requires that ID to equal the selected code version, reads the job before the code and again after scanning, and retains a detected positive when the final job read is incomplete. This is one selected file referenced by one selected Command job, not complete job source or executed bytes. The extra setup permission is `Microsoft.MachineLearningServices/workspaces/jobs/read` on the selected job.
+
 The native [Code Versions Get API](https://learn.microsoft.com/en-us/rest/api/azureml/code-versions/get?view=rest-azureml-2026-05-01) returns `codeUri`. Supported forms are `azureml://datastores/NAME/paths/PATH`, the documented long datastore form with the exact selected workspace, and `https://ACCOUNT.blob.core.windows.net/CONTAINER/PATH` or the corresponding `file.core.windows.net/SHARE/PATH`. A trailing slash selects a declared folder prefix, within which the customer still selects exactly one file; it never authorizes listing. Without a trailing slash the object path must match exactly. The [datastore URI documentation](https://learn.microsoft.com/en-us/azure/machine-learning/how-to-access-data-interactive?view=azureml-api-2) describes the long form.
 
 The selected datastore's [ordinary ARM Get](https://learn.microsoft.com/en-us/rest/api/azureml/datastores/get?view=rest-azureml-2026-05-01) must return a coherent AzureBlob/AzureFile account, container/share, `https` protocol, standard `core.windows.net` endpoint and explicit subscription/resource-group parent matching the storage selector. Missing parent metadata is unresolved. A full storage-account Get must independently bind its selected ARM ID and native primary endpoint. Percent-encoded aliases, traversal, double decoding, SAS/query/fragment links, foreign workspaces, external URLs, registry assets, ADLS, local/Git/job references and unsupported metadata are not followed.
@@ -39,7 +59,7 @@ Stored datastore authentication does not grant this reader access. Safe returned
 | --- | --- | --- |
 | Subscription Get and ML workspace Get | `Microsoft.Resources/subscriptions/read`, `Microsoft.MachineLearningServices/workspaces/read` | `https://management.azure.com` |
 | Exact environment version Get | `Microsoft.MachineLearningServices/workspaces/environments/versions/read` | ARM |
-| Exact code version and datastore Get | `Microsoft.MachineLearningServices/workspaces/codes/versions/read`, `Microsoft.MachineLearningServices/workspaces/datastores/read` | ARM |
+| Exact code version and datastore Get; datastore also required for selected Dockerfile | `Microsoft.MachineLearningServices/workspaces/codes/versions/read` for code only, `Microsoft.MachineLearningServices/workspaces/datastores/read` for external file selection | ARM |
 | Selected storage account full Get | `Microsoft.Storage/storageAccounts/read` | ARM |
 | Named Blob properties/content | `Microsoft.Storage/storageAccounts/blobServices/containers/blobs/read`; scoped Storage Blob Data Reader, preferably constrained to the intended source | `https://storage.azure.com` |
 | Optional named File properties/content | Storage File Data Privileged Reader at the intended share, including privileged read/backup semantics | Storage |
@@ -50,8 +70,8 @@ Both [ARM and Storage OAuth](https://learn.microsoft.com/en-us/rest/api/storages
 
 ## Evidence and limits
 
-The reader binds native subscription/tenant/workspace identity, repeats asset/workspace metadata, and repeats datastore metadata for code. Blob/File content uses the accepted bounded HEAD/GET/HEAD reader with ETag and optional native version coherence. Closing metadata mismatch prevents scanning. This provides a point-in-time association, not an atomic transaction, immutable asset-at-creation source, original job source, executed bytes or whole-folder coverage. File snapshots and Blob versions identify captured objects, not when the code asset first referenced them.
+The reader binds native subscription/tenant/workspace identity, repeats asset/workspace metadata, and repeats datastore metadata for external code or Dockerfile selection. Blob/File content uses the accepted bounded HEAD/GET/HEAD reader with ETag and optional native version coherence. Closing metadata mismatch prevents scanning. This provides a point-in-time association, not an atomic transaction, immutable asset-at-creation source, original job source, executed bytes or whole-folder coverage. Blob versions identify captured objects, not when the environment first referenced them.
 
-A shared 120-second checked deadline, 48 native calls, 8 MiB total wire bytes, 512 KiB per ARM response and 256 KiB per selected text body bound this reader. Reads are uncached, named GET/HEAD only and never redirect. SDK OAuth acquisition has its own timeout/retry behavior; the checked content deadline does not hard-cancel an in-flight SDK credential request.
+A shared 120-second checked deadline, 56 native calls, 8 MiB total wire bytes, 512 KiB per ARM response and 256 KiB per selected text body bound this reader. Reads are uncached, named GET/HEAD only and never redirect. SDK OAuth acquisition has its own timeout/retry behavior; the checked content deadline does not hard-cancel an in-flight SDK credential request.
 
 Clean PASS requires supported nonempty text, full native binding and both engines completing. Unreadable, partial, denied, changed, malformed, masked, empty or unsupported negatives remain UNKNOWN. A bound completed-engine hit remains FAIL when another detector or selected source cannot complete. Values are hidden and never externally validated. HMAC locations and exact-value dedup feed the existing transient union-redaction recipe before cleanup. Manually selected Blob/File copies or ACR images alone do not establish ML asset association.

@@ -265,6 +265,11 @@
       "verified": true
     },
     {
+      "path": "native-extensions/provider-final-selected-content-20261021.json",
+      "sha256": "e6e187e828de59b227d987d518f0a157650bc1f07e55e16fa776a89382552551",
+      "verified": true
+    },
+    {
       "path": "native-extensions/unused-iam-k8s-20261021.json",
       "sha256": "8a3acf8938d21214728d75006759ccf28a37ed0785f4029761f523d54c5e857d",
       "verified": true
@@ -362,8 +367,8 @@
   ],
   "new_descriptions": {
     "path": "descriptions/implemented-new-checks.json",
-    "checks": 1062,
-    "sha256": "c2e59e7c360ac6b2b756f1966835a25542ac8c3ad72140f6366ddfa9644b2372",
+    "checks": 1081,
+    "sha256": "51bdf5eebdd4a0330755481131616252fa278a25cf2770d20cfb3dd9b9bbbe75",
     "verified": true
   },
   "slices": {

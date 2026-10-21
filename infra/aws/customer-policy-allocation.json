@@ -541,9 +541,6 @@
                   "Fn::Sub": "arn:${AWS::Partition}:apigateway:*::/apis/*/authorizers"
                 },
                 {
-                  "Fn::Sub": "arn:${AWS::Partition}:apigateway:*::/apis/*/integrations"
-                },
-                {
                   "Fn::Sub": "arn:${AWS::Partition}:apigateway:*::/apis/*/routes"
                 },
                 {
@@ -554,12 +551,6 @@
                 },
                 {
                   "Fn::Sub": "arn:${AWS::Partition}:apigateway:*::/domainnames"
-                },
-                {
-                  "Fn::Sub": "arn:${AWS::Partition}:apigateway:*::/domainnames/*/basepathmappings"
-                },
-                {
-                  "Fn::Sub": "arn:${AWS::Partition}:apigateway:*::/domainnames/*/apimappings"
                 },
                 {
                   "Fn::Sub": "arn:${AWS::Partition}:apigateway:*::/restapis"

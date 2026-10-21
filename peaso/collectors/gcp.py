@@ -805,8 +805,8 @@ SUPPORTED_TYPES = SUPPORTED_TYPES | {'bucket_acl', 'object_acl', 'bucket_effecti
 SUPPORTED_TYPES = SUPPORTED_TYPES | {'log_entry', 'scc_finding', 'scc_notification_config', 'backup_target', 'asset_service_inventory', 'access_approval_request', 'provider_access_event', 'asset_previous', 'asset_audit_log'}
 SUPPORTED_TYPES = SUPPORTED_TYPES | {'source_repository_file', 'cloudtasks_selected_task', 'bigquery_selected_routine'}
 SUPPORTED_TYPES = SUPPORTED_TYPES | dataproc_source_runtime.KINDS | workbench_source_runtime.KINDS | selected_job_source_runtime.KINDS
-SUPPORTED_TYPES = SUPPORTED_TYPES | {'cloudrun_job_declared_image'}
-SUPPORTED_TYPES = SUPPORTED_TYPES | {'cloud_run_selected_job_image_vulnerabilities', 'artifact_selected_image_vulnerabilities'}
+SUPPORTED_TYPES = SUPPORTED_TYPES | {'cloudrun_job_declared_image', 'cloudrun_worker_pool_selected_revision_image', 'developerconnect_selected_file'}
+SUPPORTED_TYPES = SUPPORTED_TYPES | {'cloud_run_selected_job_image_vulnerabilities', 'artifact_selected_image_vulnerabilities', 'gke_selected_pod_image_secrets', 'gke_selected_pod_image_vulnerabilities', 'appengine_flex_selected_version_image_secrets', 'appengine_flex_selected_version_image_vulnerabilities'}
 # These inventories represent optional application content, not metadata.
 # An unselected read cannot establish that no resources/content exist.
 CONTENT_ONLY_TYPES = selected_job_source_runtime.KINDS | dataproc_source_runtime.KINDS | workbench_source_runtime.KINDS | frozenset({
@@ -817,10 +817,11 @@ CONTENT_ONLY_TYPES = selected_job_source_runtime.KINDS | dataproc_source_runtime
     'log_secret_sample', 'gcs_selected_object', 'gcs_selected_archive',
     'dataform_selected_file', 'app_engine_version_secret', 'workflow_source',
     'dataflow_job', 'batch_job', 'dataproc_job', 'gke_workload_literal',
+    'gke_selected_pod_image_secrets', 'gke_selected_pod_image_vulnerabilities',
     'function_source_archive', 'composer_dag_source', 'artifact_selected_file', 'cloudbuild_log_source', 'appengine_deployment_source',
 })
-CONTENT_ONLY_TYPES = CONTENT_ONLY_TYPES | {'cloudrun_job_declared_image'}
-CONTENT_ONLY_TYPES = CONTENT_ONLY_TYPES | {'cloud_run_selected_job_image_vulnerabilities', 'artifact_selected_image_vulnerabilities'}
+CONTENT_ONLY_TYPES = CONTENT_ONLY_TYPES | {'cloudrun_job_declared_image', 'cloudrun_worker_pool_selected_revision_image', 'developerconnect_selected_file'}
+CONTENT_ONLY_TYPES = CONTENT_ONLY_TYPES | {'cloud_run_selected_job_image_vulnerabilities', 'artifact_selected_image_vulnerabilities', 'appengine_flex_selected_version_image_secrets', 'appengine_flex_selected_version_image_vulnerabilities'}
 # Compute kinds whose resource IAM policy is read with the per-kind GET
 # {resource}/getIamPolicy method (collection path segment, location kind).
 COMPUTE_IAM = {"subnetwork": ("subnetworks", "region"), "image": ("images", None), "node_group": ("nodeGroups", "zone"),
@@ -1042,6 +1043,14 @@ class GCPCollector:
             self.auth = {}
         if not isinstance(self.auth, dict):
             raise ValueError("GCP auth must be an object")
+        if 'selected_appengine_flex_version_images' in self.options:
+            from peaso.gcp_appengine_flex_image_selection_20261021 import selected as selected_flex_images
+            selected_flex_images(self.options, connector.get('scopes', []), self.options.get('_appengine_flex_image_named_checks', []))
+        if 'selected_gke_pod_images' in self.options:
+            from peaso.gcp_gke_image_selection_20261021 import selected as gke_image_selected, kubernetes_auth as gke_image_auth, registry_auth as gke_registry_auth
+            selected_gke_images = gke_image_selected(self.options, connector.get('scopes', []), self.options.get('_gke_image_named_checks', []))
+            gke_image_auth(self.auth, selected_gke_images)
+            gke_registry_auth(self.auth, selected_gke_images, self.options.get('selected_registry_hosts', []))
         if self.auth.get("quota_project"):
             self.options["quota_project"] = self.auth["quota_project"]
         if requirements is not None and (not isinstance(requirements, (list, tuple, set)) or
@@ -2788,6 +2797,12 @@ class GCPCollector:
                 for scope in self.scopes if scope.startswith('projects/')])
         from .gcp_gke_literal_secret_indicators import dependent_jobs as gke_literal_jobs
         self.run_jobs(gke_literal_jobs(self))
+        if self.needed & {'appengine_flex_selected_version_image_secrets', 'appengine_flex_selected_version_image_vulnerabilities'}:
+            from .gcp_appengine_flex_image_runtime_20261021 import collect as collect_flex_images
+            collect_flex_images(self)
+        if self.needed & {'gke_selected_pod_image_secrets', 'gke_selected_pod_image_vulnerabilities'}:
+            from .gcp_gke_selected_pod_image_20261021 import collect as collect_gke_images
+            collect_gke_images(self)
         if "app_engine_version" in self.needed:
             from .gcp_appengine_versions import list_versions
             version_jobs = []
@@ -3668,6 +3683,25 @@ class GCPCollector:
         for kind in sorted(self.needed.intersection({"workspace_role", "workspace_role_assignment"})):
             self.add(kind, scope, "workspace-directory", lambda kind=kind: pages(kind))
 
+    def remember_selected_image_matches(self, matches):
+        values = getattr(self, 'gcp_selected_image_redactions', None)
+        if values is None:
+            values = self.gcp_selected_image_redactions = set()
+        if getattr(self, 'gcp_selected_image_redaction_overflow', False):
+            return
+        if (not isinstance(matches, (set, frozenset)) or
+                any(type(value) is not str or not value or len(value.encode('utf-8')) > 4096
+                    for value in matches)):
+            self.gcp_selected_image_redaction_overflow = True
+            values.clear()
+            return
+        combined = values | matches
+        if len(combined) > 256 or sum(len(value.encode('utf-8')) for value in combined) > 65536:
+            self.gcp_selected_image_redaction_overflow = True
+            values.clear()
+            return
+        values.update(matches)
+
     def finish(self):
         from peaso.snapshot import make_snapshot
         envelopes, hierarchy_discovery = [], []
@@ -3786,6 +3820,9 @@ class GCPCollector:
         from .gcp_gke_literal_secret_indicators import selection_metadata
         if "gke_workload_literal" in self.needed:
             metadata.update(selection_metadata(self))
+        metadata.update(getattr(self, 'appengine_flex_image_metadata', {}))
+        metadata.update(getattr(self, 'workerpool_image_metadata', {}))
+        metadata.update(getattr(self, 'gke_selected_image_metadata', {}))
         from .gcp_function_source_secret_indicators import selection_metadata as function_source_selection
         if 'function_source_archive' in self.needed:
             metadata.update(function_source_selection(self))
@@ -3817,6 +3854,26 @@ class GCPCollector:
             snapshot = workbench_source_runtime.final_snapshot(self, snapshot)
         if self.needed & dataproc_source_runtime.KINDS:
             snapshot = dataproc_source_runtime.final_snapshot(self, snapshot)
+        gke_values = getattr(self, 'gke_selected_image_redactions', set())
+        image_values = getattr(self, 'gcp_selected_image_redactions', set())
+        try:
+            values = gke_values | image_values
+            if (getattr(self, 'gcp_selected_image_redaction_overflow', False)
+                    or len(values) > 256
+                    or sum(len(value.encode('utf-8')) for value in values) > 65536):
+                raise ValueError('gcp_selected_image_redaction_bound')
+            if values:
+                from peaso.secret_scanning import redact_matches
+                snapshot = redact_matches(snapshot, values)
+                self.collections = redact_matches(self.collections, values)
+                self.options = redact_matches(self.options, values)
+                if self.transport is not None:
+                    self.transport.cache = redact_matches(self.transport.cache, values)
+                    self.transport.evidence = redact_matches(self.transport.evidence, values)
+                    self.transport.options = redact_matches(self.transport.options, values)
+        finally:
+            gke_values.clear()
+            image_values.clear()
         self.progress("error" if self.auth_error else "completed", complete=True)
         return snapshot
 
@@ -3906,6 +3963,7 @@ class GCPCollector:
                         self.add(kind, scope, kind, lambda exc=exc: (_ for _ in ()).throw(exc))
             return self.finish()
         finally:
+            getattr(self, 'gcp_selected_image_redactions', set()).clear()
             self.hydration_pool.shutdown(wait=True)
             if self.transport is not None:
                 selected_job_source_runtime.clear_pending(self.transport)
@@ -3922,6 +3980,12 @@ def collect(connector: dict, requirements: list[str] | None = None) -> dict:
     selected = inventories if requirements is None else requirements
     if 'cloud_run_selected_job_image_vulnerabilities' in selected:
         from .gcp_job_image_vulnerability_runtime_20261021 import collect_connector
+        return collect_connector(connector, requirements)
+    if 'developerconnect_selected_file' in selected:
+        from .gcp_developerconnect_file_runtime_20261021 import collect_connector
+        return collect_connector(connector, requirements)
+    if 'cloudrun_worker_pool_selected_revision_image' in selected:
+        from .gcp_workerpool_image_runtime_20261021 import collect_connector
         return collect_connector(connector, requirements)
     if 'cloudrun_job_declared_image' in selected:
         from .gcp_cloudrun_job_image_runtime_20261020 import collect_connector

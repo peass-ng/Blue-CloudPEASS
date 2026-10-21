@@ -108,7 +108,8 @@ def publish_report(artifacts, tenant, ident, report, snapshot=None):
                 "graphs": {}, "finding_count": len(report.get("findings", [])), "finding_group_count": len(presented.get("findings", [])), "observation_count": len(report.get("findings", [])), "coverage_count": len(report.get("coverage", []))}
     from peaso.image_findings_storage import attach_to_manifest
     metadata = snapshot.get("metadata", {}) if isinstance(snapshot, dict) else {}
-    image_metadata = metadata.get("image_vulnerability_scan") if isinstance(metadata, dict) else None
+    from peaso.selected_image_observations_20261021 import metadata_for_report
+    image_metadata = metadata_for_report(snapshot, report) if isinstance(snapshot, dict) else None
     manifest = attach_to_manifest(manifest, artifacts, tenant, ident, image_metadata)
     if isinstance(report.get("ai"), dict):
         manifest["ai_review"] = artifacts.put(tenant, ident, "ai-review", report["ai"])

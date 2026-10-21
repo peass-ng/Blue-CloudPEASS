@@ -65,6 +65,7 @@ def render_documents() -> dict[Path, bytes]:
     if len(native_ids) != len(CHECKS):
         raise ValueError("Duplicate registered native check")
     indexed = {row["id"] for row in json.loads((LEDGER / "inputs/check-index.json").read_text())}
+    # Retain reviewed metadata for archived reports without advertising runnable controls.
     analysis_ids = {row["id"] for row in ANALYSIS_CHECKS} | MANUAL_ONLY_ANALYSIS_CHECK_IDS
     reviewed_ids = set(descriptions["checks"])
     active_ids = native_ids | analysis_ids

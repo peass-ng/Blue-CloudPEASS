@@ -8,6 +8,7 @@ tests still verify the complete successor artifacts.
 """
 import copy
 import base64
+from dataclasses import replace
 from functools import lru_cache
 import hashlib
 import gzip
@@ -92,6 +93,9 @@ def retained_ledger_inputs():
 
 
 def registered_before_bulk(checks):
+    from scripts.peaso_compliance_compile import REVIEWED_NATIVE_ALIASES_20261021
+    from peaso.checks import CHECK_ALIASES
+
     ids = [check.id for check in checks]
     assert len(ids) == len(set(ids))
     assert BULK_IDS <= set(ids) and len(BULK_IDS) == 552
@@ -103,10 +107,8 @@ def registered_before_bulk(checks):
     assert len(expected) == BULK["baseline_native_checks"] == 3434
     current = {check.id: check for check in checks}
     missing = expected - set(current)
-    from scripts.peaso_compliance_compile import REVIEWED_NATIVE_ALIASES_20261021
-    from peaso.checks import CHECK_ALIASES
-    from dataclasses import replace
     assert missing <= set(REVIEWED_NATIVE_ALIASES_20261021), 'Unreviewed historical registry removal'
+    assert missing == set(REVIEWED_NATIVE_ALIASES_20261021), 'Historical retired alias set changed'
     for ident in missing:
         survivor = REVIEWED_NATIVE_ALIASES_20261021[ident]
         assert CHECK_ALIASES.get(ident) == survivor and survivor in current
@@ -120,6 +122,7 @@ def registered_before_bulk(checks):
     # Preserve the digest-verified ancestor order; never insert aliases into live CHECKS.
     old = [current[ident] for ident in prior]
     assert len(old) == 3434
+    assert {check.id for check in old} == expected
     return old
 
 

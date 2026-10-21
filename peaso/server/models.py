@@ -56,7 +56,7 @@ class ScanCreate(StrictModel):
 class AttackLogSource(StrictModel):
     connector_id: str = Field(min_length=1, max_length=100)
     kind: Literal["aws_event_history", "aws_cloudtrail_s3", "gcp_audit", "gke_audit", "azure_activity_log", "entra_directory_audit"]
-    catalog_mode: Literal["pinned", "latest"] = "pinned"
+    catalog_mode: Literal["pinned", "latest"] = "latest"
     region: str = Field(pattern=r"^[a-z]{2}(?:-gov)?-[a-z]+-\d$")
     role_arn: str | None = Field(default=None, max_length=600)
     bucket: str | None = Field(default=None, min_length=3, max_length=63, pattern=r"^[a-z0-9][a-z0-9.-]*[a-z0-9]$")

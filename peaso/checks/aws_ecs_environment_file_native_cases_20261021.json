@@ -1,0 +1,1060 @@
+{
+  "aws.review.ecs.selected_environment_file_secret_indicators": {
+    "fail": {
+      "EcsSelectedEnvironmentFileSecretIndicators": {
+        "associated": true,
+        "association": "d318dba27c08f06641101d1e918e3089a2775488bb044a0ffbe8bd4ffcdc9d1d",
+        "association_coherent": true,
+        "capture": "ecs-envfile:11b05aeeec5648a1a0f18e15a106dde9",
+        "ecs_after_request": "bc1a9f60038f6cf9a0fa4f31960888d0ef72eb16b24283dafd84a94380a99987",
+        "ecs_request": "bc1a9f60038f6cf9a0fa4f31960888d0ef72eb16b24283dafd84a94380a99987",
+        "file_count": 1,
+        "identity": "ecs_selected_environment_file_content:4188be2f92bf3cbae548d9ab3ae0ba3606eacbd4fb109965b52cff370de00c16",
+        "s3_identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+        "s3_item": {
+          "SelectedS3SourceSecretIndicators": {
+            "capture": "s3-source:7577d1c1a3764204a1718ce4fe79715d",
+            "complete": true,
+            "content_complete": true,
+            "format": "text",
+            "head_coherent": true,
+            "identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+            "leaks": [
+              {
+                "detectors": [
+                  {
+                    "engine": "kingfisher",
+                    "rule": "github-pat"
+                  },
+                  {
+                    "engine": "trufflehog",
+                    "rule": "github-pat"
+                  }
+                ],
+                "fingerprint": "655c0de44f7c58c2791250a599a0196f2e4b57d237460356b7e539c6ed60c0eb",
+                "locations": [
+                  {
+                    "path": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be.text"
+                  }
+                ]
+              }
+            ],
+            "member_count": 0,
+            "object": {
+              "etag": "6733a4ac4daf6be41f93c9665e1a224ae4ab551d83731f3d3cc612679afe8987",
+              "explicit_version": false,
+              "length": 40,
+              "version": null
+            },
+            "parts": [
+              {
+                "bytes": 56,
+                "complete": true,
+                "engines": [
+                  {
+                    "engine": "kingfisher",
+                    "status": "complete",
+                    "version": "1.4.0"
+                  },
+                  {
+                    "engine": "trufflehog",
+                    "status": "complete",
+                    "version": "3.92.5"
+                  }
+                ],
+                "path": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be.text"
+              }
+            ],
+            "principal": "s3-source-principal:2b42363f7f60a4b06d1c1d27b9c26c8a323fbbffd89426e086c6cbb33c350817",
+            "schema": "aws-selected-s3-source-v1",
+            "scope": "123456789012/us-east-1",
+            "source_bound": true,
+            "source_requests": [
+              "s3-source-read-1",
+              "s3-source-read-2",
+              "s3-source-read-3",
+              "s3-source-read-4",
+              "s3-source-read-5"
+            ],
+            "verification": "not_attempted"
+          },
+          "_provenance": {
+            "capture": "s3-source:7577d1c1a3764204a1718ce4fe79715d",
+            "scope": "123456789012/us-east-1"
+          },
+          "id": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be"
+        },
+        "schema": "aws-ecs-selected-environment-file-v1",
+        "scope": "123456789012/us-east-1",
+        "uncovered_files": 0
+      },
+      "_provenance": {
+        "capture": "ecs-envfile:11b05aeeec5648a1a0f18e15a106dde9",
+        "scope": "123456789012/us-east-1"
+      },
+      "id": "ecs_selected_environment_file_content:4188be2f92bf3cbae548d9ab3ae0ba3606eacbd4fb109965b52cff370de00c16"
+    },
+    "fail_index": {
+      "collections": {
+        "ecs_selected_environment_file_content": [
+          {
+            "items": [
+              {
+                "EcsSelectedEnvironmentFileSecretIndicators": {
+                  "associated": true,
+                  "association": "d318dba27c08f06641101d1e918e3089a2775488bb044a0ffbe8bd4ffcdc9d1d",
+                  "association_coherent": true,
+                  "capture": "ecs-envfile:11b05aeeec5648a1a0f18e15a106dde9",
+                  "ecs_after_request": "bc1a9f60038f6cf9a0fa4f31960888d0ef72eb16b24283dafd84a94380a99987",
+                  "ecs_request": "bc1a9f60038f6cf9a0fa4f31960888d0ef72eb16b24283dafd84a94380a99987",
+                  "file_count": 1,
+                  "identity": "ecs_selected_environment_file_content:4188be2f92bf3cbae548d9ab3ae0ba3606eacbd4fb109965b52cff370de00c16",
+                  "s3_identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+                  "s3_item": {
+                    "SelectedS3SourceSecretIndicators": {
+                      "capture": "s3-source:7577d1c1a3764204a1718ce4fe79715d",
+                      "complete": true,
+                      "content_complete": true,
+                      "format": "text",
+                      "head_coherent": true,
+                      "identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+                      "leaks": [
+                        {
+                          "detectors": [
+                            {
+                              "engine": "kingfisher",
+                              "rule": "github-pat"
+                            },
+                            {
+                              "engine": "trufflehog",
+                              "rule": "github-pat"
+                            }
+                          ],
+                          "fingerprint": "655c0de44f7c58c2791250a599a0196f2e4b57d237460356b7e539c6ed60c0eb",
+                          "locations": [
+                            {
+                              "path": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be.text"
+                            }
+                          ]
+                        }
+                      ],
+                      "member_count": 0,
+                      "object": {
+                        "etag": "6733a4ac4daf6be41f93c9665e1a224ae4ab551d83731f3d3cc612679afe8987",
+                        "explicit_version": false,
+                        "length": 40,
+                        "version": null
+                      },
+                      "parts": [
+                        {
+                          "bytes": 56,
+                          "complete": true,
+                          "engines": [
+                            {
+                              "engine": "kingfisher",
+                              "status": "complete",
+                              "version": "1.4.0"
+                            },
+                            {
+                              "engine": "trufflehog",
+                              "status": "complete",
+                              "version": "3.92.5"
+                            }
+                          ],
+                          "path": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be.text"
+                        }
+                      ],
+                      "principal": "s3-source-principal:2b42363f7f60a4b06d1c1d27b9c26c8a323fbbffd89426e086c6cbb33c350817",
+                      "schema": "aws-selected-s3-source-v1",
+                      "scope": "123456789012/us-east-1",
+                      "source_bound": true,
+                      "source_requests": [
+                        "s3-source-read-1",
+                        "s3-source-read-2",
+                        "s3-source-read-3",
+                        "s3-source-read-4",
+                        "s3-source-read-5"
+                      ],
+                      "verification": "not_attempted"
+                    },
+                    "_provenance": {
+                      "capture": "s3-source:7577d1c1a3764204a1718ce4fe79715d",
+                      "scope": "123456789012/us-east-1"
+                    },
+                    "id": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be"
+                  },
+                  "schema": "aws-ecs-selected-environment-file-v1",
+                  "scope": "123456789012/us-east-1",
+                  "uncovered_files": 0
+                },
+                "_provenance": {
+                  "capture": "ecs-envfile:11b05aeeec5648a1a0f18e15a106dde9",
+                  "scope": "123456789012/us-east-1"
+                },
+                "id": "ecs_selected_environment_file_content:4188be2f92bf3cbae548d9ab3ae0ba3606eacbd4fb109965b52cff370de00c16"
+              }
+            ],
+            "scope": "123456789012/us-east-1",
+            "service": "ecs",
+            "status": "collected"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "ecs_selected_environment_file_content_authorized": true,
+          "ecs_selected_environment_file_content_capture": "ecs-envfile:11b05aeeec5648a1a0f18e15a106dde9",
+          "ecs_selected_environment_file_content_selection": {
+            "123456789012/us-east-1": [
+              "ecs_selected_environment_file_content:4188be2f92bf3cbae548d9ab3ae0ba3606eacbd4fb109965b52cff370de00c16"
+            ]
+          },
+          "s3_selected_source_content_authorized": true,
+          "s3_selected_source_content_capture": "s3-source:7577d1c1a3764204a1718ce4fe79715d",
+          "s3_selected_source_content_principals": {
+            "123456789012/us-east-1": "s3-source-principal:2b42363f7f60a4b06d1c1d27b9c26c8a323fbbffd89426e086c6cbb33c350817"
+          },
+          "s3_selected_source_content_receipts": [
+            {
+              "bound": true,
+              "bytes": 0,
+              "capture": "s3-source:7577d1c1a3764204a1718ce4fe79715d",
+              "host": "sts.us-east-1.amazonaws.com",
+              "http_status": 200,
+              "id": "s3-source-read-1",
+              "identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+              "method": "POST",
+              "operation": "get_caller_identity",
+              "phase": "caller",
+              "region": "us-east-1",
+              "request": "7d6dc1a53d80ef522aac0960c3fcb81d8c66ea9e2c90a02c4ccdb4ac8546a2b4",
+              "request_id": "4d6b7743f9241ece9f49794a50d4284b90719c6ebdfd21db1b0509f4da540258",
+              "scope": "123456789012/us-east-1",
+              "service": "sts"
+            },
+            {
+              "bound": true,
+              "bytes": 0,
+              "capture": "s3-source:7577d1c1a3764204a1718ce4fe79715d",
+              "host": "s3.us-east-1.amazonaws.com",
+              "http_status": 200,
+              "id": "s3-source-read-2",
+              "identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+              "method": "GET",
+              "operation": "get_bucket_location",
+              "phase": "location",
+              "region": "us-east-1",
+              "request": "215e24b430f9f65ff88e54fc2a1f835a12dfcf3fef65e0531fc5ea9f1e24118e",
+              "request_id": "17de358e94b30e2c87fecec98ad51ceeda132ed0d302e04284d577a44ae2d538",
+              "scope": "123456789012/us-east-1",
+              "service": "s3"
+            },
+            {
+              "bound": true,
+              "bytes": 0,
+              "capture": "s3-source:7577d1c1a3764204a1718ce4fe79715d",
+              "host": "s3.us-east-1.amazonaws.com",
+              "http_status": 200,
+              "id": "s3-source-read-3",
+              "identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+              "method": "HEAD",
+              "operation": "head_object",
+              "phase": "head_before",
+              "region": "us-east-1",
+              "request": "7f6f68bd9e2c8193718232637e34beeeb12d991a24164586041792c6cb52f159",
+              "request_id": "8646bf9ed302d9a9b2676ce6564f3bf4c7fa00496076adceef9a31fc379a066c",
+              "scope": "123456789012/us-east-1",
+              "service": "s3"
+            },
+            {
+              "bound": true,
+              "bytes": 40,
+              "capture": "s3-source:7577d1c1a3764204a1718ce4fe79715d",
+              "host": "s3.us-east-1.amazonaws.com",
+              "http_status": 200,
+              "id": "s3-source-read-4",
+              "identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+              "method": "GET",
+              "operation": "get_object",
+              "phase": "get",
+              "region": "us-east-1",
+              "request": "31856c9b6b23ee80ad05f7b3af248e7e2df240ee4435a9a5a76391c07311caf8",
+              "request_id": "8e4e0ed822610ebf5944bc825f3d373dbeff3aab7bcbcd86c2cccb8033ed748f",
+              "scope": "123456789012/us-east-1",
+              "service": "s3"
+            },
+            {
+              "bound": true,
+              "bytes": 0,
+              "capture": "s3-source:7577d1c1a3764204a1718ce4fe79715d",
+              "host": "s3.us-east-1.amazonaws.com",
+              "http_status": 200,
+              "id": "s3-source-read-5",
+              "identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+              "method": "HEAD",
+              "operation": "head_object",
+              "phase": "head_after",
+              "region": "us-east-1",
+              "request": "31856c9b6b23ee80ad05f7b3af248e7e2df240ee4435a9a5a76391c07311caf8",
+              "request_id": "c20964751e3ac44d8a0a4cd124511de8ce1ef06a1ac7245739950317ac46d000",
+              "scope": "123456789012/us-east-1",
+              "service": "s3"
+            }
+          ],
+          "s3_selected_source_content_selection": {
+            "123456789012/us-east-1": [
+              "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be"
+            ]
+          }
+        },
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      }
+    },
+    "missing": {},
+    "missing_index": {
+      "collections": {
+        "ecs_selected_environment_file_content": [
+          {
+            "items": [
+              {
+                "EcsSelectedEnvironmentFileSecretIndicators": {
+                  "associated": true,
+                  "association": "d318dba27c08f06641101d1e918e3089a2775488bb044a0ffbe8bd4ffcdc9d1d",
+                  "association_coherent": true,
+                  "capture": "ecs-envfile:483da518a3af4060a3db8ef3b62587c0",
+                  "ecs_after_request": "bc1a9f60038f6cf9a0fa4f31960888d0ef72eb16b24283dafd84a94380a99987",
+                  "ecs_request": "bc1a9f60038f6cf9a0fa4f31960888d0ef72eb16b24283dafd84a94380a99987",
+                  "file_count": 1,
+                  "identity": "ecs_selected_environment_file_content:4188be2f92bf3cbae548d9ab3ae0ba3606eacbd4fb109965b52cff370de00c16",
+                  "s3_identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+                  "s3_item": {
+                    "SelectedS3SourceSecretIndicators": {
+                      "capture": "s3-source:bf711569a7ab471b811bac3579977f3c",
+                      "complete": true,
+                      "content_complete": true,
+                      "format": "text",
+                      "head_coherent": true,
+                      "identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+                      "leaks": [],
+                      "member_count": 0,
+                      "object": {
+                        "etag": "6733a4ac4daf6be41f93c9665e1a224ae4ab551d83731f3d3cc612679afe8987",
+                        "explicit_version": false,
+                        "length": 10,
+                        "version": null
+                      },
+                      "parts": [
+                        {
+                          "bytes": 26,
+                          "complete": true,
+                          "engines": [
+                            {
+                              "engine": "kingfisher",
+                              "status": "complete",
+                              "version": "1.4.0"
+                            },
+                            {
+                              "engine": "trufflehog",
+                              "status": "complete",
+                              "version": "3.92.5"
+                            }
+                          ],
+                          "path": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be.text"
+                        }
+                      ],
+                      "principal": "s3-source-principal:2b42363f7f60a4b06d1c1d27b9c26c8a323fbbffd89426e086c6cbb33c350817",
+                      "schema": "aws-selected-s3-source-v1",
+                      "scope": "123456789012/us-east-1",
+                      "source_bound": true,
+                      "source_requests": [
+                        "s3-source-read-1",
+                        "s3-source-read-2",
+                        "s3-source-read-3",
+                        "s3-source-read-4",
+                        "s3-source-read-5"
+                      ],
+                      "verification": "not_attempted"
+                    },
+                    "_provenance": {
+                      "capture": "s3-source:bf711569a7ab471b811bac3579977f3c",
+                      "scope": "123456789012/us-east-1"
+                    },
+                    "id": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be"
+                  },
+                  "schema": "aws-ecs-selected-environment-file-v1",
+                  "scope": "123456789012/us-east-1",
+                  "uncovered_files": 0
+                },
+                "_provenance": {
+                  "capture": "ecs-envfile:483da518a3af4060a3db8ef3b62587c0",
+                  "scope": "123456789012/us-east-1"
+                },
+                "id": "ecs_selected_environment_file_content:4188be2f92bf3cbae548d9ab3ae0ba3606eacbd4fb109965b52cff370de00c16"
+              }
+            ],
+            "scope": "123456789012/us-east-1",
+            "service": "ecs",
+            "status": "collected"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "ecs_selected_environment_file_content_authorized": true,
+          "ecs_selected_environment_file_content_capture": "ecs-envfile:483da518a3af4060a3db8ef3b62587c0",
+          "ecs_selected_environment_file_content_selection": {
+            "123456789012/us-east-1": [
+              "ecs_selected_environment_file_content:4188be2f92bf3cbae548d9ab3ae0ba3606eacbd4fb109965b52cff370de00c16"
+            ]
+          },
+          "s3_selected_source_content_authorized": true,
+          "s3_selected_source_content_capture": "s3-source:bf711569a7ab471b811bac3579977f3c",
+          "s3_selected_source_content_principals": {
+            "123456789012/us-east-1": "s3-source-principal:2b42363f7f60a4b06d1c1d27b9c26c8a323fbbffd89426e086c6cbb33c350817"
+          },
+          "s3_selected_source_content_receipts": [
+            {
+              "bound": true,
+              "bytes": 0,
+              "capture": "s3-source:bf711569a7ab471b811bac3579977f3c",
+              "host": "sts.us-east-1.amazonaws.com",
+              "http_status": 200,
+              "id": "s3-source-read-1",
+              "identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+              "method": "POST",
+              "operation": "get_caller_identity",
+              "phase": "caller",
+              "region": "us-east-1",
+              "request": "7d6dc1a53d80ef522aac0960c3fcb81d8c66ea9e2c90a02c4ccdb4ac8546a2b4",
+              "request_id": "4d6b7743f9241ece9f49794a50d4284b90719c6ebdfd21db1b0509f4da540258",
+              "scope": "123456789012/us-east-1",
+              "service": "sts"
+            },
+            {
+              "bound": true,
+              "bytes": 0,
+              "capture": "s3-source:bf711569a7ab471b811bac3579977f3c",
+              "host": "s3.us-east-1.amazonaws.com",
+              "http_status": 200,
+              "id": "s3-source-read-2",
+              "identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+              "method": "GET",
+              "operation": "get_bucket_location",
+              "phase": "location",
+              "region": "us-east-1",
+              "request": "215e24b430f9f65ff88e54fc2a1f835a12dfcf3fef65e0531fc5ea9f1e24118e",
+              "request_id": "17de358e94b30e2c87fecec98ad51ceeda132ed0d302e04284d577a44ae2d538",
+              "scope": "123456789012/us-east-1",
+              "service": "s3"
+            },
+            {
+              "bound": true,
+              "bytes": 0,
+              "capture": "s3-source:bf711569a7ab471b811bac3579977f3c",
+              "host": "s3.us-east-1.amazonaws.com",
+              "http_status": 200,
+              "id": "s3-source-read-3",
+              "identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+              "method": "HEAD",
+              "operation": "head_object",
+              "phase": "head_before",
+              "region": "us-east-1",
+              "request": "7f6f68bd9e2c8193718232637e34beeeb12d991a24164586041792c6cb52f159",
+              "request_id": "8646bf9ed302d9a9b2676ce6564f3bf4c7fa00496076adceef9a31fc379a066c",
+              "scope": "123456789012/us-east-1",
+              "service": "s3"
+            },
+            {
+              "bound": true,
+              "bytes": 10,
+              "capture": "s3-source:bf711569a7ab471b811bac3579977f3c",
+              "host": "s3.us-east-1.amazonaws.com",
+              "http_status": 200,
+              "id": "s3-source-read-4",
+              "identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+              "method": "GET",
+              "operation": "get_object",
+              "phase": "get",
+              "region": "us-east-1",
+              "request": "31856c9b6b23ee80ad05f7b3af248e7e2df240ee4435a9a5a76391c07311caf8",
+              "request_id": "8e4e0ed822610ebf5944bc825f3d373dbeff3aab7bcbcd86c2cccb8033ed748f",
+              "scope": "123456789012/us-east-1",
+              "service": "s3"
+            },
+            {
+              "bound": true,
+              "bytes": 0,
+              "capture": "s3-source:bf711569a7ab471b811bac3579977f3c",
+              "host": "s3.us-east-1.amazonaws.com",
+              "http_status": 200,
+              "id": "s3-source-read-5",
+              "identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+              "method": "HEAD",
+              "operation": "head_object",
+              "phase": "head_after",
+              "region": "us-east-1",
+              "request": "31856c9b6b23ee80ad05f7b3af248e7e2df240ee4435a9a5a76391c07311caf8",
+              "request_id": "c20964751e3ac44d8a0a4cd124511de8ce1ef06a1ac7245739950317ac46d000",
+              "scope": "123456789012/us-east-1",
+              "service": "s3"
+            }
+          ],
+          "s3_selected_source_content_selection": {
+            "123456789012/us-east-1": [
+              "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be"
+            ]
+          }
+        },
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      }
+    },
+    "pass": {
+      "EcsSelectedEnvironmentFileSecretIndicators": {
+        "associated": true,
+        "association": "d318dba27c08f06641101d1e918e3089a2775488bb044a0ffbe8bd4ffcdc9d1d",
+        "association_coherent": true,
+        "capture": "ecs-envfile:483da518a3af4060a3db8ef3b62587c0",
+        "ecs_after_request": "bc1a9f60038f6cf9a0fa4f31960888d0ef72eb16b24283dafd84a94380a99987",
+        "ecs_request": "bc1a9f60038f6cf9a0fa4f31960888d0ef72eb16b24283dafd84a94380a99987",
+        "file_count": 1,
+        "identity": "ecs_selected_environment_file_content:4188be2f92bf3cbae548d9ab3ae0ba3606eacbd4fb109965b52cff370de00c16",
+        "s3_identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+        "s3_item": {
+          "SelectedS3SourceSecretIndicators": {
+            "capture": "s3-source:bf711569a7ab471b811bac3579977f3c",
+            "complete": true,
+            "content_complete": true,
+            "format": "text",
+            "head_coherent": true,
+            "identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+            "leaks": [],
+            "member_count": 0,
+            "object": {
+              "etag": "6733a4ac4daf6be41f93c9665e1a224ae4ab551d83731f3d3cc612679afe8987",
+              "explicit_version": false,
+              "length": 10,
+              "version": null
+            },
+            "parts": [
+              {
+                "bytes": 26,
+                "complete": true,
+                "engines": [
+                  {
+                    "engine": "kingfisher",
+                    "status": "complete",
+                    "version": "1.4.0"
+                  },
+                  {
+                    "engine": "trufflehog",
+                    "status": "complete",
+                    "version": "3.92.5"
+                  }
+                ],
+                "path": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be.text"
+              }
+            ],
+            "principal": "s3-source-principal:2b42363f7f60a4b06d1c1d27b9c26c8a323fbbffd89426e086c6cbb33c350817",
+            "schema": "aws-selected-s3-source-v1",
+            "scope": "123456789012/us-east-1",
+            "source_bound": true,
+            "source_requests": [
+              "s3-source-read-1",
+              "s3-source-read-2",
+              "s3-source-read-3",
+              "s3-source-read-4",
+              "s3-source-read-5"
+            ],
+            "verification": "not_attempted"
+          },
+          "_provenance": {
+            "capture": "s3-source:bf711569a7ab471b811bac3579977f3c",
+            "scope": "123456789012/us-east-1"
+          },
+          "id": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be"
+        },
+        "schema": "aws-ecs-selected-environment-file-v1",
+        "scope": "123456789012/us-east-1",
+        "uncovered_files": 0
+      },
+      "_provenance": {
+        "capture": "ecs-envfile:483da518a3af4060a3db8ef3b62587c0",
+        "scope": "123456789012/us-east-1"
+      },
+      "id": "ecs_selected_environment_file_content:4188be2f92bf3cbae548d9ab3ae0ba3606eacbd4fb109965b52cff370de00c16"
+    },
+    "pass_index": {
+      "collections": {
+        "ecs_selected_environment_file_content": [
+          {
+            "items": [
+              {
+                "EcsSelectedEnvironmentFileSecretIndicators": {
+                  "associated": true,
+                  "association": "d318dba27c08f06641101d1e918e3089a2775488bb044a0ffbe8bd4ffcdc9d1d",
+                  "association_coherent": true,
+                  "capture": "ecs-envfile:483da518a3af4060a3db8ef3b62587c0",
+                  "ecs_after_request": "bc1a9f60038f6cf9a0fa4f31960888d0ef72eb16b24283dafd84a94380a99987",
+                  "ecs_request": "bc1a9f60038f6cf9a0fa4f31960888d0ef72eb16b24283dafd84a94380a99987",
+                  "file_count": 1,
+                  "identity": "ecs_selected_environment_file_content:4188be2f92bf3cbae548d9ab3ae0ba3606eacbd4fb109965b52cff370de00c16",
+                  "s3_identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+                  "s3_item": {
+                    "SelectedS3SourceSecretIndicators": {
+                      "capture": "s3-source:bf711569a7ab471b811bac3579977f3c",
+                      "complete": true,
+                      "content_complete": true,
+                      "format": "text",
+                      "head_coherent": true,
+                      "identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+                      "leaks": [],
+                      "member_count": 0,
+                      "object": {
+                        "etag": "6733a4ac4daf6be41f93c9665e1a224ae4ab551d83731f3d3cc612679afe8987",
+                        "explicit_version": false,
+                        "length": 10,
+                        "version": null
+                      },
+                      "parts": [
+                        {
+                          "bytes": 26,
+                          "complete": true,
+                          "engines": [
+                            {
+                              "engine": "kingfisher",
+                              "status": "complete",
+                              "version": "1.4.0"
+                            },
+                            {
+                              "engine": "trufflehog",
+                              "status": "complete",
+                              "version": "3.92.5"
+                            }
+                          ],
+                          "path": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be.text"
+                        }
+                      ],
+                      "principal": "s3-source-principal:2b42363f7f60a4b06d1c1d27b9c26c8a323fbbffd89426e086c6cbb33c350817",
+                      "schema": "aws-selected-s3-source-v1",
+                      "scope": "123456789012/us-east-1",
+                      "source_bound": true,
+                      "source_requests": [
+                        "s3-source-read-1",
+                        "s3-source-read-2",
+                        "s3-source-read-3",
+                        "s3-source-read-4",
+                        "s3-source-read-5"
+                      ],
+                      "verification": "not_attempted"
+                    },
+                    "_provenance": {
+                      "capture": "s3-source:bf711569a7ab471b811bac3579977f3c",
+                      "scope": "123456789012/us-east-1"
+                    },
+                    "id": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be"
+                  },
+                  "schema": "aws-ecs-selected-environment-file-v1",
+                  "scope": "123456789012/us-east-1",
+                  "uncovered_files": 0
+                },
+                "_provenance": {
+                  "capture": "ecs-envfile:483da518a3af4060a3db8ef3b62587c0",
+                  "scope": "123456789012/us-east-1"
+                },
+                "id": "ecs_selected_environment_file_content:4188be2f92bf3cbae548d9ab3ae0ba3606eacbd4fb109965b52cff370de00c16"
+              }
+            ],
+            "scope": "123456789012/us-east-1",
+            "service": "ecs",
+            "status": "collected"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "ecs_selected_environment_file_content_authorized": true,
+          "ecs_selected_environment_file_content_capture": "ecs-envfile:483da518a3af4060a3db8ef3b62587c0",
+          "ecs_selected_environment_file_content_selection": {
+            "123456789012/us-east-1": [
+              "ecs_selected_environment_file_content:4188be2f92bf3cbae548d9ab3ae0ba3606eacbd4fb109965b52cff370de00c16"
+            ]
+          },
+          "s3_selected_source_content_authorized": true,
+          "s3_selected_source_content_capture": "s3-source:bf711569a7ab471b811bac3579977f3c",
+          "s3_selected_source_content_principals": {
+            "123456789012/us-east-1": "s3-source-principal:2b42363f7f60a4b06d1c1d27b9c26c8a323fbbffd89426e086c6cbb33c350817"
+          },
+          "s3_selected_source_content_receipts": [
+            {
+              "bound": true,
+              "bytes": 0,
+              "capture": "s3-source:bf711569a7ab471b811bac3579977f3c",
+              "host": "sts.us-east-1.amazonaws.com",
+              "http_status": 200,
+              "id": "s3-source-read-1",
+              "identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+              "method": "POST",
+              "operation": "get_caller_identity",
+              "phase": "caller",
+              "region": "us-east-1",
+              "request": "7d6dc1a53d80ef522aac0960c3fcb81d8c66ea9e2c90a02c4ccdb4ac8546a2b4",
+              "request_id": "4d6b7743f9241ece9f49794a50d4284b90719c6ebdfd21db1b0509f4da540258",
+              "scope": "123456789012/us-east-1",
+              "service": "sts"
+            },
+            {
+              "bound": true,
+              "bytes": 0,
+              "capture": "s3-source:bf711569a7ab471b811bac3579977f3c",
+              "host": "s3.us-east-1.amazonaws.com",
+              "http_status": 200,
+              "id": "s3-source-read-2",
+              "identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+              "method": "GET",
+              "operation": "get_bucket_location",
+              "phase": "location",
+              "region": "us-east-1",
+              "request": "215e24b430f9f65ff88e54fc2a1f835a12dfcf3fef65e0531fc5ea9f1e24118e",
+              "request_id": "17de358e94b30e2c87fecec98ad51ceeda132ed0d302e04284d577a44ae2d538",
+              "scope": "123456789012/us-east-1",
+              "service": "s3"
+            },
+            {
+              "bound": true,
+              "bytes": 0,
+              "capture": "s3-source:bf711569a7ab471b811bac3579977f3c",
+              "host": "s3.us-east-1.amazonaws.com",
+              "http_status": 200,
+              "id": "s3-source-read-3",
+              "identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+              "method": "HEAD",
+              "operation": "head_object",
+              "phase": "head_before",
+              "region": "us-east-1",
+              "request": "7f6f68bd9e2c8193718232637e34beeeb12d991a24164586041792c6cb52f159",
+              "request_id": "8646bf9ed302d9a9b2676ce6564f3bf4c7fa00496076adceef9a31fc379a066c",
+              "scope": "123456789012/us-east-1",
+              "service": "s3"
+            },
+            {
+              "bound": true,
+              "bytes": 10,
+              "capture": "s3-source:bf711569a7ab471b811bac3579977f3c",
+              "host": "s3.us-east-1.amazonaws.com",
+              "http_status": 200,
+              "id": "s3-source-read-4",
+              "identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+              "method": "GET",
+              "operation": "get_object",
+              "phase": "get",
+              "region": "us-east-1",
+              "request": "31856c9b6b23ee80ad05f7b3af248e7e2df240ee4435a9a5a76391c07311caf8",
+              "request_id": "8e4e0ed822610ebf5944bc825f3d373dbeff3aab7bcbcd86c2cccb8033ed748f",
+              "scope": "123456789012/us-east-1",
+              "service": "s3"
+            },
+            {
+              "bound": true,
+              "bytes": 0,
+              "capture": "s3-source:bf711569a7ab471b811bac3579977f3c",
+              "host": "s3.us-east-1.amazonaws.com",
+              "http_status": 200,
+              "id": "s3-source-read-5",
+              "identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+              "method": "HEAD",
+              "operation": "head_object",
+              "phase": "head_after",
+              "region": "us-east-1",
+              "request": "31856c9b6b23ee80ad05f7b3af248e7e2df240ee4435a9a5a76391c07311caf8",
+              "request_id": "c20964751e3ac44d8a0a4cd124511de8ce1ef06a1ac7245739950317ac46d000",
+              "scope": "123456789012/us-east-1",
+              "service": "s3"
+            }
+          ],
+          "s3_selected_source_content_selection": {
+            "123456789012/us-east-1": [
+              "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be"
+            ]
+          }
+        },
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      }
+    },
+    "unknown": {
+      "EcsSelectedEnvironmentFileSecretIndicators": {
+        "associated": true,
+        "association": "d318dba27c08f06641101d1e918e3089a2775488bb044a0ffbe8bd4ffcdc9d1d",
+        "association_coherent": false,
+        "capture": "ecs-envfile:6417bb793c294f85b0457057cdc4ea40",
+        "ecs_after_request": null,
+        "ecs_request": "bc1a9f60038f6cf9a0fa4f31960888d0ef72eb16b24283dafd84a94380a99987",
+        "file_count": 1,
+        "identity": "ecs_selected_environment_file_content:4188be2f92bf3cbae548d9ab3ae0ba3606eacbd4fb109965b52cff370de00c16",
+        "s3_identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+        "s3_item": {
+          "SelectedS3SourceSecretIndicators": {
+            "capture": "s3-source:88f7f743165a4324a3a89259691a6771",
+            "complete": true,
+            "content_complete": true,
+            "format": "text",
+            "head_coherent": true,
+            "identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+            "leaks": [],
+            "member_count": 0,
+            "object": {
+              "etag": "6733a4ac4daf6be41f93c9665e1a224ae4ab551d83731f3d3cc612679afe8987",
+              "explicit_version": false,
+              "length": 10,
+              "version": null
+            },
+            "parts": [
+              {
+                "bytes": 26,
+                "complete": true,
+                "engines": [
+                  {
+                    "engine": "kingfisher",
+                    "status": "complete",
+                    "version": "1.4.0"
+                  },
+                  {
+                    "engine": "trufflehog",
+                    "status": "complete",
+                    "version": "3.92.5"
+                  }
+                ],
+                "path": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be.text"
+              }
+            ],
+            "principal": "s3-source-principal:2b42363f7f60a4b06d1c1d27b9c26c8a323fbbffd89426e086c6cbb33c350817",
+            "schema": "aws-selected-s3-source-v1",
+            "scope": "123456789012/us-east-1",
+            "source_bound": true,
+            "source_requests": [
+              "s3-source-read-1",
+              "s3-source-read-2",
+              "s3-source-read-3",
+              "s3-source-read-4",
+              "s3-source-read-5"
+            ],
+            "verification": "not_attempted"
+          },
+          "_provenance": {
+            "capture": "s3-source:88f7f743165a4324a3a89259691a6771",
+            "scope": "123456789012/us-east-1"
+          },
+          "id": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be"
+        },
+        "schema": "aws-ecs-selected-environment-file-v1",
+        "scope": "123456789012/us-east-1",
+        "uncovered_files": 0
+      },
+      "_provenance": {
+        "capture": "ecs-envfile:6417bb793c294f85b0457057cdc4ea40",
+        "scope": "123456789012/us-east-1"
+      },
+      "id": "ecs_selected_environment_file_content:4188be2f92bf3cbae548d9ab3ae0ba3606eacbd4fb109965b52cff370de00c16"
+    },
+    "unknown_index": {
+      "collections": {
+        "ecs_selected_environment_file_content": [
+          {
+            "items": [
+              {
+                "EcsSelectedEnvironmentFileSecretIndicators": {
+                  "associated": true,
+                  "association": "d318dba27c08f06641101d1e918e3089a2775488bb044a0ffbe8bd4ffcdc9d1d",
+                  "association_coherent": false,
+                  "capture": "ecs-envfile:6417bb793c294f85b0457057cdc4ea40",
+                  "ecs_after_request": null,
+                  "ecs_request": "bc1a9f60038f6cf9a0fa4f31960888d0ef72eb16b24283dafd84a94380a99987",
+                  "file_count": 1,
+                  "identity": "ecs_selected_environment_file_content:4188be2f92bf3cbae548d9ab3ae0ba3606eacbd4fb109965b52cff370de00c16",
+                  "s3_identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+                  "s3_item": {
+                    "SelectedS3SourceSecretIndicators": {
+                      "capture": "s3-source:88f7f743165a4324a3a89259691a6771",
+                      "complete": true,
+                      "content_complete": true,
+                      "format": "text",
+                      "head_coherent": true,
+                      "identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+                      "leaks": [],
+                      "member_count": 0,
+                      "object": {
+                        "etag": "6733a4ac4daf6be41f93c9665e1a224ae4ab551d83731f3d3cc612679afe8987",
+                        "explicit_version": false,
+                        "length": 10,
+                        "version": null
+                      },
+                      "parts": [
+                        {
+                          "bytes": 26,
+                          "complete": true,
+                          "engines": [
+                            {
+                              "engine": "kingfisher",
+                              "status": "complete",
+                              "version": "1.4.0"
+                            },
+                            {
+                              "engine": "trufflehog",
+                              "status": "complete",
+                              "version": "3.92.5"
+                            }
+                          ],
+                          "path": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be.text"
+                        }
+                      ],
+                      "principal": "s3-source-principal:2b42363f7f60a4b06d1c1d27b9c26c8a323fbbffd89426e086c6cbb33c350817",
+                      "schema": "aws-selected-s3-source-v1",
+                      "scope": "123456789012/us-east-1",
+                      "source_bound": true,
+                      "source_requests": [
+                        "s3-source-read-1",
+                        "s3-source-read-2",
+                        "s3-source-read-3",
+                        "s3-source-read-4",
+                        "s3-source-read-5"
+                      ],
+                      "verification": "not_attempted"
+                    },
+                    "_provenance": {
+                      "capture": "s3-source:88f7f743165a4324a3a89259691a6771",
+                      "scope": "123456789012/us-east-1"
+                    },
+                    "id": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be"
+                  },
+                  "schema": "aws-ecs-selected-environment-file-v1",
+                  "scope": "123456789012/us-east-1",
+                  "uncovered_files": 0
+                },
+                "_provenance": {
+                  "capture": "ecs-envfile:6417bb793c294f85b0457057cdc4ea40",
+                  "scope": "123456789012/us-east-1"
+                },
+                "id": "ecs_selected_environment_file_content:4188be2f92bf3cbae548d9ab3ae0ba3606eacbd4fb109965b52cff370de00c16"
+              }
+            ],
+            "scope": "123456789012/us-east-1",
+            "service": "ecs",
+            "status": "collected"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "ecs_selected_environment_file_content_authorized": true,
+          "ecs_selected_environment_file_content_capture": "ecs-envfile:6417bb793c294f85b0457057cdc4ea40",
+          "ecs_selected_environment_file_content_selection": {
+            "123456789012/us-east-1": [
+              "ecs_selected_environment_file_content:4188be2f92bf3cbae548d9ab3ae0ba3606eacbd4fb109965b52cff370de00c16"
+            ]
+          },
+          "s3_selected_source_content_authorized": true,
+          "s3_selected_source_content_capture": "s3-source:88f7f743165a4324a3a89259691a6771",
+          "s3_selected_source_content_principals": {
+            "123456789012/us-east-1": "s3-source-principal:2b42363f7f60a4b06d1c1d27b9c26c8a323fbbffd89426e086c6cbb33c350817"
+          },
+          "s3_selected_source_content_receipts": [
+            {
+              "bound": true,
+              "bytes": 0,
+              "capture": "s3-source:88f7f743165a4324a3a89259691a6771",
+              "host": "sts.us-east-1.amazonaws.com",
+              "http_status": 200,
+              "id": "s3-source-read-1",
+              "identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+              "method": "POST",
+              "operation": "get_caller_identity",
+              "phase": "caller",
+              "region": "us-east-1",
+              "request": "7d6dc1a53d80ef522aac0960c3fcb81d8c66ea9e2c90a02c4ccdb4ac8546a2b4",
+              "request_id": "4d6b7743f9241ece9f49794a50d4284b90719c6ebdfd21db1b0509f4da540258",
+              "scope": "123456789012/us-east-1",
+              "service": "sts"
+            },
+            {
+              "bound": true,
+              "bytes": 0,
+              "capture": "s3-source:88f7f743165a4324a3a89259691a6771",
+              "host": "s3.us-east-1.amazonaws.com",
+              "http_status": 200,
+              "id": "s3-source-read-2",
+              "identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+              "method": "GET",
+              "operation": "get_bucket_location",
+              "phase": "location",
+              "region": "us-east-1",
+              "request": "215e24b430f9f65ff88e54fc2a1f835a12dfcf3fef65e0531fc5ea9f1e24118e",
+              "request_id": "17de358e94b30e2c87fecec98ad51ceeda132ed0d302e04284d577a44ae2d538",
+              "scope": "123456789012/us-east-1",
+              "service": "s3"
+            },
+            {
+              "bound": true,
+              "bytes": 0,
+              "capture": "s3-source:88f7f743165a4324a3a89259691a6771",
+              "host": "s3.us-east-1.amazonaws.com",
+              "http_status": 200,
+              "id": "s3-source-read-3",
+              "identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+              "method": "HEAD",
+              "operation": "head_object",
+              "phase": "head_before",
+              "region": "us-east-1",
+              "request": "7f6f68bd9e2c8193718232637e34beeeb12d991a24164586041792c6cb52f159",
+              "request_id": "8646bf9ed302d9a9b2676ce6564f3bf4c7fa00496076adceef9a31fc379a066c",
+              "scope": "123456789012/us-east-1",
+              "service": "s3"
+            },
+            {
+              "bound": true,
+              "bytes": 10,
+              "capture": "s3-source:88f7f743165a4324a3a89259691a6771",
+              "host": "s3.us-east-1.amazonaws.com",
+              "http_status": 200,
+              "id": "s3-source-read-4",
+              "identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+              "method": "GET",
+              "operation": "get_object",
+              "phase": "get",
+              "region": "us-east-1",
+              "request": "31856c9b6b23ee80ad05f7b3af248e7e2df240ee4435a9a5a76391c07311caf8",
+              "request_id": "8e4e0ed822610ebf5944bc825f3d373dbeff3aab7bcbcd86c2cccb8033ed748f",
+              "scope": "123456789012/us-east-1",
+              "service": "s3"
+            },
+            {
+              "bound": true,
+              "bytes": 0,
+              "capture": "s3-source:88f7f743165a4324a3a89259691a6771",
+              "host": "s3.us-east-1.amazonaws.com",
+              "http_status": 200,
+              "id": "s3-source-read-5",
+              "identity": "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be",
+              "method": "HEAD",
+              "operation": "head_object",
+              "phase": "head_after",
+              "region": "us-east-1",
+              "request": "31856c9b6b23ee80ad05f7b3af248e7e2df240ee4435a9a5a76391c07311caf8",
+              "request_id": "c20964751e3ac44d8a0a4cd124511de8ce1ef06a1ac7245739950317ac46d000",
+              "scope": "123456789012/us-east-1",
+              "service": "s3"
+            }
+          ],
+          "s3_selected_source_content_selection": {
+            "123456789012/us-east-1": [
+              "s3_selected_source_content:df74d907a6a24e33553c03f8f66af20750e230dad92f02bb7778c54c7d6a29be"
+            ]
+          }
+        },
+        "provider": "aws",
+        "scope": "123456789012/us-east-1"
+      }
+    }
+  }
+}

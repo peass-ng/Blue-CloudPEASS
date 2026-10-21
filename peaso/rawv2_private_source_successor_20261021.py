@@ -72,9 +72,12 @@ def _receipt(root):
     if not path.is_relative_to(root / 'peaso') or Path(__file__).resolve() != path:
         raise RuntimeError('RawV2 successor helper path changed')
     source = path.read_bytes()
+    predecessor = _private_epoch.predecessor_bytes(
+        'peaso/rawv2_private_source_successor_20261021.py', source,
+        '3ef9840685cc94829a12c7c54693da901ac6ddb691f493e53290255c5224d940', root)
     normalized, count = re.subn(
         rb"(?m)^(RECEIPT_SHA256|BRIDGE_RECEIPT_SHA256) = '[0-9a-f]{64}'$",
-        lambda match: match.group(1) + b" = '" + b'0' * 64 + b"'", source)
+        lambda match: match.group(1) + b" = '" + b'0' * 64 + b"'", predecessor)
     if count != 2 or _digest(normalized) != receipt['helper_source_sha256']:
         raise RuntimeError('RawV2 successor helper source changed')
     module = sys.modules.get(__name__)
@@ -625,10 +628,202 @@ def _install_admission(name):
             '    validate_proposal()\n', '    _validate_dataproc_proposal()\n', 1)
     if _digest(transformed.encode()) != row['after_sha256']:
         raise RuntimeError('Selected admission successor body changed')
+    if name == 'azure_function_settings_runtime_admission_20261020':
+        old = '    predecessor.validate_proposal()\n'
+        if transformed.count(old) != 1:
+            raise RuntimeError('Function proposal entrypoint changed')
+        transformed = transformed.replace(old, '    _validate_function_proposal(root)\n', 1)
+    if name in {
+            'azure_databricks_notebook_secrets_admission_20261020',
+            'azure_ml_job_secrets_admission_20261020',
+            'azure_ml_asset_secrets_admission_20261020',
+            'gcp_dataproc_source_runtime_admission_20261020'}:
+        old = "hashlib.sha256(inspect.getsource(module._evaluate).encode()).hexdigest() != row['reachable_helper_sha256']"
+        new = "_admitted_callable_digest(module._evaluate, row['reachable_helper_sha256'], root) != row['reachable_helper_sha256']"
+        if transformed.count(old) != 1:
+            raise RuntimeError('Selected admission helper proof changed')
+        transformed = transformed.replace(old, new, 1)
+    if name in {
+            'azure_databricks_notebook_secrets_admission_20261020',
+            'azure_ml_job_secrets_admission_20261020',
+            'azure_ml_asset_secrets_admission_20261020',
+            'gcp_dataproc_source_runtime_admission_20261020'}:
+        old = 'any(metadata.get(key) != row.get(key) for key in metadata)'
+        new = '_admitted_metadata(metadata, row, root)'
+        if transformed.count(old) != 1:
+            raise RuntimeError('Selected admission metadata proof changed')
+        transformed = transformed.replace(old, new, 1)
+    if name == 'azure_ml_job_secrets_admission_20261020':
+        old = "function(case[branch], case[branch + '_index'])[0]"
+        new = "_historical_ml_fixture_branch(function, case[branch], case[branch + '_index'], root)[0]"
+        if transformed.count(old) != 1:
+            raise RuntimeError('Selected ML historical branch proof changed')
+        transformed = transformed.replace(old, new, 1)
+        old = "function(case[branch], case['index'])[0]"
+        new = "_historical_ml_fixture_branch(function, case[branch], case['index'], root)[0]"
+        if transformed.count(old) != 1:
+            raise RuntimeError('Selected ML historical malformed proof changed')
+        transformed = transformed.replace(old, new, 1)
+    def _admitted_callable_digest(fn, historical_sha256, root):
+        """Prove a reviewed current helper and its unchanged historical source."""
+        root = _root(root)
+        name = fn.__module__.replace('.', '/') + '.py'
+        path = root / name
+        current = path.read_bytes()
+        receipt, _ = _private_epoch._receipt()
+        transition = receipt['current_reviewed_files'].get(name)
+        if transition is None:
+            raise RuntimeError('Unreviewed current helper')
+        before = _private_epoch.predecessor_bytes(
+            name, current, transition['predecessor_sha256'], root)
+        def definition(raw):
+            matches = [node for node in ast.parse(raw).body
+                       if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+                       and node.name == fn.__name__]
+            if len(matches) != 1:
+                raise RuntimeError('Reviewed helper definition changed')
+            node, = matches
+            return b''.join(raw.splitlines(keepends=True)[
+                min([node.lineno] + [item.lineno for item in node.decorator_list]) - 1:node.end_lineno])
+        source = definition(current)
+        compiled = _codes(_compiled(current, str(path)))
+        if (fn.__module__ != name.removesuffix('.py').replace('/', '.')
+                or _digest(definition(before)) != historical_sha256
+                or inspect.getsource(fn).encode() != source
+                or not _same_code(fn.__code__, compiled.get(fn.__name__))):
+            raise RuntimeError('Reviewed current helper changed')
+        return historical_sha256
+
+    def _admitted_metadata(metadata, row, root):
+        receipt, _ = _private_epoch._receipt()
+        current = receipt['current_reviewed_metadata'].get(name)
+        if current is None:
+            raise RuntimeError('Unreviewed current metadata')
+        path = current['path']
+        transition = receipt['current_reviewed_files'][path]
+        _private_epoch.predecessor_bytes(
+            path, (_root(root) / path).read_bytes(), transition['predecessor_sha256'], root)
+        for key in metadata:
+            expected = row.get(key)
+            overrides = current.get('overrides', {}) | current.get('overrides_by_id', {}).get(row['id'], {})
+            if key in overrides:
+                before, after = overrides[key]
+                if expected != before:
+                    raise RuntimeError('Reviewed metadata predecessor changed')
+                expected = after
+            if metadata[key] != expected:
+                return True
+        return False
+
+    def _validate_function_proposal(root):
+        """Keep the signed proposal roster with one reviewed current callable."""
+        receipt_path = _root(root) / 'peaso/checks/azure_function_settings_admission_20261020.json'
+        data = json.loads(receipt_path.read_bytes())
+        if data.get('schema') != 'azure-selected-function-source-receipt-v1' or data.get('registered') is not False:
+            raise RuntimeError('Function proposal receipt changed')
+        for item in data['new_modules']:
+            path = (_root(root) / item['path']).resolve()
+            if not path.is_relative_to(_root(root)) or _digest(path.read_bytes()) != item['sha256']:
+                raise RuntimeError('Function proposal module changed')
+        for item in data['callables']:
+            value = importlib.import_module(item['module'])
+            for part in item['qualname'].split('.'):
+                value = getattr(value, part)
+            value = inspect.unwrap(value)
+            if (str(Path(inspect.getsourcefile(value)).relative_to(_root(root))) != item['path']):
+                raise RuntimeError('Function proposal callable location changed')
+            if (item['path'], item['qualname']) == (
+                    'peaso/collectors/azure_selected_secret_integration_20261020.py', 'final_snapshot'):
+                _admitted_callable_digest(value, item['sha256'], root)
+            elif _digest(inspect.getsource(value).encode()) != item['sha256']:
+                raise RuntimeError('Function proposal callable changed')
+        for key in ('native_cases', 'descriptions'):
+            row = data[key]
+            path = (_root(root) / row['path']).resolve()
+            if not path.is_relative_to(_root(root)) or _digest(path.read_bytes()) != row['sha256']:
+                raise RuntimeError('Function proposal artifact changed')
+        return data
+
+    historical_ml_evaluator = None
+
+    def _historical_ml_fixture_branch(current, item, index, root):
+        """Run the immutable fixture against its exact predecessor evaluator."""
+        nonlocal historical_ml_evaluator
+        check_module = importlib.import_module('peaso.checks.azure_ml_selected_job_secret_review_20261020')
+        if current is not check_module.evaluate:
+            raise RuntimeError('Selected ML current evaluator identity changed')
+        if historical_ml_evaluator is None:
+            historical = {}
+            for relative, expected in (
+                ('peaso/checks/azure_ml_selected_job_secret_review_20261020.py',
+                 '20536cbdc302fdbee0565304aca63314e9ada62c769e17e383b3c3dc00798bd1'),
+                ('peaso/collectors/azure_ml_selected_job_secret_indicators.py',
+                 'a0644628612d680fea88a9dcedca7541f1560278fc5d4ea116710739035143c3')):
+                path = _root(root) / relative
+                historical[relative] = _private_epoch.predecessor_bytes(
+                    relative, path.read_bytes(), expected, root)
+            producer_name = 'peaso/collectors/azure_ml_selected_job_secret_indicators.py'
+            producer = dict(__name__='peaso.collectors.azure_ml_selected_job_secret_indicators',
+                            __package__='peaso.collectors')
+            exec(compile(historical[producer_name], str(_root(root) / producer_name), 'exec'), producer)
+            check_name = 'peaso/checks/azure_ml_selected_job_secret_review_20261020.py'
+            raw = historical[check_name]
+            nodes = {node.name: node for node in ast.parse(raw).body
+                     if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+                     and node.name in {'_evaluate', 'evaluate'}}
+            if set(nodes) != {'_evaluate', 'evaluate'}:
+                raise RuntimeError('Selected ML historical evaluator roster changed')
+            signed = _receipt(root)['clones'][name]
+            admission = json.loads((_root(root) / 'peaso/checks/azure_ml_job_secrets_admission_20261020.json').read_bytes())
+            check, = admission['checks']
+            for fn_name, digest in (('_evaluate', check['reachable_helper_sha256']),
+                                    ('evaluate', check['predicate_sha256'])):
+                node = nodes[fn_name]
+                source_bytes = b''.join(raw.splitlines(keepends=True)[node.lineno - 1:node.end_lineno])
+                if _digest(source_bytes) != digest:
+                    raise RuntimeError('Selected ML historical callable source changed')
+            if signed['before_sha256'] != _digest(inspect.getsource(module.reviewed_inputs).encode()):
+                raise RuntimeError('Selected ML historical admission changed')
+            legacy = dict(vars(check_module), source=types.SimpleNamespace(**producer))
+            tree = ast.Module(body=[nodes['_evaluate'], nodes['evaluate']], type_ignores=[])
+            exec(compile(ast.fix_missing_locations(tree), str(_root(root) / check_name), 'exec'), legacy)
+            historical_ml_evaluator = legacy['evaluate']
+        return historical_ml_evaluator(item, index)
+
     namespace = dict(vars(module), _admitted_source_digest=_admitted_source_digest,
+                     _admitted_callable_digest=_admitted_callable_digest,
+                     _admitted_metadata=_admitted_metadata,
+                     _historical_ml_fixture_branch=_historical_ml_fixture_branch,
+                     _validate_function_proposal=_validate_function_proposal,
                      _validate_dataproc_proposal=_validate_dataproc_proposal)
     exec(compile(transformed, str(module.__file__), 'exec'), namespace)
     clone = namespace['reviewed_inputs']
     if clone.__defaults__ != module.reviewed_inputs.__defaults__ or clone.__kwdefaults__ != module.reviewed_inputs.__kwdefaults__:
         raise RuntimeError('Selected admission callable defaults changed')
+    if name in {'azure_ml_job_secrets_admission_20261020',
+                'azure_databricks_notebook_secrets_admission_20261020'}:
+        from copy import deepcopy
+        epoch, _ = _private_epoch._receipt()
+        witness = epoch['current_native_cases'][name]
+        expected_path = {
+            'azure_ml_job_secrets_admission_20261020': 'peaso/checks/azure_ml_job_variants_native_cases_20261021.json',
+            'azure_databricks_notebook_secrets_admission_20261020': 'peaso/checks/azure_databricks_current_native_cases_20261021.json',
+        }[name]
+        if witness['path'] != expected_path:
+            raise RuntimeError('Selected current native fixture path changed')
+        raw = (_root(root) / expected_path).read_bytes()
+        if _digest(raw) != witness['sha256']:
+            raise RuntimeError('Selected current native fixture bytes changed')
+        cases = json.loads(raw)
+        signed = json.loads((_root(root) / 'peaso/checks' / (name + '.json')).read_bytes())
+        check_module = importlib.import_module('peaso.checks.' + signed['module'])
+        if set(cases) != {module.CHECK_ID}:
+            raise RuntimeError('Selected current native fixture identity changed')
+        case = cases[module.CHECK_ID]
+        for branch in ('pass', 'fail', 'unknown'):
+            if check_module.evaluate(deepcopy(case[branch]), deepcopy(case[branch + '_index']))[0] != branch.upper():
+                raise RuntimeError('Selected current native branch changed')
+        if name == 'azure_ml_job_secrets_admission_20261020':
+            if check_module.evaluate(deepcopy(case['missing']), deepcopy(case['missing_index']))[0] != 'UNKNOWN':
+                raise RuntimeError('Selected current missing branch changed')
     return _clone_install(module, clone)

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "reviewed_on": "2026-10-19",
+  "reviewed_on": "2026-10-21",
   "policy": "Explicit security/privacy configuration membership; owner decisions recorded in docs/hacktricks-checklist-review.md. Unreviewed checks are untagged.",
   "groups": {
     "access_control": {
@@ -16745,6 +16745,82 @@
     "k8s.network.endpoints_controller_service_reference_resolves": {
       "decision": "include",
       "group": "unused_assets"
+    },
+    "aws.review.build_deployment.referenced_source_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "aws.review.ecr_public.selected_image_high_vulnerabilities": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "aws.review.ecr_public.selected_image_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "aws.review.workload.referenced_source_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "aws.review.workload.selected_image_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.review.aks.selected_pod_image_high_vulnerabilities": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.review.aks.selected_pod_image_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.review.function.configured_deployment_container_archives_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.review.synapse.selected_notebook_source_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "gcp.review.app_engine_flex.selected_version_image_high_vulnerabilities": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "gcp.review.app_engine_flex.selected_version_image_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "gcp.review.cloudrun_worker_pool.selected_revision_image_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "gcp.review.developerconnect.selected_repository_file_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "gcp.review.gke.selected_pod_image_high_vulnerabilities": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "gcp.review.gke.selected_pod_image_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "k8s.review.selected_flux_artifact_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "k8s.review.selected_registry_image_high_vulnerabilities": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "k8s.review.selected_registry_image_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "aws.review.ecs.selected_environment_file_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
     },
     "analysis.exposed_privileged_workload": {
       "decision": "include",

@@ -10,6 +10,10 @@ MAX_TARGETS = 8
 SCOPE = re.compile(r'([0-9]{12})/([a-z]{2}(?:-[a-z0-9]+)+-[0-9]+)\Z')
 REPO = re.compile(r'[a-z0-9]+(?:(?:\.|_|__|-+)[a-z0-9]+)*(?:/[a-z0-9]+(?:(?:\.|_|__|-+)[a-z0-9]+)*)*\Z')
 DIGEST = re.compile(r'sha256:[0-9a-f]{64}\Z')
+TASK_NAME = re.compile(r'[A-Za-z0-9_-]{1,255}\Z')
+NODE_RANGE = re.compile(r'[0-9]+(?::[0-9]*)?\Z')
+BATCH_PROFILES = ('container', 'ecs_container', 'eks_container', 'eks_init_container', 'node_container')
+MAX_WORKLOAD_TARGETS = 4
 
 
 def partition(region):
@@ -35,6 +39,7 @@ def selections(options, scopes):
             or any(options.get(k) for k in ('all_accounts', 'all_regions', 'discover_organization', 'organization_role_name'))):
         raise ValueError('exact_aws_image_scopes_and_targets_required')
     seen = set()
+    workload_count = 0
     for row in targets:
         if type(row) is not dict or row.get('scope') not in scopes:
             raise ValueError('invalid_aws_image_selection')
@@ -52,6 +57,41 @@ def selections(options, scopes):
                     re.escape(f'arn:{part}:lambda:{region}:{account}:function:') + r'[A-Za-z0-9_-]{1,64}', arn):
                 raise ValueError('exact_unqualified_lambda_arn_required')
             key = row['scope'], arn
+        elif set(row) == {'scope', 'task_definition_arn', 'container_name', 'repository_name', 'image_digest'}:
+            arn, container = row['task_definition_arn'], row['container_name']
+            if (type(arn) is not str or not re.fullmatch(
+                    re.escape(f'arn:{part}:ecs:{region}:{account}:task-definition/') +
+                    r'[A-Za-z0-9_-]{1,255}:[1-9][0-9]{0,9}', arn)
+                    or type(container) is not str or not TASK_NAME.fullmatch(container)
+                    or type(row['repository_name']) is not str or not 2 <= len(row['repository_name']) <= 256
+                    or not REPO.fullmatch(row['repository_name'])
+                    or type(row['image_digest']) is not str or not DIGEST.fullmatch(row['image_digest'])):
+                raise ValueError('exact_ecs_image_revision_required')
+            workload_count += 1
+            key = row['scope'], arn, container, row['repository_name'], row['image_digest']
+        elif set(row) in ({'scope', 'job_definition_arn', 'batch_profile', 'repository_name', 'image_digest'},
+                          {'scope', 'job_definition_arn', 'batch_profile', 'container_name', 'repository_name', 'image_digest'},
+                          {'scope', 'job_definition_arn', 'batch_profile', 'node_range', 'repository_name', 'image_digest'}):
+            arn, profile = row['job_definition_arn'], row['batch_profile']
+            expected = ({'scope', 'job_definition_arn', 'batch_profile', 'repository_name', 'image_digest'}
+                        if profile == 'container' else
+                        {'scope', 'job_definition_arn', 'batch_profile', 'node_range', 'repository_name', 'image_digest'}
+                        if profile == 'node_container' else
+                        {'scope', 'job_definition_arn', 'batch_profile', 'container_name', 'repository_name', 'image_digest'})
+            if (set(row) != expected or type(arn) is not str or not re.fullmatch(
+                    re.escape(f'arn:{part}:batch:{region}:{account}:job-definition/') +
+                    r'[A-Za-z0-9_-]{1,128}:[1-9][0-9]{0,9}', arn)
+                    or profile not in BATCH_PROFILES
+                    or type(row['repository_name']) is not str or not 2 <= len(row['repository_name']) <= 256
+                    or not REPO.fullmatch(row['repository_name'])
+                    or type(row['image_digest']) is not str or not DIGEST.fullmatch(row['image_digest'])
+                    or 'container_name' in row and (type(row['container_name']) is not str
+                        or not TASK_NAME.fullmatch(row['container_name']))
+                    or 'node_range' in row and (type(row['node_range']) is not str
+                        or not NODE_RANGE.fullmatch(row['node_range']))):
+                raise ValueError('exact_batch_image_revision_required')
+            workload_count += 1
+            key = row['scope'], arn, profile, row.get('container_name'), row.get('node_range'), row['repository_name'], row['image_digest']
         else:
             raise ValueError('closed_aws_image_target_required')
         if key in seen:
@@ -59,6 +99,8 @@ def selections(options, scopes):
         seen.add(key)
     if len({row['scope'] for row in targets}) > MAX_TARGETS:
         raise ValueError('selected_aws_image_scope_bound')
+    if workload_count > MAX_WORKLOAD_TARGETS:
+        raise ValueError('selected_aws_workload_image_bound')
     return deepcopy(targets)
 
 

@@ -1,4 +1,5 @@
 """Offline contract tests for the isolated ACR streaming proposal."""
+import base64
 import json
 import os
 import pytest
@@ -14,7 +15,7 @@ def test_raw_and_gzip_layers_above_old_cap(proposal,monkeypatch):
     from tests import test_azure_acr_image_secret_review_20261020 as existing
     source,checks=proposal
     for compressed in (False,True):
-        payload=existing.TOKEN.encode()+b'\n'+(os.urandom(9*1024*1024) if compressed else b'x'*(9*1024*1024))
+        payload=existing.TOKEN.encode()+b'\n'+(base64.b64encode(os.urandom(9*1024*1024)) if compressed else b'x'*(9*1024*1024))
         img=existing.image(files=[('application/config.txt',payload)],compressed=compressed)
         assert len(img.wire)>8*1024*1024
         snapshot,_=existing.capture(monkeypatch,img=img)

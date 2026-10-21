@@ -2,7 +2,7 @@
   "schema_version": 1,
   "scope": "unused IAM objects in AWS, GCP, Azure and Kubernetes",
   "candidate_matching_is_not_coverage_proof": true,
-  "native_catalog_controls": 3534,
+  "native_catalog_controls": 3553,
   "requirements": [
     {
       "provider": "aws",
@@ -924,5 +924,5 @@
       "archived_candidates": []
     }
   ],
-  "catalog_sha256": "a1558a436c64656abc068b4cf1af1b917ea8743e0f67808a234e77b72808bb63"
+  "catalog_sha256": "176233d36f564615c1f907c4cc9f36a7da72ccc0b9bdcb6b23bf9495ab650a53"
 }

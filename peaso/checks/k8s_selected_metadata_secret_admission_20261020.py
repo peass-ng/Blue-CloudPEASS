@@ -86,8 +86,9 @@ def _clone_bindings():
             raise RuntimeError('metadata inherited runtime binding changed')
     for name in('KIND','MARKER','SCHEMA','NATIVE_KINDS'):
         if candidate._GLOBALS[name]!=getattr(producer,name):raise RuntimeError('metadata consumer namespace changed')
-    fn=candidate._evaluate;original=candidate.predecessor.evaluate
-    if (fn is not _CONSUMER_CLONE or fn.__globals__ is not candidate._GLOBALS or fn.__code__ is not original.__code__
+    fn=candidate._evaluate;original=candidate.predecessor._evaluate_legacy
+    if (candidate._original is not original or fn is not _CONSUMER_CLONE
+            or fn.__globals__ is not candidate._GLOBALS or fn.__code__ is not original.__code__
             or fn.__closure__!=original.__closure__ or fn.__defaults__!=original.__defaults__):
         raise RuntimeError('metadata consumer clone changed')
     for name in('merge_leaks','deepcopy','json','re','MAX_CONTENT','MAX_WIRE','MAX_LITERALS','MAX_LEAKS','MAX_LOCATIONS','KINGFISHER_VERSION','TRUFFLEHOG_VERSION'):

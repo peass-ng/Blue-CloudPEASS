@@ -281,7 +281,12 @@
     "aws_identity_center_permission_set_consumer": "sso-admin",
     "iam_oidc_provider": "iam",
     "target_group": "elasticloadbalancing",
-    "vpn_gateway": "ec2"
+    "vpn_gateway": "ec2",
+    "ecs_selected_environment_file_content": "ecs",
+    "workload_referenced_source_content": "account",
+    "build_deployment_referenced_source_content": "account",
+    "aws_selected_workload_image_secrets": "ecr",
+    "ecr_public_selected_image_content": "ecr-public"
   },
   "azure": {
     "access_review_definition": "Microsoft.Graph",
@@ -511,7 +516,11 @@
     "azure_unused_role_evidence": "Microsoft.Graph",
     "directory_role_definition": "Microsoft.Graph",
     "azure_unused_arm_role_evidence": "Microsoft.Authorization",
-    "azure_unused_iam_user_success_evidence": "Microsoft.Graph"
+    "azure_unused_iam_user_success_evidence": "Microsoft.Graph",
+    "azure_selected_aks_pod_image": "Microsoft.ContainerService",
+    "azure_selected_aks_pod_image_vulnerabilities": "Microsoft.ContainerService",
+    "azure_flex_configured_deployment_archives": "Microsoft.Web",
+    "azure_synapse_selected_notebook_source": "Microsoft.Synapse"
   },
   "gcp": {
     "access_approval_settings": "accessapproval",
@@ -633,7 +642,13 @@
     "iam_role": "iam",
     "firewall_policy": "compute",
     "address": "compute",
-    "network_endpoint_group": "compute"
+    "network_endpoint_group": "compute",
+    "appengine_flex_selected_version_image_secrets": "appengine",
+    "appengine_flex_selected_version_image_vulnerabilities": "appengine",
+    "gke_selected_pod_image_secrets": "container",
+    "gke_selected_pod_image_vulnerabilities": "container",
+    "cloudrun_worker_pool_selected_revision_image": "run",
+    "developerconnect_selected_file": "developerconnect"
   },
   "k8s": {
     "admission_policy": "kubernetes",
@@ -669,6 +684,9 @@
     "k8s_selected_log_samples": "kubernetes",
     "k8s_selected_metadata": "kubernetes",
     "k8s_selected_text_content": "kubernetes",
-    "endpoints": "kubernetes"
+    "endpoints": "kubernetes",
+    "k8s_selected_registry_image_secrets": "kubernetes",
+    "k8s_selected_registry_image_vulnerabilities": "kubernetes",
+    "k8s_selected_flux_artifact": "kubernetes"
   }
 }

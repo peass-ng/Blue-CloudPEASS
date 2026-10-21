@@ -11,7 +11,9 @@ class FiniteTransition(unittest.TestCase):
   receipt=shared._private_receipt()
   for key,transition in receipt['provider_group_callables'].items():
    with self.subTest(key=key):
-    path,name=key.split(':'); module=importlib.import_module(path[:-3].replace('/','.')); fn=getattr(module,name)
+    path,name=key.split(':'); module=importlib.import_module(path[:-3].replace('/','.')); fn=module
+    for part in name.split('.'):
+     fn=getattr(fn,part)
     row=dict(path=path,qualname=name,sha256=transition['predecessor_sha256'],defaults=fn.__defaults__,kwdefaults=fn.__kwdefaults__)
     shared._check_function(fn,row,ROOT,{})
  def test_changed_engine_disk_rejected(self):self._tamper('peaso/engine.py')

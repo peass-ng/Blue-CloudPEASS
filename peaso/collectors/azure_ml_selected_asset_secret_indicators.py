@@ -22,12 +22,12 @@ WORKSPACE_API='2026-03-01'
 SCHEMA='azure-selected-ml-asset-source-v1'
 MARKER='SelectedMLAssetSecretIndicators'
 PROFILES={
- 'environment':{'kind':'azure_ml_selected_environment_conda','check':'azure.review.machine_learning.selected_environment_conda_secret_indicators','option':'selected_azure_ml_environment_versions','asset':'environments','title':'Selected ML environment Conda literals have no detected secrets'},
+ 'environment':{'kind':'azure_ml_selected_environment_conda','check':'azure.review.machine_learning.selected_environment_conda_secret_indicators','option':'selected_azure_ml_environment_versions','asset':'environments','title':'Selected ML environment text has no detected secrets'},
  'code':{'kind':'azure_ml_selected_code_file','check':'azure.review.machine_learning.selected_code_file_secret_indicators','option':'selected_azure_ml_code_files','asset':'codes','title':'Selected ML code source files have no detected secrets'},
 }
 KINDS=tuple(p['kind']for p in PROFILES.values())
 MAX_TARGETS=4
-MAX_CALLS=48
+MAX_CALLS=56  # Four selected job-bound code files use at most 14 reads each.
 MAX_TOTAL=8*1024*1024
 MAX_ARM=512*1024
 MAX_CONTENT=256*1024
@@ -43,15 +43,19 @@ def enabled(options,profile):
 
 
 def parse(profile,target):
-    fields={'resource_id'}if profile=='environment'else{'resource_id','datastore','storage'}
-    if not isinstance(target,dict)or set(target)!=fields:raise ValueError('invalid_selection')
+    allowed=({'resource_id'},{'resource_id','datastore','storage'})if profile=='environment'else({'resource_id','datastore','storage'},{'resource_id','datastore','storage','job_resource_id'})
+    if not isinstance(target,dict)or set(target)not in allowed:raise ValueError('invalid_selection')
     rid=target['resource_id'];p=PROFILES[profile]
     match=re.fullmatch('('+BASE+')/'+p['asset']+'/('+ASSET+')/versions/('+ASSET+')',rid,re.I)if isinstance(rid,str)and len(rid)<=1024 else None
     if not match or any(s in('.','..')for s in rid.split('/')):raise ValueError('invalid_selection')
-    if profile=='code':
+    if 'job_resource_id' in target:
+        job=target['job_resource_id']
+        j=re.fullmatch(re.escape(match[1])+r'/jobs/('+ASSET+')',job,re.I)if isinstance(job,str)and len(job)<=1024 else None
+        if not j or job.rsplit('/',1)[1] in('.','..'):raise ValueError('invalid_selection')
+    if 'storage'in target:
         if not isinstance(target['datastore'],str)or not re.fullmatch(ASSET,target['datastore'])or target['datastore']in('.','..'):raise ValueError('invalid_selection')
         service,scope,*_=storage.parse(target['storage'])
-        if scope.casefold()!=match[2].casefold()or target['storage']['format']!='text':raise ValueError('invalid_selection')
+        if scope.casefold()!=match[2].casefold()or target['storage']['format']!='text'or(profile=='environment'and service!='blob'):raise ValueError('invalid_selection')
     return match[2],rid,match[1]
 
 
@@ -59,7 +63,8 @@ def identity(profile,target):
     # ML container names and versions are case-sensitive native route segments.
     scope,rid,workspace=parse(profile,target)
     native=deepcopy(target);native['resource_id']=workspace.casefold()+rid[len(workspace):]
-    if profile=='code':
+    if 'job_resource_id'in native:native['job_resource_id']=workspace.casefold()+native['job_resource_id'][len(workspace):]
+    if 'storage'in target:
         native['storage']['resource_id']=native['storage']['resource_id'].casefold()
         if native['storage']['service']=='file':native['storage']['object']=native['storage']['object'].casefold()
     return PROFILES[profile]['kind']+':'+_fingerprint(json.dumps(native,sort_keys=True,separators=(',',':')))
@@ -158,7 +163,7 @@ def _workspace(data,rid,tenant):
     return _fingerprint(p['workspaceId'].casefold())
 
 
-def code_binding(properties,target,workspace,datastore):
+def code_binding(properties,target,workspace,datastore,uri=None,exact_relative=None):
     """Native URI association only: canonical paths, exact storage parent, no SAS."""
     st=target['storage'];service,scope,rid,account,container,path,version,_=storage.parse(st)
     name=target['datastore'];store_id=workspace+'/datastores/'+name
@@ -175,7 +180,7 @@ def code_binding(properties,target,workspace,datastore):
             or p.get('containerName'if service=='blob'else'fileShareName')!=container or p.get('endpoint')!='core.windows.net'
             or p.get('protocol')!='https'or p.get('subscriptionId','').casefold()!=scope.rsplit('/',1)[1].casefold()
             or p.get('resourceGroup','').casefold()!=rid.split('/')[4].casefold()):raise ValueError('datastore_unbound')
-    uri=properties.get('codeUri')
+    uri=properties.get('codeUri')if uri is None else uri
     if not isinstance(uri,str)or not 1<=len(uri)<=2048 or any(c in uri for c in('%','?','#','\\','\r','\n')):raise ValueError('unsupported_code_uri')
     prefixes=['azureml://datastores/'+name+'/paths/',
         'azureml://subscriptions/'+scope.rsplit('/',1)[1]+'/resourcegroups/'+workspace.split('/')[4]+'/workspaces/'+workspace.rsplit('/',1)[1]+'/datastores/'+name+'/paths/',
@@ -185,21 +190,52 @@ def code_binding(properties,target,workspace,datastore):
     root=roots[0];folder=root.endswith('/');canonical=root[:-1]if folder else root
     # Same conservative character/path grammar as selected storage; reject even encoded aliases.
     storage.parse({**st,'object':canonical})
-    if (folder and not path.startswith(canonical+'/'))or(not folder and path!=canonical):raise ValueError('file_outside_code_uri')
+    if exact_relative is None:
+        if (folder and not path.startswith(canonical+'/'))or(not folder and path!=canonical):raise ValueError('file_outside_code_uri')
+    elif not folder or path!=canonical+'/'+exact_relative:raise ValueError('file_outside_build_context')
     return _fingerprint(json.dumps({k:p[k]for k in('datastoreType','accountName','endpoint','protocol','subscriptionId','resourceGroup')},sort_keys=True)+'\n'+uri)
+
+
+def build_binding(properties,target,workspace,datastore):
+    """Bind one declared Dockerfile under one native blob build context."""
+    build=properties.get('build')
+    if not isinstance(build,dict):raise ValueError('unsupported_build')
+    dockerfile=build.get('dockerfilePath')
+    if (not isinstance(dockerfile,str)or not 1<=len(dockerfile)<=512
+            or dockerfile.startswith('/')or any(c in dockerfile for c in('%','?','#','\\','\r','\n'))
+            or any(p in('','.', '..')for p in dockerfile.split('/'))):raise ValueError('unsupported_dockerfile')
+    uri=build.get('contextUri')
+    if not isinstance(uri,str):raise ValueError('unsupported_build_context')
+    association=code_binding(properties,target,workspace,datastore,uri=uri,exact_relative=dockerfile)
+    return _fingerprint(association+'\n'+dockerfile)
+
+
+def _job(data,target,code_rid):
+    rid=target['job_resource_id'];props=_bound(data,rid,SERVICE+'/workspaces/jobs')
+    if (data.get('name')!=rid.rsplit('/',1)[1] or data.get('id','').rsplit('/',1)[1]!=rid.rsplit('/',1)[1]
+            or props.get('jobType')!='Command' or props.get('codeId')!=code_rid):
+        raise ValueError('job_code_unbound')
+    return _fingerprint(json.dumps(data,sort_keys=True,separators=(',',':'),allow_nan=False))
 
 
 def _one(reader,transport,state,ledger,profile,target,scope):
     p=PROFILES[profile];ident=identity(profile,target);_,rid,workspace=parse(profile,target);start=len(ledger)
+    build=profile=='environment'and 'storage'in target
+    external=profile=='code'or build
     marker={'schema':SCHEMA,'identity':ident,'scope':scope,'capture':state['capture'],'profile':profile,'complete':False,'native_complete':False,
-        'workspace_binding':None,'association_binding':None,'object_binding':None,'storage_service':target['storage']['service']if profile=='code'else None,
+        'workspace_binding':None,'association_binding':None,'object_binding':None,'storage_service':target['storage']['service']if external else None,
         'immutable_source_proven':False,'parts':[],'leaks':[],'source_requests':[],'verification':'not_attempted'}
+    job_bound=profile=='code'and 'job_resource_id'in target
+    if job_bound:marker['job_binding']=None
     try:
         def get(op,path,version=API):return reader.call(_get,reader,transport,state,ledger,ident,scope,op,path,version)
         sub=get('subscription',scope,'2022-12-01');storage._bound_subscription(sub,scope,state);ledger[-1]['bound']=True;del sub
         binding=_workspace(get('workspace_before',workspace,WORKSPACE_API),workspace,state['authority']['tenant']);ledger[-1]['bound']=True;marker['workspace_binding']=binding
+        if job_bound:
+            marker['job_binding']=_job(get('job_before',target['job_resource_id'],'2024-04-01'),target,rid)
+            ledger[-1]['bound']=True
         props=_asset(get('asset_before',rid),rid,profile);ledger[-1]['bound']=True
-        if profile=='environment':
+        if profile=='environment'and not build:
             value=props.get('condaFile')
             if not isinstance(value,str)or value.strip().lower()in('','***','[redacted]','<redacted>')or '@microsoft.keyvault('in value.lower():raise ValueError('inline_unavailable')
             if not re.search(r'(?m)^\s*dependencies\s*:',value)or '\n'not in value:raise ValueError('unsupported_conda_inline')
@@ -208,7 +244,8 @@ def _one(reader,transport,state,ledger,profile,target,scope):
             association=_fingerprint(value);marker['association_binding']=association;del value
         else:
             st=target['storage'];store=workspace+'/datastores/'+target['datastore']
-            association=code_binding(props,target,workspace,get('datastore_before',store));ledger[-1]['bound']=True
+            bind=build_binding if build else code_binding
+            association=bind(props,target,workspace,get('datastore_before',store));ledger[-1]['bound']=True
             marker['association_binding']=association
             def read(op,method,host,path,expected=None):return reader.call(_storage_read,reader,transport,state,ledger,ident,st,op,method,host,path,expected)
             native=read('account','GET','management.azure.com',st['resource_id']+'?api-version='+storage.ARM_VERSION);storage._bound_account(native,st);ledger[-1]['bound']=True;del native
@@ -218,29 +255,34 @@ def _one(reader,transport,state,ledger,profile,target,scope):
             after=read('properties_after','HEAD',host,path)
             if before!=after:raise ValueError('object_changed')
             marker['object_binding']=_fingerprint(json.dumps(before,sort_keys=True));storage.text(raw)
-            if code_binding(props,target,workspace,get('datastore_after',store))!=association:raise ValueError('datastore_changed')
+            if bind(props,target,workspace,get('datastore_after',store))!=association:raise ValueError('datastore_changed')
             ledger[-1]['bound']=True
         del props
         closing=_asset(get('asset_after',rid),rid,profile);ledger[-1]['bound']=True
-        if profile=='environment':
+        if profile=='environment'and not build:
             if closing.get('condaFile')is None or _fingerprint(closing['condaFile'])!=association:raise ValueError('asset_changed')
-        elif code_binding(closing,target,workspace,get('datastore_final',store))!=association:raise ValueError('asset_changed')
-        if profile=='code':ledger[-1]['bound']=True
+        elif bind(closing,target,workspace,get('datastore_final',store))!=association:raise ValueError('asset_changed')
+        if external:ledger[-1]['bound']=True
         if _workspace(get('workspace_after',workspace,WORKSPACE_API),workspace,state['authority']['tenant'])!=binding:raise ValueError('workspace_changed')
         ledger[-1]['bound']=True;del closing
         marker['native_complete']=True;remaining(reader,state)
-        result=scan_with_source(scan_content, raw,ident+'.'+profile,timeout=remaining(reader,state)/2,_redact_values=lambda values:remember(reader,'configuration_secret_redactions',values), source=target_source(target, resource_id=ident, scope=scope));size=len(raw);del raw
+        result=scan_with_source(scan_content, raw,ident+'.'+profile,timeout=remaining(reader,state)/2,_redact_values=lambda values:remember(reader,'configuration_secret_redactions',values), source={**target_source(target, scope=scope), 'resource_id':ident});size=len(raw);del raw
         marker['parts']=[{'bytes':size,'complete':result['complete'],'engines':deepcopy(result['engines'])}]
         leaks=merge_leaks(result['leaks'])
         if len(leaks)>MAX_LEAKS or sum(len(l['locations'])for l in leaks)>MAX_LOCATIONS:raise ValueError('leak_bound')
         marker['leaks']=leaks;remaining(reader,state);marker['complete']=result['complete']is True
+        if job_bound:
+            if _job(get('job_after',target['job_resource_id'],'2024-04-01'),target,rid)!=marker['job_binding']:
+                raise ValueError('job_changed')
+            ledger[-1]['bound']=True
     except Exception:marker['complete']=False
     marker['source_requests']=[r['id']for r in ledger[start:]]
     return {'id':ident,MARKER:marker,'_provenance':{'scope':scope,'capture':state['capture'],'source_requests':marker['source_requests'][:]}}
 
 
-def operations(profile):
-    return ('subscription','workspace_before','asset_before')+(()if profile=='environment'else('datastore_before','account','properties_before','content','properties_after','datastore_after'))+('asset_after',)+(()if profile=='environment'else('datastore_final',))+('workspace_after',)
+def operations(profile,build=False,job=False):
+    external=profile=='code'or build
+    return ('subscription','workspace_before')+(('job_before',)if job else())+('asset_before',)+(('datastore_before','account','properties_before','content','properties_after','datastore_after')if external else())+('asset_after',)+(('datastore_final',)if external else())+('workspace_after',)+(('job_after',)if job else())
 
 
 def collect(reader,transport,scopes,wanted,options):

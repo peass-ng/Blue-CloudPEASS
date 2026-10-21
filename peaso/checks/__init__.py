@@ -1522,6 +1522,8 @@ azure_ai_services_review_20261020.install()
 
 from . import azure_synapse_dependency_review_20261020
 azure_synapse_dependency_review_20261020.install()
+from . import azure_synapse_selected_notebook_secret_review_20261021
+azure_synapse_selected_notebook_secret_review_20261021.install()
 
 from . import azure_hsm_audit_review_20261020
 azure_hsm_audit_review_20261020.install(register)
@@ -1555,6 +1557,9 @@ _rawv2_source.install_admission("azure_declaration_secrets_admission_20261020")
 from . import k8s_kubelet_configmap_admission_20261020
 from . import k8s_kubelet_configmap_source_successor_20261021
 k8s_kubelet_configmap_source_successor_20261021.install()
+
+from . import aws_ecs_environment_file_secret_review_20261021
+aws_ecs_environment_file_secret_review_20261021.install(register)
 
 from . import aws_s3_selected_source_admission_20261020
 from . import aws_codebuild_buildspec_s3_successor_20261020
@@ -1650,6 +1655,45 @@ _gcp_image_stream.install()
 # Default-off selected standalone immutable registry image vulnerabilities.
 from .gcp_registry_trivy_review_20261021 import install as _install_registry_image_cves
 _install_registry_image_cves(__import__(__name__, fromlist=['CHECKS']))
+
+# Explicit selected Pod-bound registry image checks.
+from .k8s_selected_registry_image_review_20261021 import install as _install_k8s_registry_images
+_install_k8s_registry_images(register)
+from .azure_selected_aks_image_review_20261021 import install as _install_azure_aks_image
+_install_azure_aks_image()
+
+from .k8s_selected_flux_artifact_review_20261021 import install as _install_flux_artifact
+_install_flux_artifact(register)
+
+from . import aws_workload_referenced_source_review
+aws_workload_referenced_source_review.install(register)
+
+from . import aws_build_deployment_referenced_source_review
+aws_build_deployment_referenced_source_review.install(register)
+
+from . import gcp_workerpool_image_secret_review_20261021
+gcp_workerpool_image_secret_review_20261021.install()
+
+from . import gcp_developerconnect_file_secret_review_20261021
+gcp_developerconnect_file_secret_review_20261021.install()
+
+from . import gcp_appengine_flex_image_review_20261021
+gcp_appengine_flex_image_review_20261021.install()
+
+from . import gcp_gke_selected_pod_image_review_20261021
+gcp_gke_selected_pod_image_review_20261021.install()
+
+from . import azure_ml_selected_job_secret_review_20261020 as _selected_ml_job_variants
+_selected_ml_job_variants.install_current_native_cases()
+
+from . import aws_workload_image_secret_review_20261021 as _aws_workload_image_secrets
+_aws_workload_image_secrets.install(__import__(__name__, fromlist=['CHECKS']))
+
+from .aws_ecr_public_image_review_20261021 import install as _install_ecr_public_image
+_install_ecr_public_image(register)
+
+from . import azure_flex_deployment_archives_review_20261021
+azure_flex_deployment_archives_review_20261021.install(register)
 
 # Unused identities and grants are native Hardening controls.
 from peaso import unused_iam_hardening as _unused_iam_hardening

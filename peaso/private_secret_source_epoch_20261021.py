@@ -24,8 +24,8 @@ import sysconfig
 from types import CodeType, FunctionType, MethodType, ModuleType
 import zipfile
 
-_RECEIPT_SHA256 = "7968350aaff454e46738f5fd2a911c2887754b7ceca02050210b22f25c0832f0"
-_SELF_SHA256 = "489f6a0f8098f613fba61e06840de736927acc608553d0055948003c587ac6b1"
+_RECEIPT_SHA256 = "15ad9dd312b86917708fabde7f7b431c99fd0ad790cbaeaea175f56385dd2b11"
+_SELF_SHA256 = "0e0294d108f38557b2aaf92c0eba4c38852aa7045121057049a0b5341677df74"
 _ARCHIVE_SHA256 = "3eb403fa363c559f7053060d409f60ac8c693350350423a6dc775412df4300c0"
 _HELPER_SHA256 = "15092e316c2331e03fdae7fad4dda5ed92310a1c15a827b0009fbcd54a11693a"
 _BASE = "6b6ee759234d7e2dad978342838cb3af4e1fe767"
@@ -533,9 +533,30 @@ def source_rows() -> dict[str, dict]:
 
 def predecessor_bytes(relative: str, current: bytes, expected_before: str, root: str | Path) -> bytes:
     """Return the exact cc762 predecessor for one pinned, live after-source."""
-    _, rows = _receipt()
-    row = rows.get(_relative(relative))
-    if row is None or type(current) is not bytes or expected_before != row["before_sha256"]:
+    receipt, rows = _receipt()
+    relative = _relative(relative)
+    row = rows.get(relative)
+    if row is None:
+        transition = receipt["current_reviewed_files"].get(relative)
+        if (transition is None or type(current) is not bytes
+                or expected_before != transition["predecessor_sha256"]
+                or _sha(current) != transition["current_sha256"]
+                or current != _root_path(root, relative).read_bytes()):
+            raise AdmissionError("unreviewed predecessor request")
+        text = current.decode("utf-8")
+        for before, after in transition["exact_replacements"]:
+            if text.count(after) != 1:
+                raise AdmissionError("reviewed replacement changed")
+            text = text.replace(after, before, 1)
+        for addition in transition["exact_additions"]:
+            if text.count(addition) != 1:
+                raise AdmissionError("reviewed addition changed")
+            text = text.replace(addition, "", 1)
+        before = text.encode("utf-8")
+        if _sha(before) != expected_before:
+            raise AdmissionError("reviewed predecessor changed")
+        return before
+    if type(current) is not bytes or expected_before != row["before_sha256"]:
         raise AdmissionError("unreviewed predecessor request")
     live, _ = _live(root, relative, row)
     if current != live:

@@ -136,14 +136,10 @@ def test_latest_catalog_preserves_raw_rule_opt_in(monkeypatch, tmp_path):
     monkeypatch.setattr(catalog, "fetch_rules", lambda _repo, _commit, _digest: {
         "aws/keyspaces/example.yml": source,
     })
-    catalog._remote_catalog.cache_clear()
-    try:
-        selected = catalog.select_catalog("latest", product="aws")
-        assert selected.commit == "a" * 40
-        assert selected.rules[0].raw_cloudtrail is True
-        assert len(detect_aws_events([event()], selected.rules)) == 1
-    finally:
-        catalog._remote_catalog.cache_clear()
+    selected = catalog.select_catalog("latest", product="aws")
+    assert selected.commit == "a" * 40
+    assert selected.rules[0].raw_cloudtrail is True
+    assert len(detect_aws_events([event()], selected.rules)) == 1
 
 
 def test_resource_path_prefix_scopes_raw_rule_without_exposing_arn(tmp_path):

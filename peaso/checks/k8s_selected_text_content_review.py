@@ -1,6 +1,9 @@
 """Conservative consumer for the optional selected text reader proposal."""
 from types import FunctionType
 from copy import deepcopy
+import hashlib
+import json
+from pathlib import Path
 import re
 from peaso.checks import k8s_literal_secret_review_20261020 as base
 from peaso.collectors import k8s_selected_text_content as source
@@ -60,15 +63,19 @@ def evaluate(item, index):
 
 def install():
     from peaso.checks import CHECKS, register
+    from peaso.checks.fixtures import CASES
+    raw = Path(__file__).with_name('k8s_selected_text_content_review_cases.json').read_bytes()
+    if hashlib.sha256(raw).hexdigest() != '50f091386d03cb6ebdc2a767ff7bf3ce69a5fa1a0540bd7bb68aceed2d303afe':
+        raise ValueError('selected text native cases changed')
+    cases = json.loads(raw)[source.CHECK]
+    if source.CHECK in CASES and CASES[source.CHECK] != cases:
+        raise ValueError('selected text native cases changed')
     if any(check.id == source.CHECK for check in CHECKS):
+        CASES[source.CHECK] = cases
         return
-    from .provider_content_native_cases_20261021 import native_case
-    from .fixtures import CASES
-    case = native_case(source.CHECK)
     register(source.CHECK, 'k8s', 'hardening', source.KIND,
              'Selected Kubernetes text fields have no detected secrets', 'high',
              'security_configuration',
              'Remove confirmed credential values from selected text fields and rotate them.',
              dependencies=[source.KIND], allow_incomplete_failure=True)(evaluate)
-
-    CASES[source.CHECK] = case
+    CASES[source.CHECK] = cases

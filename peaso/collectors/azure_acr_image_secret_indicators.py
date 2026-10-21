@@ -19,6 +19,7 @@ from urllib.parse import urlencode, urlsplit
 from .gcp_image_secret_indicators import _tar, _descriptor, DIGEST
 from .aws_package_content_indicators import _json, OCI, DOCKER, TAR_TYPES, CONFIG_TYPES
 from peaso.secret_scanning import scan_content, merge_leaks, _fingerprint
+from peaso import oci_index_20261021 as oci_index
 
 KIND = 'acr_selected_image'
 CHECK = 'azure.review.acr.selected_image_secret_indicators'
@@ -189,7 +190,8 @@ class Reader:
         connection=response=None
         try:
             connection=http.client.HTTPSConnection(host,timeout=self.timeout());connection.set_debuglevel(0)
-            headers={'Accept-Encoding':'identity','Accept':OCI+', '+DOCKER+', application/json' if operation=='manifest' else 'application/octet-stream'}
+            headers={'Accept-Encoding':'identity','Accept':', '.join((OCI,DOCKER,oci_index.OCI_INDEX,
+                oci_index.DOCKER_LIST)) if operation=='manifest' else 'application/octet-stream'}
             if body is not None:headers.update({'Content-Type':'application/x-www-form-urlencoded','Content-Length':str(len(body))})
             if authorization is not None:headers['Authorization']='Bearer '+authorization
             connection.request(receipt['method'],route,body=body,headers=headers)
@@ -245,7 +247,10 @@ class Reader:
                 raise
             receipt.update(status='collected',verified=True,bound=digest is not None)
             return destination if destination is not None else bytes(raw)
-        except Exception:
+        except Exception as exc:
+            if (type(exc).__name__=='AzureReadError'
+                    and getattr(exc,'code',None) in ('collection_cancelled','deadline_exceeded')):
+                raise
             raise Incomplete('native_image_read_unavailable') from None
         finally:
             if response is not None:response.close()

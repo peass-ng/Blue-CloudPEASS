@@ -1,6 +1,8 @@
 """Portable GCP standalone immutable registry image regression tests."""
 from pathlib import Path
 from copy import deepcopy
+from datetime import datetime, timedelta, timezone
+import json
 import os
 import sys
 import socket
@@ -232,13 +234,23 @@ def test_shared_snapshot_observations_keep_registry_and_job_rows():
     assert merged['metadata']['image_vulnerability_scan']['observations']==[None,{'scan':None}]
 
 
-def test_real_pinned_trivy_stale_db_cannot_pass():
+def test_real_pinned_trivy_stale_db_cannot_pass(tmp_path):
     from peaso import trivy_container_runner_20261020 as runner
     if not os.getenv('PEASO_TEST_TRIVY_DB') or not os.getenv('PEASO_TEST_TRIVY_CLI'):
         pytest.fail('set PEASO_TEST_TRIVY_DB and PEASO_TEST_TRIVY_CLI for pinned stale-DB case')
+    source_db = Path(os.environ['PEASO_TEST_TRIVY_DB']) / 'db'
+    stale_db = tmp_path / 'stale-db' / 'db'
+    stale_db.mkdir(parents=True)
+    os.link(source_db / 'trivy.db', stale_db / 'trivy.db')
+    metadata = json.loads((source_db / 'metadata.json').read_text())
+    updated = datetime.now(timezone.utc) - timedelta(days=3)
+    metadata.update(UpdatedAt=updated.isoformat(),
+                    NextUpdate=(updated + timedelta(days=1)).isoformat(),
+                    DownloadedAt=(updated + timedelta(minutes=1)).isoformat())
+    (stale_db / 'metadata.json').write_text(json.dumps(metadata))
     ref,metadata,images,wire=setup()
     result=collect(ref,metadata,images,wire,runner=runner.scan_image,
-        db_cache=Path(os.environ['PEASO_TEST_TRIVY_DB']),cli=os.environ['PEASO_TEST_TRIVY_CLI'],timeout=120)
+        db_cache=stale_db.parent,cli=os.environ['PEASO_TEST_TRIVY_CLI'],timeout=120)
     assert result['status']=='UNKNOWN' and result['complete'] is False
     scan=result['rows'][0]['scan']
     assert scan is not None and scan['database']['fresh'] is False

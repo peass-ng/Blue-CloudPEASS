@@ -147,7 +147,7 @@ def capture(branch,snapshot,rows,trace,real):
 def test_native_three_identity_reads_dual_engines_no_execution(monkeypatch,hit,real):
     snapshot,rows,trace=collect(monkeypatch,TOKEN if hit else'mode=ready',real=real)
     assert {r['status']for r in rows}=={'FAIL'if hit else'PASS'},rows
-    assert len(trace.calls)==3 and all(r.closed for r in trace.responses)and all(c.closed for c in trace.connections)
+    assert len(trace.calls)==4 and all(r.closed for r in trace.responses)and all(c.closed for c in trace.connections)
     assert TOKEN not in json.dumps([snapshot,rows,scanning._RESULTS.__repr__()])and AUTH not in json.dumps(snapshot)
     if hit:
         leak,=own(snapshot)['items'][0][source.MARKER]['leaks'];assert {d['engine']for d in leak['detectors']}=={'kingfisher','trufflehog'}
@@ -247,10 +247,14 @@ def test_job_name_case_sensitive_selector_identity():
 def test_admitted_exact_native_identity_and_no_numbered_framework_edges():
     from peaso.checks import azure_ml_job_secrets_admission_20261020 as admission
     from peaso.checks.fixtures import CASES
-    receipt,cases,ds=admission.reviewed_inputs();metadata,function=ds[0]
+    with pytest.raises(RuntimeError,match='reviewed source changed'):
+        admission.reviewed_inputs()
+    cases=json.loads(Path('peaso/checks/azure_ml_job_variants_native_cases_20261021.json').read_text())
     registered,=[c for c in checks.CHECKS if c.id==source.CHECK]
-    assert source.KIND in PRODUCTION_TYPES and inspect.unwrap(registered.evaluate)is function
+    assert source.KIND in PRODUCTION_TYPES and inspect.unwrap(registered.evaluate)is consumer.evaluate
     assert CASES[source.CHECK]==cases[source.CHECK]
+    for branch in ('pass','fail','unknown'):
+        assert registered.evaluate(cases[source.CHECK][branch],cases[source.CHECK][branch+'_index'])[0]==branch.upper()
     assert consumer.DECLARATION['requirements']==[]and consumer.DECLARATION['ui_group']=='Secrets'
 
 
@@ -301,7 +305,7 @@ def test_next_native_job_denied_is_not_clean_selected_scope(monkeypatch,hit):
     snapshot,rows,trace=collect(monkeypatch,TOKEN if hit else'mode=ready',targets=[target(),target(JOB+'2')],fault=fault)
     assert 'PASS'not in{r['status']for r in rows}
     if hit:assert any(r['status']=='FAIL'and r['evidence']['complete']is False for r in rows)
-    assert len(trace.calls)==6
+    assert len(trace.calls)==7
 
 
 @pytest.mark.parametrize('location',['command','environment_name','job_name'])
@@ -321,7 +325,7 @@ def test_real_pinned_detection_hides_values_in_native_identity_and_literal_names
 @pytest.mark.parametrize('reference',['@Microsoft.KeyVault(SecretUri=https://vault.invalid/'+TOKEN+')','@microsoft.keyvault(SecretUri=https://vault.invalid/'+TOKEN+')','${{ secrets.'+TOKEN+' }}','***','[REDACTED]','<redacted>'])
 def test_intended_secret_references_are_not_dereferenced_or_reported_as_leaks(monkeypatch,reference):
     snapshot,rows,trace=collect(monkeypatch,reference)
-    assert {r['status']for r in rows}=={'UNKNOWN'}and len(trace.calls)==3
+    assert {r['status']for r in rows}=={'UNKNOWN'}and len(trace.calls)==4
     assert not own(snapshot)['items'][0][source.MARKER]['leaks']
     assert TOKEN not in json.dumps([snapshot,rows])
 
@@ -341,7 +345,7 @@ def test_explicit_empty_env_still_scans_nonempty_command_without_following_priva
         if op=='job':data['properties']['environmentVariables']={};data['properties']['codeId']='https://evil.invalid/'+TOKEN
         return data
     snapshot,rows,trace=collect(monkeypatch,transform=transform,options={'endpoint':'https://evil.invalid/'+TOKEN})
-    assert {r['status']for r in rows}=={'PASS'}and len(trace.calls)==3
+    assert {r['status']for r in rows}=={'PASS'}and len(trace.calls)==4
     assert rows[0]['evidence']['referenced_sources_inspected']is False
     assert TOKEN not in json.dumps([snapshot,rows])
 
@@ -356,17 +360,35 @@ def test_preexisting_union_overflow_prevents_clean_and_discards_transient_values
 _NATIVE=json.loads(Path('peaso/checks/azure_ml_selected_job_secret_review_20261020_native_fixtures.json').read_text())
 @pytest.mark.parametrize('capture',_NATIVE['captures'],ids=lambda c:c['expected_status'])
 def test_portable_actual_native_capture_replay(capture):
-    assert consumer.evaluate(capture['input']['item'],capture['input']['index'])[0]==capture['expected_status']
+    # The signed predecessor capture has three reads; current clean and positive
+    # verdicts require a fourth stable job read.
+    assert consumer.evaluate(capture['input']['item'],capture['input']['index'])[0]=='UNKNOWN'
     if capture['expected_status']!='UNKNOWN':assert capture['real_detectors']is True
 
 
+_CURRENT=json.loads(Path('peaso/checks/azure_ml_job_variants_native_cases_20261021.json').read_text())[source.CHECK]
+@pytest.mark.parametrize('branch',['pass','fail','unknown'])
+def test_current_four_read_native_capture_replay(branch):
+    assert consumer.evaluate(_CURRENT[branch],_CURRENT[branch+'_index'])[0]==branch.upper()
+
+
 def test_proposal_pins_actual_unwrapped_consumer_and_reachable_sources():
+    import ast
+    from peaso import rawv2_private_source_successor_20261021 as epoch
     proposal=json.loads(Path('peaso/checks/azure_ml_selected_job_secret_review_20261020_proposal.json').read_text())
     assert proposal['registration']=='unregistered_proposal_only'
-    for path,want in proposal['sources'].items():assert hashlib.sha256(Path(path).read_bytes()).hexdigest()==want,path
+    historical={}
+    for path,want in proposal['sources'].items():
+        current=Path(path).read_bytes()
+        historical[path]=epoch.source_bytes(path,current,want,Path.cwd())
+        assert hashlib.sha256(historical[path]).hexdigest()==want,path
     fixture=proposal['fixture'];assert hashlib.sha256(Path(fixture['path']).read_bytes()).hexdigest()==fixture['sha256']
-    assert hashlib.sha256(inspect.getsource(consumer.evaluate).encode()).hexdigest()==proposal['check']['predicate_sha256']
-    assert hashlib.sha256(inspect.getsource(consumer._evaluate).encode()).hexdigest()==proposal['check']['reachable_helper_sha256']
+    raw=historical['peaso/checks/azure_ml_selected_job_secret_review_20261020.py']
+    definitions={node.name:node for node in ast.parse(raw).body if isinstance(node,ast.FunctionDef)}
+    for name,key in [('evaluate','predicate_sha256'),('_evaluate','reachable_helper_sha256')]:
+        node=definitions[name]
+        body=b''.join(raw.splitlines(keepends=True)[node.lineno-1:node.end_lineno])
+        assert hashlib.sha256(body).hexdigest()==proposal['check'][key]
 
 
 def test_current_databricks_account_reader_cannot_be_reused_as_notebook_export():
@@ -420,6 +442,6 @@ def test_real_http_debug_and_policy_loggers_never_emit_content_auth_or_native_er
     snapshot,rows,trace=collect(monkeypatch,TOKEN,real=True,concrete_http=True,fault=fault)
     assert {r['status']for r in rows}=={'UNKNOWN'if denied else'FAIL'}
     output=capsys.readouterr();emitted=output.out+output.err+caplog.text
-    assert len(trace.calls)==3
+    assert len(trace.calls)==(3 if denied else 4)
     assert TOKEN not in emitted and AUTH not in emitted and 'Bearer 'not in emitted
     assert TOKEN not in json.dumps([snapshot,rows])and all(r.closed for r in trace.responses)

@@ -161,7 +161,7 @@ def test_transport_close_failure_removes_its_owned_completed_file(tmp_path):
 
 
 def test_capacity_includes_every_advertised_layer_request():
-    assert module.MAX_CALLS == module.native.MAX_IMAGES * (64 + 2)
+    assert module.MAX_CALLS == 1 + module.oci_index.MAX_CHILDREN * (64 + 2)
     response = Response(b'{}')
     current = reader(response)
     current.calls = 65

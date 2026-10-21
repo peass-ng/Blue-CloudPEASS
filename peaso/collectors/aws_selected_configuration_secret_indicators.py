@@ -42,6 +42,8 @@ SCOPE = re.compile(r'([0-9]{12})/([a-z]{2}(?:-[a-z0-9]+)+-[0-9]+)\Z')
 SPECS = {KIND: ('cloudformation', 'describe_stacks', None)}
 NATIVE_IDS = {KIND: 'id'}
 SURFACES = {
+ 'cloudformation_template': ('cloudformation','get_template','cloudformation','stack/([A-Za-z][A-Za-z0-9-]{0,127})/([A-Za-z0-9-]{1,128})'),
+ 'codepipeline_configuration': ('codepipeline','get_pipeline','codepipeline','([A-Za-z0-9.@_-]{1,100})'),
  'cloudformation_outputs': ('cloudformation','describe_stacks','cloudformation','stack/([A-Za-z][A-Za-z0-9-]{0,127})/([A-Za-z0-9-]{1,128})'),
  'codebuild_environment': ('codebuild','batch_get_projects','codebuild','project/([A-Za-z0-9][A-Za-z0-9_-]{1,254})'),
  'rest_stage_variables': ('apigateway','get_stage','apigateway','/restapis/([a-z0-9]{1,32})/stages/([A-Za-z0-9_-]{1,128})'),
@@ -80,7 +82,7 @@ def parse(target):
     arn_account='' if surface=='rest_stage_variables' else account
     match=re.fullmatch('arn:'+partition+':'+arn_service+':'+region+':'+arn_account+':'+resource,arn)
     if not match:raise ValueError('invalid_configuration_selection')
-    versioned=surface in ('launch_template_userdata','ssm_document')
+    versioned=surface in ('launch_template_userdata','ssm_document','codepipeline_configuration')
     if versioned:
         if type(target.get('version')) is not int or not 1<=target['version']<=2147483647:raise ValueError('invalid_configuration_selection')
     elif 'version' in target:raise ValueError('invalid_configuration_selection')
@@ -113,6 +115,8 @@ def route(target,*,ownership=False):
     surface,account,region,partition,names=parse(target)
     service,operation,_,_=SURFACES[surface];arn=target['resource_id']
     arguments={
+      'cloudformation_template':lambda:{'StackName':arn,'TemplateStage':'Original'},
+      'codepipeline_configuration':lambda:{'name':names[0],'version':target['version']},
       'cloudformation_outputs':lambda:{'StackName':arn},
       'codebuild_environment':lambda:{'names':[arn]},
       'rest_stage_variables':lambda:{'restApiId':names[0],'stageName':names[1]},
@@ -249,6 +253,105 @@ def environment(rows,*,typed=False):
     return pairs(values)
 
 
+def batch_literals(row):
+    """Read bounded literal declarations from one pinned Batch job definition."""
+    entries=[]
+
+    def strings(values,prefix):
+        if not isinstance(values,list) or len(values)>MAX_PAIRS:
+            raise ValueError('batch_strings_shape')
+        for index,item in enumerate(values):
+            if not isinstance(item,str) or len(item)>MAX_CONTENT:
+                raise ValueError('batch_strings_shape')
+            entries.append((prefix+':'+str(index),item))
+
+    def container(item,prefix,*,eks=False):
+        if not isinstance(item,dict) or 'environmentFiles' in item or 'envFrom' in item:
+            raise ValueError('batch_container_shape')
+        for key,text in environment(item.get('env' if eks else 'environment',[])).items():
+            entries.append((prefix+':env:'+key,text))
+        if 'command' in item:
+            strings(item['command'],prefix+':command')
+        if eks and 'args' in item:
+            strings(item['args'],prefix+':args')
+
+    def named_containers(rows,prefix,*,eks=False):
+        if not isinstance(rows,list) or not rows or len(rows)>10:
+            raise ValueError('batch_containers_shape')
+        seen=set()
+        for index,item in enumerate(rows):
+            if not isinstance(item,dict):raise ValueError('batch_container_shape')
+            name=item.get('name','Default' if eks else None)
+            if not isinstance(name,str) or not name or len(name)>256 or name in seen:
+                raise ValueError('batch_container_identity')
+            seen.add(name)
+            container(item,prefix+':'+str(index)+':'+name,eks=eks)
+
+    def variant(properties,prefix,kind):
+        if not isinstance(properties,dict):raise ValueError('batch_variant_shape')
+        if kind=='container':
+            container(properties,prefix)
+        elif kind=='ecsProperties':
+            tasks=properties.get('taskProperties')
+            if not isinstance(tasks,list) or len(tasks)!=1 or not isinstance(tasks[0],dict):
+                raise ValueError('batch_tasks_shape')
+            if 'envFrom' in tasks[0]:raise ValueError('batch_tasks_shape')
+            named_containers(tasks[0].get('containers'),prefix+':task')
+        elif kind=='eksProperties':
+            pod=properties.get('podProperties')
+            if not isinstance(pod,dict) or 'envFrom' in pod:raise ValueError('batch_pod_shape')
+            containers=pod.get('containers')
+            named_containers(containers,prefix+':pod',eks=True)
+            if 'initContainers' in pod:
+                named_containers(pod['initContainers'],prefix+':init',eks=True)
+        else:raise ValueError('batch_variant_shape')
+
+    kinds=[key for key in ('containerProperties','ecsProperties','eksProperties','nodeProperties') if key in row]
+    if len(kinds)!=1:raise ValueError('batch_variant')
+    kind=kinds[0]
+    platforms=row.get('platformCapabilities',['EC2'])
+    if (not isinstance(platforms,list) or len(platforms)!=1
+            or platforms[0] not in ('EC2','FARGATE','MANAGED_INSTANCES')):
+        raise ValueError('batch_platform')
+    if (kind=='nodeProperties' and platforms[0]!='EC2') or (platforms[0]=='MANAGED_INSTANCES' and kind!='ecsProperties'):
+        raise ValueError('batch_platform_variant')
+    orchestration=row.get('containerOrchestrationType','ECS')
+    if orchestration not in ('ECS','EKS'):
+        raise ValueError('batch_orchestration')
+    if kind=='eksProperties' and orchestration!='EKS':raise ValueError('batch_orchestration')
+    if kind in ('containerProperties','ecsProperties') and orchestration!='ECS':raise ValueError('batch_orchestration')
+    if kind=='nodeProperties':
+        node=row[kind]
+        if not isinstance(node,dict) or type(node.get('numNodes')) is not int or not 1<=node['numNodes']<=100000:
+            raise ValueError('batch_nodes_shape')
+        if type(node.get('mainNode')) is not int or not 0<=node['mainNode']<node['numNodes']:
+            raise ValueError('batch_nodes_shape')
+        ranges=node.get('nodeRangeProperties')
+        if not isinstance(ranges,list) or not ranges or len(ranges)>32:
+            raise ValueError('batch_ranges_shape')
+        seen=set()
+        for index,item in enumerate(ranges):
+            if not isinstance(item,dict):raise ValueError('batch_range_shape')
+            target=item.get('targetNodes')
+            if (not isinstance(target,str) or len(target)>32
+                    or not re.fullmatch(r'[0-9]{1,6}(?::[0-9]{1,6})?|:[0-9]{1,6}|[0-9]{1,6}:',target)
+                    or target in seen):raise ValueError('batch_range_identity')
+            bounds=target.split(':')
+            first=int(bounds[0] or 0)
+            last=int(bounds[1] or node['numNodes']-1) if len(bounds)==2 else first
+            if not 0<=first<=last<node['numNodes']:
+                raise ValueError('batch_range_identity')
+            seen.add(target)
+            inner=[key for key in ('container','ecsProperties','eksProperties') if key in item]
+            if len(inner)!=1:raise ValueError('batch_range_variant')
+            if (inner[0]=='eksProperties')!=(orchestration=='EKS'):
+                raise ValueError('batch_orchestration')
+            variant(item[inner[0]],'node:'+str(index)+':'+target,inner[0])
+    else:
+        variant(row[kind],kind,kind if kind!='containerProperties' else 'container')
+    return pairs(entries)
+
+
 def one(response,field):
     rows=response.get(field)
     if not isinstance(rows,list) or len(rows)!=1 or not isinstance(rows[0],dict):raise ValueError('response_cardinality')
@@ -270,11 +373,55 @@ def json_literals(text):
     return text+'\n\n'+'\n\n'.join(strings)
 
 
+
+def _document_literals(value):
+    """Bounded literal text from native document objects; no evaluation or reads."""
+    stack=[(value,0)];strings=[];nodes=0;total=0
+    while stack:
+        child,depth=stack.pop();nodes+=1
+        if nodes>65536 or depth>32:raise ValueError('document_structure_bound')
+        if isinstance(child,str):
+            total+=len(child.encode('utf-8'))+2
+            if total>MAX_CONTENT:raise ValueError('document_content_bound')
+            strings.append(child)
+        elif isinstance(child,dict):
+            if any(not isinstance(key,str) for key in child):raise ValueError('document_structure_bound')
+            stack.extend((v,depth+1) for pair in reversed(list(child.items())) for v in reversed(pair))
+        elif isinstance(child,list):stack.extend((v,depth+1) for v in reversed(child))
+        elif child is not None and type(child) not in (bool,int,float):raise ValueError('document_structure_bound')
+    return '\n\n'.join(strings)
+
+
 def extract(response,service,operation,args,info):
     """Return inspected literal bytes only; no provider text escapes this frame."""
     surface=info['surface'];account=info['account'];region=info['region'];arn_prefix='arn:'+info['partition']+':'
     value=None
-    if surface=='cloudformation_outputs':
+    if surface=='cloudformation_template':
+        # AWS GetTemplate is bound to the exact selected stack ARN by the signed
+        # request; it does not echo StackId. Do not invent a response identity.
+        if args!={'StackName':args.get('StackName'),'TemplateStage':'Original'}:
+            raise ValueError('template_request')
+        stages=response.get('StagesAvailable')
+        if (not isinstance(stages,list) or 'Original' not in stages or len(stages)!=len(set(stages))
+                or any(s not in ('Original','Processed') for s in stages)):raise ValueError('template_stage')
+        body=response.get('TemplateBody')
+        if isinstance(body,str):
+            # Preserve YAML/multiline literals; decode JSON string literals too.
+            value=json_literals(body) if body.lstrip().startswith('{') else body
+        elif isinstance(body,dict):value=_document_literals(body)
+        else:raise ValueError('template_body')
+    elif surface=='codepipeline_configuration':
+        row=response.get('pipeline');metadata=response.get('metadata')
+        expected=arn_prefix+'codepipeline:'+region+':'+account+':'+args['name']
+        if (not isinstance(row,dict) or row.get('name')!=args['name']
+                or type(row.get('version'))is not int or row['version']!=args['version']
+                or not isinstance(metadata,dict) or metadata.get('pipelineArn')!=expected
+                or not isinstance(row.get('stages'),list) or not 1<=len(row['stages'])<=50):
+            raise ValueError('pipeline_configuration_identity')
+        # The exact returned version is inspected; source/artifact links are not
+        # dereferenced and no secret-store reference is resolved.
+        value=_document_literals(row)
+    elif surface=='cloudformation_outputs':
         row=one(response,'Stacks')
         if (row.get('StackId')!=args['StackName'] or row.get('StackName')!=args['StackName'].split(':stack/',1)[1].split('/',1)[0]
                 or row.get('StackStatus') not in ('CREATE_COMPLETE','UPDATE_COMPLETE','IMPORT_COMPLETE','ROLLBACK_COMPLETE','UPDATE_ROLLBACK_COMPLETE','IMPORT_ROLLBACK_COMPLETE')):raise ValueError('stack_identity_state')
@@ -309,11 +456,10 @@ def extract(response,service,operation,args,info):
         value=mapping(row.get('environmentVariables'))
     elif surface=='batch_environment':
         row=one(response,'jobDefinitions')
-        if row.get('jobDefinitionArn')!=args['jobDefinitions'][0] or row.get('status')!='ACTIVE' or row.get('type')!='container' or any(k in row for k in ('ecsProperties','eksProperties','nodeProperties')):raise ValueError('batch_variant')
-        if str(row.get('revision'))!=args['jobDefinitions'][0].rsplit(':',1)[1] or row.get('jobDefinitionName')!=args['jobDefinitions'][0].split(':job-definition/',1)[1].rsplit(':',1)[0]:raise ValueError('batch_identity')
-        container=row.get('containerProperties')
-        if not isinstance(container,dict):raise ValueError('batch_shape')
-        value=environment(container.get('environment'))
+        if row.get('jobDefinitionArn')!=args['jobDefinitions'][0] or row.get('status')!='ACTIVE' or row.get('type')!='container':raise ValueError('batch_identity_state')
+        if (type(row.get('revision')) is not int or str(row['revision'])!=args['jobDefinitions'][0].rsplit(':',1)[1]
+                or row.get('jobDefinitionName')!=args['jobDefinitions'][0].split(':job-definition/',1)[1].rsplit(':',1)[0]):raise ValueError('batch_identity')
+        value=batch_literals(row)
     elif surface=='beanstalk_options':
         row=one(response,'ConfigurationSettings')
         if row.get('ApplicationName')!=args['ApplicationName'] or row.get('EnvironmentName')!=args['EnvironmentName'] or row.get('DeploymentStatus')!='deployed':raise ValueError('environment_identity_state')

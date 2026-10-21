@@ -1,4 +1,4 @@
-"""Pure unregistered selected notebook SOURCE check; no immutable revision or execution assertion."""
+"""Selected Databricks SOURCE, FILE, or task-run output bytes."""
 from copy import deepcopy
 import re
 from peaso.secret_scanning import merge_leaks, KINGFISHER_VERSION, TRUFFLEHOG_VERSION
@@ -6,9 +6,9 @@ from peaso.collectors import azure_databricks_notebook_secret_indicators as sour
 
 DECLARATION = dict(id=source.CHECK,provider='azure',category='exposure',kind=source.KIND,finding_type='secrets',severity='high',
     requirements=[],dependencies=[source.KIND],allow_incomplete_failure=True,ui_group='Secrets',
-    title='Selected Databricks notebook source has no detected secrets',
-    remediation='Remove credential literals from notebook source and rotate confirmed exposed credentials. Use managed identities or supported secret references.',
-    scope='Captured SOURCE bytes from exact selected notebook paths only. No immutable cell revision, execution, output, whole-workspace or deployment assertion.')
+    title='Selected Databricks workspace content has no detected secrets',
+    remediation='Remove confirmed credential literals from selected content and rotate exposed credentials. Use supported secret references.',
+    scope='Captured bytes from exact selected notebook SOURCE, workspace FILE, or terminal task-run output only. No whole-workspace, repository, execution or history assertion.')
 
 
 def _evaluate(item,index):
@@ -31,16 +31,21 @@ def _evaluate(item,index):
         ident=item['id'];m=item[source.MARKER]
         if (set(m)!={'schema','identity','scope','capture','complete','format','consistency','workspace_binding','object_binding','language','parts','leaks','source_requests','verification'}
                 or m['schema']!=source.SCHEMA or m['identity']!=ident or m['scope']!=scope or m['capture']!=capture
-                or type(m['complete'])is not bool or m['format']!='SOURCE'or m['consistency']!='point_in_time_export_only'
-                or m['language']not in source.LANGUAGES or m['verification']!='not_attempted'
+                or type(m['complete'])is not bool or m['format']not in('SOURCE','RAW','NOTEBOOK_RESULT','TASK_LOGS')
+                or m['consistency']!=('status_bound_file_export_only'if m['format']=='RAW'else
+                    'selected_terminal_task_output_only'if m['format']in('NOTEBOOK_RESULT','TASK_LOGS')else'point_in_time_export_only')
+                or m['language'] not in ({'TEXT'} if m['format']!='SOURCE' else source.LANGUAGES) or m['verification']!='not_attempted'
                 or item['_provenance']['scope']!=scope or item['_provenance']['capture']!=capture
                 or any(not isinstance(m[k],str)or not re.fullmatch('[0-9a-f]{64}',m[k])for k in('workspace_binding','object_binding'))):raise ValueError()
         refs=m['source_requests'];ledger=meta[kind+'_receipts']
-        if (not isinstance(refs,list)or len(refs)!=5 or len(set(refs))!=5 or item['_provenance']['source_requests']!=refs
+        is_run=m['format']in('NOTEBOOK_RESULT','TASK_LOGS')
+        operations=(('subscription','workspace_before','parent_before','task_before','output','task_after','parent_after','workspace_after') if is_run
+            else ('subscription','workspace','status_before','export','status_after'))
+        if (not isinstance(refs,list)or len(refs)!=len(operations) or len(set(refs))!=len(operations) or item['_provenance']['source_requests']!=refs
                 or not isinstance(ledger,list)or not 1<=len(ledger)<=source.MAX_CALLS or len({r['id']for r in ledger})!=len(ledger)):raise ValueError()
         receipts=[]
-        for ref,operation in zip(refs,('subscription','workspace','status_before','export','status_after')):
-            receipt,=[r for r in ledger if r.get('id')==ref];native=operation in('status_before','export','status_after')
+        for ref,operation in zip(refs,operations):
+            receipt,=[r for r in ledger if r.get('id')==ref];native=operation not in('subscription','workspace','workspace_before','workspace_after')
             if (set(receipt)!={'id','identity','scope','capture','operation','method','host_class','host_binding','audience','request_digest','status','bytes','tenant_id','principal_binding','identity_bound','object_binding'}
                     or not re.fullmatch(r'notebook-read-[1-9][0-9]*',ref)or receipt['identity']!=ident or receipt['scope']!=scope
                     or receipt['operation']!=operation or receipt['method']!='GET'or receipt['host_class']!=('databricks'if native else'arm')
@@ -51,8 +56,15 @@ def _evaluate(item,index):
                     or str(receipt['tenant_id']).casefold()!=meta['tenant_id'].casefold()or type(receipt['bytes'])is not int or not 1<=receipt['bytes']<=source.MAX_WIRE):raise ValueError()
             receipts.append(receipt)
         if (len({r['principal_binding']for r in receipts})!=1 or receipts[0]['host_binding']!=receipts[1]['host_binding']
-                or len({r['host_binding']for r in receipts[2:]})!=1 or receipts[1]['host_binding']==receipts[2]['host_binding']
-                or receipts[2]['request_digest']!=receipts[4]['request_digest']or receipts[3]['request_digest']==receipts[2]['request_digest']):raise ValueError()
+                or len({r['host_binding']for r in (receipts[2:-1] if is_run else receipts[2:])})!=1
+                or receipts[1]['host_binding']==receipts[2]['host_binding']):raise ValueError()
+        if is_run:
+            if (receipts[1]['host_binding']!=receipts[-1]['host_binding']
+                    or receipts[1]['request_digest']!=receipts[-1]['request_digest']
+                    or receipts[2]['request_digest']!=receipts[6]['request_digest']
+                    or receipts[3]['request_digest']!=receipts[5]['request_digest']
+                    or receipts[4]['request_digest']in(receipts[2]['request_digest'],receipts[3]['request_digest'])):raise ValueError()
+        elif receipts[2]['request_digest']!=receipts[4]['request_digest']or receipts[3]['request_digest']==receipts[2]['request_digest']:raise ValueError()
         part,=m['parts']
         if set(part)!={'bytes','engines','complete'}or type(part['bytes'])is not int or not 1<=part['bytes']<=source.MAX_CONTENT or type(part['complete'])is not bool:raise ValueError()
         versions={'kingfisher':KINGFISHER_VERSION,'trufflehog':TRUFFLEHOG_VERSION};engines=part['engines']
@@ -62,19 +74,29 @@ def _evaluate(item,index):
         leaks=m['leaks'];trusted={e['engine']for e in engines if e['status']=='complete'}
         if (not isinstance(leaks,list)or merge_leaks(leaks)!=leaks or len(leaks)>source.MAX_LEAKS or sum(len(l['locations'])for l in leaks)>source.MAX_LOCATIONS
                 or any(not re.fullmatch('[0-9a-f]{64}',l['fingerprint'])or not l['detectors']or not l['locations']
-                    or any(d['engine']not in trusted for d in l['detectors'])or any(loc['path']!=ident+'.notebook_source'for loc in l['locations'])for l in leaks)):raise ValueError()
+                    or any(d['engine']not in trusted for d in l['detectors'])or any(loc['path']!=ident+('.task_output'if is_run else'.workspace_file'if m['format']=='RAW'else'.notebook_source')for loc in l['locations'])for l in leaks)):raise ValueError()
         complete=bool(m['complete']and part['complete']and own['status']=='collected'and set(ids)==set(selected)
             and all(o.get(source.MARKER,{}).get('complete')is True for o in own['items']))
         if not leaks and not complete:raise ValueError()
-        observed=('A likely secret was detected in the captured notebook source. Its value is hidden and was not validated.'if leaks else
-            'Both offline detectors completed without detecting a supported secret in the captured notebook SOURCE bytes. This is a point-in-time export, not proof of an immutable revision or execution.')
-        if not complete:observed+=' Inspection is incomplete.'
+        content=('notebook result' if m['format']=='NOTEBOOK_RESULT' else 'task logs' if m['format']=='TASK_LOGS' else
+            'workspace file' if m['format']=='RAW' else 'notebook SOURCE')
+        observed=(f'The selected {content} contained a likely secret whose value is hidden.\n'
+            'The value may allow someone with access to it to use the linked account or service.\n'
+            'That could expose people or their data if the credential is active.' if leaks else
+            f'The selected {content} contained no recorded secret indicator.\n'+
+            ('Its captured bytes may be less likely to expose a credential.\n'
+             'Other task output could still expose people or their data.' if is_run else
+             'The content may change after this capture.\n'
+             'A later exposed credential could put people or their data at risk.'))
+        if not complete:observed=(f'The selected {content} contained a likely secret whose value is hidden.\n'
+            'Other selected content or a detector was incomplete.\n'
+            'The value may expose people or their data if it is usable.')
         return('FAIL'if leaks else'PASS'),{'observed':observed,'secret_leaks':deepcopy(leaks),'complete':complete,
-            'coverage':'selected_notebook_export_only'if complete else'incomplete_selected_notebook_export',
+            'coverage':('selected_task_output_only'if is_run else'selected_workspace_content_export_only')if complete else'incomplete_selected_content',
             'immutable_revision_proven':False,'credential_validation':'not_attempted','parts':deepcopy(m['parts'])}
     except(KeyError,TypeError,ValueError,AttributeError,IndexError):
-        return'UNKNOWN',{'complete':False,'coverage':'incomplete_selected_notebook_export','immutable_revision_proven':False,
-            'observed':'Selected notebook source was unavailable, unbound or incompletely inspected. A clean export result cannot be established.'}
+        return'UNKNOWN',{'complete':False,'coverage':'incomplete_selected_content','immutable_revision_proven':False,
+            'observed':'The selected Databricks content had no complete, bound bytes recorded.\nIts exact source, file, or task output remains unknown.\nA credential in those bytes could expose people or their data.'}
 
 
 def evaluate(item,index):return _evaluate(item,index)

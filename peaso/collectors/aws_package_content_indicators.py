@@ -382,6 +382,8 @@ def _layer(response, arguments, requests, region):
 
 def _image(response, arguments, requests, session, region):
     from peaso.container_image_archive_20261020 import visit_files
+    from peaso import container_image_archive_20261020 as image_archive
+    from peaso import oci_index_20261021 as oci_index
     account, repo = _ecr_arguments(arguments)
     ids = arguments['imageIds']
     if not isinstance(ids, list) or len(ids) != 1 or set(ids[0]) != {'imageDigest'} or not _digest(ids[0]['imageDigest']):
@@ -400,9 +402,84 @@ def _image(response, arguments, requests, session, region):
     manifest = _json(raw)
     if (not isinstance(manifest, dict) or len(raw.encode()) > 256 * 1024 or
             type(manifest.get('schemaVersion')) is not int or
-            manifest['schemaVersion'] != 2 or manifest.get('mediaType') not in (OCI, DOCKER) or
+            manifest['schemaVersion'] != 2 or manifest.get('mediaType') not in oci_index.ALL_MANIFEST_TYPES or
             image.get('imageManifestMediaType') != manifest['mediaType']):
         raise ValueError('unsupported manifest or multiarch index')
+    if manifest['mediaType'] in oci_index.INDEX_TYPES:
+        from .aws_image_vulnerability_native_20261021 import Reader
+        def _require_index(ok):
+            if not ok:
+                raise ValueError('index_binding_unavailable')
+        reader = Reader(requests, session, account, region)
+        graph = {'parent_digest': digest, 'media_type': manifest['mediaType'],
+                 'children': [], 'complete': False, 'parent_binding_stable': False}
+        refs, total_compressed, output_bytes, stable = [], 0, 0, False
+        def fetch(child_digest, size, media_type):
+            child_raw, child_doc = reader.manifest(repo, child_digest)
+            _require_index(len(child_raw) == size and child_doc['mediaType'] == media_type)
+            return child_raw
+        def rebind():
+            reader.caller()
+            again, _ = reader.manifest(repo, digest, allow_index=True)
+            _require_index(again == raw.encode())
+        try:
+            reader.caller()
+            for child in oci_index.children(raw.encode(), digest, fetch, check=reader.check):
+                child_digest = child['digest']
+                document = image_archive.decode(child['raw'])
+                config_desc = image_archive.descriptor(document['config'], image_archive.CONFIGS,
+                                                       image_archive.MAX_CONFIG)
+                configuration = image_archive.decode(reader.blob(repo, config_desc))
+                platform = child['platform']
+                _require_index(type(configuration) is dict and
+                    configuration.get('os') == platform['os'] and
+                    configuration.get('architecture') == platform['architecture'] and
+                    ('variant' not in platform or configuration.get('variant') == platform['variant']))
+                layers_desc = document['layers']
+                _require_index(type(layers_desc) is list and 1 <= len(layers_desc) <= image_archive.MAX_LAYERS)
+                layers_desc = [image_archive.descriptor(d, image_archive.LAYERS, image_archive.MAX_LAYER)
+                               for d in layers_desc]
+                total_compressed += config_desc['size'] + sum(d['size'] for d in layers_desc)
+                _require_index(total_compressed <= ECR_IMAGE_LIMIT)
+                source = requests.detail(session, 'ecr', region, 'batch_get_image',
+                    _metadata_profile=PROFILE, registryId=account, repositoryName=repo,
+                    imageIds=[{'imageDigest': child_digest}], acceptedMediaTypes=[OCI, DOCKER])
+                selected = source.get('PackageSecretIndicators') if type(source) is dict else None
+                expected = f'arn:{_partition(region)}:ecr:{region}:{account}:repository/{repo}@{child_digest}'
+                _require_index(type(selected) is dict and source.get('ImageDigest') == child_digest
+                    and selected.get('ResourceId') == expected and selected.get('AccountId') == account
+                    and selected.get('Region') == region and type(selected.get('References')) is list
+                    and type(selected.get('NativeResponseComplete')) is bool)
+                graph['children'].append({'digest': child_digest, 'size': child['size'],
+                    'mediaType': child['mediaType'], 'platform': child['platform'],
+                    'config_digest': config_desc['digest']})
+                for ref in selected['References']:
+                    projected = {**ref, 'ChildManifestDigest': child_digest}
+                    cost = len(json.dumps(projected, separators=(',', ':')).encode())
+                    _require_index(len(refs) < REFERENCE_LIMIT and output_bytes + cost <= OUTPUT_LIMIT)
+                    refs.append(projected); output_bytes += cost
+                    if ref.get('Leaks'):
+                        reuse_image_layer(ref['Leaks'], resource_id=identity, scope=account + '/' + region,
+                            image_digest=digest, source=child_digest, layer=ref['LayerDigest'])
+                _require_index(selected['NativeResponseComplete'] is True)
+            graph['complete'] = True
+            rebind(); stable = True
+        except Exception as exc:
+            if getattr(exc, 'code', None) in ('collection_cancelled', 'deadline_exceeded', 'intentional_scan_deadline'):
+                raise
+            try:
+                rebind(); stable = True
+            except Exception:
+                stable = False
+        finally:
+            if not reader.close():
+                stable = False
+        graph['parent_binding_stable'] = stable
+        complete = bool(graph['complete'] and stable)
+        result = marker(identity, account, region, 'ecr:batch_get_image', refs,
+            complete=complete, code=None if complete else 'image_content_incomplete')
+        result['IndexGraph'] = graph
+        return {'PackageSecretIndicators': result, 'ImageDigest': digest}
     layers, config = manifest.get('layers'), manifest.get('config')
     if not isinstance(layers, list) or not layers or len(layers) > MEMBER_LIMIT or not isinstance(config, dict):
         raise ValueError('incomplete image')
@@ -583,7 +660,7 @@ def enrich(kind, requests, session, region, items):
                 if len(images) > 1 and images[-1][0] == images[-2][0]: raise ValueError('ambiguous latest image')
                 digest = images[-1][1]
                 source = requests.detail(session, 'ecr', region, 'batch_get_image', _metadata_profile=PROFILE,
-                    registryId=account, repositoryName=repo, imageIds=[{'imageDigest': digest}], acceptedMediaTypes=[OCI, DOCKER])
+                    registryId=account, repositoryName=repo, imageIds=[{'imageDigest': digest}])
                 source['SelectedImageDigest'] = digest
         except Exception:
             pass

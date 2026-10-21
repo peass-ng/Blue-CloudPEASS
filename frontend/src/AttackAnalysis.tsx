@@ -15,7 +15,7 @@ export function AttackAnalysis({ demo, canWrite, onNavigate }: { demo: boolean; 
   const connectors = useApi<{ items: Connector[] }>("/connectors", demo, !demo);
   const [connectorId, setConnectorId] = useState("");
   const [kind, setKind] = useState<SourceKind>("aws_event_history");
-  const [catalogMode, setCatalogMode] = useState<"pinned" | "latest">("pinned");
+  const [catalogMode, setCatalogMode] = useState<"pinned" | "latest">("latest");
   const [region, setRegion] = useState("us-east-1");
   const [roleArn, setRoleArn] = useState("");
   const [bucket, setBucket] = useState("");

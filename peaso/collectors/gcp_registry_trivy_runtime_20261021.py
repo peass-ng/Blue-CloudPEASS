@@ -5,7 +5,6 @@ import json
 from pathlib import Path
 from weakref import WeakValueDictionary
 from peaso import gcp_image_selection_20261021 as selection_api
-from peaso.checks import gcp_registry_trivy_review_20261021 as review
 CHECK_ID = 'gcp.review.artifact_image.selected_image_vulnerabilities'
 KIND = 'artifact_selected_image_vulnerabilities'
 OPTION = selection_api.OPTION
@@ -74,6 +73,7 @@ def prepare(options, scopes, wanted):
 
 
 def collect_selected(transport, *, scope, targets, **kwargs):
+    from peaso.checks import gcp_registry_trivy_review_20261021 as review
     from . import gcp_registry_trivy_20261021 as source
     raw = source.collect_native(transport, scope=scope, selectors=targets, enabled=True, **kwargs)
     rows, observations = [], []
@@ -88,12 +88,43 @@ def collect_selected(transport, *, scope, targets, **kwargs):
                      'complete':row['complete'] and status != 'UNKNOWN',
                      'reason':row['reason'],'vulnerability_record':record,
                      'source_requests':deepcopy(ids),'source_ledger':ledger})
-        observations.append({'asset_id':reference,'asset_kind':KIND,'provider':'gcp','scope':scope,
-                             'scan':deepcopy(scan)} if isinstance(scan,dict) else None)
+        if isinstance(scan, dict) and 'graph' in scan:
+            observations.extend(index_observations(reference, scope, scan))
+        else:
+            observations.append({'asset_id':reference,'asset_kind':KIND,'provider':'gcp','scope':scope,
+                                 'scan':deepcopy(scan)} if isinstance(scan,dict) else None)
     complete = len(rows) == len(targets) and all(r['complete'] for r in rows)
     status = 'FAIL' if any(r['status']=='FAIL' for r in rows) else 'PASS' if complete else 'UNKNOWN'
     return {'kind':KIND,'check_id':CHECK_ID,'status':status,'complete':complete,
             'rows':rows,'observations':observations}
+
+
+def index_observations(reference, scope, scan):
+    """Project verified child scans for the existing image findings table."""
+    children = scan.get('graph', {}).get('children', [])
+    if not children:
+        return [None]
+    parent_complete = scan.get('complete') is True
+    base = reference.rsplit('@', 1)[0]
+    observations = []
+    for child in children:
+        digest = child['digest']
+        findings = [deepcopy(finding) for finding in scan.get('findings', [])
+                    if finding.get('image_digest') == digest]
+        complete = parent_complete and child['complete'] and child['scan_complete']
+        complete = complete and child['database_fresh']
+        child_scan = {'image': {'provider':'gcp','scope':scope,
+            'immutable_reference':base + '@' + digest, 'manifest_digest':digest,
+            'config_digest':child['config']['digest']},
+            'status':'FAIL' if findings else 'PASS' if complete else 'UNKNOWN',
+            'complete':complete, 'scan_complete':child['scan_complete'],
+            'coverage_status':'COMPLETE' if complete else 'UNKNOWN',
+            'database':{'fresh':child['database_fresh']}, 'findings':findings}
+        observations.append({'asset_id':reference,'asset_kind':KIND,'provider':'gcp',
+                             'scope':scope,'scan':child_scan})
+    if not parent_complete:
+        observations.append(None)  # Preserve missing child coverage in the table.
+    return observations
 
 
 def enrich(collector):

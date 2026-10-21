@@ -9,12 +9,16 @@ import hashlib
 import json
 import re
 import time
+import tempfile
+from pathlib import Path
 from urllib.parse import quote
 from . import gcp_cloudrun_v2_job_declared_images_20261020 as metadata
 from . import gcp_image_secret_indicators as native
 from .gcp_registry_image_uri import parse
-from .gcp_job_trivy_stream_20261021 import CaptureReader, Reader, _read_image, sha256
+from .gcp_job_trivy_stream_20261021 import CaptureReader, Reader, _read_image, sha256, MAX_IMAGE, MAX_LAYER
+from .gcp_image_stream_inspection_20261021 import _interrupt
 from peaso import container_image_archive_20261020 as archive
+from peaso import oci_index_20261021 as oci_index
 from peaso import trivy_container_runner_20261020 as trivy
 
 SCHEMA = 'gcp-selected-registry-image-vulnerabilities-v1'
@@ -129,7 +133,7 @@ def bind(reference, scope, bodies):
     prefix = repo + '/dockerImages/'
     archive.require(image.get('name') in (prefix + image_id, prefix + quote(image_id, safe=''))
                     and image.get('uri') == reference
-                    and image.get('mediaType') in (native.OCI, native.DOCKER),
+                    and image.get('mediaType') in oci_index.ALL_MANIFEST_TYPES,
                     'image_identity_mismatch')
     row = {**image, 'repository': repo, 'digest': digest}
     archive.require(native.bind_image(row, scope, [repository], [project]) == (uri, repo, digest),
@@ -139,6 +143,142 @@ def bind(reference, scope, bodies):
 
 def _fingerprint(value):
     return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+
+
+class IndexCaptureReader(CaptureReader):
+    """Keep the existing authenticated reader while retaining bounded child blobs."""
+    def get(self, uri, category, digest, cap, size=None):
+        archive.require(category in ('manifests', 'blobs') and type(uri) is str
+                        and self._uri in (None, uri), 'single_native_image_required')
+        key = category, digest
+        if cap <= native.MAX_CONFIG:
+            value = self.reader.get(uri, category, digest, cap, size)
+            archive.require(type(value) is bytes and archive.sha(value) == digest,
+                            'native_read_digest_mismatch')
+            count = len(value)
+        else:
+            archive.require(category == 'blobs' and type(size) is int
+                            and 0 < size <= MAX_LAYER and cap <= MAX_LAYER,
+                            'bounded_layer_capture_required')
+            matches = []
+            for (kind, _), raw in self._blobs.items():
+                if kind != 'manifests':
+                    continue
+                document = archive.decode(raw)
+                if document.get('mediaType') not in oci_index.LEAF_TYPES:
+                    continue
+                matches.extend(item for item in document.get('layers', [])
+                    if item.get('digest') == digest and item.get('size') == size)
+            archive.require(bool(matches), 'child_layer_descriptor_required')
+            descriptor = archive.descriptor(matches[0], archive.LAYERS, MAX_LAYER)
+            if self._scratch is None:
+                self._scratch = tempfile.TemporaryDirectory(prefix='peaso-gcp-trivy-index-')
+            path = Path(self._scratch.name) / ('blob-' + str(len(self._reads)))
+            value = self.reader.get_layer(uri, descriptor, path)
+            count = size
+        self._uri = uri
+        if key not in self._blobs:
+            self._total += count
+            archive.require(self._total <= native.MAX_IMAGES * MAX_IMAGE,
+                            'retained_index_byte_bound')
+            self._blobs[key] = value
+        else:
+            archive.require(sha256(self._blobs[key], self.check).digest()
+                            == sha256(value, self.check).digest(), 'duplicate_digest_changed')
+        rid = self.reader.request_ids[-1]
+        records = [r for r in self.reader.transport.evidence if r.get('id') == rid]
+        archive.require(len(records) == 1 and records[0].get('status') == 'collected'
+                        and records[0].get('method') == 'GET'
+                        and records[0].get('operation') == 'artifactregistry.registry_content_get'
+                        and records[0].get('category') == category
+                        and records[0].get('digest') == digest, 'native_read_receipt_mismatch')
+        self._reads.append((rid, key))
+        return value
+
+
+def _read_index(reference, scope, before, captured, *, runner, db_cache, cli, timeout,
+                scratch_parent):
+    """Scan each verified child as it arrives so a later failure keeps prior findings."""
+    row = bind(reference, scope, before)
+    uri, repo, parent_digest = native.bind_image(row, scope, [before[1]], [before[0]])
+    parent_raw = captured.get(uri, 'manifests', parent_digest, native.MAX_MANIFEST)
+    parent_doc = archive.decode(parent_raw)
+    archive.require(parent_doc.get('mediaType') == row.get('mediaType')
+                    and parent_doc['mediaType'] in oci_index.INDEX_TYPES,
+                    'selected_index_required')
+    graph = {'parent_digest': parent_digest, 'media_type': parent_doc['mediaType'],
+             'parent_source_request': captured._reads[-1][0], 'children': [],
+             'tail_reads': [], 'complete': False}
+    scans = []
+    try:
+        def fetch(digest, size, _media_type):
+            return captured.get(uri, 'manifests', digest, native.MAX_MANIFEST, size)
+        for child in oci_index.children(parent_raw, parent_digest, fetch, check=captured.check):
+            start = len(captured._reads) - 1
+            document = archive.decode(child['raw'])
+            config_desc = archive.descriptor(document['config'], archive.CONFIGS, archive.MAX_CONFIG)
+            layers = document['layers']
+            archive.require(type(layers) is list and 1 <= len(layers) <= archive.MAX_LAYERS,
+                            'child_layers_required')
+            layers = [archive.descriptor(part, archive.LAYERS, archive.MAX_LAYER) for part in layers]
+            archive.require(sum(d['size'] for d in [config_desc] + layers) <= MAX_IMAGE,
+                            'child_compressed_bound')
+            config = captured.get(uri, 'blobs', config_desc['digest'], archive.MAX_CONFIG,
+                                  config_desc['size'])
+            decoded = archive.decode(config)
+            platform = child['platform']
+            archive.require(decoded.get('os') == platform['os']
+                            and decoded.get('architecture') == platform['architecture']
+                            and ('variant' not in platform or decoded.get('variant') == platform['variant']),
+                            'child_config_platform_mismatch')
+            for part in layers:
+                captured.get(uri, 'blobs', part['digest'], MAX_LAYER, part['size'])
+            payloads = [captured._blobs[('blobs', part['digest'])] for part in layers]
+            child_ref = reference.rsplit('@', 1)[0] + '@' + child['digest']
+            identity = archive.identity({'provider': 'gcp', 'scope': scope,
+                'immutable_reference': child_ref, 'manifest_digest': child['digest'],
+                'config_digest': config_desc['digest']})
+            keys = [('manifests', child['digest']), ('blobs', config_desc['digest'])] + [
+                ('blobs', part['digest']) for part in layers]
+            ids = [rid for rid, key in captured._reads[start:] if key in keys]
+            archive.require(len(ids) == len(keys) and [key for _, key in captured._reads[start:]] == keys,
+                            'child_read_sequence_required')
+            def verify_child(identity=identity, child_raw=child['raw'], config=config,
+                             payloads=payloads, keys=keys, ids=ids):
+                captured.check()
+                archive.require([key for rid, key in captured._reads if rid in ids] == keys,
+                                'child_read_sequence_changed')
+                archive.require(all(sha256(captured._blobs[key], captured.check).hexdigest() == key[1][7:]
+                                    for key in keys), 'child_retained_bytes_changed')
+                archive.validate(identity, child_raw, config, payloads, captured.check)
+                return identity
+            verify_child()
+            outcome = runner(identity, child['raw'], config, payloads,
+                native_verifier=verify_child, enabled=True, db_cache=db_cache, cli=cli,
+                archive_format='docker', timeout=timeout, cancel=captured.check,
+                scratch_parent=scratch_parent)
+            archive.require(type(outcome) is dict and outcome.get('image') == identity
+                            and outcome.get('status') in ('PASS', 'FAIL', 'UNKNOWN')
+                            and type(outcome.get('complete')) is bool
+                            and type(outcome.get('findings')) is list
+                            and (outcome['status'] == 'FAIL') == bool(outcome['findings']),
+                            'child_scan_identity_or_status_mismatch')
+            descriptor = {key: child[key] for key in ('digest', 'size', 'mediaType', 'platform')}
+            descriptor.update(config=config_desc, layers=layers, source_requests=ids,
+                              status=outcome['status'], complete=outcome['complete'],
+                              scan_complete=outcome.get('scan_complete') is True,
+                              database_fresh=outcome.get('database', {}).get('fresh') is True)
+            graph['children'].append(descriptor)
+            scans.append((outcome, verify_child))
+        graph['complete'] = True
+    except Exception as exc:
+        if _interrupt(exc):
+            raise
+        pass
+    committed = 1 + sum(len(child['source_requests']) for child in graph['children'])
+    graph['tail_reads'] = [{'id': rid, 'category': key[0], 'digest': key[1]}
+                           for rid, key in captured._reads[committed:]]
+    return graph, scans
 
 
 def scan_captured(reference, scope, before, after, captured, metadata_reader, *, runner,
@@ -217,6 +357,74 @@ def scan_captured(reference, scope, before, after, captured, metadata_reader, *,
             'runtime_image_proven': False, 'source_requests': sorted(seen) + ids}
 
 
+def scan_index_captured(reference, scope, before, after, captured, metadata_reader,
+                        graph, scans, source_requests):
+    """Revalidate immutable parent ownership before retaining any child scan."""
+    archive.require(before == after and bind(reference, scope, before) == bind(reference, scope, after),
+                    'index_native_metadata_changed')
+    records, captures = metadata_reader.records, metadata_reader.captures
+    expected = requests_for(reference, scope) * 2
+    archive.require(len(records) == len(captures) == 6, 'all_metadata_receipts_required')
+    for record, capture, request, body in zip(records, captures, expected, before + after):
+        archive.require(capture == {'source_request': record.get('id'), 'body': body}
+                        and record.get('method') == 'GET' and record.get('url') == request[0]
+                        and record.get('query') == {'fields': request[1]}
+                        and record.get('operation') == 'artifactregistry_selected_image_metadata_get'
+                        and record.get('scope') == scope and record.get('status') == 'collected'
+                        and record.get('http_status') == 200 and record.get('http_attempts') == 1,
+                        'index_metadata_receipt_mismatch')
+    archive.require(all(records[i]['body_sha256'] == records[i+3]['body_sha256']
+                        and records[i]['bytes'] == records[i+3]['bytes'] for i in range(3)),
+                    'index_metadata_wire_changed')
+    uri, _, parent_digest = native.bind_image(bind(reference, scope, before), scope,
+                                              [before[1]], [before[0]])
+    archive.require(captured._uri == uri and graph['parent_digest'] == parent_digest
+                    and archive.sha(captured._blobs[('manifests', parent_digest)]) == parent_digest,
+                    'index_parent_digest_changed')
+    ledger = {record.get('id'): record for record in captured.transport.evidence}
+    archive.require(len(ledger) == len(captured.transport.evidence), 'duplicate_native_receipt')
+    successful = [record for record in captured._reads]
+    archive.require(successful and successful[0] ==
+                    (graph['parent_source_request'], ('manifests', parent_digest)),
+                    'index_parent_read_missing')
+    for rid, key in successful:
+        receipt = ledger[rid]
+        archive.require(receipt.get('status') == 'collected' and receipt.get('http_status') == 200
+                        and receipt.get('method') == 'GET'
+                        and receipt.get('operation') == 'artifactregistry.registry_content_get'
+                        and receipt.get('scope') == scope and receipt.get('category') == key[0]
+                        and receipt.get('digest') == key[1], 'index_blob_receipt_mismatch')
+    archive.require(len(scans) == len(graph['children']) and scans,
+                    'scanned_children_required')
+    for _, verify in scans:
+        verify()
+    findings, seen, fresh = [], set(), True
+    scan_complete = graph['complete']
+    for (outcome, _), child in zip(scans, graph['children']):
+        archive.require(outcome.get('image', {}).get('manifest_digest') == child['digest'],
+                        'child_finding_identity_changed')
+        fresh = fresh and outcome.get('database', {}).get('fresh') is True
+        scan_complete = scan_complete and outcome.get('scan_complete') is True
+        for finding in outcome.get('findings', []):
+            archive.require(type(finding) is dict and finding.get('image_digest') == child['digest'],
+                            'foreign_child_finding')
+            key = (child['digest'], finding.get('package'), finding.get('version'),
+                   finding.get('vulnerability_id'))
+            archive.require(key not in seen and len(findings) < trivy.MAX_FINDINGS,
+                            'duplicate_or_excess_child_finding')
+            seen.add(key)
+            findings.append(deepcopy(finding))
+    complete = graph['complete'] and fresh and all(outcome.get('complete') is True for outcome, _ in scans)
+    status = 'FAIL' if findings else 'PASS' if complete else 'UNKNOWN'
+    return {'schema': SCHEMA, 'association_kind': 'selected_registry_digest',
+            'runtime_image_proven': False, 'image': {'provider': 'gcp', 'scope': scope,
+                'immutable_reference': reference, 'manifest_digest': parent_digest},
+            'graph': deepcopy(graph), 'status': status, 'complete': complete,
+            'scan_complete': scan_complete, 'coverage_status': 'COMPLETE' if complete else 'UNKNOWN',
+            'database': {'fresh': fresh}, 'findings': findings,
+            'source_requests': deepcopy(source_requests)}
+
+
 def collect_native(transport, *, scope, selectors=None, enabled=False, metadata_session=None,
                    image_session=None, db_cache=None, cli=trivy.DEFAULT_CLI,
                    timeout=trivy.MAX_SECONDS, scratch_parent=None, runner=trivy.scan_image):
@@ -235,7 +443,7 @@ def collect_native(transport, *, scope, selectors=None, enabled=False, metadata_
         image_session = image_session if image_session is not None else metadata._session()
         deadline = time.monotonic() + 600
         meta = MetadataReader(transport, metadata_session, deadline, scope)
-        reader = CaptureReader(Reader(transport, session=image_session))
+        reader = IndexCaptureReader(Reader(transport, session=image_session))
         for reference in selected:
             reader.reset()
             meta.records, meta.captures = [], []
@@ -247,15 +455,26 @@ def collect_native(transport, *, scope, selectors=None, enabled=False, metadata_
                 requests = requests_for(reference, scope)
                 before = [meta.get(*request) for request in requests]
                 image = bind(reference, scope, before)
-                _read_image(image, scope, [None, before[0], before[1], before[2]], reader)
+                indexed = image.get('mediaType') in oci_index.INDEX_TYPES
+                if indexed:
+                    graph, scans = _read_index(reference, scope, before, reader, runner=runner,
+                        db_cache=db_cache, cli=cli, timeout=timeout, scratch_parent=scratch_parent)
+                else:
+                    _read_image(image, scope, [None, before[0], before[1], before[2]], reader)
                 after = [meta.get(*request) for request in requests]
-                scan = scan_captured(reference, scope, before, after, reader, meta, runner=runner,
-                    db_cache=db_cache, cli=cli, timeout=timeout, scratch_parent=scratch_parent)
+                if indexed:
+                    scan = scan_index_captured(reference, scope, before, after, reader, meta,
+                        graph, scans, [r['id'] for r in transport.evidence[start:]])
+                else:
+                    scan = scan_captured(reference, scope, before, after, reader, meta, runner=runner,
+                        db_cache=db_cache, cli=cli, timeout=timeout, scratch_parent=scratch_parent)
                 archive.require(scan.get('status') in ('PASS', 'FAIL', 'UNKNOWN')
                                 and type(scan.get('complete')) is bool, 'scanner_result_malformed')
                 row.update(scan=scan, status=scan['status'],
                     complete=scan['complete'] is True and scan['status'] != 'UNKNOWN', reason=scan.get('reason'))
-            except Exception:
+            except Exception as exc:
+                if _interrupt(exc):
+                    raise
                 pass
             finally:
                 row['source_requests'] = [r['id'] for r in transport.evidence[start:]]
@@ -264,7 +483,9 @@ def collect_native(transport, *, scope, selectors=None, enabled=False, metadata_
         result['status'] = ('FAIL' if any(r['status'] == 'FAIL' for r in result['rows']) else
                             'PASS' if result['complete'] and all(r['status'] == 'PASS' for r in result['rows']) else 'UNKNOWN')
         result['reason'] = None if result['complete'] else 'selected_image_coverage_incomplete'
-    except Exception:
+    except Exception as exc:
+        if _interrupt(exc):
+            raise
         result['reason'] = 'native_reader_unavailable'
     finally:
         if reader is not None:

@@ -13,6 +13,7 @@ import tempfile
 import time
 
 from peaso import container_image_archive_20261020 as archive
+from peaso import oci_index_20261021 as oci_index
 from peaso import image_findings
 from peaso import trivy_container_runner_20261020 as trivy
 from . import azure_acr_image_secret_indicators as acr
@@ -123,6 +124,100 @@ def _unknown(reason='image_vulnerability_coverage_incomplete'):
         'reason':reason}
 
 
+def _scan_index(reader, token, parent_raw, marker, target, scope, *, db_cache,
+        cli, runner, scratch_parent):
+    """Scan every supported child of a digest-bound parent, retaining typed positives."""
+    parent=target['digest'];document=archive.decode(parent_raw)
+    marker['graph']={'parent_digest':parent,'media_type':document['mediaType'],
+                     'children':[],'complete':False}
+    marker['child_vulnerability_scans']=[]
+    marker['scratch_removed']=True
+    def fetch(digest,size,media_type):
+        return reader.blob('manifests',digest,archive.MAX_MANIFEST,token,size)
+    for child in oci_index.children(parent_raw,parent,fetch,check=reader.check):
+        digest=child['digest'];manifest=child['raw']
+        _,config_desc,layers=_descriptors(manifest)
+        if config_desc['size']+sum(d['size'] for d in layers)>archive.MAX_COMPRESSED:
+            raise ValueError('compressed_child_bound')
+        raw=reader.blob('blobs',config_desc['digest'],archive.MAX_CONFIG,token,config_desc['size'])
+        config=archive.decode(raw);diffs=_rootfs(raw,layers)
+        platform=child['platform']
+        if (config.get('os')!=platform['os'] or config.get('architecture')!=platform['architecture']
+                or 'variant' in platform and config.get('variant')!=platform['variant']):
+            raise ValueError('child_platform_config_mismatch')
+        image=archive.identity({'provider':'azure','scope':scope,
+            'immutable_reference':reader.host+'/'+target['repository']+'@'+digest,
+            'manifest_digest':digest,'config_digest':config_desc['digest']})
+        marker['graph']['children'].append({'digest':digest,'size':child['size'],
+            'mediaType':child['mediaType'],'platform':platform,'config_digest':config_desc['digest'],
+            'descriptors':deepcopy([config_desc]+layers),'rootfs_diff_ids':list(diffs)})
+        with tempfile.TemporaryDirectory(prefix='peaso-azure-acr-index-',dir=scratch_parent) as directory:
+            root=Path(directory);root.chmod(0o700);paths=[]
+            for number,desc in enumerate(layers):
+                reader.check();path=root/('layer-'+str(number)+'.blob')
+                reader.blob('blobs',desc['digest'],archive.MAX_LAYER,token,desc['size'],destination=path)
+                paths.append(path)
+            archive.validate(image,manifest,raw,paths,reader.check)
+            fingerprints=tuple(_file_hash(path,desc,reader.check) for path,desc in zip(paths,layers))
+            def verify():
+                fresh=reader.authenticate()
+                if reader.blob('manifests',parent,archive.MAX_MANIFEST,fresh)!=parent_raw:
+                    raise ValueError('parent_manifest_changed')
+                if reader.blob('manifests',digest,archive.MAX_MANIFEST,fresh,child['size'])!=manifest:
+                    raise ValueError('child_manifest_changed')
+                if reader.blob('blobs',config_desc['digest'],archive.MAX_CONFIG,fresh,config_desc['size'])!=raw:
+                    raise ValueError('child_config_changed')
+                if fingerprints!=tuple(_file_hash(path,desc,reader.check) for path,desc in zip(paths,layers)):
+                    raise ValueError('child_layer_changed')
+                return dict(image)
+            verify()
+            report=(runner or trivy.scan_image)(image,manifest,raw,paths,
+                native_verifier=verify,enabled=True,db_cache=db_cache,cli=cli,
+                archive_format='oci' if archive.decode(manifest)['mediaType']==archive.OCI else 'docker',
+                timeout=min(trivy.MAX_SECONDS,max(1,int(reader.state['deadline']-time.monotonic()))),
+                cancel=reader.check,scratch_parent=scratch_parent)
+            verify()
+        _require(type(report) is dict and report.get('image')==image
+            and report.get('status') in ('PASS','FAIL','UNKNOWN')
+            and type(report.get('findings')) is list)
+        full=(report.get('complete') is True and report.get('scan_complete') is True
+            and report.get('coverage_status')=='COMPLETE'
+            and type(report.get('database')) is dict and report['database'].get('fresh') is True)
+        if full:
+            scan=deepcopy(report)
+        elif report['status']=='FAIL' and report['findings']:
+            proof=report.get('archive')
+            _require(type(proof) is dict and proof.get('manifest_digest')==digest
+                and proof.get('config_digest')==config_desc['digest']
+                and proof.get('format') in ('oci','docker')
+                and type(proof.get('expanded_bytes')) is int
+                and 0<proof['expanded_bytes']<=archive.MAX_EXPANDED
+                and type(proof.get('members')) is int and 0<proof['members']<=archive.MAX_MEMBERS)
+            scan={'image':image,'status':'FAIL','complete':False,'scan_complete':False,
+                'coverage_status':'UNKNOWN','database':{'fresh':report['database'].get('fresh') is True},
+                'findings':deepcopy(report['findings']),'archive':deepcopy(proof)}
+        else:
+            scan={**_unknown(), 'image':image}
+        observed=_observation(scope,target,image,scan)
+        built=image_findings.build_report([observed],selected=True)
+        _require(built['invalid_observations']==built['invalid_vulnerabilities']==0)
+        if scan['status']=='FAIL':_require(bool(built['rows']))
+        if scan['status']=='PASS':_require(built['complete'] is True and not built['rows'])
+        marker['child_vulnerability_scans'].append(scan)
+        if scan['status']=='FAIL':marker['status']='FAIL'
+    marker['graph']['complete']=True
+    fresh=reader.authenticate()
+    if reader.blob('manifests',parent,archive.MAX_MANIFEST,fresh)!=parent_raw:
+        raise ValueError('parent_manifest_changed')
+    scans=marker['child_vulnerability_scans']
+    full=bool(scans) and all(s['status'] in ('PASS','FAIL') and s.get('complete') is True
+        and s.get('scan_complete') is True and s.get('coverage_status')=='COMPLETE'
+        and s.get('database',{}).get('fresh') is True for s in scans)
+    marker['complete']=full
+    marker['status']='FAIL' if any(s['status']=='FAIL' for s in scans) else 'PASS' if full else 'UNKNOWN'
+    marker['reason']=None if full else 'selected_image_vulnerability_coverage_incomplete'
+
+
 def _scan_target(outer, transport, receipts, scope, target, state, *, db_cache,
         cli, runner, scratch_parent):
     row={'id':identity(target),MARKER:{'schema':SCHEMA,'selection':deepcopy(target),
@@ -139,6 +234,11 @@ def _scan_target(outer, transport, receipts, scope, target, state, *, db_cache,
         reader.ident = row['id']
         token=reader.authenticate()
         manifest=reader.blob('manifests',target['digest'],archive.MAX_MANIFEST,token)
+        document=archive.decode(manifest)
+        if type(document) is dict and document.get('mediaType') in oci_index.INDEX_TYPES:
+            _scan_index(reader,token,manifest,marker,target,scope,db_cache=db_cache,
+                cli=cli,runner=runner,scratch_parent=scratch_parent)
+            return row
         _,config_desc,layers=_descriptors(manifest)
         config=reader.blob('blobs',config_desc['digest'],archive.MAX_CONFIG,token,config_desc['size'])
         diffs=_rootfs(config,layers)
@@ -219,7 +319,10 @@ def _scan_target(outer, transport, receipts, scope, target, state, *, db_cache,
         marker.update(status=scan['status'],complete=report['complete'],
             reason=None if report['complete'] else scan['reason'],
             observation=observed,archive=deepcopy(raw.get('archive')))
-    except Exception:
+    except Exception as exc:
+        if (type(exc).__name__=='AzureReadError'
+                and getattr(exc,'code',None) in ('collection_cancelled','deadline_exceeded')):
+            raise
         pass
     finally:
         if scratch is not None:
@@ -269,8 +372,20 @@ def collect_native(outer,transport,scopes,options,*,db_cache=DEFAULT_DB_CACHE,
             row=_scan_target(outer,transport,result['receipts'],scope,target,limit,
                 db_cache=db_cache,cli=cli,runner=runner,scratch_parent=scratch_parent)
             result['rows'].append(row)
-    result['observations']=[deepcopy(row[MARKER]['observation']) if row[MARKER]['complete'] is True or row[MARKER]['status']=='FAIL' else None
-        for row in result['rows']]
+    observations=[]
+    for row in result['rows']:
+        marker=row[MARKER];graph=marker.get('graph')
+        if type(graph) is dict:
+            target=marker['selection'];scans=marker.get('child_vulnerability_scans',[])
+            for scan in scans:
+                observations.append(_observation(row['_provenance']['scope'],target,scan['image'],scan)
+                    if scan.get('status') in ('PASS','FAIL') else None)
+            if graph.get('complete') is not True or len(scans)!=len(graph.get('children',[])):
+                observations.append(None)
+        else:
+            observations.append(deepcopy(marker['observation']) if marker['complete'] is True
+                or marker['status']=='FAIL' else None)
+    result['observations']=observations
     result['complete']=bool(result['rows']) and all(r[MARKER]['complete'] for r in result['rows'])
     result['status']='FAIL' if any(r[MARKER]['status']=='FAIL' for r in result['rows']) else 'PASS' if result['complete'] else 'UNKNOWN'
     result['reason']=None if result['complete'] else 'selected_image_vulnerability_coverage_incomplete'

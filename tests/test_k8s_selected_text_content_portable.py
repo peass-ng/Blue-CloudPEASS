@@ -228,10 +228,8 @@ def test_actual_registered_callable_native_dto(monkeypatch):
 
 
 def test_selected_text_and_configmap_wrapper_coexist(monkeypatch):
-    assert consumer._original is base.evaluate
-    assert base.evaluate_associated is not base.evaluate
-    literal_check, = [check for check in checks.CHECKS if check.id == base.CHECK]
-    assert inspect.unwrap(literal_check.evaluate) is base.evaluate_associated
+    assert consumer._original is base._evaluate_legacy
+    assert base.evaluate is not base._evaluate_legacy
     consumer.install()
     check, = [check for check in checks.CHECKS if check.id == source.CHECK]
     assert inspect.unwrap(check.evaluate) is consumer.evaluate
@@ -240,3 +238,16 @@ def test_selected_text_and_configmap_wrapper_coexist(monkeypatch):
         assert checks.evaluate_check(source.CHECK, trace.item, trace.index)[0] == expected
     _, trace = capture(monkeypatch, 'Event', status=404)
     assert checks.evaluate_check(source.CHECK, trace.item, trace.index)[0] == 'UNKNOWN'
+
+
+def test_registered_native_cases_replay_without_secret_values():
+    from peaso.checks.fixtures import CASES
+    packaged = json.loads(Path(consumer.__file__).with_name(
+        'k8s_selected_text_content_review_cases.json').read_text())[source.CHECK]
+    assert CASES[source.CHECK] == packaged
+    assert TOKEN not in json.dumps(packaged)
+    for branch in ('pass', 'fail', 'unknown', 'missing'):
+        expected = branch.upper() if branch != 'missing' else 'UNKNOWN'
+        item, index = packaged[branch], packaged[branch + '_index']
+        assert consumer.evaluate(item, index)[0] == expected
+        assert checks.evaluate_check(source.CHECK, item, index)[0] == expected

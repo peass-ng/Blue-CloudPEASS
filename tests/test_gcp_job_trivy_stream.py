@@ -129,6 +129,7 @@ def test_confirmed_high_vulnerability_remains_fail_with_partial_database_coverag
     assert result['status'] == 'FAIL'
     assert result['complete'] is False
     record = result['rows'][0]['vulnerability_record']
-    assert stream.collection.review.evaluate(record, {'scope': fixture.SCOPE,
+    from peaso.checks import gcp_job_trivy_vulnerability_review_20261020 as review
+    assert review.evaluate(record, {'scope': fixture.SCOPE,
         'selections': selections, 'source_requests': wire.evidence})[0] == 'FAIL'
     assert list(tmp_path.iterdir()) == []

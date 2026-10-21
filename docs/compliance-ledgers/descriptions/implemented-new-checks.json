@@ -6053,7 +6053,7 @@
   "azure.other.monitor_alert_ack_authorization": {
     "description": "Checks effective Azure Monitor alert-management permissions against an approved responder list. Complete scoped evidence is required; unavailable native projections or omitted operator inputs remain UNKNOWN. Signed check: azure.other.monitor_alert_ack_authorization.",
     "evaluated": [
-      "Paged ARM Microsoft.Authorization/roleAssignments and roleDefinitions at alert scopes and ancestors, including actions/notActions, conditions, transitive groups and PIM. Resolve Microsoft.AlertsManagement/alerts/changeState/action or relevant alert-management action and approvedResponders. For alerts acknowledged in Sentinel/ITSM, obtain that system\u2019s effective permissions and audit events.",
+      "Paged ARM Microsoft.Authorization/roleAssignments and roleDefinitions at alert scopes and ancestors, including actions/notActions, conditions, transitive groups and PIM. Resolve Microsoft.AlertsManagement/alerts/changeState/action or relevant alert-management action and approvedResponders. For alerts acknowledged in Sentinel/ITSM, obtain that system’s effective permissions and audit events.",
       "Complete inventories: action_group"
     ],
     "fail_when": "Complete evidence conclusively violates the signed predicate: For each in-scope alert workflow, FAIL if a concrete unapproved effective principal can change state, silence or acknowledge an alert. PASS only if all effective principals with the actual acknowledgment/silence action, including inherited and external-system access, are approvedResponders. UNKNOWN if action mapping, scopes, groups, PIM, conditions, external workflow or inventory is unresolved; generic alert write permission alone is not proof of acknowledgement authority.",
@@ -6833,7 +6833,7 @@
     "proposed_spec_sha256": "975ca416ea9047612ec6b2f0eb6269b6cac001b82c30c61bd6cd254174eb3683"
   },
   "azure_application_gateway_app_ensure_http_is_redirected_to_https_e598c17": {
-    "description": "Each applicable HTTPS listener uses the frozen requirement\u2019s approved predefined SSL policy. Complete scoped evidence is required; unavailable native projections or omitted operator inputs remain UNKNOWN. Signed check: azure_application_gateway_app_ensure_http_is_redirected_to_https_e598c17.",
+    "description": "Each applicable HTTPS listener uses the frozen requirement’s approved predefined SSL policy. Complete scoped evidence is required; unavailable native projections or omitted operator inputs remain UNKNOWN. Signed check: azure_application_gateway_app_ensure_http_is_redirected_to_https_e598c17.",
     "evaluated": [
       "Paged Application Gateway and Front Door inventory; Application Gateway GET listener sslProfileId, gateway properties.sslPolicy and sslProfiles[].properties.sslPolicy; Front Door GET frontend endpoint HTTPS/TLS policy settings; policy-approved predefinedPolicyName values.",
       "Complete inventories: application_gateway_and_frontdoor"
@@ -7399,9 +7399,9 @@
       "Existing azure.py sql_server and mysql/postgresql flexible server items, sql_firewall_rule child for SQL only; new paged firewallRules list per MySQL/PostgreSQL server using each provider API; properties.startIpAddress/endIpAddress IPv4 strings.",
       "Complete inventories: sql_server, mysql_flexible_server, postgresql_flexible_server"
     ],
-    "fail_when": "Complete evidence conclusively violates the signed predicate: For every SQL, MySQL and PostgreSQL server, evaluate all child firewall rules against the frozen rule: custom non-default rules that allow unrestricted inbound access fail. FAIL on a measured custom rule spanning the public IPv4 range, and evaluate Azure-services 0.0.0.0 sentinel separately against the rule\u2019s approved-source policy. PASS only when all paged child lists and effective public-access settings are complete and no unrestricted custom rule exists. UNKNOWN for absent lists, malformed IPs, unresolved default-rule classification, approved-source policy or unsupported server generation. No servers is NOT_APPLICABLE.",
+    "fail_when": "Complete evidence conclusively violates the signed predicate: For every SQL, MySQL and PostgreSQL server, evaluate all child firewall rules against the frozen rule: custom non-default rules that allow unrestricted inbound access fail. FAIL on a measured custom rule spanning the public IPv4 range, and evaluate Azure-services 0.0.0.0 sentinel separately against the rule’s approved-source policy. PASS only when all paged child lists and effective public-access settings are complete and no unrestricted custom rule exists. UNKNOWN for absent lists, malformed IPs, unresolved default-rule classification, approved-source policy or unsupported server generation. No servers is NOT_APPLICABLE.",
     "not_applicable_when": null,
-    "pass_when": "Complete evidence satisfies the signed predicate: For every SQL, MySQL and PostgreSQL server, evaluate all child firewall rules against the frozen rule: custom non-default rules that allow unrestricted inbound access fail. FAIL on a measured custom rule spanning the public IPv4 range, and evaluate Azure-services 0.0.0.0 sentinel separately against the rule\u2019s approved-source policy. PASS only when all paged child lists and effective public-access settings are complete and no unrestricted custom rule exists. UNKNOWN for absent lists, malformed IPs, unresolved default-rule classification, approved-source policy or unsupported server generation. No servers is NOT_APPLICABLE.",
+    "pass_when": "Complete evidence satisfies the signed predicate: For every SQL, MySQL and PostgreSQL server, evaluate all child firewall rules against the frozen rule: custom non-default rules that allow unrestricted inbound access fail. FAIL on a measured custom rule spanning the public IPv4 range, and evaluate Azure-services 0.0.0.0 sentinel separately against the rule’s approved-source policy. PASS only when all paged child lists and effective public-access settings are complete and no unrestricted custom rule exists. UNKNOWN for absent lists, malformed IPs, unresolved default-rule classification, approved-source policy or unsupported server generation. No servers is NOT_APPLICABLE.",
     "proposed_spec_sha256": "c736ee942c8e94b6d35517be09be88e252e47a8e30ae2a605971d10e5a0ccec4"
   },
   "azure_frontdoor_1_2_5_4_ccc7b8f": {
@@ -8442,9 +8442,9 @@
       "manifest, config, compressed layer and rootfs digests",
       "fresh complete offline HIGH and CRITICAL package findings"
     ],
+    "pass_when": "The selected image has no HIGH or CRITICAL findings in a fresh complete scan.",
     "fail_when": "The bound image has at least one typed HIGH or CRITICAL package finding.",
     "not_applicable_when": null,
-    "pass_when": "The selected image has no HIGH or CRITICAL findings in a fresh complete scan.",
     "proposed_spec_sha256": "53313b2e52a935f3e3debb120b45ce8cb8bca1d6d212d246e330969c23a5f46d"
   },
   "gcp.review.artifactregistry.selected_file_secret_indicators": {
@@ -8536,7 +8536,7 @@
     "proposed_spec_sha256": "af2f4d6eea601579f1703892916e07aee53cb523b643ea4a2117cc6942aa980d"
   },
   "gcp.review.cloudbuild_build.literal_configuration_secret_indicators": {
-    "description": "Scans this resource\u2019s returned literal configuration (substitutions, options.env[], steps[].env[], steps[].script, steps[].args[]) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
+    "description": "Scans this resource’s returned literal configuration (substitutions, options.env[], steps[].env[], steps[].script, steps[].args[]) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
     "evaluated": [
       "native resource/project identity and complete matching collection",
       "substitutions",
@@ -8552,7 +8552,7 @@
     "proposed_spec_sha256": "12960339a7a3c5b1f8c639a1a0bce1c9c2ef6d478d76d6b006a86971dd73bc6d"
   },
   "gcp.review.cloudbuild_trigger.literal_configuration_secret_indicators": {
-    "description": "Scans this resource\u2019s returned literal configuration (substitutions, build.substitutions, build.options.env[], build.steps[].env[], build.steps[].script, build.steps[].args[]) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
+    "description": "Scans this resource’s returned literal configuration (substitutions, build.substitutions, build.options.env[], build.steps[].env[], build.steps[].script, build.steps[].args[]) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
     "evaluated": [
       "native resource/project identity and complete matching collection",
       "substitutions",
@@ -8593,7 +8593,7 @@
     "proposed_spec_sha256": "5433d8c501f141f4b408eadd9d522dab08e60dee1f7bd5824aaeffd133d3d42a"
   },
   "gcp.review.cloudrun_job.literal_configuration_secret_indicators": {
-    "description": "Scans this resource\u2019s returned literal configuration (template.template.containers[].env[].value, template.template.containers[].args[], template.template.containers[].command[]) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
+    "description": "Scans this resource’s returned literal configuration (template.template.containers[].env[].value, template.template.containers[].args[], template.template.containers[].command[]) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
     "evaluated": [
       "native resource/project identity and complete matching collection",
       "template.template.containers[].env[].value",
@@ -8607,7 +8607,7 @@
     "proposed_spec_sha256": "3c90e7ffa9998daee7ce5cba0751263510f82dcf3a116625965c0a2f123e6ac0"
   },
   "gcp.review.cloudrun_service.literal_configuration_secret_indicators": {
-    "description": "Scans this resource\u2019s returned literal configuration (template.containers[].env[].value, template.containers[].args[], template.containers[].command[]) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
+    "description": "Scans this resource’s returned literal configuration (template.containers[].env[].value, template.containers[].args[], template.containers[].command[]) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
     "evaluated": [
       "native resource/project identity and complete matching collection",
       "template.containers[].env[].value",
@@ -8786,7 +8786,7 @@
     "proposed_spec_sha256": "564671c6fb69029750f1f703b4615c2eb13300e73ccd566671b8347cfffcaab0"
   },
   "gcp.review.instance.literal_configuration_secret_indicators": {
-    "description": "Scans this resource\u2019s returned literal configuration (metadata.items[].value) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
+    "description": "Scans this resource’s returned literal configuration (metadata.items[].value) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
     "evaluated": [
       "native resource/project identity and complete matching collection",
       "metadata.items[].value",
@@ -8798,7 +8798,7 @@
     "proposed_spec_sha256": "3e9f184d8abaa939659ea00f175b9caa3bc5ac940248a180a1e7393545914cec"
   },
   "gcp.review.instance_template.literal_configuration_secret_indicators": {
-    "description": "Scans this resource\u2019s returned literal configuration (properties.metadata.items[].value) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
+    "description": "Scans this resource’s returned literal configuration (properties.metadata.items[].value) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
     "evaluated": [
       "native resource/project identity and complete matching collection",
       "properties.metadata.items[].value",
@@ -8823,7 +8823,7 @@
     "proposed_spec_sha256": "b18b3e1fc32d8ad5c259cdad94e029bb35d07659aa230e4edbc4c6d2d8ea780b"
   },
   "gcp.review.project.literal_configuration_secret_indicators": {
-    "description": "Scans this resource\u2019s returned literal configuration (commonInstanceMetadata.items[].value) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
+    "description": "Scans this resource’s returned literal configuration (commonInstanceMetadata.items[].value) with offline Kingfisher and TruffleHog. Only redacted matched-value fingerprints and locations remain; a negative covers only inspected supported values.",
     "evaluated": [
       "native resource/project identity and complete matching collection",
       "commonInstanceMetadata.items[].value",
@@ -11343,9 +11343,9 @@
       "explicit supported text fields",
       "complete offline detector results"
     ],
+    "pass_when": "All named text fields were read and no supported offline detector found a likely secret.",
     "fail_when": "A selected text field has a recorded likely secret finding.",
     "not_applicable_when": null,
-    "pass_when": "All named text fields were read and no supported offline detector found a likely secret.",
     "proposed_spec_sha256": "762a764b8430ae87d0e46c4e32e108d718bb8e83dbe69df99c7daa166df231a7"
   },
   "k8s_approved_image_installation": {
@@ -12392,7 +12392,7 @@
     "proposed_spec_sha256": "787ffd00f1e6cf085f1b7e47397891f0c752fe1e17fb8fce181422b1159d61fa"
   },
   "azure.network.load_balancer_backend_pools_have_declaration_or_consumer": {
-    "description": "A complete current load balancer ARM GET is checked for each backend pool\u2019s NIC or IP backend declarations and load balancing, outbound or inbound NAT rule consumers. An empty unreferenced pool is a structural review signal, not traffic inactivity or safe deletion.",
+    "description": "A complete current load balancer ARM GET is checked for each backend pool’s NIC or IP backend declarations and load balancing, outbound or inbound NAT rule consumers. An empty unreferenced pool is a structural review signal, not traffic inactivity or safe deletion.",
     "evaluated": [
       "Native provider inventory; reviewed source contracts: https://learn.microsoft.com/en-us/rest/api/load-balancer/load-balancers/get?view=rest-load-balancer-2023-09-01"
     ],
@@ -12410,5 +12410,233 @@
     "fail_when": "NOT_APPLICABLE for unmarked or custom-managed Endpoints, or without a unique controlling v1 Service owner; PASS when the same-namespace, same-name Service has the exact owner UID; FAIL only when a complete Service inventory has no Service by that name; UNKNOWN for partial inventory, malformed owner/identity, or current Service UID disagreement.",
     "not_applicable_when": "Unsupported or incomplete current source evidence remains UNKNOWN or DENIED; explicit applicability rules are retained.",
     "proposed_spec_sha256": "8799377413ca7621c07c29a328f7cd251e04c2fc63c744c5be3cd69f473ec13d"
+  },
+  "aws.review.build_deployment.referenced_source_secret_indicators": {
+    "description": "Evaluates selected build or deployment referenced source has no detected secrets for an explicitly selected build deployment referenced source content using native-bound, bounded offline evidence. Missing source or scanner coverage remains UNKNOWN. A likely-secret finding does not validate a credential or prove access.",
+    "evaluated": [
+      "explicit selected resource and native source request identity",
+      "bounded exact selected content receipts",
+      "offline Kingfisher and TruffleHog detector coverage and redacted findings"
+    ],
+    "pass_when": "All selected content reads and both pinned offline detectors complete without a likely-secret finding.",
+    "fail_when": "A redacted likely-secret finding is bound to the selected native content.",
+    "not_applicable_when": null,
+    "proposed_spec_sha256": "f1037e1e93bd8a85eb06a8d4b3b908ca98dfc1c16159d372f84c8acb0a5e5df1"
+  },
+  "aws.review.ecr_public.selected_image_high_vulnerabilities": {
+    "description": "Evaluates selected ECR Public image has no HIGH or CRITICAL package vulnerabilities for an explicitly selected ecr public selected image content using native-bound, bounded offline evidence. Missing source or scanner coverage remains UNKNOWN. A package finding does not prove exploitability or that a workload ran this image.",
+    "evaluated": [
+      "explicit selected image and native owner identity",
+      "verified OCI manifest, config and layer receipts",
+      "fresh offline Trivy HIGH and CRITICAL package findings"
+    ],
+    "pass_when": "The exact selected immutable image has complete fresh package scan coverage and no HIGH or CRITICAL finding.",
+    "fail_when": "A typed HIGH or CRITICAL package finding is bound to the exact selected immutable image.",
+    "not_applicable_when": null,
+    "proposed_spec_sha256": "eb950252c1f68e6f0ced7f6c290f1851cd78cb3b3deff9ea387b8ae042186259"
+  },
+  "aws.review.ecr_public.selected_image_secret_indicators": {
+    "description": "Evaluates selected ECR Public image bytes have no detected secrets for an explicitly selected ecr public selected image content using native-bound, bounded offline evidence. Missing source or scanner coverage remains UNKNOWN. A likely-secret finding does not validate a credential or prove access.",
+    "evaluated": [
+      "explicit selected resource and native source request identity",
+      "bounded exact selected content receipts",
+      "offline Kingfisher and TruffleHog detector coverage and redacted findings"
+    ],
+    "pass_when": "All selected content reads and both pinned offline detectors complete without a likely-secret finding.",
+    "fail_when": "A redacted likely-secret finding is bound to the selected native content.",
+    "not_applicable_when": null,
+    "proposed_spec_sha256": "8aa606b5e520f245ebc283a4883b84ca456cbe576519289b4047d7a38c734c0e"
+  },
+  "aws.review.ecs.selected_environment_file_secret_indicators": {
+    "description": "Evaluates selected ECS environment file has no detected secrets for an explicitly selected ecs selected environment file content using native-bound, bounded offline evidence. Missing source or scanner coverage remains UNKNOWN. A likely-secret finding does not validate a credential or prove access.",
+    "evaluated": [
+      "explicit selected resource and native source request identity",
+      "bounded exact selected content receipts",
+      "offline Kingfisher and TruffleHog detector coverage and redacted findings"
+    ],
+    "pass_when": "All selected content reads and both pinned offline detectors complete without a likely-secret finding.",
+    "fail_when": "A redacted likely-secret finding is bound to the selected native content.",
+    "not_applicable_when": null,
+    "proposed_spec_sha256": "6bc69a6be05d340e364a55afcb1b9a6dc7e7100b041cf3f8a528d963f340c153"
+  },
+  "aws.review.workload.referenced_source_secret_indicators": {
+    "description": "Evaluates selected workload referenced source has no detected secrets for an explicitly selected workload referenced source content using native-bound, bounded offline evidence. Missing source or scanner coverage remains UNKNOWN. A likely-secret finding does not validate a credential or prove access.",
+    "evaluated": [
+      "explicit selected resource and native source request identity",
+      "bounded exact selected content receipts",
+      "offline Kingfisher and TruffleHog detector coverage and redacted findings"
+    ],
+    "pass_when": "All selected content reads and both pinned offline detectors complete without a likely-secret finding.",
+    "fail_when": "A redacted likely-secret finding is bound to the selected native content.",
+    "not_applicable_when": null,
+    "proposed_spec_sha256": "941e792ac7408aa23bd895b24e3a862c772d98e1a1d62f04b985ae73ca4d9aba"
+  },
+  "aws.review.workload.selected_image_secret_indicators": {
+    "description": "Evaluates selected workload image has no observed secret indicators for an explicitly selected aws selected workload image secrets using native-bound, bounded offline evidence. Missing source or scanner coverage remains UNKNOWN. A likely-secret finding does not validate a credential or prove access.",
+    "evaluated": [
+      "explicit selected resource and native source request identity",
+      "bounded exact selected content receipts",
+      "offline Kingfisher and TruffleHog detector coverage and redacted findings"
+    ],
+    "pass_when": "All selected content reads and both pinned offline detectors complete without a likely-secret finding.",
+    "fail_when": "A redacted likely-secret finding is bound to the selected native content.",
+    "not_applicable_when": null,
+    "proposed_spec_sha256": "8fa88c24bcc8cc02951247b6726a60947b490ba79041c98af17e752d48182d10"
+  },
+  "azure.review.aks.selected_pod_image_high_vulnerabilities": {
+    "description": "Evaluates selected AKS Pod image has no HIGH or CRITICAL package vulnerabilities for an explicitly selected azure selected aks pod image vulnerabilities using native-bound, bounded offline evidence. Missing source or scanner coverage remains UNKNOWN. A package finding does not prove exploitability or that a workload ran this image.",
+    "evaluated": [
+      "explicit selected image and native owner identity",
+      "verified OCI manifest, config and layer receipts",
+      "fresh offline Trivy HIGH and CRITICAL package findings"
+    ],
+    "pass_when": "The exact selected immutable image has complete fresh package scan coverage and no HIGH or CRITICAL finding.",
+    "fail_when": "A typed HIGH or CRITICAL package finding is bound to the exact selected immutable image.",
+    "not_applicable_when": null,
+    "proposed_spec_sha256": "8ec7945c4fbe1cf67ef635aef29b17370f70fe885d2ecf568df36128449db9df"
+  },
+  "azure.review.aks.selected_pod_image_secret_indicators": {
+    "description": "Evaluates selected AKS Pod image has no detected secrets for an explicitly selected azure selected aks pod image using native-bound, bounded offline evidence. Missing source or scanner coverage remains UNKNOWN. A likely-secret finding does not validate a credential or prove access.",
+    "evaluated": [
+      "explicit selected resource and native source request identity",
+      "bounded exact selected content receipts",
+      "offline Kingfisher and TruffleHog detector coverage and redacted findings"
+    ],
+    "pass_when": "All selected content reads and both pinned offline detectors complete without a likely-secret finding.",
+    "fail_when": "A redacted likely-secret finding is bound to the selected native content.",
+    "not_applicable_when": null,
+    "proposed_spec_sha256": "6c07ceca45dc230c222c53753ad0a4b2f6ec382db5f24eb2c6a0e3d1b0bb5da5"
+  },
+  "azure.review.function.configured_deployment_container_archives_secret_indicators": {
+    "description": "Evaluates configured Flex deployment-container archives have no detected secrets for an explicitly selected azure flex configured deployment archives using native-bound, bounded offline evidence. Missing source or scanner coverage remains UNKNOWN. A likely-secret finding does not validate a credential or prove access.",
+    "evaluated": [
+      "explicit selected resource and native source request identity",
+      "bounded exact selected content receipts",
+      "offline Kingfisher and TruffleHog detector coverage and redacted findings"
+    ],
+    "pass_when": "All selected content reads and both pinned offline detectors complete without a likely-secret finding.",
+    "fail_when": "A redacted likely-secret finding is bound to the selected native content.",
+    "not_applicable_when": null,
+    "proposed_spec_sha256": "3495d3a5982f97b096e13ee89cf012b83fdab3eb9065ee452197dbe44b39e38b"
+  },
+  "azure.review.synapse.selected_notebook_source_secret_indicators": {
+    "description": "Evaluates selected Synapse notebook source has no detected secrets for an explicitly selected azure synapse selected notebook source using native-bound, bounded offline evidence. Missing source or scanner coverage remains UNKNOWN. A likely-secret finding does not validate a credential or prove access.",
+    "evaluated": [
+      "explicit selected resource and native source request identity",
+      "bounded exact selected content receipts",
+      "offline Kingfisher and TruffleHog detector coverage and redacted findings"
+    ],
+    "pass_when": "All selected content reads and both pinned offline detectors complete without a likely-secret finding.",
+    "fail_when": "A redacted likely-secret finding is bound to the selected native content.",
+    "not_applicable_when": null,
+    "proposed_spec_sha256": "9620f92268319ee3b53f9a72e6c6791cd152fad21bfb4d6a7d93886ef6049d26"
+  },
+  "gcp.review.app_engine_flex.selected_version_image_high_vulnerabilities": {
+    "description": "Evaluates selected App Engine Flex version image has no HIGH or CRITICAL package vulnerabilities for an explicitly selected appengine flex selected version image vulnerabilities using native-bound, bounded offline evidence. Missing source or scanner coverage remains UNKNOWN. A package finding does not prove exploitability or that a workload ran this image.",
+    "evaluated": [
+      "explicit selected image and native owner identity",
+      "verified OCI manifest, config and layer receipts",
+      "fresh offline Trivy HIGH and CRITICAL package findings"
+    ],
+    "pass_when": "The exact selected immutable image has complete fresh package scan coverage and no HIGH or CRITICAL finding.",
+    "fail_when": "A typed HIGH or CRITICAL package finding is bound to the exact selected immutable image.",
+    "not_applicable_when": null,
+    "proposed_spec_sha256": "ea353c1efbf1755dfe14d539f13ae874af4bcffa0986cfc111530daea7a64019"
+  },
+  "gcp.review.app_engine_flex.selected_version_image_secret_indicators": {
+    "description": "Evaluates selected App Engine Flex version image has no detected secrets for an explicitly selected appengine flex selected version image secrets using native-bound, bounded offline evidence. Missing source or scanner coverage remains UNKNOWN. A likely-secret finding does not validate a credential or prove access.",
+    "evaluated": [
+      "explicit selected resource and native source request identity",
+      "bounded exact selected content receipts",
+      "offline Kingfisher and TruffleHog detector coverage and redacted findings"
+    ],
+    "pass_when": "All selected content reads and both pinned offline detectors complete without a likely-secret finding.",
+    "fail_when": "A redacted likely-secret finding is bound to the selected native content.",
+    "not_applicable_when": null,
+    "proposed_spec_sha256": "ec6a93ba97d21a228264a7450d6db25942ce17ee0f2379f1d9326099e20c61de"
+  },
+  "gcp.review.cloudrun_worker_pool.selected_revision_image_secret_indicators": {
+    "description": "Evaluates selected Cloud Run worker pool revision image has no detected secrets for an explicitly selected cloudrun worker pool selected revision image using native-bound, bounded offline evidence. Missing source or scanner coverage remains UNKNOWN. A likely-secret finding does not validate a credential or prove access.",
+    "evaluated": [
+      "explicit selected resource and native source request identity",
+      "bounded exact selected content receipts",
+      "offline Kingfisher and TruffleHog detector coverage and redacted findings"
+    ],
+    "pass_when": "All selected content reads and both pinned offline detectors complete without a likely-secret finding.",
+    "fail_when": "A redacted likely-secret finding is bound to the selected native content.",
+    "not_applicable_when": null,
+    "proposed_spec_sha256": "ea29a56b43b17d6aa01eb74ac801e71436500f4135503da4287402e86a555ebb"
+  },
+  "gcp.review.developerconnect.selected_repository_file_secret_indicators": {
+    "description": "Evaluates selected Developer Connect repository file has no detected secrets for an explicitly selected developerconnect selected file using native-bound, bounded offline evidence. Missing source or scanner coverage remains UNKNOWN. A likely-secret finding does not validate a credential or prove access.",
+    "evaluated": [
+      "explicit selected resource and native source request identity",
+      "bounded exact selected content receipts",
+      "offline Kingfisher and TruffleHog detector coverage and redacted findings"
+    ],
+    "pass_when": "All selected content reads and both pinned offline detectors complete without a likely-secret finding.",
+    "fail_when": "A redacted likely-secret finding is bound to the selected native content.",
+    "not_applicable_when": null,
+    "proposed_spec_sha256": "abcd660f8e1ce57deebbfb4f27c9e1169e04c3f49cd5f992e8cfef2eccb39328"
+  },
+  "gcp.review.gke.selected_pod_image_high_vulnerabilities": {
+    "description": "Evaluates selected GKE Pod image has no HIGH or CRITICAL package vulnerabilities for an explicitly selected gke selected pod image vulnerabilities using native-bound, bounded offline evidence. Missing source or scanner coverage remains UNKNOWN. A package finding does not prove exploitability or that a workload ran this image.",
+    "evaluated": [
+      "explicit selected image and native owner identity",
+      "verified OCI manifest, config and layer receipts",
+      "fresh offline Trivy HIGH and CRITICAL package findings"
+    ],
+    "pass_when": "The exact selected immutable image has complete fresh package scan coverage and no HIGH or CRITICAL finding.",
+    "fail_when": "A typed HIGH or CRITICAL package finding is bound to the exact selected immutable image.",
+    "not_applicable_when": null,
+    "proposed_spec_sha256": "a1cb72fc11f9368e3d6332066d58ec28910eb5573602968e714bdd42e1b47c83"
+  },
+  "gcp.review.gke.selected_pod_image_secret_indicators": {
+    "description": "Evaluates selected GKE Pod image has no detected secrets for an explicitly selected gke selected pod image secrets using native-bound, bounded offline evidence. Missing source or scanner coverage remains UNKNOWN. A likely-secret finding does not validate a credential or prove access.",
+    "evaluated": [
+      "explicit selected resource and native source request identity",
+      "bounded exact selected content receipts",
+      "offline Kingfisher and TruffleHog detector coverage and redacted findings"
+    ],
+    "pass_when": "All selected content reads and both pinned offline detectors complete without a likely-secret finding.",
+    "fail_when": "A redacted likely-secret finding is bound to the selected native content.",
+    "not_applicable_when": null,
+    "proposed_spec_sha256": "8f434515d2b200bf84633ed65b44d399c330a580cda4e24a65f481bf853a31dc"
+  },
+  "k8s.review.selected_flux_artifact_secret_indicators": {
+    "description": "Evaluates selected Flux artifact has no detected secrets for an explicitly selected k8s selected flux artifact using native-bound, bounded offline evidence. Missing source or scanner coverage remains UNKNOWN. A likely-secret finding does not validate a credential or prove access.",
+    "evaluated": [
+      "explicit selected resource and native source request identity",
+      "bounded exact selected content receipts",
+      "offline Kingfisher and TruffleHog detector coverage and redacted findings"
+    ],
+    "pass_when": "All selected content reads and both pinned offline detectors complete without a likely-secret finding.",
+    "fail_when": "A redacted likely-secret finding is bound to the selected native content.",
+    "not_applicable_when": null,
+    "proposed_spec_sha256": "404b04db22569fd9cfe55d44422cbaeedbe3fa975f3f6981510f6a6ee4f0fd22"
+  },
+  "k8s.review.selected_registry_image_high_vulnerabilities": {
+    "description": "Evaluates selected Pod image has no HIGH or CRITICAL package vulnerabilities for an explicitly selected k8s selected registry image vulnerabilities using native-bound, bounded offline evidence. Missing source or scanner coverage remains UNKNOWN. A package finding does not prove exploitability or that a workload ran this image.",
+    "evaluated": [
+      "explicit selected image and native owner identity",
+      "verified OCI manifest, config and layer receipts",
+      "fresh offline Trivy HIGH and CRITICAL package findings"
+    ],
+    "pass_when": "The exact selected immutable image has complete fresh package scan coverage and no HIGH or CRITICAL finding.",
+    "fail_when": "A typed HIGH or CRITICAL package finding is bound to the exact selected immutable image.",
+    "not_applicable_when": null,
+    "proposed_spec_sha256": "a762f258d467e63943b71681c73a3cc9457c3e889ed413245bc568035e6ae877"
+  },
+  "k8s.review.selected_registry_image_secret_indicators": {
+    "description": "Evaluates selected Pod image content has no detected secrets for an explicitly selected k8s selected registry image secrets using native-bound, bounded offline evidence. Missing source or scanner coverage remains UNKNOWN. A likely-secret finding does not validate a credential or prove access.",
+    "evaluated": [
+      "explicit selected resource and native source request identity",
+      "bounded exact selected content receipts",
+      "offline Kingfisher and TruffleHog detector coverage and redacted findings"
+    ],
+    "pass_when": "All selected content reads and both pinned offline detectors complete without a likely-secret finding.",
+    "fail_when": "A redacted likely-secret finding is bound to the selected native content.",
+    "not_applicable_when": null,
+    "proposed_spec_sha256": "0220b1c58edc436111757f2a3bed7a1d34056a27ee8df62812967e3ec43da729"
   }
 }

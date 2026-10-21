@@ -68,7 +68,7 @@ def run(row, blobs):
 @pytest.fixture
 def scans(monkeypatch):
     calls = []
-    def scan(data, path, timeout):
+    def scan(data, path, timeout, *, _redact_values=None):
         assert len(data) <= inspection.WINDOW + inspection.OVERLAP
         calls.append((len(data), path))
         return {'complete': True, 'engines': [
@@ -114,7 +114,7 @@ def test_file_coverage_limit_remains_explicitly_incomplete(tmp_path, monkeypatch
 def test_detector_failure_closes_downloads_and_removes_scratch(tmp_path, monkeypatch):
     monkeypatch.setattr(inspection.tempfile, 'tempdir', str(tmp_path))
     count = [0]
-    def fail(data, path, timeout):
+    def fail(data, path, timeout, *, _redact_values=None):
         count[0] += 1
         return {'complete': count[0] == 1, 'engines': [], 'leaks': []}
     monkeypatch.setattr(inspection.native, 'scan_content', fail)
@@ -124,11 +124,46 @@ def test_detector_failure_closes_downloads_and_removes_scratch(tmp_path, monkeyp
     assert list(tmp_path.iterdir()) == []
 
 
-def test_enricher_keeps_native_selection_and_binding_function():
-    assert inspection.enrich.__code__ is inspection.native.enrich.__code__
-    assert inspection.enrich.__globals__['inspect_image'] is inspection.inspect_image
-    assert inspection.enrich.__globals__['Reader'] is inspection.Reader
-    assert inspection.enrich.__globals__['bind_image'] is inspection.native.bind_image
+def test_enricher_keeps_native_selection_and_binding_function(monkeypatch):
+    row, _ = image()
+    expected = row['uri']
+    options = {'content_secret_scans': True, '_content_secret_scan_kinds': ['artifact_image'],
+        'selected_artifact_images': [expected.removeprefix('https://')]}
+    before = json.loads(json.dumps(options))
+    calls = []
+    native_bind = inspection.native.bind_image
+    def bound(selected, scope, repositories, projects):
+        calls.append(('bind', selected['uri'], scope))
+        return native_bind(selected, scope, repositories, projects)
+    class Reader:
+        def __init__(self):
+            self.request_ids = []
+            self.closed = False
+        def close(self):
+            self.closed = True
+    reader = Reader()
+    def inspect_selected(selected, scope, repositories, projects, source):
+        assert source is reader
+        assert selected is row and scope == SCOPE
+        assert repositories == REPOSITORIES and projects == PROJECTS
+        calls.append(('inspect', selected['uri'], scope))
+        source.request_ids.append('fixture-native-read')
+        return {'schema': inspection.native.SCHEMA, 'status': 'collected', 'complete': True, 'leaks': []}
+    monkeypatch.setattr(inspection.native, 'bind_image', bound)
+    monkeypatch.setattr(inspection, 'inspect_image', inspect_selected)
+    collector = type('Collector', (), {'options': options, 'scopes': [SCOPE],
+        'transport': object(), 'collections': {
+            ('artifact_image', SCOPE): {'status': 'collected', 'items': [row]},
+            ('artifact_repository', SCOPE): {'status': 'collected', 'items': REPOSITORIES},
+            ('project', SCOPE): {'status': 'collected', 'items': PROJECTS}}})()
+    inspection.enrich(collector, reader_factory=lambda transport: reader)
+    assert calls == [('bind', expected, SCOPE), ('inspect', expected, SCOPE)]
+    assert options == before
+    assert reader.closed is True
+    assert row['_coverage'][inspection.native.MARKER] == {
+        'status': 'collected', 'source_requests': ['fixture-native-read']}
+    assert row['_provenance']['scope'] == SCOPE
+    assert row['_provenance']['source_requests'] == ['fixture-native-read']
 
 
 def reviewed_predicate():
@@ -147,14 +182,14 @@ def test_large_complete_marker_is_accepted_by_identical_predicate_with_new_capac
     result, _, _ = run(row, blobs)
     row[inspection.native.MARKER] = result
     review = reviewed_predicate()
-    assert review.evaluate.__code__ is review.predecessor.evaluate.__code__
+    assert review._leaf_evaluate.__code__ is review.predecessor.evaluate.__code__
     assert review.predecessor.evaluate(row, index(row))[0] == 'UNKNOWN'
     assert review.evaluate(row, index(row))[0] == 'PASS'
 
 
 def test_confirmed_leak_survives_later_rootfs_failure(monkeypatch):
     calls = []
-    def scan(data, path, timeout):
+    def scan(data, path, timeout, *, _redact_values=None):
         calls.append(path)
         return {'complete': True, 'engines': [
             {'engine': 'kingfisher', 'version': inspection.native.KINGFISHER_VERSION, 'status': 'complete'},

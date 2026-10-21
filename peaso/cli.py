@@ -70,6 +70,17 @@ def _related(parser):
                         help="snapshot JSON of a related provider, e.g. the cloud account/project of a K8s cluster "
                              "(repeatable); joined read-only by the privesc evaluator for cross-provider paths")
 
+
+def _content_file_routes(auth, options):
+    """Keep selected content inputs in options and private credentials in auth."""
+    if not isinstance(auth, dict) or not isinstance(options, dict):
+        raise ValueError("connector auth and options must be objects")
+    if any(isinstance(key, str) and key.startswith("selected_") for key in auth):
+        raise ValueError("selected content targets must be in connector options")
+    if any(key in options for key in ("registry_auth", "gke_image_kubernetes", "aks_workloads",
+                                       "registry_auth_document", "image_pull_secret")):
+        raise ValueError("content credentials must be in connector auth")
+
 def _expanded(report, snapshot=None):
     """Markdown and --embed-native need native data inline; a 1.1 report without its snapshot is left as is."""
     if not isinstance(report, dict) or report.get("schema_version") != REPORT_SCHEMA_VERSION:
@@ -130,6 +141,8 @@ def _execute(args, selectors):
     if args.command in ("scan", "collect"):
         request = _load(args.request) if args.request else {}
         connector = request.setdefault("connector", {})
+        if not isinstance(connector, dict):
+            raise ValueError("connector must be an object")
         if args.provider:
             connector["provider"] = args.provider
         if args.name != "cli" or "name" not in connector:
@@ -138,6 +151,7 @@ def _execute(args, selectors):
             connector["scopes"] = args.scopes
         auth = connector.setdefault("auth", {})
         options = connector.setdefault("options", {})
+        _content_file_routes(auth, options)
         if args.auth_file:
             auth.update(_load(args.auth_file))
         if args.options_file:
@@ -148,6 +162,7 @@ def _execute(args, selectors):
             auth["context"] = args.context
         if args.demo:
             options["demo"] = True
+        _content_file_routes(auth, options)
         if connector.get("provider") == "gcp" and auth.get("method") == "platform-service-account" and not (args.demo or args.snapshot):
             from .gcp_platform import load_service_account
             auth["sa_json"] = load_service_account(os.getenv("PEASO_GCP_PLATFORM_SA_SECRET_ARN", ""))
@@ -158,6 +173,7 @@ def _execute(args, selectors):
         for key, value in selectors.items():
             if value is not None:
                 request[key] = value
+        effective_selectors = {key: request.get(key) for key in ("categories", "checks", "frameworks")}
         include = bool(args.include_not_applicable)
         if args.command == 'scan':
             request['include_not_applicable'] = include
@@ -169,7 +185,7 @@ def _execute(args, selectors):
         snapshot = secret_capture.public_snapshot(snapshot)
         if args.command == 'scan':
             timings = {}
-            value = evaluate_snapshot(snapshot, **selectors, timings=timings,
+            value = evaluate_snapshot(snapshot, **effective_selectors, timings=timings,
                 include_not_applicable=include, related_snapshots=related)
             if timings:
                 value['timings'] = timings
@@ -178,7 +194,7 @@ def _execute(args, selectors):
         if args.snapshot_output:
             _write(snapshot, args.snapshot_output, "json")
         if args.command == "collect" and args.format == "markdown":
-            value = _expanded(evaluate_snapshot(snapshot, **selectors, include_not_applicable=include, related_snapshots=related), snapshot)
+            value = _expanded(evaluate_snapshot(snapshot, **effective_selectors, include_not_applicable=include, related_snapshots=related), snapshot)
         elif args.command == "scan":
             if args.embed_native or args.format == "markdown":
                 value = _expanded(value, snapshot)

@@ -77,6 +77,21 @@ jobs:
           test "$("$RUNNER_TEMP/secret-scanner/trufflehog" --version 2>&1)" = 'trufflehog 3.92.5'
           echo "$RUNNER_TEMP/secret-scanner" >> "$GITHUB_PATH"
           python -c 'from importlib.metadata import version; import kingfisher_sdk; assert version("kingfisher-secret-scanner") == "1.4.0"'
+      - name: Install pinned Trivy and provision its bounded test DB
+        run: |
+          set -euo pipefail
+          image='ghcr.io/aquasecurity/trivy:0.68.1@sha256:52e6fb1ff6a8232d6ec480ca9dd0b8db6728e252d092cb7712df7103ba09502e'
+          container="$(docker create --platform linux/amd64 "$image")"
+          trap 'docker rm -f "$container" >/dev/null' EXIT
+          mkdir -p "$RUNNER_TEMP/trivy-cli"
+          docker cp "$container:/usr/local/bin/trivy" "$RUNNER_TEMP/trivy-cli/trivy"
+          chmod 0755 "$RUNNER_TEMP/trivy-cli/trivy"
+          "$RUNNER_TEMP/trivy-cli/trivy" --version | grep -Fx 'Version: 0.68.1'
+          python peaso/trivy_database_20261021.py refresh \
+            --cache-root "$RUNNER_TEMP/trivy-db" --trivy "$RUNNER_TEMP/trivy-cli/trivy"
+          echo "$RUNNER_TEMP/trivy-cli" >> "$GITHUB_PATH"
+          echo "PEASO_TEST_TRIVY_DB=$RUNNER_TEMP/trivy-db/current" >> "$GITHUB_ENV"
+          echo "PEASO_TEST_TRIVY_CLI=$RUNNER_TEMP/trivy-cli/trivy" >> "$GITHUB_ENV"
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '22'

@@ -23,7 +23,7 @@
   },
   "description": "Reviews an explicitly selected immutable ACR image with an offline package vulnerability database. Verified HIGH or CRITICAL findings remain visible when scan coverage is incomplete; a clean result requires a fresh complete scan. The selected digest does not prove a workload runs the image or that a finding is exploitable.",
   "pass_when": "The bound image and fresh complete scan have no HIGH or CRITICAL findings.",
-  "fail_when": "The bound image has at least one typed HIGH or CRITICAL finding, including when scan coverage is incomplete.",
+  "fail_when": "The bound image has at least one typed HIGH or CRITICAL finding; incomplete coverage stays UNKNOWN for absence.",
   "unknown_when": "The native image binding, content graph, scanner version, database freshness or scan coverage is incomplete.",
   "remediation": "Update affected packages, rebuild the image, and select a reviewed immutable digest."
 }

@@ -2711,6 +2711,18 @@
           },
           {
             "type": "str",
+            "value": "k8s_selected_flux_artifact"
+          },
+          {
+            "type": "str",
+            "value": "k8s_selected_registry_image_secrets"
+          },
+          {
+            "type": "str",
+            "value": "k8s_selected_registry_image_vulnerabilities"
+          },
+          {
+            "type": "str",
             "value": "servicecidr"
           },
           {
@@ -3183,7 +3195,7 @@
   "schema": "finite-k8s-annotation-successor-v1",
   "snapshot_sha256": "6dcf7d4953c1b1b17e8669cb5f44960a4340ea8d6e9f93fb356d4df52d570919",
   "source_epoch_archive_sha256": "3eb403fa363c559f7053060d409f60ac8c693350350423a6dc775412df4300c0",
-  "source_epoch_receipt_sha256": "7968350aaff454e46738f5fd2a911c2887754b7ceca02050210b22f25c0832f0",
-  "source_epoch_sha256": "9f314a58d4fbdb6b047594c2ef602b22e38d2ca76b8a26445524ca5b59b26971",
+  "source_epoch_receipt_sha256": "15ad9dd312b86917708fabde7f7b431c99fd0ad790cbaeaea175f56385dd2b11",
+  "source_epoch_sha256": "b30d63f40d45ac7b63d8450ad5f18098c0c2e125fb5d6a529901a49825b969ec",
   "successor_source_sha256": "02642ce49673ad1788c54c3eac11c8e308111cbafd447a83169b5a2d7caf68ed"
 }

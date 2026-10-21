@@ -60,6 +60,8 @@ def active_shared():
     if current.__name__ == 'peaso.checks.private_secret_shared_source_successor_20261021':
         current._private_self()  # Real current source/code/receipt checks; never alter historical receipts.
         assert current._private_canonical is importlib.import_module('peaso.checks.gcp_positive_conservation_shared_source_successor_20261020')
+        private = (ROOT / 'peaso/checks/private_secret_shared_source_successor_20261021.json').read_bytes()
+        assert digest(private) == current._PRIVATE_RECEIPT_SHA256
     if current.__name__ in ('peaso.checks.gcp_positive_conservation_shared_source_successor_20261020',
                             'peaso.checks.private_secret_shared_source_successor_20261021'):
         historical = importlib.import_module('peaso.checks.azure_metadata_only_shared_successor_20261020')
@@ -78,14 +80,16 @@ def active_shared():
     if current.__name__.endswith('collector_noop_authorization_shared_successor_20261020'):
         _noop_native_parent(current, json.loads(raw))
     if current.__name__.endswith(('azure_metadata_only_shared_successor_20261020',
-                                  'gcp_positive_conservation_shared_source_successor_20261020',
-                                  'private_secret_shared_source_successor_20261021')):
+                                  'gcp_positive_conservation_shared_source_successor_20261020')):
         _metadata_noop_parent(current, json.loads(raw))
+    if current.__name__.endswith('private_secret_shared_source_successor_20261021'):
+        _metadata_noop_parent(current.historical_bridge, json.loads(raw))
     return current
 
 
 def _metadata_noop_parent(current, proof):
     """Finite metadata-only alias over the immutable 168-row no-op epoch."""
+    latest = importlib.import_module('peaso.checks.private_secret_shared_source_successor_20261021')
     noop = importlib.import_module('peaso.checks.collector_noop_authorization_shared_successor_20261020')
     noop_sha = '7ed26b39498462397e5b02b74552d91336d53f07ea70636d8b0655164f90dafa'
     assert proof['accepted_noop_receipt_sha256'] == noop_sha, 'Metadata-only no-op receipt ancestry changed'
@@ -111,20 +115,19 @@ def _metadata_noop_parent(current, proof):
     for relative, row in proof['metadata_only_epoch_file_deltas'].items():
         content = (ROOT / relative).read_bytes()
         if relative == 'peaso/checks/__init__.py':
+            if digest(content) == latest._private_receipt()['initializer_after_sha256']:
+                content = latest._initialization_predecessor(content)
             from tests.gcp_positive_conservation_epoch_20261020 import metadata_initializer_bytes
             content = metadata_initializer_bytes(content)
-        elif current.__name__.endswith('private_secret_shared_source_successor_20261021'):
-            content = current._private_before(relative, content, ROOT)
+        elif relative == 'peaso/collectors/azure.py':
+            content = latest._private_before(relative, content, ROOT)
         _reverse(content.decode(), row)
     assert proof['metadata_only_epoch_file_deltas']['peaso/collectors/azure.py']['predecessor_sha256'] == 'b69db967e65722174e847116620b63c7de4f0da835e3edde1a882456dc37afea'
     from peaso.collectors import azure
-    source = inspect.getsource(azure.collect)
-    if current.__name__.endswith('private_secret_shared_source_successor_20261021'):
-        source = _reverse(source, current._private_receipt()['provider_group_azure_collect'])
-    restored = _reverse(source, proof['metadata_only_collect'])
+    restored = latest.predecessor_azure_collect(inspect.getsource(azure.collect), ROOT)
     assert digest(restored) == parent['azure_collect']['current_sha256']
     # Execute the real source, callable and sentinel-class identity proof.
-    current.verify_metadata_only(ROOT)
+    latest.verify_metadata_only(ROOT)
     return noop
 
 
