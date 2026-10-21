@@ -65,6 +65,10 @@ def project_response(raw,path,continuation=None):
   out={'id':row.get('id')}
   if repository:
    project=row.get('project');out['projectId']=project.get('id')if isinstance(project,dict)else None
+   from peaso.secret_evidence import url_credentials
+   urls=[('remoteUrl',row.get('remoteUrl'))]+[('validRemoteUrls['+str(i)+']',u)for i,u in enumerate(row.get('validRemoteUrls',[]) if isinstance(row.get('validRemoteUrls'),list) else [])]
+   for field,url in urls:
+    url_credentials(url,resource_id=out['projectId'] or out['id'],path=field,check_id='azure.review.devops.visible_clone_urls_without_userinfo',source=path+'/repository/'+str(out['id']))
    out['url_assessments']=assess_urls(row)
    out['remote_assessment']=assess_urls({'remoteUrl':row.get('remoteUrl'),'validRemoteUrls':[]})
   else:out['state']=row.get('state')
@@ -97,7 +101,9 @@ def collect(reader,request,transport,scopes,wanted,options,auth):
       if time.monotonic()>=state['deadline']:raise AzureReadError('deadline_exceeded',408)
       if state['calls']>=MAX_CALLS:raise AzureReadError('call_limit')
       state['calls']+=1
-     return operation(*args)
+     from peaso.secret_evidence import source_context
+     with source_context(scope=scope):
+      return operation(*args)
     return reader.call(execute)
    subscription=bounded_call(request,'https://management.azure.com'+scope+'?api-version=2022-12-01')
    tenant=getattr(transport,'verified_tenant',None)

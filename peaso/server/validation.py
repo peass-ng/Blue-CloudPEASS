@@ -6,9 +6,11 @@ from functools import lru_cache
 import secrets
 import re
 from fastapi import HTTPException
+from . import content_selection_preflight_20261021 as pure_selection
 
 OPTIONS = {
     "content_secret_scans",
+    "image_vulnerability_scans",
     "selected_gcs_objects",
     "selected_gcs_archives",
     "selected_dataform_files",
@@ -18,20 +20,25 @@ OPTIONS = {
     "selected_dataproc_referenced_sources",
     "selected_azure_app_settings",
     "selected_azure_acr_images",
+    "selected_azure_acr_image_vulnerabilities",
     "selected_azure_ml_command_jobs",
     "selected_azure_ml_environment_versions", "selected_azure_ml_code_files",
     "selected_azure_function_settings",
     "selected_azure_function_package_sources",
     "selected_azure_databricks_notebooks",
+    "selected_azure_databricks_files",
+    "selected_azure_databricks_task_outputs",
     "selected_azure_log_workspaces", "selected_azure_application_insights",
     "selected_azure_app_configuration_values", "selected_azure_data_factory_declarations", "selected_azure_synapse_pipelines",
     "selected_azure_configuration_content", "selected_azure_storage_sources", "selected_azure_devops_content",
+    "selected_azure_flex_deployment_containers",
     "selected_aws_lambda_functions",
     "selected_aws_configuration_content",
     "selected_aws_s3_sources",
     "selected_k8s_literal_resources",
     "selected_k8s_log_samples",
     "selected_k8s_metadata_resources",
+    "selected_k8s_text_resources",
     "selected_gke_clusters", "selected_gke_namespaces",
     "selected_artifact_images", "selected_artifact_files",
     "selected_cloudrun_services",
@@ -51,11 +58,24 @@ OPTIONS = {
 OPTIONS.add('selected_aws_codebuild_inline_buildspecs')
 OPTIONS.add('selected_aws_workload_commands')
 OPTIONS.add('selected_cloudrun_job_declared_images')
+OPTIONS.add('selected_gcp_registry_image_vulnerabilities')
+OPTIONS.add('selected_aws_image_vulnerabilities')
+OPTIONS.add('selected_aws_ecr_public_images')
+OPTIONS.update({'selected_k8s_registry_images', 'selected_registry_hosts'})
+OPTIONS.add('selected_k8s_flux_artifacts')
+OPTIONS.add('selected_appengine_flex_version_images')
+OPTIONS.add('selected_gke_pod_images')
+OPTIONS.add('selected_aws_workload_image_secrets')
+OPTIONS.add('selected_azure_aks_pod_images')
+OPTIONS.add('selected_registry_hosts')
+OPTIONS.update({'selected_azure_synapse_notebooks', 'selected_aws_ecs_environment_files'})
+OPTIONS.update({'selected_cloudrun_worker_pool_revision_images', 'selected_developerconnect_files'})
+OPTIONS.update({'selected_aws_workload_sources', 'selected_aws_build_deployment_sources'})
 AUTH = {
     "aws": {"method", "aws_access_key_id", "aws_secret_access_key", "aws_session_token", "role_arn", "external_id", "role_chain", "assume_roles", "region_name", "role_session_name"},
-    "gcp": {"method", "token", "sa_json", "quota_project", "external_account_json", "subject_token", "project_proof_label"},
-    "azure": {"devops_credentials", "aks_workloads", "method", "token", "arm_token", "graph_token", "vault_token", "storage_token", "logs_token", "databricks_account_token", "tenant_id", "client_id", "client_secret", "certificate_data", "client_certificate", "certificate_password", "federated_token"},
-    "k8s": {"method", "server", "token", "kubeconfig_data", "context", "cluster_id", "ca_cert_data", "client_cert_data", "client_key_data"},
+    "gcp": {"gke_image_kubernetes", "registry_auth", "method", "token", "sa_json", "quota_project", "external_account_json", "subject_token", "project_proof_label"},
+    "azure": {"devops_credentials", "aks_workloads", "registry_auth", "method", "token", "arm_token", "graph_token", "vault_token", "storage_token", "logs_token", "databricks_account_token", "tenant_id", "client_id", "client_secret", "certificate_data", "client_certificate", "certificate_password", "federated_token"},
+    "k8s": {"method", "server", "token", "kubeconfig_data", "context", "cluster_id", "ca_cert_data", "client_cert_data", "client_key_data", "registry_auth"},
 }
 AWS_ROLE_ARN = re.compile(r"arn:aws:iam::([0-9]{12}):role/[A-Za-z0-9+=,.@_/-]{1,512}\Z")
 COLLECTOR_ROLE_ARN = os.getenv("PEASO_AWS_COLLECTOR_ROLE_ARN", "")
@@ -68,18 +88,88 @@ LEGACY_EXTERNAL_ID_PREFIX = "peaso-"
 
 
 def validate_connector(provider, auth, options, settings, *, server_external_id=False, scopes=None):
+    if 'selected_gke_pod_images' in options or provider == 'gcp' and any(k in auth for k in ('gke_image_kubernetes', 'registry_auth')):
+        try:
+            if provider != 'gcp':
+                raise ValueError('GKE image selection requires GCP')
+            from peaso.gcp_gke_image_selection_20261021 import selected, kubernetes_auth, registry_auth
+            targets = selected(options, scopes or [], [])
+            kubernetes_auth(auth, targets)
+            registry_auth(auth, targets, options.get('selected_registry_hosts', []))
+        except (ValueError, TypeError, KeyError, AttributeError):
+            raise HTTPException(422, 'Selected GKE images require exact project, cluster, Pod, digest, registry and separately authorized Kubernetes access') from None
+    if 'selected_aws_workload_image_secrets' in options:
+        try:
+            if provider != 'aws' or ('content_secret_scans' in options and type(options['content_secret_scans']) is not bool):
+                raise ValueError('AWS workload image selection requires AWS')
+            selector=pure_selection.aws_workload_image
+            selector.selected({**options, selector.ENABLE: True}, scopes or [], [selector.CHECK])
+        except (ValueError, TypeError, KeyError, AttributeError):
+            raise HTTPException(422, 'Selected workload image secrets require exact Lambda, ECS or Batch declarations and immutable ECR digests in the selected account and Region') from None
+    if 'selected_aws_ecr_public_images' in options:
+        try:
+            if provider != 'aws':
+                raise ValueError('AWS-only ECR Public selection')
+            from peaso.aws_ecr_public_selection_20261021 import selected_targets as selected_public_images
+            selected_public_images(options, scopes or [])
+        except (ValueError, TypeError, KeyError, AttributeError):
+            raise HTTPException(422, 'Selected ECR Public images require exact account/us-east-1 scopes, active alias names, repository names and immutable SHA-256 digests') from None
+    if 'selected_azure_aks_pod_images' in options or provider == 'azure' and 'registry_auth' in auth:
+        try:
+            if provider != 'azure':
+                raise ValueError('Azure-only AKS image selection')
+            selected = pure_selection.aks_image.selected_targets(options, scopes or [], [])
+            pure_selection.registry.registry_credentials(auth, selected, options.get('selected_registry_hosts', []))
+        except (ValueError, TypeError, KeyError, AttributeError):
+            raise HTTPException(422, 'Selected AKS images require exact ARM cluster, Pod UID, immutable digest, and separately authorized registry') from None
+    if 'selected_k8s_flux_artifacts' in options:
+        try:
+            if provider != 'k8s':
+                raise ValueError('Kubernetes-only Flux source selection')
+            pure_selection.flux.selected_targets(options, scopes or [], [])
+        except (ValueError, TypeError, KeyError, AttributeError):
+            raise HTTPException(422, 'Selected Flux artifacts require exact scoped source, digest and source-controller Service selectors') from None
+    if 'selected_k8s_registry_images' in options or provider == 'k8s' and ('selected_registry_hosts' in options or 'registry_auth' in auth):
+        try:
+            if provider != 'k8s':
+                raise ValueError('Kubernetes-only registry selection')
+            selected = pure_selection.registry.selected_targets(options, scopes or [], [])
+            pure_selection.registry.registry_credentials(auth, selected, options.get(pure_selection.registry.ALLOWLIST, []))
+        except (ValueError, TypeError, KeyError, AttributeError):
+            raise HTTPException(422, 'Selected Kubernetes registry images require exact scoped Pod digests, public registry hosts, and separately bound registry authentication') from None
+    if ('image_vulnerability_scans' in options or 'selected_aws_image_vulnerabilities' in options
+            or 'selected_gcp_registry_image_vulnerabilities' in options
+            or 'selected_azure_acr_image_vulnerabilities' in options):
+        try:
+            from .image_selection_options_20261021 import validate_image_options
+            validate_image_options(provider, options, scopes or [])
+        except (ValueError, TypeError, KeyError, AttributeError):
+            raise HTTPException(422, 'Image vulnerability scans require a boolean and exact AWS image targets, GCP Job image selectors, or Azure ACR digests in selected scopes') from None
     if 'selected_cloudrun_job_declared_images' in options:
         try:
             if provider != 'gcp':
                 raise ValueError('Selected Job declared images require GCP')
-            from peaso.collectors.gcp_cloudrun_job_image_runtime_20261020 import validate_options as validate_cloudrun_job_images
+            from .cloudrun_job_selection_static_20261021 import validate_options as validate_cloudrun_job_images
             validate_cloudrun_job_images(options, scopes or [])
         except (ValueError, TypeError, KeyError, AttributeError):
             raise HTTPException(422, 'Selected Cloud Run Job declared images require exact supported selectors in one explicit project') from None
+    for option, validator, description in (
+        ('selected_cloudrun_worker_pool_revision_images', pure_selection.workerpool.selections,
+         'Selected worker pool images require one explicit GCP project, exact revision/container, and immutable image digest'),
+        ('selected_developerconnect_files', pure_selection.developerconnect.selections,
+         'Selected Developer Connect files require one explicit GCP project and exact link, origin, commit, path and blob')):
+        if option not in options:
+            continue
+        try:
+            if (provider != 'gcp' or not isinstance(scopes, list) or len(scopes) != 1
+                    or any(options.get(key) for key in ('all_projects', 'discover_projects', 'all_hierarchy'))):
+                raise ValueError('one selected GCP project required')
+            validator(options[option], scopes[0])
+        except (ValueError, TypeError, KeyError, AttributeError):
+            raise HTTPException(422, description) from None
     if 'selected_aws_workload_commands' in options:
         try:
-            from peaso.collectors.aws_workload_command_runtime_20261020 import targets as workload_command_targets
-            workload_command_targets(options, scopes or [], [], provider)
+            pure_selection.workload.targets(options, scopes or [], [], provider)
         except (ValueError, TypeError, KeyError, AttributeError):
             raise HTTPException(422, 'Selected AWS commands require exact ECS/classic Batch definition ARN revisions in selected account/Region scopes; images, environment files and EKS Batch are unsupported') from None
     if 'selected_aws_codebuild_inline_buildspecs' in options:
@@ -94,6 +184,12 @@ def validate_connector(provider, auth, options, settings, *, server_external_id=
             package_preflight(options, scopes or [], [], provider=provider)
         except (ValueError, TypeError, KeyError, AttributeError):
             raise HTTPException(422, 'Selected Azure packages require 1–2 exact owned site and Blob ZIP selections') from None
+    if 'selected_azure_flex_deployment_containers' in options:
+        try:
+            if provider!='azure':raise ValueError('Azure-only Flex selection')
+            pure_selection.azure_flex_archives.selected_targets(options,scopes or [])
+        except (ValueError,TypeError,KeyError,AttributeError):
+            raise HTTPException(422,'Selected Flex deployment containers require exact same-subscription Function and storage-account ARM IDs plus a container name') from None
     if 'selected_azure_function_settings' in options:
         try:
             if provider != 'azure':
@@ -106,26 +202,30 @@ def validate_connector(provider, auth, options, settings, *, server_external_id=
         try:
             if provider != 'azure':
                 raise ValueError('Azure-only ML asset selection')
-            from peaso.collectors.azure_ml_selected_asset_secret_indicators import selected_targets
-            selected_targets(options, scopes or [])
+            pure_selection.ml_asset.selected_targets(options, scopes or [])
         except Exception:
-            raise HTTPException(422, 'Selected Azure ML assets require 1–4 total exact scoped environment-version IDs or code-version/datastore/selected storage-file targets') from None
-    if 'selected_azure_databricks_notebooks' in options:
+            raise HTTPException(422, 'Selected Azure ML assets require 1–4 exact scoped environment-version IDs, environment-version/datastore/selected Blob Dockerfiles, or code-version/datastore/selected storage-file targets') from None
+    if any(key in options for key in ('selected_azure_databricks_notebooks','selected_azure_databricks_files','selected_azure_databricks_task_outputs')):
         try:
             if provider != 'azure':
-                raise ValueError('Azure-only Databricks notebook selection')
-            from peaso.collectors.azure_databricks_notebook_secret_indicators import selected_targets
-            selected_targets(options, scopes or [])
+                raise ValueError('Azure-only Databricks content selection')
+            pure_selection.databricks.selected_targets(options, scopes or [])
         except Exception:
-            raise HTTPException(422, 'Selected Azure Databricks notebooks require 1–4 exact scoped workspace_resource_id and absolute notebook path targets') from None
+            raise HTTPException(422, 'Selected Azure Databricks content requires 1–4 exact scoped notebook, workspace FILE, or job/task-run output targets') from None
+    if 'selected_azure_synapse_notebooks' in options:
+        try:
+            if provider != 'azure':
+                raise ValueError('Azure-only Synapse notebook selection')
+            pure_selection.synapse.selected_targets(options, scopes or [])
+        except (ValueError, TypeError, KeyError, AttributeError):
+            raise HTTPException(422, 'Selected Synapse notebooks require 1–4 exact workspace IDs and notebook names in selected subscription scopes') from None
     if 'selected_azure_ml_command_jobs' in options:
         try:
             if provider != 'azure':
                 raise ValueError('Azure-only ML job selection')
-            from peaso.collectors.azure_ml_selected_job_secret_indicators import selected_targets
-            selected_targets(options, scopes or [])
+            pure_selection.ml_job.selected_targets(options, scopes or [])
         except Exception:
-            raise HTTPException(422, 'Selected Azure ML jobs require 1–4 exact case-sensitive native Command-job ARM IDs in selected subscriptions') from None
+            raise HTTPException(422, 'Selected Azure ML jobs require 1–4 exact case-sensitive native job ARM IDs in selected subscriptions') from None
     log_sample_options = ('selected_azure_log_workspaces', 'selected_azure_application_insights')
     if any(option in options for option in log_sample_options):
         try:
@@ -140,8 +240,7 @@ def validate_connector(provider, auth, options, settings, *, server_external_id=
         try:
             if provider != 'azure':
                 raise ValueError('Azure-only declaration selection')
-            from peaso.collectors.azure_selected_declaration_secret_indicators import selected_targets
-            selected_targets(options, scopes or [])
+            pure_selection.declaration.selected_targets(options, scopes or [])
         except Exception:
             raise HTTPException(422, 'Selected Azure declarations require 1–8 total exact scoped App Configuration key/label, Data Factory pipeline/dataflow or Synapse pipeline targets') from None
     for option, module, needs_auth, detail in (
@@ -153,8 +252,11 @@ def validate_connector(provider, auth, options, settings, *, server_external_id=
         try:
             if provider != 'azure':
                 raise ValueError('Azure-only content selection')
-            from importlib import import_module
-            validator = import_module('peaso.collectors.' + module).selected_targets
+            if option == 'selected_azure_storage_sources':
+                validator = pure_selection.storage.selected_targets
+            else:
+                from importlib import import_module
+                validator = import_module('peaso.collectors.' + module).selected_targets
             args = (options, scopes or [], auth) if needs_auth else (options, scopes or [])
             validator(*args)
         except Exception:
@@ -164,18 +266,37 @@ def validate_connector(provider, auth, options, settings, *, server_external_id=
         try:
             if provider != 'aws':
                 raise ValueError('AWS-only S3 source selection')
-            from peaso.collectors.aws_s3_selected_source_secret_indicators import selected_targets
-            selected_targets(options, scopes or [])
+            pure_selection.s3.selected_targets(options, scopes or [])
         except Exception:
             raise HTTPException(422, 'Selected S3 sources require 1–4 exact bucket, key, format and optional existing version targets in matching account/Region scopes') from None
     if 'selected_aws_configuration_content' in options:
         try:
             if provider != 'aws':
                 raise ValueError('AWS-only content selection')
-            from peaso.collectors.aws_selected_configuration_secret_indicators import selected_targets
-            selected_targets(options, scopes or [])
+            pure_selection.aws_config.selected_targets(options, scopes or [])
         except Exception:
             raise HTTPException(422, 'Selected AWS configuration requires 1–16 exact surface, scope and resource_id targets in matching account/Region scopes; SSM documents and launch templates require numeric versions') from None
+    if 'selected_aws_ecs_environment_files' in options:
+        try:
+            if provider != 'aws':
+                raise ValueError('AWS-only ECS environment file selection')
+            pure_selection.ecs_env.selected_targets(options, scopes or [])
+        except (ValueError, TypeError, KeyError, AttributeError):
+            raise HTTPException(422, 'Selected ECS environment files require exact task revision, container, S3 ARN, and matching selected S3 source') from None
+    if 'selected_aws_workload_sources' in options:
+        try:
+            if provider != 'aws':
+                raise ValueError('AWS-only workload source selection')
+            pure_selection.workload_ref.selected_targets(options, scopes or [])
+        except (ValueError, TypeError, KeyError, AttributeError):
+            raise HTTPException(422, 'Selected AWS workload sources require exact Glue, EMR, or SageMaker references and matching selected S3 sources') from None
+    if 'selected_aws_build_deployment_sources' in options:
+        try:
+            if provider != 'aws':
+                raise ValueError('AWS-only build or deployment source selection')
+            pure_selection.build_ref.selected_targets(options, scopes or [])
+        except (ValueError, TypeError, KeyError, AttributeError):
+            raise HTTPException(422, 'Selected AWS build and deployment sources require exact CodeBuild, Elastic Beanstalk, or Amplify references and matching selected S3 sources') from None
     if 'selected_aws_lambda_functions' in options:
         try:
             if provider != 'aws':
@@ -208,6 +329,14 @@ def validate_connector(provider, auth, options, settings, *, server_external_id=
             preflight(options, scopes or [], [])
         except Exception:
             raise HTTPException(422, 'Selected metadata requires 1–8 exact supported namespaced object targets of one configured Kubernetes cluster') from None
+    if 'selected_k8s_text_resources' in options:
+        try:
+            if provider != 'k8s':
+                raise ValueError('Kubernetes-only text selection')
+            from peaso.collectors.k8s_selected_text_content import selected_targets
+            selected_targets(options, scopes or [])
+        except Exception:
+            raise HTTPException(422, 'Selected text requires 1–8 exact Event, Ingress, Gateway or CRD objects of one cluster') from None
     if 'selected_k8s_log_samples' in options:
         try:
             if provider != 'k8s':
@@ -242,10 +371,10 @@ def validate_connector(provider, auth, options, settings, *, server_external_id=
         try:
             if provider != 'gcp':
                 raise ValueError('GCP-only source selection')
-            from peaso.collectors.gcp_dataproc_source_runtime_20261020 import preflight
-            preflight(options, scopes or [])
+            from peaso.dataproc_source_selection import selected_targets
+            selected_targets(options, scopes or [])
         except Exception:
-            raise HTTPException(422, 'Selected Dataproc sources require 1–4 exact native job/cluster references and same-project GCS plain object generations') from None
+            raise HTTPException(422, 'Selected Dataproc sources require 1–4 exact native job/cluster references and same-project GCS source generations') from None
     for option, kind in (('selected_cloudtasks_tasks', 'cloudtasks_selected_task'),
                          ('selected_bigquery_routines', 'bigquery_selected_routine')):
         if option not in options:
@@ -294,6 +423,14 @@ def validate_connector(provider, auth, options, settings, *, server_external_id=
                 '_content_secret_scan_kinds': [KIND]}, scopes or [])
         except Exception:
             raise HTTPException(422, 'Cloud Build artifact inspection requires 1–2 exact same-project Build names and one explicit project') from None
+    if 'selected_appengine_flex_version_images' in options:
+        try:
+            if provider != 'gcp':
+                raise ValueError('GCP-only selection')
+            from peaso.gcp_appengine_flex_image_selection_20261021 import selected
+            selected(options, scopes or [], [])
+        except (ValueError, TypeError, KeyError, AttributeError):
+            raise HTTPException(422, 'Selected Flex version images require one project, exact Version names, and same-project immutable digests') from None
     if 'selected_appengine_versions' in options:
         try:
             if provider != 'gcp':
@@ -404,8 +541,11 @@ def validate_connector(provider, auth, options, settings, *, server_external_id=
     if 'aks_workloads' in auth or isinstance(options.get('compliance_parameters'),dict) and 'azure_aks_workloads' in options['compliance_parameters']:
         try:
             if provider != 'azure':raise ValueError('AKS bridge is Azure-only')
-            from peaso.collectors.azure_aks_workloads_native import normalize
-            normalize(options, auth)
+            if isinstance(options.get('compliance_parameters'), dict) and 'azure_aks_workloads' in options['compliance_parameters']:
+                from peaso.collectors.azure_aks_workloads_native import normalize
+                normalize(options, auth)
+            else:
+                pure_selection.aks_image.normalize_contexts(auth)
         except (ValueError, TypeError):
             raise HTTPException(422, 'Invalid Azure AKS explicit workload context or owner policy') from None
     if "databricks_account_token" in auth:
@@ -446,7 +586,7 @@ def validate_connector(provider, auth, options, settings, *, server_external_id=
         except ValueError:
             raise HTTPException(422, "Invalid GCP Data Access owner policy") from None
     # Audit declarations are validated before the local-auth return as owner policies are.
-    from peaso.collectors.gcp_audit_native import validate_audit_options
+    from .gcp_audit_options_static_20261021 import validate_audit_options
     try:
         validate_audit_options(provider, options)
     except ValueError:
@@ -733,7 +873,7 @@ def validate_connector(provider, auth, options, settings, *, server_external_id=
                 raise HTTPException(422, "Invalid hosted Kubernetes owner policy")
         else:
             raise HTTPException(422, "Unsupported hosted compliance policy")
-    structured = {"devops_credentials", "aks_workloads", "sa_json", "external_account_json", "kubeconfig_data", "role_chain", "assume_roles"}
+    structured = {"registry_auth", "gke_image_kubernetes", "devops_credentials", "aks_workloads", "sa_json", "external_account_json", "kubeconfig_data", "role_chain", "assume_roles"}
     if any(key not in structured and (not isinstance(value, str) or len(value) > 1_000_000) for key, value in auth.items()):
         raise HTTPException(422, "Hosted authentication fields must contain strings or supported inline configuration")
     for key in ("max_resources", "max_calls", "max_pages"):

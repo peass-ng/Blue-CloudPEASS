@@ -14,10 +14,32 @@ PROVIDERS = {'codex': 'codex', 'openai': 'codex', 'anthropic': 'claude',
 EFFORTS = ('none', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max')
 STATE_KEY = 'configuration'
 ERROR_KEY = 'configuration_error'
+REVIEW_POLICY_KEY = 'review_policy'
 
 
 class ConfigurationError(ValueError):
     """A controlled, credential-free validation message."""
+
+
+class ReviewDisabled(ConfigurationError):
+    """Explicit account preference, not a credential validation failure."""
+
+
+class ReviewPolicy(BaseModel):
+    model_config = ConfigDict(extra='forbid', strict=True)
+    disabled: bool
+
+
+def review_disabled(store, user):
+    """Read the non-secret account override before loading any AI credential."""
+    raw = store.ai_state(user, REVIEW_POLICY_KEY) if user else None
+    if raw is None:
+        return False
+    try:
+        return ReviewPolicy.model_validate_json(raw).disabled
+    except Exception:
+        # An unreadable policy must never authorize additional AI execution.
+        return True
 
 
 class Selection(BaseModel):
@@ -273,6 +295,8 @@ class LaunchGuard:
                     raise ConfigurationError('AI settings changed during this scan. Retry with the current configuration.')
                 self.secrets.add(credential_value(access))
                 return guarded(access, self)
+            except ReviewDisabled:
+                raise
             except Exception as error:
                 self.failed = True
                 raise record_error(self.store, self.cipher, self.user, error) from None
@@ -300,6 +324,8 @@ def resolve_access(store, cipher, user, *, auth_mode='local', token_resolver=Non
     from .auth import default_token, personal_token
     token_resolver = token_resolver or personal_token
     try:
+        if review_disabled(store, user):
+            raise ReviewDisabled('AI review is disabled for every scan in your settings.')
         warning = configuration_error(store, cipher, user)
         if warning and not ignore_error:
             raise ConfigurationError(warning['message'])
@@ -325,6 +351,8 @@ def resolve_access(store, cipher, user, *, auth_mode='local', token_resolver=Non
             if attach_guard:
                 access = guarded(access, LaunchGuard(store, cipher, user, auth_mode, token_resolver, access))
         return access, source
+    except ReviewDisabled:
+        raise
     except Exception as error:
         if verify:
             raise record_error(store, cipher, user, error) from None

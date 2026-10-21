@@ -1,11 +1,27 @@
 import { useState } from "react";
 import { useApi } from "./api";
 import { State } from "./ui";
-import { FindingStatusBadge, findingStatusCounts } from "./findingStatus";
+import { findingStatusCounts } from "./findingStatus";
 import { BoundedPager } from "./BoundedPager";
 import type { Finding, FindingGroupDetail, FindingGroupMember } from "./types";
 
 const PAGE_SIZE = 50;
+
+function additionalMemberEvidence(summary: string | undefined, groupSummary: string | undefined): string | undefined {
+  const memberText = summary?.trim();
+  if (!memberText) return undefined;
+  const sharedText = groupSummary?.trim();
+  if (!sharedText) return memberText;
+  const normalize = (value: string) => value.replace(/^Observed evidence:\s*/i, "").replace(/\s+/g, " ").trim();
+  const memberNormalized = normalize(memberText);
+  const sharedNormalized = normalize(sharedText);
+  if (sharedNormalized.includes(memberNormalized)) return undefined;
+  if (memberNormalized.startsWith(sharedNormalized) && /^[\s.;:!?]/.test(memberNormalized.slice(sharedNormalized.length))) {
+    const extra = memberNormalized.slice(sharedNormalized.length).replace(/^[\s.;:!?]+/, "").trim();
+    return extra || undefined;
+  }
+  return memberText;
+}
 
 export function findingGroupPath(scanId: string, finding: Finding, offset = 0): string {
   const params = new URLSearchParams({ members_offset: String(offset), members_limit: String(PAGE_SIZE) });
@@ -24,27 +40,30 @@ export function GroupedFindingEvidence({ finding, scanId, demo, onInspectMember 
   const [offset, setOffset] = useState(0);
   const query = useApi<FindingGroupDetail>(findingGroupPath(scanId, finding, offset), demo);
   const detail = query.data;
+  const groupSummary = detail?.evidence_summary || finding.evidence_summary;
   const members = detail?.members || [];
   const total = detail?.members_total ?? finding.member_count ?? 0;
   const counts = detail?.status_counts || finding.status_counts || {};
   const next = detail?.members_next_offset ?? detail?.next_offset;
   const canNext = typeof next === "number" || offset + members.length < total;
   return <State loading={query.isPending} error={query.error} onRetry={() => void query.refetch()}>
-    <p>{detail?.evidence_summary || finding.evidence_summary || `${total.toLocaleString()} observations are recorded for this check. Review each asset’s result below.`}</p>
+    <p>{groupSummary || `${total.toLocaleString()} observations are recorded for this check. Review each asset’s result below.`}</p>
     {Object.keys(counts).length > 0 && <div className="finding-group-statuses" aria-label="Results by status">
       {findingStatusCounts(counts).map(({ label, count, tone }) =>
         <span key={label}><span className={`badge ${tone}`}>{label}</span> {count.toLocaleString()}</span>)}
     </div>}
     <h4>Affected assets and regions</h4>
     <ol className="finding-group-members" aria-label="Individual evidence observations">
-      {members.map(member => <li key={member.id}>
-        <div className="finding-group-member-heading">
-          <button type="button" className="text-button" onClick={() => onInspectMember(member)}>{member.resource_name || member.native_resource_id || member.asset || member.resource_id || member.id}</button>
-          <FindingStatusBadge status={member.status} />
-        </div>
-        <p className="finding-group-member-scope">{member.account && member.region ? `${member.account} · ${member.region}` : member.scope}</p>
-        <p>{member.evidence_summary || "The saved observation has no concise evidence summary. Open the asset to review its recorded evidence."}</p>
-      </li>)}
+      {members.map(member => {
+        const additionalEvidence = additionalMemberEvidence(member.evidence_summary, groupSummary);
+        return <li key={member.id}>
+          <div className="finding-group-member-heading">
+            <button type="button" className="text-button" onClick={() => onInspectMember(member)}>{member.resource_name || member.native_resource_id || member.asset || member.resource_id || member.id}</button>
+          </div>
+          <p className="finding-group-member-scope">{member.account && member.region ? `${member.account} · ${member.region}` : member.scope}</p>
+          {additionalEvidence && <p>{additionalEvidence}</p>}
+        </li>;
+      })}
     </ol>
     {total > PAGE_SIZE && <BoundedPager first={offset + 1} last={offset + members.length} total={total}
       unit="Observations" pageSize={PAGE_SIZE} loading={query.isFetching}

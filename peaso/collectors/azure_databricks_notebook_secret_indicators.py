@@ -1,4 +1,6 @@
 """Unregistered bounded notebook SOURCE exports; existing workspace principals only."""
+
+from peaso.secret_evidence import scan_with_source, target_source
 from copy import deepcopy
 import base64
 import http.client
@@ -14,13 +16,15 @@ from .azure_selected_secret_integration_20261020 import remember
 KIND='azure_databricks_selected_notebook'
 CHECK='azure.review.databricks.selected_notebook_source_secret_indicators'
 OPTION='selected_azure_databricks_notebooks'
+FILE_OPTION='selected_azure_databricks_files'
+RUN_OPTION='selected_azure_databricks_task_outputs'
 SERVICE='Microsoft.Databricks'
 API='2026-01-01'
 DATABRICKS='2ff814a6-3304-4ab8-85cb-cd0e6f879c1d'
 MARKER='SelectedDatabricksNotebookSecretIndicators'
 SCHEMA='azure-selected-databricks-notebook-source-v1'
 MAX_TARGETS=4
-MAX_CALLS=20
+MAX_CALLS=32
 MAX_WIRE=2*1024*1024
 MAX_TOTAL=8*1024*1024
 MAX_CONTENT=1024*1024
@@ -35,7 +39,7 @@ def enabled(options):
 
 
 def parse(target):
-    if not isinstance(target,dict)or set(target)!={'workspace_resource_id','path'}:raise ValueError('invalid_selection')
+    if not isinstance(target,dict)or set(target) not in ({'workspace_resource_id','path'},{'workspace_resource_id','path','object_type'}) or target.get('object_type','NOTEBOOK') not in ('NOTEBOOK','FILE'):raise ValueError('invalid_selection')
     rid=target['workspace_resource_id'];path=target['path']
     match=re.fullmatch(r'(/subscriptions/'+GUID+r')/resourceGroups/'+SEG+r'/providers/Microsoft\.Databricks/workspaces/([A-Za-z0-9_][A-Za-z0-9_.()-]{2,63})',rid,re.I)if isinstance(rid,str)and len(rid)<=1024 else None
     if (not match or any(p in('.','..')for p in rid.split('/'))or not isinstance(path,str)or not 2<=len(path.encode())<=1024
@@ -47,19 +51,48 @@ def parse(target):
 
 
 def identity(target):
+    if 'task_run_id' in target:
+        _,rid,job,parent,task,key,content=parse_job(target)
+        return KIND+':'+_fingerprint(json.dumps([rid.casefold(),job,parent,task,key,content]))
     _,rid,path=parse(target)
-    return KIND+':'+_fingerprint(rid.casefold()+'\n'+path)
+    return KIND+':'+_fingerprint(rid.casefold()+'\n'+path+('\nFILE' if target.get('object_type')=='FILE' else ''))
+
+
+def parse_job(target):
+    if not isinstance(target,dict) or set(target)!={'workspace_resource_id','job_id','parent_run_id','task_run_id','task_key','content'}:
+        raise ValueError('invalid_selection')
+    rid=target['workspace_resource_id']
+    match=re.fullmatch(r'(/subscriptions/'+GUID+r')/resourceGroups/'+SEG+r'/providers/Microsoft\.Databricks/workspaces/([A-Za-z0-9_][A-Za-z0-9_.()-]{2,63})',rid,re.I) if isinstance(rid,str) and len(rid)<=1024 else None
+    values=[target[k] for k in ('job_id','parent_run_id','task_run_id')]
+    key=target['task_key'];content=target['content']
+    if (not match or any(p in ('.','..') for p in rid.split('/'))
+            or any(type(v)is not int or not 1<=v<=2**63-1 for v in values)
+            or values[1]==values[2] or not isinstance(key,str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,100}',key)
+            or content not in ('notebook_result','task_logs')):raise ValueError('invalid_selection')
+    return match[1],rid,*values,key,content
+
+
+def target_scope(target):
+    return parse_job(target)[0] if 'task_run_id' in target else parse(target)[0]
 
 
 def selected_targets(options,scopes):
     if not isinstance(options,dict)or 'content_secret_scans'in options and type(options['content_secret_scans'])is not bool:raise ValueError('invalid_selection')
-    if OPTION not in options and not enabled(options):return[]
-    targets=options.get(OPTION)
+    if OPTION not in options and FILE_OPTION not in options and RUN_OPTION not in options and not enabled(options):return[]
+    notebooks=options.get(OPTION,[]);files=options.get(FILE_OPTION,[]);runs=options.get(RUN_OPTION,[])
+    if (OPTION in options and (not isinstance(notebooks,list) or not notebooks)
+            or FILE_OPTION in options and (not isinstance(files,list) or not files)
+            or RUN_OPTION in options and (not isinstance(runs,list) or not runs)
+            or any(not isinstance(t,dict) or set(t)!={'workspace_resource_id','path'} for t in notebooks)
+            or any(not isinstance(t,dict) or set(t)!={'workspace_resource_id','path','object_type'} or t['object_type']!='FILE' for t in files)
+            or any(not isinstance(t,dict) for t in runs)):
+        raise ValueError('invalid_selection')
+    targets=notebooks+files+runs
     if (not isinstance(scopes,list)or not 1<=len(scopes)<=8 or any(not isinstance(s,str)or not SCOPE.fullmatch(s)for s in scopes)
             or len({s.casefold()for s in scopes})!=len(scopes)or not isinstance(targets,list)or not 1<=len(targets)<=MAX_TARGETS):raise ValueError('invalid_selection')
     seen=set()
     for target in targets:
-        scope,_,_=parse(target);ident=identity(target)
+        scope=target_scope(target);ident=identity(target)
         if scope.casefold()not in{s.casefold()for s in scopes}or ident in seen:raise ValueError('invalid_selection')
         seen.add(ident)
     return deepcopy(targets)
@@ -134,6 +167,24 @@ def notebook(data,path):
     return object_id,language,resource
 
 
+def workspace_file(data,path):
+    """Only stable native FILE metadata may bind one selected RAW export."""
+    allowed={'path','object_type','object_id','resource_id','created_at','modified_at','size','directory_info'}
+    if (not isinstance(data,dict) or not {'path','object_type','object_id','modified_at','size'}<=set(data)<=allowed
+            or data['path']!=path or data['object_type']!='FILE'
+            or type(data['object_id']) is not int or not 1<=data['object_id']<=2**63-1
+            or type(data['modified_at']) is not int or not 1<=data['modified_at']<=2**63-1
+            or type(data['size']) is not int or not 1<=data['size']<=MAX_CONTENT):
+        raise ValueError('file_unbound')
+    resource=data.get('resource_id')
+    if resource is not None and (not isinstance(resource,str) or not 1<=len(resource)<=256 or any(ord(c)<32 or ord(c)>126 for c in resource)):
+        raise ValueError('file_unbound')
+    if 'created_at' in data and (type(data['created_at']) is not int or not 1<=data['created_at']<=data['modified_at']):
+        raise ValueError('file_unbound')
+    if 'directory_info' in data:raise ValueError('file_unbound')
+    return data['object_id'],resource,data['modified_at'],data['size']
+
+
 def source_bytes(data,language):
     if not {'content'}<=set(data)<={'content','file_type'}or 'file_type'in data and data['file_type']!=LANGUAGES[language]:raise ValueError('unsupported_export')
     encoded=data['content']
@@ -143,10 +194,21 @@ def source_bytes(data,language):
     return raw
 
 
+def file_bytes(data,size):
+    if not isinstance(data,dict) or not {'content'}<=set(data)<={'content','file_type'}:raise ValueError('unsupported_export')
+    if 'file_type' in data and (not isinstance(data['file_type'],str) or not re.fullmatch('[A-Za-z0-9_.-]{1,32}',data['file_type'])):raise ValueError('unsupported_export')
+    encoded=data['content']
+    if not isinstance(encoded,str) or not 1<=len(encoded)<=4*((MAX_CONTENT+2)//3):raise ValueError('file_limit')
+    raw=base64.b64decode(encoded.encode('ascii'),validate=True)
+    if (base64.b64encode(raw).decode()!=encoded or len(raw)!=size or b'\0' in raw
+            or not raw.decode('utf-8').strip()):raise ValueError('unsupported_file')
+    return raw
+
+
 def _scan(reader,transport,target,scope,state,receipts):
-    ident=identity(target);_,rid,path=parse(target);start=len(receipts)
-    marker={'schema':SCHEMA,'identity':ident,'scope':scope,'capture':state['capture'],'complete':False,'format':'SOURCE',
-        'consistency':'point_in_time_export_only','workspace_binding':None,'object_binding':None,'language':None,'parts':[],'leaks':[],'source_requests':[],'verification':'not_attempted'}
+    ident=identity(target);_,rid,path=parse(target);start=len(receipts);is_file=target.get('object_type')=='FILE'
+    marker={'schema':SCHEMA,'identity':ident,'scope':scope,'capture':state['capture'],'complete':False,'format':'RAW' if is_file else 'SOURCE',
+        'consistency':'status_bound_file_export_only' if is_file else 'point_in_time_export_only','workspace_binding':None,'object_binding':None,'language':None,'parts':[],'leaks':[],'source_requests':[],'verification':'not_attempted'}
     try:
         state['routes']={'subscription':('management.azure.com',scope+'?api-version=2022-12-01',ARM),'workspace':('management.azure.com',rid+'?api-version='+API,ARM)}
         def read(op):
@@ -162,23 +224,135 @@ def _scan(reader,transport,target,scope,state,receipts):
         marker['workspace_binding']=_fingerprint(wid);receipts[-1]['identity_bound']=True;del workspace,props,wid
         query='?path='+quote(path,safe='')
         state['routes'].update(status_before=(host,'/api/2.0/workspace/get-status'+query,DATABRICKS),
-            export=(host,'/api/2.0/workspace/export'+query+'&format=SOURCE&direct_download=false',DATABRICKS),
+            export=(host,'/api/2.0/workspace/export'+query+'&format='+('RAW' if is_file else 'SOURCE')+'&direct_download=false',DATABRICKS),
             status_after=(host,'/api/2.0/workspace/get-status'+query,DATABRICKS))
-        status=read('status_before');object_id,language,resource=notebook(status,path);binding=_fingerprint(json.dumps([object_id,resource]));del status
-        marker.update(object_binding=binding,language=language);receipts[-1].update(identity_bound=True,object_binding=binding)
-        data=read('export');raw=source_bytes(data,language);del data
+        status=read('status_before');native=workspace_file(status,path) if is_file else notebook(status,path)
+        binding=_fingerprint(json.dumps(native));del status
+        marker.update(object_binding=binding,language='TEXT' if is_file else native[1]);receipts[-1].update(identity_bound=True,object_binding=binding)
+        data=read('export');raw=file_bytes(data,native[3]) if is_file else source_bytes(data,native[1]);del data
         receipts[-1].update(identity_bound=True,object_binding=binding)
         after=read('status_after')
-        if notebook(after,path)!=(object_id,language,resource):raise ValueError('object_changed')
-        receipts[-1].update(identity_bound=True,object_binding=binding);del after,object_id
-        count=len(raw);result=scan_content(raw,ident+'.notebook_source',timeout=remaining(reader,state)/2,
-            _redact_values=lambda values:remember(reader,'configuration_secret_redactions',values));del raw
+        if (workspace_file(after,path) if is_file else notebook(after,path))!=native:raise ValueError('object_changed')
+        receipts[-1].update(identity_bound=True,object_binding=binding);del after,native
+        count=len(raw);result=scan_with_source(scan_content, raw,ident+('.workspace_file' if is_file else '.notebook_source'),timeout=remaining(reader,state)/2,
+            _redact_values=lambda values:remember(reader,'configuration_secret_redactions',values), source=target_source(target, resource_id=ident, scope=scope));del raw
         marker['parts']=[{'bytes':count,'engines':deepcopy(result['engines']),'complete':result['complete']}]
         leaks=merge_leaks(result['leaks']);bounded=[];locations=0
         for leak in leaks:
             if len(bounded)>=MAX_LEAKS or locations+len(leak['locations'])>MAX_LOCATIONS:break
             bounded.append(leak);locations+=len(leak['locations'])
         marker['leaks']=bounded;remaining(reader,state);marker['complete']=result['complete']is True and len(bounded)==len(leaks)
+    except Exception:marker['complete']=False
+    marker['source_requests']=[r['id']for r in receipts[start:]]
+    return{'id':ident,MARKER:marker,'_provenance':{'scope':scope,'capture':state['capture'],'source_requests':marker['source_requests'][:]}}
+
+
+def _run_state(data):
+    current=data.get('status')
+    if isinstance(current,dict) and current.get('state')=='TERMINATED':
+        return ('TERMINATED',str(current.get('termination_details',{}).get('code','')))
+    current=data.get('state')
+    if isinstance(current,dict) and current.get('life_cycle_state')=='TERMINATED':
+        return ('TERMINATED',str(current.get('result_state','')))
+    raise ValueError('run_not_terminal')
+
+
+def _run_identity(data,run_id,job_id,task_key=None,content=None):
+    if (not isinstance(data,dict) or data.get('run_id')!=run_id or type(data.get('run_id'))is not int
+            or data.get('job_id')!=job_id or type(data.get('job_id'))is not int
+            or type(data.get('start_time'))is not int or data['start_time']<=0
+            or type(data.get('end_time'))is not int or data['end_time']<data['start_time']):
+        raise ValueError('run_unbound')
+    state=_run_state(data)
+    if task_key is not None:
+        field='notebook_task' if content=='notebook_result' else None
+        other=('spark_jar_task','spark_python_task','python_wheel_task')
+        if (data.get('task_key')!=task_key or
+                (field not in data or any(k in data for k in other) if field else sum(k in data for k in other)!=1 or 'notebook_task'in data)):
+            raise ValueError('task_unbound')
+    attempt=data.get('attempt_number',0);original=data.get('original_attempt_run_id',run_id)
+    if (type(attempt)is not int or attempt<0 or type(original)is not int or original<=0):raise ValueError('run_unbound')
+    return (run_id,job_id,data['start_time'],data['end_time'],state,attempt,original)
+
+
+def _parent_identity(data,job_id,parent_id,task_id,key,content):
+    if not isinstance(data,dict) or data.get('next_page_token') or not isinstance(data.get('tasks'),list) or not 1<=len(data['tasks'])<=100:
+        raise ValueError('parent_incomplete')
+    parent=_run_identity(data,parent_id,job_id)
+    matches=[t for t in data['tasks'] if isinstance(t,dict) and t.get('run_id')==task_id and t.get('task_key')==key]
+    if len(matches)!=1:raise ValueError('task_not_owned')
+    task=matches[0]
+    if (content=='notebook_result' and ('notebook_task' not in task or any(k in task for k in ('spark_jar_task','spark_python_task','python_wheel_task')))
+            or content=='task_logs' and (sum(k in task for k in ('spark_jar_task','spark_python_task','python_wheel_task'))!=1 or 'notebook_task'in task)):
+        raise ValueError('task_type_unbound')
+    return (parent,task_id,key,content)
+
+
+def _workspace_identity(data,rid):
+    props=_bound(data,rid,SERVICE+'/workspaces');wid=props.get('workspaceId');host=props.get('workspaceUrl')
+    match=re.fullmatch(r'adb-([1-9][0-9]{0,18})\.([0-9]{1,20})\.azuredatabricks\.net',host) if isinstance(host,str) else None
+    if not isinstance(wid,str) or not match or wid!=match[1] or int(wid)>2**63-1 or props.get('provisioningState')!='Succeeded':
+        raise ValueError('workspace_unbound')
+    return wid,host
+
+
+def _scan_job(reader,transport,target,scope,state,receipts):
+    ident=identity(target);_,rid,job_id,parent_id,task_id,key,content=parse_job(target);start=len(receipts)
+    fmt='NOTEBOOK_RESULT' if content=='notebook_result' else'TASK_LOGS'
+    marker={'schema':SCHEMA,'identity':ident,'scope':scope,'capture':state['capture'],'complete':False,'format':fmt,
+        'consistency':'selected_terminal_task_output_only','workspace_binding':None,'object_binding':None,'language':'TEXT',
+        'parts':[],'leaks':[],'source_requests':[],'verification':'not_attempted'}
+    try:
+        state['routes']={'subscription':('management.azure.com',scope+'?api-version=2022-12-01',ARM),
+            'workspace_before':('management.azure.com',rid+'?api-version='+API,ARM)}
+        def read(op):
+            host,path,audience=state['routes'][op]
+            return reader.call(_read,reader,transport,state,receipts,ident,scope,op,host,path,audience)
+        sub=read('subscription')
+        if (str(sub.get('id','')).casefold()!=scope.casefold() or str(sub.get('subscriptionId','')).casefold()!=scope.rsplit('/',1)[1].casefold()
+                or str(sub.get('tenantId','')).casefold()!=str(transport.verified_tenant).casefold() or sub.get('state')!='Enabled'):
+            raise ValueError('scope_unbound')
+        receipts[-1]['identity_bound']=True;del sub
+        workspace=read('workspace_before');wid,host=_workspace_identity(workspace,rid);del workspace
+        marker['workspace_binding']=_fingerprint(wid);receipts[-1]['identity_bound']=True
+        parent_path='/api/2.2/jobs/runs/get?run_id='+str(parent_id)
+        task_path='/api/2.2/jobs/runs/get?run_id='+str(task_id)
+        state['routes'].update(parent_before=(host,parent_path,DATABRICKS),task_before=(host,task_path,DATABRICKS),
+            output=(host,'/api/2.2/jobs/runs/get-output?run_id='+str(task_id),DATABRICKS),
+            task_after=(host,task_path,DATABRICKS),parent_after=(host,parent_path,DATABRICKS),
+            workspace_after=('management.azure.com',rid+'?api-version='+API,ARM))
+        parent=_parent_identity(read('parent_before'),job_id,parent_id,task_id,key,content)
+        task=_run_identity(read('task_before'),task_id,job_id,key,content)
+        binding=_fingerprint(json.dumps([parent,task],sort_keys=True))
+        marker['object_binding']=binding
+        receipts[-2].update(identity_bound=True,object_binding=binding)
+        receipts[-1].update(identity_bound=True,object_binding=binding)
+        output=read('output');metadata=output.get('metadata')
+        if _run_identity(metadata,task_id,job_id,key,content)!=task:raise ValueError('output_unbound')
+        field=output.get('notebook_output') if content=='notebook_result' else output
+        value=field.get('result') if content=='notebook_result' and isinstance(field,dict) else output.get('logs') if content=='task_logs' else None
+        truncated=field.get('truncated') if content=='notebook_result' and isinstance(field,dict) else output.get('logs_truncated') if content=='task_logs' else None
+        if (not isinstance(value,str) or not value.strip() or type(truncated)is not bool
+                or not 1<=len(value.encode('utf-8'))<=MAX_CONTENT or '\x00' in value):raise ValueError('output_unavailable')
+        receipts[-1].update(identity_bound=True,object_binding=binding);del output,metadata,field
+        if _run_identity(read('task_after'),task_id,job_id,key,content)!=task:raise ValueError('task_changed')
+        receipts[-1].update(identity_bound=True,object_binding=binding)
+        if _parent_identity(read('parent_after'),job_id,parent_id,task_id,key,content)!=parent:raise ValueError('parent_changed')
+        receipts[-1].update(identity_bound=True,object_binding=binding)
+        final_wid,final_host=_workspace_identity(read('workspace_after'),rid)
+        if (final_wid,final_host)!=(wid,host):raise ValueError('workspace_changed')
+        receipts[-1]['identity_bound']=True;del parent,task,wid,host
+        raw=value.encode('utf-8');del value
+        result=scan_with_source(scan_content,raw,ident+'.task_output',timeout=remaining(reader,state)/2,
+            _redact_values=lambda values:remember(reader,'configuration_secret_redactions',values),
+            source=target_source(target,resource_id=ident,scope=scope));count=len(raw);del raw
+        marker['parts']=[{'bytes':count,'engines':deepcopy(result['engines']),'complete':result['complete']}]
+        leaks=merge_leaks(result['leaks']);bounded=[];locations=0
+        for leak in leaks:
+            if len(bounded)>=MAX_LEAKS or locations+len(leak['locations'])>MAX_LOCATIONS:break
+            bounded.append(leak);locations+=len(leak['locations'])
+        marker['leaks']=bounded;remaining(reader,state)
+        marker['complete']=result['complete'] is True and not truncated and len(bounded)==len(leaks)
     except Exception:marker['complete']=False
     marker['source_requests']=[r['id']for r in receipts[start:]]
     return{'id':ident,MARKER:marker,'_provenance':{'scope':scope,'capture':state['capture'],'source_requests':marker['source_requests'][:]}}
@@ -191,12 +365,12 @@ def collect(reader,transport,scopes,wanted,options):
     if KIND not in wanted:return
     state={'capture':'notebook-capture:'+uuid4().hex,'deadline':time.monotonic()+MAX_SECONDS,'calls':0,'bytes':0};receipts=[]
     reader.databricks_notebook_secret_metadata={KIND+'_authorized':enabled(options),KIND+'_capture':state['capture'],KIND+'_receipts':receipts,
-        KIND+'_selection':{s:[identity(t)for t in targets if parse(t)[0].casefold()==s.casefold()]for s in scopes}}
+        KIND+'_selection':{s:[identity(t)for t in targets if target_scope(t).casefold()==s.casefold()]for s in scopes}}
     if not enabled(options):return
     for scope in scopes:
-        selected=[t for t in targets if parse(t)[0].casefold()==scope.casefold()]
+        selected=[t for t in targets if target_scope(t).casefold()==scope.casefold()]
         if selected:
-            def fetch(selected=selected,scope=scope):yield[_scan(reader,transport,t,scope,state,receipts)for t in selected]
+            def fetch(selected=selected,scope=scope):yield[(_scan_job if 'task_run_id' in t else _scan)(reader,transport,t,scope,state,receipts)for t in selected]
             reader.run([(KIND,scope,SERVICE,fetch)])
 
 

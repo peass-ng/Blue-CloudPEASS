@@ -250,6 +250,30 @@ def _has(conditions, field, value):
     return any(_ieq(c.get("field"), field) and _ieq(c.get("equals"), value) for c in conditions)
 
 
+def _operation_covers_scope(conditions, operations, category):
+    # ARM write/delete operations produce Administrative activity events.
+    # allOf must not add a caller, resource group, ID, status, or unknown
+    # restriction when this check claims subscription-wide operation coverage.
+    if not conditions:
+        raise Unavailable("missing activity log alert conditions")
+    operation_value = None
+    for condition in conditions:
+        field = get(condition, "field", str).casefold()
+        equals = get(condition, "equals", str)
+        if field == "operationname":
+            if not any(_ieq(equals, operation) for operation in operations):
+                return False
+            if operation_value is not None and not _ieq(equals, operation_value):
+                return False
+            operation_value = equals
+        elif field == "category":
+            if not _ieq(equals, category):
+                return False
+        else:
+            raise Unavailable("unsupported activity log alert condition for whole-subscription coverage")
+    return operation_value is not None
+
+
 def _strict_alert(alert, scope, category, operations, resource_type):
     if not _ieq(get(alert, "location", str), "global") or get(alert, "properties.enabled", bool) is not True:
         return False
@@ -260,12 +284,22 @@ def _strict_alert(alert, scope, category, operations, resource_type):
     if not _has(conditions, "category", category):
         return False
     if any(_has(conditions, "operationName", operation) for operation in operations):
-        return True
+        return _operation_covers_scope(conditions, operations, category)
     return bool(resource_type) and _has(conditions, "resourceType", resource_type) and len(conditions) == 2
 
 
-def _loose_alert(alert, operations):
-    return get(alert, "properties.enabled", bool) is True and any(_has(_conditions(alert), "operationName", op) for op in operations)
+def _loose_alert(alert, scope, operations):
+    if get(alert, "properties.enabled", bool) is not True:
+        return False
+    # The alert resource can be listed in this subscription while its event
+    # scopes cover only a different resource group. A subscription finding
+    # needs the selected subscription itself as an event prefix.
+    scopes = get(alert, "properties.scopes", list)
+    if not scopes or any(not isinstance(value, str) or not value.strip() for value in scopes):
+        raise Unavailable("malformed activity log alert scopes")
+    if scope not in {("/" + value.strip("/")).casefold() for value in scopes}:
+        return False
+    return _operation_covers_scope(_conditions(alert), operations, "Administrative")
 
 
 def _alert_scan(item, index, matcher):
@@ -318,7 +352,7 @@ def loose_alert_check(slug, title, operations, severity="medium"):
             remediation=ALERT_REMEDIATION.format(category="Administrative/Security", operation=operations[0]),
             dependencies=["activity_log_alert"])
     def evaluate(item, index):
-        return _alert_scan(item, index, lambda alert, scope: _loose_alert(alert, operations))
+        return _alert_scan(item, index, lambda alert, scope: _loose_alert(alert, scope, operations))
     evaluate.__name__ = "claude_" + slug
     CASES[cid(slug)] = {"pass": {"scope": SUB}, "fail": {"scope": SUB},
                         "pass_index": scope_index({"activity_log_alert": [_alert([("operationName", operations[-1])])]}),
@@ -344,9 +378,9 @@ STRICT_ALERTS = [
      ("Microsoft.Network/publicIPAddresses/write",), "microsoft.network/publicipaddresses"),
     ("activity_log_alert_subscription_public_ip_delete", "Delete Public IP Address", "Administrative",
      ("Microsoft.Network/publicIPAddresses/delete",), "microsoft.network/publicipaddresses"),
-    ("activity_log_alert_subscription_security_solution_write", "Create or Update Security Solution", "Security",
+    ("activity_log_alert_subscription_security_solution_write", "Create or Update Security Solution", "Administrative",
      ("Microsoft.Security/securitySolutions/write",), "microsoft.security/securitysolutions"),
-    ("activity_log_alert_subscription_security_solution_delete", "Delete Security Solution", "Security",
+    ("activity_log_alert_subscription_security_solution_delete", "Delete Security Solution", "Administrative",
      ("Microsoft.Security/securitySolutions/delete",), "microsoft.security/securitysolutions"),
     ("activity_log_alert_subscription_sql_firewall_rule_write", "Create or Update SQL Server Firewall Rule", "Administrative",
      ("Microsoft.Sql/servers/firewallRules/write",), "microsoft.sql/servers/firewallrules"),

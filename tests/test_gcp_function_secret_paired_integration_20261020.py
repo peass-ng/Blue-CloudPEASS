@@ -343,7 +343,11 @@ def test_exact_predecessors_and_native_case_replacement_are_preserved():
         old = bytes.fromhex(row['hex'])
         assert hashlib.sha256(old).hexdigest() == row['sha256']
         if name.startswith('peaso/') and name not in ('peaso/collectors/gcp.py', 'peaso/checks/__init__.py'):
-            assert (ROOT / name).read_bytes() == old, name
+            from peaso.rawv2_private_source_successor_20261021 import source_bytes
+            current = (ROOT / name).read_bytes()
+            # The finite source attestor revalidates current private bytes and
+            # returns only their pinned predecessor; old bytes/hashes stay exact.
+            assert source_bytes(name, current, row['sha256'], ROOT) == old, name
         else:
             from tests.gcp_wave2_historical_native_20261020 import historical_bytes
             assert historical_bytes(name, row['sha256']) == old

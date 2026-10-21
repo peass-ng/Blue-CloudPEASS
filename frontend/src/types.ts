@@ -45,6 +45,12 @@ export type Connector = {
   created_at?: string;
 };
 export type Finding = {
+  secret_evidence?: {
+    status: string; message?: string; complete?: boolean; next_offset?: number | null; total_locations?: number;
+    matches: { fingerprint: string; value: string; detectors: { engine: string; rule: string }[];
+      locations: { resource_id?: string; scope?: string; path: string | null; line: number | null;
+        field?: string; image_digest?: string; layer?: string; source?: string; location_kind?: string; detector_input_path?: string }[] }[];
+  };
   scanner_status?: string;
   ai_review?: { verdict: string; reason: string };
   finding_type?: string;

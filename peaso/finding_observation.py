@@ -4,6 +4,10 @@
 def evidence_summary(finding):
     if not isinstance(finding, dict):
         return None
+    from peaso.provider_followup_observations_20261021 import evidence_summary as provider_followup
+    followup = provider_followup(finding)
+    if followup is not None:
+        return followup
     from peaso.checks.aws_ai_recheck_evidence_20261020 import evidence_summary as rechecked
     correction = rechecked(finding)
     if correction:

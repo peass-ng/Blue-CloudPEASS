@@ -94,14 +94,13 @@ export function Settings({ demo, workspaceId = "personal", onWorkspaceCreated = 
         )}
       </Panel>
       {showWorkspaceTools && <CodexSettings />}
-      {showWorkspaceTools && <ApiKeys />}
       {showWorkspaceTools && (workspaceId === "personal" || workspaces.data?.items.some(workspace => workspace.id === workspaceId && workspace.role === "admin")) && <Panel title="Delete workspace data" kicker="DATA">
         <p className="muted small">Permanently remove all scans, evidence, connectors, stored cloud credentials and schedules in this workspace. Your account, membership, API keys and billing stay in place. Cloud resources are not changed.</p>
         {deleteMessage && <p role="status">{deleteMessage}</p>}
         <button className="button danger" onClick={() => { cleanup.reset(); setConfirmation(""); setDeleteDialog(true); }}>Delete workspace data</button>
       </Panel>}
       </div>
-      {showWorkspaceTools && <div className="settings-column"><Workspaces me={me.data} workspaceId={workspaceId} onWorkspaceCreated={onWorkspaceCreated} /></div>}
+      {showWorkspaceTools && <div className="settings-column"><Workspaces me={me.data} workspaceId={workspaceId} onWorkspaceCreated={onWorkspaceCreated} /><ApiKeys /></div>}
       </div>
       {deleteDialog && <Inspector title="Delete workspace data" onClose={() => { if (!cleanup.isPending) setDeleteDialog(false); }}>
         <div className="form">

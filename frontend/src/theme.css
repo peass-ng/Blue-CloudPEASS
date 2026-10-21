@@ -255,6 +255,7 @@ pre { background: #050a0d; color: var(--mint); border-color: var(--line); }
 .settings-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 16px; align-items: start; }
 .settings-grid-single { grid-template-columns: minmax(0,1fr); }
 .settings-column { min-width: 0; }
+.settings-column > .workspace-settings { margin-top: 0; }
 .settings-column .panel { margin-bottom: 16px; }
 .settings-column .account-summary { border-bottom: 1px solid var(--line); padding-bottom: 16px; }
 .quota-segments { display: grid; grid-template-columns: repeat(5,1fr); gap: 6px; margin-top: 15px; }

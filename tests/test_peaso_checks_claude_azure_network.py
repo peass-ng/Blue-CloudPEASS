@@ -161,7 +161,7 @@ def test_loose_prowler_alerts():
     slug = cid("activity_log_alert_nsg_delete")
     loose = network._alert([("operationName", "Microsoft.ClassicNetwork/networkSecurityGroups/delete")], location="eastus",
                            scopes=("/subscriptions/other",))
-    assert run(slug, sub, _alerts(loose)) == "PASS"
+    assert run(slug, sub, _alerts(loose)) == "FAIL"
     assert run(cid("activity_log_alert_nsg_write"), sub, _alerts(loose)) == "FAIL"
 
 

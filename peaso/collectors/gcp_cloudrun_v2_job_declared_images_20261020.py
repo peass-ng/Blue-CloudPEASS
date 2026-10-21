@@ -5,6 +5,7 @@ associated. No executed/resolved image claim is made. All metadata and byte
 sessions are dedicated, streaming GET-only sessions using the native transport's
 credentials, cancellation, global call budget and source-request evidence.
 """
+from peaso.secret_evidence import scan_with_source, source_context
 from copy import deepcopy
 import hashlib
 import json
@@ -249,7 +250,7 @@ def _inspect(row, scope, repository, project, reader):
                  and len(diffs) == len(layers) and all(type(d) is str and native.DIGEST.fullmatch(d) for d in diffs),
                  'native_platform_rootfs_required')
         native.Deadline(reader).check_deadline()
-        outcome = scan_content(raw, 'image-config.json', timeout=10)
+        outcome = scan_with_source(scan_content, raw, 'image-config.json', timeout=10, source={'resource_id': uri, 'scope': scope, 'image_digest': digest, 'layer': config['digest'], 'location_kind': 'configuration'}, native=decoded)
         result['config_engines'] = outcome['engines']
         retain(outcome['leaks'], config['digest'])
         complete = outcome['complete']
@@ -261,24 +262,25 @@ def _inspect(row, scope, repository, project, reader):
             try:
                 reader.check()
                 payload = reader.get(uri, 'blobs', layer['digest'], native.MAX_LAYER, layer['size'])
-                safe_tar, regular = native._tar(payload, layer['mediaType'], diff)
-                offset, count = 0, 0
-                while offset + 512 <= len(safe_tar) and any(safe_tar[offset:offset + 512]):
-                    member = tarfile.TarInfo.frombuf(safe_tar[offset:offset + 512], 'utf-8', 'strict')
-                    count += 1
-                    offset += 512 + ((member.size + 511) // 512) * 512
-                _require(expanded + len(safe_tar) <= native.MAX_EXPANDED
-                         and members + count <= native.MAX_MEMBERS
-                         and files + regular <= native.MAX_MEMBERS, 'image_expansion_bound')
-                budget = expanded, members
-                # Charge validated expansion before a detector can fail. Later
-                # layers cannot evade cumulative bounds through incomplete scans.
-                expanded, members = expanded + len(safe_tar), members + count
-                files += regular
-                refs, _, _ = native.scan_tar(safe_tar, 'application/vnd.oci.image.layer.v1.tar',
-                    native.Deadline(reader), budget)
-                for ref in refs:
-                    retain(ref.get('Leaks', []), layer['digest'])
+                with source_context(resource_id=uri, scope=scope, image_digest=digest, layer=layer['digest']):
+                    safe_tar, regular = native._tar(payload, layer['mediaType'], diff)
+                    offset, count = 0, 0
+                    while offset + 512 <= len(safe_tar) and any(safe_tar[offset:offset + 512]):
+                        member = tarfile.TarInfo.frombuf(safe_tar[offset:offset + 512], 'utf-8', 'strict')
+                        count += 1
+                        offset += 512 + ((member.size + 511) // 512) * 512
+                    _require(expanded + len(safe_tar) <= native.MAX_EXPANDED
+                             and members + count <= native.MAX_MEMBERS
+                             and files + regular <= native.MAX_MEMBERS, 'image_expansion_bound')
+                    budget = expanded, members
+                    # Charge validated expansion before a detector can fail. Later
+                    # layers cannot evade cumulative bounds through incomplete scans.
+                    expanded, members = expanded + len(safe_tar), members + count
+                    files += regular
+                    refs, _, _ = native.scan_tar(safe_tar, 'application/vnd.oci.image.layer.v1.tar',
+                        native.Deadline(reader), budget)
+                    for ref in refs:
+                        retain(ref.get('Leaks', []), layer['digest'])
                 result['layers_scanned'].append(layer['digest'])
                 layer_coverage.update(status='complete', reason=None)
             except PartialArchive as exc:

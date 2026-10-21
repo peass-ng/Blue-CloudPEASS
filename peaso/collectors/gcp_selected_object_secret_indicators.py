@@ -5,6 +5,8 @@ requires content opt-in, a named-check planner kind and exact immutable targets.
 It uses the existing Transport session/call/deadline/cancellation machinery;
 media never enters Transport.request's JSON cache. No retries or enumeration.
 """
+
+from peaso.secret_evidence import scan_with_source, target_source
 from copy import deepcopy
 import hashlib
 import json
@@ -273,7 +275,7 @@ def collect_selected_objects(collector, scope):
                     _text(payload)
                     _check(transport, state)
                     remaining = MAX_SECONDS - (time.monotonic() - state['started'])
-                    outcome = scan_content(payload, 'object.content', timeout=min(5, remaining / 2))
+                    outcome = scan_with_source(scan_content, payload, 'object.content', timeout=min(5, remaining / 2), source=target_source(target, resource_id=ident, scope=scope, path='gs://' + target['bucket'] + '/' + target['object']))
                     del payload
                     _check(transport, state)
                     leaks = merge_leaks(outcome['leaks'])

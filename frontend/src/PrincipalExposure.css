@@ -1,0 +1,22 @@
+.principal-exposure-cards { display: grid; gap: 12px; margin: 25px 0; }
+.principal-exposure-heading h3 { margin: 0; font-size: 15px; }
+.principal-exposure-heading p { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--muted); font-size: 11px; }
+.principal-entry { padding: 18px; border: 1px solid var(--line); border-left: 3px solid #73899b; background: rgba(126,174,224,.035); }
+.principal-entry.entry-declared { border-left-color: #f08b89; background: rgba(240,139,137,.035); }
+.principal-entry.entry-conditional { border-left-color: #d6b17a; }
+.principal-entry-title { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.principal-entry-title h4 { flex: 1; min-width: 150px; margin: 0; font-size: 13px; }
+.principal-entry-icon { display: inline-flex; color: var(--mint); }
+.principal-entry-state { border: 1px solid var(--line); padding: 4px 8px; font-size: 10px; color: var(--muted); }
+.principal-entry dl { display: grid; grid-template-columns: 125px minmax(0,1fr); gap: 12px; margin: 20px 0 0; font-size: 12px; }
+.principal-entry dt { color: var(--muted); }
+.principal-entry dd { margin: 0; overflow-wrap: anywhere; }
+.principal-entry dd small { display: block; margin-top: 6px; color: var(--muted); }
+.principal-entry-ports { display: flex; gap: 6px; flex-wrap: wrap; }
+.principal-entry-ports span { padding: 3px 8px; background: rgba(166,227,212,.07); color: var(--mint); }
+.principal-entry .principal-entry-impact { display: flex; gap: 8px; align-items: center; font-size: 11px; color: var(--muted); margin: 18px 0 0; }
+.principal-entry details { margin-top: 16px; font-size: 11px; }
+.principal-entry summary { cursor: pointer; color: var(--mint); }
+@media(max-width:600px) { .principal-entry { padding: 12px; }.principal-entry dl { grid-template-columns: 1fr; gap: 6px; }.principal-entry dd { margin-bottom: 8px; } }
+.principal-exposure-cards { grid-template-columns: repeat(auto-fit,minmax(min(100%,330px),1fr)); }
+.principal-exposure-heading { grid-column: 1 / -1; }

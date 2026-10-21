@@ -38,15 +38,21 @@ REGISTRY = {check.id: check for check in CHECKS if check.id in ports.IDS}
 def test_modeled_available_settings_and_actual_gaps_are_distinct(cid, case, wanted):
     item = {"collection_status": "denied"} if case == "denied" else copy.deepcopy(CASES[cid][case])
     if case == "pass" and cid.endswith(".container_argument_kubelet_authorization_mode_no_always_allow"):
-        # Current native kubelet accepts Webhook/AlwaysAllow, never RBAC.
-        # Preserve historical CASES and overlay this mutable test input only.
         _, rows = ports.pod_spec(item, REGISTRY[cid].kind)
-        assert rows[0]["_component_config"]["flags"]["authorization-mode"] == "RBAC"
-        rows[0]["_component_config"]["flags"]["authorization-mode"] = "Webhook"
+        assert rows[0]["_component_config"]["flags"]["authorization-mode"] == "Webhook"
     original = copy.deepcopy(item)
     actual, evidence = REGISTRY[cid].evaluate(item, {})
     assert actual == wanted, evidence
     assert item == original
+
+
+@pytest.mark.parametrize("cid", [cid for cid in ports.IDS if cid.endswith(".container_argument_kubelet_authorization_mode_no_always_allow")])
+def test_kubelet_rbac_is_invalid_and_cannot_pass(cid):
+    item = copy.deepcopy(CASES[cid]["pass"])
+    _, rows = ports.pod_spec(item, REGISTRY[cid].kind)
+    assert rows[0]["_component_config"]["flags"]["authorization-mode"] == "Webhook"
+    rows[0]["_component_config"]["flags"]["authorization-mode"] = "RBAC"
+    assert REGISTRY[cid].evaluate(item, {})[0] == "UNKNOWN"
 
 
 def sample_config(component="kube-apiserver", flags=None, **extra):

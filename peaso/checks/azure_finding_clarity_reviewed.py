@@ -50,7 +50,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                           'description_fields': {'description': 'Checks whether '
                                                                 'properties.aadProfile.enableAzureRBAC is '
                                                                 'true.'},
-                          'remediation_base_sha256': '8ccd2e37816b56e86dda9d217ec4f57438a9ae2a0eae3ca8b76b1bdb6cda111b',
+                          'remediation_base_sha256': '3053428ff7e54903c33d3f87c5b30745a24494861b1e3b0d634554e1990a6672',
                           'remediation_fields': {'caveats': ['This checks the Azure RBAC flag, not the '
                                                              'effective Kubernetes permissions of each '
                                                              'identity. Missing or malformed evidence '
@@ -102,7 +102,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                  'description_fields': {'description': 'Checks whether '
                                                                        'properties.disableLocalAccounts is '
                                                                        'true.'},
-                                 'remediation_base_sha256': 'a07cce4b22ad107bc90b9fa8276f453324e9991e1fe8bc43f943dfb5eb1b0944',
+                                 'remediation_base_sha256': 'ece4d683cb203881d1dc5925e1c1b3462959e92562a6c09c91cd335ce8c9d08f',
                                  'remediation_fields': {'caveats': ['This checks the local-account flag; '
                                                                     'existing access paths and effective '
                                                                     'permissions need separate review. '
@@ -208,7 +208,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
  'azure.app.http2': {'description_base_sha256': 'dcd3f323fad75539f733d3b178aba53857d1f843308ad54925f3bd28ce994757',
                      'description_fields': {'description': 'Checks whether properties.http20Enabled is '
                                                            'true.'},
-                     'remediation_base_sha256': 'f1fef39529ba6a855367546863413a35c3c52cfff898f3356815e5a0e21e6a87',
+                     'remediation_base_sha256': 'be7626ba4ed358ef3b8758989015dea7f243a05162ea623bc8d3e3e2ce03ad4e',
                      'remediation_fields': {'caveats': ['HTTP/2 configuration is a protocol preference, not '
                                                         'proof that HTTP/1 traffic is insecure. Missing or '
                                                         'malformed evidence remains undetermined.'],
@@ -219,7 +219,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
  'azure.app.https_only': {'description_base_sha256': 'c07d0c2bf212e919b7f3e42d98350343d8fb9c3118ae0a5aa5f1716c13f2d4f6',
                           'description_fields': {'description': 'Checks whether properties.httpsOnly is '
                                                                 'true.'},
-                          'remediation_base_sha256': '7acd472f6e05dad023ddb437d18fdcd5a7ee093d84158bfd13969b8007e814ef',
+                          'remediation_base_sha256': '7afedefb483276796355cf0484c89ea8ce9fe848cbaaf8b051494d4153bdf138',
                           'remediation_fields': {'caveats': ['This reads the HTTPS-only flag; it does not '
                                                              'probe TLS versions or certificates. Missing or '
                                                              'malformed evidence remains undetermined.'],
@@ -247,7 +247,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                     'description_fields': {'description': 'Checks whether '
                                                                           'properties.remoteDebuggingEnabled '
                                                                           'is false.'},
-                                    'remediation_base_sha256': '62fa8ce5838a76f35da3040eee3606811a32583c2f21290d34fc0af613b2efc1',
+                                    'remediation_base_sha256': '846d80baa013fdf2e11d112a1439ad36a76c74c5bfed1367c64c9b6a7bca3fbf',
                                     'remediation_fields': {'caveats': ['A debugging flag does not establish '
                                                                        'that the debugger is reachable or '
                                                                        'was used. Missing or malformed '
@@ -260,7 +260,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                'description_fields': {'description': 'Checks whether '
                                                                      'properties.httpLoggingEnabled is '
                                                                      'true.'},
-                               'remediation_base_sha256': 'a8fa823cfbb6795805b3605a8f346325addd073af470083b059cab00d88d0a0f',
+                               'remediation_base_sha256': '1b014ec28ced9f307bc6379b19c229072aaf9b7f6359c7e471a3e5dfeb144143',
                                'remediation_fields': {'caveats': ['The logging flag does not prove delivery '
                                                                   'or coverage of every request. Missing or '
                                                                   'malformed evidence remains undetermined.'],
@@ -436,7 +436,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                                                                          'GET, checks '
                                                                                          'sslEnforcement=Enabled.'},
                                                    'new_text_only_template': True,
-                                                   'remediation_base_sha256': 'e8feff121623c75596e79d48fb7577b37ac0e63acd973cf6bc10482136c16103',
+                                                   'remediation_base_sha256': '4f74cd53f6af270d4c37475dcb02a7d8433444a888dd9e01c5e2a64fff6cd35c',
                                                    'remediation_fields': {'caveats': ['This reads a legacy '
                                                                                       'service declaration; '
                                                                                       'no connection '
@@ -520,7 +520,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                                                                                                       'reads '
                                                                                                                       'infrastructureEncryption=Enabled.'},
                                                                                 'new_text_only_template': True,
-                                                                                'remediation_base_sha256': '5ca6275943fd9c567eece267679e3e01d510f5f757ae0090578795ac22b64926',
+                                                                                'remediation_base_sha256': 'a509c21529ffeeff806c3f425aa44e994bd456221cb8a9a1444def31608f93a4',
                                                                                 'remediation_fields': {'caveats': ['Platform '
                                                                                                                    'data '
                                                                                                                    'encryption '
@@ -572,7 +572,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                                                            'endpoints and reads the backing '
                                                                            'account’s Blob encryption flag.'},
                                      'new_text_only_template': True,
-                                     'remediation_base_sha256': '4edeb0c7a9aa3633c12f6bce024960f73ab19eba2b89af7de5bc15f3dbf0fade',
+                                     'remediation_base_sha256': '94ebbfa0f5cc8affbc6eaf223702f7854dc30e99ffcb9a866395f8d9143cbf0e',
                                      'remediation_fields': {'caveats': ['Managed-only inventories are not '
                                                                         'applicable; this checks Blob '
                                                                         'storage encryption, not guest '
@@ -620,7 +620,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                                                                     'configuration inventory '
                                                                                     'and requires ON.'},
                                               'new_text_only_template': True,
-                                              'remediation_base_sha256': '61e204a70e50bc61971445cb54443e8fd927b0b461d28caa179abefa3dcf6068',
+                                              'remediation_base_sha256': '8cf8f6273165ec936cf15a495995242182c69465c1ac3d95f6af9876d41ac5fa',
                                               'remediation_fields': {'caveats': ['Parameter configuration '
                                                                                  'does not prove logs were '
                                                                                  'delivered or retained; '
@@ -648,7 +648,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                                                                               'token in '
                                                                                               'audit_log_events.'},
                                                         'new_text_only_template': True,
-                                                        'remediation_base_sha256': '99d0af84cd9b0508e26a43973580a1ef14cef63097ac1c156f2d2bfbf8e6e1e2',
+                                                        'remediation_base_sha256': 'ef4bf8e62a4b6991416477a43a7c3b7d0547396c6a9a5713ef608b0b2c9ac24a',
                                                         'remediation_fields': {'caveats': ['Complete '
                                                                                            'configuration '
                                                                                            'inventory is '
@@ -690,7 +690,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                                                                              'inventory and '
                                                                                              'requires ON.'},
                                                        'new_text_only_template': True,
-                                                       'remediation_base_sha256': 'bab54ccc8f8baf994a994ff75c8aec5f12e4e8a8d0d31bdace82b70ed677eb74',
+                                                       'remediation_base_sha256': 'fe8ac275bd8c9e394fbb60dbcf56d72102359795728e7133c11c5fe714fb5ab3',
                                                        'remediation_fields': {'caveats': ['Parameter '
                                                                                           'configuration '
                                                                                           'does not prove '
@@ -733,7 +733,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                                                                        'inventory and '
                                                                                        'requires ON.'},
                                                  'new_text_only_template': True,
-                                                 'remediation_base_sha256': '84d6e451320ba1e468ad5cf606548b9a942657eead635606373daaf975ab5f8f',
+                                                 'remediation_base_sha256': '99c219f73b57a03622c91eccef419f8bd6bd9c5217f156a2f66c38c7725913ac',
                                                  'remediation_fields': {'caveats': ['Parameter configuration '
                                                                                     'does not prove logs '
                                                                                     'were delivered or '
@@ -768,7 +768,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                                                                        'inventory and '
                                                                                        'requires ON.'},
                                                  'new_text_only_template': True,
-                                                 'remediation_base_sha256': '3a0b4ff723673fb14edc279d65211edd6709a5b341796adf74ffacb4c3f49fc4',
+                                                 'remediation_base_sha256': '28ed69562bc87aa2a3eeaf37614d333462a010c7c145e0278e47816838887846',
                                                  'remediation_fields': {'caveats': ['Parameter configuration '
                                                                                     'does not prove logs '
                                                                                     'were delivered or '
@@ -801,7 +801,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                                                                           'inventory and '
                                                                                           'requires ON.'},
                                                     'new_text_only_template': True,
-                                                    'remediation_base_sha256': '8a7a6afa268e399bc2a1ed9ee84a55d7abe331f5bee6855aeb95d1e289143900',
+                                                    'remediation_base_sha256': '7be1f5258fa5f4e0a0fd06039b22715a9df2ac6e4c1d6ee1fa22f003d901398b',
                                                     'remediation_fields': {'caveats': ['Parameter '
                                                                                        'configuration does '
                                                                                        'not prove logs were '
@@ -833,7 +833,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                                                                           'requires at least '
                                                                                           'four days.'},
                                                     'new_text_only_template': True,
-                                                    'remediation_base_sha256': 'cb1330c09f0abe2bb64f4e3ff5339141b1bd05a525af6e65be9eb3f278e1c2ff',
+                                                    'remediation_base_sha256': '17de63a8c69b902e19b195a73f3be800f1a37d22a4388f92528e46258e8b525b',
                                                     'remediation_fields': {'caveats': ['Configured retention '
                                                                                        'does not establish '
                                                                                        'actual log '
@@ -866,7 +866,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                                                                               'firewall '
                                                                                               'sentinel.'},
                                                         'new_text_only_template': True,
-                                                        'remediation_base_sha256': '9adc51f7bfa37d9f15c7e5c485b935443ed821beda95001aefbbbe9544aa8643',
+                                                        'remediation_base_sha256': '5206f523db7bb9d6a67cce8ffb85cbc5eeae2adcde2658e8b1ff2a0514169787',
                                                         'remediation_fields': {'caveats': ['This sentinel '
                                                                                            'differs from '
                                                                                            'Internet-wide '
@@ -902,7 +902,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                                                                        'GET, checks '
                                                                                        'sslEnforcement=Enabled.'},
                                                  'new_text_only_template': True,
-                                                 'remediation_base_sha256': 'eadcf25a6147ca157f6348d00d14b16f5cc0b9d6480cb8e508a01abec6c5006e',
+                                                 'remediation_base_sha256': '9494385078193068a723c8e9f3fba5a2f0243a519a9dcfbcdb2fe7ec406802a5',
                                                  'remediation_fields': {'caveats': ['This reads a legacy '
                                                                                     'service declaration; no '
                                                                                     'connection handshake or '
@@ -935,7 +935,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                                                                                   'checks '
                                                                                                   'publicNetworkAccess=Disabled.'},
                                                             'new_text_only_template': True,
-                                                            'remediation_base_sha256': '92853b1d32733acc99900160202b958b06a2763cdd1a174e26c7383df1f6f03b',
+                                                            'remediation_base_sha256': '3072ee93e7cf6e764dc402a7d3ca10281d675935bd6cdd3c2aa64d2806d4eceb',
                                                             'remediation_fields': {'caveats': ['This legacy '
                                                                                                'service '
                                                                                                'declaration '
@@ -1028,7 +1028,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                                                                                      'requires '
                                                                                                      'Disabled.'},
                                                                'new_text_only_template': True,
-                                                               'remediation_base_sha256': '3f4520c98b38f7c092c7998a90c1a3dd5f195651d392e173872439a2e5f8e99a',
+                                                               'remediation_base_sha256': '6216972c5df1aa18e0088a83c24d39b8e8547108c10309d1d57dfd87898db0c0',
                                                                'remediation_fields': {'caveats': ['A '
                                                                                                   'public-network '
                                                                                                   'flag does '
@@ -1083,7 +1083,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                                                                                             'ReadOnly '
                                                                                                             'locks.'},
                                                                       'new_text_only_template': True,
-                                                                      'remediation_base_sha256': '7373108e59ccc933972c48f2a134c9e35dd5acab0c9e266eba4a8342cb87922c',
+                                                                      'remediation_base_sha256': '1e01d6b9145d2f9d60e794e4ba9abb5240412a3900b41b2d39755547519dda54',
                                                                       'remediation_fields': {'caveats': ['Empty '
                                                                                                          'account '
                                                                                                          'inventory '
@@ -12627,7 +12627,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                                                                'enables AppServiceHTTPLogs '
                                                                                'or the allLogs category '
                                                                                'group.'},
-                                         'remediation_base_sha256': '5a40f3c2ac59d0575bc136e45e4b0dbc9822daf4e59451d17d84fa953ff64018',
+                                         'remediation_base_sha256': '72f4fdec869b0400db089526dd0b4c6cd4ba2178d3ece53f101a8905b6022540',
                                          'remediation_fields': {'caveats': ['Sites outside the exact '
                                                                             'app-kind selector are not '
                                                                             'applicable. Configuration does '
@@ -13160,7 +13160,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                                                                               'setting '
                                                                                               'enables '
                                                                                               'AppServiceHTTPLogs.'},
-                                                        'remediation_base_sha256': 'd9886c67a572489cd40043b943b149a55fa6a51f0671f716cb870f5b99364e36',
+                                                        'remediation_base_sha256': 'f98e2a7328b8334433fd95229786dcbc5f9ffbb23fd14835a9989e3e3ef177e9',
                                                         'remediation_fields': {'caveats': ['Sites outside '
                                                                                            'the exact '
                                                                                            'app-kind '
@@ -13581,7 +13581,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                                                                                    'subnet '
                                                                                                    'NSG.'},
                                                              'new_text_only_template': True,
-                                                             'remediation_base_sha256': '8fe008979e9b8c41f659f194cb1e6c1db8e0363e177c827d1a7f88a17a72f583',
+                                                             'remediation_base_sha256': 'bd8fd24fc626681121c93e5f62bb9450b01d6dedebcd3397d7227541976601d1',
                                                              'remediation_fields': {'caveats': ['No '
                                                                                                 'Internet-facing '
                                                                                                 'configuration '
@@ -13630,7 +13630,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                                                                                            'reads '
                                                                                                            'isDoubleEncryptionEnabled.'},
                                                                      'new_text_only_template': True,
-                                                                     'remediation_base_sha256': '5e92e734226d95d51d78aaa08d1d265db6a4ca943d859ef5f22eb9a44e21d2ac',
+                                                                     'remediation_base_sha256': '046fb8a662422de6dd928131b508aba9a42e00737c86befac4d63dc15fe47f08',
                                                                      'remediation_fields': {'caveats': ['A '
                                                                                                         'false '
                                                                                                         'flag '
@@ -15011,7 +15011,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                         'description_fields': {'description': 'Checks whether '
                                                                               'properties.enableIPForwarding '
                                                                               'is false.'},
-                                        'remediation_base_sha256': '92f28da9285bb80ea0543f21acf1fa89ba05b560886ee06f43907fc9c43ab3bd',
+                                        'remediation_base_sha256': '4ed2f2c35a1b908968cbd0182b161a6159de5650d1f7a54d7799633fa1e00656',
                                         'remediation_fields': {'caveats': ['Network virtual appliances may '
                                                                            'require forwarding; this flag '
                                                                            'does not prove effective '
@@ -19161,7 +19161,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
  'azure.sql.minimum_tls': {'description_base_sha256': '601c99157e3fea804c4934d346221e4a6f3e78598d043633baadd9456f592909',
                            'description_fields': {'description': 'Checks whether '
                                                                  'properties.minimalTlsVersion is 1.2.'},
-                           'remediation_base_sha256': 'b48b50ef2d19f3b5f75bb4e3e034ebbe19720e4bbb1b32ab7421d41ca924f097',
+                           'remediation_base_sha256': 'd576f949eb05544fcac9bbb8d23fadd2b786fe28f6c56ea96978eeedd2795a0c',
                            'remediation_fields': {'caveats': ['This evaluator recognizes 1.2 and 1.0 only; '
                                                               'other strings remain undetermined. TLS '
                                                               'sessions are not probed. Missing or malformed '
@@ -19174,7 +19174,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                  'description_fields': {'description': 'Checks whether '
                                                                        'properties.publicNetworkAccess is '
                                                                        'Disabled.'},
-                                 'remediation_base_sha256': '1f6f4052c39e6111f8017acf73a8740ca47a7dca9675171c3fc07036af42ce0e',
+                                 'remediation_base_sha256': '050fe3f55934bfb61e4581a5d2decae56fa640110edf00800b8620ea1c61f2c3',
                                  'remediation_fields': {'caveats': ['Private endpoint DNS and connectivity '
                                                                     'must be verified separately. Missing or '
                                                                     'malformed evidence remains '
@@ -19328,7 +19328,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                             'description_fields': {'description': 'Checks whether '
                                                                                   'properties.allowCrossTenantReplication '
                                                                                   'is false.'},
-                                            'remediation_base_sha256': 'dd2807bec9c5df0eed3069849069e3a307c48e776a6c36ed7649741eb7618235',
+                                            'remediation_base_sha256': '322df41522f62633a1c149a5ac9ade1f013cf4a1245743a17c93f2515e8a8491',
                                             'remediation_fields': {'caveats': ['This flag permits '
                                                                                'cross-tenant configuration; '
                                                                                'it does not prove an '
@@ -19347,7 +19347,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                 'description_fields': {'description': 'Checks whether '
                                                                       'properties.networkAcls.defaultAction '
                                                                       'is Deny.'},
-                                'remediation_base_sha256': 'd6112d8d3f5450953f34a3d38e5808c68f7cc1857e4cc8c74de27c60181675c1',
+                                'remediation_base_sha256': 'daa534ce661630c645facaa0b4024461779a2fee9a7cccd21c9593d15fb9e08d',
                                 'remediation_fields': {'caveats': ['Explicit IP rules, subnet rules, '
                                                                    'bypasses and private access are '
                                                                    'separate. Missing or malformed evidence '
@@ -19435,7 +19435,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                      'description_fields': {'description': 'Checks whether '
                                                                            'properties.publicNetworkAccess '
                                                                            'is Disabled.'},
-                                     'remediation_base_sha256': 'f936e1c87c8d6c0a405d1ab1035f43f6ac0b7e08e9e7a3825f3acd0dfcaa7b86',
+                                     'remediation_base_sha256': '572d9e951b4c88e7978c7d66a72de10efc6f82936d242ea5f54500acf58d4835',
                                      'remediation_fields': {'caveats': ['This flag does not prove private '
                                                                         'endpoint availability or successful '
                                                                         'client connectivity. Missing or '
@@ -19453,7 +19453,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                  'description_fields': {'description': 'Checks whether '
                                                                        'properties.allowSharedKeyAccess is '
                                                                        'false.'},
-                                 'remediation_base_sha256': '6bd233d771a3f37b92210f1cdbcdf473f8e62ededbf60146b7af530c53bcc404',
+                                 'remediation_base_sha256': 'f9c906a6db4d8e18b67fbb6e587e26c0036ef53f70f7795ef610ce8f579bd88c',
                                  'remediation_fields': {'caveats': ['Check dependencies such as '
                                                                     'account-key-signed SAS before disabling '
                                                                     'the authentication method. Missing or '
@@ -19489,7 +19489,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                               'description_fields': {'description': 'Checks whether '
                                                                     'properties.networkAcls.defaultAction is '
                                                                     'Deny.'},
-                              'remediation_base_sha256': 'ee02f7a268ef6010fb53a58875a97683944e3c3d7132e32dc419cdab99c83d10',
+                              'remediation_base_sha256': 'a751ac3129b7a4bd174adf2dc181f015fe3dbc67fb128181582eadd9544ceb0b',
                               'remediation_fields': {'caveats': ['The network default does not prove key '
                                                                  'permissions or complete private '
                                                                  'connectivity. Missing or malformed '
@@ -19504,7 +19504,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                    'description_fields': {'description': 'Checks whether '
                                                                          'properties.publicNetworkAccess is '
                                                                          'Disabled.'},
-                                   'remediation_base_sha256': 'a6737453137e4cf964e489925865e75817f51b88a73972aee476f36486d74fe2',
+                                   'remediation_base_sha256': '77c6d43d13a27a9afe1c2a1ebdb0b8b0e4633841022df72b58db6cdb52cabe91',
                                    'remediation_fields': {'caveats': ['Disabling public access requires '
                                                                       'working private connectivity; this '
                                                                       'check does not test DNS or traffic. '
@@ -19520,7 +19520,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                   'description_fields': {'description': 'Checks whether '
                                                                         'properties.enablePurgeProtection is '
                                                                         'true.'},
-                                  'remediation_base_sha256': '40b60201d10aeff4d29cf2ffcac95b9e0819b9ad7e39b01bb28c103ad762c2da',
+                                  'remediation_base_sha256': '79ce539fb2fc1435c0aa13a571d52a4bbf78a8cb087e904a72d205aa9240f448',
                                   'remediation_fields': {'caveats': ['Purge protection prevents early '
                                                                      'permanent deletion and cannot be '
                                                                      'disabled after it is enabled. Missing '
@@ -19533,7 +19533,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
  'azure.vault.rbac': {'description_base_sha256': '4dbd48e2319de7c63e000a8105fc8186fe7488176dfe9fe20a9d9cc9b938589e',
                       'description_fields': {'description': 'Checks whether '
                                                             'properties.enableRbacAuthorization is true.'},
-                      'remediation_base_sha256': '3f3f56bf5be386a18eb3a29fc0d131efd6ab57b09b76111228f09f15a12954d5',
+                      'remediation_base_sha256': '39b3f8a05443f736c2ea4c2bd5aea2f8fa39bd9fca3179199248e625201abad0',
                       'remediation_fields': {'caveats': ['Changing the permission model can interrupt '
                                                          'access; the flag does not establish least '
                                                          'privilege. Missing or malformed evidence remains '
@@ -19584,7 +19584,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                  'description_fields': {'description': 'Checks whether '
                                                                        'properties.securityProfile.encryptionAtHost '
                                                                        'is true.'},
-                                 'remediation_base_sha256': '6ffe89aea5193b51691d218df0191935579dff5af16a428f734c3245ccb9f7de',
+                                 'remediation_base_sha256': 'fa8f5d6283f28b393f6353758c3fdbd2f89aebbf2586d0e3d0ddb81536634f10',
                                  'remediation_fields': {'caveats': ['This flag is separate from disk '
                                                                     'encryption and does not inspect '
                                                                     'temporary-disk or cache contents. '
@@ -19887,7 +19887,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                                                                   'rule-collection group for '
                                                                                   'at least one rule.'},
                                             'new_text_only_template': True,
-                                            'remediation_base_sha256': '57878631c304aa3ec1d81081e12d776caf5c95ba8445956fa3e7e6c571246ab7',
+                                            'remediation_base_sha256': 'ab117fcd3273e3fd7917ab8e8a0b64b1203f742d743253e5eb6c3103297a1428',
                                             'remediation_fields': {'caveats': ['No groups is not applicable; '
                                                                                'rule presence does not '
                                                                                'establish correct actions, '
@@ -19913,7 +19913,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                                                                   'any custom rules or '
                                                                                   'managed rule sets.'},
                                             'new_text_only_template': True,
-                                            'remediation_base_sha256': '548c5c6acc96eab351e433004ecbddec8379932fe18cebea69e21d04b453649a',
+                                            'remediation_base_sha256': 'afc51164c37ce3964f66434d399bf7e5ba8ab296131dbe7cb2464ddd3eefac29',
                                             'remediation_fields': {'caveats': ['This structural presence '
                                                                                'check does not assess rule '
                                                                                'effectiveness, exclusions, '
@@ -19972,7 +19972,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                         'description_fields': {'description': 'Checks the NSG subnet and NIC association '
                                                               'lists for valid nonempty references.'},
                         'new_text_only_template': True,
-                        'remediation_base_sha256': 'ee91c8ae657246a80c0d6d98892872938764a020db34728291eb81c4ec6e4e3b',
+                        'remediation_base_sha256': 'cdc912aa4a120be3da15b5570240a6fd0790af3858f10b5d7f541786e07da2e6',
                         'remediation_fields': {'caveats': ['An unattached unused NSG is not an exposed '
                                                            'workload; attachment does not prove effective '
                                                            'rule protection.'],
@@ -19989,7 +19989,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                                                                  'enforcement=Enabled and '
                                                                                  'encryptionComplianceStatus=Compliant.'},
                                            'new_text_only_template': True,
-                                           'remediation_base_sha256': '010e78d11e3c32ad004c3a5ff1448869b3b5c02ba007546bec55df14c8bdc4d9',
+                                           'remediation_base_sha256': 'fcdc811062f99ccee402dd42d96bb1ca544a3eb4aee59cc4fbf3295e591d6896',
                                            'remediation_fields': {'caveats': ['This is a provider '
                                                                               'declaration, not independent '
                                                                               'proof of key availability; '
@@ -20085,7 +20085,7 @@ ROWS = {'azure.aks.api_server_restricted': {'description_base_sha256': '6ef29973
                                                                                                 'identity '
                                                                                                 'reference.'},
                                                           'new_text_only_template': True,
-                                                          'remediation_base_sha256': '6413ead8517fabba2bf7909bd76fbca75a15489225fa58240b78562585eb92dc',
+                                                          'remediation_base_sha256': 'deee9a98484dd9229afc00a1f61a3b32f641279341b947c03b577320036031a2',
                                                           'remediation_fields': {'caveats': ['This control '
                                                                                              'evaluates VMs; '
                                                                                              'identity '

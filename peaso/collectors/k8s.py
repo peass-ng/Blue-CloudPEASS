@@ -135,7 +135,7 @@ ENDPOINTS = {
 TYPES = tuple(ENDPOINTS) + ("network_interface", "admission_configuration", "api_discovery", "securitycontextconstraint",
                            "component_configuration", "file_metadata", "secret_metadata", "configmap_metadata", "podsecuritypolicy",
                            "admission_policy", "admission_configuration_file", "node_clock", "k8s_selected_literals",
-                           "kubelet_configmap_declaration", "k8s_selected_log_samples", "k8s_selected_metadata")
+                           "kubelet_configmap_declaration", "k8s_selected_log_samples", "k8s_selected_metadata", "k8s_selected_text_content", "k8s_selected_flux_artifact", "k8s_selected_registry_image_secrets", "k8s_selected_registry_image_vulnerabilities")
 ENDPOINTS.update(k8s_network_catalog.ENDPOINTS)
 ENDPOINTS.update({kind: (f"/apis/{k8s_network_catalog.GROUP}/v1/{plural}", namespaced)
                   for kind, (plural, namespaced) in k8s_network_catalog.GATEWAYS.items()})
@@ -379,7 +379,9 @@ def hosted_auth(auth):
     if (not selected.get('server') or not (selected.get('token') or
             (selected.get('client_cert_data') and selected.get('client_key_data')))):
         raise ValueError('hosted Kubernetes requires an explicit server and embedded credentials')
-    return dict(selected, **({'cluster_id': auth['cluster_id']} if auth.get('cluster_id') else {}), method='direct', _hosted=True)
+    return dict(selected, **({'cluster_id': auth['cluster_id']} if auth.get('cluster_id') else {}),
+                **({'registry_auth': auth['registry_auth']} if 'registry_auth' in auth else {}),
+                method='direct', _hosted=True)
 
 
 def _public_server(server):
@@ -770,6 +772,8 @@ def _native(item, kind, cluster, scope, namespaced):
     if not namespaced and namespace:
         raise ValueError("cluster object has namespace")
     namespace = namespace if namespaced else "_cluster"
+    from peaso.secret_evidence import pod_environment
+    pod_environment(item, kind=kind, resource_id='k8s://' + '/'.join(quote(str(x), safe='') for x in (cluster, kind, namespace, meta.get('uid') or name)), scope=namespace if scope == '*' else scope)
     result = _sanitize(item)
     annotations = meta.get("annotations", {})
     if isinstance(annotations, dict):
@@ -1519,15 +1523,18 @@ def _owner_policy_metadata(options, cluster, captured_at):
 def collect(connector, requirements=None, *, api=None):
     options, auth = dict(connector.get("options", {})), connector.get("auth", {})
     from . import k8s_node_clock_evidence as clock_evidence
-    from . import k8s_literal_secret_indicators as literals
+    from . import k8s_literal_configmap_association as literals
+    from . import k8s_selected_text_content as selected_text
+    from . import k8s_selected_flux_artifact_20261021 as flux_artifacts
     from . import k8s_selected_log_sample_secret_indicators as log_samples
+    from . import k8s_selected_registry_image_20261021 as registry_images
     from . import k8s_selected_metadata_runtime_20261020 as selected_metadata
     from . import k8s_annotation_indicators_20261020 as annotation_indicators
     from . import k8s_legacy_psp_planner_20261020 as legacy_psp
     from . import k8s_kubelet_configmap_indicators_20261020 as kubelet_configmaps
     imported_clock = clock_evidence.normalize(options)
     trusted_scopes = _trusted_scopes(options)
-    requested = options.get("inventories", [kind for kind in TYPES if kind not in (literals.KIND, log_samples.KIND, selected_metadata.KIND)]) if requirements is None else requirements
+    requested = options.get("inventories", [kind for kind in TYPES if kind not in (literals.KIND, log_samples.KIND, selected_metadata.KIND, selected_text.KIND, flux_artifacts.KIND, registry_images.SECRET_KIND, registry_images.VULN_KIND)]) if requirements is None else requirements
     if not isinstance(requested, (list, tuple)) or any(kind not in TYPES for kind in requested):
         raise ValueError("unsupported Kubernetes inventory requirement")
     wanted = set(requested)
@@ -1541,9 +1548,16 @@ def collect(connector, requirements=None, *, api=None):
     literals.selected_targets(options, scopes)  # Reject malformed selectors before authentication.
     log_targets = log_samples.selected_targets(options, scopes)
     selected_metadata.preflight(options, scopes)
+    selected_text.selected_targets(options, scopes)
+    flux_artifacts.selected_targets(options, scopes, options.get("_flux_artifact_named_checks", []))
+    registry_targets = registry_images.selected_targets(options, scopes, options.get("_registry_image_named_checks", []))
+    registry_images.registry_credentials(auth, registry_targets, options.get(registry_images.ALLOWLIST, []))
     literal_metadata, literal_matches = {}, set()
     log_metadata, log_matches = {}, set()
     selected_metadata_facts, selected_metadata_matches = {}, set()
+    text_facts, text_matches = {}, set()
+    flux_facts, flux_matches = {}, set()
+    registry_facts, registry_matches = {}, set()
     requested_scopes = list(scopes)
     max_scopes = options.get("max_scopes")
     if max_scopes is not None and (type(max_scopes) is not int or max_scopes <= 0):
@@ -1552,14 +1566,18 @@ def collect(connector, requirements=None, *, api=None):
     reader = K8sReader(options)
     private_content = ((log_samples.KIND in wanted and log_samples.enabled(options))
         or (literals.KIND in wanted and literals.enabled(options))
-        or (selected_metadata.KIND in wanted and selected_metadata.enabled(options, scopes)))
+        or (selected_metadata.KIND in wanted and selected_metadata.enabled(options, scopes))
+        or ((selected_text.KIND in wanted and selected_text.enabled(options)) or (flux_artifacts.KIND in wanted and flux_artifacts.enabled(options, options.get("_flux_artifact_named_checks", []))))
+        or (bool(wanted & {registry_images.SECRET_KIND, registry_images.VULN_KIND})
+            and any(registry_images.enabled(options, options.get("_registry_image_named_checks", [])))))
     if private_content:
         native_read = reader._read
         def private_metadata_read(job):
             with log_samples.private_native_logs():
                 return native_read(job)
         reader._read = private_metadata_read
-    if wanted.intersection((literals.KIND, log_samples.KIND, selected_metadata.KIND)) and callable(reader.k8s_progress_callback):
+    if wanted.intersection((literals.KIND, log_samples.KIND, selected_metadata.KIND, selected_text.KIND, flux_artifacts.KIND,
+                            registry_images.SECRET_KIND, registry_images.VULN_KIND)) and callable(reader.k8s_progress_callback):
         literal_callback = reader.k8s_progress_callback
         # Namespaces themselves can contain detected values. Optional content
         # jobs publish counts only, including before detection has completed.
@@ -1589,6 +1607,12 @@ def collect(connector, requirements=None, *, api=None):
         if selected_metadata.KIND in wanted:
             selected_metadata_facts, selected_metadata_matches = selected_metadata.collect(
                 reader, api, options, scopes, cluster)
+        if selected_text.KIND in wanted:
+            text_facts, text_matches = selected_text.collect(reader, api, options, scopes, cluster)
+        if flux_artifacts.KIND in wanted:
+            flux_facts, flux_matches = flux_artifacts.collect(reader, api, options, scopes, cluster)
+        if wanted & {registry_images.SECRET_KIND, registry_images.VULN_KIND}:
+            registry_facts, registry_matches = registry_images.collect(reader, api, options, scopes, cluster, auth)
         if log_samples.KIND in wanted:
             selected_logs = [target for target in log_targets if target['namespace'] in scopes]
             if selected_logs:
@@ -1597,7 +1621,9 @@ def collect(connector, requirements=None, *, api=None):
         from peaso.ai.access import k8s as capture_ai_access
         if not ((literals.KIND in wanted and literals.enabled(options))
                 or (log_samples.KIND in wanted and log_samples.enabled(options))
-                or (selected_metadata.KIND in wanted and selected_metadata.enabled(options, scopes))):
+                or (selected_metadata.KIND in wanted and selected_metadata.enabled(options, scopes))
+                or ((selected_text.KIND in wanted and selected_text.enabled(options)) or (flux_artifacts.KIND in wanted and flux_artifacts.enabled(options, options.get("_flux_artifact_named_checks", []))))
+                or bool(wanted & {registry_images.SECRET_KIND, registry_images.VULN_KIND})):
             capture_ai_access(getattr(getattr(api, "api_client", None), "configuration", None),
                               cluster_id=cluster, namespaces=scopes)
         jobs = []
@@ -1893,7 +1919,9 @@ def collect(connector, requirements=None, *, api=None):
     finally:
         if ((literals.KIND in wanted and literals.enabled(options))
                 or (log_samples.KIND in wanted and log_samples.enabled(options))
-                or (selected_metadata.KIND in wanted and selected_metadata.enabled(options, scopes))):
+                or (selected_metadata.KIND in wanted and selected_metadata.enabled(options, scopes))
+                or ((selected_text.KIND in wanted and selected_text.enabled(options)) or (flux_artifacts.KIND in wanted and flux_artifacts.enabled(options, options.get("_flux_artifact_named_checks", []))))
+                or bool(wanted & {registry_images.SECRET_KIND, registry_images.VULN_KIND})):
             # Metadata jobs use the SDK too; do not retain their raw identity
             # fields in its response cache after union redaction is available.
             literal_client = getattr(getattr(api, "api", api), "api_client", None)
@@ -1943,11 +1971,14 @@ def collect(connector, requirements=None, *, api=None):
     metadata.update(literal_metadata)
     metadata.update(log_metadata)
     metadata.update(selected_metadata_facts)
+    metadata.update(text_facts)
+    metadata.update(flux_facts)
+    metadata.update(registry_facts)
     if log_samples.KIND in wanted and log_samples.enabled(options):
         metadata['usage_evidence'] = {'status': 'selected_current_container_samples_only',
             'reason': 'Only explicitly selected current-container samples were requested; other logs, exec and Secrets were not read'}
     requested_scopes, reader.collections, metadata = selected_metadata.finalize(
-        requested_scopes, reader.collections, metadata, log_matches, literal_matches, selected_metadata_matches)
+        requested_scopes, reader.collections, metadata, log_matches, literal_matches, selected_metadata_matches, text_matches, registry_matches, flux_matches)
     snapshot = make_snapshot("k8s", requested_scopes, reader.collections, created_at=captured_at, metadata=metadata)
     reader.progress("completed", complete=True)
     return snapshot

@@ -43,7 +43,7 @@ def evaluate(item,index):
                 or m['principal']!=meta[KIND+'_principals'][account]
                 or item.get('AccountId')!=account or item.get('Region')!=region
                 or item.get('_provenance')!={'scope':scope,'capture':m['capture'],'selection_locator':ident}):raise ValueError()
-        if surface in ('ssm_document','launch_template_userdata'):
+        if surface in ('ssm_document','launch_template_userdata','codepipeline_configuration'):
             if type(m['version']) is not int or not 1<=m['version']<=2147483647:raise ValueError()
         elif m['version'] is not None:raise ValueError()
         if (type(m['literal_count']) is not int or not 1<=m['literal_count']<=MAX_PAIRS

@@ -49,7 +49,7 @@ def test_azure_broad_assignment_is_review_only_without_usage_proof():
     assert result["items"][0]["suggestions"][0]["confidence"] == "declared_grant_only"
 
 
-def test_aws_collector_reads_only_unused_permission_details():
+def test_aws_collector_reads_details_for_every_active_finding():
     calls = []
 
     class Requests:
@@ -59,13 +59,13 @@ def test_aws_collector_reads_only_unused_permission_details():
                 return ReadResult([{"id": "unused", "status": "ACTIVE", "findingType": "UnusedPermission",
                     "resource": "arn:aws:iam::123456789012:role/App"},
                     {"id": "external", "status": "ACTIVE", "findingType": "ExternalAccess"}], "collected")
-            return ReadResult([{"unusedPermissionDetails": {"serviceNamespace": "s3",
-                "actions": [{"action": "DeleteBucket"}]}}], "collected")
+            return ReadResult([{"id": arguments["id"], "findingDetails": [{"unusedPermissionDetails": {"serviceNamespace": "s3",
+                "actions": [{"action": "DeleteBucket"}]}}]}], "collected")
 
     result = _analyzer_findings(Requests(), object(), "us-east-1", [{
         "arn": "arn:aws:access-analyzer:us-east-1:123456789012:analyzer/unused",
         "type": "ACCOUNT_UNUSED_ACCESS", "status": "ACTIVE"}])
-    assert [operation for operation, _ in calls] == ["list_findings_v2", "get_finding_v2"]
+    assert [operation for operation, _ in calls] == ["list_findings_v2", "get_finding_v2", "get_finding_v2"]
     assert result[0]["Findings"][0]["UnusedPermissionDetails"]["items"][0]["unusedPermissionDetails"]["actions"][0]["action"] == "DeleteBucket"
 
 
@@ -95,6 +95,10 @@ def test_principal_page_reads_tenant_owned_projection_and_filters(tmp_path):
         "stateInfo": {"state": "ACTIVE"}, "name": "recommendations/one", "content": {"overview": {
             "member": "user:alice@example.com", "removedRole": "roles/editor"}}}}])
     projection["items"][0]["exposures"] = [{"kind": "internet_workload", "state": "unknown"}]
+    projection['items'].extend([
+        dict(projection['items'][0], id='critical-user', principal='user:zed@example.test', label='Zed', severity='critical', exposures=[]),
+        dict(projection['items'][0], id='low-user', principal='user:low@example.test', label='Low', severity='low', exposures=[]),
+    ])
     manifest["least_privilege"] = artifacts.put("alice", job["id"], "least-privilege", projection)
     (artifacts.root / reference).write_text(__import__("json").dumps(manifest))
     store.finish(job["id"], analyzer["owner"], "completed", reference)
@@ -115,5 +119,14 @@ def test_principal_page_reads_tenant_owned_projection_and_filters(tmp_path):
         assert client.get(route, params={"exposure": "external"}).json()["total"] == 0
         assert client.get(route, params={"exposure": "unresolved"}).json()["total"] == 1
         assert client.get(route, params={"exposure": "invalid"}).status_code == 422
+        assert client.get(route, params={'sort_by': 'severity', 'sort_order': 'desc', 'limit': 1}).json()['items'][0]['id'] == 'critical-user'
+        assert client.get(route, params={'sort_by': 'severity', 'sort_order': 'asc', 'limit': 1}).json()['items'][0]['principal'] == 'user:alice@example.com'
+        assert client.get(route, params={'sort_by': 'severity', 'sort_order': 'desc', 'limit': 1, 'offset': 1}).json()['items'][0]['id'] == 'low-user'
+        assert client.get(route, params={'sort_by': 'invented'}).status_code == 422
+        details = client.get(route + '/principals/user%3Aalice%40example.com')
+        assert details.status_code == 200
+        assert details.json()['high_risk_permissions'] == []
+        assert client.get(route + '/principals/not-owned').status_code == 404
         client.headers["Authorization"] = "Bearer bob"
         assert client.get(route).status_code == 404
+        assert client.get(route + "/principals/user%3Aalice%40example.com").status_code == 404

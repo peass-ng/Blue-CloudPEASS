@@ -16,7 +16,7 @@ DECLARATIONS = [{
 }]
 
 
-def evaluate(item, index):
+def _evaluate_legacy(item, index):
     try:
         ctx = index['context']
         scope, metadata = ctx['scope'], ctx['metadata']
@@ -97,6 +97,11 @@ def evaluate(item, index):
             'source_requests': list(refs), 'observed': observed}
     except (KeyError, TypeError, ValueError, AttributeError, OverflowError):
         return 'UNKNOWN', {'observed': 'Selected Kubernetes literals were disabled, unsupported, incomplete or unbound. Secret absence could not be assessed.'}
+
+
+def evaluate(item, index):
+    from .k8s_literal_configmap_association_evaluator import evaluate as extended
+    return extended(item, index)
 
 
 def install():

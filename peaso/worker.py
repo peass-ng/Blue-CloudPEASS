@@ -106,10 +106,18 @@ def _process(role, request, connection):
                 shared_identity = (connector.get("provider") == "gcp" and
                                    connector.get("auth", {}).get("method") == "platform-service-account")
                 ai_access.begin(allow_live=not shared_identity)
-            try:
-                snapshot = collect_snapshot(request)
-            finally:
-                ai_credentials = ai_access.finish()
+            from peaso.secret_evidence import capture, checks_for_request
+            evidence_cipher = CredentialCipher(Path(request.get('ai_context', {}).get('identity_dir') or Settings().identity_dir))
+            with capture(evidence_cipher, tenant=tenant, scan_id=ident, options=connector.get('options'),
+                         selected_checks=checks_for_request(request)) as secret_capture:
+                try:
+                    snapshot = collect_snapshot(request)
+                finally:
+                    ai_credentials = ai_access.finish()
+            # Separate encrypted per-scan object; no reference or value enters
+            # the native snapshot, public report, supervisor pipe or AI context.
+            snapshot = secret_capture.public_snapshot(snapshot)
+            artifacts.put_secret_evidence(tenant, ident, secret_capture.document())
             if request.get("ai_enabled", True) and ai_credentials:
                 try:
                     ai_credentials = ai_access.bind_targets(ai_credentials, snapshot)
@@ -262,6 +270,10 @@ class Worker:
         process, parent, child = None, None, None
         try:
             selectors = json.loads(job["data"])
+            if selectors.get('ai_enabled', True):
+                from peaso.ai.providers import review_disabled
+                if review_disabled(self.store, selectors.get('ai_user_id', job['tenant'])):
+                    selectors['ai_enabled'] = False
             if self.role == "collector":
                 encrypted = json.loads(job["connector"])
                 private = self.cipher.decrypt(encrypted["auth"])

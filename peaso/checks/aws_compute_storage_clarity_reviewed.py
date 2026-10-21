@@ -11,7 +11,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "For in-use volumes, reads the Encrypted flag."
     },
-    "remediation_base_sha256": "71f460dad34c0a5050955eed5a27c5e30fd3783b089d25fe8a6eee61b07a1aaa",
+    "remediation_base_sha256": "501ef6d212edc6cddf6770ff032169098e7a7609530df4f911847bcb29a5ff6e",
     "remediation_fields": {
       "summary": "If encryption is required, plan a supported encrypted-copy migration while preserving needed data.",
       "steps": [
@@ -38,7 +38,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "For in-use volumes, requires nonempty attachments with DeleteOnTermination=true."
     },
-    "remediation_base_sha256": "a35a4339bea9f304c4138c9e1c7243f73ebe6427f8c409d567bc21cf5f1ba3d1",
+    "remediation_base_sha256": "34ee61810b2b38fa61a52a776c457267251d71bf88dbfe9cdc1ffbc2355d4ad9",
     "remediation_fields": {
       "summary": "Set deletion-on-termination only for data that should be removed with the instance.",
       "steps": [
@@ -65,7 +65,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Compares the EBS volume state with in-use."
     },
-    "remediation_base_sha256": "641d88b31a38ff5036d63a68897efc9c24523bd831be4291e0dbd18970dfe04f",
+    "remediation_base_sha256": "c314b369e5e4f59c0cc62e3f5e5d46581e2972927a2d42ee71f4a6592e89ba4e",
     "remediation_fields": {
       "summary": "Review the volume\u2019s recovery purpose and owner before retaining or retiring unused storage.",
       "steps": [
@@ -92,7 +92,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Joins the volume ID to self-owned snapshot VolumeId values."
     },
-    "remediation_base_sha256": "930151ad0e1959800e87f16b71938a4b337c8952579eeed1e52fd8501cd61129",
+    "remediation_base_sha256": "529dde13b48d19d678e68f95843e1e3af77a2bf0c26be1487a4c0bf1e911a8ad",
     "remediation_fields": {
       "summary": "Configure suitable snapshots or backups and verify recovery when required.",
       "steps": [
@@ -119,7 +119,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Matches the regional volume ARN to EBS records in AWS Backup protected resources."
     },
-    "remediation_base_sha256": "02b001e09ee9a8fabcbb317018ef3276abefa41ac07d72acf12a1aa7219221f1",
+    "remediation_base_sha256": "2882362f0d65c40861eef6eb1b571db68a295cc96e064892431df0d2a00678c1",
     "remediation_fields": {
       "summary": "Configure intended backup protection and verify required recovery points.",
       "steps": [
@@ -146,7 +146,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Matches the volume ARN or any volume tag key against Backup selection entries."
     },
-    "remediation_base_sha256": "f9153ebe55ce008fcc825025605dce44abbbb0d4d2c2a106af1de784c2e7c335",
+    "remediation_base_sha256": "bdb18be2d4ed3bcd5f66d4a20a5ea7d65d9ec78cf8a1207be684b1affc866a0a",
     "remediation_fields": {
       "summary": "Configure the intended Backup resource assignment and verify its actual selection.",
       "steps": [
@@ -173,7 +173,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Matches the volume ARN, the EC2 volume wildcard or * in Backup selection Resources."
     },
-    "remediation_base_sha256": "49e9b68fd3e29780d80d0b0805eeef62280138f15f43d531bb9123828f1397b7",
+    "remediation_base_sha256": "5f88ddf39e7890bd8536d1d266f52ad93f836f270bb8e502679e622f08a699e1",
     "remediation_fields": {
       "summary": "Add the required supported resource assignment and verify actual backup coverage.",
       "steps": [
@@ -200,7 +200,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Reads the snapshot Encrypted flag."
     },
-    "remediation_base_sha256": "ef52ffdc21b7122b9225621974a3bd95c382b5889e982839d2adb04fe7185a16",
+    "remediation_base_sha256": "5086933cada2e7a2dfcc5655926207ddd6eb8352b02b807a33de96c6644e983d",
     "remediation_fields": {
       "summary": "If needed, create and validate an encrypted snapshot copy before retiring the old copy.",
       "steps": [
@@ -227,7 +227,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks create-volume permissions for Group=all without a UserId."
     },
-    "remediation_base_sha256": "d3bef274364e3108125aa4a4aa4f6819351c1d8cad655e4566f2df1cb76e9211",
+    "remediation_base_sha256": "1fb3e0e9bcf213b62e5aa5f4262581d7990199d4a69c95635d8c50da2388cbda",
     "remediation_fields": {
       "summary": "Remove unintended public restore permission while retaining required account-specific sharing.",
       "steps": [
@@ -254,7 +254,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Reads the regional EBS encryption-by-default flag."
     },
-    "remediation_base_sha256": "5849b9fdea0b0a099e77c5e97c13aca2a381b15c2578e4ea51f5d8c0182274f3",
+    "remediation_base_sha256": "7901aea882f8814e4201822398a9dcb0b46e165386396ba291b83f88f06bf480",
     "remediation_fields": {
       "summary": "Enable the intended encryption default for future EBS storage and review existing volumes separately.",
       "steps": [
@@ -281,7 +281,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "In Regions with volumes, reads the EBS encryption-by-default flag."
     },
-    "remediation_base_sha256": "467003af9e90d4676c38cb49a2ab601b10413e85aac3e997ed156b2a0aa05095",
+    "remediation_base_sha256": "7886fb71f24c48de48d042542dbb97712f600482c788c379180e4bf87c176400",
     "remediation_fields": {
       "summary": "Enable the intended encryption default for future EBS storage and review existing volumes separately.",
       "steps": [
@@ -308,7 +308,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "In Regions with snapshots, compares snapshot public-access blocking with block-all-sharing."
     },
-    "remediation_base_sha256": "3be46c8cf9c48f225a3ec1602730106e03413048531ded292f6eadb7cb1b63ea",
+    "remediation_base_sha256": "479a21f7c452918a98f7bfdcdc446ee2275bb1eb0a84a3229894ee2da042ab82",
     "remediation_fields": {
       "summary": "Choose the intended public-sharing protection and separately review existing shares.",
       "steps": [
@@ -335,7 +335,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Compares the regional AMI public-access setting with block-new-sharing."
     },
-    "remediation_base_sha256": "ee31b7f7e096053308dca89e94c5415f636ac6141bf3ead235d97bd8e5092ff8",
+    "remediation_base_sha256": "45bc5b486b8a21d51fca8af07b9d418a69cdd8d5fec59c71c1ca31b8a801e6d6",
     "remediation_fields": {
       "summary": "Block new public AMI sharing unless public image distribution is intended.",
       "steps": [
@@ -362,7 +362,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "In Regions with instances, checks regional metadata defaults for HttpTokens=required."
     },
-    "remediation_base_sha256": "5edab3aaba6815eee055eab639608f57c0f9884ed82abde6716047412b797e59",
+    "remediation_base_sha256": "6e586f921dba9885ca9bf322bed7e429ff46a93241dd49cbf0401eb939a1cadb",
     "remediation_fields": {
       "summary": "Require IMDSv2 in intended launch defaults and separately review existing instances.",
       "steps": [
@@ -389,7 +389,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Reads Public on account-owned AMIs."
     },
-    "remediation_base_sha256": "e2297d780adfd5665cb3ca2ff888a9080a0c6fb31237397ceafb615e8ce69492",
+    "remediation_base_sha256": "935fcfc6c4193358a1a49270437765d1962fd4af039d76f74b10292a2fb3c11b",
     "remediation_fields": {
       "summary": "Remove unintended public image sharing while preserving deliberate public distributions.",
       "steps": [
@@ -416,7 +416,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks every AMI block mapping for Ebs.Encrypted=true."
     },
-    "remediation_base_sha256": "bad7c8f0c31c28d0b03f590ba68d4f77f3095c9c0e08f513b8f674e08f8cc129",
+    "remediation_base_sha256": "e554752a558b4bc6b6a24086a9e8229c1d8caaae73499dc4685371b95e41335e",
     "remediation_fields": {
       "summary": "If encryption is required, create and validate a supported encrypted image copy.",
       "steps": [
@@ -443,7 +443,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Compares AMI creation with midnight UTC ninety days before the snapshot."
     },
-    "remediation_base_sha256": "5d2884116fce0555dbc47812cbdeaba692d10cc451b931786aea50f38650beeb",
+    "remediation_base_sha256": "f9c2085dfa5bd1482caccbff638b2e6cfd43936eb689b457f0a02cba8d0ca0b8",
     "remediation_fields": {
       "summary": "Review image support and patch status; rebuild outdated images when needed.",
       "steps": [
@@ -470,7 +470,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Reads instance Monitoring.State and requires enabled."
     },
-    "remediation_base_sha256": "40e375d916844c2491f47d994ce012cb98a2c77f10086f7a81894db89a6e579e",
+    "remediation_base_sha256": "a83d188e2685659300fe657299517b02f49f91bac0dc25b8377bbbb29318f5db",
     "remediation_fields": {
       "summary": "Enable detailed monitoring if the workload needs one-minute metrics.",
       "steps": [
@@ -497,7 +497,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Reads whether the instance declares EBS optimization enabled."
     },
-    "remediation_base_sha256": "48e8f40c3fa0fd0ef53db6e2510a256c00aa028c2b43739c5fd7c4b23ec359bb",
+    "remediation_base_sha256": "0f24b3adb3a1810bc7f3cf5441e27409d45f6b401e430e3b6b5560f0d7d4751d",
     "remediation_fields": {
       "summary": "Use appropriate EBS performance settings where required by the workload.",
       "steps": [
@@ -524,7 +524,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks whether IamInstanceProfile is present."
     },
-    "remediation_base_sha256": "a9151cc57b0d7f0f5199c953d58b44bf011240d91ba2a51dfe51bd8eb094b227",
+    "remediation_base_sha256": "478cff66756f6a90f991e2e03dbe5ebdc07953a622fb509cd5a1e1e16fc4daff",
     "remediation_fields": {
       "summary": "Attach a suitable least-privilege instance profile only if the workload needs AWS API access.",
       "steps": [
@@ -551,7 +551,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "For non-terminated instances, checks whether IamInstanceProfile is present."
     },
-    "remediation_base_sha256": "47b382859c9951dd34fb54f095707d783bd4d0ba1aec9b938517ae583a5b402c",
+    "remediation_base_sha256": "ffb9744375ac72d477081105677ac9532443d3a0fc500b6fe162d4d3a3aca6be",
     "remediation_fields": {
       "summary": "Attach a suitable least-privilege instance profile only if the workload needs AWS API access.",
       "steps": [
@@ -578,7 +578,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks whether a VpcId is declared on the instance."
     },
-    "remediation_base_sha256": "778c2278aea18daa849f1fc80899c1d9280dba1a8993c4e03474c5176c7f9058",
+    "remediation_base_sha256": "900ce2edcde14b85a4466d744a5638cd52bb1a902f718ba75e6591d5648e5430",
     "remediation_fields": {
       "summary": "Use the intended supported VPC networking design when migrating legacy workloads.",
       "steps": [
@@ -605,7 +605,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks whether a public IPv4 address is declared."
     },
-    "remediation_base_sha256": "6a07b7edee777212c3e202c6169c3f47941f1849dd7f59494f1fbdd7c9dcef04",
+    "remediation_base_sha256": "079070db1971a608cbf4832b25e7f649dd7f0d23642259bed0a75517cc93f5ef",
     "remediation_fields": {
       "summary": "Remove unnecessary public addressing while preserving intended public services.",
       "steps": [
@@ -632,7 +632,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "For non-terminated instances, checks whether a public IPv4 address is declared."
     },
-    "remediation_base_sha256": "5ddc853c04eb25e6807afe8d304e1944a5e220096cb80f07dd90bc72d41e4981",
+    "remediation_base_sha256": "1a15aa90db7a99e7ee6e9d00e756413cbaf07dd5425b8d49452bfd0fbf0a26a9",
     "remediation_fields": {
       "summary": "Remove unnecessary public addressing while preserving intended public services.",
       "steps": [
@@ -837,7 +837,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Looks for attached security-group names beginning with launch-wizard."
     },
-    "remediation_base_sha256": "cacfc987137bac134c5ce3cbbff98797a86641ea1bfe6258c548545fae369f87",
+    "remediation_base_sha256": "127da7aef28f6c529156d3901c93d1c18af1761d79e85802f784243bc4d6178c",
     "remediation_fields": {
       "summary": "Review the group\u2019s rules and replace or narrow unnecessary access as appropriate.",
       "steps": [
@@ -1335,7 +1335,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "For enclave parents, flags public-CIDR TCP/UDP ranges extending beyond 22,80 and 443."
     },
-    "remediation_base_sha256": "d46504be594a2b56c51f981c702cdcb88e270e353a06ebd108a7b33e710e71b0",
+    "remediation_base_sha256": "fe1a0023f763040bc4f20e3b1368f6fe7f7c2cb1f16def3a98e6803adfae7c21",
     "remediation_fields": {
       "summary": "Restrict unnecessary public-source ports to the sources that need them.",
       "steps": [
@@ -2084,7 +2084,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Reads all four bucket-level Block Public Access flags and requires true for each."
     },
-    "remediation_base_sha256": "4d9812c555502bb38dd9032abc22be62ebb5d87cd6f66e30b33d972011ae7959",
+    "remediation_base_sha256": "16a7a8159994bda9d6205cac700b81b409c962dabbe9e68277d36bbea05d1d57",
     "remediation_fields": {
       "summary": "Enable the intended bucket-level public-access protections without breaking deliberate public content.",
       "steps": [
@@ -2111,7 +2111,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Requires IgnorePublicAcls and RestrictPublicBuckets at either bucket or account level."
     },
-    "remediation_base_sha256": "867d9280c9c61c7cf8887d97278cbccd5685eee02ac7dfa5de56fc45094271ad",
+    "remediation_base_sha256": "5b8b569070dbf06a6d400ed3ed09236ba207eb3c8d57ebc0aba3c3779079e8c4",
     "remediation_fields": {
       "summary": "Configure the intended protections at the appropriate bucket or account scope.",
       "steps": [
@@ -2543,7 +2543,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Reads all four access-point Block Public Access flags and requires true for each."
     },
-    "remediation_base_sha256": "7569ac2194ebd042fc08ffd655cebccb3c8ad5333bda1d21f86180b8b8a6669f",
+    "remediation_base_sha256": "085ab8fe0c8161f359f72dede9437ef424a19b0eecd19229daf8abf06c2681b0",
     "remediation_fields": {
       "summary": "If stronger blocking is needed, plan a supported access-point replacement without disrupting required clients.",
       "steps": [
@@ -3252,7 +3252,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Matches collected CloudTrail selectors containing the function ARN, the Lambda ARN prefix or an advanced Lambda resource-type selector."
     },
-    "remediation_base_sha256": "d138574d39cc7b1fcb19f648567e5a7f2feff13bee0e7862c2771278ea10d141",
+    "remediation_base_sha256": "5653fa92800d1c174b0ef629c5cab361cfa845cdcc425511a5bb0882786aa824",
     "remediation_fields": {
       "summary": "Configure the intended Lambda data-event selectors and verify actual event delivery.",
       "steps": [
@@ -3279,7 +3279,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "For function URLs, checks whether CORS AllowOrigins contains the literal wildcard."
     },
-    "remediation_base_sha256": "3a56cc98cf4b95880f561551d7bde51d6cc5c870449407a936e3be85fcf921ae",
+    "remediation_base_sha256": "fa152faa08d95ae2d439a2b33d715393855df84166df0bee65615c4c532816d9",
     "remediation_fields": {
       "summary": "If every browser origin does not need access, allow only intended web clients.",
       "steps": [
@@ -3306,7 +3306,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Compares each declared layer ARN account with the audited account."
     },
-    "remediation_base_sha256": "fab26ffb9f45550c6b1c0c3639a7f6b6134081a9eadc6b2faf2f50a729029795",
+    "remediation_base_sha256": "675c5c2e9a12e27343961380f3d77202f96928b84a522eae6029b6c76d3f9d37",
     "remediation_fields": {
       "summary": "Review external layer publishers and retain only the dependencies the workload trusts.",
       "steps": [
@@ -3333,7 +3333,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks whether the Runtime value belongs to the pinned obsolete-runtime list."
     },
-    "remediation_base_sha256": "cd42482e5a422ed31c3335786f0a18ec8b49da341c94c79adb9fbfaaa81f63b9",
+    "remediation_base_sha256": "aedb972be5806accb1c5823d96ca4ccef1cd21f4a5c6384f54c2a697038faea2",
     "remediation_fields": {
       "summary": "Review current runtime support and migrate obsolete runtimes with compatibility testing.",
       "steps": [
@@ -3360,7 +3360,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks plain container environment-variable names against the fixed AWS credential-name list."
     },
-    "remediation_base_sha256": "009a12d6af7796e0007fbbc3d7f49c7504170be606091280795fe008fb4571d0",
+    "remediation_base_sha256": "93c9ee14677267f685c7690c02ac1271b6ba8c7fe7631c2b94588705cdfb4cb0",
     "remediation_fields": {
       "summary": "Use a suitable task role or secret-reference mechanism for actual credentials.",
       "steps": [
@@ -3387,7 +3387,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Looks for any containerInsights setting with value enabled or enhanced."
     },
-    "remediation_base_sha256": "86d7ae1a66063ae30160bbcf0400a97f798614997d16f52aade4f7b660ff7c05",
+    "remediation_base_sha256": "3aac9265ff80d0ad70118cda5e49389fc908b251291db2f7b454fadb851926aa",
     "remediation_fields": {
       "summary": "Enable intended Container Insights coverage when this is the chosen monitoring tool.",
       "steps": [
@@ -3414,7 +3414,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Requires nonempty containerInsights settings whose values are enabled or enhanced."
     },
-    "remediation_base_sha256": "133875e7303325eee39f6daf3ada92ecd18799959f4fa957c18cb548240a7188",
+    "remediation_base_sha256": "a22beed164f343cad85f65856cdd856860f2975b5829b8d56879e273df7735a4",
     "remediation_fields": {
       "summary": "Configure the intended Container Insights mode where required.",
       "steps": [
@@ -3522,7 +3522,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Reads the EKS endpointPublicAccess flag without considering authorized CIDRs."
     },
-    "remediation_base_sha256": "56aff0a0124d582db2a5ba2e4efe30a0c2b2f212bba1c992512169854bd65520",
+    "remediation_base_sha256": "439de19e9a8505ccf5207dfc5082498621653417b6491d589dc5d9b8ae4afc84",
     "remediation_fields": {
       "summary": "Use a private endpoint if the intended administration model requires it; otherwise review allowed public sources.",
       "steps": [
@@ -3630,7 +3630,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Reads the deletionProtection flag and flags explicit false."
     },
-    "remediation_base_sha256": "f3f50c6675c1fde72ba5e454166d9f34e711d738bd0b932fb7c63dce35ddd19e",
+    "remediation_base_sha256": "428905ff9167f447d2633dda5458c5b4a102fbc0dbd967bf97ae5ecb2a1ae076",
     "remediation_fields": {
       "summary": "Enable deletion protection where accidental cluster deletion must be prevented.",
       "steps": [
@@ -3657,7 +3657,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks whether encryptionConfig contains any entries."
     },
-    "remediation_base_sha256": "946d6632bbb2b51b1f445876c0951f1cd0252809479cc9f9a20ddd4433c6d795",
+    "remediation_base_sha256": "b12dafdbe83167fea518e5158d5421ed152b8d7e3a2e8034e60005890dd54fc3",
     "remediation_fields": {
       "summary": "If dedicated envelope keys are required, configure an appropriate supported key and preserve access.",
       "steps": [
@@ -3712,7 +3712,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Counts declared AvailabilityZones and requires at least two."
     },
-    "remediation_base_sha256": "6dada8a6fad3e6be8a5bbce6c2479654fcdbcfb474fefe60ca2f7604a78a28c7",
+    "remediation_base_sha256": "a314fbf8be47388498236cdec2d58711b3a22801fafda352260a411315859226",
     "remediation_fields": {
       "summary": "Use multiple Availability Zones where the intended availability requirements need them.",
       "steps": [
@@ -3739,7 +3739,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks for a nonempty direct or mixed-instances launch-template declaration."
     },
-    "remediation_base_sha256": "6f03bc293ed05185acb7a649197983f893765a26465d02e0b907fba6baa853cf",
+    "remediation_base_sha256": "e3eb962f5c8ec6a701ef3794003aac986a2a8a61d45ff3f3573534cbe59aaf09",
     "remediation_fields": {
       "summary": "Use the intended supported launch-template design when migrating legacy launch configurations.",
       "steps": [
@@ -3766,7 +3766,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "For groups declaring both classic load balancers and target groups, reads CapacityRebalance."
     },
-    "remediation_base_sha256": "5c05794d8753b96108a1cb1bcb06cc8d5f8beb67998d9f2e483a3804e76199de",
+    "remediation_base_sha256": "94227c497b36bf172d5056ab897a8db7c0b21495c66ae3742609ced6394ba516",
     "remediation_fields": {
       "summary": "Enable capacity rebalancing if required by the intended Spot-capacity design.",
       "steps": [
@@ -3793,7 +3793,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Groups current instances by Availability Zone and requires several zones with at least two instance types each."
     },
-    "remediation_base_sha256": "0d6cedb3afafc6d9cb2ff90934b84c5944f1d1efd9053f942cffcd585005303f",
+    "remediation_base_sha256": "a94f230e14047963de1ae6cad0986f50972c53ba4562e61db1b3d8016bfc278f",
     "remediation_fields": {
       "summary": "Choose suitable capacity diversification for the intended workload and availability goals.",
       "steps": [
@@ -3820,7 +3820,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Counts distinct explicit InstanceType overrides and requires at least two."
     },
-    "remediation_base_sha256": "be83ad7b40e99aa7fbfde155d142645a20ba48f0254a3cd177e9e3b3ed32e38e",
+    "remediation_base_sha256": "e7efc9144420f9ac5449cf4b7fa4f3e435d5aea3711375824cf57a74bb58dd12",
     "remediation_fields": {
       "summary": "Configure appropriate instance-type diversification where required.",
       "steps": [
@@ -3847,7 +3847,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks whether SuspendedProcesses contains any entries."
     },
-    "remediation_base_sha256": "b0a3d30c7ffe1eaff7eb7b95b450cd48ddf89efb58bf6bf025b5eaa8de229c28",
+    "remediation_base_sha256": "7b202ca696cef76ecb51cf2806ee062b73e7e7b09b5faee1d353fd9f8562fb8c",
     "remediation_fields": {
       "summary": "Review intentional maintenance before resuming required scaling processes.",
       "steps": [
@@ -3982,7 +3982,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Reads the StreamLogs option in the CloudWatch log configuration namespace and looks for true."
     },
-    "remediation_base_sha256": "697e64b3cef1c26a38e65c8cbe56343f615c7573c41a0444c94b59c747c20a37",
+    "remediation_base_sha256": "8c1545048a2b7db169f613d63dda0f6c3cec8e400c58b97f7d1d779f31377ba4",
     "remediation_fields": {
       "summary": "Configure intended log streaming and verify the destination receives the required records.",
       "steps": [
@@ -4009,7 +4009,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Reads ManagedActionsEnabled in the managed-actions namespace and looks for true."
     },
-    "remediation_base_sha256": "ce9989ab5bde5e905d33791859f07245f40d8926648cb029fb74620f0602f827",
+    "remediation_base_sha256": "76859200fefc5bfdde78594b2fc64e199ba006012365d25e01397f03af252d7f",
     "remediation_fields": {
       "summary": "Enable managed updates if they match the intended platform-maintenance process.",
       "steps": [
@@ -4036,7 +4036,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Reads the health-reporting SystemType option and requires enhanced."
     },
-    "remediation_base_sha256": "d609c5d2b51881a0c25f3be30c69ed36b59ab3290ac62754f659ead6095324f2",
+    "remediation_base_sha256": "8d4a9bcdd78d4b0a3e1261564e9ea96686fcd0788ab43965f270be23bff2090a",
     "remediation_fields": {
       "summary": "Enable enhanced health reporting if it fits the intended monitoring design.",
       "steps": [
@@ -4217,7 +4217,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "For supported FSx types, reads CopyTagsToBackups and requires enabled."
     },
-    "remediation_base_sha256": "6a6169a5169eb3e047021f90ebf17bac18a92de9404d05021a0a857ef66277f3",
+    "remediation_base_sha256": "1d3bfe7acd352fa2ed9ed7a18df721a1eae54c33067d881fbd978fec6293548c",
     "remediation_fields": {
       "summary": "Propagate intended ownership and classification tags to backups where needed.",
       "steps": [
@@ -4244,7 +4244,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "For OpenZFS, reads CopyTagsToVolumes and requires enabled."
     },
-    "remediation_base_sha256": "6fa4f30750e8286644bebdc0bcc2f460dfac3c028df8a98785875b4acd8b328a",
+    "remediation_base_sha256": "c1c96e6392dd7ede55274fae79c6ec7593588b537dd0931d57a976030dcace9c",
     "remediation_fields": {
       "summary": "Propagate intended ownership and classification tags to volumes where needed.",
       "steps": [
@@ -4271,7 +4271,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "For OpenZFS, reads CopyTagsToBackups and CopyTagsToVolumes and requires enabled."
     },
-    "remediation_base_sha256": "601c9bae54864077887a7795a4e8f79189437f02ff07b9a64ff744ce58b60c61",
+    "remediation_base_sha256": "2b12c2b1c52cff58147f93140ace1e26e48021e6afbfae1407450de48e3bdbe5",
     "remediation_fields": {
       "summary": "Propagate intended ownership and classification tags to backups and volumes where needed.",
       "steps": [
@@ -4298,7 +4298,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "For Lustre, reads CopyTagsToBackups and requires enabled."
     },
-    "remediation_base_sha256": "becda45ba031c1dffcc6dac5caaae16b1539b31c5dc2b48e5e90e95a2d8d5456",
+    "remediation_base_sha256": "f539e43982dbe24a592612744d326a838fbf70d3bf5b5279418d68bbbed3c68f",
     "remediation_fields": {
       "summary": "Propagate intended ownership and classification tags to backups where needed.",
       "steps": [
@@ -4325,7 +4325,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "For ONTAP filesystems, compares OntapConfiguration.DeploymentType with MULTI_AZ_1, MULTI_AZ_2."
     },
-    "remediation_base_sha256": "945798ae85370c0b89521e43ad8fb198dfbb0077f2d7b0a009aa6eece9b7658b",
+    "remediation_base_sha256": "e75a6d7cde592ab85157877b36c7ed313f3c4391ba757936d9c0314afab415d5",
     "remediation_fields": {
       "summary": "Choose a supported deployment matching the workload\u2019s availability needs; plan migration safely when changes require replacement.",
       "steps": [
@@ -4359,7 +4359,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "For OPENZFS filesystems, compares OpenZFSConfiguration.DeploymentType with MULTI_AZ_1."
     },
-    "remediation_base_sha256": "4ade94b81a84e3a975ab2ed8da292b733d1b9dc99cae2583926ae59222a76e38",
+    "remediation_base_sha256": "ccf5eddc5bdcdc01dc010da0d71324a73d8f69b0f95609d21ffb5a3d6288c51e",
     "remediation_fields": {
       "summary": "Choose a supported deployment matching the workload\u2019s availability needs; plan migration safely when changes require replacement.",
       "steps": [
@@ -4392,7 +4392,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "For WINDOWS filesystems, compares WindowsConfiguration.DeploymentType with MULTI_AZ_1."
     },
-    "remediation_base_sha256": "0167863a5a30599be648464f8e81f7fb70d78abb3eccd665481b7f1da9a2619c",
+    "remediation_base_sha256": "d76bb85da61d3ee985c36443c91d54959945ae2331c7a6d1803d98df6df2fc18",
     "remediation_fields": {
       "summary": "Choose a supported deployment matching the workload\u2019s availability needs; plan migration safely when changes require replacement.",
       "steps": [
@@ -4425,7 +4425,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "For FSx Windows filesystems, counts SubnetIds and requires more than one."
     },
-    "remediation_base_sha256": "93b931c8268da6ed1e53a90cc7f70b551fcf34d4a1aaa8aaa7f8ea30262541cc",
+    "remediation_base_sha256": "fc666d8c0b810f1be2d860d9aa91875d0299e4891506af5cccc8ca4c026e0e31",
     "remediation_fields": {
       "summary": "Use the appropriate supported multi-subnet design if the workload needs it.",
       "steps": [
@@ -4452,7 +4452,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Matches the filesystem ResourceARN to FSx entries in AWS Backup protected resources."
     },
-    "remediation_base_sha256": "c804c4f8dbd08882d661e7591f390ee4c17567f4bffa736d34d84f9b22cd3c66",
+    "remediation_base_sha256": "fc28673b2bc81185a72aaaf942e0641a143a35e76c07029d4074ed2f3e5fd94b",
     "remediation_fields": {
       "summary": "Configure required backup protection and verify suitable recovery points.",
       "steps": [
@@ -4479,7 +4479,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Matches the EFS filesystem ARN to EFS entries in AWS Backup protected resources."
     },
-    "remediation_base_sha256": "4acf227b1b8ef29c20e94db5b1557d865d0bd53cc77f5502c51182f2df5daeb9",
+    "remediation_base_sha256": "1ee0edb86c8d9de8314ae09d05595d1a84bbdcd931134e7b9daa0804ce277227",
     "remediation_fields": {
       "summary": "Configure required backup protection and verify suitable recovery points.",
       "steps": [
@@ -4560,7 +4560,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Looks for stored EFS policy Allow statements with a wildcard principal."
     },
-    "remediation_base_sha256": "74d74e6c5afedb3d6eaea9148e8efb30c1f9eeed7cbd6e34edb1ec036057f26b",
+    "remediation_base_sha256": "42a66e94c67bd782495abdeb8ee8265897b4a98c1e631ac0c37b7df181880f5a",
     "remediation_fields": {
       "summary": "Review broad principals and retain only the sharing required by the workload.",
       "steps": [
@@ -4587,7 +4587,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Applies the bounded perimeter matcher to stored EFS Allow statements and recognized restrictions."
     },
-    "remediation_base_sha256": "fba856887880d5e40839fcc06556173da76885bcfd692e948d0d122176ca4ba6",
+    "remediation_base_sha256": "fd593b54d03e800d031d5a4894a21ff7b7f63c10e524e76251061448ceaf9854",
     "remediation_fields": {
       "summary": "Narrow unnecessary public principals using suitable workload-specific restrictions.",
       "steps": [
@@ -5183,7 +5183,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Compares managed Zip runtime deprecation dates with the captured scan date using the reviewed lifecycle snapshot."
     },
-    "remediation_base_sha256": "7476731be9ba600d5a18951f1c577e7e6225cef9c0854d1b0812625f1d326101",
+    "remediation_base_sha256": "75dd541da13b49fd128f5d19c8756ac21adaa328f0b62ce7c283740fee56995a",
     "remediation_fields": {
       "summary": "Move the function to a supported runtime and validate application compatibility.",
       "steps": [
@@ -5210,7 +5210,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Requires an actively logging, region-covering trail with a Lambda Invoke selector matching this function ARN."
     },
-    "remediation_base_sha256": "6752a52945f6eb57c4648e918359be3db4106d5e776aee4d97c13724d86d9d06",
+    "remediation_base_sha256": "2a30e462bdeb00c9b6eddefcd9906a62edad4af14a25cd4fa207bd999467bf3f",
     "remediation_fields": {
       "summary": "Add appropriate Lambda invocation data-event coverage to an active trail.",
       "steps": [
@@ -5264,7 +5264,7 @@ ROWS = json.loads(r'''
     "description_fields": {
       "description": "Checks whether the instance declares any IPv6 addresses."
     },
-    "remediation_base_sha256": "c1a19c8bdb586d074d091b049d679ad710c20b8469422d1a7b94026f944cafb0",
+    "remediation_base_sha256": "d320b649faea451fbb64cda1dc193212914d3eeaa236708bd40f0f0dd47bf894",
     "remediation_fields": {
       "summary": "Keep IPv6 only where required and restrict the intended IPv6 listeners appropriately.",
       "steps": [
@@ -5320,7 +5320,7 @@ ROWS = json.loads(r'''
       "pass_when": "No valid TCP interval containing 22, 80 or 3389 permits 0.0.0.0/0 or ::/0.",
       "fail_when": "A valid TCP interval containing 22, 80 or 3389 permits 0.0.0.0/0 or ::/0."
     },
-    "remediation_base_sha256": "b3b43de74acc2c8900aa209d879d39bc0b8482427693ba02fd128451fe7df006",
+    "remediation_base_sha256": "1e51f3afe434fd855e5dad9ba13c432e6a6955293b08d4c9a6d040f3198bb3e9",
     "remediation_fields": {
       "summary": "Restrict administrative access to necessary sources; retain public HTTP only if the workload needs it.",
       "steps": [
@@ -5710,7 +5710,7 @@ ROWS = json.loads(r'''
       "cli": [],
       "references": [
         {
-          "title": "AWS service security reference",
+          "title": "AWS EC2 ec2 security",
           "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-security.html"
         }
       ]
@@ -5746,7 +5746,7 @@ ROWS = json.loads(r'''
       "cli": [],
       "references": [
         {
-          "title": "AWS service security reference",
+          "title": "AWS EC2 ec2 security",
           "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-security.html"
         }
       ]
@@ -5782,7 +5782,7 @@ ROWS = json.loads(r'''
       "cli": [],
       "references": [
         {
-          "title": "AWS service security reference",
+          "title": "AWS S3 replication",
           "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/replication.html"
         }
       ]
@@ -5818,7 +5818,7 @@ ROWS = json.loads(r'''
       "cli": [],
       "references": [
         {
-          "title": "AWS service security reference",
+          "title": "AWS LAMBDA lambda intro execution role",
           "url": "https://docs.aws.amazon.com/lambda/latest/dg/lambda-intro-execution-role.html"
         }
       ]
@@ -5854,7 +5854,7 @@ ROWS = json.loads(r'''
       "cli": [],
       "references": [
         {
-          "title": "AWS service security reference",
+          "title": "AWS LAMBDA lambda intro execution role",
           "url": "https://docs.aws.amazon.com/lambda/latest/dg/lambda-intro-execution-role.html"
         }
       ]
@@ -5890,7 +5890,7 @@ ROWS = json.loads(r'''
       "cli": [],
       "references": [
         {
-          "title": "AWS service security reference",
+          "title": "AWS EC2 ec2 security",
           "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-security.html"
         }
       ]
@@ -5933,7 +5933,7 @@ ROWS = json.loads(r'''
       "cli": [],
       "references": [
         {
-          "title": "AWS service security reference",
+          "title": "AWS ECS security",
           "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/security.html"
         }
       ]
@@ -5969,7 +5969,7 @@ ROWS = json.loads(r'''
       "cli": [],
       "references": [
         {
-          "title": "AWS service security reference",
+          "title": "AWS EMR emr manage view security groups",
           "url": "https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-manage-view-security-groups.html"
         }
       ]
@@ -6005,7 +6005,7 @@ ROWS = json.loads(r'''
       "cli": [],
       "references": [
         {
-          "title": "AWS service security reference",
+          "title": "AWS EMR emr manage view security groups",
           "url": "https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-manage-view-security-groups.html"
         }
       ]
@@ -6041,7 +6041,7 @@ ROWS = json.loads(r'''
       "cli": [],
       "references": [
         {
-          "title": "AWS service security reference",
+          "title": "AWS EMR emr manage view security groups",
           "url": "https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-manage-view-security-groups.html"
         }
       ]
@@ -6077,7 +6077,7 @@ ROWS = json.loads(r'''
       "cli": [],
       "references": [
         {
-          "title": "AWS service security reference",
+          "title": "AWS EMR emr manage view security groups",
           "url": "https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-manage-view-security-groups.html"
         }
       ]
@@ -6113,7 +6113,7 @@ ROWS = json.loads(r'''
       "cli": [],
       "references": [
         {
-          "title": "AWS service security reference",
+          "title": "AWS S3 replication",
           "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/replication.html"
         }
       ]
@@ -6149,7 +6149,7 @@ ROWS = json.loads(r'''
       "cli": [],
       "references": [
         {
-          "title": "AWS service security reference",
+          "title": "AWS S3 replication",
           "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/replication.html"
         }
       ]
@@ -6190,7 +6190,7 @@ ROWS = json.loads(r'''
       "cli": [],
       "references": [
         {
-          "title": "AWS service security reference",
+          "title": "AWS EC2 ec2 security",
           "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-security.html"
         }
       ]
@@ -6226,7 +6226,7 @@ ROWS = json.loads(r'''
       "cli": [],
       "references": [
         {
-          "title": "AWS service security reference",
+          "title": "AWS ELASTICBEANSTALK using features.logging S3.title",
           "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features.loggingS3.title.html"
         }
       ]
@@ -6267,7 +6267,7 @@ ROWS = json.loads(r'''
       "cli": [],
       "references": [
         {
-          "title": "AWS service security reference",
+          "title": "AWS ELASTICBEANSTALK using features.logging S3.title",
           "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features.loggingS3.title.html"
         }
       ]
@@ -6308,7 +6308,7 @@ ROWS = json.loads(r'''
       "cli": [],
       "references": [
         {
-          "title": "AWS service security reference",
+          "title": "AWS LAMBDA lambda intro execution role",
           "url": "https://docs.aws.amazon.com/lambda/latest/dg/lambda-intro-execution-role.html"
         }
       ]
@@ -6349,7 +6349,7 @@ ROWS = json.loads(r'''
       "cli": [],
       "references": [
         {
-          "title": "AWS service security reference",
+          "title": "AWS EC2 ec2 security",
           "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-security.html"
         }
       ]
@@ -6385,7 +6385,7 @@ ROWS = json.loads(r'''
       "cli": [],
       "references": [
         {
-          "title": "AWS service security reference",
+          "title": "AWS S3 replication",
           "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/replication.html"
         }
       ]
@@ -6421,7 +6421,7 @@ ROWS = json.loads(r'''
       "cli": [],
       "references": [
         {
-          "title": "AWS service security reference",
+          "title": "AWS EC2 ec2 security",
           "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-security.html"
         }
       ]
@@ -6457,7 +6457,7 @@ ROWS = json.loads(r'''
       "cli": [],
       "references": [
         {
-          "title": "AWS service security reference",
+          "title": "AWS EC2 ec2 security",
           "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-security.html"
         }
       ]
@@ -6500,7 +6500,7 @@ ROWS = json.loads(r'''
       "cli": [],
       "references": [
         {
-          "title": "AWS service security reference",
+          "title": "AWS ECS security",
           "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/security.html"
         }
       ]
@@ -6543,7 +6543,7 @@ ROWS = json.loads(r'''
       "cli": [],
       "references": [
         {
-          "title": "AWS service security reference",
+          "title": "AWS EFS awsbackup",
           "url": "https://docs.aws.amazon.com/efs/latest/ug/awsbackup.html"
         }
       ]
@@ -6584,7 +6584,7 @@ ROWS = json.loads(r'''
       "cli": [],
       "references": [
         {
-          "title": "AWS service security reference",
+          "title": "AWS EC2 ec2 security",
           "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-security.html"
         }
       ]
@@ -6627,7 +6627,7 @@ ROWS = json.loads(r'''
       "cli": [],
       "references": [
         {
-          "title": "AWS service security reference",
+          "title": "AWS EFS awsbackup",
           "url": "https://docs.aws.amazon.com/efs/latest/ug/awsbackup.html"
         }
       ]

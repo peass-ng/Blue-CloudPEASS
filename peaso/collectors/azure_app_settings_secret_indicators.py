@@ -3,6 +3,8 @@
 The documented list POST is a read action. No site enumeration, mutation,
 Key Vault dereference, execution, URL following or credential verification.
 """
+
+from peaso.secret_evidence import scan_with_source, target_source
 from copy import deepcopy
 import http.client
 import json
@@ -232,11 +234,11 @@ def _scan(reader, transport, target, scope, state, receipts):
         data = reader.call(_read, reader, transport, target, 'settings', state, receipts, scope)
         payload, literals, references = _content(data, target)
         receipts[-1]['identity_bound'] = True
-        del data
         _remaining(reader, state)
         from .azure_selected_secret_integration_20261020 import remember
-        result = scan_content(payload, ident + '.literals', timeout=min(60, state['deadline'] - time.monotonic()),
-            _redact_values=lambda values: remember(reader, 'app_setting_secret_redactions', values))
+        result = scan_with_source(scan_content, payload, ident + '.literals', timeout=min(60, state['deadline'] - time.monotonic()),
+            _redact_values=lambda values: remember(reader, 'app_setting_secret_redactions', values), source=target_source(target, resource_id=ident, scope=scope, location_kind='configuration'), native=data)
+        del data
         marker.update(parts=[{'part': 'literals', 'bytes': len(payload), 'complete': result['complete'],
                               'engines': deepcopy(result['engines'])}],
             literal_count=literals, reference_count=references)

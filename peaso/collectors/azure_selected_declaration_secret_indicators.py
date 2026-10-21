@@ -3,6 +3,8 @@
 No enumeration, execution, protected-value reads, URL following or verification.
 Ephemeral HTTP bodies bypass generic request caches; only opaque proofs survive.
 """
+
+from peaso.secret_evidence import scan_with_source, target_source
 from copy import deepcopy
 import http.client
 import json
@@ -332,12 +334,12 @@ def _scan(reader, transport, profile, target, scope, state, receipts):
             data = read('pipeline', host, '/pipelines/' + quote(rid.rsplit('/', 1)[1], safe='') + '?api-version=2020-12-01', SYNAPSE)
         else:
             data = read('declaration', 'management.azure.com', rid + '?api-version=2018-06-01', ARM)
-        projection = project(profile, target, data); receipts[-1]['identity_bound'] = True; del data
+        projection = project(profile, target, data); receipts[-1]['identity_bound'] = True
         marker.update(literal_count=len(projection.values), reference_count=projection.refs)
         payload = b'\n\n'.join(projection.values)
         if not payload or len(payload) > MAX_CONTENT: raise Incomplete('content_unavailable')
-        result = scan_content(payload, ident + '.inline_literals', timeout=remaining(reader, state) / 2,
-            _redact_values=lambda values: remember(reader, 'configuration_secret_redactions', values))
+        result = scan_with_source(scan_content, payload, ident + '.inline_literals', timeout=remaining(reader, state) / 2,
+            _redact_values=lambda values: remember(reader, 'configuration_secret_redactions', values), source=target_source(target, resource_id=ident, scope=scope, location_kind='configuration'), native=data)
         marker['parts'] = [{'bytes': len(payload), 'engines': deepcopy(result['engines']), 'complete': result['complete']}]
         leaks = merge_leaks(result['leaks']); bounded = []; locations = 0
         for leak in leaks:

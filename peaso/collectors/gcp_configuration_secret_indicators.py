@@ -4,6 +4,8 @@ Call on successful raw GET JSON before any application cache or serialization.
 Always drop sensitive configuration content; detectors require explicit opt-in
 AND an internally selected native kind. External references are never fetched.
 """
+
+from peaso.secret_evidence import scan_with_source
 import re
 import time
 from urllib.parse import urlsplit
@@ -276,8 +278,8 @@ def project_response(response, *, method, url, scope, params=None, body=None, en
             if check_cancelled is not None: check_cancelled()
             remaining = deadline - time.monotonic()
             if remaining <= 0: raise TimeoutError('scan deadline')
-            outcome = scan_content(payload, route['kind'] + '.literal_configuration', timeout=min(10, remaining / 2),
-                                   _redact_values=redactions.update)
+            outcome = scan_with_source(scan_content, payload, route['kind'] + '.literal_configuration', timeout=min(10, remaining / 2),
+                                   _redact_values=redactions.update, source={'resource_id': resource, 'location_kind': 'configuration', 'scope': route['scope']}, native=raw)
             leaks = merge_leaks(outcome['leaks'])
             if len(leaks) > MAX_LEAKS or sum(len(leak['locations']) for leak in leaks) > MAX_LOCATIONS:
                 raise ValueError('redacted result bound')

@@ -1,0 +1,246 @@
+"""Hermetic file-backed image fixtures and archive boundary regression."""
+import io
+import json
+import os
+from pathlib import Path
+import tarfile
+
+import pytest
+
+from peaso import container_image_archive_20261020 as archive
+from peaso import trivy_container_runner_20261020 as runner
+
+
+def wire(value):
+    return json.dumps(value, separators=(',', ':')).encode()
+
+
+def image(tmp_path, *, bad=None):
+    layer = tmp_path / 'source.tar'
+    with tarfile.open(layer, 'w', format=tarfile.USTAR_FORMAT) as tar:
+        def add(name, kind, data=b'', link=''):
+            item = tarfile.TarInfo(name)
+            item.type, item.linkname = kind, link
+            if kind == tarfile.REGTYPE:
+                item.size = len(data)
+                tar.addfile(item, io.BytesIO(data))
+            else:
+                tar.addfile(item)
+        add('etc/', tarfile.DIRTYPE)
+        add('etc/os-release', tarfile.REGTYPE, b'ID=alpine\nVERSION_ID=3.22.0\n')
+        add('usr/', tarfile.DIRTYPE)
+        add('usr/lib/', tarfile.DIRTYPE)
+        add('usr/lib/libc.so', tarfile.REGTYPE, b'library')
+        add('lib', tarfile.SYMTYPE, link='usr/lib')
+        add('lib64', tarfile.SYMTYPE, link='/usr/lib')
+        add('usr/lib/libc-copy.so', tarfile.LNKTYPE, link='usr/lib/libc.so')
+        add('usr/lib/relative.so', tarfile.SYMTYPE, link='../lib/libc.so')
+        if bad == 'escape':
+            add('escape', tarfile.SYMTYPE, link='../../private')
+        if bad == 'special':
+            add('device', tarfile.CHRTYPE)
+        if bad == 'traversal':
+            add('../outside', tarfile.REGTYPE, b'bad')
+        if bad == 'hardescape':
+            add('bad-hardlink', tarfile.LNKTYPE, link='../../outside')
+        # Incompressible source > the old 8 MiB per-layer cap.
+        add('usr/lib/big.bin', tarfile.REGTYPE, os.urandom(9 * 1024 * 1024))
+    raw = layer.read_bytes()
+    config = wire({'os': 'linux', 'architecture': 'amd64',
+        'rootfs': {'type': 'layers', 'diff_ids': [archive.sha(raw)]}})
+    manifest = wire({'schemaVersion': 2, 'mediaType': archive.OCI,
+        'config': {'mediaType': 'application/vnd.oci.image.config.v1+json',
+                   'digest': archive.sha(config), 'size': len(config)},
+        'layers': [{'mediaType': 'application/vnd.oci.image.layer.v1.tar',
+                    'digest': archive.sha(raw), 'size': len(raw)}]})
+    digest = archive.sha(manifest)
+    identity = {'provider': 'aws', 'scope': '123456789012/us-east-1',
+        'immutable_reference': '123456789012.dkr.ecr.us-east-1.amazonaws.com/example@' + digest,
+        'manifest_digest': digest, 'config_digest': archive.sha(config)}
+    return identity, manifest, config, layer
+
+
+def test_file_backed_ordinary_linux_and_bytes_compatibility(tmp_path):
+    identity, manifest, config, layer = image(tmp_path)
+    assert layer.stat().st_size > 8 * 1024 * 1024
+    proof = archive.write_archive(tmp_path / 'docker.tar', identity, manifest, config,
+                                  [layer], archive_format='docker')
+    assert proof['members'] == 10 and proof['expanded_bytes'] > 8 * 1024 * 1024
+    assert not list(tmp_path.glob('peaso-image-layers-*'))
+    with tarfile.open(tmp_path / 'docker.tar') as tar:
+        assert tar.extractfile('layer-0/layer.tar').read() == layer.read_bytes()
+    proof = archive.write_archive(tmp_path / 'oci.tar', identity, manifest, config,
+                                  [layer], archive_format='oci')
+    assert proof['format'] == 'oci'
+    archive.validate(identity, manifest, config, [layer.read_bytes()])
+
+
+def test_report_clean_and_finding_states(tmp_path):
+    identity, _, config, _ = image(tmp_path)
+    diff_ids = archive.decode(config)['rootfs']['diff_ids']
+    base = {'SchemaVersion': 2, 'ArtifactType': 'container_image',
+            'Metadata': {'ImageID': identity['config_digest'], 'DiffIDs': diff_ids},
+            'Results': [{'Class': 'os-pkgs', 'Type': 'alpine', 'Target': 'fixture',
+                         'Packages': [{'Name': 'fixture'}], 'Vulnerabilities': []}]}
+    database = {'fresh': True}
+    clean = runner.parse_report(wire(base), 0, identity, diff_ids=diff_ids, database=database)
+    assert clean['status'] == 'PASS' and clean['complete']
+    base['Results'][0]['Vulnerabilities'] = [{'VulnerabilityID': 'CVE-2026-12345',
+        'PkgName': 'fixture', 'InstalledVersion': '1.0', 'FixedVersion': '1.1',
+        'Status': 'fixed', 'Severity': 'HIGH'}]
+    finding = runner.parse_report(wire(base), 0, identity, diff_ids=diff_ids, database=database)
+    assert finding['status'] == 'FAIL' and finding['complete'] and len(finding['findings']) == 1
+
+
+@pytest.mark.parametrize('bad,reason', [('escape', 'image_path_escape'),
+                                        ('special', 'unsupported_tar_member'),
+                                        ('traversal', 'unsafe_image_path'),
+                                        ('hardescape', 'unsafe_hardlink_target')])
+def test_unsafe_member_rejected_and_cleaned(tmp_path, bad, reason):
+    args = image(tmp_path, bad=bad)
+    output = tmp_path / 'output.tar'
+    with pytest.raises(ValueError, match=reason):
+        archive.write_archive(output, *args[:3], [args[3]], archive_format='docker')
+    assert not output.exists() and not list(tmp_path.glob('peaso-image-layers-*'))
+
+
+def test_tamper_cancel_and_limits(tmp_path, monkeypatch):
+    identity, manifest, config, layer = image(tmp_path)
+    with layer.open('r+b') as stream:
+        stream.seek(1024)
+        stream.write(b'changed')
+    with pytest.raises(ValueError, match='layer_descriptor_mismatch'):
+        archive.validate(identity, manifest, config, [layer])
+    identity, manifest, config, layer = image(tmp_path)
+    def cancel():
+        raise RuntimeError('cancelled')
+    with pytest.raises(RuntimeError, match='cancelled'):
+        archive.write_archive(tmp_path / 'cancel.tar', identity, manifest, config,
+                              [layer], check=cancel)
+    assert not (tmp_path / 'cancel.tar').exists()
+    monkeypatch.setattr(archive, 'MAX_EXPANDED', 8 * 1024 * 1024)
+    with pytest.raises(ValueError, match='expanded_image_bound'):
+        archive.validate(identity, manifest, config, [layer])
+
+
+def test_source_symlink_refused(tmp_path):
+    identity, manifest, config, layer = image(tmp_path)
+    link = tmp_path / 'source-link.tar'
+    link.symlink_to(layer)
+    with pytest.raises(ValueError, match='owned_regular_layer_required'):
+        archive.validate(identity, manifest, config, [link])
+
+
+def test_virtual_files_and_bounded_readers(tmp_path):
+    identity, manifest, config, layer = image(tmp_path)
+    selected = {}
+    def collect(name, reader, size, layer_index):
+        assert layer_index == 0
+        if size < 100:
+            selected[name] = reader.read()
+            assert reader.read() == b''
+    proof = archive.visit_files(identity, manifest, config, [layer], collect)
+    assert proof['visited_files'] == 4 and proof['links_seen'] == 4 and proof['links_skipped'] == 3
+    assert selected['etc/os-release'].startswith(b'ID=alpine')
+    assert selected['usr/lib/libc-copy.so'] == b'library'
+    assert 'lib' not in selected and 'lib64' not in selected
+    assert not list(tmp_path.glob('peaso-image-visit-*'))
+
+
+def test_gzip_path_and_diffid(tmp_path):
+    import gzip
+    identity, manifest_raw, config, layer = image(tmp_path)
+    compressed = tmp_path / 'compressed.tar.gz'
+    with layer.open('rb') as source, gzip.open(compressed, 'wb', compresslevel=1) as dest:
+        while part := source.read(65536):
+            dest.write(part)
+    manifest = archive.decode(manifest_raw)
+    manifest['layers'][0] = {'mediaType': 'application/vnd.oci.image.layer.v1.tar+gzip',
+                             'size': compressed.stat().st_size,
+                             'digest': archive.sha(compressed.read_bytes())}
+    manifest_raw = wire(manifest)
+    identity['manifest_digest'] = archive.sha(manifest_raw)
+    identity['immutable_reference'] = identity['immutable_reference'].split('@')[0] + '@' + identity['manifest_digest']
+    proof = archive.write_archive(tmp_path / 'gzip-oci.tar', identity, manifest_raw, config,
+                                  [compressed], archive_format='oci')
+    assert proof['members'] == 10
+    with tarfile.open(tmp_path / 'gzip-oci.tar') as tar:
+        blob = tar.extractfile('blobs/sha256/' + manifest['layers'][0]['digest'][7:]).read()
+    assert blob == compressed.read_bytes()
+    with compressed.open('ab') as stream:
+        stream.write(b'junk')
+    with pytest.raises(ValueError):
+        archive.validate(identity, manifest_raw, config, [compressed])
+
+
+def with_second_layer(tmp_path, original, member_name, kind=tarfile.REGTYPE, data=b''):
+    identity, manifest_raw, config_raw, first = original
+    second = tmp_path / 'second.tar'
+    with tarfile.open(second, 'w', format=tarfile.USTAR_FORMAT) as tar:
+        item = tarfile.TarInfo(member_name)
+        item.type = kind
+        item.size = len(data) if kind == tarfile.REGTYPE else 0
+        tar.addfile(item, io.BytesIO(data) if kind == tarfile.REGTYPE else None)
+    config = archive.decode(config_raw)
+    config['rootfs']['diff_ids'].append(archive.sha(second.read_bytes()))
+    config_raw = wire(config)
+    manifest = archive.decode(manifest_raw)
+    manifest['config']['digest'] = archive.sha(config_raw)
+    manifest['config']['size'] = len(config_raw)
+    manifest['layers'].append({'mediaType': 'application/vnd.oci.image.layer.v1.tar',
+                               'digest': archive.sha(second.read_bytes()), 'size': second.stat().st_size})
+    manifest_raw = wire(manifest)
+    identity = dict(identity)
+    identity['config_digest'] = archive.sha(config_raw)
+    identity['manifest_digest'] = archive.sha(manifest_raw)
+    identity['immutable_reference'] = identity['immutable_reference'].split('@')[0] + '@' + identity['manifest_digest']
+    return identity, manifest_raw, config_raw, [first, second]
+
+
+def test_whiteout_excludes_deleted_file_from_final_visit(tmp_path):
+    identity, manifest, config, layers = with_second_layer(tmp_path, image(tmp_path),
+                                                             'etc/.wh.os-release')
+    seen = []
+    proof = archive.visit_files(identity, manifest, config, layers,
+                                lambda name, reader, size, layer: seen.append(name))
+    assert 'etc/os-release' not in seen
+    assert 'etc/.wh.os-release' not in seen
+    assert proof['visited_files'] == 3
+
+
+def test_partial_callback_retains_prior_verified_layer_only(tmp_path):
+    identity, manifest, config, layers = with_second_layer(tmp_path, image(tmp_path),
+                                                             'device', tarfile.CHRTYPE)
+    partial, final = [], []
+    with pytest.raises(ValueError, match='unsupported_tar_member'):
+        archive.visit_files(identity, manifest, config, layers,
+            lambda name, reader, size, layer: final.append(name),
+            partial_callback=lambda name, reader, size, layer: partial.append((name, layer)))
+    assert ('etc/os-release', 0) in partial and not final
+
+
+def test_descriptor_member_and_archive_caps(tmp_path, monkeypatch):
+    identity, manifest, config, layer = image(tmp_path)
+    monkeypatch.setattr(archive, 'MAX_LAYER', 8 * 1024 * 1024)
+    with pytest.raises(ValueError, match='unsupported_descriptor'):
+        archive.validate(identity, manifest, config, [layer])
+    monkeypatch.setattr(archive, 'MAX_LAYER', 512 * 1024 * 1024)
+    monkeypatch.setattr(archive, 'MAX_MEMBERS', 5)
+    with pytest.raises(ValueError, match='tar_member_bound'):
+        archive.validate(identity, manifest, config, [layer])
+    monkeypatch.setattr(archive, 'MAX_MEMBERS', 200000)
+    monkeypatch.setattr(archive, 'MAX_ARCHIVE', 1024 * 1024)
+    output = tmp_path / 'too-large.tar'
+    with pytest.raises(ValueError, match='owned_archive_bound'):
+        archive.write_archive(output, identity, manifest, config, [layer])
+    assert not output.exists()
+
+
+def test_low_free_disk_refuses_and_cleans(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    identity, manifest, config, layer = image(tmp_path)
+    monkeypatch.setattr(archive.shutil, 'disk_usage', lambda _: SimpleNamespace(free=0))
+    output = tmp_path / 'no-space.tar'
+    with pytest.raises(ValueError, match='scratch_disk_bound'):
+        archive.write_archive(output, identity, manifest, config, [layer])
+    assert not output.exists() and not list(tmp_path.glob('peaso-image-layers-*'))

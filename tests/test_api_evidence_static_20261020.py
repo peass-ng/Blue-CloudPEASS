@@ -16,6 +16,33 @@ SKIPPED_SHA256 = '73162790353f206ca8b2e8e8fd5bc3d505d04960bb7736a448c17fef414635
 RUNTIME = ('evidence_static.py', 'evidence_static_source_manifest.json',
            'evidence_static_data_manifest.json', 'evidence_static_field_specs.json',
            'evidence_static_privesc_entries.json')
+REVIEWED_SUCCESSORS = {
+    5155: {
+        'check_id': 'aws.claude_a.accessanalyzer.active_without_findings',
+        'old': 'No findings were found in the collected evidence. Analyzer findings identify access relationships needing review; finding count does not prove an exploitable path.',
+        'current': 'The active regional IAM Access Analyzers returned no active findings after complete collection.',
+    },
+    10040: {
+        'check_id': 'azure.review.machine_learning.selected_command_job_secret_indicators',
+        'old': 'Both offline detectors found no supported secret in selected Machine Learning Command-job literals. Only returned Command-job literals are covered. ',
+        'current': 'The selected Command-job literals could not be fully inspected; no clean result is established. Only returned Command-job literals are covered. ',
+    },
+    10041: {
+        'check_id': 'azure.review.machine_learning.selected_command_job_secret_indicators',
+        'old': 'A likely secret was detected in selected Machine Learning Command-job literals. Its value is hidden and was not validated. Only returned Command-job literals are covered. ',
+        'current': 'The selected Command-job literals could not be fully inspected; no clean result is established. Only returned Command-job literals are covered. ',
+    },
+    10043: {
+        'check_id': 'azure.review.databricks.selected_notebook_source_secret_indicators',
+        'old': 'Both offline detectors found no supported secret in the selected Databricks notebook source. Only the selected point-in-time notebook export is covered. ',
+        'current': 'The selected notebook source could not be fully inspected; no clean result is established. Only the selected point-in-time notebook export is covered. ',
+    },
+    10044: {
+        'check_id': 'azure.review.databricks.selected_notebook_source_secret_indicators',
+        'old': 'A likely secret was detected in the selected Databricks notebook source. Its value is hidden and was not validated. Only the selected point-in-time notebook export is covered. ',
+        'current': 'The selected notebook source could not be fully inspected; no clean result is established. Only the selected point-in-time notebook export is covered. ',
+    },
+}
 
 
 def _stage(tmp_path):
@@ -41,7 +68,8 @@ def _run(stage, script):
     # the actual source package, as they do after installation.
     assert hashlib.sha256(ARCHIVE.read_bytes()).hexdigest() == ARCHIVE_SHA256
     env=dict(os.environ, PYTHONPATH=str(NATIVE_ROOT)+os.pathsep+str(ROOT)+os.pathsep+str(stage))
-    result=subprocess.run([sys.executable,'-c',script,str(ARCHIVE),str(stage)],
+    result=subprocess.run([sys.executable,'-c',script,str(ARCHIVE),str(stage),
+                           json.dumps(REVIEWED_SUCCESSORS)],
                           cwd=NATIVE_ROOT,env=env,text=True,capture_output=True,timeout=180)
     assert result.returncode == 0, result.stdout+'\n'+result.stderr
     return result.stdout
@@ -54,17 +82,25 @@ path=Path(sys.argv[2])/'peaso/server/evidence_static.py'
 spec=importlib.util.spec_from_file_location('evidence_static_cold',path)
 module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
 assert not any(name=='peaso.checks' or name.startswith('peaso.checks.') or name=='peaso.analysis' or name.startswith('peaso.analysis.') or name=='peaso.engine' for name in sys.modules)
-count=0
+reviewed=json.loads(sys.argv[3]);count=0;changed=set()
 with gzip.open(sys.argv[1],'rt',encoding='utf-8') as file:
  for line in file:
   row=json.loads(line);finding=copy.deepcopy(row['finding']);before=copy.deepcopy(finding)
   try: actual={'value':module.evidence_summary(finding)}
   except Exception as error: actual={'error':type(error).__name__,'message':str(error)}
-  assert actual==row['expected'],(count,row['finding']['check_id'],actual,row['expected'])
+  successor=reviewed.get(str(count))
+  if successor:
+   assert row['finding']['check_id']==successor['check_id'],count
+   assert row['expected']=={'value':successor['old']},count
+   assert actual=={'value':successor['current']},(count,actual)
+   changed.add(count)
+  else:
+   assert actual==row['expected'],(count,row['finding']['check_id'],actual,row['expected'])
   assert finding==row['after'],count
   count+=1
   assert not any(name=='peaso.checks' or name.startswith('peaso.checks.') or name=='peaso.analysis' or name.startswith('peaso.analysis.') or name=='peaso.engine' for name in sys.modules),count
 assert count==12145,count
+assert changed=={int(index) for index in reviewed},changed
 print('cold parity',count)
 '''
 
@@ -110,19 +146,25 @@ from pathlib import Path
 path=Path(sys.argv[2])/'peaso/server/evidence_static.py'
 spec=importlib.util.spec_from_file_location('evidence_static_then_native',path)
 module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
-rows=[]
+rows=[];reviewed=json.loads(sys.argv[3]);changed=[]
 with gzip.open(sys.argv[1],'rt',encoding='utf-8') as file:
- for line in file:
+ for index,line in enumerate(file):
   row=json.loads(line)
   if row['kind']=='native-pass' and row['finding']['provider'] not in {x['finding']['provider'] for x in rows}:
    rows.append(row)
-  if len(rows)==4:break
+  if str(index) in reviewed:changed.append((index,row))
 for row in rows:assert module.evidence_summary(row['finding'])==row['expected']['value']
 assert 'peaso.checks' not in sys.modules and 'peaso.analysis' not in sys.modules
 from peaso.checks import CHECKS
 from peaso.finding_observation import evidence_summary as original
 assert len(CHECKS)>=4000,len(CHECKS)
 for row in rows:assert original(row['finding'])==module.evidence_summary(row['finding'])
+assert len(changed)==len(reviewed)
+for index,row in changed:
+ successor=reviewed[str(index)]
+ assert row['finding']['check_id']==successor['check_id']
+ assert row['expected']=={'value':successor['old']}
+ assert original(row['finding'])==module.evidence_summary(row['finding'])==successor['current']
 print('native later',len(CHECKS))
 '''
     assert 'native later' in _run(_stage(tmp_path),script)

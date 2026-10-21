@@ -3,6 +3,8 @@
 Only prepare() accepts selectors; it runs before the supplied auth factory.
 SDK allocation precedes byte bounds. No build, source retrieval or validation.
 """
+
+from peaso.secret_evidence import scan_with_source, target_source
 from copy import deepcopy
 import hashlib
 import importlib
@@ -263,7 +265,7 @@ def collect(plan, session_factory):
                 payload = inline_bytes(response, target)
                 row['native_complete'] = True
                 row['bytes'] = len(payload)
-                outcome = scan_content(payload, row['id'] + '.source.buildspec', timeout=min(15, left(deadline) / 3))
+                outcome = scan_with_source(scan_content, payload, row['id'] + '.source.buildspec', timeout=min(15, left(deadline) / 3), source=target_source(target, resource_id=target['project_arn'], scope=scope, path='source.buildspec'))
                 # Each engine has its own timeout; reserve time for both.
                 leaks = merge_leaks(outcome['leaks'])
                 if len(leaks) > MAX_LEAKS or sum(len(x['locations']) for x in leaks) > MAX_LOCATIONS:

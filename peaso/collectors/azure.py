@@ -48,6 +48,8 @@ from . import azure_key_rotation_evidence_native
 from . import azure_selected_configuration_secret_indicators
 from . import azure_app_settings_secret_indicators
 from . import azure_acr_image_secret_indicators
+from . import azure_selected_aks_image_20261021
+from . import azure_acr_image_vulnerabilities_20261021
 from . import azure_sql_ltr_native
 from . import azure_alert_routing_native
 from . import azure_ai_services_native
@@ -697,7 +699,7 @@ TYPES = tuple(ENDPOINTS) + tuple(AUTHORIZATION) + tuple(DIRECTORY) + tuple(DIREC
     *azure_defender_network_native.NATIVE_TYPES, *azure_adaptive_network_native.NATIVE_TYPES, *azure_entra_user_native.NATIVE_TYPES, "directory_user_group_membership", "sql_managed_instance_administrator", "intune_diagnostic_setting",
     "storage_local_user", "sql_backup_short_term_policy", "eventgrid_subscription",
     *azure_vault_key_versions_native.NATIVE_TYPES, *azure_iot_policy_native.NATIVE_TYPES, *azure_function_limits_native.NATIVE_TYPES, *azure_functions_runtime_native.NATIVE_TYPES, *azure_secret_versions_native.NATIVE_TYPES, *azure_storage_recovery_metadata_native.NATIVE_TYPES, "sentinel_workspace", *azure_incident_inventory_native.NATIVE_TYPES, *azure_security_correlation_native.NATIVE_TYPES, *azure_apim_diagnostic_evidence_native.NATIVE_TYPES, *azure_storage_blob_keys_native.NATIVE_TYPES, *azure_audit_storage_native.NATIVE_TYPES, "assessment_metadata",
-    azure_app_settings_secret_indicators.KIND, azure_acr_image_secret_indicators.KIND, azure_selected_configuration_secret_indicators.KIND,
+    azure_app_settings_secret_indicators.KIND, azure_acr_image_secret_indicators.KIND, azure_acr_image_vulnerabilities_20261021.KIND, azure_selected_aks_image_20261021.KIND, azure_selected_aks_image_20261021.VULN_KIND, azure_selected_configuration_secret_indicators.KIND,
     *azure_ai_services_native.NATIVE_TYPES,
     *azure_public_edge_native.NATIVE_TYPES, *azure_storage_lifecycle_native.NATIVE_TYPES, *azure_key_rotation_evidence_native.NATIVE_TYPES, "frontdoor_and_cdn_endpoint", "afd_profile", "afd_domain", "afd_route", "afd_security_policy",
 )
@@ -1039,6 +1041,8 @@ class AzureTransport:
                 if len(raw) > max_response_bytes:
                     raise AzureReadError("response_too_large")
             value = _strict_native_json(raw)
+            from peaso.secret_evidence import native_environment_resources
+            native_environment_resources(value, provider='azure', method='GET' if body is None else 'POST', url=url, body=body)
             if is_network_audience(audience):
                 value = project_response(value, audience)
             if capture_subject:
@@ -1551,7 +1555,7 @@ class _Reader:
 
 
 def _selected(options, requirements):
-    wanted = options.get("inventories", [kind for kind in TYPES if kind not in ("app_service_identity_detail", azure_app_settings_secret_indicators.KIND, azure_acr_image_secret_indicators.KIND, azure_selected_configuration_secret_indicators.KIND, azure_selected_storage_secret_indicators.KIND, azure_devops_selected_content_secret_indicators.KIND) + azure_selected_declaration_secret_indicators.KINDS + azure_selected_log_sample_secret_indicators.KINDS + (azure_ml_selected_job_secret_indicators.KIND, azure_databricks_notebook_secret_indicators.KIND, azure_function_settings_declarations_20261020.KIND) + azure_ml_selected_asset_secret_indicators.KINDS]) if requirements is None else requirements
+    wanted = options.get("inventories", [kind for kind in TYPES if kind not in ("app_service_identity_detail", azure_app_settings_secret_indicators.KIND, azure_acr_image_secret_indicators.KIND, azure_acr_image_vulnerabilities_20261021.KIND, azure_selected_aks_image_20261021.KIND, azure_selected_aks_image_20261021.VULN_KIND, azure_selected_configuration_secret_indicators.KIND, azure_selected_storage_secret_indicators.KIND, azure_devops_selected_content_secret_indicators.KIND) + azure_selected_declaration_secret_indicators.KINDS + azure_selected_log_sample_secret_indicators.KINDS + (azure_ml_selected_job_secret_indicators.KIND, azure_databricks_notebook_secret_indicators.KIND, azure_synapse_selected_notebook_secret_indicators.KIND, azure_function_settings_declarations_20261020.KIND) + azure_ml_selected_asset_secret_indicators.KINDS]) if requirements is None else requirements
     if not isinstance(wanted, (list, tuple)) or any(kind not in TYPES for kind in wanted):
         raise ValueError("unsupported Azure inventory requirement")
     selected = set(wanted)
@@ -1803,18 +1807,20 @@ def _complete_diagnostic_inventory(reader, scopes):
 
 
 from . import azure_selected_storage_secret_indicators, azure_devops_selected_content_secret_indicators
+from . import azure_flex_deployment_archives_20261021
 from . import azure_selected_secret_integration_20261020
 from . import azure_selected_declaration_secret_indicators
 from . import azure_selected_log_sample_secret_indicators
 from . import azure_ml_selected_job_secret_indicators
 from . import azure_databricks_notebook_secret_indicators
+from . import azure_synapse_selected_notebook_secret_indicators
 from . import azure_ml_selected_asset_secret_indicators
 from . import azure_function_settings_declarations_20261020, azure_function_settings_runtime_hooks_20261020
 from . import azure_nsp_query_cmk_runtime_20261020
 TYPES += azure_nsp_query_cmk_runtime_20261020.KINDS
 from . import azure_function_package_integration_20261020 as package_source
 TYPES += (package_source.KIND,)
-TYPES += (azure_selected_storage_secret_indicators.KIND, azure_devops_selected_content_secret_indicators.KIND) + azure_selected_declaration_secret_indicators.KINDS + azure_selected_log_sample_secret_indicators.KINDS + (azure_ml_selected_job_secret_indicators.KIND, azure_databricks_notebook_secret_indicators.KIND, azure_function_settings_declarations_20261020.KIND) + azure_ml_selected_asset_secret_indicators.KINDS
+TYPES += (azure_selected_storage_secret_indicators.KIND, azure_devops_selected_content_secret_indicators.KIND, azure_flex_deployment_archives_20261021.KIND) + azure_selected_declaration_secret_indicators.KINDS + azure_selected_log_sample_secret_indicators.KINDS + (azure_ml_selected_job_secret_indicators.KIND, azure_databricks_notebook_secret_indicators.KIND, azure_synapse_selected_notebook_secret_indicators.KIND, azure_function_settings_declarations_20261020.KIND) + azure_ml_selected_asset_secret_indicators.KINDS
 
 
 class _MetadataOnlyCollection(Exception):
@@ -1849,6 +1855,7 @@ def collect(connector, requirements=None, *, transport=None):
     azure_selected_log_sample_secret_indicators.selected_targets(options, connector.get('scopes', []))
     azure_ml_selected_job_secret_indicators.selected_targets(options, connector.get('scopes', []))
     azure_databricks_notebook_secret_indicators.selected_targets(options, connector.get('scopes', []))
+    azure_synapse_selected_notebook_secret_indicators.selected_targets(options, connector.get('scopes', []))
     azure_ml_selected_asset_secret_indicators.selected_targets(options, connector.get('scopes', []))
     function_targets, function_checks = azure_function_settings_declarations_20261020.preflight(
         options, connector.get('scopes', []), options.get('_azure_function_settings_checks', []))
@@ -1856,9 +1863,12 @@ def collect(connector, requirements=None, *, transport=None):
         from peaso.checks.azure_function_settings_runtime_admission_20261020 import reviewed_inputs as function_reviewed_inputs
         function_reviewed_inputs()
     azure_selected_storage_secret_indicators.selected_targets(options, connector.get('scopes', []))
+    azure_flex_deployment_archives_20261021.selected_targets(options, connector.get('scopes', []))
     azure_devops_selected_content_secret_indicators.selected_targets(options, connector.get('scopes', []), auth)
     azure_app_settings_secret_indicators.selected_targets(options, connector.get('scopes', []))
     azure_acr_image_secret_indicators.selected_targets(options, connector.get('scopes', []))
+    azure_selected_aks_image_20261021.selected_targets(options, connector.get('scopes', []), options.get('_azure_aks_image_named_checks', []))
+    azure_acr_image_vulnerabilities_20261021.selected_targets(options, connector.get('scopes', []))
     azure_databricks_native.validate_auth(auth)
     azure_databricks_native.normalize(options)
     wanted = _selected(options, requirements)
@@ -2518,6 +2528,10 @@ def collect(connector, requirements=None, *, transport=None):
                     jobs.append((child, child_scope, ENDPOINTS[kind][0].split("/")[0], fetch))
         reader.run(jobs)
         jobs = []
+        if options.get("_azure_app_service_runtime_checks") == ["azure.review.app_service.runtime_support_declared"]:
+            from . import azure_app_service_runtime_producer_20261021
+            azure_app_service_runtime_producer_20261021.collect_selected(
+                reader, transport.request, scopes, reader.collections)
         if "key_rotation_policy" in wanted:
             for collection in [c for c in reader.collections if c["type"] == "key_metadata"]:
                 if collection["status"] not in ("collected", "empty"):
@@ -3038,13 +3052,17 @@ def collect(connector, requirements=None, *, transport=None):
         azure_selected_log_sample_secret_indicators.collect(reader, transport, scopes, wanted, options)
         azure_ml_selected_job_secret_indicators.collect(reader, transport, scopes, wanted, options)
         azure_databricks_notebook_secret_indicators.collect(reader, transport, scopes, wanted, options)
+        azure_synapse_selected_notebook_secret_indicators.collect(reader, transport, scopes, wanted, options)
         azure_ml_selected_asset_secret_indicators.collect(reader, transport, scopes, wanted, options)
         azure_function_settings_declarations_20261020.collect(reader, transport, scopes, wanted, options,
             named_checks=function_checks, credential_context_id=credential_context_id, customer_context_id=customer_context_id)
         azure_selected_storage_secret_indicators.collect(reader, transport, scopes, wanted, options)
+        azure_flex_deployment_archives_20261021.collect(reader, transport, scopes, wanted, options)
         azure_devops_selected_content_secret_indicators.collect(reader, request, transport, scopes, wanted, options, auth)
         azure_app_settings_secret_indicators.collect(reader, transport, scopes, wanted, options)
         azure_acr_image_secret_indicators.collect(reader, transport, scopes, wanted, options)
+        azure_selected_aks_image_20261021.collect(reader, request, transport, scopes, wanted, options, auth)
+        azure_acr_image_vulnerabilities_20261021.collect(reader, transport, scopes, wanted, options)
         azure_ai_services_native.collect(reader, request, scopes, wanted)
         azure_disclosure_native.collect(reader, transport, scopes, options,
                                         credential_context_id, customer_context_id)
@@ -3125,12 +3143,16 @@ def collect(connector, requirements=None, *, transport=None):
     metadata.update(getattr(reader, 'log_sample_secret_metadata', {}))
     metadata.update(getattr(reader, 'ml_command_job_secret_metadata', {}))
     metadata.update(getattr(reader, 'databricks_notebook_secret_metadata', {}))
+    metadata.update(getattr(reader, 'synapse_notebook_secret_metadata', {}))
     metadata.update(getattr(reader, 'ml_asset_secret_metadata', {}))
     metadata.update(getattr(reader, 'function_declaration_metadata', {}))
     metadata.update(getattr(reader, 'storage_source_secret_metadata', {}))
+    metadata.update(getattr(reader, 'flex_archive_metadata', {}))
     metadata.update(getattr(reader, 'devops_selected_metadata', {}))
     metadata.update(getattr(reader, 'app_setting_secret_metadata', {}))
     metadata.update(getattr(reader, 'acr_image_secret_metadata', {}))
+    metadata.update(getattr(reader, 'azure_aks_image_metadata', {}))
+    metadata.update(getattr(reader, 'acr_image_vulnerability_metadata', {}))
     if "security_admin_rule" in wanted:
         admin_rows = [c for c in reader.collections if c["type"] == "security_admin_rule" and c["scope"] in scopes]
         vnet_rows = {c["scope"]: c for c in reader.collections if c["type"] == "vnet" and c["scope"] in scopes}

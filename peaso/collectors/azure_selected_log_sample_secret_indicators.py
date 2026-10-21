@@ -1,4 +1,6 @@
 """Unregistered selected Azure application-message samples; no cached raw rows."""
+
+from peaso.secret_evidence import scan_with_source, target_source
 from copy import deepcopy
 from datetime import datetime, timedelta, timezone
 import http.client
@@ -231,8 +233,8 @@ def _scan(reader, transport, profile, target, scope, state, receipts):
         state['rows'] += len(values)
         payload = b'\n\n'.join(values); del values
         if len(payload) > MAX_CONTENT: raise Incomplete('content_limit')
-        result = scan_content(payload, ident + '.sample_messages', timeout=remaining(reader,state)/2,
-            _redact_values=lambda values: remember(reader,'configuration_secret_redactions',values))
+        result = scan_with_source(scan_content, payload, ident + '.sample_messages', timeout=remaining(reader,state)/2,
+            _redact_values=lambda values: remember(reader,'configuration_secret_redactions',values), source=target_source(target, resource_id=ident, scope=scope, location_kind='log'))
         marker['parts'] = [{'bytes':len(payload),'engines':deepcopy(result['engines']),'complete':result['complete']}]; del payload
         leaks = merge_leaks(result['leaks']); bounded = []; locations = 0
         for leak in leaks:

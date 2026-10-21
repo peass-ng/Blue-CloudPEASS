@@ -1,5 +1,7 @@
 """Unregistered, default-off named DevOps content reads; no content cache or writes."""
 import base64
+from peaso.secret_evidence import scan_with_source, source_context, target_source
+
 from copy import deepcopy
 import hashlib
 import http.client
@@ -217,7 +219,7 @@ def _part(reader, state, marker, payload, label, redactions):
         raise Incomplete('content_budget')
     if sum(p['bytes'] for p in marker['parts']) + len(data) > MAX_CONTENT:
         raise Incomplete('content_budget')
-    result = scan_content(data, marker['identity'] + '.' + label,
+    result = scan_with_source(scan_content, data, marker['identity'] + '.' + label, source={},
         timeout=remaining(reader, state) / 2, _redact_values=redactions.update)
     marker['parts'].append({'location': label, 'bytes': len(data), 'engines': deepcopy(result['engines']),
         'complete': result['complete']})
@@ -284,7 +286,8 @@ def _scan(reader, request, transport, credential, target, state, receipts, redac
                     complete = False; continue
                 if any(s in value for s in ('$(', '$[', '${{')):
                     complete = False
-                _part(reader, state, marker, value, 'variable-' + str(n + 1), redactions)
+                with source_context(**target_source(target, resource_id=ident, path='variables[' + json.dumps(name) + '].value', location_kind='configuration')):
+                    _part(reader, state, marker, value, 'variable-' + str(n + 1), redactions)
             if definition.get('variableGroups') not in (None, []):
                 complete = False
             del definition, variables, repository, process
@@ -315,7 +318,8 @@ def _scan(reader, request, transport, credential, target, state, receipts, redac
             complete = False
         if target['surface'] == 'pipeline':
             complete = _yaml_complete(text) and complete
-        _part(reader, state, marker, text, 'selected-file', redactions)
+        with source_context(**target_source(target, resource_id=repo, path=path)):
+            _part(reader, state, marker, text, 'selected-file', redactions)
         del text
         remaining(reader, state)
         marker['complete'] = complete and all(p['complete'] for p in marker['parts'])

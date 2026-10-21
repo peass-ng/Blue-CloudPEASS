@@ -286,7 +286,7 @@ def azure_assignment_reviews(snapshot, resources):
     return output
 
 
-def review_findings(snapshot, resources):
+def review_findings(snapshot, resources, *, include_manual_only=True):
     output = []
     for resource in resources:
         declared = [] if _azure_definition_only(resource) else grants(resource)
@@ -295,7 +295,7 @@ def review_findings(snapshot, resources):
             output.append(finding(snapshot, resource, "least_privilege", "analysis.coverage",
                 "Permission criticality context incomplete", "info", {"source": source(snapshot, resource, "grants"),
                     "unclassified_grants": uncertain, "risk_state": "unknown", "reason": "permission_criticality_unknown"}, status="UNKNOWN"))
-        high = [g for g in declared if g["allowed_declaration"] and RANK[g["severity"]] <= RANK["high"]]
+        high = [g for g in declared if g["allowed_declaration"] and RANK[g["severity"]] <= RANK["high"]] if include_manual_only else []
         if high:
             severity = min((g["severity"] for g in high), key=RANK.get)
             evidence = {"source": source(snapshot, resource, "grants"), "grants": high,
@@ -306,8 +306,8 @@ def review_findings(snapshot, resources):
                 "criticality_source": "Bundled Blue-CloudPEASS standalone HackTricks permission criticality; combinations are not evaluated"}
             output.append(finding(snapshot, resource, "least_privilege", "analysis.grant_review",
                 "Review high-impact or broad declared grants", severity, evidence))
-        telemetry = usage(snapshot, resource)
-        if resource["type"] in IAM_TYPES and telemetry["inactive_observation"]:
+        telemetry = usage(snapshot, resource) if include_manual_only else None
+        if telemetry is not None and resource["type"] in IAM_TYPES and telemetry["inactive_observation"]:
             output.append(finding(snapshot, resource, "least_privilege", "analysis.inactive_identity",
                 "Review identity with no activity in the observed window", "low",
                 {"source": source(snapshot, resource, "usage"), "usage": telemetry, "risk_state": "unknown"}))

@@ -275,8 +275,14 @@
     "lambda_selected_environment": "lambda",
     "configuration_selected_content": "account",
     "s3_selected_source_content": "s3",
+    "ecs_selected_environment_file_content": "ecs",
+    "workload_referenced_source_content": "account",
+    "build_deployment_referenced_source_content": "account",
     "codebuild_selected_inline_buildspec": "codebuild",
-    "aws_selected_workload_command_literals": "account"
+    "aws_selected_workload_command_literals": "account",
+    "ecr_selected_image_vulnerabilities": "ecr",
+    "aws_selected_workload_image_secrets": "ecr",
+    "ecr_public_selected_image_content": "ecr-public"
   },
   "azure": {
     "access_review_definition": "Microsoft.Graph",
@@ -474,6 +480,9 @@
     "web_pubsub": "Microsoft.SignalRService",
     "app_service_selected_settings": "appservice",
     "acr_selected_image": "containerregistry",
+    "acr_selected_image_vulnerabilities": "containerregistry",
+    "azure_selected_aks_pod_image": "Microsoft.ContainerService",
+    "azure_selected_aks_pod_image_vulnerabilities": "Microsoft.ContainerService",
     "cognitive_account_audit_logging": "Microsoft.CognitiveServices",
     "cognitive_account_managed_identity": "Microsoft.CognitiveServices",
     "cognitive_account_outbound_restriction": "Microsoft.CognitiveServices",
@@ -487,10 +496,12 @@
     "hsm_audit_destination_declaration": "Microsoft.KeyVault",
     "azure_configuration_selected_content": "Azure configuration",
     "azure_storage_selected_source": "Microsoft.Storage",
+    "azure_flex_configured_deployment_archives": "Microsoft.Web",
     "azure_devops_selected_content": "Azure DevOps",
     "azure_app_configuration_selected_values": "Microsoft.AppConfiguration",
     "azure_data_factory_selected_declarations": "Microsoft.DataFactory",
     "azure_synapse_selected_pipelines": "Microsoft.Synapse",
+    "azure_synapse_selected_notebook_source": "Microsoft.Synapse",
     "azure_selected_workspace_log_sample": "Microsoft.OperationalInsights",
     "azure_selected_application_trace_sample": "Microsoft.Insights",
     "azure_ml_selected_command_job": "Microsoft.MachineLearningServices",
@@ -555,6 +566,10 @@
     "gcs_selected_object": "storage",
     "gke_cluster": "container",
     "gke_workload_literal": "container",
+    "appengine_flex_selected_version_image_secrets": "appengine",
+    "appengine_flex_selected_version_image_vulnerabilities": "appengine",
+    "gke_selected_pod_image_secrets": "container",
+    "gke_selected_pod_image_vulnerabilities": "container",
     "iam_policy": "iam",
     "image": "compute",
     "instance": "compute",
@@ -607,7 +622,11 @@
     "workbench_selected_referenced_source_20261020": "notebooks",
     "dataflow_selected_package_source": "dataflow",
     "batch_selected_mounted_script_source": "batch",
-    "cloudrun_job_declared_image": "run"
+    "cloudrun_job_declared_image": "run",
+    "cloud_run_selected_job_image_vulnerabilities": "run",
+    "artifact_selected_image_vulnerabilities": "artifactregistry",
+    "cloudrun_worker_pool_selected_revision_image": "run",
+    "developerconnect_selected_file": "developerconnect"
   },
   "k8s": {
     "admission_policy": "kubernetes",
@@ -641,6 +660,10 @@
     "k8s_selected_literals": "kubernetes",
     "kubelet_configmap_declaration": "kubernetes",
     "k8s_selected_log_samples": "kubernetes",
-    "k8s_selected_metadata": "kubernetes"
+    "k8s_selected_registry_image_secrets": "kubernetes",
+    "k8s_selected_registry_image_vulnerabilities": "kubernetes",
+    "k8s_selected_metadata": "kubernetes",
+    "k8s_selected_text_content": "kubernetes",
+    "k8s_selected_flux_artifact": "kubernetes"
   }
 }

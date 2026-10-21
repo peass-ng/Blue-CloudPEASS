@@ -3,8 +3,11 @@
 Uncached GETs only. Closing reads prove observed association, not executed bytes.
 No delegation to another optional kind and no mutation of immutable GCS helpers.
 """
+
+from peaso.secret_evidence import scan_with_source, target_source
 from copy import deepcopy
 from datetime import datetime, timezone
+from types import FunctionType
 import http.client
 import json
 import logging
@@ -19,6 +22,7 @@ from peaso.secret_scanning import scan_content, merge_leaks, _fingerprint, redac
 from . import gcp_selected_object_secret_indicators as objects
 from . import gcp_git_transport as git
 from .gcp_dataform_secret_indicators import _json
+from .aws_package_content_indicators import scan_zip, PartialArchive
 
 SCHEMA = 'gcp-dataproc-referenced-source-v1'
 MARKER = 'DataprocReferencedSourceSecretIndicators'
@@ -26,10 +30,13 @@ OPTION = 'selected_dataproc_referenced_sources'
 MAX_TARGETS, MAX_CALLS, MAX_SECONDS = 4, 36, 120
 MAX_METADATA, MAX_CONTENT, MAX_TOTAL = 65536, 1048576, 8388608
 MAX_LEAKS, MAX_LOCATIONS = 256, 512
+MAX_ARCHIVE_EXPANDED, MAX_ARCHIVE_MEMBERS, MAX_ARCHIVE_MEMBER = 4194304, 100, 1048576
+ARCHIVE_TYPES = {'application/zip', 'application/x-zip-compressed', 'application/octet-stream'}
 SCOPE = re.compile(r'projects/([a-z][a-z0-9-]{4,28}[a-z0-9])\Z')
 UUID = re.compile(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\Z')
 JOB_FIELDS = {'pysparkJob.mainPythonFileUri': '.py', 'sparkRJob.mainRFileUri': '.R',
               'hiveJob.queryFileUri': None, 'pigJob.queryFileUri': None, 'sparkSqlJob.queryFileUri': None}
+PYSPARK_DEPENDENCY = re.compile(r'pysparkJob\.pythonFileUris\[(0|[1-9][0-9]?)\]\Z')
 PROFILES = {
     'job': {'kind': 'dataproc_selected_job_source', 'check': 'gcp.review.dataproc.selected_job_referenced_source_secret_indicators',
             'title': 'Captured selected Dataproc job referenced source has no detected secrets'},
@@ -58,7 +65,7 @@ def parse(target):
     match = re.fullmatch(r'(projects/[a-z][a-z0-9-]{4,28}[a-z0-9])/regions/[a-z][a-z0-9-]{0,62}/' + tail,
                          resource) if isinstance(resource, str) else None
     field = target['field']
-    if match is None or not isinstance(field, str) or (field not in JOB_FIELDS if profile == 'job' else
+    if match is None or not isinstance(field, str) or ((field not in JOB_FIELDS and PYSPARK_DEPENDENCY.fullmatch(field) is None) if profile == 'job' else
             re.fullmatch(r'config.initializationActions\[(0|[1-9][0-9]?)\].executableFile', field) is None):
         raise Incomplete('invalid_selection')
     bucket, name, generation = (target[k] for k in ('bucket', 'object', 'generation'))
@@ -75,8 +82,8 @@ def parse(target):
             or not isinstance(generation, str) or not objects._DECIMAL.fullmatch(generation)
             or int(generation) > 9223372036854775807):
         raise Incomplete('invalid_selection')
-    suffix = JOB_FIELDS.get(field)
-    if suffix and not name.endswith(suffix):
+    suffixes = ('.py', '.zip', '.egg') if PYSPARK_DEPENDENCY.fullmatch(field) else (JOB_FIELDS.get(field),)
+    if suffixes != (None,) and not name.endswith(suffixes):
         raise Incomplete('invalid_selection')
     return match[1]
 
@@ -242,9 +249,19 @@ def reference(data, target):
     if profile == 'job':
         unions = {'hadoopJob', 'sparkJob', 'pysparkJob', 'hiveJob', 'pigJob', 'sparkRJob', 'sparkSqlJob', 'prestoJob', 'trinoJob', 'flinkJob'}
         outer, field = target['field'].split('.')
+        dependency = PYSPARK_DEPENDENCY.fullmatch(target['field'])
         if (data.get('reference') != {'projectId': scope.split('/')[1], 'jobId': target['resource'].split('/')[-1]}
                 or set(data) & unions != {outer} or not isinstance(data.get(outer), dict)
-                or data[outer].get(field) != uri or 'queryList' in data[outer]):
+                or 'queryList' in data[outer]):
+            raise Incomplete('reference_binding')
+        if dependency:
+            files = data[outer].get('pythonFileUris')
+            offset = int(dependency[1])
+            if (not isinstance(files, list) or not 1 <= len(files) <= 100 or offset >= len(files)
+                    or any(not isinstance(file, str) for file in files)
+                    or files[offset] != uri):
+                raise Incomplete('reference_binding')
+        elif data[outer].get(field) != uri:
             raise Incomplete('reference_binding')
         native_uuid = data.get('jobUuid')
     else:
@@ -263,6 +280,86 @@ def reference(data, target):
     return _fingerprint(json.dumps({'resource': target['resource'], 'uuid': native_uuid, 'field': target['field'], 'uri': uri}, sort_keys=True))
 
 
+def _dependency_metadata(raw, target):
+    """Keep native size/generation checks; accept ZIP media only for indexed dependencies."""
+    if not (PYSPARK_DEPENDENCY.fullmatch(target['field']) and
+            target['object'].endswith(('.zip', '.egg'))):
+        return objects._metadata(json.dumps(raw).encode(), target)
+    if (not isinstance(raw, dict) or set(raw) - set(objects.FIELDS.split(','))
+            or any(raw.get(key) != target['object' if key == 'name' else key]
+                   for key in ('bucket', 'name', 'generation'))
+            or not isinstance(raw.get('size'), str)
+            or not re.fullmatch(r'[1-9][0-9]{0,19}', raw['size'])):
+        raise Incomplete('metadata_identity_mismatch')
+    size = int(raw['size'])
+    mime = raw.get('contentType', '').split(';')[0].strip().lower()
+    if size > MAX_CONTENT:
+        raise Incomplete('oversize')
+    if (mime not in ARCHIVE_TYPES or raw.get('contentEncoding', 'identity') != 'identity'
+            or 'customerEncryption' in raw):
+        raise Incomplete('unsupported_format_or_encryption')
+    return {'size': size, 'type': mime}
+
+
+def _inspect_dependency_archive(payload, ident, target, transport, state):
+    """Inspect a ZIP/.egg in memory; malformed tails retain already observed leaks."""
+    class Deadline:
+        def check_deadline(self):
+            remaining(transport, state)
+
+    scanned = []
+    def inspect_member(raw, name, requests):
+        requests.check_deadline()
+        if (len(raw) > MAX_ARCHIVE_MEMBER
+                or name.lower().endswith(('.zip', '.egg', '.tar', '.tgz', '.gz', '.bz2', '.xz',
+                                          '.7z', '.rar', '.bin', '.pdf', '.png', '.jpg', '.jpeg',
+                                          '.gif', '.exe', '.dll', '.so', '.class', '.pyc', '.wasm'))):
+            raise Incomplete('unsupported_archive')
+        objects._text(bytes(raw))
+        outcome = scan_with_source(scan_content, bytes(raw), ident + '.source',
+            timeout=min(5, remaining(transport, state) / 2),
+            _redact_values=state['redactions'].update,
+            source=target_source(target, resource_id=ident, scope=parse(target)))
+        scanned.append(outcome)
+        requests.check_deadline()
+        return [{'leaks': outcome['leaks']}]
+
+    expanded_cap = min(MAX_ARCHIVE_EXPANDED, 2 * MAX_ARCHIVE_EXPANDED - state['archive_expanded'])
+    member_cap = min(MAX_ARCHIVE_MEMBERS, 2 * MAX_ARCHIVE_MEMBERS - state['archive_members'])
+    if expanded_cap <= 0 or member_cap <= 0:
+        raise Incomplete('unsupported_archive')
+    parser = FunctionType(scan_zip.__code__, dict(scan_zip.__globals__, _scan=inspect_member,
+        ZIP_LIMIT=MAX_CONTENT, EXPANDED_LIMIT=expanded_cap,
+        MEMBER_LIMIT=member_cap), scan_zip.__name__, scan_zip.__defaults__, scan_zip.__closure__)
+    complete = True
+    try:
+        _, expanded, members = parser(payload, Deadline())
+        if not scanned:
+            raise Incomplete('unsupported_archive')
+    except PartialArchive:
+        complete = False
+        expanded, members = expanded_cap, member_cap
+    except Exception:
+        if not any(part['leaks'] for part in scanned):
+            state['archive_expanded'] += expanded_cap
+            state['archive_members'] += member_cap
+            raise Incomplete('unsupported_archive') from None
+        complete = False
+        expanded, members = expanded_cap, member_cap
+    state['archive_expanded'] += expanded
+    state['archive_members'] += members
+    if state['archive_expanded'] > 2 * MAX_ARCHIVE_EXPANDED or state['archive_members'] > 2 * MAX_ARCHIVE_MEMBERS:
+        raise Incomplete('unsupported_archive')
+    leaks = merge_leaks([leak for part in scanned for leak in part['leaks']])
+    versions = {e['engine']: e['version'] for part in scanned for e in part['engines']}
+    engines = [{'engine': engine, 'version': versions[engine],
+                'status': 'complete' if all(any(e['engine'] == engine and e['status'] == 'complete'
+                    for e in part['engines']) for part in scanned) else 'unavailable'}
+               for engine in ('kingfisher', 'trufflehog') if engine in versions]
+    return {'leaks': leaks, 'engines': engines, 'complete': complete and len(engines) == 2
+            and all(e['status'] == 'complete' for e in engines)}
+
+
 def collect_sources(collector, scope, profile):
     targets = selected_targets(collector.options, collector.scopes)
     if not enabled(collector.options, profile):
@@ -271,7 +368,8 @@ def collect_sources(collector, scope, profile):
     with transport.lock:
         if not hasattr(transport, '_dataproc_source_state'):
             transport._dataproc_source_state = {'capture': uuid4().hex, 'deadline': time.monotonic() + MAX_SECONDS,
-                'calls': 0, 'bytes': 0, 'ledger': [], 'redactions': set(), 'lock': threading.RLock(), 'items': {}}
+                'calls': 0, 'bytes': 0, 'ledger': [], 'redactions': set(), 'lock': threading.RLock(), 'items': {},
+                'archive_expanded': 0, 'archive_members': 0}
         state = transport._dataproc_source_state
     output = []
     with state['lock']:
@@ -304,16 +402,18 @@ def collect_sources(collector, scope, profile):
                     metadata_params = {'fields': objects.FIELDS, 'projection': 'noAcl'}
                     object_target = {k: target[k] for k in ('bucket', 'object', 'generation')}
                     before = get('latest_before', object_url, metadata_params)
-                    metadata = objects._metadata(json.dumps(before).encode(), object_target)
+                    metadata = _dependency_metadata(before, target)
                     if metadata['size'] == 0:
                         raise Incomplete('empty_content')
                     state['ledger'][-1]['bound'] = True
                     payload = get('content', object_url, {'generation': target['generation'],
                         'ifGenerationMatch': target['generation'], 'alt': 'media'}, {**metadata, 'generation': target['generation']})
-                    objects._text(payload)
+                    archive = PYSPARK_DEPENDENCY.fullmatch(target['field']) and target['object'].endswith(('.zip', '.egg'))
+                    if not archive:
+                        objects._text(payload)
                     state['ledger'][-1]['bound'] = True
                     after = get('latest_after', object_url, metadata_params)
-                    objects._metadata(json.dumps(after).encode(), object_target)
+                    _dependency_metadata(after, target)
                     if after != before:
                         raise Incomplete('object_changed')
                     state['ledger'][-1]['bound'] = True
@@ -328,15 +428,17 @@ def collect_sources(collector, scope, profile):
                     state['ledger'][-1]['bound'] = True
                     marker.update(native_complete=True, association=association,
                                   captured_at=datetime.now(timezone.utc).isoformat())
-                    outcome = scan_content(payload, ident + '.source', timeout=min(10, remaining(transport, state) / 2),
-                                           _redact_values=state['redactions'].update)
+                    outcome = (_inspect_dependency_archive(payload, ident, target, transport, state) if archive else
+                        scan_with_source(scan_content, payload, ident + '.source', timeout=min(10, remaining(transport, state) / 2),
+                            _redact_values=state['redactions'].update, source=target_source(target, resource_id=ident, scope=scope)))
                     del payload
                     remaining(transport, state)
                     leaks = merge_leaks(outcome['leaks'])
                     if len(leaks) > MAX_LEAKS or sum(len(l['locations']) for l in leaks) > MAX_LOCATIONS:
                         raise Incomplete('finding_limit')
                     marker.update(parts=[dict(bytes=metadata['size'], complete=outcome['complete'], engines=outcome['engines'])],
-                                  leaks=leaks, complete=outcome['complete'], reason='complete' if outcome['complete'] else 'detector_unavailable')
+                                  leaks=leaks, complete=outcome['complete'], reason='complete' if outcome['complete'] else
+                                  'archive_incomplete' if archive else 'detector_unavailable')
                 except Incomplete as exc:
                     marker['reason'] = str(exc) if str(exc) in {'unavailable', 'invalid_selection', 'deadline', 'invalid_route', 'unsafe_http_diagnostics', 'call_limit', 'auth_unavailable', 'principal_changed', 'invalid_quota', 'response_route', 'denied', 'native_unavailable', 'framing_or_bound', 'media_binding', 'invalid_stream', 'byte_limit', 'truncated', 'partial_native', 'read_unavailable', 'project_binding', 'bucket_binding', 'bucket_project_mismatch', 'project_binding_unavailable', 'reference_binding', 'native_uuid', 'metadata_identity_mismatch', 'oversize', 'unsupported_format_or_encryption', 'malformed_metadata', 'empty_content', 'object_changed', 'association_changed', 'bucket_changed', 'project_changed', 'unsupported_archive', 'unsupported_utf8', 'unsupported_binary', 'finding_limit'} else 'unavailable'
                 except Exception:

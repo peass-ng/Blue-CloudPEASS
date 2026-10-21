@@ -33,7 +33,8 @@ for stem, operation, resource_type, port in OPERATIONS:
     for cid, family in [('azure.port.monitor_log_alert_' + port, 'strict'),
                         ('azure.claude.activity_log_alert_subscription_' + stem, 'strict'),
                         ('azure.claude.activity_log_alert_' + stem, 'loose')]:
-        SPECS.append(dict(id=cid, operation=operation, resource_type=resource_type, category=category, family=family))
+        native_category = 'Administrative' if cid.startswith('azure.claude.') and stem.startswith('security_solution') else category
+        SPECS.append(dict(id=cid, operation=operation, resource_type=resource_type, category=native_category, family=family))
 for suffix, operation in [('write','Microsoft.Network/networksecuritygroups/securityrules/write'),
                            ('delete','Microsoft.Network/networksecuritygroups/securityrules/delete')]:
     SPECS.append(dict(id='azure.claude.activity_log_alert_subscription_nsg_rule_' + suffix, operation=operation,

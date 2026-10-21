@@ -27,7 +27,7 @@ def targets(options, scopes, named=(), provider='aws'):
     if OPTION not in options and not (options.get('content_secret_scans') is True and CHECK in named):
         return []
     rows = options.get(OPTION)
-    if (provider != 'aws' or not isinstance(scopes, list) or not 1 <= len(scopes) <= source.MAX_SCOPES
+    if (provider != 'aws' or not isinstance(scopes, list) or not scopes
             or len(set(scopes)) != len(scopes)
             or any(not isinstance(s, str) or len(s) > 80 or not source.SCOPE.fullmatch(s) for s in scopes)
             or not isinstance(rows, list) or not 1 <= len(rows) <= source.MAX_TARGETS):
@@ -39,6 +39,8 @@ def targets(options, scopes, named=(), provider='aws'):
         if row['scope'] not in scopes or ident in seen:
             raise ValueError('invalid_selected_workload_commands')
         seen.add(ident)
+    if len({row['scope'] for row in rows}) > source.MAX_SELECTED_SCOPES:
+        raise ValueError('invalid_selected_workload_commands')
     return deepcopy(rows)
 
 

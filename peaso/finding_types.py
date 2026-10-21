@@ -41,6 +41,7 @@ def annotate(finding):
 
 
 def validate_review(check_ids):
-    expected, reviewed = set(check_ids), set(registry()["checks"])
+    from peaso.analysis import MANUAL_ONLY_ANALYSIS_CHECK_IDS
+    expected, reviewed = set(check_ids) | MANUAL_ONLY_ANALYSIS_CHECK_IDS, set(registry()["checks"])
     if expected != reviewed:
         raise ValueError(f"Finding type review differs from registered checks: missing={sorted(expected-reviewed)}, stale={sorted(reviewed-expected)}")

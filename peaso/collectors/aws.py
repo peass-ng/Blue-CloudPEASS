@@ -242,7 +242,8 @@ def _project_user_data_indicators(response, instance_id, *, dual_scanner=False):
         raw = base64.b64decode(encoded, validate=True)
         if len(raw) > 16384:
             raise ReadFailure("malformed", "user_data_size_exceeds_documented_limit")
-        value = raw.decode("utf-8")
+        from .aws_user_data_payload_20261021 import decoded_text
+        value = decoded_text(raw)
     except (ValueError, UnicodeError):
         raise ReadFailure("malformed", "malformed_user_data_encoding") from None
     keyword = any(word in value for word in ("pass", "secret", "token", "key"))
@@ -332,7 +333,7 @@ class Requests:
         from botocore.config import Config
         key = (id(session), service, region)
         s3_bootstrap = (_metadata_profile is None and service == 'sts' and self.content_secret_scans
-            and 's3_selected_source_content' in getattr(self, 'content_secret_scan_kinds', ()))
+            and bool({'s3_selected_source_content', 'ecs_selected_environment_file_content', 'workload_referenced_source_content', 'build_deployment_referenced_source_content'} & set(getattr(self, 'content_secret_scan_kinds', ()))))
         if s3_bootstrap:
             key += ('aws-selected-s3-bootstrap-v1',)
             with self._lock:
@@ -369,9 +370,24 @@ class Requests:
             return self._clients[key]
 
     def call(self, session, service, region, operation, *, _cache_refresh=False, _uncached_credential_exchange=False, _metadata_profile=None, _projection_context=None, _codecommit_routes=None, **arguments):
+        if _metadata_profile == 'aws-build-deployment-referenced-source-v1':
+            if _cache_refresh or _uncached_credential_exchange or _codecommit_routes is not None:
+                raise ReadFailure('not_collected', 'invalid_build_deployment_source_controls')
+            from .aws_build_deployment_referenced_source_indicators import profile_call
+            return profile_call(self, session, service, region, operation, _projection_context=_projection_context, **arguments)
+        if _metadata_profile == 'aws-workload-referenced-source-v1':
+            if _cache_refresh or _uncached_credential_exchange or _codecommit_routes is not None:
+                raise ReadFailure('not_collected', 'invalid_workload_source_controls')
+            from .aws_workload_referenced_source_indicators import profile_call
+            return profile_call(self, session, service, region, operation, _projection_context=_projection_context, **arguments)
+        if _metadata_profile == 'aws-ecs-selected-environment-file-v1':
+            if _cache_refresh or _uncached_credential_exchange or _codecommit_routes is not None:
+                raise ReadFailure('not_collected', 'invalid_ecs_environment_file_controls')
+            from .aws_ecs_environment_file_secret_indicators import profile_call
+            return profile_call(self, session, service, region, operation, _projection_context=_projection_context, **arguments)
         if _metadata_profile == 'aws-selected-s3-source-content-v1':
             if (self.content_secret_scans is not True
-                    or 's3_selected_source_content' not in getattr(self, 'content_secret_scan_kinds', ())
+                    or not {'s3_selected_source_content', 'ecs_selected_environment_file_content', 'workload_referenced_source_content', 'build_deployment_referenced_source_content'} & set(getattr(self, 'content_secret_scan_kinds', ()))
                     or not hasattr(self, 's3_source_io_lock')):
                 raise ReadFailure('not_collected', 'selected_s3_profile_uninitialized')
             if _cache_refresh or _uncached_credential_exchange or _codecommit_routes is not None:
@@ -516,7 +532,7 @@ class Requests:
             if _metadata_profile == 'aws-selected-configuration-content-v1':
                 projection_contract.validate_native_client(client, service, region)
             if (service == 'sts' and self.content_secret_scans
-                    and 's3_selected_source_content' in getattr(self, 'content_secret_scan_kinds', ())):
+                    and bool({'s3_selected_source_content', 'ecs_selected_environment_file_content', 'workload_referenced_source_content', 'build_deployment_referenced_source_content'} & set(getattr(self, 'content_secret_scan_kinds', ())))):
                 from .aws_s3_selected_source_secret_indicators import validate_native_client
                 validate_native_client(client, service, region)
             for attempt in range(self.attempts):
@@ -1840,6 +1856,24 @@ def collect(connector, requirements=None):
     options, auth = connector.get("options", {}), connector.get("auth", {})
     if not isinstance(options, dict) or not isinstance(auth, dict):
         raise ValueError("auth and options must be objects")
+    from . import aws_image_vulnerability_runtime_20261021 as image_vulnerabilities
+    image_vulnerabilities.selections(options, connector.get('scopes') or [])
+    image_targets = (image_vulnerabilities.authorize_collector(options, connector.get('scopes') or [])
+                     if image_vulnerabilities.GRANT in options else [])
+    from . import aws_ecr_public_image_runtime_20261021 as ecr_public_image
+    ecr_public_image.selected_targets(options, connector.get('scopes') or [])
+    public_targets, public_secret, public_vuln = ecr_public_image.authorize_collector(options, connector.get('scopes') or [])
+    if (requirements is not None and ecr_public_image.KIND in requirements
+            and set(requirements) <= {ecr_public_image.KIND, 'aws_account'} and not public_targets):
+        return ecr_public_image.disabled_snapshot(connector.get('scopes') or [])
+    from . import aws_workload_image_secret_native_20261021 as workload_image_secrets
+    secret_image_targets = workload_image_secrets.authorize_collector(options, connector.get('scopes') or [])
+    if (requirements is not None and image_vulnerabilities.KIND in requirements
+            and set(requirements) <= {image_vulnerabilities.KIND, 'aws_account'} and not image_targets):
+        return image_vulnerabilities.disabled_snapshot(connector.get('scopes') or [])
+    if (requirements is not None and workload_image_secrets.KIND in requirements
+            and set(requirements) <= {workload_image_secrets.KIND, 'aws_account'} and not secret_image_targets):
+        return workload_image_secrets.disabled_snapshot(connector.get('scopes') or [])
     from . import aws_codebuild_buildspec_runtime_20261020 as codebuild_inline
     from . import aws_workload_command_runtime_20261020 as workload_commands
     workload_command_plan = workload_commands.authorize_collector(options, connector.get('scopes') or [])
@@ -1854,6 +1888,12 @@ def collect(connector, requirements=None):
     aws_selected_configuration_secret_indicators.selected_targets(options, connector.get('scopes') or [])
     from . import aws_s3_selected_source_secret_indicators
     aws_s3_selected_source_secret_indicators.selected_targets(options, connector.get('scopes') or [])
+    from . import aws_ecs_environment_file_secret_indicators
+    aws_ecs_environment_file_secret_indicators.selected_targets(options, connector.get('scopes') or [])
+    from . import aws_workload_referenced_source_indicators
+    aws_workload_referenced_source_indicators.selected_targets(options, connector.get('scopes') or [])
+    from . import aws_build_deployment_referenced_source_indicators
+    aws_build_deployment_referenced_source_indicators.selected_targets(options, connector.get('scopes') or [])
     from .aws_codecommit_review_native import review_policy
     review_policy(options, connector.get("scopes") or [])
     from .aws_controltower_native import normalize as normalize_controltower
@@ -1901,12 +1941,15 @@ def collect(connector, requirements=None):
     aws_lambda_environment_secret_indicators.initialize(requests, options, connector.get('scopes') or [])
     aws_selected_configuration_secret_indicators.initialize(requests, options, connector.get('scopes') or [])
     aws_s3_selected_source_secret_indicators.initialize(requests, options, connector.get('scopes') or [])
+    aws_ecs_environment_file_secret_indicators.initialize(requests, options, connector.get('scopes') or [])
+    aws_workload_referenced_source_indicators.initialize(requests, options, connector.get('scopes') or [])
+    aws_build_deployment_referenced_source_indicators.initialize(requests, options, connector.get('scopes') or [])
     codebuild_inline.initialize(requests, codebuild_inline_permitted)
     content_kinds = options.get('_content_secret_scan_kinds', [])
     if isinstance(content_kinds, list) and codebuild_inline_permitted:
         content_kinds = [kind for kind in content_kinds if kind != codebuild_inline.KIND]
     if not isinstance(content_kinds, list) or any(kind not in {
-            'codecommit_repository', 'log_group', 'lambda_function', 'lambda_layer_version', 'ecr_repository', 'instance', 'lambda_selected_environment', 'configuration_selected_content', 's3_selected_source_content'
+            'codecommit_repository', 'log_group', 'lambda_function', 'lambda_layer_version', 'ecr_repository', 'instance', 'lambda_selected_environment', 'configuration_selected_content', 's3_selected_source_content', 'ecs_selected_environment_file_content', 'workload_referenced_source_content', 'build_deployment_referenced_source_content'
     } for kind in content_kinds):
         raise ValueError('invalid internal content check selection')
     requests.content_secret_scan_kinds = frozenset(content_kinds)
@@ -1936,12 +1979,18 @@ def collect(connector, requirements=None):
     requests.ecr_latest_scan_requested = (requirements is None or options.get("_ecr_latest_scan_requested") is True)
     scope_workers = _bound(options, "scope_concurrency", 2, maximum=8)
     region_workers = _bound(options, "region_concurrency", 2, maximum=8)
-    inventories = options.get("inventories", [kind for kind in AWS_TYPES if kind not in (aws_lambda_environment_secret_indicators.KIND, aws_selected_configuration_secret_indicators.KIND, aws_s3_selected_source_secret_indicators.KIND)] if requirements is None else AWS_TYPES)
+    inventories = options.get("inventories", [kind for kind in AWS_TYPES if kind not in (aws_lambda_environment_secret_indicators.KIND, aws_selected_configuration_secret_indicators.KIND, aws_s3_selected_source_secret_indicators.KIND, aws_ecs_environment_file_secret_indicators.KIND, aws_workload_referenced_source_indicators.KIND, aws_build_deployment_referenced_source_indicators.KIND, image_vulnerabilities.KIND, workload_image_secrets.KIND, ecr_public_image.KIND)] if requirements is None else AWS_TYPES)
     if not isinstance(inventories, list) or any(kind not in AWS_TYPES for kind in inventories):
         raise ValueError("inventories must be supported AWS resource types")
     if requirements is not None and (not isinstance(requirements, list) or any(not isinstance(x, str) for x in requirements)):
         raise ValueError("requirements must be a list of resource types")
     wanted = set(inventories) & (set(requirements) if requirements is not None else set(AWS_TYPES))
+    if not image_targets:
+        wanted.discard(image_vulnerabilities.KIND)
+    if not public_targets:
+        wanted.discard(ecr_public_image.KIND)
+    if not secret_image_targets:
+        wanted.discard(workload_image_secrets.KIND)
     if not codebuild_inline_permitted:
         wanted.discard(codebuild_inline.KIND)
     if workload_command_plan is None:
@@ -2409,6 +2458,12 @@ def collect(connector, requirements=None):
         return ReadResult([], "not_collected", {"code": "unsupported_inventory"})
 
     def regional_job(session, identity, region, kind):
+        if kind == ecr_public_image.KIND:
+            return ecr_public_image.collect_scope(requests, session, identity, region, public_targets, secret=public_secret, vuln=public_vuln)
+        if kind == image_vulnerabilities.KIND:
+            return image_vulnerabilities.collect_scope(requests, session, identity, region, image_targets)
+        if kind == workload_image_secrets.KIND:
+            return workload_image_secrets.collect_collection(requests, session, identity, region, secret_image_targets)
         if kind == "access_analyzer":
             return analyzer_lifecycle.collect(session, identity, region, ENRICHERS[kind])
         if kind == 'lightsail_bucket' and lightsail_iam_only:
@@ -2432,6 +2487,12 @@ def collect(connector, requirements=None):
             read = aws_selected_configuration_secret_indicators.collect_selected(requests, session, region, identity, options, connector.get('scopes') or [])
         elif kind == aws_s3_selected_source_secret_indicators.KIND:
             read = aws_s3_selected_source_secret_indicators.collect_selected(requests, session, region, identity, options, connector.get('scopes') or [])
+        elif kind == aws_ecs_environment_file_secret_indicators.KIND:
+            read = aws_ecs_environment_file_secret_indicators.collect_selected(requests, session, region, identity, options, connector.get('scopes') or [])
+        elif kind == aws_workload_referenced_source_indicators.KIND:
+            read = aws_workload_referenced_source_indicators.collect_selected(requests, session, region, identity, options, connector.get('scopes') or [])
+        elif kind == aws_build_deployment_referenced_source_indicators.KIND:
+            read = aws_build_deployment_referenced_source_indicators.collect_selected(requests, session, region, identity, options, connector.get('scopes') or [])
         elif kind == codebuild_inline.KIND:
             read = codebuild_inline.collect_selected(requests, session, region, identity, options, connector.get('scopes') or [])
         elif kind in FETCHERS:
@@ -2640,6 +2701,9 @@ def collect(connector, requirements=None):
         collections, identities, metadata.get("region_discovery"), explicit_regions=explicit_regions)
     metadata.update(requests.lambda_environment_metadata)
     metadata.update(requests.configuration_content_metadata)
+    metadata.update(requests.ecs_envfile_metadata)
+    metadata.update(requests.workload_source_metadata)
+    metadata.update(requests.build_deployment_metadata)
     metadata.update({"calls": requests.calls, "cache_hits": requests.cache_hits,
         "max_calls": requests.max_calls, "max_pages": requests.max_pages,
         "max_resources": requests.max_items, "resource_count": total_items,
@@ -2684,6 +2748,9 @@ def collect(connector, requirements=None):
     collections, metadata = aws_s3_selected_source_secret_indicators.finalize(requests, collections, metadata)
     collections, metadata = codebuild_inline.finalize(requests, collections, metadata, options)
     collections, metadata = workload_commands.publish(workload_command_capture, workload_command_plan, collections, metadata, options)
+    image_vulnerabilities.attach_metadata(metadata, collections, image_targets)
+    workload_image_secrets.attach_metadata(metadata, secret_image_targets)
+    ecr_public_image.attach_metadata(metadata, public_targets, public_secret, public_vuln)
     return make_snapshot("aws", scopes, collections, created_at=requests.observed_at.isoformat(), metadata=_safe(metadata))
 
 
@@ -2773,6 +2840,12 @@ for _extension in EXTENSION_MODULES:
 
 # Explicit selected S3 source profile; never a generic listing/read fallback.
 SPECS['s3_selected_source_content'] = ('s3', 'head_object', None)
+SPECS['ecs_selected_environment_file_content'] = ('ecs', 'describe_task_definition', None)
+SPECS['workload_referenced_source_content'] = ('glue', 'get_job', None)
+SPECS['build_deployment_referenced_source_content'] = ('codebuild', 'batch_get_projects', None)
+_NATIVE_IDS['workload_referenced_source_content'] = 'id'
+_NATIVE_IDS['build_deployment_referenced_source_content'] = 'id'
+_NATIVE_IDS['ecs_selected_environment_file_content'] = 'id'
 READ_ACTIONS.update({('s3', 'head_object'), ('s3', 'get_object')})
 AWS_TYPES[:] = sorted(set(SPECS) | GLOBAL_TYPES)
 
@@ -2781,3 +2854,18 @@ SPECS['codebuild_selected_inline_buildspec'] = ('codebuild', 'batch_get_projects
 _NATIVE_IDS['codebuild_selected_inline_buildspec'] = 'id'
 AWS_TYPES[:] = sorted(set(SPECS) | GLOBAL_TYPES)
 AWS_TYPES.append('aws_selected_workload_command_literals')
+
+# Explicit immutable image CVE kind, excluded from default inventory reads.
+SPECS['ecr_selected_image_vulnerabilities'] = ('ecr', 'batch_get_image', None)
+_NATIVE_IDS['ecr_selected_image_vulnerabilities'] = 'id'
+AWS_TYPES.append('ecr_selected_image_vulnerabilities')
+
+# Named, selected workload image secret reads; no repository inventory or S3 grant.
+SPECS['aws_selected_workload_image_secrets'] = ('ecr', 'batch_get_image', None)
+_NATIVE_IDS['aws_selected_workload_image_secrets'] = 'id'
+AWS_TYPES.append('aws_selected_workload_image_secrets')
+
+SPECS['ecr_public_selected_image_content'] = ('ecr-public', 'describe_images', None)
+_NATIVE_IDS['ecr_public_selected_image_content'] = 'id'
+AWS_TYPES.append('ecr_public_selected_image_content')
+READ_ACTIONS.update({('ecr-public','describe_registries'), ('ecr-public','describe_repositories'), ('ecr-public','describe_images')})

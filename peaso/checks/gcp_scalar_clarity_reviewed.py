@@ -11,7 +11,7 @@ ROWS = {'gcp.compute.integrity_monitoring': {'description_base_sha256': '8186062
                                       'description_fields': {'description': 'Checks whether the VM declares '
                                                                             'Shielded VM integrity '
                                                                             'monitoring enabled.'},
-                                      'remediation_base_sha256': 'ac4043b5ae71da7ef15a7aa955b06dbc8c965e8447fbf638fe4ab060c24824f7',
+                                      'remediation_base_sha256': '3959197c3351a6e0798bfa7d19d2b71169cc9ac52a25d4088701bdfe86363422',
                                       'remediation_fields': {'steps': ['Enable integrity monitoring in the '
                                                                        'VM’s Shielded VM settings.'],
                                                              'summary': 'Enable integrity monitoring in the '
@@ -19,7 +19,7 @@ ROWS = {'gcp.compute.integrity_monitoring': {'description_base_sha256': '8186062
  'gcp.compute.secure_boot': {'description_base_sha256': 'e938474139e5d4922d86557485c87a96aaa82578344ea80d7d96f39e2955d952',
                              'description_fields': {'description': 'Checks whether the VM declares Secure '
                                                                    'Boot enabled.'},
-                             'remediation_base_sha256': '0004b53d219f331b55c1b8f18ecedd273ff458196c13672bd62ac5e15ddb75a5',
+                             'remediation_base_sha256': 'c067578648ccd0d95d3ed084f7b497e290b2ca915048f3cd15fbbe7e80e6df6a',
                              'remediation_fields': {'steps': ['Enable Secure Boot after checking that the VM '
                                                               'kernel and drivers are signed and supported.'],
                                                     'summary': 'Enable Secure Boot after checking that the '
@@ -28,7 +28,7 @@ ROWS = {'gcp.compute.integrity_monitoring': {'description_base_sha256': '8186062
  'gcp.compute.shielded_vtpm': {'description_base_sha256': '3afa475257ea2dcc376acf95d93de24cfd3c5294dded3359813e12f887ccd367',
                                'description_fields': {'description': 'Checks whether the VM declares its '
                                                                      'virtual TPM enabled.'},
-                               'remediation_base_sha256': '74f22eda14400587a9adf0c48d54b20efc31cc4abbf01a8a89daf68f9ffcd81d',
+                               'remediation_base_sha256': 'f393112f4aab65a3a0fa94a44a31a83a6b1004875adab1245fe57f970c70357a',
                                'remediation_fields': {'steps': ['Enable vTPM in the VM’s Shielded VM '
                                                                 'settings.'],
                                                       'summary': 'Enable vTPM in the VM’s Shielded VM '
@@ -58,7 +58,7 @@ ROWS = {'gcp.compute.integrity_monitoring': {'description_base_sha256': '8186062
                                 'description_fields': {'description': 'Checks whether the VPC uses custom '
                                                                       'subnet mode instead of automatically '
                                                                       'creating regional subnets.'},
-                                'remediation_base_sha256': 'aea27a42fc4d0e71eecff2a9901498db2a71e9ee5a2d5368579cf1a67a56d298',
+                                'remediation_base_sha256': 'dab407e3a3d41c8764ab0c65d80f05d8b8ef77fd6a1bd724e0a5b6c7eacbdc6a',
                                 'remediation_fields': {'steps': ['Review the existing subnets and routes, '
                                                                  'then convert this VPC to custom mode; '
                                                                  'conversion cannot be reversed.'],
@@ -71,7 +71,7 @@ ROWS = {'gcp.compute.integrity_monitoring': {'description_base_sha256': '8186062
                                                                                   'failure is enabled; it '
                                                                                   'does not test '
                                                                                   'availability.'},
-                                            'remediation_base_sha256': 'b25222954cf8dd5c37a6dc0d6135ba629114218d914fc40bef83341e557071ce',
+                                            'remediation_base_sha256': 'e59484abf16059b58f11893194e13080455bf9888990e1abab8cc02b3dc44cb6',
                                             'remediation_fields': {'steps': ['Enable automatic restart if '
                                                                              'this VM should restart after a '
                                                                              'host failure.'],
@@ -113,7 +113,7 @@ ROWS = {'gcp.compute.integrity_monitoring': {'description_base_sha256': '8186062
                                               'description_fields': {'description': 'Checks whether the VM '
                                                                                     'declares deletion '
                                                                                     'protection enabled.'},
-                                              'remediation_base_sha256': '41ec1390f5881ee2b1c62eb3141a07aef1fa0bbdd073fadfd158543c08588948',
+                                              'remediation_base_sha256': '10a6d33fef418a217d0f42b4a536746c2cb854d4e8dc9b60943f2c7f58208df5',
                                               'remediation_fields': {'steps': ['Enable deletion protection '
                                                                                'for VMs that should be '
                                                                                'protected from accidental '
@@ -181,7 +181,7 @@ ROWS = {'gcp.compute.integrity_monitoring': {'description_base_sha256': '8186062
                      'description_fields': {'description': 'Checks whether automated backups are enabled for '
                                                            'the Cloud SQL instance; it does not test '
                                                            'restoration or point-in-time recovery.'},
-                     'remediation_base_sha256': 'edafa82d4cbc40d223eba3c6d700dcd5eb59509126c3f6b3d4a70dcb1f362f5f',
+                     'remediation_base_sha256': 'c4b4c03406eca6a603f2df34d9a65fa331fda23ec4090941f4b9e0bdc84e5a23',
                      'remediation_fields': {'steps': ['Enable automated backups for this Cloud SQL '
                                                       'instance.'],
                                             'summary': 'Enable automated backups for this Cloud SQL '
@@ -190,7 +190,7 @@ ROWS = {'gcp.compute.integrity_monitoring': {'description_base_sha256': '8186062
                           'description_fields': {'description': 'Checks whether public IPv4 is disabled on '
                                                                 'the Cloud SQL instance; it does not test '
                                                                 'database access.'},
-                          'remediation_base_sha256': '1bf5d213b59b44933caa2cab53fd3cbd5b70706b142ba2962ae8851e330a6748',
+                          'remediation_base_sha256': 'dd4fb1ee6a49748c8337551b020a63a331431f9587f6b1de0c3cbd15e3257d21',
                           'remediation_fields': {'steps': ['Move intended clients to private connectivity '
                                                            'before disabling public IPv4.'],
                                                  'summary': 'Move intended clients to private connectivity '

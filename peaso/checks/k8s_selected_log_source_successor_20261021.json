@@ -1,0 +1,11 @@
+{
+  "annotation_successor_receipt_sha256": "c5decc7914835efc510671c31b7d73566992718180a2f1001233552c0a77ce41",
+  "annotation_successor_sha256": "cf725c54cca92b7ba616573816c00b0be5dd8578595b1ac9be02ceca38791314",
+  "common_sha256": "fbf4244fab8233616a3fd8161cbf3c8dcd4b0454cafc86ae1a96ef909e9ced09",
+  "guard_receipt_sha256": "def38d9a116f4f89c200d084a4b927be0027a43eb31409c4cefb11a3d3aa901c",
+  "guard_sha256": "20d7fd75606b72d8bb3db404e388d6bcedafca92658ee1100363ffa8c86d0c51",
+  "producer_after_sha256": "c9c3923d34f35347097d1d7a9c4cc83d8755a0b3c7d7b7dfb059684c9cebd7e3",
+  "producer_before_sha256": "0fe2d51cb83f4126994f1bfaf1eff50c96469c3b1e285c44d78825f48328e9c0",
+  "schema": "finite-k8s-selected-log-source-successor-v1",
+  "source_sha256": "d84736461301a13f31052737ced2841e89352ba5a8584d49ffc6f09f8dd056d3"
+}

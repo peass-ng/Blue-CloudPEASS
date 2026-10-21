@@ -3,6 +3,8 @@
 These are bounded high-confidence indicators, not exhaustive secret discovery.
 The caller validates the native response identity, base64 and 16 KiB limit.
 """
+
+from peaso.secret_evidence import scan_with_source
 import re
 
 _PRIVATE_KEY = re.compile(r"-----BEGIN (?:RSA |EC |DSA |OPENSSH |ENCRYPTED )?PRIVATE KEY-----")
@@ -12,6 +14,8 @@ _PASSWORD = re.compile(r'''(?im)\b(?:[a-z0-9_]*password|[a-z0-9_]*passwd)["']?\s
 
 
 def project(text, instance_id):
+    from peaso.secret_evidence import legacy_text
+    legacy_text(text, instance_id)
     categories = []
     if _PRIVATE_KEY.search(text):
         categories.append("private_key")
@@ -33,6 +37,6 @@ def project(text, instance_id):
 def scan_selected_content(projected, text):
     """Only a named, opted-in caller invokes external offline detectors."""
     from peaso.secret_scanning import scan_content
-    outcome = scan_content(text.encode('utf-8'), 'ec2/user-data')
+    outcome = scan_with_source(scan_content, text.encode('utf-8'), 'ec2/user-data', source={'resource_id': projected['InstanceId'], 'path': 'ec2/user-data'})
     projected['ContentScan'] = outcome
     return projected

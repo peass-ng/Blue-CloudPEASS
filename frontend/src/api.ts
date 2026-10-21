@@ -89,6 +89,10 @@ export async function request<T>(
     const downloaded: unknown = await artifact.json();
     if (downloaded && typeof downloaded === "object" && !Array.isArray(downloaded)) {
       const refreshed: Record<string, unknown> = {};
+      // Private matched values arrive only from the authenticated detail API,
+      // never the downloaded public evidence artifact.
+      if (data.secret_evidence && typeof data.secret_evidence === 'object')
+        refreshed.secret_evidence = data.secret_evidence;
       // The authenticated response may refresh presentation around an immutable artifact.
       // Never merge identities, criteria, evidence, verdict or severity from this envelope.
       if (data.remediation_details && typeof data.remediation_details === "object" && !Array.isArray(data.remediation_details))
@@ -171,6 +175,7 @@ export async function downloadReport(
 }
 
 type DownloadEnvelope = {
+  secret_evidence?: unknown;
   download_url: string;
   expires_in?: number;
   format?: string;

@@ -1,6 +1,6 @@
 # Optional selected S3 source secret inspection
 
-This unregistered proposal reads only one to four explicitly selected objects when `content_secret_scans=true` and the named check `aws.review.s3.selected_source_secret_indicators` is selected. Root must integrate the reviewed Requests profile and selector validation before enabling it. Ordinary inventory must exclude `s3_selected_source_content`.
+This registered, default-off reader inspects one to four explicitly selected objects. Set `content_secret_scans=true`, select the named check `aws.review.s3.selected_source_secret_indicators`, and supply `selected_aws_s3_sources` as described below. Ordinary inventory excludes `s3_selected_source_content`; selecting a broad category or framework does not authorize object downloads.
 
 Use `selected_aws_s3_sources` entries containing `scope` (`ACCOUNT/REGION`), `bucket`, `key`, `format` (`text`, `zip`, `tar`, or `tar.gz`) and optionally `version_id`. The account must match the authenticated STS caller and the bucket's native Region must match the selected Region. Current objects require no versioning. A version selector refers to an already existing version; it does not enable versioning or create a snapshot.
 

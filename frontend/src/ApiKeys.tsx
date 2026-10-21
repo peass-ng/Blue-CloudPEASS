@@ -86,7 +86,7 @@ export function ApiKeys() {
   }
 
   return (
-    <Panel title="API keys" kicker="EXTERNAL READ ACCESS">
+    <Panel title="PEASS'o CSPM API Keys" kicker="EXTERNAL READ ACCESS">
       <p className="muted">Create a key for external tools to read this account’s scans, findings, reports, maps, coverage, connectors, schedules, catalog and usage. Keys cannot start scans or change account data.</p>
       <form className="form" onSubmit={(event) => void create(event)}>
         <label>Key name<input aria-label="API key name" value={name} maxLength={100} onChange={(event) => setName(event.target.value)} placeholder="Reporting integration" required /></label>

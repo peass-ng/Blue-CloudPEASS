@@ -3,6 +3,8 @@
 Root must explicitly delegate this profile in Requests before its ordinary value
 read prohibition. This module never changes the generic AWS operation allowlist.
 """
+
+from peaso.secret_evidence import scan_with_source, source_context, target_source
 from copy import deepcopy
 import io
 import json
@@ -28,6 +30,7 @@ SCHEMA = 'aws-selected-s3-source-v1'
 FORMATS = ('text', 'zip', 'tar', 'tar.gz')
 PROJECTION_OPERATIONS = {('sts', 'get_caller_identity'), ('s3', 'get_bucket_location'), ('s3', 'head_object'), ('s3', 'get_object')}
 MAX_TARGETS = 4
+MAX_SELECTED_SCOPES = 8
 MAX_CALLS = 20
 MAX_OBJECT = 2 * 1024 * 1024
 MAX_WIRE_TOTAL = 8 * 1024 * 1024
@@ -47,9 +50,23 @@ class Incomplete(ValueError):
     pass
 
 
+def _codecommit_only(options):
+    kinds=options.get('_content_secret_scan_kinds',())
+    targets=options.get('selected_aws_build_deployment_sources')
+    return (OPTION not in options and isinstance(kinds,list)
+        and 'build_deployment_referenced_source_content' in kinds
+        and not {'s3_selected_source_content','ecs_selected_environment_file_content',
+                 'workload_referenced_source_content'}.intersection(kinds)
+        and isinstance(targets,list) and bool(targets)
+        and all(isinstance(t,dict) and t.get('profile')=='codebuild_codecommit_source' for t in targets))
+
+
 def enabled(options):
     return (options.get('content_secret_scans') is True and isinstance(options.get('_content_secret_scan_kinds'), list)
-            and KIND in options['_content_secret_scan_kinds'])
+            and not _codecommit_only(options)
+            and (KIND in options['_content_secret_scan_kinds'] or 'ecs_selected_environment_file_content' in options['_content_secret_scan_kinds']
+                or 'workload_referenced_source_content' in options['_content_secret_scan_kinds']
+                or 'build_deployment_referenced_source_content' in options['_content_secret_scan_kinds']))
 
 
 def parse(target):
@@ -86,11 +103,12 @@ def selected_targets(options, scopes):
     if OPTION not in options and not enabled(options):
         return []
     targets = options.get(OPTION)
-    if (not isinstance(scopes, list) or not 1 <= len(scopes) <= 8
+    if (not isinstance(scopes, list) or not scopes
             or any(not isinstance(s, str) or not SCOPE.fullmatch(s) for s in scopes)
             or len(set(scopes)) != len(scopes) or not isinstance(targets, list) or not 1 <= len(targets) <= MAX_TARGETS):
         raise Incomplete('invalid_s3_selection')
     seen = set()
+    selected_scopes = set()
     for target in targets:
         parse(target)
         # One object/version may not acquire ambiguous competing format declarations.
@@ -98,6 +116,9 @@ def selected_targets(options, scopes):
         if target['scope'] not in scopes or locator in seen:
             raise Incomplete('invalid_s3_selection')
         seen.add(locator)
+        selected_scopes.add(target['scope'])
+        if len(selected_scopes) > MAX_SELECTED_SCOPES:
+            raise Incomplete('invalid_s3_selection')
     return deepcopy(targets)
 
 
@@ -163,6 +184,27 @@ def validate_request(requests, session, service, region, operation, args, contex
     ident = identity(target); scope = target['scope']
     if ident not in requests.s3_source_metadata[KIND + '_selection'].get(scope, []) or selected_region != region:
         raise Incomplete('selected_s3_profile_scope')
+    if KIND not in getattr(requests, 'content_secret_scan_kinds', ()):
+        from .aws_ecs_environment_file_secret_indicators import source_target as ecs_source_target
+        grant = getattr(requests, 'ecs_envfile_grants', {}).get(ident)
+        ecs_target = getattr(requests, 'ecs_envfile_targets', {}).get(grant[2]) if isinstance(grant, tuple) and len(grant) == 3 else None
+        ecs_bound = ('ecs_selected_environment_file_content' in getattr(requests, 'content_secret_scan_kinds', ())
+            and isinstance(grant, tuple) and len(grant) == 3 and grant[:2] == (id(session), scope)
+            and isinstance(ecs_target, dict) and ecs_source_target(ecs_target) == target)
+        from .aws_workload_referenced_source_indicators import source_target as workload_source_target
+        other = getattr(requests, 'workload_source_grants', {}).get(ident)
+        work_target = getattr(requests, 'workload_source_targets', {}).get(other[2]) if isinstance(other, tuple) and len(other) == 3 else None
+        workload_bound = ('workload_referenced_source_content' in getattr(requests, 'content_secret_scan_kinds', ())
+            and isinstance(other, tuple) and len(other) == 3 and other[:2] == (id(session), scope)
+            and isinstance(work_target, dict) and workload_source_target(work_target) == target)
+        from .aws_build_deployment_referenced_source_indicators import source_target as build_source_target
+        build_grant = getattr(requests, 'build_deployment_grants', {}).get(ident)
+        build_target = getattr(requests, 'build_deployment_targets', {}).get(build_grant[2]) if isinstance(build_grant, tuple) and len(build_grant) == 3 else None
+        build_bound = ('build_deployment_referenced_source_content' in getattr(requests, 'content_secret_scan_kinds', ())
+            and isinstance(build_grant, tuple) and len(build_grant) == 3 and build_grant[:2] == (id(session), scope)
+            and isinstance(build_target, dict) and build_source_target(build_target) == target)
+        if not (ecs_bound or workload_bound or build_bound):
+            raise Incomplete('selected_s3_delegated_grant_unbound')
     expected_service, expected_operation, expected_args = arguments(target, phase, requests.s3_source_heads.get(ident))
     if (service, operation) not in PROJECTION_OPERATIONS or (service, operation, args) != (expected_service, expected_operation, expected_args):
         raise Incomplete('undeclared_selected_s3_operation')
@@ -367,8 +409,8 @@ def _scan_part(requests, marker, data, name):
     # Names are data too. Never expose native archive names or derived line numbers.
     payload = text.encode() + b'\n' + name.encode()
     location = marker['identity'] + '.text' if marker['format'] == 'text' else marker['identity'] + '.member:' + _fingerprint(name)
-    outcome = scan_content(payload, location, timeout=remaining(requests) / 2,
-        _redact_values=requests.s3_source_redactions.update)
+    outcome = scan_with_source(scan_content, payload, location, timeout=remaining(requests) / 2,
+        _redact_values=requests.s3_source_redactions.update, source={'path': name, 'content_lines': str(text.count('\n') + 1)})
     marker['parts'].append({'path': location, 'bytes': len(payload), 'complete': outcome['complete'], 'engines': deepcopy(outcome['engines'])})
     leaks = deepcopy(outcome['leaks'])
     for leak in leaks:
@@ -542,8 +584,9 @@ def collect_selected(requests, session, region, caller, options, scopes):
         try:
             for phase in ('caller', 'location', 'head_before', 'get', 'head_after'):
                 service, operation, args = arguments(target, phase, requests.s3_source_heads.get(ident))
-                requests.call(session, service, region, operation, _metadata_profile=PROFILE,
-                    _projection_context={'target': target, 'phase': phase, 'marker': marker}, **args)
+                with source_context(**target_source(target, resource_id='s3://' + target['bucket'] + '/' + target['key'], scope=target['scope'])):
+                    requests.call(session, service, region, operation, _metadata_profile=PROFILE,
+                        _projection_context={'target': target, 'phase': phase, 'marker': marker}, **args)
             marker['complete'] = marker['content_complete'] and marker['head_coherent'] and bool(marker['parts']) and all(p['complete'] for p in marker['parts'])
         except Exception:
             marker['complete'] = False

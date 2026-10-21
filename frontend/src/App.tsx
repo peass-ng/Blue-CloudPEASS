@@ -9,6 +9,7 @@ import {
   GraduationCap,
   HelpCircle,
   Layers,
+  ListChecks,
   Network,
   ScanLine,
   Radar,
@@ -17,12 +18,14 @@ import {
   ShieldCheck,
   Target,
   Route,
+  Waypoints,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ApiError, authSessionChangedEvent, items, useApi, workspaceKey } from "./api";
 import { Connectors } from "./Connectors";
 import { Dashboard } from "./Dashboard";
 import { Findings } from "./Findings";
+import { ImagesFindings } from "./ImagesFindings";
 import { LeastPrivilege } from "./LeastPrivilege";
 import { AttackAnalysis } from "./AttackAnalysis";
 import { Help } from "./Help";
@@ -39,6 +42,15 @@ import { Settings } from "./Settings";
 import type { Connector, Me, Report, Scan, Workspace } from "./types";
 import { Panel, State, sourceHref } from "./ui";
 import { scanNames } from "./scanNames";
+function IamIcon({ size = 18 }: { size?: number }) {
+  return <svg className="nav-iam-icon" width={24} height={size} viewBox="0 0 24 18"
+    style={{ width: 24, flexShrink: 0 }} fill="none" aria-hidden="true">
+    <rect x="0.75" y="0.75" width="22.5" height="16.5" rx="3" stroke="currentColor" strokeWidth="1.5" />
+    <text x="12" y="12" textAnchor="middle" fill="currentColor" fontFamily="'IBM Plex Mono', monospace"
+      fontSize="9" fontWeight="700" letterSpacing="0.3">IAM</text>
+  </svg>;
+}
+
 const pages = [
   {
     label: "Dashboard",
@@ -56,9 +68,9 @@ const pages = [
     icon: ScanLine,
     description: "Assess, monitor and revisit your cloud posture.",
   },
-  { label: "Top 15 Actions", icon: ShieldCheck, ai: true, group: "SECURITY INSIGHTS", description: "Review the security changes to prioritize." },
+  { label: "Top 15 Actions", icon: ListChecks, ai: true, group: "SECURITY INSIGHTS", description: "Review the security changes to prioritize." },
   {
-    label: "Hardening Findings",
+    label: "Hardening & Compliance",
     icon: ShieldCheck,
     description: "Review configuration controls across your cloud estate.",
   },
@@ -68,8 +80,18 @@ const pages = [
     description: "Understand your observed external exposure.",
   },
   {
-    label: "Least Privilege",
+    label: "Leaks",
     icon: Shield,
+    description: "Inspect detected secrets and credential-related findings and their sources.",
+  },
+  {
+    label: "Images CVEs",
+    icon: ShieldCheck,
+    description: "Review image vulnerabilities and their scan coverage.",
+  },
+  {
+    label: "Least Privilege",
+    icon: IamIcon,
     description: "Review identity permissions and reduce unnecessary access.",
   },
   {
@@ -84,8 +106,8 @@ const pages = [
     description: "See the connections behind your infrastructure.",
   },
   {
-    label: "Network Findings",
-    icon: ShieldCheck,
+    label: "Network Architecture",
+    icon: Waypoints,
     ai: true,
     description: "Review AI network findings and recommended connectivity changes.",
   },
@@ -107,10 +129,16 @@ const pages = [
     description: "Set up access, run an assessment and interpret its evidence.",
   },
 ];
+const pageAliases: Record<string, string> = {
+  "AI Review": "Top 15 Actions", "Top 15 Recommended Actions": "Top 15 Actions",
+  "Hardening Findings": "Hardening & Compliance", "Network Findings": "Network Architecture",
+  "Images Findings": "Images CVEs",
+};
+const normalizePage = (page: string) => pageAliases[page] || page;
 export function App() {
   const [page, setPage] = useState(() => {
     const raw = decodeURIComponent(location.hash.slice(1));
-    const p = ["AI Review", "Top 15 Recommended Actions"].includes(raw) ? "Top 15 Actions" : raw;
+    const p = normalizePage(raw);
     return pages.some((x) => x.label === p) ? p : "Dashboard";
   });
   const [demoRequested, setDemoRequested] = useState(true);
@@ -145,6 +173,7 @@ export function App() {
   );
   const pageInfo = pages.find((p) => p.label === page) || pages[0];
   function navigate(p: string) {
+    p = normalizePage(p);
     setPage(p);
     location.hash = encodeURIComponent(p);
   }
@@ -165,7 +194,7 @@ export function App() {
   useEffect(() => {
     const change = () => {
       const raw = decodeURIComponent(location.hash.slice(1));
-      const p = ["AI Review", "Top 15 Recommended Actions"].includes(raw) ? "Top 15 Actions" : raw;
+      const p = normalizePage(raw);
       setPage(pages.some((x) => x.label === p) ? p : "Dashboard");
     };
     window.addEventListener("hashchange", change);
@@ -191,10 +220,12 @@ export function App() {
     setSelected("");
   }
   const insight = [
-    "Hardening Findings",
+    "Hardening & Compliance",
     "Exposure",
+    "Leaks",
+    "Images CVEs",
     "Top 15 Actions",
-    "Network Findings",
+    "Network Architecture",
     "Least Privilege",
     "Privilege Escalation Map",
     "Network Map",
@@ -240,7 +271,7 @@ export function App() {
         <nav aria-label="Primary navigation">
           {pages.filter((p) => p.label !== "Help" && (!p.ai || aiAvailable)).map((p) => (
             <div key={p.label}>
-              {(p.group || (p.label === "Hardening Findings" && !aiAvailable)) && <div className="nav-group">{p.group || "SECURITY INSIGHTS"}</div>}
+              {(p.group || (p.label === "Hardening & Compliance" && !aiAvailable)) && <div className="nav-group">{p.group || "SECURITY INSIGHTS"}</div>}
               <button
                 className={`nav-item ${page === p.label ? "active" : ""}`}
                 onClick={() => navigate(p.label)}
@@ -251,16 +282,17 @@ export function App() {
                 <span>{p.label}</span>
                 {p.label === "Settings" && codex.data?.configuration_error && <AlertTriangle size={16} role="img" aria-label="AI configuration needs attention" />}
                 {p.label === "Attack Analysis" && <span className="feature-beta nav-beta">Beta</span>}
-                {p.label === "Hardening Findings" && report.data && (
+                {p.ai && <span className="feature-ai nav-ai" aria-hidden="true">✦ AI</span>}
+                {p.label === "Hardening & Compliance" && report.data && (
                   <span className="nav-count">
                     {Number(
                       (
-                        report.data.stats?.by_category as
+                        report.data.stats?.failed_by_category as
                           | Record<string, number>
                           | undefined
                       )?.hardening ??
                         report.data.findings?.filter(
-                          (f) => f.category === "hardening",
+                          (f) => f.category === "hardening" && f.status === "FAIL",
                         ).length ??
                         0,
                     )}
@@ -307,7 +339,7 @@ export function App() {
           <div className="page-heading">
             <div>
               <div className="eyebrow page-kicker"><span>//</span> PEASS'o INTELLIGENCE</div>
-              <h1>{page}{page === "Attack Analysis" && <span className="feature-beta">Beta</span>}</h1>
+              <h1>{page}{pageInfo.ai && <span className="feature-ai" aria-hidden="true">✦ AI</span>}{page === "Attack Analysis" && <span className="feature-beta">Beta</span>}</h1>
               {pageInfo.description && <p>{pageInfo.description}</p>}
             </div>
             {(insight || page === "Dashboard") && (
@@ -400,11 +432,11 @@ export function App() {
               canWrite={canWriteWorkspace}
               onSelect={(s) => {
                 setSelected(s.id);
-                navigate("Hardening Findings");
+                navigate("Hardening & Compliance");
               }}
             />
           )}
-          {["Hardening Findings", "Exposure"].includes(
+          {["Hardening & Compliance", "Exposure", "Leaks"].includes(
             page,
           ) && (
             <>
@@ -416,15 +448,17 @@ export function App() {
                 <Findings
                   key={page}
                   scanId={scanId}
-                  category={page === "Hardening Findings" ? "hardening" : "exposure"}
+                  category={page === "Hardening & Compliance" ? "hardening" : page === "Exposure" ? "exposure" : ""}
+                  findingType={page === "Leaks" ? "secrets" : undefined}
                   demo={demo}
                 />
               </State>
             </>
           )}
           {pageInfo.ai && codex.isPending && signedIn && <State loading />}
+          {page === "Images CVEs" && <ImagesFindings key={`${scanId}:${demo}`} scanId={scanId} demo={demo} />}
           {aiAvailable && page === "Top 15 Actions" && <AiReview key={scanId} scanId={scanId} demo={demo} />}
-          {aiAvailable && page === "Network Findings" && <NetworkAiReview key={scanId} scanId={scanId} demo={demo} />}
+          {aiAvailable && page === "Network Architecture" && <NetworkAiReview key={scanId} scanId={scanId} demo={demo} />}
           {page === "Least Privilege" && <LeastPrivilege scanId={scanId} demo={demo} />}
           {page === "Privilege Escalation Map" && (
             scans.error instanceof ApiError && scans.error.status === 401 && !demo

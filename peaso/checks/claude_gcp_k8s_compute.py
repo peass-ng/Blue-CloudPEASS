@@ -118,6 +118,21 @@ cases(track(gid("firewall.logging_enabled")), {"logConfig": {"enable": True}}, {
 DEFAULT_OPEN_RULES = ("default-allow-ssh", "default-allow-icmp", "default-allow-internal", "default-allow-rdp")
 
 
+def default_rule_network(item, index):
+    """Bind a default-named rule to this project's actual default VPC."""
+    network = get(item, "network", str)
+    for prefix in ("https://www.googleapis.com/compute/v1/", "https://compute.googleapis.com/compute/v1/"):
+        if network.startswith(prefix):
+            network = network[len(prefix):]
+            break
+    match = re.fullmatch(r"projects/([^/]+)/global/networks/([^/]+)", network)
+    if match is None:
+        raise Unavailable("firewall network reference malformed")
+    if match[1] != context_scope(index).removeprefix("projects/"):
+        raise Unavailable("firewall network belongs to another project")
+    return match[2] == "default"
+
+
 @gcp("firewall.default_rules_not_open", "firewall", "Default-network firewall rules do not allow internet ingress",
      severity="high", control="SC-7", category="network", remediation=FW_REMEDIATION)
 def firewall_default_rules(item, index):
@@ -127,6 +142,8 @@ def firewall_default_rules(item, index):
     skip = active_ingress(item)
     if skip:
         return skip
+    if not default_rule_network(item, index):
+        return "NOT_APPLICABLE", {"reason": "Rule is outside this project's default network", "name": name}
     ranges = set(source_ranges(item))
     entries = allowed_entries(item)
     return result(name in DEFAULT_OPEN_RULES and bool(entries) and bool(ranges & {"0.0.0.0/0", "::/0"}), name=name, source_ranges=sorted(ranges),
@@ -134,8 +151,8 @@ def firewall_default_rules(item, index):
 
 
 cases(track(gid("firewall.default_rules_not_open")),
-      fw(["0.0.0.0/0"], [{"IPProtocol": "tcp", "ports": ["80"]}], name="default-allow-http"),
-      fw(["0.0.0.0/0"], [{"IPProtocol": "tcp", "ports": ["22"]}], name="default-allow-ssh"),
+      fw(["0.0.0.0/0"], [{"IPProtocol": "tcp", "ports": ["80"]}], name="default-allow-http", network="projects/p/global/networks/default"),
+      fw(["0.0.0.0/0"], [{"IPProtocol": "tcp", "ports": ["22"]}], name="default-allow-ssh", network="projects/p/global/networks/default"),
       not_applicable=fw(["0.0.0.0/0"], [{"IPProtocol": "tcp", "ports": ["22"]}], name="corp-ssh"),
       malformed=fw(["0.0.0.0/0"], [{"IPProtocol": "tcp"}], name=7))
 

@@ -58,7 +58,7 @@ test("Compose live AWS report populates every UI section", async ({ page }) => {
   }
   await visit("Settings", "settings");
   await expect(page.getByRole("heading", { name: "Account & quota" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "API keys" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "PEASS'o CSPM API Keys" })).toBeVisible();
   await expect(page.getByLabel("API key name")).toBeVisible();
   await expect(page.getByLabel("Search check catalog")).toHaveCount(0);
   for (const heading of ["Local API authentication", "Native check catalog", "Exact framework and checklist coverage", "Help & evidence", "Source & license"]) {
@@ -75,18 +75,18 @@ test("Compose live AWS report populates every UI section", async ({ page }) => {
   await screenshot("Scans");
   await page.getByRole("button", { name: "View", exact: true }).first().click();
   await expect(page.getByRole("region", { name: "Findings table" }).getByRole("table")).toBeVisible();
-  for (const [label, slug] of [["Hardening Findings", "findings"], ["Exposure", "exposure"], ["Least Privilege", "least-privilege"]]) {
+  for (const [label, slug] of [["Hardening & Compliance", "findings"], ["Exposure", "exposure"], ["Least Privilege", "least-privilege"]]) {
     await visit(label, slug);
-    if (label === "Exposure" || label === "Hardening Findings") await page.locator(".service-group-button").first().click();
+    if (label === "Exposure" || label === "Hardening & Compliance") await page.locator(".service-group-button").first().click();
     await expect(page.locator(".finding-title").first()).toBeVisible();
     sections[label].rows = await page.locator(".finding-title").count();
     await expect(page.getByLabel("Group findings")).toHaveValue("service");
-    if (label === "Hardening Findings") {
+    if (label === "Hardening & Compliance") {
       await expect(page.getByRole("region", { name: "Findings table" }).getByRole("button", { name: "Account", exact: true })).toBeVisible();
       const framework = page.getByLabel("Compliance framework", { exact: true });
-      const first = await framework.locator("option").nth(1).getAttribute("value") || await framework.locator("option").nth(1).textContent();
-      expect(first).toBeTruthy();
-      await framework.selectOption(first!);
+      await framework.click();
+      await expect(page.getByRole("listbox", { name: "Compliance frameworks" }).getByRole("option").nth(1)).toBeVisible();
+      await page.getByRole("listbox", { name: "Compliance frameworks" }).getByRole("option").nth(1).click();
       await page.locator('.service-group-button[aria-expanded="false"]').first().click();
       await expect(page.locator(".finding-title").first()).toBeVisible();
       await page.screenshot({ path: join(evidence, "findings-framework-filter.png"), fullPage: true });

@@ -108,7 +108,11 @@ VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(NETWORK_SERVICE_READ_REFERENCES)
 TRANSIT_GATEWAY_ROUTE_READ_ACTIONS = frozenset({
     'ec2:DescribeTransitGatewayVpcAttachments',
     'ec2:GetTransitGatewayRouteTableAssociations', 'ec2:SearchTransitGatewayRoutes'})
-VERIFIED_ACTIONS = VERIFIED_ACTIONS | TRANSIT_GATEWAY_ROUTE_READ_ACTIONS | frozenset({"access-analyzer:GetFinding"})
+# GetAnalyzer returns the unused-access window and exclusions omitted by ListAnalyzers.
+ACCESS_ANALYZER_CONFIGURATION_REFERENCE = {
+    "access-analyzer:GetAnalyzer": "https://docs.aws.amazon.com/access-analyzer/latest/APIReference/API_GetAnalyzer.html",
+}
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | TRANSIT_GATEWAY_ROUTE_READ_ACTIONS | frozenset({"access-analyzer:GetFinding"}) | frozenset(ACCESS_ANALYZER_CONFIGURATION_REFERENCE)
 NATIVE_BATCH_REFERENCE_SHA256 = '72e537c6b0c83b43f1c818b7d7b8db0e434dd54c304352b35875f2c46376d7c2'
 NATIVE_BATCH_ACTIONS = frozenset({'organizations:DescribeResourcePolicy', 'cloudwatch:ListMetrics'})
 VERIFIED_ACTIONS = VERIFIED_ACTIONS | NATIVE_BATCH_ACTIONS
@@ -301,6 +305,7 @@ ACTION_ALIASES[('ecr','list_image_referrers')] = 'ecr:BatchGetImage'
 # content profile. Their IAM mappings are reviewed, but they never broaden the
 # generated default metadata role.
 OPTIONAL_CONFIGURATION_READ_REFERENCES = {
+    ('cloudformation', 'get_template'): ('cloudformation:GetTemplate', 'https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_GetTemplate.html'),
     ('amplify', 'get_app'): ('amplify:GetApp', 'https://docs.aws.amazon.com/service-authorization/latest/reference/list_amplify.html'),
     ('apigateway', 'get_stage'): ('apigateway:GET', 'https://docs.aws.amazon.com/service-authorization/latest/reference/list_apigateway.html'),
     ('glue', 'get_job'): ('glue:GetJob', 'https://docs.aws.amazon.com/service-authorization/latest/reference/list_glue.html'),

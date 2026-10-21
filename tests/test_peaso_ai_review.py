@@ -51,7 +51,7 @@ def report():
 
 
 def action():
-    return dict(rank=1, title='Require IMDSv2', resource_ids=['r1'], finding_ids=['h1'],
+    return dict(rank=1, title='Require IMDSv2', finding_ids=['h1'],
         rationale='HttpTokens is optional. Require tokens to reduce instance role credential theft.', steps=['Assess workload compatibility', 'Require IMDSv2'],
         verification='Read the instance metadata settings')
 
@@ -91,15 +91,15 @@ def test_recommendations_require_brief_useful_actions(patch):
         validate_actions({'actions': [action() | patch], 'limitations': []}, report(), [])
 
 
-def test_recommendations_have_exactly_seven_fields_and_keep_ranking_and_references():
-    expected = {'rank', 'title', 'resource_ids', 'finding_ids', 'rationale', 'steps', 'verification'}
+def test_recommendations_have_exactly_six_fields_and_keep_ranking_and_references():
+    expected = {'rank', 'title', 'finding_ids', 'rationale', 'steps', 'verification'}
     value = validate_actions({'actions': [action()], 'limitations': []}, report(), [])
     assert set(value['actions'][0]) == expected
     assert set(Recommendations.model_json_schema()['$defs']['Action']['required']) == expected
     with pytest.raises(ValueError, match='invalid_action'):
         validate_actions({'actions': [action(), action() | {'rank': 2}], 'limitations': []}, report(), [])
     with pytest.raises(ValueError, match='action_reference_missing'):
-        validate_actions({'actions': [action() | {'finding_ids': [], 'resource_ids': []}], 'limitations': []}, report(), [])
+        validate_actions({'actions': [action() | {'finding_ids': []}], 'limitations': []}, report(), [])
 
 
 @pytest.mark.parametrize("verdict", ["PASS", "NOT_APPLICABLE", "EMPTY", "UNKNOWN", "DENIED", "MANUAL"])
@@ -243,7 +243,7 @@ def test_network_review_shares_parallel_limit_and_finishes_before_priorities(env
                 rows = [row for row in platform['report']['findings'] if row.get('category') == 'network']
                 assert len(rows) == 1 and rows[0]['evidence']['source'] == 'ai_network_review'
                 received.extend(rows)
-                return {'actions': [action() | {'title': rows[0]['title'], 'finding_ids': [rows[0]['id']], 'resource_ids': ['r2']}], 'limitations': []}
+                return {'actions': [action() | {'title': rows[0]['title'], 'finding_ids': [rows[0]['id']]}], 'limitations': []}
             assert network_started.wait(2)
             completed.append(stage)
             if len(completed) == 2:

@@ -5,6 +5,7 @@ not transferred bytes (AWS may return up to 6MiB). No payload is cached.
 Offline Kingfisher and TruffleHog detection is limited to the selected bounded content.
 """
 from __future__ import annotations
+from peaso.secret_evidence import scan_with_source
 import copy
 import json
 import re
@@ -147,8 +148,8 @@ def project_response(response, service, operation, arguments, *, request_context
                     if any(ord(char) < 32 and char not in '\t\r\n' for char in text):
                         raise UnicodeError()
                     from peaso.secret_scanning import scan_content
-                    outcome = scan_content(payload, path_locator(region, arguments['repositoryName'],
-                        arguments['commitSpecifier'], arguments['filePath']))
+                    outcome = scan_with_source(scan_content, payload, path_locator(region, arguments['repositoryName'],
+                        arguments['commitSpecifier'], arguments['filePath']), source={'path': arguments['filePath'], 'source': json.dumps({k: arguments[k] for k in ('repositoryName', 'commitSpecifier')}), 'scope': region})
                     value.update(leaks=outcome['leaks'], scanner_complete=outcome['complete'])
                     value['categories'] = sorted(set(_categories(text)) | ({'secret'} if outcome['leaks'] else set()))
                 except UnicodeError:
@@ -168,7 +169,7 @@ def project_response(response, service, operation, arguments, *, request_context
                 size = len(message.encode('utf-8'))
                 readable = size <= remaining
                 from peaso.secret_scanning import scan_content
-                outcome = scan_content(message.encode('utf-8'), 'log-message') if readable else {'leaks': [], 'complete': False}
+                outcome = scan_with_source(scan_content, message.encode('utf-8'), 'log-message', source={'path': arguments['logGroupName'], 'scope': region, 'source': json.dumps({**{k: arguments[k] for k in ('logGroupName', 'logStreamName') if k in arguments}, **{k: row[k] for k in ('timestamp', 'eventId', 'logStreamName') if k in row}}), 'location_kind': 'log'}) if readable else {'leaks': [], 'complete': False}
                 value['events'].append({'timestamp': timestamp, 'size': size, 'readable': readable,
                     'leaks': outcome['leaks'], 'scanner_complete': outcome['complete'],
                     'categories': sorted(set(_categories(message)) | ({'secret'} if outcome['leaks'] else set())) if readable else []})

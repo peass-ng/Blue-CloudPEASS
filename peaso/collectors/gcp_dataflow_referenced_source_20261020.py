@@ -3,6 +3,8 @@
 Native uncached exact GETs produce this reader's own receipts. Source bytes live
 only in memory; no generic collector context or other reader receipts are made.
 """
+
+from peaso.secret_evidence import scan_with_source, target_source
 from copy import deepcopy
 from datetime import datetime, timezone
 import hashlib
@@ -237,14 +239,21 @@ def reference(data, target):
 
 def inspect_payload(payload, target, transport, state, item):
     """Reuse immutable memory parsers with a local callback, retaining partial hits."""
+    partial_class_content = False
     def inspect_text(raw, _name, requests=None):
+        nonlocal partial_class_content
         remaining(transport, state)
+        if _name.lower().endswith('.class'):
+            from peaso.jvm_class_constant_text_20261021 import extract_constant_text
+            # Constant-pool text is useful evidence, never complete bytecode coverage.
+            raw = extract_constant_text(bytes(raw))
+            partial_class_content = True
         if (len(raw) > archives.MAX_MEMBER_BYTES
-                or _name.lower().endswith(('.zip', '.tar', '.tar.gz', '.tgz', '.gz', '.bz2', '.xz', '.7z', '.rar', '.bin', '.pdf', '.png', '.jpg', '.jpeg', '.gif', '.exe', '.dll', '.so', '.class', '.pyc', '.wasm'))):
+                or _name.lower().endswith(('.zip', '.tar', '.tar.gz', '.tgz', '.gz', '.bz2', '.xz', '.7z', '.rar', '.bin', '.pdf', '.png', '.jpg', '.jpeg', '.gif', '.exe', '.dll', '.so', '.pyc', '.wasm'))):
             raise Incomplete('unsupported_member')
         objects._text(bytes(raw))
         path = item['identity'] + '.part-' + str(len(item['parts']) + 1)
-        outcome = scan_content(bytes(raw), path, timeout=min(10, remaining(transport, state) / 2))
+        outcome = scan_with_source(scan_content, bytes(raw), path, timeout=min(10, remaining(transport, state) / 2), source=target_source(target, resource_id=item['identity'], path=_name))
         item['parts'].append(dict(path=path, bytes=len(raw), engines=outcome['engines'], complete=outcome['complete']))
         merged = merge_leaks(item['leaks'] + outcome['leaks'])
         if len(merged) > MAX_LEAKS or sum(len(l['locations']) for l in merged) > MAX_LOCATIONS:
@@ -274,7 +283,7 @@ def inspect_payload(payload, target, transport, state, item):
         else:
             mime = 'application/vnd.oci.image.layer.v1.tar' + ('+gzip' if target['format'] == 'tar.gz' else '')
             _, charged_expanded, charged_members = bounded(payload, mime, facade)
-        item['complete'] = bool(item['parts']) and all(p['complete'] for p in item['parts'])
+        item['complete'] = bool(item['parts']) and not partial_class_content and all(p['complete'] for p in item['parts'])
     finally:
         state['expanded'] += charged_expanded
         state['members'] += charged_members

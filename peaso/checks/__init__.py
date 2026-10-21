@@ -1506,9 +1506,13 @@ from . import k8s_literal_secret_review_20261020
 k8s_literal_secret_review_20261020.install()
 from . import k8s_literal_current_metadata_20261020
 k8s_literal_current_metadata_20261020.install()
+from . import k8s_selected_text_content_review
+k8s_selected_text_content_review.install()
 
 from . import azure_acr_image_secret_review_20261020
 azure_acr_image_secret_review_20261020.install()
+from . import azure_acr_image_vulnerabilities_20261021
+azure_acr_image_vulnerabilities_20261021.install()
 
 from . import aws_lambda_environment_secret_review_20261020
 aws_lambda_environment_secret_review_20261020.install()
@@ -1518,6 +1522,8 @@ azure_ai_services_review_20261020.install()
 
 from . import azure_synapse_dependency_review_20261020
 azure_synapse_dependency_review_20261020.install()
+from . import azure_synapse_selected_notebook_secret_review_20261021
+azure_synapse_selected_notebook_secret_review_20261021.install()
 
 from . import azure_hsm_audit_review_20261020
 azure_hsm_audit_review_20261020.install(register)
@@ -1535,9 +1541,10 @@ from . import azure_edge_native_admission_20261020
 azure_edge_native_admission_20261020.install()
 
 from . import k8s_annotation_native_admission_20261020
-k8s_annotation_native_admission_20261020.install()
+from . import k8s_annotation_native_source_successor_20261021
+k8s_annotation_native_source_successor_20261021.install()
 
-from peaso import rawv2_public_source_successor_20261021 as _rawv2_source
+from peaso import rawv2_private_source_successor_20261021 as _rawv2_source
 from . import aws_selected_configuration_admission_20261020
 _rawv2_source.install_selected_aws()
 
@@ -1548,13 +1555,18 @@ from . import azure_declaration_secrets_admission_20261020
 _rawv2_source.install_admission("azure_declaration_secrets_admission_20261020")
 
 from . import k8s_kubelet_configmap_admission_20261020
-k8s_kubelet_configmap_admission_20261020.install()
+from . import k8s_kubelet_configmap_source_successor_20261021
+k8s_kubelet_configmap_source_successor_20261021.install()
+
+from . import aws_ecs_environment_file_secret_review_20261021
+aws_ecs_environment_file_secret_review_20261021.install(register)
 
 from . import aws_s3_selected_source_admission_20261020
 from . import aws_codebuild_buildspec_s3_successor_20261020
 from . import aws_workload_command_shared_successor_20261020
 from . import azure_metadata_only_shared_successor_20261020 as _deployed_ai_shared_source
-from . import gcp_positive_conservation_shared_source_successor_20261020 as _positive_shared_source
+from . import gcp_positive_conservation_shared_source_successor_20261020 as _canonical_positive_shared_source
+from . import private_secret_shared_source_successor_20261021 as _positive_shared_source
 _historical_aws_workload_command_shared_successor_20261020 = aws_workload_command_shared_successor_20261020
 aws_workload_command_shared_successor_20261020 = _positive_shared_source
 aws_workload_command_shared_successor_20261020.install_s3()
@@ -1575,7 +1587,8 @@ from . import azure_function_settings_runtime_admission_20261020
 _rawv2_source.install_admission("azure_function_settings_runtime_admission_20261020")
 
 from . import k8s_selected_log_sample_admission_20261020
-k8s_selected_log_sample_admission_20261020.install()
+from . import k8s_selected_log_source_successor_20261021
+k8s_selected_log_source_successor_20261021.install()
 
 from .azure_sas_policy_declaration_admission_20261020 import install as _install_azure_sas_policy_declaration_20261020
 _install_azure_sas_policy_declaration_20261020()
@@ -1600,13 +1613,15 @@ from peaso import gcp_cloudrun_job_image_function_source_successor_20261020 as _
 gcp_function_secret_page_admission_20261020.source_inputs = _job_function_source.reviewed_inputs
 from peaso import gcp_function_secret_page_source_20261020 as _historical_function_page_source
 _historical_function_page_source.reviewed_inputs = _job_function_source.reviewed_inputs
-from peaso import gcp_positive_conservation_source_admission_successor_20261020 as _positive_source
+from peaso import gcp_positive_conservation_source_admission_successor_20261020 as _canonical_positive_source
+from peaso import gcp_private_source_successor_20261021 as _positive_source
 gcp_function_secret_page_admission_20261020.source_inputs = _positive_source.reviewed_inputs
 collector_noop_authorization_shared_successor_20261020 = aws_workload_command_shared_successor_20261020
 azure_function_package_shared_successor_20261020.install_bundle()
+_historical_function_page_source.reviewed_inputs = _positive_source.reviewed_inputs
 
 from . import gcp_workbench_head3_admission_20261020
-from . import gcp_cloudrun_job_image_workbench_source_successor_20261020 as _job_workbench_source
+from . import gcp_private_workbench_head3_source_successor_20261021 as _job_workbench_source
 gcp_workbench_head3_admission_20261020.reviewed_inputs = _job_workbench_source.reviewed_inputs
 gcp_workbench_head3_admission_20261020.install_bundle()
 
@@ -1615,3 +1630,67 @@ gcp_cloudrun_job_image_secret_review_20261020.install()
 
 from . import aws_ai_recheck_corrections_20261020
 aws_ai_recheck_corrections_20261020.install()
+
+# Final bounded provider-group admission; apply only with its reviewed source closure.
+from pathlib import Path as _ProviderGroupPath
+from . import provider_group_install_20261021 as _provider_group_install_20261021
+from . import storage_immutability_native_successor as _provider_group_storage_20261021
+from . import azure_app_service_runtime_native_20261021 as _provider_group_runtime_20261021
+from . import gcp_job_trivy_vulnerability_review_20261020 as _provider_group_gcp_20261021
+from . import aws_image_vulnerabilities_20261021 as _provider_group_aws_20261021
+_provider_group_root_20261021 = _ProviderGroupPath(__file__).resolve().parents[2]
+_provider_group_install_20261021.install(
+    storage=_provider_group_storage_20261021,
+    runtime=_provider_group_runtime_20261021,
+    gcp=_provider_group_gcp_20261021,
+    aws=_provider_group_aws_20261021,
+    root=_provider_group_root_20261021,
+    source_paths=_provider_group_install_20261021.deployed_sources(_provider_group_root_20261021),
+)
+
+# Practical bounded selected GCP image reads; grouped provider integration.
+from . import gcp_image_stream_review_20261021 as _gcp_image_stream
+_gcp_image_stream.install()
+
+# Default-off selected standalone immutable registry image vulnerabilities.
+from .gcp_registry_trivy_review_20261021 import install as _install_registry_image_cves
+_install_registry_image_cves(__import__(__name__, fromlist=['CHECKS']))
+
+# Explicit selected Pod-bound registry image checks.
+from .k8s_selected_registry_image_review_20261021 import install as _install_k8s_registry_images
+_install_k8s_registry_images(register)
+from .azure_selected_aks_image_review_20261021 import install as _install_azure_aks_image
+_install_azure_aks_image()
+
+from .k8s_selected_flux_artifact_review_20261021 import install as _install_flux_artifact
+_install_flux_artifact(register)
+
+from . import aws_workload_referenced_source_review
+aws_workload_referenced_source_review.install(register)
+
+from . import aws_build_deployment_referenced_source_review
+aws_build_deployment_referenced_source_review.install(register)
+
+from . import gcp_workerpool_image_secret_review_20261021
+gcp_workerpool_image_secret_review_20261021.install()
+
+from . import gcp_developerconnect_file_secret_review_20261021
+gcp_developerconnect_file_secret_review_20261021.install()
+
+from . import gcp_appengine_flex_image_review_20261021
+gcp_appengine_flex_image_review_20261021.install()
+
+from . import gcp_gke_selected_pod_image_review_20261021
+gcp_gke_selected_pod_image_review_20261021.install()
+
+from . import azure_ml_selected_job_secret_review_20261020 as _selected_ml_job_variants
+_selected_ml_job_variants.install_current_native_cases()
+
+from . import aws_workload_image_secret_review_20261021 as _aws_workload_image_secrets
+_aws_workload_image_secrets.install(__import__(__name__, fromlist=['CHECKS']))
+
+from .aws_ecr_public_image_review_20261021 import install as _install_ecr_public_image
+_install_ecr_public_image(register)
+
+from . import azure_flex_deployment_archives_review_20261021
+azure_flex_deployment_archives_review_20261021.install(register)

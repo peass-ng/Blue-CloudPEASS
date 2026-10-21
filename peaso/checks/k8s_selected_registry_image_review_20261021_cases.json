@@ -1,0 +1,1551 @@
+{
+  "k8s.review.selected_registry_image_high_vulnerabilities": {
+    "fail": {
+      "SelectedRegistryImage": {
+        "auth_mode": "anonymous",
+        "complete": false,
+        "identity": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d",
+        "leaks": [],
+        "manifest_digest": "sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+        "native_after": {
+          "api_version": "v1",
+          "kind": "Pod",
+          "name": "pod-a",
+          "namespace": "default",
+          "resource_version": "42",
+          "uid": "abc123"
+        },
+        "native_before": {
+          "api_version": "v1",
+          "kind": "Pod",
+          "name": "pod-a",
+          "namespace": "default",
+          "resource_version": "42",
+          "uid": "abc123"
+        },
+        "parts": [],
+        "reason": "partial",
+        "registry_receipts": [
+          {
+            "bytes": 401,
+            "category": "manifests",
+            "digest": "sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+            "id": "registry-read-3e67ced619db4f54beed5b258b56f884",
+            "method": "GET",
+            "status": "collected"
+          },
+          {
+            "bytes": 151,
+            "category": "blobs",
+            "digest": "sha256:ef10af51b75d1e22a075ea189b4a92df906fbab17803a5df424fbe9bcb245af2",
+            "id": "registry-read-8de023663d21424a967deccf3787ddcc",
+            "method": "GET",
+            "status": "collected"
+          },
+          {
+            "bytes": 119,
+            "category": "blobs",
+            "digest": "sha256:f001ba4be3bf2516133ff3e73d728b5ba68bf080c0127abaa9d874ee566ee689",
+            "id": "registry-read-08b085703e914360ac7a994eb5bf4409",
+            "method": "GET",
+            "status": "collected"
+          }
+        ],
+        "schema": "k8s-selected-registry-image-v1",
+        "status": "UNKNOWN",
+        "status_image_id": "ghcr.io/owned/demo@sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+        "vulnerability": {
+          "complete": false,
+          "coverage_status": "PARTIAL",
+          "database": {
+            "fresh": true
+          },
+          "findings": [
+            {
+              "image_digest": "sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+              "package": "pkg",
+              "severity": "HIGH",
+              "version": "1",
+              "vulnerability_id": "CVE-2026-1001"
+            }
+          ],
+          "status": "FAIL"
+        }
+      },
+      "id": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d",
+      "name": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d"
+    },
+    "fail_index": {
+      "collections": {
+        "k8s_selected_registry_image_vulnerabilities": [
+          {
+            "items": [
+              {
+                "SelectedRegistryImage": {
+                  "auth_mode": "anonymous",
+                  "complete": false,
+                  "identity": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d",
+                  "leaks": [],
+                  "manifest_digest": "sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+                  "native_after": {
+                    "api_version": "v1",
+                    "kind": "Pod",
+                    "name": "pod-a",
+                    "namespace": "default",
+                    "resource_version": "42",
+                    "uid": "abc123"
+                  },
+                  "native_before": {
+                    "api_version": "v1",
+                    "kind": "Pod",
+                    "name": "pod-a",
+                    "namespace": "default",
+                    "resource_version": "42",
+                    "uid": "abc123"
+                  },
+                  "parts": [],
+                  "reason": "partial",
+                  "registry_receipts": [
+                    {
+                      "bytes": 401,
+                      "category": "manifests",
+                      "digest": "sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+                      "id": "registry-read-3e67ced619db4f54beed5b258b56f884",
+                      "method": "GET",
+                      "status": "collected"
+                    },
+                    {
+                      "bytes": 151,
+                      "category": "blobs",
+                      "digest": "sha256:ef10af51b75d1e22a075ea189b4a92df906fbab17803a5df424fbe9bcb245af2",
+                      "id": "registry-read-8de023663d21424a967deccf3787ddcc",
+                      "method": "GET",
+                      "status": "collected"
+                    },
+                    {
+                      "bytes": 119,
+                      "category": "blobs",
+                      "digest": "sha256:f001ba4be3bf2516133ff3e73d728b5ba68bf080c0127abaa9d874ee566ee689",
+                      "id": "registry-read-08b085703e914360ac7a994eb5bf4409",
+                      "method": "GET",
+                      "status": "collected"
+                    }
+                  ],
+                  "schema": "k8s-selected-registry-image-v1",
+                  "status": "UNKNOWN",
+                  "status_image_id": "ghcr.io/owned/demo@sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+                  "vulnerability": {
+                    "complete": false,
+                    "coverage_status": "PARTIAL",
+                    "database": {
+                      "fresh": true
+                    },
+                    "findings": [
+                      {
+                        "image_digest": "sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+                        "package": "pkg",
+                        "severity": "HIGH",
+                        "version": "1",
+                        "vulnerability_id": "CVE-2026-1001"
+                      }
+                    ],
+                    "status": "FAIL"
+                  }
+                },
+                "id": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d",
+                "name": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d"
+              }
+            ],
+            "scope": "default",
+            "service": "kubernetes",
+            "status": "partial",
+            "type": "k8s_selected_registry_image_vulnerabilities"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "k8s_selected_registry_image_vulnerabilities_authorized": true,
+          "selected_k8s_registry_images": [
+            {
+              "cluster_id": "cluster.example",
+              "container_name": "app",
+              "container_type": "regular",
+              "image": "ghcr.io/owned/demo@sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+              "namespace": "default",
+              "pod": "pod-a",
+              "resource_version": "42",
+              "uid": "abc123"
+            }
+          ]
+        },
+        "provider": "k8s",
+        "scope": "default"
+      }
+    },
+    "missing": {},
+    "missing_index": {
+      "collections": {
+        "k8s_selected_registry_image_vulnerabilities": [
+          {
+            "items": [
+              {
+                "SelectedRegistryImage": {
+                  "auth_mode": "anonymous",
+                  "complete": false,
+                  "identity": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d",
+                  "leaks": [],
+                  "manifest_digest": "sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+                  "native_after": {
+                    "api_version": "v1",
+                    "kind": "Pod",
+                    "name": "pod-a",
+                    "namespace": "default",
+                    "resource_version": "42",
+                    "uid": "abc123"
+                  },
+                  "native_before": {
+                    "api_version": "v1",
+                    "kind": "Pod",
+                    "name": "pod-a",
+                    "namespace": "default",
+                    "resource_version": "42",
+                    "uid": "abc123"
+                  },
+                  "parts": [],
+                  "reason": "partial",
+                  "registry_receipts": [
+                    {
+                      "bytes": 401,
+                      "category": "manifests",
+                      "digest": "sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+                      "id": "registry-read-cddc20cb56304a8ab5d415374488ef19",
+                      "method": "GET",
+                      "status": "collected"
+                    },
+                    {
+                      "bytes": 151,
+                      "category": "blobs",
+                      "digest": "sha256:ef10af51b75d1e22a075ea189b4a92df906fbab17803a5df424fbe9bcb245af2",
+                      "id": "registry-read-a48d1ad0f45b40078dd86103d12b0a5f",
+                      "method": "GET",
+                      "status": "collected"
+                    },
+                    {
+                      "bytes": 119,
+                      "category": "blobs",
+                      "digest": "sha256:f001ba4be3bf2516133ff3e73d728b5ba68bf080c0127abaa9d874ee566ee689",
+                      "id": "registry-read-a2ddc3327dc74100b0fe52cc6de2fe2e",
+                      "method": "GET",
+                      "status": "collected"
+                    }
+                  ],
+                  "schema": "k8s-selected-registry-image-v1",
+                  "status": "UNKNOWN",
+                  "status_image_id": "ghcr.io/owned/demo@sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+                  "vulnerability": {
+                    "complete": true,
+                    "coverage_status": "COMPLETE",
+                    "database": {
+                      "fresh": true
+                    },
+                    "findings": [],
+                    "scan_complete": true,
+                    "status": "PASS"
+                  }
+                },
+                "id": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d",
+                "name": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d"
+              }
+            ],
+            "scope": "default",
+            "service": "kubernetes",
+            "status": "collected",
+            "type": "k8s_selected_registry_image_vulnerabilities"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "k8s_selected_registry_image_vulnerabilities_authorized": true,
+          "selected_k8s_registry_images": [
+            {
+              "cluster_id": "cluster.example",
+              "container_name": "app",
+              "container_type": "regular",
+              "image": "ghcr.io/owned/demo@sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+              "namespace": "default",
+              "pod": "pod-a",
+              "resource_version": "42",
+              "uid": "abc123"
+            }
+          ]
+        },
+        "provider": "k8s",
+        "scope": "default"
+      }
+    },
+    "pass": {
+      "SelectedRegistryImage": {
+        "auth_mode": "anonymous",
+        "complete": false,
+        "identity": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d",
+        "leaks": [],
+        "manifest_digest": "sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+        "native_after": {
+          "api_version": "v1",
+          "kind": "Pod",
+          "name": "pod-a",
+          "namespace": "default",
+          "resource_version": "42",
+          "uid": "abc123"
+        },
+        "native_before": {
+          "api_version": "v1",
+          "kind": "Pod",
+          "name": "pod-a",
+          "namespace": "default",
+          "resource_version": "42",
+          "uid": "abc123"
+        },
+        "parts": [],
+        "reason": "partial",
+        "registry_receipts": [
+          {
+            "bytes": 401,
+            "category": "manifests",
+            "digest": "sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+            "id": "registry-read-cddc20cb56304a8ab5d415374488ef19",
+            "method": "GET",
+            "status": "collected"
+          },
+          {
+            "bytes": 151,
+            "category": "blobs",
+            "digest": "sha256:ef10af51b75d1e22a075ea189b4a92df906fbab17803a5df424fbe9bcb245af2",
+            "id": "registry-read-a48d1ad0f45b40078dd86103d12b0a5f",
+            "method": "GET",
+            "status": "collected"
+          },
+          {
+            "bytes": 119,
+            "category": "blobs",
+            "digest": "sha256:f001ba4be3bf2516133ff3e73d728b5ba68bf080c0127abaa9d874ee566ee689",
+            "id": "registry-read-a2ddc3327dc74100b0fe52cc6de2fe2e",
+            "method": "GET",
+            "status": "collected"
+          }
+        ],
+        "schema": "k8s-selected-registry-image-v1",
+        "status": "UNKNOWN",
+        "status_image_id": "ghcr.io/owned/demo@sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+        "vulnerability": {
+          "complete": true,
+          "coverage_status": "COMPLETE",
+          "database": {
+            "fresh": true
+          },
+          "findings": [],
+          "scan_complete": true,
+          "status": "PASS"
+        }
+      },
+      "id": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d",
+      "name": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d"
+    },
+    "pass_index": {
+      "collections": {
+        "k8s_selected_registry_image_vulnerabilities": [
+          {
+            "items": [
+              {
+                "SelectedRegistryImage": {
+                  "auth_mode": "anonymous",
+                  "complete": false,
+                  "identity": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d",
+                  "leaks": [],
+                  "manifest_digest": "sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+                  "native_after": {
+                    "api_version": "v1",
+                    "kind": "Pod",
+                    "name": "pod-a",
+                    "namespace": "default",
+                    "resource_version": "42",
+                    "uid": "abc123"
+                  },
+                  "native_before": {
+                    "api_version": "v1",
+                    "kind": "Pod",
+                    "name": "pod-a",
+                    "namespace": "default",
+                    "resource_version": "42",
+                    "uid": "abc123"
+                  },
+                  "parts": [],
+                  "reason": "partial",
+                  "registry_receipts": [
+                    {
+                      "bytes": 401,
+                      "category": "manifests",
+                      "digest": "sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+                      "id": "registry-read-cddc20cb56304a8ab5d415374488ef19",
+                      "method": "GET",
+                      "status": "collected"
+                    },
+                    {
+                      "bytes": 151,
+                      "category": "blobs",
+                      "digest": "sha256:ef10af51b75d1e22a075ea189b4a92df906fbab17803a5df424fbe9bcb245af2",
+                      "id": "registry-read-a48d1ad0f45b40078dd86103d12b0a5f",
+                      "method": "GET",
+                      "status": "collected"
+                    },
+                    {
+                      "bytes": 119,
+                      "category": "blobs",
+                      "digest": "sha256:f001ba4be3bf2516133ff3e73d728b5ba68bf080c0127abaa9d874ee566ee689",
+                      "id": "registry-read-a2ddc3327dc74100b0fe52cc6de2fe2e",
+                      "method": "GET",
+                      "status": "collected"
+                    }
+                  ],
+                  "schema": "k8s-selected-registry-image-v1",
+                  "status": "UNKNOWN",
+                  "status_image_id": "ghcr.io/owned/demo@sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+                  "vulnerability": {
+                    "complete": true,
+                    "coverage_status": "COMPLETE",
+                    "database": {
+                      "fresh": true
+                    },
+                    "findings": [],
+                    "scan_complete": true,
+                    "status": "PASS"
+                  }
+                },
+                "id": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d",
+                "name": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d"
+              }
+            ],
+            "scope": "default",
+            "service": "kubernetes",
+            "status": "collected",
+            "type": "k8s_selected_registry_image_vulnerabilities"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "k8s_selected_registry_image_vulnerabilities_authorized": true,
+          "selected_k8s_registry_images": [
+            {
+              "cluster_id": "cluster.example",
+              "container_name": "app",
+              "container_type": "regular",
+              "image": "ghcr.io/owned/demo@sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+              "namespace": "default",
+              "pod": "pod-a",
+              "resource_version": "42",
+              "uid": "abc123"
+            }
+          ]
+        },
+        "provider": "k8s",
+        "scope": "default"
+      }
+    },
+    "unknown": {
+      "SelectedRegistryImage": {
+        "auth_mode": "anonymous",
+        "complete": false,
+        "identity": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d",
+        "leaks": [],
+        "manifest_digest": "sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+        "native_after": {
+          "api_version": "v1",
+          "kind": "Pod",
+          "name": "pod-a",
+          "namespace": "default",
+          "resource_version": "42",
+          "uid": "abc123"
+        },
+        "native_before": {
+          "api_version": "v1",
+          "kind": "Pod",
+          "name": "pod-a",
+          "namespace": "default",
+          "resource_version": "42",
+          "uid": "abc123"
+        },
+        "parts": [],
+        "reason": "registry_denied",
+        "registry_receipts": [
+          {
+            "bytes": 0,
+            "category": "manifests",
+            "digest": "sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+            "id": "registry-read-d3038e53e90d492487b7935b53313558",
+            "method": "GET",
+            "status": "denied"
+          }
+        ],
+        "schema": "k8s-selected-registry-image-v1",
+        "status": "UNKNOWN",
+        "status_image_id": "ghcr.io/owned/demo@sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+        "vulnerability": null
+      },
+      "id": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d",
+      "name": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d"
+    },
+    "unknown_index": {
+      "collections": {
+        "k8s_selected_registry_image_vulnerabilities": [
+          {
+            "items": [
+              {
+                "SelectedRegistryImage": {
+                  "auth_mode": "anonymous",
+                  "complete": false,
+                  "identity": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d",
+                  "leaks": [],
+                  "manifest_digest": "sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+                  "native_after": {
+                    "api_version": "v1",
+                    "kind": "Pod",
+                    "name": "pod-a",
+                    "namespace": "default",
+                    "resource_version": "42",
+                    "uid": "abc123"
+                  },
+                  "native_before": {
+                    "api_version": "v1",
+                    "kind": "Pod",
+                    "name": "pod-a",
+                    "namespace": "default",
+                    "resource_version": "42",
+                    "uid": "abc123"
+                  },
+                  "parts": [],
+                  "reason": "registry_denied",
+                  "registry_receipts": [
+                    {
+                      "bytes": 0,
+                      "category": "manifests",
+                      "digest": "sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+                      "id": "registry-read-d3038e53e90d492487b7935b53313558",
+                      "method": "GET",
+                      "status": "denied"
+                    }
+                  ],
+                  "schema": "k8s-selected-registry-image-v1",
+                  "status": "UNKNOWN",
+                  "status_image_id": "ghcr.io/owned/demo@sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+                  "vulnerability": null
+                },
+                "id": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d",
+                "name": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d"
+              }
+            ],
+            "scope": "default",
+            "service": "kubernetes",
+            "status": "partial",
+            "type": "k8s_selected_registry_image_vulnerabilities"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "k8s_selected_registry_image_vulnerabilities_authorized": true,
+          "selected_k8s_registry_images": [
+            {
+              "cluster_id": "cluster.example",
+              "container_name": "app",
+              "container_type": "regular",
+              "image": "ghcr.io/owned/demo@sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+              "namespace": "default",
+              "pod": "pod-a",
+              "resource_version": "42",
+              "uid": "abc123"
+            }
+          ]
+        },
+        "provider": "k8s",
+        "scope": "default"
+      }
+    }
+  },
+  "k8s.review.selected_registry_image_secret_indicators": {
+    "fail": {
+      "SelectedRegistryImage": {
+        "auth_mode": "anonymous",
+        "complete": true,
+        "identity": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d",
+        "leaks": [
+          {
+            "detectors": [
+              {
+                "engine": "kingfisher"
+              }
+            ],
+            "fingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "locations": [
+              {
+                "path": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d.layer-1.file-4.chunk-11"
+              }
+            ]
+          }
+        ],
+        "manifest_digest": "sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+        "native_after": {
+          "api_version": "v1",
+          "kind": "Pod",
+          "name": "pod-a",
+          "namespace": "default",
+          "resource_version": "42",
+          "uid": "abc123"
+        },
+        "native_before": {
+          "api_version": "v1",
+          "kind": "Pod",
+          "name": "pod-a",
+          "namespace": "default",
+          "resource_version": "42",
+          "uid": "abc123"
+        },
+        "parts": [
+          {
+            "bytes": 401,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d.manifest"
+          },
+          {
+            "bytes": 151,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d.config"
+          },
+          {
+            "bytes": 127,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d.config-strings"
+          },
+          {
+            "bytes": 16,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d.layer-1.file-4.name"
+          },
+          {
+            "bytes": 11,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d.layer-1.file-4.chunk-11"
+          }
+        ],
+        "reason": "complete",
+        "registry_receipts": [
+          {
+            "bytes": 401,
+            "category": "manifests",
+            "digest": "sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+            "id": "registry-read-83289d462aac4ae684faf5fcc39bdd6b",
+            "method": "GET",
+            "status": "collected"
+          },
+          {
+            "bytes": 151,
+            "category": "blobs",
+            "digest": "sha256:ef10af51b75d1e22a075ea189b4a92df906fbab17803a5df424fbe9bcb245af2",
+            "id": "registry-read-be5448fa091b442493453617643933bb",
+            "method": "GET",
+            "status": "collected"
+          },
+          {
+            "bytes": 119,
+            "category": "blobs",
+            "digest": "sha256:f001ba4be3bf2516133ff3e73d728b5ba68bf080c0127abaa9d874ee566ee689",
+            "id": "registry-read-8a894995c3a9497f907ae47824824ad4",
+            "method": "GET",
+            "status": "collected"
+          }
+        ],
+        "schema": "k8s-selected-registry-image-v1",
+        "status": "FAIL",
+        "status_image_id": "ghcr.io/owned/demo@sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+        "vulnerability": null
+      },
+      "id": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d",
+      "name": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d"
+    },
+    "fail_index": {
+      "collections": {
+        "k8s_selected_registry_image_secrets": [
+          {
+            "items": [
+              {
+                "SelectedRegistryImage": {
+                  "auth_mode": "anonymous",
+                  "complete": true,
+                  "identity": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d",
+                  "leaks": [
+                    {
+                      "detectors": [
+                        {
+                          "engine": "kingfisher"
+                        }
+                      ],
+                      "fingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                      "locations": [
+                        {
+                          "path": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d.layer-1.file-4.chunk-11"
+                        }
+                      ]
+                    }
+                  ],
+                  "manifest_digest": "sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+                  "native_after": {
+                    "api_version": "v1",
+                    "kind": "Pod",
+                    "name": "pod-a",
+                    "namespace": "default",
+                    "resource_version": "42",
+                    "uid": "abc123"
+                  },
+                  "native_before": {
+                    "api_version": "v1",
+                    "kind": "Pod",
+                    "name": "pod-a",
+                    "namespace": "default",
+                    "resource_version": "42",
+                    "uid": "abc123"
+                  },
+                  "parts": [
+                    {
+                      "bytes": 401,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d.manifest"
+                    },
+                    {
+                      "bytes": 151,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d.config"
+                    },
+                    {
+                      "bytes": 127,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d.config-strings"
+                    },
+                    {
+                      "bytes": 16,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d.layer-1.file-4.name"
+                    },
+                    {
+                      "bytes": 11,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d.layer-1.file-4.chunk-11"
+                    }
+                  ],
+                  "reason": "complete",
+                  "registry_receipts": [
+                    {
+                      "bytes": 401,
+                      "category": "manifests",
+                      "digest": "sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+                      "id": "registry-read-83289d462aac4ae684faf5fcc39bdd6b",
+                      "method": "GET",
+                      "status": "collected"
+                    },
+                    {
+                      "bytes": 151,
+                      "category": "blobs",
+                      "digest": "sha256:ef10af51b75d1e22a075ea189b4a92df906fbab17803a5df424fbe9bcb245af2",
+                      "id": "registry-read-be5448fa091b442493453617643933bb",
+                      "method": "GET",
+                      "status": "collected"
+                    },
+                    {
+                      "bytes": 119,
+                      "category": "blobs",
+                      "digest": "sha256:f001ba4be3bf2516133ff3e73d728b5ba68bf080c0127abaa9d874ee566ee689",
+                      "id": "registry-read-8a894995c3a9497f907ae47824824ad4",
+                      "method": "GET",
+                      "status": "collected"
+                    }
+                  ],
+                  "schema": "k8s-selected-registry-image-v1",
+                  "status": "FAIL",
+                  "status_image_id": "ghcr.io/owned/demo@sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+                  "vulnerability": null
+                },
+                "id": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d",
+                "name": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d"
+              }
+            ],
+            "scope": "default",
+            "service": "kubernetes",
+            "status": "collected",
+            "type": "k8s_selected_registry_image_secrets"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "k8s_selected_registry_image_secrets_authorized": true,
+          "selected_k8s_registry_images": [
+            {
+              "cluster_id": "cluster.example",
+              "container_name": "app",
+              "container_type": "regular",
+              "image": "ghcr.io/owned/demo@sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+              "namespace": "default",
+              "pod": "pod-a",
+              "resource_version": "42",
+              "uid": "abc123"
+            }
+          ]
+        },
+        "provider": "k8s",
+        "scope": "default"
+      }
+    },
+    "missing": {},
+    "missing_index": {
+      "collections": {
+        "k8s_selected_registry_image_secrets": [
+          {
+            "items": [
+              {
+                "SelectedRegistryImage": {
+                  "auth_mode": "anonymous",
+                  "complete": true,
+                  "identity": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d",
+                  "leaks": [],
+                  "manifest_digest": "sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+                  "native_after": {
+                    "api_version": "v1",
+                    "kind": "Pod",
+                    "name": "pod-a",
+                    "namespace": "default",
+                    "resource_version": "42",
+                    "uid": "abc123"
+                  },
+                  "native_before": {
+                    "api_version": "v1",
+                    "kind": "Pod",
+                    "name": "pod-a",
+                    "namespace": "default",
+                    "resource_version": "42",
+                    "uid": "abc123"
+                  },
+                  "parts": [
+                    {
+                      "bytes": 401,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d.manifest"
+                    },
+                    {
+                      "bytes": 151,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d.config"
+                    },
+                    {
+                      "bytes": 127,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d.config-strings"
+                    },
+                    {
+                      "bytes": 16,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d.layer-1.file-4.name"
+                    },
+                    {
+                      "bytes": 11,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d.layer-1.file-4.chunk-11"
+                    }
+                  ],
+                  "reason": "complete",
+                  "registry_receipts": [
+                    {
+                      "bytes": 401,
+                      "category": "manifests",
+                      "digest": "sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+                      "id": "registry-read-22408cf6a4bb476b916f3e9f71811916",
+                      "method": "GET",
+                      "status": "collected"
+                    },
+                    {
+                      "bytes": 151,
+                      "category": "blobs",
+                      "digest": "sha256:ef10af51b75d1e22a075ea189b4a92df906fbab17803a5df424fbe9bcb245af2",
+                      "id": "registry-read-acb09b87a6134cbfbe9f5a771365df81",
+                      "method": "GET",
+                      "status": "collected"
+                    },
+                    {
+                      "bytes": 119,
+                      "category": "blobs",
+                      "digest": "sha256:f001ba4be3bf2516133ff3e73d728b5ba68bf080c0127abaa9d874ee566ee689",
+                      "id": "registry-read-9576f0367ce544959592890621ece97c",
+                      "method": "GET",
+                      "status": "collected"
+                    }
+                  ],
+                  "schema": "k8s-selected-registry-image-v1",
+                  "status": "PASS",
+                  "status_image_id": "ghcr.io/owned/demo@sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+                  "vulnerability": null
+                },
+                "id": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d",
+                "name": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d"
+              }
+            ],
+            "scope": "default",
+            "service": "kubernetes",
+            "status": "collected",
+            "type": "k8s_selected_registry_image_secrets"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "k8s_selected_registry_image_secrets_authorized": true,
+          "selected_k8s_registry_images": [
+            {
+              "cluster_id": "cluster.example",
+              "container_name": "app",
+              "container_type": "regular",
+              "image": "ghcr.io/owned/demo@sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+              "namespace": "default",
+              "pod": "pod-a",
+              "resource_version": "42",
+              "uid": "abc123"
+            }
+          ]
+        },
+        "provider": "k8s",
+        "scope": "default"
+      }
+    },
+    "pass": {
+      "SelectedRegistryImage": {
+        "auth_mode": "anonymous",
+        "complete": true,
+        "identity": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d",
+        "leaks": [],
+        "manifest_digest": "sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+        "native_after": {
+          "api_version": "v1",
+          "kind": "Pod",
+          "name": "pod-a",
+          "namespace": "default",
+          "resource_version": "42",
+          "uid": "abc123"
+        },
+        "native_before": {
+          "api_version": "v1",
+          "kind": "Pod",
+          "name": "pod-a",
+          "namespace": "default",
+          "resource_version": "42",
+          "uid": "abc123"
+        },
+        "parts": [
+          {
+            "bytes": 401,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d.manifest"
+          },
+          {
+            "bytes": 151,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d.config"
+          },
+          {
+            "bytes": 127,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d.config-strings"
+          },
+          {
+            "bytes": 16,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d.layer-1.file-4.name"
+          },
+          {
+            "bytes": 11,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d.layer-1.file-4.chunk-11"
+          }
+        ],
+        "reason": "complete",
+        "registry_receipts": [
+          {
+            "bytes": 401,
+            "category": "manifests",
+            "digest": "sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+            "id": "registry-read-22408cf6a4bb476b916f3e9f71811916",
+            "method": "GET",
+            "status": "collected"
+          },
+          {
+            "bytes": 151,
+            "category": "blobs",
+            "digest": "sha256:ef10af51b75d1e22a075ea189b4a92df906fbab17803a5df424fbe9bcb245af2",
+            "id": "registry-read-acb09b87a6134cbfbe9f5a771365df81",
+            "method": "GET",
+            "status": "collected"
+          },
+          {
+            "bytes": 119,
+            "category": "blobs",
+            "digest": "sha256:f001ba4be3bf2516133ff3e73d728b5ba68bf080c0127abaa9d874ee566ee689",
+            "id": "registry-read-9576f0367ce544959592890621ece97c",
+            "method": "GET",
+            "status": "collected"
+          }
+        ],
+        "schema": "k8s-selected-registry-image-v1",
+        "status": "PASS",
+        "status_image_id": "ghcr.io/owned/demo@sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+        "vulnerability": null
+      },
+      "id": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d",
+      "name": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d"
+    },
+    "pass_index": {
+      "collections": {
+        "k8s_selected_registry_image_secrets": [
+          {
+            "items": [
+              {
+                "SelectedRegistryImage": {
+                  "auth_mode": "anonymous",
+                  "complete": true,
+                  "identity": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d",
+                  "leaks": [],
+                  "manifest_digest": "sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+                  "native_after": {
+                    "api_version": "v1",
+                    "kind": "Pod",
+                    "name": "pod-a",
+                    "namespace": "default",
+                    "resource_version": "42",
+                    "uid": "abc123"
+                  },
+                  "native_before": {
+                    "api_version": "v1",
+                    "kind": "Pod",
+                    "name": "pod-a",
+                    "namespace": "default",
+                    "resource_version": "42",
+                    "uid": "abc123"
+                  },
+                  "parts": [
+                    {
+                      "bytes": 401,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d.manifest"
+                    },
+                    {
+                      "bytes": 151,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d.config"
+                    },
+                    {
+                      "bytes": 127,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d.config-strings"
+                    },
+                    {
+                      "bytes": 16,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d.layer-1.file-4.name"
+                    },
+                    {
+                      "bytes": 11,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ],
+                      "part": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d.layer-1.file-4.chunk-11"
+                    }
+                  ],
+                  "reason": "complete",
+                  "registry_receipts": [
+                    {
+                      "bytes": 401,
+                      "category": "manifests",
+                      "digest": "sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+                      "id": "registry-read-22408cf6a4bb476b916f3e9f71811916",
+                      "method": "GET",
+                      "status": "collected"
+                    },
+                    {
+                      "bytes": 151,
+                      "category": "blobs",
+                      "digest": "sha256:ef10af51b75d1e22a075ea189b4a92df906fbab17803a5df424fbe9bcb245af2",
+                      "id": "registry-read-acb09b87a6134cbfbe9f5a771365df81",
+                      "method": "GET",
+                      "status": "collected"
+                    },
+                    {
+                      "bytes": 119,
+                      "category": "blobs",
+                      "digest": "sha256:f001ba4be3bf2516133ff3e73d728b5ba68bf080c0127abaa9d874ee566ee689",
+                      "id": "registry-read-9576f0367ce544959592890621ece97c",
+                      "method": "GET",
+                      "status": "collected"
+                    }
+                  ],
+                  "schema": "k8s-selected-registry-image-v1",
+                  "status": "PASS",
+                  "status_image_id": "ghcr.io/owned/demo@sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+                  "vulnerability": null
+                },
+                "id": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d",
+                "name": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d"
+              }
+            ],
+            "scope": "default",
+            "service": "kubernetes",
+            "status": "collected",
+            "type": "k8s_selected_registry_image_secrets"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "k8s_selected_registry_image_secrets_authorized": true,
+          "selected_k8s_registry_images": [
+            {
+              "cluster_id": "cluster.example",
+              "container_name": "app",
+              "container_type": "regular",
+              "image": "ghcr.io/owned/demo@sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+              "namespace": "default",
+              "pod": "pod-a",
+              "resource_version": "42",
+              "uid": "abc123"
+            }
+          ]
+        },
+        "provider": "k8s",
+        "scope": "default"
+      }
+    },
+    "unknown": {
+      "SelectedRegistryImage": {
+        "auth_mode": "anonymous",
+        "complete": false,
+        "identity": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d",
+        "leaks": [],
+        "manifest_digest": "sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+        "native_after": {
+          "api_version": "v1",
+          "kind": "Pod",
+          "name": "pod-a",
+          "namespace": "default",
+          "resource_version": "42",
+          "uid": "abc123"
+        },
+        "native_before": {
+          "api_version": "v1",
+          "kind": "Pod",
+          "name": "pod-a",
+          "namespace": "default",
+          "resource_version": "42",
+          "uid": "abc123"
+        },
+        "parts": [],
+        "reason": "registry_denied",
+        "registry_receipts": [
+          {
+            "bytes": 0,
+            "category": "manifests",
+            "digest": "sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+            "id": "registry-read-e12f83051f344548838c73c90464f380",
+            "method": "GET",
+            "status": "denied"
+          }
+        ],
+        "schema": "k8s-selected-registry-image-v1",
+        "status": "UNKNOWN",
+        "status_image_id": "ghcr.io/owned/demo@sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+        "vulnerability": null
+      },
+      "id": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d",
+      "name": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d"
+    },
+    "unknown_index": {
+      "collections": {
+        "k8s_selected_registry_image_secrets": [
+          {
+            "items": [
+              {
+                "SelectedRegistryImage": {
+                  "auth_mode": "anonymous",
+                  "complete": false,
+                  "identity": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d",
+                  "leaks": [],
+                  "manifest_digest": "sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+                  "native_after": {
+                    "api_version": "v1",
+                    "kind": "Pod",
+                    "name": "pod-a",
+                    "namespace": "default",
+                    "resource_version": "42",
+                    "uid": "abc123"
+                  },
+                  "native_before": {
+                    "api_version": "v1",
+                    "kind": "Pod",
+                    "name": "pod-a",
+                    "namespace": "default",
+                    "resource_version": "42",
+                    "uid": "abc123"
+                  },
+                  "parts": [],
+                  "reason": "registry_denied",
+                  "registry_receipts": [
+                    {
+                      "bytes": 0,
+                      "category": "manifests",
+                      "digest": "sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+                      "id": "registry-read-e12f83051f344548838c73c90464f380",
+                      "method": "GET",
+                      "status": "denied"
+                    }
+                  ],
+                  "schema": "k8s-selected-registry-image-v1",
+                  "status": "UNKNOWN",
+                  "status_image_id": "ghcr.io/owned/demo@sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+                  "vulnerability": null
+                },
+                "id": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d",
+                "name": "k8s-registry-image:6de74dcdcb37addb8a20e400f726502f6ed1862159f41ffe76a663b1ec7aa37d"
+              }
+            ],
+            "scope": "default",
+            "service": "kubernetes",
+            "status": "partial",
+            "type": "k8s_selected_registry_image_secrets"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "k8s_selected_registry_image_secrets_authorized": true,
+          "selected_k8s_registry_images": [
+            {
+              "cluster_id": "cluster.example",
+              "container_name": "app",
+              "container_type": "regular",
+              "image": "ghcr.io/owned/demo@sha256:c0ec9b4c247e3ab3630c563eb95cb42ab0c98f957733f5ef73b5ddd5bd94dda0",
+              "namespace": "default",
+              "pod": "pod-a",
+              "resource_version": "42",
+              "uid": "abc123"
+            }
+          ]
+        },
+        "provider": "k8s",
+        "scope": "default"
+      }
+    }
+  }
+}

@@ -1,12 +1,15 @@
 FROM trufflesecurity/trufflehog:3.92.5@sha256:e0ac39d4854b1668fa982f768440f5a4269828393cddd868e18305ff8c686918 AS secret-scanner
+FROM --platform=linux/amd64 ghcr.io/aquasecurity/trivy:0.68.1@sha256:52e6fb1ff6a8232d6ec480ca9dd0b8db6728e252d092cb7712df7103ba09502e AS trivy-cli
 FROM node:22-bookworm-slim AS codex-runtime
 RUN npm install --global @openai/codex@0.147.0 @anthropic-ai/claude-code@2.1.304
 FROM python:3.12-slim-bookworm
+RUN test "$(dpkg --print-architecture)" = amd64
 ARG AWS_CLI_VERSION=2.38.0
 ARG KUBECTL_VERSION=v1.35.9
 COPY peaso/container_install_cloud_clis.sh /usr/local/libexec/peaso-install-cloud-clis
 RUN sh /usr/local/libexec/peaso-install-cloud-clis
 COPY --from=secret-scanner /usr/bin/trufflehog /usr/local/bin/trufflehog
+COPY --from=trivy-cli /usr/local/bin/trivy /usr/local/bin/trivy
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 ENV CLOUDSDK_PYTHON=/usr/local/bin/python CLOUDSDK_CONFIG=/tmp/peaso-gcloud AZURE_CONFIG_DIR=/tmp/peaso-azure
 WORKDIR /app
@@ -15,6 +18,7 @@ COPY --chown=10001:10001 peaso /app/peaso
 COPY --chown=10001:10001 risk_rules /app/risk_rules
 COPY --chown=10001:10001 bluepeass/__init__.py bluepeass/k8s.py bluepeass/k8s_risks.py /app/bluepeass/
 COPY --chown=10001:10001 scripts/cloud_permission_risks.py /app/scripts/cloud_permission_risks.py
+COPY --chown=10001:10001 scripts/peaso_trivy_db.py /app/scripts/peaso_trivy_db.py
 COPY --chown=10001:10001 infra/aws/sdk-constraints.txt /app/infra/aws/sdk-constraints.txt
 COPY --chown=10001:10001 tests/fixtures/azure_nsp_query_cmk_metadata_proposal_20261020.json.gz \
     tests/fixtures/azure_nsp_query_cmk_runtime_native_20261020.json.gz \

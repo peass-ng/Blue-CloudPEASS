@@ -13,7 +13,7 @@
     "proposed_spec_sha256": "6a07018702855e97db80c7840e1eb3e44cfd3250591722bc54ecdaa0aeab276e",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS AMAZONS3 Get Bucket Logging API",
         "url": "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketLogging.html"
       }
     ],
@@ -39,7 +39,7 @@
     "proposed_spec_sha256": "e5f0a11a23611391877050a2c49fc688a6ede647b36a55eabef7c7f908715405",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS AWSCLOUDTRAIL send cloudtrail events to cloudwatch logs",
         "url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/send-cloudtrail-events-to-cloudwatch-logs.html"
       }
     ],
@@ -65,7 +65,7 @@
     "proposed_spec_sha256": "c2aaaca9fdef531db00ae29d09c9788a2fba0173409db7baaf0abc686cb94774",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS CODEBUILD Environment Variable API",
         "url": "https://docs.aws.amazon.com/codebuild/latest/APIReference/API_EnvironmentVariable.html"
       }
     ],
@@ -99,7 +99,7 @@
     "proposed_spec_sha256": "2489057cce9025713a3148b65323368a55c7eb1f51f934c2d95d17c25c582dcb",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS CODEBUILD Environment Variable API",
         "url": "https://docs.aws.amazon.com/codebuild/latest/APIReference/API_EnvironmentVariable.html"
       }
     ],
@@ -125,7 +125,7 @@
     "proposed_spec_sha256": "2b42bc3c0c86d8523bdd33d0cc97b56912a52a01d81e0061eecb075c04c21a86",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS CODEPIPELINE Get Pipeline API",
         "url": "https://docs.aws.amazon.com/codepipeline/latest/APIReference/API_GetPipeline.html"
       }
     ],
@@ -151,7 +151,7 @@
     "proposed_spec_sha256": "704541e545d3efa379f411ebef70f39965c1db02496bddda6853da2c2132b820",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS IAM Get Account Authorization Details API",
         "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetAccountAuthorizationDetails.html"
       }
     ],
@@ -193,7 +193,7 @@
     "proposed_spec_sha256": "4467c9e86474916100828fe7317eddc4d5d174f21692d3591047e45bb97ea41c",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS Backup Get Backup Vault Notifications API",
         "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/API_GetBackupVaultNotifications.html"
       }
     ],
@@ -227,7 +227,7 @@
     "proposed_spec_sha256": "c1c58475bdd9088d91316093056a0c8c1850d2bc17486737bfe374b3fdde3c6b",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS BATCH Describe Job Definitions API",
         "url": "https://docs.aws.amazon.com/batch/latest/APIReference/API_DescribeJobDefinitions.html"
       }
     ],
@@ -261,7 +261,7 @@
     "proposed_spec_sha256": "e27c4ccb459925ffbe7a3da1dcd95f20a7b536356077ff208804af9818982b17",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS CONFIG select resources",
         "url": "https://docs.aws.amazon.com/config/latest/developerguide/select-resources.html"
       }
     ],
@@ -287,7 +287,7 @@
     "proposed_spec_sha256": "01fb26bc57281ffddf9858ea7a48291ec0f51b54122a3b5a6fd3c5e4e739b9b3",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS LIGHTSAIL amazon lightsail enabling bucket access logs",
         "url": "https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-enabling-bucket-access-logs.html"
       }
     ],
@@ -313,7 +313,7 @@
     "proposed_spec_sha256": "e4a84f8ec5e6a25b46dd66f073ee73e4a3b27547c76cd4f7c8301ce760e72141",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS VPN client authentication",
         "url": "https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/client-authentication.html"
       }
     ],
@@ -339,7 +339,7 @@
     "proposed_spec_sha256": "50cc47430e0b2b11886402b5c7a4724b5252a2cfce63ad01d189f52056af5d61",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS EC2 Using Alarm Actions",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/UsingAlarmActions.html"
       }
     ],
@@ -365,7 +365,7 @@
     "proposed_spec_sha256": "16f7a673cec9408fe27b4f65bda34977a85675cdf380d513abc26923529ec434",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS EC2 Using Alarm Actions",
         "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/UsingAlarmActions.html"
       }
     ],
@@ -399,7 +399,7 @@
     "proposed_spec_sha256": "83876ade68430d7c8bf458b2863be69cd6f9851a0fc8808d142202f782d179d5",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS EVENTBRIDGE events ref cloudtrail",
         "url": "https://docs.aws.amazon.com/eventbridge/latest/ref/events-ref-cloudtrail.html"
       }
     ],
@@ -425,7 +425,7 @@
     "proposed_spec_sha256": "f236a0d516b7218b8ae5bb411d089b6633270e02a0372c9a3c2ac3fcf0f836b3",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS EVENTBRIDGE events ref cloudtrail",
         "url": "https://docs.aws.amazon.com/eventbridge/latest/ref/events-ref-cloudtrail.html"
       }
     ],
@@ -451,7 +451,7 @@
     "proposed_spec_sha256": "8f942f9de211da46982c0052da6b165f5538f49042dd49d7f2b627f921f06059",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS AWSCLOUDTRAIL encrypting cloudtrail log files with aws kms",
         "url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/encrypting-cloudtrail-log-files-with-aws-kms.html"
       }
     ],
@@ -477,7 +477,7 @@
     "proposed_spec_sha256": "3306ce1343e2814e116af34f8006dc9284fbf8dd98b4509cb56892728f8e7da6",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS AMAZONS3 Get Bucket Logging API",
         "url": "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketLogging.html"
       }
     ],
@@ -511,7 +511,7 @@
     "proposed_spec_sha256": "db267081884720594a992fa15feed3fdb1220916e1e607596041bb7486184c15",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS AWSCLOUDTRAIL send cloudtrail events to cloudwatch logs",
         "url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/send-cloudtrail-events-to-cloudwatch-logs.html"
       }
     ],
@@ -537,7 +537,7 @@
     "proposed_spec_sha256": "99e92c5b66d9a0510b7e36990f004104c2a880849833599b071f89aea17c7dca",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS AWSCLOUDTRAIL encrypting cloudtrail log files with aws kms",
         "url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/encrypting-cloudtrail-log-files-with-aws-kms.html"
       }
     ],
@@ -563,7 +563,7 @@
     "proposed_spec_sha256": "31ab35b82595e292dcd3e8870c373134ba3fca0fe09f592239783e73eda15d24",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS AMAZONECRPUBLIC Describe Repositories API",
         "url": "https://docs.aws.amazon.com/AmazonECRPublic/latest/APIReference/API_DescribeRepositories.html"
       }
     ],
@@ -589,7 +589,7 @@
     "proposed_spec_sha256": "c0eff24e0b69214a769efc515adb9323ec3dd81b5c6d1b958d37282b662c71f8",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS AMAZONECS Log Configuration API",
         "url": "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_LogConfiguration.html"
       }
     ],
@@ -623,7 +623,7 @@
     "proposed_spec_sha256": "e86ca8b02329b9765fe667bfcb6c8bfb88064d512a88bbeaab57acf70bdef5d3",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS AMAZONRDS USER Monitoring.OS.Enabling",
         "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Monitoring.OS.Enabling.html"
       }
     ],
@@ -649,7 +649,7 @@
     "proposed_spec_sha256": "24fb1f0574f1b743cc431f7128bede777e05017911bcc03478f97ec31232bae4",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS KMS Describe Key API",
         "url": "https://docs.aws.amazon.com/kms/latest/APIReference/API_DescribeKey.html"
       }
     ],
@@ -675,7 +675,7 @@
     "proposed_spec_sha256": "a5348f0944b9c88e5ee6af749b48837ebcde377988b1758fb59d1f97c622011a",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS LAMBDA governance code signing",
         "url": "https://docs.aws.amazon.com/lambda/latest/dg/governance-code-signing.html"
       }
     ],
@@ -701,7 +701,7 @@
     "proposed_spec_sha256": "a4fa0012a16b90f4e1a397111f20fd3c95d927fba5d39787cc63410b1eaf8f3a",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS MSK msk working with encryption",
         "url": "https://docs.aws.amazon.com/msk/latest/developerguide/msk-working-with-encryption.html"
       }
     ],
@@ -735,7 +735,7 @@
     "proposed_spec_sha256": "247efc2da5f7c96d1a2ea39cea1fa2e6fff926746f350d5254589c532f2f9233",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS AMAZONS3 Get Bucket Logging API",
         "url": "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketLogging.html"
       }
     ],
@@ -761,7 +761,7 @@
     "proposed_spec_sha256": "71c2a79ac9b8667f8242fe63829799e53eac381710ddad7e79e085836ae4186c",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS AWSCLOUDTRAIL encrypting cloudtrail log files with aws kms",
         "url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/encrypting-cloudtrail-log-files-with-aws-kms.html"
       }
     ],
@@ -787,7 +787,7 @@
     "proposed_spec_sha256": "a9262d68ee27319482bc84c309c96df629b72a33e1662c25319f14035ca7dbcc",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS AMAZONDYNAMODB SSE Description API",
         "url": "https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_SSEDescription.html"
       }
     ],
@@ -821,7 +821,7 @@
     "proposed_spec_sha256": "53a425ad6ef96910c5d1bddfe5981c7cc47e572b1f5f277615e8c4d8ce068dc6",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS AMAZONRDS USER Monitoring.OS.Enabling",
         "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Monitoring.OS.Enabling.html"
       }
     ],
@@ -847,7 +847,7 @@
     "proposed_spec_sha256": "e2de5eb0c22351e734ac1d081eec1fdcc1f0a2b2a9c76dfbbf245cda10457a74",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS ROUTE53 dns configuring dnssec enable signing",
         "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring-dnssec-enable-signing.html"
       }
     ],
@@ -873,7 +873,7 @@
     "proposed_spec_sha256": "75b05a41bc206f01b546a161a27e9a56519a16b3deeb76b5c1aaea476c16e006",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS VPC security group rules",
         "url": "https://docs.aws.amazon.com/vpc/latest/userguide/security-group-rules.html"
       }
     ],
@@ -899,7 +899,7 @@
     "proposed_spec_sha256": "030b54351fd4e16209ec77a351d0a354d6a52c9acde86c7df3bab06b268012a4",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS VPC security group rules",
         "url": "https://docs.aws.amazon.com/vpc/latest/userguide/security-group-rules.html"
       }
     ],
@@ -925,7 +925,7 @@
     "proposed_spec_sha256": "fc5e5ea2cea5e33ed01ffc4d9f81266294339fd482e480cc6a0584cfbb9b7650",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS VPC security group rules",
         "url": "https://docs.aws.amazon.com/vpc/latest/userguide/security-group-rules.html"
       }
     ],
@@ -967,7 +967,7 @@
     "proposed_spec_sha256": "27a24bff00c02b8871b69ea5398386fb94e40d1588813a0d13f67a821edd17e2",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS SNS Get Topic Attributes API",
         "url": "https://docs.aws.amazon.com/sns/latest/api/API_GetTopicAttributes.html"
       }
     ],
@@ -993,7 +993,7 @@
     "proposed_spec_sha256": "45c5b0377488fbf520302abd1999bc09e29e1860de20e0a96b8cbc5b1dd1d605",
     "references": [
       {
-        "title": "Official provider API or configuration reference",
+        "title": "AWS AWSSIMPLEQUEUESERVICE monitoring using cloudwatch",
         "url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/monitoring-using-cloudwatch.html"
       }
     ],

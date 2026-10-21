@@ -21,6 +21,8 @@ import { Remediation } from "./Remediation";
 import { GroupedFindingEvidence, findingGroupPath } from "./GroupedFindingEvidence";
 import { FindingStatusBadge, findingStatusCounts, findingStatusOptions, matchesFindingStatus } from "./findingStatus";
 import "./FindingInspector.css";
+import { AccessAnalyzerUnusedEvidence } from "./AccessAnalyzerUnusedEvidence";
+import { PrivateSecretEvidence } from "./PrivateSecretEvidence";
 import findingTypes from "./findingTypes.json";
 const findingTypeLabel = (id?: string) => findingTypes.find(type => type.id === id)?.label || "Unclassified";
 type FindingPage = {
@@ -76,12 +78,13 @@ function accountLabel(finding: Finding): string {
 }
 
 const SERVICE_PAGE_SIZE = 50;
-function ServiceSection({ summary, groupBy, scanId, category, demo, search, severity, status, framework, sort,
+function ServiceSection({ summary, groupBy, scanId, category, findingType, demo, search, severity, status, framework, sort,
   expanded, onToggle, onInspect }: {
   summary: ServiceSummary;
   groupBy: "service" | "finding_type";
   scanId: string;
   category: string;
+  findingType: string;
   demo: boolean;
   search: string;
   severity: string;
@@ -94,14 +97,14 @@ function ServiceSection({ summary, groupBy, scanId, category, demo, search, seve
 }) {
   const [offset, setOffset] = useState(0);
   const query = useQuery({
-    queryKey: [demo ? "demo" : "live", "service-findings", scanId, category, search, severity,
+    queryKey: [demo ? "demo" : "live", "service-findings", scanId, category, findingType, search, severity,
       status, framework, groupBy, summary.service, sort, offset],
     queryFn: ({ signal }) => {
       const params = new URLSearchParams({
         limit: String(SERVICE_PAGE_SIZE), offset: String(offset), group_by: groupBy,
         aggregation: "check", [groupBy]: summary.service || ",",
       });
-      for (const [key, value] of Object.entries({ categories: category, search, severity, status, framework }))
+      for (const [key, value] of Object.entries({ categories: category, finding_type: findingType, search, severity, status, framework }))
         if (value) params.set(key, value);
       if (sort) {
         params.set("sort_by", sort.field);
@@ -149,13 +152,53 @@ function ServiceSection({ summary, groupBy, scanId, category, demo, search, seve
     </td></tr>}
   </>;
 }
+function FrameworkPicker({ value, options, onChange }: {
+  value: string; options: { value: string; label: string }[]; onChange: (value: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const container = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const input = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    input.current?.focus();
+    function closeOutside(event: PointerEvent) {
+      if (!container.current?.contains(event.target as Node)) setOpen(false);
+    }
+    document.addEventListener("pointerdown", closeOutside);
+    return () => document.removeEventListener("pointerdown", closeOutside);
+  }, [open]);
+  const choices = [{ value: "", label: "All compliance frameworks" }, ...options];
+  const selected = choices.find(option => option.value === value)?.label || value;
+  function choose(next: string) {
+    onChange(next); setOpen(false); setSearch(""); trigger.current?.focus();
+  }
+  return <div className="framework-picker" ref={container} onKeyDown={event => {
+    if (event.key === "Escape" && open) { event.stopPropagation(); setOpen(false); trigger.current?.focus(); }
+  }}>
+    <button ref={trigger} type="button" className="framework-trigger" aria-label="Compliance framework" aria-haspopup="listbox"
+      aria-expanded={open} onClick={() => { setOpen(!open); setSearch(""); }}>{selected}<ChevronRight size={15} className={open ? "expanded" : ""} /></button>
+    {open && <div className="framework-menu">
+      <input ref={input} aria-label="Filter compliance frameworks" placeholder="Filter frameworks…" value={search} onChange={event => setSearch(event.target.value)} />
+      <div role="listbox" aria-label="Compliance frameworks">
+        {choices.filter(option => option.label.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())).map(option =>
+          <button key={option.value} type="button" role="option" aria-selected={option.value === value} onClick={() => choose(option.value)}>{option.label}</button>)}
+        {!choices.some(option => option.label.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())) && <p>No matching frameworks.</p>}
+      </div>
+    </div>}
+  </div>;
+}
+
 export function Findings({
   scanId,
   category,
+  findingType = "",
   demo,
 }: {
   scanId: string;
   category: string;
+  findingType?: string;
   demo: boolean;
 }) {
   const [search, setSearch] = useState("");
@@ -188,6 +231,7 @@ export function Findings({
       "findings",
       scanId,
       category,
+      findingType,
       debouncedSearch,
       severity,
       status,
@@ -207,6 +251,7 @@ export function Findings({
       });
       for (const [key, value] of Object.entries({
         categories: category,
+        finding_type: findingType,
         search: debouncedSearch,
         severity,
         status,
@@ -261,6 +306,13 @@ export function Findings({
       ).sort(),
     [catalog.data?.frameworks, facets?.frameworks, all],
   );
+  const complianceOptions = useMemo(() => Array.from(new Map([
+    ...frameworkOptions.map(name => ({ value: name, label: name })),
+    ...(catalog.data?.framework_versions || []).filter(row => row.provider === summary.data?.provider || row.provider === "all")
+      .map(row => ({ value: String(row.id), label: String(row.name || row.id) })),
+  ].map(option => [option.value, option])).values())
+    .sort((left, right) => left.label.localeCompare(right.label, undefined, { sensitivity: "base", numeric: true }) || left.value.localeCompare(right.value)),
+    [frameworkOptions, catalog.data?.framework_versions, summary.data?.provider]);
   const filtered = useMemo(
     () =>
       all
@@ -268,6 +320,7 @@ export function Findings({
           (f) =>
             serverFiltered ||
             ((!category || f.category === category) &&
+              (!findingType || f.finding_type === findingType) &&
               (!severity || f.severity === severity) &&
               matchesFindingStatus(f.status, status) &&
               (!service || f.service === service) &&
@@ -307,6 +360,7 @@ export function Findings({
     [
       all,
       category,
+      findingType,
       severity,
       status,
       service,
@@ -416,8 +470,8 @@ export function Findings({
     overscan: 8,
   });
   const lastVisible = virtual.getVirtualItems().at(-1)?.index ?? -1;
-  const browsingKey = JSON.stringify([scanId, category, debouncedSearch, severity, status, service, framework, group, sort]);
-  const serviceScopeKey = JSON.stringify([scanId, category, debouncedSearch, severity, status, service, framework, group]);
+  const browsingKey = JSON.stringify([scanId, category, findingType, debouncedSearch, severity, status, service, framework, group, sort]);
+  const serviceScopeKey = JSON.stringify([scanId, category, findingType, debouncedSearch, severity, status, service, framework, group]);
   useEffect(() => setExpandedServices(new Set()), [browsingKey]);
   useEffect(() => setExpandedService(undefined), [serviceScopeKey]);
   useEffect(() => {
@@ -500,23 +554,10 @@ export function Findings({
         </div>
         <div className="filter-secondary">
           <SlidersHorizontal size={15} />
-          <select
-            aria-label="Compliance framework"
-            value={framework}
-            onChange={(e) => setFramework(e.target.value)}
-          >
-            <option value="">All compliance frameworks</option>
-            {frameworkOptions.map((s) => (
-                <option key={s}>{s}</option>
-              ))}
-            {(catalog.data?.framework_versions || []).filter((row) =>
-              row.provider === summary.data?.provider || row.provider === "all"
-            ).map((row, i) => (
-              <option key={String(row.id || i)} value={String(row.id)}>
-                {String(row.name || row.id)}
-              </option>
-            ))}
-          </select>
+          <FrameworkPicker value={framework} options={complianceOptions} onChange={setFramework} />
+          <button className="text-button" onClick={() => {
+            setFramework("HackTricks Cloud Best Practices"); setStatus("FAIL");
+          }}>Show security failed</button>
           <label>
             Group by{" "}
             <select
@@ -581,7 +622,7 @@ export function Findings({
                 </thead>
                 <tbody>
                   {serviceGroups?.map(summary => <ServiceSection
-                    key={`${browsingKey}-${summary.service}`} summary={summary} groupBy={group === "finding_type" ? "finding_type" : "service"} scanId={scanId} category={category}
+                    key={`${browsingKey}-${summary.service}`} summary={summary} groupBy={group === "finding_type" ? "finding_type" : "service"} scanId={scanId} category={category} findingType={findingType}
                     demo={demo} search={debouncedSearch} severity={severity} status={status}
                     framework={framework} sort={sort} expanded={expandedService === summary.service}
                     onToggle={() => setExpandedService(current => current === summary.service ? undefined : summary.service)}
@@ -747,7 +788,7 @@ function evidencePreview(value: unknown): unknown {
     .filter(([, item]) => item !== undefined));
   return value;
 }
-function FindingInspector({
+export function FindingInspector({
   finding,
   scanId,
   demo,
@@ -832,6 +873,8 @@ function FindingInspector({
             {!allowCurrentSummary && observed.guidance_refresh?.message && <p className="muted">{observed.guidance_refresh.message}</p>}
             {internetExposure && observed.status === "UNKNOWN" && !!exposure?.reasons.length && <ul>{exposure.reasons.map((reason) => <li key={reason}>{reason}</li>)}</ul>}
           </section>
+          {!observed.grouped && <AccessAnalyzerUnusedEvidence key={observed.id} finding={observed} />}
+          {observed.secret_evidence && <PrivateSecretEvidence key={observed.id} finding={observed} scanId={scanId} />}
           <section className="finding-detail-section">
             <h3>What to do</h3>
             <Remediation legacy={exposureAction || observed.remediation} details={remediationDetails} compact />

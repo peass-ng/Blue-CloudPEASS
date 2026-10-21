@@ -51,7 +51,15 @@ def _indicators(pairs, arn, name, kind, operation):
             values[key] = value
         # Temporary serialization lets the existing bounded detector recognize
         # paired access credentials and quoted password assignments across fields.
-        scanned = inspect_text(json.dumps(values, ensure_ascii=False), 'unused')
+        from peaso.secret_evidence import source_context, named_environment
+        if kind == 'lambda':
+            named_environment({'Variables': values}, provider='aws', resource_id=arn, scope=account + '/' + region,
+                              path='Environment', checks={'aws.htbp.lambda.env_var_names_not_credentials', 'aws_cis_lambda_database_secrets_manager'})
+        with source_context(resource_id=arn, scope=account + '/' + region, source=operation,
+                            path='Environment.Variables' if kind == 'lambda' else 'Outputs',
+                            check_ids={'aws.review.lambda.configuration_secret_indicators' if kind == 'lambda' else 'aws.review.cloudformation.output_secret_indicators'},
+                            location_kind='configuration', native=values):
+            scanned = inspect_text(json.dumps(values, ensure_ascii=False), 'unused')
         return {'Schema': SCHEMA, 'collection_status': 'collected', 'NativeResponseComplete': True,
             'ResourceArn': arn, 'AccountId': account, 'Region': region, 'SourceOperation': operation,
             'HighConfidenceSecretPresent': scanned['HighConfidenceSecretPresent'],
@@ -64,6 +72,16 @@ def lambda_indicators(configuration, operation):
     """Only a successful configuration response can prove negative indicators."""
     if not isinstance(configuration, dict):
         return unavailable()
+    if operation == 'lambda:ListFunctions':
+        # The existing name control also consumes ListFunctions. Preserve the
+        # actual returned literals privately before the names-only projection.
+        from peaso.secret_evidence import named_environment
+        try:
+            account, region = _identity(configuration.get('FunctionArn'), configuration.get('FunctionName'), 'lambda')
+            named_environment(configuration, provider='aws', resource_id=configuration['FunctionArn'], scope=account + '/' + region,
+                              checks={'aws.htbp.lambda.env_var_names_not_credentials', 'aws_cis_lambda_database_secrets_manager'})
+        except (ValueError, TypeError, KeyError):
+            pass
     if operation != 'lambda:GetFunctionConfiguration':
         return unavailable('not_collected')
     if configuration.get('collection_status', 'collected') != 'collected':

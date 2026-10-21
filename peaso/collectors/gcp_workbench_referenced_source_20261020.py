@@ -3,6 +3,8 @@
 Uncached GETs only. Closing reads prove observed association, not executed bytes.
 No delegation to another optional kind and no mutation of immutable GCS helpers.
 """
+
+from peaso.secret_evidence import scan_with_source, target_source
 from copy import deepcopy
 from datetime import datetime, timezone
 import http.client
@@ -336,8 +338,8 @@ def collect_sources(collector, scope, profile='instance'):
                     state['ledger'][-1]['bound'] = True
                     marker.update(native_complete=True, association=association,
                                   captured_at=datetime.now(timezone.utc).isoformat())
-                    outcome = scan_content(payload, ident + '.source', timeout=min(10, remaining(transport, state) / 2),
-                                           _redact_values=state['redactions'].update)
+                    outcome = scan_with_source(scan_content, payload, ident + '.source', timeout=min(10, remaining(transport, state) / 2),
+                                           _redact_values=state['redactions'].update, source=target_source(target, resource_id=ident, scope=scope))
                     del payload
                     remaining(transport, state)
                     leaks = merge_leaks(outcome['leaks'])

@@ -141,7 +141,7 @@ test("finding statuses group equivalent results while preserving access denied",
   await page.getByRole("navigation").getByRole("button", { name: "Exposure", exact: true }).click();
   await expect(status).toHaveValue("FAIL");
   await status.selectOption("PASS");
-  await page.getByRole("navigation").getByRole("button", { name: "Hardening Findings", exact: true }).click();
+  await page.getByRole("navigation").getByRole("button", { name: "Hardening & Compliance", exact: true }).click();
   await expect(status).toHaveValue("FAIL");
 });
 
@@ -439,11 +439,16 @@ test("catalog choices survive empty results and evidence is concise, escaped and
   await page.goto("/#Hardening%20Findings");
   const frameworks = page.getByLabel("Compliance framework");
   await page.getByLabel("Group findings").selectOption("check_id");
-  await expect(frameworks.locator("option")).toContainText(["All compliance frameworks", "CIS", "HackTricks Cloud Best Practices"]);
-  await frameworks.selectOption("CIS");
+  await expect(frameworks).toHaveText("All compliance frameworks");
+  await frameworks.click();
+  await expect(page.getByRole("listbox", { name: "Compliance frameworks" }).getByRole("option")).toHaveText(["All compliance frameworks", "CIS", "CIS AWS Foundations v1.5", "HackTricks Cloud Best Practices"]);
+  await page.getByRole("listbox", { name: "Compliance frameworks" }).getByRole("option", { name: "CIS", exact: true }).click();
   await expect(page.getByRole("heading", { name: "No findings match these filters" })).toBeVisible();
-  await expect(frameworks.locator("option", { hasText: /^CIS$/ })).toHaveCount(1);
-  await frameworks.selectOption("cis_aws_1.5");
+  await frameworks.click();
+  await expect(page.getByRole("listbox", { name: "Compliance frameworks" }).getByRole("option", { name: "CIS", exact: true })).toHaveCount(1);
+  await page.getByLabel("Filter compliance frameworks").fill("foundations");
+  await expect(page.getByRole("listbox", { name: "Compliance frameworks" }).getByRole("option")).toHaveText(["CIS AWS Foundations v1.5"]);
+  await page.getByRole("listbox", { name: "Compliance frameworks" }).getByRole("option", { name: "CIS AWS Foundations v1.5", exact: true }).click();
   await expect.poll(() => requested.at(-1)?.searchParams.get("framework")).toBe("cis_aws_1.5");
   await page.getByRole("button", { name: "Reset filters" }).click();
   await expect(page.getByRole("button", { name: "Review <storage> native.check" })).toBeVisible();
@@ -531,4 +536,71 @@ test("coverage is in completed Scan details and all finding columns sort", async
   await dialog.getByRole("button", { name: "Load more coverage" }).click();
   await expect(dialog.getByText("late-coverage")).toBeVisible();
   await expect(dialog.getByText("Region was not collected")).toBeVisible();
+});
+
+test("framework picker defaults to all, sorts and searches versions, and selects failed security findings", async ({ page }) => {
+  const requests: URL[] = [];
+  await page.route("**/api/**", async route => {
+    const url = new URL(route.request().url());
+    let json: unknown = { items: [] };
+    if (url.pathname.endsWith('/me')) json = { tenant_id: 'test', plan: 'free' };
+    if (url.pathname.endsWith('/scans')) json = { items: [{ id: 'scan-1', status: 'completed' }] };
+    if (url.pathname.endsWith('/summary')) json = { provider: 'aws', stats: {} };
+    if (url.pathname.endsWith('/catalog/frameworks')) json = {
+      frameworks: ['Zebra framework', 'HackTricks Cloud Best Practices', 'alpha framework'],
+      framework_versions: [{ id: 'cis_aws', name: 'CIS AWS v2', provider: 'aws' }],
+    };
+    if (url.pathname.endsWith('/findings')) {
+      requests.push(url); json = { items: [], total: 0, next_offset: null };
+    }
+    await route.fulfill({ json });
+  });
+  await page.goto('/#Hardening%20Findings');
+  await expect(page.getByRole('heading', { name: 'Hardening & Compliance', exact: true })).toBeVisible();
+  const picker = page.getByLabel('Compliance framework', { exact: true });
+  await expect(picker).toHaveText('All compliance frameworks');
+  await picker.click();
+  await expect(page.getByRole('listbox', { name: 'Compliance frameworks' }).getByRole('option')).toHaveText(['All compliance frameworks', 'alpha framework', 'CIS AWS v2', 'HackTricks Cloud Best Practices', 'Zebra framework']);
+  await page.getByLabel('Filter compliance frameworks').fill('cis');
+  await expect(page.getByRole('listbox', { name: 'Compliance frameworks' }).getByRole('option')).toHaveText(['CIS AWS v2']);
+  await page.getByRole('listbox', { name: 'Compliance frameworks' }).getByRole('option', { name: 'CIS AWS v2', exact: true }).click();
+  await expect.poll(() => requests.at(-1)?.searchParams.get('framework')).toBe('cis_aws');
+  await page.getByLabel('Status', { exact: true }).selectOption('');
+  await page.getByRole('button', { name: 'Show security failed', exact: true }).click();
+  await expect(picker).toHaveText('HackTricks Cloud Best Practices');
+  await expect(page.getByLabel('Status', { exact: true })).toHaveValue('FAIL');
+  await expect.poll(() => requests.at(-1)?.searchParams.get('framework')).toBe('HackTricks Cloud Best Practices');
+  await expect.poll(() => requests.at(-1)?.searchParams.get('status')).toBe('FAIL');
+  await page.getByRole('button', { name: 'Reset filters', exact: true }).click();
+  await expect(picker).toHaveText('All compliance frameworks');
+});
+
+test('Leaks navigation filters secret findings across categories and opens retained values and locations', async ({ page }) => {
+  const requests: URL[] = [];
+  const finding = { id: 'leak-1', category: 'hardening', check_id: 'aws.review.lambda.environment_literal_secret_indicators',
+    title: 'Detected secret in Lambda configuration', finding_type: 'secrets', provider: 'aws', service: 'lambda', scope: 'test-account/us-east-1',
+    resource_id: 'lambda-1', status: 'FAIL', severity: 'high', frameworks: [], evidence_summary: 'A secret was detected in a selected environment value.' };
+  await page.route('**/api/**', async route => {
+    const url = new URL(route.request().url()); let json: unknown = { items: [] };
+    if (url.pathname.endsWith('/me')) json = { tenant_id: 'test', plan: 'free' };
+    if (url.pathname.endsWith('/scans')) json = { items: [{ id: 'scan-1', status: 'completed' }] };
+    if (url.pathname.endsWith('/summary')) json = { provider: 'aws', stats: {} };
+    if (url.pathname.endsWith('/findings')) {
+      requests.push(url);
+      json = { items: [finding], total: 1, next_offset: null,
+        service_groups: url.searchParams.has('service') ? [] : [{ service: 'lambda', count: 1, status_counts: { FAIL: 1 } }] };
+    }
+    if (url.pathname.endsWith('/findings/leak-1')) json = { ...finding, evidence: {}, remediation: 'Rotate the exposed value and remove it from source configuration.',
+      secret_evidence: { status: 'available', complete: true, matches: [{ fingerprint: 'synthetic-ui-match', value: 'SYNTHETIC-SECRET-FOR-UI-ONLY', locations: [{ resource_id: 'lambda-1', scope: 'test-account/us-east-1', path: 'configuration.environment', field: 'DEMO_API_KEY', line: null }] }] } };
+    await route.fulfill({ json });
+  });
+  await page.goto('/#Leaks');
+  await expect(page.getByRole('heading', { name: 'Leaks', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: /lambda 1 finding/ }).click();
+  await page.getByRole('button', { name: /Detected secret in Lambda configuration/ }).click();
+  await expect(page.getByRole('dialog').getByText('SYNTHETIC-SECRET-FOR-UI-ONLY', { exact: true })).toBeVisible();
+  await expect(page.getByRole('dialog').getByText('configuration.environment', { exact: true })).toBeVisible();
+  await expect(page.getByRole('dialog').getByText('DEMO_API_KEY', { exact: true })).toBeVisible();
+  expect(requests.length).toBeGreaterThanOrEqual(2);
+  expect(requests.every(url => url.searchParams.get('finding_type') === 'secrets' && url.searchParams.get('status') === 'FAIL' && !url.searchParams.has('categories'))).toBe(true);
 });
