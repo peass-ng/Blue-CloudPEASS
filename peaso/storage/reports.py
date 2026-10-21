@@ -87,6 +87,12 @@ def resource_chunks(artifacts, tenant, ident, report, snapshot):
 def publish_report(artifacts, tenant, ident, report, snapshot=None):
     from peaso.secret_evidence import without_private_values
     report = without_private_values(report)
+    # Optional image scans have a separately scoped safe artifact. Keep raw
+    # scanner/transport DTOs out of public report summaries and downloads.
+    report = dict(report)
+    if isinstance(report.get("snapshot_metadata"), dict):
+        report["snapshot_metadata"] = {key: value for key, value in report["snapshot_metadata"].items()
+            if key != "image_vulnerability_scan"}
     from peaso.finding_groups import group_report
     from peaso.ai.finding_reviews import apply_report_reviews
     report = apply_report_reviews(report)
@@ -100,6 +106,10 @@ def publish_report(artifacts, tenant, ident, report, snapshot=None):
                 "summary": {k: v for k, v in report.items() if k not in {"resources", "findings", "coverage", "graphs", "snapshot", "check_frameworks", "check_meta", "check_meta_encoding", "remediation_templates"}},
                 "finding_chunks": [], "coverage_chunks": [], "coverage_chunk_counts": [],
                 "graphs": {}, "finding_count": len(report.get("findings", [])), "finding_group_count": len(presented.get("findings", [])), "observation_count": len(report.get("findings", [])), "coverage_count": len(report.get("coverage", []))}
+    from peaso.image_findings_storage import attach_to_manifest
+    metadata = snapshot.get("metadata", {}) if isinstance(snapshot, dict) else {}
+    image_metadata = metadata.get("image_vulnerability_scan") if isinstance(metadata, dict) else None
+    manifest = attach_to_manifest(manifest, artifacts, tenant, ident, image_metadata)
     if isinstance(report.get("ai"), dict):
         manifest["ai_review"] = artifacts.put(tenant, ident, "ai-review", report["ai"])
         manifest["summary"]["ai"] = {key: report["ai"][key] for key in ("status", "reason", "coverage", "auth_source") if key in report["ai"]}

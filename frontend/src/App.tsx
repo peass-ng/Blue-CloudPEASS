@@ -23,6 +23,7 @@ import { ApiError, authSessionChangedEvent, items, useApi, workspaceKey } from "
 import { Connectors } from "./Connectors";
 import { Dashboard } from "./Dashboard";
 import { Findings } from "./Findings";
+import { ImagesFindings } from "./ImagesFindings";
 import { LeastPrivilege } from "./LeastPrivilege";
 import { AttackAnalysis } from "./AttackAnalysis";
 import { Help } from "./Help";
@@ -73,6 +74,11 @@ const pages = [
     description: "Inspect detected secrets and credential-related findings and their sources.",
   },
   {
+    label: "Images CVEs",
+    icon: ShieldCheck,
+    description: "Review image vulnerabilities and their scan coverage.",
+  },
+  {
     label: "Least Privilege",
     icon: Shield,
     description: "Review identity permissions and reduce unnecessary access.",
@@ -115,6 +121,7 @@ const pages = [
 const pageAliases: Record<string, string> = {
   "AI Review": "Top 15 Actions", "Top 15 Recommended Actions": "Top 15 Actions",
   "Hardening Findings": "Hardening & Compliance", "Network Findings": "Network Architecture",
+  "Images Findings": "Images CVEs",
 };
 const normalizePage = (page: string) => pageAliases[page] || page;
 export function App() {
@@ -205,6 +212,7 @@ export function App() {
     "Hardening & Compliance",
     "Exposure",
     "Leaks",
+    "Images CVEs",
     "Top 15 Actions",
     "Network Architecture",
     "Least Privilege",
@@ -437,6 +445,7 @@ export function App() {
             </>
           )}
           {pageInfo.ai && codex.isPending && signedIn && <State loading />}
+          {page === "Images CVEs" && <ImagesFindings key={`${scanId}:${demo}`} scanId={scanId} demo={demo} />}
           {aiAvailable && page === "Top 15 Actions" && <AiReview key={scanId} scanId={scanId} demo={demo} />}
           {aiAvailable && page === "Network Architecture" && <NetworkAiReview key={scanId} scanId={scanId} demo={demo} />}
           {page === "Least Privilege" && <LeastPrivilege scanId={scanId} demo={demo} />}

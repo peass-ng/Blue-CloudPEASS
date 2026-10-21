@@ -1941,4 +1941,6 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
     if static.is_dir():
         from fastapi.staticfiles import StaticFiles
         app.mount("/", StaticFiles(directory=static, html=True), name="frontend")
+    from .image_findings_routes import install_routes as install_image_findings_routes
+    install_image_findings_routes(app, identity=identity, owned_bundle=owned_bundle, artifacts=artifacts)
     return app
