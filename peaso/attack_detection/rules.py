@@ -54,6 +54,7 @@ from .aws_globalaccelerator_batch101 import normalize as normalize_aws_globalacc
 from .aws_globalaccelerator_batch102 import normalize as normalize_aws_globalaccelerator_batch102, correlate_replacement as correlate_aws_ga_endpoint_replacement
 from .aws_amp_batch103 import normalize as normalize_aws_amp_batch103
 from .aws_resource_policy_batch104 import normalize_dynamodb_grant as normalize_aws_dynamodb_grant_batch104, correlate_validation as correlate_aws_resource_policy_validation_batch104
+from .aws_dynamodb_data_batch105 import normalize as normalize_aws_dynamodb_data_batch105
 from .aws_sagemaker_control_next import normalize_aws_sagemaker_control
 from .aws_rolesanywhere_next import normalize as normalize_aws_rolesanywhere
 from .aws_customer_profiles_next import normalize as normalize_aws_customer_profiles
@@ -235,8 +236,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "97e46fd1c03ff07ae2a124144195edb3644aadcf"
-DEFAULT_RULE_PACK_SHA256 = "b472f57ab59ca2e21f6e6cba954dcde25464b97797be4edb582f732e5211e719"
+DEFAULT_RULE_REF = "517e13ee70d5c61e3982a78169b0b914f20a571d"
+DEFAULT_RULE_PACK_SHA256 = "135478abcb123454f26ee2ef14f7366d8522410d30de0ee5d2881e1c09763fdd"
 
 
 @dataclass(frozen=True)
@@ -497,6 +498,7 @@ def detect_aws_events(
         globalaccelerator_batch102 = normalize_aws_globalaccelerator_batch102(record)
         amp_batch103 = normalize_aws_amp_batch103(record)
         dynamodb_grant_batch104 = normalize_aws_dynamodb_grant_batch104(record)
+        dynamodb_data_batch105 = normalize_aws_dynamodb_data_batch105(record)
         apigateway_http_keys = normalize_aws_apigateway_http_keys(record)
         apigateway_private_vpce = normalize_aws_apigateway_private_vpce(record)
         cloudformation_reads = normalize_aws_cloudformation_reads(record)
@@ -620,6 +622,7 @@ def detect_aws_events(
                 + ([ecr_retention] if ecr_retention is not None else [])
                 + ([dynamodb_controls] if dynamodb_controls is not None else [])
                 + ([dynamodb_backup_stream] if dynamodb_backup_stream is not None else [])
+                + ([dynamodb_data_batch105] if dynamodb_data_batch105 is not None else [])
                 + ([sns_sqs_controls] if sns_sqs_controls is not None else [])
                 + ([sns_subscription] if sns_subscription is not None else [])
                 + ([sqs_followup] if sqs_followup is not None else [])
