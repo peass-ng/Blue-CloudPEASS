@@ -63,6 +63,7 @@ from .aws_cloudwatch_metric_data_batch110 import normalize as normalize_aws_clou
 from .aws_firehose_sns_batch111 import normalize as normalize_aws_firehose_sns_batch111, correlate_destination_change as correlate_aws_firehose_destination_batch111, correlate_sns_role_rebound as correlate_aws_sns_firehose_role_batch111
 from .aws_lambda_persistence_batch112 import normalize as normalize_aws_lambda_persistence_batch112, correlate as correlate_aws_lambda_persistence_batch112
 from .aws_inspector_filters_batch113 import normalize as normalize_aws_inspector_filters_batch113, correlate_criteria_change as correlate_aws_inspector_criteria_batch113
+from .aws_ivs_access_batch114 import normalize as normalize_aws_ivs_access_batch114
 from .aws_sagemaker_control_next import normalize_aws_sagemaker_control
 from .aws_rolesanywhere_next import normalize as normalize_aws_rolesanywhere
 from .aws_customer_profiles_next import normalize as normalize_aws_customer_profiles
@@ -244,8 +245,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "0c1334d09746acd7aebe61bf9ac1e8991bc6952d"
-DEFAULT_RULE_PACK_SHA256 = "7d8094341c9645ac54e168f4e49bd92b9f44286eb1783c581a35789040673d17"
+DEFAULT_RULE_REF = "e4dcddefa2f93f18f05917f40e245363d0d3e7e7"
+DEFAULT_RULE_PACK_SHA256 = "ea3306261872d3b4c801a91f2f4db6fd7a859759af4aa1732978ecf92a69e724"
 
 
 @dataclass(frozen=True)
@@ -495,6 +496,7 @@ def detect_aws_events(
         firehose_sns_batch111 = normalize_aws_firehose_sns_batch111(record)
         lambda_persistence_batch112 = normalize_aws_lambda_persistence_batch112(record)
         inspector_filters_batch113 = normalize_aws_inspector_filters_batch113(record)
+        ivs_access_batch114 = normalize_aws_ivs_access_batch114(record)
         lambda_controls = normalize_aws_lambda_controls(record)
         lambda_qualified_grant = normalize_aws_lambda_qualified_grant(record)
         lambda_config = normalize_aws_lambda_config(record)
@@ -690,6 +692,7 @@ def detect_aws_events(
                 + firehose_sns_batch111
                 + lambda_persistence_batch112
                 + inspector_filters_batch113
+                + ivs_access_batch114
                 + ([lambda_controls] if lambda_controls is not None else [])
                 + ([lambda_qualified_grant] if lambda_qualified_grant is not None else [])
                 + ([lambda_config] if lambda_config is not None else [])
