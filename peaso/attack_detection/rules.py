@@ -894,7 +894,9 @@ def detect_aws_events(
                 inspector_filters_batch113_records.append(record)
             if record.get("eventSource") == "appflow.amazonaws.com" and record.get("eventName") in {"UpdateFlow", "StartFlow"}:
                 appflow_schedule_batch127_records.append(record)
-            if record.get("eventSource") == "lex.amazonaws.com" and record.get("eventName") in {"UpdateBot", "UpdateBotAlias"}:
+            if (record.get("eventSource") == "lex.amazonaws.com"
+                    and record.get("eventName") in {"CreateBot", "UpdateBot",
+                                                    "CreateBotAlias", "UpdateBotAlias"}):
                 lex_hook_batch137_records.append(record)
             if record.get("eventSource") == "dynamodb.amazonaws.com":
                 dynamodb_data_batch106_records.append(record)

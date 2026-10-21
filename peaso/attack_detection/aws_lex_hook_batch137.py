@@ -14,7 +14,9 @@ _ROUTES = {
     "CreateBot": ("BotServiceRoleSelected", "request.lex_bot_service_role_selected"),
     "UpdateBot": ("BotServiceRoleUpdated", "request.lex_bot_service_role_updated"),
     "CreateIntent": ("IntentFulfillmentHookEnabled", "request.lex_intent_hook_enabled"),
+    "UpdateIntent": ("IntentFulfillmentHookUpdated", "request.lex_intent_hook_updated"),
     "CreateBotVersion": ("BotModelVersionDeployed", "request.lex_bot_model_version_deployed"),
+    "CreateBotAlias": ("BotAliasHookCreated", "request.lex_bot_alias_hook_created"),
     "UpdateBotAlias": ("BotAliasHookAttached", "request.lex_bot_alias_hook_attached"),
 }
 
@@ -58,12 +60,17 @@ def normalize(record: Mapping[str, Any]) -> list[dict[str, Any]]:
                 or len(role) <= len(f"arn:aws:iam::{account}:role/")
                 or response.get("roleArn") != role):
             return []
-    elif name == "CreateIntent":
+    elif name in ("CreateIntent", "UpdateIntent"):
         hook = request.get("fulfillmentCodeHook")
         if (not isinstance(hook, Mapping) or hook.get("enabled") is not True
                 or hook.get("active") is not True
                 or not isinstance(response.get("intentId"), str)
-                or not _ID.fullmatch(response["intentId"])):
+                or not _ID.fullmatch(response["intentId"])
+                or (name == "UpdateIntent"
+                    and (response["intentId"] != request.get("intentId")
+                         or not isinstance(response.get("fulfillmentCodeHook"), Mapping)
+                         or response["fulfillmentCodeHook"].get("enabled") is not True
+                         or response["fulfillmentCodeHook"].get("active") is not True))):
             return []
     elif name == "CreateBotVersion":
         locale_specs = request.get("botVersionLocaleSpecification")
@@ -74,9 +81,10 @@ def normalize(record: Mapping[str, Any]) -> list[dict[str, Any]]:
                            for spec in locale_specs.values())
                 or not isinstance(version, str) or not version.isdigit()):
             return []
-    elif name == "UpdateBotAlias":
+    elif name in ("CreateBotAlias", "UpdateBotAlias"):
         aliases = request.get("botAliasLocaleSettings")
-        alias = request.get("botAliasId")
+        alias = (response.get("botAliasId") if name == "CreateBotAlias"
+                 else request.get("botAliasId"))
         if (not isinstance(aliases, Mapping)
                 or not isinstance(alias, str) or not _ID.fullmatch(alias)
                 or response.get("botAliasId") != alias
@@ -94,7 +102,9 @@ def normalize(record: Mapping[str, Any]) -> list[dict[str, Any]]:
                     and isinstance(arn, str)
                     and arn.startswith(f"arn:aws:lambda:{region}:{account}:function:")
                     and len(arn) > len(f"arn:aws:lambda:{region}:{account}:function:"))
-        if not any(attached(settings) for settings in aliases.values()):
+        if (not any(attached(settings) for settings in aliases.values())
+                or (name == "CreateBotAlias"
+                    and response.get("botAliasLocaleSettings") != aliases)):
             return []
     actor = record.get("userIdentity")
     synthetic, marker = route
@@ -120,9 +130,9 @@ def correlate_role_hook(records: Iterable[Mapping[str, Any]]) -> list[dict[str, 
         if stamp is None:
             continue
         key = event["account.id"], event["target.id"]
-        if event["event.name"] == "BotServiceRoleUpdated":
+        if event["event.name"] in ("BotServiceRoleSelected", "BotServiceRoleUpdated"):
             role_events.setdefault(key, []).append((stamp, event))
-        elif event["event.name"] == "BotAliasHookAttached":
+        elif event["event.name"] in ("BotAliasHookCreated", "BotAliasHookAttached"):
             hook_events.append((stamp, event))
     output: list[dict[str, Any]] = []
     for hook_time, hook in hook_events:
