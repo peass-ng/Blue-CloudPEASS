@@ -14,10 +14,14 @@ env:
   HACKTRICKS_REVISION: 171e422299df4e3c1477847d80439c13aadf55fc
   TERRAFORM_VERSION: 1.14.3
 jobs:
-  python:
-    name: Python test suite
+  python_shards:
+    name: Python suite shard ${{ matrix.shard }}
     runs-on: ubuntu-latest
     timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Check out the pinned HackTricks Cloud pages
@@ -121,6 +125,7 @@ jobs:
           PYTHON
       - name: Run the performance gate in isolation
         id: benchmark
+        if: ${{ matrix.shard == 0 }}
         # Measure before the large suite imports its fixtures and allocates worker heaps.
         run: >-
           python -m pytest -q -s -p no:cacheprovider -rs --junitxml=benchmark-report.xml
@@ -128,7 +133,7 @@ jobs:
           tests/test_peaso_privesc.py::test_perf_10k_principals
           tests/test_peaso_privesc.py::test_perf_10k_principals_gcp_k8s_azure
       - name: Profile a failed performance gate
-        if: ${{ failure() && steps.benchmark.outcome == 'failure' }}
+        if: ${{ failure() && matrix.shard == 0 && steps.benchmark.outcome == 'failure' }}
         run: |
           python -m cProfile -o "$RUNNER_TEMP/evaluate.prof" tests/test_peaso_perf_benchmark.py 1x
           python - "$RUNNER_TEMP/evaluate.prof" <<'PYTHON'
@@ -136,22 +141,32 @@ jobs:
           pstats.Stats(sys.argv[1]).strip_dirs().sort_stats('cumulative').print_stats(30)
           PYTHON
       - name: Run the test suite
+        if: ${{ !cancelled() }}
         env:
           HACKTRICKS_CLOUD_ROOT: ${{ github.workspace }}/.hacktricks-cloud:${{ github.workspace }}/.hacktricks-cloud-azure:${{ github.workspace }}/.hacktricks-cloud-k8s
           PEASO_HACKTRICKS_ROOT: ${{ github.workspace }}/.hacktricks-cloud
-        # --dist loadfile keeps each module's expensive fixtures on one worker.
+        # Each shard collects only its assigned files; loadfile keeps module fixtures on one worker.
         run: >-
-          python -m pytest -q -p no:cacheprovider -n auto --dist loadfile -rs
+          python scripts/pytest_shard.py --shard ${{ matrix.shard }} --shards 8 --
+          -q -p no:cacheprovider -n auto --dist loadfile -rs
           --ignore=tests/test_peaso_perf_benchmark.py
           --deselect=tests/test_peaso_privesc.py::test_perf_10k_principals
           --deselect=tests/test_peaso_privesc.py::test_perf_10k_principals_gcp_k8s_azure
-          --junitxml=pytest-report.xml tests
+          --junitxml=pytest-report.xml
       - name: Fail on unexpected performance skips
-        if: ${{ !cancelled() && steps.benchmark.outcome != 'skipped' }}
+        if: ${{ !cancelled() && matrix.shard == 0 && steps.benchmark.outcome != 'skipped' }}
         run: python scripts/check_test_skips.py pytest benchmark-report.xml
       - name: Fail on unexpected skips
         if: ${{ !cancelled() }}
         run: python scripts/check_test_skips.py pytest pytest-report.xml
+  python:
+    name: Python test suite
+    if: ${{ always() }}
+    needs: python_shards
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every Python shard and the performance gate to pass
+        run: test '${{ needs.python_shards.result }}' = success
   frontend:
     name: Frontend typecheck, build and Playwright
     runs-on: ubuntu-latest

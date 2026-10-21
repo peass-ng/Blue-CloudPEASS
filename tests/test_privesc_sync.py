@@ -390,12 +390,22 @@ def test_tests_workflow_runs_full_suite_and_gates_skips():
     workflow, triggers = _workflow('tests.yml')
     assert triggers['push'] == {'branches': ['main']} and 'pull_request' in triggers
     assert workflow['permissions'] == {'contents': 'read'}
-    python, frontend = workflow['jobs']['python'], workflow['jobs']['frontend']
-    run = '\n'.join(s.get('run', '') for s in python['steps'])
-    assert re.search(r'^python -m pytest -q -p no:cacheprovider -n auto .*--junitxml=pytest-report\.xml tests$', run, re.M)
+    shards, python, frontend = (workflow['jobs'][name] for name in ('python_shards', 'python', 'frontend'))
+    assert shards['strategy'] == {'fail-fast': False, 'matrix': {'shard': list(range(8))}}
+    assert python['needs'] == 'python_shards'
+    assert "needs.python_shards.result" in python['steps'][0]['run']
+    run = '\n'.join(s.get('run', '') for s in shards['steps'])
+    assert re.search(r'python scripts/pytest_shard\.py --shard \$\{\{ matrix\.shard \}\} --shards 8 -- '
+                     r'-q -p no:cacheprovider -n auto --dist loadfile -rs .*--junitxml=pytest-report\.xml', run, re.S)
+    from scripts import pytest_shard
+    files = pytest_shard.test_files()
+    assigned = pytest_shard.partition(files, 8)
+    assert files and all(assigned)
+    assert sorted(path for group in assigned for path in group) == files
+    assert sum(len(group) for group in assigned) == len(files)
     assert "'pytest-xdist==" in run and 'check_test_skips.py pytest pytest-report.xml' in run
-    assert any(s.get('with', {}).get('python-version') == '3.12' for s in python['steps'])
-    checkout = [s for s in python['steps'] if s.get('with', {}).get('repository') == 'HackTricks-wiki/hacktricks-cloud']
+    assert any(s.get('with', {}).get('python-version') == '3.12' for s in shards['steps'])
+    checkout = [s for s in shards['steps'] if s.get('with', {}).get('repository') == 'HackTricks-wiki/hacktricks-cloud']
     assert checkout and checkout[0]['with']['ref'] == '${{ env.HACKTRICKS_REVISION }}'
     assert re.fullmatch(r'[0-9a-f]{40}', workflow['env']['HACKTRICKS_REVISION'])
     front = '\n'.join(s.get('run', '') for s in frontend['steps'])
