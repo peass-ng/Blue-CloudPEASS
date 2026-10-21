@@ -230,8 +230,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "61845b66a5b1d99e2e46cf8f80cf1cbebdd7de0e"
-DEFAULT_RULE_PACK_SHA256 = "8fb75320c7a0359bfb537c2c31cd3880c2978f6c18b2b1325d5cc0f1dcfdc6a6"
+DEFAULT_RULE_REF = "cf1f9d01e646241e6f9c3928d4221af8f9405840"
+DEFAULT_RULE_PACK_SHA256 = "b8faecd070d6f30bb49721e7c1bc20fa54f10295b83f0a70dc282dfe0c797cb8"
 
 
 @dataclass(frozen=True)
@@ -787,7 +787,7 @@ def detect_aws_events(
                 athena_stored_records.append(record)
             if record.get("eventSource") == "athena.amazonaws.com" and record.get("eventName") in {"CreateWorkGroup", "CreateNotebook", "UpdateNotebook", "StartSession", "CreatePresignedNotebookUrl", "StartCalculationExecution", "GetSessionEndpoint"}:
                 athena_spark_records.append(record)
-            if record.get("eventSource") == "apigateway.amazonaws.com" and record.get("eventName") in ("CreateApiKey", "CreateUsagePlanKey", "GetApiKey", "PutMethodResponse", "PutIntegrationResponse", "UpdateGatewayResponse", "UpdateRestApi", "CreateDeployment"):
+            if record.get("eventSource") == "apigateway.amazonaws.com" and record.get("eventName") in ("CreateApiKey", "CreateUsagePlanKey", "GetApiKey", "PutIntegration", "PutMethodResponse", "PutIntegrationResponse", "UpdateGatewayResponse", "UpdateRestApi", "CreateDeployment"):
                 apigateway_rest_records.append(record)
             if record.get("eventSource") == "apigateway.amazonaws.com" and record.get("eventName") in {"UpdatePortal", "PublishPortal", "DisablePortal", "DeletePortal"}:
                 apigateway_portal_records.append(record)

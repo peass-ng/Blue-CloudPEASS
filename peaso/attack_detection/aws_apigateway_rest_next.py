@@ -9,9 +9,10 @@ from datetime import datetime, timedelta
 import json
 import re
 from typing import Any
+from urllib.parse import urlparse
 
 
-_NAMES = {"CreateApiKey", "CreateUsagePlanKey", "GetApiKey", "PutMethodResponse",
+_NAMES = {"CreateApiKey", "CreateUsagePlanKey", "GetApiKey", "PutIntegration", "PutMethodResponse",
           "PutIntegrationResponse", "UpdateGatewayResponse", "UpdateRestApi",
           "CreateDeployment"}
 _ACCOUNT = re.compile(r"[0-9]{12}\Z")
@@ -100,6 +101,7 @@ def correlate(records: Iterable[Mapping[str, Any]]) -> list[dict[str, Any]]:
     attachments = []
     methods = []
     integrations = []
+    backend_writes = []
     gateway = []
     policies = []
     deployments = []
@@ -136,6 +138,24 @@ def correlate(records: Iterable[Mapping[str, Any]]) -> list[dict[str, Any]]:
                             "event.time": record["eventTime"], "account.id": account,
                             "actor.id": actor, "target.id": _target(region, "apikeys", key_id),
                             "request.apigateway_api_key_value_requested": True})
+        elif name == "PutIntegration":
+            api_id, resource, verb = (request.get("restApiId"), request.get("resourceId"),
+                                      request.get("httpMethod"))
+            params = request.get("putIntegrationInput")
+            uri = params.get("uri") if isinstance(params, Mapping) else None
+            try:
+                parsed = urlparse(uri) if isinstance(uri, str) else None
+                hostname = parsed.hostname if parsed is not None else None
+            except ValueError:
+                parsed, hostname = None, None
+            if (isinstance(api_id, str) and _ID.fullmatch(api_id)
+                    and isinstance(resource, str) and _ID.fullmatch(resource)
+                    and isinstance(verb, str) and verb in {"GET", "POST", "PUT", "PATCH", "DELETE"}
+                    and isinstance(params, Mapping) and params.get("type") == "HTTP_PROXY"
+                    and parsed is not None and parsed.scheme == "https" and hostname
+                    and not parsed.username and not parsed.password
+                    and response.get("type") == "HTTP_PROXY" and response.get("uri") == uri):
+                backend_writes.append((when, account, region, principal, api_id, record["eventID"]))
         elif name in {"PutMethodResponse", "PutIntegrationResponse"}:
             api_id, resource, verb, status = (request.get("restApiId"), request.get("resourceId"),
                                               request.get("httpMethod"), request.get("statusCode"))
@@ -162,7 +182,11 @@ def correlate(records: Iterable[Mapping[str, Any]]) -> list[dict[str, Any]]:
                     and isinstance(ops, list)
                     and any(isinstance(op, Mapping) and op.get("op") in ("replace", "add")
                             and isinstance(op.get("path"), str)
-                            and op["path"].startswith(("/responseTemplates/", "/responseParameters/"))
+                            and (op["path"].startswith(("/responseTemplates/", "/responseParameters/"))
+                                 or op["path"] == "/statusCode"
+                                 and isinstance(op.get("value"), str)
+                                 and re.fullmatch(r"[1-5][0-9]{2}", op["value"])
+                                 and response.get("statusCode") == op["value"])
                             for op in ops)):
                 gateway.append((when, account, region, principal, api_id, record["eventID"]))
         elif name == "UpdateRestApi":
@@ -219,6 +243,11 @@ def correlate(records: Iterable[Mapping[str, Any]]) -> list[dict[str, Any]]:
             signals.append(("ApiGatewayRestGatewayResponsePublished",
                             "request.apigateway_gateway_response_published",
                             max(gw, key=lambda item: item[0])[5]))
+        backend = [x for x in close(backend_writes) if x[5] not in seen_sources]
+        if backend:
+            signals.append(("ApiGatewayRestHttpProxyIntegrationPublished",
+                            "request.apigateway_rest_http_proxy_published",
+                            max(backend, key=lambda item: item[0])[5]))
         policy = [x for x in close(policies) if x[5] not in seen_sources]
         if policy:
             signals.append(("ApiGatewayRestWildcardPolicyPublished",

@@ -77,9 +77,11 @@ def normalize_aws_apigateway_controls(record: Mapping[str, Any]) -> dict[str, An
         percent = float(canary_pct)
     except (TypeError, ValueError):
         percent = 0
-    canary = (isinstance(canary_id, str) and bool(canary_id) and 0 < percent <= 100
-              and isinstance(canary_result, Mapping) and canary_result.get("deploymentId") == canary_id
-              and canary_result.get("percentTraffic") == percent)
+    canary_response_id = canary_result.get("deploymentId") if isinstance(canary_result, Mapping) else None
+    canary = (isinstance(canary_response_id, str) and bool(canary_response_id)
+              and canary_response_id != response.get("deploymentId")
+              and (canary_id is None or canary_response_id == canary_id)
+              and 0 < percent <= 100 and canary_result.get("percentTraffic") == percent)
     deployment_id = next((p.get("value") for p in stage_patches
                           if p.get("op") == "replace" and p.get("path") == "/deploymentId"), None)
     deployment_changed = (isinstance(deployment_id, str) and bool(deployment_id)
