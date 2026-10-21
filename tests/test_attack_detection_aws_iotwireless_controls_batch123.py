@@ -13,11 +13,19 @@ SERVICE_PROFILE = "33333333-3333-4333-8333-333333333333"
 DESTINATION = "synthetic-destination"
 ANALYZER = "synthetic-analyzer"
 ROOT = f"arn:aws:iotwireless:{REGION}:{ACCOUNT}:"
+IDS = {
+    "aws-iotwireless-device-secrets-read", "aws-iotwireless-destination-read",
+    "aws-iotwireless-position-read", "aws-iotwireless-analyzer-read",
+    "aws-iotwireless-device-profile-read", "aws-iotwireless-service-profile-read",
+    "aws-iotwireless-destination-created", "aws-iotwireless-device-destination-changed",
+    "aws-iotwireless-analyzer-configured", "aws-iotwireless-position-changed",
+    "aws-iotwireless-downlink-sent",
+}
 
 
 def rules():
     selected = [rule for rule in load_rules(product="aws")
-                if rule.technique_id.startswith("aws-iotwireless-")]
+                if rule.technique_id in IDS]
     assert len(selected) == 11
     return selected
 
