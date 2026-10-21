@@ -53,10 +53,15 @@ def active_shared():
         'peaso.checks.collector_noop_authorization_shared_successor_20261020': '7ed26b39498462397e5b02b74552d91336d53f07ea70636d8b0655164f90dafa',
         'peaso.checks.azure_metadata_only_shared_successor_20261020': '12bf2cd88f943bcb3cdb91a3701cd3197e78d6ba7ed7e956afd854d6d1b292ed',
         'peaso.checks.gcp_positive_conservation_shared_source_successor_20261020': '12bf2cd88f943bcb3cdb91a3701cd3197e78d6ba7ed7e956afd854d6d1b292ed',
+        'peaso.checks.private_secret_shared_source_successor_20261021': '12bf2cd88f943bcb3cdb91a3701cd3197e78d6ba7ed7e956afd854d6d1b292ed',
     }
     assert current.__name__ in known, 'Unknown shared admission source epoch'
     assert current is importlib.import_module(current.__name__), 'Shared admission alias pointer changed'
-    if current.__name__ == 'peaso.checks.gcp_positive_conservation_shared_source_successor_20261020':
+    if current.__name__ == 'peaso.checks.private_secret_shared_source_successor_20261021':
+        current._private_self()  # Real current source/code/receipt checks; never alter historical receipts.
+        assert current._private_canonical is importlib.import_module('peaso.checks.gcp_positive_conservation_shared_source_successor_20261020')
+    if current.__name__ in ('peaso.checks.gcp_positive_conservation_shared_source_successor_20261020',
+                            'peaso.checks.private_secret_shared_source_successor_20261021'):
         historical = importlib.import_module('peaso.checks.azure_metadata_only_shared_successor_20261020')
         assert current.historical_bridge is historical
         assert current.RECEIPT == historical.RECEIPT == 'azure_metadata_only_shared_successor_20261020.json'
@@ -73,7 +78,8 @@ def active_shared():
     if current.__name__.endswith('collector_noop_authorization_shared_successor_20261020'):
         _noop_native_parent(current, json.loads(raw))
     if current.__name__.endswith(('azure_metadata_only_shared_successor_20261020',
-                                  'gcp_positive_conservation_shared_source_successor_20261020')):
+                                  'gcp_positive_conservation_shared_source_successor_20261020',
+                                  'private_secret_shared_source_successor_20261021')):
         _metadata_noop_parent(current, json.loads(raw))
     return current
 
@@ -107,10 +113,15 @@ def _metadata_noop_parent(current, proof):
         if relative == 'peaso/checks/__init__.py':
             from tests.gcp_positive_conservation_epoch_20261020 import metadata_initializer_bytes
             content = metadata_initializer_bytes(content)
+        elif current.__name__.endswith('private_secret_shared_source_successor_20261021'):
+            content = current._private_before(relative, content, ROOT)
         _reverse(content.decode(), row)
     assert proof['metadata_only_epoch_file_deltas']['peaso/collectors/azure.py']['predecessor_sha256'] == 'b69db967e65722174e847116620b63c7de4f0da835e3edde1a882456dc37afea'
     from peaso.collectors import azure
-    restored = _reverse(inspect.getsource(azure.collect), proof['metadata_only_collect'])
+    source = inspect.getsource(azure.collect)
+    if current.__name__.endswith('private_secret_shared_source_successor_20261021'):
+        source = _reverse(source, current._private_receipt()['provider_group_azure_collect'])
+    restored = _reverse(source, proof['metadata_only_collect'])
     assert digest(restored) == parent['azure_collect']['current_sha256']
     # Execute the real source, callable and sentinel-class identity proof.
     current.verify_metadata_only(ROOT)
@@ -190,6 +201,11 @@ def source_at_epoch(function, name, expected):
             rows.append(proof['integration_functions'][qualified])
         if name in proof.get('shared_functions', {}):
             rows.append(proof['shared_functions'][name])
+    current = active_shared()
+    if current.__name__.endswith('private_secret_shared_source_successor_20261021'):
+        transition = current._private_receipt()['provider_group_callables'].get(qualified.split(':')[0].replace('.', '/') + '.py:' + qualified.split(':')[1])
+        if transition is not None:
+            rows.append(transition)
     permitted = {row['current_sha256'] for row in rows} | {
         row.get('predecessor_sha256', row.get('predecessor', {}).get('sha256')) for row in rows}
     if expected not in permitted:
@@ -374,3 +390,20 @@ def s3_historical_policy_before():
         if name != 'default_policy':
             assert digest(row['body']) == row['sha256']
     return historical
+
+
+def historical_metadata_catalog():
+    """Exact 3,496-entry public metadata from its retained original commit."""
+    packed = (ROOT / 'tests/fixtures/shared_metadata_catalog_3496_20261020.json.gz').read_bytes()
+    assert digest(packed) == '0dce27dc4658e393d9ee370eb7f19f81dcb0df7e5a85c0a63669ac824fb94f33'
+    raw = gzip.decompress(packed)
+    assert digest(raw) == '55e4ef383df3d4408654b95b46789264d024bb8eb4197ca926f37b7eb0d7a718'
+    catalog = json.loads(raw)
+    assert len(catalog['checks']) == 3496
+    # Every historical identity remains registered, explicitly archived, or a
+    # reviewed alias; never present the old metadata fixture as a live scan.
+    from peaso.checks import CHECKS, CHECK_ALIASES
+    from peaso.analysis import ANALYSIS_CHECKS, MANUAL_ONLY_ANALYSIS_CHECK_IDS
+    known = {c.id for c in CHECKS} | set(CHECK_ALIASES) | MANUAL_ONLY_ANALYSIS_CHECK_IDS | {c['id'] for c in ANALYSIS_CHECKS}
+    assert {c['id'] for c in catalog['checks']} <= known
+    return catalog

@@ -1,0 +1,9 @@
+{
+  "source_commit": "6b6ee759234d7e2dad978342838cb3af4e1fe767",
+  "source_member": "peaso/rulepacks/api_catalog.json.gz",
+  "source_member_sha256": "898be91909f846add88e983c16b69e6c2fdfe0a668ad43201091b6a4ac7aecd5",
+  "projection": "full; remove clarity_evaluation_contract exactly as original tests",
+  "raw_sha256": "55e4ef383df3d4408654b95b46789264d024bb8eb4197ca926f37b7eb0d7a718",
+  "packed_sha256": "0dce27dc4658e393d9ee370eb7f19f81dcb0df7e5a85c0a63669ac824fb94f33",
+  "checks": 3496
+}

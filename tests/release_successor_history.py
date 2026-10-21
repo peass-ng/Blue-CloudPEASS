@@ -98,10 +98,27 @@ def registered_before_bulk(checks):
     # Bind the cohort to the retained, digest-verified historical catalog.
     # Later native admissions must not silently enter the old conservation view.
     signed = json.loads(historical_bytes(PUBLISHED_SPRINT_ARCHIVE, SOURCE414_NATIVE_MEMBER))
-    expected = {row["id"] for row in signed["checks"]} - BULK_IDS
+    prior = {row["id"]: row for row in signed["checks"] if row["id"] not in BULK_IDS}
+    expected = set(prior)
     assert len(expected) == BULK["baseline_native_checks"] == 3434
-    assert expected <= set(ids)
-    old = [check for check in checks if check.id in expected]
+    current = {check.id: check for check in checks}
+    missing = expected - set(current)
+    from scripts.peaso_compliance_compile import REVIEWED_NATIVE_ALIASES_20261021
+    from peaso.checks import CHECK_ALIASES
+    from dataclasses import replace
+    assert missing <= set(REVIEWED_NATIVE_ALIASES_20261021), 'Unreviewed historical registry removal'
+    for ident in missing:
+        survivor = REVIEWED_NATIVE_ALIASES_20261021[ident]
+        assert CHECK_ALIASES.get(ident) == survivor and survivor in current
+        metadata = prior[ident]
+        def not_runnable(item, index):
+            raise AssertionError('Historical alias metadata is not a runnable current predicate')
+        current[ident] = replace(current[survivor], id=ident, provider=metadata['provider'],
+            category=metadata['category'], kind=metadata['type'], title=metadata['title'],
+            severity=metadata['severity'], target=metadata['target'], remediation=metadata['remediation'],
+            declared_dependencies=tuple(metadata.get('dependencies', [])), evaluate=not_runnable)
+    # Preserve the digest-verified ancestor order; never insert aliases into live CHECKS.
+    old = [current[ident] for ident in prior]
     assert len(old) == 3434
     return old
 

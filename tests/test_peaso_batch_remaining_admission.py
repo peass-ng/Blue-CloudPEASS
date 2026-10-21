@@ -44,6 +44,17 @@ EXPECTED_COUNT = 181
 EXPECTED_CONTROL_LINKS = 716
 ONE_SIDED_FAIL = {"gcp.apikeys.active_service_restrictions"}
 ONE_SIDED_PASS = {"gcp.logging.access_transparency_entries"}
+# These retained local-only fixtures predate native joins. They must remain
+# UNKNOWN; current positive/negative native-envelope paths are tested in the
+# provider identity, final-services and Azure effective-NSG suites.
+INCOMPLETE_NATIVE_CASES = {
+    "gcp_pci_backend_service_2ce96d36d0bf": "URL map backend references unavailable",
+    "gcp_cloud_armor_waf_enabled": "full native Cloud Armor rule inventory unavailable",
+    "gcp_pci_url_map_9ed56c323a05": "Compute reference outside selected project/resource scope",
+    "gcp_kms_key_destroy_alert": "Metric or alert filter association needs semantic review",
+    "gcp_gke_small_cluster_auto_upgrade": "native short GKE cluster name unavailable",
+    "azure.gap.compute_vm_remote_access_restricted_all_ports": "NSG rules unresolved or path has no NSG",
+}
 REDSHIFT_PROPOSAL = "aws_g6_redshift_automatic_version_upgrade"
 REDSHIFT_SURVIVOR = "aws.cb.redshift.allow_version_upgrade"
 REDSHIFT_CONTROL = ("aws-compliance.benchmark.nist_csf_v2",
@@ -133,31 +144,34 @@ def test_all_real_batch_cases_have_truthful_verdicts_and_no_mutation():
                 # Old Directory samples predate the independently verified
                 # project/customer binding. They cannot now prove either verdict.
                 verdict = "UNKNOWN"
-            assert check.evaluate(original, index)[0] == verdict, (cid, name)
+            actual, evidence = check.evaluate(original, index)
+            if cid in INCOMPLETE_NATIVE_CASES and name in {"pass", "fail"}:
+                verdict = "UNKNOWN"
+                assert evidence["reason"] == INCOMPLETE_NATIVE_CASES[cid]
+            if cid == "gcp_logging_enumeration_alert" and name == "pass":
+                verdict = "UNKNOWN"
+                assert evidence["reason"] == "missing fact: metricDescriptor"
+            assert actual == verdict, (cid, name)
             assert original == before_data and index == before_index, cid
         denied = {"collection_status": "denied"}
         assert check.evaluate(denied, deepcopy(cases.get("index", {})))[0] == "UNKNOWN", cid
 
 
-def test_bucket_public_read_pass_requires_complete_inherited_evidence():
+def test_bucket_public_read_pass_requires_complete_inherited_evidence(monkeypatch):
+    from tests.test_peaso_gcp_storage_acl_native import API, SCOPE
+    from peaso.collectors import collect_live, gcp
+    from tests.archived_check_contract import evaluate_snapshot, plan_collection
     cid = "gcp_pci_bucket_157fb0c69361"
     check = _batch()[cid]
-    item = deepcopy(CASES[cid]["pass"])
-    index = deepcopy(CASES[cid]["pass_index"])
-    assert check.evaluate(item, index)[0] == "UNKNOWN"
-    scope = "projects/demo-project"
-    evidence = {
-        "project": {"name": scope, "projectId": "demo-project", "_ancestry": [], "_provenance": {"scope": scope}},
-        "iam_policy": {"name": scope, "bindings": []},
-        "bucket_effective_iam": {"name": item["name"], "resolutionComplete": True, "policyScopes": [scope]},
-    }
-    for kind, row in evidence.items():
-        index["collections"][kind] = [{"type": kind, "scope": scope, "status": "collected", "items": [row]}]
-        index[kind] = [{"type": kind, "scope": scope, "data": row}]
-    assert check.evaluate(item, index)[0] == "PASS"
-    public = {"role": "roles/storage.objectViewer", "members": ["allUsers"]}
-    index["iam_policy"][0]["data"]["bindings"].append(public)
-    assert check.evaluate(item, index)[0] == "FAIL"
+    assert check.evaluate(deepcopy(CASES[cid]["pass"]), deepcopy(CASES[cid]["pass_index"]))[0] == "UNKNOWN"
+    monkeypatch.setattr(gcp, "Credentials", lambda *a, **kw: None)
+    connector = {"provider": "gcp", "scopes": [SCOPE], "options": {
+        "resource_iam": False, "metrics_scopes": False, "include_inherited": True}}
+    for mode, expected in (("complete", "PASS"), ("ancestor_public", "FAIL")):
+        monkeypatch.setattr(gcp, "Transport", lambda *a, _mode=mode, **kw: API(_mode))
+        snapshot = collect_live(connector, plan_collection({"connector": connector, "checks": [cid]}))
+        findings = evaluate_snapshot(snapshot, checks=[cid], include_not_applicable=True)["findings"]
+        assert [row["status"] for row in findings if row["check_id"] == cid] == [expected]
 
 
 def test_reviewed_batch_cases_survive_legacy_fixture_imports():

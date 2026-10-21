@@ -33,23 +33,37 @@ MODULES += [pytest.param(SimpleNamespace(CHECK=notebook.DECLARATION['id'],evalua
 from peaso.checks import azure_ml_selected_asset_secret_review_20261020 as ml_assets
 MODULES += [pytest.param(SimpleNamespace(CHECK=d['id'],evaluate=ml_assets.environment if 'environment_conda' in d['id'] else ml_assets.code),'azure_ml_asset_secrets_admission_20261020_fixtures.json',id='azure_ml_asset_'+d['kind'])for d in ml_assets.DECLARATIONS]
 
-from peaso.checks.gcp_dataproc_source_runtime_admission_20261020 import reviewed_inputs as dataproc_inputs
-MODULES += [pytest.param(SimpleNamespace(CHECK=d['id'],evaluate=fn),'gcp_dataproc_source_runtime_cases_20261020.json',id='gcp_dataproc_'+d['kind'])for d,fn in dataproc_inputs()[2]]
+from peaso.checks.gcp_dataproc_source_runtime_admission_20261020 import CHECK_IDS as dataproc_ids
+from peaso.checks import CHECKS, fixtures
+
+def current_registered_inputs(identities):
+    # Startup already verifies the sealed current producers. Exercise current
+    # registered facts here, leaving the immutable older loaders to history tests.
+    registered = {check.id: check for check in CHECKS}
+    return [(dict(id=ident, kind=registered[ident].kind), registered[ident].evaluate) for ident in identities]
+
+MODULES += [pytest.param(SimpleNamespace(CHECK=d['id'],evaluate=fn,current_native=True),'gcp_dataproc_source_runtime_cases_20261020.json',id='gcp_dataproc_'+d['kind'])for d,fn in current_registered_inputs(dataproc_ids)]
 
 from peaso.checks import k8s_selected_metadata_secret_review_20261020 as k8s_metadata
 MODULES += [pytest.param(k8s_metadata,'k8s_selected_metadata_secret_cases_20261020.json',id='k8s_metadata')]
 
-from peaso.checks.gcp_workbench_source_runtime_admission_20261020 import reviewed_inputs as workbench_inputs
-MODULES += [pytest.param(SimpleNamespace(CHECK=d['id'],evaluate=fn),'gcp_workbench_source_runtime_cases_20261020.json',id='gcp_workbench_'+d['kind'])for d,fn in workbench_inputs()[2]]
+from peaso.checks.gcp_workbench_source_runtime_admission_20261020 import CHECK_IDS as workbench_ids
+MODULES += [pytest.param(SimpleNamespace(CHECK=d['id'],evaluate=fn,current_native=True),'gcp_workbench_source_runtime_cases_20261020.json',id='gcp_workbench_'+d['kind'])for d,fn in current_registered_inputs(workbench_ids)]
 
-from peaso.checks.gcp_dataflow_batch_source_runtime_admission_20261020 import reviewed_inputs as jobs_inputs
-MODULES += [pytest.param(SimpleNamespace(CHECK=d['id'],evaluate=fn),'gcp_dataflow_batch_source_runtime_cases_20261020.json',id='gcp_job_source_'+d['kind'])for d,fn in jobs_inputs()[2]]
+from peaso.checks.gcp_dataflow_batch_source_runtime_admission_20261020 import candidate as jobs_candidate
+jobs_ids = tuple(row["id"] for row in jobs_candidate.DECLARATIONS)
+MODULES += [pytest.param(SimpleNamespace(CHECK=d['id'],evaluate=fn,current_native=True),'gcp_dataflow_batch_source_runtime_cases_20261020.json',id='gcp_job_source_'+d['kind'])for d,fn in current_registered_inputs(jobs_ids)]
 
 from peaso.checks import aws_codebuild_buildspec_runtime_consumer_20261020 as codebuild
 MODULES += [pytest.param(SimpleNamespace(CHECK=codebuild.DECLARATION['id'], evaluate=codebuild.evaluate), 'aws_codebuild_buildspec_runtime_cases_20261020.json', id='aws_codebuild_inline')]
 
 def native(module,file,branch):
-    data=json.loads((Path('peaso/checks')/file).read_text());cid=module.CHECK
+    cid=module.CHECK
+    if getattr(module, 'current_native', False):
+        from tests.shared_admission_epoch_compatibility_20261020 import snapshot_cases
+        data = {cid: snapshot_cases(fixtures.CASES[cid])}
+    else:
+        data=json.loads((Path('peaso/checks')/file).read_text())
     if 'captures' in data:
         row=next(r for r in data['captures'] if r['expected_status']==branch.upper())
         return deepcopy(next(f for f in row['findings'] if f['check_id']==cid and f['status']==branch.upper()))

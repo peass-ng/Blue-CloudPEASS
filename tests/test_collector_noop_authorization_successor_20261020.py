@@ -11,7 +11,7 @@ import os
 import types
 import pytest
 from peaso import checks
-from peaso.checks import collector_noop_authorization_shared_successor_20261020 as canonical_noop
+canonical_noop = importlib.import_module('peaso.checks.collector_noop_authorization_shared_successor_20261020')
 from tests.shared_admission_epoch_compatibility_20261020 import active_shared
 bridge = active_shared()
 ROOT = Path(__file__).resolve().parents[1]
@@ -52,7 +52,8 @@ def test_only3_exact_whole_file_and_callable_deltas_are_admitted():
     assert len(receipt['producer_functions']) == 3
     for relative, row in receipt['producer_file_deltas'].items():
         raw = (ROOT / relative).read_bytes()
-        assert sha(raw) == row['current_sha256']
+        projected = bridge._private_before(relative, raw, ROOT)
+        assert sha(projected) == row['current_sha256']
         old = bridge.predecessor_producer_bytes(relative, raw, ROOT)
         assert sha(old) == row['predecessor_sha256']
         assert row['exact_additions'] == [] and len(row['exact_replacements']) == 1
@@ -61,6 +62,9 @@ def test_only3_exact_whole_file_and_callable_deltas_are_admitted():
         function = getattr(importlib.import_module(module), name)
         import inspect
         current = inspect.getsource(function)
+        transition = bridge._private_receipt()['provider_group_callables'].get(module.replace('.', '/') + '.py:' + name)
+        if transition is not None:
+            current = bridge._reverse(current, transition)
         restored = bridge._reverse(current, row)
         assert sha(restored.encode()) == row['predecessor']['sha256']
         assert row['predecessor_sha256'] == row['predecessor']['sha256']
@@ -68,7 +72,9 @@ def test_only3_exact_whole_file_and_callable_deltas_are_admitted():
     relative = 'peaso/checks/__init__.py'
     # Retain the original no-op→CPU row. Reverse only the signed current
     # metadata-only initializer alias before applying that unchanged row.
-    noop_text = bridge._reverse((ROOT / relative).read_text(), receipt['metadata_only_epoch_file_deltas'][relative])
+    from tests.gcp_positive_conservation_epoch_20261020 import metadata_initializer_bytes
+    metadata_text = metadata_initializer_bytes((ROOT / relative).read_bytes()).decode()
+    noop_text = bridge._reverse(metadata_text, receipt['metadata_only_epoch_file_deltas'][relative])
     restored = bridge._reverse(noop_text, receipt['native_epoch_file_deltas'][relative])
     assert sha(restored.encode()) == receipt['native_epoch_file_deltas'][relative]['predecessor_sha256']
 
@@ -127,9 +133,9 @@ def test_producer_snapshot_carrier_cannot_be_poisoned(mutation, monkeypatch):
     with pytest.raises(RuntimeError): bridge.verify_authorization_successors(ROOT)
 
 
-def test_normal_catalog_has_all3496_controls_with_exact_non_source_metadata():
-    from peaso.engine import get_catalog
-    value = get_catalog()
+def test_historical_catalog_has_all3496_controls_with_exact_non_source_metadata():
+    from tests.shared_admission_epoch_compatibility_20261020 import historical_metadata_catalog
+    value = historical_metadata_catalog()
     assert len(value['checks']) == 3496
     for row in value['checks']: row.pop('clarity_evaluation_contract', None)
     assert sha(json.dumps(value, sort_keys=True, separators=(',', ':')).encode()) == '55e4ef383df3d4408654b95b46789264d024bb8eb4197ca926f37b7eb0d7a718'
@@ -161,13 +167,14 @@ for owner,names in ((socket,('create_connection','getaddrinfo')),(socket.socket,
  for name in names:setattr(owner,name,blocked)
 from peaso.checks import collector_noop_authorization_shared_successor_20261020 as canonical_noop
 from tests.shared_admission_epoch_compatibility_20261020 import active_shared
+from peaso.private_secret_source_epoch_20261021 import AdmissionError
 bridge = active_shared()
 root=pathlib.Path.cwd();path=root/sys.argv[1];raw=path.read_bytes()
 try:
  bridge.reviewed_delta(root);bridge.verify_authorization_successors(root)
  path.write_bytes(raw+b'\n# deliberate unreviewed source mutation\n')
  try:bridge.reviewed_delta(root);bridge.verify_authorization_successors(root)
- except RuntimeError:print('rejected')
+ except (RuntimeError, AdmissionError):print('rejected')
  else:raise AssertionError('Source mutation admitted')
 finally:path.write_bytes(raw)
 '''

@@ -50,8 +50,18 @@ RUNTIME_ADMISSION_INPUTS = {
 # Exact public inputs needed to reproduce the shipped compiler, provenance and
 # tests. Explicit paths/globs only: no .work drafts, caches or private files.
 REPRODUCTION_INPUT_PATTERNS = (
+    "tests/fixtures/shared_metadata_catalog_3496_20261020.json.gz",
+    "tests/fixtures/shared_metadata_catalog_3496_20261020.provenance.json",
+    'tests/fixtures/aws_codeartifact_npm_batch80_events.json',
+    'tests/fixtures/aws_sns_subscription_batch81_events.json',
+    'tests/fixtures/aws_sqs_public_policy_batch82_events.json',
+    'tests/fixtures/aws_sns_public_policy_batch83_events.json',
+    'tests/fixtures/aws_sns_service_scope_batch84_events.json',
+    'tests/fixtures/aws_sfn_role_routes_batch85_events.json',
     "tests/test_snapshot_resource_identity_finite_source.py",
     "tests/test_compliance_reviewed_native_aliases.py",
+    "tests/test_release_history_alias_projection.py",
+    "tests/test_peaso_batch_remaining_admission.py",
     "tests/test_unused_iam_access_analyzer_hardening.py",
     'tests/test_unused_network_aws_target_group.py',
     'tests/test_unused_network_gcp_native_completion.py',
