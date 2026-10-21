@@ -61,6 +61,8 @@ def test_cyclic_nested_observation_is_rejected_without_traversal_or_serializatio
 @pytest.mark.parametrize('mode',['complete','missing','no_policy'])
 @pytest.mark.parametrize('check_id,accepted',[('gcp_c5_sbom',False),('gcp_pci_iam_policy_ca1281da7ab2',False),('gcp_pci_iam_policy_9a8ce875703d',False),('gcp-compliance.control.cis_v120_6_2_13',False),('custom.unknown_owner_policy',False),('gcp.storage.uniform_access',True)])
 def test_real_http_persists_encrypted_connector_and_admits_only_active_native_check(mode,check_id,accepted,tmp_path,monkeypatch):
+ from tests.connector_access_receipts import checked_create, mock_access_pass
+ mock_access_pass(monkeypatch)
  import importlib,importlib.util,json
  from pathlib import Path
  from fastapi.testclient import TestClient
@@ -108,7 +110,7 @@ def test_real_http_persists_encrypted_connector_and_admits_only_active_native_ch
  monkeypatch.setattr(worker_module.multiprocessing,'get_context',lambda method:context)
  with TestClient(app,base_url='http://127.0.0.1:8000') as client:
   client.headers['Authorization']='Bearer fake-cognito-user'
-  response=client.post('/api/connectors',json={'name':'SBOM roundtrip','provider':'gcp','auth':copy.deepcopy(AUTH),'scopes':[SCOPE],'options':options})
+  response=client.post('/api/connectors',json=checked_create(client,{'name':'SBOM roundtrip','provider':'gcp','auth':copy.deepcopy(AUTH),'scopes':[SCOPE],'options':options}))
   assert response.status_code==201,response.text
   ident=response.json()['id'];row=store.connector('sbom-customer',ident)
   private=CredentialCipher(settings.identity_dir).decrypt(row['auth'])
@@ -122,7 +124,7 @@ def test_real_http_persists_encrypted_connector_and_admits_only_active_native_ch
    def forbidden_enqueue(*args,**kwargs):
     pytest.fail('Unsupported owner/manual check reached the enqueue boundary')
    monkeypatch.setattr(store,'enqueue',forbidden_enqueue)
-  job=client.post('/api/scans',json={'connector_id':ident,'checks':[check_id]})
+  job=client.post('/api/scans',json={'connector_id':ident,'checks':[check_id],'ai_enabled':False})
   assert job.status_code==(201 if accepted else 422),job.text
   if not accepted:
    assert any(word in job.text.lower() for word in ('not available','unsupported','manual evidence','unknown check'))

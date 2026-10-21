@@ -125,7 +125,10 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
     def connector_digest(value):
         return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode()).hexdigest()
 
-    def verify_check_token(user, token, payload, acknowledge_warnings=False):
+    def connector_revision(row):
+        return connector_digest({"data": row["data"], "auth": row["auth"]})
+
+    def verify_check_token(user, token, payload, acknowledge_warnings=False, *, connector_id=None, revision=None):
         if not token:
             raise HTTPException(422, "Run Check access before saving this connector")
         try:
@@ -134,6 +137,8 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             record = None
         if (not record or record.get("tenant") != user.tenant_id or record.get("expires", 0) < time.time()
                 or record.get("digest") != connector_digest(payload)
+                or record.get("connector_id") != connector_id
+                or record.get("revision") != revision
                 or record.get("status") not in {"pass", "warning"}):
             raise HTTPException(422, "Access check expired or connector settings changed; check access again")
         if record.get("credential_expires_at") and record["credential_expires_at"] <= time.time():
@@ -564,11 +569,13 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         if not using_saved_auth:
             bind_workspace_external_id(user, body.provider, auth)
         from .access_check import check_access
-        result = check_access(body.provider, auth, body.scopes, options, settings,
-                              credential_expires_at=body.credential_expires_at)
-        if result["status"] in {"pass", "warning"} and not body.connector_id:
+        result = dict(check_access(body.provider, auth, body.scopes, options, settings,
+                                   credential_expires_at=body.credential_expires_at))
+        if result["status"] in {"pass", "warning"}:
             result["check_token"] = cipher.encrypt({"tenant": user.tenant_id,
                 "digest": connector_digest(submitted), "status": result["status"], "expires": time.time() + 600,
+                "connector_id": body.connector_id,
+                "revision": connector_revision(row) if body.connector_id else None,
                 "credential_expires_at": body.credential_expires_at.timestamp() if body.credential_expires_at else None})
         return result
 
@@ -578,7 +585,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         auth = data.pop("auth")
         check_token = data.pop("check_token", None)
         acknowledge_warnings = data.pop("acknowledge_access_warnings", False)
-        if (settings.require_connector_access_check or check_token) and "snapshot" not in data["options"] and not data["options"].get("demo"):
+        if "snapshot" not in data["options"] and not data["options"].get("demo"):
             verify_check_token(user, check_token, {**data, "auth": auth}, acknowledge_warnings)
         prepared_id = data.pop("prepared_id", None)
         if prepared_id:
@@ -613,8 +620,19 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
     @app.patch("/api/connectors/{ident}")
     def update_connector(ident: str, body: ConnectorPatch, user=Depends(identity)):
         row = store.connector(user.tenant_id, ident)
+        saved = json.loads(row["data"])
         private = cipher.decrypt(row["auth"])
         patch = body.model_dump(exclude_none=True)
+        check_token = patch.pop("check_token", None)
+        acknowledge_warnings = patch.pop("acknowledge_access_warnings", False)
+        candidate_options = patch.get("options", saved["options"])
+        effective_options = patch.get("options", private["options"])
+        if "snapshot" not in effective_options and not effective_options.get("demo"):
+            checked = {"name": patch.get("name", saved["name"]), "provider": saved["provider"],
+                       "auth": patch.get("auth", {}), "scopes": patch.get("scopes", saved["scopes"]),
+                       "options": candidate_options, "prepared_id": patch.get("prepared_id")}
+            verify_check_token(user, check_token, checked, acknowledge_warnings,
+                               connector_id=ident, revision=connector_revision(row))
         prepared_id = patch.pop("prepared_id", None)
         if prepared_id and "auth" not in patch:
             raise HTTPException(422, "Prepared setup requires replacement authentication")

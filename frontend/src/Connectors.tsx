@@ -1111,7 +1111,7 @@ function ConnectorForm({
       if (accessResult?.status === "warning" && !accessWarningsAcknowledged)
         return setError("Confirm that you understand some checks might fail before saving this connector.");
       if (accessResult?.check_token) body.check_token = accessResult.check_token;
-      if (!connector && accessResult?.status === "warning") body.acknowledge_access_warnings = true;
+      if (accessResult?.status === "warning") body.acknowledge_access_warnings = true;
       setAuth({});
       setAdvancedAuth("");
       setAdvancedOptions("");
@@ -1524,7 +1524,7 @@ function ConnectorForm({
           {accessResult.scope_summary && <p>{accessResult.scope_summary.total} {accessResult.scope_summary.unit} in scope · {accessResult.scope_summary.accessible} accessible · {accessResult.scope_summary.blocked} blocked · {accessResult.scope_summary.warning} with recommendations{accessResult.scope_summary.not_checked ? ` · ${accessResult.scope_summary.not_checked} not checked` : ""}</p>}
           {!!accessResult.scope_results?.length && <ul aria-label="Access results by scope">{accessResult.scope_results.map((item) => <li key={item.scope}>
             <strong>{item.scope}</strong> · {item.status.replaceAll("_", " ")}
-            {!!item.issues.length && <ul>{item.issues.map((issue, index) => <li key={index}>{issue.message}</li>)}</ul>}
+            {!!item.issues.length && <ul>{item.issues.map((issue, index) => <li key={index}><b>{issue.severity === "critical" ? "Required" : "Recommended"}</b> · {issue.message}</li>)}</ul>}
           </li>)}</ul>}
           {!accessResult.scope_results?.length && accessResult.principals.length > 0 && <ul>{accessResult.principals.map((item) =>
             <li key={`${item.scope}-${item.principal}`}>{item.scope}: {item.principal}</li>)}</ul>}

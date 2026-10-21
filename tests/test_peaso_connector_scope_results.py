@@ -1,4 +1,5 @@
 """Discovery boundaries and per-scope access results; no live credentials."""
+import base64
 import json
 from types import SimpleNamespace
 from concurrent.futures import ThreadPoolExecutor
@@ -29,9 +30,10 @@ def test_azure_subscription_discovery_pages_and_separates_denials(monkeypatch):
         def close(self): pass
     monkeypatch.setattr("peaso.collectors.azure.AzureTransport", Transport)
     result = check_access("azure", {"client_id": "fixture"}, ["*"], {}, Settings())
-    assert result["scope_summary"] == {"unit": "subscriptions", "total": 2, "accessible": 1, "blocked": 1, "warning": 0, "not_checked": 0}
+    assert result["scope_summary"] == {"unit": "subscriptions", "total": 2, "accessible": 1, "blocked": 1, "warning": 1, "not_checked": 0}
     rows = {row["scope"]: row for row in result["scope_results"]}
-    assert rows[first]["status"] == "pass"
+    assert rows[first]["status"] == "warning"
+    assert any("role assignments" in issue["message"] for issue in rows[first]["issues"])
     assert rows[second]["status"] == "blocked"
     assert "Cannot read this subscription" in rows[second]["issues"][0]["message"]
     assert any("skip=1" in url for url in calls)
@@ -52,6 +54,31 @@ def test_azure_discovery_rejects_foreign_continuation_before_request(monkeypatch
     assert len(calls) == 1 and "foreign.invalid" not in calls[0]
 
 
+def test_azure_compares_authenticated_object_with_read_roles(monkeypatch):
+    subscription = "11111111-1111-1111-1111-111111111111"
+    object_id = "22222222-2222-2222-2222-222222222222"
+    payload = base64.urlsafe_b64encode(json.dumps({"oid": object_id}).encode()).decode().rstrip("=")
+    token = "header." + payload + ".signature"
+    assigned = ["acdd72a7-3385-48ef-bd42-f606fba81ae7", "39bc4728-0917-49c7-9d2c-d95423bc2eb4"]
+    class Transport:
+        def __init__(self, auth): pass
+        def request(self, url, **kwargs):
+            if "/roleAssignments?" in url:
+                return {"value": [{"properties": {"principalId": object_id,
+                    "roleDefinitionId": "/providers/Microsoft.Authorization/roleDefinitions/" + role}}
+                    for role in assigned]}
+            return {}
+        def token(self, audience): return token
+        def close(self): pass
+    monkeypatch.setattr("peaso.collectors.azure.AzureTransport", Transport)
+    assert check_access("azure", {"method": "token"}, [subscription], {}, Settings())["status"] == "pass"
+    assigned.pop()
+    warning = check_access("azure", {"method": "token"}, [subscription], {}, Settings())
+    assert warning["status"] == "warning"
+    assert any("Security Reader" in issue["message"] and "Defender for Cloud" in issue["message"]
+               for issue in warning["issues"])
+
+
 def test_gcp_customer_credentials_discover_only_allowed_projects_and_keep_project_failures(monkeypatch):
     import requests
     class Credentials:
@@ -69,6 +96,11 @@ def test_gcp_customer_credentials_discover_only_allowed_projects_and_keep_projec
             return Response({"projects": [{"projectId": name} for name in ("customer-one", "customer-two", "excluded-project")]})
         return Response({"projectId": url.rsplit("/", 1)[-1]})
     def post(url, **kwargs):
+        if url.endswith(":getIamPolicy"):
+            return Response({"bindings": [{"role": role, "members": ["serviceAccount:reader@identity.iam.gserviceaccount.com"]}
+                                          for role in ("roles/viewer", "roles/iam.securityReviewer", "roles/cloudasset.viewer",
+                                                       "roles/serviceusage.serviceUsageConsumer", "roles/logging.privateLogViewer",
+                                                       "roles/securitycenter.findingsViewer", "roles/recommender.viewer")]})
         return Response({"permissions": kwargs["json"]["permissions"] if "customer-one" in url else []})
     monkeypatch.setattr("peaso.collectors.gcp.Credentials", Credentials)
     monkeypatch.setattr(requests, "get", get)
@@ -169,6 +201,7 @@ def test_workspace_role_setup_cannot_be_replayed_or_forged_across_workspaces(tmp
         body.pop("connector_id")
         body["auth"].pop("external_id")
         body["prepared_id"] = first["prepared_id"]
+        body["check_token"] = client.post("/api/connectors/check-access", headers=headers | {"X-Workspace-Id": workspaces[0]}, json=body).json()["check_token"]
         saved = client.post("/api/connectors", headers=headers | {"X-Workspace-Id": workspaces[0]}, json=body)
         assert saved.status_code == 201
         connector_id = saved.json()["id"]
@@ -180,8 +213,14 @@ def test_workspace_role_setup_cannot_be_replayed_or_forged_across_workspaces(tmp
         body["auth"] = {}
         assert client.post("/api/connectors/check-access", headers=headers | {"X-Workspace-Id": workspaces[0]}, json=body).status_code == 200
         assert seen[-1][1]["external_id"] == first["external_id"]
+        replacement_auth = {"method": "assume_role", "role_arn": "arn:aws:iam::123456789012:role/Audit"}
+        replacement_check = client.post("/api/connectors/check-access", headers=headers | {"X-Workspace-Id": workspaces[0]}, json={
+            "name": "Audit", "provider": "aws", "scopes": ["123456789012"], "options": {},
+            "auth": replacement_auth, "prepared_id": first["prepared_id"], "connector_id": connector_id})
+        assert replacement_check.status_code == 200
         replaced = client.patch("/api/connectors/" + connector_id, headers=headers | {"X-Workspace-Id": workspaces[0]}, json={
-            "auth": {"method": "assume_role", "role_arn": "arn:aws:iam::123456789012:role/Audit"}, "prepared_id": first["prepared_id"]})
+            "auth": replacement_auth, "prepared_id": first["prepared_id"],
+            "check_token": replacement_check.json()["check_token"]})
         assert replaced.status_code == 200
         assert replaced.json()["onboarding"]["external_id"] == first["external_id"]
 

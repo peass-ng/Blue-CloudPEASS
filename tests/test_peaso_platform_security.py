@@ -136,6 +136,8 @@ def test_ai_isolation_launcher_is_explicit_and_not_group_writable(tmp_path, monk
 
 
 def test_ai_status_and_local_launch_explain_missing_isolation(tmp_path, monkeypatch):
+    from tests.connector_access_receipts import checked_create, mock_access_pass
+    mock_access_pass(monkeypatch)
     from fastapi.testclient import TestClient
     from peaso.server import create_app
     from peaso.ai import auth
@@ -148,7 +150,7 @@ def test_ai_status_and_local_launch_explain_missing_isolation(tmp_path, monkeypa
         status = client.get('/api/ai/codex').json()
         assert status['available'] is False and status['isolation_available'] is False
         assert status['unavailable_reason'] == 'ai_isolation_unavailable'
-        connector = client.post('/api/connectors', json={'name': 'Fixture', 'provider': 'aws'}).json()['id']
+        connector = client.post('/api/connectors', json=checked_create(client, {'name': 'Fixture', 'provider': 'aws'})).json()['id']
         response = client.post('/api/scans', json={'connector_id': connector, 'ai_enabled': True})
         assert response.status_code == 409 and 'isolation launcher' in response.json()['detail']
 

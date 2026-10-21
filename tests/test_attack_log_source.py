@@ -12,6 +12,7 @@ from peaso.auth import Identity
 from peaso.server import create_app
 from peaso.server.attack_logs import LogAccessError, analyze_aws_source, check_aws_source
 from peaso.server.config import Settings
+from tests.connector_access_receipts import checked_create, checked_edit, mock_access_pass
 
 
 class IdentityStub:
@@ -30,6 +31,7 @@ TEST_RULE = Rule(id="unit-log-source", title="Synthetic test event", level="low"
 
 
 def test_access_token_is_bound_to_source_and_tenant(tmp_path, monkeypatch):
+    mock_access_pass(monkeypatch)
     monkeypatch.setattr("peaso.attack_detection.load_rules", lambda *args, **kwargs: (TEST_RULE,))
     monkeypatch.setattr("peaso.server.attack_logs.check_aws_source", lambda *args: {
         "account_id": "123456789012", "source_status": "accessible", "coverage": "readable"})
@@ -38,9 +40,10 @@ def test_access_token_is_bound_to_source_and_tenant(tmp_path, monkeypatch):
     settings = Settings(state_dir=tmp_path / "state", identity_dir=tmp_path / "identity")
     with TestClient(create_app(settings, authenticator=IdentityStub()), base_url="http://localhost:8000") as client:
         client.headers["Authorization"] = "Bearer owner"
-        saved = client.post("/api/connectors", json={"name": "AWS", "provider": "aws", "auth": {
+        body = {"name": "AWS", "provider": "aws", "auth": {
             "method": "access_keys", "aws_access_key_id": "test", "aws_secret_access_key": "secret"},
-            "scopes": [], "options": {}})
+            "scopes": [], "options": {}}
+        saved = client.post("/api/connectors", json=checked_create(client, body))
         assert saved.status_code == 201, saved.text
         source = {**SOURCE, "connector_id": saved.json()["id"], "catalog_mode": "pinned"}
         checked = client.post("/api/attack-analysis/check-access", json=source)
@@ -51,7 +54,8 @@ def test_access_token_is_bound_to_source_and_tenant(tmp_path, monkeypatch):
         assert client.post("/api/attack-analysis/run", json={**source, "check_token": "invalid"}).status_code == 422
         assert client.post("/api/attack-analysis/check-access", json={**source, "kind": "aws_cloudtrail_s3"}).status_code == 422
         assert client.post("/api/attack-analysis/check-access", json={**source, "kind": "gcp_audit", "project_id": "customer-demo-123"}).status_code == 422
-        changed = client.patch(f"/api/connectors/{source['connector_id']}", json={"name": "AWS updated"})
+        edit_token = checked_edit(client, source['connector_id'], name="AWS updated", provider="aws", scopes=[], options={})
+        changed = client.patch(f"/api/connectors/{source['connector_id']}", json={"name": "AWS updated", "check_token": edit_token})
         assert changed.status_code == 200, changed.text
         stale = client.post("/api/attack-analysis/run", json={**source, "check_token": token})
         assert stale.status_code == 422
@@ -59,6 +63,7 @@ def test_access_token_is_bound_to_source_and_tenant(tmp_path, monkeypatch):
 
 
 def test_latest_catalog_is_bound_to_access_token_and_reported(tmp_path, monkeypatch):
+    mock_access_pass(monkeypatch)
     calls = []
     def selected(mode, *, product, commit=None, digest=None):
         calls.append((mode, product, commit, digest))
@@ -71,9 +76,10 @@ def test_latest_catalog_is_bound_to_access_token_and_reported(tmp_path, monkeypa
     settings = Settings(state_dir=tmp_path / "state", identity_dir=tmp_path / "identity")
     with TestClient(create_app(settings, authenticator=IdentityStub()), base_url="http://localhost:8000") as client:
         client.headers["Authorization"] = "Bearer owner"
-        saved = client.post("/api/connectors", json={"name": "AWS", "provider": "aws", "auth": {
+        body = {"name": "AWS", "provider": "aws", "auth": {
             "method": "access_keys", "aws_access_key_id": "test", "aws_secret_access_key": "secret"},
-            "scopes": [], "options": {}})
+            "scopes": [], "options": {}}
+        saved = client.post("/api/connectors", json=checked_create(client, body))
         source = {**SOURCE, "connector_id": saved.json()["id"]}
         checked = client.post("/api/attack-analysis/check-access", json=source)
         assert checked.json()["status"] == "pass"
@@ -88,15 +94,17 @@ def test_latest_catalog_is_bound_to_access_token_and_reported(tmp_path, monkeypa
 
 
 def test_entra_access_check_does_not_authorize_analysis_without_context(tmp_path, monkeypatch):
+    mock_access_pass(monkeypatch)
     monkeypatch.setattr("peaso.server.entra_attack_logs.check_entra_source", lambda *args: {
         "source_status": "accessible", "coverage": {"events_read": 0, "detection_status": "global_admin_self_grants_only"}})
     monkeypatch.setattr("peaso.attack_detection.load_rules", lambda *args, **kwargs: (TEST_RULE,))
     settings = Settings(state_dir=tmp_path / "state", identity_dir=tmp_path / "identity")
     with TestClient(create_app(settings, authenticator=IdentityStub()), base_url="http://localhost:8000") as client:
         client.headers["Authorization"] = "Bearer owner"
-        saved = client.post("/api/connectors", json={"name": "Azure", "provider": "azure", "auth": {
+        body = {"name": "Azure", "provider": "azure", "auth": {
             "method": "token", "tenant_id": "12345678-1234-1234-1234-123456789abc", "arm_token": "fixture"},
-            "scopes": [], "options": {}})
+            "scopes": [], "options": {}}
+        saved = client.post("/api/connectors", json=checked_create(client, body))
         assert saved.status_code == 201, saved.text
         source = {"connector_id": saved.json()["id"], "kind": "entra_directory_audit",
                   "region": "us-east-1", "catalog_mode": "pinned"}

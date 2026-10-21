@@ -66,8 +66,8 @@ def check_policy_requirements(iam, identity, scope, issues):
         complete = False
 
     baseline = policy_prefix + 'ReadOnlyAccess'
-    admin = policy_prefix + 'AdministratorAccess'
-    if baseline not in policies and admin not in policies:
+    security = policy_prefix + 'SecurityAudit'
+    if baseline not in policies and security not in policies:
         equivalent = False
         try:
             result = iam.simulate_principal_policy(PolicySourceArn=principal_arn,
@@ -81,13 +81,14 @@ def check_policy_requirements(iam, identity, scope, issues):
             pass
         if not equivalent:
             prefix = 'Missing required policy' if complete else 'Could not verify required policy'
-            issue('critical', f'{prefix} {baseline} or equivalent baseline inventory permissions. Grant it or the documented custom scanning permissions, then check access again.')
+            issue('critical', f'{prefix} {baseline} or {security}, or equivalent baseline inventory permissions. Without one of these, account, IAM and compute inventory cannot be relied on.')
     for name, consequence in (
-        ('SecurityAudit', 'Some security configuration checks might fail or lack evidence.'),
-        ('IAMAccessAnalyzerFullAccess', 'Access Analyzer creation, findings collection or cleanup might fail; some checks might lack evidence.'),
+        ('ReadOnlyAccess', 'Some service inventory and configuration data may be missing.'),
+        ('SecurityAudit', 'Some security configuration and IAM audit data may be missing.'),
+        ('IAMAccessAnalyzerFullAccess', 'Creation of missing analyzers and collection of their findings may be unavailable.'),
     ):
         policy = policy_prefix + name
-        if policy not in policies and admin not in policies:
+        if policy not in policies:
             prefix = 'Missing recommended policy' if complete else 'Could not verify recommended policy'
             issue('advisory', f'{prefix} {policy}. {consequence}')
     if not complete:

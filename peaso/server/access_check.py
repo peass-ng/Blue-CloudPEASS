@@ -290,12 +290,54 @@ def _gcp(auth, scopes, options, issues, principals, settings):
                          "iam.roles.list", "serviceusage.services.use", "logging.logEntries.list",
                          "logging.privateLogEntries.list", "securitycenter.findings.list",
                          "recommender.iamPolicyRecommendations.list"]
+                coverage = {
+                    "resourcemanager.projects.get": "Project identity and metadata cannot be confirmed.",
+                    "cloudasset.assets.searchAllResources": "Resource inventory may be incomplete.",
+                    "iam.roles.list": "IAM role definitions and privilege findings may be incomplete.",
+                    "serviceusage.services.use": "Some project APIs may refuse inventory requests.",
+                    "logging.logEntries.list": "Operational and audit log evidence may be incomplete.",
+                    "logging.privateLogEntries.list": "Data Access log evidence may be unavailable.",
+                    "securitycenter.findings.list": "Security Command Center findings may be unavailable.",
+                    "recommender.iamPolicyRecommendations.list": "IAM recommendations may be unavailable.",
+                }
                 response = requests.post(f"https://cloudresourcemanager.googleapis.com/v3/projects/{project}:testIamPermissions", headers=headers, json={"permissions": perms}, timeout=10)
                 response.raise_for_status()
                 granted = set(response.json().get("permissions", []))
                 for permission in perms:
                     if permission not in granted:
-                        _issue(issues, "critical" if permission in perms[:2] else "advisory", project, f"Missing {permission} on this project.")
+                        _issue(issues, "critical" if permission in perms[:2] else "advisory", project,
+                               f"Missing {permission} on this project. {coverage[permission]}")
+                member_email = (service_account.get("client_email") if isinstance(service_account, dict) else
+                                str(auth.get("target_principal") or auth.get("impersonate_service_account") or "")
+                                .rsplit("/", 1)[-1])
+                if re.fullmatch(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+", str(member_email)):
+                    recommended = {
+                        "roles/viewer": "Some service configuration and resource data may be missing.",
+                        "roles/iam.securityReviewer": "IAM policy and role review may be incomplete.",
+                        "roles/cloudasset.viewer": "Cloud Asset inventory may be incomplete.",
+                        "roles/serviceusage.serviceUsageConsumer": "Some project API inventory calls may be denied.",
+                        "roles/logging.privateLogViewer": "Data Access logs may be unavailable.",
+                        "roles/securitycenter.findingsViewer": "Security Command Center findings may be unavailable.",
+                        "roles/recommender.viewer": "IAM recommendations may be unavailable.",
+                    }
+                    try:
+                        policy = requests.post(f"https://cloudresourcemanager.googleapis.com/v1/projects/{project}:getIamPolicy",
+                                               headers=headers, json={"options": {"requestedPolicyVersion": 3}}, timeout=10)
+                        policy.raise_for_status()
+                        bindings = policy.json().get("bindings", [])
+                        member = "serviceAccount:" + member_email
+                        direct = {binding.get("role") for binding in bindings
+                                  if member in binding.get("members", []) and not binding.get("condition")}
+                        for role, impact in recommended.items():
+                            if role not in direct:
+                                _issue(issues, "advisory", project,
+                                       f"No direct unconditional {role} binding was found for {member}. It may be inherited or replaced by equivalent grants; {impact}")
+                    except Exception:
+                        _issue(issues, "advisory", project,
+                               "Could not read project IAM bindings to compare the seven recommended roles. Effective permissions were checked, but role-based coverage remains unverified.")
+                else:
+                    _issue(issues, "advisory", project,
+                           "Could not identify the exact IAM member to compare the seven recommended project roles. Effective permissions were checked, but direct role assignments remain unverified.")
             except Exception:
                 _issue(issues, "critical", project, "Could not read this project or verify its IAM permissions.")
         _probe_scopes(selected[:100], probe_project)
@@ -307,7 +349,7 @@ def _gcp(auth, scopes, options, issues, principals, settings):
 
 
 def _azure(auth, scopes, issues, principals):
-    from peaso.collectors.azure import AzureTransport, GRAPH, _claims
+    from peaso.collectors.azure import AzureTransport, ARM, GRAPH, _claims
     transport = AzureTransport(auth)
     try:
         selected = list(dict.fromkeys(scopes))
@@ -346,11 +388,46 @@ def _azure(auth, scopes, issues, principals):
             except Exception:
                 _issue(issues, "critical", subscription, "Cannot read this subscription (Microsoft.Resources/subscriptions/read).")
                 return
-            for resource, label in (("resources", "resource inventory"), ("providers/Microsoft.Security/pricings", "Security Reader inventory")):
+            for resource, label, severity, impact in (
+                ("resources", "resource inventory", "critical", "Subscription resources cannot be inventoried."),
+                ("providers/Microsoft.Security/pricings", "Defender for Cloud", "advisory", "Security pricing and configuration evidence may be incomplete.")):
                 try:
                     transport.request(f"https://management.azure.com/subscriptions/{subscription}/{resource}?api-version=" + ("2021-04-01" if resource == "resources" else "2024-01-01"))
                 except Exception:
-                    _issue(issues, "advisory", subscription, f"Cannot read {label}; check Reader and Security Reader assignments.")
+                    _issue(issues, severity, subscription, f"Cannot read {label}; check Reader and Security Reader assignments. {impact}")
+            try:
+                object_id = _claims(transport.token(ARM)).get("oid")
+                if not object_id:
+                    raise ValueError("Azure object ID unavailable")
+                assignments = []
+                url = f"https://management.azure.com/subscriptions/{subscription}/providers/Microsoft.Authorization/roleAssignments?api-version=2022-04-01"
+                seen = set()
+                for _ in range(10):
+                    if url in seen:
+                        raise ValueError("Repeated role-assignment page")
+                    seen.add(url)
+                    page = transport.request(url)
+                    assignments.extend(page.get("value", []))
+                    url = page.get("nextLink")
+                    if not url:
+                        break
+                    from urllib.parse import urlsplit
+                    parsed = urlsplit(url)
+                    if parsed.scheme != "https" or parsed.netloc != "management.azure.com" or parsed.fragment:
+                        raise ValueError("Invalid role-assignment continuation")
+                else:
+                    raise ValueError("Role-assignment page limit reached")
+                direct = {item.get("properties", {}).get("roleDefinitionId", "").rsplit("/", 1)[-1].lower()
+                          for item in assignments if item.get("properties", {}).get("principalId", "").lower() == object_id.lower()}
+                for name, role_id, impact in (
+                    ("Reader", "acdd72a7-3385-48ef-bd42-f606fba81ae7", "subscription resource inventory may be incomplete"),
+                    ("Security Reader", "39bc4728-0917-49c7-9d2c-d95423bc2eb4", "Defender for Cloud evidence may be incomplete")):
+                    if role_id not in direct:
+                        _issue(issues, "advisory", subscription,
+                               f"No direct {name} assignment was found for Azure object {object_id}; it may be inherited or replaced by equivalent grants, and {impact}.")
+            except Exception:
+                _issue(issues, "advisory", subscription,
+                       "Could not read Azure role assignments for the authenticated object to compare Reader and Security Reader. Resource permissions were probed, but role-based coverage remains unverified.")
         _probe_scopes(selected[:100], probe_subscription)
         try:
             graph_token = transport.token(GRAPH)
@@ -359,7 +436,7 @@ def _azure(auth, scopes, issues, principals):
                 required = {"Directory.Read.All", "Policy.Read.All", "AuditLog.Read.All", "Reports.Read.All",
                             "RoleManagement.Read.Directory", "Organization.Read.All"}
                 for role in sorted(required - set(claims.get("roles", []))):
-                    _issue(issues, "advisory", "Microsoft Graph", f"Missing {role} application permission or admin consent.")
+                    _issue(issues, "advisory", "Microsoft Graph", f"Missing {role} application permission or admin consent; directory, identity, policy, sign-in or report evidence may be incomplete.")
             transport.request("https://graph.microsoft.com/v1.0/organization?$top=1", audience=GRAPH)
         except Exception:
             _issue(issues, "advisory", "Microsoft Graph", "Directory inventory is unavailable. Grant the documented Graph permissions and admin consent if directory checks are needed.")
@@ -418,26 +495,41 @@ def _k8s(auth, issues, principals, scopes=()):
             except Exception:
                 _issue(issues, "critical", namespace, "Cannot read this namespace.")
                 return
-            for group, resource, severity in (("", "pods", "critical"), ("apps", "deployments", "critical"),
-                    ("rbac.authorization.k8s.io", "roles", "critical"),
-                    ("rbac.authorization.k8s.io", "rolebindings", "critical"), ("", "secrets", "advisory")):
+            for group, resource, severity, impact in (
+                    ("", "pods", "critical", "Pod and workload evidence"),
+                    ("apps", "deployments", "critical", "Deployment configuration evidence"),
+                    ("rbac.authorization.k8s.io", "roles", "critical", "Namespace RBAC rule evidence"),
+                    ("rbac.authorization.k8s.io", "rolebindings", "critical", "Namespace RBAC binding evidence"),
+                    ("", "serviceaccounts", "advisory", "Service account identity evidence"),
+                    ("", "services", "advisory", "Service network evidence"),
+                    ("", "configmaps", "advisory", "ConfigMap configuration evidence"),
+                    ("batch", "jobs", "advisory", "Job workload evidence"),
+                    ("networking.k8s.io", "networkpolicies", "advisory", "Network policy evidence"),
+                    ("", "secrets", "advisory", "Secret metadata evidence")):
                 review = {"apiVersion": "authorization.k8s.io/v1", "kind": "SelfSubjectAccessReview",
                     "spec": {"resourceAttributes": {"namespace": namespace, "group": group, "resource": resource, "verb": "list"}}}
                 try:
                     result = request("/apis/authorization.k8s.io/v1/selfsubjectaccessreviews", "POST", review)
                     if result.get("status", {}).get("allowed") is not True:
-                        _issue(issues, severity, namespace, f"Cannot list {resource} in this namespace.")
+                        _issue(issues, severity, namespace, f"Cannot list {resource} in this namespace; {impact} may be unavailable.")
                 except Exception:
-                    _issue(issues, severity, namespace, f"Could not verify list access to {resource} in this namespace.")
+                    _issue(issues, severity, namespace, f"Could not verify list access to {resource} in this namespace; {impact} may be unavailable.")
         _probe_scopes(selected[:100], probe_namespace)
-        for resource in ("clusterroles", "clusterrolebindings"):
+        for group, resource, impact in (
+                ("rbac.authorization.k8s.io", "clusterroles", "Cluster RBAC rule evidence"),
+                ("rbac.authorization.k8s.io", "clusterrolebindings", "Cluster RBAC binding evidence"),
+                ("", "nodes", "Node configuration evidence"),
+                ("", "persistentvolumes", "Persistent volume evidence"),
+                ("storage.k8s.io", "storageclasses", "Storage class evidence"),
+                ("admissionregistration.k8s.io", "validatingwebhookconfigurations", "Admission webhook evidence"),
+                ("admissionregistration.k8s.io", "mutatingwebhookconfigurations", "Admission webhook evidence")):
             review = {"apiVersion": "authorization.k8s.io/v1", "kind": "SelfSubjectAccessReview",
-                "spec": {"resourceAttributes": {"group": "rbac.authorization.k8s.io", "resource": resource, "verb": "list"}}}
+                "spec": {"resourceAttributes": {"group": group, "resource": resource, "verb": "list"}}}
             try:
                 if request("/apis/authorization.k8s.io/v1/selfsubjectaccessreviews", "POST", review).get("status", {}).get("allowed") is not True:
-                    _issue(issues, "advisory", "cluster RBAC", f"Cannot list {resource}; cluster-wide RBAC evidence will be incomplete.")
+                    _issue(issues, "advisory", "cluster RBAC", f"Cannot list {resource}; {impact} may be unavailable.")
             except Exception:
-                _issue(issues, "advisory", "cluster RBAC", f"Could not verify access to {resource}.")
+                _issue(issues, "advisory", "cluster RBAC", f"Could not verify list access to {resource}; {impact} may be unavailable.")
         return selected
     finally:
         if hasattr(api, "close"):
