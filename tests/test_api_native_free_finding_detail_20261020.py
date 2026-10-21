@@ -1,4 +1,4 @@
-"""A real authenticated detail request must stay presentation-only on cold start."""
+"""Authenticated archived finding views stay presentation-only on cold start."""
 from pathlib import Path
 import subprocess
 import sys
@@ -10,7 +10,7 @@ from pathlib import Path
 
 class RejectNative(importlib.abc.MetaPathFinder):
     def find_spec(self, fullname, path=None, target=None):
-        if fullname in ('peaso.checks', 'peaso.engine', 'peaso.analysis') or fullname.startswith(('peaso.checks.', 'peaso.analysis.')):
+        if fullname in ('peaso.checks', 'peaso.engine', 'peaso.analysis', 'peaso.collectors', 'peaso.check_services') or fullname.startswith(('peaso.checks.', 'peaso.analysis.', 'peaso.collectors.')):
             raise AssertionError('presentation initialized native runtime: ' + fullname)
 sys.meta_path.insert(0, RejectNative())
 
@@ -64,6 +64,25 @@ with tempfile.TemporaryDirectory(prefix='peaso-detail-proof-') as temporary:
         db.execute("UPDATE jobs SET status='completed',report=? WHERE id=?", (reference, job['id']))
     with TestClient(app, base_url='http://127.0.0.1:8000') as client:
         client.headers['Authorization'] = 'Bearer alice'
+        # This must be the first cold request: a previous graph/native import
+        # used to hide check_services -> analysis -> collectors -> azure's cycle.
+        prefix = '/api/scans/'+job['id']
+        response = client.get(prefix+'/findings?aggregation=check&categories=hardening')
+        assert response.status_code == 200, response.text
+        grouped = response.json()
+        assert grouped['total'] == 4
+        root_group = next(item for item in grouped['items'] if item['check_id'] == 'aws.iam.root_mfa')
+        assert root_group['service'] == 'iam'
+        assert root_group['affected_regions'] == []
+        assert root_group['affected_scopes'] == ['123456789012/global']
+        response = client.get(prefix+'/finding-groups/'+root_group['id'])
+        assert response.status_code == 200, response.text
+        assert response.json()['evidence'] == findings[0]['evidence']
+        assert response.json()['members'][0]['id'] == findings[0]['id']
+        for suffix in ('/findings?categories=hardening', '/summary?aggregation=check',
+                       '/report?aggregation=check'):
+            response = client.get(prefix+suffix)
+            assert response.status_code == 200, (suffix, response.text)
         for expected in findings:
             response = client.get('/api/scans/'+job['id']+'/findings/'+expected['id'])
             assert response.status_code == 200, response.text
@@ -75,8 +94,10 @@ with tempfile.TemporaryDirectory(prefix='peaso-detail-proof-') as temporary:
                 assert actual['remediation_details']['cli'][0]['code'] == 'inspect 123456789012'
         client.headers['Authorization'] = 'Bearer bob'
         assert client.get('/api/scans/'+job['id']+'/findings/f0').status_code == 404
+        assert client.get(prefix+'/findings?aggregation=check').status_code == 404
+        assert client.get(prefix+'/finding-groups/'+root_group['id']).status_code == 404
     assert findings == original
-assert not [name for name in sys.modules if name in ('peaso.checks', 'peaso.engine', 'peaso.analysis') or name.startswith(('peaso.checks.', 'peaso.analysis.'))]
+assert not [name for name in sys.modules if name in ('peaso.checks', 'peaso.engine', 'peaso.analysis', 'peaso.collectors', 'peaso.check_services') or name.startswith(('peaso.checks.', 'peaso.analysis.', 'peaso.collectors.'))]
 print('native-free authenticated detail, evidence conservation and tenant isolation passed')
 '''
 
