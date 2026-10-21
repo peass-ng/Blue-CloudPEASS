@@ -42,11 +42,3 @@
   reason: The source-controlled OIDC tokens are not joined to an existing privileged
     Kubernetes group binding; adding the issuer alone does not grant cluster-admin.
   prior_id: aws-eks-associateidentityproviderconfig-privileged-group
-- source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-eks-privesc/README.md#associate-a-cluster-admin-access-policy-with-an-existing-eks-access-entry-the-source-controls
-  source_revision: b587e6bd26
-  technique: Associate a cluster-admin access policy with an existing EKS access entry
-    the source controls
-  reason: No collected exact existing STANDARD access entry for a source-controlled
-    IAM principal is joined to the policy update; AssociateAccessPolicy alone may
-    authorize another principal.
-  prior_id: aws-eks-associateaccesspolicy-existing-entry

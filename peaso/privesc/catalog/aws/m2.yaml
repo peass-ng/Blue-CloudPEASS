@@ -13,11 +13,9 @@
   title: Create, deploy and start an M2 application with a passed application role
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-mainframe-modernization-privesc/README.md#m2createapplication--iampassrole---execute-a-workload-with-an-application-role
   source_revision: 171e422299
-  summary: The source can use the privileges of a passable role trusting m2.amazonaws.com by deploying attacker-controlled application artifacts that run with that role as the application role.
+  summary: The source may cause an M2 application to use a passable application role for resource actions driven by attacker-controlled artifacts.
   requires:
     all_of:
-      - action: iam:PassRole
-        resource: "{target.arn}"
       - action: m2:CreateApplication
         resource: "*"
       - action: m2:CreateDeployment
@@ -28,9 +26,11 @@
     kind: aws_role
     selector:
       trust_allows_service: m2.amazonaws.com
-      resource_permission_covers_target: iam:PassRole
     scope: same_account
     aggregate_as: "Mainframe Modernization application roles in {account}"
+    outcome: workload_execution
+  preconditions:
+    - m2_existing_environment_new_application_deploy
   conditions:
     - id: runtime_environment_exists
       description: An existing managed runtime environment must be available for the deployment (m2:CreateDeployment covers both the new application and that environment).
@@ -47,4 +47,4 @@
   mitigation: Restrict iam:PassRole on M2 application roles to deployment pipelines with iam:PassedToService and exact role ARNs, and keep application roles least-privileged.
   references:
     - https://docs.aws.amazon.com/m2/latest/userguide/security-iam.html
-  notes: Creating an application record alone does not use the role; deployment and start are required.
+  notes: Creating an application record alone does not use the role; deployment and start are required. The evaluator requires one collected Available runtime environment, exact deployment authorization on it, broad deployment and start authority covering the generated application ID, PassRole to m2.amazonaws.com, and a writable readable S3 definition path. Valid engine artifacts and the role's exact runtime effects remain conditional.

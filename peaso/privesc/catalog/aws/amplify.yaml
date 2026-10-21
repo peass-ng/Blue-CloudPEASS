@@ -18,6 +18,8 @@
     all_of:
       - action: iam:PassRole
         resource: "{target.arn}"
+        request_context:
+          iam:PassedToService: amplify.amazonaws.com
       - action: amplify:UpdateApp
         resource: "*"
       - action: amplify:StartJob
@@ -29,6 +31,7 @@
       resource_permission_covers_target: iam:PassRole
     scope: same_account
     aggregate_as: "Roles trusting amplify.amazonaws.com passable in {account}"
+    outcome: workload_execution
   conditions:
     - id: passrole_condition_key
       description: iam:PassedToService conditions on the PassRole grant may restrict passing roles to Amplify.
@@ -53,8 +56,6 @@
   summary: The source can obtain an Amplify Studio application-administration session over the data model, auth and configuration of Gen 1 backends it can mint Studio logins for.
   requires:
     all_of:
-      - action: amplify:GetApp
-        resource: "{target.resource_arn}"
       - action: amplifybackend:CreateToken
         resource: "{target.amplifybackend_token_arn}"
       - action: amplifybackend:CreateToken
@@ -66,15 +67,17 @@
     scope: same_account
     aggregate_as: "Amplify Studio administrators in {account}"
     grants: [Amplify Studio administrator (aws-amplify-admin)]
+  preconditions:
+    - amplifybackend_create_token_backend_scope
   conditions:
     - id: gen1_backend_with_studio
-      description: The app must have an existing Amplify Gen 1 backend with Studio (Admin UI) enabled; the backend environment name must be known to open the session.
+      description: The app must have an existing Amplify Gen 1 backend environment, and the issued challenge must be accepted by its Studio sign-in flow.
   blockers:
     - scp_or_boundary_deny
   confidence: conditional
   severity: high
   mitigation: Restrict amplifybackend:CreateToken/GetToken to Studio administrators and alert on CreateToken from unexpected principals.
-  notes: Application-plane administration only (Studio session as the fixed aws-amplify-admin Cognito user); it does not return IAM credentials. Targets are the collected amplify_app entries with Gen 1 backend environments (amplify:ListBackendEnvironments); accounts whose apps or backend environments were not collected keep one unresolved placeholder. amplify:GetApp is authorized on the app ARN (arn:aws:amplify:<Region>:<account>:apps/<AppId>, {target.resource_arn}); amplifybackend:CreateToken is authorized on the Amplify Admin token resource arn:aws:amplifybackend:<Region>:<account>:/backend/<AppId>/challenge/* ({target.amplifybackend_token_arn}). Source - the Service Authorization Reference JSON (servicereference.us-east-1.amazonaws.com/v1/amplifybackend), verified 2026-10-11; CreateToken/GetToken list both the backend resource arn:<Partition>:amplifybackend:<Region>:<account>:/backend/<AppId>/* ({target.amplifybackend_backend_arn}) and the token resource arn:<Partition>:amplifybackend:<Region>:<account>:/backend/<AppId>/challenge/* ({target.amplifybackend_token_arn}), so both are required.
+  notes: Application-plane administration only (Studio session as the fixed aws-amplify-admin Cognito user); it does not return IAM credentials. Targets are collected Amplify apps with Gen 1 backend environments; accounts whose apps or backend environments were not collected keep an unresolved placeholder. CreateToken takes the known app ID directly and returns a one-time challenge code, so amplify:GetApp is not a prerequisite. The Service Authorization Reference lists both backend and token resource types for amplifybackend:CreateToken; a token-only policy leaves backend authorization unresolved.
 
 - id: aws-amplify-updateapp-passrole-ssr
   provider: aws
@@ -87,6 +90,8 @@
     all_of:
     - action: iam:PassRole
       resource: '{target.arn}'
+      request_context:
+        iam:PassedToService: amplify.amazonaws.com
     - action: amplify:UpdateApp
       resource: '*'
   target:

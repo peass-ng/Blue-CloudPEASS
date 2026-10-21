@@ -41,20 +41,6 @@
     from HOST_KIND), so service-role trust cannot identify the exact role reached by the source action.
     The attached resource ARN and action coverage cannot be proven.
   prior_id: aws-bedrock-agentcore-invokeagentruntimecommand-existing-runtime
-- source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-cloudformation-privesc/README.md#cloudformationupdatestack-and-where-needed-cloudformationsetstackpolicy
-  source_revision: 171e422299
-  technique: Update a stack that already has a service role
-  reason: The cloudformation resource-to-role attachment is not loaded by the AWS evaluator (absent
-    from HOST_KIND), so service-role trust cannot identify the exact role reached by the source action.
-    The attached resource ARN and action coverage cannot be proven.
-  prior_id: aws-cloudformation-updatestack-attached-role
-- source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-cloudformation-privesc/README.md#cloudformationcreatechangeset-cloudformationexecutechangeset-and-where-needed-cloudformationsetstackpolicy
-  source_revision: 171e422299
-  technique: Create and execute a change set on a stack that already has a service role
-  reason: The cloudformation resource-to-role attachment is not loaded by the AWS evaluator (absent
-    from HOST_KIND), so service-role trust cannot identify the exact role reached by the source action.
-    The attached resource ARN and action coverage cannot be proven.
-  prior_id: aws-cloudformation-changeset-attached-role
 - source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ecs-privesc/README.md#ecsexecutecommand-ecsdescribetasks-and-optionally-a-task-launching-action
   source_revision: 171e422299
   technique: Execute commands in a running ECS task with ECS Exec

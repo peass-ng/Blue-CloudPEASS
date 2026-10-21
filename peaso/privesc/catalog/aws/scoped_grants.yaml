@@ -102,7 +102,7 @@
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iot-sitewise-privesc/README.md#grant-yourself-access-to-a-legacy-sitewise-monitor-portal
   source_revision: d11f0e7012
   summary: The source creates an accepted access policy naming itself as ADMINISTRATOR on an existing Monitor portal where it had no equivalent access.
-  source_kind: [aws_user, aws_role]
+  source_kind: [aws_user]
   requires:
     all_of:
       - action: iotsitewise:CreateAccessPolicy

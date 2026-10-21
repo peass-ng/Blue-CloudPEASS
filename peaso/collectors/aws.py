@@ -636,6 +636,9 @@ class Requests:
                         # Project executable/credential literals before the shared Future.
                         from .aws_codebuild_redaction import project_batch_get_projects
                         response = project_batch_get_projects(response)
+                    if service == "codebuild" and operation == "batch_get_sandboxes":
+                        from .aws_codebuild_redaction import project_batch_get_sandboxes
+                        response = project_batch_get_sandboxes(response)
                     if service == 'lambda' and operation in {'list_functions', 'get_function_configuration'} and _metadata_profile != 'aws-lambda-environment-content-v1':
                         from .aws_lambda_environment_metadata import project_response
                         response = project_response(response, operation)
@@ -1002,7 +1005,7 @@ ENRICHERS = {}
 # secret/content reads and Access Analyzer creation are absent.
 _DETAIL_ACTIONS = {
     "sts": "get_caller_identity assume_role",
-    "iam": "list_policies get_policy_version get_account_authorization_details get_account_summary get_account_password_policy get_credential_report get_service_last_accessed_details generate_credential_report generate_service_last_accessed_details list_users list_access_keys get_access_key_last_used get_login_profile list_mfa_devices",
+    "iam": "list_policies get_policy_version get_account_authorization_details get_account_summary get_account_password_policy get_credential_report get_service_last_accessed_details generate_credential_report generate_service_last_accessed_details list_users list_access_keys list_ssh_public_keys get_access_key_last_used get_login_profile list_mfa_devices",
     "sso-admin": "list_instances list_permission_sets describe_permission_set get_inline_policy_for_permission_set list_managed_policies_in_permission_set get_permissions_boundary_for_permission_set",
     "identitystore": "list_users",
     "ec2": "describe_regions get_snapshot_block_public_access_state get_image_block_public_access_state get_instance_metadata_defaults describe_snapshot_attribute describe_instance_attribute search_transit_gateway_routes get_transit_gateway_route_table_associations",
@@ -1381,6 +1384,23 @@ def _iam(requests, session, region, wanted):
                 item["LoginProfile"] = requests.detail(session, "iam", region, "get_login_profile", UserName=name, absent=("NoSuchEntity",))
                 mfa = requests.pages(session, "iam", region, "list_mfa_devices", "MFADevices", UserName=name)
                 item["MFADevices"] = {"collection_status": mfa.status, "items": mfa.items}
+                ssh = requests.pages(session, "iam", region, "list_ssh_public_keys", "SSHPublicKeys", UserName=name)
+                item["SSHPublicKeys"] = {"collection_status": ssh.status,
+                                         "items": [{key: value for key, value in row.items()
+                                                    if key in ("SSHPublicKeyId", "Status")}
+                                                   for row in ssh.items if isinstance(row, dict)]}
+                if ssh.error:
+                    item["SSHPublicKeys"]["error"] = ssh.error
+                service_credentials = requests.pages(session, "iam", region,
+                    "list_service_specific_credentials", "ServiceSpecificCredentials", UserName=name)
+                item["ServiceSpecificCredentials"] = {
+                    "collection_status": service_credentials.status,
+                    "items": [{key: credential[key] for key in
+                               ("ServiceName", "ServiceSpecificCredentialId", "Status") if key in credential}
+                              for credential in service_credentials.items if isinstance(credential, dict)],
+                }
+                if service_credentials.error:
+                    item["ServiceSpecificCredentials"]["error"] = service_credentials.error
         if kind == "iam_user":
             _services_last_accessed(requests, session, region, read.items)
         if kind == "iam_role":

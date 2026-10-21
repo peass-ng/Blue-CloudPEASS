@@ -29,6 +29,9 @@
       resource_permission_covers_target: iam:PassRole
     scope: same_account
     aggregate_as: "Roles trusting ecs-tasks.amazonaws.com passable in {account}"
+    outcome: workload_execution
+  preconditions:
+    - batch_new_job_and_ec2_queue_authorized
   conditions:
     - id: job_queue_available
       description: batch:SubmitJob must cover the new job definition and an existing job queue with a VALID, ENABLED compute environment.
@@ -44,5 +47,5 @@
   references:
     - https://docs.aws.amazon.com/batch/latest/userguide/job_definition_parameters.html
     - https://docs.aws.amazon.com/batch/latest/userguide/execution-IAM-role.html
-    - https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsbatch.html
-  notes: The Service Authorization Reference lists iam:PassRole as a dependent action of batch:RegisterJobDefinition, and the job definition reference states jobRoleArn is an ECS task IAM role. Jobs on Amazon EKS compute environments use a Kubernetes service account instead of jobRoleArn and are not covered.
+    - https://docs.aws.amazon.com/service-authorization/latest/reference/list_batch.html
+  notes: The Service Authorization Reference lists iam:PassRole as a dependent action of batch:RegisterJobDefinition, and the job definition reference states jobRoleArn is an ECS task IAM role. The evaluator checks one unused job-definition name, its first revision and the same enabled EC2 queue with matching RegisterJobDefinition and SubmitJob grants. Other restricted names, incomplete inventories and Fargate execution-role requirements remain unresolved. Jobs on Amazon EKS compute environments use a Kubernetes service account instead of jobRoleArn and are not covered.

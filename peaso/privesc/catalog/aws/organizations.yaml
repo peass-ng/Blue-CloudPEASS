@@ -10,11 +10,10 @@
 - id: aws-organizations-management-to-member-accounts
   provider: aws
   service: organizations
-  title: Assume the organization access role in member accounts from the management account
+  title: Assume trusted roles in usable organization member accounts
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-organizations-prinvesc/README.md#from-management-account-to-children-accounts
   source_revision: 6fb9ac51fd
-  summary: A management-account principal can obtain the privileges of the cross-account admin role (OrganizationAccountAccessRole
-    by default) in member accounts that trust the management account.
+  summary: A management-account principal can obtain the privileges of roles in usable member accounts that trust it.
   requires:
     all_of:
     - action: sts:AssumeRole
@@ -23,6 +22,7 @@
     kind: aws_role
     selector:
       trust_allows_principal_of_source: true
+      org_member_account: true
     scope: org
     aggregate_as: Organization access roles in member accounts
   conditions:
@@ -34,6 +34,7 @@
     description: The source must live in the management account that the member-account role trusts.
   preconditions:
   - target_in_other_account
+  - source_in_org_management_account
   blockers:
   - scp_or_boundary_deny
   confidence: derived
@@ -43,8 +44,7 @@
   references:
   - https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_access-cross-account-role.html
   - https://docs.aws.amazon.com/controltower/latest/userguide/awscontroltowerexecution.html
-  notes: SCPs never apply to the management account but do apply to the assumed role in member accounts. Overlaps
-    with aws-sts-assumerole-trusted; kept so the org edge is labelled distinctly.
+  notes: The role can have any permission level; OrganizationAccountAccessRole and AWSControlTowerExecution often have broad permissions. SCPs apply to the assumed role in the member account. Overlaps with aws-sts-assumerole-trusted; kept to identify the organization relationship.
 
 
 - id: aws-organizations-createaccount-principalorgid-trust
@@ -59,7 +59,7 @@
       - action: organizations:CreateAccount
         resource: "*"
       - action: sts:AssumeRole
-        resource: "arn:aws:iam::*:role/*"
+        resource: "arn:{source.partition}:iam::*:role/*"
   target:
     kind: aws_role
     selector:

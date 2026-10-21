@@ -10,6 +10,7 @@ not-found becomes the {"collection_status": "empty", "absent": True} marker.
 """
 from __future__ import annotations
 import copy
+import hashlib
 import json
 from datetime import datetime, timezone
 
@@ -49,6 +50,8 @@ SPECS = {
     "cloudformation_stack": ("cloudformation", "describe_stacks", "Stacks"),
     "codedeploy_deployment_group": ("codedeploy", "list_applications", "applications"),
     "eventbridge_bus": ("events", "list_event_buses", "EventBuses"),
+    "eventbridge_custom_bus": ("eventbridgev2", "list_event_buses", "EventBuses"),
+    "lambda_microvm_image": ("lambda-microvms", "list_microvm_images", "items"),
     "eventbridge_endpoint": ("events", "list_endpoints", "Endpoints"),
     "eventbridge_schema_registry": ("schemas", "list_registries", "Registries"),
     "codeartifact_domain": ("codeartifact", "list_domains", "domains"),
@@ -63,7 +66,7 @@ NATIVE_IDS = {
     "directory_service_directory": "DirectoryId", "fms_policy": "PolicyArn", "bedrock_guardrail": "arn", "bedrock_agent": "agentId",
     "bedrock_custom_model": "modelArn", "bedrock_prompt": "arn", "bedrock_knowledge_base": "knowledgeBaseId", "bedrock_model_invocation_logging": "id",
     "iam_service_specific_credential": "ServiceSpecificCredentialId", "codebuild_source_credential": "arn", "codebuild_report_group": "arn",
-    "cloudformation_stack": "StackId", "codedeploy_deployment_group": "deploymentGroupId", "eventbridge_bus": "Arn", "eventbridge_endpoint": "Arn",
+    "cloudformation_stack": "StackId", "codedeploy_deployment_group": "deploymentGroupId", "eventbridge_bus": "Arn", "eventbridge_custom_bus": "EventBusArn", "eventbridge_endpoint": "Arn", "lambda_microvm_image": "imageArn",
     "eventbridge_schema_registry": "RegistryArn", "codeartifact_domain": "arn", "codeartifact_repository": "arn",
 }
 GLOBAL_TYPES = {"iam_service_specific_credential"}
@@ -338,6 +341,8 @@ FETCHERS = {
     "bedrock_custom_model": _custom_models,
     "bedrock_model_invocation_logging": _model_invocation_logging,
     "eventbridge_bus": _paged("events", "list_event_buses", "EventBuses", ("NextToken", "NextToken")),
+    "eventbridge_custom_bus": _paged("eventbridgev2", "list_event_buses", "EventBuses", ("NextToken", "NextToken")),
+    "lambda_microvm_image": _paged("lambda-microvms", "list_microvm_images", "items", ("nextToken", "nextToken")),
     "eventbridge_endpoint": _paged("events", "list_endpoints", "Endpoints", ("NextToken", "NextToken")),
 }
 
@@ -448,8 +453,19 @@ def _emr_security_configuration(requests, session, region, item):
             if not isinstance(document, dict):
                 detail = {"collection_status": "malformed", "error": {"code": "malformed_security_configuration"}}
             else:
-                # Encryption/IMDS settings only; authentication blocks are never retained.
+                # Retain only the runtime-role enablement bit from the
+                # authorization block; its external ID and other contents
+                # are not needed for this inventory.
                 kept = _pick(document, ["EncryptionConfiguration", "InstanceMetadataServiceConfiguration"])
+                authorization = document.get("AuthorizationConfiguration") or {}
+                iam = (authorization.get("IAMConfiguration") or {}) if isinstance(authorization, dict) else {}
+                if isinstance(iam, dict) and type(iam.get("EnableApplicationScopedIAMRole")) is bool:
+                    kept_iam = {"EnableApplicationScopedIAMRole": iam["EnableApplicationScopedIAMRole"]}
+                    scoped = iam.get("ApplicationScopedIAMRoleConfiguration") or {}
+                    external = scoped.get("ExternalId") if isinstance(scoped, dict) else None
+                    if isinstance(external, str) and external:
+                        kept_iam["ExternalIdSha256"] = hashlib.sha256(external.encode()).hexdigest()
+                    kept["AuthorizationConfiguration"] = {"IAMConfiguration": kept_iam}
                 detail = {"collection_status": "collected", "Name": detail.get("Name"), "SecurityConfiguration": json.dumps(kept, sort_keys=True)}
     item["Configuration"] = detail
     return item
@@ -735,13 +751,15 @@ def _ecr_repository(requests, session, region, items):
         item = copy.deepcopy(original)
         scanning = item.get("imageScanningConfiguration")
         name = item.get("repositoryName")
-        # Images are read only where the latest-image predicate applies (scan on push).
-        if isinstance(name, str) and isinstance(scanning, dict) and scanning.get("scanOnPush") is True:
+        # Image tags also establish whether an existing ECR source can start a pipeline.
+        if isinstance(name, str):
             arguments = {"repositoryName": name, **({"registryId": item["registryId"]} if isinstance(item.get("registryId"), str) else {})}
             item["Images"] = _list(requests.pages(session, "ecr", region, "describe_images", "imageDetails", **arguments),
                 ["imageDigest", "imageTags", "imagePushedAt", "artifactMediaType", "imageManifestMediaType", ("imageScanStatus", ["status"]),
                  ("imageScanFindingsSummary", ["findingSeverityCounts", "imageScanCompletedAt"])])
-            if getattr(requests, "ecr_latest_scan_requested", False) and item["Images"]["collection_status"] == "collected":
+            if (isinstance(scanning, dict) and scanning.get("scanOnPush") is True
+                    and getattr(requests, "ecr_latest_scan_requested", False)
+                    and item["Images"]["collection_status"] == "collected"):
                 images = [row for row in item["Images"]["items"] if isinstance(row, dict) and _ecr_scannable(row)]
                 if images:
                     try:
@@ -772,6 +790,10 @@ def _event_bus(requests, session, region, item):
     else:
         item["_coverage"] = {"Policy": {"status": detail.get("collection_status", "unknown"), "error": detail.get("error", {})}}
     return item
+
+
+_event_custom_bus = _project(["Name", "EventBusArn", "EventBusAccountId", "State", "KmsKeyIdentifier"])
+_microvm_image = _project(["imageArn", "name", "state", "latestActiveImageVersion"])
 
 
 _project_endpoint = _project(["Name", "Arn", "EndpointId", "State", "ReplicationConfig", "RoutingConfig", "EventBuses", "RoleArn", "CreationTime"])
@@ -842,6 +864,8 @@ ENRICHERS = {
     "cloudformation_stack": _cloudformation_stack,
     "ecr_repository": _ecr_repository,
     "eventbridge_bus": _event_bus,
+    "eventbridge_custom_bus": _event_custom_bus,
+    "lambda_microvm_image": _microvm_image,
     "eventbridge_endpoint": _project_endpoint,
     "eventbridge_schema_registry": _schema_registry,
     "codeartifact_domain": _codeartifact_domain,

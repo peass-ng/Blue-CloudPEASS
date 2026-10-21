@@ -15,6 +15,22 @@ _ARN = re.compile(r"arn:aws(?:-[a-z0-9-]+)?:[a-z0-9-]+:[a-z0-9-]*:[0-9]*:.+")
 _BB_HOST = "bitbucket.org"
 
 
+def project_batch_get_sandboxes(response):
+    """Keep only sandbox identity, running state, and role before the shared cache."""
+    from .aws import ReadFailure
+    if not isinstance(response, dict) or not isinstance(response.get("sandboxes"), list):
+        raise ReadFailure("malformed", "malformed_codebuild_sandboxes")
+    rows = []
+    for row in response["sandboxes"]:
+        if not isinstance(row, dict):
+            raise ReadFailure("malformed", "malformed_codebuild_sandbox")
+        rows.append(_pick(row, ("id", "arn", "projectName", "status", "serviceRole")))
+    missing = response.get("sandboxesNotFound", [])
+    if not isinstance(missing, list):
+        raise ReadFailure("malformed", "malformed_codebuild_sandboxes_not_found")
+    return {"sandboxes": rows, "sandboxesNotFound": missing}
+
+
 def _pick(source, names):
     return {key: source[key] for key in names if key in source} if isinstance(source, dict) else {}
 

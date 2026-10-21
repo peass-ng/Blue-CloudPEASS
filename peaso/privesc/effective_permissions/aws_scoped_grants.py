@@ -71,6 +71,8 @@ def _valid(record, account, region, selector):
                         IAMConditionKey="aws:ResourceTag/Access", IAMConditionValue="Operator",
                         TagWriteAccepted=True, AllEvaluatedResourcesCovered=True)
     elif selector == "aws_sitewise_portal_self_grant":
+        if src.group(3) != "user":
+            return False
         expected.update(TargetIdentityArn=source, AccessPolicyIdentityArn=source,
                         AccessPolicyResourceArn=resource, AccessPolicyPermission="ADMINISTRATOR",
                         AccessPolicyAccepted=True, MonitorAvailable=True)

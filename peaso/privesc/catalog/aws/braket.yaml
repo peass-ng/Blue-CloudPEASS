@@ -19,6 +19,8 @@
     all_of:
     - action: iam:PassRole
       resource: '{target.arn}'
+      request_context:
+        iam:PassedToService: braket.amazonaws.com
     - action: braket:CreateJob
       resource: '*'
   target:

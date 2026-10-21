@@ -182,7 +182,8 @@ def _one(operator, key, expected, ctx, effect):
         op = op[:-len("ifexists")]
     actual = ctx.value(key) if ctx is not None else UNKNOWN
     reason = f"condition_{key}"
-    if key == "iam:associatedresourcearn" and ctx is not None and ctx.action.startswith("iam:passrole"):
+    if (key == "iam:associatedresourcearn" and actual is UNKNOWN and ctx is not None
+            and ctx.action.startswith("iam:passrole")):
         # The resource is created by the technique: only its service is known. A pattern for another service proves
         # the role cannot be passed this way; a pattern for the right service is plausible but not proven.
         prefixes = {_arn_service(s) for s in ctx.passed_to}
@@ -260,7 +261,7 @@ def _match(op, actual, values, qualifier=None):
 
 
 ARN_SERVICE = {"ecs-tasks": "ecs", "elasticmapreduce": "elasticmapreduce", "tasks.apprunner": "apprunner",
-               "cognito-identity": "cognito-identity"}
+               "cognito-identity": "cognito-identity", "pods.eks": "eks"}
 
 
 def _arn_service(service):

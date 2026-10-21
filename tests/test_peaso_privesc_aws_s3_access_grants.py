@@ -26,7 +26,7 @@ def proof():
             "AccessGrantsInstanceArn": INSTANCE, "LocationArn": LOCATION, "LocationRoleArn": ROLE,
             "BucketArn": BUCKET, "ObjectPrefix": "private/", "GrantGranteeArn": ALICE,
             "GrantPermission": "READ", "GrantScope": "s3://reviewed-bucket/private/*",
-            "GrantArn": INSTANCE + "/grant-grant-1", "RoleTrustsAccessGrants": True,
+            "GrantArn": INSTANCE + "/grant/grant-1", "RoleTrustsAccessGrants": True,
             "LocationRoleAllowsGetObject": True, "PriorAccessDenied": True,
             "LocationRegistered": True, "GrantCreated": True, "GetDataAccessSucceeded": True,
             "SessionSubjectRoleArn": ROLE, "SessionScope": "s3://reviewed-bucket/private/*",
@@ -34,12 +34,15 @@ def proof():
             "EvidenceRef": "reviewed-access-grants-session-1"}
 
 
-def case(records=None, *, grant_writer=True, status="collected"):
-    permissions = [allow("s3:CreateAccessGrantsLocation", INSTANCE), allow("iam:PassRole", ROLE),
-                   allow("s3:CreateAccessGrant", LOCATION) if grant_writer else allow("s3:GetAccessGrant", LOCATION),
+def case(records=None, *, grant_writer=True, status="collected", region="us-east-1",
+         passed_to="access-grants.s3.amazonaws.com"):
+    permissions = [allow("s3:CreateAccessGrantsLocation", LOCATION),
+                   allow("iam:PassRole", ROLE, {"StringEquals": {"iam:PassedToService": passed_to}}),
+                   allow("s3:CreateAccessGrant", proof()["GrantArn"])
+                   if grant_writer else allow("s3:GetAccessGrant", proof()["GrantArn"]),
                    allow("s3:GetDataAccess", INSTANCE)]
     snap = aws_snap([user("alice", *permissions)])
-    snap["collections"].append({"type": "aws_s3_access_grants_self_grant_evidence", "scope": ACCOUNT + "/us-east-1",
+    snap["collections"].append({"type": "aws_s3_access_grants_self_grant_evidence", "scope": ACCOUNT + "/" + region,
                                 "service": "s3", "status": status, "items": [proof()] if records is None else records,
                                 "error": None})
     return snap
@@ -55,10 +58,43 @@ def test_reviewed_access_grants_path_is_bounded_to_prefix():
     assert snap == before
 
 
+def test_both_aws_documented_grant_arn_forms_are_recognized():
+    record = proof()
+    record["GrantArn"] = INSTANCE + "/grant-grant-1"
+    snap = case([record])
+    user_item = next(item for collection in snap["collections"] if collection["type"] == "iam_user"
+                     for item in collection["items"])
+    user_item["UserPolicyList"][0]["PolicyDocument"]["Statement"][2]["Resource"] = record["GrantArn"]
+    assert reached(privesc.analyze(snap, entries=[ENTRY]), ALICE, ENTRY["id"]) == {TARGET: "conditional"}
+
+
+def test_documented_default_location_arn_is_recognized():
+    record = proof()
+    record["LocationArn"] = INSTANCE + "/location/loc-1"
+    snap = case([record])
+    user_item = next(item for collection in snap["collections"] if collection["type"] == "iam_user"
+                     for item in collection["items"])
+    user_item["UserPolicyList"][0]["PolicyDocument"]["Statement"][0]["Resource"] = record["LocationArn"]
+    assert reached(privesc.analyze(snap, entries=[ENTRY]), ALICE, ENTRY["id"]) == {TARGET: "conditional"}
+
+
+def test_aws_service_authorization_resource_targets_are_required():
+    for action, wrong_resource in (("s3:CreateAccessGrantsLocation", INSTANCE),
+                                   ("s3:CreateAccessGrant", LOCATION)):
+        snap = case()
+        user_item = next(item for collection in snap["collections"] if collection["type"] == "iam_user"
+                         for item in collection["items"])
+        statements = user_item["UserPolicyList"][0]["PolicyDocument"]["Statement"]
+        next(statement for statement in statements if statement["Action"] == action)["Resource"] = wrong_resource
+        assert reached(privesc.analyze(snap, entries=[ENTRY]), ALICE, ENTRY["id"]) == {}
+
+
 @pytest.mark.parametrize("field,value", [
     ("SourceArn", "arn:aws:iam::111111111111:user/bob"),
     ("GrantGranteeArn", "arn:aws:iam::111111111111:user/bob"),
     ("LocationRoleArn", "arn:aws:iam::222222222222:role/other"),
+    ("LocationArn", LOCATION.replace("us-east-1", "us-west-2")),
+    ("GrantArn", INSTANCE + "/other/grant-1"),
     ("GrantScope", "s3://reviewed-bucket/public/*"),
     ("SessionScope", "s3://reviewed-bucket/public/*"),
     ("SessionSubjectRoleArn", "arn:aws:iam::111111111111:role/other"),
@@ -86,5 +122,7 @@ def test_every_access_grants_review_field_is_required(field):
 
 
 def test_missing_duplicate_partial_or_unpermitted_source_has_no_path():
-    for snap in (case([]), case([proof(), proof()]), case(status="partial"), case(grant_writer=False)):
+    for snap in (case([]), case([proof(), proof()]), case(status="partial"), case(status="empty"),
+                 case(grant_writer=False),
+                 case(region="us-west-2"), case(passed_to="s3.amazonaws.com")):
         assert reached(privesc.analyze(snap, entries=[ENTRY]), ALICE, ENTRY["id"]) == {}

@@ -50,6 +50,7 @@
       resource_permission_covers_target: iam:PassRole
     scope: same_account
     aggregate_as: EC2 instance-profile roles passable in {account}
+    outcome: workload_execution
   conditions:
   - id: supporting_permissions
     description: The full set of S3, EC2, CloudFormation, Auto Scaling and Elastic Load Balancing permissions Beanstalk needs (cf. AdministratorAccess-AWSElasticBeanstalk) is approximated by the listed

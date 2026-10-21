@@ -13,7 +13,7 @@
   title: Register a task definition with a passed task role and run it
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ecs-privesc/README.md#iampassrole-ecsregistertaskdefinition-ecsruntask
   source_revision: 171e422299
-  summary: The source can obtain the privileges of passable roles trusting ecs-tasks.amazonaws.com by running a container it controls with that task role.
+  summary: The source can run a container image it controls with a passable ECS task role.
   requires:
     all_of:
       - action: iam:PassRole
@@ -28,6 +28,7 @@
       trust_allows_service: ecs-tasks.amazonaws.com
     scope: same_account
     aggregate_as: "Roles trusting ecs-tasks.amazonaws.com in {account}"
+    outcome: workload_execution
   conditions:
     - id: passrole_condition_key
       description: iam:PassedToService conditions may restrict this.
@@ -35,7 +36,7 @@
       description: A cluster with Fargate or EC2 capacity and (for awsvpc) a subnet is required; ecs:RunTask Resource is the task-definition ARN with an ecs:cluster condition.
   blockers:
     - scp_or_boundary_deny
-  confidence: derived
+  confidence: conditional
   severity: critical
   mitigation: Restrict iam:PassRole on ECS task roles with iam:PassedToService and specific role ARNs.
   references:
@@ -48,7 +49,7 @@
   title: Run an existing task definition with overridden task role and command
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ecs-privesc/README.md#iampassrole-ecsruntask
   source_revision: 171e422299
-  summary: The source can obtain the privileges of passable roles trusting ecs-tasks.amazonaws.com by running an existing task definition with task-role and command overrides.
+  summary: The source can run an existing ECS task definition with command and task-role overrides when that task can execute.
   requires:
     all_of:
       - action: iam:PassRole
@@ -61,21 +62,22 @@
       trust_allows_service: ecs-tasks.amazonaws.com
     scope: same_account
     aggregate_as: "Roles trusting ecs-tasks.amazonaws.com in {account}"
+    outcome: workload_execution
   conditions:
     - id: existing_task_definition
       description: At least one existing task definition covered by ecs:RunTask must exist.
     - id: execution_role_passrole
       description: On Fargate the PassRole check also covers the task definition's executionRoleArn, so iam:PassRole must cover that execution role too (the same passable role can be used for both when it can pull the image).
   preconditions:
-    - ecs_task_definition_exists
+    - ecs_existing_task_override_runnable_with_role
   blockers:
     - scp_or_boundary_deny
-  confidence: derived
+  confidence: conditional
   severity: critical
   mitigation: Restrict iam:PassRole on ECS task roles and ecs:RunTask to specific task definitions.
   references:
     - https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_TaskOverride.html
-  notes: The "Runtime command overrides" section of the same page is the same edge.
+  notes: The "Runtime command overrides" section of the same page is the same edge. The evaluator binds RunTask to an active, described EC2-compatible task definition and active cluster with registered capacity, and checks a separate execution role if present; image pull and command execution remain conditional.
 
 - id: aws-ecs-passrole-registertaskdefinition-starttask
   provider: aws
@@ -98,6 +100,7 @@
       trust_allows_service: ecs-tasks.amazonaws.com
     scope: same_account
     aggregate_as: "Roles trusting ecs-tasks.amazonaws.com in {account}"
+    outcome: workload_execution
   conditions:
     - id: container_instance_exists
       description: An EC2 (or EXTERNAL) container instance must exist in a covered cluster.
@@ -117,7 +120,7 @@
   title: Register a task definition with a passed task role and deploy it as a service
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ecs-privesc/README.md#iampassrole-ecsregistertaskdefinition-ecsupdateserviceecscreateservice
   source_revision: 171e422299
-  summary: The source can obtain the privileges of passable roles trusting ecs-tasks.amazonaws.com by creating or updating a service to run a task definition it controls.
+  summary: The source can start an ECS service using a task definition and container image it controls with a passable task role.
   requires:
     all_of:
       - action: iam:PassRole
@@ -135,12 +138,13 @@
       trust_allows_service: ecs-tasks.amazonaws.com
     scope: same_account
     aggregate_as: "Roles trusting ecs-tasks.amazonaws.com in {account}"
+    outcome: workload_execution
   conditions:
     - id: update_needs_existing_service
       description: UpdateService needs an existing service in a covered cluster.
   blockers:
     - scp_or_boundary_deny
-  confidence: derived
+  confidence: conditional
   severity: critical
   mitigation: Restrict iam:PassRole on ECS task roles and service deployment actions.
   references: []
@@ -208,6 +212,7 @@
       trust_allows_service: ecs-tasks.amazonaws.com
     scope: same_account
     aggregate_as: "Roles trusting ecs-tasks.amazonaws.com in {account}"
+    outcome: workload_execution
   conditions:
     - id: external_controller_service
       description: A service using the EXTERNAL deployment controller must exist in a covered cluster.

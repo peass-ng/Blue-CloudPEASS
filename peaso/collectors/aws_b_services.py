@@ -7,6 +7,7 @@ that can carry credentials are discarded before any snapshot construction.
 from __future__ import annotations
 import copy
 import json
+import re
 
 SPECS = {
     "inspector_organization_review": ("inspector2", "get_delegated_admin_account", None),
@@ -43,12 +44,14 @@ SPECS = {
     "route53_zone": ("route53", "list_hosted_zones", "HostedZones"),
     "route53_health_check": ("route53", "list_health_checks", "HealthChecks"),
     "codebuild_project": ("codebuild", "list_projects", "projects"),
+    "codebuild_sandbox": ("codebuild", "list_sandboxes", "ids"),
     "codepipeline_pipeline": ("codepipeline", "list_pipelines", "pipelines"),
     "glue_job": ("glue", "get_jobs", "Jobs"),
     "glue_security_configuration": ("glue", "get_security_configurations", "SecurityConfigurations"),
     "mq_broker": ("mq", "list_brokers", "BrokerSummaries"),
     "ssm_document_metadata": ("ssm", "list_documents", "DocumentIdentifiers"),
     "ssm_managed_instance": ("ssm", "describe_instance_information", "InstanceInformationList"),
+    "ssm_maintenance_window": ("ssm", "describe_maintenance_windows", "WindowIdentities"),
     "ssm_parameter_metadata": ("ssm", "describe_parameters", "Parameters"),
     "ssm_service_settings": ("ssm", "get_service_setting", None),
 }
@@ -62,8 +65,8 @@ NATIVE_IDS = {
     "redshift_cluster": "ClusterIdentifier", "redshift_snapshot": "SnapshotIdentifier", "neptune_cluster": "DBClusterArn", "docdb_cluster": "DBClusterArn", "docdb_instance": "DBInstanceArn",
     "backup_plan": "BackupPlanArn", "backup_report_plan": "ReportPlanArn", "inspector_organization_configuration": "id", "backup_vault": "BackupVaultArn", "backup_protected_resource": "ResourceArn", "backup_region_settings": "id",
     "efs_file_system": "FileSystemArn", "fsx_file_system": "ResourceARN", "cognito_user_pool": "Id", "cognito_identity_pool": "IdentityPoolId",
-    "route53_zone": "Id", "route53_health_check": "Id", "codebuild_project": "name", "codepipeline_pipeline": "name", "glue_job": "Name",
-    "glue_security_configuration": "Name", "mq_broker": "BrokerArn", "ssm_document_metadata": "Name", "ssm_managed_instance": "InstanceId", "ssm_parameter_metadata": "Name", "ssm_service_settings": "id",
+    "route53_zone": "Id", "route53_health_check": "Id", "codebuild_project": "name", "codebuild_sandbox": "id", "codepipeline_pipeline": "name", "glue_job": "Name",
+    "glue_security_configuration": "Name", "mq_broker": "BrokerArn", "ssm_document_metadata": "Name", "ssm_managed_instance": "InstanceId", "ssm_maintenance_window": "WindowId", "ssm_parameter_metadata": "Name", "ssm_service_settings": "id",
 }
 GLOBAL_TYPES = {"cloudfront_distribution", "route53_zone", "route53_health_check"}
 READ_ACTIONS = {(service, operation) for service, operation, expression in SPECS.values()}
@@ -79,9 +82,9 @@ READ_ACTIONS.update({
     ("cognito-idp", "describe_user_pool"), ("cognito-idp", "list_user_pool_clients"), ("cognito-idp", "describe_user_pool_client"),
     ("cognito-idp", "describe_risk_configuration"),
     ("cognito-identity", "describe_identity_pool"), ("route53", "get_query_logging_config"), ("route53", "list_query_logging_configs"),
-    ("codebuild", "batch_get_projects"), ("mq", "describe_broker"),
+    ("codebuild", "batch_get_projects"), ("codebuild", "batch_get_sandboxes"), ("mq", "describe_broker"),
     ("efs", "describe_backup_policy"), ("efs", "describe_file_system_policy"),
-    ("ssm", "describe_document_permission"), ("ssm", "get_service_setting"),
+    ("ssm", "describe_document_permission"), ("ssm", "describe_maintenance_window_tasks"), ("ssm", "get_service_setting"),
     ("apigateway", "get_stages"), ("apigatewayv2", "get_stages"),
 })
 
@@ -340,6 +343,8 @@ def _enricher(kind):
                 item["Policy"] = _detail(requests, session, region, "efs", "describe_file_system_policy", FileSystemId=item["FileSystemId"])
             elif kind == "ssm_document_metadata":
                 item["Permissions"] = _detail(requests, session, region, "ssm", "describe_document_permission", Name=item["Name"], PermissionType="Share")
+            elif kind == "ssm_maintenance_window":
+                item["Tasks"] = _read_list(requests, session, region, "ssm", "describe_maintenance_window_tasks", "Tasks", WindowId=item["WindowId"])
             elif kind == "rest_api":
                 item["Stages"] = _read_list(requests, session, region, "apigateway", "get_stages", "item", restApiId=item["id"])
             elif kind == "http_api":
@@ -392,7 +397,33 @@ def _ecr_repository_metadata(requests, session, region, items):
     return output
 
 
-ENRICHERS = {kind: _enricher(kind) for kind in ["acm_certificate", "cloudfront_distribution", "ecs_cluster", "ecs_task_definition", "redshift_cluster", "lambda_function", "dynamodb_table", "backup_plan", "backup_vault", "cognito_user_pool", "cognito_identity_pool", "codebuild_project", "mq_broker", "efs_file_system", "ssm_document_metadata", "rest_api", "http_api"]}
+ENRICHERS = {kind: _enricher(kind) for kind in ["acm_certificate", "cloudfront_distribution", "ecs_cluster", "ecs_task_definition", "redshift_cluster", "lambda_function", "dynamodb_table", "backup_plan", "backup_vault", "cognito_user_pool", "cognito_identity_pool", "codebuild_project", "mq_broker", "efs_file_system", "ssm_document_metadata", "ssm_maintenance_window", "rest_api", "http_api"]}
+
+
+def _codebuild_sandboxes(requests, session, region, items):
+    output = []
+    for item in items:
+        if not isinstance(item, dict) or not isinstance(item.get("id"), str):
+            output.append({"id": str(item), "Detail": {"collection_status": "malformed"}})
+            continue
+        detail = requests.detail(session, "codebuild", region, "batch_get_sandboxes", ids=[item["id"]])
+        rows = detail.get("sandboxes") if isinstance(detail, dict) else None
+        missing = detail.get("sandboxesNotFound") if isinstance(detail, dict) else None
+        status = detail.get("collection_status", "not_collected") if isinstance(detail, dict) else "malformed"
+        valid = (status == "collected" and isinstance(rows, list)
+                 and len(rows) == 1 and isinstance(rows[0], dict) and rows[0].get("id") == item["id"]
+                 and not missing and isinstance(rows[0].get("arn"), str)
+                 and re.fullmatch(r"arn:aws(?:-[a-z0-9-]+)?:codebuild:[a-z0-9-]+:[0-9]{12}:sandbox/[^:]+:[^:]+",
+                                  rows[0]["arn"]) is not None
+                 and rows[0]["arn"].endswith("/" + item["id"])
+                 and rows[0].get("projectName") == item["id"].split(":", 1)[0])
+        item["Detail"] = (dict(rows[0], collection_status="collected") if valid else
+                          {"collection_status": "partial" if status == "collected" else status})
+        output.append(item)
+    return output
+
+
+ENRICHERS["codebuild_sandbox"] = _codebuild_sandboxes
 
 ENRICHERS["ecr_repository"] = _ecr_repository_metadata
 

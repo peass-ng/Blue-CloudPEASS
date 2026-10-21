@@ -32,6 +32,7 @@
       resource_permission_covers_target: iam:PassRole
     scope: same_account
     aggregate_as: "GameLiftStreams-* roles passable in {account}"
+    outcome: workload_execution
   conditions:
     - id: controlled_application
       description: An application whose content the source controls must be associated with an active stream group with capacity (creating or associating one needs further GameLift Streams and S3 permissions).

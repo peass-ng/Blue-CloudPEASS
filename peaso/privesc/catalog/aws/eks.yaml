@@ -24,8 +24,6 @@
     all_of:
     - action: eks:CreateAccessEntry
       resource: '{target.scope}'
-    - action: eks:AssociateAccessPolicy
-      resource: arn:aws:eks:*:{target.account}:access-entry/{target.name}/*
   target:
     kind: k8s_cluster_admin
     selector:
@@ -35,6 +33,8 @@
       - API_AND_CONFIG_MAP
     scope: cluster
     aggregate_as: Cluster-admin of EKS clusters whose access entries the source can create
+  preconditions:
+  - eks_new_self_access_entry_can_receive_cluster_admin
   conditions:
   - id: authentication_mode_api
     description: The cluster authenticationMode must be API or API_AND_CONFIG_MAP (checked by eks_authentication_mode);
@@ -77,10 +77,10 @@
     all_of:
       - action: eks:UpdateClusterConfig
         resource: "{target.scope}"
+        request_context:
+          eks:authenticationMode: API_AND_CONFIG_MAP
       - action: eks:CreateAccessEntry
         resource: "{target.scope}"
-      - action: eks:AssociateAccessPolicy
-        resource: "arn:aws:eks:*:{target.account}:access-entry/{target.name}/*"
   target:
     kind: k8s_cluster_admin
     selector:
@@ -90,7 +90,11 @@
     scope: cluster
     aggregate_as: "Cluster-admin of CONFIG_MAP EKS clusters whose authentication mode the source can change"
     outcome: permission_grant
+  preconditions:
+    - eks_new_self_access_entry_can_receive_cluster_admin
   conditions:
+    - id: eligible_cluster_platform
+      description: The cluster must be ACTIVE and its Kubernetes and EKS platform versions must support access entries.
     - id: mode_change_propagates
       description: The authentication mode change to API_AND_CONFIG_MAP is one-way and must complete before access entries can be created.
     - id: associate_policy_condition_keys
@@ -106,3 +110,45 @@
     - https://docs.aws.amazon.com/eks/latest/userguide/setting-up-access-entries.html
     - https://docs.aws.amazon.com/eks/latest/APIReference/API_UpdateClusterConfig.html
   notes: The existing exclusion of eks:UpdateClusterConfig on the privesc page covers only endpoint exposure; this entry models the authentication-mode change that unlocks the access-entry APIs.
+
+- id: aws-eks-associateaccesspolicy-existing-entry
+  provider: aws
+  service: eks
+  title: Give the source's existing EKS access entry cluster administrator access
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-eks-privesc/README.md#associate-a-cluster-admin-access-policy-with-an-existing-eks-access-entry-the-source-controls
+  source_revision: b587e6bd26
+  summary: The source can associate AmazonEKSClusterAdminPolicy at cluster scope with its own existing STANDARD access entry.
+  requires:
+    all_of:
+      - action: eks:AssociateAccessPolicy
+        resource: "*"
+        request_context:
+          eks:policyArn: arn:{source.partition}:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy
+          eks:accessScope: cluster
+  target:
+    kind: k8s_cluster_admin
+    selector:
+      any_principal_in_scope: true
+      eks_authentication_mode:
+        - API
+        - API_AND_CONFIG_MAP
+    scope: cluster
+    aggregate_as: Cluster-admin of EKS clusters with a controlled access entry
+    outcome: permission_grant
+  preconditions:
+    - eks_existing_self_access_entry_can_receive_cluster_admin
+  conditions:
+    - id: api_endpoint_reachable
+      description: The source must reach the Kubernetes API endpoint to use the granted cluster privileges.
+    - id: access_entry_identity_current
+      description: An entry for a deleted and recreated IAM principal has a stale internal identity even when its ARN still matches.
+  blockers:
+    - scp_or_boundary_deny
+  confidence: conditional
+  severity: critical
+  mitigation: Restrict AssociateAccessPolicy on access entries and use eks:policyArn and eks:accessScope conditions to limit administrator grants.
+  references:
+    - https://docs.aws.amazon.com/eks/latest/userguide/access-policies.html
+    - https://docs.aws.amazon.com/service-authorization/latest/reference/list_eks.html
+    - https://docs.aws.amazon.com/eks/latest/APIReference/API_AccessEntry.html
+  notes: The evaluator joins a recorded STANDARD entry to the source's exact IAM principal, uses its accessEntryArn for authorization, and ignores an entry that already has cluster-wide AmazonEKSClusterAdminPolicy.

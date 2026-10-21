@@ -22,7 +22,8 @@ def valid(record, account):
     source = record.get("SourceArn")
     bucket = record.get("BucketArn")
     match = _SOURCE.fullmatch(source) if isinstance(source, str) else None
-    if not match or match.group(2) != account or not isinstance(bucket, str) or not _BUCKET.fullmatch(bucket):
+    bucket_match = _BUCKET.fullmatch(bucket) if isinstance(bucket, str) else None
+    if not match or match.group(2) != account or not bucket_match or match.group(1) != bucket_match.group(1):
         return False
     prefix = record.get("ObjectPrefix")
     if not isinstance(prefix, str) or not prefix or "*" in prefix or ".." in prefix or prefix.startswith("/"):
@@ -49,7 +50,7 @@ def load(model):
     records = {}
     for scope, record in items(model.snapshot, COLLECTION):
         account = scope.split("/")[0]
-        if status.get(scope) not in ("collected", "empty") or not valid(record, account):
+        if status.get(scope) != "collected" or not valid(record, account):
             continue
         bucket, source, prefix = record["BucketArn"], record["SourceArn"], record["ObjectPrefix"]
         target_id = f"aws_verified_authority:s3-policy:{bucket}/{prefix}:{source}"

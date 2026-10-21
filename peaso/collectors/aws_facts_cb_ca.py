@@ -25,6 +25,7 @@ SPECS = {
     "network_firewall_policy": ("network-firewall", "list_firewall_policies", "FirewallPolicies"),
     "network_firewall_rule_group": ("network-firewall", "list_rule_groups", "RuleGroups"),
     "batch_compute_environment": ("batch", "describe_compute_environments", "computeEnvironments"),
+    "batch_job_queue": ("batch", "describe_job_queues", "jobQueues"),
     "workspaces_workspace": ("workspaces", "describe_workspaces", "Workspaces"),
     # Databases / analytics
     "rds_db_subnet_group": ("rds", "describe_db_subnet_groups", "DBSubnetGroups"),
@@ -41,6 +42,8 @@ SPECS = {
     "mskconnect_connector": ("kafkaconnect", "list_connectors", "connectors"),
     "kinesis_stream": ("kinesis", "list_streams", "StreamNames"),
     "glue_connection": ("glue", "get_connections", "ConnectionList"),
+    "glue_trigger": ("glue", "get_triggers", "Triggers"),
+    "glue_session": ("glue", "list_sessions", "Ids"),
     "glue_data_catalog": ("glue", "get_data_catalog_encryption_settings", None),
     "glue_dev_endpoint": ("glue", "get_dev_endpoints", "DevEndpoints"),
     "glue_ml_transform": ("glue", "get_ml_transforms", "Transforms"),
@@ -63,6 +66,7 @@ SPECS = {
     "ses_email_identity": ("sesv2", "list_email_identities", "EmailIdentities"),
     "sns_subscription": ("sns", "list_subscriptions", "Subscriptions"),
     "sagemaker_notebook_instance": ("sagemaker", "list_notebook_instances", "NotebookInstances"),
+    "sagemaker_app": ("sagemaker", "list_apps", "Apps"),
     "sagemaker_model": ("sagemaker", "list_models", "Models"),
     "sagemaker_training_job": ("sagemaker", "list_training_jobs", "TrainingJobSummaries"),
     "sagemaker_endpoint_config": ("sagemaker", "list_endpoint_configs", "EndpointConfigs"),
@@ -103,18 +107,20 @@ NATIVE_IDS = {
     "ec2_spot_fleet_request": "SpotFleetRequestId", "ec2_launch_template": "LaunchTemplateId", "ec2_instance_image": "ImageId",
     "vpc_block_public_access_options": "id", "vpc_endpoint_service": "ServiceId",
     "network_firewall": "FirewallArn", "network_firewall_policy": "id", "network_firewall_rule_group": "id",
-    "batch_compute_environment": "computeEnvironmentArn", "workspaces_workspace": "WorkspaceId",
+    "batch_compute_environment": "computeEnvironmentArn", "batch_job_queue": "jobQueueArn", "workspaces_workspace": "WorkspaceId",
     "rds_db_subnet_group": "DBSubnetGroupArn", "rds_engine_version": "id", "rds_iam_auth_capability": "id", "redshift_subnet_group": "ClusterSubnetGroupName",
     "redshiftserverless_namespace": "namespaceArn", "redshiftserverless_workgroup": "workgroupArn",
     "kafka_version": "Version", "msk_cluster": "ClusterArn", "msk_compatible_version": "ClusterArn",
     "mskconnect_connector": "connectorArn", "kinesis_stream": "StreamARN",
+    "glue_trigger": "Name",
+    "glue_session": "Id",
     "glue_connection": "Name", "glue_data_catalog": "id", "glue_dev_endpoint": "EndpointName", "glue_ml_transform": "TransformId", "glue_table": "id",
     "glacier_vault": "VaultARN", "media_store_container": "ARN", "s3_access_point": "AccessPointArn", "s3_directory_bucket": "Name",
     "storagegateway_gateway": "GatewayARN", "storagegateway_file_share": "FileShareARN", "backup_selection": "id",
     "lightsail_instance": "arn", "lightsail_database": "arn", "lightsail_static_ip": "arn",
     "sfn_state_machine": "stateMachineArn", "transfer_server": "Arn", "transfer_connector": "Arn",
     "ses_email_identity": "IdentityName", "sns_subscription": "id",
-    "sagemaker_notebook_instance": "NotebookInstanceArn", "sagemaker_model": "ModelArn", "sagemaker_training_job": "TrainingJobArn",
+    "sagemaker_notebook_instance": "NotebookInstanceArn", "sagemaker_app": "id", "sagemaker_model": "ModelArn", "sagemaker_training_job": "TrainingJobArn",
     "sagemaker_endpoint_config": "EndpointConfigArn", "sagemaker_domain": "DomainArn", "sagemaker_processing_job": "ProcessingJobArn",
     "sagemaker_monitoring_schedule": "MonitoringScheduleArn", "sagemaker_model_package_group": "ModelPackageGroupArn",
     "guardduty_finding": "Arn", "guardduty_organization_admin_account": "AdminAccountId", "securityhub_hub": "HubArn",
@@ -213,6 +219,23 @@ def _listing(read):
     if read.error:
         output["error"] = read.error
     return output
+
+
+def _sagemaker_apps(requests, session, region, account):
+    read = requests.pages(session, "sagemaker", region, "list_apps", "Apps")
+    if read.status not in _OK:
+        return _result([], *_cause(read))
+    rows, failure = [], None
+    for app in read.items:
+        if not isinstance(app, dict) or not all(isinstance(app.get(key), str) for key in
+                                                 ("DomainId", "AppType", "AppName", "Status")):
+            failure = failure or ("malformed", {"code": "malformed_sagemaker_app"})
+            continue
+        row = _pick(app, ("DomainId", "UserProfileName", "SpaceName", "AppType", "AppName", "Status"))
+        row["id"] = "/".join(str(row.get(key) or "") for key in
+                             ("DomainId", "UserProfileName", "SpaceName", "AppType", "AppName"))
+        rows.append(row)
+    return _finish(rows, failure)
 
 
 def _msk_compatible_versions(requests, session, region, account):
@@ -394,6 +417,24 @@ def _glacier_vaults(requests, session, region, account):
     return requests.pages(session, "glacier", region, "list_vaults", "VaultList", accountId="-")
 
 
+def _glue_sessions(requests, session, region, account):
+    # Botocore has no paginator for ListSessions, although the API returns NextToken.
+    ids = requests.pages(session, "glue", region, "list_sessions", "Ids", _tokens=("NextToken", "NextToken"))
+    details = requests.pages(session, "glue", region, "list_sessions",
+                             "Sessions[].{Id: Id, Role: Role, Status: Status}",
+                             _tokens=("NextToken", "NextToken"))
+    complete = (ids.status in ("collected", "empty") and details.status in ("collected", "empty")
+                and all(isinstance(value, str) and value for value in ids.items)
+                and all(isinstance(row, dict) and isinstance(row.get("Id"), str) and row["Id"]
+                        for row in details.items)
+                and len(ids.items) == len(details.items)
+                and set(ids.items) == {row["Id"] for row in details.items})
+    if not complete:
+        details.status = "partial" if details.items else "not_collected"
+        details.error = details.error or ids.error or {"code": "glue_session_ids_and_details_not_joined"}
+    return details
+
+
 _GLUE_CONNECTION_KEYS = ("Name", "Description", "ConnectionType", "CreationTime", "LastUpdatedTime", "Status", "ConnectionSchemaVersion")
 # Only non-secret TLS/validation flags; never URLs, user names, passwords or secret references.
 _GLUE_CONNECTION_PROPERTIES = ("JDBC_ENFORCE_SSL", "KAFKA_SSL_ENABLED", "SKIP_CUSTOM_JDBC_CERT_VALIDATION", "KAFKA_SKIP_CUSTOM_CERT_VALIDATION", "JDBC_ENGINE", "JDBC_ENGINE_VERSION")
@@ -438,8 +479,11 @@ def _glue_dev_endpoints(requests, session, region, account):
     keys = ("EndpointName", "RoleArn", "SecurityGroupIds", "SubnetId", "VpcId", "AvailabilityZone", "PrivateAddress", "PublicAddress", "Status",
             "WorkerType", "GlueVersion", "NumberOfWorkers", "NumberOfNodes", "SecurityConfiguration", "CreatedTimestamp", "LastModifiedTimestamp")
     read = requests.pages(session, "glue", region, "get_dev_endpoints", "DevEndpoints")
-    # SSH public key COUNT only (the keys themselves are never kept).
-    read.items = [{**_pick(item, keys), "PublicKeyCount": len(set(item.get("PublicKeys") or []) | ({item["PublicKey"]} if item.get("PublicKey") else set()))}
+    # SSH public key counts and legacy-key presence only; the keys themselves are never kept.
+    read.items = [{**_pick(item, keys),
+                   "PublicKeyCount": len(set(item.get("PublicKeys") or []) | ({item["PublicKey"]} if item.get("PublicKey") else set())),
+                   "ManagedPublicKeyCount": len(item.get("PublicKeys") or []),
+                   "LegacyPublicKeyPresent": bool(item.get("PublicKey"))}
                   for item in read.items if isinstance(item, dict)]
     return read
 
@@ -835,6 +879,8 @@ def _incident_manager(requests, session, region, account):
 
 
 FETCHERS = {
+    "sagemaker_app": _sagemaker_apps,
+    "glue_session": _glue_sessions,
     "msk_compatible_version": _msk_compatible_versions,
     "vpc_block_public_access_options": _vpc_block_public_access,
     "vpc_endpoint_service": _endpoint_services,
@@ -936,7 +982,8 @@ def _merge_enricher(kind):
         output = []
         for original in items:
             item = copy.deepcopy(original)
-            response = requests.detail(session, service, region, operation, **{argument: item.get(key)})
+            extra = {"includedData": "METADATA_ONLY"} if kind == "sfn_state_machine" else {}
+            response = requests.detail(session, service, region, operation, **{argument: item.get(key)}, **extra)
             body = response.get(root) if root else response
             if _failed(response):
                 _mark(item, response, operation)
@@ -1169,6 +1216,8 @@ def _redshift_facts(requests, session, region, items):
 _GLUE_FLAGS = {"--encryption-type", "--enable-continuous-cloudwatch-log", "--enable-continuous-log-filter", "--enable-spark-ui", "--enable-metrics",
                "--enable-observability-metrics", "--enable-job-insights", "--enable-glue-datacatalog", "--job-bookmark-option", "--job-language",
                "--enable-auto-scaling", "--continuous-log-logGroup"}
+_GLUE_CODE_ARGUMENTS = frozenset({"--scriptLocation", "--extra-py-files", "--extra-jars",
+                                  "--additional-python-modules", "--python-virtual-env"})
 
 
 def _glue_job_flags(requests, session, region, items):
@@ -1182,8 +1231,35 @@ def _glue_job_flags(requests, session, region, items):
         else:
             merged = {**(defaults or {}), **(fixed or {})}
             item["DefaultArgumentFlags"] = {key: value for key, value in merged.items() if key in _GLUE_FLAGS and isinstance(value, str)}
+            # Only known argument names are retained. Their values can contain credentials or private paths.
+            item["NonOverridableCodeArguments"] = sorted(_GLUE_CODE_ARGUMENTS.intersection(fixed or {}))
         output.append(item)
     return output
+
+
+def _glue_trigger_names(requests, session, region, items):
+    # Trigger Actions can contain job arguments and secrets. Keep only metadata needed to bind a run to a job.
+    output = []
+    for item in items:
+        if not isinstance(item, dict) or not isinstance(item.get("Name"), str):
+            output.append({"collection_status": "malformed"})
+            continue
+        actions = item.get("Actions")
+        output.append({
+            "Name": item["Name"], "Type": item.get("Type"), "State": item.get("State"),
+            "HasSchedule": isinstance(item.get("Schedule"), str) and bool(item["Schedule"]),
+            "JobActions": [action["JobName"] for action in actions
+                           if isinstance(action, dict) and isinstance(action.get("JobName"), str)]
+                          if isinstance(actions, list) else None,
+            "ActionsComplete": isinstance(actions, list) and all(isinstance(action, dict) for action in actions),
+        })
+    return output
+
+
+def _glue_session_ids(requests, session, region, items):
+    return [{key: row[key] for key in ("Id", "Role", "Status") if key in row}
+            if isinstance(row, dict) and isinstance(row.get("Id"), str) and row["Id"]
+            else {"collection_status": "malformed"} for row in items]
 
 
 def _bucket_website(requests, session, region, items):
@@ -1295,6 +1371,8 @@ ENRICHERS.update({
     "rds_cluster": _rds_parameters("ClusterParameterGroupValues", "describe_db_cluster_parameters", "DBClusterParameterGroupName", _cluster_groups),
     "redshift_cluster": _redshift_facts,
     "glue_job": _glue_job_flags,
+    "glue_trigger": _glue_trigger_names,
+    "glue_session": _glue_session_ids,
     "bucket": _bucket_website,
     "guardduty_detector": _guardduty_detector,
     "aws_account_configuration": _delegated_administrators,

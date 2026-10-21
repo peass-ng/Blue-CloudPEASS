@@ -13,7 +13,7 @@
   title: Create or update a schedule that runs with a passed execution role
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/eventbridgescheduler-privesc/README.md#iampassrole-schedulercreateschedule--schedulerupdateschedule
   source_revision: 171e422299
-  summary: The source can obtain the privileges of any passable role trusting scheduler.amazonaws.com, exercised through universal (AWS SDK) or templated targets.
+  summary: The source can make EventBridge Scheduler call a supported target using a passable execution role.
   requires:
     all_of:
       - action: iam:PassRole
@@ -30,6 +30,7 @@
       resource_permission_covers_target: iam:PassRole
     scope: same_account
     aggregate_as: "Roles trusting scheduler.amazonaws.com passable in {account}"
+    outcome: impersonation
   conditions:
     - id: passrole_condition_key
       description: iam:PassedToService conditions may restrict which roles can be passed.
@@ -37,7 +38,7 @@
       description: The UpdateSchedule variant requires an existing schedule within its Resource.
   blockers:
     - scp_or_boundary_deny
-  confidence: derived
+  confidence: conditional
   severity: critical
   mitigation: Restrict iam:PassRole with iam:PassedToService=scheduler.amazonaws.com to specific roles and restrict schedule creation/update.
   references:

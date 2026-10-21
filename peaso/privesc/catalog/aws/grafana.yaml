@@ -6,7 +6,7 @@
 
 # Amazon Managed Grafana application-plane privilege escalation techniques (aws_service_plane_admin targets).
 # Source: hacktricks-cloud aws-managed-grafana-privesc/README.md (rev 171e422299).
-# Workspaces are not collected: every edge is one unresolved placeholder per account.
+# Collected workspace summaries provide ARN, status and Grafana version.
 
 - id: aws-grafana-createworkspaceapikey-admin
   provider: aws
@@ -27,9 +27,11 @@
     scope: same_account
     aggregate_as: "Managed Grafana administrators in {account}"
     grants: [Grafana ADMIN]
+  preconditions:
+    - grafana_api_key_workspace_eligible
   conditions:
     - id: legacy_api_keys_supported
-      description: The workspace must still support legacy API keys (AWS is removing them for Grafana 9+ workspaces); workspace network access controls still apply.
+      description: Grafana versions before 12 support API keys through the AWS API; workspace network access controls still apply.
   blockers:
     - scp_or_boundary_deny
   confidence: conditional
@@ -58,6 +60,8 @@
     scope: same_account
     aggregate_as: "Managed Grafana administrators in {account}"
     grants: [Grafana ADMIN]
+  preconditions:
+    - grafana_service_account_workspace_eligible
   conditions:
     - id: grafana_9_or_later
       description: Service accounts require Grafana 9 or later; workspace network access controls still apply.
@@ -88,6 +92,8 @@
     aggregate_as: Managed Grafana workspace administrators in {account}
     outcome: application_admin
     grants: [Grafana ADMIN]
+  preconditions:
+    - grafana_saml_workspace_active
   conditions:
     - id: saml_assertions
       description: The source must control valid SAML metadata and assertions mapped to the workspace ADMIN role and be able to reach its endpoint.

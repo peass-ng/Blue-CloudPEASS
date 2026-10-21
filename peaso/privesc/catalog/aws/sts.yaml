@@ -13,8 +13,9 @@
   title: Assume a role whose trust policy allows the source
   source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-sts-privesc/README.md#stsassumerole
   source_revision: 6fb9ac51fd
-  summary: The source can obtain the privileges of every role whose trust policy allows the source (or its account)
-    and that its identity policy lets it assume.
+  summary: The source can obtain the privileges of a role whose trust policy allows it. A same-account trust
+    naming the source principal directly can suffice without an identity-policy AssumeRole grant; account-root
+    and cross-account trusts also need an identity-policy grant.
   requires:
     all_of:
     - action: sts:AssumeRole
@@ -62,15 +63,20 @@
   target:
     kind: aws_role
     selector:
-      trust_allows_service: rolesanywhere.amazonaws.com
       rolesanywhere_profile_includes_target: true
     scope: same_account
     aggregate_as: "Roles reachable through Roles Anywhere trust anchors covered by rolesanywhere:UpdateTrustAnchor in {account}"
+  preconditions:
+    - rolesanywhere_anchor_profile_trust_join
   conditions:
+    - id: complete_rolesanywhere_role_trust
+      description: The role trust must allow Roles Anywhere to AssumeRole, TagSession, and SetSourceIdentity for the selected anchor.
     - id: trust_conditions_on_cert_attributes
-      description: Role trust conditions on aws:PrincipalTag/x509Subject/* or a specific trust-anchor ARN must be satisfiable by a certificate the source issues; usually they are.
+      description: Role trust conditions on certificate attributes must be satisfiable by a certificate the source issues. The evaluator binds aws:SourceArn to the exact writable trust anchor and leaves other uncertain conditions unresolved.
     - id: anchor_and_profile_enabled
       description: The trust anchor and the profile must be enabled (enabling them needs rolesanywhere:EnableTrustAnchor / EnableProfile).
+    - id: replaceable_certificate_bundle
+      description: UpdateTrustAnchor can replace an external certificate bundle. An AWS Private CA trust anchor cannot have its CA replaced after creation.
   blockers:
     - scp_or_boundary_deny
   confidence: conditional
@@ -78,7 +84,7 @@
   mitigation: Restrict rolesanywhere:UpdateTrustAnchor/CreateTrustAnchor to administrators and pin aws:SourceArn of the trust anchor plus certificate-subject conditions in role trusts.
   references:
     - https://docs.aws.amazon.com/rolesanywhere/latest/userguide/trust-model.html
-  notes: "Requires placeholder {target.trust_anchor_arn}: the trust anchor whose certificates the target role's profile accepts. Profile session policies / managed policies can further reduce the obtained permissions."
+  notes: "The evaluator joins a writable enabled certificate-bundle anchor to an enabled profile in the same account and Region and a role trust that admits that exact anchor. Profiles with session policies or managed policy restrictions remain unresolved because they do not grant the full target role."
 
 - id: aws-rolesanywhere-createtrustanchor-createprofile-passrole
   provider: aws
@@ -98,13 +104,15 @@
   target:
     kind: aws_role
     selector:
-      trust_allows_service: rolesanywhere.amazonaws.com
       resource_permission_covers_target: iam:PassRole
     scope: same_account
     aggregate_as: "Passable roles trusting IAM Roles Anywhere in {account}"
+    outcome: credentials
+  preconditions:
+    - rolesanywhere_new_anchor_profile_role_ready
   conditions:
     - id: trust_conditions_satisfiable
-      description: Role trust conditions on the trust-anchor ARN (aws:SourceArn) or certificate attributes (aws:PrincipalTag/x509Subject/*) must accept the new anchor and certificates the source issues.
+      description: Role trust must allow AssumeRole, TagSession, and SetSourceIdentity for a newly generated anchor. An exact existing aws:SourceArn does not accept a new anchor; a broad ArnLike trust-anchor wildcard can.
     - id: anchor_and_profile_enabled
       description: The trust anchor and profile must be enabled at creation or later (rolesanywhere:EnableTrustAnchor / EnableProfile).
   blockers:
@@ -114,4 +122,4 @@
   mitigation: Restrict rolesanywhere:CreateTrustAnchor and CreateProfile to administrators, constrain iam:PassRole for rolesanywhere.amazonaws.com, and pin aws:SourceArn of approved trust anchors in role trust policies.
   references:
     - https://docs.aws.amazon.com/rolesanywhere/latest/userguide/trust-model.html
-  notes: Only roles whose trust policy already allows rolesanywhere.amazonaws.com are reached; adding that trust is a separate trust-policy edge. The profile session policy can reduce the obtained permissions.
+  notes: The source can create a profile without session-policy restrictions and set it and the new certificate-bundle anchor enabled. The evaluator checks both create actions in one Region, the passable role, collected capacity, and role trust for a newly generated anchor. Unresolved trust conditions remain unknown.

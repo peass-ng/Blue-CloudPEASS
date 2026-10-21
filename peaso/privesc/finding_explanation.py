@@ -51,13 +51,27 @@ def evidence_summary(finding):
     else:
         target=f'{count} recorded targets'
     if confidence=='unknown':
-        return _bounded_text(name,target,count,targets,meaning,' No operation was attempted.',unknown=True)
+        summary = _bounded_text(name,target,count,targets,meaning,' No operation was attempted.',unknown=True)
+        if provider == 'k8s':
+            from .k8s_observed_impact import format_path
+            return format_path(cid, status, summary, name)
+        if provider == 'azure':
+            from .azure_observed_impact import format_path
+            return format_path(cid, status, summary, name)
+        return summary
     if not e.get('granting_statements') and not e.get('granting_permissions'):return None
     if any(not isinstance(e.get(field,[]),list) for field in ('granting_statements','granting_permissions')):return None
     refs=e.get('granting_statements',[])+[p.get('grant',{}) for p in e.get('granting_permissions',[]) if isinstance(p,dict)]
     if any(isinstance(ref,dict) and ref.get('effect',ref.get('Effect','Allow'))!='Allow' for ref in refs):return None
     limit=' Conditions or guardrails remain; execution was not tested.' if conditions or blockers or confidence=='conditional' else ' Execution was not tested.'
-    return _bounded_text(name,target,count,targets,meaning,limit,administrative=cid=='admin-equivalent' and confidence=='derived')
+    summary = _bounded_text(name,target,count,targets,meaning,limit,administrative=cid=='admin-equivalent' and confidence=='derived')
+    if provider == 'k8s':
+        from .k8s_observed_impact import format_path
+        return format_path(cid, status, summary, name)
+    if provider == 'azure':
+        from .azure_observed_impact import format_path
+        return format_path(cid, status, summary, name)
+    return summary
 
 
 _TARGET_LABELS={
@@ -72,9 +86,9 @@ _TARGET_LABELS={
 def _bounded_text(name,target,count,targets,meaning,limit,*,unknown=False,administrative=False):
     def render(actor,destination):
         if unknown:
-            return f'The scan lacks required facts for {actor}’s path to {destination}. '+meaning+limit
+            return f'The recorded path from {actor} to {destination} lacks needed facts. '+meaning+limit
         if administrative:return f'{actor} has administrative grants covering {destination}. '+meaning+limit
-        return f'The scan found a possible path from {actor} to {destination}. '+meaning+limit
+        return f'The recorded grants may let {actor} reach {destination}. '+meaning+limit
     text=render(name,target)
     if len(text)<=240:return text
     # Use complete structural references instead of clipping an ARN, email or

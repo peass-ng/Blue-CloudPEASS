@@ -54,25 +54,31 @@ def project_pipeline_response(response):
                 raise ReadFailure("malformed", "malformed_pipeline_action")
             provider = kind.get("provider")
             category = kind.get("category")
-            if kind.get("owner") != "AWS" or (category, provider) not in {
-                ("Source", "CodeCommit"), ("Build", "CodeBuild")}:
+            if category != "Source" and (kind.get("owner"), category, provider) not in {
+                    ("AWS", "Build", "CodeBuild"), ("AWS", "Test", "CodeBuild")}:
                 continue
             config = action.get("configuration") or {}
             if not isinstance(config, dict):
                 raise ReadFailure("malformed", "malformed_pipeline_action")
-            keys = ("RepositoryName", "BranchName", "OutputArtifactFormat") if provider == "CodeCommit" else (
-                "ProjectName", "PrimarySource", "ServiceRoleArnOverride")
+            keys = (("RepositoryName", "BranchName", "OutputArtifactFormat")
+                    if category == "Source" and kind.get("owner") == "AWS" and provider == "CodeCommit" else
+                    ("ProjectName", "PrimarySource", "ServiceRoleArnOverride", "BatchEnabled")
+                    if category in ("Build", "Test") else ())
             artifacts = {}
             for field in ("inputArtifacts", "outputArtifacts"):
                 values = action.get(field) or []
                 if not isinstance(values, list):
                     raise ReadFailure("malformed", "malformed_pipeline_artifacts")
                 artifacts[field] = [{"name": item.get("name")} for item in values if isinstance(item, dict)]
-            actions.append({"name": action.get("name"), "category": category, "provider": provider,
+            actions.append({"name": action.get("name"), "owner": kind.get("owner"),
+                            "category": category, "provider": provider,
+                            "roleArn": action.get("roleArn"),
                             "region": action.get("region"), "runOrder": action.get("runOrder"),
-                            "configuration": {key: config.get(key) for key in keys}, **artifacts})
+                            "configuration": {key: config.get(key) for key in keys},
+                            "BuildspecOverridePresent": bool(config.get("BuildspecOverride"))
+                            if category in ("Build", "Test") else None, **artifacts})
         stages.append({"name": stage.get("name"), "actions": actions})
-    return {"pipeline": {"name": pipeline.get("name"), "stages": stages}}
+    return {"pipeline": {"name": pipeline.get("name"), "roleArn": pipeline.get("roleArn"), "stages": stages}}
 
 
 def enrich_pipelines(requests, session, region, items):
@@ -119,6 +125,9 @@ def codecommit_build_links(snapshot, account, region, *, partition="aws"):
         if name != metadata.get("name") or not isinstance(name, str) or not _PIPELINE_NAME.fullmatch(name):
             continue
         pipeline_arn = f"arn:{partition}:codepipeline:{region}:{account}:{name}"
+        pipeline_role = metadata.get("roleArn")
+        pipeline_role_valid = (_arn(pipeline_role, "iam", account, "")
+                               and pipeline_role.startswith(f"arn:{partition}:") and ":role/" in pipeline_role)
         stages = metadata.get("stages") or []
         sources, builds = [], []
         for stage_index, stage in enumerate(stages):
@@ -127,13 +136,13 @@ def codecommit_build_links(snapshot, account, region, *, partition="aws"):
                     continue  # Cross-Region action inventory must be joined separately.
                 provider = action.get("provider")
                 config = action.get("configuration") or {}
-                if provider == "CodeCommit" and action.get("category") == "Source":
+                if action.get("owner") == "AWS" and provider == "CodeCommit" and action.get("category") == "Source":
                     repository, branch = config.get("RepositoryName"), config.get("BranchName")
                     if not (isinstance(repository, str) and _REPOSITORY_NAME.fullmatch(repository)
                             and isinstance(branch, str) and _BRANCH_NAME.fullmatch(branch)):
                         continue
                     sources.append((stage_index, action, repository, branch))
-                if provider == "CodeBuild" and action.get("category") == "Build":
+                if action.get("owner") == "AWS" and provider == "CodeBuild" and action.get("category") in ("Build", "Test"):
                     builds.append((stage_index, action))
         for source_index, source, repository, branch in sources:
             for build_index, build in builds:
@@ -158,6 +167,9 @@ def codecommit_build_links(snapshot, account, region, *, partition="aws"):
                     if not _arn(project_arn, "codebuild", account, region) or not project_arn.startswith(f"arn:{partition}:"):
                         definition = None
                     override = (build.get("configuration") or {}).get("ServiceRoleArnOverride")
+                    action_role = build.get("roleArn")
+                    action_role_valid = (_arn(action_role, "iam", account, "")
+                                         and action_role.startswith(f"arn:{partition}:") and ":role/" in action_role)
                     role = (override or definition.get("serviceRole")) if definition else None
                     role_valid = (bool(definition) and _arn(role, "iam", account, "")
                                   and role.startswith(f"arn:{partition}:") and ":role/" in role)
@@ -166,6 +178,8 @@ def codecommit_build_links(snapshot, account, region, *, partition="aws"):
                         "RepositoryArn": f"arn:{partition}:codecommit:{region}:{account}:{repository}",
                         "RepositoryName": repository, "Branch": branch,
                         "PipelineArn": pipeline_arn, "SourceAction": source.get("name"),
+                        "PipelineRoleArn": pipeline_role if pipeline_role_valid else None,
+                        "BuildActionRoleArn": action_role if action_role_valid else None,
                         "SourceOutputArtifact": artifact, "BuildAction": build.get("name"),
                         "BuildInputArtifact": artifact,
                         "BuildProjectArn": project_arn if definition else None,

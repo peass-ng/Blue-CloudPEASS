@@ -99,6 +99,18 @@
     "label": "Create and execute a change set with a passed service role",
     "review_status": "source_reviewed"
   },
+  "aws-cloudformation-updatestack-attached-role": {
+    "purpose": "Changing an existing stack's template may use the service role already attached to that stack.",
+    "impact": "That could let someone change resources the attached role can manage.",
+    "label": "Update a stack through its attached CloudFormation service role",
+    "review_status": "source_reviewed"
+  },
+  "aws-cloudformation-changeset-attached-role": {
+    "purpose": "Executing a controlled change set may use the service role already attached to that stack.",
+    "impact": "That could let someone change resources the attached role can manage.",
+    "label": "Execute a change set through a stack's attached service role",
+    "review_status": "source_reviewed"
+  },
   "aws-cloudformation-passrole-stackset": {
     "purpose": "A self-managed StackSet may exercise execution roles reachable through its administration role.",
     "label": "Create or update a self-managed StackSet with a passed administration role",
@@ -282,6 +294,12 @@
   "aws-eks-createaccessentry-associateaccesspolicy": {
     "purpose": "EKS access-entry changes may map a controlled principal to cluster-admin permissions.",
     "label": "Create an EKS access entry for the source and associate a cluster-admin access policy",
+    "review_status": "source_reviewed"
+  },
+  "aws-eks-associateaccesspolicy-existing-entry": {
+    "purpose": "Adding the cluster-admin policy to the source's existing EKS access entry may grant cluster-wide Kubernetes permissions.",
+    "impact": "That could let someone change workloads or read cluster data.",
+    "label": "Give the source's existing EKS access entry cluster administrator access",
     "review_status": "source_reviewed"
   },
   "aws-eks-updateclusterconfig-enable-access-entries": {
@@ -1290,13 +1308,8 @@
     "review_status": "source_reviewed"
   },
   "gcp-dataproc-staging-object-replace": {
-    "purpose": "A replaced or planted staging object may execute when a later Dataproc workload loads it.",
-    "label": "Replace staged scripts or dependencies that an existing Dataproc cluster loads",
-    "review_status": "source_reviewed"
-  },
-  "gcp-dataproc-staging-object-plant": {
-    "purpose": "A replaced or planted staging object may execute when a later Dataproc workload loads it.",
-    "label": "Plant a new Dataproc staging dependency for a later job",
+    "purpose": "Replacing the exact initialization script referenced by a Dataproc cluster may run changed code as its service account when a new node starts.",
+    "label": "Replace an initialization script used by an existing Dataproc cluster",
     "review_status": "source_reviewed"
   },
   "gcp-deploymentmanager-deployments-create": {
@@ -1830,12 +1843,12 @@
     "review_status": "source_reviewed"
   },
   "gcp-storage-hmackeys-create": {
-    "purpose": "A created HMAC key may provide only the target service account\u2019s Cloud Storage permissions.",
+    "purpose": "An HMAC key may provide only the named service account's Cloud Storage XML API access.",
     "label": "Create an HMAC key for an in-project service account",
     "review_status": "source_reviewed"
   },
   "gcp-storage-buckets-setiampolicy-code-consumers": {
-    "purpose": "Replacing a mutable consumed bucket object may execute code as the existing build, Dataproc or Composer identity.",
+    "purpose": "Changing IAM on a bucket holding Dataproc or unpinned Cloud Build code may let a later workload run changed code as its service account.",
     "label": "Self-grant object write on a bucket whose code a Dataproc cluster or an unpinned Cloud Build source consumes",
     "review_status": "source_reviewed"
   },
@@ -1845,7 +1858,7 @@
     "review_status": "source_reviewed"
   },
   "gcp-storage-cloudbuild-unpinned-storagesource-poison": {
-    "purpose": "Replacing a mutable consumed bucket object may execute code as the existing build, Dataproc or Composer identity.",
+    "purpose": "Replacing an unpinned archive referenced by a recorded Cloud Build may let a later retry run changed code as its build account.",
     "label": "Replace an unpinned Cloud Build StorageSource archive consumed by a later build",
     "review_status": "source_reviewed"
   },
@@ -2037,11 +2050,6 @@
   "azure-apim-policy-write-managed-identity-token": {
     "purpose": "Controlling APIM policy deployment may expose the instance\u2019s managed-identity tokens.",
     "label": "Edit an APIM policy to obtain the instance managed identity token",
-    "review_status": "source_reviewed"
-  },
-  "azure-apim-tenant-git-deploy-managed-identity-token": {
-    "purpose": "Controlling APIM policy deployment may expose the instance\u2019s managed-identity tokens.",
-    "label": "Deploy attacker policies through the APIM built-in Git configuration repository",
     "review_status": "source_reviewed"
   },
   "azure-apim-restore-backup-managed-identity-token": {
@@ -3162,6 +3170,61 @@
   "k8s-workloads-mutating-admission-policy-injection": {
     "purpose": "Controlled admission mutations may run new Pods with ServiceAccounts in the affected namespaces.",
     "label": "Create or modify a MutatingAdmissionPolicy and its binding",
+    "review_status": "source_reviewed"
+  },
+  "gcp-cloudbuild-builds-create-cross-project-actas": {
+    "purpose": "A controlled build may execute as a service account from another project when its policy and the build service-agent grant permit attachment.",
+    "label": "Submit a build with a cross-project service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-run-jobs-create-run-cross-project-actas": {
+    "purpose": "A new Cloud Run job may run under a service account from another project when its account policy and service-agent grant permit attachment.",
+    "label": "Create and execute a Cloud Run job with a cross-project service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-run-services-create-cross-project-actas": {
+    "purpose": "A new Cloud Run service may run under a service account from another project when its account policy and service-agent grant permit attachment.",
+    "label": "Deploy a Cloud Run service with a cross-project service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-storage-managedfolders-setiampolicy-composer": {
+    "purpose": "Control of a managed folder covering Composer DAGs may permit a write grant that lets code run as the environment account.",
+    "label": "Self-grant Composer DAG write access through a managed-folder IAM policy",
+    "review_status": "source_reviewed"
+  },
+  "gcp-storage-managedfolders-setiampolicy-dataproc-init": {
+    "purpose": "Changing the IAM policy of a folder holding a Dataproc initialization script may permit code to run as the cluster account.",
+    "label": "Self-grant write access to a Dataproc initialization script folder",
+    "review_status": "source_reviewed"
+  },
+  "gcp-workflows-create-cross-project-actas": {
+    "purpose": "A controlled workflow may send Google API requests as a service account from another project when its policy and the Workflows service-agent grant permit attachment.",
+    "label": "Deploy and execute a workflow with a cross-project service account",
+    "review_status": "source_reviewed"
+  },
+  "k8s-rbac-bind-existing-clusterrole-new-permission": {
+    "purpose": "Binding this exact ClusterRole may add permissions the source does not hold across the cluster.",
+    "label": "Bind an existing ClusterRole that grants a new cluster-wide permission",
+    "review_status": "source_reviewed"
+  },
+  "k8s-rbac-bind-existing-role-new-permission": {
+    "purpose": "Binding this exact role may add permissions the source does not hold in the namespace.",
+    "label": "Bind an existing Role or ClusterRole that grants a new permission",
+    "review_status": "source_reviewed"
+  },
+  "k8s-rbac-escalate-aggregating-clusterrole-namespace": {
+    "purpose": "Adding rules to the aggregated ClusterRole may grant workload and token permissions in the bound namespace.",
+    "label": "Add rules to a ClusterRole bound to the source in a namespace",
+    "review_status": "source_reviewed"
+  },
+  "k8s-rbac-modify-existing-clusterrolebinding-new-permission": {
+    "purpose": "Adding the source to this exact ClusterRoleBinding may add permissions it does not hold across the cluster.",
+    "label": "Add the source to an existing ClusterRoleBinding that grants a new permission",
+    "review_status": "source_reviewed"
+  },
+  "k8s-rbac-modify-existing-rolebinding-new-permission": {
+    "purpose": "Adding the source to this exact RoleBinding may add permissions it does not hold in the namespace.",
+    "label": "Add the source to an existing RoleBinding that grants a new permission",
     "review_status": "source_reviewed"
   }
 }

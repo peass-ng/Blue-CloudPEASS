@@ -29,6 +29,7 @@
       resource_permission_covers_target: iam:PassRole
     scope: same_account
     aggregate_as: "Roles trusting ssm.amazonaws.com passable in {account}"
+    outcome: workload_execution
   conditions:
     - id: noncompliant_rule
       description: A Config rule must report a non-compliant resource (an existing rule, or config:PutConfigRule), with the configuration recorder running; config:StartConfigRulesEvaluation only speeds it up.
