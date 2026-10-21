@@ -29,6 +29,7 @@ from .aws_role_boundary_next import normalize_aws_role_boundary_delete
 from .aws_user_boundary_self_next import normalize_aws_self_user_boundary_delete
 from .aws_wildcard_trust_next import normalize_aws_wildcard_role_trust
 from .aws_keyspaces_next import normalize_keyspaces_other_user_credential
+from .aws_keyspaces_timestamps_next import normalize as normalize_keyspaces_timestamps
 from .aws_codebuild_next import normalize_aws_codebuild_change
 from .aws_codebuild_execution_next import normalize_codebuild_execution
 from .aws_codebuild_sandbox_read_next import normalize as normalize_codebuild_sandbox_read
@@ -359,6 +360,7 @@ def detect_aws_events(
         self_user_boundary = normalize_aws_self_user_boundary_delete(record)
         trust = normalize_aws_wildcard_role_trust(record)
         keyspaces_credential = normalize_keyspaces_other_user_credential(record)
+        keyspaces_timestamps = normalize_keyspaces_timestamps(record)
         codebuild_change = normalize_aws_codebuild_change(record)
         codebuild_execution = normalize_codebuild_execution(record)
         codebuild_sandbox_read = normalize_codebuild_sandbox_read(record)
@@ -521,6 +523,7 @@ def detect_aws_events(
                 + ([self_user_boundary] if self_user_boundary is not None else [])
                 + ([trust] if trust is not None else [])
                 + ([keyspaces_credential] if keyspaces_credential is not None else [])
+                + ([keyspaces_timestamps] if keyspaces_timestamps is not None else [])
                 + ([codebuild_change] if codebuild_change is not None else [])
                 + ([codebuild_execution] if codebuild_execution is not None else [])
                 + ([codebuild_sandbox_read] if codebuild_sandbox_read is not None else [])
