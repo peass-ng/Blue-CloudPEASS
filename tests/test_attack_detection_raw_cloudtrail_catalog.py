@@ -74,6 +74,46 @@ def test_denials_cross_account_resources_and_wrong_categories_fail_closed(tmp_pa
     assert detect_aws_events([denied, foreign, wrong, no_resources], selected) == []
 
 
+def test_unscoped_management_event_keeps_request_token_private(tmp_path):
+    (tmp_path / "unscoped.yml").write_text("""title: Synthetic request status read
+id: 15300000-0000-4000-8000-000000000001
+status: experimental
+description: Synthetic test rule.
+references: [https://example.test/source]
+logsource: {product: aws, service: cloudtrail}
+detection:
+  selection:
+    event.source: cloudcontrolapi.amazonaws.com
+    event.name: GetResourceRequestStatus
+    event.category: Management
+    event.outcome: success
+    event.read_only: true
+    resource.type: CloudTrail::UnscopedEvent
+  condition: selection
+falsepositives: [Approved deployment monitoring]
+level: low
+x_hacktricks_technique_id: synthetic-request-status-read
+x_cloudtrail_raw: true
+""", encoding="utf-8")
+    selected = load_rules(tmp_path, product="aws")
+    item = event()
+    item.update({"eventSource": "cloudcontrolapi.amazonaws.com",
+                 "eventName": "GetResourceRequestStatus", "eventCategory": "Management",
+                 "managementEvent": True,
+                 "requestParameters": {"requestToken": "private-request-token"}})
+    del item["resources"]
+    hits = detect_aws_events([item], selected)
+    assert len(hits) == 1
+    assert hits[0].target_id.startswith("sha256:")
+    assert "private-request-token" not in str(hits)
+    assert "requestToken" not in str(hits)
+    empty = deepcopy(item); empty["resources"] = []
+    assert len(detect_aws_events([empty], selected)) == 1
+    malformed = deepcopy(item); malformed["resources"] = "not-a-list"
+    denied = deepcopy(item); denied["errorCode"] = "AccessDeniedException"
+    assert detect_aws_events([malformed, denied], selected) == []
+
+
 def test_raw_rule_grammar_rejects_request_fields_and_unsafe_modes(tmp_path):
     with pytest.raises(ValueError, match="Unsupported raw CloudTrail rule"):
         rule(tmp_path, selection_extra="    request.shard_iterator: private\n")
