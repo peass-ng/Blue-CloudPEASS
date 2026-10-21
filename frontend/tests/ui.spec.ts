@@ -1199,3 +1199,19 @@ test('Help provides every provider tutorial, scan guidance and platform definiti
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(391);
   await page.screenshot({ path: '/tmp/cspm-help-mobile.png' });
 });
+
+
+test('Hardening navigation badge counts failures instead of all findings', async ({ page }) => {
+  await emptyApi(page);
+  let failures = 37;
+  await page.route('**/api/scans', route => route.fulfill({json: {items: [{id: 'badge-scan', status: 'completed'}]}}));
+  await page.route('**/api/scans/badge-scan/summary?*', route => route.fulfill({json: {
+    provider: 'aws', stats: {by_category: {hardening: 965}, failed_by_category: {hardening: failures}}, findings: [], resources: [], graphs: {}, coverage: [],
+  }}));
+  await page.goto('/#Help');
+  const badge = page.getByRole('navigation', {name: 'Primary navigation'}).getByRole('button', {name: 'Hardening & Compliance', exact: true}).locator('.nav-count');
+  await expect(badge).toHaveText('37');
+  failures = 0;
+  await page.reload();
+  await expect(badge).toHaveText('0');
+});

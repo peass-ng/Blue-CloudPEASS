@@ -50,6 +50,7 @@ RUNTIME_ADMISSION_INPUTS = {
 # Exact public inputs needed to reproduce the shipped compiler, provenance and
 # tests. Explicit paths/globs only: no .work drafts, caches or private files.
 REPRODUCTION_INPUT_PATTERNS = (
+    'tests/test_peaso_finding_group_api.py',
     'tests/test_least_privilege_permissions.py',
     'tests/provider_group_catalog_history_20261021.py',
     'tests/fixtures/provider_group_catalog_history_20261021.json.gz',

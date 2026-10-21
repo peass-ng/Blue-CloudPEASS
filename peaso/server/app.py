@@ -1268,7 +1268,8 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
                 finding_count=len(groups), by_status=dict(Counter(item["status"] for item in groups)),
                 observation_by_severity=stats.get("by_severity", {}),
                 by_severity=dict(Counter(item["severity"] for item in groups if item["status"] == "FAIL")),
-                by_category=dict(Counter(item["category"] for item in groups)))
+                by_category=dict(Counter(item["category"] for item in groups)),
+                failed_by_category=dict(Counter(item["category"] for item in groups if item["status"] == "FAIL")))
             value.update(finding_count=len(groups), finding_grouping="check-v1")
         return value
 

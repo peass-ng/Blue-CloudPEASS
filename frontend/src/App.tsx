@@ -276,12 +276,12 @@ export function App() {
                   <span className="nav-count">
                     {Number(
                       (
-                        report.data.stats?.by_category as
+                        report.data.stats?.failed_by_category as
                           | Record<string, number>
                           | undefined
                       )?.hardening ??
                         report.data.findings?.filter(
-                          (f) => f.category === "hardening",
+                          (f) => f.category === "hardening" && f.status === "FAIL",
                         ).length ??
                         0,
                     )}
