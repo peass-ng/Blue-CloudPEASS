@@ -50,6 +50,19 @@ RUNTIME_ADMISSION_INPUTS = {
 # Exact public inputs needed to reproduce the shipped compiler, provenance and
 # tests. Explicit paths/globs only: no .work drafts, caches or private files.
 REPRODUCTION_INPUT_PATTERNS = (
+    'tests/test_attack_detection_aws_devicefarm_batch140.py',
+    'tests/test_attack_detection_aws_devicefarm_sessions_batch141.py',
+    'tests/test_attack_detection_aws_keyspaces_data_batch143.py',
+    'tests/test_attack_detection_aws_keyspaces_management_batch142.py',
+    'tests/test_attack_detection_aws_lex_analytics_batch135.py',
+    'tests/test_attack_detection_aws_lex_hook_batch137.py',
+    'tests/test_attack_detection_aws_lex_hook_batch138.py',
+    'tests/test_attack_detection_aws_lex_runtime_batch136.py',
+    'tests/test_attack_detection_aws_lex_testset_batch136.py',
+    'tests/test_attack_detection_aws_license_ami_batch132.py',
+    'tests/test_attack_detection_aws_license_hardlimit_batch133.py',
+    'tests/test_attack_detection_aws_license_instance_batch134.py',
+    'tests/test_attack_detection_aws_route53_profiles_batch139.py',
     'tests/fixtures/shared_metadata_catalog_3496_20261020.json.gz',
     'tests/fixtures/shared_metadata_catalog_3496_20261020.provenance.json',
     'tests/test_snapshot_resource_identity_finite_source.py',
