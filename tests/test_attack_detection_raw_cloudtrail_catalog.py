@@ -104,3 +104,21 @@ def test_latest_catalog_preserves_raw_rule_opt_in(monkeypatch, tmp_path):
         assert len(detect_aws_events([event()], selected.rules)) == 1
     finally:
         catalog._remote_catalog.cache_clear()
+
+
+def test_resource_path_prefix_scopes_raw_rule_without_exposing_arn(tmp_path):
+    selected = rule(tmp_path, extra="x_cloudtrail_resource_path_prefix: /keyspace/system\n")
+    assert detect_aws_events([event()], selected) == []
+    system = deepcopy(event())
+    system["resources"] = [{
+        "type": "AWS::Cassandra::Table",
+        "ARN": f"arn:aws:cassandra:us-east-1:{ACCOUNT}:/keyspace/system_schema/table/tables",
+    }]
+    hits = detect_aws_events([system], selected)
+    assert len(hits) == 1
+    assert "/keyspace/system" not in str(hits)
+
+
+def test_resource_path_prefix_rejects_unsafe_or_nonraw_values(tmp_path):
+    with pytest.raises(ValueError, match="Unsupported raw CloudTrail resource prefix"):
+        rule(tmp_path, extra="x_cloudtrail_resource_path_prefix: ../private\n")
