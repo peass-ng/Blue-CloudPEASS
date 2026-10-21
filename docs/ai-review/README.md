@@ -8,8 +8,9 @@ Shell-enabled hosted reviews use the role-free Fargate isolation backend. A usab
 
 AI defaults to `true` in `ScanCreate` and schedules. The launch form can disable it. Existing schedules without a flag inherit `true`.
 
-Settings → AI review also provides **Disable AI for every scan**. This account-wide
-override applies in every workspace, including existing schedules and queued scans.
+Settings → AI review also provides **Disable AI for every scan**, in both hosted
+and on-premise deployments. This account-wide override applies in every workspace,
+including existing schedules and queued scans.
 It prevents new AI agent launches and retains saved provider credentials and each
 schedule's selection. Disabling needs no provider validation; enabling restores
 the usual per-scan selections and mandatory launch-time credential validation.

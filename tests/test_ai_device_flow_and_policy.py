@@ -23,8 +23,9 @@ def token():
 
 
 @pytest.fixture
-def state(tmp_path, monkeypatch):
-    settings = Settings(state_dir=tmp_path/'state', identity_dir=tmp_path/'identity', auth_mode='local')
+def state(tmp_path, monkeypatch, request):
+    settings = Settings(state_dir=tmp_path/'state', identity_dir=tmp_path/'identity',
+                        auth_mode=getattr(request, 'param', 'local'))
     store, cipher = SQLiteStore(settings.state_dir), AICipher(settings.identity_dir)
     monkeypatch.setattr('peaso.ai.isolation.available', lambda: True)
     monkeypatch.setattr(auth, 'default_token', token)
@@ -32,7 +33,7 @@ def state(tmp_path, monkeypatch):
     def identity(authorization: str | None = Header(default=None)):
         return Identity('bob' if authorization == 'Bearer bob' else 'alice',
                         auth_kind='api_key' if authorization == 'Bearer key' else 'user')
-    auth.mount_auth_routes(app, store, settings.identity_dir, identity)
+    auth.mount_auth_routes(app, store, settings.identity_dir, identity, auth_mode=settings.auth_mode)
     with TestClient(app) as client:
         yield settings, store, cipher, client
 
@@ -114,15 +115,17 @@ def test_terminal_or_malformed_poll_can_restart_without_replacing_auth(state, mo
     assert store.ai_state('alice', 'auth') == saved
 
 
-@pytest.mark.parametrize('mode', ['local', 'cognito'])
-def test_account_disable_is_private_persistent_and_skips_credentials(state, monkeypatch, mode):
+@pytest.mark.parametrize('state', ['local', 'cognito'], indirect=True)
+def test_account_disable_is_private_persistent_and_skips_credentials(state, monkeypatch):
     settings, store, cipher, client = state
     saved = cipher.encrypt({'provider': 'openai', 'model': 'gpt-5.3-codex', 'thinking': 'high', 'credential': 'PRIVATE-key', 'validated': True})
     assert store.set_ai_state('alice', providers.STATE_KEY, saved)
     monkeypatch.setattr(providers, 'validate_access', lambda *a: pytest.fail('No provider validation while disabled'))
     disabled = client.patch('/api/ai/preferences', json={'disabled': True})
     assert disabled.status_code == 200 and disabled.json() == {'disabled': True}
-    assert not client.get('/api/ai/configuration').json()['available']
+    configuration = client.get('/api/ai/configuration').json()
+    assert configuration['disabled'] is True and not configuration['available']
+    assert configuration['hosted'] is (settings.auth_mode != 'local')
     assert 'PRIVATE' not in disabled.text
     assert providers.review_disabled(SQLiteStore(settings.state_dir), 'alice')
     assert not providers.review_disabled(store, 'bob')
@@ -131,17 +134,58 @@ def test_account_disable_is_private_persistent_and_skips_credentials(state, monk
     assert client.patch('/api/ai/preferences', json={'disabled': False}, headers={'Authorization': 'Bearer key'}).status_code == 403
     assert client.patch('/api/ai/preferences', json={'disabled': 'false'}).status_code == 422
     with pytest.raises(providers.ReviewDisabled):
-        providers.resolve_access(store, cipher, 'alice', auth_mode=mode)
+        providers.resolve_access(store, cipher, 'alice', auth_mode=settings.auth_mode)
     auth.require_local_codex(settings, store, 'alice')
     assert store.ai_state('alice', providers.ERROR_KEY) is None
     assert client.patch('/api/ai/preferences', json={'disabled': False}).json()['disabled'] is False
     assert store.ai_state('alice', providers.STATE_KEY) == saved
 
 
+def test_hosted_policy_persists_in_dynamo_without_platform_credentials(tmp_path, monkeypatch):
+    import boto3
+    from botocore.stub import Stubber
+    from peaso.storage.dynamodb import DynamoStore, attrs
+
+    # Synthetic table and credentials; Stubber rejects every unplanned request.
+    client = boto3.client('dynamodb', region_name='us-east-1',
+                          aws_access_key_id='testing', aws_secret_access_key='testing')
+    store = DynamoStore('ai-policy-test', client)
+    key = attrs(store.key('alice', 'ai', providers.REVIEW_POLICY_KEY))
+    enabled, disabled = '{"disabled":false}', '{"disabled":true}'
+    def read(stub, value):
+        stub.add_response('get_item', {} if value is None else {'Item': dict(key, value={'S': value})},
+                          {'TableName': store.table, 'Key': key, 'ConsistentRead': True})
+    monkeypatch.setenv('PEASO_STORAGE', 'dynamodb')
+    monkeypatch.setattr('peaso.ai.crypto.AICipher', lambda *a: pytest.fail('No encryption key needed for the preference'))
+    monkeypatch.setattr(auth, 'default_token', lambda: pytest.fail('No hosted credential access'))
+    app = FastAPI()
+    auth.mount_auth_routes(app, store, tmp_path/'identity', lambda: Identity('alice'), auth_mode='cognito')
+    with Stubber(client) as stub, TestClient(app) as web:
+        read(stub, None)
+        stub.add_response('put_item', {}, {'TableName': store.table,
+            'ConditionExpression': 'attribute_not_exists(PK)', 'Item': dict(key, value={'S': disabled})})
+        assert web.patch('/api/ai/preferences', json={'disabled': True}).json() == {'disabled': True}
+        # A newly constructed repository sees the committed preference.
+        read(stub, disabled)
+        assert providers.review_disabled(DynamoStore(store.table, client), 'alice')
+        read(stub, disabled)
+        with pytest.raises(providers.ReviewDisabled):
+            providers.resolve_access(store, None, 'alice', auth_mode='cognito')
+        read(stub, disabled)
+        stub.add_response('put_item', {}, {'TableName': store.table, 'ConditionExpression': '#v=:old',
+            'ExpressionAttributeNames': {'#v': 'value'}, 'ExpressionAttributeValues': {':old': {'S': disabled}},
+            'Item': dict(key, value={'S': enabled})})
+        assert web.patch('/api/ai/preferences', json={'disabled': False}).json() == {'disabled': False}
+        read(stub, enabled)
+        assert not providers.review_disabled(DynamoStore(store.table, client), 'alice')
+        stub.assert_no_pending_responses()
+
+
+@pytest.mark.parametrize('state', ['local', 'cognito'], indirect=True)
 def test_disable_after_preflight_stops_next_agent_without_credential_warning(state, monkeypatch):
-    _, store, cipher, _ = state
+    settings, store, cipher, _ = state
     access = providers.ModelAccess('openai', 'gpt-5.3-codex', 'high', 'PRIVATE')
-    guard = providers.LaunchGuard(store, cipher, 'alice', 'local', None, access)
+    guard = providers.LaunchGuard(store, cipher, 'alice', settings.auth_mode, None, access)
     store.set_ai_state('alice', providers.REVIEW_POLICY_KEY, json.dumps({'disabled': True}))
     monkeypatch.setattr(providers, 'validate_access', lambda *a: pytest.fail('No inference probe'))
     with pytest.raises(providers.ReviewDisabled):
@@ -149,9 +193,11 @@ def test_disable_after_preflight_stops_next_agent_without_credential_warning(sta
     assert store.ai_state('alice', providers.ERROR_KEY) is None
 
 
+@pytest.mark.parametrize('state', ['local', 'cognito'], indirect=True)
 def test_review_pipeline_skips_all_stages_when_account_disabled(state, monkeypatch):
     settings, store, cipher, _ = state
     store.set_ai_state('alice', providers.REVIEW_POLICY_KEY, json.dumps({'disabled': True}))
+    monkeypatch.setenv('PEASO_AUTH_MODE', settings.auth_mode)
     monkeypatch.setattr(pipeline, 'invoke', lambda *a, **k: pytest.fail('No agent launch'))
     monkeypatch.setattr(pipeline, 'personal_token', lambda *a, **k: pytest.fail('No credential read'))
     monkeypatch.setattr(pipeline, 'AICipher', lambda *a: pytest.fail('No AI envelope key needed to opt out'))
@@ -161,6 +207,7 @@ def test_review_pipeline_skips_all_stages_when_account_disabled(state, monkeypat
     assert result['status'] == 'skipped' and result['reason'] == 'disabled_for_account'
 
 
+@pytest.mark.parametrize('state', ['local', 'cognito'], indirect=True)
 def test_manual_scan_request_is_overridden_when_disabled(state, monkeypatch):
     settings, store, cipher, _ = state
     store.set_ai_state('alice', providers.REVIEW_POLICY_KEY, json.dumps({'disabled': True}))
@@ -195,6 +242,7 @@ def test_queued_collector_rechecks_current_policy_before_child_start(state, monk
     assert captured['ai_enabled'] is False
 
 
+@pytest.mark.parametrize('state', ['local', 'cognito'], indirect=True)
 def test_due_schedule_runs_without_ai_preflight_and_preserves_scan_selection(state, monkeypatch):
     from peaso.worker import Worker
     settings, store, _, _ = state
