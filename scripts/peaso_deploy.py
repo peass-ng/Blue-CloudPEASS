@@ -50,6 +50,9 @@ RUNTIME_ADMISSION_INPUTS = {
 # Exact public inputs needed to reproduce the shipped compiler, provenance and
 # tests. Explicit paths/globs only: no .work drafts, caches or private files.
 REPRODUCTION_INPUT_PATTERNS = (
+    'tests/test_private_secret_evidence.py',
+    'tests/test_private_secret_evidence_integration.py',
+    'tests/test_gcp_current_function_validator_20261021.py',
     'tests/test_aws_sg_any_port_criteria_20261021.py',
     'tests/test_api_evidence_source_generation_20261021.py',
     'tests/test_api_finding_groups_static_20261021.py',

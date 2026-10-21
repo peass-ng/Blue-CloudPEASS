@@ -17,8 +17,8 @@ export const awsPolicyArns = [
   "arn:aws:iam::aws:policy/IAMAccessAnalyzerFullAccess",
 ];
 const awsPolicyList = awsPolicyArns.join(" ");
-const awsPermissions = "ReadOnlyAccess or verified equivalent baseline inventory permissions are required. SecurityAudit and IAMAccessAnalyzerFullAccess are recommended; missing or unverified recommended policies require acknowledgement because some checks might fail. IAMAccessAnalyzerFullAccess allows the scan to create missing analyzers, wait at least three minutes, collect findings, and delete only analyzers it created. External analyzers are regional; one unused analyzer covers the account and partition and incurs AWS charges.";
-export const awsHostedPermissions = "Deploy the customer role template from Onboarding in each target account. It creates the role, External ID trust, and collector-specific read policies. Baseline inventory access is required. SecurityAudit and IAMAccessAnalyzerFullAccess are recommended; missing or unverified recommended policies require acknowledgement because some checks might fail. IAMAccessAnalyzerFullAccess enables temporary analyzer creation, findings collection and cleanup of scan-created analyzers.";
+const awsPermissions = "ReadOnlyAccess or verified equivalent baseline inventory permissions are required. Optional exact secret-content checks need the separate per-surface reads in docs/secret-content-permissions.md; the default metadata role does not provide all of them. SecurityAudit and IAMAccessAnalyzerFullAccess are recommended; missing or unverified recommended policies require acknowledgement because some checks might fail. IAMAccessAnalyzerFullAccess allows the scan to create missing analyzers, wait at least three minutes, collect findings, and delete only analyzers it created. External analyzers are regional; one unused analyzer covers the account and partition and incurs AWS charges.";
+export const awsHostedPermissions = "Deploy the customer role template from Onboarding in each target account. Its metadata grants do not cover every optional exact secret-content check; see docs/secret-content-permissions.md and preserve any separately deployed read grants when updating the role. It creates the role, External ID trust, and collector-specific read policies. Baseline inventory access is required. SecurityAudit and IAMAccessAnalyzerFullAccess are recommended; missing or unverified recommended policies require acknowledgement because some checks might fail. IAMAccessAnalyzerFullAccess enables temporary analyzer creation, findings collection and cleanup of scan-created analyzers.";
 const awsRoleGrant = { label: "AWS CLI: attach policies to role", value: [
   "ROLE_NAME='REPLACE_WITH_SCANNING_ROLE_NAME'",
   "for POLICY_ARN in " + awsPolicyList + "; do",
@@ -88,7 +88,7 @@ export const gcpRoles = [
   "roles/securitycenter.findingsViewer",
   "roles/recommender.viewer",
 ];
-const gcpPermissions = "Grant these seven project roles to the scanning identity. Private Logs Viewer already includes Logs Viewer and permits Data Access log reads.";
+const gcpPermissions = "Grant these seven project roles to the scanning identity. Optional selected content needs separate bucket/repository/service grants in the resource-owning project; see docs/secret-content-permissions.md. A workload service agent is a different principal from the scanner. Private Logs Viewer already includes Logs Viewer and permits Data Access log reads.";
 const gcpGrant = (principal = "serviceAccount:REPLACE_WITH_SCANNING_SA_EMAIL") => ({
   label: "gcloud CLI: grant project roles",
   value: [
@@ -141,7 +141,7 @@ const gcpMetadataAccess = { label: "gcloud CLI: attach scanning service account 
   'gcloud compute instances set-service-account "$VM_NAME" --zone="$ZONE" --service-account="hacktricks-cspm-scan@$IDENTITY_PROJECT.iam.gserviceaccount.com" --scopes=https://www.googleapis.com/auth/cloud-platform',
 ].join("\n") };
 
-const azurePermissions = "Assign Reader and Security Reader on each subscription. Key Vault Reader is only for metadata inside RBAC-enabled vaults. For directory inventory, app credentials also need Microsoft Graph application permissions Directory.Read.All, Policy.Read.All, AuditLog.Read.All, Reports.Read.All, RoleManagement.Read.Directory, and Organization.Read.All with admin consent.";
+const azurePermissions = "Assign Reader and Security Reader on each subscription. Optional selected content needs separate site config/list, registry pull, storage data, workspace or service-specific reads; see docs/secret-content-permissions.md. Key Vault Reader is only for metadata inside RBAC-enabled vaults. For directory inventory, app credentials also need Microsoft Graph application permissions Directory.Read.All, Policy.Read.All, AuditLog.Read.All, Reports.Read.All, RoleManagement.Read.Directory, and Organization.Read.All with admin consent.";
 const azureRoleIds = [
   "Reader · acdd72a7-3385-48ef-bd42-f606fba81ae7",
   "Security Reader · 39bc4728-0917-49c7-9d2c-d95423bc2eb4",
@@ -223,7 +223,7 @@ const azureManagedIdentityAccess = { label: "Azure CLI: enable VM managed identi
   'az vm show --resource-group "$RESOURCE_GROUP" --name "$VM_NAME" --query identity.principalId -o tsv',
 ].join("\n") };
 
-const k8sPermissions = "Bind the identity to the built-in view ClusterRole and the extra RBAC metadata role shown below. Secret metadata inventory additionally needs list on Secrets; that permission exposes secret values to the identity even though the collector discards them.";
+const k8sPermissions = "Bind the identity to the built-in view ClusterRole and the extra RBAC metadata role shown below. Optional exact content targets can use namespace-scoped get/resourceNames Roles; Pod logs need pods/log get and private images need separate registry pull authorization. See docs/secret-content-permissions.md. Secret metadata inventory additionally needs list on Secrets; that permission exposes secret values to the identity even though the collector discards them.";
 const k8sCreateServiceAccount = { label: "kubectl: create scanning service account", value: [
   "NAMESPACE='REPLACE_WITH_NAMESPACE'",
   "SERVICE_ACCOUNT='hacktricks-cspm-scan'",

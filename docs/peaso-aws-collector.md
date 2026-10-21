@@ -1120,7 +1120,7 @@ absent. Only the selected clock check triggers this additional read.
 
 ### Dual-engine optional secret scanning
 
-The five explicitly selected content checks above use **Kingfisher SDK 1.4.0**
+The six explicitly selected content checks above use **Kingfisher SDK 1.4.0**
 and **TruffleHog 3.92.5**. Kingfisher scans memory buffers with embedded rules;
 TruffleHog receives the same bounded content through stdin. Neither engine
 validates, revokes or uses discovered credentials. Update checks and automatic
