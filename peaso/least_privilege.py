@@ -143,6 +143,8 @@ def project(provider, resources, snapshot=None):
                     "metadata": {}, "collections": collections}
     normalized = [{**row, "provider": provider, "id": row.get("id", str(i)), "scope": row.get("scope", ""), "data": _resource(row)} for i, row in enumerate(resources)]
     exposure_cards = exposure_project(snapshot, normalized)
+    from peaso.least_privilege_permissions import include_resolved_principals
+    exposure_cards = include_resolved_principals(provider, normalized, exposure_cards)
     for exposure_key, details in exposure_cards.items():
         if not details["exposures"] and not details["grant_reviews"]:
             continue

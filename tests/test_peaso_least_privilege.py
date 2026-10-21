@@ -95,6 +95,10 @@ def test_principal_page_reads_tenant_owned_projection_and_filters(tmp_path):
         "stateInfo": {"state": "ACTIVE"}, "name": "recommendations/one", "content": {"overview": {
             "member": "user:alice@example.com", "removedRole": "roles/editor"}}}}])
     projection["items"][0]["exposures"] = [{"kind": "internet_workload", "state": "unknown"}]
+    projection['items'].extend([
+        dict(projection['items'][0], id='critical-user', principal='user:zed@example.test', label='Zed', severity='critical', exposures=[]),
+        dict(projection['items'][0], id='low-user', principal='user:low@example.test', label='Low', severity='low', exposures=[]),
+    ])
     manifest["least_privilege"] = artifacts.put("alice", job["id"], "least-privilege", projection)
     (artifacts.root / reference).write_text(__import__("json").dumps(manifest))
     store.finish(job["id"], analyzer["owner"], "completed", reference)
@@ -115,5 +119,14 @@ def test_principal_page_reads_tenant_owned_projection_and_filters(tmp_path):
         assert client.get(route, params={"exposure": "external"}).json()["total"] == 0
         assert client.get(route, params={"exposure": "unresolved"}).json()["total"] == 1
         assert client.get(route, params={"exposure": "invalid"}).status_code == 422
+        assert client.get(route, params={'sort_by': 'severity', 'sort_order': 'desc', 'limit': 1}).json()['items'][0]['id'] == 'critical-user'
+        assert client.get(route, params={'sort_by': 'severity', 'sort_order': 'asc', 'limit': 1}).json()['items'][0]['principal'] == 'user:alice@example.com'
+        assert client.get(route, params={'sort_by': 'severity', 'sort_order': 'desc', 'limit': 1, 'offset': 1}).json()['items'][0]['id'] == 'low-user'
+        assert client.get(route, params={'sort_by': 'invented'}).status_code == 422
+        details = client.get(route + '/principals/user%3Aalice%40example.com')
+        assert details.status_code == 200
+        assert details.json()['high_risk_permissions'] == []
+        assert client.get(route + '/principals/not-owned').status_code == 404
         client.headers["Authorization"] = "Bearer bob"
         assert client.get(route).status_code == 404
+        assert client.get(route + "/principals/user%3Aalice%40example.com").status_code == 404

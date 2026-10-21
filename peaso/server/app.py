@@ -1272,13 +1272,10 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             value.update(finding_count=len(groups), finding_grouping="check-v1")
         return value
 
-    @app.get("/api/scans/{ident}/least-privilege")
-    def least_privilege(ident: str, search: str = "", exposure: Literal["external", "federated", "internet", "unresolved"] | None = None, offset: int = Query(default=0, ge=0),
-                        limit: int = Query(default=100, ge=1, le=500), user=Depends(identity)):
-        """One row per principal, backed by the immutable scan's native evidence."""
-        row, bundle = owned_bundle(user.tenant_id, ident)
+    def principal_projection(tenant, ident):
+        row, bundle = owned_bundle(tenant, ident)
         if bundle.get("least_privilege"):
-            projection = artifacts.get(user.tenant_id, bundle["least_privilege"])
+            projection = artifacts.get(tenant, bundle["least_privilege"])
         else:
             # Historical reports predate the compact projection artifact. Their
             # native resource chunks still carry the evidence needed to build it.
@@ -1287,10 +1284,18 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             if bundle.get("bundle_version") == 1 and bundle.get("resource_chunks"):
                 resource_rows = [dict(item, provider=provider)
                     for chunk in bundle["resource_chunks"]
-                    for item in artifacts.get(user.tenant_id, chunk["reference"])["items"]]
+                    for item in artifacts.get(tenant, chunk["reference"])["items"]]
                 projection = project(provider, resource_rows)
             else:
                 projection = project(provider, bundle.get("resources", []))
+        return row, bundle, projection
+
+    @app.get("/api/scans/{ident}/least-privilege")
+    def least_privilege(ident: str, search: str = "", exposure: Literal["external", "federated", "internet", "unresolved"] | None = None,
+                        sort_by: Literal["severity", "principal", "recommendations"] = "severity", sort_order: Literal["asc", "desc"] = "desc",
+                        offset: int = Query(default=0, ge=0), limit: int = Query(default=100, ge=1, le=500), user=Depends(identity)):
+        """Filter and sort the whole principal projection before pagination."""
+        row, bundle, projection = principal_projection(user.tenant_id, ident)
         needle = search.strip().casefold()[:200]
         candidates = projection["items"]
         if exposure:
@@ -1303,10 +1308,26 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             candidates = [card for card in candidates if needle in card["principal"].casefold()
                 or needle in card.get("label", "").casefold()
                 or any(needle in scope.casefold() for scope in card["scopes"])]
+        from peaso.principal_exposure import RANK
+        if sort_by == "severity":
+            candidates = sorted(candidates, key=lambda c: (RANK.get(c.get("severity"), 4), c.get("label", c["principal"]).casefold()), reverse=sort_order == "asc")
+        elif sort_by == "recommendations":
+            candidates = sorted(candidates, key=lambda c: (c.get("recommendation_count", 0), c["principal"].casefold()), reverse=sort_order == "desc")
+        else:
+            candidates = sorted(candidates, key=lambda c: c.get("label", c["principal"]).casefold(), reverse=sort_order == "desc")
         page = candidates[offset:offset + limit]
         return {"items": page, "total": len(candidates), "offset": offset,
             "next_offset": offset + len(page) if offset + len(page) < len(candidates) else None,
             "coverage": projection["coverage"]}
+
+    @app.get("/api/scans/{ident}/least-privilege/principals/{principal_id:path}")
+    def principal_permissions(ident: str, principal_id: str, user=Depends(identity)):
+        _, bundle, projection = principal_projection(user.tenant_id, ident)
+        card = next((c for c in projection["items"] if c["id"] == principal_id), None)
+        if card is None:
+            raise HTTPException(404, "Principal not found")
+        from .least_privilege_details import principal_detail
+        return principal_detail(artifacts, user.tenant_id, bundle, card)
 
     @app.get("/api/scans/{ident}/coverage")
     def coverage(ident: str, offset: int = Query(default=0, ge=0), limit: int = Query(default=500, ge=1, le=500), user=Depends(identity)):

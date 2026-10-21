@@ -235,7 +235,9 @@ test("account initial and Help route show actionable documentation", async ({ pa
   await page.getByRole("button", { name: "Help & documentation" }).click();
   await expect(page).toHaveURL(/#Help$/);
   await expect(page.getByRole("heading", { name: "Get started" })).toBeVisible();
+  await page.getByRole("navigation", { name: "Documentation chapters" }).getByRole("button", { name: "Connectors", exact: true }).click();
   await expect(page.getByRole("button", { name: "Open AWS setup guide" })).toBeVisible();
+  await page.getByLabel("Authentication setup method").selectOption("assume_role");
   await expect(page.getByRole("link", { name: /AWS cross-account roles/ })).toHaveAttribute("href", /docs\.aws\.amazon\.com/);
 });
 test("failed scan shows its curated role refusal in history and details", async ({ page }) => {
@@ -1147,4 +1149,53 @@ test("human asset labels preserve routing IDs and exact checklist filtering", as
     "sha256:global-route-id",
   );
   expect(await page.locator(".asset-cell img").count()).toBe(0);
+});
+
+test('Help documents API authentication, filterable routes and complete report downloads', async ({ page, context }) => {
+  await emptyApi(page);
+  await page.goto('/#Help');
+  await page.getByRole('navigation', { name: 'Documentation chapters' }).getByRole('button', { name: 'API reference', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Access your data through the API' })).toBeVisible();
+  await expect(page.getByText('API keys allow personal-account GET/HEAD reads.', { exact: false })).toBeVisible();
+  await expect(page.locator('.docs-code').first()).toContainText('Authorization: Bearer $CSPM_API_KEY');
+  await expect(page.locator('.docs-api-table tbody tr')).toHaveCount(27);
+  await page.getByRole('textbox', { name: 'Search API endpoints' }).fill('/findings');
+  await expect(page.locator('.docs-api-table tbody tr')).toHaveCount(2);
+  await expect(page.locator('.docs-api-table')).toContainText('/scans/{scan_id}/findings/{finding_id}');
+  await page.getByRole('textbox', { name: 'Search API endpoints' }).fill('no-such-endpoint');
+  await expect(page.getByText('No endpoints match this search.')).toBeVisible();
+  await page.getByRole('textbox', { name: 'Search API endpoints' }).clear();
+  await expect(page.getByText('without the API Authorization header', { exact: true })).toBeVisible();
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.getByRole('button', { name: 'Copy Authenticate and list assessments' }).click();
+  await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toContain('$CSPM_API/scans');
+  await page.screenshot({ path: '/tmp/cspm-help-api.png' });
+});
+
+test('Help provides every provider tutorial, scan guidance and platform definitions on mobile', async ({ page }) => {
+  await emptyApi(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/#Help');
+  const chapters = page.getByRole('navigation', { name: 'Documentation chapters' });
+  await chapters.getByRole('button', { name: 'Connectors', exact: true }).click();
+  for (const name of ['AWS', 'Google Cloud', 'Azure', 'Kubernetes']) {
+    await page.getByRole('button', { name, exact: true }).click();
+    await expect(page.getByRole('heading', { name: `${name} connector tutorial`, exact: true })).toBeVisible();
+    const methods = page.getByRole('combobox', { name: 'Authentication setup method' });
+    const values = await methods.locator('option').evaluateAll(options => options.map(option => (option as HTMLOptionElement).value));
+    for (const value of values) {
+      await methods.selectOption(value);
+      await expect(page.getByRole('heading', { name: 'Permissions', exact: true })).toBeVisible();
+    }
+  }
+  await chapters.getByRole('button', { name: 'Scans', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Run an assessment' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Optional content and image scans' })).toBeVisible();
+  await chapters.getByRole('button', { name: 'Platform guide', exact: true }).click();
+  for (const name of ['What each section is for', 'Objects and terminology', 'Understand finding statuses'])
+    await expect(page.getByRole('heading', { name, exact: true })).toBeVisible();
+  for (const term of ['Connector', 'Scope', 'Principal', 'Coverage', 'Privilege-escalation path', 'Access denied / DENIED', 'Manual / MANUAL'])
+    await expect(page.locator('dt').filter({ hasText: term }).first()).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(391);
+  await page.screenshot({ path: '/tmp/cspm-help-mobile.png' });
 });

@@ -1,5 +1,7 @@
 # External read-only API keys
 
+The application’s **Help → API reference** provides the installation’s base URL, copyable examples, a searchable endpoint reference, pagination instructions and report-download handling. **Help → Connectors**, **Scans** and **Platform guide** explain setup and result interpretation.
+
 In **Settings → API keys**, give a key a name and optional expiry. Copy the secret when it appears: the API returns it only in the creation response. Store it in your external tool's secret manager. Settings later shows only the name, display prefix, creation, expiry, revocation, and last-use times. Each account can keep at most 20 unrevoked keys; revoke an old key to free a slot.
 
 Use the key as a Bearer token over HTTPS. The initial key scope permits account GET reads, including account and usage, sanitized connectors, schedules, scans, paginated findings, coverage, maps, inventory metadata and individual native resources, catalog, and report downloads. It cannot create other keys, start scans, edit connectors or schedules, change quota, or retrieve stored cloud connector credentials. Revocation takes effect on the next request; expiry and a disabled or deleted hosted identity also stop access.
