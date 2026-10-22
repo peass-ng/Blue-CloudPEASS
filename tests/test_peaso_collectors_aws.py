@@ -20,6 +20,99 @@ IDENTITY = {"Account": ACCOUNT, "Arn": f"arn:aws:iam::{ACCOUNT}:user/reviewer", 
 NOW = datetime(2026, 10, 10, tzinfo=timezone.utc)
 
 
+@pytest.mark.parametrize('mode', ['success', 'denied', 'malformed', 'partial'])
+def test_private_auto_scope_plan_requires_complete_region_discovery(sdk, monkeypatch, mode):
+    from peaso.collection_events import scope_plan_callback
+    _, add, _ = sdk
+    add('sts').add_response('get_caller_identity', IDENTITY, {})
+    ec2 = add('ec2')
+    if mode == 'denied':
+        ec2.add_client_error('describe_regions', 'UnauthorizedOperation', expected_params={'AllRegions': True})
+    else:
+        rows = [{'RegionName': REGION, 'OptInStatus': 'opt-in-not-required'},
+                {'RegionName': 'eu-west-1', 'OptInStatus': 'not-opted-in'}]
+        if mode == 'malformed':
+            rows.append(dict(rows[0]))
+        response = {'Regions': rows}
+        ec2.add_response('describe_regions', response, {'AllRegions': True})
+        if mode == 'partial':
+            pages = aws.Requests.pages
+            def partial_pages(requests, *args, **kwargs):
+                result = pages(requests, *args, **kwargs)
+                if args[3] == 'describe_regions':
+                    return aws.ReadResult(result.items, 'partial', {'code': 'page_limit'})
+                return result
+            monkeypatch.setattr(aws.Requests, 'pages', partial_pages)
+    if mode == 'success':
+        ec2.add_response('describe_vpcs', {'Vpcs': []}, {})
+    events = []
+    with scope_plan_callback(lambda scopes: events.append(('plan', scopes))):
+        snapshot = aws.collect({'provider': 'aws', 'scopes': [], 'options': {
+            'max_pages': 1, '_collection_callback': lambda row: events.append(('read', row['type']))}}, ['vpc'])
+    plans = [value for kind, value in events if kind == 'plan']
+    assert plans == [(f'{ACCOUNT}/{REGION}',)] if mode == 'success' else plans == []
+    if mode == 'success':
+        assert events[0][0] == 'plan'
+    assert '_scope_plan' not in json.dumps(snapshot)
+
+
+@pytest.mark.parametrize('explicit', [False, True])
+def test_private_scope_plan_preserves_per_account_enabled_regions(sdk, monkeypatch, explicit):
+    from peaso.collection_events import scope_plan_callback
+    session, add, _ = sdk
+    other_account = '999999999999'
+    other = SimpleNamespace(get_partition_for_region=session.get_partition_for_region)
+    monkeypatch.setattr(aws, '_assume', lambda *args: other)
+    identity = {**IDENTITY, 'Account': other_account, 'Arn': f'arn:aws:iam::{other_account}:user/reviewer'}
+    sts = add('sts')
+    sts.add_response('get_caller_identity', IDENTITY, {})
+    sts.add_response('get_caller_identity', identity, {})
+    pages = aws.Requests.pages
+    def regional_pages(requests, current, service, region, operation, *args, **kwargs):
+        if operation == 'describe_regions':
+            selected = [REGION, 'eu-west-1'] if current is session else ['ap-south-1']
+            return aws.ReadResult([{'RegionName': value, 'OptInStatus': 'opt-in-not-required'} for value in selected], 'collected')
+        return pages(requests, current, service, region, operation, *args, **kwargs)
+    monkeypatch.setattr(aws.Requests, 'pages', regional_pages)
+    selected_regions = [REGION, 'ap-south-1'] if explicit else [REGION, 'eu-west-1', 'ap-south-1']
+    for region in selected_regions:
+        add('ec2', region).add_response('describe_vpcs', {'Vpcs': []}, {})
+    plans = []
+    with scope_plan_callback(plans.append):
+        aws.collect({'provider': 'aws', 'scopes': [f'{ACCOUNT}/{REGION}', f'{other_account}/ap-south-1'] if explicit else [], 'auth': {'assume_roles': [
+            f'arn:aws:iam::{other_account}:role/reviewer']}}, ['vpc'])
+    expected = [f'{ACCOUNT}/{REGION}', f'{other_account}/ap-south-1']
+    if not explicit:
+        expected.append(f'{ACCOUNT}/eu-west-1')
+    assert plans == [tuple(sorted(expected))]
+
+
+@pytest.mark.parametrize('mode', ['identity_denied', 'role_denied', 'organization_denied'])
+def test_private_scope_plan_never_closes_incomplete_target_discovery(sdk, mode):
+    from peaso.collection_events import scope_plan_callback
+    _, add, _ = sdk
+    sts = add('sts')
+    options, auth = {}, {}
+    if mode == 'identity_denied':
+        sts.add_client_error('get_caller_identity', 'AccessDenied', expected_params={})
+    else:
+        sts.add_response('get_caller_identity', IDENTITY, {})
+        if mode == 'role_denied':
+            arn = 'arn:aws:iam::999999999999:role/reviewer'
+            auth['assume_roles'] = [arn]
+            sts.add_client_error('assume_role', 'AccessDenied', expected_params={'RoleArn': arn, 'RoleSessionName': ANY})
+        else:
+            options['organization_role_name'] = 'reviewer'
+            add('organizations').add_client_error('list_accounts', 'AccessDeniedException', expected_params={})
+        ec2 = add('ec2')
+        ec2.add_response('describe_regions', {'Regions': [{'RegionName': REGION, 'OptInStatus': 'opt-in-not-required'}]}, {'AllRegions': True})
+        ec2.add_response('describe_vpcs', {'Vpcs': []}, {})
+    plans = []
+    with scope_plan_callback(plans.append):
+        aws.collect({'provider': 'aws', 'scopes': [], 'auth': auth, 'options': options}, ['vpc'])
+    assert plans == []
+
+
 @pytest.fixture
 def sdk(monkeypatch):
     session = boto3.Session(aws_access_key_id="selected-key-must-not-leak",
@@ -782,13 +875,15 @@ def test_hosted_worker_injects_trusted_scan_flag_after_validation(monkeypatch, t
     private = {"auth": auth, "options": {"organization_role_name": "audit"}}
     captured, finished = [], []
     job = {"id": "scan", "tenant": "tenant", "owner": "owner", "deadline": time.time() + 60,
-        "data": "{}", "connector": json.dumps({"data": {"provider": "aws"}, "auth": "encrypted"})}
+        "data": json.dumps({"ai_enabled": False}), "connector": json.dumps({"data": {"provider": "aws"}, "auth": "encrypted"})}
 
     class Store:
         def claim(self, *args, **kwargs):
             return job
         def public_job(self, row):
             return {"timeline": []}
+        def checkpoint_collections(self, tenant, ident):
+            return []
         def heartbeat(self, *args):
             return True
         def job(self, *args):

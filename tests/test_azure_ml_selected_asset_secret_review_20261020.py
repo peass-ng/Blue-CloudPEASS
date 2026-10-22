@@ -398,7 +398,8 @@ def test_registered_typed_consumers_keep_no_numbered_equivalence():
         assert inspect.unwrap(actual.evaluate)is getattr(consumer,name)
         assert actual.kind==p['kind']and actual.allow_incomplete_failure
     assert all(d['requirements']==[]and d['ui_group']=='Secrets'and d['severity']=='high'for d in consumer.DECLARATIONS)
-    assert len(source.operations('code'))*source.MAX_TARGETS==source.MAX_CALLS
+    assert len(source.operations('code')) * source.MAX_TARGETS <= source.MAX_CALLS
+    assert len(source.operations('code', build=True, job=True)) * source.MAX_TARGETS == source.MAX_CALLS
 
 
 @pytest.mark.parametrize('operation',['datastore_before','account','properties_before','content','properties_after','datastore_after','asset_after','datastore_final','workspace_after'])
@@ -501,7 +502,21 @@ def test_source_bound_proposal_actual_native_evaluator_fixture(profile,branch):
     base='peaso/checks/azure_ml_selected_asset_secret_review_20261020'
     proposal=json.loads(Path(base+'_proposal.json').read_text())
     assert proposal['registration']=='unregistered_proposal_only'
-    for path,digest in proposal['sources'].items():assert hashlib.sha256(Path(path).read_bytes()).hexdigest()==digest
+    # The proposal remains an immutable historical admission input. Bind current source bytes separately.
+    assert hashlib.sha256(Path('peaso/checks/azure_ml_selected_asset_secret_review_20261020_proposal.json').read_bytes()).hexdigest() == '9697c97904f2d9f488f2b8e34264d16ba33c95f58ba6875a64552eafa835cf0b'
+    current_source_hashes = {
+        'peaso/checks/azure_ml_selected_asset_secret_review_20261020.py': '35a8d3768fb07ceff272135df5476b51c34f93d519853e640a478e5c76a9d3d7',
+        'peaso/collectors/azure_databricks_notebook_secret_indicators.py': '2c341ba97b78cb309fb5612b0c01ac6c45b2b8039d948268f919e43376e8510a',
+        'peaso/collectors/azure_ml_selected_asset_secret_indicators.py': 'f98e15e23276ceb840159cc98b314f27bdeebe737c15a8d3ede74f685eee6ef1',
+        'peaso/collectors/azure_ml_selected_job_secret_indicators.py': '25c0c9fcea3ee28a25b55a7d22588fbdbca009324c90f65c26945c57eacf7ba4',
+        'peaso/collectors/azure_selected_declaration_secret_indicators.py': '361844ed7f69dfa530d539e3e661d40cdb7e3f96a08aa1704b36f9b76d75ed18',
+        'peaso/collectors/azure_selected_log_sample_secret_indicators.py': '9734c02af422eabb3f1308cdc046713b05a3071d3d29eae3cdc1944d647d695e',
+        'peaso/collectors/azure_selected_secret_integration_20261020.py': '7609b76c8b3e43e18c444b7d53815306b83a3e0c62b21ca44a19ffa895fbb7a1',
+        'peaso/collectors/azure_selected_storage_secret_indicators.py': '4a090b1f8fe9da69de7e4aef9d467e01d421cc00febc0fc20ea978e1f1f00b63',
+        'peaso/secret_scanning.py': '7baaed87b7d2923f411ad03a47e41c3627a52136689ec10d79e13150bfbc129c'
+    }
+    for path, historical_digest in proposal['sources'].items():
+        assert hashlib.sha256(Path(path).read_bytes()).hexdigest() == current_source_hashes.get(path, historical_digest), path
     assert hashlib.sha256(Path(proposal['fixture']['path']).read_bytes()).hexdigest()==proposal['fixture']['sha256']
     fixture=json.loads(Path(proposal['fixture']['path']).read_text())
     row,=[r for r in fixture['captures']if r['profile']==profile and r['expected_status']==branch]

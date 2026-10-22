@@ -108,8 +108,26 @@ def _diagnostics(raw):
     def informational_notice(line):
         fields = line.split('\t')
         return len(fields) == 3 and fields[1] == 'warn' and fields[2] == severity_notice
-    text = '\n'.join(line for line in lines
-        if not any(marker in line for marker in eol_markers) and not informational_notice(line))
+    timestamp = re.compile(r'\d{4}-\d{2}-\d{2}t\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:z|[+-]\d{2}:\d{2})\Z')
+    classified = []
+    for line in lines:
+        if any(marker in line for marker in eol_markers) or informational_notice(line):
+            continue
+        fields = line.split('\t')
+        structured = False
+        if (len(fields) >= 3 and timestamp.fullmatch(fields[0])
+                and fields[1] in ('info', 'debug', 'warn', 'error', 'fatal')):
+            try:
+                structured = datetime.fromisoformat(fields[0].replace('z', '+00:00')).tzinfo is not None
+            except ValueError:
+                pass
+        if structured:
+            # A structured INFO attribute can contain a path named "warning"
+            # or "error". Inspect only the message, but keep every real WARN.
+            classified.append((line, fields[2], fields[1] in ('warn', 'error', 'fatal')))
+        else:
+            # Unknown log shapes cannot prove that a warning is harmless.
+            classified.append((line, line, False))
     for category, fragments in (
         ('database_unavailable', ('failed to initialize db', 'database error', 'db error', 'first run cannot',
                                   'db schema', 'unable to open db', 'failed to open db', 'java db')),
@@ -119,7 +137,13 @@ def _diagnostics(raw):
         ('analysis_incomplete', ('failed to analyze', 'unable to analyze', 'scan error', 'scan failed',
                                  'fatal', 'error', 'warn')),
     ):
-        if any(fragment in text for fragment in fragments):
+        if category == 'analysis_incomplete':
+            found = any(is_failure or any(fragment in line for fragment in fragments[:-3])
+                        or any(fragment in message for fragment in fragments[-3:])
+                        for line, message, is_failure in classified)
+        else:
+            found = any(fragment in line for line, _, _ in classified for fragment in fragments)
+        if found:
             messages.append(category)
     return messages
 

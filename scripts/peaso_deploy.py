@@ -50,6 +50,17 @@ RUNTIME_ADMISSION_INPUTS = {
 # Exact public inputs needed to reproduce the shipped compiler, provenance and
 # tests. Explicit paths/globs only: no .work drafts, caches or private files.
 REPRODUCTION_INPUT_PATTERNS = (
+    'tests/test_progressive_owned_tasks.py',
+    'examples/benchmark_peaso_checkpoint_cadence.py',
+    'examples/benchmark_peaso_progressive_poll.py',
+    'examples/benchmark_peaso_publication_reuse.py',
+    'examples/benchmark_peaso_redaction.py',
+    'tests/test_aws_index_result_reuse_20261022.py',
+    'tests/test_document_redaction_performance.py',
+    'tests/test_incremental_report_cadence.py',
+    'tests/test_incremental_scope_plan_20261022.py',
+    'tests/test_progressive_poll_cost.py',
+    'tests/test_report_artifact_reuse.py',
     'tests/connector_access_receipts.py',
     'scripts/pytest_shard.py',
     'docs/ci-runtime-optimization-20261022.md',

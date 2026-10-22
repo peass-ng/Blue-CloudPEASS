@@ -25,7 +25,7 @@ SCANNER_MIDDLE = '3897b64c134f88e7ad17c3c1f31df2b5497d34df6c1340d04e536313652f94
 SCANNER_PERFORMANCE_PREDECESSOR = 'a1c7163c021ac85b945f3b4289a5fa45f4e641bc22e302c51c9014ec7531c322'
 SCANNER_AFTER = '7baaed87b7d2923f411ad03a47e41c3627a52136689ec10d79e13150bfbc129c'
 RECEIPT = 'peaso/checks/rawv2_private_source_successor_20261021.json'
-RECEIPT_SHA256 = 'd4661acb5eca058c9d62dacd7bc515539cb9aaf60b5fe7064d237a128f08aa4e'
+RECEIPT_SHA256 = 'ea5d4a9057330e9f09e93322ebd8d27e9512946493d5a487d8590e998be7a332'
 BRIDGE_RECEIPT_SHA256 = '5889b51b210bf8a45f3eb07c5b4a027a2fceec9562e5b6baed8c2ba614d27f1e'
 
 
@@ -106,7 +106,9 @@ def _verify_private_helper(root, receipt):
     if not path.is_relative_to(root / 'peaso'):
         raise RuntimeError('Private helper escaped package')
     source = path.read_bytes()
-    if (_digest(source) != PRIVATE_HELPER_SHA256
+    historical_source = _private_epoch.predecessor_bytes(
+        PRIVATE_HELPER, source, PRIVATE_HELPER_SHA256, root)
+    if (_digest(historical_source) != PRIVATE_HELPER_SHA256
             or receipt['private_helper_source_sha256'] != PRIVATE_HELPER_SHA256):
         raise RuntimeError('Private helper source changed')
     module = importlib.import_module('peaso.secret_evidence')
@@ -173,6 +175,28 @@ def _verify_private_helper(root, receipt):
                     or repr(value.__defaults__) != proof['defaults']
                     or repr(value.__kwdefaults__) != proof['kwdefaults']):
                 raise RuntimeError('Private helper live method changed: ' + name + '.' + method_name)
+    # The redactor is a second exact reviewed dependency of this helper.
+    auth_path = root / 'peaso/auth/secrets.py'
+    auth_source = auth_path.read_bytes()
+    auth_before = _private_epoch.predecessor_bytes(
+        'peaso/auth/secrets.py', auth_source,
+        'fef5439e9a3aa359f61ecdc8685428c2ffe72ee902f4002946a98901f796060b', root)
+    if _digest(auth_before) != 'fef5439e9a3aa359f61ecdc8685428c2ffe72ee902f4002946a98901f796060b':
+        raise RuntimeError('Private redactor predecessor changed')
+    auth = importlib.import_module('peaso.auth.secrets')
+    if (sys.modules.get(auth.__name__) is not auth
+            or Path(auth.__file__).resolve() != auth_path):
+        raise RuntimeError('Private redactor module changed')
+    auth_codes = _codes(_compiled(auth_source, auth_path))
+    for name in ('_literal_matcher', 'redact', 'Redactor.__init__', 'Redactor.__call__'):
+        value = vars(auth).get(name.split('.')[0])
+        for part in name.split('.')[1:]:
+            value = vars(value).get(part)
+        if (not inspect.isfunction(value)
+                or value.__module__ != auth.__name__
+                or value.__globals__ is not vars(auth)
+                or not _same_code(value.__code__, auth_codes.get(name))):
+            raise RuntimeError('Private redactor live callable changed: ' + name)
     return True
 
 

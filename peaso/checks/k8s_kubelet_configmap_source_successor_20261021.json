@@ -1,6 +1,6 @@
 {
-  "annotation_successor_receipt_sha256": "eaea883c716814fbd3f6da9c77a1cbeeb726992cad0dd792c6164ca2e7ea470f",
-  "annotation_successor_sha256": "02642ce49673ad1788c54c3eac11c8e308111cbafd447a83169b5a2d7caf68ed",
+  "annotation_successor_receipt_sha256": "c86df847eaef60f7c5e16656eb496d82b1a7a4062a400c0a5c60b702cbb2f76b",
+  "annotation_successor_sha256": "9333e323c8f5467a025f2afc99d4d7d8261d37ff84559c5916e8391a19ff75fd",
   "guard_receipt_sha256": "5999cddf4f03aeaf0a43d4acc722f86147490e1372c388efe8f31890d9075b79",
   "guard_sha256": "a8da9e4bf0c1d4a20c4f8b9ea4e2ba878640e3d356a440e03bbe738d50d89b57",
   "helper_sha256": "15092e316c2331e03fdae7fad4dda5ed92310a1c15a827b0009fbcd54a11693a",
@@ -15,5 +15,5 @@
     "k8s.review.kubelet_configmap.event_qps_bounded"
   ],
   "schema": "finite-k8s-kubelet-source-successor-v1",
-  "source_sha256": "accabb7b571df276088d8771c878cb2c05bc803ce31266d75f6b15ee8b59b561"
+  "source_sha256": "c1fc5f69ca00b4d337f0cf7f09c45f2bbb4c5ef4d0c5e1b893b111ee8b8a16f1"
 }

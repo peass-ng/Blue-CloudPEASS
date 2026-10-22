@@ -111,6 +111,20 @@ def _reusable_stages(artifacts, tenant, sections, stage_results):
             reused[stage] = artifact["result"]
     return reused
 
+
+def _cached_ai_access_reference(artifacts, tenant, ident, bound, cache, identity_dir):
+    """Keep one sealed reference per exact bound access set in this scan process."""
+    marker = hashlib.sha256(json.dumps(bound, sort_keys=True,
+        separators=(",", ":")).encode()).hexdigest()
+    key = (tenant, ident, marker)
+    reference = cache.get(key)
+    if reference is None:
+        from peaso.ai.crypto import AICipher
+        reference = artifacts.put(tenant, ident, "ai-access", {"sealed":
+            AICipher(identity_dir).encrypt({"entries": bound})})
+        cache[key] = reference
+    return reference
+
 _ROLE_ARN = re.compile(r"arn:(?:aws|aws-us-gov|aws-cn):iam::[0-9]{12}:role/[A-Za-z0-9+=,.@_/-]{1,512}\Z")
 _TARGET_MESSAGES = {
     "external_id_not_required_by_trust": "trust policy does not require External ID; add the sts:ExternalId condition shown in onboarding.",
@@ -184,6 +198,8 @@ def _process(role, request, connection):
         config = request.pop("artifact_config")
         artifacts = FileArtifacts(Path(config["root"])) if config["mode"] == "file" else S3Artifacts(config["bucket"], kms_key=config.get("kms_key"))
         tenant, ident = request["tenant_id"], request["scan_id"]
+        from peaso.storage.report_reuse import ReusableReportArtifacts
+        publication_artifacts = ReusableReportArtifacts(artifacts, tenant, ident)
         if role == "collector":
             _verify_aws_credentials(request.get("connector", {}))
             from peaso.engine import collect_snapshot
@@ -219,14 +235,8 @@ def _process(role, request, connection):
                             entries = ai_access.peek()
                             bound = ai_access.bind_targets(entries, public) if entries else []
                             if bound:
-                                marker = hashlib.sha256(json.dumps(bound, sort_keys=True,
-                                    separators=(",", ":")).encode()).hexdigest()
-                                reference = ai_access_cache.get(marker)
-                                if reference is None:
-                                    from peaso.ai.crypto import AICipher
-                                    reference = artifacts.put(tenant, ident, "ai-access", {"sealed":
-                                        AICipher(Path(request.get('ai_context', {}).get('identity_dir') or Settings().identity_dir)).encrypt({"entries": bound})})
-                                    ai_access_cache[marker] = reference
+                                reference = _cached_ai_access_reference(artifacts, tenant, ident,
+                                    bound, ai_access_cache, Path(request.get('ai_context', {}).get('identity_dir') or Settings().identity_dir))
                                 public.setdefault("metadata", {})["ai_access_reference"] = reference
                         except Exception:
                             public.setdefault("metadata", {})["ai_access_status"] = "unavailable"
@@ -246,7 +256,7 @@ def _process(role, request, connection):
                         snapshot_ref = artifacts.put(tenant, ident, "snapshot", snapshot)
                         if report is not None:
                             from peaso.storage.reports import publish_report
-                            report_ref = publish_report(artifacts, tenant, ident,
+                            report_ref = publish_report(publication_artifacts, tenant, ident,
                                                         without_private_values(redact_report(report)), snapshot)
                         else:
                             report_ref = None
@@ -265,6 +275,7 @@ def _process(role, request, connection):
                     dict.fromkeys(request.get("checkpoint_refs", ()))]
                 checkpoint_session.restore(restored, int(request.get("checkpoint_sequence", 0)))
                 request["_collection_callback"] = checkpoint_session.on_collection
+                request["_scope_plan_callback"] = checkpoint_session.on_scope_plan
                 try:
                     from peaso.worker_progress import stream_progress
                     with stream_progress(connection):
@@ -274,6 +285,7 @@ def _process(role, request, connection):
                 finally:
                     checkpoint_session.close()
                     request.pop("_collection_callback", None)
+                    request.pop("_scope_plan_callback", None)
                     ai_credentials = ai_access.finish()
             # Separate encrypted per-scan object; no reference or value enters
             # the native snapshot, public report, supervisor pipe or AI context.
@@ -282,8 +294,8 @@ def _process(role, request, connection):
             if request.get("ai_enabled", True) and ai_credentials:
                 try:
                     ai_credentials = ai_access.bind_targets(ai_credentials, snapshot)
-                    from peaso.ai.crypto import AICipher
-                    access_reference = artifacts.put(tenant, ident, "ai-access", {"sealed": AICipher(Path(request.get("ai_context", {}).get("identity_dir") or Settings().identity_dir)).encrypt({"entries": ai_credentials})})
+                    access_reference = _cached_ai_access_reference(artifacts, tenant, ident,
+                        ai_credentials, ai_access_cache, Path(request.get("ai_context", {}).get("identity_dir") or Settings().identity_dir))
                     snapshot.setdefault("metadata", {})["ai_access_reference"] = access_reference
                 except Exception:
                     snapshot.setdefault("metadata", {})["ai_access_status"] = "unavailable"
@@ -324,7 +336,7 @@ def _process(role, request, connection):
             sections = sections if isinstance(sections, dict) else {}
             native_value = dict(value, publication={"state": "partial", "phase": "analyzing",
                                                     "sequence": native_sequence, "sections": sections})
-            native_reference = publish_report(artifacts, tenant, ident, native_value, snapshot)
+            native_reference = publish_report(publication_artifacts, tenant, ident, native_value, snapshot)
             connection.send(("__checkpoint__", {"sequence": native_sequence,
                 "stage": "analyzer_native", "snapshot_ref": request["snapshot_ref"],
                 "report_ref": native_reference, "kind": None, "scope": None}))
@@ -339,7 +351,7 @@ def _process(role, request, connection):
             value = with_findings(value, value["ai"].get("network", {}).get("findings", []))
             value["publication"] = {"state": "final", "phase": "completed", "sequence": native_sequence,
                                     "sections": sections}
-            reference = publish_report(artifacts, tenant, ident, value, snapshot)
+            reference = publish_report(publication_artifacts, tenant, ident, value, snapshot)
         # Large evidence/report objects never cross the supervisor process pipe.
         connection.send((True, reference))
     except BaseException as exc:

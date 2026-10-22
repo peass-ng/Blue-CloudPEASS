@@ -5,6 +5,7 @@ run under the analyzer role, where AI authentication and isolated invocation
 are available. Stage artifacts are stored separately from collector manifests.
 """
 
+import copy
 import json
 import logging
 import multiprocessing
@@ -42,8 +43,79 @@ def _ready(job, artifacts, tenant):
     sections = publication.get("sections", {})
     if not isinstance(sections, dict):
         return None
+    if report.get("finding_grouping") == "check-v1":
+        # The download has check cards, while final review receives native
+        # per-asset findings. Each card contains its lossless observations.
+        groups = report.get("findings")
+        stats = report.get("stats")
+        if (not isinstance(groups, list) or not isinstance(stats, dict)
+                or stats.get("finding_count") != len(groups)):
+            return None
+        observations, seen = [], set()
+        for group in groups:
+            if not isinstance(group, dict):
+                return None
+            members = group.get("observations")
+            if not isinstance(members, list) or not members or not isinstance(members[0], dict):
+                return None
+            grouped = group.get("grouped") is True
+            if grouped:
+                if group.get("member_count") != len(members):
+                    return None
+            elif (not (group.get("secret_fingerprint") or
+                       group.get("check_id") == "analysis.internet_exposure")
+                  or group.get("id") != members[0].get("id")
+                  or group.get("status") != members[0].get("status")):
+                return None
+            counts = {}
+            for member in members:
+                if (not isinstance(member, dict) or not isinstance(member.get("id"), str)
+                        or not member["id"] or member["id"] in seen
+                        or member.get("provider") != group.get("provider")
+                        or member.get("check_id") != group.get("check_id")
+                        or "observations" in member or "_detail_reference" in member):
+                    return None
+                seen.add(member["id"])
+                status = member.get("status")
+                counts[status] = counts.get(status, 0) + 1
+                observations.append(copy.deepcopy(member))
+            if grouped and group.get("status_counts") != counts:
+                return None
+        if stats.get("observation_count") != len(observations):
+            return None
+        report = dict(report, findings=observations)
     snapshot = artifacts.get(tenant, snapshot_ref)
     return report, snapshot, sections
+
+
+def _ready_sections(job, artifacts, tenant):
+    """Read readiness only; stage children independently validate full artifacts.
+
+    Published bundles carry the same publication metadata in their summary.
+    Legacy bundles without it fall back to their report JSON, without fetching
+    the native snapshot in the watcher process.
+    """
+    report_ref, snapshot_ref = job.get("partial_report"), job.get("partial_snapshot")
+    if not report_ref or not snapshot_ref:
+        return None
+    report = artifacts.get(tenant, report_ref)
+    if isinstance(report, dict) and report.get("bundle_version") == 1:
+        report_json = report.get("report_json")
+        if not isinstance(report_json, str):
+            return None
+        summary = report.get("summary")
+        if isinstance(summary, dict) and isinstance(summary.get("publication"), dict):
+            report = summary
+        else:
+            report = artifacts.get(tenant, report_json)
+    if not isinstance(report, dict):
+        return None
+    publication = report.get("publication", {})
+    if (not isinstance(publication, dict) or publication.get("state") != "partial"
+            or publication.get("phase") != "collecting"):
+        return None
+    sections = publication.get("sections")
+    return sections if isinstance(sections, dict) else None
 
 
 def _artifact_config(artifacts):
@@ -164,6 +236,8 @@ def run_progressive(worker, tenant, ident, *, poll_seconds=0.25):
     owner = uuid.uuid4().hex
     lease_seconds = max(30, int(getattr(worker.settings, "lease_seconds", 30)))
     next_heartbeat = 0.0
+    checkpoint_key = None
+    checkpoint_sections = None
     try:
         max_workers = max(1, min(2, review_concurrency()))
     except (ValueError, OSError):
@@ -208,19 +282,34 @@ def run_progressive(worker, tenant, ident, *, poll_seconds=0.25):
                 continue
             if job["status"] != "collecting":
                 break
-            checkpoint = _ready(job, worker.artifacts, tenant)
-            if checkpoint:
-                report, snapshot, sections = checkpoint
-                selectors = json.loads(job["data"])
-                if selectors.get("ai_enabled", True):
-                    persisted = worker.store.stage_results(tenant, ident)
+            selectors = json.loads(job["data"])
+            if selectors.get("ai_enabled", True):
+                # Artifact references are immutable and paired by the durable
+                # publication transaction. Keep only readiness metadata here;
+                # heartbeat/result/claim handling still runs on every poll.
+                key = (job.get("partial_report"), job.get("partial_snapshot"))
+                if key != checkpoint_key:
+                    checkpoint_sections = _ready_sections(job, worker.artifacts, tenant)
+                    checkpoint_key = key
+                if checkpoint_sections is not None:
+                    eligible = []
                     for stage in STAGES:
-                        section = sections.get(stage, {})
+                        # A higher revision can supersede a live durable claim.
+                        # Keep the running child's handle until it settles so
+                        # every child remains bounded, heartbeated and drained.
+                        if stage in active:
+                            continue
+                        section = checkpoint_sections.get(stage, {})
                         if not isinstance(section, dict) or section.get("status") != "complete":
                             continue
                         revision = section.get("data_revision")
-                        if type(revision) is not int or revision < 0 or (stage, revision) in seen:
-                            continue
+                        if type(revision) is int and revision >= 0 and (stage, revision) not in seen:
+                            eligible.append((stage, revision))
+                    if not eligible or len(active) >= max_workers:
+                        worker.stopping.wait(poll_seconds)
+                        continue
+                    persisted = worker.store.stage_results(tenant, ident)
+                    for stage, revision in eligible:
                         if persisted.get(stage, {}).get("data_revision") == revision:
                             seen.add((stage, revision))
                             continue

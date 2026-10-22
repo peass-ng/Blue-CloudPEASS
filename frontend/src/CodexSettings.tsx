@@ -70,12 +70,24 @@ export function CodexSettings() {
   }
   const savedCredential = active?.selection?.provider === provider && active.selection.credential_saved;
   const ready = provider ? !!model.trim() && !!thinking && (provider === "codex" ? active?.codex_connected : !!credential || savedCredential) : active?.hosted || !!active?.selection;
-  return <Panel title="AI review"><div className="form">
-    <p>AI can recheck failed findings, explain the network, and prioritize security actions after each scan.</p>
+  return <Panel title="AI review"><div className="ai-settings">
+    <section className="ai-settings-section" aria-labelledby="ai-purpose-heading">
+      <h3 id="ai-purpose-heading">What AI does</h3>
+      <ul className="ai-purpose-list">
+        <li><strong>Hardening &amp; compliance:</strong> rechecks failed findings against the evidence and verifies cloud configuration when needed.</li>
+        <li><strong>Exposure:</strong> reviews failed exposure findings and verifies whether the recorded configuration supports them.</li>
+        <li><strong>Network architecture:</strong> explains VPCs and subnets and recommends architecture and segmentation improvements.</li>
+        <li><strong>Top 15 Actions:</strong> prioritizes security improvements and provides an action plan for each.</li>
+      </ul>
+      <p className="muted small">AI-enabled scans share evidence with the selected provider and allow read-only verification of scanned cloud accounts.</p>
+    </section>
+    <section className="ai-settings-section" aria-labelledby="ai-active-heading">
+      <h3 id="ai-active-heading">Current AI</h3>
     {connection.error ? <State error={connection.error} onRetry={() => void connection.refetch()} /> : <p role="status">{active?.disabled ? "AI review is disabled for every scan." : active?.isolation_available === false ? "AI review is unavailable until isolated agent execution is configured." : active?.source === "hacktricks" ? "HackTricks AI is used." : active?.available ? active.selection ? "Your AI configuration is used." : "Local AI is configured." : "Configure an AI provider to enable AI review."}</p>}
-    <label className="checkbox"><input type="checkbox" checked={policy.isPending ? !!policy.variables : !!active?.disabled} disabled={!active || policy.isPending} onChange={event => policy.mutate(event.target.checked)} />Disable AI for every scan</label>
-    <p className="muted small">Applies to your scans in every workspace, including schedules and queued scans. Saved provider credentials are kept. Turn this off to use each scan's AI selection again.</p>
-    <p className="muted small">AI-enabled scans share evidence with the selected provider and allow read-only verification of scanned cloud accounts. You can turn AI off for each scan or schedule.</p>
+      {active?.selection && <p className="muted small">{providers.find(([value]) => value === active.selection?.provider)?.[1] || active.selection.provider} · {active.selection.model} · {active.selection.thinking} thinking</p>}
+    </section>
+    <section className="ai-settings-section" aria-labelledby="ai-configure-heading">
+      <h3 id="ai-configure-heading">Configure AI</h3>
     {active?.configuration_error && <p role="alert">AI is paused: {active.configuration_error.message} No AI workloads will be launched. Validate and save your settings to resume.</p>}
     {active?.configuration_error && <button className="button" disabled={revalidate.isPending} onClick={() => revalidate.mutate()}>Revalidate saved AI configuration</button>}
     {active?.hosted && <p className="muted small">HackTricks AI is the default when no personal configuration is selected. If validation fails, AI stops until you fix your settings or explicitly select and validate HackTricks AI.</p>}
@@ -101,6 +113,13 @@ export function CodexSettings() {
       </div>
     </form>
     {login && <div role="status"><p>On your laptop, open <a href={login.verification_url} target="_blank" rel="noreferrer">Codex sign-in</a> and enter this code:</p><p><strong>{login.user_code}</strong></p><button type="button" className="button" onClick={() => void copyCode()}>{copied ? "Code copied" : "Copy sign-in code"}</button><p>Waiting for sign-in. The code expires at {new Date(login.expires_at * 1000).toLocaleTimeString()}.</p></div>}
+    </section>
+    <section className="ai-settings-section" aria-labelledby="ai-disable-heading">
+      <h3 id="ai-disable-heading">Disable AI</h3>
+      <p className="muted small">For individual runs, turn AI off in the scan or schedule. To disable it everywhere, use the switch below.</p>
+    <label className="checkbox"><input type="checkbox" checked={policy.isPending ? !!policy.variables : !!active?.disabled} disabled={!active || policy.isPending} onChange={event => policy.mutate(event.target.checked)} />Disable AI for every scan</label>
+    <p className="muted small">Applies to your scans in every workspace, including schedules and queued scans. Saved provider credentials are kept. Turn this off to use each scan's AI selection again.</p>
+    </section>
     {message && <p role="status">{message}</p>}
     {(start.error || disconnect.error || save.error || revalidate.error || policy.error) && <p role="alert">{humanError(start.error || disconnect.error || save.error || revalidate.error || policy.error)}</p>}
   </div></Panel>;

@@ -449,7 +449,16 @@ def test_secret_bearing_selected_key_never_exported(monkeypatch):
 def test_proposal_exact_current_sources_and_native_fixture_bytes():
     proposal=json.loads(Path('peaso/checks/azure_selected_declaration_secret_review_20261020_proposal.json').read_text())
     assert proposal['registration']=='unregistered_proposal_only'
-    for path,want in proposal['sources'].items():assert hashlib.sha256(Path(path).read_bytes()).hexdigest()==want,path
+    # The proposal remains an immutable historical admission input. Bind current source bytes separately.
+    assert hashlib.sha256(Path('peaso/checks/azure_selected_declaration_secret_review_20261020_proposal.json').read_bytes()).hexdigest() == 'da9a3ad3926a86fa36302c11c8c41de016ec20f089d415910fc9c1f86955cd20'
+    current_source_hashes = {
+        'peaso/collectors/azure_selected_declaration_secret_indicators.py': '361844ed7f69dfa530d539e3e661d40cdb7e3f96a08aa1704b36f9b76d75ed18',
+        'peaso/collectors/azure_selected_secret_integration_20261020.py': '7609b76c8b3e43e18c444b7d53815306b83a3e0c62b21ca44a19ffa895fbb7a1',
+        'peaso/collectors/azure_selected_storage_secret_indicators.py': '4a090b1f8fe9da69de7e4aef9d467e01d421cc00febc0fc20ea978e1f1f00b63',
+        'peaso/secret_scanning.py': '7baaed87b7d2923f411ad03a47e41c3627a52136689ec10d79e13150bfbc129c'
+    }
+    for path, historical_digest in proposal['sources'].items():
+        assert hashlib.sha256(Path(path).read_bytes()).hexdigest() == current_source_hashes.get(path, historical_digest), path
     fixture=proposal['fixture'];assert hashlib.sha256(Path(fixture['path']).read_bytes()).hexdigest()==fixture['sha256']
     assert {d['id']for d in proposal['checks']}=={d['id']for d in consumer.DECLARATIONS}
     for d in proposal['checks']:
