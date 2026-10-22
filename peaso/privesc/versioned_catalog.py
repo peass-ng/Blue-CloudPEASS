@@ -21,7 +21,12 @@ V4_EFFECTIVE_TREE = "413792ea4aec86e48c352ffab2c0bea9e82795bc234251342737ec0276b
 LEGACY_DELTA = Path(__file__).resolve().parent / "catalog_versions/legacy-0b3633-delta.json"
 BOUNDED_MANIFEST = "734401b202895e00ac1b6cb0f1534f77cde4d8e2ba912ca0ee974b1b8ec5035c"
 BOUNDED_TREE = "1a54bad4102d18f89c78f45c915964554a62f994c1bffa693844cac5e119cca8"
-CURRENT_MANIFEST = 'eaa7ebf65018ebf1050dd6e0da0f0fe5faeba1cb8860e58d767ff5514f1b26a0'
+CURRENT_MANIFEST = 'cc82aa1ec6b773f74eae2c9cd1151117fa5b4429d49db99e21361a6340af04c5'
+ECS_NEW_TASK_691_PREVIOUS_MANIFEST = 'eaa7ebf65018ebf1050dd6e0da0f0fe5faeba1cb8860e58d767ff5514f1b26a0'
+ECS_NEW_TASK_691_PREVIOUS_TREE = '14c112c88b85e8b2b7931b3bc1188be670c78101f832b5af82d623b57976f35e'
+ECS_NEW_TASK_691_PREVIOUS_ARCHIVE_SHA256 = '5df7bb9d79c556cfb7434981f7e9c25385d3cd37d7f70a309c3521021350e528'
+ECS_NEW_TASK_691_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-691-ecs-new-task-source-manifest.json'
+ECS_NEW_TASK_691_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-691-ecs-new-task-catalog.tar.gz'
 ORGANIZATIONS_RCP_691_REVISIONLESS_MANIFEST = '7d528406be7793c99131834f3b4747dbf14fec5ac0515d813c60949670c1baba'
 ORGANIZATIONS_RCP_691_PREVIOUS_MANIFEST = 'fb78323d003a13e56cb130b11cbc5b5236bd91c31a67f0cc81c5aae05eaac45e'
 ORGANIZATIONS_RCP_691_PREVIOUS_TREE = 'e79cf10386508df546b33f8383e78907948571eaf6479b2047a8a45683b65ae8'
@@ -452,7 +457,7 @@ PRIOR_CURRENT_MANIFEST = "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0c
 PRIOR_DISCLOSURE_MANIFEST = "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
 PRIOR_DISCLOSURE_TREE = "5091464bedcb10bb87301695ca733276dc67b865e544c408ccf72a5408176f0f"
 PRIOR_DISCLOSURE_HISTORY = Path(__file__).resolve().parent / "catalog_versions/disclosure-v7-manifest.json"
-CURRENT_TREE = '14c112c88b85e8b2b7931b3bc1188be670c78101f832b5af82d623b57976f35e'
+CURRENT_TREE = '0ff0d0acb3b498cfe7ff075c67997faf7ff9c90530f30636106a228c221d6a57'
 PRIOR_CURRENT_TREE = "99207e6469fc5e5b3daf21324e6860599b116ffcf7d30600643bd229b0f11494"
 CURRENT_ENTRY_COUNT = 691
 CURRENT_EXCLUDED_COUNT = 3737
@@ -574,6 +579,15 @@ def _verified_teststate_690_previous():
         TESTSTATE_690_PREVIOUS_MANIFEST_PATH, TESTSTATE_690_PREVIOUS_ARCHIVE,
         TESTSTATE_690_PREVIOUS_MANIFEST, TESTSTATE_690_PREVIOUS_ARCHIVE_SHA256,
         TESTSTATE_690_PREVIOUS_TREE, 690, 3723)
+
+
+@lru_cache(maxsize=1)
+def _verified_ecs_new_task_691_previous():
+    """Keep the exact catalog before the new ECS task launch was bound to a live cluster."""
+    return _verified_archived_current(
+        ECS_NEW_TASK_691_PREVIOUS_MANIFEST_PATH, ECS_NEW_TASK_691_PREVIOUS_ARCHIVE,
+        ECS_NEW_TASK_691_PREVIOUS_MANIFEST, ECS_NEW_TASK_691_PREVIOUS_ARCHIVE_SHA256,
+        ECS_NEW_TASK_691_PREVIOUS_TREE, 691, 3737)
 
 
 @lru_cache(maxsize=1)
@@ -1328,6 +1342,10 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "current", "exact_strict_privesc"
+    elif (binding.get("manifest_sha256") == ECS_NEW_TASK_691_PREVIOUS_MANIFEST and
+          binding.get("effective_tree_sha256") == ECS_NEW_TASK_691_PREVIOUS_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "ecs_new_task_691_previous", "exact_previous_current"
     elif (binding.get("manifest_sha256") == ORGANIZATIONS_RCP_691_REVISIONLESS_MANIFEST and
           binding.get("effective_tree_sha256") == CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -1671,6 +1689,9 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
         if version == "current":
             current = _verified_current(str(catalog_dir), str(manifest_path))
             return {ident: current[ident] for ident in ids if ident in current}, status
+        if version == "ecs_new_task_691_previous":
+            previous = _verified_ecs_new_task_691_previous()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "organizations_rcp_691_previous":
             previous = _verified_organizations_rcp_691_previous()
             return {ident: previous[ident] for ident in ids if ident in previous}, status

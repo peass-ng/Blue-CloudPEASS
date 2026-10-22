@@ -261,6 +261,53 @@ def test_ecs_runtask_override_binds_task_cluster_and_passed_roles():
     assert_unresolved(fargate, ALICE, technique)
 
 
+def test_ecs_new_task_definition_runtask_needs_same_cluster_and_all_revisions():
+    technique = "aws-ecs-passrole-registertaskdefinition-runtask"
+    target = role("target", "ecs-tasks.amazonaws.com")
+    cluster_arn = f"arn:aws:ecs:{REGION}:{ACCOUNT}:cluster/prod"
+    family = "PeasoPrivesc" + hashlib.sha256((ALICE + target["Arn"] + REGION).encode()).hexdigest()[:16]
+    task_scope = f"arn:aws:ecs:{REGION}:{ACCOUNT}:task-definition/{family}:*"
+    passed = allow("iam:PassRole", resource=target["Arn"])
+    passed["Condition"] = {"StringEquals": {"iam:PassedToService": "ecs-tasks.amazonaws.com"}}
+    register = allow("ecs:RegisterTaskDefinition", resource=task_scope)
+    run = allow("ecs:RunTask", resource=task_scope)
+    run["Condition"] = {"ArnEquals": {"ecs:cluster": cluster_arn}}
+
+    def result(statements=(passed, register, run), capacity=1, cluster_status="collected",
+               instance_status="ACTIVE", agent_connected=True, instance_inventory="collected"):
+        cluster = {"clusterArn": cluster_arn, "status": "ACTIVE",
+                   "registeredContainerInstancesCount": capacity}
+        container_instances = [{"containerInstanceArn": f"{cluster_arn.replace(':cluster/', ':container-instance/')}/host",
+                                "clusterArn": cluster_arn, "status": instance_status,
+                                "agentConnected": agent_connected}] if capacity else []
+        return real(aws_snap([user("alice", *statements)], [target], [
+            col("ecs_cluster", [cluster] if cluster_status == "collected" else [], cluster_status),
+            col("ecs_container_instance", container_instances if instance_inventory == "collected" else [],
+                instance_inventory)]),
+            technique, include_unknown=True)
+
+    assert target["Arn"] in reached(result(), ALICE, technique)
+    assert target["Arn"] not in reached(result(capacity=0), ALICE, technique)
+    assert_unresolved(result(capacity=0), ALICE, technique)
+    for unavailable in (result(instance_status="DRAINING"), result(agent_connected=False),
+                        result(instance_inventory="access_denied")):
+        assert target["Arn"] not in reached(unavailable, ALICE, technique)
+        assert_unresolved(unavailable, ALICE, technique)
+    assert target["Arn"] not in reached(result(cluster_status="empty"), ALICE, technique)
+    wrong_service = copy.deepcopy(passed)
+    wrong_service["Condition"]["StringEquals"]["iam:PassedToService"] = "lambda.amazonaws.com"
+    assert target["Arn"] not in reached(result((wrong_service, register, run)), ALICE, technique)
+    one_revision = allow("ecs:RunTask", resource=task_scope[:-1] + "1")
+    assert target["Arn"] not in reached(result((passed, register, one_revision)), ALICE, technique)
+    assert_unresolved(result((passed, register, one_revision)), ALICE, technique)
+    wrong_cluster = copy.deepcopy(run)
+    wrong_cluster["Condition"]["ArnEquals"]["ecs:cluster"] = cluster_arn.replace("prod", "other")
+    assert target["Arn"] not in reached(result((passed, register, wrong_cluster)), ALICE, technique)
+    denied_revision = {"Effect": "Deny", "Action": "ecs:RunTask", "Resource": task_scope[:-1] + "2"}
+    assert target["Arn"] not in reached(result((passed, register, run, denied_revision)), ALICE, technique)
+    assert_unresolved(result((passed, register, run, denied_revision)), ALICE, technique)
+
+
 def test_spot_request_scoped_grant_stays_visible_without_claiming_role_execution():
     ident = "aws-ec2-requestspotinstances-passrole"
     target = role("target", "ec2.amazonaws.com", profiles=[profile_arn("target")])

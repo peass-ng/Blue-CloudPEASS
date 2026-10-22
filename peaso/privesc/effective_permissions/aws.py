@@ -12406,6 +12406,91 @@ class AwsModel(Model):
                 elif self._account_status("ecs_task_definition", node.scope) != "collected":
                     out[tid] = ("unknown", "ecs_task_definition_not_collected")
             return out
+        if pid == "ecs_new_task_definition_runtask_ready":
+            if source is None:
+                return None
+            partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+            scopes = [scope for scope in self.snapshot.get("scopes", ()) if isinstance(scope, str)
+                      and scope.startswith(source.scope + "/") and scope.split("/", 1)[1] not in ("global", "*")]
+
+            def covers_every_revision(action, task_arn):
+                allows, _ = self._statements(source, action)
+                for statement in allows:
+                    if statement.notresource or statement.variables:
+                        continue
+                    for pattern in statement.resources:
+                        if pattern == "*":
+                            return True
+                        parts = pattern.split(":", 5)
+                        if len(parts) != 6 or not parts[5].startswith("task-definition/"):
+                            continue
+                        resource = parts[5]
+                        if ":" in resource:
+                            if resource.rsplit(":", 1)[1] != "*":
+                                continue
+                        elif not resource.endswith("*"):
+                            continue
+                        if (glob_match(pattern, task_arn, False) and
+                                glob_match(pattern, task_arn.rsplit(":", 1)[0] + ":999999999", False)):
+                            return True
+                return False
+
+            for tid, role in candidates.items():
+                uncertain = source.incomplete or role.incomplete or not scopes
+                for scope in scopes:
+                    if not self._region_ok("ecs_cluster", source.scope, scope.split("/", 1)[1]):
+                        uncertain = True
+                        continue
+                    region = scope.split("/", 1)[1]
+                    family = "PeasoPrivesc" + hashlib.sha256(
+                        (source.id + tid + region).encode()).hexdigest()[:16]
+                    task_arn = f"arn:{partition}:ecs:{region}:{source.scope}:task-definition/{family}:1"
+                    if not all(covers_every_revision(action, task_arn) for action in
+                               ("ecs:registertaskdefinition", "ecs:runtask")):
+                        if (self._statements(source, "ecs:registertaskdefinition")[0] and
+                                self._statements(source, "ecs:runtask")[0]):
+                            uncertain = True
+                        continue
+                    if (self._statements(source, "ecs:registertaskdefinition")[1] or
+                            self._statements(source, "ecs:runtask")[1]):
+                        uncertain = True  # Revision-specific denies need the returned revision.
+                        continue
+                    registration = self.check(source, {"action": "ecs:RegisterTaskDefinition",
+                        "request_context": {"ecs:compute-compatibility": "EC2"}}, task_arn)
+                    passed = self.check(source, {"action": "iam:PassRole", "request_context": {
+                        "iam:PassedToService": "ecs-tasks.amazonaws.com"}}, tid)
+                    if registration is None or passed is None:
+                        continue
+                    for cluster_arn, cluster in self.ecs_cluster_info.items():
+                        if not cluster_arn.startswith(f"arn:{partition}:ecs:{region}:{source.scope}:cluster/"):
+                            continue
+                        if cluster.get("status") != "ACTIVE" or cluster.get("count") is None:
+                            uncertain = True
+                            continue
+                        if cluster["count"] < 1:
+                            uncertain = True  # A Fargate launch may still be viable with network evidence.
+                            continue
+                        container_instances = [item for item_scope, item in items(self.snapshot, "ecs_container_instance")
+                            if item_scope == scope and item.get("clusterArn") == cluster_arn]
+                        if not any(item.get("status") == "ACTIVE" and item.get("agentConnected") is True
+                                   for item in container_instances):
+                            # A registered count alone may include disconnected or draining hosts.
+                            uncertain = True
+                            continue
+                        run = self.check(source, {"action": "ecs:RunTask", "request_context": {
+                            "ecs:cluster": cluster_arn}}, task_arn)
+                        if run is None:
+                            continue
+                        if (registration.confidence == passed.confidence == run.confidence == "derived" and
+                                not source.incomplete and not role.incomplete):
+                            out[tid] = ("conditional", "ecs_new_ec2_task_definition_cluster_and_role_bound")
+                            break
+                        uncertain = True
+                    if tid in out:
+                        break
+                if tid not in out and uncertain:
+                    out[tid] = ("unknown", "ecs_new_task_definition_or_launch_not_verified")
+            return out
         if pid == "ecs_existing_task_override_runnable_with_role":
             if source is None:
                 return None
