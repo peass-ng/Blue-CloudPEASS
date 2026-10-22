@@ -308,6 +308,47 @@ def test_ecs_new_task_definition_runtask_needs_same_cluster_and_all_revisions():
     assert_unresolved(result((passed, register, run, denied_revision)), ALICE, technique)
 
 
+def test_ecs_new_task_definition_starttask_binds_exact_connected_host():
+    technique = "aws-ecs-passrole-registertaskdefinition-starttask"
+    target = role("target", "ecs-tasks.amazonaws.com")
+    cluster_arn = f"arn:aws:ecs:{REGION}:{ACCOUNT}:cluster/prod"
+    host_arn = f"arn:aws:ecs:{REGION}:{ACCOUNT}:container-instance/prod/host1"
+    family = "PeasoPrivesc" + hashlib.sha256((ALICE + target["Arn"] + REGION).encode()).hexdigest()[:16]
+    task_scope = f"arn:aws:ecs:{REGION}:{ACCOUNT}:task-definition/{family}:*"
+    passed = allow("iam:PassRole", resource=target["Arn"])
+    passed["Condition"] = {"StringEquals": {"iam:PassedToService": "ecs-tasks.amazonaws.com"}}
+    register = allow("ecs:RegisterTaskDefinition", resource=task_scope)
+    start = allow("ecs:StartTask", resource=task_scope)
+    start["Condition"] = {"ArnEquals": {"ecs:cluster": cluster_arn,
+                                        "ecs:container-instances": host_arn}}
+
+    def result(statements=(passed, register, start), *, host_status="ACTIVE", connected=True,
+               host_inventory="collected", cluster_inventory="collected"):
+        cluster = {"clusterArn": cluster_arn, "status": "ACTIVE", "registeredContainerInstancesCount": 1}
+        host = {"clusterArn": cluster_arn, "containerInstanceArn": host_arn,
+                "status": host_status, "agentConnected": connected}
+        return real(aws_snap([user("alice", *statements)], [target], [
+            col("ecs_cluster", [cluster] if cluster_inventory == "collected" else [], cluster_inventory),
+            col("ecs_container_instance", [host] if host_inventory == "collected" else [], host_inventory)]),
+            technique, include_unknown=True)
+
+    assert target["Arn"] in reached(result(), ALICE, technique)
+    for unresolved in (result(host_status="DRAINING"), result(connected=False),
+                       result(host_inventory="access_denied")):
+        assert target["Arn"] not in reached(unresolved, ALICE, technique)
+        assert_unresolved(unresolved, ALICE, technique)
+    assert target["Arn"] not in reached(result(cluster_inventory="empty"), ALICE, technique)
+    wrong_host = copy.deepcopy(start)
+    wrong_host["Condition"]["ArnEquals"]["ecs:container-instances"] = host_arn.replace("host1", "host2")
+    assert target["Arn"] not in reached(result((passed, register, wrong_host)), ALICE, technique)
+    one_revision = allow("ecs:StartTask", resource=task_scope[:-1] + "1")
+    assert target["Arn"] not in reached(result((passed, register, one_revision)), ALICE, technique)
+    assert_unresolved(result((passed, register, one_revision)), ALICE, technique)
+    denied_revision = {"Effect": "Deny", "Action": "ecs:StartTask", "Resource": task_scope[:-1] + "2"}
+    assert target["Arn"] not in reached(result((passed, register, start, denied_revision)), ALICE, technique)
+    assert_unresolved(result((passed, register, start, denied_revision)), ALICE, technique)
+
+
 def test_spot_request_scoped_grant_stays_visible_without_claiming_role_execution():
     ident = "aws-ec2-requestspotinstances-passrole"
     target = role("target", "ec2.amazonaws.com", profiles=[profile_arn("target")])

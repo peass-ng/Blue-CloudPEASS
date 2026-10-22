@@ -12406,9 +12406,10 @@ class AwsModel(Model):
                 elif self._account_status("ecs_task_definition", node.scope) != "collected":
                     out[tid] = ("unknown", "ecs_task_definition_not_collected")
             return out
-        if pid == "ecs_new_task_definition_runtask_ready":
+        if pid in ("ecs_new_task_definition_runtask_ready", "ecs_new_task_definition_starttask_ready"):
             if source is None:
                 return None
+            launch_action = "ecs:StartTask" if pid == "ecs_new_task_definition_starttask_ready" else "ecs:RunTask"
             partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
             scopes = [scope for scope in self.snapshot.get("scopes", ()) if isinstance(scope, str)
                       and scope.startswith(source.scope + "/") and scope.split("/", 1)[1] not in ("global", "*")]
@@ -12446,13 +12447,13 @@ class AwsModel(Model):
                         (source.id + tid + region).encode()).hexdigest()[:16]
                     task_arn = f"arn:{partition}:ecs:{region}:{source.scope}:task-definition/{family}:1"
                     if not all(covers_every_revision(action, task_arn) for action in
-                               ("ecs:registertaskdefinition", "ecs:runtask")):
+                               ("ecs:registertaskdefinition", launch_action.lower())):
                         if (self._statements(source, "ecs:registertaskdefinition")[0] and
-                                self._statements(source, "ecs:runtask")[0]):
+                                self._statements(source, launch_action.lower())[0]):
                             uncertain = True
                         continue
                     if (self._statements(source, "ecs:registertaskdefinition")[1] or
-                            self._statements(source, "ecs:runtask")[1]):
+                            self._statements(source, launch_action.lower())[1]):
                         uncertain = True  # Revision-specific denies need the returned revision.
                         continue
                     registration = self.check(source, {"action": "ecs:RegisterTaskDefinition",
@@ -12472,20 +12473,28 @@ class AwsModel(Model):
                             continue
                         container_instances = [item for item_scope, item in items(self.snapshot, "ecs_container_instance")
                             if item_scope == scope and item.get("clusterArn") == cluster_arn]
-                        if not any(item.get("status") == "ACTIVE" and item.get("agentConnected") is True
-                                   for item in container_instances):
+                        connected = [item for item in container_instances
+                            if item.get("status") == "ACTIVE" and item.get("agentConnected") is True
+                            and isinstance(item.get("containerInstanceArn"), str)]
+                        if not connected:
                             # A registered count alone may include disconnected or draining hosts.
                             uncertain = True
                             continue
-                        run = self.check(source, {"action": "ecs:RunTask", "request_context": {
-                            "ecs:cluster": cluster_arn}}, task_arn)
-                        if run is None:
-                            continue
-                        if (registration.confidence == passed.confidence == run.confidence == "derived" and
-                                not source.incomplete and not role.incomplete):
-                            out[tid] = ("conditional", "ecs_new_ec2_task_definition_cluster_and_role_bound")
+                        for container_instance in connected:
+                            context = {"ecs:cluster": cluster_arn}
+                            if launch_action == "ecs:StartTask":
+                                context["ecs:container-instances"] = container_instance["containerInstanceArn"]
+                            launch = self.check(source, {"action": launch_action,
+                                "request_context": context}, task_arn)
+                            if launch is None:
+                                continue
+                            if (registration.confidence == passed.confidence == launch.confidence == "derived" and
+                                    not source.incomplete and not role.incomplete):
+                                out[tid] = ("conditional", "ecs_new_ec2_task_definition_cluster_and_role_bound")
+                                break
+                            uncertain = True
+                        if tid in out:
                             break
-                        uncertain = True
                     if tid in out:
                         break
                 if tid not in out and uncertain:
