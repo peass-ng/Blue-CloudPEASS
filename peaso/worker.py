@@ -239,11 +239,8 @@ def _process(role, request, connection):
                 connector["auth"]["sa_json"] = load_service_account(Settings().gcp_platform_sa_secret_arn)
             from peaso.ai import access as ai_access
             if request.get("ai_enabled", True):
-                # A shared collector identity can read other customers' projects.
-                # Assigned scope labels do not downscope its bearer token.
-                shared_identity = (connector.get("provider") == "gcp" and
-                                   connector.get("auth", {}).get("method") == "platform-service-account")
-                ai_access.begin(allow_live=not shared_identity)
+                # Scope labels do not restrict AWS or shared GCP credentials.
+                ai_access.begin(allow_live=ai_access.may_capture_live(connector))
             from peaso.secret_evidence import capture, checks_for_request
             evidence_cipher = CredentialCipher(Path(request.get('ai_context', {}).get('identity_dir') or Settings().identity_dir))
             with capture(evidence_cipher, tenant=tenant, scan_id=ident, options=connector.get('options'),

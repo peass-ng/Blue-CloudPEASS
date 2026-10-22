@@ -51,6 +51,8 @@ def kill_tree(process):
 def invoke(stage, platform, entries, token, findings, reviews, timeout, *, cancel_event=None):
     if cancel_event is not None and cancel_event.is_set():
         raise CancelledError()
+    if any(entry.get('provider') == 'aws' for entry in entries):
+        raise ValueError('aws_live_ai_access_disabled')
     stop_at = time.monotonic() + timeout
     # Chack's Codex backend enables unrestricted shell tools. Refuse to start
     # it in the platform process namespace, even with a clean environment.

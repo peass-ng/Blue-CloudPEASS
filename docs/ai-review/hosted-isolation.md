@@ -21,8 +21,12 @@ Hardening/Exposure recommendations still require confirmed FAIL reviews.
 
 ## Boundaries
 
-- The task has **no task role**. Its execution role is used by ECS for image pulls
-  and logs, not exposed as application credentials. ECS Exec is disabled.
+- The task has **no task role**. Its dedicated execution role can pull the worker
+  image from the selected ECR repository and write to the AI log group. ECS
+  does not expose execution-role credentials to the containers. ECS Exec is disabled.
+- AI tasks run in their own ECS cluster. The analyzer can run the pinned AI task
+  definition and stop tasks in that cluster, without permission to stop the
+  collector or analyzer tasks in the scan cluster.
 - Agent and relay containers have separate default PID namespaces and distinct
   writable `/tmp` volumes. Root filesystems are read-only; both run as UID/GID
   10001 with all Linux capabilities dropped. No host/platform mounts or secrets.
@@ -44,11 +48,11 @@ Hardening/Exposure recommendations still require confirmed FAIL reviews.
   denies private/link-local/CGNAT egress. AWS-reserved metadata/DNS are not reliably
   controlled by NACLs; the metadata credential boundary relies on **no task role**,
   separate container PID/filesystems, and no platform credentials in the task.
-- Cloud credentials for the assigned batch remain in `credentials.json`; cloud
-  CLIs/SDKs and evidence files are available inside the agent. This containment
-  does not turn overly privileged customer credentials into read-only credentials;
-  customers must grant the documented read permissions. Public cloud egress is
-  permitted, so this is not a per-API-action network authorization proxy.
+- AWS credentials are not sent to agents, including for older scans. AWS review
+  uses captured evidence. Other eligible customer cloud credentials for the
+  assigned batch remain in `credentials.json`, so customers must grant the
+  documented read permissions. Public cloud egress is permitted; network
+  isolation does not restrict the actions granted by those credentials.
 - Shared hosted GCP service-account tokens are withheld, including derived GKE
   tokens: selected projects do not constrain that identity's actual permissions.
   Those scans still run all agents using captured evidence. Customer-provided
@@ -66,8 +70,9 @@ URLs or provider error bodies; model HTTP failures log only numeric status.
 
 ## Deployment wiring
 
-`infra/aws/ai_runtime.tf` defines the task, private AES256 transport bucket, cleanup
-policy, analyzer dispatch permissions and `local.ai_runtime_env`. The analyzer and API capability environments include that map. The S3 gateway
+`infra/aws/ai_runtime.tf` defines the dedicated AI cluster, execution role,
+log group, task, private AES256 transport bucket, cleanup policy, analyzer
+dispatch permissions and `local.ai_runtime_env`. The analyzer and API capability environments include that map. The S3 gateway
 endpoint policy allows exact transport bucket object Get/Put/Delete. The runtime
 uses its dedicated AI subnet and security group. The API needs no ECS task
 launch privileges. `DescribeTaskDefinition` requires `Resource: "*"` because AWS
@@ -75,11 +80,11 @@ does not support resource-level authorization for that API; its region is limite
 RunTask is restricted to the exact task revision and cluster; PassRole permits only
 the execution role. [AWS service authorization reference](https://docs.aws.amazon.com/service-authorization/latest/reference/list_ecs.html).
 
-Before collection, the worker calls
-`ai_access.begin(allow_live=connector.get("auth", {}).get("method") != "platform-service-account")`.
-This suppresses every capture hook for shared hosted GCP identities, including
-Kubernetes credentials derived during collection. Live access for that identity
-requires a future project-bound broker or customer-owned delegated identity.
+Before collection, the worker applies `ai_access.may_capture_live(connector)`.
+It suppresses AWS sessions and shared hosted GCP identities, including Kubernetes
+credentials derived from that GCP identity. Old AWS entries are also filtered
+before agent dispatch. Live access for these identities requires a future
+read-only, scope-bound broker or a customer-owned delegated identity.
 
 No pass-through local launcher is used. Missing configuration, unsafe task
 definition, failed transfer, unavailable capacity, model refusal or malformed
