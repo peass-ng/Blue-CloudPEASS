@@ -125,6 +125,20 @@ def test_fake_sdk_collects_exact_joins_without_attestation():
     assert "EnvironmentVariables" not in str(snapshot)
 
 
+@pytest.mark.parametrize("source_order,build_order,expected", [
+    (1, 2, True), (None, 2, True), (1, 1, False), (1, 0, False), (1, True, False), (0, 2, False)])
+def test_same_stage_codecommit_source_precedes_build_only_by_run_order(source_order, build_order, expected):
+    response = pipeline_response()
+    source_stage, build_stage = response["pipeline"]["stages"]
+    source_stage["actions"][0]["runOrder"] = source_order
+    build_stage["actions"][0]["runOrder"] = build_order
+    source_stage["actions"].extend(build_stage["actions"])
+    response["pipeline"]["stages"] = [source_stage]
+    _, snapshot = collected(sdk({"codepipeline": {"get_pipeline": response}}))
+    links = extension.codecommit_build_links(snapshot, ACCOUNT, REGION)["links"]
+    assert bool(links) is expected
+
+
 def test_denied_and_missing_reads_remain_unknown():
     _, snapshot = collected(sdk({"codepipeline": {"get_pipeline": Denied()},
                                  "ec2": {"describe_iam_instance_profile_associations": Denied()}}))
