@@ -1,0 +1,1130 @@
+{
+  "admin-equivalent": {
+    "FAIL": [
+      "Those grants may let alice change cluster settings and workloads.",
+      "That could affect every service in the covered scope."
+    ],
+    "MANUAL": [
+      "The recorded grants may provide administrative control.",
+      "That could let alice change cluster settings and workloads."
+    ],
+    "UNKNOWN": [
+      "The amount of control alice has is unclear.",
+      "A broad grant could go unnoticed until those facts are reviewed."
+    ]
+  },
+  "analysis.coverage": {
+    "UNKNOWN": [
+      "Access paths in those missing records are unclear.",
+      "A broad grant could stay hidden and put cluster data at risk."
+    ]
+  },
+  "analysis.grant_review": {
+    "MANUAL": [
+      "Those grants may give the holder broad control.",
+      "They could change workloads or read private data."
+    ]
+  },
+  "analysis.inactive_identity": {
+    "MANUAL": [
+      "The identity may still have access even if it was not used in this period.",
+      "Unused access could be misused without a clear need for it."
+    ]
+  },
+  "analysis.internet_exposure": {
+    "FAIL": [
+      "People on the internet may try to connect to the service.",
+      "Its users could face more unwanted requests."
+    ]
+  },
+  "analysis.network_review": {
+    "MANUAL": [
+      "People on the internet may try to connect on that port.",
+      "Its users could face more unwanted requests."
+    ]
+  },
+  "analysis.principal_exposure": {
+    "FAIL": [
+      "They may use the permissions granted by this role.",
+      "That could expose data or allow changes without a login."
+    ]
+  },
+  "k8s-cloud-aks-workload-identity": {
+    "FAIL": [
+      "A matching federated credential may grant the linked Azure workload identity\u2019s permissions.",
+      "That could let alice use the linked Azure identity to reach cloud data or services."
+    ],
+    "MANUAL": [
+      "A matching federated credential may grant the linked Azure workload identity\u2019s permissions.",
+      "That could let alice use the linked Azure identity to reach cloud data or services."
+    ],
+    "UNKNOWN": [
+      "A matching federated credential may grant the linked Azure workload identity\u2019s permissions.",
+      "That could let alice use the linked Azure identity to reach cloud data or services."
+    ]
+  },
+  "k8s-cloud-eks-irsa": {
+    "FAIL": [
+      "A matching IRSA token and role trust may grant the linked IAM role\u2019s permissions.",
+      "That could let alice use the linked AWS role to reach cloud data or services."
+    ],
+    "MANUAL": [
+      "A matching IRSA token and role trust may grant the linked IAM role\u2019s permissions.",
+      "That could let alice use the linked AWS role to reach cloud data or services."
+    ],
+    "UNKNOWN": [
+      "A matching IRSA token and role trust may grant the linked IAM role\u2019s permissions.",
+      "That could let alice use the linked AWS role to reach cloud data or services."
+    ]
+  },
+  "k8s-cloud-eks-irsa-create-matching-sa": {
+    "FAIL": [
+      "A matching IRSA token and role trust may grant the linked IAM role\u2019s permissions.",
+      "That could let alice use the linked AWS role to reach cloud data or services."
+    ],
+    "MANUAL": [
+      "A matching IRSA token and role trust may grant the linked IAM role\u2019s permissions.",
+      "That could let alice use the linked AWS role to reach cloud data or services."
+    ],
+    "UNKNOWN": [
+      "A matching IRSA token and role trust may grant the linked IAM role\u2019s permissions.",
+      "That could let alice use the linked AWS role to reach cloud data or services."
+    ]
+  },
+  "k8s-cloud-eks-irsa-wildcard-trust-existing-sa": {
+    "FAIL": [
+      "A matching IRSA token and role trust may grant the linked IAM role\u2019s permissions.",
+      "That could let alice use the linked AWS role to reach cloud data or services."
+    ],
+    "MANUAL": [
+      "A matching IRSA token and role trust may grant the linked IAM role\u2019s permissions.",
+      "That could let alice use the linked AWS role to reach cloud data or services."
+    ],
+    "UNKNOWN": [
+      "A matching IRSA token and role trust may grant the linked IAM role\u2019s permissions.",
+      "That could let alice use the linked AWS role to reach cloud data or services."
+    ]
+  },
+  "k8s-cloud-eks-node-role-to-node": {
+    "FAIL": [
+      "The mapped EKS instance-role session may authenticate as the node\u2019s Kubernetes identity.",
+      "That could let alice act with the node\u2019s Kubernetes access."
+    ],
+    "MANUAL": [
+      "The mapped EKS instance-role session may authenticate as the node\u2019s Kubernetes identity.",
+      "That could let alice act with the node\u2019s Kubernetes access."
+    ],
+    "UNKNOWN": [
+      "The mapped EKS instance-role session may authenticate as the node\u2019s Kubernetes identity.",
+      "That could let alice act with the node\u2019s Kubernetes access."
+    ]
+  },
+  "k8s-cloud-eks-pod-identity": {
+    "FAIL": [
+      "The matching EKS Pod Identity association may grant the linked IAM role\u2019s permissions.",
+      "That could let alice use the linked AWS role to reach cloud data or services."
+    ],
+    "MANUAL": [
+      "The matching EKS Pod Identity association may grant the linked IAM role\u2019s permissions.",
+      "That could let alice use the linked AWS role to reach cloud data or services."
+    ],
+    "UNKNOWN": [
+      "The matching EKS Pod Identity association may grant the linked IAM role\u2019s permissions.",
+      "That could let alice use the linked AWS role to reach cloud data or services."
+    ]
+  },
+  "k8s-cloud-gke-workload-identity": {
+    "FAIL": [
+      "A permitted Workload Identity member may obtain the linked Google service account\u2019s permissions.",
+      "That could let alice use the linked Google identity to reach cloud data or services."
+    ],
+    "MANUAL": [
+      "A permitted Workload Identity member may obtain the linked Google service account\u2019s permissions.",
+      "That could let alice use the linked Google identity to reach cloud data or services."
+    ],
+    "UNKNOWN": [
+      "A permitted Workload Identity member may obtain the linked Google service account\u2019s permissions.",
+      "That could let alice use the linked Google identity to reach cloud data or services."
+    ]
+  },
+  "k8s-cloud-hostnetwork-pod-node-identity": {
+    "FAIL": [
+      "Accessible node metadata may expose the node\u2019s attached cloud identity.",
+      "That could let alice use the node\u2019s cloud identity to reach data or services."
+    ],
+    "MANUAL": [
+      "Accessible node metadata may expose the node\u2019s attached cloud identity.",
+      "That could let alice use the node\u2019s cloud identity to reach data or services."
+    ],
+    "UNKNOWN": [
+      "Accessible node metadata may expose the node\u2019s attached cloud identity.",
+      "That could let alice use the node\u2019s cloud identity to reach data or services."
+    ]
+  },
+  "k8s-cloud-kiam-kube2iam-annotation": {
+    "FAIL": [
+      "An admitted annotated Pod may receive the IAM role allowed by the namespace\u2019s identity proxy.",
+      "That could let alice use the linked AWS role to reach cloud data or services."
+    ],
+    "MANUAL": [
+      "An admitted annotated Pod may receive the IAM role allowed by the namespace\u2019s identity proxy.",
+      "That could let alice use the linked AWS role to reach cloud data or services."
+    ],
+    "UNKNOWN": [
+      "An admitted annotated Pod may receive the IAM role allowed by the namespace\u2019s identity proxy.",
+      "That could let alice use the linked AWS role to reach cloud data or services."
+    ]
+  },
+  "k8s-cloud-node-cloud-identity": {
+    "FAIL": [
+      "Accessible node metadata may expose the node\u2019s attached cloud identity.",
+      "That could let alice use the node\u2019s cloud identity to reach data or services."
+    ],
+    "MANUAL": [
+      "Accessible node metadata may expose the node\u2019s attached cloud identity.",
+      "That could let alice use the node\u2019s cloud identity to reach data or services."
+    ],
+    "UNKNOWN": [
+      "Accessible node metadata may expose the node\u2019s attached cloud identity.",
+      "That could let alice use the node\u2019s cloud identity to reach data or services."
+    ]
+  },
+  "k8s-cloud-pivot-secret-static-gcp-sa-key": {
+    "FAIL": [
+      "A verified active Google key in a Secret may grant new actions as its exact service account.",
+      "That could let alice use the Google service account\u2019s access."
+    ],
+    "MANUAL": [
+      "A verified active Google key in a Secret may grant new actions as its exact service account.",
+      "That could let alice use the Google service account\u2019s access."
+    ],
+    "UNKNOWN": [
+      "A verified active Google key in a Secret may grant new actions as its exact service account.",
+      "That could let alice use the Google service account\u2019s access."
+    ]
+  },
+  "k8s-cloud-pod-imds-node-identity": {
+    "FAIL": [
+      "Accessible node metadata may expose the node\u2019s attached cloud identity.",
+      "That could let alice use the node\u2019s cloud identity to reach data or services."
+    ],
+    "MANUAL": [
+      "Accessible node metadata may expose the node\u2019s attached cloud identity.",
+      "That could let alice use the node\u2019s cloud identity to reach data or services."
+    ],
+    "UNKNOWN": [
+      "Accessible node metadata may expose the node\u2019s attached cloud identity.",
+      "That could let alice use the node\u2019s cloud identity to reach data or services."
+    ]
+  },
+  "k8s-gke-authenticated-user-rolebinding-self-grant": {
+    "FAIL": [
+      "A self-bound view role may add get-Pod permission for the verified Google-authenticated username.",
+      "That could let alice read Pods under that user name."
+    ],
+    "MANUAL": [
+      "A self-bound view role may add get-Pod permission for the verified Google-authenticated username.",
+      "That could let alice read Pods under that user name."
+    ],
+    "UNKNOWN": [
+      "A self-bound view role may add get-Pod permission for the verified Google-authenticated username.",
+      "That could let alice read Pods under that user name."
+    ]
+  },
+  "k8s-helm-values-rbac-privileged-reconciler": {
+    "FAIL": [
+      "Changing the reviewed Helm values may add cross-namespace Secret-read permissions.",
+      "That could let alice read Secrets from other namespaces."
+    ],
+    "MANUAL": [
+      "Changing the reviewed Helm values may add cross-namespace Secret-read permissions.",
+      "That could let alice read Secrets from other namespaces."
+    ],
+    "UNKNOWN": [
+      "Changing the reviewed Helm values may add cross-namespace Secret-read permissions.",
+      "That could let alice read Secrets from other namespaces."
+    ]
+  },
+  "k8s-nodes-attract-pending-pod-to-controlled-node": {
+    "FAIL": [
+      "Scheduling a Pod onto an already controlled node may expose that Pod\u2019s ServiceAccount credentials.",
+      "That could let alice use that Pod\u2019s identity."
+    ],
+    "MANUAL": [
+      "Scheduling a Pod onto an already controlled node may expose that Pod\u2019s ServiceAccount credentials.",
+      "That could let alice use that Pod\u2019s identity."
+    ],
+    "UNKNOWN": [
+      "Scheduling a Pod onto an already controlled node may expose that Pod\u2019s ServiceAccount credentials.",
+      "That could let alice use that Pod\u2019s identity."
+    ]
+  },
+  "k8s-nodes-control-plane-node": {
+    "FAIL": [
+      "Control-plane host credentials may grant Kubernetes cluster-administrator authority.",
+      "That could let alice change cluster settings and workloads."
+    ],
+    "MANUAL": [
+      "Control-plane host credentials may grant Kubernetes cluster-administrator authority.",
+      "That could let alice change cluster settings and workloads."
+    ],
+    "UNKNOWN": [
+      "Control-plane host credentials may grant Kubernetes cluster-administrator authority.",
+      "That could let alice change cluster settings and workloads."
+    ]
+  },
+  "k8s-nodes-csr-kubelet-client-signer": {
+    "FAIL": [
+      "Issuing or obtaining an approved node-client certificate may authenticate as a Kubernetes node.",
+      "That could let alice act with the node\u2019s Kubernetes access."
+    ],
+    "MANUAL": [
+      "Issuing or obtaining an approved node-client certificate may authenticate as a Kubernetes node.",
+      "That could let alice act with the node\u2019s Kubernetes access."
+    ],
+    "UNKNOWN": [
+      "Issuing or obtaining an approved node-client certificate may authenticate as a Kubernetes node.",
+      "That could let alice act with the node\u2019s Kubernetes access."
+    ]
+  },
+  "k8s-nodes-csr-nodeclient-autoapprove": {
+    "FAIL": [
+      "Issuing or obtaining an approved node-client certificate may authenticate as a Kubernetes node.",
+      "That could let alice act with the node\u2019s Kubernetes access."
+    ],
+    "MANUAL": [
+      "Issuing or obtaining an approved node-client certificate may authenticate as a Kubernetes node.",
+      "That could let alice act with the node\u2019s Kubernetes access."
+    ],
+    "UNKNOWN": [
+      "Issuing or obtaining an approved node-client certificate may authenticate as a Kubernetes node.",
+      "That could let alice act with the node\u2019s Kubernetes access."
+    ]
+  },
+  "k8s-nodes-exec-into-host-mount-pod": {
+    "FAIL": [
+      "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+      "That could let alice read node files or use node credentials."
+    ],
+    "MANUAL": [
+      "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+      "That could let alice read node files or use node credentials."
+    ],
+    "UNKNOWN": [
+      "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+      "That could let alice read node files or use node credentials."
+    ]
+  },
+  "k8s-nodes-exec-into-host-privileged-pod": {
+    "FAIL": [
+      "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+      "That could let alice read node files or use node credentials."
+    ],
+    "MANUAL": [
+      "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+      "That could let alice read node files or use node credentials."
+    ],
+    "UNKNOWN": [
+      "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+      "That could let alice read node files or use node credentials."
+    ]
+  },
+  "k8s-nodes-hostpath-persistentvolume": {
+    "FAIL": [
+      "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+      "That could let alice read node files or use node credentials."
+    ],
+    "MANUAL": [
+      "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+      "That could let alice read node files or use node credentials."
+    ],
+    "UNKNOWN": [
+      "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+      "That could let alice read node files or use node credentials."
+    ]
+  },
+  "k8s-nodes-namespace-create-privileged-pod": {
+    "FAIL": [
+      "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+      "That could let alice read node files or use node credentials."
+    ],
+    "MANUAL": [
+      "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+      "That could let alice read node files or use node credentials."
+    ],
+    "UNKNOWN": [
+      "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+      "That could let alice read node files or use node credentials."
+    ]
+  },
+  "k8s-nodes-namespace-psa-relabel": {
+    "FAIL": [
+      "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+      "That could let alice read node files or use node credentials."
+    ],
+    "MANUAL": [
+      "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+      "That could let alice read node files or use node credentials."
+    ],
+    "UNKNOWN": [
+      "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+      "That could let alice read node files or use node credentials."
+    ]
+  },
+  "k8s-nodes-node-mint-pod-sa-tokens": {
+    "FAIL": [
+      "A node identity may obtain tokens for ServiceAccounts used by Pods scheduled on that node.",
+      "That could let alice use the affected Pods\u2019 identities."
+    ],
+    "MANUAL": [
+      "A node identity may obtain tokens for ServiceAccounts used by Pods scheduled on that node.",
+      "That could let alice use the affected Pods\u2019 identities."
+    ],
+    "UNKNOWN": [
+      "A node identity may obtain tokens for ServiceAccounts used by Pods scheduled on that node.",
+      "That could let alice use the affected Pods\u2019 identities."
+    ]
+  },
+  "k8s-nodes-nodes-proxy-host-mount-node": {
+    "FAIL": [
+      "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+      "That could let alice read node files or use node credentials."
+    ],
+    "MANUAL": [
+      "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+      "That could let alice read node files or use node credentials."
+    ],
+    "UNKNOWN": [
+      "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+      "That could let alice read node files or use node credentials."
+    ]
+  },
+  "k8s-nodes-nodes-proxy-node": {
+    "FAIL": [
+      "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+      "That could let alice read node files or use node credentials."
+    ],
+    "MANUAL": [
+      "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+      "That could let alice read node files or use node credentials."
+    ],
+    "UNKNOWN": [
+      "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+      "That could let alice read node files or use node credentials."
+    ]
+  },
+  "k8s-nodes-nodes-proxy-pod-sas": {
+    "FAIL": [
+      "Kubelet proxy execution may expose the ServiceAccounts of Pods on covered nodes.",
+      "That could let alice use credentials from Pods on those nodes."
+    ],
+    "MANUAL": [
+      "Kubelet proxy execution may expose the ServiceAccounts of Pods on covered nodes.",
+      "That could let alice use credentials from Pods on those nodes."
+    ],
+    "UNKNOWN": [
+      "Kubelet proxy execution may expose the ServiceAccounts of Pods on covered nodes.",
+      "That could let alice use credentials from Pods on those nodes."
+    ]
+  },
+  "k8s-nodes-pods-binding-pending-pod-to-controlled-node": {
+    "FAIL": [
+      "Scheduling a Pod onto an already controlled node may expose that Pod\u2019s ServiceAccount credentials.",
+      "That could let alice use that Pod\u2019s identity."
+    ],
+    "MANUAL": [
+      "Scheduling a Pod onto an already controlled node may expose that Pod\u2019s ServiceAccount credentials.",
+      "That could let alice use that Pod\u2019s identity."
+    ],
+    "UNKNOWN": [
+      "Scheduling a Pod onto an already controlled node may expose that Pod\u2019s ServiceAccount credentials.",
+      "That could let alice use that Pod\u2019s identity."
+    ]
+  },
+  "k8s-nodes-privileged-controller-create": {
+    "FAIL": [
+      "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+      "That could let alice read node files or use node credentials."
+    ],
+    "MANUAL": [
+      "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+      "That could let alice read node files or use node credentials."
+    ],
+    "UNKNOWN": [
+      "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+      "That could let alice read node files or use node credentials."
+    ]
+  },
+  "k8s-nodes-privileged-ephemeral-container": {
+    "FAIL": [
+      "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+      "That could let alice read node files or use node credentials."
+    ],
+    "MANUAL": [
+      "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+      "That could let alice read node files or use node credentials."
+    ],
+    "UNKNOWN": [
+      "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+      "That could let alice read node files or use node credentials."
+    ]
+  },
+  "k8s-nodes-privileged-pod-create": {
+    "FAIL": [
+      "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+      "That could let alice read node files or use node credentials."
+    ],
+    "MANUAL": [
+      "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+      "That could let alice read node files or use node credentials."
+    ],
+    "UNKNOWN": [
+      "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+      "That could let alice read node files or use node credentials."
+    ]
+  },
+  "k8s-nodes-replacement-pod-to-controlled-node": {
+    "FAIL": [
+      "Scheduling a Pod onto an already controlled node may expose that Pod\u2019s ServiceAccount credentials.",
+      "That could let alice use that Pod\u2019s identity."
+    ],
+    "MANUAL": [
+      "Scheduling a Pod onto an already controlled node may expose that Pod\u2019s ServiceAccount credentials.",
+      "That could let alice use that Pod\u2019s identity."
+    ],
+    "UNKNOWN": [
+      "Scheduling a Pod onto an already controlled node may expose that Pod\u2019s ServiceAccount credentials.",
+      "That could let alice use that Pod\u2019s identity."
+    ]
+  },
+  "k8s-openshift-privileged-default-projects": {
+    "FAIL": [
+      "An admitted host-access Pod may expose schedulable nodes.",
+      "That could let alice reach node files or credentials."
+    ],
+    "MANUAL": [
+      "An admitted host-access Pod may expose schedulable nodes.",
+      "That could let alice reach node files or credentials."
+    ],
+    "UNKNOWN": [
+      "An admitted host-access Pod may expose schedulable nodes.",
+      "That could let alice reach node files or credentials."
+    ]
+  },
+  "k8s-openshift-run-level-label-existing-namespace": {
+    "FAIL": [
+      "An admitted host-access Pod may expose schedulable nodes.",
+      "That could let alice reach node files or credentials."
+    ],
+    "MANUAL": [
+      "An admitted host-access Pod may expose schedulable nodes.",
+      "That could let alice reach node files or credentials."
+    ],
+    "UNKNOWN": [
+      "An admitted host-access Pod may expose schedulable nodes.",
+      "That could let alice reach node files or credentials."
+    ]
+  },
+  "k8s-openshift-run-level-label-new-namespace": {
+    "FAIL": [
+      "An admitted host-access Pod may expose schedulable nodes.",
+      "That could let alice reach node files or credentials."
+    ],
+    "MANUAL": [
+      "An admitted host-access Pod may expose schedulable nodes.",
+      "That could let alice reach node files or credentials."
+    ],
+    "UNKNOWN": [
+      "An admitted host-access Pod may expose schedulable nodes.",
+      "That could let alice reach node files or credentials."
+    ]
+  },
+  "k8s-openshift-scc-use-host-scc": {
+    "FAIL": [
+      "An admitted host-access Pod may expose schedulable nodes.",
+      "That could let alice reach node files or credentials."
+    ],
+    "MANUAL": [
+      "An admitted host-access Pod may expose schedulable nodes.",
+      "That could let alice reach node files or credentials."
+    ],
+    "UNKNOWN": [
+      "An admitted host-access Pod may expose schedulable nodes.",
+      "That could let alice reach node files or credentials."
+    ]
+  },
+  "k8s-openshift-scc-users-missing-serviceaccount": {
+    "FAIL": [
+      "Creating a missing ServiceAccount may inherit the SCC access already granted to that name.",
+      "That could let alice run a Pod with greater access to the host."
+    ],
+    "MANUAL": [
+      "Creating a missing ServiceAccount may inherit the SCC access already granted to that name.",
+      "That could let alice run a Pod with greater access to the host."
+    ],
+    "UNKNOWN": [
+      "Creating a missing ServiceAccount may inherit the SCC access already granted to that name.",
+      "That could let alice run a Pod with greater access to the host."
+    ]
+  },
+  "k8s-openshift-scc-via-namespace-sa": {
+    "FAIL": [
+      "An admitted host-access Pod may expose schedulable nodes.",
+      "That could let alice reach node files or credentials."
+    ],
+    "MANUAL": [
+      "An admitted host-access Pod may expose schedulable nodes.",
+      "That could let alice reach node files or credentials."
+    ],
+    "UNKNOWN": [
+      "An admitted host-access Pod may expose schedulable nodes.",
+      "That could let alice reach node files or credentials."
+    ]
+  },
+  "k8s-rbac-bind-clusterrolebinding-cluster-admin": {
+    "FAIL": [
+      "Binding or expanding a cluster-wide role may grant Kubernetes cluster-administrator permissions.",
+      "That could let alice change cluster settings and workloads."
+    ],
+    "MANUAL": [
+      "Binding or expanding a cluster-wide role may grant Kubernetes cluster-administrator permissions.",
+      "That could let alice change cluster settings and workloads."
+    ],
+    "UNKNOWN": [
+      "Binding or expanding a cluster-wide role may grant Kubernetes cluster-administrator permissions.",
+      "That could let alice change cluster settings and workloads."
+    ]
+  },
+  "k8s-rbac-bind-rolebinding-namespace": {
+    "FAIL": [
+      "Changing a namespace-bound role may grant workload and token rights in that namespace.",
+      "That could let alice read or change resources in that namespace."
+    ],
+    "MANUAL": [
+      "Changing a namespace-bound role may grant workload and token rights in that namespace.",
+      "That could let alice read or change resources in that namespace."
+    ],
+    "UNKNOWN": [
+      "Changing a namespace-bound role may grant workload and token rights in that namespace.",
+      "That could let alice read or change resources in that namespace."
+    ]
+  },
+  "k8s-rbac-constrained-impersonation-associated-node": {
+    "FAIL": [
+      "Constrained impersonation may obtain only the allowed subset of the target identity\u2019s permissions.",
+      "That could let alice use the permitted part of that identity\u2019s access."
+    ],
+    "MANUAL": [
+      "Constrained impersonation may obtain only the allowed subset of the target identity\u2019s permissions.",
+      "That could let alice use the permitted part of that identity\u2019s access."
+    ],
+    "UNKNOWN": [
+      "Constrained impersonation may obtain only the allowed subset of the target identity\u2019s permissions.",
+      "That could let alice use the permitted part of that identity\u2019s access."
+    ]
+  },
+  "k8s-rbac-constrained-impersonation-node": {
+    "FAIL": [
+      "Constrained impersonation may obtain only the allowed subset of the target identity\u2019s permissions.",
+      "That could let alice use the permitted part of that identity\u2019s access."
+    ],
+    "MANUAL": [
+      "Constrained impersonation may obtain only the allowed subset of the target identity\u2019s permissions.",
+      "That could let alice use the permitted part of that identity\u2019s access."
+    ],
+    "UNKNOWN": [
+      "Constrained impersonation may obtain only the allowed subset of the target identity\u2019s permissions.",
+      "That could let alice use the permitted part of that identity\u2019s access."
+    ]
+  },
+  "k8s-rbac-constrained-impersonation-serviceaccount": {
+    "FAIL": [
+      "Constrained impersonation may obtain only the allowed subset of the target identity\u2019s permissions.",
+      "That could let alice use the permitted part of that identity\u2019s access."
+    ],
+    "MANUAL": [
+      "Constrained impersonation may obtain only the allowed subset of the target identity\u2019s permissions.",
+      "That could let alice use the permitted part of that identity\u2019s access."
+    ],
+    "UNKNOWN": [
+      "Constrained impersonation may obtain only the allowed subset of the target identity\u2019s permissions.",
+      "That could let alice use the permitted part of that identity\u2019s access."
+    ]
+  },
+  "k8s-rbac-constrained-impersonation-user": {
+    "FAIL": [
+      "Constrained impersonation may obtain only the allowed subset of the target identity\u2019s permissions.",
+      "That could let alice use the permitted part of that identity\u2019s access."
+    ],
+    "MANUAL": [
+      "Constrained impersonation may obtain only the allowed subset of the target identity\u2019s permissions.",
+      "That could let alice use the permitted part of that identity\u2019s access."
+    ],
+    "UNKNOWN": [
+      "Constrained impersonation may obtain only the allowed subset of the target identity\u2019s permissions.",
+      "That could let alice use the permitted part of that identity\u2019s access."
+    ]
+  },
+  "k8s-rbac-csr-kube-apiserver-client-group": {
+    "FAIL": [
+      "Self-approved client certificates may authenticate as the selected RBAC-bound user or group.",
+      "That could let alice use the selected user or group\u2019s access."
+    ],
+    "MANUAL": [
+      "Self-approved client certificates may authenticate as the selected RBAC-bound user or group.",
+      "That could let alice use the selected user or group\u2019s access."
+    ],
+    "UNKNOWN": [
+      "Self-approved client certificates may authenticate as the selected RBAC-bound user or group.",
+      "That could let alice use the selected user or group\u2019s access."
+    ]
+  },
+  "k8s-rbac-csr-kube-apiserver-client-user": {
+    "FAIL": [
+      "Self-approved client certificates may authenticate as the selected RBAC-bound user or group.",
+      "That could let alice use the selected user or group\u2019s access."
+    ],
+    "MANUAL": [
+      "Self-approved client certificates may authenticate as the selected RBAC-bound user or group.",
+      "That could let alice use the selected user or group\u2019s access."
+    ],
+    "UNKNOWN": [
+      "Self-approved client certificates may authenticate as the selected RBAC-bound user or group.",
+      "That could let alice use the selected user or group\u2019s access."
+    ]
+  },
+  "k8s-rbac-dangling-serviceaccount-reference": {
+    "FAIL": [
+      "Creating a missing ServiceAccount or namespace may inherit permissions already bound to that name.",
+      "That could let alice use the permissions bound to that name."
+    ],
+    "MANUAL": [
+      "Creating a missing ServiceAccount or namespace may inherit permissions already bound to that name.",
+      "That could let alice use the permissions bound to that name."
+    ],
+    "UNKNOWN": [
+      "Creating a missing ServiceAccount or namespace may inherit permissions already bound to that name.",
+      "That could let alice use the permissions bound to that name."
+    ]
+  },
+  "k8s-rbac-escalate-aggregating-clusterrole": {
+    "FAIL": [
+      "Binding or expanding a cluster-wide role may grant Kubernetes cluster-administrator permissions.",
+      "That could let alice change cluster settings and workloads."
+    ],
+    "MANUAL": [
+      "Binding or expanding a cluster-wide role may grant Kubernetes cluster-administrator permissions.",
+      "That could let alice change cluster settings and workloads."
+    ],
+    "UNKNOWN": [
+      "Binding or expanding a cluster-wide role may grant Kubernetes cluster-administrator permissions.",
+      "That could let alice change cluster settings and workloads."
+    ]
+  },
+  "k8s-rbac-escalate-bound-clusterrole": {
+    "FAIL": [
+      "Binding or expanding a cluster-wide role may grant Kubernetes cluster-administrator permissions.",
+      "That could let alice change cluster settings and workloads."
+    ],
+    "MANUAL": [
+      "Binding or expanding a cluster-wide role may grant Kubernetes cluster-administrator permissions.",
+      "That could let alice change cluster settings and workloads."
+    ],
+    "UNKNOWN": [
+      "Binding or expanding a cluster-wide role may grant Kubernetes cluster-administrator permissions.",
+      "That could let alice change cluster settings and workloads."
+    ]
+  },
+  "k8s-rbac-escalate-bound-role-namespace": {
+    "FAIL": [
+      "Changing a namespace-bound role may grant workload and token rights in that namespace.",
+      "That could let alice read or change resources in that namespace."
+    ],
+    "MANUAL": [
+      "Changing a namespace-bound role may grant workload and token rights in that namespace.",
+      "That could let alice read or change resources in that namespace."
+    ],
+    "UNKNOWN": [
+      "Changing a namespace-bound role may grant workload and token rights in that namespace.",
+      "That could let alice read or change resources in that namespace."
+    ]
+  },
+  "k8s-rbac-escalate-rolebound-clusterrole-namespace": {
+    "FAIL": [
+      "Changing a namespace-bound role may grant workload and token rights in that namespace.",
+      "That could let alice read or change resources in that namespace."
+    ],
+    "MANUAL": [
+      "Changing a namespace-bound role may grant workload and token rights in that namespace.",
+      "That could let alice read or change resources in that namespace."
+    ],
+    "UNKNOWN": [
+      "Changing a namespace-bound role may grant workload and token rights in that namespace.",
+      "That could let alice read or change resources in that namespace."
+    ]
+  },
+  "k8s-rbac-impersonate-groups": {
+    "FAIL": [
+      "Impersonation may use the allowed identity\u2019s permissions under the modeled RBAC grants.",
+      "That could let alice read or change resources allowed to that identity."
+    ],
+    "MANUAL": [
+      "Impersonation may use the allowed identity\u2019s permissions under the modeled RBAC grants.",
+      "That could let alice read or change resources allowed to that identity."
+    ],
+    "UNKNOWN": [
+      "Impersonation may use the allowed identity\u2019s permissions under the modeled RBAC grants.",
+      "That could let alice read or change resources allowed to that identity."
+    ]
+  },
+  "k8s-rbac-impersonate-node": {
+    "FAIL": [
+      "Impersonating a node may obtain that node identity\u2019s Kubernetes authority.",
+      "That could let alice use the node\u2019s Kubernetes access."
+    ],
+    "MANUAL": [
+      "Impersonating a node may obtain that node identity\u2019s Kubernetes authority.",
+      "That could let alice use the node\u2019s Kubernetes access."
+    ],
+    "UNKNOWN": [
+      "Impersonating a node may obtain that node identity\u2019s Kubernetes authority.",
+      "That could let alice use the node\u2019s Kubernetes access."
+    ]
+  },
+  "k8s-rbac-impersonate-serviceaccounts": {
+    "FAIL": [
+      "Impersonation may use the allowed identity\u2019s permissions under the modeled RBAC grants.",
+      "That could let alice read or change resources allowed to that identity."
+    ],
+    "MANUAL": [
+      "Impersonation may use the allowed identity\u2019s permissions under the modeled RBAC grants.",
+      "That could let alice read or change resources allowed to that identity."
+    ],
+    "UNKNOWN": [
+      "Impersonation may use the allowed identity\u2019s permissions under the modeled RBAC grants.",
+      "That could let alice read or change resources allowed to that identity."
+    ]
+  },
+  "k8s-rbac-impersonate-system-masters": {
+    "FAIL": [
+      "Impersonating system:masters may bypass RBAC as a cluster administrator.",
+      "That could let alice change cluster settings and workloads."
+    ],
+    "MANUAL": [
+      "Impersonating system:masters may bypass RBAC as a cluster administrator.",
+      "That could let alice change cluster settings and workloads."
+    ],
+    "UNKNOWN": [
+      "Impersonating system:masters may bypass RBAC as a cluster administrator.",
+      "That could let alice change cluster settings and workloads."
+    ]
+  },
+  "k8s-rbac-impersonate-users": {
+    "FAIL": [
+      "Impersonation may use the allowed identity\u2019s permissions under the modeled RBAC grants.",
+      "That could let alice read or change resources allowed to that identity."
+    ],
+    "MANUAL": [
+      "Impersonation may use the allowed identity\u2019s permissions under the modeled RBAC grants.",
+      "That could let alice read or change resources allowed to that identity."
+    ],
+    "UNKNOWN": [
+      "Impersonation may use the allowed identity\u2019s permissions under the modeled RBAC grants.",
+      "That could let alice read or change resources allowed to that identity."
+    ]
+  },
+  "k8s-rbac-secrets-create-sa-token-secret": {
+    "FAIL": [
+      "A readable or issuable ServiceAccount token may authenticate as that exact ServiceAccount.",
+      "That could let alice use the ServiceAccount\u2019s access."
+    ],
+    "MANUAL": [
+      "A readable or issuable ServiceAccount token may authenticate as that exact ServiceAccount.",
+      "That could let alice use the ServiceAccount\u2019s access."
+    ],
+    "UNKNOWN": [
+      "A readable or issuable ServiceAccount token may authenticate as that exact ServiceAccount.",
+      "That could let alice use the ServiceAccount\u2019s access."
+    ]
+  },
+  "k8s-rbac-secrets-read-argocd-cluster-credential": {
+    "FAIL": [
+      "A usable Argo CD cluster credential may grant the verified remote-cluster subject\u2019s permissions.",
+      "That could let alice use the remote cluster identity\u2019s access."
+    ],
+    "MANUAL": [
+      "A usable Argo CD cluster credential may grant the verified remote-cluster subject\u2019s permissions.",
+      "That could let alice use the remote cluster identity\u2019s access."
+    ],
+    "UNKNOWN": [
+      "A usable Argo CD cluster credential may grant the verified remote-cluster subject\u2019s permissions.",
+      "That could let alice use the remote cluster identity\u2019s access."
+    ]
+  },
+  "k8s-rbac-secrets-read-legacy-sa-token": {
+    "FAIL": [
+      "A readable or issuable ServiceAccount token may authenticate as that exact ServiceAccount.",
+      "That could let alice use the ServiceAccount\u2019s access."
+    ],
+    "MANUAL": [
+      "A readable or issuable ServiceAccount token may authenticate as that exact ServiceAccount.",
+      "That could let alice use the ServiceAccount\u2019s access."
+    ],
+    "UNKNOWN": [
+      "A readable or issuable ServiceAccount token may authenticate as that exact ServiceAccount.",
+      "That could let alice use the ServiceAccount\u2019s access."
+    ]
+  },
+  "k8s-rbac-serviceaccount-in-absent-namespace": {
+    "FAIL": [
+      "Creating a missing ServiceAccount or namespace may inherit permissions already bound to that name.",
+      "That could let alice use the permissions bound to that name."
+    ],
+    "MANUAL": [
+      "Creating a missing ServiceAccount or namespace may inherit permissions already bound to that name.",
+      "That could let alice use the permissions bound to that name."
+    ],
+    "UNKNOWN": [
+      "Creating a missing ServiceAccount or namespace may inherit permissions already bound to that name.",
+      "That could let alice use the permissions bound to that name."
+    ]
+  },
+  "k8s-rbac-serviceaccounts-token-create": {
+    "FAIL": [
+      "A readable or issuable ServiceAccount token may authenticate as that exact ServiceAccount.",
+      "That could let alice use the ServiceAccount\u2019s access."
+    ],
+    "MANUAL": [
+      "A readable or issuable ServiceAccount token may authenticate as that exact ServiceAccount.",
+      "That could let alice use the ServiceAccount\u2019s access."
+    ],
+    "UNKNOWN": [
+      "A readable or issuable ServiceAccount token may authenticate as that exact ServiceAccount.",
+      "That could let alice use the ServiceAccount\u2019s access."
+    ]
+  },
+  "k8s-workloads-controllers-create": {
+    "FAIL": [
+      "Controlling workload creation may run Pods as permitted ServiceAccounts in that namespace.",
+      "That could let alice use access held by the affected Pods."
+    ],
+    "MANUAL": [
+      "Controlling workload creation may run Pods as permitted ServiceAccounts in that namespace.",
+      "That could let alice use access held by the affected Pods."
+    ],
+    "UNKNOWN": [
+      "Controlling workload creation may run Pods as permitted ServiceAccounts in that namespace.",
+      "That could let alice use access held by the affected Pods."
+    ]
+  },
+  "k8s-workloads-controllers-modify": {
+    "FAIL": [
+      "Controlling workload creation may run Pods as permitted ServiceAccounts in that namespace.",
+      "That could let alice use access held by the affected Pods."
+    ],
+    "MANUAL": [
+      "Controlling workload creation may run Pods as permitted ServiceAccounts in that namespace.",
+      "That could let alice use access held by the affected Pods."
+    ],
+    "UNKNOWN": [
+      "Controlling workload creation may run Pods as permitted ServiceAccounts in that namespace.",
+      "That could let alice use access held by the affected Pods."
+    ]
+  },
+  "k8s-workloads-mutating-admission-policy-injection": {
+    "FAIL": [
+      "Controlled admission mutations may run new Pods with ServiceAccounts in the affected namespaces.",
+      "That could let alice use access held by newly created Pods."
+    ],
+    "MANUAL": [
+      "Controlled admission mutations may run new Pods with ServiceAccounts in the affected namespaces.",
+      "That could let alice use access held by newly created Pods."
+    ],
+    "UNKNOWN": [
+      "Controlled admission mutations may run new Pods with ServiceAccounts in the affected namespaces.",
+      "That could let alice use access held by newly created Pods."
+    ]
+  },
+  "k8s-workloads-mutating-webhook-injection": {
+    "FAIL": [
+      "Controlled admission mutations may run new Pods with ServiceAccounts in the affected namespaces.",
+      "That could let alice use access held by newly created Pods."
+    ],
+    "MANUAL": [
+      "Controlled admission mutations may run new Pods with ServiceAccounts in the affected namespaces.",
+      "That could let alice use access held by newly created Pods."
+    ],
+    "UNKNOWN": [
+      "Controlled admission mutations may run new Pods with ServiceAccounts in the affected namespaces.",
+      "That could let alice use access held by newly created Pods."
+    ]
+  },
+  "k8s-workloads-pods-attach": {
+    "FAIL": [
+      "Controlling or entering an existing Pod may expose its mounted ServiceAccount credentials.",
+      "That could let alice use that Pod\u2019s credentials."
+    ],
+    "MANUAL": [
+      "Controlling or entering an existing Pod may expose its mounted ServiceAccount credentials.",
+      "That could let alice use that Pod\u2019s credentials."
+    ],
+    "UNKNOWN": [
+      "Controlling or entering an existing Pod may expose its mounted ServiceAccount credentials.",
+      "That could let alice use that Pod\u2019s credentials."
+    ]
+  },
+  "k8s-workloads-pods-create": {
+    "FAIL": [
+      "Controlling workload creation may run Pods as permitted ServiceAccounts in that namespace.",
+      "That could let alice use access held by the affected Pods."
+    ],
+    "MANUAL": [
+      "Controlling workload creation may run Pods as permitted ServiceAccounts in that namespace.",
+      "That could let alice use access held by the affected Pods."
+    ],
+    "UNKNOWN": [
+      "Controlling workload creation may run Pods as permitted ServiceAccounts in that namespace.",
+      "That could let alice use access held by the affected Pods."
+    ]
+  },
+  "k8s-workloads-pods-ephemeralcontainers": {
+    "FAIL": [
+      "Controlling or entering an existing Pod may expose its mounted ServiceAccount credentials.",
+      "That could let alice use that Pod\u2019s credentials."
+    ],
+    "MANUAL": [
+      "Controlling or entering an existing Pod may expose its mounted ServiceAccount credentials.",
+      "That could let alice use that Pod\u2019s credentials."
+    ],
+    "UNKNOWN": [
+      "Controlling or entering an existing Pod may expose its mounted ServiceAccount credentials.",
+      "That could let alice use that Pod\u2019s credentials."
+    ]
+  },
+  "k8s-workloads-pods-exec": {
+    "FAIL": [
+      "Controlling or entering an existing Pod may expose its mounted ServiceAccount credentials.",
+      "That could let alice use that Pod\u2019s credentials."
+    ],
+    "MANUAL": [
+      "Controlling or entering an existing Pod may expose its mounted ServiceAccount credentials.",
+      "That could let alice use that Pod\u2019s credentials."
+    ],
+    "UNKNOWN": [
+      "Controlling or entering an existing Pod may expose its mounted ServiceAccount credentials.",
+      "That could let alice use that Pod\u2019s credentials."
+    ]
+  },
+  "k8s-workloads-pods-exec-get-websocket": {
+    "FAIL": [
+      "Controlling or entering an existing Pod may expose its mounted ServiceAccount credentials.",
+      "That could let alice use that Pod\u2019s credentials."
+    ],
+    "MANUAL": [
+      "Controlling or entering an existing Pod may expose its mounted ServiceAccount credentials.",
+      "That could let alice use that Pod\u2019s credentials."
+    ],
+    "UNKNOWN": [
+      "Controlling or entering an existing Pod may expose its mounted ServiceAccount credentials.",
+      "That could let alice use that Pod\u2019s credentials."
+    ]
+  },
+  "k8s-workloads-pods-modify-running": {
+    "FAIL": [
+      "Controlling or entering an existing Pod may expose its mounted ServiceAccount credentials.",
+      "That could let alice use that Pod\u2019s credentials."
+    ],
+    "MANUAL": [
+      "Controlling or entering an existing Pod may expose its mounted ServiceAccount credentials.",
+      "That could let alice use that Pod\u2019s credentials."
+    ],
+    "UNKNOWN": [
+      "Controlling or entering an existing Pod may expose its mounted ServiceAccount credentials.",
+      "That could let alice use that Pod\u2019s credentials."
+    ]
+  },
+  "k8s-workloads-pods-mount-argocd-cluster-credential": {
+    "FAIL": [
+      "A usable Argo CD cluster credential may grant the verified remote-cluster subject\u2019s permissions.",
+      "That could let alice use the remote cluster identity\u2019s access."
+    ],
+    "MANUAL": [
+      "A usable Argo CD cluster credential may grant the verified remote-cluster subject\u2019s permissions.",
+      "That could let alice use the remote cluster identity\u2019s access."
+    ],
+    "UNKNOWN": [
+      "A usable Argo CD cluster credential may grant the verified remote-cluster subject\u2019s permissions.",
+      "That could let alice use the remote cluster identity\u2019s access."
+    ]
+  },
+  "k8s-rbac-bind-existing-role-new-permission": {
+    "FAIL": [
+      "Binding this exact role may add permissions the source does not hold in the namespace.",
+      "That could let someone using the source identity read or change resources covered by the new permission."
+    ],
+    "MANUAL": [
+      "Binding this exact role may add permissions the source does not hold in the namespace.",
+      "That could let someone using the source identity read or change resources covered by the new permission."
+    ],
+    "UNKNOWN": [
+      "Binding this exact role may add permissions the source does not hold in the namespace.",
+      "That could let someone using the source identity read or change resources covered by the new permission."
+    ]
+  },
+  "k8s-rbac-modify-existing-rolebinding-new-permission": {
+    "FAIL": [
+      "Adding the source to this exact RoleBinding may add permissions it does not hold in the namespace.",
+      "That could let someone using the source identity read or change resources covered by the new permission."
+    ],
+    "MANUAL": [
+      "Adding the source to this exact RoleBinding may add permissions it does not hold in the namespace.",
+      "That could let someone using the source identity read or change resources covered by the new permission."
+    ],
+    "UNKNOWN": [
+      "Adding the source to this exact RoleBinding may add permissions it does not hold in the namespace.",
+      "That could let someone using the source identity read or change resources covered by the new permission."
+    ]
+  },
+  "k8s-rbac-bind-existing-clusterrole-new-permission": {
+    "FAIL": [
+      "Binding this exact ClusterRole may add permissions the source does not hold across the cluster.",
+      "That could let someone using the source identity read or change resources covered by the new permission."
+    ],
+    "MANUAL": [
+      "Binding this exact ClusterRole may add permissions the source does not hold across the cluster.",
+      "That could let someone using the source identity read or change resources covered by the new permission."
+    ],
+    "UNKNOWN": [
+      "Binding this exact ClusterRole may add permissions the source does not hold across the cluster.",
+      "That could let someone using the source identity read or change resources covered by the new permission."
+    ]
+  },
+  "k8s-rbac-modify-existing-clusterrolebinding-new-permission": {
+    "FAIL": [
+      "Adding the source to this exact ClusterRoleBinding may add permissions it does not hold across the cluster.",
+      "That could let someone using the source identity read or change resources covered by the new permission."
+    ],
+    "MANUAL": [
+      "Adding the source to this exact ClusterRoleBinding may add permissions it does not hold across the cluster.",
+      "That could let someone using the source identity read or change resources covered by the new permission."
+    ],
+    "UNKNOWN": [
+      "Adding the source to this exact ClusterRoleBinding may add permissions it does not hold across the cluster.",
+      "That could let someone using the source identity read or change resources covered by the new permission."
+    ]
+  },
+  "k8s-rbac-escalate-aggregating-clusterrole-namespace": {
+    "FAIL": [
+      "Adding rules to the aggregated ClusterRole may grant workload and token permissions in the bound namespace.",
+      "That could let someone using the source identity access ServiceAccounts in that namespace."
+    ],
+    "MANUAL": [
+      "Adding rules to the aggregated ClusterRole may grant workload and token permissions in the bound namespace.",
+      "That could let someone using the source identity access ServiceAccounts in that namespace."
+    ],
+    "UNKNOWN": [
+      "Adding rules to the aggregated ClusterRole may grant workload and token permissions in the bound namespace.",
+      "That could let someone using the source identity access ServiceAccounts in that namespace."
+    ]
+  }
+}

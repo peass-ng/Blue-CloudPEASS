@@ -1,0 +1,630 @@
+{
+  "azure-apim-policy-write-managed-identity-token": [
+    "The recorded APIM control may let the source change a deployed policy.",
+    "That could let someone use the APIM identity to reach other resources."
+  ],
+  "azure-apim-restore-backup-managed-identity-token": [
+    "The recorded APIM control may let the source change a deployed policy.",
+    "That could let someone use the APIM identity to reach other resources."
+  ],
+  "azure-apim-gateway-config-credential": [
+    "The recorded credential may let the source act as its service principal.",
+    "That could let someone reach data or change resources allowed to that principal."
+  ],
+  "azure-appconfig-snapshot-credential": [
+    "The recorded credential may let the source act as its service principal.",
+    "That could let someone reach data or change resources allowed to that principal."
+  ],
+  "azure-automation-job-output-credential": [
+    "The recorded credential may let the source act as its service principal.",
+    "That could let someone reach data or change resources allowed to that principal."
+  ],
+  "azure-automation-runbook-source-credential": [
+    "The recorded credential may let the source act as its service principal.",
+    "That could let someone reach data or change resources allowed to that principal."
+  ],
+  "azure-acr-layer-credential": [
+    "The recorded credential may let the source act as its service principal.",
+    "That could let someone reach data or change resources allowed to that principal."
+  ],
+  "azure-storage-blob-content-credential": [
+    "The recorded credential may let the source act as its service principal.",
+    "That could let someone reach data or change resources allowed to that principal."
+  ],
+  "azure-appservice-kudu-publish-action": [
+    "The recorded app control may let the source deploy code that uses its identity.",
+    "That could give someone access to data the app can reach."
+  ],
+  "azure-appservice-publishing-credentials-enable-basic-auth": [
+    "The recorded app control may let the source deploy code that uses its identity.",
+    "That could give someone access to data the app can reach."
+  ],
+  "azure-appservice-publishing-credentials-basic-auth-enabled": [
+    "The recorded app control may let the source deploy code that uses its identity.",
+    "That could give someone access to data the app can reach."
+  ],
+  "azure-appservice-sourcecontrols-write": [
+    "The recorded app control may let the source deploy code that uses its identity.",
+    "That could give someone access to data the app can reach."
+  ],
+  "azure-appservice-sitecontainers-write": [
+    "The recorded app control may let the source deploy code that uses its identity.",
+    "That could give someone access to data the app can reach."
+  ],
+  "azure-appservice-config-write": [
+    "The recorded app control may let the source deploy code that uses its identity.",
+    "That could give someone access to data the app can reach."
+  ],
+  "azure-appservice-siteextensions-write": [
+    "The recorded app control may let the source deploy code that uses its identity.",
+    "That could give someone access to data the app can reach."
+  ],
+  "azure-appservice-onedeploy-extensions-write": [
+    "The recorded app control may let the source deploy code that uses its identity.",
+    "That could give someone access to data the app can reach."
+  ],
+  "azure-appservice-restore-from-backup-blob": [
+    "The recorded app control may let the source deploy code that uses its identity.",
+    "That could give someone access to data the app can reach."
+  ],
+  "azure-appservice-slot-code-execution": [
+    "The recorded slot control may let the source deploy code that uses its identity.",
+    "That could let someone reach data allowed to that slot."
+  ],
+  "azure-appservice-slot-publishxml": [
+    "The recorded slot control may let the source deploy code that uses its identity.",
+    "That could let someone reach data allowed to that slot."
+  ],
+  "azure-arc-machine-extensions-write": [
+    "The recorded Arc access may let the source run code on the server.",
+    "That could let someone use the server identity to reach other resources."
+  ],
+  "azure-arc-hybrid-connectivity-entra-ssh": [
+    "The recorded Arc access may let the source run code on the server.",
+    "That could let someone use the server identity to reach other resources."
+  ],
+  "azure-guestconfiguration-assignment-write-arc": [
+    "The recorded Arc access may let the source run code on the server.",
+    "That could let someone use the server identity to reach other resources."
+  ],
+  "azure-arc-machine-runcommands-write": [
+    "The recorded Arc access may let the source run code on the server.",
+    "That could let someone use the server identity to reach other resources."
+  ],
+  "azure-batch-shared-key-task-submission": [
+    "The recorded Batch control may let the source run a task in the pool.",
+    "That could let someone use a pool identity to reach other resources."
+  ],
+  "azure-batch-job-task-submission": [
+    "The recorded Batch control may let the source run a task in the pool.",
+    "That could let someone use a pool identity to reach other resources."
+  ],
+  "azure-batch-pool-write-starttask": [
+    "The recorded Batch control may let the source run a task in the pool.",
+    "That could let someone use a pool identity to reach other resources."
+  ],
+  "azure-aci-container-exec": [
+    "The recorded container control may let the source run code in the group.",
+    "That could let someone use a group identity to reach other resources."
+  ],
+  "azure-aci-containergroup-write-existing": [
+    "The recorded container control may let the source run code in the group.",
+    "That could let someone use a group identity to reach other resources."
+  ],
+  "azure-containerapp-exec": [
+    "The recorded app control may let the source run code in the container.",
+    "That could let someone use its identity to reach other resources."
+  ],
+  "azure-containerapp-write-existing": [
+    "The recorded app control may let the source run code in the container.",
+    "That could let someone use its identity to reach other resources."
+  ],
+  "azure-containerapp-sourcecontrols-write": [
+    "The recorded app control may let the source run code in the container.",
+    "That could let someone use its identity to reach other resources."
+  ],
+  "azure-containerapp-assign-user-assigned-identity": [
+    "The recorded app control may let the source attach and use an identity.",
+    "That could let someone reach resources allowed to that identity."
+  ],
+  "azure-containerapp-create-with-user-assigned-identity": [
+    "The recorded app control may let the source attach and use an identity.",
+    "That could let someone reach resources allowed to that identity."
+  ],
+  "azure-cosmos-sql-role-assignment-write": [
+    "The recorded role control may let the source grant Cosmos DB access.",
+    "That could let someone change the database or read private records."
+  ],
+  "azure-cosmos-mongodb-user-definition-write": [
+    "The recorded role control may let the source grant Cosmos DB access.",
+    "That could let someone change the database or read private records."
+  ],
+  "azure-cosmos-other-api-role-assignment-write": [
+    "The recorded role control may let the source grant Cosmos DB access.",
+    "That could let someone change the database or read private records."
+  ],
+  "azure-cosmos-mongocluster-admin-password": [
+    "The recorded control may let the source change MongoDB users or credentials.",
+    "That could let someone change data or read private records."
+  ],
+  "azure-cosmos-mongocluster-user-write": [
+    "The recorded control may let the source change MongoDB users or credentials.",
+    "That could let someone change data or read private records."
+  ],
+  "azure-kusto-database-principal-assignment-write": [
+    "The recorded control may let the source change Kusto database administrators.",
+    "That could let someone change or read data in the database."
+  ],
+  "azure-kusto-database-add-principals": [
+    "The recorded control may let the source change Kusto database administrators.",
+    "That could let someone change or read data in the database."
+  ],
+  "azure-mysql-flexible-admin-password-reset": [
+    "The recorded permission may let the source reset a database admin password.",
+    "That could let someone change databases or read private records."
+  ],
+  "azure-postgresql-flexible-admin-password-reset": [
+    "The recorded permission may let the source reset a database admin password.",
+    "That could let someone change databases or read private records."
+  ],
+  "azure-sql-server-admin-password-reset": [
+    "The recorded permission may let the source reset a database admin password.",
+    "That could let someone change databases or read private records."
+  ],
+  "azure-sqlmi-admin-password-reset": [
+    "The recorded permission may let the source reset a database admin password.",
+    "That could let someone change databases or read private records."
+  ],
+  "azure-mysql-flexible-entra-admin-write": [
+    "The recorded permission may let the source change the database administrator.",
+    "That could let someone change databases or read private records."
+  ],
+  "azure-postgresql-flexible-entra-admin-write": [
+    "The recorded permission may let the source change the database administrator.",
+    "That could let someone change databases or read private records."
+  ],
+  "azure-sql-server-entra-admin-write": [
+    "The recorded permission may let the source change the database administrator.",
+    "That could let someone change databases or read private records."
+  ],
+  "azure-sqlmi-entra-admin-write": [
+    "The recorded permission may let the source change the database administrator.",
+    "That could let someone change databases or read private records."
+  ],
+  "azure-entraid-app-credentials-update": [
+    "The recorded app control may let the source change its credentials or owner.",
+    "That could let someone use the app identity to reach private data."
+  ],
+  "azure-entraid-app-myorg-credentials-update": [
+    "The recorded app control may let the source change its credentials or owner.",
+    "That could let someone use the app identity to reach private data."
+  ],
+  "azure-entraid-app-owners-update": [
+    "The recorded app control may let the source change its credentials or owner.",
+    "That could let someone use the app identity to reach private data."
+  ],
+  "azure-entraid-app-owner-credentials": [
+    "The recorded app control may let the source change its credentials or owner.",
+    "That could let someone use the app identity to reach private data."
+  ],
+  "azure-entraid-sp-credentials-update": [
+    "The recorded control may let the source change a service principal’s credentials or owner.",
+    "That could let someone use its access to reach private data."
+  ],
+  "azure-entraid-sp-owners-update": [
+    "The recorded control may let the source change a service principal’s credentials or owner.",
+    "That could let someone use its access to reach private data."
+  ],
+  "azure-entraid-sp-owner-credentials": [
+    "The recorded control may let the source change a service principal’s credentials or owner.",
+    "That could let someone use its access to reach private data."
+  ],
+  "azure-entraid-graph-application-readwrite-all": [
+    "The recorded control may let the source change a service principal’s credentials or owner.",
+    "That could let someone use its access to reach private data."
+  ],
+  "azure-entraid-group-members-update": [
+    "The recorded group control may let the source add itself to the group.",
+    "That could give someone access to data or actions held by the group."
+  ],
+  "azure-entraid-graph-group-readwrite-all": [
+    "The recorded group control may let the source add itself to the group.",
+    "That could give someone access to data or actions held by the group."
+  ],
+  "azure-entraid-group-owners-update": [
+    "The recorded group control may let the source add itself to the group.",
+    "That could give someone access to data or actions held by the group."
+  ],
+  "azure-entraid-group-owner-membership": [
+    "The recorded group control may let the source add itself to the group.",
+    "That could give someone access to data or actions held by the group."
+  ],
+  "azure-entraid-graph-pim-groups-eligibility": [
+    "The recorded eligibility may let the source activate a group role.",
+    "That could give someone access to data held by the group."
+  ],
+  "azure-entraid-pim-group-eligible-activation": [
+    "The recorded eligibility may let the source activate a group role.",
+    "That could give someone access to data held by the group."
+  ],
+  "azure-entraid-graph-rolemanagement-readwrite-directory": [
+    "The recorded role control may let the source grant a stronger directory role.",
+    "That could let someone manage users and their access."
+  ],
+  "azure-entraid-role-assignment-manage": [
+    "The recorded role control may let the source grant a stronger directory role.",
+    "That could let someone manage users and their access."
+  ],
+  "azure-entraid-reset-password-password-admin": [
+    "The recorded account control may let the source change another user’s sign-in method.",
+    "That could let someone use that user’s access to reach private data."
+  ],
+  "azure-entraid-reset-password-helpdesk-admin": [
+    "The recorded account control may let the source change another user’s sign-in method.",
+    "That could let someone use that user’s access to reach private data."
+  ],
+  "azure-entraid-reset-credentials-authentication-admin": [
+    "The recorded account control may let the source change another user’s sign-in method.",
+    "That could let someone use that user’s access to reach private data."
+  ],
+  "azure-entraid-reset-password-user-admin": [
+    "The recorded account control may let the source change another user’s sign-in method.",
+    "That could let someone use that user’s access to reach private data."
+  ],
+  "azure-entraid-reset-credentials-privileged-auth-admin": [
+    "The recorded account control may let the source change another user’s sign-in method.",
+    "That could let someone use that user’s access to reach private data."
+  ],
+  "azure-entraid-reset-password-partner-tier1": [
+    "The recorded account control may let the source change another user’s sign-in method.",
+    "That could let someone use that user’s access to reach private data."
+  ],
+  "azure-functions-hostruntime-vfs-write": [
+    "The recorded function control may let the source run code with the app identity.",
+    "That could let someone reach data the function app can use."
+  ],
+  "azure-functions-functions-write": [
+    "The recorded function control may let the source run code with the app identity.",
+    "That could let someone reach data the function app can use."
+  ],
+  "azure-functions-sites-write-source-control": [
+    "The recorded function control may let the source run code with the app identity.",
+    "That could let someone reach data the function app can use."
+  ],
+  "azure-functions-remote-debugging": [
+    "The recorded function control may let the source run code with the app identity.",
+    "That could let someone reach data the function app can use."
+  ],
+  "azure-aks-list-cluster-admin-credential": [
+    "The recorded cluster credential may let the source manage Kubernetes workloads.",
+    "That could let someone change apps or read data in the cluster."
+  ],
+  "azure-aks-list-cluster-user-credential": [
+    "The recorded cluster credential may let the source manage Kubernetes workloads.",
+    "That could let someone change apps or read data in the cluster."
+  ],
+  "azure-hybrid-k8s-list-cluster-admin-credential": [
+    "The recorded cluster credential may let the source manage Kubernetes workloads.",
+    "That could let someone change apps or read data in the cluster."
+  ],
+  "azure-aks-access-profile-list-credential": [
+    "The recorded cluster credential may let the source manage Kubernetes workloads.",
+    "That could let someone change apps or read data in the cluster."
+  ],
+  "azure-aks-managedclusters-write-enable-local-accounts": [
+    "The recorded cluster credential may let the source manage Kubernetes workloads.",
+    "That could let someone change apps or read data in the cluster."
+  ],
+  "azure-aks-vmss-node-run-command": [
+    "The recorded VM control may let the source run code as root or SYSTEM.",
+    "That could let someone use the VM identity to reach other resources."
+  ],
+  "azure-vm-extensions-write": [
+    "The recorded VM control may let the source run code as root or SYSTEM.",
+    "That could let someone use the VM identity to reach other resources."
+  ],
+  "azure-vm-runcommand-action": [
+    "The recorded VM control may let the source run code as root or SYSTEM.",
+    "That could let someone use the VM identity to reach other resources."
+  ],
+  "azure-vm-managed-runcommands-write": [
+    "The recorded VM control may let the source run code as root or SYSTEM.",
+    "That could let someone use the VM identity to reach other resources."
+  ],
+  "azure-vmss-vm-managed-runcommands-write": [
+    "The recorded VM control may let the source run code as root or SYSTEM.",
+    "That could let someone use the VM identity to reach other resources."
+  ],
+  "azure-vm-gallery-application-install": [
+    "The recorded VM control may let the source run code as root or SYSTEM.",
+    "That could let someone use the VM identity to reach other resources."
+  ],
+  "azure-vmss-vm-runcommand-action": [
+    "The recorded VM control may let the source run code as root or SYSTEM.",
+    "That could let someone use the VM identity to reach other resources."
+  ],
+  "azure-vm-os-disk-swap": [
+    "The recorded VM control may let the source run code as root or SYSTEM.",
+    "That could let someone use the VM identity to reach other resources."
+  ],
+  "azure-vmss-model-write": [
+    "The recorded VM control may let the source run code as root or SYSTEM.",
+    "That could let someone use the VM identity to reach other resources."
+  ],
+  "azure-vm-customdata-reimage": [
+    "The recorded VM control may let the source run code as root or SYSTEM.",
+    "That could let someone use the VM identity to reach other resources."
+  ],
+  "azure-ml-online-deployment-existing-endpoint": [
+    "The recorded ML control may let the source run code with a resource identity.",
+    "That could let someone reach data allowed to that identity."
+  ],
+  "azure-ml-compute-application-access": [
+    "The recorded ML control may let the source run code with a resource identity.",
+    "That could let someone reach data allowed to that identity."
+  ],
+  "azure-ml-online-endpoint-create-with-user-assigned-identity": [
+    "The recorded ML control may let the source attach and use an identity.",
+    "That could let someone reach data allowed to that identity."
+  ],
+  "azure-ml-compute-create-with-user-assigned-identity": [
+    "The recorded ML control may let the source attach and use an identity.",
+    "That could let someone reach data allowed to that identity."
+  ],
+  "azure-storage-adls-acl-self-grant": [
+    "The recorded file control may let the source change access to this path.",
+    "That could let someone read or change files they could not use before."
+  ],
+  "azure-storage-files-acl-self-grant": [
+    "The recorded file control may let the source change access to this path.",
+    "That could let someone read or change files they could not use before."
+  ],
+  "azure-audit-microsoftstoragestorageaccountslocaluserswrite-microsoftstoragestorageac": [
+    "The recorded SFTP control may let the source use the local file account.",
+    "That could let someone read or change files allowed to that account."
+  ],
+  "azure-audit-microsoftstoragestorageaccountslocalusersregeneratepasswordaction": [
+    "The recorded SFTP control may let the source use the local file account.",
+    "That could let someone read or change files allowed to that account."
+  ],
+  "azure-vm-create-with-user-assigned-identity": [
+    "The recorded VM control may let the source run code with an assigned identity.",
+    "That could let someone use that identity to reach other resources."
+  ],
+  "azure-vm-assign-user-assigned-identity-existing": [
+    "The recorded VM control may let the source run code with an assigned identity.",
+    "That could let someone use that identity to reach other resources."
+  ],
+  "azure-vm-assign-user-assigned-identity-indirect-exec": [
+    "The recorded VM control may let the source run code with an assigned identity.",
+    "That could let someone use that identity to reach other resources."
+  ],
+  "azure-apim-developer-portal-sso-external-principal": [
+    "The recorded portal link may let the source act as the linked user.",
+    "That could let someone use the portal actions allowed to that user."
+  ],
+  "azure-datafactory-github-oauth-external-principal": [
+    "The recorded factory token may let the source act as the linked GitHub user.",
+    "That could let someone read or change repositories allowed to that user."
+  ],
+  "azure-eventgrid-mqtt-client-grant-external-principal": [
+    "The recorded MQTT grants may let the source use a broker identity.",
+    "That could let someone send or read messages on allowed topics."
+  ],
+  "azure-analysisservices-server-admin-write": [
+    "The recorded server control may let the source change its administrators.",
+    "That could let someone read or change hosted models."
+  ],
+  "azure-appservice-assign-user-assigned-identity": [
+    "The recorded app control may let the source attach an identity.",
+    "That could let someone reach data allowed to that identity."
+  ],
+  "azure-appservice-slot-swap-promote-code": [
+    "The recorded slot control may let the source move code into production.",
+    "That could let someone use the production app identity to reach data."
+  ],
+  "azure-arc-resource-bridge-credential-export": [
+    "The recorded export may give the source resource bridge admin credentials.",
+    "That could let someone manage the connected appliance."
+  ],
+  "azure-arm-deploymentscript-with-user-assigned-identity": [
+    "The recorded script control may let the source run code with an assigned identity.",
+    "That could let someone reach resources allowed to that identity."
+  ],
+  "azure-authorization-elevateaccess-global-admin": [
+    "The recorded directory role may let the source gain root Azure access.",
+    "That could let someone change resources across subscriptions."
+  ],
+  "azure-managedidentity-federated-credential-write": [
+    "The recorded trust control may let the source get tokens for an identity.",
+    "That could let someone reach resources allowed to that identity."
+  ],
+  "azure-policy-assignment-write-user-assigned-identity": [
+    "The recorded policy control may let the source run changes with an assigned identity.",
+    "That could let someone change resources allowed to that identity."
+  ],
+  "azure-automation-runbook-author-and-run": [
+    "The recorded runbook control may let the source run code with an Automation identity.",
+    "That could let someone reach data allowed to that identity."
+  ],
+  "azure-automation-runbook-hybrid-worker": [
+    "The recorded worker control may let the source run code on its machine.",
+    "That could let someone use the machine identity to reach data."
+  ],
+  "azure-automation-assign-user-assigned-identity": [
+    "The recorded Automation control may let the source attach an identity.",
+    "That could let someone reach data allowed to that identity."
+  ],
+  "azure-avs-list-vcenter-cloudadmin-external-principal": [
+    "The recorded AVS credential may let the source act as the CloudAdmin user.",
+    "That could let someone manage virtual machines in vCenter."
+  ],
+  "azure-avs-list-nsxt-admin-external-principal": [
+    "The recorded AVS credential may let the source act as an NSX-T administrator.",
+    "That could let someone change virtual network settings."
+  ],
+  "azure-avs-run-command-vcenter-grant-external-principal": [
+    "The recorded AVS command may grant vCenter access to the named user.",
+    "That could let someone manage virtual machines there."
+  ],
+  "azure-batch-pool-write-assign-user-assigned-identity": [
+    "The recorded pool control may let the source run tasks with an assigned identity.",
+    "That could let someone reach resources allowed to that identity."
+  ],
+  "azure-confidentialledger-ledgers-write-principal": [
+    "The recorded ledger control may let the source change its administrators.",
+    "That could let someone read or change protected ledger data."
+  ],
+  "azure-acr-task-write-existing-identity": [
+    "The recorded registry task control may let the source run code with its identity.",
+    "That could let someone reach resources allowed to that identity."
+  ],
+  "azure-acr-task-assign-user-assigned-identity": [
+    "The recorded registry task control may let the source attach an identity.",
+    "That could let someone reach resources allowed to that identity."
+  ],
+  "azure-aci-assign-user-assigned-identity": [
+    "The recorded container control may let the source attach an identity.",
+    "That could let someone reach resources allowed to that identity."
+  ],
+  "azure-containerapp-job-start-template-override": [
+    "The recorded job control may let the source change code it runs.",
+    "That could let someone use the job identity to reach data."
+  ],
+  "azure-containerapp-job-assign-user-assigned-identity": [
+    "The recorded job control may let the source attach an identity.",
+    "That could let someone reach resources allowed to that identity."
+  ],
+  "azure-kusto-cluster-principal-assignment-write": [
+    "The recorded cluster control may let the source change its administrators.",
+    "That could let someone read or change data across Kusto databases."
+  ],
+  "azure-datafactory-dataplane-access-token": [
+    "The recorded factory activity may let the source get its identity token.",
+    "That could let someone reach data allowed to the factory."
+  ],
+  "azure-databricks-assign-workspace-admin": [
+    "The recorded workspace control may let the source change its administrator.",
+    "That could let someone manage Databricks work and its data."
+  ],
+  "azure-devtestlabs-apply-artifacts": [
+    "The recorded lab control may let the source run code on a VM.",
+    "That could let someone use the VM identity to reach data."
+  ],
+  "azure-entraid-graph-approleassignment-readwrite-all": [
+    "The recorded app role control may let the source assign stronger permissions.",
+    "That could let someone change directory users or data access."
+  ],
+  "azure-entraid-agent-blueprint-credentials": [
+    "The recorded blueprint control may let the source use its credentials.",
+    "That could let someone reach data allowed to its child agents."
+  ],
+  "azure-entraid-entitlement-catalog-self-grant-group": [
+    "The recorded package control may let the source join a cataloged group.",
+    "That could give someone access to data allowed to that group."
+  ],
+  "azure-entraid-entitlement-catalog-self-grant-role": [
+    "The recorded package control may let the source gain a cataloged directory role.",
+    "That could let someone manage users or resources allowed to that role."
+  ],
+  "azure-entraid-entitlement-auto-assignment-persistence": [
+    "The recorded rule control may keep adding the source to a group.",
+    "That could keep unwanted access active over time."
+  ],
+  "azure-entraid-group-dynamic-rule-update": [
+    "The recorded group rule control may add the source to a privileged group.",
+    "That could give someone access to data allowed to that group."
+  ],
+  "azure-entraid-graph-pim-groups-active-assignment": [
+    "The recorded PIM control may activate group access for the source.",
+    "That could give someone access to data allowed to that group."
+  ],
+  "azure-entraid-custom-role-definition-update": [
+    "The recorded role control may add stronger permissions to an assigned role.",
+    "That could let someone manage more directory data or users."
+  ],
+  "azure-entraid-pim-eligible-role-activation": [
+    "The recorded role eligibility may let the source activate that role.",
+    "That could give someone access to data or actions held by the role."
+  ],
+  "azure-entraid-graph-userauthenticationmethod-tap": [
+    "The recorded pass control may let the source sign in as a covered user.",
+    "That could let someone reach data allowed to that user."
+  ],
+  "azure-entraid-domain-federation-backdoor": [
+    "The recorded domain control may let the source sign in as domain users.",
+    "That could let someone reach their private data."
+  ],
+  "azure-imagebuilder-template-create-via-template-identity": [
+    "The recorded template control may let the source attach identities to a build VM.",
+    "That could let someone reach resources allowed to those identities."
+  ],
+  "azure-aks-azure-rbac-k8s-rbac-write": [
+    "The recorded cluster role control may grant admin access.",
+    "That could let someone change workloads or read cluster data."
+  ],
+  "azure-aks-run-command": [
+    "The recorded AKS command access may let the source run cluster admin actions.",
+    "That could let someone change workloads or read cluster data."
+  ],
+  "azure-aks-azure-rbac-impersonate": [
+    "The recorded impersonation access may let the source act as a cluster admin.",
+    "That could let someone change workloads or read cluster data."
+  ],
+  "azure-aro-list-credentials": [
+    "The recorded kubeadmin credential may let the source manage OpenShift.",
+    "That could let someone change workloads or read cluster data."
+  ],
+  "azure-aks-flux-configuration-write": [
+    "The recorded Flux control may let the source apply cluster changes.",
+    "That could let someone change workloads or their data."
+  ],
+  "azure-loadtesting-test-engine-identity": [
+    "The recorded test control may let the source run code with its identity.",
+    "That could let someone reach resources allowed to that identity."
+  ],
+  "azure-loadtesting-assign-user-assigned-identity": [
+    "The recorded test control may let the source attach an identity.",
+    "That could let someone reach resources allowed to that identity."
+  ],
+  "azure-logicapp-workflow-write-existing-identity": [
+    "The recorded workflow control may let the source run steps with its identity.",
+    "That could let someone reach data allowed to that workflow."
+  ],
+  "azure-logicapp-assign-user-assigned-identity": [
+    "The recorded workflow control may let the source attach an identity.",
+    "That could let someone reach resources allowed to that identity."
+  ],
+  "azure-managedapp-list-tokens": [
+    "The recorded token access may let the source use the managed app identity.",
+    "That could let someone reach resources allowed to that identity."
+  ],
+  "azure-grafana-act-as-admin": [
+    "The recorded Grafana role may let the source manage the workspace.",
+    "That could let someone read data from its connected sources."
+  ],
+  "azure-purview-add-root-collection-admin": [
+    "The recorded Purview control may let the source grant root admin access.",
+    "That could let someone manage the data catalog and its access."
+  ],
+  "azure-purview-policy-self-grant": [
+    "The recorded Purview policy control may let the source add data permissions.",
+    "That could let someone read or change SQL or Storage data."
+  ],
+  "azure-servicefabric-application-user-assigned-identity": [
+    "The recorded app control may let the source use its assigned identity.",
+    "That could let someone reach resources allowed to that identity."
+  ],
+  "azure-springapps-deployment-write-app-identity": [
+    "The recorded Spring app control may let the source run code with its identity.",
+    "That could let someone reach data allowed to the app."
+  ],
+  "azure-springapps-app-write-user-assigned-identity": [
+    "The recorded Spring app control may let the source attach an identity.",
+    "That could let someone reach resources allowed to that identity."
+  ],
+  "azure-synapse-entra-admin-write": [
+    "The recorded Synapse control may let the source change its SQL administrator.",
+    "That could let someone read or change data on that endpoint."
+  ]
+}
