@@ -1014,6 +1014,9 @@ FACTS_NEEDED = {
 # an "Unresolved" placeholder (unknown confidence, never FAIL). mode "target" depends only on the target and the
 # inventory (shared candidate set); mode "source" also depends on the source principal.
 PRECONDITIONS = {
+    "gamelift_new_controlled_build_fleet_role": (("aws",), "source",
+      "The caller can create and upload a game build and create an EC2 fleet with the target role in the same Region.",
+      "AWS: effective CreateBuild and CreateFleet in one recorded Region plus PassRole on the target role for gamelift.amazonaws.com; a usable uploaded build and fleet activation remain runtime conditions"),
     "gamelift_existing_shared_fleet_role_shell": (("aws",), "source",
       "The caller can reach an active GameLift EC2 compute whose fleet exposes the target instance role in a shared credentials file.",
       "AWS: complete fleet and compute inventory, exact InstanceRoleArn, ACTIVE EC2 fleet and compute, SHARED_CREDENTIAL_FILE, and GetComputeAccess on the fleet ARN; the shell must be able to read the file"),

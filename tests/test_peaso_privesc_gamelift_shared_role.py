@@ -132,3 +132,52 @@ def test_customer_setup_policy_includes_all_game_lift_inventory_reads():
               for statement in resource["Properties"]["PolicyDocument"]["Statement"]
               for action in ([statement["Action"]] if isinstance(statement["Action"], str) else statement["Action"])}
     assert required <= static
+
+
+def _new_fleet_model(*, build_region=REGION, fleet_region=REGION,
+                     pass_service="gamelift.amazonaws.com", create_build=True,
+                     create_fleet=True, container_only=False):
+    statements = []
+    if create_build:
+        statements.append({**allow("gamelift:CreateBuild"),
+                           "Condition": {"StringEquals": {"aws:RequestedRegion": build_region}}})
+    if create_fleet:
+        action = "gamelift:CreateContainerFleet" if container_only else "gamelift:CreateFleet"
+        statements.append({**allow(action),
+                           "Condition": {"StringEquals": {"aws:RequestedRegion": fleet_region}}})
+    statements.append({**allow("iam:PassRole", resource=TARGET),
+                       "Condition": {"StringEquals": {"iam:PassedToService": pass_service}}})
+    return AwsModel(aws_snap([user("alice", *statements)], [role("FleetRole", "gamelift.amazonaws.com")]))
+
+
+def test_new_fleet_route_binds_build_fleet_and_passrole_in_one_region():
+    model = _new_fleet_model()
+    entry = next(x for x in schema.load_catalog(schema.CATALOG_DIR)["entries"]
+                 if x["id"] == "aws-gamelift-passrole-createfleet")
+    assert model.precondition("gamelift_new_controlled_build_fleet_role",
+                              {TARGET: model.principals[TARGET]}, model.principals[ALICE]) == {
+                                  TARGET: ("conditional", "gamelift_new_build_uploaded_to_new_ec2_fleet")}
+    assert {target for edge in Evaluator(model, [entry], include_unknown=False).run()
+            if edge.source.id == ALICE for target in edge.targets} == {TARGET}
+
+
+def test_new_fleet_route_does_not_mix_regions_or_passrole_service():
+    entry = next(x for x in schema.load_catalog(schema.CATALOG_DIR)["entries"]
+                 if x["id"] == "aws-gamelift-passrole-createfleet")
+    for model in (_new_fleet_model(build_region="eu-west-1"),
+                  _new_fleet_model(pass_service="ec2.amazonaws.com"),
+                  _new_fleet_model(create_build=False)):
+        assert not [edge for edge in Evaluator(model, [entry], include_unknown=False).run()
+                    if edge.source.id == ALICE and TARGET in edge.targets]
+    container = _new_fleet_model(container_only=True)
+    assert container.precondition("gamelift_new_controlled_build_fleet_role",
+                                  {TARGET: container.principals[TARGET]}, container.principals[ALICE])[TARGET][0] == "unknown"
+
+
+def test_previous_game_lift_fleet_catalog_binding_keeps_original_meaning():
+    current = versioned_catalog.current_binding()
+    old = dict(current, manifest_sha256=versioned_catalog.GAMELIFT_SHELL_689_PREVIOUS_MANIFEST,
+               effective_tree_sha256=versioned_catalog.GAMELIFT_SHELL_689_PREVIOUS_TREE)
+    entries, state = versioned_catalog.lookup_entries(["aws-gamelift-passrole-createfleet"], old)
+    assert state == "exact_previous_current"
+    assert not entries["aws-gamelift-passrole-createfleet"].get("preconditions")

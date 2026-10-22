@@ -7493,6 +7493,32 @@ class AwsModel(Model):
                 if uncertain else None)
 
     def precondition(self, pid, candidates, source):
+        if pid == "gamelift_new_controlled_build_fleet_role":
+            if source is None:
+                return None
+            regions = sorted({scope.split("/", 1)[1] for scope in self.snapshot.get("scopes", ())
+                              if isinstance(scope, str) and scope.startswith(source.scope + "/")
+                              and "/" in scope})
+            controlled = False
+            possible = bool(source.incomplete or not regions)
+            for region in regions:
+                context = {"aws:RequestedRegion": region}
+                build = self.check(source, {"action": "gamelift:CreateBuild", "request_context": context}, "*")
+                fleet = self.check(source, {"action": "gamelift:CreateFleet", "request_context": context}, "*")
+                container = self.check(source, {"action": "gamelift:CreateContainerFleet",
+                                                "request_context": context}, "*")
+                if build is not None and fleet is not None and build.confidence == fleet.confidence == "derived":
+                    controlled = True
+                    break
+                possible |= fleet is not None or container is not None
+            if controlled:
+                return {tid: (("unknown", "gamelift_source_or_role_policy_incomplete") if role.incomplete
+                              else ("conditional", "gamelift_new_build_uploaded_to_new_ec2_fleet"))
+                        for tid, role in candidates.items()}
+            if possible:
+                return {tid: ("unknown", "gamelift_controlled_build_or_fleet_configuration_not_verified")
+                        for tid in candidates}
+            return {}
         if pid == "gamelift_existing_shared_fleet_role_shell":
             if source is None:
                 return None
