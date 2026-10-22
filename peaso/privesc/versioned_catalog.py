@@ -21,7 +21,12 @@ V4_EFFECTIVE_TREE = "413792ea4aec86e48c352ffab2c0bea9e82795bc234251342737ec0276b
 LEGACY_DELTA = Path(__file__).resolve().parent / "catalog_versions/legacy-0b3633-delta.json"
 BOUNDED_MANIFEST = "734401b202895e00ac1b6cb0f1534f77cde4d8e2ba912ca0ee974b1b8ec5035c"
 BOUNDED_TREE = "1a54bad4102d18f89c78f45c915964554a62f994c1bffa693844cac5e119cca8"
-CURRENT_MANIFEST = '5688e8828d5da6bfe50dc0e7d7ecf57c205ff51a15b0dbfd7c3605e86cf20244'
+CURRENT_MANIFEST = '38eb22ca895b154e26c7fb4e57efac2fd1d7c7f2b93cb15e953fd0dd5494a677'
+GLUE_SCRIPT_690_PREVIOUS_MANIFEST = '5688e8828d5da6bfe50dc0e7d7ecf57c205ff51a15b0dbfd7c3605e86cf20244'
+GLUE_SCRIPT_690_PREVIOUS_TREE = 'e677064371a06be1699166d93a1c4014479584387281b0ada9bf814cce339ab1'
+GLUE_SCRIPT_690_PREVIOUS_ARCHIVE_SHA256 = '926f48081c890a43935b2186f49fa4e5696cb421c14e7375e0ccf662471dd337'
+GLUE_SCRIPT_690_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-690-glue-script-binding-source-manifest.json'
+GLUE_SCRIPT_690_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-690-glue-script-binding-catalog.tar.gz'
 GLUE_690_PREVIOUS_MANIFEST = 'd9aabeaf2ad628290897d7bdd71a3f340c64285fd16c05bba78e419d80b67c1f'
 GLUE_690_PREVIOUS_TREE = '41a2882ae0c929b50fc12407a7caefd76ed21644950a1a8131a79da8420bb3db'
 GLUE_690_PREVIOUS_ARCHIVE_SHA256 = 'b799ec4aa3d3cc9cf35e738616586696d168b919f972afeec5d1f39151d40fb2'
@@ -256,7 +261,7 @@ PRIOR_CURRENT_MANIFEST = "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0c
 PRIOR_DISCLOSURE_MANIFEST = "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
 PRIOR_DISCLOSURE_TREE = "5091464bedcb10bb87301695ca733276dc67b865e544c408ccf72a5408176f0f"
 PRIOR_DISCLOSURE_HISTORY = Path(__file__).resolve().parent / "catalog_versions/disclosure-v7-manifest.json"
-CURRENT_TREE = 'e677064371a06be1699166d93a1c4014479584387281b0ada9bf814cce339ab1'
+CURRENT_TREE = '6a2558eb2f3c33449bbb8a2e81c55caac59394978869706c447f65ebaad8c71f'
 PRIOR_CURRENT_TREE = "99207e6469fc5e5b3daf21324e6860599b116ffcf7d30600643bd229b0f11494"
 CURRENT_ENTRY_COUNT = 690
 CURRENT_EXCLUDED_COUNT = 3723
@@ -342,6 +347,15 @@ def _verified_gamelift_shared_688_previous():
         GAMELIFT_SHARED_688_PREVIOUS_MANIFEST_PATH, GAMELIFT_SHARED_688_PREVIOUS_ARCHIVE,
         GAMELIFT_SHARED_688_PREVIOUS_MANIFEST, GAMELIFT_SHARED_688_PREVIOUS_ARCHIVE_SHA256,
         GAMELIFT_SHARED_688_PREVIOUS_TREE, 688, 3723)
+
+
+@lru_cache(maxsize=1)
+def _verified_glue_script_690_previous():
+    """Keep the exact catalog before the Glue script-object binding was documented."""
+    return _verified_archived_current(
+        GLUE_SCRIPT_690_PREVIOUS_MANIFEST_PATH, GLUE_SCRIPT_690_PREVIOUS_ARCHIVE,
+        GLUE_SCRIPT_690_PREVIOUS_MANIFEST, GLUE_SCRIPT_690_PREVIOUS_ARCHIVE_SHA256,
+        GLUE_SCRIPT_690_PREVIOUS_TREE, 690, 3723)
 
 
 @lru_cache(maxsize=1)
@@ -763,6 +777,10 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "current", "exact_strict_privesc"
+    elif (binding.get("manifest_sha256") == GLUE_SCRIPT_690_PREVIOUS_MANIFEST and
+          binding.get("effective_tree_sha256") == GLUE_SCRIPT_690_PREVIOUS_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "glue_script_690_previous", "exact_previous_current"
     elif (binding.get("manifest_sha256") == GLUE_690_PREVIOUS_MANIFEST and
           binding.get("effective_tree_sha256") == GLUE_690_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -944,6 +962,9 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
         if version == "current":
             current = _verified_current(str(catalog_dir), str(manifest_path))
             return {ident: current[ident] for ident in ids if ident in current}, status
+        if version == "glue_script_690_previous":
+            previous = _verified_glue_script_690_previous()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "glue_690_previous":
             previous = _verified_glue_690_previous()
             return {ident: previous[ident] for ident in ids if ident in previous}, status

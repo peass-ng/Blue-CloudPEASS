@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from peaso import privesc
+from peaso.privesc import versioned_catalog as catalog
 from tests.test_peaso_privesc_schema_ext import reached
 from tests.test_peaso_privesc_v4_batch import _snapshot
 
@@ -68,3 +69,16 @@ def test_script_witness_can_be_in_another_region():
     snapshot["collections"].append({"type": "glue_job", "scope": "111111111111/us-east-1",
                                     "service": "glue", "status": "empty", "items": [], "error": None})
     assert _definite(snapshot) == {TARGET: "conditional"}
+
+
+def test_catalog_binding_preserves_prior_glue_wording():
+    previous_binding = {"schema": catalog.BINDING_SCHEMA,
+                        "manifest_sha256": catalog.GLUE_SCRIPT_690_PREVIOUS_MANIFEST,
+                        "effective_tree_sha256": catalog.GLUE_SCRIPT_690_PREVIOUS_TREE,
+                        "source_revision": catalog.V4_REVISION}
+    previous, previous_status = catalog.lookup_entries([ID], previous_binding)
+    current, current_status = catalog.lookup_entries([ID], catalog.current_binding())
+    assert previous_status == "exact_previous_current"
+    assert current_status == "exact_strict_privesc"
+    assert "one recorded S3 script object" not in previous[ID]["notes"]
+    assert "recorded S3 script object" in current[ID]["notes"]
