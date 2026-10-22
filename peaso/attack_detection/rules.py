@@ -178,6 +178,7 @@ from .aws_cloudfront_controls_next import normalize_aws_cloudfront_controls
 from .aws_glue_session_correlations_next import correlate_aws_glue_cross_actor_statements
 from .aws_glue_job_correlations_next import correlate_aws_glue_job_script_runs
 from .aws_deadline_role_routes import normalize_aws_deadline_role_route, correlate_aws_deadline_role_vending
+from .aws_arc_ssm_plan import normalize_aws_arc_ssm_plan
 from .aws_cognito_controls_next import normalize_aws_cognito_controls
 from .aws_cognito_directory_next import normalize_aws_cognito_directory
 from .aws_cognito_m2m_next import normalize_aws_cognito_m2m
@@ -449,6 +450,7 @@ def detect_aws_events(
         codepipeline_five = normalize_aws_codepipeline_five(record)
         codepipeline_remaining = normalize_aws_codepipeline_remaining(record)
         deadline_role_route = normalize_aws_deadline_role_route(record)
+        arc_ssm_plan = normalize_aws_arc_ssm_plan(record)
         codepipeline_reads = normalize_aws_codepipeline_reads(record)
         lightsail_six = normalize_aws_lightsail_six(record)
         lightsail_snapshot_dns = normalize_aws_lightsail_snapshot_dns(record)
@@ -679,6 +681,7 @@ def detect_aws_events(
                 + ([codepipeline_five] if codepipeline_five is not None else [])
                 + ([codepipeline_remaining] if codepipeline_remaining is not None else [])
                 + ([deadline_role_route] if deadline_role_route is not None else [])
+                + ([arc_ssm_plan] if arc_ssm_plan is not None else [])
                 + ([codepipeline_reads] if codepipeline_reads is not None else [])
                 + ([lightsail_six] if lightsail_six is not None else [])
                 + ([lightsail_snapshot_dns] if lightsail_snapshot_dns is not None else [])
