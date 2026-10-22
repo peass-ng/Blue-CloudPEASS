@@ -5606,6 +5606,40 @@ class AwsModel(Model):
                 unknown = True
         return ("unknown", "lambda_event_source_or_role_permissions_not_verified") if unknown else None
 
+    def _lambda_new_wrapper_layer(self, source, function_arn, region):
+        """Whether source can publish and attach a startup wrapper layer."""
+        partition = source.id.split(":", 2)[1]
+        prefix = f"arn:{partition}:lambda:{region}:{source.scope}:layer:"
+        allows, _ = self._statements(source, "lambda:publishlayerversion")
+        uncertain = False
+        for statement in allows:
+            for pattern in (["*"] if statement.notresource else statement.resources):
+                pattern = pattern.replace(f":*:{source.scope}:", f":{region}:{source.scope}:")
+                name_pattern = ("peasoprivesc*" if pattern == "*" else
+                                pattern[len(prefix):] if pattern.startswith(prefix) else None)
+                if name_pattern is None:
+                    uncertain = True
+                    continue
+                name = name_pattern.replace("*", "audit0").replace("?", "x")
+                if not re.fullmatch(r"[A-Za-z0-9_-]{1,140}", name):
+                    uncertain = True
+                    continue
+                layer_arn = prefix + name
+                new_version = layer_arn + ":__peaso_generated_layer_version__"
+                publish = self.check(source, {"action": "lambda:PublishLayerVersion",
+                                              "request_context": {"aws:RequestedRegion": region}}, layer_arn)
+                read = self.check(source, {"action": "lambda:GetLayerVersion",
+                                           "request_context": {"aws:RequestedRegion": region}}, new_version)
+                attach = self.check(source, {"action": "lambda:UpdateFunctionConfiguration",
+                                             "request_context": {"aws:RequestedRegion": region,
+                                                                 "lambda:Layer": new_version}}, function_arn)
+                if any(grant is None for grant in (publish, read, attach)):
+                    continue
+                if all(grant.confidence == "derived" for grant in (publish, read, attach)):
+                    return True
+                uncertain = True
+        return None if uncertain else False
+
     def _lambda_new_dynamodb_stream_route(self, source, role):
         """Join one new table/stream, function, mapping and readable role."""
         if source.incomplete or role.incomplete:
@@ -12098,16 +12132,24 @@ class AwsModel(Model):
                     if self.lambda_code_signing.get(arn) is not False:
                         uncertain = True
                         continue
-                    actions = [self.check(source, {"action": action}, arn) for action in (
-                        "lambda:UpdateFunctionConfiguration", "lambda:UpdateFunctionCode", "lambda:InvokeFunction")]
+                    configure = self.check(source, {"action": "lambda:UpdateFunctionConfiguration"}, arn)
+                    code = self.check(source, {"action": "lambda:UpdateFunctionCode"}, arn)
+                    invoke = self.check(source, {"action": "lambda:InvokeFunction"}, arn)
                     passrole = self.check(source, {"action": "iam:PassRole", "request_context": {
                         "iam:PassedToService": "lambda.amazonaws.com", "iam:AssociatedResourceArn": arn}}, role.id)
                     trust = self._service_trust_for_source_arn(tid, "lambda.amazonaws.com", arn)
-                    if any(grant is None for grant in actions) or passrole is None or trust is False:
+                    if configure is None or invoke is None or passrole is None or trust is False:
                         continue
-                    if (all(grant.confidence == "derived" for grant in actions) and
+                    code_ready = code is not None and code.confidence == "derived"
+                    wrapper_ready = False
+                    if not code_ready and not configuration.get("KMSKeyArn"):
+                        wrapper_ready = self._lambda_new_wrapper_layer(source, arn, scope.split("/", 1)[1])
+                    if ((code_ready or wrapper_ready is True) and
+                            configure.confidence == invoke.confidence == "derived" and
                             passrole.confidence == "derived" and trust is True and not role.incomplete):
-                        out[tid] = ("conditional", "lambda_existing_zip_role_swap_code_and_invoke_same_function")
+                        route = ("lambda_existing_zip_role_swap_code_and_invoke_same_function" if code_ready else
+                                 "lambda_existing_zip_role_swap_wrapper_layer_and_invoke_same_function")
+                        out[tid] = ("conditional", route)
                         break
                     uncertain = True
                 if tid not in out and uncertain:
