@@ -17,7 +17,7 @@ import sys
 
 
 TESTS = Path("tests")
-SHARDS = 32
+SHARDS = 19
 _SHARD_ENV = "PEASO_CI_PYTEST_SHARD"
 
 # Seconds summed from the completed JUnit files in Actions run 39701781083.
