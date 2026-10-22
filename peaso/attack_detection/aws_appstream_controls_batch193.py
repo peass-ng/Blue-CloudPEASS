@@ -63,12 +63,25 @@ def normalize(record: Mapping[str, Any]) -> list[dict[str, Any]]:
             flags["request.appstream_entitlement_all_apps"] = True
     else:
         settings = request.get("userSettings")
-        if (not isinstance(settings, list) or not 1 <= len(settings) <= 20
-                or any(not isinstance(item, Mapping) for item in settings)):
-            return []
-        if any(item.get("action") in _TRANSFER and item.get("permission") == "ENABLED"
-               for item in settings):
-            flags["request.appstream_transfer_channel_enabled"] = True
+        if settings is not None:
+            if (not isinstance(settings, list) or not 1 <= len(settings) <= 20
+                    or any(not isinstance(item, Mapping) for item in settings)):
+                return []
+            if any(item.get("action") in _TRANSFER and item.get("permission") == "ENABLED"
+                   for item in settings):
+                flags["request.appstream_transfer_channel_enabled"] = True
+        agent = request.get("agentAccessConfig")
+        if agent is not None:
+            if not isinstance(agent, Mapping):
+                return []
+            actions = agent.get("settings")
+            if actions is not None:
+                if (not isinstance(actions, list) or not 1 <= len(actions) <= 20
+                        or any(not isinstance(item, Mapping) for item in actions)):
+                    return []
+                if any(item.get("agentAction") == "COMPUTER_INPUT"
+                       and item.get("permission") == "ENABLED" for item in actions):
+                    flags["request.appstream_agent_input_enabled"] = True
     if not flags:
         return []
     return [{

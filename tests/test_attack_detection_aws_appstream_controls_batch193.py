@@ -60,6 +60,22 @@ def test_transfer_channel_requires_explicit_enablement():
     assert normalize(unknown) == []
 
 
+def test_agent_input_requires_explicit_enablement_and_success():
+    row = event("UpdateStack", {
+        "name": "synthetic-stack", "agentAccessConfig": {"settings": [
+            {"agentAction": "COMPUTER_VISION", "permission": "ENABLED"},
+            {"agentAction": "COMPUTER_INPUT", "permission": "ENABLED"},
+        ]},
+    })
+    assert normalize(row)[0]["request.appstream_agent_input_enabled"] is True
+    disabled = deepcopy(row)
+    disabled["requestParameters"]["agentAccessConfig"]["settings"][1]["permission"] = "DISABLED"
+    assert normalize(disabled) == []
+    failed = deepcopy(row)
+    failed["errorCode"] = "InvalidParameterCombinationException"
+    assert normalize(failed) == []
+
+
 def test_unrelated_events_and_invalid_structure_fail_closed():
     row = entitlement("CreateEntitlement")
     for key, value in (("eventSource", "other.amazonaws.com"),
