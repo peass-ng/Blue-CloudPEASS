@@ -147,6 +147,7 @@ from .aws_secretsmanager_rotation_next import normalize_aws_secretsmanager_rotat
 from .aws_secretsmanager_replica_chain_next import normalize_aws_secretsmanager_replica_chain, correlate_aws_secretsmanager_replica_chain
 from .aws_prefix_list_backdoor_next import normalize_aws_prefix_list_backdoor, correlate_aws_prefix_list_sg_reference
 from .aws_address_reassignment_next import normalize_aws_address_reassignment, correlate_aws_address_reassignment
+from .aws_ebs_multiattach import correlate_aws_ebs_multiattach
 from .aws_guardduty_controls_next import normalize_aws_guardduty_controls
 from .aws_ecr_retention_next import normalize_aws_ecr_retention
 from .aws_dynamodb_controls_next import normalize_aws_dynamodb_controls
@@ -893,6 +894,7 @@ def detect_aws_events(
     secret_replica_chain_records: list[Mapping[str, Any]] = []
     prefix_list_records: list[Mapping[str, Any]] = []
     address_reassignment_records: list[Mapping[str, Any]] = []
+    ebs_multiattach_records: list[Mapping[str, Any]] = []
     lambda_privesc_records: list[Mapping[str, Any]] = []
     ssm_command_records: list[Mapping[str, Any]] = []
     ssm_automation_window_records: list[Mapping[str, Any]] = []
@@ -1049,6 +1051,8 @@ def detect_aws_events(
                                                     "AssignPrivateIpAddresses", "UnassignPrivateIpAddresses",
                                                     "AuthorizeSecurityGroupIngress"}):
                 address_reassignment_records.append(record)
+            if record.get("eventSource") == "ec2.amazonaws.com" and record.get("eventName") in {"AttachVolume", "DetachVolume"}:
+                ebs_multiattach_records.append(record)
             if ((record.get("eventSource") == "codepipeline.amazonaws.com" and record.get("eventName") in {
                     "CreatePipeline", "UpdatePipeline", "StartPipelineExecution", "AcknowledgeJob", "PutJobSuccessResult"})
                     or (record.get("eventSource") == "codebuild.amazonaws.com" and record.get("eventName") == "UpdateProject")
@@ -1118,6 +1122,7 @@ def detect_aws_events(
     correlated += correlate_aws_secretsmanager_replica_chain(secret_replica_chain_records)
     correlated += correlate_aws_prefix_list_sg_reference(prefix_list_records)
     correlated += correlate_aws_address_reassignment(address_reassignment_records)
+    correlated += correlate_aws_ebs_multiattach(ebs_multiattach_records)
     correlated += correlate_aws_lambda_privesc(lambda_privesc_records)
     correlated += correlate_aws_ssm_command_output_read(ssm_command_records)
     correlated += correlate_aws_ssm_document_window(ssm_automation_window_records)
