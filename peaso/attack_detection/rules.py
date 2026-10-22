@@ -96,6 +96,11 @@ from .aws_lex_runtime_batch136 import normalize as normalize_aws_lex_runtime_bat
 from .aws_lex_testset_batch136 import normalize as normalize_aws_lex_testset_batch136
 from .aws_lex_hook_batch137 import normalize as normalize_aws_lex_hook_batch137, correlate_role_hook as correlate_aws_lex_role_hook_batch137
 from .aws_route53_profiles_batch139 import normalize as normalize_aws_route53_profiles_batch139, correlate_resource_vpc as correlate_aws_route53_profiles_batch139
+from .aws_appstream_userpool_batch201 import normalize as normalize_aws_appstream_userpool_batch201
+from .aws_organizations_reads_batch202 import normalize as normalize_aws_organizations_reads_batch202
+from .aws_waf_set_empty_batch204 import normalize as normalize_aws_waf_set_empty_batch204
+from .aws_waf_ipset_untag_batch205 import normalize as normalize_aws_waf_ipset_untag_batch205
+from .aws_logs_scheduled_query_batch207 import normalize as normalize_aws_logs_scheduled_query_batch207
 from .aws_devicefarm_batch140 import normalize as normalize_aws_devicefarm_batch140
 from .aws_devicefarm_sessions_batch141 import normalize as normalize_aws_devicefarm_sessions_batch141
 from .aws_appstream_controls_batch193 import normalize as normalize_aws_appstream_controls_batch193
@@ -624,6 +629,11 @@ def detect_aws_events(
         lex_testset_batch136 = normalize_aws_lex_testset_batch136(record)
         lex_hook_batch137 = normalize_aws_lex_hook_batch137(record)
         route53_profiles_batch139 = normalize_aws_route53_profiles_batch139(record)
+        appstream_userpool_batch201 = normalize_aws_appstream_userpool_batch201(record)
+        organizations_reads_batch202 = normalize_aws_organizations_reads_batch202(record)
+        waf_set_empty_batch204 = normalize_aws_waf_set_empty_batch204(record)
+        waf_ipset_untag_batch205 = normalize_aws_waf_ipset_untag_batch205(record)
+        logs_scheduled_query_batch207 = normalize_aws_logs_scheduled_query_batch207(record)
         devicefarm_batch140 = normalize_aws_devicefarm_batch140(record)
         devicefarm_sessions_batch141 = normalize_aws_devicefarm_sessions_batch141(record)
         appstream_controls_batch193 = normalize_aws_appstream_controls_batch193(record)
@@ -871,6 +881,11 @@ def detect_aws_events(
                 + lex_testset_batch136
                 + lex_hook_batch137
                 + route53_profiles_batch139
+                + ([appstream_userpool_batch201] if appstream_userpool_batch201 is not None else [])
+                + ([organizations_reads_batch202] if organizations_reads_batch202 is not None else [])
+                + ([waf_set_empty_batch204] if waf_set_empty_batch204 is not None else [])
+                + ([waf_ipset_untag_batch205] if waf_ipset_untag_batch205 is not None else [])
+                + ([logs_scheduled_query_batch207] if logs_scheduled_query_batch207 is not None else [])
                 + devicefarm_batch140
                 + devicefarm_sessions_batch141
                 + appstream_controls_batch193
