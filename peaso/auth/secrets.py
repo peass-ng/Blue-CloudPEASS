@@ -106,18 +106,64 @@ def credential_values(value, *, _seen=None, _depth=0):
         yield value
 
 
+_PRIVATE_KEY = re.compile(r"-----BEGIN (?:RSA |EC |ENCRYPTED )?PRIVATE KEY-----[\s\S]*?-----END (?:RSA |EC |ENCRYPTED )?PRIVATE KEY-----")
+_FIELD_LABEL = re.compile(r"[^a-zA-Z0-9]")
+MAX_PREFILTER_VALUES = 2048
+MAX_PREFILTER_CHARS = 128 * 1024
+MAX_PREFILTER_TEXT = 64 * 1024
+
+
+def _literal_matcher(values):
+    # re.compile caches patterns process-wide. A pattern containing credentials
+    # must remain owned by this call instead. CPython's compiler avoids that
+    # cache; other runtimes safely retain the ordered replacement path.
+    compiler = getattr(getattr(re, '_compiler', None), 'compile', None)
+    if compiler is None:
+        return None
+    try:
+        return compiler('|'.join(re.escape(value) for value in values), 0)
+    except (re.error, RecursionError, OverflowError):
+        return None
+
+
+class Redactor:
+    """Document-local preparation, also reusable for its keys and aliases.
+
+    A bounded literal matcher only rejects strings containing no long secret.
+    Positive matches use the original ordered replacements, preserving overlap
+    and replacement-marker cascades. Oversized plans/text use that same path.
+    No secret or plaintext is retained outside this caller-owned instance.
+    """
+    def __init__(self, secrets=()):
+        self.ordered = sorted(set(secrets), key=len, reverse=True)
+        self.short = frozenset(secret for secret in self.ordered if secret and len(secret) < 4)
+        long = [secret for secret in self.ordered if len(secret) >= 4]
+        self.has_long = bool(long)
+        self.matcher = (_literal_matcher(long)
+                        if long and len(long) <= MAX_PREFILTER_VALUES
+                        and sum(map(len, long)) <= MAX_PREFILTER_CHARS else None)
+
+    def __call__(self, value):
+        if isinstance(value, dict):
+            labels = [item for key, item in value.items() if str(key).lower() in {'key', 'name'} and isinstance(item, str)]
+            paired_secret = any(SENSITIVE.fullmatch(_FIELD_LABEL.sub('', label)) for label in labels)
+            return {str(key): '[REDACTED]' if (SENSITIVE.fullmatch(_FIELD_LABEL.sub('', str(key)))
+                or (paired_secret and str(key).lower() in {'value', 'content', 'data'}))
+                and isinstance(child, (str, dict, list)) else self(child) for key, child in value.items()}
+        if isinstance(value, (list, tuple)):
+            return [self(child) for child in value]
+        if isinstance(value, str):
+            value = _PRIVATE_KEY.sub('[REDACTED PRIVATE KEY]', value)
+            if not self.has_long or (self.matcher is not None and len(value) <= MAX_PREFILTER_TEXT
+                                     and self.matcher.search(value) is None):
+                return '[REDACTED]' if value in self.short else value
+            for secret in self.ordered:
+                if secret and (len(secret) >= 4 or value == secret):
+                    value = value.replace(secret, '[REDACTED]')
+            return value
+        return value
+
+
 def redact(value, secrets=()):
     """Drop secret-shaped fields and replace known credential values everywhere."""
-    if isinstance(value, dict):
-        labels = [item for key, item in value.items() if str(key).lower() in {"key", "name"} and isinstance(item, str)]
-        paired_secret = any(SENSITIVE.fullmatch(re.sub(r"[^a-zA-Z0-9]", "", label)) for label in labels)
-        return {str(k): "[REDACTED]" if (SENSITIVE.fullmatch(re.sub(r"[^a-zA-Z0-9]", "", str(k))) or (paired_secret and str(k).lower() in {"value", "content", "data"})) and isinstance(v, (str, dict, list)) else redact(v, secrets) for k, v in value.items()}
-    if isinstance(value, (list, tuple)):
-        return [redact(v, secrets) for v in value]
-    if isinstance(value, str):
-        value = re.sub(r"-----BEGIN (?:RSA |EC |ENCRYPTED )?PRIVATE KEY-----[\s\S]*?-----END (?:RSA |EC |ENCRYPTED )?PRIVATE KEY-----", "[REDACTED PRIVATE KEY]", value)
-        for secret in sorted(set(secrets), key=len, reverse=True):
-            if secret and (len(secret) >= 4 or value == secret):
-                value = value.replace(secret, "[REDACTED]")
-        return value
-    return value
+    return Redactor(secrets)(value)

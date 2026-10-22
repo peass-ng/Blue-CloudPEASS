@@ -345,26 +345,27 @@ class Capture:
             raise RuntimeError('private redaction capacity exceeded; snapshot was not published')
         if not self.records and not self.redactions:
             return snapshot
-        from peaso.auth.secrets import redact
+        from peaso.auth.secrets import Redactor
         from peaso.snapshot import seal
         self.bind_snapshot(snapshot)
         values = [self.cipher.decrypt(sealed)['value'] for sealed in self.records.values()]
         values.extend(self.cipher.decrypt(sealed)['value'] for sealed in self.redactions.values())
+        redact = Redactor(values)
         def public_keys(value):
             if isinstance(value, dict):
-                return {redact(str(key), values): public_keys(child) for key, child in value.items()}
+                return {redact(str(key)): public_keys(child) for key, child in value.items()}
             if isinstance(value, list):
                 return [public_keys(child) for child in value]
             return value
-        public = seal(public_keys(redact(snapshot, values)))
+        public = seal(public_keys(redact(snapshot)))
         for fp, sealed in self.records.items():
             row = self.cipher.decrypt(sealed)
             for loc in row['locations']:
                 if loc.get('resource_id'):
-                    loc['_resource_alias'] = redact(loc['resource_id'], values)
+                    loc['_resource_alias'] = redact(loc['resource_id'])
                 for key in ('_canonical_resource_id', '_canonical_scope'):
                     if loc.get(key):
-                        loc[key + '_alias'] = redact(loc[key], values)
+                        loc[key + '_alias'] = redact(loc[key])
             self.records[fp] = self.cipher.encrypt(row)
         return public
 
