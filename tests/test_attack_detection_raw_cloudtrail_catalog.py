@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from pathlib import Path
+from urllib.parse import quote
 
 import pytest
 
@@ -245,3 +246,64 @@ def test_resource_path_prefix_rejects_unsafe_or_nonraw_values(tmp_path):
         rule(tmp_path, extra="x_cloudtrail_resource_path_prefix: ../private\n")
     with pytest.raises(ValueError, match="Unsupported raw CloudTrail resource prefix"):
         rule(tmp_path, extra="x_cloudtrail_resource_path_prefix: /keyspace/system\n")
+
+
+def test_networkmanager_attachment_tag_scope_uses_same_account_arn_without_leaking_it(tmp_path):
+    attachment = f"arn:aws:networkmanager::{ACCOUNT}:attachment/attachment-0123456789abcdef0"
+    text = """title: Synthetic Cloud WAN attachment tagging
+id: 28300000-0000-4000-8000-000000000001
+status: experimental
+description: Synthetic test rule.
+references: [https://example.test/source]
+logsource: {product: aws, service: cloudtrail}
+detection:
+  selection:
+    event.source: networkmanager.amazonaws.com
+    event.name: TagResource
+    event.category: Management
+    event.outcome: success
+    event.read_only: false
+    resource.type: AWS::NetworkManager::Attachment
+  condition: selection
+falsepositives: [Approved tagging]
+level: low
+x_hacktricks_technique_id: synthetic-attachment-tag
+x_cloudtrail_raw: true
+"""
+    (tmp_path / "attachment.yml").write_text(text, encoding="utf-8")
+    selected = load_rules(tmp_path, product="aws")
+    item = event()
+    item.update({
+        "eventSource": "networkmanager.amazonaws.com", "eventName": "TagResource",
+        "eventCategory": "Management", "managementEvent": True, "readOnly": False,
+        "requestParameters": {"resourceArn": attachment, "Tags": [{"Key": "environment", "Value": "synthetic"}]},
+        "resources": [],
+    })
+    hits = detect_aws_events([item], selected)
+    assert len(hits) == 1 and hits[0].target_id.startswith("sha256:")
+    assert attachment not in str(hits) and ACCOUNT not in str(hits[0].evidence)
+    encoded = deepcopy(item)
+    encoded["requestParameters"]["resourceArn"] = quote(attachment, safe="")
+    encoded_hits = detect_aws_events([encoded], selected)
+    assert len(encoded_hits) == 1 and encoded_hits[0].target_id == hits[0].target_id
+    for bad_arn in (
+        attachment.replace(ACCOUNT, "111111111111"),
+        attachment.replace("attachment/", "core-network/"),
+        attachment + "/extra",
+        quote(attachment, safe="").replace("%3A", "%253A", 1),
+    ):
+        bad = deepcopy(item)
+        bad["requestParameters"]["resourceArn"] = bad_arn
+        assert detect_aws_events([bad], selected) == []
+    denied = deepcopy(item)
+    denied["errorCode"] = "AccessDeniedException"
+    assert detect_aws_events([denied], selected) == []
+
+    (tmp_path / "attachment.yml").write_text(
+        text.replace("event.name: TagResource", "event.name: UntagResource"), encoding="utf-8"
+    )
+    untagged = deepcopy(item)
+    untagged["eventName"] = "UntagResource"
+    untagged["requestParameters"] = {"resourceArn": attachment, "TagKeys": ["environment"]}
+    other = detect_aws_events([untagged], load_rules(tmp_path, product="aws"))
+    assert len(other) == 1 and other[0].target_id == hits[0].target_id
