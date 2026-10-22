@@ -7807,6 +7807,11 @@ class AwsModel(Model):
             # document, service-linked role, or privileged Automation effect.
             return {tid: ("unknown", "config_rule_document_and_automatic_role_effect_not_verified")
                     for tid in candidates}
+        if pid == "elasticbeanstalk_environment_role_execution_unverified":
+            # IAM grants alone do not prove an environment can be created or
+            # updated, nor that its instances run a controlled source bundle.
+            return {tid: ("unknown", "elasticbeanstalk_environment_profile_and_code_execution_not_verified")
+                    for tid in candidates}
         if pid == "ec2_runinstances_launch_with_passed_profile_unverified":
             if source is None:
                 return None

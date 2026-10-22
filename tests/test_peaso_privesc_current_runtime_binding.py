@@ -93,6 +93,24 @@ def test_config_remediation_binding_preserves_previous_catalog():
     assert len(catalog._verified_config_remediation_689_previous()) == 689
 
 
+def test_elasticbeanstalk_role_execution_binding_preserves_previous_catalog():
+    ident = "aws-elasticbeanstalk-passrole-create-environment"
+    current, status = catalog.lookup_entries([ident], catalog.current_binding())
+    assert status == "exact_strict_privesc"
+    entry = current[ident]
+    assert "elasticbeanstalk_environment_role_execution_unverified" in entry["preconditions"]
+    assert entry["requires"]["all_of"][0]["request_context"] == {
+        "iam:PassedToService": "ec2.amazonaws.com"}
+    old = {"schema": catalog.BINDING_SCHEMA,
+           "manifest_sha256": catalog.ELASTICBEANSTALK_EFFECT_689_PREVIOUS_MANIFEST,
+           "effective_tree_sha256": catalog.ELASTICBEANSTALK_EFFECT_689_PREVIOUS_TREE,
+           "source_revision": catalog.V4_REVISION}
+    previous, status = catalog.lookup_entries([ident], old)
+    assert status == "exact_previous_current"
+    assert "preconditions" not in previous[ident]
+    assert len(catalog._verified_elasticbeanstalk_effect_689_previous()) == 689
+
+
 def test_deadline_queue_binding_preserves_previous_catalog():
     ident = "aws-deadline-existing-queue-role-vend"
     current, status = catalog.lookup_entries([ident], catalog.current_binding())
