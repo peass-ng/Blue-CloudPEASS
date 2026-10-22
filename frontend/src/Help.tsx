@@ -87,9 +87,9 @@ export function Help({ onNavigate }: { onNavigate: (page: string) => void }) {
           <label className="docs-select">Authentication method<select aria-label="Authentication setup method" value={selectedMethod.id} onChange={event => setMethod(event.target.value)}>{methods.map(mode => <option key={mode.id} value={mode.id}>{mode.label}{mode.localOnly ? " · local server" : ""}</option>)}</select></label>
           <p>{guide.access}</p><h3>Permissions</h3><p>{guide.permissions}</p>
           {guide.permissionIds && <ul>{guide.permissionIds.map(id => <li key={id}><code>{id}</code></li>)}</ul>}
-          <details><summary>Commands for this authentication method</summary><p>Replace each placeholder before running a command. These setup commands create identities or grant access; they are separate from running a read-only assessment. Hosted AWS and platform GCP setup must use the workspace-specific commands in Connectors.</p>{guide.commands.map(command => <Code key={command.label} {...command} />)}</details>
-          {guide.optionalSetup && <details><summary>{guide.optionalSetup.title}</summary><p>{guide.optionalSetup.description}</p>{guide.optionalSetup.commands.map(command => <Code key={command.label} {...command} />)}</details>}
-          <p><a href={guide.url} target="_blank" rel="noopener noreferrer">{provider === "aws" && selectedMethod.id === "assume_role" ? "AWS cross-account roles and External IDs" : guide.link} ↗</a></p>
+          <details className="docs-auth-commands"><summary>Commands for this authentication method</summary><p>Replace each placeholder before running a command. These setup commands create identities or grant access; they are separate from running a read-only assessment. Hosted AWS and platform GCP setup must use the workspace-specific commands in Connectors.</p>{guide.commands.map(command => <Code key={command.label} {...command} />)}</details>
+          {guide.optionalSetup && <details className="docs-auth-commands"><summary>{guide.optionalSetup.title}</summary><p>{guide.optionalSetup.description}</p>{guide.optionalSetup.commands.map(command => <Code key={command.label} {...command} />)}</details>}
+          <p className="docs-setup-link"><a href={guide.url} target="_blank" rel="noopener noreferrer">{provider === "aws" && selectedMethod.id === "assume_role" ? "AWS cross-account roles and External IDs" : guide.link} ↗</a></p>
         </Panel>
       </>}
       {chapter === "Scans" && <>

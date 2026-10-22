@@ -23,17 +23,21 @@
 .docs-code button { display: flex; gap: 6px; align-items: center; }
 .docs-code pre { margin: 0; padding: 16px; overflow-x: auto; font-size: 12px; line-height: 1.8; }
 .docs-code pre code { white-space: pre; overflow-wrap: normal; }
-.docs-definitions { margin: 0; }
+.docs-definitions { display: block; margin: 0; }
 .docs-definitions > div { display: grid; grid-template-columns: minmax(150px,24%) minmax(0,1fr); gap: 20px; padding: 16px 0; border-bottom: 1px solid var(--line); }
 .docs-definitions dt { font-size: 13px; line-height: 1.8; color: var(--mint); }
-.docs-definitions dd { margin: 0; }
+.docs-definitions dt, .docs-definitions dd { min-width: 0; }
+.docs-definitions dd { margin: 0; overflow-wrap: break-word; }
 .docs-search { display: flex; align-items: center; gap: 10px; }
 .docs-search input { width: 100%; }
 .docs-api-table { overflow-x: auto; }
-.docs-api-table table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.docs-api-table table { min-width: 640px; width: 100%; border-collapse: collapse; table-layout: fixed; }
 .docs-api-table th { text-align: left; padding: 15px 10px; border-bottom: 1px solid var(--line); font-size: 12px; }
 .docs-api-table th:first-child { width: 43%; }
 .docs-api-table td { padding: 15px 10px; border-bottom: 1px solid var(--line); vertical-align: top; overflow-wrap: anywhere; }
 .docs-api-table td span { display: block; color: var(--muted); font-size: 11px; margin-bottom: 5px; }
 @media(max-width:1000px) { .help-docs { grid-template-columns: 1fr; }.docs-nav { position: static; display: flex; flex-wrap: wrap; } }
 @media(max-width:640px) { .docs-cards { grid-template-columns: 1fr; }.docs-definitions > div { grid-template-columns: 1fr; gap: 5px; }.docs-api-table table { min-width: 520px; }.docs-nav button { padding: 10px; } }
+
+.docs-content .docs-auth-commands { border-top: 0; padding-top: 0; }
+.docs-content .docs-setup-link { margin: 18px 0 0; }
