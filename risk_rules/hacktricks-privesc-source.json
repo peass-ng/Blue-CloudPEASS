@@ -1,6 +1,6 @@
 {
   "repository": "HackTricks-wiki/hacktricks-cloud",
-  "revision": "439f7a70e20ae8dcf675a7eda9a2bf997313ea46",
+  "revision": "e0797bb534f16c8ea488a6a93cc0833d1a76f47f",
   "path": "src/privilege-escalation-paths",
   "canonical_sha256": {
     "aws/_excluded_171e_g1.yaml": "2160b8f57f029e74e5a31727815316f459d8364147c47be2c36639c831b9dcb3",
@@ -32,7 +32,7 @@
     "aws/_excluded_refresh_g6.yaml": "7bc590373f3562536c71ce2b52809b3e18994be1edf3de2fa89424b8b946ec83",
     "aws/_excluded_refresh_g7.yaml": "24e5d277b17cbfb100995ce2fb246e5a1fd8df0150ef51cc03ca1801fb8c4184",
     "aws/_excluded_scoped_credential_overclaim_20261016.yaml": "4bdb33bb5100a6833c25fae22165f1db3550121774c34e9800d6c652e4da0098",
-    "aws/_excluded_scoped_role_overclaim_20261016.yaml": "2f0c910c4658ad4c8ea7790f9b12977a023122eb5a9d2dd31dec3a5b24747463",
+    "aws/_excluded_scoped_role_overclaim_20261016.yaml": "f12b33469eb5f6e233861c01c2b62d4383a2bbb8a56d909077bdd1e0b8b48f9b",
     "aws/_excluded_secondary_bounded_role_overclaim_20261016.yaml": "4fb2b7557329810b13d0886e5559137b23723c2b4062e715b409dc39bdaddab3",
     "aws/_excluded_strict_reaudit_20261016.yaml": "fdcee7400fd95643c0c19a640bb32ad243714bdce48dbcf25e294145bad635cc",
     "aws/_excluded_studio_space_strict_reaudit_20261016.yaml": "1bbcda6626d6f75353f8eb3cdf43f3cd6a0d8aa85897e2d55cf75169e2df83c0",
@@ -325,7 +325,7 @@
     "aws/_excluded_refresh_g6.yaml": "7bc590373f3562536c71ce2b52809b3e18994be1edf3de2fa89424b8b946ec83",
     "aws/_excluded_refresh_g7.yaml": "24e5d277b17cbfb100995ce2fb246e5a1fd8df0150ef51cc03ca1801fb8c4184",
     "aws/_excluded_scoped_credential_overclaim_20261016.yaml": "4bdb33bb5100a6833c25fae22165f1db3550121774c34e9800d6c652e4da0098",
-    "aws/_excluded_scoped_role_overclaim_20261016.yaml": "2f0c910c4658ad4c8ea7790f9b12977a023122eb5a9d2dd31dec3a5b24747463",
+    "aws/_excluded_scoped_role_overclaim_20261016.yaml": "f12b33469eb5f6e233861c01c2b62d4383a2bbb8a56d909077bdd1e0b8b48f9b",
     "aws/_excluded_secondary_bounded_role_overclaim_20261016.yaml": "4fb2b7557329810b13d0886e5559137b23723c2b4062e715b409dc39bdaddab3",
     "aws/_excluded_strict_reaudit_20261016.yaml": "fdcee7400fd95643c0c19a640bb32ad243714bdce48dbcf25e294145bad635cc",
     "aws/_excluded_studio_space_strict_reaudit_20261016.yaml": "1bbcda6626d6f75353f8eb3cdf43f3cd6a0d8aa85897e2d55cf75169e2df83c0",
