@@ -995,6 +995,25 @@ def test_createaccount_does_not_override_explicit_role_trust_deny():
     assert role_arn("denied", OTHER) not in reached(real(snap, CREATE_ACCOUNT), ALICE)
 
 
+def test_createaccount_new_member_cannot_bypass_root_scp_assume_role_deny():
+    alice = user("alice", allow("organizations:CreateAccount", "sts:AssumeRole"))
+    target = role("shared", org_trust(), account=OTHER)
+    unaffected = role("other-shared", org_trust(), account=OTHER)
+    root = "r-root123"
+    parent = col("organization_parent", [{"ChildId": ACCOUNT, "ParentId": root}])
+    baseline = aws_snap([alice], extra=[org_accounts(OTHER), parent],
+                        other_roles=[(OTHER, [target, unaffected])])
+    assert target["Arn"] in reached(real(baseline, CREATE_ACCOUNT), ALICE)
+    scp = col("scp_policy", [{"Id": "p-denyassume", "TargetId": root,
+        "Detail": {"Policy": {"Content": {"Version": "2012-10-17", "Statement": [
+            {"Effect": "Deny", "Action": "sts:AssumeRole", "Resource": target["Arn"]}]}}}}],
+        scope=f"{OTHER}/{REGION}")
+    snap = aws_snap([alice], extra=[org_accounts(OTHER), parent, scp],
+                    other_roles=[(OTHER, [target, unaffected])])
+    assert target["Arn"] not in reached(real(snap, CREATE_ACCOUNT), ALICE)
+    assert unaffected["Arn"] in reached(real(snap, CREATE_ACCOUNT), ALICE)
+
+
 def test_createaccount_from_member_account_is_not_an_edge():
     bob = user("bob", allow("organizations:CreateAccount", "sts:AssumeRole"), account=OTHER)
     snap = aws_snap([], extra=[org_accounts(OTHER), col("iam_user", [bob], scope=f"{OTHER}/{REGION}")],

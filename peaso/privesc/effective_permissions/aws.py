@@ -12099,7 +12099,18 @@ class AwsModel(Model):
                     break
             verdict = (("conditional", "new_member_account_creation_pending") if grant is not None else
                        ("unknown", "new_member_access_role_assume_grant_unverified"))
-            return dict.fromkeys(candidates, verdict)
+            root = self._org_root()
+            root_denies = [st for policy in self.scp_by_target.get(root, ())
+                           for st in policy.for_action("sts:assumerole")
+                           if st.effect == "deny" and not st.conditional]
+            out = {}
+            for tid in candidates:
+                # A newly created account starts at the organization root, so
+                # an unconditional root SCP Deny also applies to its new role.
+                if any(st.resource_matches(tid) for st in root_denies):
+                    continue
+                out[tid] = verdict
+            return out
         if pid == "emr_cluster_session_runtime_role":
             if source is None:
                 return None
