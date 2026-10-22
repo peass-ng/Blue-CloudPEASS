@@ -83,8 +83,10 @@ def _run(stage, script):
     # the actual source package, as they do after installation.
     assert hashlib.sha256(ARCHIVE.read_bytes()).hexdigest() == ARCHIVE_SHA256
     env=dict(os.environ, PYTHONPATH=str(NATIVE_ROOT)+os.pathsep+str(ROOT)+os.pathsep+str(stage))
+    successors_path = stage/'reviewed-successors.json'
+    successors_path.write_text(json.dumps(REVIEWED_SUCCESSORS), encoding='utf-8')
     result=subprocess.run([sys.executable,'-c',script,str(ARCHIVE),str(stage),
-                           json.dumps(REVIEWED_SUCCESSORS)],
+                           str(successors_path)],
                           cwd=NATIVE_ROOT,env=env,text=True,capture_output=True,timeout=180)
     assert result.returncode == 0, result.stdout+'\n'+result.stderr
     return result.stdout
@@ -97,7 +99,7 @@ path=Path(sys.argv[2])/'peaso/server/evidence_static.py'
 spec=importlib.util.spec_from_file_location('evidence_static_cold',path)
 module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
 assert not any(name=='peaso.checks' or name.startswith('peaso.checks.') or name=='peaso.analysis' or name.startswith('peaso.analysis.') or name=='peaso.engine' for name in sys.modules)
-reviewed=json.loads(sys.argv[3]);count=0;changed=set()
+reviewed=json.loads(Path(sys.argv[3]).read_text());count=0;changed=set()
 with gzip.open(sys.argv[1],'rt',encoding='utf-8') as file:
  for line in file:
   row=json.loads(line);finding=copy.deepcopy(row['finding']);before=copy.deepcopy(finding)
@@ -161,7 +163,7 @@ from pathlib import Path
 path=Path(sys.argv[2])/'peaso/server/evidence_static.py'
 spec=importlib.util.spec_from_file_location('evidence_static_then_native',path)
 module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
-rows=[];reviewed=json.loads(sys.argv[3]);changed=[]
+rows=[];reviewed=json.loads(Path(sys.argv[3]).read_text());changed=[]
 with gzip.open(sys.argv[1],'rt',encoding='utf-8') as file:
  for index,line in enumerate(file):
   row=json.loads(line)
