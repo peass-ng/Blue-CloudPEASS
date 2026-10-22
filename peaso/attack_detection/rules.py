@@ -98,6 +98,7 @@ from .aws_route53_profiles_batch139 import normalize as normalize_aws_route53_pr
 from .aws_devicefarm_batch140 import normalize as normalize_aws_devicefarm_batch140
 from .aws_devicefarm_sessions_batch141 import normalize as normalize_aws_devicefarm_sessions_batch141
 from .aws_apprunner_batch210 import normalize as normalize_aws_apprunner_batch210
+from .aws_apprunner_ecr_batch211 import correlate as correlate_aws_apprunner_ecr_batch211
 from .aws_sagemaker_control_next import normalize_aws_sagemaker_control
 from .aws_rolesanywhere_next import normalize as normalize_aws_rolesanywhere
 from .aws_customer_profiles_next import normalize as normalize_aws_customer_profiles
@@ -989,6 +990,9 @@ def detect_aws_events(
                     and isinstance(record.get("eventName"), str)
                     and record["eventName"] in {"PutImage", "CompleteLayerUpload"}):
                 ecr_image_records.append(record)
+            if (record.get("eventSource") == "apprunner.amazonaws.com"
+                    and record.get("eventName") in {"CreateService", "UpdateService", "DeleteService"}):
+                ecr_image_records.append(record)
             if record.get("eventSource") == "athena.amazonaws.com" and record.get("eventName") in {"StartQueryExecution", "ListQueryExecutions", "GetQueryExecution", "BatchGetQueryExecution", "GetQueryResults", "GetQueryRuntimeStatistics"}:
                 athena_history_records.append(record)
             if record.get("eventSource") == "athena.amazonaws.com" and record.get("eventName") in {"CreateWorkGroup", "StartQueryExecution"}:
@@ -1163,6 +1167,7 @@ def detect_aws_events(
     correlated += correlate_aws_iot_external_cert_policy(iot_external_cert_records)
     correlated += correlate_aws_lambda_mapping_repoint(lambda_mapping_records)
     correlated += correlate_aws_ecr_tag_overwrite(ecr_image_records)
+    correlated += correlate_aws_apprunner_ecr_batch211(ecr_image_records)
     correlated += correlate_aws_ecr_new_layer_push(ecr_image_records)
     correlated += correlate_aws_chime_live_pipeline_read(chime_media_pipeline_records)
     correlated += correlate_aws_chime_media_insights(chime_media_insights_records)
