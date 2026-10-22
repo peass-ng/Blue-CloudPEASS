@@ -208,17 +208,18 @@ def test_imagebuilder_recipe_components_wildcard_grant_and_pinned_recipe():
     assert reached(result, ALICE) == {arn("builder"): "conditional"}
     assert [e for e in edges(result, ALICE) if e["target"] == arn("builder")]
     pinned = _imagebuilder(components=_recipe(f"{COMPONENT}/pinned/1.0.0/3", f"{COMPONENT}/semver/2.0.0"))
-    assert reached(analyze(aws_snap([_ib_user(f"{COMPONENT}/*")], *pinned), IB_ID), ALICE) == {}
+    assert reached(analyze(aws_snap([_ib_user(f"{COMPONENT}/*")], *pinned), IB_ID), ALICE) == {arn("builder"): "conditional"}
+    only_pinned = _imagebuilder(components=_recipe(f"{COMPONENT}/pinned/1.0.0/3"))
+    assert reached(analyze(aws_snap([_ib_user(f"{COMPONENT}/*")], *only_pinned), IB_ID), ALICE) == {}
 
 
-def test_imagebuilder_recipe_not_collected_falls_back_conditional():
+def test_imagebuilder_recipe_not_collected_stays_unresolved():
     for components in (None, {"collection_status": "denied", "error": {"code": "AccessDeniedException"}}):
         roles, extra = _imagebuilder(components=components)
-        # Without recipe facts the input is the Region's component/*: any overlapping grant stays conditional, and a
-        # grant in another Region does not match.
-        assert reached(analyze(aws_snap([_ib_user(f"{COMPONENT}/*")], roles, extra), IB_ID), ALICE) == {arn("builder"): "conditional"}
-        assert reached(analyze(aws_snap([_ib_user(f"{COMPONENT}/app/*")], roles, extra), IB_ID), ALICE) == {arn("builder"): "conditional"}
-        assert reached(analyze(aws_snap([_ib_user(f"arn:aws:imagebuilder:eu-west-1:{ACCOUNT}:component/*")], roles, extra), IB_ID), ALICE) == {}
+        # A writable component name cannot be joined to this role without the recipe.
+        assert arn("builder") not in reached(analyze(aws_snap([_ib_user(f"{COMPONENT}/*")], roles, extra), IB_ID), ALICE)
+        assert arn("builder") not in reached(analyze(aws_snap([_ib_user(f"{COMPONENT}/app/*")], roles, extra), IB_ID), ALICE)
+        assert arn("builder") not in reached(analyze(aws_snap([_ib_user(f"arn:aws:imagebuilder:eu-west-1:{ACCOUNT}:component/*")], roles, extra), IB_ID), ALICE)
 
 
 def test_imagebuilder_component_input_resolved_from_pipeline():
@@ -226,7 +227,7 @@ def test_imagebuilder_component_input_resolved_from_pipeline():
     alice = user("alice", allow("imagebuilder:CreateComponent", f"arn:aws:imagebuilder:{REGION}:{ACCOUNT}:component/*"),
                  allow("imagebuilder:StartImagePipelineExecution", PIPELINE))
     result = analyze(aws_snap([alice], roles, extra), IB_ID)
-    assert reached(result, ALICE) == {arn("builder"): "conditional"}
+    assert arn("builder") not in reached(result, ALICE)
     other_region = user("alice", allow("imagebuilder:CreateComponent", f"arn:aws:imagebuilder:eu-west-1:{ACCOUNT}:component/*"),
                         allow("imagebuilder:StartImagePipelineExecution", PIPELINE))
     assert reached(analyze(aws_snap([other_region], roles, extra), IB_ID), ALICE) == {}

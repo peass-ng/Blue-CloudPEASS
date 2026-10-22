@@ -6823,6 +6823,58 @@ class AwsModel(Model):
                 if uncertain else None)
 
     def precondition(self, pid, candidates, source):
+        if pid == "imagebuilder_component_publish_and_pipeline_start":
+            if source is None:
+                return None
+            statuses = inventory_status(self.snapshot, "imagebuilder_pipeline")
+            pipelines = {row.get("arn"): (scope, row) for scope, row in items(self.snapshot, "imagebuilder_pipeline")
+                         if isinstance(row, dict) and isinstance(row.get("arn"), str)}
+            allows, _ = self._statements(source, "imagebuilder:createcomponent")
+            out = {}
+            for tid, role in candidates.items():
+                uncertain = bool(source.incomplete or role.incomplete)
+                for arn in self.hosts.get(role.id, {}).get("imagebuilder_pipeline", ()):
+                    pair = pipelines.get(arn)
+                    if pair is None:
+                        uncertain = True
+                        continue
+                    scope, pipeline = pair
+                    if not scope.startswith(source.scope + "/") or statuses.get(scope) != "collected":
+                        uncertain = True
+                        continue
+                    recipe = pipeline.get("RecipeComponents")
+                    if not isinstance(recipe, dict) or recipe.get("collection_status") != "collected" or not isinstance(
+                            recipe.get("items"), list):
+                        uncertain = True
+                        continue
+                    start = self.check(source, {"action": "imagebuilder:StartImagePipelineExecution"}, arn)
+                    for component in recipe["items"]:
+                        scope_and_future = _ib_publish_scope(component, source.scope)
+                        if scope_and_future is None:
+                            continue
+                        required_prefix, future_arn = scope_and_future
+                        broad = any(not statement.notresource and not statement.variables and any(
+                            pattern == "*" or (pattern.endswith("*") and "*" not in pattern[:-1]
+                                               and "?" not in pattern[:-1] and
+                                               required_prefix.startswith(pattern[:-1]))
+                            for pattern in statement.resources) for statement in allows)
+                        if not broad:
+                            uncertain |= bool(allows)
+                            continue
+                        create = self.check(source, {"action": "imagebuilder:CreateComponent"}, future_arn)
+                        if create is None or start is None:
+                            uncertain = True
+                            continue
+                        if (create.confidence == start.confidence == "derived" and
+                                not source.incomplete and not role.incomplete):
+                            out[tid] = ("conditional", "imagebuilder_same_pipeline_component_publish_and_start")
+                            break
+                        uncertain = True
+                    if tid in out:
+                        break
+                if tid not in out and uncertain:
+                    out[tid] = ("unknown", "imagebuilder_component_or_pipeline_binding_not_verified")
+            return out
         if pid == "gameliftstreams_live_role_session_admin_shell":
             if source is None:
                 return None
@@ -9781,6 +9833,27 @@ def _ib_wildcard_components(recipe, account):
         if match and match.group(2) == str(account) and "x" in match.group(3).lower():
             out.append(match.group(1) + "/*")
     return sorted(set(out))
+
+
+def _ib_publish_scope(component_arn, account):
+    """Return a required writable prefix and a representative future build ARN."""
+    match = _IB_COMPONENT_RE.fullmatch(component_arn) if isinstance(component_arn, str) else None
+    if not match or match.group(2) != str(account):
+        return None
+    version = match.group(3)
+    nodes = version.split(".")
+    if len(nodes) != 3 or any(not (node.isdigit() or node == "x") for node in nodes):
+        return None
+    future = match.group(1) + "/" + ".".join(
+        "1073741823" if node == "x" else node for node in nodes) + "/1073741823"
+    if "x" not in nodes and component_arn.endswith("/" + version):
+        return match.group(1) + "/" + version + "/", future
+    if "x" not in nodes:
+        return None  # An explicit build number is fixed.
+    first = nodes.index("x")
+    if any(node != "x" for node in nodes[first:]):
+        return None
+    return match.group(1) + "/" + (".".join(nodes[:first]) + "." if first else ""), future
 
 
 def _norm_arn(arn):

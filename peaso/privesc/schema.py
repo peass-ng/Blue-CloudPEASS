@@ -994,6 +994,9 @@ FACTS_NEEDED = {
 # an "Unresolved" placeholder (unknown confidence, never FAIL). mode "target" depends only on the target and the
 # inventory (shared candidate set); mode "source" also depends on the source principal.
 PRECONDITIONS = {
+    "imagebuilder_component_publish_and_pipeline_start": (("aws",), "source",
+        "The source can publish a newer build of an account-owned component consumed by one pipeline and start that same pipeline.",
+        "AWS: complete Image Builder pipeline and recipe-component inventory; the same pipeline has the target instance-profile role, an unpinned component reference, source CreateComponent permission covering new versions or builds of that component, and source StartImagePipelineExecution on that pipeline"),
     "gameliftstreams_live_role_session_admin_shell": (("aws",), "source",
       "The caller can open an admin shell in one live GameLift Streams session carrying the target role.",
       "AWS: complete per-Region ListStreamGroups/ListStreamSessions inventory with the same session ARN, live status, exact RoleArn and parent group ARN; CreateStreamSessionAdminShell must allow that group"),

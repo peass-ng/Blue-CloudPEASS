@@ -21,7 +21,14 @@ V4_EFFECTIVE_TREE = "413792ea4aec86e48c352ffab2c0bea9e82795bc234251342737ec0276b
 LEGACY_DELTA = Path(__file__).resolve().parent / "catalog_versions/legacy-0b3633-delta.json"
 BOUNDED_MANIFEST = "734401b202895e00ac1b6cb0f1534f77cde4d8e2ba912ca0ee974b1b8ec5035c"
 BOUNDED_TREE = "1a54bad4102d18f89c78f45c915964554a62f994c1bffa693844cac5e119cca8"
-CURRENT_MANIFEST = '806df7e9e167327f94546f21aef691ead74b27aac1807278ac0500ab031ce5dd'
+CURRENT_MANIFEST = 'ead398e038dec38299179fe6dcadbaaa1125bafa85617e8ba738320d46d99e0c'
+IMAGEBUILDER_PREVIOUS_MANIFEST = '806df7e9e167327f94546f21aef691ead74b27aac1807278ac0500ab031ce5dd'
+IMAGEBUILDER_PREVIOUS_TREE = '25f7f17354a44d519da70a2b0b7dc9ee8bc7cc7190325fc457d96978cc07881b'
+IMAGEBUILDER_PREVIOUS_ENTRY_COUNT = 673
+IMAGEBUILDER_PREVIOUS_EXCLUDED_COUNT = 3723
+IMAGEBUILDER_PREVIOUS_ARCHIVE_SHA256 = '33ba00ab6f5240658907c8a2c04c8fb45dcf9d7df261214fe01f4de783b7dd26'
+IMAGEBUILDER_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-673-imagebuilder-source-manifest.json'
+IMAGEBUILDER_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-673-imagebuilder-catalog.tar.gz'
 GLUE_SCRIPT_PREVIOUS_MANIFEST = '78c82d0bffa7d95e75fcd66c798cd7b3d5423f328b632731f62c61cd5c02db5e'
 GLUE_SCRIPT_PREVIOUS_TREE = '05938ad2b8b18f72f55be44a2b420eab322e0e744198e9e14f4b40a61e4b52e6'
 GLUE_SCRIPT_PREVIOUS_ENTRY_COUNT = 672
@@ -138,7 +145,7 @@ PRIOR_CURRENT_MANIFEST = "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0c
 PRIOR_DISCLOSURE_MANIFEST = "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
 PRIOR_DISCLOSURE_TREE = "5091464bedcb10bb87301695ca733276dc67b865e544c408ccf72a5408176f0f"
 PRIOR_DISCLOSURE_HISTORY = Path(__file__).resolve().parent / "catalog_versions/disclosure-v7-manifest.json"
-CURRENT_TREE = '25f7f17354a44d519da70a2b0b7dc9ee8bc7cc7190325fc457d96978cc07881b'
+CURRENT_TREE = '68e7b2982721974b183936f2fe6612b1cae983ddf2088010f3167bd6a7c540a6'
 PRIOR_CURRENT_TREE = "99207e6469fc5e5b3daf21324e6860599b116ffcf7d30600643bd229b0f11494"
 CURRENT_ENTRY_COUNT = 673
 CURRENT_EXCLUDED_COUNT = 3723
@@ -243,6 +250,16 @@ def _verified_glue_script_previous():
         GLUE_SCRIPT_PREVIOUS_MANIFEST, GLUE_SCRIPT_PREVIOUS_ARCHIVE_SHA256,
         GLUE_SCRIPT_PREVIOUS_TREE, GLUE_SCRIPT_PREVIOUS_ENTRY_COUNT,
         GLUE_SCRIPT_PREVIOUS_EXCLUDED_COUNT)
+
+
+@lru_cache(maxsize=1)
+def _verified_imagebuilder_previous():
+    """Keep the exact catalog used before the Image Builder pipeline binding repair."""
+    return _verified_archived_current(
+        IMAGEBUILDER_PREVIOUS_MANIFEST_PATH, IMAGEBUILDER_PREVIOUS_ARCHIVE,
+        IMAGEBUILDER_PREVIOUS_MANIFEST, IMAGEBUILDER_PREVIOUS_ARCHIVE_SHA256,
+        IMAGEBUILDER_PREVIOUS_TREE, IMAGEBUILDER_PREVIOUS_ENTRY_COUNT,
+        IMAGEBUILDER_PREVIOUS_EXCLUDED_COUNT)
 
 
 @lru_cache(maxsize=1)
@@ -443,6 +460,10 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "current", "exact_strict_privesc"
+    elif (binding.get("manifest_sha256") == IMAGEBUILDER_PREVIOUS_MANIFEST and
+          binding.get("effective_tree_sha256") == IMAGEBUILDER_PREVIOUS_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "imagebuilder_previous", "exact_previous_current"
     elif (binding.get("manifest_sha256") == GLUE_SCRIPT_PREVIOUS_MANIFEST and
           binding.get("effective_tree_sha256") == GLUE_SCRIPT_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -536,6 +557,9 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
         if version == "current":
             current = _verified_current(str(catalog_dir), str(manifest_path))
             return {ident: current[ident] for ident in ids if ident in current}, status
+        if version == "imagebuilder_previous":
+            previous = _verified_imagebuilder_previous()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "glue_script_previous":
             previous = _verified_glue_script_previous()
             return {ident: previous[ident] for ident in ids if ident in previous}, status

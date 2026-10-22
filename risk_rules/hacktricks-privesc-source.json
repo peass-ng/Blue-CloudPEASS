@@ -1,6 +1,6 @@
 {
   "repository": "HackTricks-wiki/hacktricks-cloud",
-  "revision": "be36a50b6596a90bf0a10a56ff5f2d0f5b9e105b",
+  "revision": "0329819a87d2879e7b7c3dec04da2b19858c1656",
   "path": "src/privilege-escalation-paths",
   "canonical_sha256": {
     "aws/_excluded_171e_g1.yaml": "2160b8f57f029e74e5a31727815316f459d8364147c47be2c36639c831b9dcb3",
@@ -99,7 +99,7 @@
     "aws/greengrass.yaml": "3d62fce17410c7d24d4fbfe7e4684c4ceb4e1b22a6ded03ad169b9d749e20fae",
     "aws/healthomics.yaml": "7e1dbf078bf98a2cbb323c539a450da78723934d9cfa983fcff3bb756605077e",
     "aws/iam.yaml": "36eb2b2ae0ef9fb00fd709a8a52a107abd3d0a905dca9fdbd5d2edabc46e4a51",
-    "aws/imagebuilder.yaml": "309ff6da67bdaab9ed63045382ae650914f0ecb5921fd64b3ad678670a6bf5ec",
+    "aws/imagebuilder.yaml": "5f69c96da853203a68e672c76050e3516ed64978078f253d3e2d5cc3a2853ee7",
     "aws/iot.yaml": "b3885109f373762d1efcf23fad911bcee61bfb016359d236e24c9b38a00270f4",
     "aws/lambda.yaml": "039331cbe0720153418d8d07836f21bd8fefb6a268eee8456d2bb3f7d3493a5a",
     "aws/lightsail.yaml": "a994d2be23a92774158141deae61b99649786412f37f67d6f5f24f33a1c7dee7",
@@ -389,7 +389,7 @@
     "aws/greengrass.yaml": "3d62fce17410c7d24d4fbfe7e4684c4ceb4e1b22a6ded03ad169b9d749e20fae",
     "aws/healthomics.yaml": "7e1dbf078bf98a2cbb323c539a450da78723934d9cfa983fcff3bb756605077e",
     "aws/iam.yaml": "36eb2b2ae0ef9fb00fd709a8a52a107abd3d0a905dca9fdbd5d2edabc46e4a51",
-    "aws/imagebuilder.yaml": "309ff6da67bdaab9ed63045382ae650914f0ecb5921fd64b3ad678670a6bf5ec",
+    "aws/imagebuilder.yaml": "5f69c96da853203a68e672c76050e3516ed64978078f253d3e2d5cc3a2853ee7",
     "aws/iot.yaml": "b3885109f373762d1efcf23fad911bcee61bfb016359d236e24c9b38a00270f4",
     "aws/lambda.yaml": "039331cbe0720153418d8d07836f21bd8fefb6a268eee8456d2bb3f7d3493a5a",
     "aws/lightsail.yaml": "a994d2be23a92774158141deae61b99649786412f37f67d6f5f24f33a1c7dee7",
