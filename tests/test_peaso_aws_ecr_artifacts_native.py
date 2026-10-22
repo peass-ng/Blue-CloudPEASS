@@ -28,7 +28,13 @@ def capture(sdk,monkeypatch,mode='good',hosted=False):
   options.pop('retry_attempts');validate_connector('aws',{'method':'assume_role','role_arn':f'arn:aws:iam::{ACCOUNT}:role/ReadOnly','external_id':'peaso-fixture'},options,SimpleNamespace(auth_mode='cognito'),server_external_id=True)
  args={'registryId':ACCOUNT,'repositoryName':REPO}
  def response(manifest,selector):return {'images':[{'registryId':ACCOUNT,'repositoryName':REPO,'imageId':{'imageDigest':sha(manifest.encode()),**selector},'imageManifest':manifest,'imageManifestMediaType':json.loads(manifest)['mediaType']}],'failures':[]}
- ecr.add_response('batch_get_image',response(parent,{'imageDigest':digest}),{**args,'imageIds':[{'imageDigest':digest}]})
+ parent_response=response(parent,{'imageDigest':digest})
+ if mode in ('alias_good','alias_conflict'):
+  parent_response['images'][0]['imageId']['imageTag']='stable'
+  alias=json.loads(json.dumps(parent_response['images'][0]));alias['imageId']['imageTag']='release'
+  if mode=='alias_conflict':alias['imageManifestMediaType']=native.DOCKER
+  parent_response['images'].append(alias)
+ ecr.add_response('batch_get_image',parent_response,{**args,'imageIds':[{'imageDigest':digest}]})
  value={'critical':{'identity':{'docker-reference':'ignored.invalid/repo'},'image':{'docker-manifest-digest':digest},'type':'cosign container image signature'},'optional':None}
  if mode=='foreign_digest':value['critical']['image']['docker-manifest-digest']='sha256:'+'b'*64
  payload=(json.dumps(value,indent=2)if mode=='pretty'else encode(value)).encode();sigkey=Ed25519PrivateKey.generate()if mode=='unapproved'else key
@@ -96,7 +102,7 @@ def capture(sdk,monkeypatch,mode='good',hosted=False):
  findings=evaluate_snapshot(snapshot,checks=[SIGN,SBOM],include_not_applicable=True)['findings'];results={f['check_id']:f['status']for f in findings}
  assert set(results)=={SIGN,SBOM},findings
  assert 'private-query'not in json.dumps(snapshot)and'must-not-persist'not in json.dumps(snapshot)
- if mode in('good','pretty','legacy','paged','none','bad_signature','unapproved','foreign_digest','reserialized','bad_sbom','no_keys'):sts.assert_no_pending_responses();ecr.assert_no_pending_responses()
+ if mode in('good','alias_good','pretty','legacy','paged','none','bad_signature','unapproved','foreign_digest','reserialized','bad_sbom','no_keys'):sts.assert_no_pending_responses();ecr.assert_no_pending_responses()
  if mode.startswith('legacy_join_'):
   if mode=='legacy_join_consistent':ecr.assert_no_pending_responses()
   else:
@@ -118,6 +124,15 @@ def test_hosted_owner_policy_to_actual_planner_engine(sdk,monkeypatch):
  assert snapshot['metadata']['ecr_artifact_profile']['deployed_images_observed']is False
  artifact=next(a for c in snapshot['collections']if c['type']=='ecr_oci_artifact'for a in c['items']if a['artifactType']==native.SIGN)
  assert artifact['keyId']=='approved'
+
+
+@pytest.mark.parametrize('mode,expected',[('alias_good','PASS'),('alias_conflict','UNKNOWN')])
+def test_artifact_collector_digest_tag_aliases(sdk,monkeypatch,mode,expected):
+ results,snapshot=capture(sdk,monkeypatch,mode)
+ assert results=={SIGN:expected,SBOM:expected}
+ collections={row['type']:row for row in snapshot['collections']}
+ assert (collections['ecr_oci_artifact']['status']=='collected') is (mode=='alias_good')
+ if mode=='alias_conflict':assert collections['ecr_oci_artifact']['items']==[]
 
 @pytest.mark.parametrize('url',['http://bucket.s3.us-east-1.amazonaws.com/blob','https://127.0.0.1/blob','https://s3.us-east-1.amazonaws.com.evil.invalid/blob','https://bucket.s3.us-east-1.amazonaws.com:8443/blob','https://user@bucket.s3.us-east-1.amazonaws.com/blob','https://bucket.s3.us-west-2.amazonaws.com/blob','https://bucket.s3.us-east-1.amazonaws.com/blob#part','https://bucket.s3.us-east-1.amazonaws.com%2fevil.invalid/object','https://bucket.s3.us-east-1.amazonaws.com%40evil.invalid/object','https://user%40evil@bucket.s3.us-east-1.amazonaws.com/object'])
 def test_url_cannot_escape_aws_s3_boundary(url):

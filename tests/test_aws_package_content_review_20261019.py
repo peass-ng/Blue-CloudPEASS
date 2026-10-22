@@ -422,6 +422,25 @@ def _replace_manifest(ops, document):
     ops['describe_images']['imageDetails'][0]['imageDigest'] = dg
 
 
+@pytest.mark.parametrize('conflict', [None, 'account', 'digest', 'manifest', 'media', 'failure'])
+def test_installed_secret_projection_two_tag_aliases(monkeypatch, conflict):
+    requests, session, item, ops, calls, downloads, _ = sdk(monkeypatch, 'ecr_repository', False)
+    image = ops['batch_get_image']['images'][0]
+    image['imageId']['imageTag'] = 'stable'
+    alias = deepcopy(image)
+    alias['imageId']['imageTag'] = 'release'
+    if conflict == 'account': alias['registryId'] = '999999999999'
+    elif conflict == 'digest': alias['imageId']['imageDigest'] = 'sha256:' + '9' * 64
+    elif conflict == 'manifest': alias['imageManifest'] += ' '
+    elif conflict == 'media': alias['imageManifestMediaType'] = p.DOCKER
+    elif conflict == 'failure': ops['batch_get_image']['failures'] = [{'failureCode': 'ImageNotFound'}]
+    ops['batch_get_image']['images'].append(alias)
+    result = p.ENRICHERS['ecr_repository'](requests, session, REGION, [item])[0]
+    status = c.image_layers(result, index('ecr_repository', result))[0]
+    assert status == ('PASS' if conflict is None else 'UNKNOWN')
+    assert bool(downloads) is (conflict is None)
+
+
 @pytest.mark.parametrize('mode', ['multiarch', 'external', 'foreign_download_digest', 'unsupported_compression', 'malformed_json', 'duplicate_json'])
 def test_ecr_unsupported_source_never_passes(monkeypatch, mode):
     requests, session, item, ops, calls, downloads, _ = sdk(monkeypatch, 'ecr_repository', False)
