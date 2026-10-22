@@ -6459,6 +6459,90 @@ class AwsModel(Model):
                     uncertain = True
         return ("unknown", "codepipeline_existing_project_path_not_verified") if uncertain else None
 
+    def _batch_existing_definition_submitjob_role(self, source, target):
+        """Bind one active EC2 job definition, its queue and its exact job role."""
+        kinds = ("batch_job_definition", "batch_job_queue", "batch_compute_environment")
+        statuses = {kind: {scope: status for scope, status in inventory_status(self.snapshot, kind).items()
+                           if scope.startswith(source.scope + "/")} for kind in kinds}
+        scopes = set().union(*(set(by_scope) for by_scope in statuses.values()))
+        if not scopes:
+            return ("unknown", "batch_existing_definition_inventory_not_collected")
+        uncertain = False
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        for scope in sorted(scopes):
+            if any(statuses[kind].get(scope) not in ("collected", "empty") for kind in kinds):
+                uncertain = True
+                continue
+            region = scope.split("/", 1)[1]
+            prefix = f"arn:{partition}:batch:{region}:{source.scope}:"
+            environments = {row.get("computeEnvironmentArn"): row
+                            for row_scope, row in items(self.snapshot, "batch_compute_environment")
+                            if row_scope == scope and isinstance(row, dict)
+                            and isinstance(row.get("computeEnvironmentArn"), str)}
+            eligible_queues = []
+            for queue_scope, queue in items(self.snapshot, "batch_job_queue"):
+                if queue_scope != scope or not isinstance(queue, dict):
+                    continue
+                queue_arn = queue.get("jobQueueArn")
+                if (not isinstance(queue_arn, str) or not queue_arn.startswith(prefix + "job-queue/")
+                        or queue.get("state") is None or queue.get("status") is None):
+                    uncertain = True
+                    continue
+                if queue.get("state") != "ENABLED" or queue.get("status") != "VALID":
+                    continue
+                links = queue.get("computeEnvironmentOrder")
+                if not isinstance(links, list):
+                    uncertain = True
+                    continue
+                for link in links:
+                    env = environments.get(link.get("computeEnvironment")) if isinstance(link, dict) else None
+                    if env is None:
+                        uncertain = True
+                        continue
+                    config = env.get("computeResources")
+                    if (env.get("state") == "ENABLED" and env.get("status") == "VALID"
+                            and env.get("containerOrchestrationType", "ECS") == "ECS"
+                            and isinstance(config, dict) and config.get("type") in ("EC2", "SPOT")):
+                        eligible_queues.append(queue_arn)
+                        break
+            for definition_scope, definition in items(self.snapshot, "batch_job_definition"):
+                if definition_scope != scope or not isinstance(definition, dict):
+                    continue
+                arn = definition.get("jobDefinitionArn")
+                name, revision = definition.get("jobDefinitionName"), definition.get("revision")
+                if (not isinstance(name, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,128}", name)
+                        or type(revision) is not int or revision < 1
+                        or arn != f"{prefix}job-definition/{name}:{revision}"):
+                    uncertain = True
+                    continue
+                config = definition.get("containerProperties")
+                role_arn = config.get("jobRoleArn") if isinstance(config, dict) else None
+                if role_arn is None:
+                    uncertain = True
+                    continue
+                if role_arn != target.id:
+                    continue
+                if definition.get("status") != "ACTIVE" or definition.get("type") != "container":
+                    continue
+                platforms = definition.get("platformCapabilities")
+                if platforms is not None and platforms != ["EC2"]:
+                    continue
+                if not isinstance(config.get("image"), str) or not config["image"]:
+                    uncertain = True
+                    continue
+                definition_grant = self._check_action(source, "batch:submitjob", arn)
+                if definition_grant is None:
+                    continue
+                for queue_arn in eligible_queues:
+                    queue_grant = self._check_action(source, "batch:submitjob", queue_arn)
+                    if queue_grant is None:
+                        continue
+                    if definition_grant.confidence != "derived" or queue_grant.confidence != "derived":
+                        uncertain = True
+                        continue
+                    return ("conditional", "batch_existing_definition_submitjob_role")
+        return ("unknown", "batch_existing_definition_submitjob_role_not_verified") if uncertain else None
+
     def _athena_existing_session_role(self, source, target, pid):
         """Join a live session to its recorded execution role and exact IAM scope."""
         statuses = {scope: status for scope, status in inventory_status(self.snapshot, "athena_session").items()
@@ -6549,6 +6633,11 @@ class AwsModel(Model):
 
     def precondition(self, pid, candidates, source):
         out = {}
+        if pid == "batch_existing_definition_submitjob_role":
+            if source is None:
+                return None
+            return {tid: verdict for tid, target in candidates.items()
+                    if (verdict := self._batch_existing_definition_submitjob_role(source, target)) is not None}
         if pid in ("athena_existing_session_calculation_role", "athena_existing_notebook_url_role",
                    "athena_existing_spark_connect_role"):
             if source is None:

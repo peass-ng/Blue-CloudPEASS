@@ -419,7 +419,9 @@ _LOG = [("logConfiguration", ["logDriver", ("options", ["awslogs-group"])])]
 
 @_each
 def _job(requests, session, region, item):
-    return _provenance(_pick(item, ["jobDefinitionArn", "status", "AdditionalSecretIndicators", ("containerProperties", _LOG),
+    return _provenance(_pick(item, ["jobDefinitionArn", "jobDefinitionName", "revision", "status", "type",
+        "platformCapabilities", "AdditionalSecretIndicators",
+        ("containerProperties", ["jobRoleArn", "image", *_LOG]),
         ("nodeProperties", [("nodeRangeProperties", [("container", _LOG)])]),
         ("ecsProperties", [("taskProperties", [("containers", _LOG)])])]), "describe_job_definitions")
 
