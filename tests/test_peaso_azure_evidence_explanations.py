@@ -26,6 +26,36 @@ CASES = json.loads(gzip.decompress((ROOT / 'tests/fixtures/azure_evidence_review
 ASSESSMENT_SUCCESSOR_RAW = (ROOT / 'docs/check-review/azure-defender-assessment-four-current-binding-20261021.json').read_bytes()
 assert hashlib.sha256(ASSESSMENT_SUCCESSOR_RAW).hexdigest() == '495d31b83d1586a453b4aa325d4f287d694c950a389e0fa0fdbde6a27f6fe02d'
 ASSESSMENT_SUCCESSOR = json.loads(ASSESSMENT_SUCCESSOR_RAW)
+CURRENT_RELEASE_BINDINGS = json.loads((ROOT / 'docs/evidence-reviews/azure-current-22-binding-20261022.json').read_text())
+CURRENT_SOURCE_BINDINGS = CURRENT_RELEASE_BINDINGS['source_bindings']
+CURRENT_WITNESS_SUCCESSORS = CURRENT_RELEASE_BINDINGS['witness_successors']
+CURRENT_NATIVE_OUTCOMES = CURRENT_RELEASE_BINDINGS['current_native_outcomes']
+assert CURRENT_RELEASE_BINDINGS['schema_version'] == 1
+assert CURRENT_RELEASE_BINDINGS['staged_tree'] == '373efff118667cce912309e31681160eae8ef7cd'
+assert set(CURRENT_SOURCE_BINDINGS) == {
+    'azure.aks.api_server_restricted',
+    *(f'azure.claude.activity_log_alert_{kind}_{action}'
+      for kind in ('nsg', 'policy_assignment', 'public_ip', 'security_solution', 'sql_firewall_rule')
+      for action in ('delete', 'write')),
+    'azure.claude.activity_log_alert_subscription_security_solution_delete',
+    'azure.claude.activity_log_alert_subscription_security_solution_write',
+    'azure.claude.entra_user_recent_sign_in',
+    'azure.review.acr.selected_image_secret_indicators',
+    'azure.review.databricks.selected_notebook_source_secret_indicators',
+    'azure.review.machine_learning.selected_code_file_secret_indicators',
+    'azure.review.machine_learning.selected_command_job_secret_indicators',
+    'azure.review.machine_learning.selected_environment_conda_secret_indicators',
+    'azure_storage_account_10_3_4_7_02943e9',
+}
+assert set(CURRENT_NATIVE_OUTCOMES) == {
+    'azure.claude.activity_log_alert_subscription_security_solution_delete',
+    'azure.claude.activity_log_alert_subscription_security_solution_write',
+    'azure.claude.entra_user_recent_sign_in',
+    'azure_storage_account_10_3_4_7_02943e9',
+}
+assert set(CURRENT_WITNESS_SUCCESSORS) == {
+    cid + '|' + str(number) for cid in CURRENT_NATIVE_OUTCOMES for number in range(len(CASES[cid]))
+}
 
 RELEASE_ADDED_AZURE_IDS = frozenset({
     'azure.iam.application_credentials_recent_activity',
@@ -99,6 +129,17 @@ def _preserve_all_successor_sources_and_historical_inputs():
 
 def _reviewed_source_digest(cid, function):
     row = LEDGER[cid]
+    if cid in CURRENT_SOURCE_BINDINGS:
+        binding = CURRENT_SOURCE_BINDINGS[cid]
+        assert binding['historical_source_sha256'] == row.get('source_sha256')
+        assert binding['historical_predicate_sha256'] == row.get('predicate_sha256')
+        assert binding['historical_description_sha256'] == row.get('description_contract_sha256')
+        assert Path(inspect.getsourcefile(function)).resolve().relative_to(ROOT).as_posix() == binding['source']
+        assert hashlib.sha256((ROOT / binding['source']).read_bytes()).hexdigest() == binding['current_source_sha256']
+        assert hashlib.sha256(inspect.getsource(function).encode()).hexdigest() == binding['current_evaluator_sha256']
+        assert _digest(ROWS[cid]) == binding['current_observed_text_sha256']
+        assert _digest(description_for(cid)) == binding['current_description_sha256']
+        return binding['current_evaluator_sha256']
     if cid in ASSESSMENT_SUCCESSOR['records']:
         update = ASSESSMENT_SUCCESSOR['records'][cid]
         assert row['predicate_sha256'] == update['historical_body_sha256']
@@ -142,6 +183,8 @@ def _reviewed_source_digest(cid, function):
 
 
 def _reviewed_description_digest(cid, description):
+    if cid in CURRENT_SOURCE_BINDINGS:
+        return CURRENT_SOURCE_BINDINGS[cid]['current_description_sha256']
     if cid not in CURRENT_DESCRIPTION_CONTRACTS:
         return LEDGER[cid]['description_contract_sha256']
     successor = CURRENT_DESCRIPTION_CONTRACTS[cid]
@@ -151,6 +194,22 @@ def _reviewed_description_digest(cid, description):
 
 
 def _current_case(cid, number, historical):
+    witness = CURRENT_WITNESS_SUCCESSORS.get(cid + '|' + str(number))
+    if witness is not None:
+        assert _digest(historical) == witness['historical_case_sha256']
+        assert historical['status'] == witness['historical_status']
+        branch = witness['native_branch']
+        if witness['input_source'] == 'registered_native_cases':
+            assert branch in {'pass', 'fail'}
+            native = NATIVE_CASES[cid]
+            item = native[branch]
+            index = native.get(branch + '_index', native.get('index', {}))
+        else:
+            assert witness['input_source'] == 'historical_fixture' and branch is None
+            item, index = historical['item'], historical['index']
+        assert _digest({'item': item, 'index': index}) == witness['current_input_sha256']
+        return {'item': item, 'index': index, 'status': witness['current_status'],
+                'expected_evidence_sha256': witness['current_evidence_sha256']}
     if cid in ASSESSMENT_SUCCESSOR['records']:
         update = ASSESSMENT_SUCCESSOR['historical_fixture_successors'].get(cid + '|' + str(number))
         if update is not None:
@@ -288,6 +347,20 @@ def test_actual_native_positive_negative_unknown_manual_and_inapplicable_witness
                 captured = datetime(2026, 10, 19, 12, tzinfo=timezone.utc)
                 return captured.astimezone(tz) if tz else captured.replace(tzinfo=None)
         monkeypatch.setattr(claude_azure_data, 'datetime', CapturedClock)
+    if cid in CURRENT_NATIVE_OUTCOMES:
+        for branch, expected in CURRENT_NATIVE_OUTCOMES[cid].items():
+            if cid == 'azure_storage_account_10_3_4_7_02943e9':
+                from tests.test_peaso_azure_storage_recovery_metadata_native import capture
+                finding, _, _ = capture('storage', branch, options={})
+                status, evidence = finding['status'], finding['evidence']
+            else:
+                native = NATIVE_CASES[cid]
+                item = native[branch]
+                index = native.get(branch + '_index', native.get('index', {}))
+                assert _digest({'item': item, 'index': index}) == expected['input_sha256']
+                status, evidence = CHECK_BY_ID[cid].evaluate(deepcopy(item), deepcopy(index))
+            assert status == expected['status'], (cid, branch, status, evidence)
+            assert _digest(evidence) == expected['evidence_sha256']
     for number, historical in enumerate(CASES[cid]):
         case = _current_case(cid, number, historical)
         item, index = deepcopy((case['item'], case['index']))
