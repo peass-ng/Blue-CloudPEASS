@@ -911,6 +911,66 @@ def test_existing_ssm_automation_runbook_joins_scoped_document_role_and_effect()
                                         ALICE, technique)
 
 
+def test_codebuild_debug_session_requires_paused_exact_build_role_and_shell_effect():
+    technique = "aws-codebuild-ssm-debug-session-role"
+    project = "production-build"
+    build_id = project + ":12345678-1234-1234-1234-123456789012"
+    session_resource = f"arn:aws:ssm:{REGION}:{ACCOUNT}:managed-instance/mi-1234567890abcdef0"
+    object_arn = "arn:aws:s3:::private-example/build-output.txt"
+    target = role("build-role", "codebuild.amazonaws.com", allow("s3:PutObject", resource=object_arn))
+    target["RoleId"] = "AROACODEBUILD12345678"
+    proof = {"TechniqueId": technique, "SourceArn": ALICE, "TargetKind": "aws_role",
+             "TargetId": target["Arn"], "TargetScope": SCOPE, "TargetRoleId": target["RoleId"],
+             "Status": "verified", "VerifiedPreconditions": True,
+             "ProjectName": project,
+             "ProjectArn": f"arn:aws:codebuild:{REGION}:{ACCOUNT}:project/{project}",
+             "BuildId": build_id,
+             "BuildArn": f"arn:aws:codebuild:{REGION}:{ACCOUNT}:build/{build_id}",
+             "BuildServiceRoleArn": target["Arn"], "BuildStatus": "IN_PROGRESS",
+             "DebugSessionEnabled": True, "BuildPausedAtBreakpoint": True,
+             "SessionTarget": "codebuild-session-target-123",
+             "SessionTargetFromBatchGetBuilds": True,
+             "StartSessionAuthorizationResourceArn": session_resource,
+             "StartSessionSucceeded": True, "ShellCommandSucceeded": True,
+             "ShellUsedBuildRoleCredentials": True, "RoleActionSucceeded": True,
+             "EffectUsefulToSource": True, "RoleAction": "s3:PutObject",
+             "RoleResource": object_arn, "EvidenceRef": "reviewed-codebuild-session",
+             "EvidenceObservedAt": "2026-10-21T11:59:00+00:00",
+             "EvidenceExpiresAt": "2026-10-21T12:05:00+00:00"}
+
+    def result(evidence=proof, *, session_grant=session_resource, grants=(), role_row=target):
+        session = ([allow("ssm:StartSession", resource=session_grant)]
+                   if session_grant is not None else [])
+        caller = user("alice", *session, *grants)
+        proofs = evidence if isinstance(evidence, list) else ([evidence] if evidence else [])
+        snap = aws_snap([caller], [role_row], [col("aws_privesc_challenge_evidence", proofs)])
+        snap["created_at"] = "2026-10-21T12:00:00+00:00"
+        return real(snap, technique, include_unknown=True)
+
+    assert target["Arn"] in reached(result(), ALICE, technique)
+    assert target["Arn"] not in reached(result(None), ALICE, technique)
+    assert_unresolved(result(None), ALICE, technique)
+    assert target["Arn"] not in reached(result([proof, dict(proof)]), ALICE, technique)
+    for changed in ({"BuildServiceRoleArn": "other"}, {"BuildStatus": "SUCCEEDED"},
+                    {"BuildId": "other:12345678-1234-1234-1234-123456789012"},
+                    {"DebugSessionEnabled": False}, {"BuildPausedAtBreakpoint": False},
+                    {"SessionTargetFromBatchGetBuilds": False}, {"SessionTarget": ""},
+                    {"StartSessionSucceeded": False}, {"ShellCommandSucceeded": False},
+                    {"ShellUsedBuildRoleCredentials": False}, {"RoleActionSucceeded": False},
+                    {"EffectUsefulToSource": False}, {"RoleAction": "s3:DeleteObject"},
+                    {"StartSessionAuthorizationResourceArn": session_resource.replace("123456", "654321")},
+                    {"TargetRoleId": "AROAOTHER"},
+                    {"EvidenceObservedAt": "2026-10-21T11:40:00+00:00"}):
+        assert target["Arn"] not in reached(result(dict(proof, **changed)), ALICE, technique)
+    assert target["Arn"] not in reached(result(session_grant=session_resource.replace("123456", "654321")),
+                                        ALICE, technique)
+    assert target["Arn"] not in reached(result(session_grant=None), ALICE, technique)
+    assert target["Arn"] not in reached(result(grants=[allow("s3:PutObject", resource=object_arn)]),
+                                        ALICE, technique)
+    assert target["Arn"] not in reached(result(role_row=dict(target, RoleId="AROACHANGED")),
+                                        ALICE, technique)
+
+
 def test_config_automatic_remediation_requires_service_context_and_runtime_witness():
     technique = "aws-config-passrole-automatic-remediation"
     target = role("automation", "ssm.amazonaws.com", allow("iam:AttachUserPolicy"))

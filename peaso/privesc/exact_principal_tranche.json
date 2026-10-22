@@ -1,20 +1,4 @@
 {
-  "aws-codebuild-ssm-debug-session-role": {
-    "provider": "aws",
-    "target_kind": "aws_role",
-    "conditions": [
-      "live_breakpoint",
-      "verified_collector_fact"
-    ],
-    "requires": {
-      "all_of": [
-        {
-          "action": "ssm:StartSession",
-          "resource": "*"
-        }
-      ]
-    }
-  },
   "aws-devicefarm-schedulerun-existing-test-spec-passrole": {
     "provider": "aws",
     "target_kind": "aws_role",

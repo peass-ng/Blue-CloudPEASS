@@ -94,7 +94,6 @@ def check_bindings(model,technique,fact,source):
 
 
 TRUST_SERVICES={
- 'aws-codebuild-ssm-debug-session-role':'codebuild.amazonaws.com',
  'aws-devicefarm-schedulerun-existing-test-spec-passrole':'devicefarm.amazonaws.com',
  'aws-iot-byo-certificate-existing-rolealias':'credentials.iot.amazonaws.com',
  'aws-iot-provisioning-claim-existing-rolealias':'credentials.iot.amazonaws.com',

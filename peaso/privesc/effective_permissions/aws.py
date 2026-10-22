@@ -8632,6 +8632,99 @@ class AwsModel(Model):
                 else:
                     out[tid] = pending
             return out
+        if pid == "codebuild_ssm_debug_session_role_effect_reviewed":
+            if source is None:
+                return None
+            start_allows, _ = self._statements(source, "ssm:startsession")
+            if not start_allows:
+                return {}
+            pending = ("unknown", "codebuild_paused_build_session_role_effect_not_verified")
+            out = {}
+            try:
+                now = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+                if now.tzinfo is None:
+                    now = None
+            except (KeyError, TypeError, ValueError):
+                now = None
+            proof_status = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+            technique = (self.current_entry or {}).get("id")
+            for tid, role in candidates.items():
+                out[tid] = pending
+                if now is None or role.scope != source.scope:
+                    continue
+                role_rows = [row for role_scope, row in items(self.snapshot, "iam_role")
+                    if role_scope.split("/")[0] == role.scope and row.get("Arn") == tid]
+                role_id = role_rows[0].get("RoleId") if len(role_rows) == 1 else None
+                if not isinstance(role_id, str) or not role_id:
+                    continue
+                for scope in self.snapshot.get("scopes", ()):
+                    if not isinstance(scope, str) or not scope.startswith(f"{role.scope}/"):
+                        continue
+                    collections = [collection for collection in self.snapshot.get("collections", ())
+                        if collection.get("type") == "aws_privesc_challenge_evidence" and
+                        collection.get("scope") == scope]
+                    if len(collections) != 1 or collections[0].get("status") != "collected":
+                        continue
+                    proofs = [row for proof_scope, row in items(self.snapshot, "aws_privesc_challenge_evidence")
+                        if proof_scope == scope and proof_status.get(scope) == "collected" and
+                        row.get("TechniqueId") == technique and row.get("SourceArn") == source.id and
+                        row.get("TargetKind") == "aws_role" and row.get("TargetId") == tid]
+                    if len(proofs) != 1:
+                        continue
+                    proof = proofs[0]
+                    partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+                    region = scope.split("/", 1)[1]
+                    project = proof.get("ProjectName")
+                    build_id = proof.get("BuildId")
+                    project_arn = proof.get("ProjectArn")
+                    build_arn = proof.get("BuildArn")
+                    auth_resource = proof.get("StartSessionAuthorizationResourceArn")
+                    action, resource = proof.get("RoleAction"), proof.get("RoleResource")
+                    if (not isinstance(project, str) or
+                            re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]*", project) is None or
+                            not isinstance(build_id, str) or
+                            re.fullmatch(re.escape(project) + r":[A-Za-z0-9-]+", build_id) is None or
+                            project_arn != f"arn:{partition}:codebuild:{region}:{role.scope}:project/{project}" or
+                            build_arn != f"arn:{partition}:codebuild:{region}:{role.scope}:build/{build_id}" or
+                            not isinstance(auth_resource, str) or
+                            re.fullmatch(rf"arn:{re.escape(partition)}:[a-z0-9-]+:{re.escape(region)}:"
+                                         rf"{role.scope}:[^*?\s]+", auth_resource) is None):
+                        continue
+                    if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                            proof.get("TargetScope") != scope or proof.get("TargetRoleId") != role_id or
+                            proof.get("BuildServiceRoleArn") != tid or
+                            proof.get("BuildStatus") != "IN_PROGRESS" or
+                            proof.get("DebugSessionEnabled") is not True or
+                            proof.get("BuildPausedAtBreakpoint") is not True or
+                            not isinstance(proof.get("SessionTarget"), str) or not proof["SessionTarget"] or
+                            proof.get("SessionTargetFromBatchGetBuilds") is not True or
+                            proof.get("StartSessionSucceeded") is not True or
+                            proof.get("ShellCommandSucceeded") is not True or
+                            proof.get("ShellUsedBuildRoleCredentials") is not True or
+                            proof.get("RoleActionSucceeded") is not True or
+                            proof.get("EffectUsefulToSource") is not True or
+                            not isinstance(action, str) or
+                            re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                            not isinstance(resource, str) or not resource or
+                            not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"]):
+                        continue
+                    try:
+                        witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+                        expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+                        if (witnessed.tzinfo is None or expires.tzinfo is None or
+                                not 0 <= (now - witnessed).total_seconds() <= 900 or
+                                not now < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                            continue
+                    except (KeyError, TypeError, ValueError):
+                        continue
+                    start = self.check(source, {"action": "ssm:StartSession"}, auth_resource)
+                    permitted = self.check(role, {"action": action}, resource)
+                    already = self.check(source, {"action": action}, resource)
+                    if (start is not None and start.confidence == "derived" and
+                            permitted is not None and permitted.confidence == "derived" and already is None):
+                        out[tid] = None
+                        break
+            return out
         if pid == "ssm_existing_automation_runtime_role_effect_reviewed":
             if source is None:
                 return None
