@@ -6633,6 +6633,86 @@ class AwsModel(Model):
 
     def precondition(self, pid, candidates, source):
         out = {}
+        if pid == "iot_new_alias_policy_certificate_same_region":
+            if source is None:
+                return None
+            partition = source.id.split(":", 2)[1]
+            regions = sorted({scope.split("/", 1)[1] for scope in self.snapshot.get("scopes", ())
+                              if isinstance(scope, str) and scope.startswith(source.scope + "/")
+                              and "/" in scope})
+
+            def names_can_be_chosen(action, kind, region):
+                """A wildcard name leaves room for a fresh alias or policy in this Region."""
+                allows, _ = self._statements(source, action)
+                for statement in allows:
+                    if statement.notresource or statement.variables:
+                        continue
+                    for pattern in statement.resources:
+                        if pattern == "*":
+                            return True
+                        parts = pattern.split(":", 5)
+                        if (len(parts) != 6 or parts[0] != "arn" or
+                                not all(glob_match(want, got, False) for want, got in
+                                        zip(parts[1:5], (partition, "iot", region, source.scope)))):
+                            continue
+                        resource = parts[5]
+                        if resource.startswith(kind + "/") and "*" in resource[len(kind) + 1:]:
+                            return True
+                return False
+
+            def certs_can_be_attached(region):
+                allows, _ = self._statements(source, "iot:attachpolicy")
+                for statement in allows:
+                    if statement.notresource or statement.variables:
+                        continue
+                    for pattern in statement.resources:
+                        if pattern == "*":
+                            return True
+                        parts = pattern.split(":", 5)
+                        if (len(parts) == 6 and parts[0] == "arn" and
+                                all(glob_match(want, got, False) for want, got in
+                                    zip(parts[1:5], (partition, "iot", region, source.scope))) and
+                                parts[5] == "cert/*"):
+                            return True
+                return False
+
+            for tid in candidates:
+                uncertain = False
+                for region in regions:
+                    if (not names_can_be_chosen("iot:createrolealias", "rolealias", region) or
+                            not names_can_be_chosen("iot:createpolicy", "policy", region) or
+                            not certs_can_be_attached(region)):
+                        continue
+                    context = {"aws:RequestedRegion": region}
+                    alias = f"arn:{partition}:iot:{region}:{source.scope}:rolealias/*"
+                    policy = f"arn:{partition}:iot:{region}:{source.scope}:policy/*"
+                    cert = f"arn:{partition}:iot:{region}:{source.scope}:cert/" + "0" * 64
+                    common = [
+                        self.cached_check(source, {"action": "iam:PassRole", "request_context": {
+                            **context, "iam:PassedToService": "iot.amazonaws.com"}}, tid),
+                        self.cached_check(source, {"action": "iot:CreateRoleAlias",
+                                                   "request_context": context}, alias),
+                        self.cached_check(source, {"action": "iot:CreatePolicy",
+                                                   "request_context": context}, policy),
+                        self.cached_check(source, {"action": "iot:AttachPolicy",
+                                                   "request_context": context}, cert),
+                    ]
+                    if any(grant is None for grant in common):
+                        continue
+                    global_resource = "peaso-global-iot-operation"
+                    certificate = [self.cached_check(source, {"action": action,
+                        "request_context": context}, global_resource)
+                        for action in ("iot:CreateKeysAndCertificate", "iot:RegisterCertificateWithoutCA")]
+                    if any(grant is not None and grant.confidence == "derived" for grant in certificate):
+                        if all(grant.confidence == "derived" for grant in common):
+                            out[tid] = ("conditional", "iot_fresh_alias_policy_certificate_same_region")
+                            break
+                        uncertain = True
+                    elif any(grant is not None for grant in certificate):
+                        uncertain = True
+                if tid not in out and uncertain:
+                    out[tid] = ("unknown", "iot_new_alias_policy_certificate_permissions_conditional")
+            return out
         if pid == "batch_existing_definition_submitjob_role":
             if source is None:
                 return None

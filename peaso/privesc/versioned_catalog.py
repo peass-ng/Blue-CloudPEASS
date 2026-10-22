@@ -21,7 +21,14 @@ V4_EFFECTIVE_TREE = "413792ea4aec86e48c352ffab2c0bea9e82795bc234251342737ec0276b
 LEGACY_DELTA = Path(__file__).resolve().parent / "catalog_versions/legacy-0b3633-delta.json"
 BOUNDED_MANIFEST = "734401b202895e00ac1b6cb0f1534f77cde4d8e2ba912ca0ee974b1b8ec5035c"
 BOUNDED_TREE = "1a54bad4102d18f89c78f45c915964554a62f994c1bffa693844cac5e119cca8"
-CURRENT_MANIFEST = 'b34c5215e969f886c4b286c3d33afd62f3364d5b58dce96a8393d8ef79465090'
+CURRENT_MANIFEST = '37a6cc93d703b54c1bbf58e346ab0c855bbec910dee9611ee77511928699e7fe'
+IOT_V2_CURRENT_MANIFEST = 'b34c5215e969f886c4b286c3d33afd62f3364d5b58dce96a8393d8ef79465090'
+IOT_V2_CURRENT_TREE = '98e3a4ac18955dec5670e267f03b8f942bfadf01d5cb483d94a928e4229b4428'
+IOT_V2_CURRENT_ENTRY_COUNT = 667
+IOT_V2_CURRENT_EXCLUDED_COUNT = 3725
+IOT_V2_CURRENT_ARCHIVE_SHA256 = '8c52a13e77b13013342d9f70acbc2e8b3cd6a339d15d421ab86090f23455605f'
+IOT_V2_CURRENT_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-667-iot-v2-source-manifest.json'
+IOT_V2_CURRENT_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-667-iot-v2-catalog.tar.gz'
 IOT_V1_CURRENT_MANIFEST = 'd0b9a70385686e426173bb33f5ceced688eef8b145863f06bd656e9872e6087b'
 IOT_V1_CURRENT_TREE = 'ec6fd3f2a2f745ccb28bbac553ca280604f43607754da2364f0602c78ffed964'
 IOT_V1_CURRENT_ENTRY_COUNT = 667
@@ -82,7 +89,7 @@ PRIOR_CURRENT_MANIFEST = "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0c
 PRIOR_DISCLOSURE_MANIFEST = "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
 PRIOR_DISCLOSURE_TREE = "5091464bedcb10bb87301695ca733276dc67b865e544c408ccf72a5408176f0f"
 PRIOR_DISCLOSURE_HISTORY = Path(__file__).resolve().parent / "catalog_versions/disclosure-v7-manifest.json"
-CURRENT_TREE = '98e3a4ac18955dec5670e267f03b8f942bfadf01d5cb483d94a928e4229b4428'
+CURRENT_TREE = '4e029c42de100f8d63ace40173ce4b9e894a5f12bb42f470831a8745b4950399'
 PRIOR_CURRENT_TREE = "99207e6469fc5e5b3daf21324e6860599b116ffcf7d30600643bd229b0f11494"
 CURRENT_ENTRY_COUNT = 667
 CURRENT_EXCLUDED_COUNT = 3725
@@ -150,6 +157,15 @@ def _verified_iot_v1_current():
         IOT_V1_CURRENT_MANIFEST_PATH, IOT_V1_CURRENT_ARCHIVE,
         IOT_V1_CURRENT_MANIFEST, IOT_V1_CURRENT_ARCHIVE_SHA256,
         IOT_V1_CURRENT_TREE, IOT_V1_CURRENT_ENTRY_COUNT, IOT_V1_CURRENT_EXCLUDED_COUNT)
+
+
+@lru_cache(maxsize=1)
+def _verified_iot_v2_current():
+    """Keep the exact IoT catalog before regional setup was joined."""
+    return _verified_archived_current(
+        IOT_V2_CURRENT_MANIFEST_PATH, IOT_V2_CURRENT_ARCHIVE,
+        IOT_V2_CURRENT_MANIFEST, IOT_V2_CURRENT_ARCHIVE_SHA256,
+        IOT_V2_CURRENT_TREE, IOT_V2_CURRENT_ENTRY_COUNT, IOT_V2_CURRENT_EXCLUDED_COUNT)
 
 
 @lru_cache(maxsize=1)
@@ -326,6 +342,10 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == IOT_V1_CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "iot_v1_current", "exact_previous_current"
+    elif (binding.get("manifest_sha256") == IOT_V2_CURRENT_MANIFEST and
+          binding.get("effective_tree_sha256") == IOT_V2_CURRENT_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "iot_v2_current", "exact_previous_current"
     elif (binding.get("manifest_sha256") == BATCH_CURRENT_MANIFEST and
           binding.get("effective_tree_sha256") == BATCH_CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -383,6 +403,9 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
             return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "iot_v1_current":
             previous = _verified_iot_v1_current()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
+        if version == "iot_v2_current":
+            previous = _verified_iot_v2_current()
             return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "batch_current":
             previous = _verified_batch_current()

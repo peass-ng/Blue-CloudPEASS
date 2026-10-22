@@ -57,6 +57,36 @@ def test_wrong_passrole_service_or_role_trust_does_not_reach_target():
         assert not reached(privesc.analyze(snapshot, entries=[ENTRY]), SOURCE, ID)
 
 
+def test_alias_policy_and_certificate_permissions_need_one_region():
+    for policy_region, expected in (("us-east-1", {TARGET: "conditional"}),
+                                    ("eu-west-1", {})):
+        snapshot = _case(COMMON + [CERTIFICATE_ACTIONS[0]])
+        statements = next(c for c in snapshot["collections"] if c["type"] == "iam_user")["items"][0][
+            "UserPolicyList"][0]["PolicyDocument"]["Statement"]
+        statements[0:1] = [
+            {"Effect": "Allow", "Action": "iot:CreateRoleAlias",
+             "Resource": "arn:aws:iot:us-east-1:111111111111:rolealias/audit-*"},
+            {"Effect": "Allow", "Action": "iot:CreatePolicy",
+             "Resource": f"arn:aws:iot:{policy_region}:111111111111:policy/audit-*"},
+            {"Effect": "Allow", "Action": "iot:AttachPolicy",
+             "Resource": "arn:aws:iot:us-east-1:111111111111:cert/*"},
+            {"Effect": "Allow", "Action": CERTIFICATE_ACTIONS[0], "Resource": "*"},
+        ]
+        assert reached(privesc.analyze(snapshot, entries=[ENTRY]), SOURCE, ID) == expected
+
+
+def test_one_existing_certificate_grant_cannot_authorize_new_random_certificate():
+    snapshot = _case(COMMON + [CERTIFICATE_ACTIONS[0]])
+    statement = next(c for c in snapshot["collections"] if c["type"] == "iam_user")["items"][0][
+        "UserPolicyList"][0]["PolicyDocument"]["Statement"][0]
+    statement["Action"] = ["iot:CreateRoleAlias", "iot:CreatePolicy", CERTIFICATE_ACTIONS[0]]
+    snapshot_user = next(c for c in snapshot["collections"] if c["type"] == "iam_user")["items"][0]
+    snapshot_user["UserPolicyList"][0]["PolicyDocument"]["Statement"].append(
+        {"Effect": "Allow", "Action": "iot:AttachPolicy",
+         "Resource": "arn:aws:iot:us-east-1:111111111111:cert/existing"})
+    assert not reached(privesc.analyze(snapshot, entries=[ENTRY]), SOURCE, ID)
+
+
 def test_previous_iot_binding_preserves_exact_old_route():
     binding = {"schema": catalog.BINDING_SCHEMA,
                "manifest_sha256": catalog.IOT_V1_CURRENT_MANIFEST,
@@ -70,3 +100,16 @@ def test_previous_iot_binding_preserves_exact_old_route():
     current, current_status = catalog.lookup_entries([ID], catalog.current_binding())
     assert current_status == "exact_strict_privesc"
     assert "any_of" in current[ID]["requires"]
+
+
+def test_pre_region_iot_binding_preserves_earlier_certificate_alternatives():
+    binding = {"schema": catalog.BINDING_SCHEMA,
+               "manifest_sha256": catalog.IOT_V2_CURRENT_MANIFEST,
+               "effective_tree_sha256": catalog.IOT_V2_CURRENT_TREE,
+               "source_revision": catalog.V4_REVISION}
+    previous, status = catalog.lookup_entries([ID], binding)
+    assert status == "exact_previous_current"
+    assert set(previous) == {ID}
+    assert len(catalog._verified_iot_v2_current()) == 667
+    assert "any_of" in previous[ID]["requires"]
+    assert "preconditions" not in previous[ID]
