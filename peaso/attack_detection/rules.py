@@ -283,8 +283,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "14812629ff5f0fd10fd451e248f50aa89f5acd38"
-DEFAULT_RULE_PACK_SHA256 = "35435e7b8fab2abdb5f0611bfd5cb790de94a7fdfe51f87eea222cd75c34f894"
+DEFAULT_RULE_REF = "3e2db5cf13922018be60e979fcfd5138688c64be"
+DEFAULT_RULE_PACK_SHA256 = "2fd5cee4c34b8fe7f2bb699a3b38ff785c38b57940602bc7aded7dfdb9b23554"
 
 
 @dataclass(frozen=True)
