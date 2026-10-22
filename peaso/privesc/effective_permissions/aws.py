@@ -7789,6 +7789,12 @@ class AwsModel(Model):
                 return {tid: ("unknown", "braket_device_scope_or_availability_not_verified")
                         for tid in candidates}
             return {}
+        if pid == "stepfunctions_teststate_privileged_task_unverified":
+            # PassRole and TestState permit an unmocked task only when the
+            # exact supported integration and the role's action/resource are
+            # compatible. Neither fact follows from the two caller grants.
+            return {tid: ("unknown", "stepfunctions_teststate_role_task_effect_not_verified")
+                    for tid in candidates}
         if pid == "imagebuilder_component_publish_and_pipeline_start":
             if source is None:
                 return None

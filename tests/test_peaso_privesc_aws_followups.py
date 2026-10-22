@@ -338,16 +338,39 @@ def test_cloudcontrol_catalog_keeps_previous_global_action_binding():
     assert current[technique]["requires"]["all_of"] == []
 
 
-def test_stepfunctions_teststate_is_a_conditional_service_action():
+def test_stepfunctions_teststate_needs_a_supported_role_task_witness():
     technique = "aws-stepfunctions-teststate-passrole"
-    caller = user("caller", allow("iam:PassRole", "states:TestState"))
+    caller = user("caller", {"Effect": "Allow", "Action": "iam:PassRole",
+                             "Resource": role_arn("execution"), "Condition": {"StringEquals": {
+                                 "iam:PassedToService": "states.amazonaws.com"}}},
+                  allow("states:TestState"))
     execution_role = role("execution", "states.amazonaws.com", allow("iam:AttachUserPolicy"))
-    result = real(aws_snap([caller], [execution_role]), technique)
-    matches = [detail for edge in edges(result, caller["Arn"], technique)
-               for detail in edge["technique_details"] if detail["id"] == technique]
-    assert len(matches) == 1
-    assert matches[0]["outcome"] == "impersonation"
-    assert matches[0]["confidence"] == "conditional"
+    result = real(aws_snap([caller], [execution_role]), technique, include_unknown=True)
+    assert execution_role["Arn"] not in reached(result, caller["Arn"], technique)
+    assert_unresolved(result, caller["Arn"], technique)
+
+    wrong_service = user("caller", {"Effect": "Allow", "Action": "iam:PassRole",
+                                    "Resource": role_arn("execution"), "Condition": {"StringEquals": {
+                                        "iam:PassedToService": "lambda.amazonaws.com"}}},
+                         allow("states:TestState"))
+    assert not reached(real(aws_snap([wrong_service], [execution_role]), technique),
+                       wrong_service["Arn"], technique)
+
+
+def test_stepfunctions_teststate_prior_binding_keeps_previous_route():
+    from peaso.privesc import versioned_catalog as catalog
+
+    ident = "aws-stepfunctions-teststate-passrole"
+    old_binding = {"schema": catalog.BINDING_SCHEMA,
+                   "manifest_sha256": catalog.TESTSTATE_690_PREVIOUS_MANIFEST,
+                   "effective_tree_sha256": catalog.TESTSTATE_690_PREVIOUS_TREE,
+                   "source_revision": catalog.V4_REVISION}
+    old, old_status = catalog.lookup_entries([ident], old_binding)
+    new, new_status = catalog.lookup_entries([ident], catalog.current_binding())
+    assert old_status == "exact_previous_current"
+    assert new_status == "exact_strict_privesc"
+    assert "preconditions" not in old[ident]
+    assert "stepfunctions_teststate_privileged_task_unverified" in new[ident]["preconditions"]
 
 
 def test_new_iam_user_routes_do_not_reuse_an_existing_exact_name():

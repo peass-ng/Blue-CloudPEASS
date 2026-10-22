@@ -21,7 +21,12 @@ V4_EFFECTIVE_TREE = "413792ea4aec86e48c352ffab2c0bea9e82795bc234251342737ec0276b
 LEGACY_DELTA = Path(__file__).resolve().parent / "catalog_versions/legacy-0b3633-delta.json"
 BOUNDED_MANIFEST = "734401b202895e00ac1b6cb0f1534f77cde4d8e2ba912ca0ee974b1b8ec5035c"
 BOUNDED_TREE = "1a54bad4102d18f89c78f45c915964554a62f994c1bffa693844cac5e119cca8"
-CURRENT_MANIFEST = '020ac318f044f346654731db54ce11b7647a88ca45cbfc23dcfaa174578d0e2c'
+CURRENT_MANIFEST = 'caa32ddb832aae734f3b96f0a9de124802995b23c9f375e72dfde64e5d8ba196'
+TESTSTATE_690_PREVIOUS_MANIFEST = '020ac318f044f346654731db54ce11b7647a88ca45cbfc23dcfaa174578d0e2c'
+TESTSTATE_690_PREVIOUS_TREE = '4ec8e1868e9713ce4055f9d0112c183345dcfaff8dfcb491a72e4d1de856aba7'
+TESTSTATE_690_PREVIOUS_ARCHIVE_SHA256 = 'c5a0ee00075c139c0a568d67e1968c74613dbe0f63940494398610c4b692ae20'
+TESTSTATE_690_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-690-stepfunctions-teststate-source-manifest.json'
+TESTSTATE_690_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-690-stepfunctions-teststate-catalog.tar.gz'
 INSTANCE_CONNECT_690_PREVIOUS_MANIFEST = '57ec5bf9b335c1369f895d8a73d1baa9c633a6f62d47ac7be47d6e598af8bbab'
 INSTANCE_CONNECT_690_PREVIOUS_TREE = 'a2fd5dd18c65ea4b80090995c12f87977470457653fd344878d97efa98f11882'
 INSTANCE_CONNECT_690_PREVIOUS_ARCHIVE_SHA256 = '6a8a10d0142bce84df55b010fa3a03c53771d220c779221b3d3e84c415b8498c'
@@ -281,7 +286,7 @@ PRIOR_CURRENT_MANIFEST = "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0c
 PRIOR_DISCLOSURE_MANIFEST = "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
 PRIOR_DISCLOSURE_TREE = "5091464bedcb10bb87301695ca733276dc67b865e544c408ccf72a5408176f0f"
 PRIOR_DISCLOSURE_HISTORY = Path(__file__).resolve().parent / "catalog_versions/disclosure-v7-manifest.json"
-CURRENT_TREE = '4ec8e1868e9713ce4055f9d0112c183345dcfaff8dfcb491a72e4d1de856aba7'
+CURRENT_TREE = '9c1b10cde6cbc0fb180b7b6908bf1d9dc1979942fd253647903d00eb3d9b700e'
 PRIOR_CURRENT_TREE = "99207e6469fc5e5b3daf21324e6860599b116ffcf7d30600643bd229b0f11494"
 CURRENT_ENTRY_COUNT = 690
 CURRENT_EXCLUDED_COUNT = 3723
@@ -394,6 +399,15 @@ def _verified_instance_connect_690_previous():
         INSTANCE_CONNECT_690_PREVIOUS_MANIFEST_PATH, INSTANCE_CONNECT_690_PREVIOUS_ARCHIVE,
         INSTANCE_CONNECT_690_PREVIOUS_MANIFEST, INSTANCE_CONNECT_690_PREVIOUS_ARCHIVE_SHA256,
         INSTANCE_CONNECT_690_PREVIOUS_TREE, 690, 3723)
+
+
+@lru_cache(maxsize=1)
+def _verified_teststate_690_previous():
+    """Keep the exact catalog before TestState role reach became unresolved."""
+    return _verified_archived_current(
+        TESTSTATE_690_PREVIOUS_MANIFEST_PATH, TESTSTATE_690_PREVIOUS_ARCHIVE,
+        TESTSTATE_690_PREVIOUS_MANIFEST, TESTSTATE_690_PREVIOUS_ARCHIVE_SHA256,
+        TESTSTATE_690_PREVIOUS_TREE, 690, 3723)
 
 
 @lru_cache(maxsize=1)
@@ -833,6 +847,10 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "current", "exact_strict_privesc"
+    elif (binding.get("manifest_sha256") == TESTSTATE_690_PREVIOUS_MANIFEST and
+          binding.get("effective_tree_sha256") == TESTSTATE_690_PREVIOUS_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "teststate_690_previous", "exact_previous_current"
     elif (binding.get("manifest_sha256") == INSTANCE_CONNECT_690_PREVIOUS_MANIFEST and
           binding.get("effective_tree_sha256") == INSTANCE_CONNECT_690_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -1034,6 +1052,9 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
         if version == "current":
             current = _verified_current(str(catalog_dir), str(manifest_path))
             return {ident: current[ident] for ident in ids if ident in current}, status
+        if version == "teststate_690_previous":
+            previous = _verified_teststate_690_previous()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "instance_connect_690_previous":
             previous = _verified_instance_connect_690_previous()
             return {ident: previous[ident] for ident in ids if ident in previous}, status
