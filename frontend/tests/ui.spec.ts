@@ -563,6 +563,7 @@ test("AWS key form validates, deduplicates, and sends independent role targets",
   await expect(page.getByRole("alert")).toContainText("one valid AWS role ARN");
   expect(payload).toBeUndefined();
   await roles.fill("arn:aws:iam::123456789012:role/ReadOnly | external-1\narn:aws:iam::123456789012:role/ReadOnly | external-1");
+  await page.getByText("Advanced configuration", { exact: true }).click();
   await page.getByLabel("Include source account in scan").uncheck();
   await checkThenSave(page);
   await expect(page.getByRole("alert")).toContainText("fixture endpoint");

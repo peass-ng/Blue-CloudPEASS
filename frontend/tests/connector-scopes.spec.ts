@@ -29,6 +29,8 @@ async function connectorForm(page: Page) {
 
 test("AWS defaults and expandable JSON guidance explain fields and scope results", async ({ page }) => {
   const sent = await connectorForm(page);
+  await expect(page.getByLabel("AWS account IDs to Audit (comma separated) - All by default")).toBeHidden();
+  await page.getByText("Advanced configuration", { exact: true }).click();
   await expect(page.getByLabel("AWS account IDs to Audit (comma separated) - All by default")).toBeVisible();
   await expect(page.getByLabel("Regions (comma separated) - All by default")).toBeVisible();
   await page.getByLabel("Authentication", { exact: true }).selectOption("access_keys");
@@ -36,7 +38,6 @@ test("AWS defaults and expandable JSON guidance explain fields and scope results
   await page.getByLabel("Secret access key", { exact: true }).fill("fixture");
   await page.getByLabel("Session token (optional)", { exact: true }).fill("opaque-session-token");
   await expect(page.getByLabel(/Temporary credential expiration/)).toHaveCount(0);
-  await page.getByText("Advanced configuration", { exact: true }).click();
   await page.getByText("Supported auth document fields", { exact: true }).click();
   await expect(page.locator(".connector-field-help").first()).toContainText("aws_session_token");
   await page.getByText("Supported collector option fields", { exact: true }).click();
@@ -55,6 +56,7 @@ test("shared GCP requires exact IDs and never offers discovery", async ({ page }
   await expect(page.getByRole("checkbox", { name: /Discover all/ })).toHaveCount(0);
   await expect(page.locator(".connector-inspector")).not.toContainText("Da acceso");
   await expect(page.locator(".connector-inspector")).not.toContainText("Introduce los");
+  await page.getByText("Advanced configuration", { exact: true }).click();
   await page.getByLabel("Project IDs (comma separated)").fill("customer-project");
   await page.getByRole("button", { name: "Check access", exact: true }).click();
   await expect.poll(() => sent.length).toBe(1);
@@ -67,6 +69,7 @@ test("GCP discovery is available with customer credentials", async ({ page }) =>
   await connectorForm(page);
   await page.getByLabel("Cloud provider").selectOption("gcp");
   await page.getByLabel("Authentication", { exact: true }).selectOption("service-account");
+  await page.getByText("Advanced configuration", { exact: true }).click();
   await expect(page.getByRole("checkbox", { name: "Discover all accessible projects" })).toBeVisible();
   await page.getByRole("checkbox", { name: "Discover all accessible projects" }).check();
   await page.getByLabel("Authentication", { exact: true }).selectOption("platform-service-account");
@@ -79,6 +82,7 @@ test("Azure all subscriptions selection is explicit and sent to the collector", 
   await page.getByLabel("Tenant ID", { exact: true }).fill("tenant");
   await page.getByLabel("Client ID", { exact: true }).fill("client");
   await page.getByLabel("Client secret", { exact: true }).fill("secret");
+  await page.getByText("Advanced configuration", { exact: true }).click();
   await expect(page.getByLabel("Discover and analyze all accessible subscriptions")).toBeChecked();
   await expect(page.getByLabel("Subscription IDs (comma separated)")).toBeDisabled();
   await page.getByRole("button", { name: "Check access", exact: true }).click();
@@ -90,6 +94,7 @@ test("Kubernetes all namespaces selection is sent as an all-namespace scan", asy
   const sent = await connectorForm(page);
   await page.getByLabel("Cloud provider").selectOption("k8s");
   await page.getByLabel("Kubeconfig YAML", { exact: true }).fill("apiVersion: v1\nkind: Config\nclusters: []\nusers: []\ncontexts: []\n");
+  await page.getByText("Advanced configuration", { exact: true }).click();
   await expect(page.getByLabel("Discover and analyze all namespaces")).toBeChecked();
   await expect(page.getByLabel("Namespaces (comma separated)")).toBeDisabled();
   await page.getByRole("button", { name: "Check access", exact: true }).click();
