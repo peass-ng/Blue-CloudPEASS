@@ -211,6 +211,13 @@ def render_documents() -> dict[Path, bytes]:
     selectors = {provider: dict(zip(("categories", "checks", "frameworks"),
                                     (sorted(values) for values in _selector_index(provider))))
                  for provider in PROVIDERS}
+    # Explicit content scans name their checks. Preserve the engine's privilege
+    # selectors in that same request without importing native code in the API.
+    from peaso.engine import PRIVESC_CHECK_ID
+    for provider, index in selectors.items():
+        technique_ids = {row["id"] for row in full["privesc_techniques"]
+                         if row.get("provider") == provider}
+        index["checks"] = sorted(set(index["checks"]) | technique_ids | {PRIVESC_CHECK_ID})
     if [row["id"] for row in compact_summary["checks"]] != [row["id"] for row in full["checks"]]:
         raise ValueError("API summary/full check order differs")
     sources = {relative: hashlib.sha256(outputs.get(ROOT / relative, (ROOT / relative).read_bytes())).hexdigest()
