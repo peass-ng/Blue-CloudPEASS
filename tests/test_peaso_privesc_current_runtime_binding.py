@@ -162,6 +162,19 @@ def test_sts_federation_candidate_binding_preserves_previous_catalog():
     assert len(catalog._verified_sts_federation_690_previous()) == 690
 
 
+def test_agentcore_bounds_binding_preserves_previous_catalog():
+    ident = "aws-bedrock-agentcore-createcodeinterpreter-passrole"
+    current, status = catalog.lookup_entries([ident], catalog.current_binding())
+    assert status == "exact_strict_privesc" and ident in current
+    old = {"schema": catalog.BINDING_SCHEMA,
+           "manifest_sha256": catalog.AGENTCORE_BOUNDS_690_PREVIOUS_MANIFEST,
+           "effective_tree_sha256": catalog.AGENTCORE_BOUNDS_690_PREVIOUS_TREE,
+           "source_revision": catalog.V4_REVISION}
+    previous, status = catalog.lookup_entries([ident], old)
+    assert status == "exact_previous_current" and ident in previous
+    assert len(catalog._verified_agentcore_bounds_690_previous()) == 690
+
+
 def test_deadline_queue_binding_preserves_previous_catalog():
     ident = "aws-deadline-existing-queue-role-vend"
     current, status = catalog.lookup_entries([ident], catalog.current_binding())

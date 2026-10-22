@@ -21,7 +21,12 @@ V4_EFFECTIVE_TREE = "413792ea4aec86e48c352ffab2c0bea9e82795bc234251342737ec0276b
 LEGACY_DELTA = Path(__file__).resolve().parent / "catalog_versions/legacy-0b3633-delta.json"
 BOUNDED_MANIFEST = "734401b202895e00ac1b6cb0f1534f77cde4d8e2ba912ca0ee974b1b8ec5035c"
 BOUNDED_TREE = "1a54bad4102d18f89c78f45c915964554a62f994c1bffa693844cac5e119cca8"
-CURRENT_MANIFEST = '6460f3bdd25bb05f15a3a33b2b23c57781b28fce63fe44a7d3a7bcf51f9aa495'
+CURRENT_MANIFEST = 'a7a84dd20d61b4083c7be91e42c54f93bf4d4f7cb1e87a1521a18127979d5e5e'
+AGENTCORE_BOUNDS_690_PREVIOUS_MANIFEST = '6460f3bdd25bb05f15a3a33b2b23c57781b28fce63fe44a7d3a7bcf51f9aa495'
+AGENTCORE_BOUNDS_690_PREVIOUS_TREE = '3e4ea09bcfbec4ae862853d6893a9a280e68508586151afe84c674d45d2bb629'
+AGENTCORE_BOUNDS_690_PREVIOUS_ARCHIVE_SHA256 = '1a1ac60d7cf7943142fa79efdef01e976eb04dd971d5597e2e53a7f334cc162d'
+AGENTCORE_BOUNDS_690_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-690-agentcore-bounds-source-manifest.json'
+AGENTCORE_BOUNDS_690_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-690-agentcore-bounds-catalog.tar.gz'
 STS_FEDERATION_690_PREVIOUS_MANIFEST = '01fd53c0626d86f93074ff5bf9df156a9669fbfdcde49e4fdf62e98651800177'
 STS_FEDERATION_690_PREVIOUS_TREE = '6f53ecb88d28c8d85b5662af8bab7d057593105d4a6d00a16f04e6c35ca3cae9'
 STS_FEDERATION_690_PREVIOUS_ARCHIVE_SHA256 = '733288886fe9cc1ffb823613cb4e35701bcb25d9ddb9664d12546985fd1c0e3e'
@@ -356,10 +361,10 @@ PRIOR_CURRENT_MANIFEST = "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0c
 PRIOR_DISCLOSURE_MANIFEST = "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
 PRIOR_DISCLOSURE_TREE = "5091464bedcb10bb87301695ca733276dc67b865e544c408ccf72a5408176f0f"
 PRIOR_DISCLOSURE_HISTORY = Path(__file__).resolve().parent / "catalog_versions/disclosure-v7-manifest.json"
-CURRENT_TREE = '3e4ea09bcfbec4ae862853d6893a9a280e68508586151afe84c674d45d2bb629'
+CURRENT_TREE = '5c64f696e91db857c524df563419f870dc80beb12573d16d269a7cf365894786'
 PRIOR_CURRENT_TREE = "99207e6469fc5e5b3daf21324e6860599b116ffcf7d30600643bd229b0f11494"
 CURRENT_ENTRY_COUNT = 690
-CURRENT_EXCLUDED_COUNT = 3734
+CURRENT_EXCLUDED_COUNT = 3736
 CURRENT_HISTORY = Path(__file__).resolve().parent / "catalog_versions/bulk-principal-v6-manifest.json"
 PRIOR_CATALOG_ARCHIVE = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-catalog-20261016.tar.gz"
 PRIOR_SOURCE_MANIFEST = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-source-manifest.json"
@@ -478,6 +483,15 @@ def _verified_teststate_690_previous():
         TESTSTATE_690_PREVIOUS_MANIFEST_PATH, TESTSTATE_690_PREVIOUS_ARCHIVE,
         TESTSTATE_690_PREVIOUS_MANIFEST, TESTSTATE_690_PREVIOUS_ARCHIVE_SHA256,
         TESTSTATE_690_PREVIOUS_TREE, 690, 3723)
+
+
+@lru_cache(maxsize=1)
+def _verified_agentcore_bounds_690_previous():
+    """Keep the exact catalog before AgentCore browser and gateway bounds."""
+    return _verified_archived_current(
+        AGENTCORE_BOUNDS_690_PREVIOUS_MANIFEST_PATH, AGENTCORE_BOUNDS_690_PREVIOUS_ARCHIVE,
+        AGENTCORE_BOUNDS_690_PREVIOUS_MANIFEST, AGENTCORE_BOUNDS_690_PREVIOUS_ARCHIVE_SHA256,
+        AGENTCORE_BOUNDS_690_PREVIOUS_TREE, 690, 3734)
 
 
 @lru_cache(maxsize=1)
@@ -1043,6 +1057,10 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "current", "exact_strict_privesc"
+    elif (binding.get("manifest_sha256") == AGENTCORE_BOUNDS_690_PREVIOUS_MANIFEST and
+          binding.get("effective_tree_sha256") == AGENTCORE_BOUNDS_690_PREVIOUS_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "agentcore_bounds_690_previous", "exact_previous_current"
     elif (binding.get("manifest_sha256") == STS_FEDERATION_690_PREVIOUS_MANIFEST and
           binding.get("effective_tree_sha256") == STS_FEDERATION_690_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -1304,6 +1322,9 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
         if version == "current":
             current = _verified_current(str(catalog_dir), str(manifest_path))
             return {ident: current[ident] for ident in ids if ident in current}, status
+        if version == "agentcore_bounds_690_previous":
+            previous = _verified_agentcore_bounds_690_previous()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "sts_federation_690_previous":
             previous = _verified_sts_federation_690_previous()
             return {ident: previous[ident] for ident in ids if ident in previous}, status
