@@ -10,7 +10,7 @@ import time
 import uuid
 from boto3.dynamodb.types import TypeSerializer, TypeDeserializer
 from botocore.exceptions import ClientError
-from .sqlite import SQLiteStore, StoreError, TERMINAL, failure_error, utc, week
+from .sqlite import SQLiteStore, StoreError, TERMINAL, SCAN_CAPACITY, QUEUE_WAIT_SECONDS, failure_error, utc, week
 
 SERIALIZER, DESERIALIZER = TypeSerializer(), TypeDeserializer()
 
@@ -568,7 +568,7 @@ class DynamoStore:
             ident = uuid.uuid4().hex
             value = dict(self.key(tenant, "job", ident), kind="job", rev=0, id=ident, tenant=tenant,
                          connector_id=request["connector_id"], data=json.dumps(request), connector=json.dumps({"data": json.loads(connector["data"]), "auth": connector["auth"]}),
-                         status="queued", created=now, deadline=now + timeout, expires_at=int(now + max(30 * 86400, timeout + 86400)), owner=None, lease=None, snapshot=None, report=None, error=None, error_code=None, error_stage=None, history=[{"status": "queued", "at": utc(now)}], idem=idem, digest=digest)
+                         status="queued", created=now, deadline=now + QUEUE_WAIT_SECONDS, execution_timeout=timeout, expires_at=int(now + max(30 * 86400, timeout + 86400)), owner=None, lease=None, snapshot=None, report=None, error=None, error_code=None, error_stage=None, history=[{"status": "queued", "at": utc(now)}], idem=idem, digest=digest)
             transactions = [
                 {"ConditionCheck": {"TableName": self.table, "Key": attrs(self.key(tenant, "connector", connector["id"])), "ConditionExpression": "#rev=:rev", "ExpressionAttributeNames": {"#rev": "rev"}, "ExpressionAttributeValues": attrs({":rev": connector["rev"]})}},
                 {"Update": {"TableName": self.table, "Key": attrs(self.key(tenant, "quota", week(now))), "UpdateExpression": "SET #kind=:kind, expires_at=:expires ADD used :one", "ConditionExpression": "attribute_not_exists(used) OR used<:limit", "ExpressionAttributeNames": {"#kind": "kind"}, "ExpressionAttributeValues": attrs({":kind": "quota", ":one": 1, ":limit": limit, ":expires": int(now + 14 * 86400)})}},
@@ -625,16 +625,86 @@ class DynamoStore:
         self.deletion_job(tenant, ident)
         try:
             self.client.delete_item(TableName=self.table, Key=attrs(self.key(tenant, "job", ident)),
-                ConditionExpression="attribute_exists(PK) AND (#status IN (:done,:failed,:cancelled,:timed) OR deadline<=:now)",
+                ConditionExpression="attribute_exists(PK) AND (#status IN (:done,:failed,:cancelled,:timed,:queue_exhausted) OR deadline<=:now)",
                 ExpressionAttributeNames={"#status": "status"}, ExpressionAttributeValues=attrs({
-                    ":done": "completed", ":failed": "failed", ":cancelled": "cancelled", ":timed": "timed_out", ":now": time.time()}))
+                    ":done": "completed", ":failed": "failed", ":cancelled": "cancelled", ":timed": "timed_out", ":queue_exhausted": "queue_exhausted", ":now": time.time()}))
         except ClientError as exc:
             if exc.response["Error"]["Code"] == "ConditionalCheckFailedException":
                 raise StoreError(409, "Scan changed; refresh and retry") from None
             raise
 
     def queued_jobs(self):
-        return [item for item in self._scan("job") if item["status"] == "queued"]
+        return sorted((item for item in self._scan("job") if item["status"] == "queued"), key=lambda item: (item["created"], item["id"]))
+
+    @staticmethod
+    def _reservation_key(tenant, ident):
+        return {"PK": "GLOBAL", "SK": "SCAN_RESERVATION/" + tenant + "/" + ident}
+
+    def release_admission(self, tenant, ident):
+        """Release exactly once; a terminal write may precede this if a process dies."""
+        try:
+            self.client.transact_write_items(TransactItems=[
+                {"Delete": {"TableName": self.table, "Key": attrs(self._reservation_key(tenant, ident)),
+                            "ConditionExpression": "attribute_exists(PK)"}},
+                {"Update": {"TableName": self.table, "Key": attrs({"PK": "GLOBAL", "SK": "SCAN_CAPACITY"}),
+                            "UpdateExpression": "ADD active_count :minus",
+                            "ConditionExpression": "active_count>:zero",
+                            "ExpressionAttributeValues": attrs({":minus": -1, ":zero": 0})}},
+            ])
+            return True
+        except ClientError:
+            return False
+
+    def reconcile_admissions(self, now=None):
+        now = time.time() if now is None else now
+        for reservation in self._scan("scan_reservation"):
+            try:
+                job = self.job(reservation["tenant"], reservation["id"])
+            except StoreError as exc:
+                if exc.status != 404:
+                    raise
+                self.release_admission(reservation["tenant"], reservation["id"])
+                continue
+            if job["status"] in TERMINAL:
+                self.release_admission(job["tenant"], job["id"])
+            elif job["deadline"] <= now:
+                self._expire_job(job, now)
+
+    def admit(self, tenant, ident, now=None):
+        """Atomically reserve global capacity and start this job's execution budget."""
+        now = time.time() if now is None else now
+        job = self.job(tenant, ident)
+        if job["status"] != "queued":
+            return False
+        if job.get("admitted_at") is not None:
+            return True
+        if job["deadline"] <= now:
+            self._expire_job(job, now)
+            return False
+        # Scheduler walks this list in order; this check also prevents a new API
+        # request from jumping ahead of an older waiting scan.
+        waiting = [item for item in self.queued_jobs() if item.get("admitted_at") is None and item["deadline"] > now]
+        if waiting and (waiting[0]["tenant"], waiting[0]["id"]) != (tenant, ident):
+            return False
+        reservation = dict(self._reservation_key(tenant, ident), kind="scan_reservation", id=ident, tenant=tenant)
+        try:
+            self.client.transact_write_items(TransactItems=[
+                {"Update": {"TableName": self.table, "Key": attrs({"PK": "GLOBAL", "SK": "SCAN_CAPACITY"}),
+                            "UpdateExpression": "ADD active_count :one",
+                            "ConditionExpression": "attribute_not_exists(active_count) OR active_count<:limit",
+                            "ExpressionAttributeValues": attrs({":one": 1, ":limit": SCAN_CAPACITY})}},
+                {"Put": {"TableName": self.table, "Item": attrs(reservation), "ConditionExpression": "attribute_not_exists(PK)"}},
+                {"Update": {"TableName": self.table, "Key": attrs(self.key(tenant, "job", ident)),
+                            "UpdateExpression": "SET admitted_at=:now, deadline=:execution_deadline",
+                            "ConditionExpression": "#status=:queued AND attribute_not_exists(admitted_at) AND deadline>:now",
+                            "ExpressionAttributeNames": {"#status": "status"},
+                            "ExpressionAttributeValues": attrs({":queued": "queued", ":now": now, ":execution_deadline": now + job.get("execution_timeout", 900)})}},
+            ])
+            return True
+        except ClientError as exc:
+            if exc.response["Error"]["Code"] == "TransactionCanceledException":
+                return bool((fresh := self.job(tenant, ident))["status"] == "queued" and fresh.get("admitted_at") is not None)
+            raise
 
     def _update_job(self, tenant, ident, expression, names, values, condition):
         new_status = values.get(":status") if "#status=:status" in expression else values.get(":active") if "#status=:active" in expression else values.get(":cancelled") if "#status=:cancelled" in expression else values.get(":timed") if "#status=:timed" in expression else None
@@ -654,7 +724,8 @@ class DynamoStore:
     def cancel(self, tenant, ident):
         self.job(tenant, ident)
         self._update_job(tenant, ident, "SET #status=:cancelled, #owner=:null, lease=:null", {"#status": "status", "#owner": "owner"},
-                         {":cancelled": "cancelled", ":null": None, ":done": "completed", ":failed": "failed", ":timed": "timed_out"}, "NOT (#status IN (:done,:failed,:cancelled,:timed))")
+                         {":cancelled": "cancelled", ":null": None, ":done": "completed", ":failed": "failed", ":timed": "timed_out", ":queue_exhausted": "queue_exhausted"}, "NOT (#status IN (:done,:failed,:cancelled,:timed,:queue_exhausted))")
+        self.release_admission(tenant, ident)
         return self.public_job(self.job(tenant, ident))
 
     def expire(self, now=None):
@@ -670,12 +741,23 @@ class DynamoStore:
     def _expire_job(self, job, now):
         if job["status"] in TERMINAL or job["deadline"] > now:
             return False
+        if job["status"] == "queued" and job.get("admitted_at") is None:
+            return self._update_job(job["tenant"], job["id"],
+                                    "SET #status=:queue_exhausted, #error=:error, #error_code=:code, #error_stage=:stage",
+                                    {"#status": "status", "#error": "error", "#error_code": "error_code", "#error_stage": "error_stage"},
+                                    {":queue_exhausted": "queue_exhausted", ":previous": "queued", ":now": now,
+                                     ":error": "Queue exhausted: no scan slot became available within one hour",
+                                     ":code": "queue_exhausted", ":stage": "queue"},
+                                    "deadline<=:now AND #status=:previous AND attribute_not_exists(admitted_at)")
         stage = "collector" if job["status"] in {"queued", "collecting"} else "analyzer"
-        return self._update_job(job["tenant"], job["id"],
+        changed = self._update_job(job["tenant"], job["id"],
                                 "SET #status=:timed, #owner=:null, lease=:null, #error=:error, #error_code=:code, #error_stage=:stage",
                                 {"#status": "status", "#owner": "owner", "#error": "error", "#error_code": "error_code", "#error_stage": "error_stage"},
                                 {":timed": "timed_out", ":null": None, ":previous": job["status"], ":now": now, ":error": "Scan deadline exceeded", ":code": "deadline_exceeded", ":stage": stage},
                                 "deadline<=:now AND #status=:previous")
+        if changed:
+            self.release_admission(job["tenant"], job["id"])
+        return changed
 
     def claim(self, role, lease_seconds=30, now=None, tenant=None, ident=None):
         if role not in {"collector", "analyzer"}:
@@ -691,10 +773,12 @@ class DynamoStore:
                 continue
             if job["status"] != ready and not (job["status"] == active and (job["lease"] or 0) <= now):
                 continue
+            if role == "collector" and job.get("admitted_at") is None:
+                continue
             owner = uuid.uuid4().hex
             success = self._update_job(job["tenant"], job["id"], "SET #status=:active, #owner=:owner, lease=:lease", {"#status": "status", "#owner": "owner"},
                                       {":active": active, ":ready": ready, ":owner": owner, ":lease": now + lease_seconds, ":now": now},
-                                      "deadline>:now AND (#status=:ready OR (#status=:active AND lease<=:now))")
+                                      "deadline>:now AND (#status=:ready OR (#status=:active AND lease<=:now))" + (" AND attribute_exists(admitted_at)" if role == "collector" else ""))
             if success:
                 self.claims[(job["id"], owner)] = job["tenant"]
                 return dict(job, status=active, owner=owner, lease=now + lease_seconds)
@@ -708,6 +792,24 @@ class DynamoStore:
         return self._update_job(tenant, ident, "SET lease=:lease", {"#owner": "owner", "#status": "status"},
                                 {":owner": owner, ":lease": now + lease_seconds, ":now": now, ":collecting": "collecting", ":analyzing": "analyzing"},
                                 "#owner=:owner AND lease>:now AND deadline>:now AND #status IN (:collecting,:analyzing)")
+
+    def record_progress(self, ident, owner, event, now=None):
+        from peaso.progress import sanitize_event
+        now = time.time() if now is None else now
+        tenant = self.claims.get((ident, owner))
+        cleaned = sanitize_event(event)
+        cleaned.pop("scope", None)
+        if tenant is None or not cleaned:
+            return False
+        cleaned["at"] = utc(now)
+        try:
+            return self._update_job(tenant, ident, "SET progress_details=:progress",
+                                    {"#owner": "owner", "#status": "status"},
+                                    {":progress": cleaned, ":owner": owner, ":now": now,
+                                     ":collecting": "collecting", ":analyzing": "analyzing"},
+                                    "#owner=:owner AND lease>:now AND deadline>:now AND #status IN (:collecting,:analyzing)")
+        except Exception:
+            return False
 
     def finish(self, ident, owner, status, artifact=None, now=None, error_code="processing_failed", failure_reasons=None):
         if status not in {"collected", "completed", "failed"}:
@@ -729,8 +831,11 @@ class DynamoStore:
         else:
             values[":previous"] = "collecting" if status == "collected" else "analyzing"
             previous = "#status=:previous"
-        return self._update_job(tenant, ident, "SET #status=:status, #owner=:null, lease=:null, #artifact=:artifact, #error=:error, #error_code=:error_code, #error_stage=:error_stage", names, values,
-                                "#owner=:owner AND lease>:now AND deadline>:now AND " + previous)
+        changed = self._update_job(tenant, ident, "SET #status=:status, #owner=:null, lease=:null, #artifact=:artifact, #error=:error, #error_code=:error_code, #error_stage=:error_stage", names, values,
+                                   "#owner=:owner AND lease>:now AND deadline>:now AND " + previous)
+        if changed and status in {"completed", "failed"}:
+            self.release_admission(tenant, ident)
+        return changed
 
     def schedules(self, tenant):
         return [self.public_schedule(value) for value in self._query(tenant, "schedule")]

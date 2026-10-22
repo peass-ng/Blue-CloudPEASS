@@ -126,23 +126,22 @@ def resolve(value, data, execution):
 
 @pytest.mark.parametrize("stage", ["collector", "analyzer"])
 @pytest.mark.parametrize("failure", ["ecs_oom", "ecs_sigkill", "stopped_without_result"])
-@pytest.mark.parametrize("lock", ["owned", "new_owner", "delete_outage"])
-def test_compiled_task_death_fails_scan_and_reconciles_lease(workflow, stage, failure, lock):
-    run_failure(workflow, stage, failure, lock)
+def test_compiled_task_death_fails_scan_and_reconciles_status(workflow, stage, failure):
+    run_failure(workflow, stage, failure)
 
 
 @pytest.mark.parametrize("terminal", ["cancelled", "completed", "timed_out", "failed"])
 def test_workflow_failure_does_not_overwrite_terminal_scan(workflow, terminal):
-    run_failure(workflow, "analyzer", "ecs_sigkill", "owned", terminal)
+    run_failure(workflow, "analyzer", "ecs_sigkill", terminal)
 
 
 @pytest.mark.parametrize("stage", ["collector", "analyzer"])
 @pytest.mark.parametrize("terminal", ["cancelled", "completed", "timed_out", "failed"])
 def test_terminal_race_before_failure_write_reconciles_workflow(workflow, stage, terminal):
-    run_failure(workflow, stage, "ecs_sigkill", "owned", terminal, terminal_race=True)
+    run_failure(workflow, stage, "ecs_sigkill", terminal, terminal_race=True)
 
 
-def run_failure(workflow, stage, failure, lock, terminal=None, *, terminal_race=False):
+def run_failure(workflow, stage, failure, terminal=None, *, terminal_race=False):
     moto = pytest.importorskip("moto")
     boto3 = pytest.importorskip("boto3")
     from botocore.exceptions import ClientError
@@ -161,7 +160,6 @@ def run_failure(workflow, stage, failure, lock, terminal=None, *, terminal_race=
         key = attrs({"PK": "tenant/alice", "SK": "job/fixture"})
         initial_status = ("collecting" if stage == "collector" else "analyzing") if terminal_race else terminal or ("collecting" if stage == "collector" else "analyzing")
         client.put_item(TableName="hacktricks-cspm", Item=attrs({"PK": "tenant/alice", "SK": "job/fixture", "status": initial_status, "owner": "worker-owner", "lease": 100, "rev": 0}))
-        client.put_item(TableName="hacktricks-cspm", Item=attrs({"PK": "GLOBAL", "SK": "SCAN_LOCK", "owner": "successor" if lock == "new_owner" else execution, "expires_at": 3900}))
         raced = False
         for _ in range(15):
             state = states[state_name]
@@ -170,7 +168,8 @@ def run_failure(workflow, stage, failure, lock, terminal=None, *, terminal_race=
                 break
             try:
                 if state["Type"] == "Pass":
-                    data[state["ResultPath"][2:]] = copy.deepcopy(state["Result"])
+                    if "ResultPath" in state:
+                        data[state["ResultPath"][2:]] = copy.deepcopy(state["Result"])
                 elif state["Type"] == "Choice":
                     def matches(choice):
                         try:
@@ -193,8 +192,6 @@ def run_failure(workflow, stage, failure, lock, terminal=None, *, terminal_race=
                                            ExpressionAttributeValues=attrs({":s": terminal}))
                         raced = True
                     arguments = resolve(state.get("Arguments", state.get("Parameters")), data, execution)
-                    if operation == "deleteItem" and lock == "delete_outage":
-                        raise ClientError({"Error": {"Code": "InternalServerError"}}, "DeleteItem")
                     result = getattr(client, {"getItem": "get_item", "deleteItem": "delete_item", "updateItem": "update_item"}[operation])(**arguments)
                     if state.get("ResultPath"):
                         data[state["ResultPath"][2:]] = result
@@ -213,10 +210,7 @@ def run_failure(workflow, stage, failure, lock, terminal=None, *, terminal_race=
             assert persisted["owner"] is None and persisted["lease"] is None
             assert persisted["history"][-1]["status"] == "failed"
         assert private not in json.dumps(persisted)
-        remaining_lock = client.get_item(TableName="hacktricks-cspm", Key=attrs({"PK": "GLOBAL", "SK": "SCAN_LOCK"})).get("Item")
-        assert bool(remaining_lock) == (lock != "owned")
-        if lock == "new_owner":
-            assert row(remaining_lock)["owner"] == "successor"
+        assert states["Collect"]["Type"] == "Task" and workflow["StartAt"] == "Collect"
         expected_end = {"cancelled": "Cancelled", "completed": "Succeeded"}.get(terminal, "Failed")
         assert visited[-1] == expected_end
         assert ("MarkFailed" in visited) == (not terminal or terminal_race)

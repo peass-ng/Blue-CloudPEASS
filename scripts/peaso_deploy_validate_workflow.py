@@ -106,15 +106,13 @@ def compile_definition(root: Path, terraform: str):
     compiled = json.loads(definition)
     workflow_seconds = compiled["TimeoutSeconds"]
     stage_seconds = compiled["States"]["Collect"]["TimeoutSeconds"]
-    lease_expression = compiled["States"]["AcquireSlot"]["Arguments"]["Item"]["expires_at"]["N"]
-    lease_match = re.search(r"\+\s*([0-9]+)", lease_expression)
+    lease_match = re.search(r'["\s]*lease_seconds["\s]*[:=]\s*([0-9]+)', values["var.scan_runtime_limits"])
     if not lease_match or not 0 < stage_seconds <= workflow_seconds < int(lease_match[1]):
-        raise ValueError("Workflow stage/deadline/lease invariant violated")
+        raise ValueError("Workflow stage/deadline/admission invariant violated")
     if compiled["States"]["Analyze"]["TimeoutSeconds"] != workflow_seconds:
         raise ValueError("Analyzer must fit the workflow deadline while collection retains its stage limit")
-    lock = compiled["States"]["ReleaseSucceeded"]["Parameters"]
-    if lock.get("ConditionExpression") != "#owner = :owner":
-        raise ValueError("Workflow lock release must remain owner-conditional")
+    if compiled.get("StartAt") != "Collect" or "AcquireSlot" in compiled["States"] or "SCAN_LOCK" in json.dumps(compiled):
+        raise ValueError("Only durable pre-workflow admission may reserve scan capacity")
     validate_failure_paths(compiled)
     return definition, {"workflow_seconds": workflow_seconds, "stage_seconds": stage_seconds,
                         "lease_seconds": int(lease_match[1])}
@@ -135,12 +133,10 @@ def validate_failure_paths(definition):
         if states[status]["Default"] != failed:
             raise ValueError("Stopped tasks without a completed job must fail the scan")
         if states[failed].get("Result") != {"code": "worker_task_failed", "stage": stage} or states[failed]["Next"] != "ReleaseFailed":
-            raise ValueError("Task failures require a safe code and owned lock release")
+            raise ValueError("Task failures require a safe code and persisted failure path")
     release = states["ReleaseFailed"]
-    if release["Parameters"].get("ConditionExpression") != "#owner = :owner" or release["Next"] != "ReadFailureStatus":
-        raise ValueError("Failed task lock release must remain owner-conditional")
-    if not any(item["ErrorEquals"] == ["States.ALL"] and item["Next"] == "ReadFailureStatus" for item in release.get("Catch", [])):
-        raise ValueError("Lock release errors must not prevent job failure reconciliation")
+    if release != {"Type": "Pass", "Next": "ReadFailureStatus"} or states["ReleaseSucceeded"] != {"Type": "Pass", "Next": "Succeeded"}:
+        raise ValueError("Workflow must rely on fenced worker release and scheduler reconciliation")
     read = states["ReadFailureStatus"]
     if (read["Resource"] != "arn:aws:states:::dynamodb:getItem" or
             read["Parameters"].get("ConsistentRead") is not True or read["Next"] != "FailureStatus"):
@@ -149,7 +145,7 @@ def validate_failure_paths(definition):
     expected = [{"Variable": "$.job_status.Item.status.S", "IsPresent": False, "Next": "Failed"}]
     expected += [{"Variable": "$.job_status.Item.status.S", "StringEquals": status, "Next": target}
                  for status, target in [("cancelled", "Cancelled"), ("completed", "Succeeded"),
-                                        ("failed", "Failed"), ("timed_out", "Failed")]]
+                                        ("failed", "Failed"), ("timed_out", "Failed"), ("queue_exhausted", "Failed")]]
     if choices.get("Choices") != expected or choices.get("Default") != "MarkFailed" or states["Cancelled"] != {"Type": "Succeed"}:
         raise ValueError("Failure reconciliation must distinguish cancellation from failed scans")
     catch = states["MarkFailed"].get("Catch", [])
@@ -170,7 +166,7 @@ def validate(root: Path, terraform: str, session):
         definition=definition, type="STANDARD", severity="WARNING", maxResults=100)
     report = {"result": result["result"], "diagnostics": result.get("diagnostics", []),
               "truncated": result.get("truncated", False), "stand_in_resource_ids": True,
-              "bounds": bounds, "lock_release": "owner_conditional"}
+              "bounds": bounds, "admission": "durable_before_workflow"}
     output = root / "infra/aws/build/workflow-validation.json"
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, indent=2) + "\n")

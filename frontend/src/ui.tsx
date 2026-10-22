@@ -25,12 +25,13 @@ export function ProviderIcon({
   );
 }
 export function Badge({ value }: { value: string }) {
+  const label = value === "queue_exhausted" ? "Queue exhausted" : value.toLowerCase().replaceAll("_", " ");
   return (
     <span
       className={`badge ${value.toLowerCase().replace(/[^a-z_]/g, "")}`}
-      title={value.replaceAll("_", " ")}
+      title={label}
     >
-      {value.toLowerCase().replaceAll("_", " ")}
+      {label}
     </span>
   );
 }

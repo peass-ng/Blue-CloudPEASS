@@ -67,6 +67,7 @@ def test_dynamodb_quota_idempotency_and_tenant_isolation(store, limit):
 def test_dynamodb_claim_transition_fence_and_cancel(store):
     connector = store.add_connector("alice", {"provider": "aws"}, "ciphertext")
     job = store.enqueue("alice", {"connector_id": connector["id"]}, now=1000, timeout=100)
+    assert store.admit("alice", job["id"], now=1000)
     first = store.claim("collector", lease_seconds=3, now=1001, tenant="alice", ident=job["id"])
     assert first and not store.claim("collector", now=1002)
     second = store.claim("collector", now=1005)
@@ -119,6 +120,7 @@ def test_dynamodb_scheduler_atomic_occurrence_and_shared_quota(store):
 def test_dynamodb_deadline_and_entitlement_expiry(store):
     connector = store.add_connector("alice", {"provider": "aws"}, "ciphertext")
     job = store.enqueue("alice", {"connector_id": connector["id"]}, now=1000, timeout=1)
+    assert store.admit("alice", job["id"], now=1000)
     store.expire(1002)
     assert store.job("alice", job["id"])["status"] == "timed_out"
     store.set_entitlement("alice", True)

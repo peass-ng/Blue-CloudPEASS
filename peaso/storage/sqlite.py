@@ -11,7 +11,9 @@ import time
 import uuid
 from .cost import runtime_estimate
 
-TERMINAL = {"completed", "failed", "cancelled", "timed_out"}
+SCAN_CAPACITY = 10
+QUEUE_WAIT_SECONDS = 3600
+TERMINAL = {"completed", "failed", "cancelled", "timed_out", "queue_exhausted"}
 GENERIC_FAILURE = "Scan processing failed; check connector access and coverage"
 # Fifty maximum-length role ARNs with the longest fixed message serialize to <64 KiB.
 _MAX_FAILURE_ERROR_BYTES = 128 * 1024
@@ -124,9 +126,16 @@ class SQLiteStore:
             """)
             db.execute("BEGIN IMMEDIATE")
             columns = {row["name"] for row in db.execute("PRAGMA table_info(jobs)")}
-            for name, definition in (("history", "TEXT NOT NULL DEFAULT '[]'"), ("error_code", "TEXT"), ("error_stage", "TEXT")):
+            for name, definition in (("history", "TEXT NOT NULL DEFAULT '[]'"), ("error_code", "TEXT"), ("error_stage", "TEXT"),
+                                     ("admitted_at", "REAL"), ("execution_timeout", "REAL NOT NULL DEFAULT 900"),
+                                     ("progress_details", "TEXT")):
                 if name not in columns:
                     db.execute(f"ALTER TABLE jobs ADD COLUMN {name} {definition}")
+            if "execution_timeout" not in columns:
+                db.execute("UPDATE jobs SET execution_timeout=deadline-created,deadline=created+? WHERE status='queued'",
+                           (QUEUE_WAIT_SECONDS,))
+            if "admitted_at" not in columns:
+                db.execute("UPDATE jobs SET admitted_at=created WHERE status IN ('collecting','collected','analyzing')")
         os.chmod(self.path, 0o600)
 
     def connect(self):
@@ -349,8 +358,8 @@ class SQLiteStore:
             raise StoreError(429, "Weekly scan quota exhausted")
         ident = uuid.uuid4().hex
         encrypted_input = json.dumps({"data": json.loads(connector["data"]), "auth": connector["auth"]})
-        db.execute("INSERT INTO jobs(id,tenant,connector_id,data,connector,status,created,deadline,idem,digest,history) VALUES(?,?,?,?,?,'queued',?,?,?,?,?)",
-                   (ident, tenant, request["connector_id"], json.dumps(request), encrypted_input, now, now + timeout, idem, digest, history({}, "queued", now)))
+        db.execute("INSERT INTO jobs(id,tenant,connector_id,data,connector,status,created,deadline,idem,digest,history,execution_timeout) VALUES(?,?,?,?,?,'queued',?,?,?,?,?,?)",
+                   (ident, tenant, request["connector_id"], json.dumps(request), encrypted_input, now, now + QUEUE_WAIT_SECONDS, idem, digest, history({}, "queued", now), timeout))
         return self.public_job(db.execute("SELECT * FROM jobs WHERE id=?", (ident,)).fetchone())
 
     def enqueue(self, tenant, request, limit=1, timeout=900, idem=None, now=None):
@@ -363,9 +372,11 @@ class SQLiteStore:
         events = value.get("history", [])
         events = json.loads(events) if isinstance(events, str) else events
         error, reasons = public_failure(row["error"])
-        result = dict(json.loads(row["data"]), id=row["id"], status=row["status"], created_at=utc(row["created"]), deadline_at=utc(row["deadline"]), error=error, error_code=value.get("error_code"), error_stage=value.get("error_stage"), timeline=events, updated_at=events[-1]["at"] if events else utc(row["created"]), input_mode=json.loads(row["connector"])["data"].get("input_mode", "live"), runtime=runtime_estimate(events))
+        result = dict(json.loads(row["data"]), id=row["id"], status=row["status"], created_at=utc(row["created"]), deadline_at=utc(row["deadline"]), admitted_at=utc(value["admitted_at"]) if value.get("admitted_at") is not None else None, error=error, error_code=value.get("error_code"), error_stage=value.get("error_stage"), timeline=events, updated_at=events[-1]["at"] if events else utc(row["created"]), input_mode=json.loads(row["connector"])["data"].get("input_mode", "live"), runtime=runtime_estimate(events))
         if reasons:
             result["failure_reasons"] = reasons
+        if value.get("progress_details"):
+            result["progress_details"] = json.loads(value["progress_details"]) if isinstance(value["progress_details"], str) else value["progress_details"]
         return result
 
     def job(self, tenant, ident):
@@ -489,10 +500,35 @@ class SQLiteStore:
                 db.execute("UPDATE jobs SET status='cancelled',owner=NULL,lease=NULL,history=? WHERE tenant=? AND id=?", (history(row, "cancelled", time.time()), tenant, ident))
         return self.public_job(self.job(tenant, ident))
 
+    def queued_jobs(self):
+        with self.connect() as db:
+            return [dict(row) for row in db.execute("SELECT * FROM jobs WHERE status='queued' ORDER BY created,id")]
+
+    def admit(self, tenant, ident, now=None):
+        """Reserve one of ten global scan slots under the SQLite write lock."""
+        now = time.time() if now is None else now
+        self.expire(now)
+        with self.transaction() as db:
+            row = db.execute("SELECT * FROM jobs WHERE tenant=? AND id=?", (tenant, ident)).fetchone()
+            if not row or row["status"] != "queued":
+                return False
+            if row["admitted_at"] is not None:
+                return True
+            older = db.execute("SELECT 1 FROM jobs WHERE status='queued' AND admitted_at IS NULL AND (created<? OR (created=? AND id<?)) LIMIT 1", (row["created"], row["created"], ident)).fetchone()
+            occupied = db.execute("SELECT COUNT(*) FROM jobs WHERE admitted_at IS NOT NULL AND status NOT IN ('completed','failed','cancelled','timed_out','queue_exhausted')").fetchone()[0]
+            if older or occupied >= SCAN_CAPACITY:
+                return False
+            db.execute("UPDATE jobs SET admitted_at=?,deadline=? WHERE tenant=? AND id=? AND status='queued'",
+                       (now, now + row["execution_timeout"], tenant, ident))
+            return True
+
     def expire(self, now=None):
         now = time.time() if now is None else now
         with self.transaction() as db:
-            for row in db.execute("SELECT * FROM jobs WHERE deadline<=? AND status NOT IN ('completed','failed','cancelled','timed_out')", (now,)).fetchall():
+            for row in db.execute("SELECT * FROM jobs WHERE deadline<=? AND status NOT IN ('completed','failed','cancelled','timed_out','queue_exhausted')", (now,)).fetchall():
+                if row["status"] == "queued" and row["admitted_at"] is None:
+                    db.execute("UPDATE jobs SET status='queue_exhausted',error='Queue exhausted: no scan slot became available within one hour',error_code='queue_exhausted',error_stage='queue',history=? WHERE id=?", (history(row, "queue_exhausted", now), row["id"]))
+                    continue
                 stage = "collector" if row["status"] in {"queued", "collecting"} else "analyzer"
                 db.execute("UPDATE jobs SET status='timed_out',owner=NULL,lease=NULL,error='Scan deadline exceeded',error_code='deadline_exceeded',error_stage=?,history=? WHERE id=?", (stage, history(row, "timed_out", now), row["id"]))
 
@@ -505,6 +541,9 @@ class SQLiteStore:
                 raise StoreError(404, "Scan not found")
             if row["status"] in TERMINAL or row["deadline"] > now:
                 return False
+            if row["status"] == "queued" and row["admitted_at"] is None:
+                return db.execute("UPDATE jobs SET status='queue_exhausted',error='Queue exhausted: no scan slot became available within one hour',error_code='queue_exhausted',error_stage='queue',history=? WHERE tenant=? AND id=? AND deadline<=? AND status='queued' AND admitted_at IS NULL",
+                                  (history(row, "queue_exhausted", now), tenant, ident, now)).rowcount == 1
             stage = "collector" if row["status"] in {"queued", "collecting"} else "analyzer"
             return db.execute("UPDATE jobs SET status='timed_out',owner=NULL,lease=NULL,error='Scan deadline exceeded',error_code='deadline_exceeded',error_stage=?,history=? WHERE tenant=? AND id=? AND deadline<=? AND status=?",
                               (stage, history(row, "timed_out", now), tenant, ident, now, row["status"])).rowcount == 1
@@ -526,9 +565,15 @@ class SQLiteStore:
             if ident is not None:
                 query += " AND tenant=? AND id=?"
                 args += [tenant, ident]
-            row = db.execute(query + " ORDER BY created LIMIT 1", args).fetchone()
+            row = db.execute(query + " ORDER BY created,id LIMIT 1", args).fetchone()
             if not row:
                 return None
+            if role == "collector" and row["admitted_at"] is None:
+                occupied = db.execute("SELECT COUNT(*) FROM jobs WHERE admitted_at IS NOT NULL AND status NOT IN ('completed','failed','cancelled','timed_out','queue_exhausted')").fetchone()[0]
+                older = db.execute("SELECT 1 FROM jobs WHERE status='queued' AND admitted_at IS NULL AND (created<? OR (created=? AND id<?)) LIMIT 1", (row["created"], row["created"], row["id"])).fetchone()
+                if occupied >= SCAN_CAPACITY or older:
+                    return None
+                db.execute("UPDATE jobs SET admitted_at=?,deadline=? WHERE id=?", (now, now + row["execution_timeout"], row["id"]))
             owner = uuid.uuid4().hex
             db.execute("UPDATE jobs SET status=?,owner=?,lease=?,history=? WHERE id=?", (active, owner, now + lease_seconds, history(row, active, now), row["id"]))
             return dict(db.execute("SELECT * FROM jobs WHERE id=?", (row["id"],)).fetchone())
@@ -537,6 +582,21 @@ class SQLiteStore:
         now = time.time() if now is None else now
         with self.transaction() as db:
             return db.execute("UPDATE jobs SET lease=? WHERE id=? AND owner=? AND lease>? AND deadline>? AND status IN ('collecting','analyzing')", (now + lease_seconds, ident, owner, now, now)).rowcount == 1
+
+    def record_progress(self, ident, owner, event, now=None):
+        from peaso.progress import sanitize_event
+        now = time.time() if now is None else now
+        cleaned = sanitize_event(event)
+        cleaned.pop("scope", None)
+        if not cleaned:
+            return False
+        cleaned["at"] = utc(now)
+        try:
+            with self.transaction() as db:
+                return db.execute("UPDATE jobs SET progress_details=? WHERE id=? AND owner=? AND lease>? AND deadline>? AND status IN ('collecting','analyzing')",
+                                  (json.dumps(cleaned), ident, owner, now, now)).rowcount == 1
+        except Exception:
+            return False
 
     def finish(self, ident, owner, status, artifact=None, now=None, error_code="processing_failed", failure_reasons=None):
         now = time.time() if now is None else now

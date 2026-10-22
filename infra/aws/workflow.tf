@@ -98,19 +98,6 @@ locals {
     Catch      = [{ ErrorEquals = ["States.ALL"], ResultPath = "$.failure", Next = stage == "collector" ? "CollectorTaskFailed" : "AnalyzerTaskFailed" }]
     Next       = stage == "collector" ? "ReadCollectedStatus" : "ReadCompletedStatus"
   } }
-  release_lock = {
-    Type     = "Task"
-    Resource = "arn:aws:states:::dynamodb:deleteItem"
-    Parameters = {
-      TableName                 = aws_dynamodb_table.metadata.name
-      Key                       = { PK = { S = "GLOBAL" }, SK = { S = "SCAN_LOCK" } }
-      ConditionExpression       = "#owner = :owner"
-      ExpressionAttributeNames  = { "#owner" = "owner" }
-      ExpressionAttributeValues = { ":owner" = { "S.$" = "$$.Execution.Id" } }
-    }
-    ResultPath = null
-    Retry      = [{ ErrorEquals = ["DynamoDB.ProvisionedThroughputExceededException", "DynamoDB.InternalServerError"], IntervalSeconds = 2, MaxAttempts = 3 }]
-  }
   read_job_status = {
     Type     = "Task"
     Resource = "arn:aws:states:::dynamodb:getItem"
@@ -154,27 +141,9 @@ resource "aws_sfn_state_machine" "scan" {
   type     = "STANDARD"
   definition = jsonencode({
     Comment        = "One bounded cloud collector followed by an offline analyzer with separate credentials"
-    StartAt        = "AcquireSlot"
+    StartAt        = "Collect"
     TimeoutSeconds = var.scan_runtime_limits.workflow_seconds
     States = {
-      AcquireSlot = {
-        Type          = "Task", Resource = "arn:aws:states:::dynamodb:putItem"
-        QueryLanguage = "JSONata"
-        Arguments = {
-          TableName = aws_dynamodb_table.metadata.name
-          Item = {
-            PK         = { S = "GLOBAL" }, SK = { S = "SCAN_LOCK" }
-            owner      = { S = "{% $states.context.Execution.Id %}" }
-            expires_at = { N = "{% $string($floor($millis() / 1000) + ${var.scan_runtime_limits.lease_seconds}) %}" }
-          }
-          ConditionExpression       = "attribute_not_exists(PK) OR expires_at < :now"
-          ExpressionAttributeValues = { ":now" = { N = "{% $string($floor($millis() / 1000)) %}" } }
-        }
-        Output = "{% $states.input %}"
-        Retry  = [{ ErrorEquals = ["DynamoDB.ConditionalCheckFailedException"], IntervalSeconds = 60, BackoffRate = 1, MaxAttempts = 5 }]
-        Catch  = [{ ErrorEquals = ["States.ALL"], Output = "{% $states.input %}", Next = "MarkFailed" }]
-        Next   = "Collect"
-      }
       Collect             = local.run_tasks.collector
       Analyze             = local.run_tasks.analyzer
       ReadCollectedStatus = merge(local.read_job_status, { Next = "CollectedStatus" })
@@ -195,12 +164,10 @@ resource "aws_sfn_state_machine" "scan" {
       AnalyzerTaskFailed = {
         Type = "Pass", Result = { code = "worker_task_failed", stage = "analyzer" }, ResultPath = "$.task_failure", Next = "ReleaseFailed"
       }
-      ReleaseSucceeded = merge(local.release_lock, {
-        Next = "Succeeded", Catch = [{ ErrorEquals = ["DynamoDB.ConditionalCheckFailedException"], ResultPath = null, Next = "Succeeded" }]
-      })
-      ReleaseFailed = merge(local.release_lock, {
-        Next = "ReadFailureStatus", Catch = [{ ErrorEquals = ["States.ALL"], ResultPath = null, Next = "ReadFailureStatus" }]
-      })
+      # The worker releases its durable admission on terminal transition. A
+      # scheduler sweep reconciles abnormal workflow exits and lease loss.
+      ReleaseSucceeded = { Type = "Pass", Next = "Succeeded" }
+      ReleaseFailed    = { Type = "Pass", Next = "ReadFailureStatus" }
       ReadFailureStatus = merge(local.read_job_status, {
         Next = "FailureStatus", Catch = [{ ErrorEquals = ["States.ALL"], ResultPath = null, Next = "MarkFailed" }]
       })
@@ -212,6 +179,7 @@ resource "aws_sfn_state_machine" "scan" {
           { Variable = "$.job_status.Item.status.S", StringEquals = "completed", Next = "Succeeded" },
           { Variable = "$.job_status.Item.status.S", StringEquals = "failed", Next = "Failed" },
           { Variable = "$.job_status.Item.status.S", StringEquals = "timed_out", Next = "Failed" },
+          { Variable = "$.job_status.Item.status.S", StringEquals = "queue_exhausted", Next = "Failed" },
         ]
         Default = "MarkFailed"
       }

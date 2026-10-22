@@ -93,7 +93,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
     authenticator = authenticator or Authenticator(settings)
     if isinstance(authenticator, Authenticator):
         authenticator.store = store
-    dispatcher = WorkflowDispatcher()
+    dispatcher = WorkflowDispatcher(store=store)
     app = FastAPI(title="HackTricks CSPM API", version="1.0.0")
     app.state.settings, app.state.store = settings, store
     app.state.cipher, app.state.authenticator, app.state.artifacts = cipher, authenticator, artifacts

@@ -60,7 +60,7 @@ resource "aws_iam_role" "collector" {
 resource "aws_iam_role_policy" "collector" {
   role = aws_iam_role.collector.id
   policy = jsonencode({ Version = "2012-10-17", Statement = concat([
-    { Effect = "Allow", Action = ["dynamodb:GetItem", "dynamodb:UpdateItem", "dynamodb:PutItem", "dynamodb:Query"], Resource = aws_dynamodb_table.metadata.arn },
+    { Effect = "Allow", Action = ["dynamodb:GetItem", "dynamodb:UpdateItem", "dynamodb:PutItem", "dynamodb:DeleteItem", "dynamodb:Query", "dynamodb:TransactWriteItems"], Resource = aws_dynamodb_table.metadata.arn },
     { Effect = "Allow", Action = ["s3:GetObject", "s3:PutObject"], Resource = "${aws_s3_bucket.artifacts.arn}/*" },
     { Effect = "Allow", Action = ["secretsmanager:GetSecretValue"], Resource = [aws_secretsmanager_secret.credentials.arn] },
     { Effect = "Allow", Action = ["kms:Decrypt"], Resource = aws_kms_key.connectors.arn },
@@ -95,7 +95,7 @@ resource "aws_iam_role" "analyzer" {
 resource "aws_iam_role_policy" "analyzer" {
   role = aws_iam_role.analyzer.id
   policy = jsonencode({ Version = "2012-10-17", Statement = concat([
-    { Effect = "Allow", Action = ["dynamodb:GetItem", "dynamodb:UpdateItem", "dynamodb:PutItem", "dynamodb:Query"], Resource = aws_dynamodb_table.metadata.arn },
+    { Effect = "Allow", Action = ["dynamodb:GetItem", "dynamodb:UpdateItem", "dynamodb:PutItem", "dynamodb:DeleteItem", "dynamodb:Query", "dynamodb:TransactWriteItems"], Resource = aws_dynamodb_table.metadata.arn },
     { Effect = "Allow", Action = ["s3:GetObject", "s3:PutObject"], Resource = "${aws_s3_bucket.artifacts.arn}/*" },
     # AI can decrypt only captured sessions, never source connector credentials.
     { Effect = "Allow", Action = ["secretsmanager:GetSecretValue"], Resource = aws_secretsmanager_secret.ai.arn },
@@ -126,6 +126,6 @@ resource "aws_iam_role_policy" "workflow" {
     { Effect = "Allow", Action = ["ecs:StopTask", "ecs:DescribeTasks"], Resource = "arn:aws:ecs:${var.region}:${local.account_id}:task/${aws_ecs_cluster.cspm.name}/*", Condition = { ArnEquals = { "ecs:cluster" = aws_ecs_cluster.cspm.arn } } },
     { Effect = "Allow", Action = ["iam:PassRole"], Resource = [aws_iam_role.execution.arn, aws_iam_role.collector.arn, aws_iam_role.analyzer.arn], Condition = { StringEquals = { "iam:PassedToService" = "ecs-tasks.amazonaws.com" } } },
     { Effect = "Allow", Action = ["events:PutTargets", "events:PutRule", "events:DescribeRule"], Resource = "arn:aws:events:${var.region}:${local.account_id}:rule/StepFunctionsGetEventsForECSTaskRule" },
-    { Effect = "Allow", Action = ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem"], Resource = aws_dynamodb_table.metadata.arn }
+    { Effect = "Allow", Action = ["dynamodb:GetItem", "dynamodb:UpdateItem"], Resource = aws_dynamodb_table.metadata.arn }
   ] })
 }
