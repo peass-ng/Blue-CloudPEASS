@@ -254,6 +254,9 @@ SELECTOR_KEYS = {
     "cognito_developer_authenticated_role": (("aws",), "bool_true",
         "Target role is the authenticated role of an identity pool with a developer provider, with trust admitting "
         "that pool's authenticated Cognito web identity."),
+    "cognito_developer_classic_role": (("aws",), "bool_true",
+        "Target role trusts the authenticated web identity of a developer identity pool whose Basic (Classic) "
+        "flow is enabled, whether or not it is the pool's default role."),
     "cognito_user_pool_group_role_covered_by": (("aws",), "action",
         "Target role is the RoleArn of a user-pool group covered by the action; dropped when the account's "
         "cognito_user_pool inventory is collected and empty, otherwise unknown (groups not collected)."),
@@ -813,6 +816,9 @@ FACTS_NEEDED = {
     "cognito_developer_authenticated_role": "AWS: cognito_identity_pool Configuration.DeveloperProviderName "
                                             "(DescribeIdentityPool), Roles.Roles.authenticated (GetIdentityPoolRoles), "
                                             "and exact role web-identity trust for the pool audience and authenticated method",
+    "cognito_developer_classic_role": "AWS: cognito_identity_pool Configuration.{DeveloperProviderName, AllowClassicFlow} "
+                                      "(DescribeIdentityPool) and IAM role web-identity trust for that pool's audience "
+                                      "and authenticated developer-provider method",
     "cognito_user_pool_group_role_covered_by": "AWS: cognito_user_pool Groups {GroupName, RoleArn} (cognito-idp:ListGroups) in every region",
     "codedeploy_group_instance_role_covered_by": "AWS: codedeploy_deployment_group {ec2TagFilters, ec2TagSet, autoScalingGroups} "
                                                  "(codedeploy:BatchGetDeploymentGroups) + instance {Tags, IamInstanceProfile} in the same region",

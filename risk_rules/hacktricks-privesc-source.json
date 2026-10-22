@@ -1,6 +1,6 @@
 {
   "repository": "HackTricks-wiki/hacktricks-cloud",
-  "revision": "573c04477233e57bb25a20e11c686b96921f709a",
+  "revision": "ba1124240d00dca32aa3e5b785c35509496c3bb5",
   "path": "src/privilege-escalation-paths",
   "canonical_sha256": {
     "aws/_excluded_171e_g1.yaml": "2160b8f57f029e74e5a31727815316f459d8364147c47be2c36639c831b9dcb3",
@@ -70,7 +70,7 @@
     "aws/codeconnections.yaml": "1bd02931042a52c40321145176605393e85c9bccb2fd9d12eb7c2742b6b6d178",
     "aws/codedeploy.yaml": "b23937e835dda5e651c63ba7fd1365d8cafbdf5c8c6cb9b2063e9d3195c3f2a6",
     "aws/codepipeline.yaml": "ad9fe5c3eaf2794ecbea601a1773af86e39372bf1e706df53b499325fff6e30e",
-    "aws/cognito.yaml": "45ca32b48fe26aaeb3b1fec5893a547359fe88ba573f3e49680f06a65e0ebf5d",
+    "aws/cognito.yaml": "8aa4c0d05b25b0a418642f2256e6593de519ccbfaa2c20cc4a277dc61fee2acf",
     "aws/config.yaml": "05dcdb743e5c10cb67aafada8e0fd02d3cb90565c52ee478bfdff7b995a4eecd",
     "aws/connect.yaml": "952f8ce0df399a86587124cb35c90264f2f0bf25f2896a03a670118f34d2ca52",
     "aws/controltower.yaml": "54d711672b8a0ca30148840f1dd3efb731d15a568a9408d74cf8851ebf286308",
@@ -360,7 +360,7 @@
     "aws/codeconnections.yaml": "1bd02931042a52c40321145176605393e85c9bccb2fd9d12eb7c2742b6b6d178",
     "aws/codedeploy.yaml": "b23937e835dda5e651c63ba7fd1365d8cafbdf5c8c6cb9b2063e9d3195c3f2a6",
     "aws/codepipeline.yaml": "ad9fe5c3eaf2794ecbea601a1773af86e39372bf1e706df53b499325fff6e30e",
-    "aws/cognito.yaml": "45ca32b48fe26aaeb3b1fec5893a547359fe88ba573f3e49680f06a65e0ebf5d",
+    "aws/cognito.yaml": "8aa4c0d05b25b0a418642f2256e6593de519ccbfaa2c20cc4a277dc61fee2acf",
     "aws/config.yaml": "05dcdb743e5c10cb67aafada8e0fd02d3cb90565c52ee478bfdff7b995a4eecd",
     "aws/connect.yaml": "952f8ce0df399a86587124cb35c90264f2f0bf25f2896a03a670118f34d2ca52",
     "aws/controltower.yaml": "54d711672b8a0ca30148840f1dd3efb731d15a568a9408d74cf8851ebf286308",

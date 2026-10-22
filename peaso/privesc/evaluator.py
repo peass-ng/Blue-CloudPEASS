@@ -28,7 +28,7 @@ from .schema import (BLOCKER_ALIASES, CHAIN_SOURCE_SELECTORS, EVALUATED_BLOCKERS
 _PH = re.compile(r"(?<!\$)\{([^{}]+)\}")
 # Selectors that depend on the source (or the pivot) and are evaluated per source.
 DYNAMIC_SELECTORS = {
-    "cognito_developer_authenticated_role",
+    "cognito_developer_authenticated_role", "cognito_developer_classic_role",
     "aws_challenge_fact", "aws_s3_policy_self_grant", "aws_s3_access_grants_self_grant",
     "aws_secretsmanager_policy_self_grant", "aws_efs_policy_self_grant",
     "aws_cases_tag_self_grant", "aws_sitewise_portal_self_grant",

@@ -109,6 +109,7 @@ WORKLOAD_HOSTS = {"codebuild_project": "codebuild_project", "codebuild_sandbox":
 SELECTOR_HOSTS = {"cognito_user_pool_group_role_covered_by": "cognito_user_pool_group",
                   "cognito_user_pool_covered_by": "cognito_user_pool_identity_pool",
                   "cognito_developer_authenticated_role": "cognito_developer_authenticated",
+                  "cognito_developer_classic_role": "cognito_developer_classic",
                   "codedeploy_group_instance_role_covered_by": "codedeploy_deployment_group",
                   "rolesanywhere_profile_includes_target": "rolesanywhere_profile"}
 # service_plane value -> collected inventory of that application plane (aws_service_plane_admin targets).
@@ -144,6 +145,14 @@ def _doc(value):
 def _account(arn, default=""):
     parts = str(arn).split(":")
     return parts[4] if len(parts) > 5 and parts[4] else default
+
+
+def _cognito_pool_identity(region):
+    if region.startswith("cn-"):
+        return "aws-cn", f"cognito-identity.{region}.amazonaws.com.cn", "cognito-identity.amazonaws.com.cn"
+    if region.startswith("us-gov-"):
+        return "aws-us-gov", "cognito-identity.amazonaws.com", "cognito-identity.amazonaws.com"
+    return "aws", "cognito-identity.amazonaws.com", "cognito-identity.amazonaws.com"
 
 
 _DICT_VALUES = type({}.values())
@@ -3272,16 +3281,24 @@ class AwsModel(Model):
 
     def _selector_ext(self, key, value, candidates, source):
         out = {}
-        if key == "cognito_developer_authenticated_role":
+        if key in ("cognito_developer_authenticated_role", "cognito_developer_classic_role"):
             if source is None:
                 return None
-            host = "cognito_developer_authenticated"
+            classic = key == "cognito_developer_classic_role"
+            host = "cognito_developer_classic" if classic else "cognito_developer_authenticated"
             for rid, node in candidates.items():
                 pools = self.hosts.get(rid, {}).get(host, ())
                 unknown = False
                 for pool_arn in pools:
                     if _account(pool_arn) != source.scope:
                         continue
+                    partition = str(pool_arn).split(":", 2)[1]
+                    if not source.id.startswith(f"arn:{partition}:") or not rid.startswith(f"arn:{partition}:"):
+                        continue
+                    if not classic and _account(rid) != source.scope:
+                        continue  # Enhanced authentication cannot return a cross-account role.
+                    region = str(pool_arn).split(":")[3]
+                    _, federated, condition_prefix = _cognito_pool_identity(region)
                     permission = self._check_action(source, "cognito-identity:GetOpenIdTokenForDeveloperIdentity", pool_arn)
                     if permission is None:
                         continue
@@ -3293,10 +3310,10 @@ class AwsModel(Model):
                     if not provider_name:
                         unknown = True
                         continue
-                    overrides = {"cognito-identity.amazonaws.com:aud": [pool_id],
-                                 "cognito-identity.amazonaws.com:amr": ["authenticated", provider_name]}
+                    overrides = {condition_prefix + ":aud": [pool_id],
+                                 condition_prefix + ":amr": ["authenticated", provider_name]}
                     denied = self._trust_explicit_deny(rid, "sts:AssumeRoleWithWebIdentity",
-                                                        federated="cognito-identity.amazonaws.com",
+                                                        federated=federated,
                                                         extra_overrides=overrides)
                     if denied is True:
                         continue
@@ -3313,9 +3330,14 @@ class AwsModel(Model):
                         if (statement.effect != "allow" or statement.ref.get("not_principal")
                                 or not statement.action_matches("sts:AssumeRoleWithWebIdentity")
                                 or not isinstance(principal, dict)
-                                or "cognito-identity.amazonaws.com" not in
+                                or federated not in
                                 [str(name).lower() for name in as_list(principal.get("Federated"))]):
                             continue
+                        if classic and _account(rid) != source.scope:
+                            condition_keys = {str(name).lower() for values in (statement.condition or {}).values()
+                                              if isinstance(values, dict) for name in values}
+                            if not {condition_prefix + ":aud", condition_prefix + ":amr"} <= condition_keys:
+                                continue  # Cross-account STS requires both explicit trust constraints.
                         verdict, _ = evaluate_condition(statement.condition, context) if statement.condition else (True, ())
                         if verdict is False:
                             continue
@@ -3724,6 +3746,7 @@ class AwsModel(Model):
         Center group assignments. Returns the partial (account, host) keys."""
         ok, partial = ("collected", "empty"), set()
         self.cognito_developer_provider = {}
+        classic_pools = []
 
         def add(role, host, resource):
             listed = self.hosts.setdefault(role, {}).setdefault(host, [])
@@ -3746,9 +3769,17 @@ class AwsModel(Model):
         for scope, item in items(snap, "cognito_identity_pool"):
             account, region = where(scope, item)
             config, roles = item.get("Configuration") or {}, item.get("Roles")
+            pool_id = item.get("IdentityPoolId")
+            partition, _, _ = _cognito_pool_identity(region)
+            pool_arn = f"arn:{partition}:cognito-identity:{region}:{account}:identitypool/{pool_id}" if pool_id else None
+            if (pool_arn and isinstance(config, dict) and config.get("collection_status") == "collected"
+                    and isinstance(config.get("DeveloperProviderName"), str)
+                    and config["DeveloperProviderName"].strip()):
+                self.cognito_developer_provider[pool_arn] = config["DeveloperProviderName"].strip()
+                if config.get("AllowClassicFlow") is True:
+                    classic_pools.append((pool_arn, region))
             # Identity pool -> its authenticated / unauthenticated roles (cognito-identity:GetIdentityPoolRoles Roles.Roles).
             if isinstance(roles, dict) and roles.get("collection_status") in ok and item.get("IdentityPoolId"):
-                pool_arn = f"arn:aws:cognito-identity:{region}:{account}:identitypool/{item['IdentityPoolId']}"
                 for role in (roles.get("Roles") or {}).values() if isinstance(roles.get("Roles"), dict) else ():
                     if isinstance(role, str) and role:
                         add(role, "cognito_identity_pool", pool_arn)
@@ -3758,7 +3789,6 @@ class AwsModel(Model):
                     authenticated = (roles.get("Roles") or {}).get("authenticated") if isinstance(roles.get("Roles"), dict) else None
                     if isinstance(authenticated, str) and authenticated:
                         add(authenticated, "cognito_developer_authenticated", pool_arn)
-                        self.cognito_developer_provider[pool_arn] = config["DeveloperProviderName"].strip()
             else:
                 partial.add((account, "cognito_identity_pool"))
             if (not isinstance(roles, dict) or roles.get("collection_status") not in ok
@@ -3821,10 +3851,16 @@ class AwsModel(Model):
                 continue
             for role in as_list(item.get("roleArns")):
                 add(role, "rolesanywhere_profile", item["profileArn"])
+        for pool_arn, region in classic_pools:
+            partition, federated, _ = _cognito_pool_identity(region)
+            for role_arn in self.trust_by_federated.get(federated, {}):
+                if role_arn in self.principals and role_arn.startswith(f"arn:{partition}:iam::"):
+                    add(role_arn, "cognito_developer_classic", pool_arn)
         for host, kind in (("cognito_user_pool_group", "cognito_user_pool"), ("cognito_user_pool_identity_pool", "cognito_identity_pool"),
                            ("codedeploy_deployment_group", "codedeploy_deployment_group"), ("rolesanywhere_profile", "rolesanywhere_profile"),
                            ("cognito_identity_pool", "cognito_identity_pool"),
-                           ("cognito_developer_authenticated", "cognito_identity_pool")):
+                           ("cognito_developer_authenticated", "cognito_identity_pool"),
+                           ("cognito_developer_classic", "cognito_identity_pool")):
             for scope, status in inventory_status(snap, kind).items():
                 key = (scope.split("/")[0], host)
                 if self.host_status.get(key) in (None, "collected", "empty"):

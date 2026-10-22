@@ -3,17 +3,22 @@ from peaso.privesc import schema
 from peaso.privesc.effective_permissions.aws import AwsModel
 from peaso.privesc.evaluator import Evaluator
 
-from test_peaso_privesc_followups import ACCOUNT, ALICE, aws_snap, pol, role, user
+from test_peaso_privesc_followups import ACCOUNT, ALICE, OTHER, aws_snap, pol, role, user
 
 
 SCOPE = f"{ACCOUNT}/us-east-1"
 POOL_ID = "us-east-1:12345678-1234-1234-1234-123456789abc"
 POOL_ARN = f"arn:aws:cognito-identity:us-east-1:{ACCOUNT}:identitypool/{POOL_ID}"
 ENTRY_ID = "aws-cognito-getopenidtokenfordeveloperidentity"
+CLASSIC_ID = "aws-cognito-getopenidtokenfordeveloperidentity-classic"
 
 
 def _entry():
     return next(row for row in schema.load_catalog(schema.CATALOG_DIR)["entries"] if row["id"] == ENTRY_ID)
+
+
+def _classic_entry():
+    return next(row for row in schema.load_catalog(schema.CATALOG_DIR)["entries"] if row["id"] == CLASSIC_ID)
 
 
 def _trust(audience=POOL_ID, method="authenticated", extra=()):
@@ -23,13 +28,14 @@ def _trust(audience=POOL_ID, method="authenticated", extra=()):
                     "ForAnyValue:StringLike": {"cognito-identity.amazonaws.com:amr": method}}}, *extra)
 
 
-def _pool(*, developer=True, roles_status="collected", authenticated=True):
+def _pool(*, developer=True, roles_status="collected", authenticated=True, classic=False):
     roles = {"unauthenticated": f"arn:aws:iam::{ACCOUNT}:role/guest"}
     if authenticated:
         roles["authenticated"] = f"arn:aws:iam::{ACCOUNT}:role/authenticated"
     config = {"collection_status": "collected"}
     if developer:
         config["DeveloperProviderName"] = "login.example.app"
+    config["AllowClassicFlow"] = classic
     return ("cognito_identity_pool", SCOPE, [{"IdentityPoolId": POOL_ID, "Configuration": config,
         "Roles": {"collection_status": roles_status, "Roles": roles}}])
 
@@ -109,3 +115,57 @@ def test_developer_token_honors_trust_deny_and_uncertain_notprincipal():
 def test_missing_role_inventory_does_not_claim_authenticated_role():
     _, selected = _result(roles_status="denied")
     assert selected[f"arn:aws:iam::{ACCOUNT}:role/authenticated"][0] == "unknown"
+
+
+def test_classic_flow_reaches_nondefault_role_only_when_enabled():
+    special = f"arn:aws:iam::{ACCOUNT}:role/special"
+    actor = user("alice", {"Effect": "Allow", "Action": "cognito-identity:GetOpenIdTokenForDeveloperIdentity",
+                           "Resource": POOL_ARN})
+    target = role("special", _trust(method="login.example.app"))
+    for enabled in (False, True):
+        snap = aws_snap([actor], [target], [_pool(classic=enabled, authenticated=False)])
+        model = AwsModel(snap)
+        reaches = Evaluator(model, [_classic_entry()], include_unknown=False).run()
+        assert ({r.source.id: set(r.targets) for r in reaches} == {ALICE: {special}}) is enabled
+
+
+def test_classic_flow_matches_token_permission_and_cross_account_trust():
+    external = f"arn:aws:iam::{OTHER}:role/external"
+    target = role("external", _trust(method="login.example.app"), account=OTHER)
+    for resource, allowed in ((POOL_ARN, True), (POOL_ARN + "-other", False)):
+        actor = user("alice", {"Effect": "Allow", "Action": "cognito-identity:GetOpenIdTokenForDeveloperIdentity",
+                               "Resource": resource})
+        snap = aws_snap([actor], [target], [_pool(classic=True, authenticated=False)])
+        model = AwsModel(snap)
+        reaches = Evaluator(model, [_classic_entry()], include_unknown=False).run()
+        assert ({r.source.id: set(r.targets) for r in reaches} == {ALICE: {external}}) is allowed
+    unrestricted = pol({"Effect": "Allow", "Principal": {"Federated": "cognito-identity.amazonaws.com"},
+                        "Action": "sts:AssumeRoleWithWebIdentity"})
+    snap = aws_snap([actor], [role("external", unrestricted, account=OTHER)],
+                    [_pool(classic=True, authenticated=False)])
+    assert Evaluator(AwsModel(snap), [_classic_entry()], include_unknown=False).run() == []
+
+
+def test_classic_flow_uses_china_partition_principal_and_condition_keys():
+    region = "cn-north-1"
+    pool_id = region + ":12345678-1234-1234-1234-123456789abc"
+    pool_arn = f"arn:aws-cn:cognito-identity:{region}:{ACCOUNT}:identitypool/{pool_id}"
+    actor = user("alice", {"Effect": "Allow", "Action": "cognito-identity:GetOpenIdTokenForDeveloperIdentity",
+                           "Resource": pool_arn})
+    actor["Arn"] = f"arn:aws-cn:iam::{ACCOUNT}:user/alice"
+    target = role("special", pol({"Effect": "Allow", "Principal": {
+        "Federated": "cognito-identity.cn-north-1.amazonaws.com.cn"},
+        "Action": "sts:AssumeRoleWithWebIdentity", "Condition": {
+            "StringEquals": {"cognito-identity.amazonaws.com.cn:aud": pool_id},
+            "ForAnyValue:StringLike": {"cognito-identity.amazonaws.com.cn:amr": "login.example.app"}}}))
+    target["Arn"] = f"arn:aws-cn:iam::{ACCOUNT}:role/special"
+    pool = {"IdentityPoolId": pool_id, "Configuration": {"collection_status": "collected",
+            "DeveloperProviderName": "login.example.app", "AllowClassicFlow": True}}
+    snap = aws_snap([actor], [target], [("cognito_identity_pool", f"{ACCOUNT}/{region}", [pool])])
+    model = AwsModel(snap)
+    reaches = Evaluator(model, [_classic_entry()], include_unknown=False).run()
+    assert {r.source.id: set(r.targets) for r in reaches} == {actor["Arn"]: {target["Arn"]}}
+    actor["Arn"] = f"arn:aws:iam::{ACCOUNT}:user/alice"
+    assert Evaluator(AwsModel(aws_snap([actor], [target], [(
+        "cognito_identity_pool", f"{ACCOUNT}/{region}", [pool])])),
+        [_classic_entry()], include_unknown=False).run() == []
