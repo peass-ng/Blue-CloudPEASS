@@ -12187,6 +12187,13 @@ class AwsModel(Model):
         if pid == "ec2_instance_connect_same_running_role_host":
             if source is None:
                 return None
+            try:
+                observed_at = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+                if observed_at.tzinfo is None:
+                    observed_at = None
+            except (KeyError, TypeError, ValueError):
+                observed_at = None
+            proof_status = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
             for rid, role in candidates.items():
                 unknown = bool(source.incomplete)
                 for arn in self.hosts.get(role.id, {}).get("ec2_instance", ()):
@@ -12209,13 +12216,63 @@ class AwsModel(Model):
                     if metadata["HttpEndpoint"] != "enabled" or metadata.get("State") != "applied":
                         unknown = True
                         continue
-                    grant = self._check_action(source, "ec2-instance-connect:sendsshpublickey", arn)
+                    scope = f"{role.scope}/{self.instances[arn][1]}"
+                    proof_collections = [collection for collection in self.snapshot.get("collections", ())
+                        if collection.get("type") == "aws_privesc_challenge_evidence" and collection.get("scope") == scope]
+                    if len(proof_collections) != 1 or proof_collections[0].get("status") != "collected":
+                        unknown = True
+                        continue
+                    proofs = [row for proof_scope, row in items(self.snapshot, "aws_privesc_challenge_evidence")
+                        if proof_scope == scope and proof_status.get(proof_scope) == "collected" and
+                        row.get("TechniqueId") == "aws-ec2-instance-connect-sendsshpublickey" and
+                        row.get("SourceArn") == source.id and row.get("TargetKind") == "aws_role" and
+                        row.get("TargetId") == rid and row.get("InstanceArn") == arn]
+                    if len(proofs) != 1 or observed_at is None:
+                        unknown = True
+                        continue
+                    proof = proofs[0]
+                    role_rows = [row for role_scope, row in items(self.snapshot, "iam_role")
+                        if role_scope.split("/")[0] == role.scope and row.get("Arn") == rid]
+                    role_id = role_rows[0].get("RoleId") if len(role_rows) == 1 else None
+                    profile = instance.get("IamInstanceProfile") or {}
+                    os_user = proof.get("OsUser")
+                    if (not isinstance(role_id, str) or not role_id or
+                            proof.get("Status") != "verified" or
+                            proof.get("VerifiedPreconditions") is not True or
+                            proof.get("SendSSHPublicKeyAccepted") is not True or
+                            proof.get("SessionUsedPushedKey") is not True or
+                            proof.get("HostSessionEstablished") is not True or
+                            proof.get("RoleCredentialsReachable") is not True or
+                            proof.get("RoleCredentialsUsable") is not True or
+                            proof.get("CredentialRoleId") != role_id or
+                            proof.get("TargetScope") != scope or
+                            proof.get("TargetRoleId") != role_id or
+                            proof.get("TargetProfileArn") != profile.get("Arn") or
+                            proof.get("TargetProfileId") != profile.get("Id") or
+                            not isinstance(profile.get("Id"), str) or not profile["Id"] or
+                            not isinstance(os_user, str) or
+                            re.fullmatch(r"[A-Za-z0-9_][A-Za-z0-9@._-]{0,30}", os_user) is None or
+                            not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"]):
+                        unknown = True
+                        continue
+                    try:
+                        witness_at = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+                        expires_at = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+                        if (witness_at.tzinfo is None or expires_at.tzinfo is None or
+                                not 0 <= (observed_at - witness_at).total_seconds() <= 60 or
+                                not observed_at < expires_at or
+                                not 0 < (expires_at - witness_at).total_seconds() <= 60):
+                            unknown = True
+                            continue
+                    except (KeyError, TypeError, ValueError):
+                        unknown = True
+                        continue
+                    grant = self.check(source, {"action": "ec2-instance-connect:SendSSHPublicKey",
+                        "request_context": {"ec2:osuser": os_user}}, arn)
                     if grant is None:
                         continue
                     if grant.confidence == "derived":
-                        # The key-push API alone does not establish an SSH login
-                        # or access to the instance-profile credentials.
-                        out[rid] = ("unknown", "instance_connect_agent_network_user_or_credentials_not_verified")
+                        out[rid] = ("conditional", "reviewed_instance_connect_session_and_role_credentials")
                         break
                     unknown = True
                 else:

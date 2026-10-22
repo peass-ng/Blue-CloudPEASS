@@ -199,6 +199,53 @@ def test_instance_connect_key_push_does_not_prove_host_role_access():
     assert not reached(result, ALICE, technique)
 
 
+def test_instance_connect_requires_fresh_exact_ssh_and_role_credential_witness():
+    technique = "aws-ec2-instance-connect-sendsshpublickey"
+    instance_arn = f"arn:aws:ec2:{REGION}:{ACCOUNT}:instance/i-1234567890abcdef0"
+    target = role("target", "ec2.amazonaws.com", profiles=[profile_arn("target")])
+    target["RoleId"] = "AROATARGET123456789"
+    instance = {"InstanceId": "i-1234567890abcdef0", "State": {"Name": "running"},
+                "IamInstanceProfile": {"Arn": profile_arn("target"), "Id": "AIPATARGET123456789"},
+                "MetadataOptions": {"HttpEndpoint": "enabled", "State": "applied"}}
+    grant = allow("ec2-instance-connect:SendSSHPublicKey", resource=instance_arn)
+    grant["Condition"] = {"StringEquals": {"ec2:osuser": "ec2-user"}}
+    proof = {"TechniqueId": technique, "SourceArn": ALICE, "TargetKind": "aws_role",
+             "TargetId": target["Arn"], "TargetScope": SCOPE, "TargetRoleId": target["RoleId"],
+             "TargetProfileArn": profile_arn("target"), "TargetProfileId": "AIPATARGET123456789",
+             "InstanceArn": instance_arn, "OsUser": "ec2-user", "Status": "verified",
+             "VerifiedPreconditions": True,
+             "SendSSHPublicKeyAccepted": True, "SessionUsedPushedKey": True,
+             "HostSessionEstablished": True, "RoleCredentialsReachable": True,
+             "RoleCredentialsUsable": True, "CredentialRoleId": target["RoleId"],
+             "EvidenceRef": "reviewed-host-session", "EvidenceObservedAt": "2026-10-21T11:59:30+00:00",
+             "EvidenceExpiresAt": "2026-10-21T12:00:15+00:00"}
+
+    def result(*, witness=None, proof_status="collected", statement=grant):
+        witnesses = witness if isinstance(witness, list) else ([witness] if witness else [])
+        snap = aws_snap([user("alice", statement)], [target], [col("instance", [instance]),
+            col("aws_privesc_challenge_evidence", witnesses, proof_status)])
+        snap["created_at"] = "2026-10-21T12:00:00+00:00"
+        return real(snap, technique, include_unknown=True)
+
+    assert target["Arn"] in reached(result(witness=proof), ALICE, technique)
+    assert target["Arn"] not in reached(result(), ALICE, technique)
+    assert_unresolved(result(), ALICE, technique)
+    assert target["Arn"] not in reached(result(witness=[proof, dict(proof)]), ALICE, technique)
+    for changed in ({"VerifiedPreconditions": False}, {"SendSSHPublicKeyAccepted": False},
+                    {"SessionUsedPushedKey": False},
+                    {"HostSessionEstablished": False}, {"RoleCredentialsReachable": False},
+                    {"RoleCredentialsUsable": False}, {"CredentialRoleId": "AROANOTHER"},
+                    {"TargetRoleId": "AROANOTHER"}, {"TargetProfileId": "AIPAOTHER"},
+                    {"InstanceArn": instance_arn.replace("i-1234567890abcdef0", "i-fffffffffffffffff")},
+                    {"OsUser": "root"}, {"EvidenceObservedAt": "2026-10-21T11:55:00+00:00"}):
+        witness = dict(proof, **changed)
+        assert target["Arn"] not in reached(result(witness=witness), ALICE, technique)
+    assert target["Arn"] not in reached(result(witness=proof, proof_status="access_denied"), ALICE, technique)
+    wrong_user = copy.deepcopy(grant)
+    wrong_user["Condition"]["StringEquals"]["ec2:osuser"] = "ubuntu"
+    assert target["Arn"] not in reached(result(witness=proof, statement=wrong_user), ALICE, technique)
+
+
 def test_instance_connect_prior_catalog_binding_keeps_conditional_wording():
     from peaso.privesc import versioned_catalog as catalog
 
@@ -213,7 +260,7 @@ def test_instance_connect_prior_catalog_binding_keeps_conditional_wording():
     assert new_status == "exact_strict_privesc"
     assert "remain conditional" in old[ident]["notes"]
     assert "remain unresolved" not in old[ident]["notes"]
-    assert "leaves host access and role-credential use unresolved" in new[ident]["notes"]
+    assert "Without that witness, host access and role-credential use remain unresolved" in new[ident]["notes"]
 
 
 def test_ecs_runtask_override_binds_task_cluster_and_passed_roles():
