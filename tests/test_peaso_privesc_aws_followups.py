@@ -349,6 +349,57 @@ def test_ecs_new_task_definition_starttask_binds_exact_connected_host():
     assert_unresolved(result((passed, register, start, denied_revision)), ALICE, technique)
 
 
+def test_ecs_new_task_definition_service_binds_cluster_task_and_existing_service():
+    technique = "aws-ecs-passrole-registertaskdefinition-service"
+    target = role("target", "ecs-tasks.amazonaws.com")
+    cluster_arn = f"arn:aws:ecs:{REGION}:{ACCOUNT}:cluster/prod"
+    family = "PeasoPrivesc" + hashlib.sha256((ALICE + target["Arn"] + REGION).encode()).hexdigest()[:16]
+    task_scope = f"arn:aws:ecs:{REGION}:{ACCOUNT}:task-definition/{family}:*"
+    new_service_arn = f"arn:aws:ecs:{REGION}:{ACCOUNT}:service/prod/{family}"
+    existing_service_arn = f"arn:aws:ecs:{REGION}:{ACCOUNT}:service/prod/old"
+    passed = allow("iam:PassRole", resource=target["Arn"])
+    passed["Condition"] = {"StringEquals": {"iam:PassedToService": "ecs-tasks.amazonaws.com"}}
+    register = allow("ecs:RegisterTaskDefinition", resource=task_scope)
+    create = allow("ecs:CreateService", resource=new_service_arn)
+    create["Condition"] = {"ArnEquals": {"ecs:cluster": cluster_arn}}
+    update = allow("ecs:UpdateService", resource=existing_service_arn)
+    update["Condition"] = {"ArnEquals": {"ecs:cluster": cluster_arn}}
+
+    def result(statements=(passed, register, create), *, services=(), service_status="collected",
+               connected=True, cluster_status="ACTIVE"):
+        cluster = {"clusterArn": cluster_arn, "status": cluster_status, "registeredContainerInstancesCount": 1}
+        host = {"clusterArn": cluster_arn,
+                "containerInstanceArn": f"arn:aws:ecs:{REGION}:{ACCOUNT}:container-instance/prod/host1",
+                "status": "ACTIVE", "agentConnected": connected}
+        return real(aws_snap([user("alice", *statements)], [target], [
+            col("ecs_cluster", [cluster]), col("ecs_container_instance", [host]),
+            col("ecs_service", services if service_status == "collected" else [], service_status)]),
+            technique, include_unknown=True)
+
+    assert target["Arn"] in reached(result(), ALICE, technique)
+    existing = {"serviceArn": existing_service_arn, "clusterArn": cluster_arn,
+                "status": "ACTIVE", "deploymentController": {"type": "ECS"}}
+    assert target["Arn"] in reached(result((passed, register, update), services=[existing]), ALICE, technique)
+    fargate_service = dict(existing, launchType="FARGATE")
+    assert target["Arn"] not in reached(result((passed, register, update), services=[fargate_service]), ALICE, technique)
+    assert_unresolved(result((passed, register, update), services=[fargate_service]), ALICE, technique)
+    assert target["Arn"] not in reached(result((passed, register, update)), ALICE, technique)
+    assert target["Arn"] not in reached(result(connected=False), ALICE, technique)
+    assert_unresolved(result(connected=False), ALICE, technique)
+    assert target["Arn"] not in reached(result(cluster_status="INACTIVE"), ALICE, technique)
+    assert_unresolved(result(cluster_status="INACTIVE"), ALICE, technique)
+    assert target["Arn"] not in reached(result(service_status="access_denied"), ALICE, technique)
+    assert_unresolved(result(service_status="access_denied"), ALICE, technique)
+    wrong_cluster = copy.deepcopy(create)
+    wrong_cluster["Condition"]["ArnEquals"]["ecs:cluster"] = cluster_arn.replace("prod", "other")
+    assert target["Arn"] not in reached(result((passed, register, wrong_cluster)), ALICE, technique)
+    task_one = copy.deepcopy(create)
+    task_one["Condition"]["ArnEquals"]["ecs:task-definition"] = task_scope[:-1] + "1"
+    assert target["Arn"] not in reached(result((passed, register, task_one)), ALICE, technique)
+    denied_service = {"Effect": "Deny", "Action": "ecs:CreateService", "Resource": new_service_arn}
+    assert target["Arn"] not in reached(result((passed, register, create, denied_service)), ALICE, technique)
+
+
 def test_spot_request_scoped_grant_stays_visible_without_claiming_role_execution():
     ident = "aws-ec2-requestspotinstances-passrole"
     target = role("target", "ec2.amazonaws.com", profiles=[profile_arn("target")])

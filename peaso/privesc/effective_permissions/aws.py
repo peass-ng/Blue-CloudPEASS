@@ -12500,6 +12500,112 @@ class AwsModel(Model):
                 if tid not in out and uncertain:
                     out[tid] = ("unknown", "ecs_new_task_definition_or_launch_not_verified")
             return out
+        if pid == "ecs_new_task_definition_service_ready":
+            if source is None:
+                return None
+            partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+            scopes = [scope for scope in self.snapshot.get("scopes", ()) if isinstance(scope, str)
+                      and scope.startswith(source.scope + "/") and scope.split("/", 1)[1] not in ("global", "*")]
+
+            def every_revision_allowed(action, task_arn):
+                allows, denies = self._statements(source, action)
+                if denies:
+                    return False
+                for statement in allows:
+                    if statement.notresource or statement.variables:
+                        continue
+                    for pattern in statement.resources:
+                        if pattern != "*" and not pattern.endswith("*"):
+                            continue
+                        if (glob_match(pattern, task_arn, False) and
+                                glob_match(pattern, task_arn.rsplit(":", 1)[0] + ":999999999", False)):
+                            return True
+                return False
+
+            for tid, role in candidates.items():
+                uncertain = bool(source.incomplete or role.incomplete or not scopes)
+                for scope in scopes:
+                    region = scope.split("/", 1)[1]
+                    if not self._region_ok("ecs_cluster", source.scope, region):
+                        uncertain = True
+                        continue
+                    family = "PeasoPrivesc" + hashlib.sha256(
+                        (source.id + tid + region).encode()).hexdigest()[:16]
+                    task_arn = f"arn:{partition}:ecs:{region}:{source.scope}:task-definition/{family}:1"
+                    future_task_arn = task_arn.rsplit(":", 1)[0] + ":999999999"
+                    if not every_revision_allowed("ecs:registertaskdefinition", task_arn):
+                        if self._statements(source, "ecs:registertaskdefinition")[0]:
+                            uncertain = True
+                        continue
+                    registration = self.check(source, {"action": "ecs:RegisterTaskDefinition",
+                        "request_context": {"ecs:compute-compatibility": "EC2"}}, task_arn)
+                    future_registration = self.check(source, {"action": "ecs:RegisterTaskDefinition",
+                        "request_context": {"ecs:compute-compatibility": "EC2"}}, future_task_arn)
+                    passed = self.check(source, {"action": "iam:PassRole", "request_context": {
+                        "iam:PassedToService": "ecs-tasks.amazonaws.com"}}, tid)
+                    if registration is None or future_registration is None or passed is None:
+                        continue
+                    services = [item for item_scope, item in items(self.snapshot, "ecs_service")
+                                if item_scope == scope and isinstance(item.get("serviceArn"), str)]
+                    service_status = inventory_status(self.snapshot, "ecs_service").get(scope)
+                    for cluster_arn, cluster in self.ecs_cluster_info.items():
+                        if not cluster_arn.startswith(f"arn:{partition}:ecs:{region}:{source.scope}:cluster/"):
+                            continue
+                        if cluster.get("status") != "ACTIVE" or not cluster.get("count"):
+                            uncertain = True
+                            continue
+                        connected = [item for item_scope, item in items(self.snapshot, "ecs_container_instance")
+                            if item_scope == scope and item.get("clusterArn") == cluster_arn
+                            and item.get("status") == "ACTIVE" and item.get("agentConnected") is True]
+                        if not connected:
+                            uncertain = True
+                            continue
+                        if service_status not in ("collected", "empty"):
+                            uncertain = True
+                        cluster_name = cluster_arn.rsplit("/", 1)[-1]
+                        service_name = family
+                        new_service_arn = (f"arn:{partition}:ecs:{region}:{source.scope}:service/"
+                                           f"{cluster_name}/{service_name}")
+                        candidate_services = [item for item in services if item.get("clusterArn") == cluster_arn
+                            and item.get("status") == "ACTIVE" and
+                            (item.get("deploymentController") or {}).get("type", "ECS") == "ECS"]
+                        if service_status in ("collected", "empty") and not any(
+                                item["serviceArn"] == new_service_arn for item in services):
+                            candidate_services.append({"serviceArn": new_service_arn,
+                                "clusterArn": cluster_arn, "_new": True})
+                        for service in candidate_services:
+                            if not service.get("_new") and (
+                                    service.get("launchType") not in (None, "EC2") or
+                                    service.get("capacityProviderStrategy") or
+                                    any(service.get(key) for key in
+                                        ("networkConfiguration", "loadBalancers", "serviceRegistries",
+                                         "serviceConnectConfiguration"))):
+                                uncertain = True  # The replacement task needs more settings from this service.
+                                continue
+                            action = "ecs:CreateService" if service.get("_new") else "ecs:UpdateService"
+                            if self._statements(source, action.lower())[1]:
+                                uncertain = True
+                                continue
+                            context = {"ecs:cluster": cluster_arn, "ecs:task-definition": task_arn}
+                            grant = self.check(source, {"action": action,
+                                "request_context": context}, service["serviceArn"])
+                            context["ecs:task-definition"] = future_task_arn
+                            future_grant = self.check(source, {"action": action,
+                                "request_context": context}, service["serviceArn"])
+                            if grant is None or future_grant is None:
+                                continue
+                            if all(verdict.confidence == "derived" for verdict in
+                                   (registration, future_registration, passed, grant, future_grant)):
+                                out[tid] = ("conditional", "ecs_new_ec2_task_definition_service_and_role_bound")
+                                break
+                            uncertain = True
+                        if tid in out:
+                            break
+                    if tid in out:
+                        break
+                if tid not in out and uncertain:
+                    out[tid] = ("unknown", "ecs_new_task_definition_or_service_not_verified")
+            return out
         if pid == "ecs_existing_task_override_runnable_with_role":
             if source is None:
                 return None
