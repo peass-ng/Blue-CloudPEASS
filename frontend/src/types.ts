@@ -189,6 +189,7 @@ export type Scan = {
   error?: string;
   report?: Report;
   progress?: number;
+  progress_details?: { phase?: string; provider?: string; completed?: number; total?: number | null; resources?: number; at?: string };
   input_mode?: string;
 };
 export type ScheduleRule = {

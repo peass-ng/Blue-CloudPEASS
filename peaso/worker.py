@@ -111,7 +111,9 @@ def _process(role, request, connection):
             with capture(evidence_cipher, tenant=tenant, scan_id=ident, options=connector.get('options'),
                          selected_checks=checks_for_request(request)) as secret_capture:
                 try:
-                    snapshot = collect_snapshot(request)
+                    from peaso.worker_progress import stream_progress
+                    with stream_progress(connection):
+                        snapshot = collect_snapshot(request)
                 finally:
                     ai_credentials = ai_access.finish()
             # Separate encrypted per-scan object; no reference or value enters
@@ -315,6 +317,11 @@ class Worker:
                 if parent.poll(0.2):
                     try:
                         result = parent.recv()
+                        if isinstance(result, tuple) and len(result) == 2 and result[0] == "__progress__":
+                            from peaso.worker_progress import record_progress
+                            record_progress(self.store, job, result[1], LOGGER)
+                            result = None
+                            continue
                     except EOFError:
                         # A killed child cannot report a result. SIGKILL alone
                         # does not establish OOM; persist a safe interruption.
@@ -395,6 +402,13 @@ def main():
         from .ai.smoke import main as ai_smoke
         ai_smoke()
         return
+    # Only this application's sanitized supervisor messages are enabled.
+    # Provider/third-party child stdout and stderr remain suppressed.
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter("%(levelname)s %(message)s"))
+    LOGGER.addHandler(handler)
+    LOGGER.setLevel(logging.INFO)
+    LOGGER.propagate = False
     worker = Worker(args.role)
     for sig in (signal.SIGTERM, signal.SIGINT):
         signal.signal(sig, lambda *_: worker.stopping.set())

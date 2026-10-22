@@ -1958,6 +1958,7 @@ def collect(connector, requirements=None):
         return discovered_regions.get(account, regions)
 
     requests = Requests(options)
+    requests.progress_callback = progress_callback
     aws_lambda_environment_secret_indicators.initialize(requests, options, connector.get('scopes') or [])
     aws_selected_configuration_secret_indicators.initialize(requests, options, connector.get('scopes') or [])
     aws_s3_selected_source_secret_indicators.initialize(requests, options, connector.get('scopes') or [])

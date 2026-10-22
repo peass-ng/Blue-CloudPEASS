@@ -6,6 +6,7 @@ emit_progress(callback, phase='collecting', provider=..., scope=...,
 Only settled inventory/check counts are logged, never API arguments or facts.
 """
 from __future__ import annotations
+from contextlib import contextmanager
 from contextvars import ContextVar
 import re
 import sys
@@ -14,12 +15,22 @@ import time
 import unicodedata
 
 _callback = ContextVar("peaso_progress_callback", default=None)
-PHASES = frozenset({"starting", "discovering", "collecting", "evaluating", "completed", "error"})
+PHASES = frozenset({"starting", "discovering", "collecting", "evaluating", "completed", "error", "scanning_content", "scanning_images"})
 PROVIDERS = frozenset({"aws", "gcp", "azure", "k8s"})
 
 
 def current_callback():
     return _callback.get()
+
+
+@contextmanager
+def bind_callback(callback):
+    """Bind a transient runtime sink without changing snapshot/report content."""
+    token = _callback.set(callback if callable(callback) else None)
+    try:
+        yield callback
+    finally:
+        _callback.reset(token)
 
 
 def _scope(value):
@@ -126,7 +137,7 @@ class ProgressReporter:
             self.state.update(event)
             if self.state.get("total") is not None and (self.state.get("completed") or 0) > self.state["total"]:
                 self.state.update(total=None, dynamic_total=True)
-            self._write(force=changed or self.state["phase"] in {"completed", "error"})
+            self._write(force=changed or self.state["phase"] in {"completed", "error", "scanning_content", "scanning_images"})
 
     def _heartbeat(self):
         while not self.stop.wait(self.heartbeat):

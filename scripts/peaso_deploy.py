@@ -252,6 +252,7 @@ REPRODUCTION_INPUT_PATTERNS = (
     'tests/test_peaso_aws_access_analyzer_lifecycle.py',
     'tests/test_peaso_finding_group_api.py',
     'tests/test_peaso_detected_leaks_filter.py',
+    'tests/test_worker_progress_20261022.py',
     'tests/test_least_privilege_permissions.py',
     'tests/provider_group_catalog_history_20261021.py',
     'tests/fixtures/provider_group_catalog_history_20261021.json.gz',

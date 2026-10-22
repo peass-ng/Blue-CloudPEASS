@@ -45,6 +45,7 @@ export const terminalStatuses = [
   "failed",
   "cancelled",
   "timed_out",
+  "queue_exhausted",
 ];
 function ScanCategories({ selected = [] }: { selected?: string[] }) {
   const [expanded, setExpanded] = useState(false);
@@ -185,9 +186,15 @@ export function Scans({
                     (c) => c.id === s.connector_id,
                   )?.name, date(s.created_at), scanDuration(s)].filter(Boolean).join(" · ")}
                 </p>
-                {s.status === "failed" && s.error && (
+                {["failed", "queue_exhausted"].includes(s.status) && s.error && (
                   <p role="alert">{humanError(s.error)}</p>
                 )}
+                {s.progress_details && !terminalStatuses.includes(s.status) && <p className="scan-progress" aria-label="Latest scan progress">
+                  {(s.progress_details.phase || "collecting").replaceAll("_", " ")}
+                  {s.progress_details.completed != null && ` · ${s.progress_details.completed}${s.progress_details.total != null ? ` / ${s.progress_details.total}` : ""} completed`}
+                  {s.progress_details.resources != null && ` · ${s.progress_details.resources} resources`}
+                  {s.progress_details.at && <> · Last update <time dateTime={s.progress_details.at}>{date(s.progress_details.at)}</time></>}
+                </p>}
                 <ScanCategories selected={s.categories} />
               </div>
               <Badge value={s.status} />
