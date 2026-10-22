@@ -1,6 +1,6 @@
 {
   "repository": "HackTricks-wiki/hacktricks-cloud",
-  "revision": "73cea42fb63376dcedc9b445b3471374060db074",
+  "revision": "024ab3c94bb60c7b4f207c234db69eeaade39834",
   "path": "src/privilege-escalation-paths",
   "canonical_sha256": {
     "aws/_excluded_171e_g1.yaml": "2160b8f57f029e74e5a31727815316f459d8364147c47be2c36639c831b9dcb3",
@@ -99,7 +99,7 @@
     "aws/emr.yaml": "674e8bd7be8da6d6c00458fe231117f449769ea1b2dc09ec5ad460e1081057a2",
     "aws/emrserverless.yaml": "f9d00c56fcab511b428a6fd2633de60d6c4a57ee1c9de5c152741662e5f4b8e6",
     "aws/events.yaml": "9f314caa754dae44b2f6c25acb6f8901f8521fa864f3a36f4013b3608c579b40",
-    "aws/exact-principal-v5.yaml": "32b590c868500a3998bb367abb22ed7e498fb24c5cb1f6147fa5da533ce11ec7",
+    "aws/exact-principal-v5.yaml": "14bd4264cfcb98337a4fd81fda36358351018be9c79741f6e5debfa4266e25a9",
     "aws/fis.yaml": "8538e77e42d909f44f3b3403b4e65c80bb2a809d4772c4db0cb8e0ae4a418089",
     "aws/flink.yaml": "ec085b72232ea07de954f9a6f306ab90e528bcd984700d8f4f1b95632f52bc60",
     "aws/gamelift.yaml": "ffd94ace65ab986f61d8f75432c715d94dc74b2a0ab3bd08c51880a3d702f694",
@@ -401,7 +401,7 @@
     "aws/emr.yaml": "674e8bd7be8da6d6c00458fe231117f449769ea1b2dc09ec5ad460e1081057a2",
     "aws/emrserverless.yaml": "f9d00c56fcab511b428a6fd2633de60d6c4a57ee1c9de5c152741662e5f4b8e6",
     "aws/events.yaml": "9f314caa754dae44b2f6c25acb6f8901f8521fa864f3a36f4013b3608c579b40",
-    "aws/exact-principal-v5.yaml": "32b590c868500a3998bb367abb22ed7e498fb24c5cb1f6147fa5da533ce11ec7",
+    "aws/exact-principal-v5.yaml": "14bd4264cfcb98337a4fd81fda36358351018be9c79741f6e5debfa4266e25a9",
     "aws/fis.yaml": "8538e77e42d909f44f3b3403b4e65c80bb2a809d4772c4db0cb8e0ae4a418089",
     "aws/flink.yaml": "ec085b72232ea07de954f9a6f306ab90e528bcd984700d8f4f1b95632f52bc60",
     "aws/gamelift.yaml": "ffd94ace65ab986f61d8f75432c715d94dc74b2a0ab3bd08c51880a3d702f694",

@@ -847,6 +847,70 @@ def test_bedrock_action_group_lambda_requires_same_mutable_function_and_observed
                                         ALICE, technique)
 
 
+def test_existing_ssm_automation_runbook_joins_scoped_document_role_and_effect():
+    technique = "aws-audit-use-existing-parameterized-automation-runbook-with-runtime-passrole"
+    document = f"arn:aws:ssm:{REGION}:{ACCOUNT}:document/ApprovedRunbook"
+    step_resource = "arn:aws:s3:::private-example/report.txt"
+    target = role("automation", "ssm.amazonaws.com", allow("s3:PutObject", resource=step_resource))
+    target["RoleId"] = "AROAAUTOMATION1234567"
+    passed = allow("iam:PassRole", resource=target["Arn"])
+    passed["Condition"] = {"StringEquals": {"iam:PassedToService": "ssm.amazonaws.com"}}
+    proof = {"TechniqueId": technique, "SourceArn": ALICE, "TargetKind": "aws_role",
+             "TargetId": target["Arn"], "TargetScope": SCOPE, "TargetRoleId": target["RoleId"],
+             "Status": "verified", "VerifiedPreconditions": True,
+             "DocumentArn": document, "DocumentVersion": "3",
+             "DocumentContentSha256": "reviewed-document-version-hash",
+             "DocumentVersionContentVerified": True, "DocumentTypeAutomation": True,
+             "AssumeRoleParameterName": "AutomationAssumeRole",
+             "DocumentAssumeRoleTemplate": "{{ AutomationAssumeRole }}",
+             "AssumeRoleParameterValue": target["Arn"], "RoleParameterUsed": True,
+             "StartAuthorizationResourceArn": document,
+             "StartAutomationExecutionSucceeded": True,
+             "AutomationExecutionId": "automation-execution-123", "AutomationExecutionSucceeded": True,
+             "ExecutedRoleArn": target["Arn"], "StepAction": "s3:PutObject",
+             "StepResource": step_resource, "StepActionSucceeded": True,
+             "EffectUsefulToSource": True, "EvidenceRef": "reviewed-automation-execution",
+             "EvidenceObservedAt": "2026-10-21T11:59:00+00:00",
+             "EvidenceExpiresAt": "2026-10-21T12:05:00+00:00"}
+
+    def result(evidence=proof, *, start_resource=document, grants=(), role_row=target):
+        start_grants = ([allow("ssm:StartAutomationExecution", resource=start_resource)]
+                        if start_resource is not None else [])
+        caller = user("alice", passed, *start_grants, *grants)
+        proofs = evidence if isinstance(evidence, list) else ([evidence] if evidence else [])
+        snap = aws_snap([caller], [role_row], [col("aws_privesc_challenge_evidence", proofs)])
+        snap["created_at"] = "2026-10-21T12:00:00+00:00"
+        return real(snap, technique, include_unknown=True)
+
+    assert target["Arn"] in reached(result(), ALICE, technique)
+    definition_latest = f"arn:aws:ssm:{REGION}:{ACCOUNT}:automation-definition/ApprovedRunbook:$LATEST"
+    assert target["Arn"] in reached(result(dict(proof, StartAuthorizationResourceArn=definition_latest),
+                                        start_resource=definition_latest), ALICE, technique)
+    assert target["Arn"] not in reached(result(None), ALICE, technique)
+    assert_unresolved(result(None), ALICE, technique)
+    assert target["Arn"] not in reached(result([proof, dict(proof)]), ALICE, technique)
+    for changed in ({"DocumentVersionContentVerified": False},
+                    {"DocumentArn": document.replace("Approved", "Other")},
+                    {"DocumentAssumeRoleTemplate": "{{ FixedRole }}"},
+                    {"AssumeRoleParameterValue": "arn:aws:iam::111111111111:role/other"},
+                    {"StartAuthorizationResourceArn": document.replace("Approved", "Other")},
+                    {"StartAutomationExecutionSucceeded": False}, {"ExecutedRoleArn": "other"},
+                    {"StepActionSucceeded": False}, {"StepAction": "s3:DeleteObject"},
+                    {"EffectUsefulToSource": False}, {"TargetRoleId": "AROAOTHER"},
+                    {"EvidenceObservedAt": "2026-10-21T11:40:00+00:00"}):
+        assert target["Arn"] not in reached(result(dict(proof, **changed)), ALICE, technique)
+    assert target["Arn"] not in reached(result(start_resource=document.replace("Approved", "Other")),
+                                        ALICE, technique)
+    assert target["Arn"] not in reached(result(start_resource=None), ALICE, technique)
+    assert target["Arn"] not in reached(result(grants=[allow("s3:PutObject", resource=step_resource)]),
+                                        ALICE, technique)
+    assert target["Arn"] not in reached(result(role_row=dict(target, RoleId="AROACHANGED")),
+                                        ALICE, technique)
+    assert target["Arn"] not in reached(result(role_row=role("automation", "lambda.amazonaws.com",
+                                                   allow("s3:PutObject", resource=step_resource))),
+                                        ALICE, technique)
+
+
 def test_config_automatic_remediation_requires_service_context_and_runtime_witness():
     technique = "aws-config-passrole-automatic-remediation"
     target = role("automation", "ssm.amazonaws.com", allow("iam:AttachUserPolicy"))

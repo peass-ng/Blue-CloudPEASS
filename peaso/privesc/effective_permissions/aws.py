@@ -8632,6 +8632,106 @@ class AwsModel(Model):
                 else:
                     out[tid] = pending
             return out
+        if pid == "ssm_existing_automation_runtime_role_effect_reviewed":
+            if source is None:
+                return None
+            start_allows, _ = self._statements(source, "ssm:startautomationexecution")
+            if not start_allows:
+                return {}
+            pending = ("unknown", "ssm_existing_automation_document_role_effect_not_verified")
+            out = {}
+            try:
+                now = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+                if now.tzinfo is None:
+                    now = None
+            except (KeyError, TypeError, ValueError):
+                now = None
+            proof_status = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+            technique = (self.current_entry or {}).get("id")
+            for tid, role in candidates.items():
+                out[tid] = pending
+                if now is None or role.scope != source.scope:
+                    continue
+                role_rows = [row for role_scope, row in items(self.snapshot, "iam_role")
+                    if role_scope.split("/")[0] == role.scope and row.get("Arn") == tid]
+                role_id = role_rows[0].get("RoleId") if len(role_rows) == 1 else None
+                if not isinstance(role_id, str) or not role_id:
+                    continue
+                for scope in self.snapshot.get("scopes", ()):
+                    if not isinstance(scope, str) or not scope.startswith(f"{role.scope}/"):
+                        continue
+                    collections = [collection for collection in self.snapshot.get("collections", ())
+                        if collection.get("type") == "aws_privesc_challenge_evidence" and
+                        collection.get("scope") == scope]
+                    if len(collections) != 1 or collections[0].get("status") != "collected":
+                        continue
+                    proofs = [row for proof_scope, row in items(self.snapshot, "aws_privesc_challenge_evidence")
+                        if proof_scope == scope and proof_status.get(scope) == "collected" and
+                        row.get("TechniqueId") == technique and row.get("SourceArn") == source.id and
+                        row.get("TargetKind") == "aws_role" and row.get("TargetId") == tid]
+                    if len(proofs) != 1:
+                        continue
+                    proof = proofs[0]
+                    document = proof.get("DocumentArn")
+                    version = proof.get("DocumentVersion")
+                    parameter = proof.get("AssumeRoleParameterName")
+                    start_resource = proof.get("StartAuthorizationResourceArn")
+                    action, resource = proof.get("StepAction"), proof.get("StepResource")
+                    if (not isinstance(document, str) or
+                            re.fullmatch(rf"arn:[^:]+:ssm:{re.escape(scope.split('/', 1)[1])}:"
+                                         rf"(?:[0-9]{{12}})?:document/[A-Za-z0-9_.-]+", document) is None or
+                            not isinstance(version, str) or
+                            re.fullmatch(r"[1-9][0-9]*", version) is None or
+                            not isinstance(parameter, str) or
+                            re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*", parameter) is None):
+                        continue
+                    owner = document.split(":", 5)[4]
+                    name = document.rsplit("/", 1)[1]
+                    definition = (f"arn:{document.split(':', 2)[1]}:ssm:{scope.split('/', 1)[1]}:"
+                                  f"{owner}:automation-definition/{name}:{version}")
+                    definition_latest = definition.rsplit(":", 1)[0] + ":$LATEST"
+                    definition_default = definition.rsplit(":", 1)[0] + ":$DEFAULT"
+                    if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                            proof.get("TargetScope") != scope or proof.get("TargetRoleId") != role_id or
+                            proof.get("AssumeRoleParameterValue") != tid or
+                            proof.get("DocumentAssumeRoleTemplate") not in
+                            ("{{" + parameter + "}}", "{{ " + parameter + " }}") or
+                            proof.get("DocumentVersionContentVerified") is not True or
+                            not isinstance(proof.get("DocumentContentSha256"), str) or
+                            not proof["DocumentContentSha256"] or
+                            proof.get("DocumentTypeAutomation") is not True or
+                            proof.get("RoleParameterUsed") is not True or
+                            proof.get("StartAutomationExecutionSucceeded") is not True or
+                            proof.get("ExecutedRoleArn") != tid or
+                            proof.get("StepActionSucceeded") is not True or
+                            proof.get("EffectUsefulToSource") is not True or
+                            start_resource not in (document, definition, definition_latest, definition_default) or
+                            not isinstance(proof.get("AutomationExecutionId"), str) or
+                            not proof["AutomationExecutionId"] or
+                            not isinstance(action, str) or
+                            re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                            not isinstance(resource, str) or not resource or
+                            not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"]):
+                        continue
+                    try:
+                        witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+                        expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+                        if (witnessed.tzinfo is None or expires.tzinfo is None or
+                                not 0 <= (now - witnessed).total_seconds() <= 900 or
+                                not now < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                            continue
+                    except (KeyError, TypeError, ValueError):
+                        continue
+                    start = self.check(source, {"action": "ssm:StartAutomationExecution",
+                        "request_context": {"ssm:DocumentType": "Automation",
+                                            "ssm:DocumentVersion": version}}, start_resource)
+                    permitted = self.check(role, {"action": action}, resource)
+                    already = self.check(source, {"action": action}, resource)
+                    if (start is not None and start.confidence == "derived" and
+                            permitted is not None and permitted.confidence == "derived" and already is None):
+                        out[tid] = None
+                        break
+            return out
         if pid == "bedrock_agent_actiongroup_lambda_execution_unverified":
             if source is None:
                 return None
