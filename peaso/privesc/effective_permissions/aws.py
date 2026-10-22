@@ -3189,12 +3189,20 @@ class AwsModel(Model):
         """Return {target id: (confidence, condition)|None} or None when the key is unsupported."""
         if key == "trust_allows_service":
             out = {}
-            for svc in as_list(value):
-                for rid, (conf, _) in self.trust_by_service.get(str(svc).lower(), {}).items():
-                    if rid in candidates:
-                        actual = self._non_iam_trust_verdict(rid, "Service", str(svc), "sts:AssumeRole")
-                        if actual is not None and (rid not in out or out[rid] is not None):
-                            out[rid] = None if actual == "derived" else ("conditional", "trust_condition")
+            services = [str(svc).lower() for svc in as_list(value)]
+            if not services:
+                return out
+            for rid in candidates:
+                verdicts = []
+                for svc in services:
+                    if rid not in self.trust_by_service.get(svc, {}):
+                        break
+                    actual = self._non_iam_trust_verdict(rid, "Service", svc, "sts:AssumeRole")
+                    if actual is None:
+                        break
+                    verdicts.append(actual)
+                else:
+                    out[rid] = None if all(v == "derived" for v in verdicts) else ("conditional", "trust_condition")
             return out
         if key == "rolesanywhere_profile_includes_target":
             if source is None:
@@ -6029,31 +6037,37 @@ class AwsModel(Model):
     def _cloudfront_edge_distribution_and_service_roles(self, source):
         account = source.scope
         partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
-        distributions = inventory_status(self.snapshot, "cloudfront_distribution")
-        known = any(scope.split("/", 1)[0] == account and status in ("collected", "empty")
-                    for scope, status in distributions.items())
-        if not known:
-            return ("unknown", "cloudfront_distribution_inventory_missing")
-        updatable = False
-        uncertain = bool(source.incomplete)
-        prefix = f"arn:{partition}:cloudfront::{account}:distribution/"
-        for scope, item in items(self.snapshot, "cloudfront_distribution"):
-            if scope.split("/", 1)[0] != account or not isinstance(item, dict):
-                continue
-            arn = item.get("ARN")
-            if not isinstance(arn, str) or not arn.startswith(prefix):
-                uncertain = True
-                continue
-            if item.get("Status") not in ("Deployed",):
-                uncertain = True
-                continue
-            grant = self.check(source, {"action": "cloudfront:UpdateDistribution"}, arn)
-            if grant is not None:
-                updatable = True
-                uncertain |= grant.confidence != "derived"
-                break
-        if not updatable:
-            return ("unknown", "cloudfront_distribution_not_verified") if uncertain else None
+        # CreateDistribution has no resource-level authorization. A literal "*" here is
+        # treated as a pattern-overlap query and would accept a distribution-scoped
+        # statement, although AWS requires Resource: "*" for this action.
+        create_grant = self.check(source, {"action": "cloudfront:CreateDistribution"},
+                                  "<aws-no-resource>")
+        usable_distribution = create_grant is not None
+        uncertain = bool(source.incomplete) or (create_grant is not None and create_grant.confidence != "derived")
+        if not usable_distribution:
+            distributions = inventory_status(self.snapshot, "cloudfront_distribution")
+            known = any(scope.split("/", 1)[0] == account and status in ("collected", "empty")
+                        for scope, status in distributions.items())
+            if not known:
+                return ("unknown", "cloudfront_distribution_inventory_missing")
+            prefix = f"arn:{partition}:cloudfront::{account}:distribution/"
+            for scope, item in items(self.snapshot, "cloudfront_distribution"):
+                if scope.split("/", 1)[0] != account or not isinstance(item, dict):
+                    continue
+                arn = item.get("ARN")
+                if not isinstance(arn, str) or not arn.startswith(prefix):
+                    uncertain = True
+                    continue
+                if item.get("Status") not in ("Deployed",):
+                    uncertain = True
+                    continue
+                grant = self.check(source, {"action": "cloudfront:UpdateDistribution"}, arn)
+                if grant is not None:
+                    usable_distribution = True
+                    uncertain |= grant.confidence != "derived"
+                    break
+            if not usable_distribution:
+                return ("unknown", "cloudfront_distribution_not_verified") if uncertain else None
         role_states = inventory_status(self.snapshot, "iam_role")
         roles_known = any(scope.split("/", 1)[0] == account and status in ("collected", "empty")
                           for scope, status in role_states.items())

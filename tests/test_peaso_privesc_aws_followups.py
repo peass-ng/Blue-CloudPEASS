@@ -1772,6 +1772,39 @@ def test_lambda_edge_requires_both_replication_permissions_in_us_east_1():
     assert edges(real(snap(exact, functions=({"FunctionName": "alpha", "FunctionArn": alpha},)), tid), ALICE) == []
 
 
+def test_lambda_edge_new_distribution_and_scoped_existing_distribution():
+    tid = "aws-cloudfront-lambda-edge-passrole"
+    edge_role = role("edge", [{"Effect": "Allow", "Principal": {"Service": [
+        "lambda.amazonaws.com", "edgelambda.amazonaws.com"]}, "Action": "sts:AssumeRole"}])
+    function_actions = ("lambda:CreateFunction", "lambda:PublishVersion", "lambda:GetFunction",
+                        "lambda:EnableReplication", "lambda:DisableReplication")
+    distribution_arn = f"arn:aws:cloudfront::{ACCOUNT}:distribution/DIST1"
+    def principal(distribution_action=None, resource="*"):
+        grants = [allow("iam:PassRole", resource=role_arn("edge")), allow(*function_actions),
+                  allow("iam:CreateServiceLinkedRole")]
+        if distribution_action:
+            grants.append(allow(distribution_action, resource=resource))
+        return user("alice", *grants)
+    def snapshot(source, distributions=None):
+        collections = [col("lambda_function", [], scope=f"{ACCOUNT}/us-east-1")]
+        if distributions is not None:
+            collections.append(col("cloudfront_distribution", distributions, scope=f"{ACCOUNT}/global"))
+        return aws_snap([source], [edge_role], collections)
+    assert reached(real(snapshot(principal("cloudfront:CreateDistribution")), tid), ALICE) == {
+        role_arn("edge"): "conditional"}
+    assert edges(real(snapshot(principal()), tid), ALICE) == []
+    assert edges(real(snapshot(principal("cloudfront:CreateDistribution", distribution_arn)), tid), ALICE) == []
+    only_lambda_trust = aws_snap([principal("cloudfront:CreateDistribution")],
+                                 [role("edge", "lambda.amazonaws.com")],
+                                 [col("lambda_function", [], scope=f"{ACCOUNT}/us-east-1")])
+    assert edges(real(only_lambda_trust, tid), ALICE) == []
+    deployed = {"ARN": distribution_arn, "Id": "DIST1", "Status": "Deployed"}
+    assert reached(real(snapshot(principal("cloudfront:UpdateDistribution", distribution_arn),
+                                 [deployed]), tid), ALICE) == {role_arn("edge"): "conditional"}
+    assert edges(real(snapshot(principal("cloudfront:UpdateDistribution", distribution_arn),
+                               []), tid), ALICE) == []
+
+
 def test_codebuild_startbuild_requires_permission_for_a_buildspec_override():
     tid = "aws-codebuild-startbuild-attached-role"
     project = f"arn:aws:codebuild:{REGION}:{ACCOUNT}:project/demo"
