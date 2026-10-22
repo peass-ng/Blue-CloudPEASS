@@ -21,7 +21,14 @@ V4_EFFECTIVE_TREE = "413792ea4aec86e48c352ffab2c0bea9e82795bc234251342737ec0276b
 LEGACY_DELTA = Path(__file__).resolve().parent / "catalog_versions/legacy-0b3633-delta.json"
 BOUNDED_MANIFEST = "734401b202895e00ac1b6cb0f1534f77cde4d8e2ba912ca0ee974b1b8ec5035c"
 BOUNDED_TREE = "1a54bad4102d18f89c78f45c915964554a62f994c1bffa693844cac5e119cca8"
-CURRENT_MANIFEST = '9101d6942f7cb64270b0593849623d3bc2f591a961ca48a60158bb59abf620d0'
+CURRENT_MANIFEST = '563a6cdc997965f2bb4c277293a077d4d54756bb3c4d2bd6079abf9ed3ec6e3b'
+SETROLES_PREVIOUS_MANIFEST = '9101d6942f7cb64270b0593849623d3bc2f591a961ca48a60158bb59abf620d0'
+SETROLES_PREVIOUS_TREE = '8cf68cd6be9d5ead8210d5333ee813a2829ce086cf141a4a3d601b657609fd81'
+SETROLES_PREVIOUS_ENTRY_COUNT = 670
+SETROLES_PREVIOUS_EXCLUDED_COUNT = 3723
+SETROLES_PREVIOUS_ARCHIVE_SHA256 = '6c599495006c19b0781150323151f959cea481b4e813a065897248d78fd7928f'
+SETROLES_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-670-cognito-setroles-source-manifest.json'
+SETROLES_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-670-cognito-setroles-catalog.tar.gz'
 CLASSIC_PREVIOUS_MANIFEST = '9f9d526ff17571b7fd3c8610e9ca5c01aa9ea22f6654065659a1bcfd718a49d2'
 CLASSIC_PREVIOUS_TREE = '9f077698a417165440cbd9bd9404cc007ad793c6bc5c09347191cd173c5611a5'
 CLASSIC_PREVIOUS_ENTRY_COUNT = 669
@@ -110,9 +117,9 @@ PRIOR_CURRENT_MANIFEST = "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0c
 PRIOR_DISCLOSURE_MANIFEST = "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
 PRIOR_DISCLOSURE_TREE = "5091464bedcb10bb87301695ca733276dc67b865e544c408ccf72a5408176f0f"
 PRIOR_DISCLOSURE_HISTORY = Path(__file__).resolve().parent / "catalog_versions/disclosure-v7-manifest.json"
-CURRENT_TREE = '8cf68cd6be9d5ead8210d5333ee813a2829ce086cf141a4a3d601b657609fd81'
+CURRENT_TREE = '034912fcdf1fee642a14d2d8269778b7ba1a51d5adb48db547e88da4005da425'
 PRIOR_CURRENT_TREE = "99207e6469fc5e5b3daf21324e6860599b116ffcf7d30600643bd229b0f11494"
-CURRENT_ENTRY_COUNT = 670
+CURRENT_ENTRY_COUNT = 671
 CURRENT_EXCLUDED_COUNT = 3723
 CURRENT_HISTORY = Path(__file__).resolve().parent / "catalog_versions/bulk-principal-v6-manifest.json"
 PRIOR_CATALOG_ARCHIVE = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-catalog-20261016.tar.gz"
@@ -178,6 +185,15 @@ def _verified_classic_previous():
         CLASSIC_PREVIOUS_MANIFEST_PATH, CLASSIC_PREVIOUS_ARCHIVE,
         CLASSIC_PREVIOUS_MANIFEST, CLASSIC_PREVIOUS_ARCHIVE_SHA256,
         CLASSIC_PREVIOUS_TREE, CLASSIC_PREVIOUS_ENTRY_COUNT, CLASSIC_PREVIOUS_EXCLUDED_COUNT)
+
+
+@lru_cache(maxsize=1)
+def _verified_setroles_previous():
+    """Keep the exact 670-entry catalog used before the pool-role mutation route."""
+    return _verified_archived_current(
+        SETROLES_PREVIOUS_MANIFEST_PATH, SETROLES_PREVIOUS_ARCHIVE,
+        SETROLES_PREVIOUS_MANIFEST, SETROLES_PREVIOUS_ARCHIVE_SHA256,
+        SETROLES_PREVIOUS_TREE, SETROLES_PREVIOUS_ENTRY_COUNT, SETROLES_PREVIOUS_EXCLUDED_COUNT)
 
 
 @lru_cache(maxsize=1)
@@ -378,6 +394,10 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "current", "exact_strict_privesc"
+    elif (binding.get("manifest_sha256") == SETROLES_PREVIOUS_MANIFEST and
+          binding.get("effective_tree_sha256") == SETROLES_PREVIOUS_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "setroles_previous", "exact_previous_current"
     elif (binding.get("manifest_sha256") == CLASSIC_PREVIOUS_MANIFEST and
           binding.get("effective_tree_sha256") == CLASSIC_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -455,6 +475,9 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
         if version == "current":
             current = _verified_current(str(catalog_dir), str(manifest_path))
             return {ident: current[ident] for ident in ids if ident in current}, status
+        if version == "setroles_previous":
+            previous = _verified_setroles_previous()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "classic_previous":
             previous = _verified_classic_previous()
             return {ident: previous[ident] for ident in ids if ident in previous}, status

@@ -110,6 +110,7 @@ SELECTOR_HOSTS = {"cognito_user_pool_group_role_covered_by": "cognito_user_pool_
                   "cognito_user_pool_covered_by": "cognito_user_pool_identity_pool",
                   "cognito_developer_authenticated_role": "cognito_developer_authenticated",
                   "cognito_developer_classic_role": "cognito_developer_classic",
+                  "cognito_developer_settable_authenticated_role": "cognito_developer_settable_authenticated",
                   "codedeploy_group_instance_role_covered_by": "codedeploy_deployment_group",
                   "rolesanywhere_profile_includes_target": "rolesanywhere_profile"}
 # service_plane value -> collected inventory of that application plane (aws_service_plane_admin targets).
@@ -3281,11 +3282,14 @@ class AwsModel(Model):
 
     def _selector_ext(self, key, value, candidates, source):
         out = {}
-        if key in ("cognito_developer_authenticated_role", "cognito_developer_classic_role"):
+        if key in ("cognito_developer_authenticated_role", "cognito_developer_classic_role",
+                   "cognito_developer_settable_authenticated_role"):
             if source is None:
                 return None
             classic = key == "cognito_developer_classic_role"
-            host = "cognito_developer_classic" if classic else "cognito_developer_authenticated"
+            settable = key == "cognito_developer_settable_authenticated_role"
+            host = ("cognito_developer_classic" if classic else
+                    "cognito_developer_settable_authenticated" if settable else "cognito_developer_authenticated")
             for rid, node in candidates.items():
                 pools = self.hosts.get(rid, {}).get(host, ())
                 unknown = False
@@ -3747,6 +3751,7 @@ class AwsModel(Model):
         ok, partial = ("collected", "empty"), set()
         self.cognito_developer_provider = {}
         classic_pools = []
+        settable_pools = []
 
         def add(role, host, resource):
             listed = self.hosts.setdefault(role, {}).setdefault(host, [])
@@ -3776,6 +3781,7 @@ class AwsModel(Model):
                     and isinstance(config.get("DeveloperProviderName"), str)
                     and config["DeveloperProviderName"].strip()):
                 self.cognito_developer_provider[pool_arn] = config["DeveloperProviderName"].strip()
+                settable_pools.append((pool_arn, region))
                 if config.get("AllowClassicFlow") is True:
                     classic_pools.append((pool_arn, region))
             # Identity pool -> its authenticated / unauthenticated roles (cognito-identity:GetIdentityPoolRoles Roles.Roles).
@@ -3856,11 +3862,18 @@ class AwsModel(Model):
             for role_arn in self.trust_by_federated.get(federated, {}):
                 if role_arn in self.principals and role_arn.startswith(f"arn:{partition}:iam::"):
                     add(role_arn, "cognito_developer_classic", pool_arn)
+        for pool_arn, region in settable_pools:
+            partition, federated, _ = _cognito_pool_identity(region)
+            for role_arn in self.trust_by_federated.get(federated, {}):
+                if (role_arn in self.principals and role_arn.startswith(f"arn:{partition}:iam::")
+                        and _account(role_arn) == _account(pool_arn)):
+                    add(role_arn, "cognito_developer_settable_authenticated", pool_arn)
         for host, kind in (("cognito_user_pool_group", "cognito_user_pool"), ("cognito_user_pool_identity_pool", "cognito_identity_pool"),
                            ("codedeploy_deployment_group", "codedeploy_deployment_group"), ("rolesanywhere_profile", "rolesanywhere_profile"),
                            ("cognito_identity_pool", "cognito_identity_pool"),
                            ("cognito_developer_authenticated", "cognito_identity_pool"),
-                           ("cognito_developer_classic", "cognito_identity_pool")):
+                           ("cognito_developer_classic", "cognito_identity_pool"),
+                           ("cognito_developer_settable_authenticated", "cognito_identity_pool")):
             for scope, status in inventory_status(snap, kind).items():
                 key = (scope.split("/")[0], host)
                 if self.host_status.get(key) in (None, "collected", "empty"):

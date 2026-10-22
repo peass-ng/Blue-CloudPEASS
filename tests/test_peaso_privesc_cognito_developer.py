@@ -11,6 +11,7 @@ POOL_ID = "us-east-1:12345678-1234-1234-1234-123456789abc"
 POOL_ARN = f"arn:aws:cognito-identity:us-east-1:{ACCOUNT}:identitypool/{POOL_ID}"
 ENTRY_ID = "aws-cognito-getopenidtokenfordeveloperidentity"
 CLASSIC_ID = "aws-cognito-getopenidtokenfordeveloperidentity-classic"
+SETROLES_ID = "aws-cognito-setidentitypoolroles-developer-token"
 
 
 def _entry():
@@ -19,6 +20,10 @@ def _entry():
 
 def _classic_entry():
     return next(row for row in schema.load_catalog(schema.CATALOG_DIR)["entries"] if row["id"] == CLASSIC_ID)
+
+
+def _setroles_entry():
+    return next(row for row in schema.load_catalog(schema.CATALOG_DIR)["entries"] if row["id"] == SETROLES_ID)
 
 
 def _trust(audience=POOL_ID, method="authenticated", extra=()):
@@ -169,3 +174,30 @@ def test_classic_flow_uses_china_partition_principal_and_condition_keys():
     assert Evaluator(AwsModel(aws_snap([actor], [target], [(
         "cognito_identity_pool", f"{ACCOUNT}/{region}", [pool])])),
         [_classic_entry()], include_unknown=False).run() == []
+
+
+def test_setroles_with_developer_token_reaches_exact_passed_role():
+    target_arn = f"arn:aws:iam::{ACCOUNT}:role/special"
+    actions = [
+        {"Effect": "Allow", "Action": "cognito-identity:SetIdentityPoolRoles", "Resource": "*"},
+        {"Effect": "Allow", "Action": "iam:PassRole", "Resource": target_arn,
+         "Condition": {"StringEquals": {"iam:PassedToService": "cognito-identity.amazonaws.com"}}},
+        {"Effect": "Allow", "Action": "cognito-identity:GetOpenIdTokenForDeveloperIdentity", "Resource": POOL_ARN},
+    ]
+    target = role("special", _trust(method="login.example.app"))
+    def reaches(statements, *, developer=True, audience=POOL_ID):
+        role_target = target if audience == POOL_ID else role("special", _trust(audience=audience))
+        snap = aws_snap([user("alice", *statements)], [role_target],
+                        [_pool(developer=developer, authenticated=False)])
+        return Evaluator(AwsModel(snap), [_setroles_entry()], include_unknown=False).run()
+    assert {r.source.id: set(r.targets) for r in reaches(actions)} == {ALICE: {target_arn}}
+    for omitted in range(len(actions)):
+        assert reaches(actions[:omitted] + actions[omitted + 1:]) == []
+    assert reaches(actions, developer=False) == []
+    assert reaches(actions, audience="us-east-1:different") == []
+    other_pool = POOL_ARN + "-other"
+    wrong_token = [{**actions[2], "Resource": other_pool}, *actions[:2]]
+    assert reaches(wrong_token) == []
+    wrong_service = [{**actions[1], "Condition": {
+        "StringEquals": {"iam:PassedToService": "ec2.amazonaws.com"}}}, actions[0], actions[2]]
+    assert reaches(wrong_service) == []
