@@ -7806,6 +7806,23 @@ class AwsModel(Model):
                 if tid not in out and uncertain:
                     out[tid] = ("unknown", "apprunner_existing_instance_role_not_verified")
             return out
+        if pid == "appsync_new_api_global_setup":
+            if source is None:
+                return None
+            # These AppSync operations have no resource type in the service
+            # authorization reference. A grant on one existing API ARN cannot
+            # authorize creating and configuring a fresh API.
+            global_resource = "peaso-global-appsync-operation"
+            actions = ("CreateGraphqlApi", "StartSchemaCreation", "CreateDataSource",
+                       "CreateResolver", "CreateApiKey")
+            grants = [self.check(source, {"action": f"appsync:{action}"}, global_resource)
+                      for action in actions]
+            if any(grant is None for grant in grants):
+                return {}
+            verdict = (("conditional", "appsync_new_api_setup_and_invocation")
+                       if all(grant.confidence == "derived" for grant in grants) else
+                       ("unknown", "appsync_global_setup_permission_conditional"))
+            return {tid: verdict for tid in candidates}
         if pid == "glue_existing_dev_endpoint_ssh_access":
             if source is None:
                 return None

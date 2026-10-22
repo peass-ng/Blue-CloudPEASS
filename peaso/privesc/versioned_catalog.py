@@ -21,7 +21,14 @@ V4_EFFECTIVE_TREE = "413792ea4aec86e48c352ffab2c0bea9e82795bc234251342737ec0276b
 LEGACY_DELTA = Path(__file__).resolve().parent / "catalog_versions/legacy-0b3633-delta.json"
 BOUNDED_MANIFEST = "734401b202895e00ac1b6cb0f1534f77cde4d8e2ba912ca0ee974b1b8ec5035c"
 BOUNDED_TREE = "1a54bad4102d18f89c78f45c915964554a62f994c1bffa693844cac5e119cca8"
-CURRENT_MANIFEST = '6fbd47a393f3377664859a479c46ca53192305096c5cf8366a249854c406f654'
+CURRENT_MANIFEST = 'c154e1c71f1351f02f99477babae646760c491ca1039b8ba51a9508076a9cc08'
+APPRUNNER_CURRENT_MANIFEST = '6fbd47a393f3377664859a479c46ca53192305096c5cf8366a249854c406f654'
+APPRUNNER_CURRENT_TREE = '3043d253ecdb229018b0d0a71326a136d1f8d7af669933a22a65d9affc84a7d4'
+APPRUNNER_CURRENT_ENTRY_COUNT = 666
+APPRUNNER_CURRENT_EXCLUDED_COUNT = 3725
+APPRUNNER_CURRENT_ARCHIVE_SHA256 = 'd42fd391ed8bdddc61960c0613af6ce598847c78c560c6aa352b18dda6d405e8'
+APPRUNNER_CURRENT_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-666-source-manifest.json'
+APPRUNNER_CURRENT_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-666-catalog.tar.gz'
 BATCH_CURRENT_MANIFEST = 'a295871d623b8091fe0d3c1536293784ec93ec12db1914ae3707134e7840e6a2'
 BATCH_CURRENT_TREE = '79a6945cd533dc781d668c234a59029476948af84d2b4af7198a8c1b10543cd9'
 BATCH_CURRENT_ENTRY_COUNT = 665
@@ -61,9 +68,9 @@ PRIOR_CURRENT_MANIFEST = "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0c
 PRIOR_DISCLOSURE_MANIFEST = "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
 PRIOR_DISCLOSURE_TREE = "5091464bedcb10bb87301695ca733276dc67b865e544c408ccf72a5408176f0f"
 PRIOR_DISCLOSURE_HISTORY = Path(__file__).resolve().parent / "catalog_versions/disclosure-v7-manifest.json"
-CURRENT_TREE = '3043d253ecdb229018b0d0a71326a136d1f8d7af669933a22a65d9affc84a7d4'
+CURRENT_TREE = 'b68a44ccadaf04a9efccf624d4cf7ce2c3c5e9c4b099357dec05b66f59b46efa'
 PRIOR_CURRENT_TREE = "99207e6469fc5e5b3daf21324e6860599b116ffcf7d30600643bd229b0f11494"
-CURRENT_ENTRY_COUNT = 666
+CURRENT_ENTRY_COUNT = 667
 CURRENT_EXCLUDED_COUNT = 3725
 CURRENT_HISTORY = Path(__file__).resolve().parent / "catalog_versions/bulk-principal-v6-manifest.json"
 PRIOR_CATALOG_ARCHIVE = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-catalog-20261016.tar.gz"
@@ -147,6 +154,15 @@ def _verified_batch_current():
         BATCH_CURRENT_MANIFEST_PATH, BATCH_CURRENT_ARCHIVE,
         BATCH_CURRENT_MANIFEST, BATCH_CURRENT_ARCHIVE_SHA256,
         BATCH_CURRENT_TREE, BATCH_CURRENT_ENTRY_COUNT, BATCH_CURRENT_EXCLUDED_COUNT)
+
+
+@lru_cache(maxsize=1)
+def _verified_apprunner_current():
+    """Keep the exact 666-entry catalog used before the AppSync addition."""
+    return _verified_archived_current(
+        APPRUNNER_CURRENT_MANIFEST_PATH, APPRUNNER_CURRENT_ARCHIVE,
+        APPRUNNER_CURRENT_MANIFEST, APPRUNNER_CURRENT_ARCHIVE_SHA256,
+        APPRUNNER_CURRENT_TREE, APPRUNNER_CURRENT_ENTRY_COUNT, APPRUNNER_CURRENT_EXCLUDED_COUNT)
 
 
 def _verified_archived_current(manifest_path, archive_path, manifest_digest, archive_digest,
@@ -274,6 +290,10 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == BATCH_CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "batch_current", "exact_previous_current"
+    elif (binding.get("manifest_sha256") == APPRUNNER_CURRENT_MANIFEST and
+          binding.get("effective_tree_sha256") == APPRUNNER_CURRENT_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "apprunner_current", "exact_previous_current"
     elif (binding.get("manifest_sha256") == INTERMEDIATE_CURRENT_MANIFEST and
           binding.get("effective_tree_sha256") == INTERMEDIATE_CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -320,6 +340,9 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
             return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "batch_current":
             previous = _verified_batch_current()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
+        if version == "apprunner_current":
+            previous = _verified_apprunner_current()
             return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "intermediate_current":
             previous = _verified_intermediate_current()

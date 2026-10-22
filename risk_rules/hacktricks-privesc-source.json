@@ -1,6 +1,6 @@
 {
   "repository": "HackTricks-wiki/hacktricks-cloud",
-  "revision": "0d402f69866d6bd320354442c67501da81c56505",
+  "revision": "4ac4a682ccb2c1c0161b8d192924e0a3581c5114",
   "path": "src/privilege-escalation-paths",
   "canonical_sha256": {
     "aws/_excluded_171e_g1.yaml": "2160b8f57f029e74e5a31727815316f459d8364147c47be2c36639c831b9dcb3",
@@ -48,7 +48,7 @@
     "aws/appflow.yaml": "5c5fe2e779b6dd5f2f6feb41f5a1d8665e8acf005a756cc6f6a508a787abb29a",
     "aws/apprunner.yaml": "6d6a094e241430d46af17c280953c2224b0c9bd70381e50f7bb4569dfcdbbce9",
     "aws/appstream.yaml": "c7b23d0b9444ec822e9400f8e205de333626f6f678ae182ff919e38d4cdb97e1",
-    "aws/appsync.yaml": "c5660f6711142c1ae3e96c2ce3d5d3d66bdc02a0997a30571fcf06cbd8630cf6",
+    "aws/appsync.yaml": "327be80394d78d9b5717d2f9d965ed033f6d24bdef5228cd0abf1d497776adb7",
     "aws/arc-region-switch.yaml": "f66ea819f33f6128cb6a25f2d311e01d1d5e59c81809d2a6e187a49c72a55843",
     "aws/athena.yaml": "a4a2db1f4d00df1f29b642bb5cf23992bbd7a42b9715d046a00797dbd7789695",
     "aws/batch.yaml": "be3a6b9c18228ff17f561ac8e119b011bbddecda5c5821ad7c4b1a7ea8cdc8f9",
@@ -338,7 +338,7 @@
     "aws/appflow.yaml": "5c5fe2e779b6dd5f2f6feb41f5a1d8665e8acf005a756cc6f6a508a787abb29a",
     "aws/apprunner.yaml": "6d6a094e241430d46af17c280953c2224b0c9bd70381e50f7bb4569dfcdbbce9",
     "aws/appstream.yaml": "c7b23d0b9444ec822e9400f8e205de333626f6f678ae182ff919e38d4cdb97e1",
-    "aws/appsync.yaml": "c5660f6711142c1ae3e96c2ce3d5d3d66bdc02a0997a30571fcf06cbd8630cf6",
+    "aws/appsync.yaml": "327be80394d78d9b5717d2f9d965ed033f6d24bdef5228cd0abf1d497776adb7",
     "aws/arc-region-switch.yaml": "f66ea819f33f6128cb6a25f2d311e01d1d5e59c81809d2a6e187a49c72a55843",
     "aws/athena.yaml": "a4a2db1f4d00df1f29b642bb5cf23992bbd7a42b9715d046a00797dbd7789695",
     "aws/batch.yaml": "be3a6b9c18228ff17f561ac8e119b011bbddecda5c5821ad7c4b1a7ea8cdc8f9",
