@@ -20,6 +20,7 @@ import yaml
 
 from .aws import normalize_aws_cloudtrail
 from .aws_raw_cloudtrail import normalize as normalize_aws_raw_cloudtrail
+from .aws_workspaces_web_batch231 import normalize as normalize_aws_workspaces_web_batch231
 from .aws_login_profile_next import normalize_aws_other_user_login_profile, normalize_aws_other_user_login_profile_update
 from .aws_security_controls import normalize_aws_security_control
 from .aws_trail_update import normalize_aws_trail_update
@@ -649,6 +650,7 @@ def detect_aws_events(
         iam_identity_deletion = normalize_aws_iam_identity_deletion(record)
         iam_credential_deletion = normalize_aws_iam_credential_deletion(record)
         iam_cert_key_controls = normalize_aws_iam_cert_key_controls(record)
+        workspaces_web_batch231 = normalize_aws_workspaces_web_batch231(record)
         return (([base] if base is not None else [])
                 + ([cloudtrail_selectors] if cloudtrail_selectors is not None else [])
                 + ([profile] if profile is not None else [])
@@ -874,6 +876,7 @@ def detect_aws_events(
                 + ([iam_identity_deletion] if iam_identity_deletion is not None else [])
                 + ([iam_credential_deletion] if iam_credential_deletion is not None else [])
                 + ([iam_cert_key_controls] if iam_cert_key_controls is not None else [])
+                + ([workspaces_web_batch231] if workspaces_web_batch231 is not None else [])
                 + (normalize_aws_raw_cloudtrail(record) if raw_enabled else []))
 
     selected = rules if rules is not None else load_rules(product="aws")
