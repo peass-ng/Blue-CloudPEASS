@@ -108,6 +108,7 @@ WORKLOAD_HOSTS = {"codebuild_project": "codebuild_project", "codebuild_sandbox":
 # {target.attached_resource_arn}.
 SELECTOR_HOSTS = {"cognito_user_pool_group_role_covered_by": "cognito_user_pool_group",
                   "cognito_user_pool_covered_by": "cognito_user_pool_identity_pool",
+                  "cognito_developer_authenticated_role": "cognito_developer_authenticated",
                   "codedeploy_group_instance_role_covered_by": "codedeploy_deployment_group",
                   "rolesanywhere_profile_includes_target": "rolesanywhere_profile"}
 # service_plane value -> collected inventory of that application plane (aws_service_plane_admin targets).
@@ -3271,6 +3272,48 @@ class AwsModel(Model):
 
     def _selector_ext(self, key, value, candidates, source):
         out = {}
+        if key == "cognito_developer_authenticated_role":
+            host = "cognito_developer_authenticated"
+            for rid, node in candidates.items():
+                pools = self.hosts.get(rid, {}).get(host, ())
+                unknown = False
+                for pool_arn in pools:
+                    pool_id = str(pool_arn).split("identitypool/", 1)[-1]
+                    overrides = {"cognito-identity.amazonaws.com:aud": [pool_id],
+                                 "cognito-identity.amazonaws.com:amr": ["authenticated", "cognito-identity.amazonaws.com"]}
+                    denied = self._trust_explicit_deny(rid, "sts:AssumeRoleWithWebIdentity",
+                                                        federated="cognito-identity.amazonaws.com",
+                                                        extra_overrides=overrides)
+                    if denied is True:
+                        continue
+                    context = Context(action="sts:assumerolewithwebidentity", resource=rid, overrides=overrides)
+                    # _trust_explicit_deny cannot resolve NotPrincipal against a federated token.
+                    # Keep the target unresolved if such a deny may apply.
+                    not_principal_deny = any(
+                        statement.effect == "deny" and statement.ref.get("not_principal")
+                        and statement.action_matches("sts:AssumeRoleWithWebIdentity")
+                        and (not statement.condition or evaluate_condition(statement.condition, context)[0] is not False)
+                        for statement in self.trust.get(rid, ()))
+                    for statement in self.trust.get(rid, ()):
+                        principal = statement.principals
+                        if (statement.effect != "allow" or statement.ref.get("not_principal")
+                                or not statement.action_matches("sts:AssumeRoleWithWebIdentity")
+                                or not isinstance(principal, dict)
+                                or "cognito-identity.amazonaws.com" not in
+                                [str(name).lower() for name in as_list(principal.get("Federated"))]):
+                            continue
+                        verdict, _ = evaluate_condition(statement.condition, context) if statement.condition else (True, ())
+                        if verdict is False:
+                            continue
+                        if verdict is True and not statement.variables and denied is False and not not_principal_deny:
+                            out[rid] = None
+                            break
+                        unknown = True
+                    if rid in out:
+                        break
+                if rid not in out and (unknown or self.host_status.get((node.scope, host)) not in ("collected", "empty")):
+                    out[rid] = ("unknown", "cognito_developer_pool_role_or_trust_not_verified")
+            return out
         if key == "consumer_input_writable_via" and str(value).lower().startswith("imagebuilder:"):
             # Recipe component ARNs (GetImageRecipe) decide membership: a version-wildcard account-owned component is derived;
             # fully pinned / AWS-owned components only exclude the role; an uncollected recipe stays conditional.
@@ -3693,8 +3736,17 @@ class AwsModel(Model):
                 for role in (roles.get("Roles") or {}).values() if isinstance(roles.get("Roles"), dict) else ():
                     if isinstance(role, str) and role:
                         add(role, "cognito_identity_pool", pool_arn)
+                if (isinstance(config, dict) and config.get("collection_status") == "collected"
+                        and isinstance(config.get("DeveloperProviderName"), str)
+                        and config["DeveloperProviderName"].strip()):
+                    authenticated = (roles.get("Roles") or {}).get("authenticated") if isinstance(roles.get("Roles"), dict) else None
+                    if isinstance(authenticated, str) and authenticated:
+                        add(authenticated, "cognito_developer_authenticated", pool_arn)
             else:
                 partial.add((account, "cognito_identity_pool"))
+            if (not isinstance(roles, dict) or roles.get("collection_status") not in ok
+                    or not isinstance(config, dict) or config.get("collection_status") != "collected"):
+                partial.add((account, "cognito_developer_authenticated"))
             if (not isinstance(roles, dict) or roles.get("collection_status") not in ok
                     or not isinstance(config, dict) or config.get("collection_status") not in (None, "collected")):
                 partial.add((account, "cognito_user_pool_identity_pool"))
@@ -3754,7 +3806,8 @@ class AwsModel(Model):
                 add(role, "rolesanywhere_profile", item["profileArn"])
         for host, kind in (("cognito_user_pool_group", "cognito_user_pool"), ("cognito_user_pool_identity_pool", "cognito_identity_pool"),
                            ("codedeploy_deployment_group", "codedeploy_deployment_group"), ("rolesanywhere_profile", "rolesanywhere_profile"),
-                           ("cognito_identity_pool", "cognito_identity_pool")):
+                           ("cognito_identity_pool", "cognito_identity_pool"),
+                           ("cognito_developer_authenticated", "cognito_identity_pool")):
             for scope, status in inventory_status(snap, kind).items():
                 key = (scope.split("/")[0], host)
                 if self.host_status.get(key) in (None, "collected", "empty"):
