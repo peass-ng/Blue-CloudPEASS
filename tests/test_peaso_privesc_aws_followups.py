@@ -1401,6 +1401,31 @@ def test_braket_createjob_requires_device_authorization():
                for target, grant in unresolved[0].items())
 
 
+def test_scheduler_requires_grant_on_same_account_schedule_resource():
+    from pathlib import Path
+    import yaml
+    from peaso.privesc.effective_permissions.aws import AwsModel
+    from peaso.privesc.evaluator import Evaluator
+
+    catalog_file = Path(__file__).resolve().parents[1] / "peaso/privesc/catalog/aws/scheduler.yaml"
+    entry = next(item for item in yaml.safe_load(catalog_file.read_text())
+                 if item["id"] == "aws-scheduler-passrole-createschedule-or-updateschedule")
+    passed = role("scheduled", "scheduler.amazonaws.com")
+
+    def evaluate(schedule_resource):
+        caller = user("alice", allow("iam:PassRole", resource=passed["Arn"]),
+                      allow("scheduler:CreateSchedule", resource=schedule_resource))
+        snap = aws_snap([caller], [passed])
+        return [reach.targets for reach in Evaluator(AwsModel(snap), [entry],
+                 include_unknown=False).run() if reach.source.id == ALICE]
+
+    same_account = f"arn:aws:scheduler:{REGION}:{ACCOUNT}:schedule/default/*"
+    other_account = f"arn:aws:scheduler:{REGION}:{OTHER}:schedule/default/*"
+    assert evaluate(f"arn:aws:scheduler:{REGION}:{ACCOUNT}:schedule-group/*") == []
+    assert evaluate(other_account) == []
+    assert any(passed["Arn"] in targets for targets in evaluate(same_account))
+
+
 def test_agentcore_created_interpreter_needs_grants_covering_its_generated_id():
     tid = "aws-bedrock-agentcore-createcodeinterpreter-passrole"
     prefix = f"arn:aws:bedrock-agentcore:{REGION}:{ACCOUNT}:code-interpreter-custom/"
