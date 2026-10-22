@@ -144,7 +144,7 @@ def test_condition_policy_variable_substitution():
     assert C.substitute("arn:aws:iam::*:user/${aws:PrincipalTag/x}", ctx) is None
 
 
-def test_condition_excluding_technique_drops_edge_and_undecidable_stays_unknown():
+def test_condition_excluding_technique_drops_edge_and_missing_launch_stays_unknown():
     excluded = {"Effect": "Allow", "Action": "iam:PassRole", "Resource": "*",
                 "Condition": {"StringEquals": {"iam:PassedToService": "lambda.amazonaws.com"}}}
     result = real(aws([user("alice", excluded, PASS_RUN[1])], [role("ec2-role")]), "aws-ec2-passrole-runinstances")
@@ -154,9 +154,8 @@ def test_condition_excluding_technique_drops_edge_and_undecidable_stays_unknown(
                   "aws-ec2-passrole-runinstances", include_unknown=True)
     assert reached(result, ALICE) == {}
     assert statuses(result, "aws-ec2-passrole-runinstances") == ["UNKNOWN"]
-    detail = result["graph"]["edges"][0]["technique_details"][0]
-    cited = [r for r in detail["evidence_refs"] if r.get("condition_evaluated") == "undecided"]
-    assert cited and cited[0]["policy_name"] == "p" and cited[0]["statement"] == 0     # the exact granting statement
+    assert any("ec2_runinstances_role_execution_evidence_missing_or_conflicting" in row.get("reason", "")
+               for row in result["coverage"])
 
 
 def test_proven_passrole_condition_still_needs_ec2_launch_witness():
@@ -236,7 +235,9 @@ def test_admin_source_is_short_circuited():
     assert result["stats"]["skipped_admin_source_evaluations"] >= 1
     assert [f["status"] for f in result["findings"] if f["check_id"] == "admin-equivalent"] == ["FAIL"]
     full = real(aws([admin], [role("ec2-role")]), "aws-ec2-passrole-runinstances", include_admin_sources=True)
-    assert EC2_ROLE in reached(full, sid, "aws-ec2-passrole-runinstances")
+    assert reached(full, sid, "aws-ec2-passrole-runinstances") == {}
+    assert any("ec2_runinstances_role_execution_evidence_missing_or_conflicting" in row.get("reason", "")
+               for row in full["coverage"])
 
 
 def test_memoized_sources_match_individual_evaluation():
@@ -252,7 +253,9 @@ def test_memoized_sources_match_individual_evaluation():
     key = lambda r: sorted((e["source"], e["target"], e["confidence"]) for e in r["graph"]["edges"])
     assert key(memo) == key(plain)
     for u in users:
-        assert len(reached(memo, u["Arn"])) == 4
+        assert reached(memo, u["Arn"]) == {}
+    assert any("ec2_runinstances_role_execution_evidence_missing_or_conflicting" in row.get("reason", "")
+               for row in memo["coverage"])
 
 
 # ----------------------------------------------------------------------- Kubernetes

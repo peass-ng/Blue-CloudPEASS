@@ -1,6 +1,8 @@
 """Build the per-technique AWS privilege-escalation validation register."""
 
 import csv
+import hashlib
+import json
 import re
 from pathlib import Path
 
@@ -10,6 +12,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 REVIEW = Path(__file__).with_name("technique-status.tsv")
 OUTPUT = Path(__file__).with_name("verification-status.tsv")
+DRIFT_OUTPUT = Path(__file__).with_name("static-parity-source-drift.tsv")
 
 # Each name is a catalog precondition whose evaluator reads
 # aws_privesc_challenge_evidence before accepting the role effect.
@@ -67,6 +70,42 @@ emr_containers_endpoint_route
 emr_containers_pod_identity_job_route
 """.split())
 
+# These focused helper tests pass without the global conftest. They exercise
+# proof binding and rejection; they do not exercise catalog-to-graph wiring.
+FOCUSED_HELPER_TESTS = {
+    "aws-m2-passrole-createapplication-deploy": "tests/test_aws_m2_role_effect.py",
+    "aws-mgh-passrole-automation-unit": "tests/test_aws_mgh_automation_role_effect.py",
+    "aws-migrationhub-orchestrator-workflow-step": "tests/test_aws_orchestrator_role_effect.py",
+    "aws-mwaa-passrole-updateenvironment": "tests/test_aws_mwaa_role_effect.py",
+    "aws-mwaa-serverless-passrole-createworkflow": "tests/test_aws_mwaa_role_effect.py",
+    "aws-organizations-createaccount-principalorgid-trust": "tests/test_aws_org_created_member_role_effect.py",
+    "aws-sagemaker-updateclustersoftware-custom-ami": "tests/test_aws_sagemaker_hyperpod_role_effect.py",
+    "aws-servicecatalog-associateprincipal-createartifact-provision": "tests/test_aws_servicecatalog_role_effect.py",
+    "aws-servicecatalog-createprovisioningartifact-provisionproduct": "tests/test_aws_servicecatalog_role_effect.py",
+    "aws-ssm-jit-startaccessrequest-getaccesstoken": "tests/test_aws_ssm_jit_role_effect.py",
+    "aws-workspaces-instances-passrole-createworkspaceinstance": "tests/test_aws_workspaces_instances_role_effect.py",
+}
+
+ISOLATED_GRAPH_TESTS = {
+    "aws-emr-getclustersessioncredentials-runtime-role": (
+        "tests/test_peaso_privesc_emr_cluster_endpoint_role_effect.py"
+    ),
+    "aws-ec2-passrole-runinstances": "tests/test_peaso_privesc_runinstances_role_effect.py",
+    "aws-iam-addusertogroup": "tests/test_peaso_privesc_iam_add_user_to_group.py",
+    "aws-glue-passrole-createsession": "tests/test_peaso_privesc_new_workload_role_paths.py",
+    "aws-sagemaker-passrole-createnotebookinstance": "tests/test_peaso_privesc_new_workload_role_paths.py",
+    "aws-lambda-updatefunctioncode": "tests/test_peaso_privesc_lambda_code_update_paths.py",
+    "aws-lambda-codesigning-bypass-updatefunctioncode": "tests/test_peaso_privesc_lambda_code_update_paths.py",
+    "aws-lambda-putresourcepolicy-grant-updatefunctioncode": "tests/test_peaso_privesc_lambda_code_update_paths.py",
+}
+
+# The shared CloudFormation precondition calls the proof helper only when
+# attaching a new role. These two techniques use the role already on the stack.
+PROOF_FREE_ATTACHED_ROLE_TECHNIQUES = {
+    "aws-cloudformation-updatestack-attached-role",
+    "aws-cloudformation-changeset-attached-role",
+}
+
 
 def main():
     catalog = {}
@@ -81,12 +120,23 @@ def main():
         reviewed = list(csv.DictReader(stream, delimiter="\t"))
     assert len(reviewed) == len(catalog) == 211
     assert {row["id"] for row in reviewed} == set(catalog)
+    test_texts = {str(path.relative_to(ROOT)): path.read_text(errors="replace")
+                  for path in sorted((ROOT / "tests").glob("test_*.py"))}
+    manifest = json.loads((ROOT / "peaso/server/evidence_static_source_manifest.json").read_text())
+    drift = []
+    for path, expected in sorted(manifest.items()):
+        source = ROOT / path
+        actual = hashlib.sha256(source.read_bytes()).hexdigest() if source.is_file() else "missing"
+        if actual != expected:
+            drift.append({"path": path, "pinned_sha256": expected, "current_sha256": actual})
 
     records = []
     for row in reviewed:
         entry = catalog[row["id"]]
         selector = entry.get("target", {}).get("selector", {})
         matching = sorted(set(entry.get("preconditions", [])) & PROOF_PRECONDITIONS)
+        if row["id"] in PROOF_FREE_ATTACHED_ROLE_TECHNIQUES:
+            matching = []
         if selector.get("aws_challenge_fact"):
             matching.append("selector:aws_challenge_fact")
         if selector.get("assumable_by_pivot_role"):
@@ -94,11 +144,14 @@ def main():
         if row["id"] == "aws-ec2-passrole-associate-instance-profile":
             matching.append("ec2_profile_association:_proof")
         test_refs = sorted(set(re.findall(r"tests/[\w.-]+\.py", row["review_evidence"])))
-        pending = ["Unblock pytest import and run the full suite with this technique covered"]
+        assert all((ROOT / path).is_file() for path in test_refs), row["id"]
+        literal_refs = sorted(path for path, text in test_texts.items() if row["id"] in text)
+        located_refs = sorted(set(test_refs) | set(literal_refs))
+        pending = ["Audit exact positive and negative cases for this technique; reconcile merged private-source admission and rerun the full suite"]
         if matching:
             pending.insert(0, "Resolve external evidence supply or mark the route manual; verify present and absent evidence end to end")
-        if not test_refs:
-            pending.append("Record the positive and negative test file for this technique")
+        if not located_refs:
+            pending.append("Locate or add positive and negative tests for this exact technique")
         records.append({
             "id": row["id"],
             "service": row["service"],
@@ -106,17 +159,33 @@ def main():
             "external_proof_route": "yes" if matching else "no",
             "proof_route": ", ".join(matching),
             "named_test_file": ", ".join(test_refs),
-            "end_to_end_suite": "blocked_before_collection",
+            "literal_test_file": ", ".join(literal_refs),
+            "located_test_file": ", ".join(located_refs),
+            "focused_helper_test": FOCUSED_HELPER_TESTS.get(row["id"], ""),
+            "focused_helper_result": "passed_normal_pytest" if row["id"] in FOCUSED_HELPER_TESTS else "not_run_in_current_audit",
+            "isolated_graph_test": ISOLATED_GRAPH_TESTS.get(row["id"], ""),
+            "isolated_graph_result": "passed_normal_pytest" if row["id"] in ISOLATED_GRAPH_TESTS else "not_run_in_current_audit",
+            "end_to_end_suite": "static_parity_12145_passed_full_suite_stops_on_private_source_admission",
+            "work_done": row["review_evidence"],
             "remaining_work": "; ".join(pending),
         })
 
-    assert sum(r["external_proof_route"] == "yes" for r in records) == 60
+    assert sum(r["external_proof_route"] == "yes" for r in records) == 58
     assert sum(bool(r["named_test_file"]) for r in records) == 111
+    assert sum(bool(r["literal_test_file"]) for r in records) == 177
+    assert sum(bool(r["located_test_file"]) for r in records) == 211
+    assert sum(r["focused_helper_result"] == "passed_normal_pytest" for r in records) == 11
+    assert sum(r["isolated_graph_result"] == "passed_normal_pytest" for r in records) == 8
     with OUTPUT.open("w", newline="") as stream:
-        writer = csv.DictWriter(stream, fieldnames=records[0].keys(), delimiter="\t")
+        writer = csv.DictWriter(stream, fieldnames=records[0].keys(), delimiter="\t", lineterminator="\n")
         writer.writeheader()
         writer.writerows(records)
-    print(f"{len(records)} entries; 60 external proof routes; 111 with named test file; 211 suite blocked")
+    assert not drift, drift
+    with DRIFT_OUTPUT.open("w", newline="") as stream:
+        writer = csv.DictWriter(stream, fieldnames=("path", "pinned_sha256", "current_sha256"), delimiter="\t", lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(drift)
+    print(f"{len(records)} entries; 58 external proof routes; 211 with a located test file; 211 full-suite pending")
 
 
 if __name__ == "__main__":
