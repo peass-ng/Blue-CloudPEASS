@@ -60,4 +60,3 @@ def test_unusable_studio_profile_does_not_hide_another_profile():
               "DomainId": "d-123456789abc", "UserProfileName": "first",
               "Status": "Failed", "ExecutionRole": ROLE_ARN}
     assert _evaluate(extra_profiles=[failed]) == {ROLE_ARN: "conditional"}
-
