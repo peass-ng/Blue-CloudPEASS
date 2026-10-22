@@ -214,6 +214,7 @@ from .aws_ecs_correlations_next import correlate_aws_ecs_dormant_sidecar
 from .aws_emr_serverless_next import normalize_aws_emr_serverless_runtime
 from .aws_emr_serverless_custom_image import normalize_aws_emr_custom_image
 from .aws_emr_classic import normalize_aws_emr_classic
+from .aws_emr_inventory import correlate_aws_emr_inventory
 from .aws_aoss_broad_grant import normalize_aws_aoss_broad_grant
 from .aws_emr_serverless_session_next import correlate_aws_emr_session_endpoint_cross_actor
 from .aws_cloudwatch_controls_next import normalize_aws_cloudwatch_controls
@@ -977,6 +978,7 @@ def detect_aws_events(
     route53_profiles_batch139_records: list[Mapping[str, Any]] = []
     frauddetector_event_records: list[Mapping[str, Any]] = []
     migration_strategy_inventory_records: list[Mapping[str, Any]] = []
+    emr_inventory_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
             if (not isinstance(record, Mapping)
@@ -987,6 +989,8 @@ def detect_aws_events(
                 frauddetector_event_records.append(record)
             if record.get("eventSource") == "migrationhub-strategy.amazonaws.com":
                 migration_strategy_inventory_records.append(record)
+            if record.get("eventSource") == "elasticmapreduce.amazonaws.com":
+                emr_inventory_records.append(record)
             if record.get("eventSource") == "monitoring.amazonaws.com":
                 cloudwatch_alarm_batch108_records.append(record)
             if record.get("eventSource") in {"firehose.amazonaws.com", "sns.amazonaws.com"}:
@@ -1223,6 +1227,7 @@ def detect_aws_events(
     correlated += correlate_aws_chime_live_pipeline_read(chime_media_pipeline_records)
     correlated += correlate_aws_chime_media_insights(chime_media_insights_records)
     correlated += correlate_aws_migration_strategy_inventory(migration_strategy_inventory_records)
+    correlated += correlate_aws_emr_inventory(emr_inventory_records)
     if correlated:
         matches.extend(_detect_events(correlated, selected, lambda event: event, "aws"))
     return matches
