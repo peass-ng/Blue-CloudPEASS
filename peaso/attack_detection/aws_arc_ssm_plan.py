@@ -1,4 +1,4 @@
-"""Detect accepted ARC Region Switch plans containing an SSM command step."""
+"""Validate ARC Region Switch plan writes and identify SSM command steps."""
 
 from __future__ import annotations
 
@@ -41,8 +41,8 @@ def _ssm_step(steps: Any, depth: int = 0) -> bool:
     return False
 
 
-def normalize_aws_arc_ssm_plan(record: Mapping[str, Any]) -> dict[str, Any] | None:
-    """Emit only a fixed flag and hashed plan ID; never copy commands or role ARNs."""
+def accepted_arc_plan(record: Mapping[str, Any]) -> tuple[dict[str, Any], list[Any]] | None:
+    """Return a private, response-confirmed plan view and safe event envelope."""
     name = record.get("eventName")
     if (record.get("eventSource") != "arc-region-switch.amazonaws.com"
             or name not in {"CreatePlan", "UpdatePlan"}
@@ -62,9 +62,7 @@ def normalize_aws_arc_ssm_plan(record: Mapping[str, Any]) -> dict[str, Any] | No
     role_match = _ROLE.fullmatch(role) if isinstance(role, str) else None
     workflows = request.get("workflows")
     if (not role_match or role_match.group(1) != account
-            or not isinstance(workflows, list) or len(workflows) > 20
-            or not any(isinstance(workflow, Mapping)
-                       and _ssm_step(workflow.get("steps")) for workflow in workflows)):
+            or not isinstance(workflows, list) or len(workflows) > 20):
         return None
     plan = response.get("plan")
     if not isinstance(plan, Mapping):
@@ -83,6 +81,19 @@ def normalize_aws_arc_ssm_plan(record: Mapping[str, Any]) -> dict[str, Any] | No
     result = dict(envelope[0])
     result.pop("__raw_cloudtrail", None)
     result["target.id"] = "sha256:" + hashlib.sha256(arn.encode("utf-8")).hexdigest()[:24]
+    return result, workflows
+
+
+def normalize_aws_arc_ssm_plan(record: Mapping[str, Any]) -> dict[str, Any] | None:
+    """Emit only a fixed flag and hashed plan ID; never copy commands or role ARNs."""
+    accepted = accepted_arc_plan(record)
+    if accepted is None:
+        return None
+    result, workflows = accepted
+    if not any(isinstance(workflow, Mapping)
+               and _ssm_step(workflow.get("steps")) for workflow in workflows):
+        return None
+    name = record["eventName"]
     result["request.arc_ssm_command_plan_created" if name == "CreatePlan"
            else "request.arc_ssm_command_plan_updated"] = True
     return result
