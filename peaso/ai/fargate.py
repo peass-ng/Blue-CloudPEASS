@@ -78,6 +78,10 @@ def pack_workspace(root):
             total += metadata.st_size
             if total > MAX_INPUT:
                 raise ValueError('agent_input_too_large')
+            if path.name == 'credentials.json':
+                document = json.loads(path.read_text())
+                if any(entry.get('provider') == 'aws' for entry in document.get('entries', [])):
+                    raise ValueError('aws_live_ai_access_disabled')
             archive.add(path, arcname=path.name, recursive=False)
     data = output.getvalue()
     if len(data) > MAX_INPUT:

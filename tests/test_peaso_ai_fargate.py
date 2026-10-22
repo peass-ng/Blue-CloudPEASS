@@ -8,6 +8,8 @@ import tarfile
 import threading
 import pytest
 from peaso.ai import fargate, isolation, model_relay, task_runtime
+from tests.test_peaso_aws_iam_contract import field, policies, resource_blocks, values
+from pathlib import Path
 
 
 def definition():
@@ -19,6 +21,27 @@ def definition():
             'mountPoints': [{'sourceVolume': n+'-scratch', 'containerPath':'/tmp', 'readOnly':False}],
             'linuxParameters': {'capabilities': {'drop':['ALL']}},
             'entryPoint':['python','-m','peaso.ai.task_runtime'], 'command':[n]} for n in ('agent','relay')]}
+
+
+def test_ai_ecs_roles_are_separate_and_minimal():
+    source = (Path(__file__).resolve().parents[1] / 'infra/aws/ai_runtime.tf').read_text()
+    task = resource_blocks(source, 'aws_ecs_task_definition')['ai']
+    with pytest.raises(AssertionError, match='Missing HCL field task_role_arn'):
+        field(task, 'task_role_arn')
+    assert values(task, 'execution_role_arn') == ('aws_iam_role.ai_execution.arn',)
+    assert values(task, 'depends_on') == ('aws_iam_role_policy.ai_execution',)
+    assert 'PEASO_AI_FARGATE_CLUSTER         = aws_ecs_cluster.ai.arn' in source
+    assert 'aws_ecs_cluster.cspm.arn' not in source
+    assert 'aws_iam_role.execution.arn' not in source
+    execution = policies(source)['ai_execution']
+    assert {(action, resource) for row in execution for action in row.actions for resource in row.resources} == {
+        ('ecr:GetAuthorizationToken', '*'),
+        ('ecr:BatchGetImage', 'aws_ecr_repository.worker.arn'),
+        ('ecr:GetDownloadUrlForLayer', 'aws_ecr_repository.worker.arn'),
+        ('ecr:BatchCheckLayerAvailability', 'aws_ecr_repository.worker.arn'),
+        ('logs:CreateLogStream', '${aws_cloudwatch_log_group.ai_tasks.arn}:*'),
+        ('logs:PutLogEvents', '${aws_cloudwatch_log_group.ai_tasks.arn}:*'),
+    }
 
 
 @pytest.fixture
@@ -276,7 +299,7 @@ def test_shared_platform_identity_capture_can_be_disabled():
     assert access.finish()[0]['token']=='customer-token'
 
 
-def test_old_gcp_access_and_derived_cluster_tokens_are_not_exported():
+def test_old_gcp_and_aws_access_are_not_exported():
     from peaso.ai import access
     old = [{'provider': 'gcp', 'token': 'legacy'}, {'provider': 'k8s', 'token': 'derived'}]
     snapshot = {'provider': 'gcp'}
@@ -285,7 +308,31 @@ def test_old_gcp_access_and_derived_cluster_tokens_are_not_exported():
     access.bearer('gcp', 'https://www.googleapis.com/', 'customer-token')
     current = access.finish()
     assert access.eligible_entries(current, snapshot) == current
-    assert access.eligible_entries(old, {'provider': 'aws'}) == old
+    assert access.eligible_entries(current + [{'provider': 'aws', 'format': 'aws-session'}], snapshot) == current
+    aws = [{'provider': 'aws', 'format': 'aws-session', 'aws_access_key_id': 'legacy'},
+           {'provider': 'k8s', 'token': 'independent'}]
+    assert access.eligible_entries(aws, {'provider': 'aws'}) == aws[1:]
+    access.begin(allow_live=False)
+    assert access.enabled() is False and access.finish() == []
+
+
+def test_aws_and_shared_gcp_credentials_are_not_captured_for_agents():
+    from peaso.ai import access
+    assert not access.may_capture_live({'provider': 'aws', 'auth': {'method': 'assume_role'}})
+    assert not access.may_capture_live({'provider': 'aws', 'auth': {'method': 'access_keys'}})
+    assert not access.may_capture_live({'provider': 'gcp', 'auth': {'method': 'platform-service-account'}})
+    assert access.may_capture_live({'provider': 'gcp', 'auth': {'method': 'service-account'}})
+    assert access.may_capture_live({'provider': 'azure', 'auth': {}})
+
+
+def test_agent_launch_rejects_aws_sessions_even_if_a_caller_passes_them(tmp_path):
+    from peaso.ai import pipeline
+    aws_entry = {'provider': 'aws', 'format': 'aws-session', 'aws_access_key_id': 'inert'}
+    with pytest.raises(ValueError, match='aws_live_ai_access_disabled'):
+        pipeline.invoke('hardening', {}, [aws_entry], 'inert', [], [], 30)
+    (tmp_path / 'credentials.json').write_text(json.dumps({'entries': [aws_entry]}))
+    with pytest.raises(ValueError, match='aws_live_ai_access_disabled'):
+        fargate.pack_workspace(tmp_path)
 
 
 def test_infrastructure_startup_failure_is_retryable_and_still_cleans_transport(configured, tmp_path):

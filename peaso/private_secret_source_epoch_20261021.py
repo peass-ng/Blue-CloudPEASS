@@ -24,8 +24,8 @@ import sysconfig
 from types import CodeType, FunctionType, MethodType, ModuleType
 import zipfile
 
-_RECEIPT_SHA256 = "ea40b7c8e95df0d3d2eb6005009c623c96f27aba4aaf32f7012cb0fa686ba8a5"
-_SELF_SHA256 = "ed3c06c3670bd016c0e5809b7c3165c49135828678f2c59f91425229ebd0c711"
+_RECEIPT_SHA256 = "3a87d258af858c20dd1ecd80463de7dc74f81ef75ed8ce8e2901bedbbdd96c96"
+_SELF_SHA256 = "3ec95c5ece3c4761ee872cccc2d5dacb5a80cf2a93c22d482876017a36c34240"
 _ARCHIVE_SHA256 = "3eb403fa363c559f7053060d409f60ac8c693350350423a6dc775412df4300c0"
 _HELPER_SHA256 = "15092e316c2331e03fdae7fad4dda5ed92310a1c15a827b0009fbcd54a11693a"
 _BASE = "6b6ee759234d7e2dad978342838cb3af4e1fe767"
@@ -520,6 +520,30 @@ def _live(root: str | Path, relative: str, row: dict) -> tuple[bytes, Path]:
         raise AdmissionError("private dependency mismatch")
     path = _root_path(root, relative)
     data = path.read_bytes()
+    if relative in ("peaso/collectors/aws_code_log_content_indicators.py",
+                    "peaso/collectors/gcp_log_secret_indicators.py",
+                    "peaso/collectors/aws_selected_configuration_secret_indicators.py"):
+        receipt, _ = _receipt()
+        transition = receipt["current_reviewed_files"][relative]
+        old_sha = {
+            "peaso/collectors/aws_selected_configuration_secret_indicators.py": "c7a87afb1fc02740979a34efa2a03141d4e0daddbfdda1e45c604507c31c450f",
+            "peaso/collectors/aws_code_log_content_indicators.py": "9a93faa6ea79503a43d80da060b9623b27b05ee22b7a5cda5b2037b63d02f8f4",
+            "peaso/collectors/gcp_log_secret_indicators.py": "742707093416635c370b49b5f4d4ceb7aa6ead869a7d3748e1ee3698a4ab8268",
+        }[relative]
+        if (transition["predecessor_sha256"] != old_sha
+                or transition["current_sha256"] != row["after_sha256"]):
+            raise AdmissionError("reviewed source transition changed")
+        text = data.decode("utf-8")
+        for before, after in transition["exact_replacements"]:
+            if text.count(after) != 1:
+                raise AdmissionError("reviewed source replacement changed")
+            text = text.replace(after, before, 1)
+        for addition in transition["exact_additions"]:
+            if text.count(addition) != 1:
+                raise AdmissionError("reviewed source addition changed")
+            text = text.replace(addition, "", 1)
+        if _sha(text.encode("utf-8")) != old_sha:
+            raise AdmissionError("reviewed source predecessor changed")
     if _sha(data) != row["after_sha256"]:
         raise AdmissionError("current source mismatch")
     return data, path

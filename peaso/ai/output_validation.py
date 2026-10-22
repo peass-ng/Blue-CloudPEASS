@@ -54,7 +54,7 @@ def validate(stage, data, original):
     elif stage == 'network':
         validate_network(data, original)
     else:
-        validate_actions(data, original['report'], original['reviews'])
+        validate_actions(data, original['report'], original['reviews'], require_assessment=True)
     return data
 
 

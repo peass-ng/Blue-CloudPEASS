@@ -218,6 +218,7 @@ resource "aws_sfn_state_machine" "scan" {
           { Variable = "$.job_status.Item.status.S", StringEquals = "failed", Next = "Failed" },
           { Variable = "$.job_status.Item.status.S", StringEquals = "timed_out", Next = "Failed" },
           { Variable = "$.job_status.Item.status.S", StringEquals = "queue_exhausted", Next = "Failed" },
+          { Variable = "$.job_status.Item.status.S", StringEquals = "credentials_expired", Next = "Failed" },
         ]
         Default = "MarkFailed"
       }

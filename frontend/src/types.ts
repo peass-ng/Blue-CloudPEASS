@@ -186,6 +186,8 @@ export type Scan = {
   connector_id: string;
   status: string;
   result_available?: boolean;
+  resumable?: boolean;
+  error_code?: string;
   created_at: string;
   categories: string[];
   error?: string;
@@ -202,6 +204,8 @@ export type ScheduleRule = {
 };
 export type Schedule = {
   ai_enabled?: boolean;
+  ai_priorities_enabled?: boolean;
+  ai_network_enabled?: boolean;
   id: string;
   name?: string;
   connector_id: string;

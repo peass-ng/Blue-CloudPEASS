@@ -735,9 +735,11 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
 
     def public_scan(row):
         from .scan_names import display_name
+        from .scan_resume import resume_stage
         value = store.public_job(row)
         frozen = json.loads(row["connector"])
         data = frozen.get("data", {})
+        value["resumable"] = bool(resume_stage(row))
         return dict(value, display_name=display_name(value, data, None), connector_name=data.get("name"))
 
     def attack_source(body, user):
@@ -959,6 +961,23 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
     def scan(ident: str, user=Depends(identity)):
         if user.auth_kind != "api_key":
             store.expire()
+        return public_scan(store.job(user.tenant_id, ident))
+
+    @app.post("/api/scans/{ident}/resume")
+    def resume_scan(ident: str, body: dict, user=Depends(identity)):
+        if body:
+            raise HTTPException(422, "Resume takes an empty JSON object")
+        from .scan_resume import compatible_connector, recoverable_sources
+        row = store.job(user.tenant_id, ident)
+        recoverable_sources(row, store, artifacts)
+        latest = store.connector(user.tenant_id, row["connector_id"])
+        compatible_connector(row, latest, cipher)
+        current = cipher.decrypt(latest["auth"])
+        provider = json.loads(latest["data"])["provider"]
+        validate_connector(provider, current["auth"], current["options"], settings,
+                           server_external_id=True, scopes=json.loads(latest["data"]).get("scopes", []))
+        value = store.resume_job(user.tenant_id, ident, latest)
+        dispatcher.dispatch(user.tenant_id, value)
         return public_scan(store.job(user.tenant_id, ident))
 
     @app.post("/api/scans/{ident}/cancel")

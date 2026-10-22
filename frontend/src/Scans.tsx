@@ -46,8 +46,12 @@ export const terminalStatuses = [
   "cancelled",
   "timed_out",
   "queue_exhausted",
+  "credentials_expired",
 ];
 const hasResults = (scan: Scan) => scan.status === "completed" || scan.result_available === true;
+const analysisIds = new Set(["exposure", "least_privilege", "iam_graph", "network", "privesc"]);
+const hardeningCategories = categories.filter((category) => !analysisIds.has(category.id));
+const analysisCategories = categories.filter((category) => analysisIds.has(category.id));
 function ScanCategories({ selected = [] }: { selected?: string[] }) {
   const [expanded, setExpanded] = useState(false);
   const all = categories.every(category => selected.includes(category.id));
@@ -82,6 +86,11 @@ export function Scans({
   function refresh() {
     void client.invalidateQueries({ queryKey: [demo ? "demo" : "live"] });
   }
+  const resume = useMutation({
+    mutationFn: (id: string) => request<Scan>(`/scans/${encodeURIComponent(id)}/resume`, json({}), demo),
+    onSuccess: value => { if (inspect?.id === value.id) setInspect(value); refresh(); },
+    onError: error => setError(humanError(error)),
+  });
   const cancel = useMutation({
     mutationFn: (id: string) =>
       request(`/scans/${encodeURIComponent(id)}/cancel`, json({}), demo),
@@ -157,15 +166,7 @@ export function Scans({
             !items(scansQuery.data).length
           }
           title="Your first scan starts here"
-        >
-          <button
-            className="button primary"
-            disabled={demo || !canWrite}
-            onClick={() => setLaunch(true)}
-          >
-            Launch a scan
-          </button>
-        </State>
+        />
         <div className="card-list">
           {items(scansQuery.data).map((s) => (
             <article className="scan-row" key={s.id}>
@@ -187,7 +188,7 @@ export function Scans({
                     (c) => c.id === s.connector_id,
                   )?.name, date(s.created_at), scanDuration(s)].filter(Boolean).join(" · ")}
                 </p>
-                {["failed", "queue_exhausted"].includes(s.status) && s.error && (
+                {["failed", "queue_exhausted", "credentials_expired"].includes(s.status) && s.error && (
                   <p role="alert">{humanError(s.error)}</p>
                 )}
                 {s.progress_details && !terminalStatuses.includes(s.status) && <p className="scan-progress" aria-label="Latest scan progress">
@@ -202,11 +203,12 @@ export function Scans({
               {s.input_mode && s.input_mode !== "live" && (
                 <Badge value={s.input_mode} />
               )}
-              {hasResults(s) && (
-                <>
-                  <button className="button" onClick={() => onSelect(s)}>
-                    <Eye size={15} />
-                    {s.status === "completed" ? "View" : "View partial"}
+              <div className="scan-actions" aria-label={`Actions for ${names.get(s.id)}`}>
+                {hasResults(s) && (
+                  <>
+                  <button className="icon-button" aria-label={s.status === "completed" ? "Open results" : "Open partial results"}
+                    title={s.status === "completed" ? "Open results" : "Open partial results"} onClick={() => onSelect(s)}>
+                    <Eye size={17} />
                   </button>
                   <button
                     className="icon-button"
@@ -217,6 +219,10 @@ export function Scans({
                   </button>
                 </>
               )}
+              {s.resumable && terminalStatuses.includes(s.status) && <button className="icon-button" aria-label="Resume scan" title="Resume scan"
+                disabled={demo || !canWrite || resume.isPending} onClick={() => resume.mutate(s.id)}>
+                <Play size={15} />
+              </button>}
               {!terminalStatuses.includes(s.status) && (
                   <button
                     className="icon-button"
@@ -227,11 +233,12 @@ export function Scans({
                   >
                     <Square size={13} />
                   </button>
-              )}
-              <button className="icon-button danger" aria-label={`Delete scan ${names.get(s.id)}`}
+                )}
+                <button className="icon-button danger scan-action-delete" aria-label={`Delete scan ${names.get(s.id)}`}
                 disabled={demo || !canWrite || !terminalStatuses.includes(s.status)}
                 title={terminalStatuses.includes(s.status) ? "Delete scan and its evidence" : "Cancel this scan before deleting it"}
-                onClick={() => { deleteScan.reset(); setRemove(s); }}><Trash2 size={17} /></button>
+                  onClick={() => { deleteScan.reset(); setRemove(s); }}><Trash2 size={17} /></button>
+              </div>
             </article>
           ))}
         </div>
@@ -340,9 +347,15 @@ export function Scans({
           <p>{names.get(inspect.id)}</p>
           <Badge value={inspect.status} />
           {scanDuration(inspect) && <p title="Total time from launch, including queue and processing time.">{scanDuration(inspect)}</p>}
-          {inspect.status === "failed" && inspect.error && (
+          {["failed", "credentials_expired", "timed_out"].includes(inspect.status) && inspect.error && (
             <p role="alert">{humanError(inspect.error)}</p>
           )}
+          {inspect.resumable && terminalStatuses.includes(inspect.status) && <div className="scan-resume-choice">
+            <p className="muted small">Continue the unfinished work with the connector’s current credentials. Saved results stay in this scan.</p>
+            <button className="button primary" disabled={demo || !canWrite || resume.isPending}
+              onClick={() => resume.mutate(inspect.id)}>{resume.isPending ? "Resuming…" : "Resume from saved progress"}</button>
+            {resume.error && <p role="alert">{humanError(resume.error)}</p>}
+          </div>}
           <h3>Recorded scan details</h3>
           <Evidence data={inspect} />
           {hasResults(inspect) && (
@@ -417,6 +430,8 @@ export function LaunchForm({
     schedule?.categories || categories.map((c) => c.id),
   );
   const [aiEnabled, setAiEnabled] = useState(schedule?.ai_enabled ?? true);
+  const [aiPrioritiesEnabled, setAiPrioritiesEnabled] = useState(schedule?.ai_priorities_enabled ?? true);
+  const [aiNetworkEnabled, setAiNetworkEnabled] = useState(schedule?.ai_network_enabled ?? true);
   const codex = useApi<{ available: boolean; disabled?: boolean; isolation_available?: boolean }>("/ai/codex", demo);
   const aiAvailable = !demo && codex.data?.available === true;
   const [checks, setChecks] = useState(schedule?.checks?.join(", ") || "");
@@ -431,6 +446,12 @@ export function LaunchForm({
   const [scheduleTimezone, setScheduleTimezone] = useState(schedule?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC");
   const [error, setError] = useState("");
   const isSchedule = schedule !== undefined;
+  const previousScans = useApi<{ items: Scan[] }>("/scans", demo, !isSchedule);
+  const [continuePrevious, setContinuePrevious] = useState(false);
+  const latest = items(previousScans.data).filter(scan => scan.connector_id === connector)
+    .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))[0];
+  const previous = latest?.resumable && terminalStatuses.includes(latest.status) ? latest : undefined;
+  const resumePrevious = !isSchedule && continuePrevious && !!previous;
   const mutation = useMutation({
     mutationFn: (payload: unknown) =>
       request(
@@ -452,16 +473,26 @@ export function LaunchForm({
       onClose();
     },
   });
+  const resumeMutation = useMutation({
+    mutationFn: (id: string) => request<Scan>(`/scans/${encodeURIComponent(id)}/resume`, json({}), demo),
+    onSuccess: () => { void client.invalidateQueries({ queryKey: [demo ? "demo" : "live"] }); onClose(); },
+  });
   function submit(e: FormEvent) {
     e.preventDefault();
     if (!connector) return setError("Choose a connector first.");
+    if (resumePrevious) { resumeMutation.mutate(previous.id); return; }
     if (!selected.length)
       return setError("Select at least one assessment category.");
     if (isSchedule && rules.some(rule => !rule.time || (rule.frequency === "weekly" && !rule.weekdays?.length)))
       return setError("Choose a time for each rule and at least one weekday for every weekly rule.");
+    const aiWorkSelected = aiPrioritiesEnabled || selected.includes("exposure") ||
+      (selected.includes("network") && aiNetworkEnabled) ||
+      hardeningCategories.some((category) => selected.includes(category.id));
     mutation.mutate({
       connector_id: connector,
-      ai_enabled: aiAvailable && aiEnabled,
+      ai_enabled: aiAvailable && aiEnabled && aiWorkSelected,
+      ai_priorities_enabled: aiPrioritiesEnabled,
+      ai_network_enabled: aiNetworkEnabled,
       categories: selected,
       checks: checks
         .split(",")
@@ -485,7 +516,7 @@ export function LaunchForm({
           <select
             aria-label="Connector"
             value={connector}
-            onChange={(e) => { setConnector(e.target.value); setFrameworks([]); setFrameworkSearch(""); }}
+            onChange={(e) => { setConnector(e.target.value); setContinuePrevious(false); setFrameworks([]); setFrameworkSearch(""); }}
             required
           >
             <option value="">Select an environment</option>
@@ -499,88 +530,117 @@ export function LaunchForm({
         {!connectors.length && (
           <p className="form-error">Add a connector before launching a scan.</p>
         )}
-        <label className="checkbox"><input type="checkbox" checked={aiAvailable && aiEnabled} disabled={!aiAvailable} onChange={event => setAiEnabled(event.target.checked)} />Use AI to verify failed findings and prioritize security actions</label>
+        {!isSchedule && previous && <fieldset className="scan-resume-choice">
+          <legend>Previous scan is unfinished</legend>
+          <label className="checkbox"><input type="radio" name="scan-continuation" checked={!resumePrevious}
+            onChange={() => setContinuePrevious(false)} />Start a new scan from scratch</label>
+          <label className="checkbox"><input type="radio" name="scan-continuation" checked={resumePrevious}
+            onChange={() => setContinuePrevious(true)} />Resume the previous scan</label>
+          <p className="muted small">{resumePrevious ? "Keeps the same scan and saved results. Only unfinished work runs, using the original check selection and the connector’s current credentials." : "Collects fresh evidence and creates a new scan."}</p>
+        </fieldset>}
+        {!resumePrevious && <>
+        <label className="checkbox"><input type="checkbox" checked={aiAvailable && aiEnabled} disabled={!aiAvailable} onChange={event => setAiEnabled(event.target.checked)} />Use AI to verify failed findings</label>
         {!aiAvailable && <p className="muted small">{codex.isPending ? "Checking AI access…" : codex.data?.disabled ? "AI review is disabled for every scan in Settings." : codex.data?.isolation_available === false ? "AI checks are unavailable until the platform administrator configures isolated agent execution." : "Configure an AI provider, model and thinking effort in Settings to enable AI checks."}</p>}
-        <fieldset>
-          <legend>Assessment categories <span className="category-count">{selected.length} / {categories.length} selected</span></legend>
-          <div className="assessment-category-grid">
-            {categories.map((c) => (
-              <label key={c.id} className="checkbox">
-                <input
-                  type="checkbox"
-                  checked={selected.includes(c.id)}
-                  onChange={(e) =>
-                    setSelected(
-                      e.target.checked
-                        ? [...selected, c.id]
-                        : selected.filter((x) => x !== c.id),
-                    )
-                  }
-                />
-                {c.label}
-              </label>
-            ))}
-          </div>
-        </fieldset>
-        <label>
-          Check IDs (optional, comma separated)
-          <input
-            value={checks}
-            onChange={(e) => setChecks(e.target.value)}
-            placeholder="Empty = supported checks in selected categories"
-          />
-        </label>
-        <details>
-          <summary>Frameworks and checklist versions (optional){frameworks.length ? ` · ${frameworks.length} selected` : ""}</summary>
-          <div className="form" style={{ marginTop: 12 }}>
-            <p className="muted small">Choose a framework to limit the checks. Leave this empty to run all checks in the selected categories.</p>
-            {frameworks.map((value, index) => <div className="framework-selection" key={`${index}-${value}`}>
-              <span aria-label={`Framework ${index + 1}`}>{availableFrameworks.find((choice) => choice.value === value)?.label || `${value} · unavailable for this connector`}</span>
-              <button type="button" className="text-button" aria-label={`Remove framework ${index + 1}`} onClick={() => setFrameworks(frameworks.filter((_, i) => i !== index))}>Remove</button>
-            </div>)}
-            <details ref={frameworkPicker} className="framework-picker" onToggle={(event) => { if (event.currentTarget.open) event.currentTarget.querySelector("input")?.focus(); }}>
-              <summary>Add another framework</summary>
-              <div className="framework-picker-content">
-                <label>Search frameworks and checklist versions
-                  <input type="search" value={frameworkSearch} onChange={(event) => setFrameworkSearch(event.target.value)} placeholder="Search by name or version" disabled={!selectedConnector || !catalog.data} />
+        <section className="assessment-config-section" aria-labelledby="hardening-config-title">
+          <div className="assessment-section-heading"><span>01</span><div><h3 id="hardening-config-title">Hardening &amp; Compliance</h3><p>Select the checks to run for this environment.</p></div></div>
+          <fieldset>
+            <legend>Check categories <span className="category-count">{hardeningCategories.filter((category) => selected.includes(category.id)).length} / {hardeningCategories.length} selected</span></legend>
+            <div className="assessment-category-grid">
+              {hardeningCategories.map((c) => (
+                <label key={c.id} className="checkbox">
+                  <input
+                    type="checkbox"
+                    checked={selected.includes(c.id)}
+                    onChange={(e) =>
+                      setSelected(
+                        e.target.checked
+                          ? [...selected, c.id]
+                          : selected.filter((x) => x !== c.id),
+                      )
+                    }
+                  />
+                  {c.label}
                 </label>
-                {!selectedConnector || !catalog.data ? <p className="muted small">{catalog.isPending ? "Loading frameworks…" : "Choose a connector to see its frameworks."}</p> :
-                  matchingFrameworks.length ? <div className="framework-choice-list">
-                    {(["family", "version"] as const).map((group) => {
-                      const choices = matchingFrameworks.filter((choice) => choice.group === group);
-                      return choices.length ? <div key={group} className="framework-choice-group">
-                        <p>{group === "family" ? "Framework families" : "Exact checklist versions"}</p>
-                        {choices.map((choice) => <button key={choice.value} type="button" onClick={() => {
-                          setFrameworks([...frameworks, choice.value]);
-                          setFrameworkSearch("");
-                          frameworkPicker.current?.removeAttribute("open");
-                        }}>{choice.label}</button>)}
-                      </div> : null;
-                    })}
-                  </div> : <p className="muted small">No matching frameworks remain.</p>}
-              </div>
-            </details>
-            {!!catalog.error && <p role="alert">Framework catalog could not be loaded. You can still launch without a framework filter.</p>}
+              ))}
+            </div>
+          </fieldset>
+          <label>
+            Check IDs (optional, comma separated)
+            <input
+              value={checks}
+              onChange={(e) => setChecks(e.target.value)}
+              placeholder="Empty = supported checks in selected categories"
+            />
+          </label>
+          <details>
+            <summary>Frameworks and checklist versions (optional){frameworks.length ? ` · ${frameworks.length} selected` : ""}</summary>
+            <div className="form" style={{ marginTop: 12 }}>
+              <p className="muted small">Choose a framework to limit the checks. Leave this empty to run all checks in the selected categories.</p>
+              {frameworks.map((value, index) => <div className="framework-selection" key={`${index}-${value}`}>
+                <span aria-label={`Framework ${index + 1}`}>{availableFrameworks.find((choice) => choice.value === value)?.label || `${value} · unavailable for this connector`}</span>
+                <button type="button" className="text-button" aria-label={`Remove framework ${index + 1}`} onClick={() => setFrameworks(frameworks.filter((_, i) => i !== index))}>Remove</button>
+              </div>)}
+              <details ref={frameworkPicker} className="framework-picker" onToggle={(event) => { if (event.currentTarget.open) event.currentTarget.querySelector("input")?.focus(); }}>
+                <summary>Add another framework</summary>
+                <div className="framework-picker-content">
+                  <label>Search frameworks and checklist versions
+                    <input type="search" value={frameworkSearch} onChange={(event) => setFrameworkSearch(event.target.value)} placeholder="Search by name or version" disabled={!selectedConnector || !catalog.data} />
+                  </label>
+                  {!selectedConnector || !catalog.data ? <p className="muted small">{catalog.isPending ? "Loading frameworks…" : "Choose a connector to see its frameworks."}</p> :
+                    matchingFrameworks.length ? <div className="framework-choice-list">
+                      {(["family", "version"] as const).map((group) => {
+                        const choices = matchingFrameworks.filter((choice) => choice.group === group);
+                        return choices.length ? <div key={group} className="framework-choice-group">
+                          <p>{group === "family" ? "Framework families" : "Exact checklist versions"}</p>
+                          {choices.map((choice) => <button key={choice.value} type="button" onClick={() => {
+                            setFrameworks([...frameworks, choice.value]);
+                            setFrameworkSearch("");
+                            frameworkPicker.current?.removeAttribute("open");
+                          }}>{choice.label}</button>)}
+                        </div> : null;
+                      })}
+                    </div> : <p className="muted small">No matching frameworks remain.</p>}
+                </div>
+              </details>
+              {!!catalog.error && <p role="alert">Framework catalog could not be loaded. You can still launch without a framework filter.</p>}
+            </div>
+          </details>
+        </section>
+        <section className="assessment-config-section" aria-labelledby="analysis-config-title">
+          <div className="assessment-section-heading"><span>02</span><div><h3 id="analysis-config-title">Other analyses</h3><p>Turn each analysis on or off for this assessment.</p></div></div>
+          <div className="assessment-category-grid">
+            <label className="checkbox"><input type="checkbox" checked={aiAvailable && aiEnabled && aiPrioritiesEnabled}
+              disabled={!aiAvailable || !aiEnabled} onChange={(event) => setAiPrioritiesEnabled(event.target.checked)} />Top 15 Actions <small>Uses AI</small></label>
+            {analysisCategories.map((category) => <label key={category.id} className="checkbox">
+              <input type="checkbox" checked={selected.includes(category.id)} onChange={(event) =>
+                setSelected(event.target.checked ? [...selected, category.id] : selected.filter((id) => id !== category.id))} />
+              {category.id === "network" ? "Network Map" : category.id === "privesc" ? "Privilege Escalation Map" : category.label}
+            </label>)}
+            <label className="checkbox"><input type="checkbox" checked={aiAvailable && aiEnabled && aiNetworkEnabled && selected.includes("network")}
+              disabled={!aiAvailable || !aiEnabled || !selected.includes("network")}
+              onChange={(event) => setAiNetworkEnabled(event.target.checked)} />Network Architecture <small>Uses AI and Network Map</small></label>
           </div>
-        </details>
+        </section>
         {isSchedule && (
           <>
             {schedule && !schedule.rules?.length && <p className="muted small">This schedule currently runs every {schedule.interval_hours || 168} hours. Saving replaces that interval with the calendar rules below.</p>}
             <ScheduleRules rules={rules} timezone={scheduleTimezone} onRules={setRules} onTimezone={setScheduleTimezone} />
           </>
         )}
-        {(error || mutation.error) && (
+        </>}
+        {(error || (resumePrevious ? resumeMutation.error : mutation.error)) && (
           <p className="form-error" role="alert">
-            {error || (mutation.error && humanError(mutation.error))}
+            {error || humanError(resumePrevious ? resumeMutation.error : mutation.error)}
           </p>
         )}
         <button
           className="button primary"
-          disabled={mutation.isPending || !connectors.length}
+          disabled={mutation.isPending || resumeMutation.isPending || !connectors.length}
           type="submit"
         >
-          {mutation.isPending
+          {mutation.isPending || resumeMutation.isPending
             ? "Submitting…"
+            : resumePrevious ? "Resume previous scan"
             : isSchedule
               ? "Save schedule"
               : "Start scan"}

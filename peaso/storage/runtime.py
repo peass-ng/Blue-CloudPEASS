@@ -47,10 +47,14 @@ class WorkflowDispatcher:
             import boto3
             self.client = boto3.client("stepfunctions")
         import json
-        if self.store.job(tenant, job["id"])["status"] != "queued":
+        queued = self.store.job(tenant, job["id"])
+        if queued["status"] != "queued":
             return False
         try:
-            self.client.start_execution(stateMachineArn=self.arn, name="scan-" + job["id"], input=json.dumps({"tenant_id": tenant, "scan_id": job["id"]}))
+            attempt = int(queued.get("resume_attempt") or 0)
+            name = "scan-" + job["id"] + ("-r" + str(attempt) if attempt else "")
+            self.client.start_execution(stateMachineArn=self.arn, name=name,
+                                        input=json.dumps({"tenant_id": tenant, "scan_id": job["id"]}))
             return True
         except self.client.exceptions.ExecutionAlreadyExists:
             return True

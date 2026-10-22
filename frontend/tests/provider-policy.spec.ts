@@ -64,6 +64,7 @@ test("hosted Kubernetes connector has no owner policy by default", async ({ page
 test("hosted Kubernetes form rejects duplicate namespaces and sends exact declaration", async ({ page }) => {
   const sent = await hostedApi(page);
   await startK8s(page);
+  await page.getByText("Advanced configuration").click();
   await page.getByLabel("Declare system namespaces for this cluster").check();
   await page.getByLabel("Exact cluster ID").fill("cluster-a");
   await page.getByLabel("Declaration observed at (UTC, optional)").fill(declaration.observed_at);
@@ -105,6 +106,7 @@ test("hosted Kubernetes edit preserves declaration and clears it only when unche
 test("hosted Kubernetes optional freshness must be paired", async ({ page }) => {
   const sent = await hostedApi(page);
   await startK8s(page);
+  await page.getByText("Advanced configuration").click();
   await page.getByLabel("Declare system namespaces for this cluster").check();
   await page.getByLabel("Exact cluster ID").fill("cluster-a");
   await page.getByLabel("Maximum policy items").fill("1");
@@ -154,10 +156,10 @@ async function startGcp(page: Page) {
   await page.getByLabel("Connector name").fill("GCP policy fixture");
   await page.getByLabel("Authentication").selectOption("token");
   await page.getByLabel("Access token", { exact: true }).fill("fixture-token");
-  await page.getByLabel("Project IDs (comma separated)").fill("demo-project");
   await expect(page.getByText("Data Access required principals")).toBeHidden();
   await expect(page.getByText("Private Service Connect requirements")).toBeHidden();
   await page.getByText("Advanced configuration").click();
+  await page.getByLabel("Project IDs (comma separated)").fill("demo-project");
   await expect(page.getByText("Data Access required principals")).toBeVisible();
   await expect(page.getByText("Private Service Connect requirements")).toBeVisible();
 }

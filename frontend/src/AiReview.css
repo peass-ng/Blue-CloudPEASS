@@ -58,3 +58,9 @@
 .network-summary-collapse, .network-summary[open] .network-summary-preview, .network-summary[open] .network-summary-expand { display: none; }
 .network-summary[open] .network-summary-collapse { display: block; margin-bottom: 20px; }
 .network-summary summary:focus-visible { outline: 2px solid var(--mint); outline-offset: 6px; }
+
+.actions-table th:nth-child(2), .actions-table th:nth-child(3) { width: 110px; }
+.action-assessment { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 20px; font-size: 12px; }
+.action-assessment > span { display: flex; align-items: center; gap: 8px; }
+.action-effort { display: inline-block; font-size: 11px; padding: 4px 9px; border-radius: 4px; text-transform: capitalize; background: #10272c; color: var(--mint); }
+.action-effort.effort-high { background: #392a20; color: #eac58c; }
