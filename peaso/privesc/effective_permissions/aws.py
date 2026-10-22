@@ -4067,8 +4067,11 @@ class AwsModel(Model):
                 # UpdateIdentityPool can enable guest and Basic flow together. Basic flow
                 # cannot issue tokens while the pool has role mappings.
                 guest_update_pools.append((pool_arn, region))
-            elif (not isinstance(config, dict) or config.get("collection_status") != "collected"
-                  or not isinstance(roles, dict) or roles.get("collection_status") not in ok):
+            elif (not pool_arn or not isinstance(config, dict) or config.get("collection_status") != "collected"
+                  or not isinstance(config.get("IdentityPoolName"), str) or not config.get("IdentityPoolName")
+                  or type(config.get("AllowUnauthenticatedIdentities")) is not bool
+                  or not isinstance(roles, dict) or roles.get("collection_status") not in ok
+                  or not isinstance(roles.get("RoleMappings", {}), dict)):
                 partial.add((account, "cognito_guest_update_classic"))
             if (pool_arn and isinstance(config, dict) and config.get("collection_status") == "collected"
                     and isinstance(config.get("DeveloperProviderName"), str)

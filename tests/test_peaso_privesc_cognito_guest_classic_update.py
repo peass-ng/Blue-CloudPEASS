@@ -69,6 +69,13 @@ def test_guest_basic_update_requires_guest_trust_and_no_role_mappings():
 def test_guest_basic_update_does_not_claim_incomplete_pool_facts():
     assert reaches(config_status="access_denied") == []
     assert reaches(roles_status="access_denied") == []
+    target = role("target", trust())
+    model = AwsModel(aws_snap([user("alice", UPDATE)], [target], [pool(mappings="malformed")]))
+    candidates = {arn: node for arn, node in model.principals.items() if node.kind == "aws_role"}
+    assert model.selector("cognito_guest_update_classic_role", True, candidates,
+                          model.principals[ALICE]) == {
+        f"arn:aws:iam::{ACCOUNT}:role/target":
+        ("unknown", "cognito_guest_pool_role_or_trust_not_verified")}
 
 
 def test_guest_basic_update_respects_explicit_trust_deny():
