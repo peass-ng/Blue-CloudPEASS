@@ -21,6 +21,23 @@ from peaso.storage.runtime import stores, WorkflowDispatcher
 LOGGER = logging.getLogger(__name__)
 
 
+def _verify_aws_credentials(connector):
+    """Reject an expired selected session before scheduling native inventory."""
+    if connector.get("provider") != "aws":
+        return
+    from botocore.config import Config
+    from peaso.collectors.aws import _session
+    try:
+        region = (connector.get("options", {}).get("regions") or ["us-east-1"])[0]
+        session, _ = _session(connector.get("auth", {}), region)
+        session.client("sts", config=Config(connect_timeout=5, read_timeout=10,
+            retries={"max_attempts": 1})).get_caller_identity()
+    except Exception:
+        # Provider exceptions can contain request/credential details. Keep this
+        # early failure within the existing sanitized credential error path.
+        raise PermissionError("AWS connector authentication failed before collection") from None
+
+
 class _SynchronizedPipe:
     """Serialize child progress and background checkpoint frames on one pipe."""
     def __init__(self, connection):
@@ -167,6 +184,7 @@ def _process(role, request, connection):
         artifacts = FileArtifacts(Path(config["root"])) if config["mode"] == "file" else S3Artifacts(config["bucket"], kms_key=config.get("kms_key"))
         tenant, ident = request["tenant_id"], request["scan_id"]
         if role == "collector":
+            _verify_aws_credentials(request.get("connector", {}))
             from peaso.engine import collect_snapshot
             from peaso.snapshot import seal
             connector = request.get("connector", {})
