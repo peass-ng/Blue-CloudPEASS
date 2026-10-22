@@ -36,3 +36,12 @@ def test_valid_selected_session_has_one_bounded_identity_probe(monkeypatch):
 
 def test_other_providers_do_not_probe_aws():
     _verify_aws_credentials({'provider': 'gcp'})
+
+
+def test_offline_aws_snapshot_does_not_require_live_credentials(monkeypatch):
+    from peaso.collectors import aws
+    def must_not_authenticate(*args, **kwargs):
+        raise AssertionError('Offline snapshot evaluation must not contact AWS')
+    monkeypatch.setattr(aws, '_session', must_not_authenticate)
+    _verify_aws_credentials({'provider': 'aws', 'input_mode': 'offline_snapshot'})
+    _verify_aws_credentials({'provider': 'aws', 'input_mode': 'demo'})

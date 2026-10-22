@@ -1698,6 +1698,19 @@ RUNTIME_CONFIG_SHA256 = {
     "ai_runtime.tf": "3a1e98be34ff47397d6fb83f5a7f6fdddaaf51f7b8dc4a2c3cdad676e6d017ab",
     "ai_network.tf": "e180dee4032309d52455d23a59062a536dd231caa874a78b17057b7115308eab",
 }
+# Explicitly reviewed two-hour runtime successor; retain the historical source pin.
+RUNTIME_LIMITS_PREDECESSOR_SHA256 = "2c9bdcfc7e08edb02c36dc1640692e1d00a412b326053c8120eff70257870554"
+RUNTIME_LIMITS_CURRENT_SHA256 = "12845ef9a58c6d1064d21054b2f54577c594e30e4773fa36bda1988e593bcd4d"
+RUNTIME_LIMITS_EXACT_REPLACEMENTS = (
+    (b"workflow_seconds = 3600", b"workflow_seconds = 7200"),
+    (b"stage_seconds    = 1800", b"stage_seconds    = 7200"),
+    (b"lease_seconds    = 3900", b"lease_seconds    = 7500"),
+    (b"var.scan_runtime_limits.workflow_seconds <= 3600", b"var.scan_runtime_limits.workflow_seconds <= 7200"),
+    (b"var.scan_runtime_limits.stage_seconds <= 3600", b"var.scan_runtime_limits.stage_seconds <= 7200"),
+    (b"var.scan_runtime_limits.lease_seconds <= 3900", b"var.scan_runtime_limits.lease_seconds <= 7500"),
+    ("900–3600s, stages 300–3600s".encode(), "900–7200s, stages 300–7200s".encode()),
+    (b"(at most3900s)", b"(at most7500s)"),
+)
 # Reviewed 39ff93f IAM successor: the API role may read only the configured
 # Codex token secret ARN. The original runtime contract hashes stay intact.
 IAM_RUNTIME_CURRENT_SHA256 = "319e90d9f2f377be919c815ed27f433ae4f45868bbf3bb984f36c9fddfc213a2"
@@ -2331,6 +2344,15 @@ def deployment_expectations(data, plan):
         current_digest = tf_files.get(name)
         if current_digest == historical_digest:
             continue
+        if name == "variables.tf" and current_digest == RUNTIME_LIMITS_CURRENT_SHA256:
+            restored = (INFRA / name).read_bytes()
+            for before, after in RUNTIME_LIMITS_EXACT_REPLACEMENTS:
+                if restored.count(after) != 1:
+                    raise RuntimeError("Runtime limit successor differs from its exact reviewed change")
+                restored = restored.replace(after, before, 1)
+            if hashlib.sha256(restored).hexdigest() != RUNTIME_LIMITS_PREDECESSOR_SHA256:
+                raise RuntimeError("Runtime limit successor does not reconstruct its historical source")
+            continue
         if name != "iam.tf" or current_digest != IAM_RUNTIME_CURRENT_SHA256:
             raise RuntimeError("Runtime configuration requires a new explicit contract review")
         current_bytes = (INFRA / name).read_bytes()
@@ -2343,7 +2365,7 @@ def deployment_expectations(data, plan):
     if variables.get("region") != "us-east-1":
         raise RuntimeError("Saved deployment region differs from dedicated account region")
     limits = variables.get("scan_runtime_limits") or {}
-    if not isinstance(limits.get("workflow_seconds"), int) or not 900 <= limits["workflow_seconds"] <= 3600:
+    if not isinstance(limits.get("workflow_seconds"), int) or not 900 <= limits["workflow_seconds"] <= 7200:
         raise RuntimeError("Saved scan runtime limit is missing or unsupported")
     public_template_enabled = variables.get("enable_public_customer_role_template", False)
     if not isinstance(public_template_enabled, bool):

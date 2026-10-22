@@ -14,6 +14,7 @@ import fnmatch
 import re
 from dataclasses import dataclass, field
 from functools import lru_cache
+from peaso.snapshot import FrozenDict
 
 CONF_RANK = {"derived": 0, "conditional": 1, "unknown": 2}
 MAX_REFS = 12
@@ -145,7 +146,21 @@ def as_list(value):
     return value if isinstance(value, list) else [value]
 
 
+class _IndexedSnapshot(FrozenDict):
+    """One model's ordered collection index; native facts remain shared."""
+    __slots__ = ("_by_kind",)
+
+    def __init__(self, source):
+        dict.__init__(self, source)
+        grouped = {}
+        for collection in source.get("collections", ()):
+            grouped.setdefault(collection.get("type"), []).append(collection)
+        object.__setattr__(self, "_by_kind", {kind: tuple(rows) for kind, rows in grouped.items()})
+
+
 def collections(snapshot, kind):
+    if isinstance(snapshot, _IndexedSnapshot):
+        return list(snapshot._by_kind.get(kind, ()))
     return [c for c in snapshot.get("collections", []) if c.get("type") == kind]
 
 
@@ -172,7 +187,7 @@ class Model:
     entity_kinds = ()
 
     def __init__(self, snapshot, catalog_keys=()):
-        self.snapshot = snapshot
+        self.snapshot = _IndexedSnapshot(snapshot)
         self.principals = {}
         self.coverage = []
         self.catalog_keys = set(catalog_keys)

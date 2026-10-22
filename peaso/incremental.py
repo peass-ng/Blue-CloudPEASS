@@ -333,9 +333,8 @@ class CheckpointSession:
                     self._flush_pending()
                 if self.sequence == self.last_published:
                     return None
-                collections = copy.deepcopy(self.collections)
                 sequence = self.sequence
-                ready, complete = self._ready(collections)
+                ready, complete = self._ready()
                 if not ready:
                     return None
                 categories = {check.category for check in self.native_checks if check.id in ready}
@@ -347,6 +346,7 @@ class CheckpointSession:
                         and sequence - self.last_published < self.collection_stride
                         and now - self.last_time < self.interval):
                     return None
+                collections = copy.deepcopy(self.collections)
                 from .scan_sections import states
                 sections = states(self.provider, self.effective_scopes, self.section_dependencies,
                     collections, dict(self.collection_revisions), finished=self.collection_finished,

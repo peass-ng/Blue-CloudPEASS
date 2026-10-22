@@ -31,7 +31,7 @@ def terraform():
 @pytest.fixture(scope="module")
 def workflow(terraform):
     definition, bounds = validator.compile_definition(ROOT, terraform)
-    assert bounds == {"workflow_seconds": 3600, "stage_seconds": 1800, "lease_seconds": 3900}
+    assert bounds == {"workflow_seconds": 7200, "stage_seconds": 7200, "lease_seconds": 7500}
     compiled = json.loads(definition)
     parallel = compiled["States"]["ScanStages"]
     assert parallel["Type"] == "Parallel" and compiled["StartAt"] == "ScanStages"
@@ -73,6 +73,26 @@ def test_actual_terraform_sizing_defaults_and_validation(terraform, tmp_path, mo
         # variable validation, so assert its diagnostic as well as status.
         assert "Invalid value for variable" in result.stderr
 
+
+
+def test_actual_runtime_limit_defaults_and_upper_bounds(terraform, tmp_path):
+    text = (ROOT / "infra/aws/variables.tf").read_text()
+    match = re.search(r'variable\s+"scan_runtime_limits"', text)
+    _, stop = validator.balanced(text[match.end():], "{", "}")
+    (tmp_path / "main.tf").write_text(text[match.start():match.end() + stop])
+    def evaluate(value=None):
+        command = [terraform, f"-chdir={tmp_path}", "console", "-no-color"]
+        if value is not None:
+            command.append("-var=scan_runtime_limits=" + json.dumps(value))
+        return subprocess.run(command, input="jsonencode(var.scan_runtime_limits)\n", capture_output=True, text=True)
+    result = evaluate()
+    assert result.returncode == 0, result.stderr
+    defaults = json.loads(json.loads(result.stdout))
+    assert defaults == {"workflow_seconds": 7200, "stage_seconds": 7200, "lease_seconds": 7500}
+    for change in ({"workflow_seconds": 7201}, {"stage_seconds": 7201}, {"lease_seconds": 7501},
+                   {"lease_seconds": 7499}, {"workflow_seconds": 899}, {"stage_seconds": 299},
+                   {"stage_seconds": 7200.5}):
+        assert "Invalid value for variable" in evaluate(dict(defaults, **change)).stderr
 
 def test_cost_uses_both_stage_sizes_and_60_second_minimum(monkeypatch):
     for key in list(os.environ):
