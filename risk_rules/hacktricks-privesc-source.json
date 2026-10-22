@@ -1,6 +1,6 @@
 {
   "repository": "HackTricks-wiki/hacktricks-cloud",
-  "revision": "ac36f708ff088424379f8bfff06814dd01625ace",
+  "revision": "3af89b11ead0d758ab37db9f1ccd91e6f3883ee2",
   "path": "src/privilege-escalation-paths",
   "canonical_sha256": {
     "aws/_excluded_171e_g1.yaml": "2160b8f57f029e74e5a31727815316f459d8364147c47be2c36639c831b9dcb3",
@@ -121,7 +121,7 @@
     "aws/servicecatalog.yaml": "ce875946ac107aab77c6ab037add8f007c28c05a00f6f528f369a58ba09987f3",
     "aws/snowball.yaml": "a1cd3e4be7ab795309b54b85438fcf667d3c4e147fbeac9a76fb6f78a2f47c44",
     "aws/ssm-incidents.yaml": "0b67e3ed49dc935b1f3ed45b2948d571637394e93aacf87ca238438a8833c0b6",
-    "aws/ssm.yaml": "2b625fe0b4b667f4b0cd908c867b74b37387849ff4ef558595c8c2d92dc2097a",
+    "aws/ssm.yaml": "8771f84f3c8d0024fca5cbfb7817646fd44a70422ab9ff269cfe611fb6ad1103",
     "aws/sso.yaml": "78bf5142f989b0009292b61f27aab7ba3565a99bf75830f4b67d1ff82e277ba4",
     "aws/stepfunctions.yaml": "a74fee8d582598961779dc431605aa3d2a3469c09d87181af5e053f33ccf539f",
     "aws/sts.yaml": "8339400182a52d2b380606f2f5bdb30a15e3afaf6c31e00adafc5d71da8c2d4d",
@@ -411,7 +411,7 @@
     "aws/servicecatalog.yaml": "ce875946ac107aab77c6ab037add8f007c28c05a00f6f528f369a58ba09987f3",
     "aws/snowball.yaml": "a1cd3e4be7ab795309b54b85438fcf667d3c4e147fbeac9a76fb6f78a2f47c44",
     "aws/ssm-incidents.yaml": "0b67e3ed49dc935b1f3ed45b2948d571637394e93aacf87ca238438a8833c0b6",
-    "aws/ssm.yaml": "2b625fe0b4b667f4b0cd908c867b74b37387849ff4ef558595c8c2d92dc2097a",
+    "aws/ssm.yaml": "8771f84f3c8d0024fca5cbfb7817646fd44a70422ab9ff269cfe611fb6ad1103",
     "aws/sso.yaml": "78bf5142f989b0009292b61f27aab7ba3565a99bf75830f4b67d1ff82e277ba4",
     "aws/stepfunctions.yaml": "a74fee8d582598961779dc431605aa3d2a3469c09d87181af5e053f33ccf539f",
     "aws/sts.yaml": "8339400182a52d2b380606f2f5bdb30a15e3afaf6c31e00adafc5d71da8c2d4d",

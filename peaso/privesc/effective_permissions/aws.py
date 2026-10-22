@@ -4774,6 +4774,71 @@ class AwsModel(Model):
                     unknown = True
         return ("unknown", "mwaa_dag_object_or_role_read_not_verified") if unknown else None
 
+    def _ssm_hybrid_shell_route(self, source, role, *, session):
+        """Bind a live hybrid node and its recorded service role to shell access."""
+        statuses = inventory_status(self.snapshot, "ssm_managed_instance")
+        if not statuses:
+            return ("unknown", "ssm_hybrid_inventory_not_recorded")
+        unknown = bool(source.incomplete or role.incomplete or
+                       any(status not in ("collected", "empty") for status in statuses.values()))
+        action = "ssm:startsession" if session else "ssm:sendcommand"
+        partition = source.id.split(":", 2)[1]
+        role_name = role.id.rsplit("/", 1)[-1]
+        for scope, node in items(self.snapshot, "ssm_managed_instance"):
+            if statuses.get(scope) != "collected" or not scope.startswith(source.scope + "/"):
+                continue
+            if not isinstance(node, dict) or node.get("IamRole") != role_name:
+                continue
+            account, region = scope.split("/", 1)
+            instance_id = node.get("InstanceId")
+            if (not isinstance(instance_id, str) or not re.fullmatch(r"mi-[0-9a-f]{17}", instance_id)
+                    or role.scope != account or role.id.split(":", 2)[1] != partition):
+                unknown = True
+                continue
+            if node.get("PingStatus") != "Online":
+                unknown = unknown or not node.get("PingStatus")
+                continue
+            platform = node.get("PlatformType")
+            if platform not in ("Linux", "Windows"):
+                unknown = True
+                continue
+            instance_arn = f"arn:{partition}:ssm:{region}:{account}:managed-instance/{instance_id}"
+            node_grant = self._check_action(source, action, instance_arn)
+            if node_grant is None:
+                continue
+            if session:
+                doc_name = "SSM-SessionManagerRunShell"
+                doc_account = account
+            else:
+                doc_name = "AWS-RunShellScript" if platform == "Linux" else "AWS-RunPowerShellScript"
+                doc_account = ""
+            document_arn = f"arn:{partition}:ssm:{region}:{doc_account}:document/{doc_name}"
+            document_grant = self._check_action(source, action, document_arn)
+            if document_grant is None:
+                unknown = unknown or bool(source.incomplete)
+                continue
+            grants = [node_grant, document_grant]
+            if session:
+                # The session ID does not exist yet. An exact old ID cannot authorize
+                # its future data channel, so require a wildcard-capable grant.
+                channel_allows, _ = self._statements(source, "ssmmessages:opendatachannel")
+                future_channel = any(statement.notresource or any(
+                    resource == "*" or "*" in resource or "?" in resource
+                    for resource in statement.resources) for statement in channel_allows)
+                if not future_channel:
+                    unknown = unknown or bool(source.incomplete)
+                    continue
+                channel_arn = f"arn:{partition}:ssm:{region}:{account}:session/*"
+                channel_grant = self._check_action(source, "ssmmessages:opendatachannel", channel_arn)
+                if channel_grant is None:
+                    unknown = unknown or bool(source.incomplete)
+                    continue
+                grants.append(channel_grant)
+            if all(grant.confidence == "derived" for grant in grants):
+                return ("conditional", "ssm_hybrid_online_node_role_and_shell_bound")
+            unknown = True
+        return ("unknown", "ssm_hybrid_node_or_shell_authorization_not_verified") if unknown else None
+
     def _mwaa_serverless_new_workflow_route(self, source, role):
         """Prove one writable definition and run scope for every generated workflow ID."""
         workflow_status = inventory_status(self.snapshot, "mwaa_serverless_workflow")
@@ -9052,6 +9117,12 @@ class AwsModel(Model):
                     out[tid] = ("unknown", "ssm_shell_session_or_online_instance_not_verified" if session else
                                 "ssm_shell_document_or_online_instance_not_verified")
             return out
+        if pid in ("ssm_hybrid_sendcommand_role", "ssm_hybrid_startsession_role"):
+            if source is None:
+                return None
+            session = pid == "ssm_hybrid_startsession_role"
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._ssm_hybrid_shell_route(source, role, session=session))}
         if pid == "ssm_shell_association_targets":
             if source is None:
                 return None
