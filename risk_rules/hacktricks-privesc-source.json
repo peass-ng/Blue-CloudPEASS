@@ -1,6 +1,6 @@
 {
   "repository": "HackTricks-wiki/hacktricks-cloud",
-  "revision": "b5997353a45baef79e3fdfc4c49af86a1e8a0d74",
+  "revision": null,
   "path": "src/privilege-escalation-paths",
   "canonical_sha256": {
     "aws/_excluded_171e_g1.yaml": "2160b8f57f029e74e5a31727815316f459d8364147c47be2c36639c831b9dcb3",
@@ -100,7 +100,7 @@
     "aws/healthomics.yaml": "7e1dbf078bf98a2cbb323c539a450da78723934d9cfa983fcff3bb756605077e",
     "aws/iam.yaml": "36eb2b2ae0ef9fb00fd709a8a52a107abd3d0a905dca9fdbd5d2edabc46e4a51",
     "aws/imagebuilder.yaml": "309ff6da67bdaab9ed63045382ae650914f0ecb5921fd64b3ad678670a6bf5ec",
-    "aws/iot.yaml": "08f66d2ae09d52971873c4a2e7d969629b044cdbd1447748b4421e87abf65e23",
+    "aws/iot.yaml": "c2d750a98d71a9a68e83917e67a8517f9e4c96bfda0a103a8e65fa4a93b5864a",
     "aws/lambda.yaml": "039331cbe0720153418d8d07836f21bd8fefb6a268eee8456d2bb3f7d3493a5a",
     "aws/lightsail.yaml": "a994d2be23a92774158141deae61b99649786412f37f67d6f5f24f33a1c7dee7",
     "aws/m2.yaml": "5f6af5d896a364a5a5eb0999e42ae1d9733b9bc03fa8e500b44535c03a207461",
@@ -390,7 +390,7 @@
     "aws/healthomics.yaml": "7e1dbf078bf98a2cbb323c539a450da78723934d9cfa983fcff3bb756605077e",
     "aws/iam.yaml": "36eb2b2ae0ef9fb00fd709a8a52a107abd3d0a905dca9fdbd5d2edabc46e4a51",
     "aws/imagebuilder.yaml": "309ff6da67bdaab9ed63045382ae650914f0ecb5921fd64b3ad678670a6bf5ec",
-    "aws/iot.yaml": "08f66d2ae09d52971873c4a2e7d969629b044cdbd1447748b4421e87abf65e23",
+    "aws/iot.yaml": "c2d750a98d71a9a68e83917e67a8517f9e4c96bfda0a103a8e65fa4a93b5864a",
     "aws/lambda.yaml": "039331cbe0720153418d8d07836f21bd8fefb6a268eee8456d2bb3f7d3493a5a",
     "aws/lightsail.yaml": "a994d2be23a92774158141deae61b99649786412f37f67d6f5f24f33a1c7dee7",
     "aws/m2.yaml": "5f6af5d896a364a5a5eb0999e42ae1d9733b9bc03fa8e500b44535c03a207461",
