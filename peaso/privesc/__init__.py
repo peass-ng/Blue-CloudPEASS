@@ -14,28 +14,46 @@ from functools import lru_cache
 from pathlib import Path
 
 from . import queries
-from .effective_permissions.aws import AwsModel
-from .effective_permissions.azure import AzureModel
-from .effective_permissions.gcp import GcpModel
-from .effective_permissions.k8s import K8sModel
-from .evaluator import Evaluator
-from .graph import GraphBuilder
-from .schema import CATALOG_DIR, CatalogError, load_catalog
-
-MODELS = {"aws": AwsModel, "gcp": GcpModel, "azure": AzureModel, "k8s": K8sModel}
 __all__ = ["analyze", "load_catalog", "queries", "CatalogError", "MODELS"]
 
 
 MAX_BLOCKED_RECORDS = 500
 
 
+def __getattr__(name):
+    """Keep the engine's public exports lazy for API graph-only imports."""
+    if name in globals():
+        return globals()[name]
+    if name in {"CATALOG_DIR", "CatalogError", "load_catalog"}:
+        from . import schema
+        return getattr(schema, name)
+    if name == "Evaluator":
+        from .evaluator import Evaluator
+        return Evaluator
+    if name == "GraphBuilder":
+        from .graph import GraphBuilder
+        return GraphBuilder
+    if name == "MODELS" or name in {"AwsModel", "AzureModel", "GcpModel", "K8sModel"}:
+        from .effective_permissions.aws import AwsModel
+        from .effective_permissions.azure import AzureModel
+        from .effective_permissions.gcp import GcpModel
+        from .effective_permissions.k8s import K8sModel
+        models = {"aws": AwsModel, "gcp": GcpModel, "azure": AzureModel, "k8s": K8sModel}
+        globals().update(MODELS=models, AwsModel=AwsModel, AzureModel=AzureModel,
+                         GcpModel=GcpModel, K8sModel=K8sModel)
+        return globals()[name]
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
 @lru_cache(maxsize=8)
 def _cached_catalog(path):
+    from .schema import load_catalog
     return load_catalog(path)
 
 
 def catalog(catalog_dir=None):
     """Load (and cache) a catalog directory."""
+    from .schema import CATALOG_DIR
     return _cached_catalog(str(Path(catalog_dir) if catalog_dir else CATALOG_DIR))
 
 
@@ -68,7 +86,7 @@ def _analyze(snapshot, catalog_dir=None, *, entries=None, include_unknown=False,
     """
     started = time.perf_counter()
     provider = snapshot.get("provider")
-    model_cls = MODELS.get(provider)
+    model_cls = __getattr__("MODELS").get(provider)
     coverage = []
     if model_cls is None:
         return {"findings": [], "graph": {"nodes": [], "edges": []},
@@ -96,10 +114,12 @@ def _analyze(snapshot, catalog_dir=None, *, entries=None, include_unknown=False,
     admin = {p.id: model.admin_targets(p) for p in model.sources()}
     admin_scopes = {} if include_admin_sources else {
         pid: sorted({entity.scope for entity, _ in found}) for pid, found in admin.items() if found}
+    from .evaluator import Evaluator
     evaluator = Evaluator(model, entries, include_unknown=include_unknown, admin_scopes=admin_scopes)
     reaches = evaluator.run()
     t_eval = time.perf_counter() - t0
     t0 = time.perf_counter()
+    from .graph import GraphBuilder
     builder = GraphBuilder(model, include_admin_sources=include_admin_sources)
     builder.add_admin(model.sources(), admin)
     for reach in reaches:

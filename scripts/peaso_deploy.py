@@ -1944,6 +1944,93 @@ def _omit_verified_duplicate_manifest(source, root=None):
     del source[compressed]
 
 
+def _omit_verified_reconstructible_privesc_history(source, root):
+    """Omit only originals exactly represented by the pinned history block pack."""
+    import ast
+    import base64
+    import gzip
+    import io
+    import struct
+    code_name = 'peaso/privesc/versioned_catalog.py'
+    pack_name = 'peaso/privesc/catalog_versions/runtime-history-v1.zip'
+    code, packed = source[code_name], source[pack_name]
+    pinned = {node.targets[0].id: ast.literal_eval(node.value)
+              for node in ast.parse(code).body if isinstance(node, ast.Assign)
+              and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name)
+              and node.targets[0].id == 'RUNTIME_HISTORY_SHA256'}
+    if hashlib.sha256(packed).hexdigest() != pinned.get('RUNTIME_HISTORY_SHA256'):
+        raise RuntimeError('Privesc history pack differs from runtime pin')
+    if (checked_member(root, code_name).read_bytes() != code
+            or checked_member(root, pack_name).read_bytes() != packed):
+        raise RuntimeError('Privesc history pack changed during freeze')
+    def unique_pairs(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise RuntimeError('Duplicate privesc history index key')
+            result[key] = value
+        return result
+    with zipfile.ZipFile(io.BytesIO(packed)) as archive:
+        names = archive.namelist()
+        if len(names) != len(set(names)) or set(names) != {
+                'index.json', 'blocks.bin', 'references.bin', 'manifests.bin'}:
+            raise RuntimeError('Privesc history pack members changed')
+        index = json.loads(archive.read('index.json'), object_pairs_hook=unique_pairs)
+        blocks = archive.read('blocks.bin')
+        refs = archive.read('references.bin')
+        manifests = archive.read('manifests.bin')
+    if (index.get('schema') != 'privesc-exact-history-v1'
+            or not isinstance(index.get('versions'), dict)
+            or len(index['versions']) != 126
+            or not isinstance(index.get('block_sha256'), list)
+            or len(blocks) != 512 * len(index['block_sha256'])
+            or len(index['block_sha256']) > 65536):
+        raise RuntimeError('Privesc history pack shape changed')
+    for n, digest in enumerate(index['block_sha256']):
+        if hashlib.sha256(blocks[n*512:(n+1)*512]).hexdigest() != digest:
+            raise RuntimeError('Privesc history block changed')
+    from scripts.peaso_build_privesc_history_pack import declarations
+    expected = {archive.name: (manifest.name, manifest_sha, archive_sha)
+                for manifest, archive, manifest_sha, archive_sha, *_ in declarations()}
+    if set(index['versions']) != set(expected):
+        raise RuntimeError('Privesc history roster changed')
+    prefix = 'peaso/privesc/catalog_versions/'
+    omitted = set()
+    for archive_name, row in index['versions'].items():
+        if (not isinstance(archive_name, str) or '/' in archive_name or '\\' in archive_name
+                or not archive_name.endswith('.tar.gz')
+                or (row['manifest_name'], row['manifest_sha256'], row['archive_sha256'])
+                   != expected[archive_name]):
+            raise RuntimeError('Privesc history identity changed')
+        archive_key, manifest_key = prefix + archive_name, prefix + row['manifest_name']
+        for key, digest in ((archive_key, row['archive_sha256']),
+                            (manifest_key, row['manifest_sha256'])):
+            if (hashlib.sha256(source[key]).hexdigest() != digest
+                    or checked_member(root, key).read_bytes() != source[key]):
+                raise RuntimeError('Privesc original changed during freeze: ' + key)
+        offset, count = row['reference_offset'], row['reference_count']
+        moffset, msize = row['manifest_offset'], row['manifest_size']
+        if (not all(type(value) is int for value in (offset, count, moffset, msize))
+                or offset < 0 or count < 1 or offset + count * 2 > len(refs)
+                or moffset < 0 or msize < 1 or moffset + msize > len(manifests)
+                or row['tar_size'] != count * 512):
+            raise RuntimeError('Privesc history references changed')
+        ids = struct.unpack_from('<' + 'H' * count, refs, offset)
+        if any(n >= len(index['block_sha256']) for n in ids):
+            raise RuntimeError('Privesc history block reference changed')
+        tar_bytes = b''.join(blocks[n*512:(n+1)*512] for n in ids)
+        original = source[archive_key]
+        if (tar_bytes != gzip.decompress(original)
+                or not original.startswith(base64.b64decode(row['header'], validate=True))
+                or not original.endswith(base64.b64decode(row['trailer'], validate=True))
+                or manifests[moffset:moffset+msize] != source[manifest_key]):
+            raise RuntimeError('Privesc history cannot be reconstructed exactly')
+        omitted.update((archive_key, manifest_key))
+    for name in omitted:
+        del source[name]
+    return omitted
+
+
 def freeze_release(release_source=None):
     """Freeze exact corresponding source without Git, credentials, or caches."""
     import shutil
@@ -2024,6 +2111,7 @@ def freeze_release(release_source=None):
                 raise RuntimeError(f"Source Python changing or invalid: {relative}; retry after its owner finishes") from error
         source[str(relative)] = content
     _omit_verified_duplicate_manifest(source, release_root)
+    _omit_verified_reconstructible_privesc_history(source, release_root)
     identifier_file = deployment.value("private_identifiers_file")
     if deployment.configuration() and not identifier_file:
         raise RuntimeError("Private deployment configuration requires private_identifiers_file for release auditing")
@@ -2082,15 +2170,30 @@ def freeze_release(release_source=None):
     return release
 
 
+API_ENGINE_CATALOG_PREFIXES = ("peaso/privesc/catalog/", "peaso/privesc/catalog_versions/")
+API_DISPLAY_INPUTS = frozenset({"peaso/server/privesc_display_catalog.py",
+    "peaso/rulepacks/api_privesc_display.json.gz", "peaso/rulepacks/api_privesc_display_manifest.json"})
+
+
+def api_runtime_files(files):
+    """Package API presentation metadata; full privilege catalogs belong to workers."""
+    present = API_DISPLAY_INPUTS.intersection(files)
+    if present and present != API_DISPLAY_INPUTS:
+        raise RuntimeError("Incomplete API privilege display generation")
+    admission = runtime_admission_data(files)
+    return {name: digest for name, digest in files.items()
+            if (name.startswith(("peaso/", "risk_rules/")) or name in {
+                "bluepeass/__init__.py", "bluepeass/k8s.py", "bluepeass/k8s_risks.py",
+                "scripts/cloud_permission_risks.py"} or name in admission)
+            and not (present and name.startswith(API_ENGINE_CATALOG_PREFIXES))}
+
+
 def verify_api_source():
     """Verify portable ZIP/staging permissions and complete frozen runtime source."""
     source_root()
     release = json.loads((BUILD / "release.json").read_text())
     admission_data = runtime_admission_data(release["files"])
-    runtime_files = {name: digest for name, digest in release["files"].items()
-                     if name.startswith(("peaso/", "risk_rules/")) or name in {
-                         "bluepeass/__init__.py", "bluepeass/k8s.py", "bluepeass/k8s_risks.py",
-                         "scripts/cloud_permission_risks.py"} or name in admission_data}
+    runtime_files = api_runtime_files(release["files"])
     target = generated_path("api-package")
     entries = verify_public_tree(target)
     staged = {path.relative_to(target).as_posix(): path for path in entries if path.is_file()}
@@ -2103,6 +2206,9 @@ def verify_api_source():
             if hashlib.sha256(content).hexdigest() != expected:
                 raise RuntimeError(f"API ZIP source differs from frozen release: {name}")
         members = package.infolist()
+        if (API_DISPLAY_INPUTS <= release["files"].keys()
+                and any(info.filename.startswith(API_ENGINE_CATALOG_PREFIXES) for info in members)):
+            raise RuntimeError("Engine privilege catalogs entered API package")
         if len(members) != len({info.filename for info in members}):
             raise RuntimeError("API ZIP has duplicate members")
         for info in members:
@@ -2201,6 +2307,13 @@ def package_api():
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source / name, destination)
     if (BUILD / "release.json").is_file():
+        release = json.loads((BUILD / "release.json").read_text())
+        api_runtime_files(release["files"])  # Validate the complete presentation generation.
+        if API_DISPLAY_INPUTS <= release["files"].keys():
+            for prefix in API_ENGINE_CATALOG_PREFIXES:
+                directory = target / prefix
+                if directory.exists():
+                    shutil.rmtree(directory)
         shutil.copyfile(BUILD / "release.json", target / "peaso_release.json")
     normalize_public_tree(target)
     members = [path for path in sorted(target.rglob("*")) if path.is_file()]

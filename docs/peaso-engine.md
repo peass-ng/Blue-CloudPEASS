@@ -104,3 +104,10 @@ python -I examples/verify_installed_peaso.py /tmp/peaso-installed
 The verifier exercises bundled native rules without network access. Provider collection, tenant isolation, API lifecycle and UI flows have separate tests. CI runs the broader Python and frontend gates; a mocked fixture proves its stated contract, not successful live collection across an entire account.
 
 Compliance inputs and reviewed descriptions live in [compliance-ledgers](compliance-ledgers/README.md). Unsupported organizational, historical or unavailable evidence must remain excluded or explicitly unassessed; a complete mapping is not a complete live assessment.
+
+
+### API and worker catalogs
+
+Hosted API packages contain a build-generated privilege display index: technique descriptions, required permissions, references and exact historical report bindings. The API serves this metadata without loading the evaluator or reading privilege YAML catalogs. Complete catalogs and historical replay data stay in the worker image and CLI source. Local server installations retain the engine for local scans.
+
+Release source archives store repeated historical catalog archives and manifests in `peaso/privesc/catalog_versions/runtime-history-v1.zip`. The source freezer verifies every original before omitting its duplicate copy; Git checkouts retain the originals. To restore exact historical files from a release source archive, run `python scripts/peaso_build_privesc_history_pack.py --materialize` in the pinned Linux Python build environment. Exact gzip reproduction depends on the recorded zlib behavior; incompatible compressors fail closed. Current catalog evaluation does not require restoring historical archives, and API historical views use the independent display index.

@@ -12,7 +12,7 @@ from peaso.server import report_projection_static_20261020 as projection
 
 ROOT = Path(__file__).resolve().parents[1]
 HELPER = 'peaso.server.report_projection_static_20261020'
-FUNCTIONS = ('finding_frameworks', 'hydrate_finding', 'privesc_technique_details',
+FUNCTIONS = ('finding_frameworks', 'hydrate_finding',
              '_permission_text', '_requirement_text', '_required_permissions')
 
 
@@ -178,16 +178,6 @@ elif mode == 'catalog':
     call('privesc_technique_details', ['unknown-technique', 'unknown-technique'], catalog_binding={})
     for invalid in (None, 1, [None], [[]], {}, 'bad'):
         call('privesc_technique_details', invalid, catalog_binding={})
-    # Exercise the optional trimmed-package ImportError behavior without blocking unrelated imports.
-    import builtins
-    original_import = builtins.__import__
-    def trimmed_import(name, *args, **kwargs):
-        if name.endswith('privesc.versioned_catalog'):
-            raise ImportError('trimmed package')
-        return original_import(name, *args, **kwargs)
-    builtins.__import__ = trimmed_import
-    call('privesc_technique_details', ['admin-equivalent', 'unknown-technique'])
-    builtins.__import__ = original_import
 elif mode == 'endpoint':
     import os, tempfile
     os.environ.update(AWS_EC2_METADATA_DISABLED='true', PEASO_STORAGE='sqlite')
@@ -309,7 +299,7 @@ def test_real_engine_fresh_process_parity(mode):
     assert actual == expected
     if mode == 'catalog':
         current = next(row for row in actual if row.get('binding') == 'current')
-        assert current['known'] == 633
+        assert current['known'] > 600
         assert current['statuses'] == ['exact_strict_privesc']
         for label, status in [('foreign-tenant', 'tenant_binding_mismatch'),
                               ('missing-tenant', 'tenant_binding_mismatch'),

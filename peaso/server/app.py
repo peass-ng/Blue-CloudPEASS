@@ -1713,12 +1713,12 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             card[key + "_total"] = len(card.get(key, []))
             card[key] = card.get(key, [])[:500]
         from .report_projection_static_20261020 import privesc_technique_details
-        from peaso.privesc.versioned_catalog import card_technique_ids, lookup_entries
+        from .privesc_display_catalog import card_technique_ids, lookup_details
         binding = bundle.get("privesc_catalog")
         if binding is None and isinstance(bundle.get("summary"), dict) and "privesc_catalog" in bundle["summary"]:
             binding = {}  # A missing tenant-bound copy is invalid, not legacy.
         technique_ids = card_technique_ids(card, principal_id)
-        _, lookup_status = lookup_entries((), binding, tenant_id=user.tenant_id)
+        _, lookup_status = lookup_details((), binding, tenant_id=user.tenant_id)
         catalog_details = privesc_technique_details(technique_ids, catalog_binding=binding, tenant_id=user.tenant_id)
         aggregates = set(card.get("member_of_aggregates") or [])
         for key in ("outgoing", "incoming"):
