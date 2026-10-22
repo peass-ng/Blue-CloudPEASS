@@ -12,6 +12,7 @@ POOL_ARN = f"arn:aws:cognito-identity:us-east-1:{ACCOUNT}:identitypool/{POOL_ID}
 ENTRY_ID = "aws-cognito-getopenidtokenfordeveloperidentity"
 CLASSIC_ID = "aws-cognito-getopenidtokenfordeveloperidentity-classic"
 SETROLES_ID = "aws-cognito-setidentitypoolroles-developer-token"
+ENABLE_CLASSIC_ID = "aws-cognito-updateidentitypool-enable-classic-developer-token"
 
 
 def _entry():
@@ -26,6 +27,10 @@ def _setroles_entry():
     return next(row for row in schema.load_catalog(schema.CATALOG_DIR)["entries"] if row["id"] == SETROLES_ID)
 
 
+def _enable_classic_entry():
+    return next(row for row in schema.load_catalog(schema.CATALOG_DIR)["entries"] if row["id"] == ENABLE_CLASSIC_ID)
+
+
 def _trust(audience=POOL_ID, method="authenticated", extra=()):
     return pol({"Effect": "Allow", "Principal": {"Federated": "cognito-identity.amazonaws.com"},
                 "Action": "sts:AssumeRoleWithWebIdentity", "Condition": {
@@ -37,7 +42,8 @@ def _pool(*, developer=True, roles_status="collected", authenticated=True, class
     roles = {"unauthenticated": f"arn:aws:iam::{ACCOUNT}:role/guest"}
     if authenticated:
         roles["authenticated"] = f"arn:aws:iam::{ACCOUNT}:role/authenticated"
-    config = {"collection_status": "collected"}
+    config = {"collection_status": "collected", "IdentityPoolName": "test-pool",
+              "AllowUnauthenticatedIdentities": False}
     if developer:
         config["DeveloperProviderName"] = "login.example.app"
     config["AllowClassicFlow"] = classic
@@ -201,3 +207,31 @@ def test_setroles_with_developer_token_reaches_exact_passed_role():
     wrong_service = [{**actions[1], "Condition": {
         "StringEquals": {"iam:PassedToService": "ec2.amazonaws.com"}}}, actions[0], actions[2]]
     assert reaches(wrong_service) == []
+
+
+def test_enabling_classic_flow_requires_update_and_token_on_same_pool():
+    special = f"arn:aws:iam::{ACCOUNT}:role/special"
+    target = role("special", _trust(method="login.example.app"))
+    updates = {"Effect": "Allow", "Action": "cognito-identity:UpdateIdentityPool", "Resource": POOL_ARN}
+    token = {"Effect": "Allow", "Action": "cognito-identity:GetOpenIdTokenForDeveloperIdentity",
+             "Resource": POOL_ARN}
+    def reaches(statements, *, enabled=False, developer=True, name=True):
+        pool = _pool(classic=enabled, developer=developer, authenticated=False)[2][0]
+        if not name:
+            del pool["Configuration"]["IdentityPoolName"]
+        snap = aws_snap([user("alice", *statements)], [target],
+                        [("cognito_identity_pool", SCOPE, [pool])])
+        return Evaluator(AwsModel(snap), [_enable_classic_entry()], include_unknown=False).run()
+    assert {r.source.id: set(r.targets) for r in reaches([updates, token])} == {ALICE: {special}}
+    assert reaches([updates]) == []
+    assert reaches([token]) == []
+    assert reaches([updates, {**token, "Resource": POOL_ARN + "-other"}]) == []
+    assert reaches([updates, token], enabled=True) == []
+    assert reaches([updates, token], developer=False) == []
+    assert reaches([updates, token], name=False) == []
+    external = role("external", _trust(method="login.example.app"), account=OTHER)
+    snap = aws_snap([user("alice", updates, token)], [external],
+                    [_pool(classic=False, authenticated=False)])
+    assert {r.source.id: set(r.targets) for r in Evaluator(
+        AwsModel(snap), [_enable_classic_entry()], include_unknown=False).run()} == {
+            ALICE: {f"arn:aws:iam::{OTHER}:role/external"}}

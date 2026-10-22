@@ -111,6 +111,7 @@ SELECTOR_HOSTS = {"cognito_user_pool_group_role_covered_by": "cognito_user_pool_
                   "cognito_developer_authenticated_role": "cognito_developer_authenticated",
                   "cognito_developer_classic_role": "cognito_developer_classic",
                   "cognito_developer_settable_authenticated_role": "cognito_developer_settable_authenticated",
+                  "cognito_developer_enable_classic_role": "cognito_developer_enable_classic",
                   "codedeploy_group_instance_role_covered_by": "codedeploy_deployment_group",
                   "rolesanywhere_profile_includes_target": "rolesanywhere_profile"}
 # service_plane value -> collected inventory of that application plane (aws_service_plane_admin targets).
@@ -3283,12 +3284,14 @@ class AwsModel(Model):
     def _selector_ext(self, key, value, candidates, source):
         out = {}
         if key in ("cognito_developer_authenticated_role", "cognito_developer_classic_role",
-                   "cognito_developer_settable_authenticated_role"):
+                   "cognito_developer_settable_authenticated_role", "cognito_developer_enable_classic_role"):
             if source is None:
                 return None
-            classic = key == "cognito_developer_classic_role"
+            enable_classic = key == "cognito_developer_enable_classic_role"
+            classic = key == "cognito_developer_classic_role" or enable_classic
             settable = key == "cognito_developer_settable_authenticated_role"
-            host = ("cognito_developer_classic" if classic else
+            host = ("cognito_developer_enable_classic" if enable_classic else
+                    "cognito_developer_classic" if classic else
                     "cognito_developer_settable_authenticated" if settable else "cognito_developer_authenticated")
             for rid, node in candidates.items():
                 pools = self.hosts.get(rid, {}).get(host, ())
@@ -3307,6 +3310,12 @@ class AwsModel(Model):
                     if permission is None:
                         continue
                     if permission.confidence == "unknown":
+                        unknown = True
+                        continue
+                    update_permission = self._check_action(source, "cognito-identity:UpdateIdentityPool", pool_arn) if enable_classic else None
+                    if enable_classic and update_permission is None:
+                        continue
+                    if update_permission is not None and update_permission.confidence == "unknown":
                         unknown = True
                         continue
                     pool_id = str(pool_arn).split("identitypool/", 1)[-1]
@@ -3346,7 +3355,8 @@ class AwsModel(Model):
                         if verdict is False:
                             continue
                         if verdict is True and not statement.variables and denied is False and not not_principal_deny:
-                            out[rid] = (None if permission.confidence == "derived" else
+                            out[rid] = (None if permission.confidence == "derived" and
+                                        (update_permission is None or update_permission.confidence == "derived") else
                                         ("conditional", "cognito_developer_pool_permission_conditional"))
                             break
                         unknown = True
@@ -3752,6 +3762,7 @@ class AwsModel(Model):
         self.cognito_developer_provider = {}
         classic_pools = []
         settable_pools = []
+        enable_classic_pools = []
 
         def add(role, host, resource):
             listed = self.hosts.setdefault(role, {}).setdefault(host, [])
@@ -3784,6 +3795,9 @@ class AwsModel(Model):
                 settable_pools.append((pool_arn, region))
                 if config.get("AllowClassicFlow") is True:
                     classic_pools.append((pool_arn, region))
+                elif (isinstance(config.get("IdentityPoolName"), str) and config["IdentityPoolName"]
+                        and type(config.get("AllowUnauthenticatedIdentities")) is bool):
+                    enable_classic_pools.append((pool_arn, region))
             # Identity pool -> its authenticated / unauthenticated roles (cognito-identity:GetIdentityPoolRoles Roles.Roles).
             if isinstance(roles, dict) and roles.get("collection_status") in ok and item.get("IdentityPoolId"):
                 for role in (roles.get("Roles") or {}).values() if isinstance(roles.get("Roles"), dict) else ():
@@ -3862,6 +3876,11 @@ class AwsModel(Model):
             for role_arn in self.trust_by_federated.get(federated, {}):
                 if role_arn in self.principals and role_arn.startswith(f"arn:{partition}:iam::"):
                     add(role_arn, "cognito_developer_classic", pool_arn)
+        for pool_arn, region in enable_classic_pools:
+            partition, federated, _ = _cognito_pool_identity(region)
+            for role_arn in self.trust_by_federated.get(federated, {}):
+                if role_arn in self.principals and role_arn.startswith(f"arn:{partition}:iam::"):
+                    add(role_arn, "cognito_developer_enable_classic", pool_arn)
         for pool_arn, region in settable_pools:
             partition, federated, _ = _cognito_pool_identity(region)
             for role_arn in self.trust_by_federated.get(federated, {}):
@@ -3873,7 +3892,8 @@ class AwsModel(Model):
                            ("cognito_identity_pool", "cognito_identity_pool"),
                            ("cognito_developer_authenticated", "cognito_identity_pool"),
                            ("cognito_developer_classic", "cognito_identity_pool"),
-                           ("cognito_developer_settable_authenticated", "cognito_identity_pool")):
+                           ("cognito_developer_settable_authenticated", "cognito_identity_pool"),
+                           ("cognito_developer_enable_classic", "cognito_identity_pool")):
             for scope, status in inventory_status(snap, kind).items():
                 key = (scope.split("/")[0], host)
                 if self.host_status.get(key) in (None, "collected", "empty"):

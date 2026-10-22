@@ -30,6 +30,7 @@ _PH = re.compile(r"(?<!\$)\{([^{}]+)\}")
 DYNAMIC_SELECTORS = {
     "cognito_developer_authenticated_role", "cognito_developer_classic_role",
     "cognito_developer_settable_authenticated_role",
+    "cognito_developer_enable_classic_role",
     "aws_challenge_fact", "aws_s3_policy_self_grant", "aws_s3_access_grants_self_grant",
     "aws_secretsmanager_policy_self_grant", "aws_efs_policy_self_grant",
     "aws_cases_tag_self_grant", "aws_sitewise_portal_self_grant",

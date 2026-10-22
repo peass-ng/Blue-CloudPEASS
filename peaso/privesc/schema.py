@@ -260,6 +260,9 @@ SELECTOR_KEYS = {
     "cognito_developer_settable_authenticated_role": (("aws",), "bool_true",
         "Target role can become the authenticated role of a collected developer identity pool and trusts that "
         "pool's authenticated web identity; the source must be able to mint a developer token for the same pool."),
+    "cognito_developer_enable_classic_role": (("aws",), "bool_true",
+        "Target role trusts a developer identity pool whose Basic (Classic) flow is disabled; the source can enable "
+        "that flow and mint a developer token for the same pool."),
     "cognito_user_pool_group_role_covered_by": (("aws",), "action",
         "Target role is the RoleArn of a user-pool group covered by the action; dropped when the account's "
         "cognito_user_pool inventory is collected and empty, otherwise unknown (groups not collected)."),
@@ -825,6 +828,9 @@ FACTS_NEEDED = {
     "cognito_developer_settable_authenticated_role": "AWS: cognito_identity_pool Configuration.DeveloperProviderName "
                                                      "(DescribeIdentityPool) and IAM role web-identity trust for "
                                                      "the same pool's audience and authenticated method",
+    "cognito_developer_enable_classic_role": "AWS: cognito_identity_pool Configuration.{DeveloperProviderName, AllowClassicFlow} "
+                                             "(DescribeIdentityPool), IAM role web-identity trust, and exact "
+                                             "UpdateIdentityPool plus token-mint permission on the same pool",
     "cognito_user_pool_group_role_covered_by": "AWS: cognito_user_pool Groups {GroupName, RoleArn} (cognito-idp:ListGroups) in every region",
     "codedeploy_group_instance_role_covered_by": "AWS: codedeploy_deployment_group {ec2TagFilters, ec2TagSet, autoScalingGroups} "
                                                  "(codedeploy:BatchGetDeploymentGroups) + instance {Tags, IamInstanceProfile} in the same region",
