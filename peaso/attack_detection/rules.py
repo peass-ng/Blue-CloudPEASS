@@ -213,6 +213,7 @@ from .aws_ecs_controls_next import normalize_aws_ecs_controls
 from .aws_ecs_correlations_next import correlate_aws_ecs_dormant_sidecar
 from .aws_emr_serverless_next import normalize_aws_emr_serverless_runtime
 from .aws_emr_serverless_custom_image import normalize_aws_emr_custom_image
+from .aws_emr_classic import normalize_aws_emr_classic
 from .aws_aoss_broad_grant import normalize_aws_aoss_broad_grant
 from .aws_emr_serverless_session_next import correlate_aws_emr_session_endpoint_cross_actor
 from .aws_cloudwatch_controls_next import normalize_aws_cloudwatch_controls
@@ -576,6 +577,7 @@ def detect_aws_events(
         ecs_controls = normalize_aws_ecs_controls(record)
         emr_runtime = normalize_aws_emr_serverless_runtime(record)
         emr_custom_image = normalize_aws_emr_custom_image(record)
+        emr_classic = normalize_aws_emr_classic(record)
         aoss_broad_grant = normalize_aws_aoss_broad_grant(record)
         cloudwatch_controls = normalize_aws_cloudwatch_controls(record)
         cloudwatch_metric_stream_batch109 = normalize_aws_cloudwatch_metric_stream_batch109(record)
@@ -815,6 +817,7 @@ def detect_aws_events(
                 + ([ecs_controls] if ecs_controls is not None else [])
                 + ([emr_runtime] if emr_runtime is not None else [])
                 + ([emr_custom_image] if emr_custom_image is not None else [])
+                + ([emr_classic] if emr_classic is not None else [])
                 + ([aoss_broad_grant] if aoss_broad_grant is not None else [])
                 + ([cloudwatch_controls] if cloudwatch_controls is not None else [])
                 + cloudwatch_metric_stream_batch109
