@@ -20,6 +20,7 @@ import yaml
 
 from .aws import normalize_aws_cloudtrail
 from .aws_raw_cloudtrail import normalize as normalize_aws_raw_cloudtrail
+from .aws_frauddetector_event_replace import correlate_aws_frauddetector_event_replacement
 from .aws_login_profile_next import normalize_aws_other_user_login_profile, normalize_aws_other_user_login_profile_update
 from .aws_security_controls import normalize_aws_security_control
 from .aws_trail_update import normalize_aws_trail_update
@@ -931,12 +932,15 @@ def detect_aws_events(
     appflow_schedule_batch127_records: list[Mapping[str, Any]] = []
     lex_hook_batch137_records: list[Mapping[str, Any]] = []
     route53_profiles_batch139_records: list[Mapping[str, Any]] = []
+    frauddetector_event_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
             if (not isinstance(record, Mapping)
                     or not isinstance(record.get("eventSource"), str)
                     or not isinstance(record.get("eventName"), str)):
                 continue
+            if record.get("eventSource") == "frauddetector.amazonaws.com" and record.get("eventName") == "SendEvent":
+                frauddetector_event_records.append(record)
             if record.get("eventSource") == "monitoring.amazonaws.com":
                 cloudwatch_alarm_batch108_records.append(record)
             if record.get("eventSource") in {"firehose.amazonaws.com", "sns.amazonaws.com"}:
@@ -1146,6 +1150,7 @@ def detect_aws_events(
     correlated += correlate_aws_appflow_schedule_batch127(appflow_schedule_batch127_records)
     correlated += correlate_aws_lex_role_hook_batch137(lex_hook_batch137_records)
     correlated += correlate_aws_route53_profiles_batch139(route53_profiles_batch139_records)
+    correlated += correlate_aws_frauddetector_event_replacement(frauddetector_event_records)
     correlated += correlate_aws_apigateway_portal(apigateway_portal_records)
     correlated += correlate_aws_cloudformation_triggers(cloudformation_trigger_records)
     correlated += correlate_aws_cloudformation_inputs(cloudformation_input_records)
