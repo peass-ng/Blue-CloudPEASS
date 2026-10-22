@@ -9,6 +9,7 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
+from json.encoder import encode_basestring_ascii
 from contextlib import contextmanager
 from contextvars import ContextVar
 from functools import lru_cache, wraps
@@ -25,6 +26,7 @@ def frameworks_for(check_id):
 
 RANK = {"critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4}
 _CONTEXT = ContextVar("peaso_analysis_context", default=None)
+_JSON_DUMPS = json.dumps
 
 
 @contextmanager
@@ -63,7 +65,12 @@ def derived(resource, kind, compute):
 
 
 def stable_id(*parts):
-    encoded = json.dumps(parts, sort_keys=True, default=str, separators=(",", ":"))
+    if json.dumps is _JSON_DUMPS and len(parts) <= 8 and all(type(part) is str for part in parts):
+        # IDs overwhelmingly join plain native strings. Use the same JSON
+        # string encoder without rebuilding a general object encoder per ID.
+        encoded = '[' + ','.join(encode_basestring_ascii(part) for part in parts) + ']'
+    else:
+        encoded = json.dumps(parts, sort_keys=True, default=str, separators=(",", ":"))
     return "analysis:" + hashlib.sha256(encoded.encode()).hexdigest()[:24]
 
 
