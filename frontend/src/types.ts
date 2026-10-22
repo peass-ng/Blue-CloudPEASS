@@ -204,6 +204,8 @@ export type ScheduleRule = {
 };
 export type Schedule = {
   ai_enabled?: boolean;
+  ai_priorities_enabled?: boolean;
+  ai_network_enabled?: boolean;
   id: string;
   name?: string;
   connector_id: string;

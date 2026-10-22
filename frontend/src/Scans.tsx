@@ -49,6 +49,9 @@ export const terminalStatuses = [
   "credentials_expired",
 ];
 const hasResults = (scan: Scan) => scan.status === "completed" || scan.result_available === true;
+const analysisIds = new Set(["exposure", "least_privilege", "iam_graph", "network", "privesc"]);
+const hardeningCategories = categories.filter((category) => !analysisIds.has(category.id));
+const analysisCategories = categories.filter((category) => analysisIds.has(category.id));
 function ScanCategories({ selected = [] }: { selected?: string[] }) {
   const [expanded, setExpanded] = useState(false);
   const all = categories.every(category => selected.includes(category.id));
@@ -163,15 +166,7 @@ export function Scans({
             !items(scansQuery.data).length
           }
           title="Your first scan starts here"
-        >
-          <button
-            className="button primary"
-            disabled={demo || !canWrite}
-            onClick={() => setLaunch(true)}
-          >
-            Launch a scan
-          </button>
-        </State>
+        />
         <div className="card-list">
           {items(scansQuery.data).map((s) => (
             <article className="scan-row" key={s.id}>
@@ -208,11 +203,12 @@ export function Scans({
               {s.input_mode && s.input_mode !== "live" && (
                 <Badge value={s.input_mode} />
               )}
-              {hasResults(s) && (
-                <>
-                  <button className="button" onClick={() => onSelect(s)}>
-                    <Eye size={15} />
-                    {s.status === "completed" ? "View" : "View partial"}
+              <div className="scan-actions" aria-label={`Actions for ${names.get(s.id)}`}>
+                {hasResults(s) && (
+                  <>
+                  <button className="icon-button" aria-label={s.status === "completed" ? "Open results" : "Open partial results"}
+                    title={s.status === "completed" ? "Open results" : "Open partial results"} onClick={() => onSelect(s)}>
+                    <Eye size={17} />
                   </button>
                   <button
                     className="icon-button"
@@ -223,9 +219,9 @@ export function Scans({
                   </button>
                 </>
               )}
-              {s.resumable && terminalStatuses.includes(s.status) && <button className="button"
+              {s.resumable && terminalStatuses.includes(s.status) && <button className="icon-button" aria-label="Resume scan" title="Resume scan"
                 disabled={demo || !canWrite || resume.isPending} onClick={() => resume.mutate(s.id)}>
-                <Play size={15} />Resume scan
+                <Play size={15} />
               </button>}
               {!terminalStatuses.includes(s.status) && (
                   <button
@@ -237,11 +233,12 @@ export function Scans({
                   >
                     <Square size={13} />
                   </button>
-              )}
-              <button className="icon-button danger" aria-label={`Delete scan ${names.get(s.id)}`}
+                )}
+                <button className="icon-button danger scan-action-delete" aria-label={`Delete scan ${names.get(s.id)}`}
                 disabled={demo || !canWrite || !terminalStatuses.includes(s.status)}
                 title={terminalStatuses.includes(s.status) ? "Delete scan and its evidence" : "Cancel this scan before deleting it"}
-                onClick={() => { deleteScan.reset(); setRemove(s); }}><Trash2 size={17} /></button>
+                  onClick={() => { deleteScan.reset(); setRemove(s); }}><Trash2 size={17} /></button>
+              </div>
             </article>
           ))}
         </div>
@@ -433,6 +430,8 @@ export function LaunchForm({
     schedule?.categories || categories.map((c) => c.id),
   );
   const [aiEnabled, setAiEnabled] = useState(schedule?.ai_enabled ?? true);
+  const [aiPrioritiesEnabled, setAiPrioritiesEnabled] = useState(schedule?.ai_priorities_enabled ?? true);
+  const [aiNetworkEnabled, setAiNetworkEnabled] = useState(schedule?.ai_network_enabled ?? true);
   const codex = useApi<{ available: boolean; disabled?: boolean; isolation_available?: boolean }>("/ai/codex", demo);
   const aiAvailable = !demo && codex.data?.available === true;
   const [checks, setChecks] = useState(schedule?.checks?.join(", ") || "");
@@ -486,9 +485,14 @@ export function LaunchForm({
       return setError("Select at least one assessment category.");
     if (isSchedule && rules.some(rule => !rule.time || (rule.frequency === "weekly" && !rule.weekdays?.length)))
       return setError("Choose a time for each rule and at least one weekday for every weekly rule.");
+    const aiWorkSelected = aiPrioritiesEnabled || selected.includes("exposure") ||
+      (selected.includes("network") && aiNetworkEnabled) ||
+      hardeningCategories.some((category) => selected.includes(category.id));
     mutation.mutate({
       connector_id: connector,
-      ai_enabled: aiAvailable && aiEnabled,
+      ai_enabled: aiAvailable && aiEnabled && aiWorkSelected,
+      ai_priorities_enabled: aiPrioritiesEnabled,
+      ai_network_enabled: aiNetworkEnabled,
       categories: selected,
       checks: checks
         .split(",")
@@ -535,70 +539,88 @@ export function LaunchForm({
           <p className="muted small">{resumePrevious ? "Keeps the same scan and saved results. Only unfinished work runs, using the original check selection and the connector’s current credentials." : "Collects fresh evidence and creates a new scan."}</p>
         </fieldset>}
         {!resumePrevious && <>
-        <label className="checkbox"><input type="checkbox" checked={aiAvailable && aiEnabled} disabled={!aiAvailable} onChange={event => setAiEnabled(event.target.checked)} />Use AI to verify failed findings and prioritize security actions</label>
+        <label className="checkbox"><input type="checkbox" checked={aiAvailable && aiEnabled} disabled={!aiAvailable} onChange={event => setAiEnabled(event.target.checked)} />Use AI to verify failed findings</label>
         {!aiAvailable && <p className="muted small">{codex.isPending ? "Checking AI access…" : codex.data?.disabled ? "AI review is disabled for every scan in Settings." : codex.data?.isolation_available === false ? "AI checks are unavailable until the platform administrator configures isolated agent execution." : "Configure an AI provider, model and thinking effort in Settings to enable AI checks."}</p>}
-        <fieldset>
-          <legend>Assessment categories <span className="category-count">{selected.length} / {categories.length} selected</span></legend>
-          <div className="assessment-category-grid">
-            {categories.map((c) => (
-              <label key={c.id} className="checkbox">
-                <input
-                  type="checkbox"
-                  checked={selected.includes(c.id)}
-                  onChange={(e) =>
-                    setSelected(
-                      e.target.checked
-                        ? [...selected, c.id]
-                        : selected.filter((x) => x !== c.id),
-                    )
-                  }
-                />
-                {c.label}
-              </label>
-            ))}
-          </div>
-        </fieldset>
-        <label>
-          Check IDs (optional, comma separated)
-          <input
-            value={checks}
-            onChange={(e) => setChecks(e.target.value)}
-            placeholder="Empty = supported checks in selected categories"
-          />
-        </label>
-        <details>
-          <summary>Frameworks and checklist versions (optional){frameworks.length ? ` · ${frameworks.length} selected` : ""}</summary>
-          <div className="form" style={{ marginTop: 12 }}>
-            <p className="muted small">Choose a framework to limit the checks. Leave this empty to run all checks in the selected categories.</p>
-            {frameworks.map((value, index) => <div className="framework-selection" key={`${index}-${value}`}>
-              <span aria-label={`Framework ${index + 1}`}>{availableFrameworks.find((choice) => choice.value === value)?.label || `${value} · unavailable for this connector`}</span>
-              <button type="button" className="text-button" aria-label={`Remove framework ${index + 1}`} onClick={() => setFrameworks(frameworks.filter((_, i) => i !== index))}>Remove</button>
-            </div>)}
-            <details ref={frameworkPicker} className="framework-picker" onToggle={(event) => { if (event.currentTarget.open) event.currentTarget.querySelector("input")?.focus(); }}>
-              <summary>Add another framework</summary>
-              <div className="framework-picker-content">
-                <label>Search frameworks and checklist versions
-                  <input type="search" value={frameworkSearch} onChange={(event) => setFrameworkSearch(event.target.value)} placeholder="Search by name or version" disabled={!selectedConnector || !catalog.data} />
+        <section className="assessment-config-section" aria-labelledby="hardening-config-title">
+          <div className="assessment-section-heading"><span>01</span><div><h3 id="hardening-config-title">Hardening &amp; Compliance</h3><p>Select the checks to run for this environment.</p></div></div>
+          <fieldset>
+            <legend>Check categories <span className="category-count">{hardeningCategories.filter((category) => selected.includes(category.id)).length} / {hardeningCategories.length} selected</span></legend>
+            <div className="assessment-category-grid">
+              {hardeningCategories.map((c) => (
+                <label key={c.id} className="checkbox">
+                  <input
+                    type="checkbox"
+                    checked={selected.includes(c.id)}
+                    onChange={(e) =>
+                      setSelected(
+                        e.target.checked
+                          ? [...selected, c.id]
+                          : selected.filter((x) => x !== c.id),
+                      )
+                    }
+                  />
+                  {c.label}
                 </label>
-                {!selectedConnector || !catalog.data ? <p className="muted small">{catalog.isPending ? "Loading frameworks…" : "Choose a connector to see its frameworks."}</p> :
-                  matchingFrameworks.length ? <div className="framework-choice-list">
-                    {(["family", "version"] as const).map((group) => {
-                      const choices = matchingFrameworks.filter((choice) => choice.group === group);
-                      return choices.length ? <div key={group} className="framework-choice-group">
-                        <p>{group === "family" ? "Framework families" : "Exact checklist versions"}</p>
-                        {choices.map((choice) => <button key={choice.value} type="button" onClick={() => {
-                          setFrameworks([...frameworks, choice.value]);
-                          setFrameworkSearch("");
-                          frameworkPicker.current?.removeAttribute("open");
-                        }}>{choice.label}</button>)}
-                      </div> : null;
-                    })}
-                  </div> : <p className="muted small">No matching frameworks remain.</p>}
-              </div>
-            </details>
-            {!!catalog.error && <p role="alert">Framework catalog could not be loaded. You can still launch without a framework filter.</p>}
+              ))}
+            </div>
+          </fieldset>
+          <label>
+            Check IDs (optional, comma separated)
+            <input
+              value={checks}
+              onChange={(e) => setChecks(e.target.value)}
+              placeholder="Empty = supported checks in selected categories"
+            />
+          </label>
+          <details>
+            <summary>Frameworks and checklist versions (optional){frameworks.length ? ` · ${frameworks.length} selected` : ""}</summary>
+            <div className="form" style={{ marginTop: 12 }}>
+              <p className="muted small">Choose a framework to limit the checks. Leave this empty to run all checks in the selected categories.</p>
+              {frameworks.map((value, index) => <div className="framework-selection" key={`${index}-${value}`}>
+                <span aria-label={`Framework ${index + 1}`}>{availableFrameworks.find((choice) => choice.value === value)?.label || `${value} · unavailable for this connector`}</span>
+                <button type="button" className="text-button" aria-label={`Remove framework ${index + 1}`} onClick={() => setFrameworks(frameworks.filter((_, i) => i !== index))}>Remove</button>
+              </div>)}
+              <details ref={frameworkPicker} className="framework-picker" onToggle={(event) => { if (event.currentTarget.open) event.currentTarget.querySelector("input")?.focus(); }}>
+                <summary>Add another framework</summary>
+                <div className="framework-picker-content">
+                  <label>Search frameworks and checklist versions
+                    <input type="search" value={frameworkSearch} onChange={(event) => setFrameworkSearch(event.target.value)} placeholder="Search by name or version" disabled={!selectedConnector || !catalog.data} />
+                  </label>
+                  {!selectedConnector || !catalog.data ? <p className="muted small">{catalog.isPending ? "Loading frameworks…" : "Choose a connector to see its frameworks."}</p> :
+                    matchingFrameworks.length ? <div className="framework-choice-list">
+                      {(["family", "version"] as const).map((group) => {
+                        const choices = matchingFrameworks.filter((choice) => choice.group === group);
+                        return choices.length ? <div key={group} className="framework-choice-group">
+                          <p>{group === "family" ? "Framework families" : "Exact checklist versions"}</p>
+                          {choices.map((choice) => <button key={choice.value} type="button" onClick={() => {
+                            setFrameworks([...frameworks, choice.value]);
+                            setFrameworkSearch("");
+                            frameworkPicker.current?.removeAttribute("open");
+                          }}>{choice.label}</button>)}
+                        </div> : null;
+                      })}
+                    </div> : <p className="muted small">No matching frameworks remain.</p>}
+                </div>
+              </details>
+              {!!catalog.error && <p role="alert">Framework catalog could not be loaded. You can still launch without a framework filter.</p>}
+            </div>
+          </details>
+        </section>
+        <section className="assessment-config-section" aria-labelledby="analysis-config-title">
+          <div className="assessment-section-heading"><span>02</span><div><h3 id="analysis-config-title">Other analyses</h3><p>Turn each analysis on or off for this assessment.</p></div></div>
+          <div className="assessment-category-grid">
+            <label className="checkbox"><input type="checkbox" checked={aiAvailable && aiEnabled && aiPrioritiesEnabled}
+              disabled={!aiAvailable || !aiEnabled} onChange={(event) => setAiPrioritiesEnabled(event.target.checked)} />Top 15 Actions <small>Uses AI</small></label>
+            {analysisCategories.map((category) => <label key={category.id} className="checkbox">
+              <input type="checkbox" checked={selected.includes(category.id)} onChange={(event) =>
+                setSelected(event.target.checked ? [...selected, category.id] : selected.filter((id) => id !== category.id))} />
+              {category.id === "network" ? "Network Map" : category.id === "privesc" ? "Privilege Escalation Map" : category.label}
+            </label>)}
+            <label className="checkbox"><input type="checkbox" checked={aiAvailable && aiEnabled && aiNetworkEnabled && selected.includes("network")}
+              disabled={!aiAvailable || !aiEnabled || !selected.includes("network")}
+              onChange={(event) => setAiNetworkEnabled(event.target.checked)} />Network Architecture <small>Uses AI and Network Map</small></label>
           </div>
-        </details>
+        </section>
         {isSchedule && (
           <>
             {schedule && !schedule.rules?.length && <p className="muted small">This schedule currently runs every {schedule.interval_hours || 168} hours. Saving replaces that interval with the calendar rules below.</p>}

@@ -53,7 +53,7 @@ test("actual large Azure snapshot uses summaries, complete server filters and bo
   expect(started.status()).toBe(201);
   const scan = await started.json();
   await expect(
-    page.getByRole("button", { name: "View", exact: true }),
+    page.getByRole("button", { name: "Open results", exact: true }),
   ).toBeVisible({ timeout: 180000 });
   const summaryResponse = await page.request.get(
     `/api/scans/${scan.id}/summary`,
