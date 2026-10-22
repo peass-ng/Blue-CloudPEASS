@@ -9225,19 +9225,23 @@ class AwsModel(Model):
                 if rid not in out and uncertain:
                     out[rid] = ("unknown", "rolesanywhere_new_anchor_profile_or_role_trust_not_verified")
             return out
-        if pid == "sagemaker_processing_inline_entrypoint_route":
+        if pid in ("sagemaker_processing_inline_entrypoint_route",
+                   "sagemaker_training_inline_entrypoint_route"):
             if source is None:
                 return None
-            action = "sagemaker:CreateProcessingJob"
+            training = pid == "sagemaker_training_inline_entrypoint_route"
+            job_kind = "training" if training else "processing"
+            action = "sagemaker:CreateTrainingJob" if training else "sagemaker:CreateProcessingJob"
             allows, _ = self._statements(source, action.lower())
             partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
-            statuses = inventory_status(self.snapshot, "sagemaker_processing_job")
+            statuses = inventory_status(self.snapshot, f"sagemaker_{job_kind}_job")
             occupied = {}
             malformed = set()
-            for scope, row in items(self.snapshot, "sagemaker_processing_job"):
-                name = row.get("ProcessingJobName")
-                if not name and isinstance(row.get("ProcessingJobArn"), str):
-                    name = row["ProcessingJobArn"].rsplit("/", 1)[-1]
+            for scope, row in items(self.snapshot, f"sagemaker_{job_kind}_job"):
+                name = row.get("TrainingJobName" if training else "ProcessingJobName")
+                arn_field = "TrainingJobArn" if training else "ProcessingJobArn"
+                if not name and isinstance(row.get(arn_field), str):
+                    name = row[arn_field].rsplit("/", 1)[-1]
                 if isinstance(name, str) and name:
                     occupied.setdefault(scope, set()).add(name)
                 else:
@@ -9246,9 +9250,10 @@ class AwsModel(Model):
             seed = hashlib.sha256(source.id.encode()).hexdigest()[:12]
             valid_name = re.compile(r"[A-Za-z0-9](?:-*[A-Za-z0-9]){0,62}\Z")
             guardrails_unknown = bool(source.attrs.get("boundary")) or self.scp_status.get(source.scope) != "empty"
+            bucket_status = inventory_status(self.snapshot, "bucket") if training else {}
             for tid, role in candidates.items():
                 if source.incomplete or role.incomplete or guardrails_unknown or not scopes:
-                    out[tid] = ("unknown", "sagemaker_processing_policy_or_inventory_not_verified")
+                    out[tid] = ("unknown", f"sagemaker_{job_kind}_policy_or_inventory_not_verified")
                     continue
                 unresolved = False
                 for scope in scopes:
@@ -9256,8 +9261,10 @@ class AwsModel(Model):
                         unresolved = True
                         continue
                     region = scope.split("/", 1)[1]
-                    prefix = f"arn:{partition}:sagemaker:{region}:{source.scope}:processing-job/"
-                    names = {"PeasoProcessing" + seed, "PeasoProcessing" + seed + "A"}
+                    marker = f"{job_kind}-job/"
+                    prefix = f"arn:{partition}:sagemaker:{region}:{source.scope}:{marker}"
+                    stem = ("PeasoTraining" if training else "PeasoProcessing") + seed
+                    names = {stem, stem + "A"}
                     for statement in allows:
                         if statement.notresource or statement.variables:
                             unresolved = True
@@ -9265,10 +9272,9 @@ class AwsModel(Model):
                         for pattern in statement.resources:
                             if pattern == "*":
                                 continue
-                            if not _resource_glob(pattern, prefix + "PeasoProcessing" + seed) and \
-                                    "processing-job/" not in pattern:
+                            if not _resource_glob(pattern, prefix + stem) and marker not in pattern:
                                 continue
-                            suffix = pattern.split("processing-job/", 1)[-1]
+                            suffix = pattern.split(marker, 1)[-1]
                             choice = suffix.replace("*", "Peaso" + seed).replace("?", "X")
                             if valid_name.fullmatch(choice):
                                 names.add(choice)
@@ -9290,6 +9296,45 @@ class AwsModel(Model):
                                                 "iam:AssociatedResourceArn": arn}}, tid)
                         if passed is None:
                             continue
+                        if training:
+                            if bucket_status.get(f"{source.scope}/global") not in ("collected", "empty"):
+                                unresolved = True
+                                continue
+                            output_ready = False
+                            for bucket_scope, bucket in items(self.snapshot, "bucket"):
+                                if bucket_scope != f"{source.scope}/global":
+                                    continue
+                                bucket_name, location = bucket.get("Name"), bucket.get("Location")
+                                policy, encryption = bucket.get("Policy"), bucket.get("Encryption")
+                                if not isinstance(bucket_name, str) or not isinstance(location, dict) or \
+                                        location.get("collection_status") != "collected" or \
+                                        not isinstance(policy, dict) or \
+                                        policy.get("collection_status") not in ("collected", "empty") or \
+                                        not isinstance(encryption, dict) or \
+                                        encryption.get("collection_status") not in ("collected", "empty"):
+                                    unresolved = True
+                                    continue
+                                home = location.get("LocationConstraint")
+                                home = "us-east-1" if home is None else "eu-west-1" if home == "EU" else home
+                                if home != region:
+                                    continue
+                                config = encryption.get("ServerSideEncryptionConfiguration") or {}
+                                rules = config.get("Rules") or []
+                                if any((rule.get("ApplyServerSideEncryptionByDefault") or {}).get("SSEAlgorithm")
+                                       == "aws:kms" for rule in rules if isinstance(rule, dict)):
+                                    unresolved = True
+                                    continue
+                                # S3OutputPath is a prefix; SageMaker writes the model below
+                                # <prefix>/<training-job-name>/output/model.tar.gz.
+                                object_arn = (f"arn:{partition}:s3:::{bucket_name}/peaso-training-{seed}/"
+                                              f"{name}/output/model.tar.gz")
+                                write = self.check(role, {"action": "s3:PutObject"}, object_arn)
+                                if write is not None and write.confidence == "derived":
+                                    output_ready = True
+                                    break
+                                unresolved |= write is not None and write.confidence != "derived"
+                            if not output_ready:
+                                continue
                         context = {"aws:RequestedRegion": region,
                                    "sagemaker:NetworkIsolation": "false"}
                         # Check several ordinary CPU instances so a policy limited to one
@@ -9299,7 +9344,7 @@ class AwsModel(Model):
                                 **context, "sagemaker:InstanceTypes": instance_type}}, arn)
                             if created is not None and created.confidence == "derived" and \
                                     passed.confidence == "derived":
-                                out[tid] = ("conditional", "sagemaker_processing_inline_job_start_pending")
+                                out[tid] = ("conditional", f"sagemaker_{job_kind}_inline_job_start_pending")
                                 break
                             unresolved |= created is not None and created.confidence != "derived"
                         if tid in out:
@@ -9308,7 +9353,7 @@ class AwsModel(Model):
                     if tid in out:
                         break
                 if tid not in out and unresolved:
-                    out[tid] = ("unknown", "sagemaker_processing_request_or_trust_not_verified")
+                    out[tid] = ("unknown", f"sagemaker_{job_kind}_request_or_trust_not_verified")
             return out
         if pid == "sagemaker_job_execution_route_unverified":
             return {tid: ("unknown", "sagemaker_controlled_job_image_and_role_not_verified")
