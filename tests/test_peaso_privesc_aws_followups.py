@@ -478,6 +478,58 @@ def test_ecs_privileged_task_requires_exact_linux_host_and_start_permission():
     assert_unresolved(result((register, start, denied_revision)), ALICE, technique)
 
 
+def test_ecs_external_taskset_binds_same_service_and_generated_resources():
+    technique = "aws-ecs-taskset-primary"
+    target = role("target", "ecs-tasks.amazonaws.com")
+    cluster_arn = f"arn:aws:ecs:{REGION}:{ACCOUNT}:cluster/prod"
+    service_arn = f"arn:aws:ecs:{REGION}:{ACCOUNT}:service/prod/old"
+    family = "PeasoPrivesc" + hashlib.sha256((ALICE + target["Arn"] + REGION).encode()).hexdigest()[:16]
+    task_scope = f"arn:aws:ecs:{REGION}:{ACCOUNT}:task-definition/{family}:*"
+    taskset_scope = f"arn:aws:ecs:{REGION}:{ACCOUNT}:task-set/prod/old/*"
+    passed = allow("iam:PassRole", resource=target["Arn"])
+    passed["Condition"] = {"StringEquals": {"iam:PassedToService": "ecs-tasks.amazonaws.com"}}
+    register = allow("ecs:RegisterTaskDefinition", resource=task_scope)
+    create = allow("ecs:CreateTaskSet", resource=taskset_scope)
+    create["Condition"] = {"ArnEquals": {"ecs:cluster": cluster_arn, "ecs:service": service_arn}}
+    promote = allow("ecs:UpdateServicePrimaryTaskSet", resource=service_arn)
+    promote["Condition"] = {"ArnEquals": {"ecs:cluster": cluster_arn}}
+
+    def result(statements=(passed, register, create, promote), *, controller="EXTERNAL",
+               service_status="ACTIVE", connected=True, service_inventory="collected"):
+        cluster = {"clusterArn": cluster_arn, "status": "ACTIVE", "registeredContainerInstancesCount": 1}
+        host = {"clusterArn": cluster_arn,
+                "containerInstanceArn": f"arn:aws:ecs:{REGION}:{ACCOUNT}:container-instance/prod/host1",
+                "status": "ACTIVE", "agentConnected": connected}
+        service = {"serviceArn": service_arn, "clusterArn": cluster_arn, "status": service_status,
+                   "deploymentController": {"type": controller}, "launchType": "EC2"}
+        return real(aws_snap([user("alice", *statements)], [target], [
+            col("ecs_cluster", [cluster]), col("ecs_container_instance", [host]),
+            col("ecs_service", [service] if service_inventory == "collected" else [], service_inventory)]),
+            technique, include_unknown=True)
+
+    assert target["Arn"] in reached(result(), ALICE, technique)
+    assert target["Arn"] not in reached(result(controller="ECS"), ALICE, technique)
+    assert target["Arn"] not in reached(result(service_status="INACTIVE"), ALICE, technique)
+    assert target["Arn"] not in reached(result(connected=False), ALICE, technique)
+    assert_unresolved(result(connected=False), ALICE, technique)
+    assert target["Arn"] not in reached(result(service_inventory="access_denied"), ALICE, technique)
+    assert_unresolved(result(service_inventory="access_denied"), ALICE, technique)
+    wrong_service = copy.deepcopy(create)
+    wrong_service["Condition"]["ArnEquals"]["ecs:service"] = service_arn.replace("old", "other")
+    assert target["Arn"] not in reached(result((passed, register, wrong_service, promote)), ALICE, technique)
+    wrong_cluster = copy.deepcopy(promote)
+    wrong_cluster["Condition"]["ArnEquals"]["ecs:cluster"] = cluster_arn.replace("prod", "other")
+    assert target["Arn"] not in reached(result((passed, register, create, wrong_cluster)), ALICE, technique)
+    one_revision = allow("ecs:RegisterTaskDefinition", resource=task_scope[:-1] + "1")
+    assert target["Arn"] not in reached(result((passed, one_revision, create, promote)), ALICE, technique)
+    assert_unresolved(result((passed, one_revision, create, promote)), ALICE, technique)
+    guessed_id = allow("ecs:CreateTaskSet", resource=taskset_scope[:-1] + "PeasoPrivesc*")
+    assert target["Arn"] not in reached(result((passed, register, guessed_id, promote)), ALICE, technique)
+    assert_unresolved(result((passed, register, guessed_id, promote)), ALICE, technique)
+    denied_taskset = {"Effect": "Deny", "Action": "ecs:CreateTaskSet", "Resource": taskset_scope}
+    assert target["Arn"] not in reached(result((passed, register, create, promote, denied_taskset)), ALICE, technique)
+
+
 def test_spot_request_scoped_grant_stays_visible_without_claiming_role_execution():
     ident = "aws-ec2-requestspotinstances-passrole"
     target = role("target", "ec2.amazonaws.com", profiles=[profile_arn("target")])
