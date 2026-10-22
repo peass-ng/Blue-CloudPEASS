@@ -5910,6 +5910,35 @@ class AwsModel(Model):
                 return ("conditional", "appstream_existing_desktop_fleet_role_session")
         return ("unknown", "appstream_existing_fleet_role_session_not_verified") if uncertain else None
 
+    def _appstream_existing_builder_role_session(self, source, target, kind, resource_type, action):
+        """Join a streamable existing builder to its exact recorded machine role."""
+        statuses = {scope: status for scope, status in inventory_status(self.snapshot, kind).items()
+                    if scope.startswith(source.scope + "/")}
+        if not statuses:
+            return ("unknown", f"{kind}_inventory_not_collected")
+        uncertain = any(status not in ("collected", "empty") for status in statuses.values())
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        for scope, builder in items(self.snapshot, kind):
+            if scope not in statuses or statuses[scope] != "collected" or not isinstance(builder, dict):
+                continue
+            region = scope.split("/", 1)[1]
+            name, arn = builder.get("Name"), builder.get("Arn")
+            if not isinstance(name, str) or arn != f"arn:{partition}:appstream:{region}:{source.scope}:{resource_type}/{name}":
+                uncertain = True
+                continue
+            if builder.get("IamRoleArn") != target.id:
+                continue
+            if builder.get("State") != "RUNNING":
+                continue
+            grant = self._check_action(source, action, arn)
+            if grant is None:
+                continue
+            if grant.confidence != "derived":
+                uncertain = True
+                continue
+            return ("conditional", f"{kind}_role_session")
+        return ("unknown", f"{kind}_role_session_not_verified") if uncertain else None
+
     def _codepipeline_new_project_route(self, source, target, provider):
         pipeline_status = inventory_status(self.snapshot, "codepipeline_pipeline")
         project_status = inventory_status(self.snapshot, "codebuild_project")
@@ -7877,6 +7906,21 @@ class AwsModel(Model):
                 return None
             for tid, target in candidates.items():
                 verdict = self._appstream_existing_fleet_role_session(source, target)
+                if verdict:
+                    out[tid] = verdict
+            return out
+        if pid in ("appstream_existing_image_builder_role_session",
+                   "appstream_existing_app_block_builder_role_session"):
+            if source is None:
+                return None
+            kind, resource_type, action = {
+                "appstream_existing_image_builder_role_session": (
+                    "appstream_image_builder", "image-builder", "appstream:createimagebuilderstreamingurl"),
+                "appstream_existing_app_block_builder_role_session": (
+                    "appstream_app_block_builder", "app-block-builder", "appstream:createappblockbuilderstreamingurl"),
+            }[pid]
+            for tid, target in candidates.items():
+                verdict = self._appstream_existing_builder_role_session(source, target, kind, resource_type, action)
                 if verdict:
                     out[tid] = verdict
             return out

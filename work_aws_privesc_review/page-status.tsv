@@ -5,7 +5,7 @@ src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-amplify-privesc/R
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-apigateway-privesc/README.md	17	0	1	pending	-
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-appconfig-privesc/README.md	6	0	1	pending	-
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-apprunner-privesc/README.md	11	1	1	pending	-
-src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-appstream-privesc/README.md	25	1	1	triaged	The existing running DESKTOP fleet role-session route is now cataloged and tested. Remaining builder-session and application-update sections still need individual review.
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-appstream-privesc/README.md	25	1	1	triaged	Existing running DESKTOP fleet and both RUNNING builder role-session routes are cataloged and tested. Application update and other sections still need individual review.
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-appsync-privesc/README.md	11	0	1	pending	-
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-athena-spark-role-privesc/README.md	11	1	1	pending	-
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-athena-stored-query-privesc/README.md	6	0	1	pending	-
