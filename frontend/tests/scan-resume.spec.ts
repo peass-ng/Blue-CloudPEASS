@@ -37,7 +37,7 @@ test('expired scan resumes in place from its details and keeps saved results', a
   await expect(page.locator('.scan-row .badge').first()).toHaveText('queued');
   expect(calls).toEqual([`/api/scans/${id}/resume`]);
   await expect(page.locator('.scan-row')).toHaveCount(1);
-  await expect(page.getByRole('button', { name: 'View partial', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Open partial results', exact: true })).toBeVisible();
 });
 test('launch dialog can resume the original selection', async ({ page }) => {
   const calls = await setup(page);
@@ -67,6 +67,6 @@ test('rejected resume keeps saved results and shows credential error', async ({ 
   await page.getByRole('button', { name: 'Resume scan', exact: true }).click();
   await expect(page.getByRole('alert').filter({ hasText: 'Update the connector credentials before resuming.' })).toBeVisible();
   await expect(page.locator('.scan-row')).toHaveCount(1);
-  await expect(page.getByRole('button', { name: 'View partial', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Open partial results', exact: true })).toBeVisible();
   expect(calls).toEqual([`/api/scans/${id}/resume`]);
 });
