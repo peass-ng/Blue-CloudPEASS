@@ -98,6 +98,7 @@ from .aws_lex_hook_batch137 import normalize as normalize_aws_lex_hook_batch137,
 from .aws_route53_profiles_batch139 import normalize as normalize_aws_route53_profiles_batch139, correlate_resource_vpc as correlate_aws_route53_profiles_batch139
 from .aws_devicefarm_batch140 import normalize as normalize_aws_devicefarm_batch140
 from .aws_devicefarm_sessions_batch141 import normalize as normalize_aws_devicefarm_sessions_batch141
+from .aws_appstream_stack_batch213 import normalize as normalize_aws_appstream_stack_batch213
 from .aws_sagemaker_control_next import normalize_aws_sagemaker_control
 from .aws_sagemaker_space_lcc import normalize_aws_sagemaker_space_lcc
 from .aws_migration_strategy_inventory import correlate_aws_migration_strategy_inventory
@@ -621,6 +622,7 @@ def detect_aws_events(
         route53_profiles_batch139 = normalize_aws_route53_profiles_batch139(record)
         devicefarm_batch140 = normalize_aws_devicefarm_batch140(record)
         devicefarm_sessions_batch141 = normalize_aws_devicefarm_sessions_batch141(record)
+        appstream_stack_batch213 = normalize_aws_appstream_stack_batch213(record)
         lambda_controls = normalize_aws_lambda_controls(record)
         lambda_qualified_grant = normalize_aws_lambda_qualified_grant(record)
         lambda_config = normalize_aws_lambda_config(record)
@@ -864,6 +866,7 @@ def detect_aws_events(
                 + route53_profiles_batch139
                 + devicefarm_batch140
                 + devicefarm_sessions_batch141
+                + ([appstream_stack_batch213] if appstream_stack_batch213 is not None else [])
                 + ([lambda_controls] if lambda_controls is not None else [])
                 + ([lambda_qualified_grant] if lambda_qualified_grant is not None else [])
                 + ([lambda_config] if lambda_config is not None else [])
