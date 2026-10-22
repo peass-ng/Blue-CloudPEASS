@@ -7678,13 +7678,18 @@ class AwsModel(Model):
             return {tid: ("unknown", "gameliftstreams_controlled_application_or_group_not_verified")
                     for tid in candidates}
         out = {}
-        if pid == "iot_new_alias_policy_certificate_same_region":
+        if pid in ("iot_new_alias_policy_certificate_same_region",
+                   "iot_existing_alias_new_policy_certificate_same_region"):
             if source is None:
                 return None
+            existing_alias = pid == "iot_existing_alias_new_policy_certificate_same_region"
             partition = source.id.split(":", 2)[1]
             regions = sorted({scope.split("/", 1)[1] for scope in self.snapshot.get("scopes", ())
                               if isinstance(scope, str) and scope.startswith(source.scope + "/")
                               and "/" in scope})
+            alias_status = inventory_status(self.snapshot, "iot_role_alias") if existing_alias else {}
+            if existing_alias and not alias_status:
+                return {tid: ("unknown", "iot_role_alias_inventory_not_collected") for tid in candidates}
 
             def names_can_be_chosen(action, kind, region):
                 """A wildcard name leaves room for a fresh alias or policy in this Region."""
@@ -7722,41 +7727,55 @@ class AwsModel(Model):
                 return False
 
             for tid in candidates:
-                uncertain = False
+                uncertain = bool(existing_alias and any(
+                    alias_status.get(f"{source.scope}/{region}") not in ("collected", "empty")
+                    for region in regions))
                 for region in regions:
-                    if (not names_can_be_chosen("iot:createrolealias", "rolealias", region) or
+                    if ((not existing_alias and not names_can_be_chosen("iot:createrolealias", "rolealias", region)) or
                             not names_can_be_chosen("iot:createpolicy", "policy", region) or
                             not certs_can_be_attached(region)):
                         continue
                     context = {"aws:RequestedRegion": region}
-                    alias = f"arn:{partition}:iot:{region}:{source.scope}:rolealias/*"
+                    if existing_alias:
+                        aliases = [row.get("RoleAliasArn") for scope, row in items(self.snapshot, "iot_role_alias")
+                                   if scope == f"{source.scope}/{region}" and isinstance(row, dict)
+                                   and isinstance(row.get("RoleAlias"), str)
+                                   and row.get("RoleAliasArn") ==
+                                   f"arn:{partition}:iot:{region}:{source.scope}:rolealias/{row['RoleAlias']}"]
+                    else:
+                        aliases = [f"arn:{partition}:iot:{region}:{source.scope}:rolealias/*"]
                     policy = f"arn:{partition}:iot:{region}:{source.scope}:policy/*"
                     cert = f"arn:{partition}:iot:{region}:{source.scope}:cert/" + "0" * 64
-                    common = [
-                        self.cached_check(source, {"action": "iam:PassRole", "request_context": {
-                            **context, "iam:PassedToService": "iot.amazonaws.com"}}, tid),
-                        self.cached_check(source, {"action": "iot:CreateRoleAlias",
-                                                   "request_context": context}, alias),
-                        self.cached_check(source, {"action": "iot:CreatePolicy",
-                                                   "request_context": context}, policy),
-                        self.cached_check(source, {"action": "iot:AttachPolicy",
-                                                   "request_context": context}, cert),
-                    ]
-                    if any(grant is None for grant in common):
-                        continue
                     global_resource = "peaso-global-iot-operation"
                     certificate = [self.cached_check(source, {"action": action,
                         "request_context": context}, global_resource)
                         for action in ("iot:CreateKeysAndCertificate", "iot:RegisterCertificateWithoutCA")]
-                    if any(grant is not None and grant.confidence == "derived" for grant in certificate):
-                        if all(grant.confidence == "derived" for grant in common):
-                            out[tid] = ("conditional", "iot_fresh_alias_policy_certificate_same_region")
-                            break
-                        uncertain = True
-                    elif any(grant is not None for grant in certificate):
-                        uncertain = True
+                    for alias in aliases:
+                        common = [
+                            self.cached_check(source, {"action": "iam:PassRole", "request_context": {
+                                **context, "iam:PassedToService": "iot.amazonaws.com"}}, tid),
+                            self.cached_check(source, {"action": "iot:UpdateRoleAlias" if existing_alias
+                                               else "iot:CreateRoleAlias", "request_context": context}, alias),
+                            self.cached_check(source, {"action": "iot:CreatePolicy",
+                                               "request_context": context}, policy),
+                            self.cached_check(source, {"action": "iot:AttachPolicy",
+                                               "request_context": context}, cert),
+                        ]
+                        if any(grant is None for grant in common):
+                            continue
+                        if any(grant is not None and grant.confidence == "derived" for grant in certificate):
+                            if all(grant.confidence == "derived" for grant in common):
+                                out[tid] = ("conditional", "iot_existing_alias_new_policy_certificate_same_region"
+                                            if existing_alias else "iot_fresh_alias_policy_certificate_same_region")
+                                break
+                            uncertain = True
+                        elif any(grant is not None for grant in certificate):
+                            uncertain = True
+                    if tid in out:
+                        break
                 if tid not in out and uncertain:
-                    out[tid] = ("unknown", "iot_new_alias_policy_certificate_permissions_conditional")
+                    out[tid] = ("unknown", "iot_existing_alias_or_certificate_permissions_incomplete"
+                                if existing_alias else "iot_new_alias_policy_certificate_permissions_conditional")
             return out
         if pid == "batch_existing_definition_submitjob_role":
             if source is None:

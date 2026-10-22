@@ -21,7 +21,12 @@ V4_EFFECTIVE_TREE = "413792ea4aec86e48c352ffab2c0bea9e82795bc234251342737ec0276b
 LEGACY_DELTA = Path(__file__).resolve().parent / "catalog_versions/legacy-0b3633-delta.json"
 BOUNDED_MANIFEST = "734401b202895e00ac1b6cb0f1534f77cde4d8e2ba912ca0ee974b1b8ec5035c"
 BOUNDED_TREE = "1a54bad4102d18f89c78f45c915964554a62f994c1bffa693844cac5e119cca8"
-CURRENT_MANIFEST = 'e8f57144d46d8135eb9f474e143f418263d00d2f38f1cc4a9b4130a42577e85f'
+CURRENT_MANIFEST = 'd7605097dbcd5220cad0aecd2bbf4b2b08b839a442fed67644ba9161782556fd'
+IOT_EXISTING_689_PREVIOUS_MANIFEST = 'e8f57144d46d8135eb9f474e143f418263d00d2f38f1cc4a9b4130a42577e85f'
+IOT_EXISTING_689_PREVIOUS_TREE = '642f2ed5b4dd647f616650e8ea182f2b666b56239843d5561ad8475e32296ed8'
+IOT_EXISTING_689_PREVIOUS_ARCHIVE_SHA256 = '33a68002171d9530e7cef98c1dac0c2be6f7404ae66906579655efef81bcc7f6'
+IOT_EXISTING_689_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-689-iot-existing-alias-source-manifest.json'
+IOT_EXISTING_689_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-689-iot-existing-alias-catalog.tar.gz'
 GAMELIFT_SHELL_689_PREVIOUS_MANIFEST = '96af62443eb91ef5f191e53431a1c454d6c01a9227990296b975859304061e38'
 GAMELIFT_SHELL_689_PREVIOUS_TREE = 'ea0f81124392a2b3c1497fcbd84f5f10e29b0f7233faa98b9e3f55040d46b787'
 GAMELIFT_SHELL_689_PREVIOUS_ARCHIVE_SHA256 = '7c203f81019b1c73ec8cccf185aa122c3f092aef57dcf987fdb586eb4b243100'
@@ -241,9 +246,9 @@ PRIOR_CURRENT_MANIFEST = "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0c
 PRIOR_DISCLOSURE_MANIFEST = "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
 PRIOR_DISCLOSURE_TREE = "5091464bedcb10bb87301695ca733276dc67b865e544c408ccf72a5408176f0f"
 PRIOR_DISCLOSURE_HISTORY = Path(__file__).resolve().parent / "catalog_versions/disclosure-v7-manifest.json"
-CURRENT_TREE = '642f2ed5b4dd647f616650e8ea182f2b666b56239843d5561ad8475e32296ed8'
+CURRENT_TREE = 'a5b712f658ccaed3b962839c3e7e634652db05f5f297def720002f3e65a72ea7'
 PRIOR_CURRENT_TREE = "99207e6469fc5e5b3daf21324e6860599b116ffcf7d30600643bd229b0f11494"
-CURRENT_ENTRY_COUNT = 689
+CURRENT_ENTRY_COUNT = 690
 CURRENT_EXCLUDED_COUNT = 3723
 CURRENT_HISTORY = Path(__file__).resolve().parent / "catalog_versions/bulk-principal-v6-manifest.json"
 PRIOR_CATALOG_ARCHIVE = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-catalog-20261016.tar.gz"
@@ -336,6 +341,15 @@ def _verified_gamelift_shell_689_previous():
         GAMELIFT_SHELL_689_PREVIOUS_MANIFEST_PATH, GAMELIFT_SHELL_689_PREVIOUS_ARCHIVE,
         GAMELIFT_SHELL_689_PREVIOUS_MANIFEST, GAMELIFT_SHELL_689_PREVIOUS_ARCHIVE_SHA256,
         GAMELIFT_SHELL_689_PREVIOUS_TREE, 689, 3723)
+
+
+@lru_cache(maxsize=1)
+def _verified_iot_existing_689_previous():
+    """Keep the exact 689-entry catalog before existing IoT alias repointing."""
+    return _verified_archived_current(
+        IOT_EXISTING_689_PREVIOUS_MANIFEST_PATH, IOT_EXISTING_689_PREVIOUS_ARCHIVE,
+        IOT_EXISTING_689_PREVIOUS_MANIFEST, IOT_EXISTING_689_PREVIOUS_ARCHIVE_SHA256,
+        IOT_EXISTING_689_PREVIOUS_TREE, 689, 3723)
 
 
 @lru_cache(maxsize=1)
@@ -721,6 +735,10 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "current", "exact_strict_privesc"
+    elif (binding.get("manifest_sha256") == IOT_EXISTING_689_PREVIOUS_MANIFEST and
+          binding.get("effective_tree_sha256") == IOT_EXISTING_689_PREVIOUS_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "iot_existing_689_previous", "exact_previous_current"
     elif (binding.get("manifest_sha256") == GAMELIFT_SHELL_689_PREVIOUS_MANIFEST and
           binding.get("effective_tree_sha256") == GAMELIFT_SHELL_689_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -890,6 +908,9 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
         if version == "current":
             current = _verified_current(str(catalog_dir), str(manifest_path))
             return {ident: current[ident] for ident in ids if ident in current}, status
+        if version == "iot_existing_689_previous":
+            previous = _verified_iot_existing_689_previous()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "gamelift_shell_689_previous":
             previous = _verified_gamelift_shell_689_previous()
             return {ident: previous[ident] for ident in ids if ident in previous}, status

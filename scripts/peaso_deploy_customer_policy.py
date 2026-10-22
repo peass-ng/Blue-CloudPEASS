@@ -610,6 +610,13 @@ GAMELIFT_FLEET_METADATA_REFERENCES = {
 }
 VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(GAMELIFT_FLEET_METADATA_REFERENCES)
 
+# Existing IoT alias names are required to check UpdateRoleAlias against the
+# exact alias resource. The list contains names only, never device keys.
+IOT_ROLE_ALIAS_METADATA_REFERENCE = {
+    "iot:ListRoleAliases": "https://docs.aws.amazon.com/iot/latest/apireference/API_ListRoleAliases.html",
+}
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(IOT_ROLE_ALIAS_METADATA_REFERENCE)
+
 # Exact lifecycle-configuration names prevent a create permission on an
 # already occupied name from being mistaken for notebook role execution.
 SAGEMAKER_NOTEBOOK_LIFECYCLE_METADATA_REFERENCE = {
@@ -959,6 +966,11 @@ def refresh(root: Path, *, read_actions=None, include_credential_report_generati
         "Actions": sorted(GAMELIFT_FLEET_METADATA_REFERENCES),
         "Sources": GAMELIFT_FLEET_METADATA_REFERENCES,
         "Boundary": "Fleet role configuration and compute identifiers only; no remote access or role credentials.",
+    }
+    template["Metadata"]["PeasoIoTRoleAliasMetadataReference"] = {
+        "Actions": sorted(IOT_ROLE_ALIAS_METADATA_REFERENCE),
+        "Sources": IOT_ROLE_ALIAS_METADATA_REFERENCE,
+        "Boundary": "Existing IoT role alias names only; no certificates, private keys or role credentials.",
     }
     # Compact new templates to preserve source export budgets. Archived versions
     # are never reformatted or overwritten; CloudFormation parses the same JSON.

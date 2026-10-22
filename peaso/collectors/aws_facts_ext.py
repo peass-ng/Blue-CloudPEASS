@@ -59,6 +59,7 @@ SPECS = {
     "sagemaker_cluster": ("sagemaker", "list_clusters", "ClusterSummaries"),
     "grafana_workspace": ("grafana", "list_workspaces", "workspaces"),
     "gamelift_ec2_compute": ("gamelift", "list_fleets", "FleetIds"),
+    "iot_role_alias": ("iot", "list_role_aliases", "roleAliases"),
     "quicksight_user": ("quicksight", "list_users", "UserList"),
     "quicksight_account_subscription": ("quicksight", "describe_account_subscription", None),
     "supplychain_instance": ("supplychain", "list_instances", "instances"),
@@ -100,6 +101,21 @@ _ESM_FIELDS = ("UUID", "EventSourceMappingArn", "EventSourceArn", "FunctionArn",
 def _aws():
     from . import aws
     return aws
+
+
+def _iot_role_aliases(requests, session, region, account):
+    read = requests.pages(session, "iot", region, "list_role_aliases", "roleAliases",
+                          _tokens=("marker", "nextMarker"))
+    if read.status not in OK:
+        return _finish([], _cause(read))
+    rows, failure = [], None
+    for name in read.items:
+        if not isinstance(name, str) or not re.fullmatch(r"[A-Za-z0-9_=,@-]{1,128}", name):
+            failure = failure or ("malformed", {"code": "malformed_iot_role_alias"})
+            continue
+        arn = f"arn:{_partition(region)}:iot:{region}:{account}:rolealias/{name}"
+        rows.append({"RoleAlias": name, "RoleAliasArn": arn, "id": arn})
+    return _finish(rows, failure)
 
 
 def _partition(region):
@@ -961,6 +977,7 @@ FETCHERS = {
     "sagemaker_cluster": _hyperpod_clusters,
     "grafana_workspace": _grafana_workspaces,
     "gamelift_ec2_compute": _gamelift_ec2_computes,
+    "iot_role_alias": _iot_role_aliases,
     "quicksight_user": _quicksight_users,
     "quicksight_account_subscription": _quicksight_account_subscription,
     "supplychain_instance": _supplychain_instances,
