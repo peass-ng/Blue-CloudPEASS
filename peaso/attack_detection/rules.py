@@ -238,6 +238,7 @@ from .aws_lambda_controls_next import normalize_aws_lambda_controls
 from .aws_lambda_alias_grant_next import normalize_aws_lambda_qualified_grant
 from .aws_lambda_config_next import normalize_aws_lambda_config
 from .aws_lambda_privesc_next import normalize_aws_lambda_role_assignment, correlate_aws_lambda_privesc
+from .aws_lambda_efs_mount_batch410 import normalize as normalize_aws_lambda_efs_mount, correlate as correlate_aws_lambda_efs_mount
 from .aws_ec2_controls_next import normalize_aws_ec2_controls
 from .aws_ec2_ssm_batch96 import normalize_aws_ec2_ssm_batch96
 from .aws_verified_permissions_batch97 import normalize_aws_verified_permissions_batch97
@@ -656,6 +657,7 @@ def detect_aws_events(
         lambda_controls = normalize_aws_lambda_controls(record)
         lambda_qualified_grant = normalize_aws_lambda_qualified_grant(record)
         lambda_config = normalize_aws_lambda_config(record)
+        lambda_efs_mount = normalize_aws_lambda_efs_mount(record)
         lambda_role_assignment = normalize_aws_lambda_role_assignment(record)
         ec2_controls = normalize_aws_ec2_controls(record)
         ec2_ssm_batch96 = normalize_aws_ec2_ssm_batch96(record)
@@ -911,6 +913,7 @@ def detect_aws_events(
                 + ([lambda_controls] if lambda_controls is not None else [])
                 + ([lambda_qualified_grant] if lambda_qualified_grant is not None else [])
                 + ([lambda_config] if lambda_config is not None else [])
+                + ([lambda_efs_mount] if lambda_efs_mount is not None else [])
                 + ([lambda_role_assignment] if lambda_role_assignment is not None else [])
                 + ([ec2_controls] if ec2_controls is not None else [])
                 + ([ec2_ssm_batch96] if ec2_ssm_batch96 is not None else [])
@@ -996,6 +999,7 @@ def detect_aws_events(
     mq_broker_chain_records: list[Mapping[str, Any]] = []
     ebs_multiattach_records: list[Mapping[str, Any]] = []
     lambda_privesc_records: list[Mapping[str, Any]] = []
+    lambda_efs_mount_records: list[Mapping[str, Any]] = []
     ssm_command_records: list[Mapping[str, Any]] = []
     ssm_automation_window_records: list[Mapping[str, Any]] = []
     rds_restore_records: list[Mapping[str, Any]] = []
@@ -1214,6 +1218,10 @@ def detect_aws_events(
                     "UpdateFunctionCode20150331v2", "AddPermission20150331v2",
                     "CreateEventSourceMapping20150331"}:
                 lambda_privesc_records.append(record)
+            if (record.get("eventSource") == "lambda.amazonaws.com"
+                    and record.get("eventName") in {"UpdateFunctionConfiguration20150331v2",
+                                                     "UpdateFunctionCode20150331v2"}):
+                lambda_efs_mount_records.append(record)
             if record.get("eventSource") == "ssm.amazonaws.com" and record.get("eventName") in {
                     "ListCommands", "ListCommandInvocations", "GetCommandInvocation"}:
                 ssm_command_records.append(record)
@@ -1250,6 +1258,7 @@ def detect_aws_events(
     correlated += correlate_aws_mq_broker_chain(mq_broker_chain_records)
     correlated += correlate_aws_ebs_multiattach(ebs_multiattach_records)
     correlated += correlate_aws_lambda_privesc(lambda_privesc_records)
+    correlated += correlate_aws_lambda_efs_mount(lambda_efs_mount_records)
     correlated += correlate_aws_ssm_command_output_read(ssm_command_records)
     correlated += correlate_aws_ssm_document_window(ssm_automation_window_records)
     correlated += correlate_aws_rds_public_clone_password_reset(rds_restore_records)
