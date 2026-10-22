@@ -9565,11 +9565,12 @@ class AwsModel(Model):
             partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
             uncertain = not job_status or any(self._statements(source, action)[0]
                                               for action in ("glue:createjob", "glue:updatejob"))
-            matched = False
+            matched_scopes = set()
             for scope, status in job_status.items():
                 if status not in ("collected", "empty"):
                     uncertain = True
                     continue
+                matched = False
                 region = scope.split("/", 1)[1]
                 prefix = f"arn:{partition}:glue:{region}:{source.scope}:"
                 existing = set()
@@ -9641,10 +9642,46 @@ class AwsModel(Model):
                     if matched:
                         break
                 if matched:
-                    break
-            verdict = (("conditional", "glue_job_change_and_execution_bound") if matched else
-                       ("unknown", "glue_job_change_and_execution_not_verified") if uncertain or not job_status else None)
-            return {tid: verdict for tid in candidates if verdict} if verdict else {}
+                    matched_scopes.add(scope)
+            out = {}
+            for tid, role in candidates.items():
+                unresolved = uncertain or bool(source.incomplete or role.incomplete)
+                for scope in matched_scopes:
+                    region = scope.split("/", 1)[1]
+                    passed = self.cached_check(source, {"action": "iam:PassRole",
+                        "request_context": {"iam:PassedToService": "glue.amazonaws.com",
+                                            "aws:RequestedRegion": region}}, tid)
+                    if passed is None:
+                        unresolved = True
+                        continue
+                    for job_scope, job in items(self.snapshot, "glue_job"):
+                        if (not job_scope.startswith(source.scope + "/")
+                                or job_status.get(job_scope) != "collected" or not isinstance(job, dict)):
+                            continue
+                        command = job.get("Command")
+                        script = command.get("ScriptLocation") if isinstance(command, dict) else None
+                        if not isinstance(script, str):
+                            continue
+                        parsed = urlsplit(script)
+                        if (parsed.scheme != "s3" or not re.fullmatch(r"[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]", parsed.netloc)
+                                or not parsed.path.startswith("/") or parsed.path == "/"
+                                or parsed.query or parsed.fragment or "%" in parsed.path
+                                or any(ord(char) < 32 for char in script)):
+                            continue
+                        object_arn = f"arn:{partition}:s3:::{parsed.netloc}{parsed.path}"
+                        put = self.check(source, {"action": "s3:PutObject"}, object_arn)
+                        read = self.check(role, {"action": "s3:GetObject"}, object_arn)
+                        if put is None or read is None:
+                            continue
+                        if all(grant.confidence == "derived" for grant in (passed, put, read)):
+                            out[tid] = ("conditional", "glue_job_change_run_and_script_object_bound")
+                            break
+                        unresolved = True
+                    if tid in out:
+                        break
+                if tid not in out and (unresolved or matched_scopes):
+                    out[tid] = ("unknown", "glue_job_change_execution_or_script_object_not_verified")
+            return out
         if pid == "glue_job_override_arguments_available":
             if source is None:
                 return None
