@@ -42,6 +42,7 @@ import { Settings } from "./Settings";
 import type { Connector, Me, Report, Scan, Workspace } from "./types";
 import { Panel, State, sourceHref } from "./ui";
 import { scanNames } from "./scanNames";
+import { useInsightCounts } from "./InsightCounts";
 function IamIcon({ size = 18 }: { size?: number }) {
   return <svg className="nav-iam-icon" width={24} height={size} viewBox="0 0 24 18"
     style={{ width: 24, flexShrink: 0 }} fill="none" aria-hidden="true">
@@ -80,16 +81,6 @@ const pages = [
     description: "Understand your observed external exposure.",
   },
   {
-    label: "Leaks",
-    icon: Shield,
-    description: "Inspect detected secrets and credential-related findings and their sources.",
-  },
-  {
-    label: "Images CVEs",
-    icon: ShieldCheck,
-    description: "Review image vulnerabilities and their scan coverage.",
-  },
-  {
     label: "Least Privilege",
     icon: IamIcon,
     description: "Review identity permissions and reduce unnecessary access.",
@@ -112,7 +103,17 @@ const pages = [
     description: "Review AI network findings and recommended connectivity changes.",
   },
   {
-    label: "Attack Analysis",
+    label: "Leaks",
+    icon: Shield,
+    description: "Inspect detected secrets and credential-related findings and their sources.",
+  },
+  {
+    label: "Images CVEs",
+    icon: ShieldCheck,
+    description: "Review image vulnerabilities and their scan coverage.",
+  },
+  {
+    label: "Attack Detection",
     icon: Radar,
     group: "THREAT DETECTION",
     description: "Review suspicious actions in cloud audit logs.",
@@ -132,7 +133,7 @@ const pages = [
 const pageAliases: Record<string, string> = {
   "AI Review": "Top 15 Actions", "Top 15 Recommended Actions": "Top 15 Actions",
   "Hardening Findings": "Hardening & Compliance", "Network Findings": "Network Architecture",
-  "Images Findings": "Images CVEs",
+  "Images Findings": "Images CVEs", "Attack Analysis": "Attack Detection",
 };
 const normalizePage = (page: string) => pageAliases[page] || page;
 export function App() {
@@ -171,6 +172,7 @@ export function App() {
     demo,
     !!scanId && current?.status === "completed",
   );
+  const insightCounts = useInsightCounts(scanId, demo, !!scanId && current?.status === "completed", aiAvailable, report.data);
   const pageInfo = pages.find((p) => p.label === page) || pages[0];
   function navigate(p: string) {
     p = normalizePage(p);
@@ -279,25 +281,14 @@ export function App() {
                 aria-current={page === p.label ? "page" : undefined}
               >
                 <p.icon size={18} />
-                <span>{p.label}</span>
+                <span className="nav-label">{p.label}
+                  {p.label === "Attack Detection" && <span className="feature-beta nav-beta">Beta</span>}
+                  {p.ai && <span className="feature-ai nav-ai" aria-hidden="true">✦ AI</span>}
+                </span>
                 {p.label === "Settings" && codex.data?.configuration_error && <AlertTriangle size={16} role="img" aria-label="AI configuration needs attention" />}
-                {p.label === "Attack Analysis" && <span className="feature-beta nav-beta">Beta</span>}
-                {p.ai && <span className="feature-ai nav-ai" aria-hidden="true">✦ AI</span>}
-                {p.label === "Hardening & Compliance" && report.data && (
-                  <span className="nav-count">
-                    {Number(
-                      (
-                        report.data.stats?.failed_by_category as
-                          | Record<string, number>
-                          | undefined
-                      )?.hardening ??
-                        report.data.findings?.filter(
-                          (f) => f.category === "hardening" && f.status === "FAIL",
-                        ).length ??
-                        0,
-                    )}
-                  </span>
-                )}
+                {Object.hasOwn(insightCounts, p.label) && <span className="nav-count" aria-label={`${p.label} total`}>
+                  {insightCounts[p.label] ?? "—"}
+                </span>}
               </button>
             </div>
           ))}
@@ -339,7 +330,7 @@ export function App() {
           <div className="page-heading">
             <div>
               <div className="eyebrow page-kicker"><span>//</span> PEASS'o INTELLIGENCE</div>
-              <h1>{page}{pageInfo.ai && <span className="feature-ai" aria-hidden="true">✦ AI</span>}{page === "Attack Analysis" && <span className="feature-beta">Beta</span>}</h1>
+              <h1>{page}{pageInfo.ai && <span className="feature-ai" aria-hidden="true">✦ AI</span>}{page === "Attack Detection" && <span className="feature-beta">Beta</span>}</h1>
               {pageInfo.description && <p>{pageInfo.description}</p>}
             </div>
             {(insight || page === "Dashboard") && (
@@ -425,7 +416,7 @@ export function App() {
             />
           )}
           {page === "Connectors" && <Connectors demo={demo} canWrite={canWriteWorkspace} />}
-          {page === "Attack Analysis" && <AttackAnalysis demo={demo} canWrite={canWriteWorkspace} onNavigate={navigate} />}
+          {page === "Attack Detection" && <AttackAnalysis demo={demo} canWrite={canWriteWorkspace} onNavigate={navigate} />}
           {page === "Scans" && (
             <Scans
               demo={demo}
@@ -449,7 +440,7 @@ export function App() {
                   key={page}
                   scanId={scanId}
                   category={page === "Hardening & Compliance" ? "hardening" : page === "Exposure" ? "exposure" : ""}
-                  findingType={page === "Leaks" ? "secrets" : undefined}
+                  findingType={page === "Leaks" ? "detected_leaks" : undefined}
                   demo={demo}
                 />
               </State>

@@ -153,3 +153,14 @@ assert r.status_code == 200, r.text
         env={**os.environ, 'PYTHONPATH': os.pathsep.join(sys.path), 'PYTHONDONTWRITEBYTECODE':'1'},
         capture_output=True, text=True, timeout=30)
     assert result.returncode == 0, result.stderr
+
+
+def test_sidebar_totals_count_distinct_cves_and_images_before_pagination():
+    report = {'rows': [dict(id=str(n), vulnerability_id='CVE-2026-1000' if n < 2 else 'CVE-2026-1001',
+                           provider='aws', scope='123/us-east-1', image_digest='image-' + str(n % 2),
+                           affected_assets=[]) for n in range(3)]}
+    first = page_report(report, 0, 1)
+    assert first['total'] == 3
+    assert first['vulnerability_count'] == 2
+    assert first['image_count'] == 2
+    assert len(first['rows']) == 1
