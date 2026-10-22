@@ -595,7 +595,70 @@ def _validate_dataproc_proposal():
 
 
 def install_admission(name):
-    return _with_artifacts(_install_admission, name)
+    if name not in {
+            'azure_function_settings_admission_20261020',
+            'azure_apim_operation_window_admission_20261020'}:
+        return _with_artifacts(_install_admission, name)
+
+    def verify_proposal():
+        """Bind the old proposal rows to their exact current source epoch."""
+        root = _root()
+        _receipt(root)
+        kind = ('function' if name == 'azure_function_settings_admission_20261020'
+                else 'apim')
+        raw = (root / 'peaso/checks' / (name + '.json')).read_bytes()
+        receipt = json.loads(raw)
+        if kind == 'function':
+            if receipt.get('schema') != 'azure-selected-function-source-receipt-v1' or receipt.get('registered') is not False:
+                raise ValueError('function_proposal_source_mismatch')
+            file_rows = receipt['new_modules'] + [receipt['native_cases'], receipt['descriptions']]
+        else:
+            if (receipt.get('schema') != 'azure-apim-operation-window-source-v1'
+                    or receipt.get('registered') is not False or receipt.get('research_only') is not True
+                    or receipt.get('admission_recommended') is not False):
+                raise ValueError('apim_proposal_source_mismatch')
+            file_rows = receipt['modules'] + [receipt['native_cases'], receipt['descriptions']]
+        for row in file_rows:
+            path = (root / row['path']).resolve()
+            if (not path.is_relative_to(root)
+                    or _digest(source_bytes(row['path'], path.read_bytes(), row['sha256'], root)) != row['sha256']):
+                raise ValueError(kind + '_proposal_source_mismatch')
+        changed = {
+            ('peaso/collectors/azure_selected_secret_integration_20261020.py', 'final_snapshot'),
+            ('peaso/collectors/azure_function_settings_declarations_20261020.py', 'collect_proposal'),
+            ('peaso/collectors/azure_apim_operation_window_20261020.py', 'collect_proposal'),
+        }
+        for row in receipt['callables']:
+            value = importlib.import_module(row['module'])
+            for part in row['qualname'].split('.'):
+                value = getattr(value, part)
+            value = inspect.unwrap(value)
+            if str(Path(inspect.getsourcefile(value)).resolve().relative_to(root)) != row['path']:
+                raise ValueError(kind + '_proposal_source_mismatch')
+            digest = _digest(inspect.getsource(value).encode())
+            if digest == row['sha256']:
+                continue
+            key = (row['path'], row['qualname'])
+            if key in changed:
+                from peaso.checks import private_secret_shared_source_successor_20261021 as shared
+                shared._check_function(value, dict(row, defaults=None,
+                    kwdefaults={'credential': None} if row['qualname'] == 'collect_proposal' else None), root, {})
+            if key == ('peaso/collectors/azure_selected_secret_integration_20261020.py', 'final_snapshot'):
+                owner = importlib.import_module(value.__module__)
+                expected = {
+                    'arm': 'peaso.collectors.azure_selected_configuration_secret_indicators',
+                    'storage': 'peaso.collectors.azure_selected_storage_secret_indicators',
+                    'devops': 'peaso.collectors.azure_devops_selected_content_secret_indicators',
+                }
+                if (owner.final_snapshot is not value or owner.MAX_UNION_VALUES != 5000
+                        or any(vars(owner).get(binding) is not importlib.import_module(module)
+                               for binding, module in expected.items())):
+                    raise ValueError(kind + '_proposal_source_mismatch')
+            elif key not in changed:
+                raise ValueError(kind + '_proposal_source_mismatch')
+        return receipt
+
+    return _with_artifacts(verify_proposal)
 
 
 def _install_admission(name):
@@ -723,7 +786,8 @@ def _install_admission(name):
             raise RuntimeError('Function proposal receipt changed')
         for item in data['new_modules']:
             path = (_root(root) / item['path']).resolve()
-            if not path.is_relative_to(_root(root)) or _digest(path.read_bytes()) != item['sha256']:
+            if (not path.is_relative_to(_root(root))
+                    or _digest(source_bytes(item['path'], path.read_bytes(), item['sha256'], root)) != item['sha256']):
                 raise RuntimeError('Function proposal module changed')
         for item in data['callables']:
             value = importlib.import_module(item['module'])
@@ -734,7 +798,13 @@ def _install_admission(name):
                 raise RuntimeError('Function proposal callable location changed')
             if (item['path'], item['qualname']) == (
                     'peaso/collectors/azure_selected_secret_integration_20261020.py', 'final_snapshot'):
-                _admitted_callable_digest(value, item['sha256'], root)
+                from peaso.checks import private_secret_shared_source_successor_20261021 as shared
+                shared._check_function(value, dict(item, defaults=None, kwdefaults=None), _root(root), {})
+            elif (item['path'], item['qualname']) == (
+                    'peaso/collectors/azure_function_settings_declarations_20261020.py', 'collect_proposal'):
+                from peaso.checks import private_secret_shared_source_successor_20261021 as shared
+                shared._check_function(value, dict(item, defaults=None,
+                    kwdefaults={'credential': None}), _root(root), {})
             elif _digest(inspect.getsource(value).encode()) != item['sha256']:
                 raise RuntimeError('Function proposal callable changed')
         for key in ('native_cases', 'descriptions'):

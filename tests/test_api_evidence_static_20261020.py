@@ -45,6 +45,21 @@ REVIEWED_SUCCESSORS = {
 }
 
 
+# Preserve the original 12,145 rendered witnesses. This exact successor records
+# reviewed main wording/impact changes and four retired current-catalog IDs;
+# the native formatter must independently reproduce every successor below.
+PRIVESC_SUCCESSOR_RAW = (ROOT/'tests/fixtures/evidence_static_privesc_successor_20261022.json.gz').read_bytes()
+assert hashlib.sha256(PRIVESC_SUCCESSOR_RAW).hexdigest() == 'f45cae9583e7dab4d48efdb49c37890fea82d1725f788b6309e1484ace19e5d3'
+import gzip
+PRIVESC_SUCCESSOR = json.loads(gzip.decompress(PRIVESC_SUCCESSOR_RAW))
+assert PRIVESC_SUCCESSOR['original_archive_sha256'] == ARCHIVE_SHA256
+assert len(PRIVESC_SUCCESSOR['rows']) == 1897
+for relative, digest in PRIVESC_SUCCESSOR['sources'].items():
+    assert hashlib.sha256((ROOT/relative).read_bytes()).hexdigest() == digest, relative
+assert not set(map(int, PRIVESC_SUCCESSOR['rows'])) & set(REVIEWED_SUCCESSORS)
+REVIEWED_SUCCESSORS.update({int(index): row for index, row in PRIVESC_SUCCESSOR['rows'].items()})
+
+
 def _stage(tmp_path):
     """Build a package overlay without writing to the source checkout."""
     (tmp_path/'risk_rules').symlink_to(ROOT/'risk_rules', target_is_directory=True)

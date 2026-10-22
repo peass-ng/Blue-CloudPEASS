@@ -134,9 +134,8 @@ def offline(monkeypatch):
     for key in ('connect','connect_ex'): monkeypatch.setattr(socket.socket, key, blocked)
     for key in ('getaddrinfo','gethostbyname','create_connection'): monkeypatch.setattr(socket, key, blocked)
     monkeypatch.setattr(azure, 'credential_for', blocked)
-    monkeypatch.setattr(secret_scanning, 'scan_content', blocked)
-    monkeypatch.setattr(secret_scanning, '_scan_kingfisher', blocked)
-    monkeypatch.setattr(secret_scanning, '_scan_trufflehog', blocked)
+    # Keep the admitted scanner callables intact while forbidding native tools.
+    monkeypatch.setattr(secret_scanning.subprocess, 'Popen', blocked)
     for cid,name in zip(source.CHECKS,('telemetry','runtime')):
         actual,=[c for c in checks.CHECKS if c.id==cid]
         assert inspect.unwrap(actual.evaluate)is getattr(current_consumers,name)
@@ -435,8 +434,8 @@ def test_early_credential_rejection_has_safe_unknown_collection(monkeypatch,capl
 
 def test_source_receipt_native_fixtures_and_predecessor_bytes():
     import gzip
-    from peaso.checks import azure_function_settings_admission_20261020 as admission
-    receipt=admission.validate_proposal();root=Path(__file__).resolve().parents[1]
+    from peaso.rawv2_private_source_successor_20261021 import install_admission
+    receipt=install_admission('azure_function_settings_admission_20261020');root=Path(__file__).resolve().parents[1]
     for path,digest in receipt['predecessors'].items():
         assert hashlib.sha256((root/path).read_bytes()).hexdigest()==digest
     cases=json.loads(gzip.decompress((root/receipt['native_cases']['path']).read_bytes()))

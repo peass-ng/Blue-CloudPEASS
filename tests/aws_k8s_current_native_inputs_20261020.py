@@ -133,23 +133,58 @@ def exact_test_predecessor(root, name, current=None):
 
 
 def network_test_successor(historical):
-    """Explicit test-source successor; keep the original proposal object intact.
-
-    All historical helper function code and receipt rows stay unchanged. Only
-    the receipt's one owned test-file source input gets an exact sealed reverse
-    transformation; other source bindings still use their original normalization.
-    """
+    """Run the original proposal against exact signed predecessor source bytes."""
+    import hashlib
+    import json
     import types
     namespace = dict(vars(historical))
+    private_sources = frozenset({
+        'peaso/collectors/gcp.py',
+        'peaso/collectors/gcp_batch_referenced_source_20261020.py',
+        'peaso/collectors/gcp_dataflow_referenced_source_20261020.py',
+        'peaso/collectors/gcp_dataform_secret_indicators.py',
+        'peaso/collectors/gcp_dataproc_referenced_source_secret_indicators.py',
+        'peaso/collectors/gcp_selected_object_secret_indicators.py',
+        'peaso/collectors/gcp_workbench_referenced_source_20261020.py',
+        'peaso/collectors/k8s_literal_secret_indicators.py',
+        'peaso/collectors/k8s_selected_log_sample_secret_indicators.py',
+        'peaso/checks/k8s_selected_metadata_secret_admission_20261020.py',
+    })
+
+    def source_view(root, name, data, expected=None):
+        if name in private_sources:
+            from peaso.checks import private_secret_shared_source_successor_20261021 as current
+            return current._private_before(name, data, root)
+        if name == 'peaso/checks/k8s_selected_metadata_secret_review_20261020.py':
+            from peaso import private_secret_source_epoch_20261021 as epoch
+            return epoch.predecessor_bytes(name, data, expected, root)
+        if name == 'peaso/secret_scanning.py':
+            from peaso.rawv2_private_source_successor_20261021 import source_bytes
+            return source_bytes(name, data, expected, root)
+        if name == 'peaso/collectors/gcp_selected_archive_secret_indicators.py':
+            import gzip
+            from peaso.checks import private_secret_shared_source_successor_20261021 as current
+            intermediate = current._private_before(name, data, root)
+            archive = (root / 'tests/fixtures/gcp_positive_conservation_predecessors_20261020.json.gz').read_bytes()
+            if hashlib.sha256(archive).hexdigest() != '90678d4abb5dcbff1471736f00da2d67744c1628e67f53e08deffe1470be661c':
+                raise ValueError('proposal_archive_receipt')
+            row = json.loads(gzip.decompress(archive))['files'][name]
+            before = bytes.fromhex(row['before_hex'])
+            if (hashlib.sha256(intermediate).hexdigest() != row['after_sha256']
+                    or hashlib.sha256(before).hexdigest() != row['before_sha256']
+                    or (expected is not None and row['before_sha256'] != expected)):
+                raise ValueError('proposal_archive_source')
+            return before
+        if name == 'tests/test_k8s_network_inventory_successor_20261020.py':
+            return exact_test_predecessor(root, name, data)
+        return data
 
     def current_receipt(root):
         raw = historical.under(root, historical.RECEIPT).read_bytes()
         assert historical.digest(raw) == historical.RECEIPT_SHA256
         reviewed = historical.read_json(raw)
         for name, row in reviewed['sources'].items():
-            data = historical.under(root, name).read_bytes()
-            if name == 'tests/test_k8s_network_inventory_successor_20261020.py':
-                data = exact_test_predecessor(root, name, data)
+            data = source_view(root, name, historical.under(root, name).read_bytes(), row['sha256'])
             if row['normalization'] == 'receipt_self':
                 data = historical.normalized_self(data)
             else:
@@ -158,13 +193,34 @@ def network_test_successor(historical):
                 raise ValueError('proposal_source:' + name)
         return reviewed
 
-    # Clone only this standalone test proposal, never canonical runtime modules.
-    # The original function objects and their globals remain untouched.
+    def current_static_runtime119(root, reviewed):
+        accepted = historical.read_json(historical.under(root, historical.COMBINED).read_bytes())
+        functions = accepted['runtime_functions']
+        if len(functions) != 119 or functions != reviewed['runtime119']:
+            raise ValueError('runtime119_manifest')
+        by_path = {}
+        for name, row in functions.items():
+            path = row['path']
+            if path not in by_path:
+                source_row = reviewed['sources'].get(path)
+                expected = source_row['sha256'] if source_row is not None else None
+                current = historical.under(root, path).read_bytes()
+                previous = source_view(root, path, current, expected)
+                by_path[path] = (historical.definitions(previous), previous)
+            definitions, previous = by_path[path]
+            raw = definitions.get(row['qualname'])
+            if raw is None or historical.digest(raw) != row['sha256']:
+                raise ValueError('runtime119_source:' + name)
+            historical.compiled_definition(previous, row['qualname'], path)
+        return len(functions)
+
+    # Clone only the standalone test proposal. Canonical runtime modules stay untouched.
     for name, fn in vars(historical).items():
         if isinstance(fn, types.FunctionType) and fn.__globals__ is vars(historical):
             clone = types.FunctionType(fn.__code__, namespace, fn.__name__, fn.__defaults__, fn.__closure__)
             clone.__kwdefaults__ = fn.__kwdefaults__
             namespace[name] = clone
     namespace['receipt'] = current_receipt
+    namespace['static_runtime119'] = current_static_runtime119
     namespace['historical'] = historical
     return types.SimpleNamespace(**namespace)

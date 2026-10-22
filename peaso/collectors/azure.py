@@ -1862,8 +1862,8 @@ def collect(connector, requirements=None, *, transport=None):
     function_targets, function_checks = azure_function_settings_declarations_20261020.preflight(
         options, connector.get('scopes', []), options.get('_azure_function_settings_checks', []))
     if function_targets:
-        from peaso.checks.azure_function_settings_runtime_admission_20261020 import reviewed_inputs as function_reviewed_inputs
-        function_reviewed_inputs()
+        from peaso.rawv2_private_source_successor_20261021 import install_admission
+        install_admission('azure_function_settings_runtime_admission_20261020')
     azure_selected_storage_secret_indicators.selected_targets(options, connector.get('scopes', []))
     azure_flex_deployment_archives_20261021.selected_targets(options, connector.get('scopes', []))
     azure_devops_selected_content_secret_indicators.selected_targets(options, connector.get('scopes', []), auth)

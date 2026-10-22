@@ -2,8 +2,8 @@
 
 Review status covers identified accessor fields only, not exhaustive semantics. SDK shape membership proves only API-boundary possibility; credited field emission requires an executed modeled or source-bound SDK pipeline receipt. Derived-producer means the actual callback emitted the path in a modeled probe or a passing SDK-pipeline receipt with matching recorded test-source and collector-pipeline hashes; this does not prove values, availability, branch completeness, SDK parameter correctness, or real-world success. Fixtures prove reads only. No cloud calls, live proof, or new broad predicate gate.
 
-Snapshot: 1409 active IDs, 1409 unique rows, 601 supported AWS kinds. Catalog SHA256 `cc7d49f36b0453e30ec4452c797870ae437628479137244024ef6190ae2ec070`.
-Catalog IDs awaiting root exclusion rebuild: []. Observed-field review states: {'witness-only': 1137, 'derived-producer': 219, 'proven-native-shape': 52, 'needsmanualreview': 1}. These are not completed semantic reviews. Installed botocore: 1.43.38.
+Snapshot: 1418 active IDs, 1418 unique rows, 609 supported AWS kinds. Catalog SHA256 `176233d36f564615c1f907c4cc9f36a7da72ccc0b9bdcb6b23bf9495ab650a53`.
+Catalog IDs awaiting root exclusion rebuild: []. Observed-field review states: {'witness-only': 1143, 'derived-producer': 219, 'proven-native-shape': 51, 'needsmanualreview': 5}. These are not completed semantic reviews. Installed botocore: 1.43.38.
 
 Each kind has callback-only and public collector pipeline probes. Both use SDK-validated modeled responses and execute real Requests/cache/projection code; public probes additionally execute nested dispatch, append metadata and snapshot validation. Per-field `emission_receipts` identify modeled probes and `sdk_emission_receipts` identify passing SDK pipeline executions that recorded that exact emitted path with matching test-source and collector-pipeline hashes. Possible SDK members, source literals and saved-fixture reads do not count as producer-to-consumer proof. Direct dictionary input reads are traced with normal-versus-instrumented status/evidence equality; static aliases and unvisited branches remain explicit in JSON.
 
@@ -84,7 +84,7 @@ Every supported kind is probed, including those without active consumers. Requir
 
 | Kind | Related IDs | Strict paths unproved | Other paths unproved | Public modeled status |
 |---|---:|---:|---:|---|
-| access_analyzer | 4 | 0 | 0 | malformed |
+| access_analyzer | 4 | 0 | 1 | malformed |
 | acm_certificate | 18 | 0 | 1 | collected |
 | acmpca_certificate_authority | 3 | 0 | 0 | collected |
 | agentcore_agent_runtime | 0 | 0 | 0 | collected |
@@ -97,6 +97,7 @@ Every supported kind is probed, including those without active consumers. Requir
 | apigateway_domain_name | 1 | 0 | 0 | collected |
 | apigateway_stage | 1 | 6 | 0 | collected |
 | apigateway_vpc_link | 0 | 0 | 0 | collected |
+| apigatewayv2_domain_name | 0 | 0 | 0 | collected |
 | apigatewayv2_vpc_link | 0 | 0 | 0 | collected |
 | app_runner_custom_domain | 0 | 0 | 0 | collected |
 | app_runner_service | 0 | 0 | 0 | collected |
@@ -112,7 +113,7 @@ Every supported kind is probed, including those without active consumers. Requir
 | athena_workgroup | 6 | 0 | 2 | collected |
 | autoscaling_group | 11 | 0 | 1 | collected |
 | autoscaling_launch_configuration | 1 | 0 | 0 | collected |
-| aws_account | 14 | 0 | 0 | collected |
+| aws_account | 16 | 0 | 0 | collected |
 | aws_account_configuration | 39 | 2 | 2 | collected |
 | aws_account_contact_details | 1 | 0 | 0 | collected |
 | aws_cloudtrail_activity | 3 | 3 | 2 | malformed |
@@ -121,11 +122,13 @@ Every supported kind is probed, including those without active consumers. Requir
 | aws_enabled_region | 0 | 0 | 0 | partial |
 | aws_identity_center_account_assignment | 0 | 0 | 0 | collected |
 | aws_identity_center_permission_set | 0 | 0 | 0 | collected |
+| aws_identity_center_permission_set_consumer | 1 | 2 | 10 | malformed |
 | aws_identity_center_user | 0 | 0 | 0 | collected |
 | aws_organization_account | 0 | 0 | 0 | malformed |
 | aws_region | 1 | 0 | 0 | collected |
 | aws_resource_policy | 1 | 0 | 4 | partial |
 | aws_selected_workload_command_literals | 1 | 0 | 0 | not_collected |
+| aws_selected_workload_image_secrets | 1 | 0 | 0 | not_collected |
 | aws_tagged_resource | 0 | 0 | 0 | malformed |
 | backup_gateway | 0 | 0 | 0 | collected |
 | backup_plan | 13 | 1 | 0 | collected |
@@ -153,8 +156,9 @@ Every supported kind is probed, including those without active consumers. Requir
 | bedrock_model_invocation_logging | 3 | 0 | 1 | collected |
 | bedrock_prompt | 2 | 0 | 0 | collected |
 | blockchain_network | 0 | 0 | 0 | collected |
-| bucket | 56 | 13 | 11 | collected |
+| bucket | 55 | 13 | 11 | collected |
 | budget_action | 0 | 0 | 0 | malformed |
+| build_deployment_referenced_source_content | 1 | 50 | 2 | not_collected |
 | capacity_group | 0 | 0 | 0 | not_collected |
 | carrier_gateway | 0 | 0 | 0 | collected |
 | classic_elb | 1 | 0 | 0 | collected |
@@ -288,15 +292,18 @@ Every supported kind is probed, including those without active consumers. Requir
 | ecr_image | 0 | 0 | 0 | not_collected |
 | ecr_oci_artifact | 0 | 0 | 0 | not_collected |
 | ecr_public_repository | 0 | 0 | 0 | collected |
+| ecr_public_selected_image_content | 2 | 0 | 0 | not_collected |
 | ecr_registry | 3 | 0 | 10 | collected |
 | ecr_registry_scanning_configuration | 3 | 0 | 0 | collected |
 | ecr_repository | 16 | 26 | 18 | collected |
+| ecr_selected_image_vulnerabilities | 1 | 0 | 0 | not_collected |
 | ecs_account_setting | 1 | 0 | 0 | collected |
 | ecs_capacity_provider | 0 | 0 | 0 | collected |
 | ecs_cluster | 8 | 0 | 0 | collected |
 | ecs_container_instance | 3 | 0 | 0 | partial |
 | ecs_express_gateway_service | 0 | 0 | 0 | collected |
-| ecs_service | 6 | 2 | 0 | partial |
+| ecs_selected_environment_file_content | 1 | 51 | 2 | not_collected |
+| ecs_service | 5 | 2 | 0 | partial |
 | ecs_task | 1 | 0 | 0 | partial |
 | ecs_task_definition | 16 | 20 | 1 | collected |
 | ecs_task_set | 1 | 0 | 0 | partial |
@@ -313,10 +320,10 @@ Every supported kind is probed, including those without active consumers. Requir
 | eks_version_catalog | 1 | 0 | 0 | collected |
 | elastic_beanstalk_environment | 7 | 28 | 0 | collected |
 | elastic_ip | 2 | 0 | 0 | collected |
-| elasticache_cluster | 6 | 0 | 0 | collected |
+| elasticache_cluster | 5 | 0 | 0 | collected |
 | elasticache_replication_group | 10 | 0 | 0 | collected |
 | elasticache_serverless_cache | 0 | 0 | 0 | collected |
-| elasticache_subnet_group | 2 | 0 | 0 | collected |
+| elasticache_subnet_group | 1 | 0 | 0 | collected |
 | elbv2_listener | 0 | 0 | 0 | malformed |
 | emr_block_public_access_configuration | 2 | 0 | 0 | collected |
 | emr_cluster | 15 | 5 | 0 | collected |
@@ -372,20 +379,20 @@ Every supported kind is probed, including those without active consumers. Requir
 | http_api_stage | 3 | 0 | 0 | collected |
 | iam_access_key | 2 | 0 | 1 | collected |
 | iam_account_summary | 7 | 1 | 0 | collected |
-| iam_credential_report | 17 | 0 | 1 | collected |
+| iam_credential_report | 17 | 0 | 3 | collected |
 | iam_customer_policy | 9 | 0 | 0 | collected |
-| iam_group | 18 | 0 | 2 | malformed |
+| iam_group | 19 | 0 | 6 | malformed |
 | iam_identity | 0 | 0 | 0 | malformed |
 | iam_managed_policy | 0 | 0 | 0 | collected |
-| iam_oidc_provider | 0 | 0 | 0 | collected |
+| iam_oidc_provider | 1 | 0 | 3 | collected |
 | iam_organization_features | 1 | 0 | 0 | collected |
 | iam_password_policy | 16 | 0 | 0 | collected |
 | iam_policy | 61 | 9 | 10 | malformed |
-| iam_role | 56 | 7 | 13 | malformed |
-| iam_saml_provider | 1 | 0 | 0 | collected |
+| iam_role | 57 | 8 | 20 | malformed |
+| iam_saml_provider | 2 | 0 | 3 | collected |
 | iam_server_certificate | 4 | 0 | 1 | collected |
 | iam_service_specific_credential | 2 | 0 | 1 | collected |
-| iam_user | 31 | 3 | 4 | malformed |
+| iam_user | 32 | 3 | 6 | malformed |
 | iam_virtual_mfa_device | 2 | 0 | 0 | collected |
 | identity_center | 1 | 11 | 0 | malformed |
 | imagebuilder_infrastructure | 0 | 0 | 0 | collected |
@@ -399,7 +406,7 @@ Every supported kind is probed, including those without active consumers. Requir
 | inspector_organization_configuration | 4 | 0 | 0 | collected |
 | inspector_organization_review | 4 | 0 | 0 | collected |
 | instance | 88 | 30 | 6 | collected |
-| internet_gateway | 1 | 0 | 0 | collected |
+| internet_gateway | 2 | 0 | 0 | collected |
 | iot_rule_destination | 0 | 0 | 0 | collected |
 | k8s_admission_policy | 0 | 0 | 0 | not_collected |
 | kafka_version | 1 | 0 | 0 | collected |
@@ -534,7 +541,7 @@ Every supported kind is probed, including those without active consumers. Requir
 | rds_proxy_endpoint | 0 | 0 | 0 | collected |
 | rds_snapshot | 4 | 0 | 0 | collected |
 | recovery_group | 0 | 0 | 0 | not_collected |
-| redshift_cluster | 25 | 1 | 0 | collected |
+| redshift_cluster | 24 | 1 | 0 | collected |
 | redshift_endpoint | 0 | 0 | 0 | collected |
 | redshift_serverless_endpoint | 0 | 0 | 0 | collected |
 | redshift_snapshot | 1 | 0 | 0 | collected |
@@ -572,7 +579,7 @@ Every supported kind is probed, including those without active consumers. Requir
 | rtb_requester_gateway | 0 | 0 | 0 | collected |
 | rtb_responder_gateway | 0 | 0 | 0 | collected |
 | s3_access_point | 1 | 0 | 0 | collected |
-| s3_account_public_access_block | 11 | 0 | 2 | collected |
+| s3_account_public_access_block | 10 | 0 | 2 | collected |
 | s3_backup_plan_coverage | 1 | 10 | 0 | malformed |
 | s3_bucket | 1 | 0 | 0 | collected |
 | s3_directory_bucket | 1 | 1 | 1 | collected |
@@ -623,7 +630,7 @@ Every supported kind is probed, including those without active consumers. Requir
 | shield_protection_region | 1 | 2 | 0 | malformed |
 | shield_subscription | 7 | 0 | 0 | collected |
 | sns_subscription | 3 | 0 | 0 | collected |
-| sns_topic | 10 | 6 | 6 | collected |
+| sns_topic | 9 | 6 | 6 | collected |
 | spot_instance_request | 0 | 0 | 0 | collected |
 | sqs_queue | 7 | 4 | 2 | collected |
 | ssm_document_metadata | 3 | 0 | 0 | collected |
@@ -639,11 +646,11 @@ Every supported kind is probed, including those without active consumers. Requir
 | storagegateway_filesystem_association | 0 | 0 | 0 | collected |
 | storagegateway_gateway | 1 | 0 | 0 | collected |
 | storagegateway_stored_iscsi_volume | 0 | 0 | 0 | empty |
-| subnet | 20 | 0 | 0 | collected |
+| subnet | 19 | 0 | 0 | collected |
 | subnet_cidr_reservations | 0 | 0 | 0 | collected |
 | supplychain_instance | 0 | 0 | 0 | collected |
 | synthetics_canary | 0 | 0 | 0 | collected |
-| target_group | 2 | 5 | 0 | collected |
+| target_group | 3 | 5 | 0 | collected |
 | traffic_mirror_session | 0 | 0 | 0 | collected |
 | traffic_mirror_target | 0 | 0 | 0 | collected |
 | transfer_connector | 1 | 0 | 0 | collected |
@@ -674,7 +681,7 @@ Every supported kind is probed, including those without active consumers. Requir
 | vpc_public_access_exclusion | 0 | 0 | 0 | collected |
 | vpc_security_group_membership | 0 | 0 | 0 | collected |
 | vpn_connection | 3 | 0 | 0 | collected |
-| vpn_gateway | 0 | 0 | 0 | collected |
+| vpn_gateway | 1 | 0 | 0 | collected |
 | waf_account_acl_inventory | 2 | 11 | 1 | malformed |
 | waf_rule | 1 | 0 | 0 | collected |
 | waf_rule_group | 1 | 0 | 0 | collected |
@@ -687,6 +694,7 @@ Every supported kind is probed, including those without active consumers. Requir
 | wafv2_rule_group | 3 | 4 | 0 | collected |
 | wafv2_web_acl | 9 | 15 | 6 | collected |
 | wellarchitected_workload | 1 | 2 | 0 | collected |
+| workload_referenced_source_content | 1 | 50 | 2 | not_collected |
 | workspace_directory | 0 | 0 | 0 | collected |
 | workspace_web_network_settings | 0 | 0 | 0 | collected |
 | workspace_web_portal | 0 | 0 | 0 | collected |
@@ -726,7 +734,6 @@ The strict-read column enumerates exact attributed paths without an emission rec
 | aws.a.cloudwatch.alarm_actions_enabled | proven-native-shape | — | 0 / 0 |
 | aws.a.cloudwatch.alarm_state_actions | proven-native-shape | — | 0 / 0 |
 | aws.a.cloudwatch.any_state_actions | witness-only | — | 0 / 1 |
-| aws.a.cloudwatch.cross_account_role_absent | witness-only | — | 1 / 4 |
 | aws.a.cloudwatch.finite_retention_365 | witness-only | — | 1 / 3 |
 | aws.a.cloudwatch.log_kms_encryption | witness-only | — | 1 / 3 |
 | aws.a.cloudwatch.log_retention_at_least_365 | witness-only | — | 0 / 6 |
@@ -753,13 +760,12 @@ The strict-read column enumerates exact attributed paths without an emission rec
 | aws.a.iam.root_summary_mfa | derived-producer | — | 0 / 0 |
 | aws.a.iam.root_summary_no_keys | derived-producer | — | 0 / 0 |
 | aws.a.iam.server_certificate_expiry_date | witness-only | — | 1 / 2 |
-| aws.a.iam.unused_credentials_45_days | witness-only | — | 1 / 3 |
-| aws.a.iam.unused_credentials_90_days | witness-only | — | 1 / 3 |
+| aws.a.iam.unused_credentials_45_days | witness-only | — | 2 / 13 |
+| aws.a.iam.unused_credentials_90_days | witness-only | — | 2 / 13 |
 | aws.a.iam.user_no_cloudshell_full_access | derived-producer | — | 0 / 0 |
 | aws.a.iam.user_no_direct_policies | derived-producer | — | 0 / 0 |
 | aws.a.iam.user_no_managed_policies | derived-producer | — | 0 / 1 |
 | aws.a.kms.rotation_source_eligibility | derived-producer | — | 0 / 0 |
-| aws.a.s3.bucket_account_public_blocks | witness-only | — | 1 / 8 |
 | aws.a.s3.default_encryption_configuration | witness-only | — | 1 / 0 |
 | aws.a.s3.mfa_delete_enabled | derived-producer | — | 0 / 0 |
 | aws.b.acm.expiry_thirty_days | derived-producer | — | 0 / 0 |
@@ -901,7 +907,6 @@ The strict-read column enumerates exact attributed paths without an emission rec
 | aws.b.redshift.audit_logging | witness-only | — | 0 / 2 |
 | aws.b.redshift.enhanced_vpc_routing | witness-only | — | 0 / 2 |
 | aws.b.redshift.kms_key_declared | witness-only | — | 0 / 4 |
-| aws.b.redshift.no_public_endpoint | witness-only | — | 0 / 2 |
 | aws.b.redshift.nondefault_admin | witness-only | — | 0 / 1 |
 | aws.b.redshift.nondefault_database | witness-only | — | 0 / 1 |
 | aws.b.redshift.snapshots_seven_days | witness-only | — | 0 / 2 |
@@ -916,7 +921,7 @@ The strict-read column enumerates exact attributed paths without an emission rec
 | aws.c2b.acmpca.pqc_key_algorithm | derived-producer | — | 0 / 0 |
 | aws.c2b.acmpca.root_ca_disabled | derived-producer | — | 0 / 0 |
 | aws.c2b.apigateway.authorizers_or_authorized_methods | witness-only | rest_api.Resources.items[].resourceMethods.GET.authorizationType | 0 / 2 |
-| aws.c2b.apigateway.domain_pqc_tls | proven-native-shape | — | 0 / 0 |
+| aws.c2b.apigateway.domain_pqc_tls | derived-producer | — | 0 / 0 |
 | aws.c2b.apigateway.methods_authorization_type | witness-only | rest_api.Resources.items[].resourceMethods.GET.authorizationType<br>rest_api.Resources.items[].resourceMethods.OPTIONS.authorizationType | 0 / 2 |
 | aws.c2b.apigateway.methods_request_validator | witness-only | rest_api.Resources.items[].resourceMethods.POST.requestValidatorId | 0 / 2 |
 | aws.c2b.apigateway.public_rest_api_authorizer | witness-only | — | 0 / 2 |
@@ -1081,7 +1086,6 @@ The strict-read column enumerates exact attributed paths without an emission rec
 | aws.c2b.ecs.logging_non_blocking | witness-only | ecs_task_definition.Definition.taskDefinition.containerDefinitions[].logConfiguration<br>ecs_task_definition.Definition.taskDefinition.containerDefinitions[].logConfiguration.logDriver<br>ecs_task_definition.Definition.taskDefinition.containerDefinitions[].logConfiguration.options<br>ecs_task_definition.Definition.taskDefinition.containerDefinitions[].logConfiguration.options.mode | 0 / 2 |
 | aws.c2b.ecs.no_credential_named_env_vars | witness-only | ecs_task_definition.Definition.taskDefinition.containerDefinitions[].environment<br>ecs_task_definition.Definition.taskDefinition.containerDefinitions[].environment[].name | 0 / 1 |
 | aws.c2b.ecs.service_load_balancer_attached | derived-producer | — | 0 / 0 |
-| aws.c2b.ecs.service_no_public_ip | witness-only | — | 0 / 6 |
 | aws.c2b.ecs.task_set_no_public_ip | witness-only | — | 0 / 6 |
 | aws.c2b.efs.access_point_root_directory | derived-producer | — | 0 / 0 |
 | aws.c2b.efs.access_point_user_identity | witness-only | — | 0 / 6 |
@@ -1107,7 +1111,6 @@ The strict-read column enumerates exact attributed paths without an emission rec
 | aws.c2b.eks.version_at_least_1_28 | derived-producer | — | 0 / 0 |
 | aws.c2b.eks.vpc_cni_network_policy | witness-only | eks_cluster.VpcCniAddon.addon<br>eks_cluster.VpcCniAddon.addon.configurationValues | 0 / 3 |
 | aws.c2b.elasticache.cluster_no_default_subnet_group | witness-only | — | 0 / 6 |
-| aws.c2b.elasticache.cluster_public_subnet | witness-only | — | 0 / 10 |
 | aws.c2b.elasticache.cluster_public_subnet_prowler | witness-only | — | 0 / 10 |
 | aws.c2b.elasticache.cmk_enabled | witness-only | — | 0 / 7 |
 | aws.c2b.elasticache.redis_auth_pre6 | witness-only | — | 0 / 6 |
@@ -1409,7 +1412,6 @@ The strict-read column enumerates exact attributed paths without an emission rec
 | aws.cb.sns.policy_no_public_publish | witness-only | sns_topic.Attributes.Attributes.Policy<br>sns_topic.Attributes.Attributes.TopicArn | 6 / 1 |
 | aws.cb.sns.policy_no_public_subscribe | witness-only | sns_topic.Attributes.Attributes.Policy<br>sns_topic.Attributes.Attributes.TopicArn | 6 / 1 |
 | aws.cb.sns.policy_no_unrestricted_wildcard | witness-only | sns_topic.Attributes.Attributes.Policy<br>sns_topic.Attributes.Attributes.TopicArn | 5 / 5 |
-| aws.cb.sns.policy_prohibit_public_access_perimeter | witness-only | sns_topic.Attributes.Attributes.Policy<br>sns_topic.Attributes.Attributes.TopicArn | 5 / 5 |
 | aws.cb.sns.subscription_not_http | derived-producer | — | 0 / 0 |
 | aws.cb.sns.topic_not_publicly_accessible_prowler | witness-only | unattributed.Condition<br>unattributed.StringEquals<br>sns_topic.Attributes.Attributes.Policy<br>sns_topic.Attributes.Attributes.TopicArn | 3 / 18 |
 | aws.cb.sqs.cmk_encryption | witness-only | sqs_queue.Attributes.Attributes.QueueArn | 0 / 6 |
@@ -1462,7 +1464,7 @@ The strict-read column enumerates exact attributed paths without an emission rec
 | aws.claude2_a.config.org_aggregator_all_regions_with_delegated_admin | witness-only | — | 0 / 8 |
 | aws.claude2_a.logs.log_group_not_public_via_resource_policy | witness-only | — | 0 / 30 |
 | aws.claude2_a.logs.resource_policy_not_public | witness-only | — | 0 / 9 |
-| aws.claude_a.accessanalyzer.active_without_findings | derived-producer | — | 0 / 0 |
+| aws.claude_a.accessanalyzer.active_without_findings | witness-only | — | 1 / 4 |
 | aws.claude_a.cloudtrail.account_has_logging_multi_region_trail | derived-producer | — | 0 / 0 |
 | aws.claude_a.ebs.attached_delete_on_termination | proven-native-shape | — | 0 / 0 |
 | aws.claude_a.ebs.attached_volume_encrypted | proven-native-shape | — | 0 / 0 |
@@ -1563,12 +1565,12 @@ The strict-read column enumerates exact attributed paths without an emission rec
 | aws.claude_a.guardduty.region_centrally_configured | witness-only | — | 0 / 2 |
 | aws.claude_a.iam.access_key_age_365 | witness-only | — | 1 / 0 |
 | aws.claude_a.iam.access_keys_rotated_90 | witness-only | — | 1 / 3 |
-| aws.claude_a.iam.access_keys_used_45 | witness-only | — | 1 / 4 |
+| aws.claude_a.iam.access_keys_used_45 | witness-only | — | 2 / 13 |
 | aws.claude_a.iam.admin_user_has_mfa | witness-only | — | 0 / 9 |
 | aws.claude_a.iam.attached_policy_no_star_star | witness-only | unattributed.Action<br>unattributed.Effect<br>unattributed.Resource | 2 / 15 |
 | aws.claude_a.iam.aws_managed_policy_attached_to_role | witness-only | — | 0 / 10 |
 | aws.claude_a.iam.cloudshell_full_access_not_attached | witness-only | — | 0 / 21 |
-| aws.claude_a.iam.console_password_used_45 | witness-only | — | 1 / 2 |
+| aws.claude_a.iam.console_password_used_45 | witness-only | — | 2 / 13 |
 | aws.claude_a.iam.custom_attached_policy_no_star_star | witness-only | unattributed.Action<br>unattributed.Effect<br>unattributed.Resource | 2 / 15 |
 | aws.claude_a.iam.custom_policy_attached_to_role | witness-only | — | 1 / 10 |
 | aws.claude_a.iam.custom_policy_in_use | witness-only | — | 1 / 10 |
@@ -1590,7 +1592,7 @@ The strict-read column enumerates exact attributed paths without an emission rec
 | aws.claude_a.iam.policy_in_use | witness-only | — | 1 / 10 |
 | aws.claude_a.iam.prowler_admin_group_members_mfa | witness-only | — | 0 / 11 |
 | aws.claude_a.iam.prowler_aws_attached_policy_no_admin | witness-only | — | 2 / 8 |
-| aws.claude_a.iam.prowler_console_password_used_45 | witness-only | — | 1 / 2 |
+| aws.claude_a.iam.prowler_console_password_used_45 | witness-only | — | 2 / 13 |
 | aws.claude_a.iam.prowler_customer_attached_policy_no_admin | witness-only | — | 2 / 8 |
 | aws.claude_a.iam.prowler_customer_policy_no_cloudtrail_full_access | witness-only | — | 1 / 9 |
 | aws.claude_a.iam.prowler_customer_policy_no_kms_full_access | witness-only | — | 1 / 9 |
@@ -1632,7 +1634,7 @@ The strict-read column enumerates exact attributed paths without an emission rec
 | aws.claude_a.iam.role_no_inline_policies | witness-only | — | 0 / 7 |
 | aws.claude_a.iam.role_readonly_not_cross_account | witness-only | unattributed.AWS<br>unattributed.Effect<br>unattributed.Principal | 0 / 21 |
 | aws.claude_a.iam.role_trust_not_public | witness-only | unattributed.AWS<br>unattributed.Effect<br>unattributed.Principal | 1 / 18 |
-| aws.claude_a.iam.role_used_within_60_days | witness-only | — | 0 / 6 |
+| aws.claude_a.iam.role_used_within_60_days | witness-only | iam_role._provenance.scope | 6 / 11 |
 | aws.claude_a.iam.root_console_has_mfa | witness-only | iam_account_summary.SummaryMap.AccountPasswordPresent | 0 / 0 |
 | aws.claude_a.iam.root_credentials_management | witness-only | aws_account_configuration.Organization.OrganizationId | 0 / 3 |
 | aws.claude_a.iam.saml_provider_present | derived-producer | — | 0 / 0 |
@@ -1740,7 +1742,7 @@ The strict-read column enumerates exact attributed paths without an emission rec
 | aws.claude_a.vpc.route_table_no_default_igw_route | proven-native-shape | — | 0 / 0 |
 | aws.claude_a.vpc.sg_attached_to_eni | witness-only | — | 0 / 1 |
 | aws.claude_a.vpc.sg_attached_to_eni_or_instance | witness-only | instance.SecurityGroups | 1 / 1 |
-| aws.claude_a.vpc.sg_in_use_anywhere | witness-only | lambda_function.VpcConfig.SecurityGroupIds | 0 / 1 |
+| aws.claude_a.vpc.sg_in_use_anywhere | witness-only | lambda_function.VpcConfig.SecurityGroupIds | 0 / 5 |
 | aws.claude_a.vpc.sg_name_not_launch_wizard | proven-native-shape | — | 0 / 0 |
 | aws.claude_a.vpc.sg_no_public_ip_any_port | witness-only | — | 0 / 11 |
 | aws.claude_a.vpc.sg_no_wide_public_ipv4 | witness-only | — | 0 / 8 |
@@ -1864,7 +1866,7 @@ The strict-read column enumerates exact attributed paths without an emission rec
 | aws.gap.ec2.instance_no_iam_role_with_write_access_to_resource_based_policies | witness-only | unattributed.Action<br>unattributed.Effect<br>unattributed.Resource<br>instance.IamInstanceProfile<br>instance.IamInstanceProfile.Arn | 3 / 14 |
 | aws.gap.ec2.instance_no_iam_role_with_write_permission_on_critical_s3_configuration | witness-only | unattributed.Action<br>unattributed.Effect<br>unattributed.Resource<br>instance.IamInstanceProfile<br>instance.IamInstanceProfile.Arn | 3 / 14 |
 | aws.gap.ec2.instance_no_iam_with_write_level_access | witness-only | unattributed.Action<br>unattributed.Effect<br>unattributed.Resource<br>instance.IamInstanceProfile<br>instance.IamInstanceProfile.Arn | 3 / 14 |
-| aws.gap.iam.active_keys_used_within_45_days | witness-only | — | 1 / 1 |
+| aws.gap.iam.active_keys_used_within_45_days | witness-only | — | 2 / 13 |
 | aws.gap.iam.root_not_used_1_day | witness-only | — | 1 / 0 |
 | aws.gap.iam.root_not_used_90_days | witness-only | — | 1 / 0 |
 | aws.gap.s3.bucket_policy_denies_insecure_transport | witness-only | — | 6 / 13 |
@@ -1898,8 +1900,11 @@ The strict-read column enumerates exact attributed paths without an emission rec
 | aws.htbp.sagemaker.notebook_imdsv2_required | witness-only | sagemaker_notebook_instance.InstanceMetadataServiceConfiguration.MinimumInstanceMetadataServiceVersion | 0 / 0 |
 | aws.iam.access_key_count | derived-producer | — | 0 / 0 |
 | aws.iam.console_mfa | witness-only | — | 1 / 0 |
+| aws.iam.group_inline_policies_have_members | witness-only | — | 10 / 18 |
+| aws.iam.identity_center.permission_set_has_consumer_all_accounts | witness-only | aws_identity_center_permission_set_consumer.OrganizationAccounts<br>aws_identity_center_permission_set_consumer.PermissionSetArn | 11 / 6 |
 | aws.iam.no_full_admin | witness-only | iam_policy.PolicyDocument<br>iam_policy.PolicyDocument.Statement<br>iam_policy.PolicyDocument.Statement[].Action<br>iam_policy.PolicyDocument.Statement[].Effect<br>iam_policy.PolicyDocument.Statement[].Resource | 4 / 9 |
 | aws.iam.no_root_keys | derived-producer | — | 0 / 1 |
+| aws.iam.oidc_provider_has_role_consumer | witness-only | iam_role.AssumeRolePolicyDocument.Statement[].Condition | 14 / 0 |
 | aws.iam.password_lowercase | derived-producer | — | 0 / 1 |
 | aws.iam.password_max_age | witness-only | — | 0 / 1 |
 | aws.iam.password_minimum_length | witness-only | — | 0 / 1 |
@@ -1909,12 +1914,17 @@ The strict-read column enumerates exact attributed paths without an emission rec
 | aws.iam.password_uppercase | derived-producer | — | 0 / 1 |
 | aws.iam.restrict_public_trust | witness-only | — | 2 / 3 |
 | aws.iam.root_mfa | witness-only | — | 0 / 2 |
+| aws.iam.saml_provider_has_role_consumer | witness-only | iam_role.AssumeRolePolicyDocument.Statement[].Condition | 14 / 0 |
 | aws.kms.no_pending_key_deletion | derived-producer | — | 0 / 0 |
 | aws.kms.rotation | witness-only | — | 0 / 1 |
 | aws.lambda.dead_letter_queue | witness-only | lambda_function.DeadLetterConfig.TargetArn | 0 / 0 |
 | aws.lambda.function_url_authentication | derived-producer | — | 0 / 1 |
 | aws.lambda.vpc_configuration | witness-only | — | 0 / 1 |
 | aws.logs.retention | witness-only | — | 1 / 3 |
+| aws.network.internet_gateway_attached | witness-only | — | 0 / 13 |
+| aws.network.route_table_associated | witness-only | — | 0 / 11 |
+| aws.network.target_group_has_load_balancer | witness-only | — | 1 / 9 |
+| aws.network.vpn_gateway_attached | witness-only | — | 0 / 13 |
 | aws.nist.acm_all_certificates_expiry_30_days | witness-only | — | 0 / 1 |
 | aws.nist.all_cloudtrail_destination_bucket_access_logging | witness-only | — | 2 / 36 |
 | aws.nist.all_iam_policies_no_star_star | witness-only | — | 0 / 2 |
@@ -1959,6 +1969,7 @@ The strict-read column enumerates exact attributed paths without an emission rec
 | aws.rds.vpc_configuration | witness-only | — | 0 / 1 |
 | aws.review.amplify_app.configuration_secret_indicators | witness-only | — | 0 / 28 |
 | aws.review.batch_job_definition.configuration_secret_indicators | witness-only | — | 0 / 30 |
+| aws.review.build_deployment.referenced_source_secret_indicators | witness-only | unattributed.123456789012/eu-west-1<br>unattributed.s3_selected_source_content_authorized<br>unattributed.s3_selected_source_content_capture<br>unattributed.s3_selected_source_content_principals<br>unattributed.s3_selected_source_content_receipts<br>unattributed.s3_selected_source_content_selection<br>@engine.context.metadata.build_deployment_referenced_source_content_authorized<br>@engine.context.metadata.build_deployment_referenced_source_content_capture<br>@engine.context.metadata.build_deployment_referenced_source_content_selection<br>@engine.context.metadata.build_deployment_referenced_source_content_selection.123456789012/eu-west-1<br>@engine.context.metadata.s3_selected_source_content_receipts<br>@engine.context.metadata.s3_selected_source_content_receipts[].bound<br>@engine.context.metadata.s3_selected_source_content_receipts[].bytes<br>@engine.context.metadata.s3_selected_source_content_receipts[].capture<br>@engine.context.metadata.s3_selected_source_content_receipts[].host<br>@engine.context.metadata.s3_selected_source_content_receipts[].http_status<br>@engine.context.metadata.s3_selected_source_content_receipts[].id<br>@engine.context.metadata.s3_selected_source_content_receipts[].identity<br>@engine.context.metadata.s3_selected_source_content_receipts[].method<br>@engine.context.metadata.s3_selected_source_content_receipts[].operation<br>@engine.context.metadata.s3_selected_source_content_receipts[].phase<br>@engine.context.metadata.s3_selected_source_content_receipts[].region<br>@engine.context.metadata.s3_selected_source_content_receipts[].request<br>@engine.context.metadata.s3_selected_source_content_receipts[].request_id<br>@engine.context.metadata.s3_selected_source_content_receipts[].scope<br>@engine.context.metadata.s3_selected_source_content_receipts[].service<br>@engine.context.metadata.s3_selected_source_content_selection<br>@engine.context.metadata.s3_selected_source_content_selection.123456789012/eu-west-1<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.associated<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.association<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.association_coherent<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.capture<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.identity<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.native_after_request<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.native_request<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.profile<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_identity<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.capture<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.complete<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.content_complete<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.format<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.head_coherent<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.identity<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.leaks<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.leaks[].detectors<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.leaks[].detectors[].engine<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.leaks[].fingerprint<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.leaks[].locations<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.leaks[].locations[].path<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.member_count<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.object<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.object.etag<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.object.explicit_version<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.object.length<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.object.version<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.parts<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.parts[].bytes<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.parts[].complete<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.parts[].engines<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.parts[].engines[].engine<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.parts[].engines[].status<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.parts[].engines[].version<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.parts[].path<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.principal<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.schema<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.scope<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.source_bound<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.source_requests<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.verification<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item._provenance<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.s3_item.id<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.schema<br>build_deployment_referenced_source_content.BuildDeploymentReferencedSourceSecretIndicators.scope<br>build_deployment_referenced_source_content._provenance<br>build_deployment_referenced_source_content.id | 2 / 16 |
 | aws.review.cloudformation.output_secret_indicators | witness-only | — | 0 / 14 |
 | aws.review.cloudwatch.sampled_log_secret_indicators | witness-only | log_group.ContentSecretIndicators.account_id<br>log_group.ContentSecretIndicators.end<br>log_group.ContentSecretIndicators.group<br>log_group.ContentSecretIndicators.records[].categories<br>log_group.ContentSecretIndicators.records[].inspected_bytes<br>log_group.ContentSecretIndicators.records[].readable<br>log_group.ContentSecretIndicators.records[].size<br>log_group.ContentSecretIndicators.records[].timestamp<br>log_group.ContentSecretIndicators.start | 2 / 15 |
 | aws.review.codebuild.selected_inline_buildspec_secret_indicators | witness-only | unattributed.authorized<br>unattributed.binding<br>unattributed.calls<br>unattributed.capture<br>unattributed.codebuild_selected_inline_buildspec:23589fd9a8488982a731d38260425c30e59104618e3ad683f3828b0cfab0d91f<br>unattributed.complete<br>unattributed.id<br>unattributed.items<br>unattributed.kind<br>unattributed.native_complete<br>unattributed.principal<br>unattributed.request<br>unattributed.response_bytes<br>unattributed.schema<br>unattributed.scope<br>unattributed.selection<br>@engine.collections.codebuild_selected_inline_buildspec[].service<br>@engine.context.metadata.codebuild_selected_inline_buildspec_captures<br>@engine.context.metadata.codebuild_selected_inline_buildspec_captures.123456789012/us-east-1<br>codebuild_selected_inline_buildspec.CodeBuildInlineBuildspecCapture<br>codebuild_selected_inline_buildspec.CodeBuildInlineBuildspecCapture.binding<br>codebuild_selected_inline_buildspec.CodeBuildInlineBuildspecCapture.bytes<br>codebuild_selected_inline_buildspec.CodeBuildInlineBuildspecCapture.capture<br>codebuild_selected_inline_buildspec.CodeBuildInlineBuildspecCapture.complete<br>codebuild_selected_inline_buildspec.CodeBuildInlineBuildspecCapture.engines<br>codebuild_selected_inline_buildspec.CodeBuildInlineBuildspecCapture.engines[].engine<br>codebuild_selected_inline_buildspec.CodeBuildInlineBuildspecCapture.engines[].status<br>codebuild_selected_inline_buildspec.CodeBuildInlineBuildspecCapture.engines[].version<br>codebuild_selected_inline_buildspec.CodeBuildInlineBuildspecCapture.field<br>codebuild_selected_inline_buildspec.CodeBuildInlineBuildspecCapture.id<br>codebuild_selected_inline_buildspec.CodeBuildInlineBuildspecCapture.leaks<br>codebuild_selected_inline_buildspec.CodeBuildInlineBuildspecCapture.leaks[].detectors<br>codebuild_selected_inline_buildspec.CodeBuildInlineBuildspecCapture.leaks[].detectors[].engine<br>codebuild_selected_inline_buildspec.CodeBuildInlineBuildspecCapture.leaks[].locations<br>codebuild_selected_inline_buildspec.CodeBuildInlineBuildspecCapture.leaks[].locations[].path<br>codebuild_selected_inline_buildspec.CodeBuildInlineBuildspecCapture.native_complete<br>codebuild_selected_inline_buildspec.CodeBuildInlineBuildspecCapture.principal<br>codebuild_selected_inline_buildspec.CodeBuildInlineBuildspecCapture.reason<br>codebuild_selected_inline_buildspec.CodeBuildInlineBuildspecCapture.requests<br>codebuild_selected_inline_buildspec.CodeBuildInlineBuildspecCapture.requests[].bytes<br>codebuild_selected_inline_buildspec.CodeBuildInlineBuildspecCapture.requests[].http_status<br>codebuild_selected_inline_buildspec.CodeBuildInlineBuildspecCapture.requests[].operation<br>codebuild_selected_inline_buildspec.CodeBuildInlineBuildspecCapture.requests[].request<br>codebuild_selected_inline_buildspec.CodeBuildInlineBuildspecCapture.requests[].response<br>codebuild_selected_inline_buildspec.CodeBuildInlineBuildspecCapture.requests[].service<br>codebuild_selected_inline_buildspec.CodeBuildInlineBuildspecCapture.scope<br>codebuild_selected_inline_buildspec.CodeBuildInlineBuildspecCapture.verification<br>codebuild_selected_inline_buildspec._provenance<br>codebuild_selected_inline_buildspec.id | 0 / 10 |
@@ -1968,7 +1979,11 @@ The strict-read column enumerates exact attributed paths without an emission rec
 | aws.review.configuration.selected_content_secret_indicators | witness-only | @engine.context.metadata.caller_identities<br>@engine.context.metadata.configuration_selected_content_authorized<br>@engine.context.metadata.configuration_selected_content_capture<br>@engine.context.metadata.configuration_selected_content_principals<br>@engine.context.metadata.configuration_selected_content_principals.123456789012<br>@engine.context.metadata.configuration_selected_content_redaction_complete<br>@engine.context.metadata.configuration_selected_content_selection<br>@engine.context.metadata.configuration_selected_content_selection.123456789012/us-east-1<br>configuration_selected_content.SelectedConfigurationSecretIndicators<br>configuration_selected_content.SelectedConfigurationSecretIndicators.account<br>configuration_selected_content.SelectedConfigurationSecretIndicators.bytes<br>configuration_selected_content.SelectedConfigurationSecretIndicators.capture<br>configuration_selected_content.SelectedConfigurationSecretIndicators.complete<br>configuration_selected_content.SelectedConfigurationSecretIndicators.engines<br>configuration_selected_content.SelectedConfigurationSecretIndicators.engines[].engine<br>configuration_selected_content.SelectedConfigurationSecretIndicators.engines[].status<br>configuration_selected_content.SelectedConfigurationSecretIndicators.identity<br>configuration_selected_content.SelectedConfigurationSecretIndicators.kind<br>configuration_selected_content.SelectedConfigurationSecretIndicators.leaks<br>configuration_selected_content.SelectedConfigurationSecretIndicators.leaks[].detectors<br>configuration_selected_content.SelectedConfigurationSecretIndicators.leaks[].detectors[].engine<br>configuration_selected_content.SelectedConfigurationSecretIndicators.leaks[].locations<br>configuration_selected_content.SelectedConfigurationSecretIndicators.literal_count<br>configuration_selected_content.SelectedConfigurationSecretIndicators.native_complete<br>configuration_selected_content.SelectedConfigurationSecretIndicators.partition<br>configuration_selected_content.SelectedConfigurationSecretIndicators.principal<br>configuration_selected_content.SelectedConfigurationSecretIndicators.region<br>configuration_selected_content.SelectedConfigurationSecretIndicators.requests<br>configuration_selected_content.SelectedConfigurationSecretIndicators.requests[].http_status<br>configuration_selected_content.SelectedConfigurationSecretIndicators.requests[].locator<br>configuration_selected_content.SelectedConfigurationSecretIndicators.requests[].method<br>configuration_selected_content.SelectedConfigurationSecretIndicators.requests[].operation<br>configuration_selected_content.SelectedConfigurationSecretIndicators.requests[].request_id<br>configuration_selected_content.SelectedConfigurationSecretIndicators.requests[].service<br>configuration_selected_content.SelectedConfigurationSecretIndicators.response_bytes<br>configuration_selected_content.SelectedConfigurationSecretIndicators.schema<br>configuration_selected_content.SelectedConfigurationSecretIndicators.scope<br>configuration_selected_content.SelectedConfigurationSecretIndicators.selection_locator<br>configuration_selected_content.SelectedConfigurationSecretIndicators.status<br>configuration_selected_content.SelectedConfigurationSecretIndicators.surface<br>configuration_selected_content.SelectedConfigurationSecretIndicators.verification<br>configuration_selected_content.SelectedConfigurationSecretIndicators.version<br>configuration_selected_content.id | 5 / 20 |
 | aws.review.datapipeline_pipeline.payload_secret_indicators | witness-only | — | 0 / 27 |
 | aws.review.ec2_launch_template.payload_secret_indicators | witness-only | — | 0 / 23 |
+| aws.review.ecr.selected_image_vulnerabilities | needsmanualreview | — | 0 / 202 |
+| aws.review.ecr_public.selected_image_high_vulnerabilities | needsmanualreview | — | 0 / 175 |
+| aws.review.ecr_public.selected_image_secret_indicators | needsmanualreview | — | 0 / 175 |
 | aws.review.ecr_repository.package_content_secret_indicators | witness-only | ecr_repository.PackageContentSource.ImageDigest<br>ecr_repository.PackageContentSource.PackageSecretIndicators.AccountId<br>ecr_repository.PackageContentSource.PackageSecretIndicators.HighConfidenceSecretPresent<br>ecr_repository.PackageContentSource.PackageSecretIndicators.NativeResponseComplete<br>ecr_repository.PackageContentSource.PackageSecretIndicators.Reason<br>ecr_repository.PackageContentSource.PackageSecretIndicators.References<br>ecr_repository.PackageContentSource.PackageSecretIndicators.References[].Categories<br>ecr_repository.PackageContentSource.PackageSecretIndicators.References[].File<br>ecr_repository.PackageContentSource.PackageSecretIndicators.References[].LayerDigest<br>ecr_repository.PackageContentSource.PackageSecretIndicators.Region<br>ecr_repository.PackageContentSource.PackageSecretIndicators.ResourceId<br>ecr_repository.PackageContentSource.PackageSecretIndicators.Schema<br>ecr_repository.PackageContentSource.PackageSecretIndicators.SourceOperation<br>ecr_repository.PackageContentSource.PackageSecretIndicators.collection_status<br>ecr_repository.PackageContentSource.SelectedImageDigest | 2 / 20 |
+| aws.review.ecs.selected_environment_file_secret_indicators | witness-only | unattributed.123456789012/us-east-1<br>unattributed.s3_selected_source_content_authorized<br>unattributed.s3_selected_source_content_capture<br>unattributed.s3_selected_source_content_principals<br>unattributed.s3_selected_source_content_receipts<br>unattributed.s3_selected_source_content_selection<br>@engine.context.metadata.ecs_selected_environment_file_content_authorized<br>@engine.context.metadata.ecs_selected_environment_file_content_capture<br>@engine.context.metadata.ecs_selected_environment_file_content_selection<br>@engine.context.metadata.ecs_selected_environment_file_content_selection.123456789012/us-east-1<br>@engine.context.metadata.s3_selected_source_content_receipts<br>@engine.context.metadata.s3_selected_source_content_receipts[].bound<br>@engine.context.metadata.s3_selected_source_content_receipts[].bytes<br>@engine.context.metadata.s3_selected_source_content_receipts[].capture<br>@engine.context.metadata.s3_selected_source_content_receipts[].host<br>@engine.context.metadata.s3_selected_source_content_receipts[].http_status<br>@engine.context.metadata.s3_selected_source_content_receipts[].id<br>@engine.context.metadata.s3_selected_source_content_receipts[].identity<br>@engine.context.metadata.s3_selected_source_content_receipts[].method<br>@engine.context.metadata.s3_selected_source_content_receipts[].operation<br>@engine.context.metadata.s3_selected_source_content_receipts[].phase<br>@engine.context.metadata.s3_selected_source_content_receipts[].region<br>@engine.context.metadata.s3_selected_source_content_receipts[].request<br>@engine.context.metadata.s3_selected_source_content_receipts[].request_id<br>@engine.context.metadata.s3_selected_source_content_receipts[].scope<br>@engine.context.metadata.s3_selected_source_content_receipts[].service<br>@engine.context.metadata.s3_selected_source_content_selection<br>@engine.context.metadata.s3_selected_source_content_selection.123456789012/us-east-1<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.associated<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.association<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.association_coherent<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.capture<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.ecs_after_request<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.ecs_request<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.file_count<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.identity<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_identity<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.capture<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.complete<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.content_complete<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.format<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.head_coherent<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.identity<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.leaks<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.leaks[].detectors<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.leaks[].detectors[].engine<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.leaks[].fingerprint<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.leaks[].locations<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.leaks[].locations[].path<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.member_count<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.object<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.object.etag<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.object.explicit_version<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.object.length<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.object.version<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.parts<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.parts[].bytes<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.parts[].complete<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.parts[].engines<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.parts[].engines[].engine<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.parts[].engines[].status<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.parts[].engines[].version<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.parts[].path<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.principal<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.schema<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.scope<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.source_bound<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.source_requests<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.verification<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item._provenance<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.s3_item.id<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.schema<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.scope<br>ecs_selected_environment_file_content.EcsSelectedEnvironmentFileSecretIndicators.uncovered_files<br>ecs_selected_environment_file_content._provenance<br>ecs_selected_environment_file_content.id | 2 / 12 |
 | aws.review.ecs_task_definition.configuration_secret_indicators | witness-only | — | 0 / 27 |
 | aws.review.eks.native_version_supported | witness-only | — | 0 / 13 |
 | aws.review.elastic_beanstalk_environment.configuration_secret_indicators | witness-only | elastic_beanstalk_environment.Configuration.AdditionalSecretIndicators.AccountId<br>elastic_beanstalk_environment.Configuration.AdditionalSecretIndicators.Coverage<br>elastic_beanstalk_environment.Configuration.AdditionalSecretIndicators.HighConfidenceSecretPresent<br>elastic_beanstalk_environment.Configuration.AdditionalSecretIndicators.Kind<br>elastic_beanstalk_environment.Configuration.AdditionalSecretIndicators.MatchedCategories<br>elastic_beanstalk_environment.Configuration.AdditionalSecretIndicators.Region<br>elastic_beanstalk_environment.Configuration.AdditionalSecretIndicators.ResourceId<br>elastic_beanstalk_environment.Configuration.AdditionalSecretIndicators.SourceOperation | 0 / 25 |
@@ -1993,7 +2008,9 @@ The strict-read column enumerates exact attributed paths without an emission rec
 | aws.review.sfn_state_machine.payload_secret_indicators | witness-only | — | 0 / 28 |
 | aws.review.shield.drt_role_configured | witness-only | — | 0 / 12 |
 | aws.review.ssm_document_metadata.payload_secret_indicators | witness-only | — | 0 / 21 |
+| aws.review.workload.referenced_source_secret_indicators | witness-only | unattributed.123456789012/us-east-1<br>unattributed.s3_selected_source_content_authorized<br>unattributed.s3_selected_source_content_capture<br>unattributed.s3_selected_source_content_principals<br>unattributed.s3_selected_source_content_receipts<br>unattributed.s3_selected_source_content_selection<br>@engine.context.metadata.s3_selected_source_content_receipts<br>@engine.context.metadata.s3_selected_source_content_receipts[].bound<br>@engine.context.metadata.s3_selected_source_content_receipts[].bytes<br>@engine.context.metadata.s3_selected_source_content_receipts[].capture<br>@engine.context.metadata.s3_selected_source_content_receipts[].host<br>@engine.context.metadata.s3_selected_source_content_receipts[].http_status<br>@engine.context.metadata.s3_selected_source_content_receipts[].id<br>@engine.context.metadata.s3_selected_source_content_receipts[].identity<br>@engine.context.metadata.s3_selected_source_content_receipts[].method<br>@engine.context.metadata.s3_selected_source_content_receipts[].operation<br>@engine.context.metadata.s3_selected_source_content_receipts[].phase<br>@engine.context.metadata.s3_selected_source_content_receipts[].region<br>@engine.context.metadata.s3_selected_source_content_receipts[].request<br>@engine.context.metadata.s3_selected_source_content_receipts[].request_id<br>@engine.context.metadata.s3_selected_source_content_receipts[].scope<br>@engine.context.metadata.s3_selected_source_content_receipts[].service<br>@engine.context.metadata.s3_selected_source_content_selection<br>@engine.context.metadata.s3_selected_source_content_selection.123456789012/us-east-1<br>@engine.context.metadata.workload_referenced_source_content_authorized<br>@engine.context.metadata.workload_referenced_source_content_capture<br>@engine.context.metadata.workload_referenced_source_content_selection<br>@engine.context.metadata.workload_referenced_source_content_selection.123456789012/us-east-1<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.associated<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.association<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.association_coherent<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.capture<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.identity<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.native_after_request<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.native_request<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.profile<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_identity<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.capture<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.complete<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.content_complete<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.format<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.head_coherent<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.identity<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.leaks<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.leaks[].detectors<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.leaks[].detectors[].engine<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.leaks[].fingerprint<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.leaks[].locations<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.leaks[].locations[].path<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.member_count<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.object<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.object.etag<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.object.explicit_version<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.object.length<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.object.version<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.parts<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.parts[].bytes<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.parts[].complete<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.parts[].engines<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.parts[].engines[].engine<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.parts[].engines[].status<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.parts[].engines[].version<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.parts[].path<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.principal<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.schema<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.scope<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.source_bound<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.source_requests<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.SelectedS3SourceSecretIndicators.verification<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item._provenance<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.s3_item.id<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.schema<br>workload_referenced_source_content.WorkloadReferencedSourceSecretIndicators.scope<br>workload_referenced_source_content._provenance<br>workload_referenced_source_content.id | 2 / 17 |
 | aws.review.workload.selected_command_literal_secret_indicators | needsmanualreview | — | 0 / 23 |
+| aws.review.workload.selected_image_secret_indicators | needsmanualreview | — | 0 / 104 |
 | aws.s3.access_logging | witness-only | — | 1 / 3 |
 | aws.s3.default_encryption | witness-only | bucket.Encryption.absent | 0 / 0 |
 | aws.s3.no_public_acl | witness-only | — | 0 / 5 |

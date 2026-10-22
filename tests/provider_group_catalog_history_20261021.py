@@ -42,6 +42,21 @@ def combined_predecessor_catalog(value):
     receipt=json.loads(gzip.decompress(raw))
     assert receipt['schema_version']==1
     digest=lambda obj:hashlib.sha256(json.dumps(obj,sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest()
+    # New main changes the reviewed privilege-path binding/catalog and AWS fact inventory.
+    # Reverse those four fields before verifying the unchanged combined fixture.
+    successor_raw=(Path(__file__).with_name('fixtures')/'current_privesc_catalog_successor_20261022.json.gz').read_bytes()
+    assert hashlib.sha256(successor_raw).hexdigest()=='2803c16fd0b863144e7f36513ea3f52bd83412ef1b971efc9294dd46e093af66'
+    successor=json.loads(gzip.decompress(successor_raw))
+    assert set(successor['top_changes'])=={'privesc_catalog','privesc_techniques','inventories','inventory_coverage'}
+    candidate=deepcopy(value)
+    for row in candidate['checks']:row.pop('clarity_evaluation_contract',None)
+    assert digest(candidate)==successor['after_catalog_sha256']
+    for key,change in successor['top_changes'].items():
+        assert digest(value[key])==change['after_sha256']
+        value[key]=deepcopy(change['before'])
+    candidate=deepcopy(value)
+    for row in candidate['checks']:row.pop('clarity_evaluation_contract',None)
+    assert digest(candidate)==successor['before_catalog_sha256']==receipt['after_catalog_sha256']
     normalized=deepcopy(value)
     for row in normalized['checks']:row.pop('clarity_evaluation_contract',None)
     assert digest(normalized)==receipt['after_catalog_sha256'], 'Combined current catalog changed'

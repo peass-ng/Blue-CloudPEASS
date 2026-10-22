@@ -207,7 +207,7 @@ def test_secretsmanager_documented_rotation_public_pipeline(pipeline, enabled, e
 
 
 @pytest.mark.parametrize('cid', [
-    'aws.cb.sns.policy_no_unrestricted_wildcard', 'aws.cb.sns.policy_prohibit_public_access_perimeter',
+    'aws.cb.sns.policy_no_unrestricted_wildcard',
     'aws.cb.sns.policy_no_public_publish', 'aws.cb.sns.policy_no_public_subscribe',
     'aws.cb.sns.topic_not_publicly_accessible_prowler',
 ])
@@ -217,6 +217,19 @@ def test_sns_missing_policy_is_unavailable_reproduction(pipeline, cid):
     snapshot, _ = pipeline('sns_topic', {('sns', 'list_topics'): {'Topics': [{'TopicArn': arn}]},
         ('sns', 'get_topic_attributes'): {'Attributes': {'TopicArn': arn}}})
     assert verdict(snapshot, cid) == 'UNKNOWN'
+
+
+def test_retired_sns_perimeter_id_points_to_the_active_native_control(pipeline):
+    from peaso.checks import CHECK_ALIASES
+    old = 'aws.cb.sns.policy_prohibit_public_access_perimeter'
+    active = 'aws.cb.sns.policy_no_unrestricted_wildcard'
+    assert CHECK_ALIASES[old] == active
+    arn = f'arn:aws:sns:{REGION}:{ACCOUNT}:example'
+    snapshot, _ = pipeline('sns_topic', {('sns', 'list_topics'): {'Topics': [{'TopicArn': arn}]},
+        ('sns', 'get_topic_attributes'): {'Attributes': {'TopicArn': arn}}})
+    assert verdict(snapshot, active) == 'UNKNOWN'
+    aliased, = evaluate_snapshot(snapshot, checks=[old])['findings']
+    assert aliased['check_id'] == active and aliased['status'] == 'UNKNOWN'
 
 
 @pytest.mark.parametrize('mode,expected', [('ENABLED', 'PASS'), ('DISABLED', 'FAIL'), (None, 'DENIED')])
