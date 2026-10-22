@@ -7492,6 +7492,34 @@ class AwsModel(Model):
         return (("unknown", "gameliftstreams_session_or_shell_permission_not_verified")
                 if uncertain else None)
 
+    def _glue_writable_script_witness(self, source, role, job_status):
+        """Find a recorded script object the caller can replace and the role can read."""
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        unresolved = False
+        for scope, job in items(self.snapshot, "glue_job"):
+            if (not scope.startswith(source.scope + "/") or job_status.get(scope) != "collected"
+                    or not isinstance(job, dict)):
+                continue
+            command = job.get("Command")
+            script = command.get("ScriptLocation") if isinstance(command, dict) else None
+            if not isinstance(script, str):
+                continue
+            parsed = urlsplit(script)
+            if (parsed.scheme != "s3" or not re.fullmatch(r"[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]", parsed.netloc)
+                    or not parsed.path.startswith("/") or parsed.path == "/"
+                    or parsed.query or parsed.fragment or "%" in parsed.path
+                    or any(ord(char) < 32 for char in script)):
+                continue
+            object_arn = f"arn:{partition}:s3:::{parsed.netloc}{parsed.path}"
+            put = self.check(source, {"action": "s3:PutObject"}, object_arn)
+            read = self.check(role, {"action": "s3:GetObject"}, object_arn)
+            if put is None or read is None:
+                continue
+            if put.confidence == read.confidence == "derived":
+                return True, False
+            unresolved = True
+        return False, unresolved
+
     def precondition(self, pid, candidates, source):
         if pid == "glue_new_public_dev_endpoint_role":
             if source is None:
@@ -9654,31 +9682,11 @@ class AwsModel(Model):
                     if passed is None:
                         unresolved = True
                         continue
-                    for job_scope, job in items(self.snapshot, "glue_job"):
-                        if (not job_scope.startswith(source.scope + "/")
-                                or job_status.get(job_scope) != "collected" or not isinstance(job, dict)):
-                            continue
-                        command = job.get("Command")
-                        script = command.get("ScriptLocation") if isinstance(command, dict) else None
-                        if not isinstance(script, str):
-                            continue
-                        parsed = urlsplit(script)
-                        if (parsed.scheme != "s3" or not re.fullmatch(r"[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]", parsed.netloc)
-                                or not parsed.path.startswith("/") or parsed.path == "/"
-                                or parsed.query or parsed.fragment or "%" in parsed.path
-                                or any(ord(char) < 32 for char in script)):
-                            continue
-                        object_arn = f"arn:{partition}:s3:::{parsed.netloc}{parsed.path}"
-                        put = self.check(source, {"action": "s3:PutObject"}, object_arn)
-                        read = self.check(role, {"action": "s3:GetObject"}, object_arn)
-                        if put is None or read is None:
-                            continue
-                        if all(grant.confidence == "derived" for grant in (passed, put, read)):
-                            out[tid] = ("conditional", "glue_job_change_run_and_script_object_bound")
-                            break
-                        unresolved = True
-                    if tid in out:
+                    witness, witness_uncertain = self._glue_writable_script_witness(source, role, job_status)
+                    if witness and passed.confidence == "derived":
+                        out[tid] = ("conditional", "glue_job_change_run_and_script_object_bound")
                         break
+                    unresolved |= witness_uncertain or passed.confidence != "derived"
                 if tid not in out and (unresolved or matched_scopes):
                     out[tid] = ("unknown", "glue_job_change_execution_or_script_object_not_verified")
             return out
@@ -9691,7 +9699,8 @@ class AwsModel(Model):
             trigger_status = inventory_status(self.snapshot, "glue_trigger")
             partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
             for tid, target in candidates.items():
-                uncertain = False
+                witness, witness_uncertain = self._glue_writable_script_witness(source, target, status)
+                uncertain = witness_uncertain or bool(source.incomplete or target.incomplete)
                 for arn in self.hosts.get(target.id, {}).get("glue_job", ()):
                     parts = arn.split(":", 5)
                     if len(parts) != 6 or not parts[5].startswith("job/"):
@@ -9717,7 +9726,9 @@ class AwsModel(Model):
                         continue
                     grant = self.check(source, {"action": "glue:StartJobRun"}, arn)
                     if grant is not None:
-                        out[tid] = (("conditional", "glue_job_script_override_available") if grant.confidence == "derived"
+                        out[tid] = (("conditional", "glue_job_script_override_available")
+                                    if grant.confidence == "derived" and witness
+                                    and not source.incomplete and not target.incomplete
                                     else ("unknown", "glue_job_start_permission_conditional"))
                         break
                     if trigger_status.get(scope) not in ("collected", "empty"):
@@ -9749,7 +9760,8 @@ class AwsModel(Model):
                         created = self.check(source, {"action": "glue:CreateTrigger"}, prefix + name)
                         if created is not None:
                             out[tid] = (("conditional", "glue_scheduled_trigger_script_override_available")
-                                        if created.confidence == "derived" else
+                                        if created.confidence == "derived" and witness
+                                        and not source.incomplete and not target.incomplete else
                                         ("unknown", "glue_trigger_create_permission_conditional"))
                             break
                     if tid in out:
