@@ -236,6 +236,7 @@ from .aws_sfn_role_routes_next import normalize_aws_sfn_role_routes, correlate_a
 from .aws_sfn_http_credentials_next import normalize_aws_sfn_reveal_secrets, correlate_aws_sfn_connection_secret_read
 from .aws_sfn_map_run_next import normalize_aws_sfn_map_run
 from .aws_rds_controls_next import normalize_aws_rds_controls
+from .aws_budgets_iam_action import normalize_aws_budgets_iam_action
 from .aws_rds_restore_next import normalize_aws_rds_restore_controls, correlate_aws_rds_public_clone_password_reset
 from .aws_rds_parameters_next import normalize_aws_rds_parameters, correlate_aws_rds_sql_log_capture_path
 from .aws_rds_replica_next import normalize_aws_rds_public_replica, correlate_aws_rds_public_replica_controls
@@ -626,6 +627,7 @@ def detect_aws_events(
         sfn_reveal_secrets = normalize_aws_sfn_reveal_secrets(record)
         sfn_map_run = normalize_aws_sfn_map_run(record)
         rds_controls = normalize_aws_rds_controls(record)
+        budgets_iam_action = normalize_aws_budgets_iam_action(record)
         rds_restore_controls = normalize_aws_rds_restore_controls(record)
         rds_parameters = normalize_aws_rds_parameters(record)
         rds_public_replica = normalize_aws_rds_public_replica(record)
@@ -851,6 +853,7 @@ def detect_aws_events(
                 + ([sfn_reveal_secrets] if sfn_reveal_secrets is not None else [])
                 + ([sfn_map_run] if sfn_map_run is not None else [])
                 + ([rds_controls] if rds_controls is not None else [])
+                + ([budgets_iam_action] if budgets_iam_action is not None else [])
                 + ([rds_restore_controls] if rds_restore_controls is not None else [])
                 + ([rds_parameters] if rds_parameters is not None else [])
                 + ([rds_public_replica] if rds_public_replica is not None else [])
