@@ -81,13 +81,9 @@ export function CodexSettings() {
       </ul>
       <p className="muted small">AI-enabled scans share evidence with the selected provider and allow read-only verification of scanned cloud accounts.</p>
     </section>
-    <section className="ai-settings-section" aria-labelledby="ai-active-heading">
-      <h3 id="ai-active-heading">Current AI</h3>
-    {connection.error ? <State error={connection.error} onRetry={() => void connection.refetch()} /> : <p role="status">{active?.disabled ? "AI review is disabled for every scan." : active?.isolation_available === false ? "AI review is unavailable until isolated agent execution is configured." : active?.source === "hacktricks" ? "HackTricks AI is used." : active?.available ? active.selection ? "Your AI configuration is used." : "Local AI is configured." : "Configure an AI provider to enable AI review."}</p>}
-      {active?.selection && <p className="muted small">{providers.find(([value]) => value === active.selection?.provider)?.[1] || active.selection.provider} · {active.selection.model} · {active.selection.thinking} thinking</p>}
-    </section>
     <section className="ai-settings-section" aria-labelledby="ai-configure-heading">
       <h3 id="ai-configure-heading">Configure AI</h3>
+    {connection.error && <State error={connection.error} onRetry={() => void connection.refetch()} />}
     {active?.configuration_error && <p role="alert">AI is paused: {active.configuration_error.message} No AI workloads will be launched. Validate and save your settings to resume.</p>}
     {active?.configuration_error && <button className="button" disabled={revalidate.isPending} onClick={() => revalidate.mutate()}>Revalidate saved AI configuration</button>}
     {active?.hosted && <p className="muted small">HackTricks AI is the default when no personal configuration is selected. If validation fails, AI stops until you fix your settings or explicitly select and validate HackTricks AI.</p>}
@@ -117,8 +113,8 @@ export function CodexSettings() {
     <section className="ai-settings-section" aria-labelledby="ai-disable-heading">
       <h3 id="ai-disable-heading">Disable AI</h3>
       <p className="muted small">For individual runs, turn AI off in the scan or schedule. To disable it everywhere, use the switch below.</p>
-    <label className="checkbox"><input type="checkbox" checked={policy.isPending ? !!policy.variables : !!active?.disabled} disabled={!active || policy.isPending} onChange={event => policy.mutate(event.target.checked)} />Disable AI for every scan</label>
-    <p className="muted small">Applies to your scans in every workspace, including schedules and queued scans. Saved provider credentials are kept. Turn this off to use each scan's AI selection again.</p>
+    <label className="checkbox ai-disable-toggle"><input type="checkbox" aria-describedby="ai-disable-description" checked={policy.isPending ? !!policy.variables : !!active?.disabled} disabled={!active || policy.isPending} onChange={event => policy.mutate(event.target.checked)} /><span>Disable AI for every scan</span><span className="ai-disable-warning" aria-hidden="true" title="Affects every workspace">⚠</span></label>
+    <p id="ai-disable-description" className="muted small">Applies to your scans in every workspace, including schedules and queued scans. Saved provider credentials are kept. Turn this off to use each scan's AI selection again.</p>
     </section>
     {message && <p role="status">{message}</p>}
     {(start.error || disconnect.error || save.error || revalidate.error || policy.error) && <p role="alert">{humanError(start.error || disconnect.error || save.error || revalidate.error || policy.error)}</p>}

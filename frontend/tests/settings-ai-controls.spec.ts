@@ -47,7 +47,8 @@ for (const hosted of [true, false]) test(`disable every scan persists and can be
   await expect(toggle).toBeChecked();
   await toggle.click();
   await expect(toggle).not.toBeChecked();
-  await expect(page.getByText(hosted ? "HackTricks AI is used." : "Local AI is configured.", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Current AI", exact: true })).toHaveCount(0);
+  await expect(page.getByLabel("AI provider")).toBeVisible();
 });
 
 test("a rejected preference save does not pretend AI is disabled", async ({ page }) => {
