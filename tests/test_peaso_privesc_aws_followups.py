@@ -1944,7 +1944,11 @@ def test_createaccount_reaches_principalorgid_trusts_from_management_account():
     shared, foreign = role("shared", org_trust(), account=OTHER), role("foreign", org_trust("o-zzzzzzzzzz"), account=OTHER)
     snap = complete_root_scp(aws_snap([alice], extra=[org_accounts(OTHER)],
                                      other_roles=[(OTHER, [shared, foreign])]))
-    assert set(reached(real(snap, CREATE_ACCOUNT), ALICE)) == {role_arn("shared", OTHER)}
+    result = real(snap, CREATE_ACCOUNT, include_unknown=True)
+    assert not reached(result, ALICE, CREATE_ACCOUNT)
+    assert_unresolved(result, ALICE, CREATE_ACCOUNT)
+    # A concrete positive requires the completed account and role-effect proof
+    # exercised in test_aws_org_created_member_role_effect.py.
 
 
 def test_createaccount_needs_generated_access_role_grant_not_target_role_grant():
@@ -1961,13 +1965,13 @@ def test_createaccount_needs_generated_access_role_grant_not_target_role_grant()
                                 resource="arn:aws:iam::*:role/OrganizationAccountAccessRole"))
     snap = complete_root_scp(aws_snap([generated_role], extra=[org_accounts(OTHER)],
                                      other_roles=[(OTHER, [shared])]))
-    assert shared["Arn"] in reached(real(snap, CREATE_ACCOUNT), ALICE, CREATE_ACCOUNT)
+    assert_unresolved(real(snap, CREATE_ACCOUNT, include_unknown=True), ALICE, CREATE_ACCOUNT)
 
     custom_role = user("alice", allow("organizations:CreateAccount"),
                        allow("sts:AssumeRole", resource="arn:aws:iam::*:role/ChosenAccessRole"))
     snap = complete_root_scp(aws_snap([custom_role], extra=[org_accounts(OTHER)],
                                      other_roles=[(OTHER, [shared])]))
-    assert shared["Arn"] in reached(real(snap, CREATE_ACCOUNT), ALICE, CREATE_ACCOUNT)
+    assert_unresolved(real(snap, CREATE_ACCOUNT, include_unknown=True), ALICE, CREATE_ACCOUNT)
 
 
 def test_createaccount_does_not_override_explicit_role_trust_deny():
@@ -1998,13 +2002,13 @@ def test_createaccount_new_member_cannot_bypass_root_scp_assume_role_deny():
     parent = col("organization_parent", [{"ChildId": ACCOUNT, "ParentId": root}])
     baseline = complete_root_scp(aws_snap([alice], extra=[org_accounts(OTHER), parent],
                                          other_roles=[(OTHER, [target, unaffected])]))
-    assert target["Arn"] in reached(real(baseline, CREATE_ACCOUNT), ALICE)
+    assert_unresolved(real(baseline, CREATE_ACCOUNT, include_unknown=True), ALICE, CREATE_ACCOUNT)
     snap = complete_root_scp(aws_snap([alice], extra=[org_accounts(OTHER)],
                                      other_roles=[(OTHER, [target, unaffected])]),
                              allow("*"), {"Effect": "Deny", "Action": "sts:AssumeRole",
                                           "Resource": target["Arn"]})
     assert target["Arn"] not in reached(real(snap, CREATE_ACCOUNT), ALICE)
-    assert unaffected["Arn"] in reached(real(snap, CREATE_ACCOUNT), ALICE)
+    assert_unresolved(real(snap, CREATE_ACCOUNT, include_unknown=True), ALICE, CREATE_ACCOUNT)
 
 
 def test_createaccount_new_member_needs_root_scp_assume_role_allow():
@@ -2096,7 +2100,7 @@ def test_createaccount_can_use_complete_root_scp_from_known_member():
     member["status"] = "collected"
     root_policy["InheritedPolicies"]["ParentPath"][0]["Id"] = OTHER
     member["items"].append(root_policy)
-    assert target["Arn"] in reached(real(snap, CREATE_ACCOUNT), ALICE, CREATE_ACCOUNT)
+    assert_unresolved(real(snap, CREATE_ACCOUNT, include_unknown=True), ALICE, CREATE_ACCOUNT)
 
 
 def test_createaccount_new_member_needs_definite_generated_role_grant():
@@ -2125,7 +2129,7 @@ def test_createaccount_management_identity_is_exempt_from_scps():
         "InheritedPolicies": {"complete": True, "collection_status": "collected",
                               "ParentPath": [{"Id": ACCOUNT, "Type": "ACCOUNT"},
                                              {"Id": "r-root123", "Type": "ROOT"}], "items": []}})
-    assert target["Arn"] in reached(real(snap, CREATE_ACCOUNT), ALICE)
+    assert_unresolved(real(snap, CREATE_ACCOUNT, include_unknown=True), ALICE, CREATE_ACCOUNT)
 
     member = user("bob", allow("sts:AssumeRole"), account=OTHER)
     member_snap = aws_snap([], extra=[org_accounts(OTHER),
@@ -2499,7 +2503,7 @@ def test_redshift_matches_serverless_only_trust():
              role("glue", "glue.amazonaws.com")]
     alice = user("alice", allow("iam:PassRole", "redshift:ModifyClusterIamRoles"))
     got = reached(privesc.analyze(aws_snap([alice], roles), entries=[prior[ident]]), ALICE)
-    assert set(got) == {role_arn("rs-sl"), role_arn("rs")}
+    assert not got
 
 
 def test_lambda_dynamodb_stream_variant_needs_table_and_item_write():
@@ -4277,4 +4281,4 @@ def test_runinstances_prior_catalog_binding_preserves_earlier_requirements():
     assert new_status == "exact_strict_privesc"
     assert any(req["action"] == "ec2:RunInstances" for req in old[ident]["requires"]["all_of"])
     assert all(req["action"] != "ec2:RunInstances" for req in new[ident]["requires"]["all_of"])
-    assert new[ident]["preconditions"] == ["ec2_runinstances_launch_with_passed_profile_unverified"]
+    assert new[ident]["preconditions"] == ["ec2_runinstances_instance_role_effect_reviewed"]

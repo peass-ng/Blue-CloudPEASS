@@ -153,7 +153,12 @@ def test_active_sources_resolve_at_their_pinned_revisions():
     for entry in load_catalog(strict=True)["entries"]:
         source = entry["source"]
         page, anchor = source.split("#", 1)
-        revision = entry["source_revision"]
+        revision = entry.get("source_revision")
+        if revision is None:
+            # Some non-AWS catalog entries cite a page without a pinned Git
+            # revision. AWS privilege escalation sources must stay pinned.
+            assert entry["provider"] != "aws", f"AWS source lacks a revision: {entry['id']}"
+            continue
         key = (revision, page)
         if key not in cache:
             shown = subprocess.run(["git", "show", f"{revision}:{page}"], cwd=repo,
