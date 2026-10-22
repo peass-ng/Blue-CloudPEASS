@@ -28,7 +28,11 @@ from .schema import (BLOCKER_ALIASES, CHAIN_SOURCE_SELECTORS, EVALUATED_BLOCKERS
 _PH = re.compile(r"(?<!\$)\{([^{}]+)\}")
 # Selectors that depend on the source (or the pivot) and are evaluated per source.
 DYNAMIC_SELECTORS = {
-    "aws_challenge_fact", "aws_s3_policy_self_grant", "aws_s3_access_grants_self_grant",
+    "cognito_developer_authenticated_role", "cognito_developer_classic_role",
+    "cognito_developer_settable_authenticated_role",
+    "cognito_developer_enable_classic_role",
+    "cognito_guest_update_classic_role",
+    "aws_challenge_fact", "aws_scheduler_iam_self_grant", "aws_scheduler_iam_self_grant_update", "aws_s3_policy_self_grant", "aws_sqs_policy_self_grant", "aws_sns_policy_self_grant", "aws_dynamodb_policy_self_grant", "aws_s3_access_grants_self_grant",
     "aws_secretsmanager_policy_self_grant", "aws_efs_policy_self_grant",
     "aws_cases_tag_self_grant", "aws_sitewise_portal_self_grant",
     "gcp_challenge_fact", "gcp_resource_self_grant", "gcp_external_principal_evidence", "gcp_agentregistry_skill_evidence",

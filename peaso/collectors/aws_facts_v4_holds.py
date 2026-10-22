@@ -146,8 +146,16 @@ def codecommit_build_links(snapshot, account, region, *, partition="aws"):
                     builds.append((stage_index, action))
         for source_index, source, repository, branch in sources:
             for build_index, build in builds:
-                if build_index <= source_index:
+                if build_index < source_index:
                     continue
+                if build_index == source_index:
+                    source_order = source.get("runOrder")
+                    build_order = build.get("runOrder")
+                    source_order = 1 if source_order is None else source_order
+                    build_order = 1 if build_order is None else build_order
+                    if (type(source_order) is not int or type(build_order) is not int
+                            or source_order < 1 or build_order <= source_order):
+                        continue
                 output_names = {v.get("name") for v in source.get("outputArtifacts") or []
                                 if isinstance(v, dict) and isinstance(v.get("name"), str)}
                 input_names = {v.get("name") for v in build.get("inputArtifacts") or []

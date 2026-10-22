@@ -86,6 +86,7 @@ SERVICE_PRINCIPALS = {"ecs": "ecs-tasks.amazonaws.com", "apprunner": "tasks.appr
                       "elasticbeanstalk": "elasticbeanstalk.amazonaws.com", "datapipeline": "datapipeline.amazonaws.com"}
 ASSUME_ACTIONS = {"sts:assumerole", "sts:tagsession", "sts:setsourceidentity"}
 HOST_KIND = {"lambda": "lambda_function", "lambda_function": "lambda_function", "ec2": "ec2_instance",
+             "bedrock-agentcore-code-interpreter": "agentcore_code_interpreter",
              "ec2_instance": "ec2_instance", "servicecatalog_product": "servicecatalog_product",
              "cloudformation_stack": "cloudformation_stack",
              "codebuild": "codebuild_project", "codebuild_project": "codebuild_project",
@@ -95,19 +96,28 @@ HOST_KIND = {"lambda": "lambda_function", "lambda_function": "lambda_function", 
              "sagemaker_notebook_instance": "sagemaker_notebook_instance",
              "redshift_serverless_workgroup": "redshift_serverless_workgroup",
              "imagebuilder_pipeline": "imagebuilder_pipeline", "sagemaker_user_profile": "sagemaker_user_profile",
-             "sagemaker_cluster": "sagemaker_cluster", "cognito_identity_pool": "cognito_identity_pool"}
+             "sagemaker_space": "sagemaker_space",
+             "sagemaker_cluster": "sagemaker_cluster", "cognito_identity_pool": "cognito_identity_pool",
+             "synthetics_canary": "synthetics_canary"}
 # Collected workload inventories: collection type -> host kind (see AwsModel._load_workload_hosts).
 WORKLOAD_HOSTS = {"codebuild_project": "codebuild_project", "codebuild_sandbox": "codebuild_sandbox", "glue_job": "glue_job", "glue_session": "glue_session",
+                  "agentcore_code_interpreter": "agentcore_code_interpreter",
                   "glue_dev_endpoint": "glue_dev_endpoint",
                   "cloudformation_stack": "cloudformation_stack",
                   "redshift_cluster": "redshift_cluster", "rds_instance": "rds_instance",
                   "sagemaker_notebook_instance": "sagemaker_notebook_instance",
                   "imagebuilder_pipeline": "imagebuilder_pipeline", "sagemaker_user_profile": "sagemaker_user_profile",
-                  "sagemaker_cluster": "sagemaker_cluster"}
+                  "sagemaker_space": "sagemaker_space",
+                  "sagemaker_cluster": "sagemaker_cluster", "synthetics_canary": "synthetics_canary"}
 # Selector -> host map (role -> resource ARNs, see AwsModel._load_ext_hosts) deciding the selector and its
 # {target.attached_resource_arn}.
 SELECTOR_HOSTS = {"cognito_user_pool_group_role_covered_by": "cognito_user_pool_group",
                   "cognito_user_pool_covered_by": "cognito_user_pool_identity_pool",
+                  "cognito_developer_authenticated_role": "cognito_developer_authenticated",
+                  "cognito_developer_classic_role": "cognito_developer_classic",
+                  "cognito_developer_settable_authenticated_role": "cognito_developer_settable_authenticated",
+                  "cognito_developer_enable_classic_role": "cognito_developer_enable_classic",
+                  "cognito_guest_update_classic_role": "cognito_guest_update_classic",
                   "codedeploy_group_instance_role_covered_by": "codedeploy_deployment_group",
                   "rolesanywhere_profile_includes_target": "rolesanywhere_profile"}
 # service_plane value -> collected inventory of that application plane (aws_service_plane_admin targets).
@@ -143,6 +153,14 @@ def _doc(value):
 def _account(arn, default=""):
     parts = str(arn).split(":")
     return parts[4] if len(parts) > 5 and parts[4] else default
+
+
+def _cognito_pool_identity(region):
+    if region.startswith("cn-"):
+        return "aws-cn", f"cognito-identity.{region}.amazonaws.com.cn", "cognito-identity.amazonaws.com.cn"
+    if region.startswith("us-gov-"):
+        return "aws-us-gov", "cognito-identity.amazonaws.com", "cognito-identity.amazonaws.com"
+    return "aws", "cognito-identity.amazonaws.com", "cognito-identity.amazonaws.com"
 
 
 _DICT_VALUES = type({}.values())
@@ -212,6 +230,46 @@ def _resource_glob(pattern, resource):
     if "*" in resource or "?" in resource:  # requirement is itself a pattern: overlap test
         return glob_match(pattern, resource, False) or glob_match(resource, pattern, False)
     return glob_match(pattern, resource, False)
+
+
+def _glob_covers_deadline_worker_ids(pattern, prefix):
+    """Prove an IAM * / ? ARN pattern covers every server-generated worker ID."""
+    if pattern == "*":
+        return True
+    if not isinstance(pattern, str) or any(char in pattern for char in "[]${}"):
+        return False
+    n = len(pattern)
+
+    def closure(states):
+        result = set(states)
+        for pos in range(n):
+            if pos in result and pattern[pos] == "*":
+                result.add(pos + 1)
+        return frozenset(result)
+
+    def step(states, char):
+        next_states = set()
+        for pos in states:
+            if pos == n:
+                continue
+            token = pattern[pos]
+            if token == "*":
+                next_states.add(pos)
+            elif token == "?" or token == char:
+                next_states.add(pos + 1)
+        return closure(next_states)
+
+    states = closure({0})
+    for char in prefix + "worker-":
+        states = step(states, char)
+        if not states:
+            return False
+    current = {states}
+    for _ in range(32):
+        current = {step(states, char) for states in current for char in "0123456789abcdef"}
+        if frozenset() in current or len(current) > 4096:
+            return False
+    return all(n in states for states in current)
 
 
 class Policy:
@@ -307,6 +365,8 @@ class AwsModel(Model):
             "iam_user": "Users and their inherited permissions are unknown", "iam_group": "Group-inherited permissions are unknown",
             "iam_role": "Role targets and trust policies are unknown", "iam_policy": "Managed policy documents are unknown"})
         for account in sorted(self.accounts):
+            if account == self.org_management:
+                continue  # Organizations SCPs do not apply to the management account.
             status = self.scp_status.get(account, "not_collected")
             if status not in ("collected", "empty"):
                 self.add_coverage("guardrail", account, status, "scp_policy not evaluated",
@@ -570,6 +630,13 @@ class AwsModel(Model):
         for scope, item in items(snap, "sqs_queue"):
             attrs = (item.get("Attributes") or {}).get("Attributes") or {}
             add(attrs.get("QueueArn"), scope.split("/")[0], attrs.get("Policy"), "sqs")
+        for scope, item in items(snap, "dynamodb_table"):
+            table = item.get("Table") or {}
+            policy = item.get("ResourcePolicy") or {}
+            if (table.get("collection_status") == "collected" and
+                    policy.get("collection_status") == "collected"):
+                arn = (table.get("Table") or {}).get("TableArn")
+                add(arn, scope.split("/")[0], policy.get("Policy"), "dynamodb")
         for scope, item in items(snap, "secret"):
             add(item.get("ARN"), scope.split("/")[0], (item.get("Policy") or {}).get("ResourcePolicy"), "secretsmanager")
         for scope, item in items(snap, "ecr_repository"):
@@ -589,18 +656,31 @@ class AwsModel(Model):
         self.ecs_cluster_info = {}     # cluster arn -> {account, count, instances: {ci arn: ec2 id}|None, tasks: [..]|None}
         self.ecs_task_roles = {}       # role arn -> [(account, task definition arn, ec2 capable)]
         self.ecs_taskdef_role = {}     # task definition arn -> task role arn
+        self.ecs_execution_roles = {}  # execution role arn -> [(account, task definition arn, ec2 capable)]
+        self.ecs_taskdef_execution_role = {}  # task definition arn -> execution role arn
+        self.ecs_taskdef_readonly_containers = {}  # task definition arn -> container names with unsupported read-only root
         for scope, item in items(snap, "ecs_task_definition"):
             account = item.get("AccountId") or scope.split("/")[0]
             self.ecs_task_definitions[account] = self.ecs_task_definitions.get(account, 0) + 1
             td = (item.get("Definition") or {}).get("taskDefinition") if isinstance(item.get("Definition"), dict) else None
             td = td or item.get("taskDefinition") or item
             role, tdarn = td.get("taskRoleArn"), td.get("taskDefinitionArn") or item.get("taskDefinitionArn") or item.get("id")
+            execution_role = td.get("executionRoleArn")
             compat = [str(c).upper() for c in as_list(td.get("compatibilities")) or as_list(td.get("requiresCompatibilities"))]
             ec2 = not compat or "EC2" in compat or "EXTERNAL" in compat  # no compatibility list: EC2 is the default launch type
             if tdarn and role:
                 self.ecs_taskdef_role[str(tdarn)] = str(role)
             if role:
                 self.ecs_task_roles.setdefault(str(role), []).append((account, tdarn, ec2))
+            if tdarn and execution_role:
+                self.ecs_taskdef_execution_role[str(tdarn)] = str(execution_role)
+            if tdarn:
+                self.ecs_taskdef_readonly_containers[str(tdarn)] = {
+                    str(container.get("name")) for container in as_list(td.get("containerDefinitions"))
+                    if isinstance(container, dict) and container.get("readonlyRootFilesystem") is True
+                    and isinstance(container.get("name"), str)}
+            if execution_role:
+                self.ecs_execution_roles.setdefault(str(execution_role), []).append((account, tdarn, ec2))
         extra_ci, extra_tasks = {}, {}
         for scope, item in items(snap, "ecs_container_instance"):
             if item.get("clusterArn"):
@@ -631,6 +711,9 @@ class AwsModel(Model):
                 "account": account, "count": count,
                 "status": next((c.get("status") for c in as_list((item.get("Configuration") or {}).get("clusters"))
                                 if isinstance(c, dict) and c.get("clusterArn") == arn), item.get("status")),
+                "exec_kms_key": next(((((c.get("configuration") or {}).get("executeCommandConfiguration") or {}).get("kmsKeyId"))
+                                      for c in as_list((item.get("Configuration") or {}).get("clusters"))
+                                      if isinstance(c, dict) and c.get("clusterArn") == arn), None),
                 "instances": None if instances is None else {
                     str(ci.get("containerInstanceArn")): str(ci.get("ec2InstanceId") or "") for ci in instances if isinstance(ci, dict)},
                 "tasks": None if tasks is None else [t for t in tasks if isinstance(t, dict)]}
@@ -713,17 +796,21 @@ class AwsModel(Model):
         self.emr_runtime_profiles = set()  # (account, instance-profile name) with active runtime-role authorization
         self.emr_runtime_clusters = []  # (account, region, cluster id, instance-profile name, external-id digest)
         self.emr_runtime_config_unknown = set()
+        self.emr_runtime_mode_by_cluster = {}  # (scope, cluster id) -> enabled, disabled, or unknown
         for scope, item in items(snap, "emr_cluster"):
             cluster = (item.get("Cluster") or {}).get("Cluster") if isinstance(item.get("Cluster"), dict) else None
             cluster = cluster or item.get("Cluster") or item
             if not isinstance(cluster, dict) or not cluster.get("SecurityConfiguration"):
                 continue
+            cluster_id = str(cluster.get("Id") or item.get("Id") or "")
+            config = configs.get((scope, cluster["SecurityConfiguration"]))
+            if cluster_id:
+                self.emr_runtime_mode_by_cluster[(scope, cluster_id)] = config[0] if config else None
             state = (cluster.get("Status") or {}).get("State") if isinstance(cluster.get("Status"), dict) else None
             if state not in ("RUNNING", "WAITING"):
                 if state is None:
                     self.emr_runtime_config_unknown.add(scope.split("/", 1)[0])
                 continue
-            config = configs.get((scope, cluster["SecurityConfiguration"]))
             if config is None:
                 if config_status.get(scope) not in ("collected", "empty") or (scope, cluster["SecurityConfiguration"]) not in configs:
                     self.emr_runtime_config_unknown.add(scope.split("/", 1)[0])
@@ -1666,7 +1753,7 @@ class AwsModel(Model):
         boundary = self.policies.get(principal.attrs.get("boundary") or "")
         if boundary is not None:
             denies.extend(st for st in boundary.for_action(action) if st.effect == "deny")
-        if self.scp_status.get(principal.scope) == "collected":
+        if principal.scope != self.org_management and self.scp_status.get(principal.scope) == "collected":
             levels, _ = self._scp_levels(principal.scope)
             for level in levels:
                 policies = (self.scp.get(principal.scope, []) if level == principal.scope
@@ -1736,7 +1823,8 @@ class AwsModel(Model):
                     return None
                 grant = combine(grant, Grant(limit.confidence, [], limit.conditions))
         account = principal.scope
-        status = self.scp_status.get(account, "not_collected")
+        # SCPs never limit identities in the Organizations management account.
+        status = "empty" if account == self.org_management else self.scp_status.get(account, "not_collected")
         if status == "collected":
             levels, complete = self._scp_levels(account)
             for level in levels:
@@ -1864,7 +1952,37 @@ class AwsModel(Model):
                         passrole = self.cached_check(principal, {**req, "request_context": context}, target.id)
                         if passrole is None:
                             continue
+                        target_grant = None
+                        if rule_arn:
+                            schedule_grant = None
+                            # A rule may carry both an EventPattern and a
+                            # ScheduleExpression. Try an omitted field and a
+                            # caller-chosen field for each IAM condition key.
+                            for source_context in ({"absent": True}, {"chosen": True}):
+                                for detail_context in ({"absent": True}, {"chosen": True}):
+                                    candidate_grant = self.cached_check(principal, {
+                                        "action": "events:PutRule", "request_context": {
+                                            "events:source": source_context,
+                                            "events:detail-type": detail_context,
+                                            "aws:RequestedRegion": function_parts[3]}}, rule_arn)
+                                    schedule_grant = _best(schedule_grant, candidate_grant)
+                            if schedule_grant is None:
+                                continue
+                            # PutTargets can be restricted to specific target ARNs.
+                            # The bound rule alone cannot establish that this new
+                            # function is an authorized target of the rule.
+                            target_grant = self.cached_check(principal, {
+                                "action": "events:PutTargets", "request_context": {
+                                    "events:TargetArn": function_arn,
+                                    "aws:RequestedRegion": function_parts[3]}}, rule_arn)
+                            if target_grant is None:
+                                continue
                         got = combine(function_grant, passrole, rule_grant) if rule_grant else combine(function_grant, passrole)
+                        if target_grant is not None:
+                            got = combine(got, schedule_grant, target_grant)
+                            if (schedule_grant.confidence != "derived" or
+                                    target_grant.confidence != "derived"):
+                                got = downgrade(got, "unknown", "eventbridge_schedule_or_target_condition_not_verified")
                         refs = ({"bound_resource": function_arn},)
                         if rule_arn:
                             refs += ({"scheduled_rule": rule_arn},)
@@ -2656,8 +2774,53 @@ class AwsModel(Model):
                 and fact.get("TargetAccount") == account
                 and isinstance(action, str) and action.lower() in actions)
 
+    def _sqs_self_grants(self):
+        cached = self.__dict__.get("_sqs_self_grant_cache")
+        if cached is None:
+            from .aws_sqs_self_grant import load
+            cached = self.__dict__["_sqs_self_grant_cache"] = load(self)
+        return cached
+
+    def _scheduler_self_grants(self):
+        cached = self.__dict__.get("_scheduler_self_grant_cache")
+        if cached is None:
+            from .aws_scheduler_self_grant import load
+            cached = self.__dict__["_scheduler_self_grant_cache"] = load(self)
+        return cached
+
+    def _scheduler_update_self_grants(self):
+        cached = self.__dict__.get("_scheduler_update_self_grant_cache")
+        if cached is None:
+            from .aws_scheduler_self_grant import load
+            cached = self.__dict__["_scheduler_update_self_grant_cache"] = load(self, update=True)
+        return cached
+
+    def _sns_self_grants(self):
+        cached = self.__dict__.get("_sns_self_grant_cache")
+        if cached is None:
+            from .aws_sns_self_grant import load
+            cached = self.__dict__["_sns_self_grant_cache"] = load(self)
+        return cached
+
+    def _dynamodb_self_grants(self):
+        cached = self.__dict__.get("_dynamodb_self_grant_cache")
+        if cached is None:
+            from .aws_dynamodb_self_grant import load
+            cached = self.__dict__["_dynamodb_self_grant_cache"] = load(self)
+        return cached
+
     def targets_for(self, kind, selector):
         selector = selector or {}
+        if kind == "aws_verified_authority" and selector.get("aws_scheduler_iam_self_grant"):
+            return list(self._scheduler_self_grants()[0].values())
+        if kind == "aws_verified_authority" and selector.get("aws_scheduler_iam_self_grant_update"):
+            return list(self._scheduler_update_self_grants()[0].values())
+        if kind == "aws_verified_authority" and selector.get("aws_sqs_policy_self_grant"):
+            return list(self._sqs_self_grants()[0].values())
+        if kind == "aws_verified_authority" and selector.get("aws_sns_policy_self_grant"):
+            return list(self._sns_self_grants()[0].values())
+        if kind == "aws_verified_authority" and selector.get("aws_dynamodb_policy_self_grant"):
+            return list(self._dynamodb_self_grants()[0].values())
         if kind == "aws_verified_authority" and any(key in self.scoped_grants and selector.get(key)
                                                  for key in self.scoped_grants):
             key = next(key for key in self.scoped_grants if selector.get(key))
@@ -2688,6 +2851,27 @@ class AwsModel(Model):
                     attrs={"account": account, "resource_arn": resource, "arn": resource}, entity=True)
             return list(targets.values())
         plane = str(selector.get("service_plane"))
+        if (kind == "aws_service_plane_admin" and plane == "quicksight"
+                and selector.get("quicksight_existing_iam_user")):
+            targets = {}
+            for scope, row in items(self.snapshot, "quicksight_user"):
+                if not isinstance(row, dict) or row.get("IdentityType") != "IAM" or row.get("Active") is not True:
+                    continue
+                if row.get("Role") not in ("READER", "AUTHOR", "RESTRICTED_READER", "RESTRICTED_AUTHOR",
+                                          "READER_PRO", "AUTHOR_PRO"):
+                    continue
+                arn = row.get("Arn")
+                match = (re.fullmatch(r"arn:(?:aws|aws-cn|aws-us-gov):quicksight:([^:]+):(\d{12}):user/default/[^*?\s]+", arn)
+                         if isinstance(arn, str) else None)
+                if not match or scope != f"{match.group(2)}/{match.group(1)}":
+                    continue
+                targets[arn] = Node(f"aws_service_plane_admin:quicksight:{arn}", kind, "aws", match.group(2),
+                                    f"QuickSight administrator for {arn}",
+                                    attrs={"account": match.group(2), "region": match.group(1),
+                                           "service_plane": "quicksight", "resource_arn": arn,
+                                           "principal_id": row.get("PrincipalId"),
+                                           "custom_permissions": row.get("CustomPermissionsName")}, entity=True)
+            return list(targets.values())
         if (kind == "aws_service_plane_admin" and plane == "quicksight"
                 and (self.current_entry or {}).get("id") == "aws-quicksight-registeruser-admin"):
             statuses = inventory_status(self.snapshot, "quicksight_account_subscription")
@@ -2748,6 +2932,24 @@ class AwsModel(Model):
         return cache[key]
 
     def unknown_target_scopes(self, kind):
+        if (self.current_selector or {}).get("aws_scheduler_iam_self_grant"):
+            return {scope.split("/")[0]: status for scope, status in
+                    unavailable(inventory_status(self.snapshot, "iam_role")).items()}
+        if (self.current_selector or {}).get("aws_scheduler_iam_self_grant_update"):
+            missing = {}
+            for kind in ("iam_role", "scheduler_schedule"):
+                missing.update({scope.split("/")[0]: status for scope, status in
+                                unavailable(inventory_status(self.snapshot, kind)).items()})
+            return missing
+        if (self.current_selector or {}).get("aws_dynamodb_policy_self_grant"):
+            return {scope.split("/")[0]: status for scope, status in
+                    unavailable(inventory_status(self.snapshot, "dynamodb_table")).items()}
+        if (self.current_selector or {}).get("aws_sns_policy_self_grant"):
+            return {scope.split("/")[0]: status for scope, status in
+                    unavailable(inventory_status(self.snapshot, "sns_topic")).items()}
+        if (self.current_selector or {}).get("aws_sqs_policy_self_grant"):
+            return {scope.split("/")[0]: status for scope, status in
+                    unavailable(inventory_status(self.snapshot, "sqs_queue")).items()}
         if (self.current_selector or {}).get("aws_s3_policy_self_grant") or (self.current_selector or {}).get("aws_s3_access_grants_self_grant") or any(
                 (self.current_selector or {}).get(key) for key in self.scoped_grants):
             return {}
@@ -2982,6 +3184,20 @@ class AwsModel(Model):
         return None if denied is True else "conditional" if denied is None else best
 
     def selector(self, key, value, candidates, source, pivot=None):
+        if key == "aws_scheduler_iam_self_grant":
+            if source is None:
+                return None
+            records = self._scheduler_self_grants()[1]
+            return {target_id: ("conditional", "scheduler_exact_iam_inline_policy_self_grant")
+                    for target_id in candidates
+                    if (record := records.get(target_id)) and record["SourceArn"] == source.id}
+        if key == "aws_scheduler_iam_self_grant_update":
+            if source is None:
+                return None
+            records = self._scheduler_update_self_grants()[1]
+            return {target_id: ("conditional", "scheduler_existing_iam_inline_policy_self_grant")
+                    for target_id in candidates
+                    if (record := records.get(target_id)) and record["SourceArn"] == source.id}
         if key in self.scoped_grants:
             if source is None:
                 return None
@@ -3003,6 +3219,27 @@ class AwsModel(Model):
                     for target_id in candidates
                     if (record := self.s3_self_grant_records.get(target_id))
                     and record["SourceArn"] == source.id}
+        if key == "aws_sqs_policy_self_grant":
+            if source is None:
+                return None
+            records = self._sqs_self_grants()[1]
+            return {target_id: ("conditional", "sqs_same_account_queue_policy_self_grant")
+                    for target_id in candidates
+                    if (record := records.get(target_id)) and record["SourceArn"] == source.id}
+        if key == "aws_sns_policy_self_grant":
+            if source is None:
+                return None
+            records = self._sns_self_grants()[1]
+            return {target_id: ("conditional", "sns_same_account_topic_policy_self_grant")
+                    for target_id in candidates
+                    if (record := records.get(target_id)) and record["SourceArn"] == source.id}
+        if key == "aws_dynamodb_policy_self_grant":
+            if source is None:
+                return None
+            records = self._dynamodb_self_grants()[1]
+            return {target_id: ("conditional", "dynamodb_same_account_table_policy_self_grant")
+                    for target_id in candidates
+                    if (record := records.get(target_id)) and record["SourceArn"] == source.id}
         if key == "aws_challenge_fact":
             statuses = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
             if value not in _EXACT_USER_CREDENTIAL_ACTIONS and (
@@ -3074,12 +3311,20 @@ class AwsModel(Model):
         """Return {target id: (confidence, condition)|None} or None when the key is unsupported."""
         if key == "trust_allows_service":
             out = {}
-            for svc in as_list(value):
-                for rid, (conf, _) in self.trust_by_service.get(str(svc).lower(), {}).items():
-                    if rid in candidates:
-                        actual = self._non_iam_trust_verdict(rid, "Service", str(svc), "sts:AssumeRole")
-                        if actual is not None and (rid not in out or out[rid] is not None):
-                            out[rid] = None if actual == "derived" else ("conditional", "trust_condition")
+            services = [str(svc).lower() for svc in as_list(value)]
+            if not services:
+                return out
+            for rid in candidates:
+                verdicts = []
+                for svc in services:
+                    if rid not in self.trust_by_service.get(svc, {}):
+                        break
+                    actual = self._non_iam_trust_verdict(rid, "Service", svc, "sts:AssumeRole")
+                    if actual is None:
+                        break
+                    verdicts.append(actual)
+                else:
+                    out[rid] = None if all(v == "derived" for v in verdicts) else ("conditional", "trust_condition")
             return out
         if key == "rolesanywhere_profile_includes_target":
             if source is None:
@@ -3271,6 +3516,147 @@ class AwsModel(Model):
 
     def _selector_ext(self, key, value, candidates, source):
         out = {}
+        if key in ("cognito_developer_authenticated_role", "cognito_developer_classic_role",
+                   "cognito_developer_settable_authenticated_role", "cognito_developer_enable_classic_role"):
+            if source is None:
+                return None
+            enable_classic = key == "cognito_developer_enable_classic_role"
+            classic = key == "cognito_developer_classic_role" or enable_classic
+            settable = key == "cognito_developer_settable_authenticated_role"
+            host = ("cognito_developer_enable_classic" if enable_classic else
+                    "cognito_developer_classic" if classic else
+                    "cognito_developer_settable_authenticated" if settable else "cognito_developer_authenticated")
+            for rid, node in candidates.items():
+                pools = self.hosts.get(rid, {}).get(host, ())
+                unknown = False
+                for pool_arn in pools:
+                    if _account(pool_arn) != source.scope:
+                        continue
+                    partition = str(pool_arn).split(":", 2)[1]
+                    if not source.id.startswith(f"arn:{partition}:") or not rid.startswith(f"arn:{partition}:"):
+                        continue
+                    if not classic and _account(rid) != source.scope:
+                        continue  # Enhanced authentication cannot return a cross-account role.
+                    region = str(pool_arn).split(":")[3]
+                    _, federated, condition_prefix = _cognito_pool_identity(region)
+                    permission = self._check_action(source, "cognito-identity:GetOpenIdTokenForDeveloperIdentity", pool_arn)
+                    if permission is None:
+                        continue
+                    if permission.confidence == "unknown":
+                        unknown = True
+                        continue
+                    update_permission = self._check_action(source, "cognito-identity:UpdateIdentityPool", pool_arn) if enable_classic else None
+                    if enable_classic and update_permission is None:
+                        continue
+                    if update_permission is not None and update_permission.confidence == "unknown":
+                        unknown = True
+                        continue
+                    pool_id = str(pool_arn).split("identitypool/", 1)[-1]
+                    provider_name = self.cognito_developer_provider.get(pool_arn)
+                    if not provider_name:
+                        unknown = True
+                        continue
+                    overrides = {condition_prefix + ":aud": [pool_id],
+                                 condition_prefix + ":amr": ["authenticated", provider_name]}
+                    denied = self._trust_explicit_deny(rid, "sts:AssumeRoleWithWebIdentity",
+                                                        federated=federated,
+                                                        extra_overrides=overrides)
+                    if denied is True:
+                        continue
+                    context = Context(action="sts:assumerolewithwebidentity", resource=rid, overrides=overrides)
+                    # _trust_explicit_deny cannot resolve NotPrincipal against a federated token.
+                    # Keep the target unresolved if such a deny may apply.
+                    not_principal_deny = any(
+                        statement.effect == "deny" and statement.ref.get("not_principal")
+                        and statement.action_matches("sts:AssumeRoleWithWebIdentity")
+                        and (not statement.condition or evaluate_condition(statement.condition, context)[0] is not False)
+                        for statement in self.trust.get(rid, ()))
+                    for statement in self.trust.get(rid, ()):
+                        principal = statement.principals
+                        if (statement.effect != "allow" or statement.ref.get("not_principal")
+                                or not statement.action_matches("sts:AssumeRoleWithWebIdentity")
+                                or not isinstance(principal, dict)
+                                or federated not in
+                                [str(name).lower() for name in as_list(principal.get("Federated"))]):
+                            continue
+                        if classic and _account(rid) != source.scope:
+                            condition_keys = {str(name).lower() for values in (statement.condition or {}).values()
+                                              if isinstance(values, dict) for name in values}
+                            if not {condition_prefix + ":aud", condition_prefix + ":amr"} <= condition_keys:
+                                continue  # Cross-account STS requires both explicit trust constraints.
+                        verdict, _ = evaluate_condition(statement.condition, context) if statement.condition else (True, ())
+                        if verdict is False:
+                            continue
+                        if verdict is True and not statement.variables and denied is False and not not_principal_deny:
+                            out[rid] = (None if permission.confidence == "derived" and
+                                        (update_permission is None or update_permission.confidence == "derived") else
+                                        ("conditional", "cognito_developer_pool_permission_conditional"))
+                            break
+                        unknown = True
+                    if rid in out and out[rid] is None:
+                        break
+                if rid not in out and (unknown or self.host_status.get((node.scope, host)) not in ("collected", "empty")):
+                    out[rid] = ("unknown", "cognito_developer_pool_role_or_trust_not_verified")
+            return out
+        if key == "cognito_guest_update_classic_role":
+            if source is None or source.kind not in ("aws_user", "aws_role"):
+                return {}
+            host = "cognito_guest_update_classic"
+            for rid in candidates:
+                unknown = False
+                for pool_arn in self.hosts.get(rid, {}).get(host, ()):
+                    if _account(pool_arn) != source.scope:
+                        continue
+                    partition = str(pool_arn).split(":", 2)[1]
+                    if not source.id.startswith(f"arn:{partition}:") or not rid.startswith(f"arn:{partition}:"):
+                        continue
+                    region = str(pool_arn).split(":")[3]
+                    _, federated, condition_prefix = _cognito_pool_identity(region)
+                    permission = self._check_action(source, "cognito-identity:UpdateIdentityPool", pool_arn)
+                    if permission is None:
+                        continue
+                    if permission.confidence == "unknown":
+                        unknown = True
+                        continue
+                    pool_id = str(pool_arn).split("identitypool/", 1)[-1]
+                    overrides = {condition_prefix + ":aud": [pool_id],
+                                 condition_prefix + ":amr": ["unauthenticated"]}
+                    denied = self._trust_explicit_deny(rid, "sts:AssumeRoleWithWebIdentity",
+                                                        federated=federated, extra_overrides=overrides)
+                    if denied is True:
+                        continue
+                    context = Context(action="sts:assumerolewithwebidentity", resource=rid, overrides=overrides)
+                    not_principal_deny = any(
+                        statement.effect == "deny" and statement.ref.get("not_principal")
+                        and statement.action_matches("sts:AssumeRoleWithWebIdentity")
+                        and (not statement.condition or evaluate_condition(statement.condition, context)[0] is not False)
+                        for statement in self.trust.get(rid, ()))
+                    for statement in self.trust.get(rid, ()):
+                        principal = statement.principals
+                        if (statement.effect != "allow" or statement.ref.get("not_principal")
+                                or not statement.action_matches("sts:AssumeRoleWithWebIdentity")
+                                or not isinstance(principal, dict)
+                                or federated not in
+                                [str(name).lower() for name in as_list(principal.get("Federated"))]):
+                            continue
+                        if _account(rid) != source.scope:
+                            condition_keys = {str(name).lower() for values in (statement.condition or {}).values()
+                                              if isinstance(values, dict) for name in values}
+                            if not {condition_prefix + ":aud", condition_prefix + ":amr"} <= condition_keys:
+                                continue
+                        verdict, _ = evaluate_condition(statement.condition, context) if statement.condition else (True, ())
+                        if verdict is False:
+                            continue
+                        if verdict is True and not statement.variables and denied is False and not not_principal_deny:
+                            out[rid] = None if permission.confidence == "derived" else (
+                                "conditional", "cognito_guest_pool_update_permission_conditional")
+                            break
+                        unknown = True
+                    if rid in out and out[rid] is None:
+                        break
+                if rid not in out and (unknown or self.host_status.get((source.scope, host)) not in ("collected", "empty")):
+                    out[rid] = ("unknown", "cognito_guest_pool_role_or_trust_not_verified")
+            return out
         if key == "consumer_input_writable_via" and str(value).lower().startswith("imagebuilder:"):
             # Recipe component ARNs (GetImageRecipe) decide membership: a version-wildcard account-owned component is derived;
             # fully pinned / AWS-owned components only exclude the role; an uncollected recipe stays conditional.
@@ -3289,6 +3675,9 @@ class AwsModel(Model):
         if key == "service_plane":
             # Application-plane entities carry attrs.service_plane once collected; none are today (placeholders only).
             return {tid: None for tid, n in candidates.items() if n.attrs.get("service_plane") == value}
+        if key == "quicksight_existing_iam_user":
+            return {tid: None for tid, n in candidates.items()
+                    if n.attrs.get("service_plane") == "quicksight" and n.attrs.get("principal_id")}
         if key == "assigned_to_identity_center_group":
             return {tid: None for tid, n in candidates.items() if bool(n.attrs.get("group_assignments")) == bool(value)}
         if key in SELECTOR_HOSTS:
@@ -3376,7 +3765,7 @@ class AwsModel(Model):
                         if got is False:
                             continue
                         verdict = (None if got is True and trust_deny is False else
-                                   ("conditional", "trust_condition_or_deny"))
+                                   ("unknown", "trust_condition_or_deny_not_verified"))
                     if rid not in out or verdict is None or (out[rid] and out[rid][0] == "unknown"):
                         out[rid] = verdict
             return out
@@ -3477,6 +3866,87 @@ class AwsModel(Model):
             defs = [d for arn, ds in self.ecs_task_roles.items() if _norm_arn(arn) == norm for d in ds]
         return defs
 
+    def _ecs_exec_live_task_role(self, source, role):
+        """Join a running task, ready Exec agent, exact role and both IAM resources."""
+        if source is None:
+            return None
+        statuses = inventory_status(self.snapshot, "ecs_task")
+        if not statuses:
+            return ("unknown", "ecs_running_tasks_not_collected")
+        unknown = (not self._collected(statuses, source.scope) or source.incomplete or role.incomplete)
+        partition = source.id.split(":", 2)[1]
+        prefix = f"arn:{partition}:ecs:"
+        for scope, task in items(self.snapshot, "ecs_task"):
+            if scope.split("/")[0] != source.scope or not isinstance(task, dict):
+                continue
+            task_role = self._task_role(task)
+            if not task_role:
+                unknown = unknown or self._account_status("ecs_task_definition", source.scope) != "collected"
+                continue
+            if _norm_arn(task_role) != _norm_arn(role.id):
+                continue
+            if task.get("lastStatus") != "RUNNING" or task.get("enableExecuteCommand") is not True:
+                unknown = unknown or task.get("lastStatus") is None or task.get("enableExecuteCommand") is None
+                continue
+            cluster_arn, task_arn = task.get("clusterArn"), task.get("taskArn")
+            region = scope.split("/", 1)[1] if "/" in scope else ""
+            if (not isinstance(cluster_arn, str) or not isinstance(task_arn, str)
+                    or not cluster_arn.startswith(f"{prefix}{region}:{source.scope}:cluster/")
+                    or not task_arn.startswith(f"{prefix}{region}:{source.scope}:task/")):
+                unknown = True
+                continue
+            cluster = self.ecs_cluster_info.get(cluster_arn)
+            if cluster is None or cluster.get("status") != "ACTIVE":
+                unknown = True
+                continue
+            containers = task.get("containers")
+            if not isinstance(containers, list):
+                unknown = True
+                continue
+            for container in containers:
+                if not isinstance(container, dict) or not isinstance(container.get("name"), str):
+                    unknown = True
+                    continue
+                if container.get("lastStatus") != "RUNNING":
+                    continue
+                agents = container.get("managedAgents")
+                if not isinstance(agents, list):
+                    unknown = True
+                    continue
+                if not any(isinstance(agent, dict) and agent.get("name") == "ExecuteCommandAgent"
+                           and agent.get("lastStatus") == "RUNNING" for agent in agents):
+                    continue
+                if container["name"] in self.ecs_taskdef_readonly_containers.get(str(task.get("taskDefinitionArn")), ()):
+                    continue
+                request = {"request_context": {"ecs:cluster": cluster_arn,
+                                               "ecs:task": task_arn,
+                                               "ecs:container-name": container["name"]}}
+                grants = [self._with_context(request,
+                          lambda ref=ref: self._check_action(source, "ecs:executecommand", ref), source)
+                          for ref in (cluster_arn, task_arn)]
+                if any(grant is None for grant in grants):
+                    continue
+                grants.extend(self._check_action(role, action, "*") for action in (
+                    "ssmmessages:createcontrolchannel", "ssmmessages:createdatachannel",
+                    "ssmmessages:opencontrolchannel", "ssmmessages:opendatachannel"))
+                if any(grant is None for grant in grants):
+                    unknown = True
+                    continue
+                kms_key = cluster.get("exec_kms_key")
+                if kms_key:
+                    if not isinstance(kms_key, str) or not kms_key.startswith("arn:"):
+                        unknown = True
+                        continue
+                    grants.extend((self._check_action(source, "kms:generatedatakey", kms_key),
+                                   self._check_action(role, "kms:decrypt", kms_key)))
+                    if any(grant is None for grant in grants):
+                        unknown = True
+                        continue
+                if all(grant.confidence == "derived" for grant in grants) and not source.incomplete and not role.incomplete:
+                    return ("conditional", "ecs_running_task_exec_agent_and_role")
+                unknown = True
+        return ("unknown", "ecs_exec_task_or_authorization_not_verified") if unknown else None
+
     def _ec2_task_role(self, role):
         """True: the role is the task role of an EC2/EXTERNAL-capable task definition; False: provably not; None: unknown."""
         if any(d[2] for d in self._ecs_task_def_roles(role)):
@@ -3484,7 +3954,12 @@ class AwsModel(Model):
         return False if self._account_status("ecs_task_definition", role.scope) == "collected" else None
 
     def _task_role(self, task):
-        return (task.get("overrides") or {}).get("taskRoleArn") or self.ecs_taskdef_role.get(str(task.get("taskDefinitionArn")))
+        return (task.get("taskRoleArn") or (task.get("overrides") or {}).get("taskRoleArn")
+                or self.ecs_taskdef_role.get(str(task.get("taskDefinitionArn"))))
+
+    def _task_execution_role(self, task):
+        return (task.get("executionRoleArn") or (task.get("overrides") or {}).get("executionRoleArn")
+                or self.ecs_taskdef_execution_role.get(str(task.get("taskDefinitionArn"))))
 
     def _placement_known(self, clusters, complete):
         return complete and all(c["instances"] is not None and c["tasks"] is not None for c in clusters)
@@ -3534,17 +4009,24 @@ class AwsModel(Model):
         if role.scope != source.scope:
             return False
         clusters, complete = self._ecs_account(role.scope)
-        ec2 = self._ec2_task_role(role)
-        if ec2 is False or (complete and not any(c["count"] for c in clusters)):
+        if complete and not any(c["count"] for c in clusters):
             return False
         if self._placement_known(clusters, complete):
             mine = {a.rsplit("/", 1)[-1] for a in self.hosts.get(source.id, {}).get("ec2_instance", ())}
             cis = {ci for c in clusters for ci, iid in c["instances"].items() if iid in mine}
             norm = _norm_arn(role.id)
-            hit = any(t.get("containerInstanceArn") in cis and _norm_arn(self._task_role(t) or "") == norm
+            hit = any(t.get("containerInstanceArn") in cis and
+                      norm in (_norm_arn(self._task_role(t) or ""), _norm_arn(self._task_execution_role(t) or ""))
                       for _, t in self._ec2_tasks(clusters))
             return None if hit else False
-        if ec2 is None:
+        norm = _norm_arn(role.id)
+        defs = self._ecs_task_def_roles(role)
+        exec_defs = self.ecs_execution_roles.get(role.id)
+        if exec_defs is None:
+            exec_defs = [d for arn, ds in self.ecs_execution_roles.items() if _norm_arn(arn) == norm for d in ds]
+        if not any(d[2] for d in defs) and not any(d[2] for d in exec_defs):
+            if self._account_status("ecs_task_definition", role.scope) == "collected":
+                return False
             return ("unknown", "ecs_task_definition_not_collected")
         return ("unknown", "ecs_task_placement_not_collected")
 
@@ -3578,6 +4060,8 @@ class AwsModel(Model):
                         found.append((None, None))
                     for project in projects if isinstance(projects, list) else ():
                         found.append((project.get("serviceRole"), project.get("arn")))
+                elif kind == "agentcore_code_interpreter":
+                    found.append((item.get("executionRoleArn"), item.get("codeInterpreterArn")))
                 elif kind == "codebuild_sandbox":
                     detail = item.get("Detail") if isinstance(item, dict) else None
                     if isinstance(detail, dict) and detail.get("collection_status") == "collected":
@@ -3621,11 +4105,23 @@ class AwsModel(Model):
                         found.append((None, arn))
                     elif item["ExecutionRole"]:
                         found.append((item["ExecutionRole"], arn))
+                elif kind == "sagemaker_space":
+                    arn = item.get("SpaceArn")
+                    if "ExecutionRole" not in item or item.get("Status") != "InService" or not item.get("AppType"):
+                        found.append((None, arn))
+                    elif item["ExecutionRole"]:
+                        found.append((item["ExecutionRole"], arn))
                 elif kind == "sagemaker_cluster":
                     groups = item.get("InstanceGroups")
                     if not isinstance(groups, list):
                         found.append((None, None))
                     found += [((g or {}).get("ExecutionRole"), item.get("ClusterArn")) for g in groups or []]
+                elif kind == "synthetics_canary":
+                    name = item.get("Name")
+                    passed_role = item.get("ExecutionRoleArn")
+                    partition = passed_role.split(":", 2)[1] if isinstance(passed_role, str) and passed_role.startswith("arn:") else "aws"
+                    arn = f"arn:{partition}:synthetics:{region}:{account}:canary:{name}" if name else None
+                    found.append((passed_role, arn))
                 else:
                     found += [((r or {}).get("RoleArn"), item.get("DBInstanceArn")) for r in as_list(item.get("AssociatedRoles"))]
                 for role, resource in found:
@@ -3665,6 +4161,11 @@ class AwsModel(Model):
         deployment groups -> tag-matched EC2 instance roles, Roles Anywhere profiles; application planes and Identity
         Center group assignments. Returns the partial (account, host) keys."""
         ok, partial = ("collected", "empty"), set()
+        self.cognito_developer_provider = {}
+        classic_pools = []
+        settable_pools = []
+        enable_classic_pools = []
+        guest_update_pools = []
 
         def add(role, host, resource):
             listed = self.hosts.setdefault(role, {}).setdefault(host, [])
@@ -3687,14 +4188,52 @@ class AwsModel(Model):
         for scope, item in items(snap, "cognito_identity_pool"):
             account, region = where(scope, item)
             config, roles = item.get("Configuration") or {}, item.get("Roles")
+            pool_id = item.get("IdentityPoolId")
+            partition, _, _ = _cognito_pool_identity(region)
+            pool_arn = f"arn:{partition}:cognito-identity:{region}:{account}:identitypool/{pool_id}" if pool_id else None
+            if (pool_arn and isinstance(config, dict) and config.get("collection_status") == "collected"
+                    and isinstance(config.get("IdentityPoolName"), str) and config["IdentityPoolName"]
+                    and type(config.get("AllowUnauthenticatedIdentities")) is bool
+                    and not (config["AllowUnauthenticatedIdentities"] is True
+                             and config.get("AllowClassicFlow") is True)
+                    and isinstance(roles, dict) and roles.get("collection_status") in ok
+                    and isinstance(roles.get("RoleMappings", {}), dict)
+                    and not roles.get("RoleMappings")):
+                # UpdateIdentityPool can enable guest and Basic flow together. Basic flow
+                # cannot issue tokens while the pool has role mappings.
+                guest_update_pools.append((pool_arn, region))
+            elif (not pool_arn or not isinstance(config, dict) or config.get("collection_status") != "collected"
+                  or not isinstance(config.get("IdentityPoolName"), str) or not config.get("IdentityPoolName")
+                  or type(config.get("AllowUnauthenticatedIdentities")) is not bool
+                  or not isinstance(roles, dict) or roles.get("collection_status") not in ok
+                  or not isinstance(roles.get("RoleMappings", {}), dict)):
+                partial.add((account, "cognito_guest_update_classic"))
+            if (pool_arn and isinstance(config, dict) and config.get("collection_status") == "collected"
+                    and isinstance(config.get("DeveloperProviderName"), str)
+                    and config["DeveloperProviderName"].strip()):
+                self.cognito_developer_provider[pool_arn] = config["DeveloperProviderName"].strip()
+                settable_pools.append((pool_arn, region))
+                if config.get("AllowClassicFlow") is True:
+                    classic_pools.append((pool_arn, region))
+                elif (isinstance(config.get("IdentityPoolName"), str) and config["IdentityPoolName"]
+                        and type(config.get("AllowUnauthenticatedIdentities")) is bool):
+                    enable_classic_pools.append((pool_arn, region))
             # Identity pool -> its authenticated / unauthenticated roles (cognito-identity:GetIdentityPoolRoles Roles.Roles).
             if isinstance(roles, dict) and roles.get("collection_status") in ok and item.get("IdentityPoolId"):
-                pool_arn = f"arn:aws:cognito-identity:{region}:{account}:identitypool/{item['IdentityPoolId']}"
                 for role in (roles.get("Roles") or {}).values() if isinstance(roles.get("Roles"), dict) else ():
                     if isinstance(role, str) and role:
                         add(role, "cognito_identity_pool", pool_arn)
+                if (isinstance(config, dict) and config.get("collection_status") == "collected"
+                        and isinstance(config.get("DeveloperProviderName"), str)
+                        and config["DeveloperProviderName"].strip()):
+                    authenticated = (roles.get("Roles") or {}).get("authenticated") if isinstance(roles.get("Roles"), dict) else None
+                    if isinstance(authenticated, str) and authenticated:
+                        add(authenticated, "cognito_developer_authenticated", pool_arn)
             else:
                 partial.add((account, "cognito_identity_pool"))
+            if (not isinstance(roles, dict) or roles.get("collection_status") not in ok
+                    or not isinstance(config, dict) or config.get("collection_status") != "collected"):
+                partial.add((account, "cognito_developer_authenticated"))
             if (not isinstance(roles, dict) or roles.get("collection_status") not in ok
                     or not isinstance(config, dict) or config.get("collection_status") not in (None, "collected")):
                 partial.add((account, "cognito_user_pool_identity_pool"))
@@ -3752,9 +4291,35 @@ class AwsModel(Model):
                 continue
             for role in as_list(item.get("roleArns")):
                 add(role, "rolesanywhere_profile", item["profileArn"])
+        for pool_arn, region in classic_pools:
+            partition, federated, _ = _cognito_pool_identity(region)
+            for role_arn in self.trust_by_federated.get(federated, {}):
+                if role_arn in self.principals and role_arn.startswith(f"arn:{partition}:iam::"):
+                    add(role_arn, "cognito_developer_classic", pool_arn)
+        for pool_arn, region in enable_classic_pools:
+            partition, federated, _ = _cognito_pool_identity(region)
+            for role_arn in self.trust_by_federated.get(federated, {}):
+                if role_arn in self.principals and role_arn.startswith(f"arn:{partition}:iam::"):
+                    add(role_arn, "cognito_developer_enable_classic", pool_arn)
+        for pool_arn, region in guest_update_pools:
+            partition, federated, _ = _cognito_pool_identity(region)
+            for role_arn in self.trust_by_federated.get(federated, {}):
+                if role_arn in self.principals and role_arn.startswith(f"arn:{partition}:iam::"):
+                    add(role_arn, "cognito_guest_update_classic", pool_arn)
+        for pool_arn, region in settable_pools:
+            partition, federated, _ = _cognito_pool_identity(region)
+            for role_arn in self.trust_by_federated.get(federated, {}):
+                if (role_arn in self.principals and role_arn.startswith(f"arn:{partition}:iam::")
+                        and _account(role_arn) == _account(pool_arn)):
+                    add(role_arn, "cognito_developer_settable_authenticated", pool_arn)
         for host, kind in (("cognito_user_pool_group", "cognito_user_pool"), ("cognito_user_pool_identity_pool", "cognito_identity_pool"),
                            ("codedeploy_deployment_group", "codedeploy_deployment_group"), ("rolesanywhere_profile", "rolesanywhere_profile"),
-                           ("cognito_identity_pool", "cognito_identity_pool")):
+                           ("cognito_identity_pool", "cognito_identity_pool"),
+                           ("cognito_developer_authenticated", "cognito_identity_pool"),
+                           ("cognito_developer_classic", "cognito_identity_pool"),
+                           ("cognito_developer_settable_authenticated", "cognito_identity_pool"),
+                           ("cognito_developer_enable_classic", "cognito_identity_pool"),
+                           ("cognito_guest_update_classic", "cognito_identity_pool")):
             for scope, status in inventory_status(snap, kind).items():
                 key = (scope.split("/")[0], host)
                 if self.host_status.get(key) in (None, "collected", "empty"):
@@ -3888,6 +4453,14 @@ class AwsModel(Model):
             if not any(isinstance(p, str) and p.startswith(f"arn:{partition}:iam::{source.scope}:instance-profile/")
                        and p.rsplit("/", 1)[-1] == profile.rsplit("/", 1)[-1] for p in profiles):
                 continue
+            runtime_mode = self.emr_runtime_mode_by_cluster.get((scope, cluster_id), False)
+            if runtime_mode is True:
+                # Runtime-role clusters isolate steps from the instance profile.
+                # A separately authorized runtime-role route needs its own join.
+                continue
+            if runtime_mode is None:
+                uncertain = True
+                continue
             grant = self._check_action(source, "elasticmapreduce:addjobflowsteps", arn)
             if grant is None:
                 continue
@@ -3897,14 +4470,193 @@ class AwsModel(Model):
             return ("conditional", "emr_existing_cluster_step_instance_role")
         return ("unknown", "emr_existing_cluster_step_role_not_verified") if uncertain else None
 
-    def _emr_cluster_session_route(self, source, role):
-        """Check the real cluster ARN and requested runtime role together."""
+    def _emr_new_cluster_instance_role_effect(self, source, role):
+        """Bind an accepted EMR launch and executed bootstrap to its instance role."""
+        technique = "aws-emr-passrole-runjobflow"
+        if source.scope != role.scope or source.id == role.id:
+            return None
+        run_allows, _ = self._statements(source, "elasticmapreduce:runjobflow")
+        pass_allows, _ = self._statements(source, "iam:passrole")
+        if not run_allows or not pass_allows:
+            return ("unknown", "emr_launch_source_permissions_incomplete") if source.incomplete else None
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "emr_launch_evidence_missing_or_conflicting")
+        scope, proof = records[0]
+        if (inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"
+                or source.incomplete or role.incomplete or "/" not in scope):
+            return ("unknown", "emr_launch_evidence_incomplete")
+        region = scope.split("/", 1)[1]
+        partition = source.id.split(":", 2)[1]
+        cluster = proof.get("ClusterArn")
+        instance = proof.get("InstanceArn")
+        profile = proof.get("InstanceProfileArn")
+        service_arn = proof.get("ServiceRoleArn")
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        cluster_pattern = rf"arn:{re.escape(partition)}:elasticmapreduce:{re.escape(region)}:{source.scope}:cluster/j-[A-Za-z0-9]+"
+        instance_pattern = rf"arn:{re.escape(partition)}:ec2:{re.escape(region)}:{source.scope}:instance/i-[0-9a-f]+"
+        profile_pattern = rf"arn:{re.escape(partition)}:iam::{source.scope}:instance-profile/.+"
+        service_pattern = rf"arn:{re.escape(partition)}:iam::{source.scope}:role/.+"
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("TechniqueId") != technique or proof.get("SourceArn") != source.id or
+                proof.get("TargetKind") != "aws_role" or proof.get("TargetId") != role.id or
+                scope != f"{source.scope}/{region}" or not region or
+                not isinstance(cluster, str) or re.fullmatch(cluster_pattern, cluster) is None or
+                not isinstance(instance, str) or re.fullmatch(instance_pattern, instance) is None or
+                not isinstance(profile, str) or re.fullmatch(profile_pattern, profile) is None or
+                not isinstance(service_arn, str) or re.fullmatch(service_pattern, service_arn) is None or
+                service_arn == role.id or
+                proof.get("RunJobFlowSucceeded") is not True or
+                proof.get("ClusterLaunchedSucceeded") is not True or
+                proof.get("InstanceBelongsToCluster") is not True or
+                proof.get("InstanceProfileApplied") is not True or
+                proof.get("BootstrapOrStepControlledBySource") is not True or
+                proof.get("BootstrapOrStepReadSucceeded") is not True or
+                proof.get("BootstrapOrStepExecuted") is not True or
+                proof.get("CodeUsedInstanceRoleCredentials") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                proof.get("PassRoleContextsReviewed") is not True or
+                proof.get("RunJobFlowRequestContextReviewed") is not True or
+                type(proof.get("AutoScalingRoleRequested")) is not bool or
+                type(proof.get("SpotRequested")) is not bool or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "emr_launch_or_instance_role_effect_not_verified")
+        request_context = proof.get("RunJobFlowRequestContext")
+        if (not isinstance(request_context, dict) or
+                request_context.get("aws:RequestedRegion") != region or
+                any(not isinstance(k, str) or not isinstance(v, (str, list))
+                    for k, v in request_context.items())):
+            return ("unknown", "emr_launch_request_context_not_verified")
+        roles = [row for row_scope, row in items(self.snapshot, "iam_role")
+                 if row_scope.split("/", 1)[0] == source.scope]
+        target_rows = [row for row in roles if row.get("Arn") == role.id]
+        service_rows = [row for row in roles if row.get("Arn") == service_arn]
+        if (len(target_rows) != 1 or len(service_rows) != 1 or
+                not isinstance(proof.get("TargetRoleId"), str) or not proof["TargetRoleId"] or
+                target_rows[0].get("RoleId") != proof["TargetRoleId"] or
+                proof.get("InstanceRoleId") != proof["TargetRoleId"] or
+                not isinstance(proof.get("ServiceRoleId"), str) or not proof["ServiceRoleId"] or
+                service_rows[0].get("RoleId") != proof["ServiceRoleId"] or
+                profile not in [p.get("Arn") for p in target_rows[0].get("InstanceProfileList", ())
+                                if isinstance(p, dict)]):
+            return ("unknown", "emr_launch_role_or_profile_identity_not_verified")
+        service = self.principals.get(service_arn)
+        if service is None or service.incomplete or self._service_trust_for_source_arn(
+                service_arn, "elasticmapreduce.amazonaws.com", cluster) is False:
+            return ("unknown", "emr_launch_service_role_trust_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "emr_launch_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "emr_launch_evidence_time_missing")
+        associated = proof.get("PassRoleAssociatedResourceArn")
+        if associated is not None and associated != cluster:
+            return ("unknown", "emr_launch_passrole_context_not_verified")
+        pass_context = {"aws:RequestedRegion": region}
+        if associated:
+            pass_context["iam:AssociatedResourceArn"] = associated
+        grants = [self.check(source, {"action": "elasticmapreduce:RunJobFlow",
+                                      "request_context": request_context}, "*"),
+                  self.check(source, {"action": "iam:PassRole", "request_context": {
+                      **pass_context, "iam:PassedToService": "ec2.amazonaws.com"}}, role.id),
+                  self.check(source, {"action": "iam:PassRole", "request_context": {
+                      **pass_context, "iam:PassedToService": "elasticmapreduce.amazonaws.com"}}, service_arn),
+                  self.check(role, {"action": action}, resource)]
+        if proof["AutoScalingRoleRequested"]:
+            scaling_arn = proof.get("AutoScalingRoleArn")
+            scaling_rows = [row for row in roles if row.get("Arn") == scaling_arn]
+            if (not isinstance(scaling_arn, str) or re.fullmatch(service_pattern, scaling_arn) is None or
+                    len(scaling_rows) != 1 or scaling_rows[0].get("RoleId") != proof.get("AutoScalingRoleId") or
+                    proof.get("AutoScalingRoleReady") is not True):
+                return ("unknown", "emr_launch_autoscaling_role_not_verified")
+            grants.append(self.check(source, {"action": "iam:PassRole", "request_context": {
+                **pass_context, "iam:PassedToService": "application-autoscaling.amazonaws.com"}}, scaling_arn))
+        if proof["SpotRequested"] and proof.get("SpotServiceLinkedRoleReady") is not True:
+            return ("unknown", "emr_launch_spot_role_not_verified")
+        if any(grant is None or grant.confidence != "derived" for grant in grants):
+            return ("unknown", "emr_launch_scoped_permissions_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "emr_new_cluster_exact_instance_role_effect")
+
+    def _emr_cluster_endpoint_role_effect(self, source, role, host, cluster_arn, grant):
+        """Require endpoint credentials to run a useful workload under the runtime role."""
+        technique = "aws-emr-getclustersessioncredentials-runtime-role"
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "emr_cluster_endpoint_effect_evidence_missing_or_conflicting")
+        scope, proof = records[0]
+        region = cluster_arn.split(":", 5)[3]
+        if (scope != f"{source.scope}/{region}" or
+                inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected" or
+                source.incomplete or role.incomplete or host.incomplete or grant.confidence != "derived"):
+            return ("unknown", "emr_cluster_endpoint_effect_evidence_incomplete")
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        endpoint = proof.get("EndpointUri")
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("TechniqueId") != technique or proof.get("SourceArn") != source.id or
+                proof.get("TargetKind") != "aws_role" or proof.get("TargetId") != role.id or
+                proof.get("ClusterArn") != cluster_arn or proof.get("HostRoleArn") != host.id or
+                proof.get("RuntimeRoleArn") != role.id or proof.get("CredentialType") != "http_basic" or
+                not isinstance(endpoint, str) or re.fullmatch(r"https?://[^\s/]+/.+", endpoint) is None or
+                proof.get("CredentialsIssued") is not True or
+                proof.get("EndpointReachable") is not True or
+                proof.get("EndpointAuthenticated") is not True or
+                proof.get("InteractiveWorkloadSubmitted") is not True or
+                proof.get("InteractiveWorkloadExecuted") is not True or
+                proof.get("WorkloadUsedRuntimeRole") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                not isinstance(action, str) or re.fullmatch(
+                    r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "emr_cluster_endpoint_workload_or_role_effect_not_verified")
+        roles = [row for row_scope, row in items(self.snapshot, "iam_role")
+                 if row_scope.split("/", 1)[0] == source.scope]
+        targets = [row for row in roles if row.get("Arn") == role.id]
+        hosts = [row for row in roles if row.get("Arn") == host.id]
+        if (len(targets) != 1 or len(hosts) != 1 or
+                not isinstance(proof.get("RuntimeRoleId"), str) or not proof["RuntimeRoleId"] or
+                targets[0].get("RoleId") != proof["RuntimeRoleId"] or
+                not isinstance(proof.get("HostRoleId"), str) or not proof["HostRoleId"] or
+                hosts[0].get("RoleId") != proof["HostRoleId"]):
+            return ("unknown", "emr_cluster_endpoint_role_identity_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "emr_cluster_endpoint_effect_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "emr_cluster_endpoint_effect_evidence_time_missing")
+        permitted = self.check(role, {"action": action}, resource)
+        if permitted is None or permitted.confidence != "derived":
+            return ("unknown", "emr_cluster_runtime_role_action_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "emr_cluster_exact_endpoint_runtime_role_effect")
+
+    def _emr_cluster_runtime_route(self, source, role, action):
+        """Bind a runtime role to one active cluster and an authorized caller request."""
         hosts = [host for norm in self.trust_names.get(role.id, ()) for host in self._roles_by_norm(norm)
                  if host.id != role.id and host.id in self.trust_by_service.get("ec2.amazonaws.com", {})
                  and host.attrs.get("instance_profiles")]
         if not hosts:
             return None
         unknown = bool(source.incomplete) or role.scope in self.emr_runtime_config_unknown
+        effect_unresolved = None
         partition = source.id.split(":", 2)[1]
         previous = self._ctx_override
         try:
@@ -3913,7 +4665,7 @@ class AwsModel(Model):
                 if account != source.scope:
                     continue
                 arn = f"arn:{partition}:elasticmapreduce:{region}:{account}:cluster/{cluster_id}"
-                grant = self._check_action(source, "elasticmapreduce:getclustersessioncredentials", arn)
+                grant = self._check_action(source, action, arn)
                 if grant is None:
                     continue
                 for host in hosts:
@@ -3922,19 +4674,338 @@ class AwsModel(Model):
                     external = self._emr_external_id_candidate(role, external_digest)
                     if external is False:
                         continue
-                    trust = self._trust_verdict(host, role.id, host.id,
-                                                extra_overrides={"sts:externalid": [external]} if external else None)
-                    if trust is None:
+                    host_grants = [self._check_action(host, sts_action, role.id)
+                                   for sts_action in ("sts:assumerole", "sts:tagsession")]
+                    if any(item is None for item in host_grants):
+                        if host.incomplete:
+                            unknown = True
                         continue
-                    if trust[0] == "derived":
+                    overrides = {"sts:externalid": [external]} if external else None
+                    trust = [self._trust_verdict(host, role.id, host.id, action=sts_action,
+                                                 extra_overrides=overrides)
+                             for sts_action in ("sts:assumerole", "sts:tagsession")]
+                    if any(item is None for item in trust):
+                        continue
+                    if grant.confidence == "derived" and all(item.confidence == "derived" for item in host_grants) and all(item[0] == "derived" for item in trust):
+                        if action == "elasticmapreduce:getclustersessioncredentials":
+                            effect = self._emr_cluster_endpoint_role_effect(source, role, host, arn, grant)
+                            if effect is None or effect[0] == "conditional":
+                                return effect
+                            effect_unresolved = effect
+                            unknown = True
+                            continue
                         return ("conditional", "active_emr_cluster_and_exact_runtime_role_authorized")
                     unknown = True
         finally:
             self._ctx_override = previous
-        return ("unknown", "emr_runtime_cluster_or_trust_not_verified") if unknown else None
+        return effect_unresolved or (("unknown", "emr_runtime_cluster_or_trust_not_verified") if unknown else None)
+
+    def _emr_cluster_session_route(self, source, role):
+        return self._emr_cluster_runtime_route(
+            source, role, "elasticmapreduce:getclustersessioncredentials")
+
+    def _amplify_role_effect(self, source, role, app_arn, branch_arn, *, compute):
+        """Verify the exact build or SSR route ran a useful action under the target role."""
+        try:
+            now = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            if now.tzinfo is None:
+                return False
+        except (KeyError, TypeError, ValueError):
+            return False
+        region = app_arn.split(":")[3]
+        scope = f"{role.scope}/{region}"
+        role_rows = [row for role_scope, row in items(self.snapshot, "iam_role")
+                     if role_scope.split("/")[0] == role.scope and row.get("Arn") == role.id]
+        role_id = role_rows[0].get("RoleId") if len(role_rows) == 1 else None
+        if not isinstance(role_id, str) or not role_id:
+            return False
+        collections = [c for c in self.snapshot.get("collections", ())
+                       if c.get("type") == "aws_privesc_challenge_evidence" and c.get("scope") == scope]
+        if len(collections) != 1 or collections[0].get("status") != "collected":
+            return False
+        proof_status = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+        technique = (self.current_entry or {}).get("id")
+        proofs = [row for proof_scope, row in items(self.snapshot, "aws_privesc_challenge_evidence")
+                  if proof_scope == scope and proof_status.get(scope) == "collected" and
+                  row.get("TechniqueId") == technique and row.get("SourceArn") == source.id and
+                  row.get("TargetKind") == "aws_role" and row.get("TargetId") == role.id and
+                  row.get("AppArn") == app_arn and row.get("BranchArn") == branch_arn]
+        if len(proofs) != 1:
+            return False
+        proof = proofs[0]
+        action, resource = proof.get("RoleAction"), proof.get("RoleResource")
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("ExecutionKind") != ("ssr" if compute else "build") or
+                proof.get("TargetRoleId") != role_id or proof.get("TargetScope") != scope or
+                proof.get("RoleAssociationConfirmed") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"]):
+            return False
+        if compute:
+            if (proof.get("DeployedSsrCodeControlledBySource") is not True or
+                    proof.get("HttpRequestReachedSsrRoute") is not True or
+                    proof.get("SsrRoleOperationSucceeded") is not True or
+                    not isinstance(proof.get("RequestPath"), str) or
+                    not proof["RequestPath"].startswith("/")):
+                return False
+        else:
+            if (proof.get("EffectiveBuildCommandsControlledBySource") is not True or
+                    proof.get("BuildJobSucceeded") is not True or
+                    proof.get("RoleOperationObservedInBuild") is not True or
+                    not isinstance(proof.get("JobArn"), str) or
+                    not proof["JobArn"].startswith(branch_arn + "/jobs/")):
+                return False
+        try:
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (now - witnessed).total_seconds() <= 900 or
+                    not now < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return False
+        except (KeyError, TypeError, ValueError):
+            return False
+        permitted = self.check(role, {"action": action}, resource)
+        already = self.check(source, {"action": action}, resource)
+        return permitted is not None and permitted.confidence == "derived" and already is None
+
+    def _amplify_role_route(self, source, role, *, compute):
+        """Require one collected app and branch before considering a role swap."""
+        statuses = inventory_status(self.snapshot, "amplify_app")
+        scopes = {scope: status for scope, status in statuses.items()
+                  if scope.startswith(source.scope + "/")}
+        if not scopes:
+            return ("unknown", "amplify_app_inventory_not_collected")
+        uncertain = bool(source.incomplete or
+                         any(status not in ("collected", "empty") for status in scopes.values()))
+        eligible_without_effect = False
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        for scope, app in items(self.snapshot, "amplify_app"):
+            if scopes.get(scope) != "collected" or not isinstance(app, dict):
+                continue
+            account, region = scope.split("/", 1)
+            app_id = app.get("appId")
+            app_arn = f"arn:{partition}:amplify:{region}:{account}:apps/{app_id}"
+            if (not isinstance(app_id, str) or not re.fullmatch(r"d[a-z0-9]+", app_id) or
+                    app.get("appArn") != app_arn):
+                uncertain = True
+                continue
+            if compute:
+                if app.get("platform") not in ("WEB_COMPUTE", "WEB_DYNAMIC"):
+                    if app.get("platform") is None:
+                        uncertain = True
+                    continue
+            elif app.get("RepositoryConnected") is not True:
+                if app.get("RepositoryConnected") is None:
+                    uncertain = True
+                continue
+            branches = app.get("Branches")
+            if not isinstance(branches, dict) or branches.get("collection_status") not in ("collected", "empty"):
+                uncertain = True
+                continue
+            update = self._check_action(source, "amplify:updateapp", app_arn)
+            if update is None:
+                continue
+            for branch in branches.get("items") or ():
+                if not isinstance(branch, dict):
+                    uncertain = True
+                    continue
+                name = branch.get("branchName")
+                if not isinstance(name, str) or not name or branch.get("branchArn") != (
+                        f"{app_arn}/branches/{name}"):
+                    uncertain = True
+                    continue
+                if compute:
+                    # A branch-specific compute role takes precedence over
+                    # the app-level role changed by UpdateApp.
+                    if branch.get("computeRoleArn") not in (None, "", role.id):
+                        continue
+                else:
+                    job_arn = f"{app_arn}/branches/{name}/jobs/*"
+                    start = self._check_action(source, "amplify:startjob", job_arn)
+                    if start is None:
+                        continue
+                    if start.confidence != "derived":
+                        uncertain = True
+                        continue
+                if update.confidence != "derived":
+                    uncertain = True
+                    continue
+                # Branch presence and scoped grants do not establish a
+                # controllable build command or deployed SSR route.
+                if self._amplify_role_effect(source, role, app_arn, branch["branchArn"], compute=compute):
+                    return ("conditional", "amplify_role_operation_observed")
+                eligible_without_effect = True
+        if eligible_without_effect:
+            reason = ("amplify_ssr_code_and_request_not_verified" if compute else
+                      "amplify_buildspec_precedence_and_code_execution_not_verified")
+            return ("unknown", reason)
+        return ("unknown", "amplify_app_branch_or_grant_not_verified") if uncertain else None
+
+    def _agentcore_runtime_role_effect(self, source, role, scope, *, operation,
+                                       runtime_arn=None, endpoint_arn=None):
+        """Require a current READY runtime version and an observed useful role action."""
+        try:
+            now = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            if now.tzinfo is None:
+                return False
+        except (KeyError, TypeError, ValueError):
+            return False
+        role_rows = [row for role_scope, row in items(self.snapshot, "iam_role")
+                     if role_scope.split("/")[0] == role.scope and row.get("Arn") == role.id]
+        role_id = role_rows[0].get("RoleId") if len(role_rows) == 1 else None
+        if not isinstance(role_id, str) or not role_id:
+            return False
+        runtime_status = inventory_status(self.snapshot, "agentcore_agent_runtime")
+        endpoint_status = inventory_status(self.snapshot, "agentcore_runtime_endpoint")
+        proof_status = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+        if (runtime_status.get(scope) != "collected" or endpoint_status.get(scope) != "collected" or
+                proof_status.get(scope) != "collected"):
+            return False
+        collections = [c for c in self.snapshot.get("collections", ())
+                       if c.get("type") == "aws_privesc_challenge_evidence" and c.get("scope") == scope]
+        if len(collections) != 1 or collections[0].get("status") != "collected":
+            return False
+        technique = (self.current_entry or {}).get("id")
+        proofs = [row for proof_scope, row in items(self.snapshot, "aws_privesc_challenge_evidence")
+                  if proof_scope == scope and row.get("TechniqueId") == technique and
+                  row.get("SourceArn") == source.id and row.get("TargetKind") == "aws_role" and
+                  row.get("TargetId") == role.id and row.get("RuntimeOperation") == operation and
+                  (runtime_arn is None or row.get("RuntimeArn") == runtime_arn)]
+        if len(proofs) != 1:
+            return False
+        proof = proofs[0]
+        observed_runtime, observed_endpoint = proof.get("RuntimeArn"), proof.get("EndpointArn")
+        prefix = (f"arn:{role.id.split(':', 2)[1]}:bedrock-agentcore:"
+                  f"{scope.split('/', 1)[1]}:{role.scope}:runtime/")
+        if (not isinstance(observed_runtime, str) or not observed_runtime.startswith(prefix) or
+                observed_endpoint != observed_runtime + "/runtime-endpoint/DEFAULT" or
+                (endpoint_arn is not None and observed_endpoint != endpoint_arn)):
+            return False
+        runtimes = [row for row_scope, row in items(self.snapshot, "agentcore_agent_runtime")
+                    if row_scope == scope and row.get("agentRuntimeArn") == observed_runtime]
+        endpoints = [row for row_scope, row in items(self.snapshot, "agentcore_runtime_endpoint")
+                     if row_scope == scope and row.get("agentRuntimeArn") == observed_runtime and
+                     row.get("agentRuntimeEndpointArn") == observed_endpoint and row.get("name") == "DEFAULT"]
+        if len(runtimes) != 1 or len(endpoints) != 1:
+            return False
+        runtime, endpoint = runtimes[0], endpoints[0]
+        version = runtime.get("agentRuntimeVersion")
+        action, resource = proof.get("RoleAction"), proof.get("RoleResource")
+        if (runtime.get("status") != "READY" or endpoint.get("status") != "READY" or
+                runtime.get("roleArn") != role.id or
+                not isinstance(version, str) or not re.fullmatch(r"[1-9][0-9]{0,4}", version) or
+                (endpoint.get("agentRuntimeVersion") is not None and
+                 endpoint.get("agentRuntimeVersion") != version) or
+                proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("TargetRoleId") != role_id or proof.get("TargetScope") != scope or
+                proof.get("RuntimeVersion") != version or
+                proof.get("ArtifactControlledBySource") is not True or
+                proof.get("ArtifactPullable") is not True or
+                proof.get("EndpointServedRuntimeVersion") is not True or
+                proof.get("RuntimeInvocationSucceeded") is not True or
+                proof.get("RoleOperationSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                (operation == "UpdateAgentRuntime" and proof.get("NewSessionUsed") is not True) or
+                not isinstance(proof.get("ArtifactDigest"), str) or not proof["ArtifactDigest"] or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"]):
+            return False
+        try:
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (now - witnessed).total_seconds() <= 900 or
+                    not now < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return False
+        except (KeyError, TypeError, ValueError):
+            return False
+        permitted = self.check(role, {"action": action}, resource)
+        already = self.check(source, {"action": action}, resource)
+        return permitted is not None and permitted.confidence == "derived" and already is None
+
+    def _agentcore_harness_role_effect(self, source, role, scope):
+        """Require a READY harness and a successful command in its active session."""
+        try:
+            now = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            if now.tzinfo is None:
+                return False
+        except (KeyError, TypeError, ValueError):
+            return False
+        role_rows = [row for role_scope, row in items(self.snapshot, "iam_role")
+                     if role_scope.split("/")[0] == role.scope and row.get("Arn") == role.id]
+        role_id = role_rows[0].get("RoleId") if len(role_rows) == 1 else None
+        if not isinstance(role_id, str) or not role_id:
+            return False
+        harness_status = inventory_status(self.snapshot, "agentcore_harness")
+        proof_status = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+        if harness_status.get(scope) != "collected" or proof_status.get(scope) != "collected":
+            return False
+        collections = [c for c in self.snapshot.get("collections", ())
+                       if c.get("type") == "aws_privesc_challenge_evidence" and c.get("scope") == scope]
+        if len(collections) != 1 or collections[0].get("status") != "collected":
+            return False
+        technique = (self.current_entry or {}).get("id")
+        proofs = [row for proof_scope, row in items(self.snapshot, "aws_privesc_challenge_evidence")
+                  if proof_scope == scope and row.get("TechniqueId") == technique and
+                  row.get("SourceArn") == source.id and row.get("TargetKind") == "aws_role" and
+                  row.get("TargetId") == role.id]
+        if len(proofs) != 1:
+            return False
+        proof = proofs[0]
+        harness_arn = proof.get("HarnessArn")
+        prefix = (f"arn:{role.id.split(':', 2)[1]}:bedrock-agentcore:"
+                  f"{scope.split('/', 1)[1]}:{role.scope}:harness/")
+        if not isinstance(harness_arn, str) or not harness_arn.startswith(prefix):
+            return False
+        rows = [row for row_scope, row in items(self.snapshot, "agentcore_harness")
+                if row_scope == scope and row.get("arn") == harness_arn]
+        if len(rows) != 1:
+            return False
+        harness = rows[0]
+        version = harness.get("harnessVersion")
+        action, resource = proof.get("RoleAction"), proof.get("RoleResource")
+        if (harness.get("status") != "READY" or harness.get("executionRoleArn") != role.id or
+                not isinstance(version, str) or not re.fullmatch(r"[1-9][0-9]{0,4}", version) or
+                proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("TargetRoleId") != role_id or proof.get("TargetScope") != scope or
+                proof.get("HarnessVersion") != version or
+                proof.get("ManagedImageReady") is not True or
+                proof.get("ActiveSessionConfirmed") is not True or
+                proof.get("CommandSucceeded") is not True or
+                proof.get("CommandRoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                not isinstance(proof.get("SessionId"), str) or not proof["SessionId"] or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"]):
+            return False
+        try:
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (now - witnessed).total_seconds() <= 900 or
+                    not now < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return False
+        except (KeyError, TypeError, ValueError):
+            return False
+        permitted = self.check(role, {"action": action}, resource)
+        already = self.check(source, {"action": action}, resource)
+        return permitted is not None and permitted.confidence == "derived" and already is None
 
     def _emr_serverless_job_route(self, source, role):
-        """Join an actual application, role request, and one shared S3 script object."""
+        """Require one accepted and executed job under the exact runtime role."""
+        if source.scope != role.scope or source.id == role.id:
+            return None
+        pass_allows, _ = self._statements(source, "iam:passrole")
+        start_allows, _ = self._statements(source, "emr-serverless:startjobrun")
+        if not pass_allows or not start_allows:
+            return ("unknown", "emr_serverless_source_permissions_incomplete") if source.incomplete else None
         statuses = inventory_status(self.snapshot, "emr_serverless_application")
         scopes = {scope: status for scope, status in statuses.items()
                   if scope.startswith(source.scope + "/")}
@@ -3942,70 +5013,106 @@ class AwsModel(Model):
             return ("unknown", "emr_serverless_application_inventory_not_recorded")
         unknown = bool(source.incomplete or role.incomplete or
                        any(status not in ("collected", "empty") for status in scopes.values()))
-        bucket_status = inventory_status(self.snapshot, "bucket")
-        if not any(scope.startswith(source.scope + "/") and status in ("collected", "empty")
-                   for scope, status in bucket_status.items()):
-            unknown = True
-        partition = source.id.split(":", 2)[1]
-        object_key = "peaso-job-" + hashlib.sha256((source.id + role.id).encode()).hexdigest()[:16] + ".py"
+        records = self.bounded_evidence_records.get(
+            ("aws-emr-serverless-passrole-startjobrun", source.id, "aws_role", role.id), ())
         for scope, app in items(self.snapshot, "emr_serverless_application"):
-            if scope not in scopes or scopes[scope] not in ("collected", "empty") or not isinstance(app, dict):
+            if scope not in scopes or scopes[scope] != "collected" or not isinstance(app, dict):
                 continue
             region = scope.split("/", 1)[1]
+            partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
             app_id, arn = app.get("id"), app.get("arn")
-            if (not isinstance(app_id, str) or not isinstance(arn, str) or
+            if (not isinstance(app_id, str) or not re.fullmatch(r"[0-9a-z]+", app_id) or
                     arn != f"arn:{partition}:emr-serverless:{region}:{source.scope}:/applications/{app_id}"):
                 unknown = True
                 continue
-            state = app.get("state")
             detail = app.get("NetworkDetails")
             auto_start = detail.get("AutoStartEnabled") if isinstance(detail, dict) else None
-            if app.get("type") != "SPARK" or not (state == "STARTED" or
-                    state in ("CREATED", "STOPPED") and auto_start is True):
-                if not state or (state in ("CREATED", "STOPPED") and auto_start is None) or not app.get("type"):
+            if app.get("type") != "SPARK" or not (app.get("state") == "STARTED" or
+                    app.get("state") in ("CREATED", "STOPPED") and auto_start is True):
+                if not app.get("type") or not app.get("state") or auto_start is None:
                     unknown = True
                 continue
-            start = self.cached_check(source, {"action": "emr-serverless:StartJobRun",
-                "request_context": {"aws:RequestedRegion": region}}, arn)
-            passed = self.cached_check(source, {"action": "iam:PassRole", "resource": role.id,
-                "request_context": {"iam:PassedToService": "emr-serverless.amazonaws.com"}}, role.id)
-            if start is None or passed is None:
+            start = self.check(source, {"action": "emr-serverless:StartJobRun",
+                                        "request_context": {"aws:RequestedRegion": region}}, arn)
+            if start is None:
                 continue
-            # The associated resource used by this service is not established by
-            # the collected response. Do not derive a route from a condition on it.
-            allows, _ = self._statements(source, "iam:passrole")
-            if any("iam:associatedresourcearn" in str(statement.condition).lower() for statement in allows):
+            if len(records) != 1 or records[0][0] != scope or \
+                    inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected":
                 unknown = True
                 continue
-            for bucket_scope, bucket in items(self.snapshot, "bucket"):
-                if (bucket_scope.split("/", 1)[0] != source.scope or
-                        bucket_status.get(bucket_scope) not in ("collected", "empty") or
-                        not isinstance(bucket, dict) or not isinstance(bucket.get("Name"), str)):
-                    continue
-                location = bucket.get("Location")
-                if not isinstance(location, dict) or location.get("collection_status") != "collected":
-                    unknown = True
-                    continue
-                bucket_region = location.get("LocationConstraint") or "us-east-1"
-                if bucket_region == "EU":
-                    bucket_region = "eu-west-1"
-                if bucket_region != region:
-                    continue
-                encryption = bucket.get("Encryption")
-                if not isinstance(encryption, dict) or encryption.get("collection_status") not in ("collected", "absent"):
-                    unknown = True
-                    continue
-                if "aws:kms" in str(encryption).lower() or "aws:kms:dsse" in str(encryption).lower():
-                    unknown = True
-                    continue
-                obj = f"arn:{partition}:s3:::{bucket['Name']}/{object_key}"
-                grants = (start, passed, self._check_action(source, "s3:putobject", obj),
-                          self._check_action(role, "s3:getobject", obj))
-                if all(grant is not None and grant.confidence == "derived" for grant in grants):
-                    return ("conditional", "emr_serverless_application_and_readable_script")
-                if any(grant is not None for grant in grants[2:]):
-                    unknown = True
-        return ("unknown", "emr_serverless_application_or_script_path_not_verified") if unknown else None
+            proof = records[0][1]
+            service = proof.get("PassRoleService")
+            associated = proof.get("PassRoleAssociatedResourceArn")
+            job = proof.get("JobRunArn")
+            artifact_kind = proof.get("JobArtifactKind")
+            artifact = proof.get("JobArtifactArn")
+            action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+            if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                    proof.get("TechniqueId") != "aws-emr-serverless-passrole-startjobrun" or
+                    proof.get("SourceArn") != source.id or proof.get("TargetKind") != "aws_role" or
+                    proof.get("TargetId") != role.id or proof.get("ApplicationArn") != arn or
+                    proof.get("ExecutionRoleArn") != role.id or
+                    not isinstance(job, str) or re.fullmatch(
+                        re.escape(arn) + r"/jobruns/[0-9a-zA-Z]+", job) is None or
+                    service != "emr-serverless.amazonaws.com" or
+                    (associated is not None and (not isinstance(associated, str) or
+                     not associated.startswith(f"arn:{partition}:") or
+                     "*" in associated or "?" in associated)) or
+                    proof.get("PassRoleContextReviewed") is not True or
+                    proof.get("JobRunAccepted") is not True or
+                    proof.get("JobRunExecuted") is not True or
+                    artifact_kind not in ("s3", "other") or
+                    not isinstance(artifact, str) or not artifact or
+                    (artifact_kind == "s3" and re.fullmatch(
+                        rf"arn:{re.escape(partition)}:s3:::[^/]+/.+", artifact) is None) or
+                    proof.get("JobArtifactControlledBySource") is not True or
+                    proof.get("JobArtifactReadByRuntime") is not True or
+                    proof.get("ControlledCodeExecuted") is not True or
+                    proof.get("CodeUsedRoleCredentials") is not True or
+                    proof.get("RoleActionSucceeded") is not True or
+                    proof.get("EffectUsefulToSource") is not True or
+                    not isinstance(action, str) or re.fullmatch(
+                        r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                    not isinstance(resource, str) or not resource or
+                    not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+                unknown = True
+                continue
+            roles = [row for role_scope, row in items(self.snapshot, "iam_role")
+                     if role_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+            if (len(roles) != 1 or not isinstance(proof.get("TargetRoleId"), str) or
+                    not proof["TargetRoleId"] or roles[0].get("RoleId") != proof["TargetRoleId"] or
+                    proof.get("ExecutionRoleId") != proof["TargetRoleId"]):
+                unknown = True
+                continue
+            try:
+                observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+                witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+                expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+                fresh = (observed.tzinfo is not None and witnessed.tzinfo is not None and
+                         expires.tzinfo is not None and
+                         0 <= (observed - witnessed).total_seconds() <= 900 and observed < expires and
+                         0 < (expires - witnessed).total_seconds() <= 900)
+            except (KeyError, TypeError, ValueError):
+                fresh = False
+            if not fresh:
+                unknown = True
+                continue
+            pass_context = {"iam:PassedToService": service}
+            if associated is not None:
+                pass_context["iam:AssociatedResourceArn"] = associated
+            grants = (start,
+                      self.check(source, {"action": "iam:PassRole", "request_context": pass_context}, role.id),
+                      self.check(role, {"action": action}, resource))
+            if artifact_kind == "s3":
+                grants += (self.check(source, {"action": "s3:PutObject"}, artifact),
+                           self.check(role, {"action": "s3:GetObject"}, artifact))
+            if any(grant is None or grant.confidence != "derived" for grant in grants):
+                unknown = True
+                continue
+            if self.check(source, {"action": action}, resource) is not None:
+                return None
+            return ("conditional", "emr_serverless_exact_executed_role_effect")
+        return ("unknown", "emr_serverless_application_or_executed_job_not_verified") if unknown else None
 
     def _emr_container_cluster_trust(self, role, scope, cluster_name, namespace):
         """True when the recorded EKS issuer and namespace fit one IRSA Allow."""
@@ -4092,9 +5199,106 @@ class AwsModel(Model):
                 components.add(match.group(1))
         return components == {"client", "driver", "executor"}
 
+    def _emr_containers_role_effect(self, source, role, resource_arn, endpoint, pod_identity, grant):
+        """Require one executed EMR job or interactive session under the exact role."""
+        technique = ("aws-emr-containers-getmanagedendpointsessioncredentials" if endpoint else
+                     "aws-emr-containers-passrole-startjobrun-pod-identity" if pod_identity else
+                     "aws-emr-containers-passrole-startjobrun")
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "emr_containers_role_effect_evidence_missing_or_conflicting")
+        scope, proof = records[0]
+        if (inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"
+                or source.incomplete or role.incomplete or grant.confidence != "derived"):
+            return ("unknown", "emr_containers_role_effect_evidence_incomplete")
+        region = scope.split("/", 1)[1] if "/" in scope else ""
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        virtual_cluster = resource_arn.split("/endpoints/", 1)[0] if endpoint else resource_arn
+        cluster_rows = [row for row_scope, row in items(self.snapshot, "emr_container_virtual_cluster")
+                        if row_scope == scope and row.get("arn") == virtual_cluster]
+        if len(cluster_rows) != 1 or not isinstance(cluster_rows[0].get("EksClusterName"), str):
+            return ("unknown", "emr_containers_exact_cluster_not_verified")
+        eks_cluster = f"arn:{partition}:eks:{region}:{source.scope}:cluster/{cluster_rows[0]['EksClusterName']}"
+        service = proof.get("PassRoleService")
+        associated = proof.get("PassRoleAssociatedResourceArn")
+        role_action, role_resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("TechniqueId") != technique or proof.get("SourceArn") != source.id or
+                proof.get("TargetKind") != "aws_role" or proof.get("TargetId") != role.id or
+                proof.get("ResourceArn") != resource_arn or
+                proof.get("VirtualClusterArn") != virtual_cluster or
+                proof.get("EksClusterArn") != eks_cluster or
+                proof.get("ExecutionRoleArn") != role.id or
+                proof.get("PassRoleContextReviewed") is not True or
+                not isinstance(service, str) or re.fullmatch(
+                    r"[a-z0-9-]+(?:\.[a-z0-9-]+)*\.amazonaws\.com(?:\.cn)?", service) is None or
+                (associated is not None and (not isinstance(associated, str) or
+                 not associated.startswith(f"arn:{partition}:") or
+                 "*" in associated or "?" in associated)) or
+                (pod_identity and (service != "pods.eks.amazonaws.com" or associated != eks_cluster or
+                 proof.get("PodIdentityAgentReady") is not True or
+                 proof.get("PodIdentityCredentialsUsed") is not True or
+                 proof.get("ReleaseSupportsPodIdentity") is not True)) or
+                proof.get("ControlledCodeExecuted") is not True or
+                proof.get("CodeUsedRoleCredentials") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                not isinstance(role_action, str) or re.fullmatch(
+                    r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", role_action) is None or
+                not isinstance(role_resource, str) or not role_resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "emr_containers_executed_role_effect_not_verified")
+        if endpoint:
+            if (proof.get("EndpointArn") != resource_arn or
+                    proof.get("EndpointTokenIssued") is not True or
+                    proof.get("EndpointConnectionSucceeded") is not True):
+                return ("unknown", "emr_containers_endpoint_session_not_verified")
+        else:
+            job = proof.get("JobRunArn")
+            if (not isinstance(job, str) or re.fullmatch(
+                    re.escape(virtual_cluster) + r"/jobruns/[A-Za-z0-9]+", job) is None or
+                    proof.get("JobRunAccepted") is not True or
+                    proof.get("JobRunExecuted") is not True or
+                    proof.get("JobArtifactControlledBySource") is not True or
+                    proof.get("JobArtifactReadByRuntime") is not True):
+                return ("unknown", "emr_containers_job_execution_not_verified")
+        roles = [row for row_scope, row in items(self.snapshot, "iam_role")
+                 if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        if (len(roles) != 1 or not isinstance(proof.get("TargetRoleId"), str) or
+                not proof["TargetRoleId"] or roles[0].get("RoleId") != proof["TargetRoleId"] or
+                proof.get("ExecutionRoleId") != proof["TargetRoleId"]):
+            return ("unknown", "emr_containers_role_identity_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "emr_containers_role_effect_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "emr_containers_role_effect_evidence_time_missing")
+        context = {"iam:PassedToService": service}
+        if associated is not None:
+            context["iam:AssociatedResourceArn"] = associated
+        action = ("emr-containers:GetManagedEndpointSessionCredentials" if endpoint else
+                  "emr-containers:StartJobRun")
+        grants = [self.check(source, {"action": "iam:PassRole", "request_context": context}, role.id),
+                  self.check(source, {"action": action, "request_context": {
+                      "emr-containers:ExecutionRoleArn": role.id}}, resource_arn),
+                  self.check(role, {"action": role_action}, role_resource)]
+        if any(item is None or item.confidence != "derived" for item in grants):
+            return ("unknown", "emr_containers_scoped_permissions_not_verified")
+        if self.check(source, {"action": role_action}, role_resource) is not None:
+            return None
+        return ("conditional", "emr_containers_exact_executed_role_effect")
+
     def _emr_containers_inventory_route(self, source, role, endpoint=False, pod_identity=False):
         """One live EMR on EKS resource and its exact IAM request must agree."""
         if source is None:
+            return None
+        pass_allows, _ = self._statements(source, "iam:passrole")
+        if not pass_allows and not source.incomplete:
             return None
         partition = source.id.split(":", 2)[1]
         cluster_status = inventory_status(self.snapshot, "emr_container_virtual_cluster")
@@ -4148,24 +5352,21 @@ class AwsModel(Model):
                     unknown = True
         else:
             candidates.extend(("emr-containers:startjobrun", arn) for arn in clusters)
+        unresolved = None
         previous = self._ctx_override
         try:
             self._ctx_override = {"emr-containers:executionrolearn": [role.id]}
             for action, arn in candidates:
-                if pod_identity:
-                    scope, name = clusters[arn]
-                    cluster_arn = f"arn:{partition}:eks:{scope.split('/', 1)[1]}:{source.scope}:cluster/{name}"
-                    self._ctx_override = {"iam:associatedresourcearn": [cluster_arn]}
-                    passed = self._check_action(source, "iam:passrole", role.id)
-                    if passed is None:
-                        continue
-                    self._ctx_override = {"emr-containers:executionrolearn": [role.id]}
                 grant = self._check_action(source, action, arn)
                 if grant is not None:
-                    return ("conditional", "active_emr_resource_and_exact_action")
+                    verdict = self._emr_containers_role_effect(source, role, arn, endpoint, pod_identity, grant)
+                    if verdict is None or verdict[0] == "conditional":
+                        return verdict
+                    unknown = True
+                    unresolved = verdict
         finally:
             self._ctx_override = previous
-        return ("unknown", "emr_containers_resource_or_authorization_not_verified") if unknown else None
+        return unresolved or (("unknown", "emr_containers_resource_or_authorization_not_verified") if unknown else None)
 
     def _region_ok(self, kind, account, region):
         status = self.region_status.get(kind, {}).get(f"{account}/{region}")
@@ -4317,6 +5518,233 @@ class AwsModel(Model):
                     return ("conditional", "maintenance_window_scheduled_execution")
         return ("unknown", "ssm_maintenance_window_or_task_not_verified") if unknown else None
 
+    def _lambda_existing_sqs_mapping_route(self, source, role):
+        """Join a new function to one writable, readable existing SQS queue."""
+        if source.incomplete or role.incomplete:
+            return ("unknown", "lambda_sqs_source_or_role_incomplete")
+        partition = source.id.split(":", 2)[1]
+        function_status = inventory_status(self.snapshot, "lambda_function")
+        queue_status = inventory_status(self.snapshot, "sqs_queue")
+        existing_functions = {(scope, row.get("FunctionName") or
+                               (row.get("FunctionArn") or "").rsplit(":", 1)[-1])
+                              for scope, row in items(self.snapshot, "lambda_function") if isinstance(row, dict)}
+        queues = [(scope, row) for scope, row in items(self.snapshot, "sqs_queue")
+                  if isinstance(row, dict) and isinstance(scope, str) and
+                  scope.startswith(source.scope + "/")]
+        # This catalog path also permits non-SQS poll sources; their complete
+        # source and role joins are not established by the SQS inventory.
+        unknown = True
+        for scope, queue in queues:
+            account, _, region = scope.partition("/")
+            if (account != source.scope or not region or
+                    queue_status.get(scope) != "collected" or
+                    function_status.get(scope) not in ("collected", "empty")):
+                unknown = True
+                continue
+            details = queue.get("Attributes") or {}
+            attributes = details.get("Attributes") or {}
+            arn = attributes.get("QueueArn")
+            if (details.get("collection_status") != "collected" or
+                    not isinstance(arn, str) or
+                    not arn.startswith(f"arn:{partition}:sqs:{region}:{account}:")):
+                unknown = True
+                continue
+            try:
+                visibility = int(attributes.get("VisibilityTimeout"))
+            except (TypeError, ValueError):
+                unknown = True
+                continue
+            if visibility < 1:
+                continue
+            if attributes.get("KmsMasterKeyId"):
+                unknown = True  # Key policy and producer/decryption grants need a separate join.
+                continue
+            send = self.check(source, {"action": "sqs:SendMessage",
+                                       "request_context": {"aws:RequestedRegion": region}}, arn)
+            reads = [self.check(role, {"action": action,
+                                       "request_context": {"aws:RequestedRegion": region}}, arn)
+                     for action in ("sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes")]
+            if send is None or any(grant is None for grant in reads):
+                continue
+            prefix = f"arn:{partition}:lambda:{region}:{account}:function:"
+            allows, _ = self._statements(source, "lambda:createfunction")
+            names = []
+            for statement in allows:
+                for pattern in (["*"] if statement.notresource else statement.resources):
+                    pattern = pattern.replace(f":*:{account}:", f":{region}:{account}:")
+                    name_pattern = ("peasoprivesc*" if pattern == "*" else
+                                    pattern[len(prefix):] if pattern.startswith(prefix) else None)
+                    if name_pattern is None:
+                        continue
+                    possible = ([name_pattern] if not any(c in name_pattern for c in "*?") else
+                                [name_pattern.replace("*", f"audit{n}").replace("?", "x")
+                                 for n in range(min(len(existing_functions) + 2, 50))])
+                    names.extend(name for name in possible if
+                                 re.fullmatch(r"[A-Za-z0-9_-]{1,64}", name) and
+                                 (scope, name) not in existing_functions)
+            if not names and allows:
+                unknown = True
+            for name in tuple(dict.fromkeys(names))[:50]:
+                function_arn = prefix + name
+                trust = self._service_trust_for_source_arn(role.id, "lambda.amazonaws.com", function_arn)
+                if trust is False:
+                    continue
+                create = self.check(source, {"action": "lambda:CreateFunction",
+                                             "request_context": {"aws:RequestedRegion": region}}, function_arn)
+                pass_role = self.check(source, {"action": "iam:PassRole", "request_context": {
+                    "iam:PassedToService": "lambda.amazonaws.com",
+                    "iam:AssociatedResourceArn": function_arn}}, role.id)
+                mapping = self.check(source, {"action": "lambda:CreateEventSourceMapping",
+                                              "request_context": {"lambda:FunctionArn": function_arn,
+                                                                  "aws:RequestedRegion": region}},
+                                     "__peaso_resource_less_action__")
+                grants = (send, *reads, create, pass_role, mapping)
+                if any(grant is None for grant in grants):
+                    continue
+                if trust is True and all(grant.confidence == "derived" for grant in grants):
+                    return ("conditional", "lambda_existing_sqs_queue_function_and_role_joined")
+                unknown = True
+        return ("unknown", "lambda_event_source_or_role_permissions_not_verified") if unknown else None
+
+    def _lambda_new_wrapper_layer(self, source, function_arn, region):
+        """Whether source can publish and attach a startup wrapper layer."""
+        partition = source.id.split(":", 2)[1]
+        prefix = f"arn:{partition}:lambda:{region}:{source.scope}:layer:"
+        allows, _ = self._statements(source, "lambda:publishlayerversion")
+        uncertain = False
+        for statement in allows:
+            for pattern in (["*"] if statement.notresource else statement.resources):
+                pattern = pattern.replace(f":*:{source.scope}:", f":{region}:{source.scope}:")
+                name_pattern = ("peasoprivesc*" if pattern == "*" else
+                                pattern[len(prefix):] if pattern.startswith(prefix) else None)
+                if name_pattern is None:
+                    uncertain = True
+                    continue
+                name = name_pattern.replace("*", "audit0").replace("?", "x")
+                if not re.fullmatch(r"[A-Za-z0-9_-]{1,140}", name):
+                    uncertain = True
+                    continue
+                layer_arn = prefix + name
+                new_version = layer_arn + ":__peaso_generated_layer_version__"
+                publish = self.check(source, {"action": "lambda:PublishLayerVersion",
+                                              "request_context": {"aws:RequestedRegion": region}}, layer_arn)
+                read = self.check(source, {"action": "lambda:GetLayerVersion",
+                                           "request_context": {"aws:RequestedRegion": region}}, new_version)
+                attach = self.check(source, {"action": "lambda:UpdateFunctionConfiguration",
+                                             "request_context": {"aws:RequestedRegion": region,
+                                                                 "lambda:Layer": new_version}}, function_arn)
+                if any(grant is None for grant in (publish, read, attach)):
+                    continue
+                if all(grant.confidence == "derived" for grant in (publish, read, attach)):
+                    return True
+                uncertain = True
+        return None if uncertain else False
+
+    def _lambda_new_dynamodb_stream_route(self, source, role):
+        """Join one new table/stream, function, mapping and readable role."""
+        if source.incomplete or role.incomplete:
+            return ("unknown", "lambda_dynamodb_source_or_role_incomplete")
+        partition = source.id.split(":", 2)[1]
+        regions = sorted({scope.split("/", 1)[1] for scope in self.snapshot.get("scopes", ())
+                          if isinstance(scope, str) and scope.startswith(source.scope + "/")
+                          and re.fullmatch(r"[a-z]{2}(?:-gov)?-[a-z]+-\d", scope.split("/", 1)[1])})
+        if not regions:
+            return ("unknown", "lambda_dynamodb_region_not_collected")
+        table_status = inventory_status(self.snapshot, "dynamodb_table")
+        function_status = inventory_status(self.snapshot, "lambda_function")
+        existing_tables = {(scope, (row.get("Table") or {}).get("TableName") or row.get("TableName"))
+                           for scope, row in items(self.snapshot, "dynamodb_table") if isinstance(row, dict)}
+        existing_functions = {(scope, row.get("FunctionName") or
+                               (row.get("FunctionArn") or "").rsplit(":", 1)[-1])
+                              for scope, row in items(self.snapshot, "lambda_function") if isinstance(row, dict)}
+
+        def new_names(action, prefix, existing, valid):
+            allows, _ = self._statements(source, action)
+            names = []
+            for statement in allows:
+                for pattern in (["*"] if statement.notresource else statement.resources):
+                    pattern = pattern.replace(f":*:{source.scope}:", f":{region}:{source.scope}:")
+                    if pattern == "*":
+                        name_pattern = "peasoprivesc*"
+                    elif pattern.startswith(prefix):
+                        name_pattern = pattern[len(prefix):]
+                    else:
+                        continue
+                    if not any(char in name_pattern for char in "*?"):
+                        candidates = [name_pattern]
+                    else:
+                        candidates = [name_pattern.replace("*", f"audit{n}").replace("?", "x")
+                                      for n in range(min(len(existing) + 2, 50))]
+                    names.extend(name for name in candidates if valid.fullmatch(name) and
+                                 (scope, name) not in existing)
+            return tuple(dict.fromkeys(names))[:50]
+
+        unknown = False
+        for region in regions:
+            scope = f"{source.scope}/{region}"
+            if (table_status.get(scope) not in ("collected", "empty") or
+                    function_status.get(scope) not in ("collected", "empty")):
+                unknown = True
+                continue
+            table_prefix = f"arn:{partition}:dynamodb:{region}:{source.scope}:table/"
+            function_prefix = f"arn:{partition}:lambda:{region}:{source.scope}:function:"
+            tables = new_names("dynamodb:createtable", table_prefix, existing_tables,
+                               re.compile(r"[A-Za-z0-9_.-]{3,255}"))
+            functions = new_names("lambda:createfunction", function_prefix, existing_functions,
+                                  re.compile(r"[A-Za-z0-9_-]{1,64}"))
+            if not tables or not functions:
+                if (self._statements(source, "dynamodb:createtable")[0] and
+                        self._statements(source, "lambda:createfunction")[0]):
+                    unknown = True
+            for table_name in tables:
+                table_arn = table_prefix + table_name
+                stream_arn = table_arn + "/stream/__peaso_generated_stream_version__"
+                table_create = self.check(source, {"action": "dynamodb:CreateTable",
+                                                   "request_context": {"aws:RequestedRegion": region}}, table_arn)
+                item_write = self.check(source, {"action": "dynamodb:PutItem",
+                                                 "request_context": {"aws:RequestedRegion": region}}, table_arn)
+                stream_reads = [self.check(role, {"action": action,
+                                                  "request_context": {"aws:RequestedRegion": region}}, stream_arn)
+                                for action in ("dynamodb:DescribeStream", "dynamodb:GetShardIterator",
+                                               "dynamodb:GetRecords")]
+                list_streams = self.check(role, {"action": "dynamodb:ListStreams",
+                                                 "request_context": {"aws:RequestedRegion": region}},
+                                          "__peaso_resource_less_action__")
+                if table_create is None or item_write is None:
+                    continue
+                if any(g is None for g in stream_reads):
+                    # A role may name a subset of future stream versions; the
+                    # generated version is not known until CreateTable returns.
+                    if any(self._statements(role, action.lower())[0] for action in (
+                            "dynamodb:DescribeStream", "dynamodb:GetShardIterator", "dynamodb:GetRecords")):
+                        unknown = True
+                    continue
+                if list_streams is None:
+                    unknown = True  # Some direct API paths may not need enumeration.
+                    continue
+                for function_name in functions:
+                    function_arn = function_prefix + function_name
+                    trust = self._service_trust_for_source_arn(role.id, "lambda.amazonaws.com", function_arn)
+                    if trust is False:
+                        continue
+                    function_create = self.check(source, {"action": "lambda:CreateFunction",
+                                                          "request_context": {"aws:RequestedRegion": region}}, function_arn)
+                    pass_role = self.check(source, {"action": "iam:PassRole", "request_context": {
+                        "iam:PassedToService": "lambda.amazonaws.com",
+                        "iam:AssociatedResourceArn": function_arn}}, role.id)
+                    mapping = self.check(source, {"action": "lambda:CreateEventSourceMapping",
+                                                  "request_context": {"lambda:FunctionArn": function_arn,
+                                                                      "aws:RequestedRegion": region}},
+                                         "__peaso_resource_less_action__")
+                    grants = (table_create, item_write, *stream_reads, list_streams,
+                              function_create, pass_role, mapping)
+                    if any(g is None for g in grants):
+                        continue
+                    if trust is True and all(g.confidence == "derived" for g in grants):
+                        return ("conditional", "lambda_new_dynamodb_stream_function_and_role_joined")
+                    unknown = True
+        return ("unknown", "lambda_dynamodb_stream_or_function_not_verified") if unknown else None
+
     def _lambda_microvm_shell_route(self, source, target):
         """Require Lambda session tagging and one runnable image covered by both actions."""
         if source.incomplete:
@@ -4340,9 +5768,15 @@ class AwsModel(Model):
                    scope.split("/", 1)[1] not in ("", "global", "*")}
         unknown = not regions
         for region in sorted(regions):
-            connector_arn = (f"arn:{partition}:lambda:{region}:aws:"
-                             "network-connector:aws-network-connector:SHELL_INGRESS")
-            connector = self._check_action(source, "lambda:passnetworkconnector", connector_arn)
+            # PassNetworkConnector has no resource type in the Lambda service
+            # authorization reference. A connector ARN in Resource does not
+            # authorize this action, even when it names SHELL_INGRESS.
+            connector_req = {"action": "lambda:PassNetworkConnector",
+                             "request_context": {"aws:RequestedRegion": region}}
+            # Use a literal value that no valid resource ARN can match. Passing
+            # "*" to the IAM pattern matcher would also match ARN-scoped policy
+            # statements by pattern overlap, although AWS requires Resource *.
+            connector = self.check(source, connector_req, "__peaso_resource_less_action__")
             if connector is None:
                 continue
             if connector.confidence != "derived":
@@ -4365,6 +5799,13 @@ class AwsModel(Model):
                     if run.confidence == shell.confidence == "derived":
                         return ("conditional", "same_runnable_microvm_image_and_shell_token")
                     unknown = True
+            # AWS-managed images are listed by a separate API and are not in
+            # the customer-image inventory. If the grants could cover one,
+            # leave this path unresolved until its runtime eligibility is known.
+            managed = f"arn:{partition}:lambda:{region}:aws:microvm-image:*"
+            if (self._check_action(source, "lambda:runmicrovm", managed) is not None and
+                    self._check_action(source, "lambda:createmicrovmshellauthtoken", managed) is not None):
+                unknown = True
         return ("unknown", "lambda_microvm_image_or_permissions_not_verified") if unknown else None
 
     def _eks_existing_self_access_entry_route(self, source, target):
@@ -4456,60 +5897,101 @@ class AwsModel(Model):
             return ("unknown", "eks_access_entry_authorization_not_verified")
         return None
 
-    def _eventbridge_subscriber_route(self, source):
-        """Require one active v2 bus and permission on it and a new subscriber."""
-        if source.incomplete:
-            return ("unknown", "source_permissions_incomplete")
+    def _eventbridge_subscriber_route(self, source, role):
+        """Bind one accepted universal target to a delivered role action."""
+        technique = "aws-events-passrole-createsubscriber-universal-target"
+        if source.scope != role.scope or source.id == role.id:
+            return None
+        create_allows, _ = self._statements(source, "events:createsubscriber")
+        pass_allows, _ = self._statements(source, "iam:passrole")
+        if not create_allows or not pass_allows:
+            return ("unknown", "eventbridge_subscriber_source_permissions_incomplete") if source.incomplete else None
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "eventbridge_subscriber_effect_evidence_missing_or_conflicting")
+        scope, proof = records[0]
+        if (inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"
+                or source.incomplete or role.incomplete or "/" not in scope):
+            return ("unknown", "eventbridge_subscriber_effect_evidence_incomplete")
+        region = scope.split("/", 1)[1]
         partition = source.id.split(":", 2)[1]
-        token = "PeasoBound" + hashlib.sha256(source.id.encode()).hexdigest()[:12]
-        generated_ids = ("a" * 25, "b" * 25)
-        unknown = False
-        if not self.eventbridge_custom_buses:
-            return ("unknown", "eventbridge_custom_bus_not_recorded")
-        for bus in self.eventbridge_custom_buses:
-            arn = bus.get("EventBusArn")
-            parts = arn.split(":", 5)
-            if (len(parts) != 6 or parts[0:3] != ["arn", partition, "events"] or
-                    parts[4] != source.scope or not re.fullmatch(
-                        r"event-busv2/[A-Za-z0-9][A-Za-z0-9._-]{0,255}/[a-z0-9]{25}", parts[5])):
-                continue
-            if bus.get("State") not in ("ACTIVE", "UPDATE_FAILED"):
-                if bus.get("State") is None:
-                    unknown = True
-                continue
-            # A KMS-encrypted bus can reject producers or subscriber owners at the key policy.
-            if bus.get("KmsKeyIdentifier"):
-                unknown = True
-                continue
-            bus_grant = self._check_action(source, "events:createsubscriber", arn)
-            if bus_grant is None:
-                continue
-            publish = self._check_action(source, "events:putevents", arn)
-            if publish is None:
-                continue
-            prefix = f"arn:{partition}:events:{parts[3]}:{source.scope}:subscriber/"
-            names = {token}
-            allows, _ = self._statements(source, "events:createsubscriber")
-            for statement in allows:
-                if statement.notresource or statement.variables:
-                    continue
-                for pattern in statement.resources:
-                    if not pattern.startswith(prefix):
-                        continue
-                    candidate = pattern[len(prefix):].split("/", 1)[0].replace("*", token).replace("?", "x")
-                    if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,255}", candidate):
-                        names.add(candidate)
-            for name in sorted(names)[:80]:
-                grants = [self._check_action(source, "events:createsubscriber", prefix + name + "/" + suffix)
-                          for suffix in generated_ids]
-                if all(grant is not None and grant.confidence == "derived" for grant in [bus_grant, publish, *grants]):
-                    # CreateSubscriber can invoke only a supported API action through the role.
-                    # Bus access and PassRole do not establish access to the role itself or
-                    # even one privileged action allowed by its effective policy.
-                    return ("unknown", "universal_target_action_and_privilege_gain_not_verified")
-                if any(grant is not None for grant in grants):
-                    unknown = True
-        return ("unknown", "eventbridge_bus_or_subscriber_authorization_not_verified") if unknown else None
+        bus_arn = proof.get("EventBusArn")
+        subscriber_arn = proof.get("SubscriberArn")
+        target_arn = proof.get("UniversalTargetArn")
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        bus_pattern = rf"arn:{re.escape(partition)}:events:{re.escape(region)}:{source.scope}:event-busv2/[A-Za-z0-9][A-Za-z0-9._-]{{0,255}}/[a-z0-9]{{25}}"
+        sub_pattern = rf"arn:{re.escape(partition)}:events:{re.escape(region)}:{source.scope}:subscriber/[A-Za-z0-9][A-Za-z0-9._-]{{0,255}}/[a-z0-9]{{25}}"
+        target_pattern = rf"arn:{re.escape(partition)}:events:::aws-sdk:([a-z0-9-]+):([a-z][A-Za-z0-9]*)"
+        target_match = re.fullmatch(target_pattern, target_arn) if isinstance(target_arn, str) else None
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("TechniqueId") != technique or proof.get("SourceArn") != source.id or
+                proof.get("TargetKind") != "aws_role" or proof.get("TargetId") != role.id or
+                not isinstance(bus_arn, str) or re.fullmatch(bus_pattern, bus_arn) is None or
+                not isinstance(subscriber_arn, str) or re.fullmatch(sub_pattern, subscriber_arn) is None or
+                target_match is None or not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                target_match.group(2).lower() != action.split(":", 1)[1].lower() or
+                target_match.group(2).lower().startswith(("get", "list", "describe")) or
+                target_arn.endswith((":putEvents", ":putPartnerEvents")) or
+                not isinstance(resource, str) or not resource or
+                proof.get("UniversalTargetAccepted") is not True or
+                proof.get("CreateSubscriberSucceeded") is not True or
+                proof.get("SubscriberRunning") is not True or
+                proof.get("EventPublished") is not True or
+                proof.get("EventMatched") is not True or
+                proof.get("TargetDeliverySucceeded") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                type(proof.get("TagsRequested")) is not bool or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "eventbridge_subscriber_delivery_or_role_effect_not_verified")
+        buses = [bus for bus in self.eventbridge_custom_buses if bus.get("EventBusArn") == bus_arn]
+        roles = [row for row_scope, row in items(self.snapshot, "iam_role")
+                 if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        if (len(buses) != 1 or buses[0].get("State") not in ("ACTIVE", "UPDATE_FAILED") or
+                len(roles) != 1 or not isinstance(proof.get("TargetRoleId"), str) or
+                not proof["TargetRoleId"] or roles[0].get("RoleId") != proof["TargetRoleId"] or
+                (buses[0].get("KmsKeyIdentifier") and proof.get("BusKmsAccessVerified") is not True)):
+            return ("unknown", "eventbridge_subscriber_bus_or_role_identity_not_verified")
+        if self._service_trust_for_source_arn(role.id, "events.amazonaws.com", subscriber_arn) is False:
+            return ("unknown", "eventbridge_subscriber_delivery_role_trust_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "eventbridge_subscriber_effect_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "eventbridge_subscriber_effect_evidence_time_missing")
+        # CreateSubscriber checks the not-yet-created subscriber with name/*.
+        subscriber_prefix = subscriber_arn.rsplit("/", 1)[0] + "/*"
+        # A wildcard resource in the authorization request is a literal part of
+        # that request. The generic IAM matcher also tests pattern overlap, which
+        # would incorrectly accept a policy scoped to this completed subscriber.
+        if not any(st.notresource or any(glob_match(pattern, subscriber_prefix, False)
+                                         for pattern in st.resources)
+                   for st in create_allows):
+            return ("unknown", "eventbridge_subscriber_create_name_authorization_not_verified")
+        region_context = {"aws:RequestedRegion": region}
+        grants = [self.check(source, {"action": "events:CreateSubscriber",
+                                      "request_context": region_context}, bus_arn),
+                  self.check(source, {"action": "events:CreateSubscriber",
+                                      "request_context": region_context}, subscriber_prefix),
+                  self.check(source, {"action": "events:PutEvents",
+                                      "request_context": region_context}, bus_arn),
+                  self.check(source, {"action": "iam:PassRole", "request_context": {
+                      **region_context, "iam:PassedToService": "events.amazonaws.com"}}, role.id),
+                  self.check(role, {"action": action}, resource)]
+        if proof["TagsRequested"]:
+            grants.append(self.check(source, {"action": "events:TagResource",
+                                              "request_context": region_context}, subscriber_prefix))
+        if any(grant is None or grant.confidence != "derived" for grant in grants):
+            return ("unknown", "eventbridge_subscriber_scoped_permissions_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "eventbridge_subscriber_exact_delivered_role_action")
 
     def _mwaa_existing_environment_route(self, source, role):
         """Bind the role change and an attacker-written DAG to one live environment."""
@@ -4557,9 +6039,129 @@ class AwsModel(Model):
                       self._check_action(role, "s3:listbucket", bucket),
                       self._check_action(role, "s3:getobject", obj))
             if all(g is not None and g.confidence == "derived" for g in grants):
-                return ("conditional", "mwaa_existing_environment_dag_execution")
+                return self._mwaa_verified_role_effect(source, role, arn, obj, serverless=False)
             unknown = True  # Startup scripts, plugins, and Airflow tokens may provide another code path.
         return ("unknown", "mwaa_environment_or_code_path_not_verified") if unknown else None
+
+    def _mwaa_existing_dag_object_route(self, source, role):
+        """Join a writable DAG object to the environment's existing execution role."""
+        statuses = inventory_status(self.snapshot, "mwaa_environment")
+        if not statuses:
+            return ("unknown", "mwaa_environment_inventory_not_recorded")
+        unknown = bool(source.incomplete or role.incomplete or
+                       any(s not in ("collected", "empty") for s in statuses.values()))
+        partition = source.id.split(":", 2)[1]
+        for scope, env in items(self.snapshot, "mwaa_environment"):
+            if statuses.get(scope) != "collected":
+                continue
+            if not isinstance(env, dict) or env.get("ExecutionRoleArn") != role.id:
+                continue
+            arn = env.get("Arn")
+            if (not isinstance(arn, str) or not re.fullmatch(
+                    rf"arn:{re.escape(partition)}:airflow:[a-z0-9-]+:{re.escape(source.scope)}:environment/[A-Za-z][A-Za-z0-9_-]*", arn)
+                    or scope != f"{source.scope}/{arn.split(':')[3]}"):
+                unknown = True
+                continue
+            if env.get("Status") != "AVAILABLE":
+                unknown = unknown or not env.get("Status")
+                continue
+            bucket = env.get("SourceBucketArn")
+            dag_path = env.get("DagS3Path")
+            if (not isinstance(bucket, str) or not re.fullmatch(
+                    rf"arn:{re.escape(partition)}:s3:::[^/*?]+", bucket)
+                    or not isinstance(dag_path, str)):
+                unknown = True
+                continue
+            prefix = dag_path.strip("/")
+            if not prefix or any(segment in ("", ".", "..") for segment in prefix.split("/")):
+                unknown = True
+                continue
+            keys = {prefix + "/peaso_bound.py"}
+            allows, _ = self._statements(source, "s3:putobject")
+            for statement in allows:
+                if statement.notresource or statement.variables:
+                    continue
+                for resource in statement.resources:
+                    if not resource.startswith(bucket + "/"):
+                        continue
+                    candidate = resource[len(bucket) + 1:].replace("*", "peaso_bound.py").replace("?", "x")
+                    if candidate.startswith(prefix + "/") and candidate.endswith(".py") and len(candidate) <= 1024:
+                        keys.add(candidate)
+            for key in sorted(keys)[:80]:
+                obj = bucket + "/" + key
+                grants = (self._check_action(source, "s3:putobject", obj),
+                          self._check_action(role, "s3:listbucket", bucket),
+                          self._check_action(role, "s3:getobject", obj))
+                if all(grant is not None and grant.confidence == "derived" for grant in grants):
+                    return ("conditional", "mwaa_existing_dag_object_and_execution_role")
+                if any(grant is not None for grant in grants):
+                    unknown = True
+        return ("unknown", "mwaa_dag_object_or_role_read_not_verified") if unknown else None
+
+    def _ssm_hybrid_shell_route(self, source, role, *, session):
+        """Bind a live hybrid node and its recorded service role to shell access."""
+        statuses = inventory_status(self.snapshot, "ssm_managed_instance")
+        if not statuses:
+            return ("unknown", "ssm_hybrid_inventory_not_recorded")
+        unknown = bool(source.incomplete or role.incomplete or
+                       any(status not in ("collected", "empty") for status in statuses.values()))
+        action = "ssm:startsession" if session else "ssm:sendcommand"
+        partition = source.id.split(":", 2)[1]
+        role_name = role.id.rsplit("/", 1)[-1]
+        for scope, node in items(self.snapshot, "ssm_managed_instance"):
+            if statuses.get(scope) != "collected" or not scope.startswith(source.scope + "/"):
+                continue
+            if not isinstance(node, dict) or node.get("IamRole") != role_name:
+                continue
+            account, region = scope.split("/", 1)
+            instance_id = node.get("InstanceId")
+            if (not isinstance(instance_id, str) or not re.fullmatch(r"mi-[0-9a-f]{17}", instance_id)
+                    or role.scope != account or role.id.split(":", 2)[1] != partition):
+                unknown = True
+                continue
+            if node.get("PingStatus") != "Online":
+                unknown = unknown or not node.get("PingStatus")
+                continue
+            platform = node.get("PlatformType")
+            if platform not in ("Linux", "Windows"):
+                unknown = True
+                continue
+            instance_arn = f"arn:{partition}:ssm:{region}:{account}:managed-instance/{instance_id}"
+            node_grant = self._check_action(source, action, instance_arn)
+            if node_grant is None:
+                continue
+            if session:
+                doc_name = "SSM-SessionManagerRunShell"
+                doc_account = account
+            else:
+                doc_name = "AWS-RunShellScript" if platform == "Linux" else "AWS-RunPowerShellScript"
+                doc_account = ""
+            document_arn = f"arn:{partition}:ssm:{region}:{doc_account}:document/{doc_name}"
+            document_grant = self._check_action(source, action, document_arn)
+            if document_grant is None:
+                unknown = unknown or bool(source.incomplete)
+                continue
+            grants = [node_grant, document_grant]
+            if session:
+                # The session ID does not exist yet. An exact old ID cannot authorize
+                # its future data channel, so require a wildcard-capable grant.
+                channel_allows, _ = self._statements(source, "ssmmessages:opendatachannel")
+                future_channel = any(statement.notresource or any(
+                    resource == "*" or "*" in resource or "?" in resource
+                    for resource in statement.resources) for statement in channel_allows)
+                if not future_channel:
+                    unknown = unknown or bool(source.incomplete)
+                    continue
+                channel_arn = f"arn:{partition}:ssm:{region}:{account}:session/*"
+                channel_grant = self._check_action(source, "ssmmessages:opendatachannel", channel_arn)
+                if channel_grant is None:
+                    unknown = unknown or bool(source.incomplete)
+                    continue
+                grants.append(channel_grant)
+            if all(grant.confidence == "derived" for grant in grants):
+                return ("conditional", "ssm_hybrid_online_node_role_and_shell_bound")
+            unknown = True
+        return ("unknown", "ssm_hybrid_node_or_shell_authorization_not_verified") if unknown else None
 
     def _mwaa_serverless_new_workflow_route(self, source, role):
         """Prove one writable definition and run scope for every generated workflow ID."""
@@ -4592,9 +6194,14 @@ class AwsModel(Model):
         create = self._check_action(source, "airflow-serverless:createworkflow", ANY)
         passrole = self.cached_check(source, {"action": "iam:PassRole", "resource": role.id,
             "request_context": {"iam:PassedToService": "airflow-serverless.amazonaws.com"}}, role.id)
-        linked = self.cached_check(source, {"action": "iam:CreateServiceLinkedRole", "resource": "*",
-            "request_context": {"iam:AWSServiceName": "airflow-serverless.amazonaws.com"}}, "*")
-        if not all(g is not None and g.confidence == "derived" for g in (create, passrole, linked)):
+        slr_arn = (f"arn:{source.id.split(':', 2)[1]}:iam::{source.scope}:role/aws-service-role/"
+                   "airflow-serverless.amazonaws.com/AWSServiceRoleForAmazonMWAAServerless")
+        slr_present = slr_arn in self.principals
+        linked = (None if slr_present else self.cached_check(source, {
+            "action": "iam:CreateServiceLinkedRole", "resource": slr_arn,
+            "request_context": {"iam:AWSServiceName": "airflow-serverless.amazonaws.com"}}, slr_arn))
+        if (not all(g is not None and g.confidence == "derived" for g in (create, passrole)) or
+                not (slr_present or linked is not None and linked.confidence == "derived")):
             return ("unknown", "mwaa_serverless_create_or_passrole_not_verified")
         # The tested creation path needs caller-side Logs access; the execution
         # role also writes worker logs. Require broad grants because generated
@@ -4668,9 +6275,66 @@ class AwsModel(Model):
                           for action in ("s3:putobject", "s3:getobject")]
                 grants.append(self._check_action(source, "s3:listbucket", bucket_arn))
                 if all(g is not None and g.confidence == "derived" for g in grants):
-                    return ("conditional", "mwaa_serverless_new_workflow_and_definition_bound")
+                    return self._mwaa_verified_role_effect(source, role, root + name + "-", definition,
+                                                           serverless=True)
                 unknown = True
         return ("unknown", "mwaa_serverless_definition_or_start_not_verified") if unknown else None
+
+    def _mwaa_verified_role_effect(self, source, role, workload_arn, object_arn, *, serverless):
+        """Require a fresh task execution under the exact MWAA execution role."""
+        technique = ("aws-mwaa-serverless-passrole-createworkflow" if serverless else
+                     "aws-mwaa-passrole-updateenvironment")
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "mwaa_role_execution_evidence_missing_or_conflicting")
+        scope, proof = records[0]
+        region = workload_arn.split(":")[3]
+        if (scope != f"{source.scope}/{region}" or
+                inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"):
+            return ("unknown", "mwaa_role_execution_evidence_incomplete")
+        rows = [row for row_scope, row in items(self.snapshot, "iam_role")
+                if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        role_id = rows[0].get("RoleId") if len(rows) == 1 else None
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        if serverless:
+            prefix = workload_arn
+            workflow = proof.get("WorkflowArn")
+            route_ok = (isinstance(workflow, str) and workflow.startswith(prefix) and
+                        re.fullmatch(r"[A-Za-z0-9]{10}", workflow[len(prefix):]) is not None and
+                        proof.get("DefinitionAccepted") is True and
+                        proof.get("WorkflowCreated") is True and proof.get("RunSucceeded") is True)
+        else:
+            route_ok = (proof.get("EnvironmentArn") == workload_arn and
+                        proof.get("UpdateSucceeded") is True and
+                        proof.get("DagParsed") is True and proof.get("DagTaskRan") is True)
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                not route_ok or proof.get("ControlledObjectArn") != object_arn or
+                proof.get("ExecutionRoleArn") != role.id or
+                not isinstance(role_id, str) or not role_id or proof.get("TargetRoleId") != role_id or
+                proof.get("ObjectControlledBySource") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "mwaa_workload_or_role_effect_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "mwaa_role_execution_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "mwaa_role_execution_evidence_time_missing")
+        grant = self.check(role, {"action": action}, resource)
+        if grant is None or grant.confidence != "derived":
+            return ("unknown", "mwaa_role_action_not_authorized")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "mwaa_exact_execution_role_effect_verified")
 
     def _m2_new_application_route(self, source, role):
         """Bind deployment to one available runtime and all generated app IDs."""
@@ -4745,12 +6409,552 @@ class AwsModel(Model):
                           for action in ("s3:putobject", "s3:getobject")]
                 access.append(self._check_action(source, "s3:listbucket", bucket_arn))
                 if all(g is not None and g.confidence == "derived" for g in access):
-                    return ("conditional", "m2_available_environment_and_new_application_bound")
+                    return self._m2_verified_role_effect(source, role, arn, parts[3])
                 unknown = True
         if any(scope.split("/", 1)[0] == source.scope and status not in ("collected", "empty")
                for scope, status in statuses.items()):
             unknown = True
         return ("unknown", "m2_environment_deployment_or_artifact_not_verified") if unknown else None
+
+    def _m2_verified_role_effect(self, source, role, environment_arn, region):
+        """Require a fresh, exact application execution and a role-only effect."""
+        technique = "aws-m2-passrole-createapplication-deploy"
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        scope = f"{source.scope}/{region}"
+        if len(records) != 1 or records[0][0] != scope or (
+                inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"):
+            return ("unknown", "m2_application_execution_evidence_missing_or_conflicting")
+        proof = records[0][1]
+        rows = [row for row_scope, row in items(self.snapshot, "iam_role")
+                if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        role_id = rows[0].get("RoleId") if len(rows) == 1 else None
+        app = proof.get("ApplicationArn")
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        partition = source.id.split(":", 2)[1]
+        pattern = rf"arn:{re.escape(partition)}:m2:{re.escape(region)}:{source.scope}:app/[A-Za-z0-9]+"
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("EnvironmentArn") != environment_arn or
+                not isinstance(app, str) or re.fullmatch(pattern, app) is None or
+                not isinstance(role_id, str) or not role_id or proof.get("TargetRoleId") != role_id or
+                proof.get("ApplicationRoleArn") != role.id or
+                proof.get("DefinitionAndArtifactsControlledBySource") is not True or
+                proof.get("DefinitionAndArtifactsAcceptedForEngine") is not True or
+                proof.get("DeploymentSucceeded") is not True or
+                proof.get("ApplicationStarted") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "m2_application_or_role_effect_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "m2_application_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "m2_application_evidence_time_missing")
+        allowed = self.check(role, {"action": action}, resource)
+        if allowed is None or allowed.confidence != "derived":
+            return ("unknown", "m2_role_action_not_authorized")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "m2_application_exact_role_effect_verified")
+
+    def _mgh_verified_automation_role_effect(self, source, role):
+        """Resolve preview automation only with an exact, recent role-only run."""
+        technique = "aws-mgh-passrole-automation-unit"
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        scope = f"{source.scope}/us-east-1"
+        if len(records) != 1 or records[0][0] != scope or (
+                inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"):
+            return ("unknown", "mgh_home_region_and_runtime_target_not_verified")
+        proof = records[0][1]
+        unit, run, runtime = (proof.get(k) for k in
+                              ("AutomationUnitArn", "AutomationRunArn", "RuntimeTargetArn"))
+        partition = source.id.split(":", 2)[1]
+        unit_pattern = rf"arn:{re.escape(partition)}:mgh:us-east-1:{source.scope}:automation-unit/[^/*?]+"
+        run_pattern = rf"arn:{re.escape(partition)}:mgh:us-east-1:{source.scope}:automation-run/[^/*?]+"
+        rows = [row for row_scope, row in items(self.snapshot, "iam_role")
+                if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        role_id = rows[0].get("RoleId") if len(rows) == 1 else None
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        kind = proof.get("RuntimeTargetType")
+        runtime_pattern = (rf"arn:{re.escape(partition)}:ssm:us-east-1:{source.scope}:document/[^/*?]+"
+                           if kind == "ssm_document" else
+                           rf"arn:{re.escape(partition)}:lambda:us-east-1:{source.scope}:function:[^:*?]+"
+                           if kind == "lambda_function" else None)
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("HomeRegion") != "us-east-1" or proof.get("FeatureAvailable") is not True or
+                not isinstance(unit, str) or re.fullmatch(unit_pattern, unit) is None or
+                not isinstance(run, str) or re.fullmatch(run_pattern, run) is None or
+                not runtime_pattern or not isinstance(runtime, str) or
+                re.fullmatch(runtime_pattern, runtime) is None or
+                not isinstance(role_id, str) or not role_id or proof.get("TargetRoleId") != role_id or
+                proof.get("AssociatedRoleArn") != role.id or
+                proof.get("RuntimeTargetControlledBySource") is not True or
+                proof.get("UnitCreatedSucceeded") is not True or
+                proof.get("RoleAssociatedSucceeded") is not True or
+                proof.get("RunSucceeded") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "mgh_automation_run_or_role_effect_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "mgh_automation_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "mgh_automation_evidence_time_missing")
+        grants = [self._check_action(source, action, ANY) for action in
+                  ("mgh:CreateAutomationUnit", "mgh:CreateAutomationRun")]
+        grants.append(self._check_action(source, "mgh:AssociateAutomationUnitRole", unit))
+        grants.append(self.cached_check(source, {"action": "iam:PassRole", "resource": role.id,
+            "request_context": {"iam:PassedToService": "migrationhub.amazonaws.com"}}, role.id))
+        grants.append(self.check(role, {"action": action}, resource))
+        if any(grant is None or grant.confidence != "derived" for grant in grants):
+            return ("unknown", "mgh_current_permissions_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "mgh_exact_automation_role_effect_verified")
+
+    def _orchestrator_verified_workflow_role_effect(self, source, role):
+        """Require an automated step to execute on one managed node using this role."""
+        technique = "aws-migrationhub-orchestrator-workflow-step"
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "orchestrator_workflow_script_and_target_not_verified")
+        scope, proof = records[0]
+        if (inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"
+                or not scope.startswith(source.scope + "/")):
+            return ("unknown", "orchestrator_execution_evidence_incomplete")
+        region = scope.split("/", 1)[1]
+        partition = source.id.split(":", 2)[1]
+        workflow, instance, script = (proof.get(k) for k in
+                                       ("WorkflowArn", "InstanceArn", "ScriptObjectArn"))
+        workflow_pattern = rf"arn:{re.escape(partition)}:migrationhub-orchestrator:{re.escape(region)}:{source.scope}:workflow/[^/*?]+"
+        instance_pattern = rf"arn:{re.escape(partition)}:ec2:{re.escape(region)}:{source.scope}:instance/i-[0-9a-f]+"
+        script_pattern = rf"arn:{re.escape(partition)}:s3:::migrationhub-orchestrator-[a-z0-9.-]+/[^*?]+"
+        rows = [row for row_scope, row in items(self.snapshot, "iam_role")
+                if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        role_id = rows[0].get("RoleId") if len(rows) == 1 else None
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        variant = proof.get("StepVariant")
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                not region or not isinstance(workflow, str) or
+                re.fullmatch(workflow_pattern, workflow) is None or
+                not isinstance(instance, str) or re.fullmatch(instance_pattern, instance) is None or
+                not isinstance(script, str) or re.fullmatch(script_pattern, script) is None or
+                variant not in ("create_start", "update_retry") or
+                not isinstance(proof.get("StepGroupId"), str) or not proof["StepGroupId"] or
+                not isinstance(proof.get("StepId"), str) or not proof["StepId"] or
+                not isinstance(role_id, str) or not role_id or proof.get("TargetRoleId") != role_id or
+                proof.get("InstanceRoleArn") != role.id or
+                proof.get("StepBelongsToWorkflow") is not True or
+                proof.get("StepAutomated") is not True or
+                proof.get("StepTargetsInstance") is not True or
+                proof.get("InstanceManagedOnline") is not True or
+                proof.get("ScriptControlledBySource") is not True or
+                proof.get("ScriptRetrievedByInstance") is not True or
+                proof.get("WorkflowStateRunnable") is not True or
+                proof.get("StepExecutionSucceeded") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "orchestrator_step_or_role_effect_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "orchestrator_execution_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "orchestrator_execution_evidence_time_missing")
+        workflow_actions = (("migrationhub-orchestrator:CreateWorkflowStep", "migrationhub-orchestrator:StartWorkflow")
+                            if variant == "create_start" else
+                            ("migrationhub-orchestrator:UpdateWorkflowStep", "migrationhub-orchestrator:RetryWorkflowStep"))
+        grants = [self._check_action(source, name, workflow) for name in workflow_actions]
+        script_write = self._check_action(source, "s3:PutObject", script)
+        if (script_write is None or script_write.confidence != "derived") and (
+                proof.get("ExistingUsableScript") is not True):
+            return ("unknown", "orchestrator_script_control_not_reusable")
+        grants.append(self.check(role, {"action": action}, resource))
+        if any(grant is None or grant.confidence != "derived" for grant in grants):
+            return ("unknown", "orchestrator_current_permissions_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "orchestrator_exact_managed_instance_role_effect_verified")
+
+    def _servicecatalog_verified_artifact_role_effect(self, source, role, *, self_associate):
+        """Bind the modified product, portfolio launch role and useful provision."""
+        technique = ("aws-servicecatalog-associateprincipal-createartifact-provision" if self_associate else
+                     "aws-servicecatalog-createprovisioningartifact-provisionproduct")
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "servicecatalog_owned_product_template_and_role_effect_not_verified")
+        scope, proof = records[0]
+        if (not scope.startswith(source.scope + "/") or
+                inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"):
+            return ("unknown", "servicecatalog_provision_evidence_incomplete")
+        region = scope.split("/", 1)[1]
+        partition = source.id.split(":", 2)[1]
+        product, portfolio = proof.get("ProductArn"), proof.get("PortfolioArn")
+        product_pattern = rf"arn:{re.escape(partition)}:catalog:{re.escape(region)}:{source.scope}:product/[^/*?]+"
+        portfolio_pattern = rf"arn:{re.escape(partition)}:catalog:{re.escape(region)}:{source.scope}:portfolio/[^/*?]+"
+        rows = [row for row_scope, row in items(self.snapshot, "iam_role")
+                if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        role_id = rows[0].get("RoleId") if len(rows) == 1 else None
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                not isinstance(product, str) or re.fullmatch(product_pattern, product) is None or
+                not isinstance(portfolio, str) or re.fullmatch(portfolio_pattern, portfolio) is None or
+                product not in self.hosts.get(role.id, {}).get("servicecatalog_product", ()) or
+                portfolio not in self.sc_portfolios.get(_norm_arn(role.id), ()) or
+                not isinstance(role_id, str) or not role_id or proof.get("TargetRoleId") != role_id or
+                proof.get("LaunchConstraintRoleArn") != role.id or
+                proof.get("ProductOwnedByAccount") is not True or
+                proof.get("PortfolioContainsProduct") is not True or
+                proof.get("TemplateControlledBySource") is not True or
+                proof.get("ArtifactCreatedSucceeded") is not True or
+                proof.get("TemplateAccepted") is not True or
+                proof.get("ProvisionSucceeded") is not True or
+                proof.get("LaunchConstraintApplied") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                not isinstance(proof.get("ArtifactId"), str) or not proof["ArtifactId"] or
+                not isinstance(proof.get("ProvisionedProductId"), str) or
+                not proof["ProvisionedProductId"] or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "servicecatalog_artifact_or_role_effect_not_verified")
+        if self_associate:
+            if (proof.get("SourceAssociatedToPortfolio") is not True or
+                    proof.get("SelfAssociationSucceeded") is not True):
+                return ("unknown", "servicecatalog_portfolio_self_association_not_verified")
+        elif proof.get("SourceAlreadyPortfolioEndUser") is not True:
+            return ("unknown", "servicecatalog_portfolio_end_user_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "servicecatalog_provision_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "servicecatalog_provision_evidence_time_missing")
+        grants = [self._check_action(source, name, product) for name in
+                  ("servicecatalog:CreateProvisioningArtifact", "servicecatalog:ProvisionProduct")]
+        if self_associate:
+            grants.append(self._check_action(source, "servicecatalog:AssociatePrincipalWithPortfolio", portfolio))
+        grants.append(self.check(role, {"action": action}, resource))
+        if any(grant is None or grant.confidence != "derived" for grant in grants):
+            return ("unknown", "servicecatalog_current_permissions_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "servicecatalog_exact_launch_role_effect_verified")
+
+    def _ssm_jit_verified_instance_role_effect(self, source, role, instance_arn):
+        """Bind approval and the token to one assumed-role session and node."""
+        technique = "aws-ssm-jit-startaccessrequest-getaccesstoken"
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        scope = f"{source.scope}/{instance_arn.split(':')[3]}"
+        if len(records) != 1 or records[0][0] != scope or (
+                inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"):
+            return ("unknown", "ssm_jit_approval_for_source_and_instance_not_verified")
+        proof = records[0][1]
+        role_rows = [row for row_scope, row in items(self.snapshot, "iam_role")
+                     if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        role_id = role_rows[0].get("RoleId") if len(role_rows) == 1 else None
+        source_rows = [row for row_scope, row in items(self.snapshot, "iam_role")
+                       if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == source.id]
+        source_role_id = source_rows[0].get("RoleId") if len(source_rows) == 1 else None
+        request_id = proof.get("AccessRequestId")
+        session = proof.get("RequesterSessionArn")
+        partition = source.id.split(":", 2)[1]
+        session_pattern = rf"arn:{re.escape(partition)}:sts::{source.scope}:assumed-role/{re.escape(source.id.rsplit('/', 1)[-1])}/[^/*?]+"
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("InstanceArn") != instance_arn or
+                proof.get("InstanceRoleArn") != role.id or
+                not isinstance(role_id, str) or not role_id or proof.get("TargetRoleId") != role_id or
+                not isinstance(source_role_id, str) or not source_role_id or
+                proof.get("RequesterRoleId") != source_role_id or
+                not isinstance(session, str) or re.fullmatch(session_pattern, session) is None or
+                proof.get("RequestSessionMatchesRequester") is not True or
+                not isinstance(request_id, str) or not re.fullmatch(r"oi-[A-Za-z0-9-]+", request_id) or
+                proof.get("AccessRequestApproved") is not True or
+                proof.get("ApprovalWindowOpen") is not True or
+                proof.get("AccessTokenIssuedToRequester") is not True or
+                proof.get("SessionEstablishedOnInstance") is not True or
+                proof.get("CodeRanOnInstance") is not True or
+                proof.get("InstanceRoleCredentialsUsed") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "ssm_jit_request_session_or_role_effect_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "ssm_jit_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "ssm_jit_evidence_time_missing")
+        grants = (self._check_action(source, "ssm:StartAccessRequest", instance_arn),
+                  self._check_action(source, "ssm:GetAccessToken", ANY),
+                  self.check(role, {"action": action}, resource))
+        if any(g is None or g.confidence != "derived" for g in grants):
+            return ("unknown", "ssm_jit_current_permissions_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "ssm_jit_exact_session_instance_role_effect_verified")
+
+    def _workspaces_instances_verified_role_effect(self, source, role):
+        """Bind a managed-instance launch to its EC2 resources and role effect."""
+        technique = "aws-workspaces-instances-passrole-createworkspaceinstance"
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "workspaces_instance_launch_and_role_effect_not_verified")
+        scope, proof = records[0]
+        if (not scope.startswith(source.scope + "/") or
+                inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"):
+            return ("unknown", "workspaces_instance_evidence_incomplete")
+        region = scope.split("/", 1)[1]
+        partition = source.id.split(":", 2)[1]
+        instance = proof.get("InstanceArn")
+        profile = proof.get("InstanceProfileArn")
+        instance_pattern = rf"arn:{re.escape(partition)}:ec2:{re.escape(region)}:{source.scope}:instance/i-[0-9a-f]+"
+        profile_pattern = rf"arn:{re.escape(partition)}:iam::{source.scope}:instance-profile/[^*?]+"
+        rows = [row for row_scope, row in items(self.snapshot, "iam_role")
+                if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        role_id = rows[0].get("RoleId") if len(rows) == 1 else None
+        profiles = [p.get("Arn") for p in rows[0].get("InstanceProfileList", ())
+                    if isinstance(p, dict)] if len(rows) == 1 else []
+        resources = proof.get("RunInstancesResources")
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                not isinstance(instance, str) or re.fullmatch(instance_pattern, instance) is None or
+                not isinstance(profile, str) or re.fullmatch(profile_pattern, profile) is None or
+                profile not in profiles or
+                not isinstance(role_id, str) or not role_id or proof.get("TargetRoleId") != role_id or
+                proof.get("InstanceRoleArn") != role.id or
+                not isinstance(proof.get("WorkspaceInstanceId"), str) or
+                not re.fullmatch(r"wsinst-[0-9A-Za-z]{8,63}", proof["WorkspaceInstanceId"]) or
+                proof.get("ManagedInstanceConfigurationSupported") is not True or
+                proof.get("UserDataControlledBySource") is not True or
+                proof.get("CreateWorkspaceInstanceSucceeded") is not True or
+                proof.get("InstanceLaunched") is not True or
+                proof.get("ProfileAttachedToInstance") is not True or
+                proof.get("UserDataExecuted") is not True or
+                proof.get("InstanceRoleCredentialsUsed") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                not isinstance(resources, list) or not resources or
+                any(not isinstance(arn, str) or not arn.startswith(f"arn:{partition}:ec2:{region}:")
+                    or "*" in arn or "?" in arn for arn in resources) or
+                instance not in resources or
+                not any(":image/ami-" in arn for arn in resources) or
+                not any(":subnet/subnet-" in arn for arn in resources) or
+                not any(":security-group/sg-" in arn for arn in resources) or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "workspaces_instance_profile_or_launch_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "workspaces_instance_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "workspaces_instance_evidence_time_missing")
+        slr_arn = (f"arn:{partition}:iam::{source.scope}:role/aws-service-role/"
+                   "workspaces-instances.amazonaws.com/AWSServiceRoleForWorkSpacesInstances")
+        if slr_arn not in self.principals:
+            slr = self.cached_check(source, {"action": "iam:CreateServiceLinkedRole", "resource": slr_arn,
+                "request_context": {"iam:AWSServiceName": "workspaces-instances.amazonaws.com"}}, slr_arn)
+            if slr is None or slr.confidence != "derived":
+                return ("unknown", "workspaces_service_linked_role_not_verified")
+        grants = [self._check_action(source, "workspaces-instances:CreateWorkspaceInstance", ANY),
+                  self.cached_check(source, {"action": "iam:PassRole", "resource": role.id,
+                    "request_context": {"iam:PassedToService": "ec2.amazonaws.com"}}, role.id),
+                  self.check(role, {"action": action}, resource)]
+        for arn in resources:
+            grants.append(self.check(source, {"action": "ec2:RunInstances",
+                "request_context": {"aws:CalledVia": "workspaces-instances.amazonaws.com",
+                                    "aws:RequestedRegion": region}}, arn))
+        if any(grant is None or grant.confidence != "derived" for grant in grants):
+            return ("unknown", "workspaces_current_launch_permissions_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "workspaces_exact_instance_role_effect_verified")
+
+    def _sagemaker_hyperpod_verified_ami_role_effect(self, source, role):
+        """Bind a supported group AMI transition and executed startup to its role."""
+        technique = "aws-sagemaker-updateclustersoftware-custom-ami"
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "hyperpod_group_ami_and_role_effect_not_verified")
+        scope, proof = records[0]
+        if (not scope.startswith(source.scope + "/") or
+                inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"):
+            return ("unknown", "hyperpod_ami_evidence_incomplete")
+        region = scope.split("/", 1)[1]
+        partition = source.id.split(":", 2)[1]
+        cluster_arn = proof.get("ClusterArn")
+        cluster_pattern = rf"arn:{re.escape(partition)}:sagemaker:{re.escape(region)}:{source.scope}:cluster/[a-z0-9]{{12}}"
+        if not isinstance(cluster_arn, str) or re.fullmatch(cluster_pattern, cluster_arn) is None:
+            return ("unknown", "hyperpod_cluster_identity_not_verified")
+        clusters = [row for row_scope, row in items(self.snapshot, "sagemaker_cluster")
+                    if row_scope == scope and row.get("ClusterArn") == cluster_arn]
+        group_name = proof.get("InstanceGroupName")
+        groups = [g for cluster in clusters for g in cluster.get("InstanceGroups", ())
+                  if isinstance(g, dict) and g.get("InstanceGroupName") == group_name and
+                  g.get("ExecutionRole") == role.id]
+        role_rows = [row for row_scope, row in items(self.snapshot, "iam_role")
+                     if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        role_id = role_rows[0].get("RoleId") if len(role_rows) == 1 else None
+        if len(clusters) != 1 or len(groups) != 1 or not isinstance(role_id, str) or not role_id:
+            return ("unknown", "hyperpod_instance_group_role_not_verified")
+        cluster, group = clusters[0], groups[0]
+        orchestrator = cluster.get("Orchestrator") or {}
+        kind = "slurm" if isinstance(orchestrator, dict) and orchestrator.get("Slurm") is not None else (
+            "eks" if isinstance(orchestrator, dict) and orchestrator.get("Eks") is not None else None)
+        current_image = group.get("ImageId")
+        previous_image = proof.get("PreviousImageId")
+        new_image = proof.get("NewAmiId")
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        if (cluster.get("ClusterStatus") != "InService" or kind is None or
+                proof.get("OrchestratorType") != kind or
+                current_image != proof.get("NewAmiId") or
+                (kind == "slurm" and (not isinstance(previous_image, str) or
+                                       re.fullmatch(r"ami-[0-9a-fA-F]{8,17}", previous_image) is None)) or
+                not isinstance(new_image, str) or
+                re.fullmatch(r"ami-[0-9a-fA-F]{8,17}", new_image) is None or
+                proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("TargetRoleId") != role_id or proof.get("InstanceGroupRoleArn") != role.id or
+                proof.get("NewAmiOwnedByAccount") is not True or
+                proof.get("NewAmiUnencrypted") is not True or
+                proof.get("NewAmiPrimaryVolumeOnly") is not True or
+                proof.get("NewAmiCompatibleWithGroup") is not True or
+                proof.get("NewAmiControlledBySource") is not True or
+                proof.get("UpdateClusterSoftwareSucceeded") is not True or
+                proof.get("GroupNodesBootedFromNewAmi") is not True or
+                proof.get("StartupCodeExecuted") is not True or
+                proof.get("InstanceRoleCredentialsUsed") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "hyperpod_ami_transition_or_role_effect_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "hyperpod_ami_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "hyperpod_ami_evidence_time_missing")
+        grants = (self._check_action(source, "sagemaker:UpdateClusterSoftware", cluster_arn),
+                  self.check(role, {"action": action}, resource))
+        if any(g is None or g.confidence != "derived" for g in grants):
+            return ("unknown", "hyperpod_current_permissions_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "hyperpod_exact_group_ami_role_effect_verified")
+
+    def _org_created_member_verified_role_effect(self, source, role, root):
+        """Confirm asynchronous account creation and the new-role trust route."""
+        technique = "aws-organizations-createaccount-principalorgid-trust"
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "new_member_account_creation_or_role_effect_not_verified")
+        scope, proof = records[0]
+        if (scope.split("/", 1)[0] != role.scope or
+                inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"):
+            return ("unknown", "new_member_account_evidence_incomplete")
+        partition = source.id.split(":", 2)[1]
+        account = proof.get("NewAccountId")
+        access_role = proof.get("NewAccessRoleArn")
+        account_pattern = r"[0-9]{12}"
+        access_pattern = (rf"arn:{re.escape(partition)}:iam::{account}:role/"
+                          r"[A-Za-z0-9_+=,.@-]{1,64}") if isinstance(account, str) else "^$"
+        target_rows = [row for row_scope, row in items(self.snapshot, "iam_role")
+                       if row_scope.split("/", 1)[0] == role.scope and row.get("Arn") == role.id]
+        target_id = target_rows[0].get("RoleId") if len(target_rows) == 1 else None
+        new_rows = [row for row_scope, row in items(self.snapshot, "iam_role")
+                    if row_scope.split("/", 1)[0] == account and row.get("Arn") == access_role]
+        new_role_id = new_rows[0].get("RoleId") if len(new_rows) == 1 else None
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                not isinstance(account, str) or re.fullmatch(account_pattern, account) is None or
+                account in (source.scope, role.scope) or
+                not isinstance(access_role, str) or re.fullmatch(access_pattern, access_role) is None or
+                proof.get("OrganizationId") != self.org_id or proof.get("RootId") != root or
+                proof.get("CreateAccountState") != "SUCCEEDED" or
+                proof.get("NewAccountActive") is not True or
+                proof.get("NewAccountInOrganizationRoot") is not True or
+                not isinstance(new_role_id, str) or not new_role_id or
+                proof.get("NewAccessRoleId") != new_role_id or
+                proof.get("SourceAssumedNewAccessRole") is not True or
+                proof.get("NewAccessRoleAssumedTargetRole") is not True or
+                not isinstance(target_id, str) or not target_id or
+                proof.get("TargetRoleId") != target_id or
+                proof.get("EffectUsefulToSource") is not True or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "new_member_account_or_target_trust_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "new_member_account_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "new_member_account_evidence_time_missing")
+        grants = (self._check_action(source, "organizations:CreateAccount", ANY),
+                  self._check_action(source, "sts:AssumeRole", access_role),
+                  self.check(role, {"action": action}, resource))
+        if any(g is None or g.confidence != "derived" for g in grants):
+            return ("unknown", "new_member_account_current_permissions_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "new_member_account_exact_target_role_effect_verified")
 
     def _ssm_incident_response_route(self, source, execution_role):
         """Bind a creatable Automation document and one usable incident response plan."""
@@ -4802,7 +7006,8 @@ class AwsModel(Model):
                         if update.confidence == start.confidence == "derived":
                             return ("conditional", "response_plan_automation_execution")
                         unknown = True
-            create = self._check_action(source, "ssm-incidents:createresponseplan", "*")
+            create = self._check_action(source, "ssm-incidents:createresponseplan",
+                                        "peaso-global-incident-create-response-plan")
             if create is None:
                 continue
             names = {token}
@@ -4902,6 +7107,200 @@ class AwsModel(Model):
                     unknown = True
         return ("unknown", "cloudformation_new_stack_name_or_permission_not_verified") if unknown else None
 
+    def _cloudformation_role_template_effect(self, source, role, operation, stack_arn=None):
+        """Accept only a fresh, reviewed template operation performed with this role."""
+        try:
+            now = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            if now.tzinfo is None:
+                return False
+        except (KeyError, TypeError, ValueError):
+            return False
+        role_rows = [row for scope, row in items(self.snapshot, "iam_role")
+                     if scope.split("/")[0] == role.scope and row.get("Arn") == role.id]
+        role_id = role_rows[0].get("RoleId") if len(role_rows) == 1 else None
+        if not isinstance(role_id, str) or not role_id:
+            return False
+        technique = (self.current_entry or {}).get("id")
+        collection_status = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+        for scope in self.snapshot.get("scopes", ()):
+            if not isinstance(scope, str) or not scope.startswith(f"{role.scope}/"):
+                continue
+            rows = [c for c in self.snapshot.get("collections", ())
+                    if c.get("type") == "aws_privesc_challenge_evidence" and c.get("scope") == scope]
+            if len(rows) != 1 or rows[0].get("status") != "collected":
+                continue
+            proofs = [row for proof_scope, row in items(self.snapshot, "aws_privesc_challenge_evidence")
+                      if proof_scope == scope and collection_status.get(scope) == "collected" and
+                      row.get("TechniqueId") == technique and row.get("SourceArn") == source.id and
+                      row.get("TargetKind") == "aws_role" and row.get("TargetId") == role.id]
+            if len(proofs) != 1:
+                continue
+            proof = proofs[0]
+            observed_stack = proof.get("StackArn")
+            prefix = f"arn:{role.id.split(':', 2)[1]}:cloudformation:{scope.split('/', 1)[1]}:{role.scope}:stack/"
+            action, resource = proof.get("RoleAction"), proof.get("RoleResource")
+            if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                    proof.get("TemplateControlledBySource") is not True or
+                    proof.get("RoleOperationUsed") is not True or
+                    proof.get("TemplateEffectSucceeded") is not True or
+                    proof.get("EffectUsefulToSource") is not True or
+                    proof.get("CloudFormationOperation") != operation or
+                    (operation == "CreateChangeSet" and (proof.get("ChangeSetExecuted") is not True or
+                                                          proof.get("ChangeSetType") != "CREATE")) or
+                    proof.get("TargetScope") != scope or proof.get("TargetRoleId") != role_id or
+                    not isinstance(observed_stack, str) or not observed_stack.startswith(prefix) or
+                    (stack_arn is not None and observed_stack != stack_arn) or
+                    not isinstance(action, str) or
+                    re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                    not isinstance(resource, str) or not resource or
+                    not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"]):
+                continue
+            try:
+                witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+                expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+                if (witnessed.tzinfo is None or expires.tzinfo is None or
+                        not 0 <= (now - witnessed).total_seconds() <= 900 or
+                        not now < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                    continue
+            except (KeyError, TypeError, ValueError):
+                continue
+            permitted = self.check(role, {"action": action}, resource)
+            already = self.check(source, {"action": action}, resource)
+            if permitted is not None and permitted.confidence == "derived" and already is None:
+                return True
+        return False
+
+    def _cloudformation_extension_handler_effect(self, source, role):
+        """Bind a registered private handler's observed useful action to its exact role."""
+        try:
+            now = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            if now.tzinfo is None:
+                return False
+        except (KeyError, TypeError, ValueError):
+            return False
+        role_rows = [row for scope, row in items(self.snapshot, "iam_role")
+                     if scope.split("/")[0] == role.scope and row.get("Arn") == role.id]
+        role_id = role_rows[0].get("RoleId") if len(role_rows) == 1 else None
+        if not isinstance(role_id, str) or not role_id:
+            return False
+        collection_status = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+        technique = (self.current_entry or {}).get("id")
+        for scope in self.snapshot.get("scopes", ()):
+            if not isinstance(scope, str) or not scope.startswith(f"{role.scope}/"):
+                continue
+            rows = [c for c in self.snapshot.get("collections", ())
+                    if c.get("type") == "aws_privesc_challenge_evidence" and c.get("scope") == scope]
+            if len(rows) != 1 or rows[0].get("status") != "collected":
+                continue
+            proofs = [row for proof_scope, row in items(self.snapshot, "aws_privesc_challenge_evidence")
+                      if proof_scope == scope and collection_status.get(scope) == "collected" and
+                      row.get("TechniqueId") == technique and row.get("SourceArn") == source.id and
+                      row.get("TargetKind") == "aws_role" and row.get("TargetId") == role.id]
+            if len(proofs) != 1:
+                continue
+            proof = proofs[0]
+            package = proof.get("HandlerPackageArn")
+            version = proof.get("TypeVersionArn")
+            action, resource = proof.get("RoleAction"), proof.get("RoleResource")
+            prefix = f"arn:{role.id.split(':', 2)[1]}:cloudformation:{scope.split('/', 1)[1]}:{role.scope}:type/resource/"
+            if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                    proof.get("SourceControlledHandler") is not True or
+                    proof.get("RegistrationSucceeded") is not True or
+                    proof.get("HandlerInvocationSucceeded") is not True or
+                    proof.get("HandlerUsedTargetRole") is not True or
+                    proof.get("EffectUsefulToSource") is not True or
+                    proof.get("TargetScope") != scope or proof.get("TargetRoleId") != role_id or
+                    not isinstance(package, str) or not package.startswith(
+                        f"arn:{role.id.split(':', 2)[1]}:s3:::") or
+                    "/" not in package.split(":::", 1)[-1] or
+                    not isinstance(version, str) or not version.startswith(prefix) or
+                    not isinstance(action, str) or
+                    re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                    not isinstance(resource, str) or not resource or
+                    not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"]):
+                continue
+            try:
+                witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+                expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+                if (witnessed.tzinfo is None or expires.tzinfo is None or
+                        not 0 <= (now - witnessed).total_seconds() <= 900 or
+                        not now < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                    continue
+            except (KeyError, TypeError, ValueError):
+                continue
+            package_access = [self.check(source, {"action": name}, package)
+                              for name in ("s3:PutObject", "s3:GetObject")]
+            permitted = self.check(role, {"action": action}, resource)
+            already = self.check(source, {"action": action}, resource)
+            if (all(grant is not None and grant.confidence == "derived" for grant in package_access) and
+                    permitted is not None and permitted.confidence == "derived" and already is None):
+                return True
+        return False
+
+    def _cloudformation_stackset_role_effect(self, source, pivot, target, operation,
+                                            admin_region, target_region, stackset_arn=None):
+        """Verify a useful StackSet template action under the exact execution role."""
+        try:
+            now = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            if now.tzinfo is None:
+                return False
+        except (KeyError, TypeError, ValueError):
+            return False
+        def role_id(role):
+            rows = [row for scope, row in items(self.snapshot, "iam_role")
+                    if scope.split("/")[0] == role.scope and row.get("Arn") == role.id]
+            value = rows[0].get("RoleId") if len(rows) == 1 else None
+            return value if isinstance(value, str) and value else None
+        pivot_id, target_id = role_id(pivot), role_id(target)
+        if not pivot_id or not target_id:
+            return False
+        scope = f"{source.scope}/{admin_region}"
+        collections = [c for c in self.snapshot.get("collections", ())
+                       if c.get("type") == "aws_privesc_challenge_evidence" and c.get("scope") == scope]
+        if len(collections) != 1 or collections[0].get("status") != "collected":
+            return False
+        proof_status = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+        technique = (self.current_entry or {}).get("id")
+        proofs = [row for proof_scope, row in items(self.snapshot, "aws_privesc_challenge_evidence")
+                  if proof_scope == scope and proof_status.get(scope) == "collected" and
+                  row.get("TechniqueId") == technique and row.get("SourceArn") == source.id and
+                  row.get("TargetKind") == "aws_role" and row.get("TargetId") == target.id and
+                  row.get("PivotRoleArn") == pivot.id]
+        if len(proofs) != 1:
+            return False
+        proof = proofs[0]
+        observed_stackset = proof.get("StackSetArn")
+        prefix = (f"arn:{pivot.id.split(':', 2)[1]}:cloudformation:{admin_region}:"
+                  f"{source.scope}:stackset/")
+        action, resource = proof.get("RoleAction"), proof.get("RoleResource")
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("StackSetOperation") != operation or
+                proof.get("TemplateControlledBySource") is not True or
+                proof.get("StackSetDeploymentSucceeded") is not True or
+                proof.get("ExecutionRoleOperationUsed") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                proof.get("PivotRoleId") != pivot_id or proof.get("TargetRoleId") != target_id or
+                proof.get("TargetScope") != f"{target.scope}/{target_region}" or
+                not isinstance(observed_stackset, str) or not observed_stackset.startswith(prefix) or
+                (stackset_arn is not None and observed_stackset != stackset_arn) or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"]):
+            return False
+        try:
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (now - witnessed).total_seconds() <= 900 or
+                    not now < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return False
+        except (KeyError, TypeError, ValueError):
+            return False
+        permitted = self.check(target, {"action": action}, resource)
+        already = self.check(source, {"action": action}, resource)
+        return permitted is not None and permitted.confidence == "derived" and already is None
+
     def _cloudformation_stackset_route(self, source, pivot, target):
         """Require one new or existing self-managed StackSet route to the target account."""
         if target.kind != "aws_role" or target.attrs.get("path") not in (None, "/"):
@@ -4922,7 +7321,8 @@ class AwsModel(Model):
             create = self._with_context(
                 {"request_context": {"cloudformation:RoleArn": pivot.id,
                                      "cloudformation:TemplateUrl": {"absent": True}}},
-                lambda: self._check_action(source, "cloudformation:createstackset", "*"), source)
+                lambda: self._check_action(source, "cloudformation:createstackset",
+                                           "peaso-global-cloudformation-create-stackset"), source)
             if create is not None:
                 token = "PeasoBound" + seed
                 names = {token}
@@ -4966,7 +7366,10 @@ class AwsModel(Model):
                             break
                         if len(grants) == 5:
                             if all(g.confidence == "derived" for g in grants):
-                                return ("conditional", "stackset_target_region_and_template_effects")
+                                if self._cloudformation_stackset_role_effect(
+                                        source, pivot, target, "CreateStackInstances", region, target_region):
+                                    return ("conditional", "stackset_target_region_and_template_effects")
+                                unknown = True
                             unknown = True
             else:
                 unknown = unknown or bool(source.incomplete)
@@ -4997,7 +7400,10 @@ class AwsModel(Model):
                 for ref in (arn, target_arn)]
             if all(grant is not None for grant in grants):
                 if all(grant.confidence == "derived" for grant in grants):
-                    return ("conditional", "stackset_update_template_effects")
+                    if self._cloudformation_stackset_role_effect(
+                            source, pivot, target, "UpdateStackSet", region, target_region, arn):
+                        return ("conditional", "stackset_update_template_effects")
+                    unknown = True
                 unknown = True
         if any(not self._region_ok("cloudformation_stack_instance", source.scope, r) for r in regions):
             unknown = True
@@ -5043,7 +7449,10 @@ class AwsModel(Model):
             return ("unknown", "extension_handler_package_access_not_verified") if unknown else None
         direct = self._with_context(
             {"request_context": {"cloudformation:RoleArn": {"absent": True}}},
-            lambda: self._check_action(source, "cloudformation:createresource", "*"), source)
+            # Cloud Control does not support resource-level IAM grants. A
+            # synthetic non-ARN target rejects stack-scoped grants here.
+            lambda: self._check_action(source, "cloudformation:createresource",
+                                       "peaso-global-cloudcontrol-create-resource"), source)
         if direct is not None:
             if direct.confidence == "derived":
                 return ("conditional", "extension_registration_and_handler_execution")
@@ -5077,6 +7486,74 @@ class AwsModel(Model):
                 unknown = True
         return ("unknown", "extension_invocation_route_not_verified") if unknown else None
 
+    def _cloudformation_service_managed_effect(self, source, target, parent,
+                                               admin_region, target_region):
+        """Require reviewed member-account administrator access from the deployment."""
+        try:
+            now = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            if now.tzinfo is None:
+                return False
+        except (KeyError, TypeError, ValueError):
+            return False
+        scope = f"{source.scope}/{admin_region}"
+        collections = [c for c in self.snapshot.get("collections", ())
+                       if c.get("type") == "aws_privesc_challenge_evidence" and c.get("scope") == scope]
+        if len(collections) != 1 or collections[0].get("status") != "collected":
+            return False
+        proof_status = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+        technique = (self.current_entry or {}).get("id")
+        proofs = [row for proof_scope, row in items(self.snapshot, "aws_privesc_challenge_evidence")
+                  if proof_scope == scope and proof_status.get(scope) == "collected" and
+                  row.get("TechniqueId") == technique and row.get("SourceArn") == source.id and
+                  row.get("TargetKind") == "aws_account_admin" and row.get("TargetId") == target.id]
+        if len(proofs) != 1:
+            return False
+        proof = proofs[0]
+        account = target.attrs.get("account", target.scope)
+        stackset = proof.get("StackSetArn")
+        prefix = (f"arn:{source.id.split(':', 2)[1]}:cloudformation:{admin_region}:"
+                  f"{source.scope}:stackset/")
+        principal_arn = proof.get("MemberAdminPrincipalArn")
+        principal_id = proof.get("MemberAdminPrincipalId")
+        credential_kind = proof.get("MemberAdminCredentialKind")
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("PermissionModel") != "SERVICE_MANAGED" or
+                proof.get("StackSetDeploymentSucceeded") is not True or
+                proof.get("TemplateControlledBySource") is not True or
+                proof.get("MemberAdminAccessConfirmed") is not True or
+                proof.get("MemberAdminCredentialsUsable") is not True or
+                proof.get("TargetAccount") != account or proof.get("TargetRegion") != target_region or
+                proof.get("ParentOrgUnitId") != parent or
+                not isinstance(stackset, str) or not stackset.startswith(prefix) or
+                not isinstance(principal_arn, str) or not principal_arn.startswith(
+                    f"arn:{source.id.split(':', 2)[1]}:iam::{account}:") or
+                not isinstance(principal_id, str) or not principal_id or
+                credential_kind not in ("assume_role", "access_key") or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"]):
+            return False
+        if credential_kind == "assume_role" and principal_arn not in self._assumable(source):
+            return False
+        if credential_kind == "access_key" and not principal_arn.startswith(
+                f"arn:{source.id.split(':', 2)[1]}:iam::{account}:user/"):
+            return False
+        if credential_kind == "access_key" and (not isinstance(proof.get("MemberAccessKeyId"), str) or
+                                                 re.fullmatch(r"[A-Z0-9]{16,128}", proof["MemberAccessKeyId"]) is None):
+            return False
+        kinds = ("iam_role",) if credential_kind == "assume_role" else ("iam_user",)
+        matches = [row for kind in kinds for member_scope, row in items(self.snapshot, kind)
+                   if member_scope.split("/")[0] == account and row.get("Arn") == principal_arn and
+                   (row.get("RoleId") if kind == "iam_role" else row.get("UserId")) == principal_id]
+        if len(matches) != 1:
+            return False
+        try:
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            return (witnessed.tzinfo is not None and expires.tzinfo is not None and
+                    0 <= (now - witnessed).total_seconds() <= 900 and
+                    now < expires and 0 < (expires - witnessed).total_seconds() <= 900)
+        except (KeyError, TypeError, ValueError):
+            return False
+
     def _cloudformation_service_managed_route(self, source, target):
         """Check trusted access and one deployable StackSet/OU pair for a member account."""
         account = target.attrs.get("account", target.scope)
@@ -5108,7 +7585,8 @@ class AwsModel(Model):
             create = self._with_context(
                 {"request_context": {"cloudformation:RoleArn": {"absent": True},
                                      "cloudformation:TemplateUrl": {"absent": True}}},
-                lambda: self._check_action(source, "cloudformation:createstackset", "*"), source)
+                lambda: self._check_action(source, "cloudformation:createstackset",
+                                           "peaso-global-cloudformation-create-stackset"), source)
             if create is None:
                 continue
             names = {token}
@@ -5150,7 +7628,10 @@ class AwsModel(Model):
                         break
                     if len(grants) == 7:
                         if all(grant.confidence == "derived" for grant in grants):
-                            return ("conditional", "service_managed_stackset_template_and_region_effects")
+                            if self._cloudformation_service_managed_effect(
+                                    source, target, parent, admin_region, target_region):
+                                return ("conditional", "service_managed_stackset_template_and_region_effects")
+                            unknown = True
                         unknown = True
         return ("unknown", "service_managed_stackset_target_or_permission_not_verified") if unknown else None
 
@@ -5479,31 +7960,37 @@ class AwsModel(Model):
     def _cloudfront_edge_distribution_and_service_roles(self, source):
         account = source.scope
         partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
-        distributions = inventory_status(self.snapshot, "cloudfront_distribution")
-        known = any(scope.split("/", 1)[0] == account and status in ("collected", "empty")
-                    for scope, status in distributions.items())
-        if not known:
-            return ("unknown", "cloudfront_distribution_inventory_missing")
-        updatable = False
-        uncertain = bool(source.incomplete)
-        prefix = f"arn:{partition}:cloudfront::{account}:distribution/"
-        for scope, item in items(self.snapshot, "cloudfront_distribution"):
-            if scope.split("/", 1)[0] != account or not isinstance(item, dict):
-                continue
-            arn = item.get("ARN")
-            if not isinstance(arn, str) or not arn.startswith(prefix):
-                uncertain = True
-                continue
-            if item.get("Status") not in ("Deployed",):
-                uncertain = True
-                continue
-            grant = self.check(source, {"action": "cloudfront:UpdateDistribution"}, arn)
-            if grant is not None:
-                updatable = True
-                uncertain |= grant.confidence != "derived"
-                break
-        if not updatable:
-            return ("unknown", "cloudfront_distribution_not_verified") if uncertain else None
+        # CreateDistribution has no resource-level authorization. A literal "*" here is
+        # treated as a pattern-overlap query and would accept a distribution-scoped
+        # statement, although AWS requires Resource: "*" for this action.
+        create_grant = self.check(source, {"action": "cloudfront:CreateDistribution"},
+                                  "<aws-no-resource>")
+        usable_distribution = create_grant is not None
+        uncertain = bool(source.incomplete) or (create_grant is not None and create_grant.confidence != "derived")
+        if not usable_distribution:
+            distributions = inventory_status(self.snapshot, "cloudfront_distribution")
+            known = any(scope.split("/", 1)[0] == account and status in ("collected", "empty")
+                        for scope, status in distributions.items())
+            if not known:
+                return ("unknown", "cloudfront_distribution_inventory_missing")
+            prefix = f"arn:{partition}:cloudfront::{account}:distribution/"
+            for scope, item in items(self.snapshot, "cloudfront_distribution"):
+                if scope.split("/", 1)[0] != account or not isinstance(item, dict):
+                    continue
+                arn = item.get("ARN")
+                if not isinstance(arn, str) or not arn.startswith(prefix):
+                    uncertain = True
+                    continue
+                if item.get("Status") not in ("Deployed",):
+                    uncertain = True
+                    continue
+                grant = self.check(source, {"action": "cloudfront:UpdateDistribution"}, arn)
+                if grant is not None:
+                    usable_distribution = True
+                    uncertain |= grant.confidence != "derived"
+                    break
+            if not usable_distribution:
+                return ("unknown", "cloudfront_distribution_not_verified") if uncertain else None
         role_states = inventory_status(self.snapshot, "iam_role")
         roles_known = any(scope.split("/", 1)[0] == account and status in ("collected", "empty")
                           for scope, status in role_states.items())
@@ -5554,6 +8041,992 @@ class AwsModel(Model):
                     "conditional", "cloudfront_distribution_and_new_function_version_available")
         return ("unknown", "cloudfront_edge_function_permissions_not_verified") if uncertain else None
 
+    def _deadline_role_trust(self, role_arn, farm_arn):
+        """Check an existing Deadline role against the exact farm using it."""
+        account = self.principals[role_arn].scope
+        ctx = Context(action="sts:assumerole", resource=role_arn, overrides={
+            "aws:sourcearn": [farm_arn], "aws:sourceaccount": [account]})
+        allowed, denied, uncertain = False, False, False
+        for statement in self.trust.get(role_arn, ()):
+            if not statement.action_matches("sts:AssumeRole"):
+                continue
+            principal = statement.principals
+            matches = principal == "*" or isinstance(principal, dict) and any(
+                str(value).lower() in ("*", "credentials.deadline.amazonaws.com")
+                for value in as_list(principal.get("Service")))
+            if statement.ref.get("not_principal"):
+                uncertain = True
+                continue
+            if not matches:
+                continue
+            verdict, _ = evaluate_condition(statement.condition, ctx) if statement.condition else (True, ())
+            if verdict is None or statement.variables:
+                uncertain = True
+            elif verdict is True and statement.effect == "deny":
+                denied = True
+            elif verdict is True and statement.effect == "allow":
+                allowed = True
+        return False if denied else None if uncertain else allowed
+
+    def _deadline_existing_queue_role_vend(self, source, role):
+        if source.scope != role.scope or source.id == role.id:
+            return None
+        statuses = inventory_status(self.snapshot, "deadline_queue")
+        if not statuses:
+            return ("unknown", "deadline_queue_inventory_not_recorded")
+        uncertain = bool(source.incomplete or role.incomplete or
+                         any(status not in ("collected", "empty") for status in statuses.values()))
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        for scope, queue in items(self.snapshot, "deadline_queue"):
+            if scope.split("/", 1)[0] != source.scope or not isinstance(queue, dict):
+                continue
+            if queue.get("roleArn") != role.id:
+                continue
+            region = scope.split("/", 1)[1] if "/" in scope else ""
+            farm_id, queue_id = queue.get("farmId"), queue.get("queueId")
+            if (queue.get("collection_status") != "collected" or not re.fullmatch(r"[a-z0-9-]+", region)
+                    or not isinstance(farm_id, str) or not re.fullmatch(r"farm-[0-9a-f]{32}", farm_id)
+                    or not isinstance(queue_id, str) or not re.fullmatch(r"queue-[0-9a-f]{32}", queue_id)
+                    or queue.get("id") != farm_id + "/" + queue_id):
+                uncertain = True
+                continue
+            queue_arn = f"arn:{partition}:deadline:{region}:{source.scope}:farm/{farm_id}/queue/{queue_id}"
+            farm_arn = f"arn:{partition}:deadline:{region}:{source.scope}:farm/{farm_id}"
+            trust = self._deadline_role_trust(role.id, farm_arn)
+            if trust is False:
+                continue
+            if trust is None:
+                uncertain = True
+                continue
+            grant = self.check(source, {"action": "deadline:AssumeQueueRoleForUser"}, queue_arn)
+            if grant is None:
+                continue
+            if grant.confidence != "derived" or source.incomplete or role.incomplete:
+                uncertain = True
+                continue
+            return ("conditional", "deadline_queue_role_credentials")
+        return ("unknown", "deadline_queue_role_path_incomplete") if uncertain else None
+
+    def _deadline_passrole_queue_role_vend(self, source, role):
+        """Bind a queue update, passed role, and credential request to one queue."""
+        if source.scope != role.scope or source.id == role.id:
+            return None
+        passed = self.check(source, {"action": "iam:PassRole", "request_context": {
+            "iam:PassedToService": "deadline.amazonaws.com"}}, role.id)
+        if passed is None:
+            return None
+        create_allows, _ = self._statements(source, "deadline:createqueue")
+        update_allows, _ = self._statements(source, "deadline:updatequeue")
+        if not (create_allows or update_allows):
+            return None
+        uncertain = bool(source.incomplete or role.incomplete or passed.confidence != "derived")
+        statuses = inventory_status(self.snapshot, "deadline_queue")
+        if not statuses:
+            return ("unknown", "deadline_queue_inventory_not_recorded")
+        uncertain |= any(status not in ("collected", "empty") for status in statuses.values())
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        for scope, queue in items(self.snapshot, "deadline_queue"):
+            if scope.split("/", 1)[0] != source.scope or not isinstance(queue, dict):
+                continue
+            region = scope.split("/", 1)[1] if "/" in scope else ""
+            farm_id, queue_id = queue.get("farmId"), queue.get("queueId")
+            if (queue.get("collection_status") != "collected" or
+                    not re.fullmatch(r"[a-z0-9-]+", region) or
+                    not isinstance(farm_id, str) or not re.fullmatch(r"farm-[0-9a-f]{32}", farm_id) or
+                    not isinstance(queue_id, str) or not re.fullmatch(r"queue-[0-9a-f]{32}", queue_id) or
+                    queue.get("id") != farm_id + "/" + queue_id):
+                uncertain = True
+                continue
+            if queue.get("roleArn") == role.id:
+                continue  # Existing-role vending is covered by the separate route.
+            farm_arn = f"arn:{partition}:deadline:{region}:{source.scope}:farm/{farm_id}"
+            queue_arn = f"{farm_arn}/queue/{queue_id}"
+            trust = self._deadline_role_trust(role.id, farm_arn)
+            if trust is False:
+                continue
+            if trust is None:
+                uncertain = True
+                continue
+            update = self.check(source, {"action": "deadline:UpdateQueue"}, queue_arn)
+            vend = self.check(source, {"action": "deadline:AssumeQueueRoleForUser"}, queue_arn)
+            if update is None or vend is None:
+                continue
+            if (update.confidence == vend.confidence == passed.confidence == "derived" and
+                    not source.incomplete and not role.incomplete):
+                return ("conditional", "deadline_exact_queue_update_and_role_vend")
+            uncertain = True
+        # CreateQueue receives a service-generated queue ID. Without a binding
+        # to that ID, even broad grants cannot establish a concrete role edge.
+        if create_allows:
+            uncertain = True
+        return ("unknown", "deadline_queue_creation_or_role_update_not_verified") if uncertain else None
+
+    def _deadline_existing_worker_role_vend(self, source, role):
+        if source.scope != role.scope or source.id == role.id:
+            return None
+        statuses = inventory_status(self.snapshot, "deadline_worker")
+        if not statuses:
+            return ("unknown", "deadline_worker_inventory_not_recorded")
+        uncertain = bool(source.incomplete or role.incomplete or
+                         any(status not in ("collected", "empty") for status in statuses.values()))
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        for scope, worker in items(self.snapshot, "deadline_worker"):
+            if scope.split("/", 1)[0] != source.scope or not isinstance(worker, dict):
+                continue
+            if worker.get("roleArn") != role.id:
+                continue
+            region = scope.split("/", 1)[1] if "/" in scope else ""
+            farm_id, fleet_id, worker_id = (worker.get("farmId"), worker.get("fleetId"),
+                                            worker.get("workerId"))
+            if (worker.get("collection_status") != "collected" or not re.fullmatch(r"[a-z0-9-]+", region)
+                    or not isinstance(farm_id, str) or not re.fullmatch(r"farm-[0-9a-f]{32}", farm_id)
+                    or not isinstance(fleet_id, str) or not re.fullmatch(r"fleet-[0-9a-f]{32}", fleet_id)
+                    or not isinstance(worker_id, str) or not re.fullmatch(r"worker-[0-9a-f]{32}", worker_id)
+                    or worker.get("id") != farm_id + "/" + fleet_id + "/" + worker_id):
+                uncertain = True
+                continue
+            if (worker.get("fleetStatus") != "ACTIVE" or
+                    worker.get("workerStatus") not in ("CREATED", "STARTED", "RUNNING", "IDLE")):
+                uncertain = True
+                continue
+            farm_arn = f"arn:{partition}:deadline:{region}:{source.scope}:farm/{farm_id}"
+            trust = self._deadline_role_trust(role.id, farm_arn)
+            if trust is False:
+                continue
+            if trust is None:
+                uncertain = True
+                continue
+            worker_arn = f"{farm_arn}/fleet/{fleet_id}/worker/{worker_id}"
+            grant = self.check(source, {"action": "deadline:AssumeFleetRoleForWorker"}, worker_arn)
+            if grant is None:
+                continue
+            if grant.confidence != "derived" or source.incomplete or role.incomplete:
+                uncertain = True
+                continue
+            return ("conditional", "deadline_existing_worker_role_credentials")
+        return ("unknown", "deadline_worker_role_path_incomplete") if uncertain else None
+
+    def _deadline_new_worker_role_vend(self, source, role):
+        """Conservatively bind a future worker to an existing eligible fleet."""
+        if source.scope != role.scope or source.id == role.id:
+            return None
+        statuses = inventory_status(self.snapshot, "deadline_fleet_role")
+        if not statuses:
+            return ("unknown", "deadline_fleet_role_inventory_not_recorded")
+        uncertain = bool(source.incomplete or role.incomplete or
+                         any(status not in ("collected", "empty") for status in statuses.values()))
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        for scope, fleet in items(self.snapshot, "deadline_fleet_role"):
+            if scope.split("/", 1)[0] != source.scope or not isinstance(fleet, dict):
+                continue
+            if fleet.get("roleArn") != role.id:
+                continue
+            region = scope.split("/", 1)[1] if "/" in scope else ""
+            farm_id, fleet_id = fleet.get("farmId"), fleet.get("fleetId")
+            if (fleet.get("collection_status") != "collected" or not re.fullmatch(r"[a-z0-9-]+", region)
+                    or not isinstance(farm_id, str) or not re.fullmatch(r"farm-[0-9a-f]{32}", farm_id)
+                    or not isinstance(fleet_id, str) or not re.fullmatch(r"fleet-[0-9a-f]{32}", fleet_id)
+                    or fleet.get("id") != farm_id + "/" + fleet_id):
+                uncertain = True
+                continue
+            maximum, used = fleet.get("maxWorkerCount"), fleet.get("workerCount")
+            if (fleet.get("fleetStatus") != "ACTIVE" or fleet.get("fleetMode") != "customerManaged"
+                    or type(maximum) is not int or type(used) is not int or maximum <= used):
+                uncertain = True
+                continue
+            farm_arn = f"arn:{partition}:deadline:{region}:{source.scope}:farm/{farm_id}"
+            trust = self._deadline_role_trust(role.id, farm_arn)
+            if trust is False:
+                continue
+            if trust is None:
+                uncertain = True
+                continue
+            prefix = f"{farm_arn}/fleet/{fleet_id}/worker/"
+            probes = tuple(prefix + "worker-" + digit * 32 for digit in ("0", "f"))
+            fleet_arn = f"{farm_arn}/fleet/{fleet_id}"
+            list_tags = self.check(source, {"action": "deadline:ListTagsForResource",
+                                            "request_context": {"deadline:CalledAction": "CreateWorker"}},
+                                   fleet_arn)
+            if list_tags is None or list_tags.confidence != "derived":
+                uncertain = True
+                continue
+            for action in ("deadline:CreateWorker", "deadline:AssumeFleetRoleForWorker",
+                           "deadline:TagResource"):
+                allows, denies = self._statements(source, action.lower())
+                # The worker ID is generated by Deadline. Accept only a grant
+                # whose resource pattern covers every possible ID in this fleet.
+                broad = any(not statement.notresource and not statement.variables and any(
+                    _glob_covers_deadline_worker_ids(pattern, prefix)
+                    for pattern in statement.resources) for statement in allows)
+                if not broad or denies:
+                    uncertain = True
+                    break
+                request = {"action": action}
+                if action == "deadline:TagResource":
+                    request["request_context"] = {"deadline:CalledAction": "CreateWorker"}
+                grants = [self.check(source, request, arn) for arn in probes]
+                if any(grant is None or grant.confidence != "derived" for grant in grants):
+                    uncertain = True
+                    break
+            else:
+                return ("conditional", "deadline_new_worker_role_credentials")
+        return ("unknown", "deadline_new_worker_role_path_incomplete") if uncertain else None
+
+    def _deadline_fleet_worker_bounded_authority(self, source, target):
+        """Accept only a witnessed new worker operation, never the whole fleet role."""
+        technique = "aws-deadline-passrole-fleet-createworker"
+        worker_arn = target.attrs.get("resource_arn")
+        if target.scope != source.scope or not isinstance(worker_arn, str):
+            return None
+        match = re.fullmatch(
+            rf"arn:(aws|aws-cn|aws-us-gov):deadline:([a-z0-9-]+):{re.escape(source.scope)}:"
+            r"farm/(farm-[0-9a-f]{32})/fleet/(fleet-[0-9a-f]{32})/worker/(worker-[0-9a-f]{32})",
+            worker_arn)
+        if match is None:
+            return ("unknown", "deadline_worker_identity_not_verified")
+        partition, region, farm_id, fleet_id, worker_id = match.groups()
+        scope = f"{source.scope}/{region}"
+        farm_arn = f"arn:{partition}:deadline:{region}:{source.scope}:farm/{farm_id}"
+        fleet_arn = f"{farm_arn}/fleet/{fleet_id}"
+        records = self.bounded_evidence_records.get(
+            (technique, source.id, "aws_verified_authority", worker_arn), ())
+        statuses = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+        if len(records) != 1 or records[0][0] != scope or statuses.get(scope) != "collected":
+            return ("unknown", "deadline_worker_evidence_missing_or_conflicting")
+        proof = records[0][1]
+        role_arn = proof.get("FleetRoleArn")
+        operation = proof.get("FleetOperation")
+        action = proof.get("WorkerAction")
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("EffectType") != "bounded_resource_operation" or
+                proof.get("VerifiedConditionIds") != ["exact_verified_worker_authority"] or
+                proof.get("TargetAccount") != source.scope or proof.get("TargetId") != worker_arn or
+                proof.get("FarmArn") != farm_arn or proof.get("FleetArn") != fleet_arn or
+                proof.get("WorkerArn") != worker_arn or proof.get("FarmId") != farm_id or
+                proof.get("FleetId") != fleet_id or proof.get("WorkerId") != worker_id or
+                proof.get("FleetMode") != "customerManaged" or
+                operation not in ("CreateFleet", "UpdateFleet") or
+                proof.get("FleetOperationSucceeded") is not True or
+                proof.get("CreateWorkerSucceeded") is not True or
+                proof.get("AssumeFleetRoleForWorkerSucceeded") is not True or
+                proof.get("WorkerCredentialsUsed") is not True or
+                proof.get("WorkerActionSucceeded") is not True or
+                proof.get("SourcePreviouslyDenied") is not True or
+                action not in ("deadline:UpdateWorker", "deadline:UpdateWorkerSchedule",
+                               "deadline:BatchGetJobEntity") or
+                proof.get("WorkerActionResourceArn") != worker_arn or
+                type(proof.get("WorkerTagPropagationEnabled")) is not bool or
+                type(proof.get("FleetTagsRequested")) is not bool or
+                not isinstance(role_arn, str) or
+                not isinstance(proof.get("FleetRoleId"), str) or not proof["FleetRoleId"] or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "deadline_worker_effect_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "deadline_worker_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "deadline_worker_evidence_time_missing")
+        roles = [row for role_scope, row in items(self.snapshot, "iam_role")
+                 if role_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role_arn]
+        if (len(roles) != 1 or roles[0].get("RoleId") != proof["FleetRoleId"] or
+                role_arn not in self.principals):
+            return ("unknown", "deadline_fleet_role_identity_not_verified")
+        role = self.principals[role_arn]
+        if source.incomplete or role.incomplete or self._deadline_role_trust(role_arn, farm_arn) is not True:
+            return ("unknown", "deadline_fleet_role_trust_not_verified")
+        requests = [
+            (source, {"action": "iam:PassRole", "request_context": {
+                "iam:PassedToService": "deadline.amazonaws.com"}}, role_arn),
+            (source, {"action": "deadline:" + operation}, fleet_arn),
+            (source, {"action": "deadline:ListTagsForResource", "request_context": {
+                "deadline:CalledAction": "CreateWorker"}}, fleet_arn),
+            (source, {"action": "deadline:CreateWorker"}, worker_arn),
+            (source, {"action": "deadline:AssumeFleetRoleForWorker"}, worker_arn),
+            (role, {"action": action}, worker_arn),
+        ]
+        if proof.get("WorkerTagPropagationEnabled") is True:
+            requests.append((source, {"action": "deadline:TagResource", "request_context": {
+                "deadline:CalledAction": "CreateWorker"}}, worker_arn))
+        if proof.get("FleetTagsRequested") is True and operation == "CreateFleet":
+            requests.append((source, {"action": "deadline:TagResource", "request_context": {
+                "deadline:CalledAction": "CreateFleet"}}, fleet_arn))
+        grants = [self.check(principal, request, resource) for principal, request, resource in requests]
+        if any(grant is None or grant.confidence != "derived" for grant in grants):
+            return ("unknown", "deadline_worker_scoped_permissions_not_verified")
+        if self.check(source, {"action": action}, worker_arn) is not None:
+            return None
+        return ("conditional", "deadline_exact_worker_new_authority")
+
+    def _devicefarm_existing_test_spec_role_effect(self, source, role):
+        """Join an existing controlled spec and its actual role action to one run."""
+        technique = "aws-devicefarm-schedulerun-existing-test-spec-passrole"
+        if source.scope != role.scope or source.id == role.id:
+            return None
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "devicefarm_existing_spec_evidence_missing_or_conflicting")
+        scope, proof = records[0]
+        statuses = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+        if statuses.get(scope) != "collected" or source.incomplete or role.incomplete:
+            return ("unknown", "devicefarm_existing_spec_evidence_incomplete")
+        project = proof.get("ProjectArn")
+        pool = proof.get("DevicePoolArn")
+        spec = proof.get("TestSpecArn")
+        package = proof.get("TestPackageArn")
+        app = proof.get("AppArn")
+        run = proof.get("RunArn")
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        region = scope.split("/", 1)[1] if "/" in scope else ""
+        prefix = f"arn:{partition}:devicefarm:{region}:{source.scope}:"
+        project_match = (re.fullmatch(re.escape(prefix) + r"project:([A-Za-z0-9-]+)", project)
+                         if isinstance(project, str) else None)
+        if project_match is None:
+            return ("unknown", "devicefarm_existing_spec_project_not_verified")
+        project_id = project_match.group(1)
+        upload_prefix = prefix + "upload:" + project_id + "/"
+        valid_upload = lambda arn: isinstance(arn, str) and arn.startswith(upload_prefix) and bool(
+            re.fullmatch(r"[A-Za-z0-9-]+", arn[len(upload_prefix):]))
+        pool_prefix = f"arn:{partition}:devicefarm:{region}:"
+        valid_pool = isinstance(pool, str) and any(re.fullmatch(
+            re.escape(pool_prefix + owner + ":devicepool:") + r"[A-Za-z0-9-]+", pool)
+            for owner in (source.scope, ""))
+        if (not valid_pool or not valid_upload(spec) or not valid_upload(package) or
+                (app is not None and not valid_upload(app)) or
+                not isinstance(run, str) or re.fullmatch(
+                    re.escape(prefix + "run:" + project_id + "/") + r"[A-Za-z0-9-]+", run) is None or
+                proof.get("TestType") != "APPIUM_WEB_NODE" or
+                proof.get("TargetRoleId") is None or
+                proof.get("ExecutionRoleArn") != role.id or
+                proof.get("ScheduleRunSucceeded") is not True or
+                proof.get("RunExecutedTestSpec") is not True or
+                proof.get("TestSpecControlledBySource") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource):
+            return ("unknown", "devicefarm_existing_spec_run_or_role_effect_not_verified")
+        roles = [row for row_scope, row in items(self.snapshot, "iam_role")
+                 if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        if len(roles) != 1 or roles[0].get("RoleId") != proof["TargetRoleId"]:
+            return ("unknown", "devicefarm_existing_spec_role_identity_not_verified")
+        projects = [row for row_scope, row in items(self.snapshot, "devicefarm_project")
+                    if row_scope == scope and row.get("arn") == project]
+        pools = [row for row_scope, row in items(self.snapshot, "devicefarm_device_pool")
+                 if row_scope == scope and row.get("arn") == pool and row.get("ProjectArn") == project
+                 and type(row.get("CompatibleWebNodeDevices")) is int and row["CompatibleWebNodeDevices"] > 0]
+        uploads = {}
+        for row_scope, row in items(self.snapshot, "devicefarm_upload"):
+            if row_scope == scope and row.get("ProjectArn") == project:
+                uploads.setdefault(row.get("arn"), []).append(row)
+        wanted = [(spec, "APPIUM_WEB_NODE_TEST_SPEC"),
+                  (package, "APPIUM_WEB_NODE_TEST_PACKAGE")]
+        if app is not None:
+            wanted.append((app, None))
+        if (len(projects) != 1 or len(pools) != 1 or
+                any(len(uploads.get(arn, ())) != 1 or
+                    uploads[arn][0].get("status") != "SUCCEEDED" or
+                    (kind is not None and uploads[arn][0].get("type") != kind) or
+                    (kind is None and uploads[arn][0].get("type") not in ("ANDROID_APP", "IOS_APP"))
+                    for arn, kind in wanted)):
+            return ("unknown", "devicefarm_existing_spec_resources_not_verified")
+        for kind in ("devicefarm_project", "devicefarm_device_pool", "devicefarm_upload"):
+            if inventory_status(self.snapshot, kind).get(scope) not in ("collected", "partial"):
+                return ("unknown", "devicefarm_existing_spec_inventory_incomplete")
+        context = {"aws:RequestedRegion": region}
+        requests = [("devicefarm:ScheduleRun", arn) for arn in
+                    (project, pool, spec, package, *([app] if app else []))]
+        grants = [self.check(source, {"action": act, "request_context": context}, arn)
+                  for act, arn in requests]
+        grants.append(self.check(source, {"action": "iam:PassRole", "request_context": {
+            **context, "iam:PassedToService": "devicefarm.amazonaws.com"}}, role.id))
+        target_action = self.check(role, {"action": action}, resource)
+        source_action = self.check(source, {"action": action}, resource)
+        if (any(grant is None or grant.confidence != "derived" for grant in grants) or
+                target_action is None or target_action.confidence != "derived"):
+            return ("unknown", "devicefarm_existing_spec_scoped_permissions_not_verified")
+        if source_action is not None:
+            return None
+        return ("conditional", "devicefarm_existing_spec_exact_run_role_effect")
+
+    def _autoscaling_created_launch_input_role_effect(self, source, role):
+        """Require one accepted ASG launch and a witnessed useful instance-role action."""
+        technique = "aws-ec2-autoscaling-create-update-asg-passrole"
+        if source.scope != role.scope or source.id == role.id:
+            return None
+        passed = self.check(source, {"action": "iam:PassRole", "request_context": {
+            "iam:PassedToService": "ec2.amazonaws.com"}}, role.id)
+        if passed is None:
+            return None
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "autoscaling_launch_role_evidence_missing_or_conflicting")
+        scope, proof = records[0]
+        if (inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"
+                or source.incomplete or role.incomplete):
+            return ("unknown", "autoscaling_launch_role_evidence_incomplete")
+        region = scope.split("/", 1)[1] if "/" in scope else ""
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        lc = proof.get("LaunchConfigurationArn")
+        lt = proof.get("LaunchTemplateArn")
+        group = proof.get("AutoScalingGroupArn")
+        instance = proof.get("InstanceArn")
+        profile = proof.get("InstanceProfileArn")
+        operation = proof.get("GroupOperation")
+        kind = proof.get("LaunchInputKind")
+        asg_prefix = f"arn:{partition}:autoscaling:{region}:{source.scope}:"
+        ec2_prefix = f"arn:{partition}:ec2:{region}:{source.scope}:"
+        group_pattern = (re.escape(asg_prefix) +
+            r"autoScalingGroup:[A-Za-z0-9-]+:autoScalingGroupName/[A-Za-z0-9_.-]+")
+        lc_pattern = (re.escape(asg_prefix) +
+            r"launchConfiguration:[A-Za-z0-9-]+:launchConfigurationName/[A-Za-z0-9_.-]+")
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("TechniqueId") != technique or proof.get("SourceArn") != source.id or
+                proof.get("TargetKind") != "aws_role" or proof.get("TargetId") != role.id or
+                scope != f"{source.scope}/{region}" or not re.fullmatch(r"[a-z0-9-]+", region) or
+                not isinstance(group, str) or re.fullmatch(group_pattern, group) is None or
+                not isinstance(instance, str) or
+                re.fullmatch(re.escape(ec2_prefix) + r"instance/i-[0-9a-f]+", instance) is None or
+                not isinstance(profile, str) or
+                re.fullmatch(rf"arn:{re.escape(partition)}:iam::{re.escape(source.scope)}:"
+                             r"instance-profile/.+", profile) is None or
+                operation not in ("CreateAutoScalingGroup", "UpdateAutoScalingGroup") or
+                kind not in ("LaunchConfiguration", "LaunchTemplate") or
+                proof.get("LaunchInputCreatedSucceeded") is not True or
+                proof.get("GroupOperationSucceeded") is not True or
+                proof.get("GroupUsesCreatedLaunchInput") is not True or
+                proof.get("InstanceLaunchedSucceeded") is not True or
+                proof.get("InstanceInGroup") is not True or
+                proof.get("InstanceProfileApplied") is not True or
+                proof.get("UserDataControlledBySource") is not True or
+                proof.get("UserDataExecuted") is not True or
+                proof.get("UserDataUsedRoleCredentials") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "autoscaling_launch_or_role_effect_not_verified")
+        if kind == "LaunchConfiguration":
+            if (not isinstance(lc, str) or re.fullmatch(lc_pattern, lc) is None or
+                    lt is not None):
+                return ("unknown", "autoscaling_launch_configuration_identity_not_verified")
+            input_arn, create_action = lc, "autoscaling:CreateLaunchConfiguration"
+        else:
+            if (not isinstance(lt, str) or
+                    re.fullmatch(re.escape(ec2_prefix) + r"launch-template/lt-[0-9a-f]+", lt) is None or
+                    lc is not None or proof.get("LaunchTemplateVersion") != "1" or
+                    proof.get("RunInstancesAuthorizationResourcesComplete") is not True):
+                return ("unknown", "autoscaling_launch_template_identity_not_verified")
+            input_arn, create_action = lt, "ec2:CreateLaunchTemplate"
+        roles = [row for row_scope, row in items(self.snapshot, "iam_role")
+                 if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        if (len(roles) != 1 or not isinstance(proof.get("TargetRoleId"), str) or
+                not proof["TargetRoleId"] or roles[0].get("RoleId") != proof["TargetRoleId"] or
+                proof.get("InstanceRoleId") != proof.get("TargetRoleId") or
+                profile not in [entry.get("Arn") for entry in roles[0].get("InstanceProfileList", ())
+                                if isinstance(entry, dict)]):
+            return ("unknown", "autoscaling_instance_profile_role_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "autoscaling_launch_role_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "autoscaling_launch_role_evidence_time_missing")
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        if (not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource):
+            return ("unknown", "autoscaling_role_action_not_verified")
+        context = {"aws:RequestedRegion": region}
+        grants = [passed,
+            self.check(source, {"action": create_action, "request_context": context}, input_arn),
+            self.check(source, {"action": "autoscaling:" + operation,
+                                "request_context": context}, group),
+            self.check(role, {"action": action}, resource)]
+        if kind == "LaunchTemplate":
+            resources = proof.get("RunInstancesAuthorizationResources")
+            if (not isinstance(resources, list) or not resources or
+                    any(not isinstance(item, str) or "*" in item or "?" in item for item in resources) or
+                    len(set(resources)) != len(resources) or
+                    instance not in resources or input_arn not in resources):
+                return ("unknown", "autoscaling_runinstances_resource_set_not_verified")
+            grants.extend(self.check(source, {"action": "ec2:RunInstances",
+                                              "request_context": context}, item)
+                          for item in resources)
+        if any(grant is None or grant.confidence != "derived" for grant in grants):
+            return ("unknown", "autoscaling_launch_scoped_permissions_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "autoscaling_created_input_instance_role_effect")
+
+    def _elasticbeanstalk_environment_role_effect(self, source, role):
+        """Bind a deployed source bundle to an instance using the exact role."""
+        technique = "aws-elasticbeanstalk-passrole-create-environment"
+        if source.scope != role.scope or source.id == role.id:
+            return None
+        pass_allows, _ = self._statements(source, "iam:passrole")
+        create_allows, _ = self._statements(source, "elasticbeanstalk:createenvironment")
+        update_allows, _ = self._statements(source, "elasticbeanstalk:updateenvironment")
+        if not pass_allows or not (create_allows or update_allows):
+            return ("unknown", "beanstalk_source_permissions_incomplete") if source.incomplete else None
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "beanstalk_role_execution_evidence_missing_or_conflicting")
+        scope, proof = records[0]
+        if (inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"
+                or source.incomplete or role.incomplete):
+            return ("unknown", "beanstalk_role_execution_evidence_incomplete")
+        region = scope.split("/", 1)[1] if "/" in scope else ""
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        app_name = proof.get("ApplicationName")
+        env_name = proof.get("EnvironmentName")
+        label = proof.get("VersionLabel")
+        if (not re.fullmatch(r"[a-z0-9-]+", region) or
+                any(not isinstance(value, str) or re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,99}", value) is None
+                    for value in (app_name, env_name, label))):
+            return ("unknown", "beanstalk_application_environment_names_not_verified")
+        prefix = f"arn:{partition}:elasticbeanstalk:{region}:{source.scope}:"
+        app = prefix + "application/" + app_name
+        version = prefix + f"applicationversion/{app_name}/{label}"
+        environment = prefix + f"environment/{app_name}/{env_name}"
+        instance = proof.get("InstanceArn")
+        profile = proof.get("InstanceProfileArn")
+        bundle = proof.get("SourceBundleArn")
+        operation = proof.get("EnvironmentOperation")
+        role_action, role_resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        service = proof.get("PassRoleService")
+        associated = proof.get("PassRoleAssociatedResourceArn")
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("TechniqueId") != technique or proof.get("SourceArn") != source.id or
+                proof.get("TargetKind") != "aws_role" or proof.get("TargetId") != role.id or
+                proof.get("ApplicationArn") != app or proof.get("ApplicationVersionArn") != version or
+                proof.get("EnvironmentArn") != environment or
+                operation not in ("CreateEnvironment", "UpdateEnvironment") or
+                not isinstance(instance, str) or re.fullmatch(
+                    rf"arn:{re.escape(partition)}:ec2:{re.escape(region)}:{re.escape(source.scope)}:instance/i-[0-9a-f]+",
+                    instance) is None or
+                not isinstance(profile, str) or re.fullmatch(
+                    rf"arn:{re.escape(partition)}:iam::{re.escape(source.scope)}:instance-profile/.+",
+                    profile) is None or
+                not isinstance(bundle, str) or re.fullmatch(
+                    rf"arn:{re.escape(partition)}:s3:::[^/]+/.+", bundle) is None or
+                not isinstance(service, str) or re.fullmatch(
+                    r"[a-z0-9-]+(?:\.[a-z0-9-]+)*\.amazonaws\.com(?:\.cn)?", service) is None or
+                (associated is not None and (not isinstance(associated, str) or
+                 not associated.startswith(f"arn:{partition}:") or
+                 "*" in associated or "?" in associated)) or
+                proof.get("PassRoleContextReviewed") is not True or
+                proof.get("ApplicationVersionCreatedBySource") is not True or
+                type(proof.get("ApplicationCreatedBySource")) is not bool or
+                proof.get("SourceBundleUploadedBySource") is not True or
+                proof.get("SourceBundleReadableByEnvironment") is not True or
+                proof.get("SourceBundleSameRegion") is not True or
+                proof.get("EnvironmentServiceRoleReady") is not True or
+                proof.get("EnvironmentOperationSucceeded") is not True or
+                proof.get("EnvironmentVersionApplied") is not True or
+                proof.get("InstanceLaunchedByEnvironment") is not True or
+                proof.get("InstanceProfileApplied") is not True or
+                proof.get("SourceCodeExecuted") is not True or
+                proof.get("SourceCodeUsedRoleCredentials") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                not isinstance(role_action, str) or re.fullmatch(
+                    r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", role_action) is None or
+                not isinstance(role_resource, str) or not role_resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "beanstalk_deployment_or_role_effect_not_verified")
+        roles = [row for row_scope, row in items(self.snapshot, "iam_role")
+                 if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        if (len(roles) != 1 or not isinstance(proof.get("TargetRoleId"), str) or
+                not proof["TargetRoleId"] or roles[0].get("RoleId") != proof["TargetRoleId"] or
+                proof.get("InstanceRoleId") != proof["TargetRoleId"] or
+                profile not in [entry.get("Arn") for entry in roles[0].get("InstanceProfileList", ())
+                                if isinstance(entry, dict)]):
+            return ("unknown", "beanstalk_role_or_profile_identity_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "beanstalk_role_execution_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "beanstalk_role_execution_evidence_time_missing")
+        context = {"aws:RequestedRegion": region, "elasticbeanstalk:InApplication": app,
+                   "elasticbeanstalk:FromApplicationVersion": version}
+        pass_context = {"iam:PassedToService": service}
+        if associated is not None:
+            pass_context["iam:AssociatedResourceArn"] = associated
+        grants = [self.check(source, {"action": "iam:PassRole", "request_context": pass_context}, role.id),
+            self.check(source, {"action": "s3:PutObject"}, bundle),
+            self.check(source, {"action": "elasticbeanstalk:CreateApplicationVersion",
+                                "request_context": context}, app),
+            self.check(source, {"action": "elasticbeanstalk:CreateApplicationVersion",
+                                "request_context": context}, version),
+            self.check(source, {"action": "elasticbeanstalk:" + operation,
+                                "request_context": context}, environment),
+            self.check(role, {"action": role_action}, role_resource)]
+        if proof["ApplicationCreatedBySource"]:
+            grants.append(self.check(source, {"action": "elasticbeanstalk:CreateApplication",
+                                              "request_context": {"aws:RequestedRegion": region}}, app))
+        if any(grant is None or grant.confidence != "derived" for grant in grants):
+            return ("unknown", "beanstalk_scoped_permissions_not_verified")
+        if self.check(source, {"action": role_action}, role_resource) is not None:
+            return None
+        return ("conditional", "beanstalk_exact_environment_instance_role_effect")
+
+    def _spot_request_instance_role_effect(self, source, role):
+        """Bind one fulfilled Spot request to the instance role actually used."""
+        technique = "aws-ec2-requestspotinstances-passrole"
+        if source.scope != role.scope or source.id == role.id:
+            return None
+        pass_allows, _ = self._statements(source, "iam:passrole")
+        request_allows, _ = self._statements(source, "ec2:requestspotinstances")
+        if not pass_allows or not request_allows:
+            return ("unknown", "ec2_spot_request_source_permissions_incomplete") if source.incomplete else None
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "ec2_spot_request_role_execution_evidence_missing_or_conflicting")
+        scope, proof = records[0]
+        if (inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"
+                or source.incomplete or role.incomplete):
+            return ("unknown", "ec2_spot_request_role_execution_evidence_incomplete")
+        region = scope.split("/", 1)[1] if "/" in scope else ""
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        ec2_prefix = f"arn:{partition}:ec2:{region}:{source.scope}:"
+        request = proof.get("SpotRequestArn")
+        instance = proof.get("InstanceArn")
+        image = proof.get("ImageArn")
+        subnet = proof.get("SubnetArn")
+        group = proof.get("SecurityGroupArn")
+        interface = proof.get("NetworkInterfaceArn")
+        profile = proof.get("InstanceProfileArn")
+        resource_patterns = (
+            (request, re.escape(ec2_prefix) + r"spot-instances-request/sir-[0-9a-f]+"),
+            (instance, re.escape(ec2_prefix) + r"instance/i-[0-9a-f]+"),
+            (image, rf"arn:{re.escape(partition)}:ec2:{re.escape(region)}::image/ami-[0-9a-f]+"),
+            (subnet, re.escape(ec2_prefix) + r"subnet/subnet-[0-9a-f]+"),
+            (group, re.escape(ec2_prefix) + r"security-group/sg-[0-9a-f]+"),
+            (interface, re.escape(ec2_prefix) + r"network-interface/eni-[0-9a-f]+"),
+            (profile, rf"arn:{re.escape(partition)}:iam::{re.escape(source.scope)}:instance-profile/.+"),
+        )
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("TechniqueId") != technique or proof.get("SourceArn") != source.id or
+                proof.get("TargetKind") != "aws_role" or proof.get("TargetId") != role.id or
+                scope != f"{source.scope}/{region}" or not re.fullmatch(r"[a-z0-9-]+", region) or
+                any(not isinstance(value, str) or re.fullmatch(pattern, value) is None
+                    for value, pattern in resource_patterns) or
+                proof.get("RequestSpotInstancesSucceeded") is not True or
+                proof.get("SpotRequestFulfilled") is not True or
+                proof.get("SpotServiceLinkedRoleReady") is not True or
+                proof.get("RequestLaunchedInstance") is not True or
+                proof.get("InstanceProfileApplied") is not True or
+                proof.get("UserDataControlledBySource") is not True or
+                proof.get("UserDataExecuted") is not True or
+                proof.get("UserDataUsedRoleCredentials") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                type(proof.get("TagsRequested")) is not bool or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "ec2_spot_request_launch_or_role_effect_not_verified")
+        roles = [row for row_scope, row in items(self.snapshot, "iam_role")
+                 if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        if (len(roles) != 1 or not isinstance(proof.get("TargetRoleId"), str) or
+                not proof["TargetRoleId"] or roles[0].get("RoleId") != proof["TargetRoleId"] or
+                proof.get("InstanceRoleId") != proof["TargetRoleId"] or
+                profile not in [entry.get("Arn") for entry in roles[0].get("InstanceProfileList", ())
+                                if isinstance(entry, dict)]):
+            return ("unknown", "ec2_spot_request_role_or_profile_identity_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "ec2_spot_request_role_execution_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "ec2_spot_request_role_execution_evidence_time_missing")
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        if (not isinstance(action, str) or re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource):
+            return ("unknown", "ec2_spot_request_role_action_not_verified")
+        request_resources = proof.get("RequestSpotInstancesAuthorizationResources")
+        required = (request, image, subnet, group, interface)
+        if (proof.get("RequestSpotInstancesAuthorizationResourcesComplete") is not True or
+                not isinstance(request_resources, list) or not request_resources or
+                any(not isinstance(item, str) or "*" in item or "?" in item for item in request_resources) or
+                len(set(request_resources)) != len(request_resources) or
+                any(item not in request_resources for item in required)):
+            return ("unknown", "ec2_spot_request_authorization_resources_not_verified")
+        region_context = {"aws:RequestedRegion": region}
+        grants = [self.check(source, {"action": "iam:PassRole", "request_context": {
+            **region_context, "iam:PassedToService": "ec2.amazonaws.com",
+            "iam:AssociatedResourceArn": instance}}, role.id),
+            self.check(role, {"action": action}, resource)]
+        grants.extend(self.check(source, {"action": "ec2:RequestSpotInstances",
+                                          "request_context": region_context}, item)
+                      for item in request_resources)
+        if proof["TagsRequested"]:
+            tag_resources = proof.get("TaggingResources")
+            if (proof.get("TaggingResourcesComplete") is not True or
+                    not isinstance(tag_resources, list) or not tag_resources or
+                    any(not isinstance(item, str) or "*" in item or "?" in item for item in tag_resources)):
+                return ("unknown", "ec2_spot_request_tagging_resources_not_verified")
+            grants.extend(self.check(source, {"action": "ec2:CreateTags", "request_context": {
+                **region_context, "ec2:CreateAction": "RequestSpotInstances"}}, item) for item in tag_resources)
+        if any(grant is None or grant.confidence != "derived" for grant in grants):
+            return ("unknown", "ec2_spot_request_scoped_permissions_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "ec2_spot_request_exact_instance_role_effect")
+
+    def _runinstances_instance_role_effect(self, source, role):
+        """Join the exact EC2 launch, applied profile and witnessed role action."""
+        technique = "aws-ec2-passrole-runinstances"
+        if source.scope != role.scope or source.id == role.id:
+            return None
+        pass_allows, _ = self._statements(source, "iam:passrole")
+        run_allows, _ = self._statements(source, "ec2:runinstances")
+        if not pass_allows or not run_allows:
+            return ("unknown", "ec2_runinstances_source_permissions_incomplete") if source.incomplete else None
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "ec2_runinstances_role_execution_evidence_missing_or_conflicting")
+        scope, proof = records[0]
+        if (inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"
+                or source.incomplete or role.incomplete):
+            return ("unknown", "ec2_runinstances_role_execution_evidence_incomplete")
+        region = scope.split("/", 1)[1] if "/" in scope else ""
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        ec2_prefix = f"arn:{partition}:ec2:{region}:{source.scope}:"
+        instance = proof.get("InstanceArn")
+        image = proof.get("ImageArn")
+        subnet = proof.get("SubnetArn")
+        group = proof.get("SecurityGroupArn")
+        interface = proof.get("NetworkInterfaceArn")
+        profile = proof.get("InstanceProfileArn")
+        resource_patterns = (
+            (instance, re.escape(ec2_prefix) + r"instance/i-[0-9a-f]+"),
+            (image, rf"arn:{re.escape(partition)}:ec2:{re.escape(region)}::image/ami-[0-9a-f]+"),
+            (subnet, re.escape(ec2_prefix) + r"subnet/subnet-[0-9a-f]+"),
+            (group, re.escape(ec2_prefix) + r"security-group/sg-[0-9a-f]+"),
+            (interface, re.escape(ec2_prefix) + r"network-interface/eni-[0-9a-f]+"),
+            (profile, rf"arn:{re.escape(partition)}:iam::{re.escape(source.scope)}:instance-profile/.+"),
+        )
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("TechniqueId") != technique or proof.get("SourceArn") != source.id or
+                proof.get("TargetKind") != "aws_role" or proof.get("TargetId") != role.id or
+                scope != f"{source.scope}/{region}" or not re.fullmatch(r"[a-z0-9-]+", region) or
+                any(not isinstance(value, str) or re.fullmatch(pattern, value) is None
+                    for value, pattern in resource_patterns) or
+                proof.get("RunInstancesSucceeded") is not True or
+                proof.get("InstanceLaunchedSucceeded") is not True or
+                proof.get("InstanceProfileApplied") is not True or
+                proof.get("UserDataControlledBySource") is not True or
+                proof.get("UserDataExecuted") is not True or
+                proof.get("UserDataUsedRoleCredentials") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                type(proof.get("TagsRequested")) is not bool or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "ec2_runinstances_launch_or_role_effect_not_verified")
+        roles = [row for row_scope, row in items(self.snapshot, "iam_role")
+                 if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        if (len(roles) != 1 or not isinstance(proof.get("TargetRoleId"), str) or
+                not proof["TargetRoleId"] or roles[0].get("RoleId") != proof["TargetRoleId"] or
+                proof.get("InstanceRoleId") != proof["TargetRoleId"] or
+                profile not in [entry.get("Arn") for entry in roles[0].get("InstanceProfileList", ())
+                                if isinstance(entry, dict)]):
+            return ("unknown", "ec2_runinstances_role_or_profile_identity_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "ec2_runinstances_role_execution_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "ec2_runinstances_role_execution_evidence_time_missing")
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        if (not isinstance(action, str) or re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource):
+            return ("unknown", "ec2_runinstances_role_action_not_verified")
+        run_resources = proof.get("RunInstancesAuthorizationResources")
+        required = (instance, image, subnet, group, interface)
+        if (proof.get("RunInstancesAuthorizationResourcesComplete") is not True or
+                not isinstance(run_resources, list) or not run_resources or
+                any(not isinstance(item, str) or "*" in item or "?" in item for item in run_resources) or
+                len(set(run_resources)) != len(run_resources) or
+                any(item not in run_resources for item in required)):
+            return ("unknown", "ec2_runinstances_authorization_resources_not_verified")
+        region_context = {"aws:RequestedRegion": region}
+        grants = [self.check(source, {"action": "iam:PassRole", "request_context": {
+            **region_context, "iam:PassedToService": "ec2.amazonaws.com",
+            "iam:AssociatedResourceArn": instance}}, role.id),
+            self.check(role, {"action": action}, resource)]
+        grants.extend(self.check(source, {"action": "ec2:RunInstances",
+                                          "request_context": region_context}, item)
+                      for item in run_resources)
+        if proof["TagsRequested"]:
+            tag_resources = proof.get("TaggingResources")
+            if (proof.get("TaggingResourcesComplete") is not True or
+                    not isinstance(tag_resources, list) or not tag_resources or
+                    any(not isinstance(item, str) or "*" in item or "?" in item for item in tag_resources)):
+                return ("unknown", "ec2_runinstances_tagging_resources_not_verified")
+            grants.extend(self.check(source, {"action": "ec2:CreateTags", "request_context": {
+                **region_context, "ec2:CreateAction": "RunInstances"}}, item) for item in tag_resources)
+        if any(grant is None or grant.confidence != "derived" for grant in grants):
+            return ("unknown", "ec2_runinstances_scoped_permissions_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "ec2_runinstances_exact_instance_role_effect")
+
+    def _spot_fleet_instance_role_effect(self, source, role):
+        """Separate the fleet service role from a launched instance's IAM role."""
+        technique = "aws-ec2-passrole-requestspotfleet"
+        if source.scope != role.scope or source.id == role.id:
+            return None
+        instance_pass = self.check(source, {"action": "iam:PassRole", "request_context": {
+            "iam:PassedToService": "ec2.amazonaws.com"}}, role.id)
+        if instance_pass is None:
+            return None
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "spot_fleet_role_execution_evidence_missing_or_conflicting")
+        scope, proof = records[0]
+        if (inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"
+                or source.incomplete or role.incomplete):
+            return ("unknown", "spot_fleet_role_execution_evidence_incomplete")
+        region = scope.split("/", 1)[1] if "/" in scope else ""
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        ec2_prefix = f"arn:{partition}:ec2:{region}:{source.scope}:"
+        request_arn = proof.get("SpotFleetRequestArn")
+        instance_arn = proof.get("InstanceArn")
+        profile_arn = proof.get("InstanceProfileArn")
+        fleet_role_arn = proof.get("FleetRoleArn")
+        fleet_service = proof.get("FleetPassRoleService")
+        image_arn = proof.get("ImageArn")
+        subnet_arn = proof.get("SubnetArn")
+        group_arn = proof.get("SecurityGroupArn")
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("TechniqueId") != technique or proof.get("SourceArn") != source.id or
+                proof.get("TargetKind") != "aws_role" or proof.get("TargetId") != role.id or
+                scope != f"{source.scope}/{region}" or not re.fullmatch(r"[a-z0-9-]+", region) or
+                not isinstance(request_arn, str) or re.fullmatch(
+                    re.escape(ec2_prefix) + r"spot-fleet-request/sfr-[A-Za-z0-9-]+", request_arn) is None or
+                not isinstance(instance_arn, str) or re.fullmatch(
+                    re.escape(ec2_prefix) + r"instance/i-[0-9a-f]+", instance_arn) is None or
+                not isinstance(profile_arn, str) or re.fullmatch(
+                    rf"arn:{re.escape(partition)}:iam::{re.escape(source.scope)}:instance-profile/.+",
+                    profile_arn) is None or
+                not isinstance(fleet_role_arn, str) or re.fullmatch(
+                    rf"arn:{re.escape(partition)}:iam::{re.escape(source.scope)}:role/.+",
+                    fleet_role_arn) is None or
+                fleet_role_arn == role.id or
+                not isinstance(image_arn, str) or re.fullmatch(
+                    rf"arn:{re.escape(partition)}:ec2:{re.escape(region)}::image/ami-[0-9a-f]+",
+                    image_arn) is None or
+                not isinstance(subnet_arn, str) or re.fullmatch(
+                    re.escape(ec2_prefix) + r"subnet/subnet-[0-9a-f]+", subnet_arn) is None or
+                not isinstance(group_arn, str) or re.fullmatch(
+                    re.escape(ec2_prefix) + r"security-group/sg-[0-9a-f]+", group_arn) is None or
+                fleet_service not in ("ec2.amazonaws.com", "spotfleet.amazonaws.com") or
+                proof.get("SpotFleetRequestSucceeded") is not True or
+                proof.get("FleetRoleTrustAccepted") is not True or
+                proof.get("FleetRolePolicyReady") is not True or
+                proof.get("InstanceLaunchedSucceeded") is not True or
+                proof.get("FleetOwnsInstance") is not True or
+                proof.get("InstanceProfileApplied") is not True or
+                proof.get("UserDataControlledBySource") is not True or
+                proof.get("UserDataExecuted") is not True or
+                proof.get("UserDataUsedRoleCredentials") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                type(proof.get("TagsRequested")) is not bool or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "spot_fleet_launch_or_role_effect_not_verified")
+        roles = [row for row_scope, row in items(self.snapshot, "iam_role")
+                 if row_scope.split("/", 1)[0] == source.scope]
+        targets = [row for row in roles if row.get("Arn") == role.id]
+        fleets = [row for row in roles if row.get("Arn") == fleet_role_arn]
+        if (len(targets) != 1 or len(fleets) != 1 or
+                not isinstance(proof.get("TargetRoleId"), str) or not proof["TargetRoleId"] or
+                targets[0].get("RoleId") != proof["TargetRoleId"] or
+                proof.get("InstanceRoleId") != proof["TargetRoleId"] or
+                not isinstance(proof.get("FleetRoleId"), str) or not proof["FleetRoleId"] or
+                fleets[0].get("RoleId") != proof["FleetRoleId"] or
+                profile_arn not in [entry.get("Arn") for entry in targets[0].get("InstanceProfileList", ())
+                                    if isinstance(entry, dict)] or
+                fleet_role_arn not in self.principals):
+            return ("unknown", "spot_fleet_role_or_profile_identity_not_verified")
+        trust = self._service_trust_for_source_arn(
+            fleet_role_arn, "spotfleet.amazonaws.com", request_arn)
+        if trust is False:
+            return ("unknown", "spot_fleet_service_role_trust_denied")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "spot_fleet_role_execution_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "spot_fleet_role_execution_evidence_time_missing")
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        if (not isinstance(action, str) or re.fullmatch(
+                r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource):
+            return ("unknown", "spot_fleet_role_action_not_verified")
+        request_resources = proof.get("RequestSpotFleetAuthorizationResources")
+        run_resources = proof.get("RunInstancesAuthorizationResources")
+        for values, complete, required in (
+                (request_resources, proof.get("RequestSpotFleetAuthorizationResourcesComplete"),
+                 (request_arn, image_arn, subnet_arn, group_arn)),
+                (run_resources, proof.get("RunInstancesAuthorizationResourcesComplete"),
+                 (instance_arn, image_arn, subnet_arn, group_arn))):
+            if (complete is not True or not isinstance(values, list) or not values or
+                    any(not isinstance(item, str) or "*" in item or "?" in item for item in values) or
+                    len(set(values)) != len(values) or any(item not in values for item in required)):
+                return ("unknown", "spot_fleet_authorization_resource_set_not_verified")
+        region_context = {"aws:RequestedRegion": region}
+        grants = [instance_pass,
+            self.check(source, {"action": "iam:PassRole", "request_context": {
+                "iam:PassedToService": fleet_service}}, fleet_role_arn),
+            self.check(role, {"action": action}, resource)]
+        grants.extend(self.check(source, {"action": "ec2:RequestSpotFleet",
+                                          "request_context": region_context}, item)
+                      for item in request_resources)
+        grants.extend(self.check(source, {"action": "ec2:RunInstances",
+                                          "request_context": region_context}, item)
+                      for item in run_resources)
+        if proof["TagsRequested"]:
+            tag_resources = proof.get("TaggingResources")
+            if (proof.get("TaggingResourcesComplete") is not True or
+                    not isinstance(tag_resources, list) or not tag_resources or
+                    any(not isinstance(item, str) or "*" in item or "?" in item for item in tag_resources)):
+                return ("unknown", "spot_fleet_tagging_resources_not_verified")
+            grants.extend(self.check(source, {"action": "ec2:CreateTags",
+                                              "request_context": {**region_context, "ec2:CreateAction": "RequestSpotFleet"}}, item)
+                          for item in tag_resources)
+        if any(grant is None or grant.confidence != "derived" for grant in grants):
+            return ("unknown", "spot_fleet_scoped_permissions_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "spot_fleet_exact_instance_role_effect")
+
     def _appstream_new_resource_arns(self, source, region, kind, actions):
         """Concrete unused-name candidates from the actions' resource scopes in one Region."""
         partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
@@ -5583,7 +9056,7 @@ class AwsModel(Model):
         bucket_status = inventory_status(self.snapshot, "bucket")
         partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
         uncertain = any(status not in ("collected", "empty") for status in builder_status.values())
-        create_block = self._check_action(source, "appstream:createappblock", "*")
+        create_block = self._check_action(source, "appstream:createappblock", "peaso-global-appstream-create-app-block")
         for scope, status in builder_status.items():
             if status not in ("collected", "empty"):
                 continue
@@ -5851,7 +9324,7 @@ class AwsModel(Model):
                         ("conditional", "appstream_associated_app_block_builder_available"))
             # A builder without an app block cannot be started. New app block creation also needs
             # S3 packaging facts, which this route has not verified.
-            if self._check_action(source, "appstream:createappblock", "*") is not None and self._check_action(
+            if self._check_action(source, "appstream:createappblock", "peaso-global-appstream-create-app-block") is not None and self._check_action(
                     source, "appstream:associateappblockbuilderappblock", arn) is not None:
                 uncertain = True
         return ("unknown", "appstream_app_block_builder_route_not_verified") if uncertain else None
@@ -6270,6 +9743,225 @@ class AwsModel(Model):
                                 return ("conditional", f"codepipeline_new_{provider}_source_and_roles_available")
         return ("unknown", "codepipeline_new_source_or_role_not_verified") if uncertain else None
 
+    def _datapipeline_created_ec2_role_effect(self, source, candidates):
+        if source is None:
+            return None
+        pending = ("unknown", "datapipeline_customer_role_pair_and_pipeline_run_not_verified")
+        out = {}
+        try:
+            now = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            if now.tzinfo is None:
+                now = None
+        except (KeyError, TypeError, ValueError):
+            now = None
+        proof_status = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+        technique = (self.current_entry or {}).get("id")
+        for tid, role in candidates.items():
+            out[tid] = pending
+            if now is None or role.scope != source.scope:
+                continue
+            role_rows = [row for role_scope, row in items(self.snapshot, "iam_role")
+                if role_scope.split("/")[0] == role.scope and row.get("Arn") == tid]
+            role_id = role_rows[0].get("RoleId") if len(role_rows) == 1 else None
+            profiles = role_rows[0].get("InstanceProfileList") if len(role_rows) == 1 else None
+            profile_arns = {p.get("Arn") for p in profiles if isinstance(p, dict) and
+                            isinstance(p.get("Arn"), str)} if isinstance(profiles, list) else set()
+            if not isinstance(role_id, str) or not role_id or not profile_arns:
+                continue
+            for scope in self.snapshot.get("scopes", ()):
+                if not isinstance(scope, str) or not scope.startswith(f"{role.scope}/"):
+                    continue
+                collections = [collection for collection in self.snapshot.get("collections", ())
+                    if collection.get("type") == "aws_privesc_challenge_evidence" and
+                    collection.get("scope") == scope]
+                if len(collections) != 1 or collections[0].get("status") != "collected":
+                    continue
+                proofs = [row for proof_scope, row in items(self.snapshot, "aws_privesc_challenge_evidence")
+                    if proof_scope == scope and proof_status.get(scope) == "collected" and
+                    row.get("TechniqueId") == technique and row.get("SourceArn") == source.id and
+                    row.get("TargetKind") == "aws_role" and row.get("TargetId") == tid]
+                if len(proofs) != 1:
+                    continue
+                proof = proofs[0]
+                pipeline_role_arn = proof.get("PipelineRoleArn")
+                pipeline_role = self.principals.get(pipeline_role_arn) if isinstance(pipeline_role_arn, str) else None
+                if (pipeline_role is None or pipeline_role.scope != role.scope or
+                        pipeline_role.id == tid or pipeline_role.incomplete):
+                    continue
+                pipeline_rows = [row for row_scope, row in items(self.snapshot, "iam_role")
+                    if row_scope.split("/")[0] == role.scope and row.get("Arn") == pipeline_role_arn]
+                pipeline_role_id = pipeline_rows[0].get("RoleId") if len(pipeline_rows) == 1 else None
+                if (not isinstance(pipeline_role_id, str) or not pipeline_role_id or
+                        proof.get("PipelineRoleId") != pipeline_role_id or
+                        self._non_iam_trust_verdict(pipeline_role_arn, "Service",
+                            "datapipeline.amazonaws.com", "sts:AssumeRole") != "derived"):
+                    continue
+                partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+                region = scope.split("/", 1)[1]
+                pipeline_id = proof.get("PipelineId")
+                if (not isinstance(pipeline_id, str) or
+                        re.fullmatch(r"df-[A-Za-z0-9]+", pipeline_id) is None):
+                    continue
+                pipeline_arn = f"arn:{partition}:datapipeline:{region}:{role.scope}:pipeline/{pipeline_id}"
+                instance_arn = proof.get("InstanceArn")
+                if (proof.get("PipelineArn") != pipeline_arn or
+                        not isinstance(instance_arn, str) or
+                        re.fullmatch(rf"arn:{re.escape(partition)}:ec2:{re.escape(region)}:"
+                                     rf"{role.scope}:instance/i-[a-f0-9]+", instance_arn) is None):
+                    continue
+                action, resource = proof.get("RoleAction"), proof.get("RoleResource")
+                if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                        proof.get("TargetScope") != scope or proof.get("TargetRoleId") != role_id or
+                        proof.get("ResourceRoleProfileArn") not in profile_arns or
+                        proof.get("ExistingCustomerEligible") is not True or
+                        proof.get("CreatePipelineSucceeded") is not True or
+                        proof.get("PutPipelineDefinitionSucceeded") is not True or
+                        proof.get("ActivatePipelineSucceeded") is not True or
+                        proof.get("DefinitionPipelineRoleArn") != pipeline_role_arn or
+                        proof.get("DefinitionResourceRoleArn") != tid or
+                        proof.get("ActivityType") != "ShellCommandActivity" or
+                        proof.get("ResourceType") != "Ec2Resource" or
+                        proof.get("CommandControlledBySource") is not True or
+                        proof.get("InstanceLaunchedWithProfile") is not True or
+                        proof.get("ShellCommandSucceeded") is not True or
+                        proof.get("RoleActionSucceeded") is not True or
+                        proof.get("EffectUsefulToSource") is not True or
+                        not isinstance(action, str) or
+                        re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                        not isinstance(resource, str) or not resource or
+                        not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"]):
+                    continue
+                try:
+                    witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+                    expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+                    if (witnessed.tzinfo is None or expires.tzinfo is None or
+                            not 0 <= (now - witnessed).total_seconds() <= 900 or
+                            not now < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                        continue
+                except (KeyError, TypeError, ValueError):
+                    continue
+                passed = self.check(source, {"action": "iam:PassRole",
+                    "request_context": {"iam:PassedToService": "datapipeline.amazonaws.com"}}, pipeline_role_arn)
+                put = self.check(source, {"action": "datapipeline:PutPipelineDefinition"}, pipeline_arn)
+                activate = self.check(source, {"action": "datapipeline:ActivatePipeline"}, pipeline_arn)
+                permitted = self.check(role, {"action": action}, resource)
+                already = self.check(source, {"action": action}, resource)
+                if (all(g is not None and g.confidence == "derived" for g in (passed, put, activate, permitted))
+                        and already is None):
+                    out[tid] = None
+                    break
+        return out
+
+    def _config_automatic_remediation_role_effect(self, source, candidates):
+        if source is None:
+            return None
+        put_allows, _ = self._statements(source, "config:putremediationconfigurations")
+        if not put_allows:
+            return {}
+        pending = ("unknown", "config_rule_document_and_automatic_role_effect_not_verified")
+        out = {}
+        try:
+            now = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            if now.tzinfo is None:
+                now = None
+        except (KeyError, TypeError, ValueError):
+            now = None
+        proof_status = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+        technique = (self.current_entry or {}).get("id")
+        for tid, role in candidates.items():
+            out[tid] = pending
+            if now is None or role.scope != source.scope:
+                continue
+            role_rows = [row for role_scope, row in items(self.snapshot, "iam_role")
+                if role_scope.split("/")[0] == role.scope and row.get("Arn") == tid]
+            role_id = role_rows[0].get("RoleId") if len(role_rows) == 1 else None
+            if not isinstance(role_id, str) or not role_id:
+                continue
+            for scope in self.snapshot.get("scopes", ()):
+                if not isinstance(scope, str) or not scope.startswith(f"{role.scope}/"):
+                    continue
+                collections = [collection for collection in self.snapshot.get("collections", ())
+                    if collection.get("type") == "aws_privesc_challenge_evidence" and
+                    collection.get("scope") == scope]
+                if len(collections) != 1 or collections[0].get("status") != "collected":
+                    continue
+                proofs = [row for proof_scope, row in items(self.snapshot, "aws_privesc_challenge_evidence")
+                    if proof_scope == scope and proof_status.get(scope) == "collected" and
+                    row.get("TechniqueId") == technique and row.get("SourceArn") == source.id and
+                    row.get("TargetKind") == "aws_role" and row.get("TargetId") == tid]
+                if len(proofs) != 1:
+                    continue
+                proof = proofs[0]
+                partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+                region = scope.split("/", 1)[1]
+                rule_arn = proof.get("ConfigRuleArn")
+                remediation_arn = proof.get("RemediationConfigurationArn")
+                document = proof.get("AutomationDocumentArn")
+                action, resource = proof.get("RoleAction"), proof.get("RoleResource")
+                rule_prefix = f"arn:{partition}:config:{region}:{role.scope}:config-rule/"
+                remediation_prefix = f"arn:{partition}:config:{region}:{role.scope}:remediation-configuration/"
+                if (not isinstance(rule_arn, str) or
+                        re.fullmatch(re.escape(rule_prefix) + r"config-rule-[A-Za-z0-9]+", rule_arn) is None or
+                        not isinstance(remediation_arn, str) or
+                        not remediation_arn.startswith(remediation_prefix) or
+                        not remediation_arn[len(remediation_prefix):] or
+                        any(ch in remediation_arn for ch in "*? \t\r\n") or
+                        not isinstance(document, str) or
+                        re.fullmatch(rf"arn:{re.escape(partition)}:ssm:{re.escape(region)}:"
+                                     r"(?:[0-9]{12})?:document/[A-Za-z0-9_.-]+", document) is None):
+                    continue
+                document_name = document.rsplit("/", 1)[1]
+                if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                        proof.get("TargetScope") != scope or proof.get("TargetRoleId") != role_id or
+                        not isinstance(proof.get("ConfigRuleName"), str) or not proof["ConfigRuleName"] or
+                        proof.get("RuleIsServiceLinked") is not False or
+                        proof.get("ConfigRecorderRecording") is not True or
+                        proof.get("ComplianceSnapshotNoncompliant") is not True or
+                        proof.get("ConfigRemediationServiceLinkedRoleReady") is not True or
+                        proof.get("RemediationAutomatic") is not True or
+                        proof.get("RemediationTargetType") != "SSM_DOCUMENT" or
+                        proof.get("RemediationTargetId") != document_name or
+                        proof.get("AutomationAssumeRoleParameterValue") != tid or
+                        proof.get("DocumentUsesAutomationAssumeRole") is not True or
+                        proof.get("DocumentRoutable") is not True or
+                        proof.get("PutRemediationConfigurationsSucceeded") is not True or
+                        proof.get("AutomaticRemediationStarted") is not True or
+                        proof.get("ExecutedRoleArn") != tid or
+                        proof.get("RoleActionSucceeded") is not True or
+                        proof.get("EffectUsefulToSource") is not True or
+                        not isinstance(proof.get("RemediationExecutionId"), str) or
+                        not proof["RemediationExecutionId"] or
+                        not isinstance(proof.get("AutomationExecutionId"), str) or
+                        not proof["AutomationExecutionId"] or
+                        not isinstance(action, str) or
+                        re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                        not isinstance(resource, str) or not resource or
+                        not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"]):
+                    continue
+                if proof.get("DocumentCreatedBySource") is True:
+                    created = self.check(source, {"action": "ssm:CreateDocument"}, document)
+                    if created is None or created.confidence != "derived":
+                        continue
+                elif proof.get("ExistingDocumentUsed") is not True:
+                    continue
+                try:
+                    witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+                    expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+                    if (witnessed.tzinfo is None or expires.tzinfo is None or
+                            not 0 <= (now - witnessed).total_seconds() <= 900 or
+                            not now < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                        continue
+                except (KeyError, TypeError, ValueError):
+                    continue
+                put = self.check(source, {"action": "config:PutRemediationConfigurations"}, remediation_arn)
+                permitted = self.check(role, {"action": action}, resource)
+                already = self.check(source, {"action": action}, resource)
+                if (put is not None and put.confidence == "derived" and
+                        permitted is not None and permitted.confidence == "derived" and already is None):
+                    out[tid] = None
+                    break
+        return out
+
     def _codepipeline_existing_project_update_buildspec(self, source, target):
         pipeline_status = inventory_status(self.snapshot, "codepipeline_pipeline")
         project_status = inventory_status(self.snapshot, "codebuild_project")
@@ -6329,10 +10021,12 @@ class AwsModel(Model):
                     if not isinstance(order, int) or isinstance(order, bool) or order < 1:
                         uncertain = True
                         continue
+                    # Any earlier action can produce a named input artifact;
+                    # its actual delivery is checked by the execution witness.
+                    sources.extend((stage_index, order, artifact.get("name"))
+                                   for artifact in action.get("outputArtifacts") or []
+                                   if isinstance(artifact, dict) and isinstance(artifact.get("name"), str))
                     if action.get("category") == "Source":
-                        sources.extend((stage_index, order, artifact.get("name"))
-                                       for artifact in action.get("outputArtifacts") or []
-                                       if isinstance(artifact, dict) and isinstance(artifact.get("name"), str))
                         continue
                     if (action.get("owner") != "AWS" or action.get("category") not in ("Build", "Test")
                             or action.get("provider") != "CodeBuild"):
@@ -6452,15 +10146,1813 @@ class AwsModel(Model):
                     if route_uncertain:
                         uncertain = True
                         continue
-                    # GetPipeline records the action declaration, but the collected
-                    # source metadata does not establish a usable source revision or
-                    # artifact-store access. A configured artifact name is not proof
-                    # that this pipeline can deliver input to the build action.
+                    role_rows = [role_row for role_scope, role_row in items(self.snapshot, "iam_role")
+                        if role_scope.split("/")[0] == target.scope and role_row.get("Arn") == target.id]
+                    role_id = role_rows[0].get("RoleId") if len(role_rows) == 1 else None
+                    if not isinstance(role_id, str) or not role_id:
+                        uncertain = True
+                        continue
+                    collections = [collection for collection in self.snapshot.get("collections", ())
+                        if collection.get("type") == "aws_privesc_challenge_evidence" and
+                        collection.get("scope") == scope]
+                    if len(collections) != 1 or collections[0].get("status") != "collected":
+                        uncertain = True
+                        continue
+                    proof_status = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+                    proofs = [proof for proof_scope, proof in items(self.snapshot, "aws_privesc_challenge_evidence")
+                        if proof_scope == scope and proof_status.get(scope) == "collected" and
+                        proof.get("TechniqueId") == (self.current_entry or {}).get("id") and
+                        proof.get("SourceArn") == source.id and proof.get("TargetKind") == "aws_role" and
+                        proof.get("TargetId") == target.id and proof.get("PipelineArn") == pipeline_arn and
+                        proof.get("ProjectArn") == project_arn and proof.get("BuildActionName") == action.get("name")]
+                    if len(proofs) != 1:
+                        uncertain = True
+                        continue
+                    proof = proofs[0]
+                    pipeline_hash = hashlib.sha256(json.dumps(declaration, sort_keys=True,
+                        separators=(",", ":"), default=str).encode()).hexdigest()
+                    project_hash = hashlib.sha256(json.dumps(project, sort_keys=True,
+                        separators=(",", ":"), default=str).encode()).hexdigest()
+                    role_action, role_resource = proof.get("RoleAction"), proof.get("RoleResource")
+                    try:
+                        now = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+                        witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+                        expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+                        fresh = (now.tzinfo is not None and witnessed.tzinfo is not None and
+                                 expires.tzinfo is not None and
+                                 0 <= (now - witnessed).total_seconds() <= 900 and
+                                 now < expires and 0 < (expires - witnessed).total_seconds() <= 900)
+                    except (KeyError, TypeError, ValueError):
+                        fresh = False
+                    artifacts = proof.get("InputArtifacts")
+                    if (not fresh or proof.get("Status") != "verified" or
+                            proof.get("VerifiedPreconditions") is not True or
+                            proof.get("TargetScope") != scope or proof.get("TargetRoleId") != role_id or
+                            proof.get("PipelineDefinitionSha256") != pipeline_hash or
+                            proof.get("ProjectConfigurationSha256") != project_hash or
+                            proof.get("PipelineRoleArn") != pipeline_role.id or
+                            proof.get("BuildActionRoleArn") != actor.id or
+                            proof.get("BuildServiceRoleArn") != target.id or
+                            proof.get("BatchEnabled") is not batch_enabled or
+                            proof.get("ServiceRoleOverrideArn") != override or
+                            not isinstance(artifacts, list) or
+                            any(not isinstance(item, str) for item in artifacts) or
+                            sorted(artifacts) != sorted(inputs) or
+                            proof.get("SourceArtifactsProduced") is not True or
+                            proof.get("BuildConsumedInputs") is not True or
+                            proof.get("BuildspecUpdatedBySource") is not True or
+                            proof.get("BuildspecExecuted") is not True or
+                            proof.get("BuildStarted") is not True or
+                            proof.get("RoleActionSucceeded") is not True or
+                            proof.get("EffectUsefulToSource") is not True or
+                            not isinstance(proof.get("PipelineExecutionId"), str) or
+                            not proof["PipelineExecutionId"] or
+                            not isinstance(proof.get("BuildId"), str) or
+                            not proof["BuildId"].startswith(project_name + ":") or
+                            not isinstance(role_action, str) or
+                            re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", role_action) is None or
+                            not isinstance(role_resource, str) or not role_resource or
+                            not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"]):
+                        uncertain = True
+                        continue
+                    permitted = self.check(target, {"action": role_action}, role_resource)
+                    already = self.check(source, {"action": role_action}, role_resource)
+                    if permitted is not None and permitted.confidence == "derived" and already is None:
+                        return ("conditional", "codepipeline_existing_project_role_effect_verified")
                     uncertain = True
         return ("unknown", "codepipeline_existing_project_path_not_verified") if uncertain else None
 
+    def _batch_existing_definition_submitjob_role(self, source, target):
+        """Bind one active EC2 job definition, its queue and its exact job role."""
+        kinds = ("batch_job_definition", "batch_job_queue", "batch_compute_environment")
+        statuses = {kind: {scope: status for scope, status in inventory_status(self.snapshot, kind).items()
+                           if scope.startswith(source.scope + "/")} for kind in kinds}
+        scopes = set().union(*(set(by_scope) for by_scope in statuses.values()))
+        if not scopes:
+            return ("unknown", "batch_existing_definition_inventory_not_collected")
+        uncertain = False
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        for scope in sorted(scopes):
+            if any(statuses[kind].get(scope) not in ("collected", "empty") for kind in kinds):
+                uncertain = True
+                continue
+            region = scope.split("/", 1)[1]
+            prefix = f"arn:{partition}:batch:{region}:{source.scope}:"
+            environments = {row.get("computeEnvironmentArn"): row
+                            for row_scope, row in items(self.snapshot, "batch_compute_environment")
+                            if row_scope == scope and isinstance(row, dict)
+                            and isinstance(row.get("computeEnvironmentArn"), str)}
+            eligible_queues = []
+            for queue_scope, queue in items(self.snapshot, "batch_job_queue"):
+                if queue_scope != scope or not isinstance(queue, dict):
+                    continue
+                queue_arn = queue.get("jobQueueArn")
+                if (not isinstance(queue_arn, str) or not queue_arn.startswith(prefix + "job-queue/")
+                        or queue.get("state") is None or queue.get("status") is None):
+                    uncertain = True
+                    continue
+                if queue.get("state") != "ENABLED" or queue.get("status") != "VALID":
+                    continue
+                links = queue.get("computeEnvironmentOrder")
+                if not isinstance(links, list):
+                    uncertain = True
+                    continue
+                for link in links:
+                    env = environments.get(link.get("computeEnvironment")) if isinstance(link, dict) else None
+                    if env is None:
+                        uncertain = True
+                        continue
+                    config = env.get("computeResources")
+                    if (env.get("state") == "ENABLED" and env.get("status") == "VALID"
+                            and env.get("containerOrchestrationType", "ECS") == "ECS"
+                            and isinstance(config, dict) and config.get("type") in ("EC2", "SPOT")):
+                        eligible_queues.append(queue_arn)
+                        break
+            for definition_scope, definition in items(self.snapshot, "batch_job_definition"):
+                if definition_scope != scope or not isinstance(definition, dict):
+                    continue
+                arn = definition.get("jobDefinitionArn")
+                name, revision = definition.get("jobDefinitionName"), definition.get("revision")
+                if (not isinstance(name, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,128}", name)
+                        or type(revision) is not int or revision < 1
+                        or arn != f"{prefix}job-definition/{name}:{revision}"):
+                    uncertain = True
+                    continue
+                config = definition.get("containerProperties")
+                role_arn = config.get("jobRoleArn") if isinstance(config, dict) else None
+                if role_arn is None:
+                    uncertain = True
+                    continue
+                if role_arn != target.id:
+                    continue
+                if definition.get("status") != "ACTIVE" or definition.get("type") != "container":
+                    continue
+                platforms = definition.get("platformCapabilities")
+                if platforms is not None and platforms != ["EC2"]:
+                    continue
+                if not isinstance(config.get("image"), str) or not config["image"]:
+                    uncertain = True
+                    continue
+                definition_grant = self._check_action(source, "batch:submitjob", arn)
+                if definition_grant is None:
+                    continue
+                for queue_arn in eligible_queues:
+                    queue_grant = self._check_action(source, "batch:submitjob", queue_arn)
+                    if queue_grant is None:
+                        continue
+                    if definition_grant.confidence != "derived" or queue_grant.confidence != "derived":
+                        uncertain = True
+                        continue
+                    return ("conditional", "batch_existing_definition_submitjob_role")
+        return ("unknown", "batch_existing_definition_submitjob_role_not_verified") if uncertain else None
+
+    def _athena_existing_session_role(self, source, target, pid):
+        """Join a live session to its recorded execution role and exact IAM scope."""
+        statuses = {scope: status for scope, status in inventory_status(self.snapshot, "athena_session").items()
+                    if scope.startswith(source.scope + "/")}
+        if not statuses:
+            return ("unknown", "athena_session_inventory_not_collected")
+        uncertain = any(status not in ("collected", "empty") for status in statuses.values())
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        for scope, session in items(self.snapshot, "athena_session"):
+            if scope not in statuses or not isinstance(session, dict):
+                continue
+            region = scope.split("/", 1)[1]
+            name, session_id = session.get("WorkGroup"), session.get("SessionId")
+            if (not isinstance(name, str) or not re.fullmatch(r"[a-zA-Z0-9._-]{1,128}", name)
+                    or not isinstance(session_id, str) or not session_id or "/" in session_id):
+                uncertain = True
+                continue
+            config = session.get("SessionConfiguration")
+            role_arn = config.get("ExecutionRole") if isinstance(config, dict) else None
+            if not isinstance(role_arn, str):
+                uncertain = True
+                continue
+            if role_arn != target.id:
+                continue
+            state = session.get("Status", {}).get("State") if isinstance(session.get("Status"), dict) else None
+            engine = session.get("EngineVersion")
+            if not isinstance(state, str) or not isinstance(engine, str):
+                uncertain = True
+                continue
+            if pid == "athena_existing_session_calculation_role":
+                if engine != "PySpark engine version 3" or state != "IDLE":
+                    continue
+                action = "athena:startcalculationexecution"
+            elif pid == "athena_existing_notebook_url_role":
+                if (engine != "PySpark engine version 3" or state not in ("CREATED", "IDLE", "BUSY")
+                        or not isinstance(session.get("NotebookVersion"), str)
+                        or not session["NotebookVersion"]):
+                    continue
+                action = "athena:createpresignednotebookurl"
+            else:
+                if engine != "Apache Spark version 3.5" or state not in ("CREATED", "IDLE", "BUSY"):
+                    continue
+                action = "athena:getsessionendpoint"
+            workgroup_arn = f"arn:{partition}:athena:{region}:{source.scope}:workgroup/{name}"
+            grants = [self._check_action(source, action, workgroup_arn)]
+            if pid == "athena_existing_spark_connect_role":
+                grants.append(self._check_action(source, action, f"{workgroup_arn}/session/{session_id}"))
+            if any(grant is None for grant in grants):
+                continue
+            if any(grant.confidence != "derived" for grant in grants):
+                uncertain = True
+                continue
+            return ("conditional", pid)
+        return ("unknown", f"{pid}_not_verified") if uncertain else None
+
+    def _flink_existing_studio_role_session(self, source, target):
+        """Bind one streamable Studio notebook to its exact service execution role."""
+        statuses = {scope: status for scope, status in inventory_status(self.snapshot, "flink_application").items()
+                    if scope.startswith(source.scope + "/")}
+        if not statuses:
+            return ("unknown", "flink_application_inventory_not_collected")
+        uncertain = any(status not in ("collected", "empty") for status in statuses.values())
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        for scope, app in items(self.snapshot, "flink_application"):
+            if statuses.get(scope) != "collected" or not isinstance(app, dict):
+                continue
+            region = scope.split("/", 1)[1]
+            name, arn = app.get("ApplicationName"), app.get("ApplicationARN")
+            if not isinstance(name, str) or arn != f"arn:{partition}:kinesisanalytics:{region}:{source.scope}:application/{name}":
+                uncertain = True
+                continue
+            if app.get("ServiceExecutionRole") != target.id:
+                continue
+            if app.get("ApplicationMode") != "INTERACTIVE" or app.get("ApplicationStatus") != "RUNNING":
+                continue
+            detail = app.get("_coverage", {}).get("network_detail") if isinstance(app.get("_coverage"), dict) else None
+            if isinstance(detail, dict) and detail.get("status") not in ("collected", "empty"):
+                uncertain = True
+                continue
+            grant = self._check_action(source, "kinesisanalytics:createapplicationpresignedurl", arn)
+            if grant is None:
+                continue
+            if grant.confidence != "derived":
+                uncertain = True
+                continue
+            return ("conditional", "flink_existing_studio_role_session")
+        return ("unknown", "flink_existing_studio_role_session_not_verified") if uncertain else None
+
+    def _gameliftstreams_admin_shell(self, source, target):
+        statuses = {scope: status for scope, status in
+                    inventory_status(self.snapshot, "gameliftstreams_stream_session").items()
+                    if scope.startswith(source.scope + "/")}
+        if not statuses:
+            return ("unknown", "gameliftstreams_sessions_not_collected")
+        uncertain = any(status not in ("collected", "empty") for status in statuses.values())
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        for scope, session in items(self.snapshot, "gameliftstreams_stream_session"):
+            if scope not in statuses or not isinstance(session, dict):
+                continue
+            if session.get("RoleArn") != target.id:
+                continue
+            region = scope.split("/", 1)[1]
+            group = session.get("StreamGroupArn")
+            session_arn = session.get("Arn")
+            group_prefix = f"arn:{partition}:gameliftstreams:{region}:{source.scope}:streamgroup/"
+            session_prefix = f"arn:{partition}:gameliftstreams:{region}:{source.scope}:streamsession/"
+            if (session.get("Status") not in ("ACTIVE", "CONNECTED", "PENDING_CLIENT_RECONNECTION", "RECONNECTING")
+                    or session.get("StreamGroupStatus") != "ACTIVE"
+                    or not isinstance(group, str) or not group.startswith(group_prefix)
+                    or not isinstance(session_arn, str) or not session_arn.startswith(
+                        session_prefix + group[len(group_prefix):] + "/")):
+                uncertain = True
+                continue
+            grant = self._check_action(source, "gameliftstreams:createstreamsessionadminshell", group)
+            if grant is None:
+                continue
+            if grant.confidence == "derived" and not source.incomplete and not target.incomplete:
+                return ("conditional", "gameliftstreams_live_role_session_shell")
+            uncertain = True
+        return (("unknown", "gameliftstreams_session_or_shell_permission_not_verified")
+                if uncertain else None)
+
+    def _gameliftstreams_controlled_role_session(self, source, role):
+        """Require an accepted session and executed controlled code under this role."""
+        technique = "aws-gameliftstreams-passrole-startstreamsession"
+        if source.scope != role.scope or source.id == role.id:
+            return None
+        pass_allows, _ = self._statements(source, "iam:passrole")
+        start_allows, _ = self._statements(source, "gameliftstreams:startstreamsession")
+        url_allows, _ = self._statements(source, "gameliftstreams:createstreamurl")
+        if not pass_allows or not (start_allows or url_allows):
+            return ("unknown", "gameliftstreams_source_permissions_incomplete") if source.incomplete else None
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "gameliftstreams_role_session_evidence_missing_or_conflicting")
+        scope, proof = records[0]
+        if (inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"
+                or source.incomplete or role.incomplete or "/" not in scope):
+            return ("unknown", "gameliftstreams_role_session_evidence_incomplete")
+        region = scope.split("/", 1)[1]
+        partition = source.id.split(":", 2)[1]
+        prefix = rf"arn:{re.escape(partition)}:gameliftstreams:{re.escape(region)}:{source.scope}:"
+        group, app, session = proof.get("StreamGroupArn"), proof.get("ApplicationArn"), proof.get("StreamSessionArn")
+        route = proof.get("RouteAction")
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        if (not isinstance(group, str) or re.fullmatch(prefix + r"streamgroup/sg-[A-Za-z0-9-]+", group) is None or
+                not isinstance(app, str) or re.fullmatch(prefix + r"application/a-[A-Za-z0-9-]+", app) is None or
+                not isinstance(session, str) or re.fullmatch(
+                    prefix + r"streamsession/" + re.escape(group.rsplit("/", 1)[-1]) + r"/[A-Za-z0-9-]+",
+                    session) is None or route not in ("StartStreamSession", "CreateStreamUrl") or
+                proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("TechniqueId") != technique or proof.get("SourceArn") != source.id or
+                proof.get("TargetKind") != "aws_role" or proof.get("TargetId") != role.id or
+                any(proof.get(key) is not True for key in (
+                    "GroupSupportsSessionCredentials", "GroupActive", "GroupCapacityAvailable",
+                    "ApplicationReady", "ApplicationAssociated", "ApplicationControlledBySource",
+                    "LaunchAccepted", "SessionActive", "ClientConnected", "ApplicationCodeExecuted",
+                    "SessionCredentialsIssued", "CodeUsedSessionRoleCredentials", "RoleActionSucceeded",
+                    "EffectUsefulToSource")) or
+                (route == "CreateStreamUrl" and proof.get("StreamUrlCreated") is not True) or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "gameliftstreams_application_or_role_effect_not_verified")
+        rows = [row for row_scope, row in items(self.snapshot, "iam_role")
+                if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        if (len(rows) != 1 or not isinstance(proof.get("TargetRoleId"), str) or
+                not proof["TargetRoleId"] or rows[0].get("RoleId") != proof["TargetRoleId"] or
+                self._service_trust_for_source_arn(
+                    role.id, "gameliftstreams.amazonaws.com", session) is False):
+            return ("unknown", "gameliftstreams_role_identity_or_trust_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "gameliftstreams_role_session_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "gameliftstreams_role_session_evidence_time_missing")
+        context = {"aws:RequestedRegion": region, "gameliftstreams:RoleArn": role.id}
+        grants = [self.check(source, {"action": "iam:PassRole", "request_context": {
+            "aws:RequestedRegion": region, "iam:PassedToService": "gameliftstreams.amazonaws.com"}}, role.id),
+            self.check(role, {"action": action}, resource)]
+        if route == "StartStreamSession":
+            grants.append(self.check(source, {"action": "gameliftstreams:StartStreamSession",
+                                               "request_context": context}, group))
+        else:
+            grants.extend(self.check(source, {"action": "gameliftstreams:CreateStreamUrl",
+                                              "request_context": context}, item) for item in (group, app))
+            grants.append(self.check(source, {"action": "gameliftstreams:StartStreamSession",
+                                               "request_context": context}, group))
+        if any(grant is None or grant.confidence != "derived" for grant in grants):
+            return ("unknown", "gameliftstreams_scoped_session_permissions_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "gameliftstreams_exact_controlled_application_role_effect")
+
+    def _kafkaconnect_plugin_role_effect(self, source, role):
+        """Bind an accepted custom plugin and running connector to the exact role."""
+        technique = "aws-kafkaconnect-passrole-createconnector"
+        if source.scope != role.scope or source.id == role.id:
+            return None
+        if any(not self._statements(source, action)[0] for action in (
+                "iam:passrole", "kafkaconnect:createconnector", "kafkaconnect:createcustomplugin")):
+            return ("unknown", "kafkaconnect_source_permissions_incomplete") if source.incomplete else None
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "kafkaconnect_plugin_effect_evidence_missing_or_conflicting")
+        scope, proof = records[0]
+        if (inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"
+                or source.incomplete or role.incomplete or "/" not in scope):
+            return ("unknown", "kafkaconnect_plugin_effect_evidence_incomplete")
+        region = scope.split("/", 1)[1]
+        partition = source.id.split(":", 2)[1]
+        connector, plugin, cluster = (proof.get(key) for key in (
+            "ConnectorArn", "CustomPluginArn", "KafkaClusterArn"))
+        prefix = rf"arn:{re.escape(partition)}:kafkaconnect:{re.escape(region)}:{source.scope}:"
+        if (not isinstance(connector, str) or re.fullmatch(
+                prefix + r"connector/[A-Za-z0-9._-]+/[A-Za-z0-9-]+", connector) is None or
+                not isinstance(plugin, str) or re.fullmatch(
+                    prefix + r"custom-plugin/[A-Za-z0-9._-]+/[A-Za-z0-9-]+", plugin) is None or
+                not isinstance(cluster, str) or re.fullmatch(
+                    rf"arn:{re.escape(partition)}:kafka:{re.escape(region)}:{source.scope}:cluster/[A-Za-z0-9._-]+/[A-Za-z0-9-]+",
+                    cluster) is None):
+            return ("unknown", "kafkaconnect_connector_plugin_or_cluster_not_verified")
+        uri = proof.get("PluginS3Uri")
+        parsed = urlsplit(uri) if isinstance(uri, str) else None
+        if (parsed is None or parsed.scheme != "s3" or
+                not re.fullmatch(r"[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]", parsed.netloc) or
+                not parsed.path.startswith("/") or parsed.path == "/" or parsed.query or parsed.fragment or
+                "%" in parsed.path or not parsed.path.lower().endswith((".jar", ".zip"))):
+            return ("unknown", "kafkaconnect_plugin_artifact_not_verified")
+        object_arn = f"arn:{partition}:s3:::{parsed.netloc}{parsed.path}"
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        needed = ("PluginArtifactControlledBySource", "PluginArtifactReadSucceeded",
+                  "CustomPluginCreated", "PluginCompatible", "KafkaClusterReachable",
+                  "ConnectorNetworkReady", "ConnectorCreated", "ConnectorRunning",
+                  "PluginCodeExecuted", "PluginUsedServiceRoleCredentials",
+                  "RoleActionSucceeded", "EffectUsefulToSource")
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("TechniqueId") != technique or proof.get("SourceArn") != source.id or
+                proof.get("TargetKind") != "aws_role" or proof.get("TargetId") != role.id or
+                proof.get("ConnectorServiceExecutionRoleArn") != role.id or
+                proof.get("ConnectorCustomPluginArn") != plugin or
+                any(proof.get(key) is not True for key in needed) or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "kafkaconnect_plugin_execution_or_role_effect_not_verified")
+        roles = [row for row_scope, row in items(self.snapshot, "iam_role")
+                 if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        if (len(roles) != 1 or not isinstance(proof.get("TargetRoleId"), str) or
+                not proof["TargetRoleId"] or roles[0].get("RoleId") != proof["TargetRoleId"] or
+                self._service_trust_for_source_arn(
+                    role.id, "kafkaconnect.amazonaws.com", connector) is False):
+            return ("unknown", "kafkaconnect_role_identity_or_trust_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "kafkaconnect_plugin_effect_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "kafkaconnect_plugin_effect_evidence_time_missing")
+        context = {"aws:RequestedRegion": region}
+        grants = [self.check(source, {"action": action_name, "request_context": context}, "*")
+                  for action_name in ("kafkaconnect:CreateConnector", "kafkaconnect:CreateCustomPlugin")]
+        grants.extend((self.check(source, {"action": "iam:PassRole", "request_context": {
+            **context, "iam:PassedToService": "kafkaconnect.amazonaws.com"}}, role.id),
+            self.check(source, {"action": "s3:PutObject"}, object_arn),
+            self.check(role, {"action": action}, resource)))
+        if any(grant is None or grant.confidence != "derived" for grant in grants):
+            return ("unknown", "kafkaconnect_scoped_permissions_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "kafkaconnect_exact_plugin_role_effect")
+
+    def _glue_job_effect_witness(self, source, role, technique):
+        """Use one fresh executed job to cover a script outside job inventory."""
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if not records:
+            return None
+        if len(records) != 1:
+            return ("unknown", "glue_job_effect_evidence_conflicting")
+        scope, proof = records[0]
+        if (inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"
+                or source.incomplete or role.incomplete or "/" not in scope):
+            return ("unknown", "glue_job_effect_evidence_incomplete")
+        region = scope.split("/", 1)[1]
+        partition = source.id.split(":", 2)[1]
+        job_arn, script = proof.get("JobArn"), proof.get("ScriptS3Uri")
+        if not isinstance(job_arn, str) or re.fullmatch(
+                rf"arn:{re.escape(partition)}:glue:{re.escape(region)}:{source.scope}:job/[A-Za-z0-9][A-Za-z0-9_./-]*",
+                job_arn) is None or not isinstance(script, str):
+            return ("unknown", "glue_job_or_script_identity_not_verified")
+        parsed = urlsplit(script)
+        if (parsed.scheme != "s3" or not re.fullmatch(r"[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]", parsed.netloc)
+                or not parsed.path.startswith("/") or parsed.path == "/" or parsed.query or parsed.fragment
+                or "%" in parsed.path):
+            return ("unknown", "glue_job_script_uri_not_verified")
+        object_arn = f"arn:{partition}:s3:::{parsed.netloc}{parsed.path}"
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("TechniqueId") != technique or proof.get("SourceArn") != source.id or
+                proof.get("TargetKind") != "aws_role" or proof.get("TargetId") != role.id or
+                proof.get("JobRoleArn") != role.id or
+                proof.get("ExecutionRoute") not in ("StartJobRun", "CreateTrigger", "ExistingTrigger") or
+                any(proof.get(key) is not True for key in (
+                    "ScriptObjectControlled", "ScriptReadSucceeded", "JobRunSucceeded",
+                    "ScriptExecuted", "CodeUsedJobRoleCredentials", "RoleActionSucceeded",
+                    "EffectUsefulToSource")) or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "glue_job_execution_or_role_effect_not_verified")
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        if (not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource):
+            return ("unknown", "glue_job_role_action_not_verified")
+        rows = [row for row_scope, row in items(self.snapshot, "iam_role")
+                if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        if (len(rows) != 1 or not isinstance(proof.get("TargetRoleId"), str) or
+                not proof["TargetRoleId"] or rows[0].get("RoleId") != proof["TargetRoleId"]):
+            return ("unknown", "glue_job_role_identity_not_verified")
+        if technique != "aws-glue-passrole-createjob-or-updatejob-run" and job_arn not in self.hosts.get(
+                role.id, {}).get("glue_job", ()):
+            return ("unknown", "glue_job_attached_role_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "glue_job_effect_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "glue_job_effect_evidence_time_missing")
+        context = {"aws:RequestedRegion": region}
+        grants = [self.check(source, {"action": "s3:PutObject"}, object_arn),
+                  self.check(role, {"action": "s3:GetObject"}, object_arn),
+                  self.check(role, {"action": action}, resource)]
+        if technique in ("aws-glue-passrole-createjob-or-updatejob-run", "aws-glue-updatejob-existing-role"):
+            change = proof.get("JobChangeAction")
+            allowed = ("CreateJob", "UpdateJob") if technique == "aws-glue-passrole-createjob-or-updatejob-run" else ("UpdateJob",)
+            if change not in allowed or proof.get("JobChangeSucceeded") is not True:
+                return ("unknown", "glue_job_change_not_verified")
+            grants.extend((self.check(source, {"action": "glue:" + change,
+                                               "request_context": context}, job_arn),
+                           self.check(source, {"action": "iam:PassRole", "request_context": {
+                               **context, "iam:PassedToService": "glue.amazonaws.com"}}, role.id)))
+        route = proof["ExecutionRoute"]
+        if route == "StartJobRun":
+            if technique == "aws-glue-updatejob-existing-role":
+                return ("unknown", "glue_updatejob_existing_trigger_not_verified")
+            grants.append(self.check(source, {"action": "glue:StartJobRun",
+                                               "request_context": context}, job_arn))
+        else:
+            trigger_arn = proof.get("TriggerArn")
+            if (not isinstance(trigger_arn, str) or re.fullmatch(
+                    rf"arn:{re.escape(partition)}:glue:{re.escape(region)}:{source.scope}:trigger/[A-Za-z0-9][A-Za-z0-9_./-]*",
+                    trigger_arn) is None or proof.get("TriggerFired") is not True):
+                return ("unknown", "glue_job_trigger_execution_not_verified")
+            if route == "CreateTrigger":
+                grants.append(self.check(source, {"action": "glue:CreateTrigger",
+                                                   "request_context": context}, trigger_arn))
+            elif technique != "aws-glue-updatejob-existing-role":
+                return ("unknown", "glue_job_execution_route_not_verified")
+        if any(grant is None or grant.confidence != "derived" for grant in grants):
+            return ("unknown", "glue_job_scoped_permissions_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "glue_exact_executed_job_role_effect")
+
+    def _glue_writable_script_witness(self, source, role, job_status):
+        """Find a recorded script object the caller can replace and the role can read."""
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        unresolved = False
+        for scope, job in items(self.snapshot, "glue_job"):
+            if (not scope.startswith(source.scope + "/") or job_status.get(scope) != "collected"
+                    or not isinstance(job, dict)):
+                continue
+            command = job.get("Command")
+            script = command.get("ScriptLocation") if isinstance(command, dict) else None
+            if not isinstance(script, str):
+                continue
+            parsed = urlsplit(script)
+            if (parsed.scheme != "s3" or not re.fullmatch(r"[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]", parsed.netloc)
+                    or not parsed.path.startswith("/") or parsed.path == "/"
+                    or parsed.query or parsed.fragment or "%" in parsed.path
+                    or any(ord(char) < 32 for char in script)):
+                continue
+            object_arn = f"arn:{partition}:s3:::{parsed.netloc}{parsed.path}"
+            put = self.check(source, {"action": "s3:PutObject"}, object_arn)
+            read = self.check(role, {"action": "s3:GetObject"}, object_arn)
+            if put is None or read is None:
+                continue
+            if put.confidence == read.confidence == "derived":
+                return True, False
+            unresolved = True
+        return False, unresolved
+
     def precondition(self, pid, candidates, source):
+        if pid == "glue_new_public_dev_endpoint_role":
+            if source is None:
+                return None
+            inventories = {collection.get("scope"): collection for collection in
+                           self.snapshot.get("collections", [])
+                           if collection.get("type") == "glue_dev_endpoint" and
+                           isinstance(collection.get("scope"), str) and
+                           collection["scope"].startswith(source.scope + "/")}
+            if not inventories:
+                return {tid: ("unknown", "glue_dev_endpoint_inventory_not_collected") for tid in candidates}
+            get_allows, _ = self._statements(source, "glue:getdevendpoint")
+            list_allows, _ = self._statements(source, "glue:getdevendpoints")
+            create_allows, _ = self._statements(source, "glue:createdevendpoint")
+            pass_allows, _ = self._statements(source, "iam:passrole")
+            out = {}
+            for tid, role in candidates.items():
+                uncertain = bool(source.incomplete or role.incomplete)
+                for scope, collection in inventories.items():
+                    status = collection.get("status")
+                    error = collection.get("error") or {}
+                    if status == "empty" and error.get("code") in (
+                            "operation_disabled_for_account", "region_operation_unsupported"):
+                        continue
+                    if status not in ("collected", "empty") or error:
+                        uncertain = True
+                        continue
+                    region = scope.split("/", 1)[1]
+                    context = {"aws:RequestedRegion": region}
+                    existing = {row.get("EndpointName").casefold() for row in collection.get("items", [])
+                                if isinstance(row, dict) and isinstance(row.get("EndpointName"), str)}
+                    if len(existing) != len(collection.get("items", [])):
+                        uncertain = True
+                        continue
+                    create = self.cached_check(source, {"action": "glue:CreateDevEndpoint",
+                        "request_context": context}, "peaso-global-glue-dev-endpoint-operation")
+                    if create is None:
+                        uncertain |= bool(create_allows)
+                        continue
+                    list_read = self.cached_check(source, {"action": "glue:GetDevEndpoints",
+                        "request_context": context}, "peaso-global-glue-dev-endpoint-operation")
+                    prefix = f"arn:{source.id.split(':', 2)[1]}:glue:{region}:{source.scope}:devEndpoint/"
+                    names = {f"PeasoGlue{number}" for number in range(len(existing) + 2)} if list_read else set()
+                    for statement in get_allows:
+                        for pattern in statement.resources if not statement.notresource and not statement.variables else ():
+                            suffix = "*" if pattern == "*" else pattern.rsplit("devEndpoint/", 1)[1] if "devEndpoint/" in pattern else None
+                            if suffix is None or "/" in suffix or ":" in suffix:
+                                continue
+                            for number in range(len(existing) + 2 if "*" in suffix or "?" in suffix else 1):
+                                name = suffix.replace("*", f"PeasoGlue{number}").replace("?", "x")
+                                if re.fullmatch(r"[A-Za-z0-9_.-]{1,255}", name):
+                                    names.add(name)
+                    for name in sorted(names):
+                        if name.casefold() in existing:
+                            continue
+                        read = list_read or self.cached_check(source, {"action": "glue:GetDevEndpoint",
+                            "request_context": context}, prefix + name)
+                        if read is None:
+                            uncertain |= bool(get_allows or list_allows)
+                            continue
+                        passed = self.cached_check(source, {"action": "iam:PassRole",
+                            "request_context": {**context, "iam:PassedToService": "glue.amazonaws.com"}}, tid)
+                        if passed is None:
+                            uncertain |= bool(pass_allows)
+                            continue
+                        if all(grant.confidence == "derived" for grant in (create, read, passed)):
+                            out[tid] = ("conditional", "glue_new_public_dev_endpoint_with_ssh_key")
+                            break
+                        uncertain = True
+                    if tid in out:
+                        break
+                    if not names and (get_allows or list_allows):
+                        uncertain = True
+                if tid not in out and uncertain:
+                    out[tid] = ("unknown", "glue_dev_endpoint_region_or_permissions_unresolved")
+            return out
+        if pid == "devicefarm_existing_project_new_web_test_role":
+            if source is None:
+                return None
+            project_status = {scope: status for scope, status in inventory_status(
+                self.snapshot, "devicefarm_project").items() if scope.startswith(source.scope + "/")}
+            pool_status = {scope: status for scope, status in inventory_status(
+                self.snapshot, "devicefarm_device_pool").items() if scope.startswith(source.scope + "/")}
+            if not project_status or not pool_status:
+                return {tid: ("unknown", "devicefarm_project_or_pool_inventory_not_collected")
+                        for tid in candidates}
+            uncertain_inventory = any(status not in ("collected", "empty") for status in
+                                      (*project_status.values(), *pool_status.values()))
+            projects = {(scope, row.get("arn")) for scope, row in items(self.snapshot, "devicefarm_project")
+                        if scope in project_status and project_status[scope] in ("collected", "partial")
+                        and isinstance(row.get("arn"), str)}
+            pools = [(scope, row) for scope, row in items(self.snapshot, "devicefarm_device_pool")
+                     if scope in pool_status and pool_status[scope] in ("collected", "partial")]
+
+            def generated_uploads_covered(project_arn, region):
+                prefix = project_arn.replace(":project:", ":upload:") + "/"
+                allows, denies = self._statements(source, "devicefarm:schedulerun")
+                if denies:
+                    return False
+                broad = any(not statement.notresource and not statement.variables and any(
+                    pattern == "*" or (pattern.endswith("*") and prefix.startswith(pattern[:-1]))
+                    for pattern in statement.resources) for statement in allows)
+                if not broad:
+                    return False
+                context = {"aws:RequestedRegion": region}
+                return all((grant := self.cached_check(source, {"action": "devicefarm:ScheduleRun",
+                            "request_context": context}, prefix + digit * 36)) is not None and
+                           grant.confidence == "derived" for digit in ("0", "f"))
+
+            out = {}
+            for tid, role in candidates.items():
+                uncertain = uncertain_inventory or source.incomplete or role.incomplete
+                for scope, pool in pools:
+                    project_arn = pool.get("ProjectArn")
+                    pool_arn = pool.get("arn")
+                    if (scope, project_arn) not in projects or not isinstance(pool_arn, str):
+                        uncertain = True
+                        continue
+                    if pool.get("CompatibleWebNodeDevices") is None:
+                        uncertain = True
+                        continue
+                    if not isinstance(pool.get("CompatibleWebNodeDevices"), int) or pool["CompatibleWebNodeDevices"] < 1:
+                        continue
+                    region = scope.split("/", 1)[1]
+                    context = {"aws:RequestedRegion": region}
+                    grants = [self.cached_check(source, {"action": action, "request_context": context}, arn)
+                              for action, arn in (("devicefarm:CreateUpload", project_arn),
+                                                  ("devicefarm:ScheduleRun", project_arn),
+                                                  ("devicefarm:ScheduleRun", pool_arn))]
+                    grants.append(self.cached_check(source, {"action": "iam:PassRole",
+                        "request_context": {**context, "iam:PassedToService": "devicefarm.amazonaws.com"}}, tid))
+                    if any(grant is None for grant in grants):
+                        continue
+                    if (all(grant.confidence == "derived" for grant in grants) and
+                            generated_uploads_covered(project_arn, region)):
+                        out[tid] = ("conditional", "devicefarm_web_test_in_existing_compatible_project")
+                        break
+                    uncertain = True
+                if tid not in out and uncertain:
+                    out[tid] = ("unknown", "devicefarm_project_pool_or_upload_permission_incomplete")
+            return out
+        if pid == "devicefarm_existing_test_spec_role_effect_reviewed":
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._devicefarm_existing_test_spec_role_effect(source, role))}
+        if pid == "autoscaling_created_launch_input_role_effect_reviewed":
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._autoscaling_created_launch_input_role_effect(source, role))}
+        if pid == "gamelift_new_controlled_build_fleet_role":
+            if source is None:
+                return None
+            regions = sorted({scope.split("/", 1)[1] for scope in self.snapshot.get("scopes", ())
+                              if isinstance(scope, str) and scope.startswith(source.scope + "/")
+                              and "/" in scope})
+            controlled = False
+            possible = bool(source.incomplete or not regions)
+            for region in regions:
+                context = {"aws:RequestedRegion": region}
+                global_resource = "peaso-global-gamelift-create-operation"
+                build = self.check(source, {"action": "gamelift:CreateBuild", "request_context": context}, global_resource)
+                fleet = self.check(source, {"action": "gamelift:CreateFleet", "request_context": context}, global_resource)
+                container = self.check(source, {"action": "gamelift:CreateContainerFleet",
+                                                "request_context": context}, global_resource)
+                if build is not None and fleet is not None and build.confidence == fleet.confidence == "derived":
+                    controlled = True
+                    break
+                possible |= fleet is not None or container is not None
+            if controlled:
+                return {tid: (("unknown", "gamelift_source_or_role_policy_incomplete") if role.incomplete
+                              else ("conditional", "gamelift_new_build_uploaded_to_new_ec2_fleet"))
+                        for tid, role in candidates.items()}
+            if possible:
+                return {tid: ("unknown", "gamelift_controlled_build_or_fleet_configuration_not_verified")
+                        for tid in candidates}
+            return {}
+        if pid == "gamelift_existing_shared_fleet_role_shell":
+            if source is None:
+                return None
+            statuses = inventory_status(self.snapshot, "gamelift_ec2_compute")
+            account_scopes = {scope: status for scope, status in statuses.items()
+                              if scope.startswith(source.scope + "/")}
+            if not account_scopes:
+                return {tid: ("unknown", "gamelift_fleet_inventory_not_collected") for tid in candidates}
+            out = {}
+            for tid, role in candidates.items():
+                uncertain = bool(source.incomplete or role.incomplete or
+                                 any(status not in ("collected", "empty") for status in account_scopes.values()))
+                for scope, fleet in items(self.snapshot, "gamelift_ec2_compute"):
+                    if scope not in account_scopes or not isinstance(fleet, dict):
+                        continue
+                    if fleet.get("InstanceRoleArn") != role.id:
+                        continue
+                    if (fleet.get("ComputeType") != "EC2" or fleet.get("Status") != "ACTIVE"
+                            or fleet.get("InstanceRoleCredentialsProvider") != "SHARED_CREDENTIAL_FILE"):
+                        continue
+                    arn = fleet.get("FleetArn")
+                    region = scope.split("/", 1)[1]
+                    partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+                    expected_id = fleet.get("FleetId")
+                    if not isinstance(expected_id, str) or arn not in {
+                            f"arn:{partition}:gamelift:{region}:{owner}:fleet/{expected_id}"
+                            for owner in ("", source.scope)}:
+                        uncertain = True
+                        continue
+                    computes = fleet.get("Computes")
+                    if not isinstance(computes, dict) or computes.get("collection_status") not in ("collected", "empty"):
+                        uncertain = True
+                        continue
+                    active = any(isinstance(compute, dict) and compute.get("FleetId") == fleet.get("FleetId")
+                                 and isinstance(compute.get("ComputeName"), str)
+                                 and str(compute.get("ComputeStatus", "")).upper() == "ACTIVE"
+                                 for compute in computes.get("items", []))
+                    if not active:
+                        continue
+                    # IAM's service authorization reference uses the accountful
+                    # fleet ARN even though API examples sometimes omit it.
+                    iam_fleet_arn = f"arn:{partition}:gamelift:{region}:{source.scope}:fleet/{expected_id}"
+                    grant = self._check_action(source, "gamelift:getcomputeaccess", iam_fleet_arn)
+                    if grant is not None and grant.confidence == "derived" and not source.incomplete and not role.incomplete:
+                        out[tid] = ("conditional", "gamelift_active_ec2_shared_role_shell")
+                        break
+                    uncertain |= grant is not None and grant.confidence == "unknown"
+                if tid not in out and uncertain:
+                    out[tid] = ("unknown", "gamelift_fleet_compute_role_or_permission_not_verified")
+            return out
+        if pid == "deadline_fleet_worker_binding_unverified":
+            # A passable fleet role and broad API grants do not identify a
+            # customer-managed fleet or a worker the source can register and
+            # use. Keep the possible route visible without inventing an edge.
+            return {tid: ("unknown", "deadline_fleet_worker_and_role_binding_not_verified")
+                    for tid in candidates}
+        if pid == "deadline_fleet_worker_bounded_authority_reviewed":
+            if source is None:
+                return None
+            return {tid: verdict for tid, target in candidates.items()
+                    if (verdict := self._deadline_fleet_worker_bounded_authority(source, target))}
+        if pid == "datapipeline_existing_customer_role_pair_and_runnable_ec2":
+            return self._datapipeline_created_ec2_role_effect(source, candidates)
+        if pid == "kafkaconnect_plugin_execution_unverified":
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._kafkaconnect_plugin_role_effect(source, role))}
+        if pid == "braket_createjob_device_authorized":
+            if source is None:
+                return None
+            partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+            simulator = f"arn:{partition}:braket:::device/quantum-simulator/amazon/sv1"
+            allows, _ = self._statements(source, "braket:createjob")
+            devices = {(scope, row.get("deviceArn")): row
+                       for scope, row in items(self.snapshot, "braket_device")
+                       if isinstance(row, dict)}
+            statuses = inventory_status(self.snapshot, "braket_device")
+            bucket_status = inventory_status(self.snapshot, "bucket")
+            source_writes, _ = self._statements(source, "s3:putobject")
+            seed = hashlib.sha256(source.id.encode()).hexdigest()[:12]
+            out = {}
+            for tid, role in candidates.items():
+                blocked = (source.incomplete or role.incomplete or
+                           bool(source.attrs.get("boundary")) or bool(role.attrs.get("boundary")) or
+                           self.scp_status.get(source.scope) != "empty" or
+                           bucket_status.get(f"{source.scope}/global") not in ("collected", "empty"))
+                unresolved = blocked or not statuses
+                if not allows:
+                    continue
+                for scope, status in statuses.items():
+                    if not scope.startswith(source.scope + "/"):
+                        continue
+                    if status not in ("collected", "empty") or blocked:
+                        unresolved = True
+                        continue
+                    device = devices.get((scope, simulator))
+                    if not device or device.get("deviceStatus") != "ONLINE" or \
+                            device.get("deviceType") != "SIMULATOR":
+                        unresolved = True
+                        continue
+                    region = scope.split("/", 1)[1]
+                    job = (f"arn:{partition}:braket:{region}:{source.scope}:job/"
+                           "00000000-0000-4000-8000-000000000000")
+                    broad_job = any(not st.notresource and not st.variables and any(
+                        pattern == "*" or (pattern.endswith(":job/*") and _resource_glob(pattern, job))
+                        for pattern in st.resources) for st in allows)
+                    if not broad_job:
+                        unresolved = True
+                        continue
+                    context = {"aws:RequestedRegion": region}
+                    device_grant = self.cached_check(source, {"action": "braket:CreateJob",
+                        "request_context": context}, simulator)
+                    job_grant = self.cached_check(source, {"action": "braket:CreateJob",
+                        "request_context": context}, job)
+                    passed = self.check(source, {"action": "iam:PassRole", "request_context":
+                        {"iam:PassedToService": "braket.amazonaws.com"}}, tid)
+                    trust = self._service_trust_for_source_arn(tid, "braket.amazonaws.com", job)
+                    source_arn_trust = any("aws:sourcearn" in json.dumps(st.condition).lower()
+                                           for st in self.trust.get(tid, ()) if st.effect == "allow")
+                    if (partition != "aws" or not all(g is not None and g.confidence == "derived"
+                            for g in (device_grant, job_grant, passed)) or trust is not True or source_arn_trust):
+                        unresolved = True
+                        continue
+                    role_reads, _ = self._statements(role, "s3:getobject")
+                    role_writes, role_denies = self._statements(role, "s3:putobject")
+                    if role_denies or not source_writes or not role_reads or not role_writes:
+                        unresolved = True
+                        continue
+                    code_ready, output_ready = False, False
+                    for bucket_scope, bucket in items(self.snapshot, "bucket"):
+                        if bucket_scope != f"{source.scope}/global":
+                            continue
+                        name, location = bucket.get("Name"), bucket.get("Location")
+                        policy, encryption = bucket.get("Policy"), bucket.get("Encryption")
+                        if not isinstance(name, str) or not isinstance(location, dict) or \
+                                location.get("collection_status") != "collected" or \
+                                not isinstance(policy, dict) or \
+                                policy.get("collection_status") not in ("collected", "empty") or \
+                                not isinstance(encryption, dict) or \
+                                encryption.get("collection_status") not in ("collected", "empty"):
+                            unresolved = True
+                            continue
+                        home = location.get("LocationConstraint")
+                        home = "us-east-1" if home is None else "eu-west-1" if home == "EU" else home
+                        if home != region:
+                            continue
+                        rules = (encryption.get("ServerSideEncryptionConfiguration") or {}).get("Rules") or []
+                        if any((rule.get("ApplyServerSideEncryptionByDefault") or {}).get("SSEAlgorithm") == "aws:kms"
+                               for rule in rules if isinstance(rule, dict)):
+                            unresolved = True
+                            continue
+                        bucket_arn = f"arn:{partition}:s3:::{name}"
+                        resource_policy = self.resource_policies.get(bucket_arn)
+                        if resource_policy and any(st.effect == "deny" and any(st.action_matches(action)
+                                for action in ("s3:GetObject", "s3:PutObject")) for st in resource_policy[1]):
+                            unresolved = True
+                            continue
+                        code_arns = {bucket_arn + f"/peaso-braket-{seed}/code.tar.gz"}
+                        for st in source_writes:
+                            if st.notresource or st.variables or st.condition:
+                                continue
+                            code_arns.update(pattern for pattern in st.resources
+                                             if isinstance(pattern, str) and pattern.startswith(bucket_arn + "/")
+                                             and not any(char in pattern for char in ("*", "?"))
+                                             and pattern.endswith(".tar.gz"))
+                        for code_arn in sorted(code_arns)[:40]:
+                            direct = lambda statements: any(not st.notresource and not st.variables and
+                                not st.condition and st.resource_matches(code_arn) is True for st in statements)
+                            if not direct(source_writes) or not direct(role_reads):
+                                continue
+                            source_write = self.check(source, {"action": "s3:PutObject"}, code_arn)
+                            role_read = self.check(role, {"action": "s3:GetObject"}, code_arn)
+                            if source_write is not None and role_read is not None and \
+                                    source_write.confidence == role_read.confidence == "derived":
+                                code_ready = True
+                                break
+                        for st in role_writes:
+                            if st.notresource or st.variables or st.condition:
+                                continue
+                            if any(pattern == "*" or pattern == bucket_arn + "/*" or
+                                   (isinstance(pattern, str) and pattern.startswith(bucket_arn + "/")
+                                    and pattern.endswith("/*") and not any(char in pattern[:-1]
+                                                                             for char in ("*", "?")))
+                                   for pattern in st.resources):
+                                output_ready = True
+                                break
+                    if code_ready and output_ready:
+                        out[tid] = ("conditional", "braket_script_job_start_pending")
+                        break
+                    unresolved = True
+                if tid not in out and unresolved:
+                    out[tid] = ("unknown", "braket_device_script_or_output_not_verified")
+            return out
+        if pid == "stepfunctions_teststate_privileged_task_unverified":
+            if source is None:
+                return None
+            out = {}
+            pending = ("unknown", "stepfunctions_teststate_role_task_effect_not_verified")
+            try:
+                now = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+                if now.tzinfo is None:
+                    now = None
+            except (KeyError, TypeError, ValueError):
+                now = None
+            proof_status = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+            technique = (self.current_entry or {}).get("id")
+            for tid, role in candidates.items():
+                if now is None or role.scope != source.scope:
+                    out[tid] = pending
+                    continue
+                role_rows = [row for role_scope, row in items(self.snapshot, "iam_role")
+                    if role_scope.split("/")[0] == role.scope and row.get("Arn") == tid]
+                role_id = role_rows[0].get("RoleId") if len(role_rows) == 1 else None
+                if not isinstance(role_id, str) or not role_id:
+                    out[tid] = pending
+                    continue
+                for scope in self.snapshot.get("scopes", ()):
+                    if not isinstance(scope, str) or not scope.startswith(f"{role.scope}/"):
+                        continue
+                    collections = [collection for collection in self.snapshot.get("collections", ())
+                        if collection.get("type") == "aws_privesc_challenge_evidence" and
+                        collection.get("scope") == scope]
+                    if len(collections) != 1 or collections[0].get("status") != "collected":
+                        continue
+                    proofs = [row for proof_scope, row in items(self.snapshot, "aws_privesc_challenge_evidence")
+                        if proof_scope == scope and proof_status.get(scope) == "collected" and
+                        row.get("TechniqueId") == technique and row.get("SourceArn") == source.id and
+                        row.get("TargetKind") == "aws_role" and row.get("TargetId") == tid]
+                    if len(proofs) != 1:
+                        continue
+                    proof = proofs[0]
+                    action, resource = proof.get("TaskAction"), proof.get("TaskResource")
+                    if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                            proof.get("UnmockedTask") is not True or proof.get("TestStateSucceeded") is not True or
+                            proof.get("TaskOutcomeUsefulToSource") is not True or
+                            proof.get("TargetScope") != scope or proof.get("TargetRoleId") != role_id or
+                            not isinstance(action, str) or
+                            re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                            not isinstance(resource, str) or not resource or
+                            not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"]):
+                        continue
+                    try:
+                        witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+                        expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+                        if (witnessed.tzinfo is None or expires.tzinfo is None or
+                                not 0 <= (now - witnessed).total_seconds() <= 900 or
+                                not now < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                            continue
+                    except (KeyError, TypeError, ValueError):
+                        continue
+                    permitted = self.check(role, {"action": action}, resource)
+                    already = self.check(source, {"action": action}, resource)
+                    if permitted is not None and permitted.confidence == "derived" and already is None:
+                        out[tid] = None
+                        break
+                out.setdefault(tid, pending)
+            return out
+        if pid == "sfn_role_sdk_effect_reviewed":
+            if source is None:
+                return None
+            out = {}
+            try:
+                now = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+                if now.tzinfo is None:
+                    now = None
+            except (KeyError, TypeError, ValueError):
+                now = None
+            proof_status = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+            machine_status = inventory_status(self.snapshot, "sfn_state_machine")
+            technique = (self.current_entry or {}).get("id")
+            for tid, role in candidates.items():
+                pending = ("unknown", "sfn_supported_role_task_effect_not_verified")
+                if now is None or role.scope != source.scope:
+                    out[tid] = pending
+                    continue
+                role_rows = [row for role_scope, row in items(self.snapshot, "iam_role")
+                    if role_scope.split("/")[0] == role.scope and row.get("Arn") == tid]
+                role_id = role_rows[0].get("RoleId") if len(role_rows) == 1 else None
+                if not isinstance(role_id, str) or not role_id:
+                    out[tid] = pending
+                    continue
+                for scope, machine in items(self.snapshot, "sfn_state_machine"):
+                    if not isinstance(machine, dict) or "/" not in scope:
+                        continue
+                    arn = machine.get("stateMachineArn")
+                    revision = machine.get("revisionId")
+                    if (machine_status.get(scope) != "collected" or
+                            machine.get("status") != "ACTIVE" or
+                            _norm_arn(machine.get("roleArn") or "") != _norm_arn(tid) or
+                            not isinstance(arn, str) or not isinstance(revision, str) or not revision or
+                            not arn.startswith(f"arn:{tid.split(':', 2)[1]}:states:{scope.split('/', 1)[1]}:"
+                                                   f"{role.scope}:stateMachine:")):
+                        continue
+                    collections = [collection for collection in self.snapshot.get("collections", ())
+                        if collection.get("type") == "aws_privesc_challenge_evidence" and
+                        collection.get("scope") == scope]
+                    if len(collections) != 1 or collections[0].get("status") != "collected":
+                        continue
+                    proofs = [row for proof_scope, row in items(self.snapshot, "aws_privesc_challenge_evidence")
+                        if proof_scope == scope and proof_status.get(scope) == "collected" and
+                        row.get("TechniqueId") == technique and row.get("SourceArn") == source.id and
+                        row.get("TargetKind") == "aws_role" and row.get("TargetId") == tid and
+                        row.get("StateMachineArn") == arn]
+                    if len(proofs) != 1:
+                        continue
+                    proof = proofs[0]
+                    action, resource = proof.get("TaskAction"), proof.get("TaskResource")
+                    execution_prefix = arn.replace(":stateMachine:", ":execution:") + ":"
+                    if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                            proof.get("SdkTaskSucceeded") is not True or
+                            proof.get("TaskOutcomeUsefulToSource") is not True or
+                            proof.get("TargetScope") != scope or proof.get("TargetRoleId") != role_id or
+                            proof.get("StateMachineRevisionId") != revision or
+                            not isinstance(proof.get("ExecutionArn"), str) or
+                            not proof["ExecutionArn"].startswith(execution_prefix) or
+                            not isinstance(action, str) or
+                            re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                            not isinstance(resource, str) or not resource or
+                            not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"]):
+                        continue
+                    try:
+                        witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+                        expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+                        if (witnessed.tzinfo is None or expires.tzinfo is None or
+                                not 0 <= (now - witnessed).total_seconds() <= 900 or
+                                not now < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                            continue
+                    except (KeyError, TypeError, ValueError):
+                        continue
+                    permitted = self.check(role, {"action": action}, resource)
+                    already = self.check(source, {"action": action}, resource)
+                    if permitted is not None and permitted.confidence == "derived" and already is None:
+                        out[tid] = None
+                        break
+                else:
+                    out[tid] = pending
+            return out
+        if pid == "codebuild_ssm_debug_session_role_effect_reviewed":
+            if source is None:
+                return None
+            start_allows, _ = self._statements(source, "ssm:startsession")
+            if not start_allows:
+                return {}
+            pending = ("unknown", "codebuild_paused_build_session_role_effect_not_verified")
+            out = {}
+            try:
+                now = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+                if now.tzinfo is None:
+                    now = None
+            except (KeyError, TypeError, ValueError):
+                now = None
+            proof_status = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+            technique = (self.current_entry or {}).get("id")
+            for tid, role in candidates.items():
+                out[tid] = pending
+                if now is None or role.scope != source.scope:
+                    continue
+                role_rows = [row for role_scope, row in items(self.snapshot, "iam_role")
+                    if role_scope.split("/")[0] == role.scope and row.get("Arn") == tid]
+                role_id = role_rows[0].get("RoleId") if len(role_rows) == 1 else None
+                if not isinstance(role_id, str) or not role_id:
+                    continue
+                for scope in self.snapshot.get("scopes", ()):
+                    if not isinstance(scope, str) or not scope.startswith(f"{role.scope}/"):
+                        continue
+                    collections = [collection for collection in self.snapshot.get("collections", ())
+                        if collection.get("type") == "aws_privesc_challenge_evidence" and
+                        collection.get("scope") == scope]
+                    if len(collections) != 1 or collections[0].get("status") != "collected":
+                        continue
+                    proofs = [row for proof_scope, row in items(self.snapshot, "aws_privesc_challenge_evidence")
+                        if proof_scope == scope and proof_status.get(scope) == "collected" and
+                        row.get("TechniqueId") == technique and row.get("SourceArn") == source.id and
+                        row.get("TargetKind") == "aws_role" and row.get("TargetId") == tid]
+                    if len(proofs) != 1:
+                        continue
+                    proof = proofs[0]
+                    partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+                    region = scope.split("/", 1)[1]
+                    project = proof.get("ProjectName")
+                    build_id = proof.get("BuildId")
+                    project_arn = proof.get("ProjectArn")
+                    build_arn = proof.get("BuildArn")
+                    auth_resource = proof.get("StartSessionAuthorizationResourceArn")
+                    action, resource = proof.get("RoleAction"), proof.get("RoleResource")
+                    if (not isinstance(project, str) or
+                            re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]*", project) is None or
+                            not isinstance(build_id, str) or
+                            re.fullmatch(re.escape(project) + r":[A-Za-z0-9-]+", build_id) is None or
+                            project_arn != f"arn:{partition}:codebuild:{region}:{role.scope}:project/{project}" or
+                            build_arn != f"arn:{partition}:codebuild:{region}:{role.scope}:build/{build_id}" or
+                            not isinstance(auth_resource, str) or
+                            re.fullmatch(rf"arn:{re.escape(partition)}:[a-z0-9-]+:{re.escape(region)}:"
+                                         rf"{role.scope}:[^*?\s]+", auth_resource) is None):
+                        continue
+                    if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                            proof.get("TargetScope") != scope or proof.get("TargetRoleId") != role_id or
+                            proof.get("BuildServiceRoleArn") != tid or
+                            proof.get("BuildStatus") != "IN_PROGRESS" or
+                            proof.get("DebugSessionEnabled") is not True or
+                            proof.get("BuildPausedAtBreakpoint") is not True or
+                            not isinstance(proof.get("SessionTarget"), str) or not proof["SessionTarget"] or
+                            proof.get("SessionTargetFromBatchGetBuilds") is not True or
+                            proof.get("StartSessionSucceeded") is not True or
+                            proof.get("ShellCommandSucceeded") is not True or
+                            proof.get("ShellUsedBuildRoleCredentials") is not True or
+                            proof.get("RoleActionSucceeded") is not True or
+                            proof.get("EffectUsefulToSource") is not True or
+                            not isinstance(action, str) or
+                            re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                            not isinstance(resource, str) or not resource or
+                            not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"]):
+                        continue
+                    try:
+                        witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+                        expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+                        if (witnessed.tzinfo is None or expires.tzinfo is None or
+                                not 0 <= (now - witnessed).total_seconds() <= 900 or
+                                not now < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                            continue
+                    except (KeyError, TypeError, ValueError):
+                        continue
+                    start = self.check(source, {"action": "ssm:StartSession"}, auth_resource)
+                    permitted = self.check(role, {"action": action}, resource)
+                    already = self.check(source, {"action": action}, resource)
+                    if (start is not None and start.confidence == "derived" and
+                            permitted is not None and permitted.confidence == "derived" and already is None):
+                        out[tid] = None
+                        break
+            return out
+        if pid == "ssm_existing_automation_runtime_role_effect_reviewed":
+            if source is None:
+                return None
+            start_allows, _ = self._statements(source, "ssm:startautomationexecution")
+            if not start_allows:
+                return {}
+            pending = ("unknown", "ssm_existing_automation_document_role_effect_not_verified")
+            out = {}
+            try:
+                now = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+                if now.tzinfo is None:
+                    now = None
+            except (KeyError, TypeError, ValueError):
+                now = None
+            proof_status = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+            technique = (self.current_entry or {}).get("id")
+            for tid, role in candidates.items():
+                out[tid] = pending
+                if now is None or role.scope != source.scope:
+                    continue
+                role_rows = [row for role_scope, row in items(self.snapshot, "iam_role")
+                    if role_scope.split("/")[0] == role.scope and row.get("Arn") == tid]
+                role_id = role_rows[0].get("RoleId") if len(role_rows) == 1 else None
+                if not isinstance(role_id, str) or not role_id:
+                    continue
+                for scope in self.snapshot.get("scopes", ()):
+                    if not isinstance(scope, str) or not scope.startswith(f"{role.scope}/"):
+                        continue
+                    collections = [collection for collection in self.snapshot.get("collections", ())
+                        if collection.get("type") == "aws_privesc_challenge_evidence" and
+                        collection.get("scope") == scope]
+                    if len(collections) != 1 or collections[0].get("status") != "collected":
+                        continue
+                    proofs = [row for proof_scope, row in items(self.snapshot, "aws_privesc_challenge_evidence")
+                        if proof_scope == scope and proof_status.get(scope) == "collected" and
+                        row.get("TechniqueId") == technique and row.get("SourceArn") == source.id and
+                        row.get("TargetKind") == "aws_role" and row.get("TargetId") == tid]
+                    if len(proofs) != 1:
+                        continue
+                    proof = proofs[0]
+                    document = proof.get("DocumentArn")
+                    version = proof.get("DocumentVersion")
+                    parameter = proof.get("AssumeRoleParameterName")
+                    start_resource = proof.get("StartAuthorizationResourceArn")
+                    action, resource = proof.get("StepAction"), proof.get("StepResource")
+                    if (not isinstance(document, str) or
+                            re.fullmatch(rf"arn:[^:]+:ssm:{re.escape(scope.split('/', 1)[1])}:"
+                                         rf"(?:[0-9]{{12}})?:document/[A-Za-z0-9_.-]+", document) is None or
+                            not isinstance(version, str) or
+                            re.fullmatch(r"[1-9][0-9]*", version) is None or
+                            not isinstance(parameter, str) or
+                            re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*", parameter) is None):
+                        continue
+                    owner = document.split(":", 5)[4]
+                    name = document.rsplit("/", 1)[1]
+                    definition = (f"arn:{document.split(':', 2)[1]}:ssm:{scope.split('/', 1)[1]}:"
+                                  f"{owner}:automation-definition/{name}:{version}")
+                    definition_latest = definition.rsplit(":", 1)[0] + ":$LATEST"
+                    definition_default = definition.rsplit(":", 1)[0] + ":$DEFAULT"
+                    if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                            proof.get("TargetScope") != scope or proof.get("TargetRoleId") != role_id or
+                            proof.get("AssumeRoleParameterValue") != tid or
+                            proof.get("DocumentAssumeRoleTemplate") not in
+                            ("{{" + parameter + "}}", "{{ " + parameter + " }}") or
+                            proof.get("DocumentVersionContentVerified") is not True or
+                            not isinstance(proof.get("DocumentContentSha256"), str) or
+                            not proof["DocumentContentSha256"] or
+                            proof.get("DocumentTypeAutomation") is not True or
+                            proof.get("RoleParameterUsed") is not True or
+                            proof.get("StartAutomationExecutionSucceeded") is not True or
+                            proof.get("ExecutedRoleArn") != tid or
+                            proof.get("StepActionSucceeded") is not True or
+                            proof.get("EffectUsefulToSource") is not True or
+                            start_resource not in (document, definition, definition_latest, definition_default) or
+                            not isinstance(proof.get("AutomationExecutionId"), str) or
+                            not proof["AutomationExecutionId"] or
+                            not isinstance(action, str) or
+                            re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                            not isinstance(resource, str) or not resource or
+                            not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"]):
+                        continue
+                    try:
+                        witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+                        expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+                        if (witnessed.tzinfo is None or expires.tzinfo is None or
+                                not 0 <= (now - witnessed).total_seconds() <= 900 or
+                                not now < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                            continue
+                    except (KeyError, TypeError, ValueError):
+                        continue
+                    start = self.check(source, {"action": "ssm:StartAutomationExecution",
+                        "request_context": {"ssm:DocumentType": "Automation",
+                                            "ssm:DocumentVersion": version}}, start_resource)
+                    permitted = self.check(role, {"action": action}, resource)
+                    already = self.check(source, {"action": action}, resource)
+                    if (start is not None and start.confidence == "derived" and
+                            permitted is not None and permitted.confidence == "derived" and already is None):
+                        out[tid] = None
+                        break
+            return out
+        if pid == "bedrock_agent_actiongroup_lambda_execution_unverified":
+            if source is None:
+                return None
+            pending = ("unknown", "bedrock_agent_alias_actiongroup_lambda_join_not_verified")
+            out = {}
+            try:
+                now = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+                if now.tzinfo is None:
+                    now = None
+            except (KeyError, TypeError, ValueError):
+                now = None
+            proof_status = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+            technique = (self.current_entry or {}).get("id")
+            for tid, role in candidates.items():
+                out[tid] = pending
+                if now is None or role.scope != source.scope:
+                    continue
+                role_rows = [row for role_scope, row in items(self.snapshot, "iam_role")
+                    if role_scope.split("/")[0] == role.scope and row.get("Arn") == tid]
+                role_id = role_rows[0].get("RoleId") if len(role_rows) == 1 else None
+                if not isinstance(role_id, str) or not role_id:
+                    continue
+                for scope, function in items(self.snapshot, "lambda_function"):
+                    function_arn = function.get("FunctionArn")
+                    code_hash = function.get("CodeSha256")
+                    if (not isinstance(scope, str) or not scope.startswith(f"{role.scope}/") or
+                            function.get("Role") != tid or function.get("State") != "Active" or
+                            function.get("LastUpdateStatus") != "Successful" or
+                            not isinstance(function_arn, str) or
+                            re.fullmatch(rf"arn:[^:]+:lambda:{re.escape(scope.split('/', 1)[1])}:"
+                                         rf"{role.scope}:function:[^:]+", function_arn) is None or
+                            not isinstance(code_hash, str) or not code_hash):
+                        continue
+                    if self.check(source, {"action": "lambda:UpdateFunctionCode"}, function_arn) is None:
+                        continue
+                    collections = [collection for collection in self.snapshot.get("collections", ())
+                        if collection.get("type") == "aws_privesc_challenge_evidence" and
+                        collection.get("scope") == scope]
+                    if len(collections) != 1 or collections[0].get("status") != "collected":
+                        continue
+                    proofs = [row for proof_scope, row in items(self.snapshot, "aws_privesc_challenge_evidence")
+                        if proof_scope == scope and proof_status.get(scope) == "collected" and
+                        row.get("TechniqueId") == technique and row.get("SourceArn") == source.id and
+                        row.get("TargetKind") == "aws_role" and row.get("TargetId") == tid and
+                        row.get("FunctionArn") == function_arn]
+                    if len(proofs) != 1:
+                        continue
+                    proof = proofs[0]
+                    alias_arn = proof.get("AgentAliasArn")
+                    agent_id = proof.get("AgentId")
+                    alias_id = proof.get("AgentAliasId")
+                    action, resource = proof.get("RoleAction"), proof.get("RoleResource")
+                    alias_pattern = (rf"arn:{re.escape(function_arn.split(':')[1])}:bedrock:"
+                                     rf"{re.escape(scope.split('/', 1)[1])}:{role.scope}:"
+                                     rf"agent-alias/{re.escape(agent_id)}/{re.escape(alias_id)}"
+                                     if isinstance(agent_id, str) and agent_id and
+                                     isinstance(alias_id, str) and alias_id else None)
+                    if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                            proof.get("TargetScope") != scope or proof.get("TargetRoleId") != role_id or
+                            proof.get("FunctionCodeSha256") != code_hash or
+                            proof.get("ActionGroupExecutorLambdaArn") != function_arn or
+                            proof.get("AliasReady") is not True or
+                            proof.get("AliasRoutingVerified") is not True or
+                            proof.get("ActionGroupEnabled") is not True or
+                            proof.get("LambdaBedrockInvokeAllowed") is not True or
+                            proof.get("CodeUpdateSucceeded") is not True or
+                            proof.get("InvokeAgentSucceeded") is not True or
+                            proof.get("ActionGroupInvokedSameLambda") is not True or
+                            proof.get("RoleActionSucceeded") is not True or
+                            proof.get("EffectUsefulToSource") is not True or
+                            not isinstance(alias_arn, str) or alias_pattern is None or
+                            re.fullmatch(alias_pattern, alias_arn) is None or
+                            not isinstance(proof.get("AgentVersion"), str) or not proof["AgentVersion"] or
+                            not isinstance(proof.get("ActionGroupId"), str) or not proof["ActionGroupId"] or
+                            not isinstance(action, str) or
+                            re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                            not isinstance(resource, str) or not resource or
+                            not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"]):
+                        continue
+                    try:
+                        witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+                        expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+                        if (witnessed.tzinfo is None or expires.tzinfo is None or
+                                not 0 <= (now - witnessed).total_seconds() <= 900 or
+                                not now < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                            continue
+                    except (KeyError, TypeError, ValueError):
+                        continue
+                    invoke = self.check(source, {"action": "bedrock:InvokeAgent"}, alias_arn)
+                    permitted = self.check(role, {"action": action}, resource)
+                    already = self.check(source, {"action": action}, resource)
+                    if (invoke is not None and invoke.confidence == "derived" and
+                            permitted is not None and permitted.confidence == "derived" and already is None):
+                        out[tid] = None
+                        break
+            return out
+        if pid == "lambda_signer_trusted_profile_artifact_unverified":
+            if source is None:
+                return None
+            out = {}
+            functions = {row.get("FunctionArn"): row for _, row in items(self.snapshot, "lambda_function")
+                         if isinstance(row, dict) and isinstance(row.get("FunctionArn"), str)}
+            profile_status = inventory_status(self.snapshot, "signer_profile")
+            profiles = {(scope, row.get("profileVersionArn")): row
+                        for scope, row in items(self.snapshot, "signer_profile")
+                        if isinstance(row, dict) and isinstance(row.get("profileVersionArn"), str)}
+
+            def artifact_ready(function_arn):
+                if self._check_action(source, "lambda:invokefunction", function_arn) is None:
+                    return False
+                if source.attrs.get("boundary"):
+                    return False
+                if any(st.effect == "deny" for level in self._scp_levels(source.scope)[0]
+                       for policy in self.rcp_by_target.get(level, ()) for st in policy.statements):
+                    return False
+                if source.scope != self.org_management:
+                    scp_state = self.scp_status.get(source.scope, "not_collected")
+                    if scp_state == "collected":
+                        levels, complete = self._scp_levels(source.scope)
+                        if not complete:
+                            return False
+                        for level in levels:
+                            policies = (self.scp.get(source.scope, ()) if level == source.scope
+                                        else self.scp_by_target.get(level, ()))
+                            if not policies or any(st.effect == "deny" for p in policies for st in p.statements):
+                                return False
+                            if not any(st.effect == "allow" and not st.conditional and not st.notaction and
+                                       not st.notresource and any(action in ("*", "*:*") for action in st.actions)
+                                       and "*" in st.resources for p in policies for st in p.statements):
+                                return False
+                    elif scp_state != "empty":
+                        return False
+                put, put_denies = self._statements(source, "s3:putobject")
+                get, get_denies = self._statements(source, "s3:getobject")
+                if put_denies or get_denies:
+                    return False
+                for scope, bucket in items(self.snapshot, "bucket"):
+                    if scope != f"{source.scope}/global" or not isinstance(bucket, dict):
+                        continue
+                    name = bucket.get("Name")
+                    location = bucket.get("Location") or {}
+                    versioning = bucket.get("Versioning") or {}
+                    policy = bucket.get("Policy") or {}
+                    encryption = bucket.get("Encryption") or {}
+                    ownership = bucket.get("OwnershipControls") or {}
+                    if (not isinstance(name, str) or not name or
+                            location.get("collection_status") != "collected" or
+                            versioning.get("collection_status") != "collected" or
+                            versioning.get("Status") != "Enabled" or
+                            policy.get("collection_status") not in ("collected", "empty") or
+                            encryption.get("collection_status") not in ("collected", "empty") or
+                            ownership.get("collection_status") != "collected"):
+                        continue
+                    controls = ownership.get("OwnershipControls") or {}
+                    rules = controls.get("Rules") if isinstance(controls, dict) else None
+                    if not isinstance(rules, list) or not any(
+                            isinstance(rule, dict) and rule.get("ObjectOwnership") == "BucketOwnerEnforced"
+                            for rule in rules):
+                        continue
+                    region = location.get("LocationConstraint") or "us-east-1"
+                    if region == "EU":
+                        region = "eu-west-1"
+                    if region != function_arn.split(":")[3]:
+                        continue
+                    if encryption.get("collection_status") == "collected":
+                        rules = (encryption.get("ServerSideEncryptionConfiguration") or {}).get("Rules")
+                        if not isinstance(rules, list) or any(
+                            (rule.get("ApplyServerSideEncryptionByDefault") or {}).get("SSEAlgorithm") != "AES256"
+                            for rule in rules if isinstance(rule, dict)):
+                            continue
+                    document = policy.get("Policy") or {}
+                    if isinstance(document, dict) and any(
+                            str(statement.get("Effect", "")).lower() == "deny"
+                            for statement in as_list(document.get("Statement")) if isinstance(statement, dict)):
+                        continue
+                    bucket_arn = f"arn:{function_arn.split(':')[1]}:s3:::{name}"
+                    prefixes = set()
+                    for statement in put:
+                        if statement.notresource or statement.conditional:
+                            continue
+                        for resource in statement.resources:
+                            if resource == "*" or resource == bucket_arn + "/*":
+                                prefixes.add(bucket_arn + "/")
+                            elif (resource.startswith(bucket_arn + "/") and resource.endswith("/*") and
+                                  not any(char in resource[:-1] for char in ("*", "?"))):
+                                prefixes.add(resource[:-1])
+                    for prefix in sorted(prefixes):
+                        if not any(not statement.notresource and not statement.conditional and any(
+                            resource == "*" or resource == bucket_arn + "/*" or
+                            (resource.startswith(bucket_arn + "/") and resource.endswith("/*") and
+                             not any(char in resource[:-1] for char in ("*", "?")) and
+                             prefix.startswith(resource[:-1])) for resource in statement.resources)
+                            for statement in get):
+                            continue
+                        unsigned = prefix + "source.zip"
+                        signed = prefix + "signed/0000000000000000.zip"
+                        if all(self._check_action(source, action, resource) is not None for action, resource in (
+                            ("s3:putobject", unsigned), ("s3:getobjectversion", unsigned),
+                            ("s3:listbucket", bucket_arn), ("s3:putobject", signed),
+                            ("s3:getobject", signed))):
+                            return True
+                return False
+            for tid, role in candidates.items():
+                missing = bool(source.incomplete)
+                for arn in self.hosts.get(tid, {}).get("lambda_function", ()):
+                    function = functions.get(arn)
+                    if not function or function.get("Role") != tid:
+                        missing = True
+                        continue
+                    configuration = function.get("Configuration") or function
+                    package = configuration.get("PackageType")
+                    state = configuration.get("State")
+                    updated = configuration.get("LastUpdateStatus")
+                    if not all(isinstance(value, str) for value in (package, state, updated)):
+                        missing = True
+                        continue
+                    if package != "Zip" or state != "Active" or updated != "Successful":
+                        continue
+                    signing = function.get("CodeSigning") or {}
+                    request = signing.get("_request") or {}
+                    config_arn = signing.get("CodeSigningConfigArn")
+                    detail = function.get("CodeSigningConfig") or {}
+                    config = detail.get("CodeSigningConfig") or {}
+                    if (signing.get("collection_status") != "collected" or
+                            request.get("FunctionName") != function.get("FunctionName") or
+                            not isinstance(config_arn, str)):
+                        missing = True
+                        continue
+                    if not config_arn:
+                        continue
+                    if (detail.get("collection_status") != "collected" or
+                            config.get("CodeSigningConfigArn") != config_arn):
+                        missing = True
+                        continue
+                    if (config.get("CodeSigningPolicies") or {}).get("UntrustedArtifactOnDeployment") != "Enforce":
+                        continue
+                    publishers = (config.get("AllowedPublishers") or {}).get("SigningProfileVersionArns")
+                    if not isinstance(publishers, list) or not publishers:
+                        missing = True
+                        continue
+                    if (self._check_action(source, "lambda:updatefunctioncode", arn) is None or
+                            self._check_action(source, "lambda:getcodesigningconfig", config_arn) is None):
+                        continue
+                    for version_arn in publishers:
+                        match = re.fullmatch(
+                            r"(arn:[^:]+:signer:[^:]+:\d{12}:/signing-profiles/[^/]+)/([^/]+)",
+                            version_arn) if isinstance(version_arn, str) else None
+                        if not match:
+                            missing = True
+                            continue
+                        profile_arn, version = match.groups()
+                        start = self.check(source, {"action": "signer:StartSigningJob",
+                            "request_context": {"signer:ProfileVersion": version}}, profile_arn)
+                        if start is not None:
+                            parts = profile_arn.split(":", 5)
+                            profile_scope = f"{parts[4]}/{parts[3]}"
+                            if parts[4] != source.scope or profile_status.get(profile_scope) not in ("collected", "empty"):
+                                missing = True
+                                continue
+                            profile = profiles.get((profile_scope, version_arn))
+                            if profile is None:
+                                continue
+                            if profile.get("arn") != profile_arn or profile.get("profileVersion") != version:
+                                missing = True
+                                continue
+                            if profile.get("status") != "ACTIVE" or not str(profile.get("platformId") or "").startswith("AWSLambda-"):
+                                continue
+                            out[tid] = (("conditional", "lambda_signer_job_and_function_invocation_pending")
+                                        if artifact_ready(arn) else
+                                        ("unknown", "lambda_signer_versioned_artifact_or_invocation_not_verified"))
+                            break
+                    if tid in out:
+                        break
+                if tid not in out and (missing or self.host_status.get((role.scope, "lambda_function"))
+                                       not in ("collected", "empty")):
+                    out[tid] = ("unknown", "lambda_signer_function_config_or_profile_not_collected")
+            return out
+        if pid == "servicecatalog_new_artifact_effect_unverified":
+            if source is None:
+                return None
+            self_associate = (self.current_entry or {}).get("id") == (
+                "aws-servicecatalog-associateprincipal-createartifact-provision")
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._servicecatalog_verified_artifact_role_effect(
+                        source, role, self_associate=self_associate))}
+        if pid == "config_automatic_remediation_effect_unverified":
+            return self._config_automatic_remediation_role_effect(source, candidates)
+        if pid == "elasticbeanstalk_environment_role_effect_reviewed":
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._elasticbeanstalk_environment_role_effect(source, role))}
+        if pid == "elasticbeanstalk_environment_role_execution_unverified":
+            return {tid: ("unknown", "elasticbeanstalk_environment_profile_and_code_execution_not_verified")
+                    for tid in candidates}
+        if pid in ("amplify_service_role_build_effect_unverified",
+                   "amplify_compute_role_ssr_effect_unverified"):
+            if source is None:
+                return None
+            compute = pid == "amplify_compute_role_ssr_effect_unverified"
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._amplify_role_route(source, role, compute=compute)) is not None}
+        if pid == "emr_new_cluster_role_execution_unverified":
+            return {tid: ("unknown", "emr_service_role_cluster_and_step_execution_not_verified")
+                    for tid in candidates}
+        if pid == "emr_new_cluster_instance_role_effect_reviewed":
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._emr_new_cluster_instance_role_effect(source, role))}
+        if pid == "emr_cluster_endpoint_role_effect_unverified":
+            # The API returns HTTP basic credentials, not AWS STS keys.
+            # IAM and cluster inventory cannot prove endpoint reachability or
+            # that a workload is accepted under the selected runtime role.
+            return {tid: ("unknown", "emr_endpoint_workload_role_effect_not_verified")
+                    for tid in candidates}
+        if pid == "ec2_runinstances_instance_role_effect_reviewed":
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._runinstances_instance_role_effect(source, role))}
+        if pid == "ec2_runinstances_launch_with_passed_profile_unverified":
+            if source is None:
+                return None
+            allows, _ = self._statements(source, "ec2:runinstances")
+            if not allows and not source.incomplete:
+                return {}
+            return {tid: ("unknown", "ec2_launch_resources_profile_or_boot_path_not_verified")
+                    for tid in candidates}
+        if pid == "ec2_spot_request_instance_role_effect_reviewed":
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._spot_request_instance_role_effect(source, role))}
+        if pid == "spot_request_with_passed_profile_and_role_ready":
+            if source is None:
+                return None
+            allows, _ = self._statements(source, "ec2:requestspotinstances")
+            if not allows and not source.incomplete:
+                return {}
+            return {tid: ("unknown", "spot_request_image_network_profile_or_capacity_not_verified")
+                    for tid in candidates}
+        if pid == "imagebuilder_component_publish_and_pipeline_start":
+            if source is None:
+                return None
+            statuses = inventory_status(self.snapshot, "imagebuilder_pipeline")
+            pipelines = {row.get("arn"): (scope, row) for scope, row in items(self.snapshot, "imagebuilder_pipeline")
+                         if isinstance(row, dict) and isinstance(row.get("arn"), str)}
+            allows, _ = self._statements(source, "imagebuilder:createcomponent")
+            out = {}
+            for tid, role in candidates.items():
+                uncertain = bool(source.incomplete or role.incomplete)
+                for arn in self.hosts.get(role.id, {}).get("imagebuilder_pipeline", ()):
+                    pair = pipelines.get(arn)
+                    if pair is None:
+                        uncertain = True
+                        continue
+                    scope, pipeline = pair
+                    if not scope.startswith(source.scope + "/") or statuses.get(scope) != "collected":
+                        uncertain = True
+                        continue
+                    recipe = pipeline.get("RecipeComponents")
+                    if not isinstance(recipe, dict) or recipe.get("collection_status") != "collected" or not isinstance(
+                            recipe.get("items"), list):
+                        uncertain = True
+                        continue
+                    start = self.check(source, {"action": "imagebuilder:StartImagePipelineExecution"}, arn)
+                    for component in recipe["items"]:
+                        scope_and_future = _ib_publish_scope(component, source.scope)
+                        if scope_and_future is None:
+                            continue
+                        required_prefix, future_arn = scope_and_future
+                        broad = any(not statement.notresource and not statement.variables and any(
+                            pattern == "*" or (pattern.endswith("*") and "*" not in pattern[:-1]
+                                               and "?" not in pattern[:-1] and
+                                               required_prefix.startswith(pattern[:-1]))
+                            for pattern in statement.resources) for statement in allows)
+                        if not broad:
+                            uncertain |= bool(allows)
+                            continue
+                        create = self.check(source, {"action": "imagebuilder:CreateComponent"}, future_arn)
+                        if create is None or start is None:
+                            uncertain = True
+                            continue
+                        if (create.confidence == start.confidence == "derived" and
+                                not source.incomplete and not role.incomplete):
+                            out[tid] = ("conditional", "imagebuilder_same_pipeline_component_publish_and_start")
+                            break
+                        uncertain = True
+                    if tid in out:
+                        break
+                if tid not in out and uncertain:
+                    out[tid] = ("unknown", "imagebuilder_component_or_pipeline_binding_not_verified")
+            return out
+        if pid == "gameliftstreams_live_role_session_admin_shell":
+            if source is None:
+                return None
+            out = {}
+            for tid, role in candidates.items():
+                verdict = self._gameliftstreams_admin_shell(source, role)
+                if verdict:
+                    out[tid] = verdict
+            return out
+        if pid == "ecs_exec_live_task_role":
+            if source is None:
+                return None
+            out = {}
+            for tid, role in candidates.items():
+                verdict = self._ecs_exec_live_task_role(source, role)
+                if verdict:
+                    out[tid] = verdict
+            return out
+        if pid == "gameliftstreams_controlled_application_role_session":
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._gameliftstreams_controlled_role_session(source, role))}
         out = {}
+        if pid in ("iot_new_alias_policy_certificate_same_region",
+                   "iot_existing_alias_new_policy_certificate_same_region"):
+            if source is None:
+                return None
+            existing_alias = pid == "iot_existing_alias_new_policy_certificate_same_region"
+            partition = source.id.split(":", 2)[1]
+            regions = sorted({scope.split("/", 1)[1] for scope in self.snapshot.get("scopes", ())
+                              if isinstance(scope, str) and scope.startswith(source.scope + "/")
+                              and "/" in scope})
+            alias_status = inventory_status(self.snapshot, "iot_role_alias") if existing_alias else {}
+            if existing_alias and not alias_status:
+                return {tid: ("unknown", "iot_role_alias_inventory_not_collected") for tid in candidates}
+
+            def names_can_be_chosen(action, kind, region):
+                """A wildcard name leaves room for a fresh alias or policy in this Region."""
+                allows, _ = self._statements(source, action)
+                for statement in allows:
+                    if statement.notresource or statement.variables:
+                        continue
+                    for pattern in statement.resources:
+                        if pattern == "*":
+                            return True
+                        parts = pattern.split(":", 5)
+                        if (len(parts) != 6 or parts[0] != "arn" or
+                                not all(glob_match(want, got, False) for want, got in
+                                        zip(parts[1:5], (partition, "iot", region, source.scope)))):
+                            continue
+                        resource = parts[5]
+                        if resource.startswith(kind + "/") and "*" in resource[len(kind) + 1:]:
+                            return True
+                return False
+
+            def certs_can_be_attached(region):
+                allows, _ = self._statements(source, "iot:attachpolicy")
+                for statement in allows:
+                    if statement.notresource or statement.variables:
+                        continue
+                    for pattern in statement.resources:
+                        if pattern == "*":
+                            return True
+                        parts = pattern.split(":", 5)
+                        if (len(parts) == 6 and parts[0] == "arn" and
+                                all(glob_match(want, got, False) for want, got in
+                                    zip(parts[1:5], (partition, "iot", region, source.scope))) and
+                                parts[5] == "cert/*"):
+                            return True
+                return False
+
+            for tid in candidates:
+                uncertain = bool(existing_alias and any(
+                    alias_status.get(f"{source.scope}/{region}") not in ("collected", "empty")
+                    for region in regions))
+                for region in regions:
+                    if ((not existing_alias and not names_can_be_chosen("iot:createrolealias", "rolealias", region)) or
+                            not names_can_be_chosen("iot:createpolicy", "policy", region) or
+                            not certs_can_be_attached(region)):
+                        continue
+                    context = {"aws:RequestedRegion": region}
+                    if existing_alias:
+                        aliases = [row.get("RoleAliasArn") for scope, row in items(self.snapshot, "iot_role_alias")
+                                   if scope == f"{source.scope}/{region}" and isinstance(row, dict)
+                                   and isinstance(row.get("RoleAlias"), str)
+                                   and row.get("RoleAliasArn") ==
+                                   f"arn:{partition}:iot:{region}:{source.scope}:rolealias/{row['RoleAlias']}"]
+                    else:
+                        aliases = [f"arn:{partition}:iot:{region}:{source.scope}:rolealias/*"]
+                    policy = f"arn:{partition}:iot:{region}:{source.scope}:policy/*"
+                    cert = f"arn:{partition}:iot:{region}:{source.scope}:cert/" + "0" * 64
+                    global_resource = "peaso-global-iot-operation"
+                    certificate = [self.cached_check(source, {"action": action,
+                        "request_context": context}, global_resource)
+                        for action in ("iot:CreateKeysAndCertificate", "iot:RegisterCertificateWithoutCA")]
+                    for alias in aliases:
+                        common = [
+                            self.cached_check(source, {"action": "iam:PassRole", "request_context": {
+                                **context, "iam:PassedToService": "iot.amazonaws.com"}}, tid),
+                            self.cached_check(source, {"action": "iot:UpdateRoleAlias" if existing_alias
+                                               else "iot:CreateRoleAlias", "request_context": context}, alias),
+                            self.cached_check(source, {"action": "iot:CreatePolicy",
+                                               "request_context": context}, policy),
+                            self.cached_check(source, {"action": "iot:AttachPolicy",
+                                               "request_context": context}, cert),
+                        ]
+                        if any(grant is None for grant in common):
+                            continue
+                        if any(grant is not None and grant.confidence == "derived" for grant in certificate):
+                            if all(grant.confidence == "derived" for grant in common):
+                                out[tid] = ("conditional", "iot_existing_alias_new_policy_certificate_same_region"
+                                            if existing_alias else "iot_fresh_alias_policy_certificate_same_region")
+                                break
+                            uncertain = True
+                        elif any(grant is not None for grant in certificate):
+                            uncertain = True
+                    if tid in out:
+                        break
+                if tid not in out and uncertain:
+                    out[tid] = ("unknown", "iot_existing_alias_or_certificate_permissions_incomplete"
+                                if existing_alias else "iot_new_alias_policy_certificate_permissions_conditional")
+            return out
+        if pid == "batch_existing_definition_submitjob_role":
+            if source is None:
+                return None
+            return {tid: verdict for tid, target in candidates.items()
+                    if (verdict := self._batch_existing_definition_submitjob_role(source, target)) is not None}
+        if pid in ("athena_existing_session_calculation_role", "athena_existing_notebook_url_role",
+                   "athena_existing_spark_connect_role"):
+            if source is None:
+                return None
+            return {tid: verdict for tid, target in candidates.items()
+                    if (verdict := self._athena_existing_session_role(source, target, pid)) is not None}
+        if pid == "flink_existing_studio_role_session":
+            if source is None:
+                return None
+            return {tid: verdict for tid, target in candidates.items()
+                    if (verdict := self._flink_existing_studio_role_session(source, target)) is not None}
         if pid == "flink_new_application_startable":
             if source is None:
                 return None
@@ -6483,7 +11975,7 @@ class AwsModel(Model):
                     continue
                 existing = {row["ApplicationName"].casefold() for row in observed}
                 create = self.cached_check(source, {"action": "kinesisanalytics:CreateApplication",
-                    "request_context": {"aws:RequestedRegion": region}}, "*")
+                    "request_context": {"aws:RequestedRegion": region}}, "peaso-global-flink-create-application")
                 if create is None:
                     continue
                 names = set()
@@ -6516,6 +12008,11 @@ class AwsModel(Model):
                        if conditional else ("unknown", "flink_application_names_or_authorization_unresolved")
                        if unresolved or not scopes or source.incomplete else False)
             return {tid: verdict for tid, node in candidates.items() if node.scope == source.scope and verdict is not False}
+        if pid == "ec2_spot_fleet_instance_role_effect_reviewed":
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._spot_fleet_instance_role_effect(source, role))}
         if pid == "ec2_spot_fleet_roles_ready":
             if source is None:
                 return None
@@ -6555,6 +12052,34 @@ class AwsModel(Model):
                     uncertain = True
                 else:
                     out[tid] = (("conditional", "spot_fleet_role_or_service_linked_role_conditions") if uncertain else None)
+            return out
+        if pid == "quicksight_existing_iam_user_self_admin":
+            if source is None or source.kind != "aws_user":
+                return None
+            subscriptions = inventory_status(self.snapshot, "quicksight_account_subscription")
+            users = inventory_status(self.snapshot, "quicksight_user")
+            source_id = source.attrs.get("principal_id")
+            for tid, node in candidates.items():
+                scope = f"{node.scope}/{node.attrs.get('region')}"
+                if users.get(scope) != "collected" or subscriptions.get(scope) != "collected":
+                    out[tid] = ("unknown", "quicksight_user_or_subscription_incomplete")
+                    continue
+                if not isinstance(source_id, str) or not source_id.startswith("AIDA"):
+                    out[tid] = ("unknown", "iam_user_id_missing")
+                    continue
+                if node.attrs.get("principal_id") not in (f"federated/iam/{source_id}",
+                                                          f"federated-iam-{source_id}"):
+                    continue
+                if node.attrs.get("custom_permissions"):
+                    out[tid] = ("unknown", "quicksight_custom_permissions_may_limit_admin")
+                    continue
+                active = any(row.get("id") == node.scope
+                             and row.get("AccountSubscriptionStatus") == "ACCOUNT_CREATED"
+                             and row.get("AuthenticationType") in ("IAM_ONLY", "IAM_AND_QUICKSIGHT")
+                             for item_scope, row in items(self.snapshot, "quicksight_account_subscription")
+                             if item_scope == scope and isinstance(row, dict))
+                if active:
+                    out[tid] = None
             return out
         if pid == "quicksight_subscribed":
             if source is None:
@@ -6722,6 +12247,274 @@ class AwsModel(Model):
                        else int(version.group(1)) >= 9)):
                     out[tid] = None
             return out
+        if pid == "agentcore_new_harness_generated_scope_and_role_ready":
+            if source is None:
+                return None
+            actions = ("bedrock-agentcore:InvokeHarness",
+                       "bedrock-agentcore:InvokeAgentRuntime",
+                       "bedrock-agentcore:InvokeAgentRuntimeCommand")
+            scoped = {
+                action: _agentcore_generated_harness_scopes(
+                    self._statements(source, action)[0], source.scope)
+                for action in actions
+            }
+            has_invoke_statements = all(self._statements(source, action)[0] for action in actions)
+            memory_allows, _ = self._statements(source, "bedrock-agentcore:GetMemory")
+            harness_status = inventory_status(self.snapshot, "agentcore_harness")
+            occupied, incomplete = {}, set()
+            for scope, row in items(self.snapshot, "agentcore_harness"):
+                name = row.get("harnessName")
+                if isinstance(name, str) and name:
+                    occupied.setdefault(scope, set()).add(name)
+                else:
+                    incomplete.add(scope)
+            regions = sorted(scope.split("/", 1)[1] for scope in self.snapshot.get("scopes", ())
+                             if isinstance(scope, str) and scope.startswith(source.scope + "/") and
+                             re.fullmatch(r"[a-z]{2}(?:-[a-z]+)+-\d", scope.split("/", 1)[1]))
+            partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+            guardrails_unknown = bool(source.attrs.get("boundary")) or self.scp_status.get(source.scope) != "empty"
+            for tid, role in candidates.items():
+                if role.incomplete or source.incomplete or guardrails_unknown or not regions:
+                    out[tid] = ("unknown", "agentcore_harness_role_or_guardrail_not_verified")
+                    continue
+                unresolved = bool(has_invoke_statements and any(not scopes for scopes in scoped.values()))
+                for region in regions:
+                    names = [{name for allowed_region, name in scoped[action]
+                              if allowed_region in ("*", region)} for action in actions]
+                    if not all(names):
+                        continue
+                    broad = all("*" in values for values in names)
+                    seed = hashlib.sha256((source.id + region + "harness").encode()).hexdigest()[:12]
+                    chosen = f"PeasoHarness{seed}"
+                    specific = set.intersection(*(values - {"*"} for values in names if "*" not in values)) if not broad else set()
+                    candidate_names = [chosen] if broad else sorted(specific)
+                    context = {"aws:RequestedRegion": region}
+                    create = [self.check(source, {"action": action, "request_context": context},
+                                         f"peaso-global-agentcore-{action.rsplit(':', 1)[-1].lower()}")
+                              for action in ("bedrock-agentcore:CreateHarness",
+                                             "bedrock-agentcore:CreateAgentRuntime",
+                                             "bedrock-agentcore:CreateMemory")]
+                    if any(grant is None or grant.confidence != "derived" for grant in create):
+                        unresolved |= any(grant is not None and grant.confidence != "derived" for grant in create)
+                        continue
+                    for name in candidate_names:
+                        scope = f"{source.scope}/{region}"
+                        if not broad and (harness_status.get(scope) not in ("collected", "empty")
+                                          or scope in incomplete):
+                            unresolved = True
+                            continue
+                        if name in occupied.get(scope, ()):
+                            continue
+                        harness_prefix = f"arn:{partition}:bedrock-agentcore:{region}:{source.scope}:harness/{name}-"
+                        memory = f"arn:{partition}:bedrock-agentcore:{region}:{source.scope}:memory/harness_{name}_example"
+                        memory_broad = any(not st.notresource and not st.variables and any(
+                            pattern == "*" or (pattern.endswith(":memory/*") and _resource_glob(pattern, memory))
+                            for pattern in st.resources) for st in memory_allows)
+                        if not memory_broad:
+                            unresolved = True
+                            continue
+                        grants = []
+                        for suffix in ("0" * 10, "z" * 10):
+                            arn = harness_prefix + suffix
+                            trust = self._service_trust_for_source_arn(
+                                tid, "bedrock-agentcore.amazonaws.com", arn)
+                            if trust is not True:
+                                unresolved = True
+                                break
+                            grants.append(self.check(source, {"action": "iam:PassRole", "request_context": {
+                                "iam:PassedToService": "bedrock-agentcore.amazonaws.com",
+                                "iam:AssociatedResourceArn": arn}}, tid))
+                            grants.extend(self.check(source, {"action": action,
+                                "request_context": context}, arn) for action in actions)
+                        if len(grants) != 8:
+                            continue
+                        grants.append(self.check(source, {"action": "bedrock-agentcore:GetMemory",
+                            "request_context": context}, memory))
+                        if all(grant is not None and grant.confidence == "derived" for grant in grants):
+                            if self._agentcore_harness_role_effect(source, role, scope):
+                                out[tid] = ("conditional", "agentcore_harness_generated_scope_and_command_session_pending")
+                                break
+                            unresolved = True
+                        unresolved |= any(grant is not None and grant.confidence != "derived" for grant in grants)
+                    if tid in out:
+                        break
+                if tid not in out and unresolved:
+                    out[tid] = ("unknown", "agentcore_harness_scope_or_memory_not_verified")
+            return out
+        if pid == "agentcore_new_runtime_generated_scope_and_role_ready":
+            if source is None:
+                return None
+            invoke = "bedrock-agentcore:InvokeAgentRuntime"
+            scoped = {
+                False: _agentcore_generated_runtime_scopes(
+                    self._statements(source, invoke)[0], source.scope),
+                True: _agentcore_generated_runtime_scopes(
+                    self._statements(source, invoke)[0], source.scope, endpoint=True),
+            }
+            regions = sorted(scope.split("/", 1)[1] for scope in self.snapshot.get("scopes", ())
+                             if isinstance(scope, str) and scope.startswith(source.scope + "/") and
+                             re.fullmatch(r"[a-z]{2}(?:-[a-z]+)+-\d", scope.split("/", 1)[1]))
+            runtime_status = inventory_status(self.snapshot, "agentcore_agent_runtime")
+            occupied, incomplete = {}, set()
+            for scope, row in items(self.snapshot, "agentcore_agent_runtime"):
+                name = row.get("agentRuntimeName")
+                if isinstance(name, str) and name:
+                    occupied.setdefault(scope, set()).add(name)
+                else:
+                    incomplete.add(scope)
+            partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+            guardrails_unknown = bool(source.attrs.get("boundary")) or self.scp_status.get(source.scope) != "empty"
+            for tid, role in candidates.items():
+                if role.incomplete or source.incomplete or guardrails_unknown or not regions:
+                    out[tid] = ("unknown", "agentcore_runtime_name_trust_or_guardrail_not_verified")
+                    continue
+                unresolved = False
+                for region in regions:
+                    names = [{name for allowed_region, name in scoped[key]
+                              if allowed_region in ("*", region)} for key in scoped]
+                    if not all(names):
+                        continue
+                    broad_name = all("*" in names_for_action for names_for_action in names)
+                    seed = hashlib.sha256((source.id + region + "runtime").encode()).hexdigest()[:12]
+                    chosen = f"PeasoRuntime{seed}"
+                    specific = set.intersection(*(values - {"*"} for values in names if "*" not in values)) if not broad_name else set()
+                    candidate_names = [chosen] if broad_name else sorted(specific)
+                    create = self.check(source, {"action": "bedrock-agentcore:CreateAgentRuntime",
+                                                 "request_context": {"aws:RequestedRegion": region}},
+                                        "peaso-global-agentcore-create-runtime")
+                    if create is None or create.confidence != "derived":
+                        continue
+                    for name in candidate_names:
+                        scope = f"{source.scope}/{region}"
+                        if not broad_name and (runtime_status.get(scope) not in ("collected", "empty")
+                                               or scope in incomplete):
+                            unresolved = True
+                            continue
+                        if name in occupied.get(scope, ()):
+                            continue
+                        prefix = f"arn:{partition}:bedrock-agentcore:{region}:{source.scope}:runtime/{name}-"
+                        future = (prefix + "0" * 10, prefix + "z" * 10)
+                        trust = [self._service_trust_for_source_arn(
+                            tid, "bedrock-agentcore.amazonaws.com", arn) for arn in future]
+                        if trust != [True, True]:
+                            unresolved |= None in trust
+                            continue
+                        grants = []
+                        for arn in future:
+                            endpoint = arn + "/runtime-endpoint/DEFAULT"
+                            grants.extend((
+                                self.check(source, {"action": "iam:PassRole", "request_context": {
+                                    "iam:PassedToService": "bedrock-agentcore.amazonaws.com",
+                                    "iam:AssociatedResourceArn": arn}}, tid),
+                                self.check(source, {"action": invoke}, arn),
+                                self.check(source, {"action": invoke}, endpoint),
+                            ))
+                        if all(grant is not None and grant.confidence == "derived" for grant in grants):
+                            if self._agentcore_runtime_role_effect(
+                                    source, role, scope, operation="CreateAgentRuntime"):
+                                out[tid] = ("conditional", "agentcore_fresh_runtime_role_and_default_endpoint")
+                                break
+                            unresolved = True
+                        unresolved |= any(grant is not None and grant.confidence != "derived" for grant in grants)
+                    if tid in out:
+                        break
+                if tid not in out and unresolved:
+                    out[tid] = ("unknown", "agentcore_runtime_generated_scope_or_name_not_verified")
+            return out
+        if pid == "agentcore_existing_runtime_update_and_invoke":
+            if source is None:
+                return None
+            runtimes = inventory_status(self.snapshot, "agentcore_agent_runtime")
+            endpoints = inventory_status(self.snapshot, "agentcore_runtime_endpoint")
+            by_runtime = {}
+            for scope, row in items(self.snapshot, "agentcore_runtime_endpoint"):
+                runtime_arn = row.get("agentRuntimeArn")
+                if isinstance(runtime_arn, str):
+                    by_runtime.setdefault((scope, runtime_arn), []).append(row)
+            for tid, role in candidates.items():
+                unknown = bool(source.incomplete or role.incomplete)
+                for scope, row in items(self.snapshot, "agentcore_agent_runtime"):
+                    if scope.split("/")[0] != source.scope:
+                        continue
+                    arn = row.get("agentRuntimeArn")
+                    if not isinstance(arn, str) or row.get("status") != "READY":
+                        if row.get("status") not in ("CREATE_FAILED", "DELETING", "DELETE_FAILED"):
+                            unknown = True
+                        continue
+                    if runtimes.get(scope) != "collected" or endpoints.get(scope) != "collected":
+                        unknown = True
+                        continue
+                    defaults = [endpoint for endpoint in by_runtime.get((scope, arn), ())
+                                if endpoint.get("name") == "DEFAULT" and endpoint.get("status") == "READY"
+                                and isinstance(endpoint.get("agentRuntimeEndpointArn"), str)]
+                    if not defaults:
+                        unknown = True
+                        continue
+                    trust = self._service_trust_for_source_arn(tid, "bedrock-agentcore.amazonaws.com", arn)
+                    if trust is not True:
+                        unknown |= trust is None
+                        continue
+                    update = self.check(source, {"action": "bedrock-agentcore:UpdateAgentRuntime"}, arn)
+                    passed = self.check(source, {"action": "iam:PassRole", "request_context": {
+                        "iam:PassedToService": "bedrock-agentcore.amazonaws.com",
+                        "iam:AssociatedResourceArn": arn}}, tid)
+                    if passed is None:
+                        undecided_pass = self.check(source, {"action": "iam:PassRole", "request_context": {
+                            "iam:PassedToService": "bedrock-agentcore.amazonaws.com"}}, tid)
+                        unknown |= undecided_pass is not None
+                    if update is None or passed is None:
+                        continue
+                    if update.confidence != "derived" or passed.confidence != "derived":
+                        unknown = True
+                        continue
+                    for endpoint in defaults:
+                        endpoint_arn = endpoint["agentRuntimeEndpointArn"]
+                        invocations = [self.check(source, {"action": "bedrock-agentcore:InvokeAgentRuntime"}, resource)
+                                       for resource in (arn, endpoint_arn)]
+                        if all(grant is not None and grant.confidence == "derived" for grant in invocations):
+                            if self._agentcore_runtime_role_effect(
+                                    source, role, scope, operation="UpdateAgentRuntime",
+                                    runtime_arn=arn, endpoint_arn=endpoint_arn):
+                                out[tid] = ("conditional", "agentcore_runtime_update_artifact_and_endpoint_execution")
+                                break
+                            unknown = True
+                        if any(grant is not None and grant.confidence != "derived" for grant in invocations):
+                            unknown = True
+                    if tid in out:
+                        break
+                if tid not in out and (unknown or not runtimes or not endpoints):
+                    out[tid] = ("unknown", "agentcore_runtime_endpoint_or_role_access_not_verified")
+            return out
+        if pid == "agentcore_existing_code_interpreter_role_ready":
+            if source is None:
+                return None
+            statuses = inventory_status(self.snapshot, "agentcore_code_interpreter")
+            rows = {row.get("codeInterpreterArn"): (scope, row)
+                    for scope, row in items(self.snapshot, "agentcore_code_interpreter")
+                    if isinstance(row.get("codeInterpreterArn"), str)}
+            for tid, role in candidates.items():
+                if source.incomplete or role.incomplete:
+                    out[tid] = ("unknown", "agentcore_interpreter_or_role_inventory_incomplete")
+                    continue
+                unknown = False
+                for arn in self.hosts.get(tid, {}).get("agentcore_code_interpreter", ()):
+                    record = rows.get(arn)
+                    if record is None:
+                        unknown = True
+                        continue
+                    scope, row = record
+                    if row.get("executionRoleArn") != tid or statuses.get(scope) != "collected":
+                        unknown = True
+                        continue
+                    if row.get("status") == "READY":
+                        out[tid] = ("conditional", "agentcore_ready_interpreter_session_execution")
+                        break
+                    if row.get("status") not in ("CREATE_FAILED", "DELETING", "DELETE_FAILED", "DELETED"):
+                        unknown = True
+                if tid not in out and (unknown or self.host_status.get((role.scope, "agentcore_code_interpreter"))
+                                       not in ("collected", "empty")):
+                    out[tid] = ("unknown", "agentcore_interpreter_status_or_role_not_verified")
+            return out
         if pid == "agentcore_new_interpreter_broad_name_and_role_ready":
             if source is None:
                 return None
@@ -6732,6 +12525,15 @@ class AwsModel(Model):
             regions = sorted(scope.split("/", 1)[1] for scope in self.snapshot.get("scopes", ())
                              if isinstance(scope, str) and scope.startswith(source.scope + "/") and
                              re.fullmatch(r"[a-z]{2}(?:-[a-z]+)+-\d", scope.split("/", 1)[1]))
+            interpreter_status = inventory_status(self.snapshot, "agentcore_code_interpreter")
+            occupied_names = {}
+            incomplete_names = set()
+            for scope, row in items(self.snapshot, "agentcore_code_interpreter"):
+                name = row.get("name")
+                if isinstance(name, str) and name:
+                    occupied_names.setdefault(scope, set()).add(name)
+                else:
+                    incomplete_names.add(scope)
             partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
             guardrails_unknown = bool(source.attrs.get("boundary")) or self.scp_status.get(source.scope) != "empty"
             for tid, role in candidates.items():
@@ -6739,26 +12541,47 @@ class AwsModel(Model):
                     out[tid] = ("unknown", "agentcore_interpreter_name_trust_or_guardrail_not_verified")
                     continue
                 for region in regions:
-                    if not all(any(name == "*" and allowed_region in ("*", region)
-                                   for allowed_region, name in scopes[action]) for action in actions):
-                        continue  # A fixed name needs complete interpreter-name inventory.
-                    create = self.check(source, {"action": "bedrock-agentcore:CreateCodeInterpreter",
-                                                 "request_context": {"aws:RequestedRegion": region}}, "*")
-                    if create is None or create.confidence != "derived":
+                    names = [{name for allowed_region, name in scopes[action]
+                              if allowed_region in ("*", region)} for action in actions]
+                    if not all(names):
                         continue
                     seed = hashlib.sha256((source.id + region).encode()).hexdigest()[:12]
-                    prefix = (f"arn:{partition}:bedrock-agentcore:{region}:{source.scope}:"
-                              f"code-interpreter-custom/PeasoBound{seed}-")
-                    future_arns = (prefix + "0" * 10, prefix + "z" * 10)
-                    trust = [self._service_trust_for_source_arn(
-                        tid, "bedrock-agentcore.amazonaws.com", future) for future in future_arns]
-                    if trust != [True, True]:
+                    generated_name = f"PeasoBound{seed}"
+                    broad_name = "*" in names[0] and "*" in names[1]
+                    if broad_name:
+                        candidates_names = [generated_name]
+                    elif "*" in names[0]:
+                        candidates_names = sorted(names[1] - {"*"})
+                    elif "*" in names[1]:
+                        candidates_names = sorted(names[0] - {"*"})
+                    else:
+                        candidates_names = sorted(names[0] & names[1])
+                    create = self.check(source, {"action": "bedrock-agentcore:CreateCodeInterpreter",
+                                                 "request_context": {"aws:RequestedRegion": region}},
+                                        "peaso-global-agentcore-create-interpreter")
+                    if create is None or create.confidence != "derived":
                         continue
-                    grants = [self.check(source, {"action": action,
-                                                  "request_context": {"aws:RequestedRegion": region}}, future)
-                              for action in actions for future in future_arns]
-                    if all(grant is not None and grant.confidence == "derived" for grant in grants):
-                        out[tid] = ("conditional", "agentcore_fresh_interpreter_role_and_session")
+                    for name in candidates_names:
+                        scope = f"{source.scope}/{region}"
+                        if not broad_name and (interpreter_status.get(scope) not in ("collected", "empty")
+                                               or scope in incomplete_names):
+                            continue  # A fixed name needs complete interpreter inventory.
+                        if name in occupied_names.get(scope, ()):
+                            continue
+                        prefix = (f"arn:{partition}:bedrock-agentcore:{region}:{source.scope}:"
+                                  f"code-interpreter-custom/{name}-")
+                        future_arns = (prefix + "0" * 10, prefix + "z" * 10)
+                        trust = [self._service_trust_for_source_arn(
+                            tid, "bedrock-agentcore.amazonaws.com", future) for future in future_arns]
+                        if trust != [True, True]:
+                            continue
+                        grants = [self.check(source, {"action": action,
+                                                      "request_context": {"aws:RequestedRegion": region}}, future)
+                                  for action in actions for future in future_arns]
+                        if all(grant is not None and grant.confidence == "derived" for grant in grants):
+                            out[tid] = ("conditional", "agentcore_fresh_interpreter_role_and_session")
+                            break
+                    if tid in out:
                         break
                 if tid not in out:
                     out[tid] = ("unknown", "agentcore_interpreter_name_trust_or_guardrail_not_verified")
@@ -6908,16 +12731,24 @@ class AwsModel(Model):
                     if self.lambda_code_signing.get(arn) is not False:
                         uncertain = True
                         continue
-                    actions = [self.check(source, {"action": action}, arn) for action in (
-                        "lambda:UpdateFunctionConfiguration", "lambda:UpdateFunctionCode", "lambda:InvokeFunction")]
+                    configure = self.check(source, {"action": "lambda:UpdateFunctionConfiguration"}, arn)
+                    code = self.check(source, {"action": "lambda:UpdateFunctionCode"}, arn)
+                    invoke = self.check(source, {"action": "lambda:InvokeFunction"}, arn)
                     passrole = self.check(source, {"action": "iam:PassRole", "request_context": {
                         "iam:PassedToService": "lambda.amazonaws.com", "iam:AssociatedResourceArn": arn}}, role.id)
                     trust = self._service_trust_for_source_arn(tid, "lambda.amazonaws.com", arn)
-                    if any(grant is None for grant in actions) or passrole is None or trust is False:
+                    if configure is None or invoke is None or passrole is None or trust is False:
                         continue
-                    if (all(grant.confidence == "derived" for grant in actions) and
+                    code_ready = code is not None and code.confidence == "derived"
+                    wrapper_ready = False
+                    if not code_ready and not configuration.get("KMSKeyArn"):
+                        wrapper_ready = self._lambda_new_wrapper_layer(source, arn, scope.split("/", 1)[1])
+                    if ((code_ready or wrapper_ready is True) and
+                            configure.confidence == invoke.confidence == "derived" and
                             passrole.confidence == "derived" and trust is True and not role.incomplete):
-                        out[tid] = ("conditional", "lambda_existing_zip_role_swap_code_and_invoke_same_function")
+                        route = ("lambda_existing_zip_role_swap_code_and_invoke_same_function" if code_ready else
+                                 "lambda_existing_zip_role_swap_wrapper_layer_and_invoke_same_function")
+                        out[tid] = ("conditional", route)
                         break
                     uncertain = True
                 if tid not in out and uncertain:
@@ -7081,7 +12912,8 @@ class AwsModel(Model):
                             isinstance(publishers, list) and any(isinstance(value, str) and value for value in publishers)
                             and broad_put):
                         create = self.check(source, {"action": "lambda:CreateCodeSigningConfig",
-                                                     "request_context": {"aws:RequestedRegion": region}}, "*")
+                                                     "request_context": {"aws:RequestedRegion": region}},
+                                            "peaso-global-lambda-create-code-signing-config")
                         if create is not None and create.confidence == "derived":
                             future_prefix = f"arn:{partition}:lambda:{region}:{account}:code-signing-config:csc-"
                             future_arns = (future_prefix + "0" * 17, future_prefix + "z" * 17)
@@ -7183,9 +13015,11 @@ class AwsModel(Model):
                         continue
                     context = {"aws:RequestedRegion": region}
                     create_anchor = self.cached_check(source, {"action": "rolesanywhere:CreateTrustAnchor",
-                                                              "request_context": context}, "*")
+                                                              "request_context": context},
+                                                      "peaso-global-rolesanywhere-create-anchor")
                     create_profile = self.cached_check(source, {"action": "rolesanywhere:CreateProfile",
-                                                               "request_context": context}, "*")
+                                                               "request_context": context},
+                                                       "peaso-global-rolesanywhere-create-profile")
                     if create_anchor is None or create_profile is None:
                         continue
                     if create_anchor.confidence != create_profile.confidence or create_anchor.confidence != "derived":
@@ -7222,6 +13056,633 @@ class AwsModel(Model):
                         uncertain = True
                 if rid not in out and uncertain:
                     out[rid] = ("unknown", "rolesanywhere_new_anchor_profile_or_role_trust_not_verified")
+            return out
+        if pid == "sagemaker_existing_profile_role_swap_route":
+            if source is None:
+                return None
+            profile_status = inventory_status(self.snapshot, "sagemaker_user_profile")
+            domain_status = inventory_status(self.snapshot, "sagemaker_domain")
+            app_status = inventory_status(self.snapshot, "sagemaker_app")
+            profiles = [(scope, row) for scope, row in items(self.snapshot, "sagemaker_user_profile")
+                        if scope.startswith(source.scope + "/")]
+            domains = {(scope, row.get("DomainId")): row
+                       for scope, row in items(self.snapshot, "sagemaker_domain")
+                       if isinstance(row.get("DomainId"), str)}
+            apps = [(scope, row) for scope, row in items(self.snapshot, "sagemaker_app")]
+            guardrails_unknown = bool(source.attrs.get("boundary")) or self.scp_status.get(source.scope) != "empty"
+            out = {}
+            for tid, role in candidates.items():
+                blocked = source.incomplete or role.incomplete or guardrails_unknown
+                unresolved = blocked or not profile_status
+                for scope, profile in profiles:
+                    if (profile_status.get(scope) not in ("collected", "empty") or
+                            domain_status.get(scope) not in ("collected", "empty") or
+                            app_status.get(scope) not in ("collected", "empty") or blocked):
+                        unresolved = True
+                        continue
+                    domain_id, name = profile.get("DomainId"), profile.get("UserProfileName")
+                    region = scope.split("/", 1)[1]
+                    partition = tid.split(":", 2)[1]
+                    profile_arn = (f"arn:{partition}:sagemaker:{region}:{source.scope}:"
+                                   f"user-profile/{domain_id}/{name}")
+                    domain_arn = f"arn:{partition}:sagemaker:{region}:{source.scope}:domain/{domain_id}"
+                    domain = domains.get((scope, domain_id))
+                    if (not isinstance(domain_id, str) or not isinstance(name, str) or
+                            profile.get("UserProfileArn") != profile_arn or
+                            profile.get("Status") != "InService" or
+                            not isinstance(domain, dict) or domain.get("DomainArn") != domain_arn or
+                            domain.get("Status") != "InService"):
+                        unresolved = True
+                        continue
+                    if domain.get("AuthMode") == "SSO":
+                        continue
+                    if domain.get("AuthMode") != "IAM":
+                        unresolved = True
+                        continue
+                    if any(app_scope == scope and app.get("DomainId") == domain_id and
+                           app.get("UserProfileName") == name and not app.get("SpaceName")
+                           for app_scope, app in apps):
+                        unresolved = True
+                        continue
+                    context = {"aws:RequestedRegion": region}
+                    update = self.check(source, {"action": "sagemaker:UpdateUserProfile",
+                        "request_context": context}, profile_arn)
+                    url = self.check(source, {"action": "sagemaker:CreatePresignedDomainUrl",
+                        "request_context": context}, profile_arn)
+                    passed = self.check(source, {"action": "iam:PassRole", "request_context":
+                        {"iam:PassedToService": "sagemaker.amazonaws.com"}}, tid)
+                    if any(grant is None for grant in (update, url, passed)):
+                        continue
+                    for app_type in ("JupyterLab", "CodeEditor", "KernelGateway"):
+                        prefix = (f"arn:{partition}:sagemaker:{region}:{source.scope}:"
+                                  f"app/{domain_id}/{name}/{app_type}/")
+                        app_names = {"default"}
+                        allows, _ = self._statements(source, "sagemaker:createapp")
+                        for statement in allows:
+                            if statement.notresource or statement.variables:
+                                unresolved = True
+                                continue
+                            for pattern in statement.resources:
+                                if isinstance(pattern, str) and pattern.startswith(prefix):
+                                    suffix = pattern[len(prefix):]
+                                    choice = suffix.replace("*", "default").replace("?", "x")
+                                    if re.fullmatch(r"[A-Za-z0-9](?:-*[A-Za-z0-9]){0,62}", choice):
+                                        app_names.add(choice)
+                        for app_name in sorted(app_names)[:40]:
+                            app_arn = prefix + app_name
+                            trust = self._service_trust_for_source_arn(tid, "sagemaker.amazonaws.com", app_arn)
+                            if trust is not True:
+                                unresolved |= trust is None
+                                continue
+                            app_context = {**context, "sagemaker:OwnerUserProfileArn": profile_arn}
+                            launch = self.check(source, {"action": "sagemaker:CreateApp",
+                                "request_context": app_context}, app_arn)
+                            tags = self.check(source, {"action": "sagemaker:AddTags",
+                                "request_context": app_context}, app_arn)
+                            if all(grant is not None and grant.confidence == "derived"
+                                   for grant in (update, url, passed, launch, tags)):
+                                out[tid] = ("conditional", "sagemaker_profile_role_swap_app_start_pending")
+                                break
+                            unresolved = True
+                        if tid in out:
+                            break
+                    if tid in out:
+                        break
+                if tid not in out and unresolved:
+                    out[tid] = ("unknown", "sagemaker_profile_role_swap_or_app_not_verified")
+            return out
+        if pid in ("sagemaker_new_profile_app_route", "sagemaker_domain_default_new_profile_route"):
+            if source is None:
+                return None
+            domain_default = pid == "sagemaker_domain_default_new_profile_route"
+            domain_status = inventory_status(self.snapshot, "sagemaker_domain")
+            profile_status = inventory_status(self.snapshot, "sagemaker_user_profile")
+            app_status = inventory_status(self.snapshot, "sagemaker_app") if domain_default else {}
+            domains = [(scope, row) for scope, row in items(self.snapshot, "sagemaker_domain")
+                       if scope.startswith(source.scope + "/")]
+            profiles = [(scope, row) for scope, row in items(self.snapshot, "sagemaker_user_profile")]
+            apps = [(scope, row) for scope, row in items(self.snapshot, "sagemaker_app")] if domain_default else []
+            malformed = {scope for scope, row in profiles
+                         if not isinstance(row.get("DomainId"), str) or
+                         not isinstance(row.get("UserProfileName"), str)}
+            existing = {(scope, row.get("DomainId"), row.get("UserProfileName", "").lower())
+                        for scope, row in profiles if scope not in malformed}
+            allows, _ = self._statements(source, "sagemaker:createuserprofile")
+            seed = hashlib.sha256(source.id.encode()).hexdigest()[:12]
+            valid_name = re.compile(r"[A-Za-z0-9](?:-*[A-Za-z0-9]){0,62}\Z")
+            guardrails_unknown = bool(source.attrs.get("boundary")) or self.scp_status.get(source.scope) != "empty"
+            out = {}
+            for tid, role in candidates.items():
+                blocked = source.incomplete or role.incomplete or guardrails_unknown
+                unresolved = blocked or not domains or not domain_status or not profile_status
+                for scope, domain in domains:
+                    if (domain_status.get(scope) not in ("collected", "empty") or
+                            profile_status.get(scope) not in ("collected", "empty") or
+                            scope in malformed or blocked):
+                        unresolved = True
+                        continue
+                    domain_id = domain.get("DomainId")
+                    region = scope.split("/", 1)[1]
+                    partition = tid.split(":", 2)[1]
+                    domain_arn = f"arn:{partition}:sagemaker:{region}:{source.scope}:domain/{domain_id}"
+                    if domain.get("DomainArn") != domain_arn or domain.get("Status") != "InService":
+                        unresolved = True
+                        continue
+                    if domain.get("AuthMode") == "SSO":
+                        continue
+                    if domain.get("AuthMode") != "IAM":
+                        unresolved = True
+                        continue
+                    if domain_default:
+                        if app_status.get(scope) not in ("collected", "empty"):
+                            unresolved = True
+                            continue
+                        if any(app_scope == scope and (not isinstance(app.get("DomainId"), str) or
+                                                      app.get("DomainId") == domain_id)
+                               for app_scope, app in apps):
+                            unresolved = True
+                            continue
+                        domain_update = self.check(source, {"action": "sagemaker:UpdateDomain",
+                            "request_context": {"aws:RequestedRegion": region}}, domain_arn)
+                        if domain_update is None:
+                            continue
+                    profile_prefix = f"arn:{partition}:sagemaker:{region}:{source.scope}:user-profile/{domain_id}/"
+                    names = {"PeasoProfile" + seed, "PeasoProfile" + seed + "A"}
+                    for statement in allows:
+                        if statement.notresource or statement.variables:
+                            unresolved = True
+                            continue
+                        for pattern in statement.resources:
+                            if not isinstance(pattern, str) or not pattern.startswith(profile_prefix):
+                                continue
+                            suffix = pattern[len(profile_prefix):]
+                            for replacement in ("Peaso" + seed, "Peaso" + seed + "A"):
+                                choice = suffix.replace("*", replacement).replace("?", "X")
+                                if valid_name.fullmatch(choice):
+                                    names.add(choice)
+                    passrole = self.check(source, {"action": "iam:PassRole", "request_context":
+                        {"iam:PassedToService": "sagemaker.amazonaws.com"}}, tid)
+                    if passrole is None:
+                        continue
+                    for name in sorted(names)[:80]:
+                        if (scope, domain_id, name.lower()) in existing:
+                            unresolved = True
+                            continue
+                        profile_arn = profile_prefix + name
+                        context = {"aws:RequestedRegion": region}
+                        create = self.check(source, {"action": "sagemaker:CreateUserProfile",
+                            "request_context": context}, profile_arn)
+                        url = self.check(source, {"action": "sagemaker:CreatePresignedDomainUrl",
+                            "request_context": context}, profile_arn)
+                        if any(grant is None for grant in (create, url)):
+                            continue
+                        for app_type in ("JupyterLab", "CodeEditor", "KernelGateway"):
+                            app_prefix = (f"arn:{partition}:sagemaker:{region}:{source.scope}:"
+                                          f"app/{domain_id}/{name}/{app_type}/")
+                            app_names = {"default"}
+                            app_allows, _ = self._statements(source, "sagemaker:createapp")
+                            for statement in app_allows:
+                                if statement.notresource or statement.variables:
+                                    unresolved = True
+                                    continue
+                                for pattern in statement.resources:
+                                    if isinstance(pattern, str) and pattern.startswith(app_prefix):
+                                        suffix = pattern[len(app_prefix):]
+                                        choice = suffix.replace("*", "default").replace("?", "x")
+                                        if valid_name.fullmatch(choice):
+                                            app_names.add(choice)
+                            for app_name in sorted(app_names)[:40]:
+                                app_arn = app_prefix + app_name
+                                trust = self._service_trust_for_source_arn(tid, "sagemaker.amazonaws.com", app_arn)
+                                if trust is not True:
+                                    unresolved |= trust is None
+                                    continue
+                                app_context = {**context, "sagemaker:OwnerUserProfileArn": profile_arn}
+                                launch = self.check(source, {"action": "sagemaker:CreateApp",
+                                    "request_context": app_context}, app_arn)
+                                app_tags = self.check(source, {"action": "sagemaker:AddTags",
+                                    "request_context": app_context}, app_arn)
+                                grants = ((domain_update,) if domain_default else ()) + (
+                                    passrole, create, url, launch, app_tags)
+                                if all(grant is not None and grant.confidence == "derived" for grant in grants):
+                                    out[tid] = ("conditional", "sagemaker_domain_default_app_start_pending" if
+                                                domain_default else "sagemaker_new_profile_app_start_pending")
+                                    break
+                                unresolved = True
+                            if tid in out:
+                                break
+                        if tid in out:
+                            break
+                    if tid in out:
+                        break
+                if tid not in out and unresolved:
+                    out[tid] = ("unknown", "sagemaker_new_profile_domain_or_grant_not_verified")
+            return out
+        if pid == "sagemaker_studio_profile_lcc_route":
+            if source is None:
+                return None
+            profile_status = inventory_status(self.snapshot, "sagemaker_user_profile")
+            domain_status = inventory_status(self.snapshot, "sagemaker_domain")
+            app_status = inventory_status(self.snapshot, "sagemaker_app")
+            config_status = inventory_status(self.snapshot, "sagemaker_studio_lifecycle_config")
+            profiles = {row.get("UserProfileArn"): (scope, row)
+                        for scope, row in items(self.snapshot, "sagemaker_user_profile")
+                        if isinstance(row, dict) and isinstance(row.get("UserProfileArn"), str)}
+            domains = {(scope, row.get("DomainId")): row
+                       for scope, row in items(self.snapshot, "sagemaker_domain")
+                       if isinstance(row, dict) and isinstance(row.get("DomainId"), str)}
+            apps = [(scope, row) for scope, row in items(self.snapshot, "sagemaker_app")]
+            configs = {}
+            malformed = set()
+            for scope, row in items(self.snapshot, "sagemaker_studio_lifecycle_config"):
+                name = row.get("StudioLifecycleConfigName")
+                if not name and isinstance(row.get("StudioLifecycleConfigArn"), str):
+                    name = row["StudioLifecycleConfigArn"].rsplit("/", 1)[-1]
+                if isinstance(name, str) and name:
+                    configs.setdefault(scope, set()).add(name)
+                else:
+                    malformed.add(scope)
+            allows, _ = self._statements(source, "sagemaker:createstudiolifecycleconfig")
+            seed = hashlib.sha256(source.id.encode()).hexdigest()[:12]
+            valid_name = re.compile(r"[A-Za-z0-9](?:-*[A-Za-z0-9]){0,62}\Z")
+            guardrails_unknown = bool(source.attrs.get("boundary")) or self.scp_status.get(source.scope) != "empty"
+            for tid, role in candidates.items():
+                blocked = source.incomplete or role.incomplete or guardrails_unknown
+                unresolved = blocked
+                for profile_arn in self.hosts.get(tid, {}).get("sagemaker_user_profile", ()):
+                    pair = profiles.get(profile_arn)
+                    if pair is None:
+                        unresolved = True
+                        continue
+                    scope, profile = pair
+                    if (profile_status.get(scope) not in ("collected", "empty") or
+                            domain_status.get(scope) not in ("collected", "empty") or
+                            app_status.get(scope) not in ("collected", "empty") or
+                            config_status.get(scope) not in ("collected", "empty") or
+                            scope in malformed or blocked):
+                        unresolved = True
+                        continue
+                    region = scope.split("/", 1)[1]
+                    partition = profile_arn.split(":", 2)[1]
+                    domain_id, profile_name = profile.get("DomainId"), profile.get("UserProfileName")
+                    domain = domains.get((scope, domain_id))
+                    if (not isinstance(domain_id, str) or not isinstance(profile_name, str) or
+                            profile_arn != f"arn:{partition}:sagemaker:{region}:{source.scope}:user-profile/{domain_id}/{profile_name}" or
+                            profile.get("ExecutionRole") != tid or profile.get("Status") != "InService" or
+                            not isinstance(domain, dict) or domain.get("Status") != "InService" or
+                            domain.get("AuthMode") != "IAM"):
+                        unresolved = True
+                        continue
+                    if any(app_scope == scope and app.get("DomainId") == domain_id and
+                           app.get("UserProfileName") == profile_name and not app.get("SpaceName")
+                           for app_scope, app in apps):
+                        unresolved = True
+                        continue
+                    prefix = f"arn:{partition}:sagemaker:{region}:{source.scope}:studio-lifecycle-config/"
+                    names = {"PeasoStudio" + seed, "PeasoStudio" + seed + "A"}
+                    for statement in allows:
+                        if statement.notresource or statement.variables:
+                            unresolved = True
+                            continue
+                        for pattern in statement.resources:
+                            if pattern == "*" or "studio-lifecycle-config/" not in pattern:
+                                continue
+                            suffix = pattern.split("studio-lifecycle-config/", 1)[-1]
+                            for replacement in ("Peaso" + seed, "Peaso" + seed + "A"):
+                                choice = suffix.replace("*", replacement).replace("?", "X")
+                                if valid_name.fullmatch(choice):
+                                    names.add(choice)
+                    for name in sorted(names)[:80]:
+                        if name in configs.get(scope, ()):
+                            unresolved = True
+                            continue
+                        config_arn = prefix + name
+                        create = self.check(source, {"action": "sagemaker:CreateStudioLifecycleConfig",
+                            "request_context": {"aws:RequestedRegion": region}}, config_arn)
+                        if create is None:
+                            continue
+                        settings_context = {"aws:RequestedRegion": region,
+                                            "sagemaker:StudioLifecycleConfigArns": config_arn}
+                        update = self.check(source, {"action": "sagemaker:UpdateUserProfile",
+                            "request_context": settings_context}, profile_arn)
+                        if update is None:
+                            continue
+                        for app_type in ("JupyterLab", "CodeEditor"):
+                            app_arn = (f"arn:{partition}:sagemaker:{region}:{source.scope}:"
+                                       f"app/{domain_id}/{profile_name}/{app_type}/default")
+                            trust = self._service_trust_for_source_arn(tid, "sagemaker.amazonaws.com", app_arn)
+                            if trust is not True:
+                                unresolved |= trust is None
+                                continue
+                            app_context = {**settings_context, "sagemaker:OwnerUserProfileArn": profile_arn}
+                            launch = self.check(source, {"action": "sagemaker:CreateApp",
+                                "request_context": app_context}, app_arn)
+                            tags = self.check(source, {"action": "sagemaker:AddTags",
+                                "request_context": app_context}, app_arn)
+                            grants = (create, update, launch, tags)
+                            if all(grant is not None and grant.confidence == "derived" for grant in grants):
+                                out[tid] = ("conditional", "sagemaker_studio_profile_lcc_app_start_pending")
+                                break
+                            unresolved = True
+                        if tid in out:
+                            break
+                    if tid in out:
+                        break
+                if tid not in out and unresolved:
+                    out[tid] = ("unknown", "sagemaker_studio_profile_lcc_or_app_not_verified")
+            return out
+        if pid in ("sagemaker_processing_inline_entrypoint_route",
+                   "sagemaker_training_inline_entrypoint_route"):
+            if source is None:
+                return None
+            training = pid == "sagemaker_training_inline_entrypoint_route"
+            job_kind = "training" if training else "processing"
+            action = "sagemaker:CreateTrainingJob" if training else "sagemaker:CreateProcessingJob"
+            allows, _ = self._statements(source, action.lower())
+            partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+            statuses = inventory_status(self.snapshot, f"sagemaker_{job_kind}_job")
+            occupied = {}
+            malformed = set()
+            for scope, row in items(self.snapshot, f"sagemaker_{job_kind}_job"):
+                name = row.get("TrainingJobName" if training else "ProcessingJobName")
+                arn_field = "TrainingJobArn" if training else "ProcessingJobArn"
+                if not name and isinstance(row.get(arn_field), str):
+                    name = row[arn_field].rsplit("/", 1)[-1]
+                if isinstance(name, str) and name:
+                    occupied.setdefault(scope, set()).add(name)
+                else:
+                    malformed.add(scope)
+            scopes = sorted(scope for scope in statuses if scope.startswith(source.scope + "/"))
+            seed = hashlib.sha256(source.id.encode()).hexdigest()[:12]
+            valid_name = re.compile(r"[A-Za-z0-9](?:-*[A-Za-z0-9]){0,62}\Z")
+            guardrails_unknown = bool(source.attrs.get("boundary")) or self.scp_status.get(source.scope) != "empty"
+            bucket_status = inventory_status(self.snapshot, "bucket") if training else {}
+            for tid, role in candidates.items():
+                if source.incomplete or role.incomplete or guardrails_unknown or not scopes:
+                    out[tid] = ("unknown", f"sagemaker_{job_kind}_policy_or_inventory_not_verified")
+                    continue
+                unresolved = False
+                for scope in scopes:
+                    if statuses[scope] not in ("collected", "empty") or scope in malformed:
+                        unresolved = True
+                        continue
+                    region = scope.split("/", 1)[1]
+                    marker = f"{job_kind}-job/"
+                    prefix = f"arn:{partition}:sagemaker:{region}:{source.scope}:{marker}"
+                    stem = ("PeasoTraining" if training else "PeasoProcessing") + seed
+                    names = {stem, stem + "A"}
+                    for statement in allows:
+                        if statement.notresource or statement.variables:
+                            unresolved = True
+                            continue
+                        for pattern in statement.resources:
+                            if pattern == "*":
+                                continue
+                            if not _resource_glob(pattern, prefix + stem) and marker not in pattern:
+                                continue
+                            suffix = pattern.split(marker, 1)[-1]
+                            choice = suffix.replace("*", "Peaso" + seed).replace("?", "X")
+                            if valid_name.fullmatch(choice):
+                                names.add(choice)
+                            if "*" in suffix:
+                                alternate = suffix.replace("*", "Peaso" + seed + "A").replace("?", "X")
+                                if valid_name.fullmatch(alternate):
+                                    names.add(alternate)
+                    for name in sorted(names)[:80]:
+                        if not valid_name.fullmatch(name):
+                            continue
+                        if name in occupied.get(scope, ()):
+                            unresolved = True
+                            continue
+                        arn = prefix + name
+                        trust = self._service_trust_for_source_arn(
+                            tid, "sagemaker.amazonaws.com", arn)
+                        if trust is not True:
+                            unresolved |= trust is None
+                            continue
+                        passed = self.check(source, {"action": "iam:PassRole",
+                            "request_context": {"iam:PassedToService": "sagemaker.amazonaws.com",
+                                                "iam:AssociatedResourceArn": arn}}, tid)
+                        if passed is None:
+                            continue
+                        if training:
+                            if bucket_status.get(f"{source.scope}/global") not in ("collected", "empty"):
+                                unresolved = True
+                                continue
+                            # A public bucket policy alone may be disabled by S3 public
+                            # access blocks. Require the passed role's own write grant.
+                            role_writes, _ = self._statements(role, "s3:putobject")
+                            if not role_writes:
+                                unresolved = True
+                                continue
+                            output_ready = False
+                            for bucket_scope, bucket in items(self.snapshot, "bucket"):
+                                if bucket_scope != f"{source.scope}/global":
+                                    continue
+                                bucket_name, location = bucket.get("Name"), bucket.get("Location")
+                                policy, encryption = bucket.get("Policy"), bucket.get("Encryption")
+                                if not isinstance(bucket_name, str) or not isinstance(location, dict) or \
+                                        location.get("collection_status") != "collected" or \
+                                        not isinstance(policy, dict) or \
+                                        policy.get("collection_status") not in ("collected", "empty") or \
+                                        not isinstance(encryption, dict) or \
+                                        encryption.get("collection_status") not in ("collected", "empty"):
+                                    unresolved = True
+                                    continue
+                                home = location.get("LocationConstraint")
+                                home = "us-east-1" if home is None else "eu-west-1" if home == "EU" else home
+                                if home != region:
+                                    continue
+                                config = encryption.get("ServerSideEncryptionConfiguration") or {}
+                                rules = config.get("Rules") or []
+                                if any((rule.get("ApplyServerSideEncryptionByDefault") or {}).get("SSEAlgorithm")
+                                       == "aws:kms" for rule in rules if isinstance(rule, dict)):
+                                    unresolved = True
+                                    continue
+                                # S3OutputPath is a prefix; SageMaker writes the model below
+                                # <prefix>/<training-job-name>/output/model.tar.gz.
+                                object_arn = (f"arn:{partition}:s3:::{bucket_name}/peaso-training-{seed}/"
+                                              f"{name}/output/model.tar.gz")
+                                write = self.check(role, {"action": "s3:PutObject"}, object_arn)
+                                if write is not None and write.confidence == "derived":
+                                    output_ready = True
+                                    break
+                                unresolved |= write is not None and write.confidence != "derived"
+                            if not output_ready:
+                                unresolved = True
+                                continue
+                        context = {"aws:RequestedRegion": region,
+                                   "sagemaker:NetworkIsolation": "false"}
+                        # Check several ordinary CPU instances so a policy limited to one
+                        # supported type does not disappear behind a single sample.
+                        for instance_type in ("ml.m5.large", "ml.m5.xlarge", "ml.t3.medium"):
+                            created = self.check(source, {"action": action, "request_context": {
+                                **context, "sagemaker:InstanceTypes": instance_type}}, arn)
+                            if created is not None and created.confidence == "derived" and \
+                                    passed.confidence == "derived":
+                                out[tid] = ("conditional", f"sagemaker_{job_kind}_inline_job_start_pending")
+                                break
+                            unresolved |= created is not None and created.confidence != "derived"
+                        if tid in out:
+                            break
+                        unresolved |= passed.confidence != "derived"
+                    if tid in out:
+                        break
+                if tid not in out and unresolved:
+                    out[tid] = ("unknown", f"sagemaker_{job_kind}_request_or_trust_not_verified")
+            return out
+        if pid == "sagemaker_hpo_script_mode_route":
+            if source is None:
+                return None
+            action = "sagemaker:CreateHyperParameterTuningJob"
+            allows, _ = self._statements(source, action.lower())
+            partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+            statuses = inventory_status(self.snapshot, "sagemaker_hyperparameter_tuning_job")
+            bucket_status = inventory_status(self.snapshot, "bucket")
+            occupied, malformed = {}, set()
+            for scope, row in items(self.snapshot, "sagemaker_hyperparameter_tuning_job"):
+                name = row.get("HyperParameterTuningJobName")
+                if not name and isinstance(row.get("HyperParameterTuningJobArn"), str):
+                    name = row["HyperParameterTuningJobArn"].rsplit("/", 1)[-1]
+                if isinstance(name, str) and name:
+                    occupied.setdefault(scope, set()).add(name.lower())
+                else:
+                    malformed.add(scope)
+            scopes = sorted(scope for scope in statuses if scope.startswith(source.scope + "/"))
+            seed = hashlib.sha256(source.id.encode()).hexdigest()[:12]
+            valid_name = re.compile(r"[A-Za-z0-9](?:-*[A-Za-z0-9]){0,31}\Z")
+            guardrails_unknown = bool(source.attrs.get("boundary")) or self.scp_status.get(source.scope) != "empty"
+            for tid, role in candidates.items():
+                if source.incomplete or role.incomplete or guardrails_unknown or \
+                        bool(role.attrs.get("boundary")) or not scopes or \
+                        bucket_status.get(f"{source.scope}/global") not in ("collected", "empty"):
+                    out[tid] = ("unknown", "sagemaker_hpo_policy_or_inventory_not_verified")
+                    continue
+                unresolved = False
+                for scope in scopes:
+                    if statuses[scope] not in ("collected", "empty") or scope in malformed:
+                        unresolved = True
+                        continue
+                    region = scope.split("/", 1)[1]
+                    marker = "hyper-parameter-tuning-job/"
+                    prefix = f"arn:{partition}:sagemaker:{region}:{source.scope}:{marker}"
+                    names = {"PeasoHpo" + seed, "PeasoHpo" + seed + "A"}
+                    for statement in allows:
+                        if statement.notresource or statement.variables:
+                            unresolved = True
+                            continue
+                        for pattern in statement.resources:
+                            if pattern == "*" or marker not in pattern:
+                                continue
+                            suffix = pattern.split(marker, 1)[-1]
+                            for replacement in ("Peaso" + seed, "Peaso" + seed + "A"):
+                                choice = suffix.replace("*", replacement).replace("?", "X")
+                                if valid_name.fullmatch(choice):
+                                    names.add(choice)
+                    for name in sorted(names)[:80]:
+                        if not valid_name.fullmatch(name):
+                            continue
+                        if name.lower() in occupied.get(scope, ()):
+                            unresolved = True
+                            continue
+                        arn = prefix + name
+                        trust = self._service_trust_for_source_arn(tid, "sagemaker.amazonaws.com", arn)
+                        if trust is not True:
+                            unresolved |= trust is None
+                            continue
+                        passed = self.check(source, {"action": "iam:PassRole",
+                            "request_context": {"iam:PassedToService": "sagemaker.amazonaws.com",
+                                                "iam:AssociatedResourceArn": arn}}, tid)
+                        if passed is None:
+                            continue
+                        s3_ready = False
+                        for bucket_scope, bucket in items(self.snapshot, "bucket"):
+                            if bucket_scope != f"{source.scope}/global":
+                                continue
+                            bucket_name, location = bucket.get("Name"), bucket.get("Location")
+                            policy, encryption = bucket.get("Policy"), bucket.get("Encryption")
+                            if not isinstance(bucket_name, str) or not isinstance(location, dict) or \
+                                    location.get("collection_status") != "collected" or \
+                                    not isinstance(policy, dict) or \
+                                    policy.get("collection_status") not in ("collected", "empty") or \
+                                    not isinstance(encryption, dict) or \
+                                    encryption.get("collection_status") not in ("collected", "empty"):
+                                unresolved = True
+                                continue
+                            home = location.get("LocationConstraint")
+                            home = "us-east-1" if home is None else "eu-west-1" if home == "EU" else home
+                            if home != region:
+                                continue
+                            config = encryption.get("ServerSideEncryptionConfiguration") or {}
+                            if any((rule.get("ApplyServerSideEncryptionByDefault") or {}).get("SSEAlgorithm")
+                                   == "aws:kms" for rule in config.get("Rules", ()) if isinstance(rule, dict)):
+                                unresolved = True
+                                continue
+                            bucket_arn = f"arn:{partition}:s3:::{bucket_name}"
+                            resource_policy = self.resource_policies.get(bucket_arn)
+                            if resource_policy and any(st.effect == "deny" and
+                                    st.action_matches("s3:PutObject") for st in resource_policy[1]):
+                                unresolved = True
+                                continue
+                            code_arn = bucket_arn + f"/peaso-hpo-{seed}/code.tar.gz"
+                            source_write = self.check(source, {"action": "s3:PutObject"}, code_arn)
+                            role_read = self.check(role, {"action": "s3:GetObject"}, code_arn)
+                            source_allows, _ = self._statements(source, "s3:putobject")
+                            read_allows, _ = self._statements(role, "s3:getobject")
+                            direct = lambda statements: any(not st.notresource and not st.variables and
+                                not st.condition and st.resource_matches(code_arn) is True for st in statements)
+                            if not direct(source_allows) or not direct(read_allows):
+                                unresolved = True
+                                continue
+                            if source_write is None or role_read is None:
+                                unresolved = True
+                                continue
+                            if source_write.confidence != role_read.confidence or \
+                                    source_write.confidence != "derived":
+                                unresolved = True
+                                continue
+                            writes, denies = self._statements(role, "s3:putobject")
+                            if denies:
+                                unresolved = True
+                                continue
+                            output_prefixes = set()
+                            for statement in writes:
+                                if statement.notresource or statement.variables or statement.condition:
+                                    unresolved = True
+                                    continue
+                                for pattern in statement.resources:
+                                    if pattern == "*" or pattern == bucket_arn + "/*":
+                                        output_prefixes.add(f"peaso-hpo-output-{seed}")
+                                    elif pattern.startswith(bucket_arn + "/") and pattern.endswith("/*"):
+                                        middle = pattern[len(bucket_arn) + 1:-2]
+                                        if middle and "*" not in middle and "?" not in middle:
+                                            output_prefixes.add(middle)
+                            if not output_prefixes:
+                                unresolved = True
+                                continue
+                            # Generated child training-job names need a complete
+                            # writable output prefix, not one sampled S3 key.
+                            s3_ready = True
+                            break
+                        if not s3_ready:
+                            unresolved = True
+                            continue
+                        context = {"aws:RequestedRegion": region,
+                                   "sagemaker:NetworkIsolation": "false"}
+                        for instance_type in ("ml.m5.large", "ml.m5.xlarge", "ml.t3.medium"):
+                            created = self.check(source, {"action": action, "request_context": {
+                                **context, "sagemaker:InstanceTypes": instance_type}}, arn)
+                            if created is not None and created.confidence == passed.confidence == "derived":
+                                out[tid] = ("conditional", "sagemaker_hpo_script_child_job_start_pending")
+                                break
+                            unresolved |= created is not None and created.confidence != "derived"
+                        if tid in out:
+                            break
+                        unresolved |= passed.confidence != "derived"
+                    if tid in out:
+                        break
+                if tid not in out and unresolved:
+                    out[tid] = ("unknown", "sagemaker_hpo_script_or_job_not_verified")
             return out
         if pid == "sagemaker_job_execution_route_unverified":
             return {tid: ("unknown", "sagemaker_controlled_job_image_and_role_not_verified")
@@ -7334,6 +13795,14 @@ class AwsModel(Model):
         if pid == "cloudcontrol_source_can_create_admin_user":
             if source is None:
                 return None
+            create = self._check_action(source, "cloudformation:createresource",
+                                        "peaso-global-cloudcontrol-create-resource")
+            if create is None:
+                return ({tid: ("unknown", "cloudcontrol_create_resource_permission_not_verified")
+                        for tid in candidates} if source.incomplete else {})
+            if create.confidence != "derived":
+                return {tid: ("unknown", "cloudcontrol_create_resource_permission_conditional")
+                        for tid in candidates}
             role_statuses = inventory_status(self.snapshot, "iam_role")
             common = [{"action": "iam:CreateUser"}, {"action": "iam:GetUser"},
                       {"action": "iam:CreateLoginProfile"}]
@@ -7492,6 +13961,163 @@ class AwsModel(Model):
                 uncertain = True
             verdict = ("unknown", "sfn_existing_machine_update_and_start_not_verified") if uncertain else None
             return {tid: verdict for tid in candidates if verdict} if verdict else {}
+        if pid == "sagemaker_attach_new_notebook_lifecycle_config":
+            if source is None:
+                return None
+            statuses = inventory_status(self.snapshot, "sagemaker_notebook_instance")
+            if not statuses:
+                return {tid: ("unknown", "sagemaker_notebook_inventory_not_collected") for tid in candidates}
+            config_statuses = inventory_status(self.snapshot, "sagemaker_notebook_lifecycle_config")
+            partition = source.id.split(":", 2)[1]
+            out = {}
+            for tid, target in candidates.items():
+                uncertain = bool(source.incomplete or target.incomplete or
+                                 any(state not in ("collected", "empty") for state in statuses.values()))
+                for scope, notebook in items(self.snapshot, "sagemaker_notebook_instance"):
+                    if (statuses.get(scope) != "collected" or not scope.startswith(source.scope + "/")
+                            or not isinstance(notebook, dict) or notebook.get("RoleArn") != target.id):
+                        continue
+                    account, region = scope.split("/", 1)
+                    name = notebook.get("NotebookInstanceName")
+                    arn = notebook.get("NotebookInstanceArn")
+                    if (not isinstance(name, str) or not re.fullmatch(r"[A-Za-z0-9](?:-*[A-Za-z0-9])*", name)
+                            or len(name) > 63 or arn != f"arn:{partition}:sagemaker:{region}:{account}:notebook-instance/{name}"):
+                        uncertain = True
+                        continue
+                    state = notebook.get("NotebookInstanceStatus")
+                    platform = notebook.get("PlatformIdentifier")
+                    if state not in ("InService", "Stopped"):
+                        uncertain = uncertain or state not in ("Deleting", "Failed")
+                        continue
+                    if platform != "notebook-al2023-v1":
+                        uncertain = True  # Platform migration may be possible but is not joined here.
+                        continue
+                    trust = self._service_trust_for_source_arn(tid, "sagemaker.amazonaws.com", arn)
+                    if trust is False:
+                        continue
+                    if trust is None:
+                        uncertain = True
+                        continue
+                    update = self._check_action(source, "sagemaker:updatenotebookinstance", arn)
+                    if update is None:
+                        continue
+                    if update.confidence != "derived":
+                        uncertain = True
+                        continue
+                    if state == "InService":
+                        stop = self._check_action(source, "sagemaker:stopnotebookinstance", arn)
+                        if stop is None:
+                            uncertain = True  # Another operator could stop the notebook later.
+                            continue
+                        if stop.confidence != "derived":
+                            uncertain = True
+                            continue
+                    config_status = config_statuses.get(scope)
+                    if config_status not in ("collected", "empty"):
+                        uncertain = True
+                        continue
+                    prefix = f"arn:{partition}:sagemaker:{region}:{account}:notebook-instance-lifecycle-config/"
+                    occupied = set()
+                    valid_inventory = True
+                    config_rows = [row for row_scope, row in items(self.snapshot, "sagemaker_notebook_lifecycle_config")
+                                   if row_scope == scope]
+                    if config_status == "empty" and config_rows:
+                        valid_inventory = False
+                    for row in config_rows:
+                        config_name = row.get("NotebookInstanceLifecycleConfigName") if isinstance(row, dict) else None
+                        config_arn = row.get("NotebookInstanceLifecycleConfigArn") if isinstance(row, dict) else None
+                        if (not isinstance(config_name, str) or
+                                not re.fullmatch(r"[A-Za-z0-9](?:-*[A-Za-z0-9])*", config_name) or
+                                len(config_name) > 63 or config_arn != prefix + config_name):
+                            valid_inventory = False
+                            break
+                        occupied.add(config_name)
+                    if not valid_inventory:
+                        uncertain = True
+                        continue
+                    seed = hashlib.sha256((source.id + arn).encode()).hexdigest()[:12]
+                    names = {"PeasoBound" + seed + suffix for suffix in ("", "A", "B")}
+                    for statement in self._statements(source, "sagemaker:createnotebookinstancelifecycleconfig")[0]:
+                        if statement.notresource or statement.variables:
+                            uncertain = True
+                            continue
+                        for pattern in statement.resources:
+                            unified = _unify_arn(pattern, prefix + "*") if pattern != "*" else None
+                            if unified and unified.startswith(prefix):
+                                names.add(_instantiate(unified[len(prefix):]))
+                    for config_name in sorted(names):
+                        if (config_name in occupied or
+                                not re.fullmatch(r"[A-Za-z0-9](?:-*[A-Za-z0-9])*", config_name)
+                                or len(config_name) > 63):
+                            continue
+                        create = self._check_action(source, "sagemaker:createnotebookinstancelifecycleconfig",
+                                                    prefix + config_name)
+                        if create is not None and create.confidence == "derived":
+                            out[tid] = ("conditional", "sagemaker_new_lifecycle_config_attached_to_restartable_notebook")
+                            break
+                        uncertain = uncertain or create is not None
+                    if tid in out:
+                        break
+                if tid not in out and uncertain:
+                    out[tid] = ("unknown", "sagemaker_new_lifecycle_config_attachment_not_verified")
+            return out
+        if pid == "sagemaker_attached_notebook_lifecycle_update":
+            if source is None:
+                return None
+            statuses = inventory_status(self.snapshot, "sagemaker_notebook_instance")
+            if not statuses:
+                return {tid: ("unknown", "sagemaker_notebook_inventory_not_collected") for tid in candidates}
+            partition = source.id.split(":", 2)[1]
+            for tid, target in candidates.items():
+                uncertain = bool(source.incomplete or target.incomplete or
+                                 any(state not in ("collected", "empty") for state in statuses.values()))
+                for scope, notebook in items(self.snapshot, "sagemaker_notebook_instance"):
+                    if (statuses.get(scope) != "collected" or not scope.startswith(source.scope + "/")
+                            or not isinstance(notebook, dict) or notebook.get("RoleArn") != target.id):
+                        continue
+                    account, region = scope.split("/", 1)
+                    name = notebook.get("NotebookInstanceLifecycleConfigName")
+                    notebook_arn = notebook.get("NotebookInstanceArn")
+                    if not isinstance(name, str) or not re.fullmatch(r"[A-Za-z0-9](?:-*[A-Za-z0-9])*", name) or len(name) > 63:
+                        uncertain = True
+                        continue
+                    notebook_name = notebook.get("NotebookInstanceName")
+                    if (not isinstance(notebook_name, str) or not re.fullmatch(
+                            r"[A-Za-z0-9](?:-*[A-Za-z0-9])*", notebook_name) or len(notebook_name) > 63 or
+                            notebook_arn != f"arn:{partition}:sagemaker:{region}:{account}:notebook-instance/{notebook_name}"):
+                        uncertain = True
+                        continue
+                    state = notebook.get("NotebookInstanceStatus")
+                    platform = notebook.get("PlatformIdentifier")
+                    if state not in ("InService", "Stopped"):
+                        uncertain = uncertain or state not in ("Deleting", "Failed")
+                        continue
+                    if not isinstance(platform, str):
+                        uncertain = True
+                        continue
+                    if platform == "notebook-al1-v1":
+                        continue
+                    if platform not in ("notebook-al2-v1", "notebook-al2-v2", "notebook-al2-v3",
+                                        "notebook-al2023-v1"):
+                        uncertain = True
+                        continue
+                    if state == "Stopped" and platform.startswith("notebook-al2-"):
+                        continue
+                    trust = self._service_trust_for_source_arn(tid, "sagemaker.amazonaws.com", notebook_arn)
+                    if trust is False:
+                        continue
+                    if trust is None:
+                        uncertain = True
+                        continue
+                    lcc_arn = f"arn:{partition}:sagemaker:{region}:{account}:notebook-instance-lifecycle-config/{name}"
+                    grant = self._check_action(source, "sagemaker:updatenotebookinstancelifecycleconfig", lcc_arn)
+                    if grant is not None and grant.confidence == "derived":
+                        out[tid] = ("conditional", "sagemaker_attached_notebook_lifecycle_update_on_next_start")
+                        break
+                    uncertain = uncertain or grant is not None
+                if tid not in out and uncertain:
+                    out[tid] = ("unknown", "sagemaker_attached_notebook_lifecycle_or_authorization_not_verified")
+            return out
         if pid == "sagemaker_notebook_instance_accessible":
             if source is None:
                 return None
@@ -7577,6 +14203,155 @@ class AwsModel(Model):
                     return {tid: verdict for tid in candidates}
             verdict = ("unknown", "apprunner_image_service_update_not_verified") if uncertain else None
             return {tid: verdict for tid in candidates if verdict} if verdict else {}
+        if pid == "apprunner_existing_instance_role_update":
+            if source is None:
+                return None
+            statuses = {scope: status for scope, status in inventory_status(self.snapshot, "app_runner_service").items()
+                        if scope.startswith(source.scope + "/")}
+            incomplete = not statuses or any(status not in ("collected", "empty") for status in statuses.values())
+            partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+            out = {}
+            for tid, target in candidates.items():
+                uncertain = incomplete
+                for scope, service in items(self.snapshot, "app_runner_service"):
+                    if statuses.get(scope) not in ("collected", "empty") or not isinstance(service, dict):
+                        continue
+                    arn = service.get("ServiceArn")
+                    if (not isinstance(arn, str) or not arn.startswith(
+                            f"arn:{partition}:apprunner:{scope.split('/', 1)[1]}:{source.scope}:service/")):
+                        uncertain = True
+                        continue
+                    detail = service.get("NetworkDetails")
+                    if not isinstance(detail, dict):
+                        uncertain = True
+                        continue
+                    instance_role = detail.get("InstanceRoleArn")
+                    if not isinstance(instance_role, str):
+                        uncertain = True
+                        continue
+                    if instance_role != target.id:
+                        continue
+                    if detail.get("SourceType") != "IMAGE" or (service.get("Status") or detail.get("Status")) != "RUNNING":
+                        if detail.get("SourceType") not in ("IMAGE", "CODE") or not (service.get("Status") or detail.get("Status")):
+                            uncertain = True
+                        continue
+                    grant = self.check(source, {"action": "apprunner:UpdateService"}, arn)
+                    if grant is not None:
+                        out[tid] = (("conditional", "apprunner_existing_role_start_command_update")
+                                    if grant.confidence == "derived" else
+                                    ("unknown", "apprunner_update_service_permission_conditional"))
+                        break
+                if tid not in out and uncertain:
+                    out[tid] = ("unknown", "apprunner_existing_instance_role_not_verified")
+            return out
+        if pid == "apprunner_mutable_ecr_autodeploy_instance_role":
+            if source is None:
+                return None
+            service_status = {scope: status for scope, status in inventory_status(self.snapshot, "app_runner_service").items()
+                              if scope.startswith(source.scope + "/")}
+            ecr_status = {scope: status for scope, status in inventory_status(self.snapshot, "ecr_repository").items()
+                          if scope.startswith(source.scope + "/")}
+            incomplete = (not service_status or not ecr_status or
+                          any(status not in ("collected", "empty") for status in (*service_status.values(), *ecr_status.values())))
+            partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+            # GetAuthorizationToken has no resource type; probing "*" would
+            # also match a policy scoped only to a repository ARN.
+            token = self._check_action(source, "ecr:GetAuthorizationToken", "peaso-global-ecr-auth-operation")
+            push_actions = ("ecr:BatchCheckLayerAvailability", "ecr:InitiateLayerUpload",
+                            "ecr:UploadLayerPart", "ecr:CompleteLayerUpload", "ecr:PutImage")
+            out = {}
+            for tid, target in candidates.items():
+                uncertain = incomplete
+                for scope, service in items(self.snapshot, "app_runner_service"):
+                    if service_status.get(scope) != "collected" or not isinstance(service, dict):
+                        continue
+                    region = scope.split("/", 1)[1]
+                    arn = service.get("ServiceArn")
+                    if not isinstance(arn, str) or not arn.startswith(
+                            f"arn:{partition}:apprunner:{region}:{source.scope}:service/"):
+                        uncertain = True
+                        continue
+                    detail = service.get("NetworkDetails")
+                    if not isinstance(detail, dict):
+                        uncertain = True
+                        continue
+                    if detail.get("InstanceRoleArn") != target.id:
+                        continue
+                    if (service.get("Status") or detail.get("Status")) != "RUNNING":
+                        continue
+                    if detail.get("SourceType") != "IMAGE" or detail.get("AutoDeploymentsEnabled") is not True:
+                        uncertain |= detail.get("SourceType") not in ("IMAGE", "CODE") or type(detail.get("AutoDeploymentsEnabled")) is not bool
+                        continue
+                    image = detail.get("ImageIdentifier")
+                    if not isinstance(image, str):
+                        uncertain = True
+                        continue
+                    for repo_scope, repo in items(self.snapshot, "ecr_repository"):
+                        if repo_scope != scope or ecr_status.get(repo_scope) != "collected" or not isinstance(repo, dict):
+                            continue
+                        repo_arn = repo.get("repositoryArn")
+                        uri = repo.get("repositoryUri")
+                        if not (isinstance(repo_arn, str) and repo_arn.startswith(
+                                f"arn:{partition}:ecr:{region}:{source.scope}:repository/") and
+                                isinstance(uri, str) and image.startswith(uri + ":") and
+                                image[len(uri) + 1:] and "@" not in image[len(uri) + 1:]):
+                            continue
+                        tag = image[len(uri) + 1:]
+                        mode = repo.get("imageTagMutability")
+                        filters = repo.get("imageTagMutabilityExclusionFilters")
+                        if mode in ("IMMUTABLE_WITH_EXCLUSION", "MUTABLE_WITH_EXCLUSION"):
+                            if not isinstance(filters, list) or not all(
+                                    isinstance(row, dict) and row.get("filterType") == "WILDCARD" and
+                                    isinstance(row.get("filter"), str) for row in filters):
+                                uncertain = True
+                                continue
+                            matched = any(re.fullmatch(re.escape(row["filter"]).replace(r"\*", ".*"), tag)
+                                          for row in filters)
+                            mutable = matched if mode == "IMMUTABLE_WITH_EXCLUSION" else not matched
+                        elif mode in ("MUTABLE", "IMMUTABLE"):
+                            mutable = mode == "MUTABLE"
+                        else:
+                            uncertain = True
+                            continue
+                        settings_grant = None
+                        if not mutable:
+                            settings_grant = self._check_action(source, "ecr:PutImageTagMutability", repo_arn)
+                            if settings_grant is None:
+                                continue
+                        grants = [self._check_action(source, action, repo_arn) for action in push_actions]
+                        if token is None or any(grant is None for grant in grants):
+                            continue
+                        out[tid] = (("conditional", "apprunner_mutable_ecr_autodeploy_push")
+                                    if token.confidence == "derived" and all(grant.confidence == "derived" for grant in grants)
+                                    and (settings_grant is None or settings_grant.confidence == "derived")
+                                    else ("unknown", "apprunner_ecr_push_permission_conditional"))
+                        break
+                    if tid in out:
+                        break
+                if tid not in out and uncertain:
+                    out[tid] = ("unknown", "apprunner_ecr_autodeploy_join_not_verified")
+            return out
+        if pid == "appsync_new_api_global_setup":
+            if source is None:
+                return None
+            # These AppSync operations have no resource type in the service
+            # authorization reference. A grant on one existing API ARN cannot
+            # authorize creating and configuring a fresh API.
+            global_resource = "peaso-global-appsync-operation"
+            actions = ("CreateGraphqlApi", "StartSchemaCreation", "CreateDataSource",
+                       "CreateResolver", "CreateApiKey")
+            if any(not any(not statement.notresource and "*" in statement.resources
+                           for statement in self._statements(source, f"appsync:{action.lower()}")[0])
+                   for action in actions):
+                return {}
+            grants = [self.check(source, {"action": f"appsync:{action}"}, global_resource)
+                      for action in actions]
+            if any(grant is None for grant in grants):
+                return {}
+            verdict = (("conditional", "appsync_new_api_setup_and_invocation")
+                       if all(grant.confidence == "derived" for grant in grants) else
+                       ("unknown", "appsync_global_setup_permission_conditional"))
+            return {tid: verdict for tid in candidates}
         if pid == "glue_existing_dev_endpoint_ssh_access":
             if source is None:
                 return None
@@ -7707,9 +14482,11 @@ class AwsModel(Model):
             if source is None:
                 return None
             status = inventory_status(self.snapshot, "glue_trigger")
+            job_status = inventory_status(self.snapshot, "glue_job")
             partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
             for tid, target in candidates.items():
-                uncertain = False
+                witness, witness_uncertain = self._glue_writable_script_witness(source, target, job_status)
+                uncertain = witness_uncertain or bool(source.incomplete or target.incomplete)
                 for job_arn in self.hosts.get(target.id, {}).get("glue_job", ()):
                     parts = job_arn.split(":", 5)
                     if len(parts) != 6 or not parts[5].startswith("job/"):
@@ -7723,6 +14500,12 @@ class AwsModel(Model):
                     update = self.check(source, {"action": "glue:UpdateJob"}, job_arn)
                     if update is None:
                         continue
+                    passed = self.cached_check(source, {"action": "iam:PassRole",
+                        "request_context": {"iam:PassedToService": "glue.amazonaws.com",
+                                            "aws:RequestedRegion": region}}, tid)
+                    if passed is None:
+                        uncertain = True
+                        continue
                     for trigger_scope, trigger in items(self.snapshot, "glue_trigger"):
                         if trigger_scope != scope:
                             continue
@@ -7734,23 +14517,31 @@ class AwsModel(Model):
                             continue
                         kind, state = trigger.get("Type"), trigger.get("State")
                         if kind == "SCHEDULED" and state == "ACTIVATED" and trigger.get("HasSchedule") is True:
-                            if update.confidence == "derived":
+                            if (update.confidence == passed.confidence == "derived" and witness
+                                    and not source.incomplete and not target.incomplete):
                                 out[tid] = ("conditional", "glue_existing_job_active_schedule")
                                 break
                             uncertain = True
                         elif kind == "ON_DEMAND" and state == "CREATED":
                             trigger_arn = f"arn:{partition}:glue:{region}:{source.scope}:trigger/{trigger['Name']}"
                             start = self.check(source, {"action": "glue:StartTrigger"}, trigger_arn)
-                            if start is not None and update.confidence == start.confidence == "derived":
+                            if (start is not None and update.confidence == passed.confidence == start.confidence == "derived"
+                                    and witness and not source.incomplete and not target.incomplete):
                                 out[tid] = ("conditional", "glue_existing_job_startable_trigger")
                                 break
-                            uncertain |= start is not None and start.confidence != "derived"
+                            uncertain |= start is not None
                         elif state in ("ACTIVATING", "UPDATING") or kind in ("CONDITIONAL", "EVENT"):
                             uncertain = True
                     if tid in out:
                         break
                 if tid not in out and uncertain:
                     out[tid] = ("unknown", "glue_existing_job_trigger_not_verified")
+            for tid, target in candidates.items():
+                if tid not in out or out[tid][0] == "unknown":
+                    proof = self._glue_job_effect_witness(
+                        source, target, "aws-glue-updatejob-existing-role")
+                    if proof:
+                        out[tid] = proof
             return out
         if pid == "glue_job_role_and_execution_bind":
             if source is None:
@@ -7761,11 +14552,12 @@ class AwsModel(Model):
             partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
             uncertain = not job_status or any(self._statements(source, action)[0]
                                               for action in ("glue:createjob", "glue:updatejob"))
-            matched = False
+            matched_scopes = set()
             for scope, status in job_status.items():
                 if status not in ("collected", "empty"):
                     uncertain = True
                     continue
+                matched = False
                 region = scope.split("/", 1)[1]
                 prefix = f"arn:{partition}:glue:{region}:{source.scope}:"
                 existing = set()
@@ -7837,10 +14629,32 @@ class AwsModel(Model):
                     if matched:
                         break
                 if matched:
-                    break
-            verdict = (("conditional", "glue_job_change_and_execution_bound") if matched else
-                       ("unknown", "glue_job_change_and_execution_not_verified") if uncertain or not job_status else None)
-            return {tid: verdict for tid in candidates if verdict} if verdict else {}
+                    matched_scopes.add(scope)
+            out = {}
+            for tid, role in candidates.items():
+                unresolved = uncertain or bool(source.incomplete or role.incomplete)
+                for scope in matched_scopes:
+                    region = scope.split("/", 1)[1]
+                    passed = self.cached_check(source, {"action": "iam:PassRole",
+                        "request_context": {"iam:PassedToService": "glue.amazonaws.com",
+                                            "aws:RequestedRegion": region}}, tid)
+                    if passed is None:
+                        unresolved = True
+                        continue
+                    witness, witness_uncertain = self._glue_writable_script_witness(source, role, job_status)
+                    if witness and passed.confidence == "derived":
+                        out[tid] = ("conditional", "glue_job_change_run_and_script_object_bound")
+                        break
+                    unresolved |= witness_uncertain or passed.confidence != "derived"
+                if tid not in out and (unresolved or matched_scopes):
+                    out[tid] = ("unknown", "glue_job_change_execution_or_script_object_not_verified")
+            for tid, role in candidates.items():
+                if tid not in out or out[tid][0] == "unknown":
+                    proof = self._glue_job_effect_witness(
+                        source, role, "aws-glue-passrole-createjob-or-updatejob-run")
+                    if proof:
+                        out[tid] = proof
+            return out
         if pid == "glue_job_override_arguments_available":
             if source is None:
                 return None
@@ -7850,7 +14664,8 @@ class AwsModel(Model):
             trigger_status = inventory_status(self.snapshot, "glue_trigger")
             partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
             for tid, target in candidates.items():
-                uncertain = False
+                witness, witness_uncertain = self._glue_writable_script_witness(source, target, status)
+                uncertain = witness_uncertain or bool(source.incomplete or target.incomplete)
                 for arn in self.hosts.get(target.id, {}).get("glue_job", ()):
                     parts = arn.split(":", 5)
                     if len(parts) != 6 or not parts[5].startswith("job/"):
@@ -7876,7 +14691,9 @@ class AwsModel(Model):
                         continue
                     grant = self.check(source, {"action": "glue:StartJobRun"}, arn)
                     if grant is not None:
-                        out[tid] = (("conditional", "glue_job_script_override_available") if grant.confidence == "derived"
+                        out[tid] = (("conditional", "glue_job_script_override_available")
+                                    if grant.confidence == "derived" and witness
+                                    and not source.incomplete and not target.incomplete
                                     else ("unknown", "glue_job_start_permission_conditional"))
                         break
                     if trigger_status.get(scope) not in ("collected", "empty"):
@@ -7908,7 +14725,8 @@ class AwsModel(Model):
                         created = self.check(source, {"action": "glue:CreateTrigger"}, prefix + name)
                         if created is not None:
                             out[tid] = (("conditional", "glue_scheduled_trigger_script_override_available")
-                                        if created.confidence == "derived" else
+                                        if created.confidence == "derived" and witness
+                                        and not source.incomplete and not target.incomplete else
                                         ("unknown", "glue_trigger_create_permission_conditional"))
                             break
                     if tid in out:
@@ -7916,6 +14734,87 @@ class AwsModel(Model):
                     uncertain = True
                 if tid not in out and uncertain:
                     out[tid] = ("unknown", "glue_job_override_route_not_verified")
+            for tid, target in candidates.items():
+                if tid not in out or out[tid][0] == "unknown":
+                    proof = self._glue_job_effect_witness(
+                        source, target, "aws-glue-startjobrun-override-script")
+                    if proof:
+                        out[tid] = proof
+            return out
+        if pid == "glue_existing_job_script_object_writable_and_runnable":
+            if source is None:
+                return None
+            jobs = {(scope, row.get("Name")): row for scope, row in items(self.snapshot, "glue_job")
+                    if isinstance(row, dict) and isinstance(row.get("Name"), str)}
+            job_status = inventory_status(self.snapshot, "glue_job")
+            trigger_status = inventory_status(self.snapshot, "glue_trigger")
+            triggers = {}
+            trigger_unknown = {}
+            for scope, trigger in items(self.snapshot, "glue_trigger"):
+                if not isinstance(trigger, dict) or trigger.get("ActionsComplete") is not True:
+                    continue
+                if (trigger.get("Type") == "SCHEDULED" and trigger.get("State") == "ACTIVATED"
+                        and trigger.get("HasSchedule") is True and isinstance(trigger.get("JobActions"), list)):
+                    names = {name for name in trigger["JobActions"] if isinstance(name, str)}
+                    overrides = trigger.get("ScriptOverrideJobActions")
+                    if trigger.get("ActionArgumentsComplete") is not True or not isinstance(overrides, list):
+                        trigger_unknown.setdefault(scope, set()).update(names)
+                    else:
+                        triggers.setdefault(scope, set()).update(names - set(overrides))
+                        trigger_unknown.setdefault(scope, set()).update(names.intersection(overrides))
+            for tid, target in candidates.items():
+                uncertain = bool(source.incomplete or target.incomplete)
+                for job_arn in self.hosts.get(target.id, {}).get("glue_job", ()):
+                    parts = job_arn.split(":", 5)
+                    if len(parts) != 6 or not parts[5].startswith("job/") or parts[4] != source.scope:
+                        uncertain = True
+                        continue
+                    scope, name = f"{parts[4]}/{parts[3]}", parts[5][4:]
+                    if job_status.get(scope) not in ("collected", "empty"):
+                        uncertain = True
+                        continue
+                    job = jobs.get((scope, name))
+                    command = job.get("Command") if isinstance(job, dict) else None
+                    script = command.get("ScriptLocation") if isinstance(command, dict) else None
+                    kind = command.get("Name") if isinstance(command, dict) else None
+                    if (kind not in ("glueetl", "gluestreaming", "pythonshell", "glueray")
+                            or not isinstance(script, str)):
+                        uncertain = True
+                        continue
+                    fixed = job.get("NonOverridableCodeArguments")
+                    if not isinstance(fixed, list) or "--scriptLocation" in fixed:
+                        uncertain = True
+                        continue
+                    parsed = urlsplit(script)
+                    if (parsed.scheme != "s3" or not re.fullmatch(r"[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]", parsed.netloc)
+                            or not parsed.path.startswith("/") or parsed.path == "/"
+                            or parsed.query or parsed.fragment or "%" in parsed.path
+                            or any(ord(char) < 32 for char in script)):
+                        uncertain = True
+                        continue
+                    object_arn = f"arn:{parts[1]}:s3:::{parsed.netloc}{parsed.path}"
+                    put = self.check(source, {"action": "s3:PutObject"}, object_arn)
+                    read = self.check(target, {"action": "s3:GetObject"}, object_arn)
+                    if put is None or read is None:
+                        continue
+                    start = self.check(source, {"action": "glue:StartJobRun"}, job_arn)
+                    defaults = job.get("DefaultCodeArguments")
+                    scheduled = (isinstance(defaults, list) and "--scriptLocation" not in defaults
+                                 and name in triggers.get(scope, set()))
+                    if start is None and not scheduled:
+                        if (trigger_status.get(scope) not in ("collected", "empty") or
+                                name in trigger_unknown.get(scope, set()) or not isinstance(defaults, list)
+                                or "--scriptLocation" in defaults):
+                            uncertain = True
+                        continue
+                    if (put.confidence == read.confidence == "derived" and
+                            (scheduled or start is not None and start.confidence == "derived") and
+                            not source.incomplete and not target.incomplete):
+                        out[tid] = ("conditional", "glue_exact_script_object_and_run_bound")
+                        break
+                    uncertain = True
+                if tid not in out and uncertain:
+                    out[tid] = ("unknown", "glue_exact_script_object_or_run_not_verified")
             return out
         if pid == "appstream_new_app_block_builder_with_role":
             if source is None:
@@ -8047,6 +14946,36 @@ class AwsModel(Model):
                 return None
             verdict = self._cloudfront_edge_distribution_and_service_roles(source)
             return {tid: verdict for tid in candidates} if verdict else {}
+        if pid == "deadline_existing_queue_role_vend":
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._deadline_existing_queue_role_vend(source, role))}
+        if pid == "deadline_passrole_queue_role_vend":
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._deadline_passrole_queue_role_vend(source, role))}
+        if pid == "deadline_existing_worker_role_vend":
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._deadline_existing_worker_role_vend(source, role))}
+        if pid == "deadline_new_worker_role_vend":
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._deadline_new_worker_role_vend(source, role))}
+        if pid == "lambda_existing_sqs_queue_function_and_role":
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._lambda_existing_sqs_mapping_route(source, role))}
+        if pid == "lambda_new_dynamodb_stream_function_and_role":
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._lambda_new_dynamodb_stream_route(source, role))}
         if pid == "lambda_microvm_shell_runnable_image_and_role":
             if source is None:
                 return None
@@ -8074,13 +15003,18 @@ class AwsModel(Model):
         if pid == "eventbridge_subscriber_has_active_bus_and_bound_permissions":
             if source is None:
                 return None
-            verdict = self._eventbridge_subscriber_route(source)
-            return {tid: verdict for tid in candidates} if verdict else {}
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._eventbridge_subscriber_route(source, role))}
         if pid == "mwaa_existing_environment_update_with_dag_code":
             if source is None:
                 return None
             return {tid: verdict for tid, role in candidates.items()
                     if (verdict := self._mwaa_existing_environment_route(source, role))}
+        if pid == "mwaa_existing_dag_object_execution_role":
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._mwaa_existing_dag_object_route(source, role))}
         if pid == "mwaa_serverless_new_workflow_definition_and_start":
             if source is None:
                 return None
@@ -8092,16 +15026,25 @@ class AwsModel(Model):
             return {tid: verdict for tid, role in candidates.items()
                     if (verdict := self._m2_new_application_route(source, role))}
         if pid == "mgh_automation_unit_home_region_target_and_run":
-            # The account home Region and a source-controlled SSM/Lambda target
-            # are not in the current evidence. Four IAM grants alone do not
-            # prove that a new custom unit can run under this role.
-            return {tid: ("unknown", "mgh_home_region_and_runtime_target_not_verified")
-                    for tid in candidates}
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._mgh_verified_automation_role_effect(source, role))}
+        if pid == "workspaces_instances_bound_launch_role_effect":
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._workspaces_instances_verified_role_effect(source, role))}
+        if pid == "sagemaker_hyperpod_custom_ami_group_role_effect":
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._sagemaker_hyperpod_verified_ami_role_effect(source, role))}
         if pid == "migrationhub_orchestrator_bound_workflow_script_and_managed_target":
-            # Matching IAM actions and an instance profile do not identify a
-            # startable workflow, mutable step group, script or selected node.
-            return {tid: ("unknown", "orchestrator_workflow_script_and_target_not_verified")
-                    for tid in candidates}
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._orchestrator_verified_workflow_role_effect(source, role))}
         if pid == "ssm_incident_response_plan_runs_new_automation_document":
             if source is None:
                 return None
@@ -8119,13 +15062,23 @@ class AwsModel(Model):
             if source is None:
                 return None
             verdict = self._cloudformation_extension_route(source)
-            return {tid: verdict for tid in candidates} if verdict else {}
+            if not verdict:
+                return {}
+            out = {}
+            for tid, role in candidates.items():
+                out[tid] = (("unknown", "cloudformation_extension_handler_effect_not_verified")
+                            if verdict[0] == "conditional" and
+                            not self._cloudformation_extension_handler_effect(source, role) else verdict)
+            return out
         if pid in ("cloudformation_new_stack_with_role", "cloudformation_new_changeset_with_role"):
             if source is None:
                 return None
             changeset = pid == "cloudformation_new_changeset_with_role"
             for tid, role in candidates.items():
                 verdict = self._cloudformation_new_stack_route(source, role, changeset)
+                if verdict and verdict[0] == "conditional" and not self._cloudformation_role_template_effect(
+                        source, role, "CreateChangeSet" if changeset else "CreateStack"):
+                    verdict = ("unknown", "cloudformation_role_template_effect_not_verified")
                 if verdict:
                     out[tid] = verdict
             return out
@@ -8170,9 +15123,13 @@ class AwsModel(Model):
                             {"request_context": {"cloudformation:RoleArn": role.id}},
                             lambda: self._check_action(source, "cloudformation:updatestack", arn), source)
                     if grant is not None:
-                        out[tid] = (("conditional", "stack_policy_and_template_effects_not_collected")
-                                    if grant.confidence == "derived" else
-                                    ("unknown", "cloudformation_stack_operation_permission_conditional"))
+                        if grant.confidence != "derived":
+                            out[tid] = ("unknown", "cloudformation_stack_operation_permission_conditional")
+                        elif attached or self._cloudformation_role_template_effect(
+                                source, role, "UpdateStack", arn):
+                            out[tid] = ("conditional", "stack_policy_and_template_effects_not_collected")
+                        else:
+                            out[tid] = ("unknown", "cloudformation_role_template_effect_not_verified")
                         break
                 if tid not in out and unknown:
                     out[tid] = ("unknown", "cloudformation_updatable_stack_or_permission_not_verified")
@@ -8215,8 +15172,12 @@ class AwsModel(Model):
                     if online.lower() != "online":
                         continue
                     if self._check_action(source, "ssm:startaccessrequest", instance_arn) is not None:
-                        unknown = True  # Approval policy and requester/node match are not collected yet.
-                if unknown:
+                        verdict = self._ssm_jit_verified_instance_role_effect(source, role, instance_arn)
+                        if verdict and verdict[0] == "conditional":
+                            out[tid] = verdict
+                            break
+                        unknown = True
+                if tid not in out and unknown:
                     out[tid] = ("unknown", "ssm_jit_approval_for_source_and_instance_not_verified")
             return out
         if pid in ("ssm_maintenance_window_run_command_target", "ssm_maintenance_window_automation_task_ready"):
@@ -8335,6 +15296,12 @@ class AwsModel(Model):
                     out[tid] = ("unknown", "ssm_shell_session_or_online_instance_not_verified" if session else
                                 "ssm_shell_document_or_online_instance_not_verified")
             return out
+        if pid in ("ssm_hybrid_sendcommand_role", "ssm_hybrid_startsession_role"):
+            if source is None:
+                return None
+            session = pid == "ssm_hybrid_startsession_role"
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._ssm_hybrid_shell_route(source, role, session=session))}
         if pid == "ssm_shell_association_targets":
             if source is None:
                 return None
@@ -8822,6 +15789,13 @@ class AwsModel(Model):
         if pid == "ec2_instance_connect_same_running_role_host":
             if source is None:
                 return None
+            try:
+                observed_at = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+                if observed_at.tzinfo is None:
+                    observed_at = None
+            except (KeyError, TypeError, ValueError):
+                observed_at = None
+            proof_status = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
             for rid, role in candidates.items():
                 unknown = bool(source.incomplete)
                 for arn in self.hosts.get(role.id, {}).get("ec2_instance", ()):
@@ -8844,11 +15818,63 @@ class AwsModel(Model):
                     if metadata["HttpEndpoint"] != "enabled" or metadata.get("State") != "applied":
                         unknown = True
                         continue
-                    grant = self._check_action(source, "ec2-instance-connect:sendsshpublickey", arn)
+                    scope = f"{role.scope}/{self.instances[arn][1]}"
+                    proof_collections = [collection for collection in self.snapshot.get("collections", ())
+                        if collection.get("type") == "aws_privesc_challenge_evidence" and collection.get("scope") == scope]
+                    if len(proof_collections) != 1 or proof_collections[0].get("status") != "collected":
+                        unknown = True
+                        continue
+                    proofs = [row for proof_scope, row in items(self.snapshot, "aws_privesc_challenge_evidence")
+                        if proof_scope == scope and proof_status.get(proof_scope) == "collected" and
+                        row.get("TechniqueId") == "aws-ec2-instance-connect-sendsshpublickey" and
+                        row.get("SourceArn") == source.id and row.get("TargetKind") == "aws_role" and
+                        row.get("TargetId") == rid and row.get("InstanceArn") == arn]
+                    if len(proofs) != 1 or observed_at is None:
+                        unknown = True
+                        continue
+                    proof = proofs[0]
+                    role_rows = [row for role_scope, row in items(self.snapshot, "iam_role")
+                        if role_scope.split("/")[0] == role.scope and row.get("Arn") == rid]
+                    role_id = role_rows[0].get("RoleId") if len(role_rows) == 1 else None
+                    profile = instance.get("IamInstanceProfile") or {}
+                    os_user = proof.get("OsUser")
+                    if (not isinstance(role_id, str) or not role_id or
+                            proof.get("Status") != "verified" or
+                            proof.get("VerifiedPreconditions") is not True or
+                            proof.get("SendSSHPublicKeyAccepted") is not True or
+                            proof.get("SessionUsedPushedKey") is not True or
+                            proof.get("HostSessionEstablished") is not True or
+                            proof.get("RoleCredentialsReachable") is not True or
+                            proof.get("RoleCredentialsUsable") is not True or
+                            proof.get("CredentialRoleId") != role_id or
+                            proof.get("TargetScope") != scope or
+                            proof.get("TargetRoleId") != role_id or
+                            proof.get("TargetProfileArn") != profile.get("Arn") or
+                            proof.get("TargetProfileId") != profile.get("Id") or
+                            not isinstance(profile.get("Id"), str) or not profile["Id"] or
+                            not isinstance(os_user, str) or
+                            re.fullmatch(r"[A-Za-z0-9_][A-Za-z0-9@._-]{0,30}", os_user) is None or
+                            not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"]):
+                        unknown = True
+                        continue
+                    try:
+                        witness_at = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+                        expires_at = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+                        if (witness_at.tzinfo is None or expires_at.tzinfo is None or
+                                not 0 <= (observed_at - witness_at).total_seconds() <= 60 or
+                                not observed_at < expires_at or
+                                not 0 < (expires_at - witness_at).total_seconds() <= 60):
+                            unknown = True
+                            continue
+                    except (KeyError, TypeError, ValueError):
+                        unknown = True
+                        continue
+                    grant = self.check(source, {"action": "ec2-instance-connect:SendSSHPublicKey",
+                        "request_context": {"ec2:osuser": os_user}}, arn)
                     if grant is None:
                         continue
                     if grant.confidence == "derived":
-                        out[rid] = ("conditional", "instance_connect_ssh_and_role_credentials")
+                        out[rid] = ("conditional", "reviewed_instance_connect_session_and_role_credentials")
                         break
                     unknown = True
                 else:
@@ -8880,11 +15906,143 @@ class AwsModel(Model):
             if not self._org_known():
                 return {tid: ("unknown", "organization_accounts_not_collected") for tid in candidates}
             return dict.fromkeys(candidates) if source.scope == self.org_management else {}
+        if pid == "created_org_access_role_assumable":
+            if source is None:
+                return None
+            partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+            allows, _ = self._statements(source, "sts:assumerole")
+            # The new account ID is unknown until CreateAccount finishes. An
+            # existing target-role grant does not authorize this intermediary.
+            # Require a grant for every possible new account ID. CreateAccount
+            # can select a custom role name, so accept a valid exact name too.
+            names = set()
+            for st in allows:
+                if st.notresource or st.variables:
+                    continue
+                for resource in st.resources:
+                    if resource == "*":
+                        names.add("OrganizationAccountAccessRole")
+                        continue
+                    parts = resource.split(":", 5)
+                    if len(parts) != 6 or parts[:5] != ["arn", partition, "iam", "", "*"]:
+                        continue
+                    role_pattern = parts[5]
+                    if glob_match(role_pattern, "role/OrganizationAccountAccessRole", False):
+                        names.add("OrganizationAccountAccessRole")
+                    if role_pattern.startswith("role/"):
+                        name = role_pattern.removeprefix("role/")
+                        if (re.fullmatch(r"[A-Za-z0-9_+=,.@-]{1,64}", name) and
+                                not name.startswith("AWSServiceRoleFor")):
+                            names.add(name)
+            grant = None
+            for name in sorted(names):
+                probe = f"arn:{partition}:iam::000000000000:role/{name}"
+                grant = self._check_action(source, "sts:assumerole", probe)
+                if grant is not None:
+                    break
+            verdict = (("conditional", "new_member_account_creation_pending") if grant is not None and
+                       grant.confidence == "derived" else
+                       ("unknown", "new_member_access_role_assume_grant_unverified"))
+            root = self._org_root()
+            # A complete account-to-root collection for any known organization
+            # account records the root policies a new member will inherit.
+            scp_rows = {}
+            for scope, row in items(self.snapshot, "scp_policy"):
+                scp_rows.setdefault(scope.split("/")[0], []).append(row)
+            root_witnesses = []
+            for account, rows in scp_rows.items():
+                if (root is None or account not in self.org_accounts or
+                        self.scp_status.get(account) != "collected" or not rows or not all(
+                    row.get("InheritanceComplete") is True and
+                    isinstance(row.get("InheritedPolicies"), dict) and
+                    row["InheritedPolicies"].get("complete") is True and
+                    row["InheritedPolicies"].get("collection_status") == "collected" and
+                    any(isinstance(parent, dict) and parent.get("Id") == root and
+                        parent.get("Type") == "ROOT" for parent in
+                        as_list(row["InheritedPolicies"].get("ParentPath")))
+                    for row in rows)):
+                    continue
+                documents = {}
+                for row in rows:
+                    inherited = as_list(row["InheritedPolicies"].get("items"))
+                    for policy_row in [row, *inherited]:
+                        if not isinstance(policy_row, dict) or policy_row.get("TargetId") != root:
+                            continue
+                        content = (policy_row.get("Content") or
+                                   ((policy_row.get("Detail") or {}).get("Policy") or {}).get("Content"))
+                        if isinstance(policy_row.get("Id"), str) and isinstance(content, dict):
+                            documents[policy_row["Id"]] = content
+                if documents:
+                    root_witnesses.append(documents)
+            root_complete = bool(root_witnesses) and all(
+                witness == root_witnesses[0] for witness in root_witnesses[1:])
+            root_policies = ([Policy("scp:" + pid, pid, content, "scp")
+                              for pid, content in root_witnesses[0].items()] if root_complete else [])
+            root_denies = [st for policy in root_policies
+                           for st in policy.for_action("sts:assumerole")
+                           if st.effect == "deny"]
+            root_allows = [st for policy in root_policies
+                           for st in policy.statements if st.effect == "allow"]
+            out = {}
+            for tid in candidates:
+                # A newly created account starts at the organization root, so
+                # an unconditional root SCP Deny also applies to its new role.
+                if any(st.resource_matches(tid) and not st.conditional for st in root_denies):
+                    continue
+                if not root_complete:
+                    out[tid] = ("unknown", "new_member_root_scp_inventory_incomplete")
+                elif any(st.resource_matches(tid) and st.conditional for st in root_denies):
+                    out[tid] = ("unknown", "new_member_root_scp_conditional_deny_unverified")
+                elif not any(st.action_matches("sts:assumerole") and
+                             st.resource_matches(tid) and not st.conditional
+                             for st in root_allows):
+                    # A new member account inherits root SCPs. A recorded root
+                    # allowlist without a definite AssumeRole allow cannot
+                    # establish access from its generated role.
+                    out[tid] = ("unknown", "new_member_root_scp_assume_role_allow_not_verified")
+                else:
+                    target_account = _account(tid)
+                    rcp_status = self.rcp_status.get(target_account, "not_collected")
+                    if rcp_status not in ("collected", "empty"):
+                        out[tid] = ("unknown", "target_role_rcp_inventory_not_collected")
+                        continue
+                    levels, complete = self._scp_levels(target_account)
+                    if rcp_status == "collected" and not complete:
+                        out[tid] = ("unknown", "target_role_rcp_inheritance_not_collected")
+                        continue
+                    context = Context(action="sts:assumerole", resource=tid, overrides={
+                        "aws:principalorgid": [self.org_id],
+                        "aws:principalorgpaths": [f"{self.org_id}/{root}/"]})
+                    rcp_unknown = False
+                    rcp_denied = False
+                    for level in levels:
+                        for policy in self.rcp_by_target.get(level, ()):
+                            for deny in (st for st in policy.for_action("sts:assumerole")
+                                         if st.effect == "deny"):
+                                applies = self._deny_applies(deny, tid, context)
+                                if applies is True:
+                                    rcp_denied = True
+                                elif applies is None:
+                                    rcp_unknown = True
+                    if rcp_denied:
+                        continue
+                    out[tid] = (("unknown", "target_role_rcp_conditional_deny_unverified")
+                                if rcp_unknown else
+                                self._org_created_member_verified_role_effect(
+                                    source, candidates[tid], root)
+                                if verdict[0] == "conditional" else verdict)
+            return out
         if pid == "emr_cluster_session_runtime_role":
             if source is None:
                 return None
             return {rid: verdict for rid, role in candidates.items()
                     if (verdict := self._emr_cluster_session_route(source, role)) is not None}
+        if pid == "emr_existing_cluster_runtime_step_role":
+            if source is None:
+                return None
+            return {rid: verdict for rid, role in candidates.items()
+                    if (verdict := self._emr_cluster_runtime_route(
+                        source, role, "elasticmapreduce:addjobflowsteps")) is not None}
         if pid == "emr_existing_cluster_step_instance_role":
             if source is None:
                 return None
@@ -8909,6 +16067,448 @@ class AwsModel(Model):
                     out[tid] = None
                 elif self._account_status("ecs_task_definition", node.scope) != "collected":
                     out[tid] = ("unknown", "ecs_task_definition_not_collected")
+            return out
+        if pid in ("ecs_new_task_definition_runtask_ready", "ecs_new_task_definition_starttask_ready"):
+            if source is None:
+                return None
+            launch_action = "ecs:StartTask" if pid == "ecs_new_task_definition_starttask_ready" else "ecs:RunTask"
+            partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+            scopes = [scope for scope in self.snapshot.get("scopes", ()) if isinstance(scope, str)
+                      and scope.startswith(source.scope + "/") and scope.split("/", 1)[1] not in ("global", "*")]
+
+            def covers_every_revision(action, task_arn):
+                allows, _ = self._statements(source, action)
+                for statement in allows:
+                    if statement.notresource or statement.variables:
+                        continue
+                    for pattern in statement.resources:
+                        if pattern == "*":
+                            return True
+                        parts = pattern.split(":", 5)
+                        if len(parts) != 6 or not parts[5].startswith("task-definition/"):
+                            continue
+                        resource = parts[5]
+                        if ":" in resource:
+                            if resource.rsplit(":", 1)[1] != "*":
+                                continue
+                        elif not resource.endswith("*"):
+                            continue
+                        if (glob_match(pattern, task_arn, False) and
+                                glob_match(pattern, task_arn.rsplit(":", 1)[0] + ":999999999", False)):
+                            return True
+                return False
+
+            for tid, role in candidates.items():
+                uncertain = source.incomplete or role.incomplete or not scopes
+                for scope in scopes:
+                    if not self._region_ok("ecs_cluster", source.scope, scope.split("/", 1)[1]):
+                        uncertain = True
+                        continue
+                    region = scope.split("/", 1)[1]
+                    family = "PeasoPrivesc" + hashlib.sha256(
+                        (source.id + tid + region).encode()).hexdigest()[:16]
+                    task_arn = f"arn:{partition}:ecs:{region}:{source.scope}:task-definition/{family}:1"
+                    if not all(covers_every_revision(action, task_arn) for action in
+                               ("ecs:registertaskdefinition", launch_action.lower())):
+                        if (self._statements(source, "ecs:registertaskdefinition")[0] and
+                                self._statements(source, launch_action.lower())[0]):
+                            uncertain = True
+                        continue
+                    if (self._statements(source, "ecs:registertaskdefinition")[1] or
+                            self._statements(source, launch_action.lower())[1]):
+                        uncertain = True  # Revision-specific denies need the returned revision.
+                        continue
+                    registration = self.check(source, {"action": "ecs:RegisterTaskDefinition",
+                        "request_context": {"ecs:compute-compatibility": "EC2"}}, task_arn)
+                    passed = self.check(source, {"action": "iam:PassRole", "request_context": {
+                        "iam:PassedToService": "ecs-tasks.amazonaws.com"}}, tid)
+                    if registration is None or passed is None:
+                        continue
+                    for cluster_arn, cluster in self.ecs_cluster_info.items():
+                        if not cluster_arn.startswith(f"arn:{partition}:ecs:{region}:{source.scope}:cluster/"):
+                            continue
+                        if cluster.get("status") != "ACTIVE" or cluster.get("count") is None:
+                            uncertain = True
+                            continue
+                        if cluster["count"] < 1:
+                            uncertain = True  # A Fargate launch may still be viable with network evidence.
+                            continue
+                        container_instances = [item for item_scope, item in items(self.snapshot, "ecs_container_instance")
+                            if item_scope == scope and item.get("clusterArn") == cluster_arn]
+                        connected = [item for item in container_instances
+                            if item.get("status") == "ACTIVE" and item.get("agentConnected") is True
+                            and isinstance(item.get("containerInstanceArn"), str)]
+                        if not connected:
+                            # A registered count alone may include disconnected or draining hosts.
+                            uncertain = True
+                            continue
+                        for container_instance in connected:
+                            context = {"ecs:cluster": cluster_arn}
+                            if launch_action == "ecs:StartTask":
+                                context["ecs:container-instances"] = container_instance["containerInstanceArn"]
+                            launch = self.check(source, {"action": launch_action,
+                                "request_context": context}, task_arn)
+                            if launch is None:
+                                continue
+                            if (registration.confidence == passed.confidence == launch.confidence == "derived" and
+                                    not source.incomplete and not role.incomplete):
+                                out[tid] = ("conditional", "ecs_new_ec2_task_definition_cluster_and_role_bound")
+                                break
+                            uncertain = True
+                        if tid in out:
+                            break
+                    if tid in out:
+                        break
+                if tid not in out and uncertain:
+                    out[tid] = ("unknown", "ecs_new_task_definition_or_launch_not_verified")
+            return out
+        if pid == "ecs_new_task_definition_service_ready":
+            if source is None:
+                return None
+            partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+            scopes = [scope for scope in self.snapshot.get("scopes", ()) if isinstance(scope, str)
+                      and scope.startswith(source.scope + "/") and scope.split("/", 1)[1] not in ("global", "*")]
+
+            def every_revision_allowed(action, task_arn):
+                allows, denies = self._statements(source, action)
+                if denies:
+                    return False
+                for statement in allows:
+                    if statement.notresource or statement.variables:
+                        continue
+                    for pattern in statement.resources:
+                        if pattern != "*" and not pattern.endswith("*"):
+                            continue
+                        if (glob_match(pattern, task_arn, False) and
+                                glob_match(pattern, task_arn.rsplit(":", 1)[0] + ":999999999", False)):
+                            return True
+                return False
+
+            for tid, role in candidates.items():
+                uncertain = bool(source.incomplete or role.incomplete or not scopes)
+                for scope in scopes:
+                    region = scope.split("/", 1)[1]
+                    if not self._region_ok("ecs_cluster", source.scope, region):
+                        uncertain = True
+                        continue
+                    family = "PeasoPrivesc" + hashlib.sha256(
+                        (source.id + tid + region).encode()).hexdigest()[:16]
+                    task_arn = f"arn:{partition}:ecs:{region}:{source.scope}:task-definition/{family}:1"
+                    future_task_arn = task_arn.rsplit(":", 1)[0] + ":999999999"
+                    if not every_revision_allowed("ecs:registertaskdefinition", task_arn):
+                        if self._statements(source, "ecs:registertaskdefinition")[0]:
+                            uncertain = True
+                        continue
+                    registration = self.check(source, {"action": "ecs:RegisterTaskDefinition",
+                        "request_context": {"ecs:compute-compatibility": "EC2"}}, task_arn)
+                    future_registration = self.check(source, {"action": "ecs:RegisterTaskDefinition",
+                        "request_context": {"ecs:compute-compatibility": "EC2"}}, future_task_arn)
+                    passed = self.check(source, {"action": "iam:PassRole", "request_context": {
+                        "iam:PassedToService": "ecs-tasks.amazonaws.com"}}, tid)
+                    if registration is None or future_registration is None or passed is None:
+                        continue
+                    services = [item for item_scope, item in items(self.snapshot, "ecs_service")
+                                if item_scope == scope and isinstance(item.get("serviceArn"), str)]
+                    service_status = inventory_status(self.snapshot, "ecs_service").get(scope)
+                    for cluster_arn, cluster in self.ecs_cluster_info.items():
+                        if not cluster_arn.startswith(f"arn:{partition}:ecs:{region}:{source.scope}:cluster/"):
+                            continue
+                        if cluster.get("status") != "ACTIVE" or not cluster.get("count"):
+                            uncertain = True
+                            continue
+                        connected = [item for item_scope, item in items(self.snapshot, "ecs_container_instance")
+                            if item_scope == scope and item.get("clusterArn") == cluster_arn
+                            and item.get("status") == "ACTIVE" and item.get("agentConnected") is True]
+                        if not connected:
+                            uncertain = True
+                            continue
+                        if service_status not in ("collected", "empty"):
+                            uncertain = True
+                        cluster_name = cluster_arn.rsplit("/", 1)[-1]
+                        service_name = family
+                        new_service_arn = (f"arn:{partition}:ecs:{region}:{source.scope}:service/"
+                                           f"{cluster_name}/{service_name}")
+                        candidate_services = [item for item in services if item.get("clusterArn") == cluster_arn
+                            and item.get("status") == "ACTIVE" and
+                            (item.get("deploymentController") or {}).get("type", "ECS") == "ECS"]
+                        if service_status in ("collected", "empty") and not any(
+                                item["serviceArn"] == new_service_arn for item in services):
+                            candidate_services.append({"serviceArn": new_service_arn,
+                                "clusterArn": cluster_arn, "_new": True})
+                        for service in candidate_services:
+                            if not service.get("_new") and (
+                                    service.get("launchType") not in (None, "EC2") or
+                                    service.get("capacityProviderStrategy") or
+                                    any(service.get(key) for key in
+                                        ("networkConfiguration", "loadBalancers", "serviceRegistries",
+                                         "serviceConnectConfiguration"))):
+                                uncertain = True  # The replacement task needs more settings from this service.
+                                continue
+                            action = "ecs:CreateService" if service.get("_new") else "ecs:UpdateService"
+                            if self._statements(source, action.lower())[1]:
+                                uncertain = True
+                                continue
+                            context = {"ecs:cluster": cluster_arn, "ecs:task-definition": task_arn}
+                            grant = self.check(source, {"action": action,
+                                "request_context": context}, service["serviceArn"])
+                            context["ecs:task-definition"] = future_task_arn
+                            future_grant = self.check(source, {"action": action,
+                                "request_context": context}, service["serviceArn"])
+                            if grant is None or future_grant is None:
+                                continue
+                            if all(verdict.confidence == "derived" for verdict in
+                                   (registration, future_registration, passed, grant, future_grant)):
+                                out[tid] = ("conditional", "ecs_new_ec2_task_definition_service_and_role_bound")
+                                break
+                            uncertain = True
+                        if tid in out:
+                            break
+                    if tid in out:
+                        break
+                if tid not in out and uncertain:
+                    out[tid] = ("unknown", "ecs_new_task_definition_or_service_not_verified")
+            return out
+        if pid == "ecs_privileged_task_exact_host_ready":
+            if source is None:
+                return None
+            partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+            scopes = [scope for scope in self.snapshot.get("scopes", ()) if isinstance(scope, str)
+                      and scope.startswith(source.scope + "/") and scope.split("/", 1)[1] not in ("global", "*")]
+            possible_launch = any(self._statements(source, action)[0] for action in
+                ("ecs:runtask", "ecs:starttask", "ecs:createservice", "ecs:updateservice"))
+
+            def every_revision_allowed(action, task_arn):
+                allows, denies = self._statements(source, action)
+                if denies:
+                    return False
+                future = task_arn.rsplit(":", 1)[0] + ":999999999"
+                return any(not statement.notresource and not statement.variables and
+                           any(pattern.endswith("*") and glob_match(pattern, task_arn, False)
+                               and glob_match(pattern, future, False)
+                               for pattern in statement.resources) for statement in allows)
+
+            for tid, role in candidates.items():
+                node_role = bool(role.attrs.get("instance_profiles")) and (
+                    role.id in self.trust_by_service.get("ec2.amazonaws.com", {}))
+                task_role = role.id in self.trust_by_service.get("ecs-tasks.amazonaws.com", {})
+                if not node_role and not task_role:
+                    continue
+                uncertain = bool(source.incomplete or role.incomplete or not scopes)
+                for scope in scopes:
+                    region = scope.split("/", 1)[1]
+                    if not self._region_ok("ecs_cluster", source.scope, region):
+                        uncertain = True
+                        continue
+                    if task_role and inventory_status(self.snapshot, "ecs_task").get(scope) not in ("collected", "empty"):
+                        uncertain = True
+                    family = "PeasoPrivesc" + hashlib.sha256(
+                        (source.id + tid + region).encode()).hexdigest()[:16]
+                    task_arn = f"arn:{partition}:ecs:{region}:{source.scope}:task-definition/{family}:1"
+                    if not every_revision_allowed("ecs:registertaskdefinition", task_arn):
+                        uncertain = uncertain or bool(self._statements(source, "ecs:registertaskdefinition")[0])
+                        continue
+                    registration = self.check(source, {"action": "ecs:RegisterTaskDefinition",
+                        "request_context": {"ecs:compute-compatibility": "EC2", "ecs:privileged": "true"}}, task_arn)
+                    if registration is None:
+                        continue
+                    can_start = every_revision_allowed("ecs:starttask", task_arn)
+                    for cluster_arn, cluster in self.ecs_cluster_info.items():
+                        if not cluster_arn.startswith(f"arn:{partition}:ecs:{region}:{source.scope}:cluster/"):
+                            continue
+                        if cluster.get("status") != "ACTIVE" or not cluster.get("count"):
+                            uncertain = True
+                            continue
+                        hosts = [item for item_scope, item in items(self.snapshot, "ecs_container_instance")
+                            if item_scope == scope and item.get("clusterArn") == cluster_arn
+                            and item.get("status") == "ACTIVE" and item.get("agentConnected") is True
+                            and isinstance(item.get("containerInstanceArn"), str)
+                            and isinstance(item.get("ec2InstanceId"), str)]
+                        if not hosts:
+                            uncertain = True
+                            continue
+                        for host in hosts:
+                            ci_arn = host["containerInstanceArn"]
+                            ec2_arn = f"arn:{partition}:ec2:{region}:{source.scope}:instance/{host['ec2InstanceId']}"
+                            instance = self.instance_details.get(ec2_arn)
+                            if not isinstance(instance, dict) or self.instances.get(ec2_arn, (None, None, None, None))[3] != "running":
+                                uncertain = True
+                                continue
+                            if str(instance.get("Platform") or "").lower() == "windows":
+                                uncertain = True  # This route uses a Linux privileged container.
+                                continue
+                            matched = False
+                            if node_role and ec2_arn in self.hosts.get(role.id, {}).get("ec2_instance", ()):
+                                metadata = instance.get("MetadataOptions") or {}
+                                matched = metadata.get("HttpEndpoint") == "enabled" and metadata.get("State") == "applied"
+                                if not matched:
+                                    uncertain = True
+                            if task_role:
+                                matched = matched or any(task_scope == scope and
+                                    task.get("clusterArn") == cluster_arn and
+                                    task.get("containerInstanceArn") == ci_arn and
+                                    task.get("lastStatus") == "RUNNING" and
+                                    _norm_arn(self._task_role(task) or "") == _norm_arn(tid)
+                                    for task_scope, task in items(self.snapshot, "ecs_task"))
+                            if not matched:
+                                continue
+                            attempted_start = (self.check(source, {"action": "ecs:StartTask", "request_context": {
+                                "ecs:cluster": cluster_arn, "ecs:container-instances": ci_arn}}, task_arn)
+                                if can_start else None)
+                            can_start_here = (attempted_start is not None and
+                                registration.confidence == attempted_start.confidence == "derived")
+                            if attempted_start is not None and not can_start_here:
+                                uncertain = True
+                            if not can_start_here:
+                                if (cluster["count"] == 1 and len(hosts) == 1 and
+                                        every_revision_allowed("ecs:runtask", task_arn)):
+                                    run = self.check(source, {"action": "ecs:RunTask", "request_context": {
+                                        "ecs:cluster": cluster_arn}}, task_arn)
+                                    if run is not None and registration.confidence == run.confidence == "derived":
+                                        out[tid] = ("conditional", "ecs_privileged_task_only_connected_host_and_role_bound")
+                                        break
+                                if cluster["count"] == 1 and len(hosts) == 1:
+                                    services = [item for item_scope, item in items(self.snapshot, "ecs_service")
+                                        if item_scope == scope and item.get("clusterArn") == cluster_arn
+                                        and isinstance(item.get("serviceArn"), str)]
+                                    service_status = inventory_status(self.snapshot, "ecs_service").get(scope)
+                                    service_name = family
+                                    cluster_name = cluster_arn.rsplit("/", 1)[-1]
+                                    new_service_arn = (f"arn:{partition}:ecs:{region}:{source.scope}:service/"
+                                                       f"{cluster_name}/{service_name}")
+                                    eligible = [item for item in services if item.get("status") == "ACTIVE" and
+                                        (item.get("deploymentController") or {}).get("type", "ECS") == "ECS" and
+                                        item.get("launchType") in (None, "EC2") and
+                                        not any(item.get(key) for key in ("capacityProviderStrategy",
+                                            "networkConfiguration", "loadBalancers", "serviceRegistries",
+                                            "serviceConnectConfiguration"))]
+                                    if service_status in ("collected", "empty") and not any(
+                                            item["serviceArn"] == new_service_arn for item in services):
+                                        eligible.append({"serviceArn": new_service_arn, "_new": True})
+                                    for service in eligible:
+                                        action = "ecs:CreateService" if service.get("_new") else "ecs:UpdateService"
+                                        if self._statements(source, action.lower())[1]:
+                                            uncertain = True
+                                            continue
+                                        context = {"ecs:cluster": cluster_arn, "ecs:task-definition": task_arn}
+                                        grant = self.check(source, {"action": action,
+                                            "request_context": context}, service["serviceArn"])
+                                        context["ecs:task-definition"] = task_arn.rsplit(":", 1)[0] + ":999999999"
+                                        future = self.check(source, {"action": action,
+                                            "request_context": context}, service["serviceArn"])
+                                        if grant is not None and future is not None and (
+                                                registration.confidence == grant.confidence == future.confidence == "derived"):
+                                            out[tid] = ("conditional", "ecs_privileged_service_only_connected_host_and_role_bound")
+                                            break
+                                    if tid in out:
+                                        break
+                                uncertain = uncertain or possible_launch
+                                continue
+                            out[tid] = ("conditional", "ecs_privileged_task_exact_host_and_role_bound")
+                            break
+                        if tid in out:
+                            break
+                    if tid in out:
+                        break
+                if tid not in out and uncertain:
+                    out[tid] = ("unknown", "ecs_privileged_task_host_or_launch_not_verified")
+            return out
+        if pid == "ecs_external_service_taskset_ready":
+            if source is None:
+                return None
+            partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+            scopes = [scope for scope in self.snapshot.get("scopes", ()) if isinstance(scope, str)
+                      and scope.startswith(source.scope + "/") and scope.split("/", 1)[1] not in ("global", "*")]
+
+            def covers_generated_resource(action, resource, future, *, unpredictable_id=False):
+                allows, denies = self._statements(source, action)
+                if denies:
+                    return False
+                return any(not statement.notresource and not statement.variables and
+                           any(pattern.endswith("*") and
+                               (not unpredictable_id or pattern == "*" or pattern.endswith("/*")) and
+                               glob_match(pattern, resource, False)
+                               and glob_match(pattern, future, False)
+                               for pattern in statement.resources) for statement in allows)
+
+            for tid, role in candidates.items():
+                uncertain = bool(source.incomplete or role.incomplete or not scopes)
+                for scope in scopes:
+                    region = scope.split("/", 1)[1]
+                    if not self._region_ok("ecs_cluster", source.scope, region):
+                        uncertain = True
+                        continue
+                    family = "PeasoPrivesc" + hashlib.sha256(
+                        (source.id + tid + region).encode()).hexdigest()[:16]
+                    task_arn = f"arn:{partition}:ecs:{region}:{source.scope}:task-definition/{family}:1"
+                    future_task_arn = task_arn.rsplit(":", 1)[0] + ":999999999"
+                    if not covers_generated_resource("ecs:registertaskdefinition", task_arn, future_task_arn):
+                        uncertain = uncertain or bool(self._statements(source, "ecs:registertaskdefinition")[0])
+                        continue
+                    registration = self.check(source, {"action": "ecs:RegisterTaskDefinition",
+                        "request_context": {"ecs:compute-compatibility": "EC2"}}, task_arn)
+                    future_registration = self.check(source, {"action": "ecs:RegisterTaskDefinition",
+                        "request_context": {"ecs:compute-compatibility": "EC2"}}, future_task_arn)
+                    passed = self.check(source, {"action": "iam:PassRole", "request_context": {
+                        "iam:PassedToService": "ecs-tasks.amazonaws.com"}}, tid)
+                    if registration is None or future_registration is None or passed is None:
+                        continue
+                    for service_scope, service in items(self.snapshot, "ecs_service"):
+                        if service_scope != scope or service.get("status") != "ACTIVE" or (
+                                service.get("deploymentController") or {}).get("type") != "EXTERNAL":
+                            continue
+                        cluster_arn, service_arn = service.get("clusterArn"), service.get("serviceArn")
+                        if (not isinstance(cluster_arn, str) or not isinstance(service_arn, str) or
+                                not cluster_arn.startswith(f"arn:{partition}:ecs:{region}:{source.scope}:cluster/") or
+                                not service_arn.startswith(f"arn:{partition}:ecs:{region}:{source.scope}:service/")):
+                            uncertain = True
+                            continue
+                        cluster = self.ecs_cluster_info.get(cluster_arn)
+                        if not cluster or cluster.get("status") != "ACTIVE" or not cluster.get("count"):
+                            uncertain = True
+                            continue
+                        if (service.get("launchType") not in (None, "EC2") or
+                                service.get("capacityProviderStrategy") or
+                                any(service.get(key) for key in ("networkConfiguration", "loadBalancers",
+                                    "serviceRegistries", "serviceConnectConfiguration"))):
+                            uncertain = True
+                            continue
+                        if not any(item_scope == scope and item.get("clusterArn") == cluster_arn and
+                                   item.get("status") == "ACTIVE" and item.get("agentConnected") is True
+                                   for item_scope, item in items(self.snapshot, "ecs_container_instance")):
+                            uncertain = True
+                            continue
+                        cluster_name = cluster_arn.rsplit("/", 1)[-1]
+                        service_name = service_arn.rsplit("/", 1)[-1]
+                        taskset_arn = (f"arn:{partition}:ecs:{region}:{source.scope}:task-set/"
+                                       f"{cluster_name}/{service_name}/PeasoPrivesc1")
+                        future_taskset_arn = taskset_arn.rsplit("/", 1)[0] + "/PeasoPrivesc999999999"
+                        if not covers_generated_resource("ecs:createtaskset", taskset_arn,
+                                future_taskset_arn, unpredictable_id=True):
+                            uncertain = uncertain or bool(self._statements(source, "ecs:createtaskset")[0])
+                            continue
+                        create_context = {"ecs:cluster": cluster_arn, "ecs:service": service_arn,
+                                          "ecs:task-definition": task_arn}
+                        create = self.check(source, {"action": "ecs:CreateTaskSet",
+                            "request_context": create_context}, taskset_arn)
+                        create_context["ecs:task-definition"] = future_task_arn
+                        future_create = self.check(source, {"action": "ecs:CreateTaskSet",
+                            "request_context": create_context}, future_taskset_arn)
+                        promote = self.check(source, {"action": "ecs:UpdateServicePrimaryTaskSet",
+                            "request_context": {"ecs:cluster": cluster_arn}}, service_arn)
+                        if any(grant is None for grant in
+                               (create, future_create, promote)):
+                            continue
+                        if all(grant.confidence == "derived" for grant in
+                               (registration, future_registration, passed, create, future_create, promote)):
+                            out[tid] = ("conditional", "ecs_external_service_taskset_and_role_bound")
+                            break
+                        uncertain = True
+                    if tid in out:
+                        break
+                    if inventory_status(self.snapshot, "ecs_service").get(scope) not in ("collected", "empty"):
+                        uncertain = True
+                if tid not in out and uncertain:
+                    out[tid] = ("unknown", "ecs_external_taskset_service_or_launch_not_verified")
             return out
         if pid == "ecs_existing_task_override_runnable_with_role":
             if source is None:
@@ -9054,6 +16654,7 @@ RESOURCE_TYPE_SERVICE = {
     "glue_job": "glue.amazonaws.com", "glue_dev_endpoint": "glue.amazonaws.com", "glue_session": "glue.amazonaws.com",
     "emr_cluster": "ec2.amazonaws.com", "elasticbeanstalk_environment": "ec2.amazonaws.com",
     "sagemaker_notebook_instance": "sagemaker.amazonaws.com", "sagemaker_user_profile": "sagemaker.amazonaws.com",
+    "sagemaker_space": "sagemaker.amazonaws.com",
     "stepfunctions_state_machine": "states.amazonaws.com", "fis_experiment_template": "fis.amazonaws.com",
     "synthetics_canary": "lambda.amazonaws.com", "servicecatalog_product": "servicecatalog.amazonaws.com",
     "rds_db_instance": "rds.amazonaws.com", "redshift_cluster": "redshift.amazonaws.com",
@@ -9079,6 +16680,43 @@ def _agentcore_generated_id_scopes(statements, account):
             match = re.fullmatch(
                 r"arn:aws(?:-[a-z0-9-]+)?:bedrock-agentcore:([^:]+):([^:]+):code-interpreter-custom/"
                 r"(\*|[A-Za-z][A-Za-z0-9_]{0,47}-(?:\*|\?{10}))", resource)
+            if match and match.group(2) in ("*", account):
+                suffix = match.group(3)
+                scopes.add((match.group(1), "*" if suffix == "*" else suffix.rsplit("-", 1)[0]))
+    return scopes
+
+def _agentcore_generated_runtime_scopes(statements, account, *, endpoint=False):
+    """IAM scopes covering a chosen name and all ten generated runtime ID characters."""
+    scopes = set()
+    tail = r"/runtime-endpoint/(?:DEFAULT|\*)" if endpoint else ""
+    for statement in statements:
+        if statement.notresource or statement.variables:
+            continue
+        for resource in statement.resources:
+            if resource == "*":
+                scopes.add(("*", "*"))
+                continue
+            match = re.fullmatch(
+                r"arn:aws(?:-[a-z0-9-]+)?:bedrock-agentcore:([^:]+):([^:]+):runtime/"
+                r"(\*|[A-Za-z][A-Za-z0-9_]{0,47}-(?:\*|\?{10}))" + tail, resource)
+            if match and match.group(2) in ("*", account):
+                suffix = match.group(3)
+                scopes.add((match.group(1), "*" if suffix == "*" else suffix.rsplit("-", 1)[0]))
+    return scopes
+
+def _agentcore_generated_harness_scopes(statements, account):
+    """IAM scopes covering every generated ten-character harness ID suffix."""
+    scopes = set()
+    for statement in statements:
+        if statement.notresource or statement.variables:
+            continue
+        for resource in statement.resources:
+            if resource == "*":
+                scopes.add(("*", "*"))
+                continue
+            match = re.fullmatch(
+                r"arn:aws(?:-[a-z0-9-]+)?:bedrock-agentcore:([^:]+):([^:]+):harness/"
+                r"(\*|[A-Za-z][A-Za-z0-9_]{0,39}-(?:\*|\?{10}))", resource)
             if match and match.group(2) in ("*", account):
                 suffix = match.group(3)
                 scopes.add((match.group(1), "*" if suffix == "*" else suffix.rsplit("-", 1)[0]))
@@ -9176,6 +16814,27 @@ def _ib_wildcard_components(recipe, account):
         if match and match.group(2) == str(account) and "x" in match.group(3).lower():
             out.append(match.group(1) + "/*")
     return sorted(set(out))
+
+
+def _ib_publish_scope(component_arn, account):
+    """Return a required writable prefix and a representative future build ARN."""
+    match = _IB_COMPONENT_RE.fullmatch(component_arn) if isinstance(component_arn, str) else None
+    if not match or match.group(2) != str(account):
+        return None
+    version = match.group(3)
+    nodes = version.split(".")
+    if len(nodes) != 3 or any(not (node.isdigit() or node == "x") for node in nodes):
+        return None
+    future = match.group(1) + "/" + ".".join(
+        "1073741823" if node == "x" else node for node in nodes) + "/1073741823"
+    if "x" not in nodes and component_arn.endswith("/" + version):
+        return match.group(1) + "/" + version + "/", future
+    if "x" not in nodes:
+        return None  # An explicit build number is fixed.
+    first = nodes.index("x")
+    if any(node != "x" for node in nodes[first:]):
+        return None
+    return match.group(1) + "/" + (".".join(nodes[:first]) + "." if first else ""), future
 
 
 def _norm_arn(arn):

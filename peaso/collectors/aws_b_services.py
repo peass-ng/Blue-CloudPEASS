@@ -20,6 +20,9 @@ SPECS = {
     "rds_certificate": ("rds", "describe_certificates", "Certificates"),
     "acm_certificate": ("acm", "list_certificates", "CertificateSummaryList"),
     "cloudfront_distribution": ("cloudfront", "list_distributions", "DistributionList.Items || `[]`"),
+    "deadline_queue": ("deadline", "list_farms", "farms"),
+    "deadline_fleet_role": ("deadline", "list_farms", "farms"),
+    "deadline_worker": ("deadline", "list_farms", "farms"),
     "ecs_cluster": ("ecs", "list_clusters", "clusterArns"),
     "ecs_task_definition": ("ecs", "list_task_definitions", "taskDefinitionArns"),
     "elasticache_cluster": ("elasticache", "describe_cache_clusters", "CacheClusters"),
@@ -60,7 +63,7 @@ NATIVE_IDS = {
     "rest_api_stage": "id", "http_api_stage": "id",
     "ecr_registry_scanning_configuration": "registryId",
     "rds_event_subscription": "EventSubscriptionArn", "rds_proxy": "DBProxyArn", "rds_cluster_snapshot": "DBClusterSnapshotArn", "rds_certificate": "CertificateIdentifier",
-    "acm_certificate": "CertificateArn", "cloudfront_distribution": "ARN", "ecs_cluster": "clusterArn", "ecs_task_definition": "taskDefinitionArn",
+    "acm_certificate": "CertificateArn", "cloudfront_distribution": "ARN", "deadline_queue": "id", "deadline_fleet_role": "id", "deadline_worker": "id", "ecs_cluster": "clusterArn", "ecs_task_definition": "taskDefinitionArn",
     "elasticache_cluster": "ARN", "elasticache_replication_group": "ARN", "memorydb_cluster": "ARN", "dms_replication_instance": "ReplicationInstanceArn",
     "redshift_cluster": "ClusterIdentifier", "redshift_snapshot": "SnapshotIdentifier", "neptune_cluster": "DBClusterArn", "docdb_cluster": "DBClusterArn", "docdb_instance": "DBInstanceArn",
     "backup_plan": "BackupPlanArn", "backup_report_plan": "ReportPlanArn", "inspector_organization_configuration": "id", "backup_vault": "BackupVaultArn", "backup_protected_resource": "ResourceArn", "backup_region_settings": "id",
@@ -71,6 +74,8 @@ NATIVE_IDS = {
 GLOBAL_TYPES = {"cloudfront_distribution", "route53_zone", "route53_health_check"}
 READ_ACTIONS = {(service, operation) for service, operation, expression in SPECS.values()}
 READ_ACTIONS.update({
+    ("deadline", "list_queues"), ("deadline", "get_queue"), ("deadline", "list_fleets"),
+    ("deadline", "get_fleet"), ("deadline", "list_workers"),
     ("ecr", "describe_repositories"), ("acm", "describe_certificate"), ("cloudfront", "get_distribution_config"),
     ("ecs", "describe_clusters"), ("ecs", "describe_task_definition"), ("ecs", "list_services"), ("ecs", "describe_services"),
     ("backup", "get_backup_plan"), ("backup", "list_backup_selections"), ("backup", "get_backup_selection"), ("backup", "describe_backup_vault"), ("backup", "get_backup_vault_access_policy"),
@@ -271,7 +276,172 @@ def _api_stages(service, parent_op, parent_expr, parent_key, child_expr, argumen
     return fetch
 
 
+def _deadline_queues(requests, session, region, account):
+    """Collect exact queue-to-role bindings without requesting any role credentials."""
+    from .aws import ReadResult
+
+    farms = requests.pages(session, "deadline", region, "list_farms", "farms", maxResults=100)
+    if farms.status not in ("collected", "empty"):
+        return ReadResult([], farms.status, farms.error)
+    rows, incomplete = [], False
+    farm_ids = set()
+    for farm in farms.items:
+        if requests.max_items is not None and len(rows) >= requests.max_items:
+            incomplete = True
+            break
+        farm_id = farm.get("farmId") if isinstance(farm, dict) else None
+        if not isinstance(farm_id, str) or not re.fullmatch(r"farm-[0-9a-f]{32}", farm_id) or farm_id in farm_ids:
+            incomplete = True
+            continue
+        farm_ids.add(farm_id)
+        queues = requests.pages(session, "deadline", region, "list_queues", "queues",
+                                farmId=farm_id, maxResults=100)
+        if queues.status not in ("collected", "empty"):
+            incomplete = True
+        seen = set()
+        for summary in queues.items:
+            if requests.max_items is not None and len(rows) >= requests.max_items:
+                incomplete = True
+                break
+            queue_id = summary.get("queueId") if isinstance(summary, dict) else None
+            if (not isinstance(queue_id, str) or not re.fullmatch(r"queue-[0-9a-f]{32}", queue_id)
+                    or summary.get("farmId") != farm_id or queue_id in seen):
+                incomplete = True
+                continue
+            seen.add(queue_id)
+            detail = requests.detail(session, "deadline", region, "get_queue",
+                                     farmId=farm_id, queueId=queue_id)
+            if (not isinstance(detail, dict) or detail.get("collection_status") != "collected"
+                    or detail.get("farmId") != farm_id or detail.get("queueId") != queue_id
+                    or not isinstance(detail.get("roleArn"), str)):
+                incomplete = True
+                continue
+            rows.append({"id": farm_id + "/" + queue_id, "farmId": farm_id,
+                         "queueId": queue_id, "roleArn": detail["roleArn"],
+                         "status": detail.get("status"), "collection_status": "collected",
+                         "_provenance": {"source_operation": "deadline:GetQueue", "read_only": True}})
+    return ReadResult(rows, "partial" if incomplete else "collected" if rows else "empty",
+                      {"code": "deadline_queue_inventory_incomplete"} if incomplete else None)
+
+
+def _deadline_workers(requests, session, region, account):
+    """Join existing workers to their exact fleet role without vending credentials."""
+    from .aws import ReadResult
+
+    farms = requests.pages(session, "deadline", region, "list_farms", "farms", maxResults=100)
+    if farms.status not in ("collected", "empty"):
+        return ReadResult([], farms.status, farms.error)
+    rows, incomplete = [], False
+    seen_farms = set()
+    for farm in farms.items:
+        farm_id = farm.get("farmId") if isinstance(farm, dict) else None
+        if (not isinstance(farm_id, str) or not re.fullmatch(r"farm-[0-9a-f]{32}", farm_id)
+                or farm_id in seen_farms):
+            incomplete = True
+            continue
+        seen_farms.add(farm_id)
+        fleets = requests.pages(session, "deadline", region, "list_fleets", "fleets",
+                                farmId=farm_id, maxResults=100)
+        if fleets.status not in ("collected", "empty"):
+            incomplete = True
+        seen_fleets = set()
+        for summary in fleets.items:
+            fleet_id = summary.get("fleetId") if isinstance(summary, dict) else None
+            if (not isinstance(fleet_id, str) or not re.fullmatch(r"fleet-[0-9a-f]{32}", fleet_id)
+                    or summary.get("farmId") != farm_id or fleet_id in seen_fleets):
+                incomplete = True
+                continue
+            seen_fleets.add(fleet_id)
+            detail = requests.detail(session, "deadline", region, "get_fleet",
+                                     farmId=farm_id, fleetId=fleet_id)
+            if (not isinstance(detail, dict) or detail.get("collection_status") != "collected"
+                    or detail.get("farmId") != farm_id or detail.get("fleetId") != fleet_id
+                    or not isinstance(detail.get("roleArn"), str)):
+                incomplete = True
+                continue
+            workers = requests.pages(session, "deadline", region, "list_workers", "workers",
+                                     farmId=farm_id, fleetId=fleet_id, maxResults=100)
+            if workers.status not in ("collected", "empty"):
+                incomplete = True
+            seen_workers = set()
+            for worker in workers.items:
+                if requests.max_items is not None and len(rows) >= requests.max_items:
+                    incomplete = True
+                    break
+                worker_id = worker.get("workerId") if isinstance(worker, dict) else None
+                if (not isinstance(worker_id, str) or not re.fullmatch(r"worker-[0-9a-f]{32}", worker_id)
+                        or worker.get("farmId") != farm_id or worker.get("fleetId") != fleet_id
+                        or worker_id in seen_workers):
+                    incomplete = True
+                    continue
+                seen_workers.add(worker_id)
+                rows.append({"id": farm_id + "/" + fleet_id + "/" + worker_id,
+                             "farmId": farm_id, "fleetId": fleet_id, "workerId": worker_id,
+                             "roleArn": detail["roleArn"], "fleetStatus": detail.get("status"),
+                             "workerStatus": worker.get("status"),
+                             "collection_status": "collected",
+                             "_provenance": {"source_operation": "deadline:ListWorkers", "read_only": True}})
+    return ReadResult(rows, "partial" if incomplete else "collected" if rows else "empty",
+                      {"code": "deadline_worker_inventory_incomplete"} if incomplete else None)
+
+
+def _deadline_fleet_roles(requests, session, region, account):
+    """Collect eligible fleet-to-role bindings even when no workers exist yet."""
+    from .aws import ReadResult
+
+    farms = requests.pages(session, "deadline", region, "list_farms", "farms", maxResults=100)
+    if farms.status not in ("collected", "empty"):
+        return ReadResult([], farms.status, farms.error)
+    rows, incomplete = [], False
+    seen_farms = set()
+    for farm in farms.items:
+        farm_id = farm.get("farmId") if isinstance(farm, dict) else None
+        if (not isinstance(farm_id, str) or not re.fullmatch(r"farm-[0-9a-f]{32}", farm_id)
+                or farm_id in seen_farms):
+            incomplete = True
+            continue
+        seen_farms.add(farm_id)
+        fleets = requests.pages(session, "deadline", region, "list_fleets", "fleets",
+                                farmId=farm_id, maxResults=100)
+        if fleets.status not in ("collected", "empty"):
+            incomplete = True
+        seen_fleets = set()
+        for summary in fleets.items:
+            fleet_id = summary.get("fleetId") if isinstance(summary, dict) else None
+            if (not isinstance(fleet_id, str) or not re.fullmatch(r"fleet-[0-9a-f]{32}", fleet_id)
+                    or summary.get("farmId") != farm_id or fleet_id in seen_fleets):
+                incomplete = True
+                continue
+            seen_fleets.add(fleet_id)
+            detail = requests.detail(session, "deadline", region, "get_fleet",
+                                     farmId=farm_id, fleetId=fleet_id)
+            if (not isinstance(detail, dict) or detail.get("collection_status") != "collected"
+                    or detail.get("farmId") != farm_id or detail.get("fleetId") != fleet_id
+                    or not isinstance(detail.get("roleArn"), str)):
+                incomplete = True
+                continue
+            config = detail.get("configuration")
+            mode = ("customerManaged" if isinstance(config, dict) and "customerManaged" in config
+                    else "serviceManagedEc2" if isinstance(config, dict) and "serviceManagedEc2" in config
+                    else None)
+            rows.append({"id": farm_id + "/" + fleet_id, "farmId": farm_id,
+                         "fleetId": fleet_id, "roleArn": detail["roleArn"],
+                         "fleetStatus": detail.get("status"), "fleetMode": mode,
+                         "maxWorkerCount": detail.get("maxWorkerCount"),
+                         "workerCount": detail.get("workerCount"),
+                         "collection_status": "collected",
+                         "_provenance": {"source_operation": "deadline:GetFleet", "read_only": True}})
+            if requests.max_items is not None and len(rows) >= requests.max_items:
+                incomplete = True
+                break
+    return ReadResult(rows, "partial" if incomplete else "collected" if rows else "empty",
+                      {"code": "deadline_fleet_role_inventory_incomplete"} if incomplete else None)
+
+
 FETCHERS = {
+    "deadline_queue": _deadline_queues,
+    "deadline_fleet_role": _deadline_fleet_roles,
+    "deadline_worker": _deadline_workers,
     "backup_report_plan": _backup_report_plans,
     "acm_certificate": _acm_certificates,
     "inspector_organization_review": _inspector_review,

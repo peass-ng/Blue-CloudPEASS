@@ -66,6 +66,8 @@ SPECS = {
     "ses_email_identity": ("sesv2", "list_email_identities", "EmailIdentities"),
     "sns_subscription": ("sns", "list_subscriptions", "Subscriptions"),
     "sagemaker_notebook_instance": ("sagemaker", "list_notebook_instances", "NotebookInstances"),
+    "sagemaker_notebook_lifecycle_config": ("sagemaker", "list_notebook_instance_lifecycle_configs", "NotebookInstanceLifecycleConfigs"),
+    "sagemaker_studio_lifecycle_config": ("sagemaker", "list_studio_lifecycle_configs", "StudioLifecycleConfigs"),
     "sagemaker_app": ("sagemaker", "list_apps", "Apps"),
     "sagemaker_model": ("sagemaker", "list_models", "Models"),
     "sagemaker_training_job": ("sagemaker", "list_training_jobs", "TrainingJobSummaries"),
@@ -74,6 +76,7 @@ SPECS = {
     "sagemaker_processing_job": ("sagemaker", "list_processing_jobs", "ProcessingJobSummaries"),
     "sagemaker_monitoring_schedule": ("sagemaker", "list_monitoring_schedules", "MonitoringScheduleSummaries"),
     "sagemaker_model_package_group": ("sagemaker", "list_model_package_groups", "ModelPackageGroupSummaryList"),
+    "braket_device": ("braket", "search_devices", "devices"),
     # Security / governance
     "guardduty_finding": ("guardduty", "list_findings", "FindingIds"),
     "guardduty_organization_admin_account": ("guardduty", "list_organization_admin_accounts", "AdminAccounts"),
@@ -120,7 +123,10 @@ NATIVE_IDS = {
     "lightsail_instance": "arn", "lightsail_database": "arn", "lightsail_static_ip": "arn",
     "sfn_state_machine": "stateMachineArn", "transfer_server": "Arn", "transfer_connector": "Arn",
     "ses_email_identity": "IdentityName", "sns_subscription": "id",
-    "sagemaker_notebook_instance": "NotebookInstanceArn", "sagemaker_app": "id", "sagemaker_model": "ModelArn", "sagemaker_training_job": "TrainingJobArn",
+    "sagemaker_notebook_instance": "NotebookInstanceArn", "sagemaker_notebook_lifecycle_config": "NotebookInstanceLifecycleConfigArn",
+    "sagemaker_studio_lifecycle_config": "StudioLifecycleConfigArn",
+    "braket_device": "deviceArn",
+    "sagemaker_app": "id", "sagemaker_model": "ModelArn", "sagemaker_training_job": "TrainingJobArn",
     "sagemaker_endpoint_config": "EndpointConfigArn", "sagemaker_domain": "DomainArn", "sagemaker_processing_job": "ProcessingJobArn",
     "sagemaker_monitoring_schedule": "MonitoringScheduleArn", "sagemaker_model_package_group": "ModelPackageGroupArn",
     "guardduty_finding": "Arn", "guardduty_organization_admin_account": "AdminAccountId", "securityhub_hub": "HubArn",
@@ -235,6 +241,25 @@ def _sagemaker_apps(requests, session, region, account):
         row["id"] = "/".join(str(row.get(key) or "") for key in
                              ("DomainId", "UserProfileName", "SpaceName", "AppType", "AppName"))
         rows.append(row)
+    return _finish(rows, failure)
+
+
+def _braket_devices(requests, session, region, account):
+    """Read only the documented SV1 simulator; SearchDevices requires an ARN filter."""
+    arn = "arn:aws:braket:::device/quantum-simulator/amazon/sv1"
+    read = requests.pages(session, "braket", region, "search_devices", "devices",
+                          filters=[{"name": "deviceArn", "values": [arn]}],
+                          _tokens=("nextToken", "nextToken"))
+    if read.status not in _OK:
+        return _result([], *_cause(read))
+    rows, failure = [], None
+    for device in read.items:
+        if not isinstance(device, dict) or device.get("deviceArn") != arn or \
+                device.get("deviceType") != "SIMULATOR" or \
+                device.get("deviceStatus") not in ("ONLINE", "OFFLINE", "RETIRED"):
+            failure = failure or ("malformed", {"code": "malformed_braket_device"})
+            continue
+        rows.append(_pick(device, ("deviceArn", "deviceName", "deviceStatus", "deviceType", "providerName")))
     return _finish(rows, failure)
 
 
@@ -880,6 +905,7 @@ def _incident_manager(requests, session, region, account):
 
 FETCHERS = {
     "sagemaker_app": _sagemaker_apps,
+    "braket_device": _braket_devices,
     "glue_session": _glue_sessions,
     "msk_compatible_version": _msk_compatible_versions,
     "vpc_block_public_access_options": _vpc_block_public_access,
@@ -932,7 +958,7 @@ _MERGES = {
          "FirewallPolicyChangeProtection", "EncryptionConfiguration", "Description", "FirewallId", "EnabledAnalysisTypes",
          "TransitGatewayId", "TransitGatewayOwnerAccountId", "AvailabilityZoneMappings", "NoSourcePreservation", "VpcEndpoint")),
     "sagemaker_notebook_instance": ("sagemaker", "describe_notebook_instance", "NotebookInstanceName", "NotebookInstanceName", None,
-        ("NotebookInstanceArn", "NotebookInstanceName", "NotebookInstanceStatus", "InstanceType", "SubnetId", "SecurityGroups", "RoleArn", "KmsKeyId",
+        ("NotebookInstanceArn", "NotebookInstanceName", "NotebookInstanceStatus", "NotebookInstanceLifecycleConfigName", "InstanceType", "SubnetId", "SecurityGroups", "RoleArn", "KmsKeyId",
          "DirectInternetAccess", "RootAccess", "PlatformIdentifier", "InstanceMetadataServiceConfiguration", "CreationTime")),
     "sagemaker_model": ("sagemaker", "describe_model", "ModelName", "ModelName", None,
         ("ModelName", "ModelArn", "ExecutionRoleArn", "VpcConfig", "EnableNetworkIsolation", "CreationTime")),
@@ -1232,6 +1258,7 @@ def _glue_job_flags(requests, session, region, items):
             merged = {**(defaults or {}), **(fixed or {})}
             item["DefaultArgumentFlags"] = {key: value for key, value in merged.items() if key in _GLUE_FLAGS and isinstance(value, str)}
             # Only known argument names are retained. Their values can contain credentials or private paths.
+            item["DefaultCodeArguments"] = sorted(_GLUE_CODE_ARGUMENTS.intersection(defaults or {}))
             item["NonOverridableCodeArguments"] = sorted(_GLUE_CODE_ARGUMENTS.intersection(fixed or {}))
         output.append(item)
     return output
@@ -1252,6 +1279,14 @@ def _glue_trigger_names(requests, session, region, items):
                            if isinstance(action, dict) and isinstance(action.get("JobName"), str)]
                           if isinstance(actions, list) else None,
             "ActionsComplete": isinstance(actions, list) and all(isinstance(action, dict) for action in actions),
+            "ScriptOverrideJobActions": [action.get("JobName") for action in actions
+                                         if isinstance(action, dict) and isinstance(action.get("JobName"), str)
+                                         and isinstance(action.get("Arguments"), dict)
+                                         and "--scriptLocation" in action["Arguments"]]
+                                        if isinstance(actions, list) else None,
+            "ActionArgumentsComplete": isinstance(actions, list) and all(
+                isinstance(action, dict) and (action.get("Arguments") is None or
+                                              isinstance(action.get("Arguments"), dict)) for action in actions),
         })
     return output
 

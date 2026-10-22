@@ -10,4 +10,6 @@ Cross-cutting fixes do not count as individual sign-off. The active AWS catalog 
 
 `retired-technique-status.tsv` fixes the cohort of 362 IDs that were active in HackTricks Cloud at revision `47c375ae49` and were removed from the executable YAML at `3a88bec50b`. Each row records its old source, target kind and current exclusion entry. `page-status.tsv` lists every Markdown page under the AWS privilege escalation section. A `triaged` row has only an initial classification; it is not signed off. `excluded_verified` requires a documented reason that the path cannot produce another AWS principal's permissions, while `implemented` requires an exact working catalog route and positive and negative tests.
 
+`candidate` is unresolved. It records a plausible route or credential chain that still needs an exact principal, resource, permission, and execution join. A candidate is neither implemented nor safely excluded.
+
 Run `python work_aws_privesc_review/retired_status.py --book-root /path/to/hacktricks-cloud` to validate the cohorts and print progress. Keep the full 362-row cohort even when an ID is restored, so its review remains auditable.

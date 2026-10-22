@@ -179,6 +179,443 @@ def test_ec2_launch_template_asg_mixed_override_uses_its_own_template():
                                   allow("ec2:ModifyLaunchTemplate", resource=override)])
 
 
+def test_instance_connect_key_push_does_not_prove_host_role_access():
+    technique = "aws-ec2-instance-connect-sendsshpublickey"
+    instance_arn = f"arn:aws:ec2:{REGION}:{ACCOUNT}:instance/i-1234567890abcdef0"
+    target = role("target", "ec2.amazonaws.com", profiles=[profile_arn("target")])
+    instance = {"InstanceId": "i-1234567890abcdef0", "State": {"Name": "running"},
+                "IamInstanceProfile": {"Arn": profile_arn("target")},
+                "MetadataOptions": {"HttpEndpoint": "enabled", "State": "applied"}}
+    caller = user("alice", allow("ec2-instance-connect:SendSSHPublicKey", resource=instance_arn))
+    result = real(aws_snap([caller], [target], [col("instance", [instance])]),
+                  technique, include_unknown=True)
+    assert target["Arn"] not in reached(result, ALICE, technique)
+    assert_unresolved(result, ALICE, technique)
+
+    wrong = user("alice", allow("ec2-instance-connect:SendSSHPublicKey",
+                                resource=instance_arn.replace("i-1234567890abcdef0", "i-fffffffffffffffff")))
+    result = real(aws_snap([wrong], [target], [col("instance", [instance])]),
+                  technique, include_unknown=False)
+    assert not reached(result, ALICE, technique)
+
+
+def test_instance_connect_requires_fresh_exact_ssh_and_role_credential_witness():
+    technique = "aws-ec2-instance-connect-sendsshpublickey"
+    instance_arn = f"arn:aws:ec2:{REGION}:{ACCOUNT}:instance/i-1234567890abcdef0"
+    target = role("target", "ec2.amazonaws.com", profiles=[profile_arn("target")])
+    target["RoleId"] = "AROATARGET123456789"
+    instance = {"InstanceId": "i-1234567890abcdef0", "State": {"Name": "running"},
+                "IamInstanceProfile": {"Arn": profile_arn("target"), "Id": "AIPATARGET123456789"},
+                "MetadataOptions": {"HttpEndpoint": "enabled", "State": "applied"}}
+    grant = allow("ec2-instance-connect:SendSSHPublicKey", resource=instance_arn)
+    grant["Condition"] = {"StringEquals": {"ec2:osuser": "ec2-user"}}
+    proof = {"TechniqueId": technique, "SourceArn": ALICE, "TargetKind": "aws_role",
+             "TargetId": target["Arn"], "TargetScope": SCOPE, "TargetRoleId": target["RoleId"],
+             "TargetProfileArn": profile_arn("target"), "TargetProfileId": "AIPATARGET123456789",
+             "InstanceArn": instance_arn, "OsUser": "ec2-user", "Status": "verified",
+             "VerifiedPreconditions": True,
+             "SendSSHPublicKeyAccepted": True, "SessionUsedPushedKey": True,
+             "HostSessionEstablished": True, "RoleCredentialsReachable": True,
+             "RoleCredentialsUsable": True, "CredentialRoleId": target["RoleId"],
+             "EvidenceRef": "reviewed-host-session", "EvidenceObservedAt": "2026-10-21T11:59:30+00:00",
+             "EvidenceExpiresAt": "2026-10-21T12:00:15+00:00"}
+
+    def result(*, witness=None, proof_status="collected", statement=grant):
+        witnesses = witness if isinstance(witness, list) else ([witness] if witness else [])
+        snap = aws_snap([user("alice", statement)], [target], [col("instance", [instance]),
+            col("aws_privesc_challenge_evidence", witnesses, proof_status)])
+        snap["created_at"] = "2026-10-21T12:00:00+00:00"
+        return real(snap, technique, include_unknown=True)
+
+    assert target["Arn"] in reached(result(witness=proof), ALICE, technique)
+    assert target["Arn"] not in reached(result(), ALICE, technique)
+    assert_unresolved(result(), ALICE, technique)
+    assert target["Arn"] not in reached(result(witness=[proof, dict(proof)]), ALICE, technique)
+    for changed in ({"VerifiedPreconditions": False}, {"SendSSHPublicKeyAccepted": False},
+                    {"SessionUsedPushedKey": False},
+                    {"HostSessionEstablished": False}, {"RoleCredentialsReachable": False},
+                    {"RoleCredentialsUsable": False}, {"CredentialRoleId": "AROANOTHER"},
+                    {"TargetRoleId": "AROANOTHER"}, {"TargetProfileId": "AIPAOTHER"},
+                    {"InstanceArn": instance_arn.replace("i-1234567890abcdef0", "i-fffffffffffffffff")},
+                    {"OsUser": "root"}, {"EvidenceObservedAt": "2026-10-21T11:55:00+00:00"}):
+        witness = dict(proof, **changed)
+        assert target["Arn"] not in reached(result(witness=witness), ALICE, technique)
+    assert target["Arn"] not in reached(result(witness=proof, proof_status="access_denied"), ALICE, technique)
+    wrong_user = copy.deepcopy(grant)
+    wrong_user["Condition"]["StringEquals"]["ec2:osuser"] = "ubuntu"
+    assert target["Arn"] not in reached(result(witness=proof, statement=wrong_user), ALICE, technique)
+
+
+def test_instance_connect_prior_catalog_binding_keeps_conditional_wording():
+    from peaso.privesc import versioned_catalog as catalog
+
+    ident = "aws-ec2-instance-connect-sendsshpublickey"
+    prior_binding = {"schema": catalog.BINDING_SCHEMA,
+                     "manifest_sha256": catalog.INSTANCE_CONNECT_690_PREVIOUS_MANIFEST,
+                     "effective_tree_sha256": catalog.INSTANCE_CONNECT_690_PREVIOUS_TREE,
+                     "source_revision": catalog.V4_REVISION}
+    old, old_status = catalog.lookup_entries([ident], prior_binding)
+    new, new_status = catalog.lookup_entries([ident], catalog.current_binding())
+    assert old_status == "exact_previous_current"
+    assert new_status == "exact_strict_privesc"
+    assert "remain conditional" in old[ident]["notes"]
+    assert "remain unresolved" not in old[ident]["notes"]
+    assert "Without that witness, host access and role-credential use remain unresolved" in new[ident]["notes"]
+
+
+def test_ecs_runtask_override_binds_task_cluster_and_passed_roles():
+    technique = "aws-ecs-passrole-runtask-overrides"
+    target = role("target", "ecs-tasks.amazonaws.com", allow("s3:GetObject"))
+    execution = role("execution", "ecs-tasks.amazonaws.com")
+    task_arn = f"arn:aws:ecs:{REGION}:{ACCOUNT}:task-definition/app:1"
+    cluster_arn = f"arn:aws:ecs:{REGION}:{ACCOUNT}:cluster/prod"
+    definition = {"taskDefinitionArn": task_arn, "status": "ACTIVE", "compatibilities": ["EC2"],
+                  "networkMode": "bridge", "executionRoleArn": execution["Arn"],
+                  "containerDefinitions": [{"name": "app", "image": "public.ecr.aws/docker/library/alpine:latest"}]}
+    task = {"taskDefinitionArn": task_arn,
+            "Definition": {"collection_status": "collected", "taskDefinition": definition}}
+    cluster = {"clusterArn": cluster_arn, "status": "ACTIVE", "registeredContainerInstancesCount": 1}
+    passed = allow("iam:PassRole", resource=[target["Arn"], execution["Arn"]])
+    passed["Condition"] = {"StringEquals": {"iam:PassedToService": "ecs-tasks.amazonaws.com"}}
+    run = allow("ecs:RunTask", resource=task_arn)
+    run["Condition"] = {"ArnEquals": {"ecs:cluster": cluster_arn}}
+
+    def result(passrole=passed, runtask=run, state="ACTIVE", compatibility="EC2", capacity=1):
+        item = copy.deepcopy(task)
+        item["Definition"]["taskDefinition"]["status"] = state
+        item["Definition"]["taskDefinition"]["compatibilities"] = [compatibility]
+        current_cluster = {**cluster, "registeredContainerInstancesCount": capacity}
+        caller = user("alice", passrole, runtask)
+        return real(aws_snap([caller], [target, execution], [
+            col("ecs_task_definition", [item]), col("ecs_cluster", [current_cluster])]),
+            technique, include_unknown=True)
+
+    assert target["Arn"] in reached(result(), ALICE, technique)
+    wrong_task = allow("ecs:RunTask", resource=task_arn.replace("app:1", "other:1"))
+    assert target["Arn"] not in reached(result(runtask=wrong_task), ALICE, technique)
+    wrong_cluster = copy.deepcopy(run)
+    wrong_cluster["Condition"]["ArnEquals"]["ecs:cluster"] = cluster_arn.replace("prod", "other")
+    assert target["Arn"] not in reached(result(runtask=wrong_cluster), ALICE, technique)
+    wrong_service = copy.deepcopy(passed)
+    wrong_service["Condition"]["StringEquals"]["iam:PassedToService"] = "lambda.amazonaws.com"
+    assert target["Arn"] not in reached(result(passrole=wrong_service), ALICE, technique)
+    no_execution_role = allow("iam:PassRole", resource=target["Arn"])
+    assert target["Arn"] not in reached(result(passrole=no_execution_role), ALICE, technique)
+    assert target["Arn"] not in reached(result(state="INACTIVE"), ALICE, technique)
+    assert target["Arn"] not in reached(result(capacity=0), ALICE, technique)
+    fargate = result(compatibility="FARGATE")
+    assert target["Arn"] not in reached(fargate, ALICE, technique)
+    assert_unresolved(fargate, ALICE, technique)
+
+
+def test_ecs_new_task_definition_runtask_needs_same_cluster_and_all_revisions():
+    technique = "aws-ecs-passrole-registertaskdefinition-runtask"
+    target = role("target", "ecs-tasks.amazonaws.com")
+    cluster_arn = f"arn:aws:ecs:{REGION}:{ACCOUNT}:cluster/prod"
+    family = "PeasoPrivesc" + hashlib.sha256((ALICE + target["Arn"] + REGION).encode()).hexdigest()[:16]
+    task_scope = f"arn:aws:ecs:{REGION}:{ACCOUNT}:task-definition/{family}:*"
+    passed = allow("iam:PassRole", resource=target["Arn"])
+    passed["Condition"] = {"StringEquals": {"iam:PassedToService": "ecs-tasks.amazonaws.com"}}
+    register = allow("ecs:RegisterTaskDefinition", resource=task_scope)
+    run = allow("ecs:RunTask", resource=task_scope)
+    run["Condition"] = {"ArnEquals": {"ecs:cluster": cluster_arn}}
+
+    def result(statements=(passed, register, run), capacity=1, cluster_status="collected",
+               instance_status="ACTIVE", agent_connected=True, instance_inventory="collected"):
+        cluster = {"clusterArn": cluster_arn, "status": "ACTIVE",
+                   "registeredContainerInstancesCount": capacity}
+        container_instances = [{"containerInstanceArn": f"{cluster_arn.replace(':cluster/', ':container-instance/')}/host",
+                                "clusterArn": cluster_arn, "status": instance_status,
+                                "agentConnected": agent_connected}] if capacity else []
+        return real(aws_snap([user("alice", *statements)], [target], [
+            col("ecs_cluster", [cluster] if cluster_status == "collected" else [], cluster_status),
+            col("ecs_container_instance", container_instances if instance_inventory == "collected" else [],
+                instance_inventory)]),
+            technique, include_unknown=True)
+
+    assert target["Arn"] in reached(result(), ALICE, technique)
+    assert target["Arn"] not in reached(result(capacity=0), ALICE, technique)
+    assert_unresolved(result(capacity=0), ALICE, technique)
+    for unavailable in (result(instance_status="DRAINING"), result(agent_connected=False),
+                        result(instance_inventory="access_denied")):
+        assert target["Arn"] not in reached(unavailable, ALICE, technique)
+        assert_unresolved(unavailable, ALICE, technique)
+    assert target["Arn"] not in reached(result(cluster_status="empty"), ALICE, technique)
+    wrong_service = copy.deepcopy(passed)
+    wrong_service["Condition"]["StringEquals"]["iam:PassedToService"] = "lambda.amazonaws.com"
+    assert target["Arn"] not in reached(result((wrong_service, register, run)), ALICE, technique)
+    one_revision = allow("ecs:RunTask", resource=task_scope[:-1] + "1")
+    assert target["Arn"] not in reached(result((passed, register, one_revision)), ALICE, technique)
+    assert_unresolved(result((passed, register, one_revision)), ALICE, technique)
+    wrong_cluster = copy.deepcopy(run)
+    wrong_cluster["Condition"]["ArnEquals"]["ecs:cluster"] = cluster_arn.replace("prod", "other")
+    assert target["Arn"] not in reached(result((passed, register, wrong_cluster)), ALICE, technique)
+    denied_revision = {"Effect": "Deny", "Action": "ecs:RunTask", "Resource": task_scope[:-1] + "2"}
+    assert target["Arn"] not in reached(result((passed, register, run, denied_revision)), ALICE, technique)
+    assert_unresolved(result((passed, register, run, denied_revision)), ALICE, technique)
+
+
+def test_ecs_new_task_definition_starttask_binds_exact_connected_host():
+    technique = "aws-ecs-passrole-registertaskdefinition-starttask"
+    target = role("target", "ecs-tasks.amazonaws.com")
+    cluster_arn = f"arn:aws:ecs:{REGION}:{ACCOUNT}:cluster/prod"
+    host_arn = f"arn:aws:ecs:{REGION}:{ACCOUNT}:container-instance/prod/host1"
+    family = "PeasoPrivesc" + hashlib.sha256((ALICE + target["Arn"] + REGION).encode()).hexdigest()[:16]
+    task_scope = f"arn:aws:ecs:{REGION}:{ACCOUNT}:task-definition/{family}:*"
+    passed = allow("iam:PassRole", resource=target["Arn"])
+    passed["Condition"] = {"StringEquals": {"iam:PassedToService": "ecs-tasks.amazonaws.com"}}
+    register = allow("ecs:RegisterTaskDefinition", resource=task_scope)
+    start = allow("ecs:StartTask", resource=task_scope)
+    start["Condition"] = {"ArnEquals": {"ecs:cluster": cluster_arn,
+                                        "ecs:container-instances": host_arn}}
+
+    def result(statements=(passed, register, start), *, host_status="ACTIVE", connected=True,
+               host_inventory="collected", cluster_inventory="collected"):
+        cluster = {"clusterArn": cluster_arn, "status": "ACTIVE", "registeredContainerInstancesCount": 1}
+        host = {"clusterArn": cluster_arn, "containerInstanceArn": host_arn,
+                "status": host_status, "agentConnected": connected}
+        return real(aws_snap([user("alice", *statements)], [target], [
+            col("ecs_cluster", [cluster] if cluster_inventory == "collected" else [], cluster_inventory),
+            col("ecs_container_instance", [host] if host_inventory == "collected" else [], host_inventory)]),
+            technique, include_unknown=True)
+
+    assert target["Arn"] in reached(result(), ALICE, technique)
+    for unresolved in (result(host_status="DRAINING"), result(connected=False),
+                       result(host_inventory="access_denied")):
+        assert target["Arn"] not in reached(unresolved, ALICE, technique)
+        assert_unresolved(unresolved, ALICE, technique)
+    assert target["Arn"] not in reached(result(cluster_inventory="empty"), ALICE, technique)
+    wrong_host = copy.deepcopy(start)
+    wrong_host["Condition"]["ArnEquals"]["ecs:container-instances"] = host_arn.replace("host1", "host2")
+    assert target["Arn"] not in reached(result((passed, register, wrong_host)), ALICE, technique)
+    one_revision = allow("ecs:StartTask", resource=task_scope[:-1] + "1")
+    assert target["Arn"] not in reached(result((passed, register, one_revision)), ALICE, technique)
+    assert_unresolved(result((passed, register, one_revision)), ALICE, technique)
+    denied_revision = {"Effect": "Deny", "Action": "ecs:StartTask", "Resource": task_scope[:-1] + "2"}
+    assert target["Arn"] not in reached(result((passed, register, start, denied_revision)), ALICE, technique)
+    assert_unresolved(result((passed, register, start, denied_revision)), ALICE, technique)
+
+
+def test_ecs_new_task_definition_service_binds_cluster_task_and_existing_service():
+    technique = "aws-ecs-passrole-registertaskdefinition-service"
+    target = role("target", "ecs-tasks.amazonaws.com")
+    cluster_arn = f"arn:aws:ecs:{REGION}:{ACCOUNT}:cluster/prod"
+    family = "PeasoPrivesc" + hashlib.sha256((ALICE + target["Arn"] + REGION).encode()).hexdigest()[:16]
+    task_scope = f"arn:aws:ecs:{REGION}:{ACCOUNT}:task-definition/{family}:*"
+    new_service_arn = f"arn:aws:ecs:{REGION}:{ACCOUNT}:service/prod/{family}"
+    existing_service_arn = f"arn:aws:ecs:{REGION}:{ACCOUNT}:service/prod/old"
+    passed = allow("iam:PassRole", resource=target["Arn"])
+    passed["Condition"] = {"StringEquals": {"iam:PassedToService": "ecs-tasks.amazonaws.com"}}
+    register = allow("ecs:RegisterTaskDefinition", resource=task_scope)
+    create = allow("ecs:CreateService", resource=new_service_arn)
+    create["Condition"] = {"ArnEquals": {"ecs:cluster": cluster_arn}}
+    update = allow("ecs:UpdateService", resource=existing_service_arn)
+    update["Condition"] = {"ArnEquals": {"ecs:cluster": cluster_arn}}
+
+    def result(statements=(passed, register, create), *, services=(), service_status="collected",
+               connected=True, cluster_status="ACTIVE"):
+        cluster = {"clusterArn": cluster_arn, "status": cluster_status, "registeredContainerInstancesCount": 1}
+        host = {"clusterArn": cluster_arn,
+                "containerInstanceArn": f"arn:aws:ecs:{REGION}:{ACCOUNT}:container-instance/prod/host1",
+                "status": "ACTIVE", "agentConnected": connected}
+        return real(aws_snap([user("alice", *statements)], [target], [
+            col("ecs_cluster", [cluster]), col("ecs_container_instance", [host]),
+            col("ecs_service", services if service_status == "collected" else [], service_status)]),
+            technique, include_unknown=True)
+
+    assert target["Arn"] in reached(result(), ALICE, technique)
+    existing = {"serviceArn": existing_service_arn, "clusterArn": cluster_arn,
+                "status": "ACTIVE", "deploymentController": {"type": "ECS"}}
+    assert target["Arn"] in reached(result((passed, register, update), services=[existing]), ALICE, technique)
+    fargate_service = dict(existing, launchType="FARGATE")
+    assert target["Arn"] not in reached(result((passed, register, update), services=[fargate_service]), ALICE, technique)
+    assert_unresolved(result((passed, register, update), services=[fargate_service]), ALICE, technique)
+    assert target["Arn"] not in reached(result((passed, register, update)), ALICE, technique)
+    assert target["Arn"] not in reached(result(connected=False), ALICE, technique)
+    assert_unresolved(result(connected=False), ALICE, technique)
+    assert target["Arn"] not in reached(result(cluster_status="INACTIVE"), ALICE, technique)
+    assert_unresolved(result(cluster_status="INACTIVE"), ALICE, technique)
+    assert target["Arn"] not in reached(result(service_status="access_denied"), ALICE, technique)
+    assert_unresolved(result(service_status="access_denied"), ALICE, technique)
+    wrong_cluster = copy.deepcopy(create)
+    wrong_cluster["Condition"]["ArnEquals"]["ecs:cluster"] = cluster_arn.replace("prod", "other")
+    assert target["Arn"] not in reached(result((passed, register, wrong_cluster)), ALICE, technique)
+    task_one = copy.deepcopy(create)
+    task_one["Condition"]["ArnEquals"]["ecs:task-definition"] = task_scope[:-1] + "1"
+    assert target["Arn"] not in reached(result((passed, register, task_one)), ALICE, technique)
+    denied_service = {"Effect": "Deny", "Action": "ecs:CreateService", "Resource": new_service_arn}
+    assert target["Arn"] not in reached(result((passed, register, create, denied_service)), ALICE, technique)
+
+
+def test_ecs_privileged_task_requires_exact_linux_host_and_start_permission():
+    technique = "aws-ecs-registertaskdefinition-node-escape"
+    node = role("node", "ec2.amazonaws.com", profiles=[profile_arn("node")])
+    task_role = role("task", "ecs-tasks.amazonaws.com")
+    unrelated = role("unrelated", "ec2.amazonaws.com", profiles=[profile_arn("unrelated")])
+    cluster_arn = f"arn:aws:ecs:{REGION}:{ACCOUNT}:cluster/prod"
+    ci_arn = f"arn:aws:ecs:{REGION}:{ACCOUNT}:container-instance/prod/host1"
+    instance_id = "i-1234567890abcdef0"
+    family = "PeasoPrivesc" + hashlib.sha256((ALICE + node["Arn"] + REGION).encode()).hexdigest()[:16]
+    task_scope = f"arn:aws:ecs:{REGION}:{ACCOUNT}:task-definition/{family}:*"
+    # Each target gets its own deterministic family, so the caller may cover all families.
+    register = allow("ecs:RegisterTaskDefinition", resource=f"arn:aws:ecs:{REGION}:{ACCOUNT}:task-definition/PeasoPrivesc*:*")
+    register["Condition"] = {"StringEquals": {"ecs:privileged": "true"}}
+    start = allow("ecs:StartTask", resource=f"arn:aws:ecs:{REGION}:{ACCOUNT}:task-definition/PeasoPrivesc*:*")
+    start["Condition"] = {"ArnEquals": {"ecs:cluster": cluster_arn,
+                                       "ecs:container-instances": ci_arn}}
+
+    def result(statements=(register, start), *, connected=True, host_id=instance_id,
+               platform=None, metadata="enabled", task_ci=ci_arn, capacity=1,
+               services=(), service_status="empty"):
+        cluster = {"clusterArn": cluster_arn, "status": "ACTIVE", "registeredContainerInstancesCount": capacity}
+        ci = {"clusterArn": cluster_arn, "containerInstanceArn": ci_arn, "ec2InstanceId": host_id,
+              "status": "ACTIVE", "agentConnected": connected}
+        instance = {"InstanceId": instance_id, "State": {"Name": "running"},
+                    "IamInstanceProfile": {"Arn": profile_arn("node")},
+                    "MetadataOptions": {"HttpEndpoint": metadata, "State": "applied"}}
+        if platform:
+            instance["Platform"] = platform
+        task = {"clusterArn": cluster_arn, "containerInstanceArn": task_ci,
+                "taskDefinitionArn": f"arn:aws:ecs:{REGION}:{ACCOUNT}:task-definition/existing:1",
+                "taskRoleArn": task_role["Arn"], "launchType": "EC2", "lastStatus": "RUNNING"}
+        return real(aws_snap([user("alice", *statements)], [node, task_role, unrelated], [
+            col("ecs_cluster", [cluster]), col("ecs_container_instance", [ci]),
+            col("instance", [instance]), col("ecs_task", [task]),
+            col("ecs_service", services if service_status == "collected" else [], service_status)]),
+            technique, include_unknown=True)
+
+    positive = reached(result(), ALICE, technique)
+    assert node["Arn"] in positive and task_role["Arn"] in positive
+    assert unrelated["Arn"] not in positive
+    assert node["Arn"] not in reached(result(connected=False), ALICE, technique)
+    assert node["Arn"] not in reached(result(host_id="i-other"), ALICE, technique)
+    assert node["Arn"] not in reached(result(platform="windows"), ALICE, technique)
+    assert node["Arn"] not in reached(result(metadata="disabled"), ALICE, technique)
+    assert task_role["Arn"] not in reached(result(task_ci=ci_arn.replace("host1", "host2")), ALICE, technique)
+    wrong_ci = copy.deepcopy(start)
+    wrong_ci["Condition"]["ArnEquals"]["ecs:container-instances"] = ci_arn.replace("host1", "host2")
+    assert node["Arn"] not in reached(result((register, wrong_ci)), ALICE, technique)
+    unprivileged = copy.deepcopy(register)
+    unprivileged["Condition"]["StringEquals"]["ecs:privileged"] = "false"
+    assert node["Arn"] not in reached(result((unprivileged, start)), ALICE, technique)
+    one_revision = allow("ecs:StartTask", resource=task_scope[:-1] + "1")
+    assert node["Arn"] not in reached(result((register, one_revision)), ALICE, technique)
+    assert_unresolved(result((register, one_revision)), ALICE, technique)
+    run_only = allow("ecs:RunTask", resource=f"arn:aws:ecs:{REGION}:{ACCOUNT}:task-definition/PeasoPrivesc*:*")
+    assert node["Arn"] in reached(result((register, run_only)), ALICE, technique)
+    assert node["Arn"] in reached(result((register, start, run_only)), ALICE, technique)
+    assert node["Arn"] not in reached(result((register, run_only), capacity=2), ALICE, technique)
+    assert_unresolved(result((register, run_only), capacity=2), ALICE, technique)
+    create_service = allow("ecs:CreateService",
+                           resource=f"arn:aws:ecs:{REGION}:{ACCOUNT}:service/prod/PeasoPrivesc*")
+    create_service["Condition"] = {"ArnEquals": {"ecs:cluster": cluster_arn}}
+    assert node["Arn"] in reached(result((register, create_service)), ALICE, technique)
+    existing_service_arn = f"arn:aws:ecs:{REGION}:{ACCOUNT}:service/prod/existing"
+    update_service = allow("ecs:UpdateService", resource=existing_service_arn)
+    update_service["Condition"] = {"ArnEquals": {"ecs:cluster": cluster_arn}}
+    existing_service = {"serviceArn": existing_service_arn, "clusterArn": cluster_arn,
+                        "status": "ACTIVE", "deploymentController": {"type": "ECS"}, "launchType": "EC2"}
+    assert node["Arn"] in reached(result((register, update_service), services=[existing_service],
+                                     service_status="collected"), ALICE, technique)
+    assert node["Arn"] not in reached(result((register, create_service), capacity=2), ALICE, technique)
+    assert_unresolved(result((register, create_service), capacity=2), ALICE, technique)
+    denied_revision = {"Effect": "Deny", "Action": "ecs:RegisterTaskDefinition",
+                       "Resource": task_scope[:-1] + "2"}
+    assert node["Arn"] not in reached(result((register, start, denied_revision)), ALICE, technique)
+    assert_unresolved(result((register, start, denied_revision)), ALICE, technique)
+
+
+def test_ecs_external_taskset_binds_same_service_and_generated_resources():
+    technique = "aws-ecs-taskset-primary"
+    target = role("target", "ecs-tasks.amazonaws.com")
+    cluster_arn = f"arn:aws:ecs:{REGION}:{ACCOUNT}:cluster/prod"
+    service_arn = f"arn:aws:ecs:{REGION}:{ACCOUNT}:service/prod/old"
+    family = "PeasoPrivesc" + hashlib.sha256((ALICE + target["Arn"] + REGION).encode()).hexdigest()[:16]
+    task_scope = f"arn:aws:ecs:{REGION}:{ACCOUNT}:task-definition/{family}:*"
+    taskset_scope = f"arn:aws:ecs:{REGION}:{ACCOUNT}:task-set/prod/old/*"
+    passed = allow("iam:PassRole", resource=target["Arn"])
+    passed["Condition"] = {"StringEquals": {"iam:PassedToService": "ecs-tasks.amazonaws.com"}}
+    register = allow("ecs:RegisterTaskDefinition", resource=task_scope)
+    create = allow("ecs:CreateTaskSet", resource=taskset_scope)
+    create["Condition"] = {"ArnEquals": {"ecs:cluster": cluster_arn, "ecs:service": service_arn}}
+    promote = allow("ecs:UpdateServicePrimaryTaskSet", resource=service_arn)
+    promote["Condition"] = {"ArnEquals": {"ecs:cluster": cluster_arn}}
+
+    def result(statements=(passed, register, create, promote), *, controller="EXTERNAL",
+               service_status="ACTIVE", connected=True, service_inventory="collected"):
+        cluster = {"clusterArn": cluster_arn, "status": "ACTIVE", "registeredContainerInstancesCount": 1}
+        host = {"clusterArn": cluster_arn,
+                "containerInstanceArn": f"arn:aws:ecs:{REGION}:{ACCOUNT}:container-instance/prod/host1",
+                "status": "ACTIVE", "agentConnected": connected}
+        service = {"serviceArn": service_arn, "clusterArn": cluster_arn, "status": service_status,
+                   "deploymentController": {"type": controller}, "launchType": "EC2"}
+        return real(aws_snap([user("alice", *statements)], [target], [
+            col("ecs_cluster", [cluster]), col("ecs_container_instance", [host]),
+            col("ecs_service", [service] if service_inventory == "collected" else [], service_inventory)]),
+            technique, include_unknown=True)
+
+    assert target["Arn"] in reached(result(), ALICE, technique)
+    assert target["Arn"] not in reached(result(controller="ECS"), ALICE, technique)
+    assert target["Arn"] not in reached(result(service_status="INACTIVE"), ALICE, technique)
+    assert target["Arn"] not in reached(result(connected=False), ALICE, technique)
+    assert_unresolved(result(connected=False), ALICE, technique)
+    assert target["Arn"] not in reached(result(service_inventory="access_denied"), ALICE, technique)
+    assert_unresolved(result(service_inventory="access_denied"), ALICE, technique)
+    wrong_service = copy.deepcopy(create)
+    wrong_service["Condition"]["ArnEquals"]["ecs:service"] = service_arn.replace("old", "other")
+    assert target["Arn"] not in reached(result((passed, register, wrong_service, promote)), ALICE, technique)
+    wrong_cluster = copy.deepcopy(promote)
+    wrong_cluster["Condition"]["ArnEquals"]["ecs:cluster"] = cluster_arn.replace("prod", "other")
+    assert target["Arn"] not in reached(result((passed, register, create, wrong_cluster)), ALICE, technique)
+    one_revision = allow("ecs:RegisterTaskDefinition", resource=task_scope[:-1] + "1")
+    assert target["Arn"] not in reached(result((passed, one_revision, create, promote)), ALICE, technique)
+    assert_unresolved(result((passed, one_revision, create, promote)), ALICE, technique)
+    guessed_id = allow("ecs:CreateTaskSet", resource=taskset_scope[:-1] + "PeasoPrivesc*")
+    assert target["Arn"] not in reached(result((passed, register, guessed_id, promote)), ALICE, technique)
+    assert_unresolved(result((passed, register, guessed_id, promote)), ALICE, technique)
+    denied_taskset = {"Effect": "Deny", "Action": "ecs:CreateTaskSet", "Resource": taskset_scope}
+    assert target["Arn"] not in reached(result((passed, register, create, promote, denied_taskset)), ALICE, technique)
+
+
+def test_spot_request_scoped_grant_stays_visible_without_claiming_role_execution():
+    ident = "aws-ec2-requestspotinstances-passrole"
+    target = role("target", "ec2.amazonaws.com", profiles=[profile_arn("target")])
+    image = f"arn:aws:ec2:{REGION}:{ACCOUNT}:image/ami-1234567890abcdef0"
+
+    def caller(service, spot=True):
+        passrole = {"Effect": "Allow", "Action": "iam:PassRole", "Resource": target["Arn"],
+                    "Condition": {"StringEquals": {"iam:PassedToService": service}}}
+        statements = [passrole]
+        if spot:
+            statements.append(allow("ec2:RequestSpotInstances", resource=image))
+        return user("alice", *statements)
+
+    source = caller("ec2.amazonaws.com")
+    result = real(aws_snap([source], [target]), ident, include_unknown=True)
+    assert target["Arn"] not in reached(result, ALICE, ident)
+    assert_unresolved(result, ALICE, ident)
+    for source in (caller("lambda.amazonaws.com"), caller("ec2.amazonaws.com", spot=False)):
+        assert not reached(real(aws_snap([source], [target]), ident), ALICE, ident)
+
+
+def test_spot_request_prior_catalog_binding_keeps_global_requirement():
+    from peaso.privesc import versioned_catalog as catalog
+
+    ident = "aws-ec2-requestspotinstances-passrole"
+    old_binding = {"schema": catalog.BINDING_SCHEMA,
+                   "manifest_sha256": catalog.SPOT_REQUEST_690_PREVIOUS_MANIFEST,
+                   "effective_tree_sha256": catalog.SPOT_REQUEST_690_PREVIOUS_TREE,
+                   "source_revision": catalog.V4_REVISION}
+    old, old_status = catalog.lookup_entries([ident], old_binding)
+    new, new_status = catalog.lookup_entries([ident], catalog.current_binding())
+    assert old_status == "exact_previous_current"
+    assert new_status == "exact_strict_privesc"
+    assert any(req["action"] == "ec2:RequestSpotInstances"
+               for req in old[ident]["requires"]["all_of"])
+    assert all(req["action"] != "ec2:RequestSpotInstances"
+               for req in new[ident]["requires"]["all_of"])
+
+
 def test_ec2_changed_user_data_needs_reviewed_reexecution_on_same_instance():
     technique = "aws-ec2-modifyinstanceattribute-userdata"
     instance_arn = f"arn:aws:ec2:{REGION}:{ACCOUNT}:instance/i-1234567890abcdef0"
@@ -272,6 +709,11 @@ def test_cloudcontrol_passrole_needs_a_creatable_admin_user_path():
                        allow("iam:CreateUser", "iam:GetUser", "iam:CreateLoginProfile", "iam:AttachUserPolicy"))
     result = real(aws_snap([caller], [wrong_trust]), technique)
     assert admin not in reached(result, caller["Arn"], technique)
+    scoped_control = user("scoped-control", allow("iam:PassRole"),
+                          allow("cloudformation:CreateResource",
+                                resource=f"arn:aws:cloudformation:{REGION}:{ACCOUNT}:stack/example"))
+    result = real(aws_snap([scoped_control], [complete]), technique)
+    assert admin not in reached(result, scoped_control["Arn"], technique)
     existing = user("reserved")
     exact_existing = role("exact-existing", "cloudformation.amazonaws.com",
                           allow("iam:CreateUser", "iam:GetUser", "iam:CreateLoginProfile",
@@ -280,16 +722,699 @@ def test_cloudcontrol_passrole_needs_a_creatable_admin_user_path():
     assert admin not in reached(result, caller["Arn"], technique)
 
 
-def test_stepfunctions_teststate_is_a_conditional_service_action():
+def test_cloudcontrol_catalog_keeps_previous_global_action_binding():
+    from peaso.privesc import versioned_catalog as catalog
+
+    technique = "aws-cloudcontrol-passrole-createresource"
+    prior = {"schema": catalog.BINDING_SCHEMA,
+             "manifest_sha256": catalog.CLOUDCONTROL_690_PREVIOUS_MANIFEST,
+             "effective_tree_sha256": catalog.CLOUDCONTROL_690_PREVIOUS_TREE,
+             "source_revision": catalog.V4_REVISION}
+    old, old_status = catalog.lookup_entries([technique], prior)
+    current, current_status = catalog.lookup_entries([technique], catalog.current_binding())
+    assert old_status == "exact_previous_current"
+    assert current_status == "exact_strict_privesc"
+    assert old[technique]["requires"]["all_of"][0]["action"] == "cloudformation:CreateResource"
+    assert current[technique]["requires"]["all_of"] == []
+
+
+def test_stepfunctions_teststate_needs_a_supported_role_task_witness():
     technique = "aws-stepfunctions-teststate-passrole"
-    caller = user("caller", allow("iam:PassRole", "states:TestState"))
+    caller = user("caller", {"Effect": "Allow", "Action": "iam:PassRole",
+                             "Resource": role_arn("execution"), "Condition": {"StringEquals": {
+                                 "iam:PassedToService": "states.amazonaws.com"}}},
+                  allow("states:TestState"))
     execution_role = role("execution", "states.amazonaws.com", allow("iam:AttachUserPolicy"))
-    result = real(aws_snap([caller], [execution_role]), technique)
-    matches = [detail for edge in edges(result, caller["Arn"], technique)
-               for detail in edge["technique_details"] if detail["id"] == technique]
-    assert len(matches) == 1
-    assert matches[0]["outcome"] == "impersonation"
-    assert matches[0]["confidence"] == "conditional"
+    result = real(aws_snap([caller], [execution_role]), technique, include_unknown=True)
+    assert execution_role["Arn"] not in reached(result, caller["Arn"], technique)
+    assert_unresolved(result, caller["Arn"], technique)
+
+    wrong_service = user("caller", {"Effect": "Allow", "Action": "iam:PassRole",
+                                    "Resource": role_arn("execution"), "Condition": {"StringEquals": {
+                                        "iam:PassedToService": "lambda.amazonaws.com"}}},
+                         allow("states:TestState"))
+    assert not reached(real(aws_snap([wrong_service], [execution_role]), technique),
+                       wrong_service["Arn"], technique)
+
+
+def test_stepfunctions_teststate_accepts_only_reviewed_unmocked_role_effect():
+    technique = "aws-stepfunctions-teststate-passrole"
+    object_arn = "arn:aws:s3:::example-private-bucket/evidence.txt"
+    target = role("execution", "states.amazonaws.com", allow("s3:PutObject", resource=object_arn))
+    target["RoleId"] = "AROAEXECUTION123456789"
+    passed = allow("iam:PassRole", resource=target["Arn"])
+    passed["Condition"] = {"StringEquals": {"iam:PassedToService": "states.amazonaws.com"}}
+    proof = {"TechniqueId": technique, "SourceArn": ALICE, "TargetKind": "aws_role",
+             "TargetId": target["Arn"], "TargetScope": SCOPE, "TargetRoleId": target["RoleId"],
+             "Status": "verified", "VerifiedPreconditions": True, "UnmockedTask": True,
+             "TestStateSucceeded": True, "TaskOutcomeUsefulToSource": True,
+             "TaskAction": "s3:PutObject", "TaskResource": object_arn,
+             "EvidenceRef": "reviewed-teststate-call",
+             "EvidenceObservedAt": "2026-10-21T11:59:00+00:00",
+             "EvidenceExpiresAt": "2026-10-21T12:05:00+00:00"}
+
+    def result(evidence=proof, *, extra_caller=()):
+        caller = user("alice", passed, allow("states:TestState"), *extra_caller)
+        proofs = evidence if isinstance(evidence, list) else ([evidence] if evidence else [])
+        snap = aws_snap([caller], [target], [col("aws_privesc_challenge_evidence", proofs)])
+        snap["created_at"] = "2026-10-21T12:00:00+00:00"
+        return real(snap, technique, include_unknown=True)
+
+    assert target["Arn"] in reached(result(), ALICE, technique)
+    assert target["Arn"] not in reached(result(None), ALICE, technique)
+    assert_unresolved(result(None), ALICE, technique)
+    assert target["Arn"] not in reached(result([proof, dict(proof)]), ALICE, technique)
+    for changed in ({"UnmockedTask": False}, {"TestStateSucceeded": False},
+                    {"TaskOutcomeUsefulToSource": False}, {"TargetRoleId": "AROANOTHER"},
+                    {"TaskAction": "s3:DeleteObject"}, {"TargetScope": f"{ACCOUNT}/eu-west-1"},
+                    {"SourceArn": f"arn:aws:iam::{ACCOUNT}:user/other"},
+                    {"EvidenceObservedAt": "2026-10-21T11:40:00+00:00"}):
+        assert target["Arn"] not in reached(result(dict(proof, **changed)), ALICE, technique)
+    assert target["Arn"] not in reached(result(extra_caller=[allow("s3:PutObject", resource=object_arn)]),
+                                        ALICE, technique)
+
+
+def test_bedrock_action_group_lambda_requires_same_mutable_function_and_observed_effect():
+    technique = "aws-bedrock-agent-lambda-actiongroup-hijack"
+    function_arn = f"arn:aws:lambda:{REGION}:{ACCOUNT}:function:agent-tool"
+    alias_arn = f"arn:aws:bedrock:{REGION}:{ACCOUNT}:agent-alias/ABCDEFGHIJ/KLMNOPQRST"
+    object_arn = "arn:aws:s3:::private-example/evidence.txt"
+    target = role("agent-tool-role", "lambda.amazonaws.com", allow("s3:PutObject", resource=object_arn))
+    target["RoleId"] = "AROABEDROCK123456789"
+    function = {"FunctionArn": function_arn, "Role": target["Arn"], "State": "Active",
+                "LastUpdateStatus": "Successful", "CodeSha256": "current-function-code-hash"}
+    proof = {"TechniqueId": technique, "SourceArn": ALICE, "TargetKind": "aws_role",
+             "TargetId": target["Arn"], "TargetScope": SCOPE, "TargetRoleId": target["RoleId"],
+             "FunctionArn": function_arn, "FunctionCodeSha256": function["CodeSha256"],
+             "AgentId": "ABCDEFGHIJ", "AgentAliasId": "KLMNOPQRST", "AgentAliasArn": alias_arn,
+             "AgentVersion": "2", "ActionGroupId": "ACTION1234",
+             "ActionGroupExecutorLambdaArn": function_arn,
+             "Status": "verified", "VerifiedPreconditions": True,
+             "AliasReady": True, "AliasRoutingVerified": True, "ActionGroupEnabled": True,
+             "LambdaBedrockInvokeAllowed": True, "CodeUpdateSucceeded": True,
+             "InvokeAgentSucceeded": True, "ActionGroupInvokedSameLambda": True,
+             "RoleActionSucceeded": True, "EffectUsefulToSource": True,
+             "RoleAction": "s3:PutObject", "RoleResource": object_arn,
+             "EvidenceRef": "reviewed-agent-action-group-invocation",
+             "EvidenceObservedAt": "2026-10-21T11:59:00+00:00",
+             "EvidenceExpiresAt": "2026-10-21T12:05:00+00:00"}
+
+    def result(evidence=proof, *, caller_grants=(), function_row=function, role_row=target):
+        caller = user("alice", allow("lambda:UpdateFunctionCode", resource=function_arn),
+                      allow("bedrock:InvokeAgent", resource=alias_arn), *caller_grants)
+        proofs = evidence if isinstance(evidence, list) else ([evidence] if evidence else [])
+        snap = aws_snap([caller], [role_row], [col("lambda_function", [function_row]),
+            col("aws_privesc_challenge_evidence", proofs)])
+        snap["created_at"] = "2026-10-21T12:00:00+00:00"
+        return real(snap, technique, include_unknown=True)
+
+    assert target["Arn"] in reached(result(), ALICE, technique)
+    assert target["Arn"] not in reached(result(None), ALICE, technique)
+    assert_unresolved(result(None), ALICE, technique)
+    assert target["Arn"] not in reached(result([proof, dict(proof)]), ALICE, technique)
+    for changed in ({"ActionGroupExecutorLambdaArn": function_arn + ":3"},
+                    {"AgentAliasArn": alias_arn.replace("KLMNOPQRST", "OTHERALIAS")},
+                    {"AliasRoutingVerified": False}, {"ActionGroupInvokedSameLambda": False},
+                    {"LambdaBedrockInvokeAllowed": False}, {"CodeUpdateSucceeded": False},
+                    {"FunctionCodeSha256": "older-code-hash"}, {"RoleActionSucceeded": False},
+                    {"EffectUsefulToSource": False}, {"RoleAction": "s3:DeleteObject"},
+                    {"TargetRoleId": "AROAOTHER"},
+                    {"EvidenceObservedAt": "2026-10-21T11:40:00+00:00"}):
+        assert target["Arn"] not in reached(result(dict(proof, **changed)), ALICE, technique)
+    assert target["Arn"] not in reached(result(function_row=dict(function, State="Pending")), ALICE, technique)
+    assert target["Arn"] not in reached(result(function_row=dict(function, CodeSha256="new-code")), ALICE, technique)
+    assert target["Arn"] not in reached(result(caller_grants=[allow("s3:PutObject", resource=object_arn)]),
+                                        ALICE, technique)
+
+
+def test_existing_ssm_automation_runbook_joins_scoped_document_role_and_effect():
+    technique = "aws-audit-use-existing-parameterized-automation-runbook-with-runtime-passrole"
+    document = f"arn:aws:ssm:{REGION}:{ACCOUNT}:document/ApprovedRunbook"
+    step_resource = "arn:aws:s3:::private-example/report.txt"
+    target = role("automation", "ssm.amazonaws.com", allow("s3:PutObject", resource=step_resource))
+    target["RoleId"] = "AROAAUTOMATION1234567"
+    passed = allow("iam:PassRole", resource=target["Arn"])
+    passed["Condition"] = {"StringEquals": {"iam:PassedToService": "ssm.amazonaws.com"}}
+    proof = {"TechniqueId": technique, "SourceArn": ALICE, "TargetKind": "aws_role",
+             "TargetId": target["Arn"], "TargetScope": SCOPE, "TargetRoleId": target["RoleId"],
+             "Status": "verified", "VerifiedPreconditions": True,
+             "DocumentArn": document, "DocumentVersion": "3",
+             "DocumentContentSha256": "reviewed-document-version-hash",
+             "DocumentVersionContentVerified": True, "DocumentTypeAutomation": True,
+             "AssumeRoleParameterName": "AutomationAssumeRole",
+             "DocumentAssumeRoleTemplate": "{{ AutomationAssumeRole }}",
+             "AssumeRoleParameterValue": target["Arn"], "RoleParameterUsed": True,
+             "StartAuthorizationResourceArn": document,
+             "StartAutomationExecutionSucceeded": True,
+             "AutomationExecutionId": "automation-execution-123", "AutomationExecutionSucceeded": True,
+             "ExecutedRoleArn": target["Arn"], "StepAction": "s3:PutObject",
+             "StepResource": step_resource, "StepActionSucceeded": True,
+             "EffectUsefulToSource": True, "EvidenceRef": "reviewed-automation-execution",
+             "EvidenceObservedAt": "2026-10-21T11:59:00+00:00",
+             "EvidenceExpiresAt": "2026-10-21T12:05:00+00:00"}
+
+    def result(evidence=proof, *, start_resource=document, grants=(), role_row=target):
+        start_grants = ([allow("ssm:StartAutomationExecution", resource=start_resource)]
+                        if start_resource is not None else [])
+        caller = user("alice", passed, *start_grants, *grants)
+        proofs = evidence if isinstance(evidence, list) else ([evidence] if evidence else [])
+        snap = aws_snap([caller], [role_row], [col("aws_privesc_challenge_evidence", proofs)])
+        snap["created_at"] = "2026-10-21T12:00:00+00:00"
+        return real(snap, technique, include_unknown=True)
+
+    assert target["Arn"] in reached(result(), ALICE, technique)
+    definition_latest = f"arn:aws:ssm:{REGION}:{ACCOUNT}:automation-definition/ApprovedRunbook:$LATEST"
+    assert target["Arn"] in reached(result(dict(proof, StartAuthorizationResourceArn=definition_latest),
+                                        start_resource=definition_latest), ALICE, technique)
+    assert target["Arn"] not in reached(result(None), ALICE, technique)
+    assert_unresolved(result(None), ALICE, technique)
+    assert target["Arn"] not in reached(result([proof, dict(proof)]), ALICE, technique)
+    for changed in ({"DocumentVersionContentVerified": False},
+                    {"DocumentArn": document.replace("Approved", "Other")},
+                    {"DocumentAssumeRoleTemplate": "{{ FixedRole }}"},
+                    {"AssumeRoleParameterValue": "arn:aws:iam::111111111111:role/other"},
+                    {"StartAuthorizationResourceArn": document.replace("Approved", "Other")},
+                    {"StartAutomationExecutionSucceeded": False}, {"ExecutedRoleArn": "other"},
+                    {"StepActionSucceeded": False}, {"StepAction": "s3:DeleteObject"},
+                    {"EffectUsefulToSource": False}, {"TargetRoleId": "AROAOTHER"},
+                    {"EvidenceObservedAt": "2026-10-21T11:40:00+00:00"}):
+        assert target["Arn"] not in reached(result(dict(proof, **changed)), ALICE, technique)
+    assert target["Arn"] not in reached(result(start_resource=document.replace("Approved", "Other")),
+                                        ALICE, technique)
+    assert target["Arn"] not in reached(result(start_resource=None), ALICE, technique)
+    assert target["Arn"] not in reached(result(grants=[allow("s3:PutObject", resource=step_resource)]),
+                                        ALICE, technique)
+    assert target["Arn"] not in reached(result(role_row=dict(target, RoleId="AROACHANGED")),
+                                        ALICE, technique)
+    assert target["Arn"] not in reached(result(role_row=role("automation", "lambda.amazonaws.com",
+                                                   allow("s3:PutObject", resource=step_resource))),
+                                        ALICE, technique)
+
+
+def test_codebuild_debug_session_requires_paused_exact_build_role_and_shell_effect():
+    technique = "aws-codebuild-ssm-debug-session-role"
+    project = "production-build"
+    build_id = project + ":12345678-1234-1234-1234-123456789012"
+    session_resource = f"arn:aws:ssm:{REGION}:{ACCOUNT}:managed-instance/mi-1234567890abcdef0"
+    object_arn = "arn:aws:s3:::private-example/build-output.txt"
+    target = role("build-role", "codebuild.amazonaws.com", allow("s3:PutObject", resource=object_arn))
+    target["RoleId"] = "AROACODEBUILD12345678"
+    proof = {"TechniqueId": technique, "SourceArn": ALICE, "TargetKind": "aws_role",
+             "TargetId": target["Arn"], "TargetScope": SCOPE, "TargetRoleId": target["RoleId"],
+             "Status": "verified", "VerifiedPreconditions": True,
+             "ProjectName": project,
+             "ProjectArn": f"arn:aws:codebuild:{REGION}:{ACCOUNT}:project/{project}",
+             "BuildId": build_id,
+             "BuildArn": f"arn:aws:codebuild:{REGION}:{ACCOUNT}:build/{build_id}",
+             "BuildServiceRoleArn": target["Arn"], "BuildStatus": "IN_PROGRESS",
+             "DebugSessionEnabled": True, "BuildPausedAtBreakpoint": True,
+             "SessionTarget": "codebuild-session-target-123",
+             "SessionTargetFromBatchGetBuilds": True,
+             "StartSessionAuthorizationResourceArn": session_resource,
+             "StartSessionSucceeded": True, "ShellCommandSucceeded": True,
+             "ShellUsedBuildRoleCredentials": True, "RoleActionSucceeded": True,
+             "EffectUsefulToSource": True, "RoleAction": "s3:PutObject",
+             "RoleResource": object_arn, "EvidenceRef": "reviewed-codebuild-session",
+             "EvidenceObservedAt": "2026-10-21T11:59:00+00:00",
+             "EvidenceExpiresAt": "2026-10-21T12:05:00+00:00"}
+
+    def result(evidence=proof, *, session_grant=session_resource, grants=(), role_row=target):
+        session = ([allow("ssm:StartSession", resource=session_grant)]
+                   if session_grant is not None else [])
+        caller = user("alice", *session, *grants)
+        proofs = evidence if isinstance(evidence, list) else ([evidence] if evidence else [])
+        snap = aws_snap([caller], [role_row], [col("aws_privesc_challenge_evidence", proofs)])
+        snap["created_at"] = "2026-10-21T12:00:00+00:00"
+        return real(snap, technique, include_unknown=True)
+
+    assert target["Arn"] in reached(result(), ALICE, technique)
+    assert target["Arn"] not in reached(result(None), ALICE, technique)
+    assert_unresolved(result(None), ALICE, technique)
+    assert target["Arn"] not in reached(result([proof, dict(proof)]), ALICE, technique)
+    for changed in ({"BuildServiceRoleArn": "other"}, {"BuildStatus": "SUCCEEDED"},
+                    {"BuildId": "other:12345678-1234-1234-1234-123456789012"},
+                    {"DebugSessionEnabled": False}, {"BuildPausedAtBreakpoint": False},
+                    {"SessionTargetFromBatchGetBuilds": False}, {"SessionTarget": ""},
+                    {"StartSessionSucceeded": False}, {"ShellCommandSucceeded": False},
+                    {"ShellUsedBuildRoleCredentials": False}, {"RoleActionSucceeded": False},
+                    {"EffectUsefulToSource": False}, {"RoleAction": "s3:DeleteObject"},
+                    {"StartSessionAuthorizationResourceArn": session_resource.replace("123456", "654321")},
+                    {"TargetRoleId": "AROAOTHER"},
+                    {"EvidenceObservedAt": "2026-10-21T11:40:00+00:00"}):
+        assert target["Arn"] not in reached(result(dict(proof, **changed)), ALICE, technique)
+    assert target["Arn"] not in reached(result(session_grant=session_resource.replace("123456", "654321")),
+                                        ALICE, technique)
+    assert target["Arn"] not in reached(result(session_grant=None), ALICE, technique)
+    assert target["Arn"] not in reached(result(grants=[allow("s3:PutObject", resource=object_arn)]),
+                                        ALICE, technique)
+    assert target["Arn"] not in reached(result(role_row=dict(target, RoleId="AROACHANGED")),
+                                        ALICE, technique)
+
+
+def test_config_automatic_remediation_requires_service_context_and_runtime_witness():
+    technique = "aws-config-passrole-automatic-remediation"
+    object_arn = "arn:aws:s3:::private-example/remediation-output.txt"
+    target = role("automation", "ssm.amazonaws.com", allow("s3:PutObject", resource=object_arn))
+    target["RoleId"] = "AROACONFIGREMED123456"
+
+    def caller(service):
+        return user("caller", {"Effect": "Allow", "Action": "iam:PassRole",
+                               "Resource": target["Arn"],
+                               "Condition": {"StringEquals": {"iam:PassedToService": service}}},
+                    allow("config:PutRemediationConfigurations", "ssm:CreateDocument"))
+
+    correct = caller("ssm.amazonaws.com")
+    result = real(aws_snap([correct], [target]), technique, include_unknown=True)
+    assert target["Arn"] not in reached(result, correct["Arn"], technique)
+    assert_unresolved(result, correct["Arn"], technique)
+
+    scoped = user("caller", {"Effect": "Allow", "Action": "iam:PassRole",
+                             "Resource": target["Arn"], "Condition": {"StringEquals": {
+                                 "iam:PassedToService": "ssm.amazonaws.com"}}},
+                  allow("config:PutRemediationConfigurations",
+                        resource=f"arn:aws:config:{REGION}:{ACCOUNT}:remediation-configuration/*"),
+                  allow("ssm:CreateDocument",
+                        resource=f"arn:aws:ssm:{REGION}:{ACCOUNT}:document/*"))
+    assert_unresolved(real(aws_snap([scoped], [target]), technique, include_unknown=True),
+                      scoped["Arn"], technique)
+
+    wrong = caller("lambda.amazonaws.com")
+    assert not reached(real(aws_snap([wrong], [target]), technique), wrong["Arn"], technique)
+
+    remediation_arn = f"arn:aws:config:{REGION}:{ACCOUNT}:remediation-configuration/config-rule-abc123"
+    document_arn = f"arn:aws:ssm:{REGION}:{ACCOUNT}:document/ApprovedRemediation"
+    proof = {"TechniqueId": technique, "SourceArn": scoped["Arn"], "TargetKind": "aws_role",
+             "TargetId": target["Arn"], "TargetScope": SCOPE, "TargetRoleId": target["RoleId"],
+             "Status": "verified", "VerifiedPreconditions": True,
+             "ConfigRuleName": "approved-rule",
+             "ConfigRuleArn": f"arn:aws:config:{REGION}:{ACCOUNT}:config-rule/config-rule-abc123",
+             "RuleIsServiceLinked": False, "ConfigRecorderRecording": True,
+             "ComplianceSnapshotNoncompliant": True,
+             "ConfigRemediationServiceLinkedRoleReady": True,
+             "RemediationConfigurationArn": remediation_arn,
+             "RemediationAutomatic": True, "RemediationTargetType": "SSM_DOCUMENT",
+             "RemediationTargetId": "ApprovedRemediation",
+             "AutomationDocumentArn": document_arn,
+             "AutomationAssumeRoleParameterValue": target["Arn"],
+             "DocumentUsesAutomationAssumeRole": True, "DocumentRoutable": True,
+             "ExistingDocumentUsed": True, "DocumentCreatedBySource": False,
+             "PutRemediationConfigurationsSucceeded": True,
+             "AutomaticRemediationStarted": True,
+             "ExecutedRoleArn": target["Arn"],
+             "RemediationExecutionId": "remediation-execution-123",
+             "AutomationExecutionId": "automation-execution-123",
+             "RoleAction": "s3:PutObject", "RoleResource": object_arn,
+             "RoleActionSucceeded": True, "EffectUsefulToSource": True,
+             "EvidenceRef": "reviewed-config-automatic-remediation",
+             "EvidenceObservedAt": "2026-10-21T11:59:00+00:00",
+             "EvidenceExpiresAt": "2026-10-21T12:05:00+00:00"}
+
+    def witnessed(evidence=proof, *, source=None, target_role=target, put_resource=remediation_arn):
+        if source is None:
+            source = user("caller", {"Effect": "Allow", "Action": "iam:PassRole",
+                "Resource": target["Arn"],
+                "Condition": {"StringEquals": {"iam:PassedToService": "ssm.amazonaws.com"}}},
+                allow("config:PutRemediationConfigurations", resource=put_resource))
+        proofs = evidence if isinstance(evidence, list) else ([evidence] if evidence else [])
+        state = aws_snap([source], [target_role], [col("aws_privesc_challenge_evidence", proofs)])
+        state["created_at"] = "2026-10-21T12:00:00+00:00"
+        return real(state, technique, include_unknown=True), source["Arn"]
+
+    positive, who = witnessed()
+    assert target["Arn"] in reached(positive, who, technique)
+    missing, who = witnessed(None)
+    assert target["Arn"] not in reached(missing, who, technique)
+    assert_unresolved(missing, who, technique)
+    assert target["Arn"] not in reached(witnessed([proof, dict(proof)])[0], who, technique)
+    for changed in ({"RuleIsServiceLinked": True}, {"ConfigRecorderRecording": False},
+                    {"ComplianceSnapshotNoncompliant": False},
+                    {"ConfigRemediationServiceLinkedRoleReady": False},
+                    {"RemediationAutomatic": False},
+                    {"RemediationTargetId": "OtherDocument"},
+                    {"AutomationAssumeRoleParameterValue": role_arn("other")},
+                    {"DocumentUsesAutomationAssumeRole": False},
+                    {"PutRemediationConfigurationsSucceeded": False},
+                    {"AutomaticRemediationStarted": False},
+                    {"ExecutedRoleArn": role_arn("other")},
+                    {"RoleActionSucceeded": False}, {"RoleAction": "s3:DeleteObject"},
+                    {"EffectUsefulToSource": False}, {"TargetRoleId": "AROAOTHER"},
+                    {"EvidenceObservedAt": "2026-10-21T11:40:00+00:00"}):
+        got, source_arn = witnessed(dict(proof, **changed))
+        assert target["Arn"] not in reached(got, source_arn, technique)
+    wrong_put, who = witnessed(put_resource=remediation_arn.replace("abc123", "other"))
+    assert target["Arn"] not in reached(wrong_put, who, technique)
+    created = dict(proof, ExistingDocumentUsed=False, DocumentCreatedBySource=True)
+    created_source = user("caller", {"Effect": "Allow", "Action": "iam:PassRole",
+        "Resource": target["Arn"],
+        "Condition": {"StringEquals": {"iam:PassedToService": "ssm.amazonaws.com"}}},
+        allow("config:PutRemediationConfigurations", resource=remediation_arn),
+        allow("ssm:CreateDocument", resource=document_arn))
+    got, who = witnessed(created, source=created_source)
+    assert target["Arn"] in reached(got, who, technique)
+    got, who = witnessed(created)
+    assert target["Arn"] not in reached(got, who, technique)
+    direct_source = user("caller", *created_source["UserPolicyList"][0]["PolicyDocument"]["Statement"],
+                         allow("s3:PutObject", resource=object_arn))
+    got, who = witnessed(proof, source=direct_source)
+    assert target["Arn"] not in reached(got, who, technique)
+
+
+def test_stepfunctions_create_and_update_passrole_use_states_service_context():
+    execution_role = role("execution", "states.amazonaws.com", allow("iam:AttachUserPolicy"))
+    techniques = ("aws-stepfunctions-createstatemachine-passrole-start",
+                  "aws-stepfunctions-updatestatemachine-passrole")
+    for technique in techniques:
+        def caller(service):
+            return user("caller", {"Effect": "Allow", "Action": "iam:PassRole",
+                                   "Resource": role_arn("execution"),
+                                   "Condition": {"StringEquals": {"iam:PassedToService": service}}},
+                        allow("states:CreateStateMachine", "states:StartExecution",
+                              "states:UpdateStateMachine"))
+
+        right = caller("states.amazonaws.com")
+        right_result = real(aws_snap([right], [execution_role]), technique, include_unknown=True)
+        assert execution_role["Arn"] not in reached(right_result, right["Arn"], technique)
+        assert_unresolved(right_result, right["Arn"], technique)
+
+        wrong = caller("lambda.amazonaws.com")
+        wrong_result = real(aws_snap([wrong], [execution_role]), technique)
+        assert not reached(wrong_result, wrong["Arn"], technique)
+
+
+def test_stepfunctions_create_and_update_need_reviewed_role_operation():
+    techniques = ("aws-stepfunctions-createstatemachine-passrole-start",
+                  "aws-stepfunctions-updatestatemachine-passrole")
+    object_arn = "arn:aws:s3:::example-private-bucket/evidence.txt"
+    target = role("execution", "states.amazonaws.com", allow("s3:PutObject", resource=object_arn))
+    target["RoleId"] = "AROAEXECUTION123456789"
+    machine_arn = f"arn:aws:states:{REGION}:{ACCOUNT}:stateMachine:existing"
+    machine = {"stateMachineArn": machine_arn, "roleArn": target["Arn"],
+               "status": "ACTIVE", "type": "STANDARD", "revisionId": "revision-123"}
+    passed = allow("iam:PassRole", resource=target["Arn"])
+    passed["Condition"] = {"StringEquals": {"iam:PassedToService": "states.amazonaws.com"}}
+    caller_actions = allow("states:CreateStateMachine", "states:StartExecution",
+                           "states:UpdateStateMachine")
+
+    def result(technique, *, proof=None, machine_row=machine, extra_caller=()):
+        caller = user("alice", passed, caller_actions, *extra_caller)
+        proofs = proof if isinstance(proof, list) else ([proof] if proof else [])
+        snap = aws_snap([caller], [target], [col("sfn_state_machine", [machine_row]),
+            col("aws_privesc_challenge_evidence", proofs)])
+        snap["created_at"] = "2026-10-21T12:00:00+00:00"
+        return real(snap, technique, include_unknown=True)
+
+    for technique in techniques:
+        proof = {"TechniqueId": technique, "SourceArn": ALICE, "TargetKind": "aws_role",
+                 "TargetId": target["Arn"], "TargetScope": SCOPE, "TargetRoleId": target["RoleId"],
+                 "StateMachineArn": machine_arn, "StateMachineRevisionId": "revision-123",
+                 "ExecutionArn": f"arn:aws:states:{REGION}:{ACCOUNT}:execution:existing:run1",
+                 "Status": "verified", "VerifiedPreconditions": True, "SdkTaskSucceeded": True,
+                 "TaskOutcomeUsefulToSource": True, "TaskAction": "s3:PutObject",
+                 "TaskResource": object_arn, "EvidenceRef": "reviewed-execution",
+                 "EvidenceObservedAt": "2026-10-21T11:59:00+00:00",
+                 "EvidenceExpiresAt": "2026-10-21T12:05:00+00:00"}
+        assert target["Arn"] in reached(result(technique, proof=proof), ALICE, technique)
+        assert target["Arn"] not in reached(result(technique), ALICE, technique)
+        assert_unresolved(result(technique), ALICE, technique)
+        assert target["Arn"] not in reached(result(technique, proof=[proof, dict(proof)]), ALICE, technique)
+        for changed in ({"StateMachineRevisionId": "another"}, {"SdkTaskSucceeded": False},
+                        {"TaskOutcomeUsefulToSource": False}, {"TaskAction": "s3:DeleteObject"},
+                        {"SourceArn": "arn:aws:iam::111111111111:user/other"},
+                        {"EvidenceObservedAt": "2026-10-21T11:40:00+00:00"},
+                        {"ExecutionArn": machine_arn}):
+            assert target["Arn"] not in reached(result(technique, proof=dict(proof, **changed)), ALICE, technique)
+        wrong_role = dict(machine, roleArn=role_arn("other"))
+        assert target["Arn"] not in reached(result(technique, proof=proof, machine_row=wrong_role), ALICE, technique)
+        direct = allow("s3:PutObject", resource=object_arn)
+        assert target["Arn"] not in reached(result(technique, proof=proof, extra_caller=[direct]), ALICE, technique)
+
+
+def test_stepfunctions_teststate_prior_binding_keeps_previous_route():
+    from peaso.privesc import versioned_catalog as catalog
+
+    ident = "aws-stepfunctions-teststate-passrole"
+    old_binding = {"schema": catalog.BINDING_SCHEMA,
+                   "manifest_sha256": catalog.TESTSTATE_690_PREVIOUS_MANIFEST,
+                   "effective_tree_sha256": catalog.TESTSTATE_690_PREVIOUS_TREE,
+                   "source_revision": catalog.V4_REVISION}
+    old, old_status = catalog.lookup_entries([ident], old_binding)
+    new, new_status = catalog.lookup_entries([ident], catalog.current_binding())
+    assert old_status == "exact_previous_current"
+    assert new_status == "exact_strict_privesc"
+    assert "preconditions" not in old[ident]
+    assert "stepfunctions_teststate_privileged_task_unverified" in new[ident]["preconditions"]
+
+
+def test_cloudformation_passrole_requires_a_reviewed_template_effect():
+    techniques = {
+        "aws-cloudformation-passrole-createstack": "CreateStack",
+        "aws-cloudformation-passrole-changeset": "CreateChangeSet",
+        "aws-cloudformation-passrole-updatestack": "UpdateStack",
+    }
+    target_arn = "arn:aws:s3:::private-bucket/evidence.txt"
+    target = role("cfn", "cloudformation.amazonaws.com", allow("s3:PutObject", resource=target_arn))
+    target["RoleId"] = "AROACFN1234567890123"
+    stack_arn = (f"arn:aws:cloudformation:{REGION}:{ACCOUNT}:stack/Existing/"
+                 "01234567-89ab-4def-8123-456789abcdef")
+    stack = {"StackId": stack_arn, "StackName": "Existing", "StackStatus": "UPDATE_COMPLETE",
+             "RoleARN": target["Arn"]}
+    passed = allow("iam:PassRole", resource=target["Arn"])
+    passed["Condition"] = {"StringEquals": {"iam:PassedToService": "cloudformation.amazonaws.com"}}
+
+    def result(technique, evidence=None, *, role_row=target, extra_caller=()):
+        caller = user("alice", passed, allow("cloudformation:CreateStack",
+                                             "cloudformation:CreateChangeSet",
+                                             "cloudformation:ExecuteChangeSet",
+                                             "cloudformation:UpdateStack"), *extra_caller)
+        proofs = evidence if isinstance(evidence, list) else ([evidence] if evidence else [])
+        snap = aws_snap([caller], [role_row], [col("cloudformation_stack", [stack]),
+            col("aws_privesc_challenge_evidence", proofs)])
+        snap["created_at"] = "2026-10-21T12:00:00+00:00"
+        return real(snap, technique, include_unknown=True)
+
+    for technique, operation in techniques.items():
+        proof = {"TechniqueId": technique, "SourceArn": ALICE, "TargetKind": "aws_role",
+                 "TargetId": target["Arn"], "TargetScope": SCOPE, "TargetRoleId": target["RoleId"],
+                 "StackArn": stack_arn, "CloudFormationOperation": operation,
+                 "Status": "verified", "VerifiedPreconditions": True,
+                 "TemplateControlledBySource": True, "RoleOperationUsed": True,
+                 "TemplateEffectSucceeded": True, "EffectUsefulToSource": True,
+                 "ChangeSetExecuted": True, "ChangeSetType": "CREATE",
+                 "RoleAction": "s3:PutObject", "RoleResource": target_arn,
+                 "EvidenceRef": "reviewed-stack-operation",
+                 "EvidenceObservedAt": "2026-10-21T11:59:00+00:00",
+                 "EvidenceExpiresAt": "2026-10-21T12:05:00+00:00"}
+        assert target["Arn"] in reached(result(technique, proof), ALICE, technique)
+        no_proof = result(technique)
+        assert target["Arn"] not in reached(no_proof, ALICE, technique)
+        assert_unresolved(no_proof, ALICE, technique)
+        assert target["Arn"] not in reached(result(technique, [proof, dict(proof)]), ALICE, technique)
+        for changed in ({"TargetRoleId": "AROADIFFERENT"}, {"RoleOperationUsed": False},
+                        {"TemplateEffectSucceeded": False}, {"EffectUsefulToSource": False},
+                        {"RoleAction": "s3:DeleteObject"}, {"CloudFormationOperation": "DeleteStack"},
+                        {"EvidenceObservedAt": "2026-10-21T11:40:00+00:00"},
+                        {"SourceArn": f"arn:aws:iam::{ACCOUNT}:user/other"},
+                        {"StackArn": stack_arn.replace(ACCOUNT, OTHER)}):
+            assert target["Arn"] not in reached(result(technique, dict(proof, **changed)), ALICE, technique)
+        if operation == "CreateChangeSet":
+            assert target["Arn"] not in reached(result(technique, dict(proof, ChangeSetExecuted=False)),
+                                                ALICE, technique)
+            assert target["Arn"] not in reached(result(technique, dict(proof, ChangeSetType="UPDATE")),
+                                                ALICE, technique)
+        if operation == "UpdateStack":
+            assert target["Arn"] not in reached(result(technique, dict(proof, StackArn=stack_arn + "-other")),
+                                                ALICE, technique)
+        assert target["Arn"] not in reached(result(technique, proof,
+            extra_caller=[allow("s3:PutObject", resource=target_arn)]), ALICE, technique)
+        readonly = role("cfn", "cloudformation.amazonaws.com", allow("s3:GetObject", resource=target_arn))
+        readonly["RoleId"] = target["RoleId"]
+        assert target["Arn"] not in reached(result(technique, proof, role_row=readonly), ALICE, technique)
+
+
+def test_cloudformation_private_extension_requires_a_reviewed_handler_effect():
+    technique = "aws-cloudformation-registertype-passrole-extension"
+    package = "arn:aws:s3:::extension-packages/handler.zip"
+    object_arn = "arn:aws:s3:::private-bucket/evidence.txt"
+    target = role("extension", "resources.cloudformation.amazonaws.com",
+                  allow("s3:PutObject", resource=object_arn))
+    target["RoleId"] = "AROAEXTENSION12345678"
+    passed = allow("iam:PassRole", resource=target["Arn"])
+    passed["Condition"] = {"StringEquals": {
+        "iam:PassedToService": "resources.cloudformation.amazonaws.com"}}
+    proof = {"TechniqueId": technique, "SourceArn": ALICE, "TargetKind": "aws_role",
+             "TargetId": target["Arn"], "TargetScope": SCOPE, "TargetRoleId": target["RoleId"],
+             "HandlerPackageArn": package,
+             "TypeVersionArn": f"arn:aws:cloudformation:{REGION}:{ACCOUNT}:type/resource/Peaso-Example/00000001",
+             "Status": "verified", "VerifiedPreconditions": True,
+             "SourceControlledHandler": True, "RegistrationSucceeded": True,
+             "HandlerInvocationSucceeded": True, "HandlerUsedTargetRole": True,
+             "EffectUsefulToSource": True, "RoleAction": "s3:PutObject",
+             "RoleResource": object_arn, "EvidenceRef": "reviewed-handler-invocation",
+             "EvidenceObservedAt": "2026-10-21T11:59:00+00:00",
+             "EvidenceExpiresAt": "2026-10-21T12:05:00+00:00"}
+
+    def result(evidence=proof, *, role_row=target, create_resource="*", extra_caller=()):
+        caller = user("alice", passed, allow("cloudformation:RegisterType"),
+                      allow("cloudformation:CreateResource", resource=create_resource),
+                      allow("s3:PutObject", "s3:GetObject", resource=package), *extra_caller)
+        proofs = evidence if isinstance(evidence, list) else ([evidence] if evidence else [])
+        snap = aws_snap([caller], [role_row], [
+            col("bucket", [{"Name": "extension-packages"}], scope=f"{ACCOUNT}/global"),
+            col("aws_privesc_challenge_evidence", proofs)])
+        snap["created_at"] = "2026-10-21T12:00:00+00:00"
+        return real(snap, technique, include_unknown=True)
+
+    assert target["Arn"] in reached(result(), ALICE, technique)
+    assert target["Arn"] not in reached(result(None), ALICE, technique)
+    assert_unresolved(result(None), ALICE, technique)
+    assert target["Arn"] not in reached(result([proof, dict(proof)]), ALICE, technique)
+    for changed in ({"RegistrationSucceeded": False}, {"HandlerInvocationSucceeded": False},
+                    {"HandlerUsedTargetRole": False}, {"EffectUsefulToSource": False},
+                    {"TargetRoleId": "AROADIFFERENT"}, {"RoleAction": "s3:DeleteObject"},
+                    {"HandlerPackageArn": "arn:aws:s3:::other-bucket/handler.zip"},
+                    {"SourceArn": f"arn:aws:iam::{ACCOUNT}:user/other"},
+                    {"EvidenceObservedAt": "2026-10-21T11:40:00+00:00"}):
+        assert target["Arn"] not in reached(result(dict(proof, **changed)), ALICE, technique)
+    assert target["Arn"] not in reached(result(create_resource=
+        f"arn:aws:cloudformation:{REGION}:{ACCOUNT}:stack/limited"), ALICE, technique)
+    assert target["Arn"] not in reached(result(extra_caller=[allow("s3:PutObject", resource=object_arn)]),
+                                        ALICE, technique)
+    readonly = role("extension", "resources.cloudformation.amazonaws.com",
+                    allow("s3:GetObject", resource=object_arn))
+    readonly["RoleId"] = target["RoleId"]
+    assert target["Arn"] not in reached(result(role_row=readonly), ALICE, technique)
+
+
+def test_self_managed_stackset_requires_reviewed_execution_role_effect():
+    technique = "aws-cloudformation-passrole-stackset"
+    pivot_arn = role_arn("stackset-admin")
+    target_arn = f"arn:aws:iam::{OTHER}:role/stackset-execution"
+    object_arn = "arn:aws:s3:::private-bucket/evidence.txt"
+    pivot = role("stackset-admin", "cloudformation.amazonaws.com",
+                 allow("sts:AssumeRole", resource=target_arn))
+    pivot["RoleId"] = "AROAADMIN123456789012"
+    target = role("stackset-execution", [{"Effect": "Allow", "Principal": {"AWS": pivot_arn},
+                                          "Action": "sts:AssumeRole"}],
+                  allow("s3:PutObject", resource=object_arn), account=OTHER)
+    target["RoleId"] = "AROAEXEC1234567890123"
+    passed = allow("iam:PassRole", resource=pivot_arn)
+    passed["Condition"] = {"StringEquals": {"iam:PassedToService": "cloudformation.amazonaws.com"}}
+    proof = {"TechniqueId": technique, "SourceArn": ALICE, "TargetKind": "aws_role",
+             "TargetId": target_arn, "PivotRoleArn": pivot_arn, "PivotRoleId": pivot["RoleId"],
+             "TargetRoleId": target["RoleId"], "TargetScope": f"{OTHER}/{REGION}",
+             "StackSetArn": (f"arn:aws:cloudformation:{REGION}:{ACCOUNT}:stackset/Example:"
+                             "01234567-89ab-4def-8123-456789abcdef"),
+             "StackSetOperation": "CreateStackInstances", "Status": "verified",
+             "VerifiedPreconditions": True, "TemplateControlledBySource": True,
+             "StackSetDeploymentSucceeded": True, "ExecutionRoleOperationUsed": True,
+             "EffectUsefulToSource": True, "RoleAction": "s3:PutObject",
+             "RoleResource": object_arn, "EvidenceRef": "reviewed-stackset-deployment",
+             "EvidenceObservedAt": "2026-10-21T11:59:00+00:00",
+             "EvidenceExpiresAt": "2026-10-21T12:05:00+00:00"}
+
+    def result(evidence=proof, *, execution_role=target, extra_caller=(), operation="create"):
+        grants = (allow("cloudformation:UpdateStackSet") if operation == "update" else
+                  allow("cloudformation:CreateStackSet", "cloudformation:CreateStackInstances"))
+        caller = user("alice", passed, grants, *extra_caller)
+        proofs = evidence if isinstance(evidence, list) else ([evidence] if evidence else [])
+        instances = ([{"Account": OTHER, "Region": REGION,
+                       "StackSetId": proof["StackSetArn"], "StackSetName": "Example",
+                       "PermissionModel": "SELF_MANAGED", "Status": "CURRENT"}]
+                     if operation == "update" else [])
+        snap = aws_snap([caller], [pivot], [col("aws_privesc_challenge_evidence", proofs),
+                                          col("cloudformation_stack_instance", instances)],
+                        other_roles=[(OTHER, [execution_role])])
+        snap["created_at"] = "2026-10-21T12:00:00+00:00"
+        return real(snap, technique, include_unknown=True)
+
+    assert target_arn in reached(result(), ALICE, technique)
+    assert target_arn not in reached(result(None), ALICE, technique)
+    assert_unresolved(result(None), ALICE, technique)
+    assert target_arn not in reached(result([proof, dict(proof)]), ALICE, technique)
+    for changed in ({"PivotRoleId": "AROADIFFERENT"}, {"TargetRoleId": "AROADIFFERENT"},
+                    {"TargetScope": f"{OTHER}/eu-west-1"},
+                    {"StackSetOperation": "UpdateStackSet"},
+                    {"StackSetDeploymentSucceeded": False},
+                    {"ExecutionRoleOperationUsed": False},
+                    {"RoleAction": "s3:DeleteObject"},
+                    {"SourceArn": f"arn:aws:iam::{ACCOUNT}:user/other"},
+                    {"EvidenceObservedAt": "2026-10-21T11:40:00+00:00"}):
+        assert target_arn not in reached(result(dict(proof, **changed)), ALICE, technique)
+    assert target_arn not in reached(result(extra_caller=[allow("s3:PutObject", resource=object_arn)]),
+                                     ALICE, technique)
+    update_proof = dict(proof, StackSetOperation="UpdateStackSet")
+    assert target_arn in reached(result(update_proof, operation="update"), ALICE, technique)
+    assert target_arn not in reached(result(None, operation="update"), ALICE, technique)
+    assert target_arn not in reached(result(dict(update_proof, StackSetArn=proof["StackSetArn"] + "-other"),
+                                     operation="update"), ALICE, technique)
+
+
+def test_service_managed_stackset_requires_reviewed_member_admin_access():
+    technique = "aws-cloudformation-service-managed-stackset-org-members"
+    member_admin = role("deployed-admin", [{"Effect": "Allow", "Principal": {"AWS": ALICE},
+                                            "Action": "sts:AssumeRole"}], allow("*"), account=OTHER)
+    member_admin["RoleId"] = "AROADEPLOYED123456789"
+    target = f"aws_account_admin:{OTHER}"
+    parent = "ou-abcd-12345678"
+    proof = {"TechniqueId": technique, "SourceArn": ALICE,
+             "TargetKind": "aws_account_admin", "TargetId": target,
+             "TargetAccount": OTHER, "TargetRegion": REGION, "ParentOrgUnitId": parent,
+             "StackSetArn": (f"arn:aws:cloudformation:{REGION}:{ACCOUNT}:stackset/Example:"
+                             "01234567-89ab-4def-8123-456789abcdef"),
+             "PermissionModel": "SERVICE_MANAGED", "Status": "verified",
+             "VerifiedPreconditions": True, "StackSetDeploymentSucceeded": True,
+             "TemplateControlledBySource": True, "MemberAdminAccessConfirmed": True,
+             "MemberAdminCredentialsUsable": True, "MemberAdminCredentialKind": "assume_role",
+             "MemberAdminPrincipalArn": member_admin["Arn"],
+             "MemberAdminPrincipalId": member_admin["RoleId"],
+             "EvidenceRef": "reviewed-member-admin-access",
+             "EvidenceObservedAt": "2026-10-21T11:59:00+00:00",
+             "EvidenceExpiresAt": "2026-10-21T12:05:00+00:00"}
+
+    def result(evidence=proof, *, trusted_access="ENABLED", member_role=member_admin,
+               member_user=None, parent_id=parent, extra_caller=()):
+        caller = user("alice", allow("cloudformation:CreateStackSet",
+                                     "cloudformation:CreateStackInstances"),
+                      allow("sts:AssumeRole", resource=member_admin["Arn"]), *extra_caller)
+        proofs = evidence if isinstance(evidence, list) else ([evidence] if evidence else [])
+        extra = [org_accounts(OTHER),
+                 col("organization_parent", [{"ChildId": OTHER, "ParentId": parent_id}]),
+                 col("cloudformation_organizations_access", [{"Status": trusted_access}]),
+                 col("aws_privesc_challenge_evidence", proofs)]
+        if member_user is not None:
+            extra.append(col("iam_user", [member_user], scope=f"{OTHER}/{REGION}"))
+        snap = aws_snap([caller], extra=extra, other_roles=[(OTHER, [member_role])])
+        snap["created_at"] = "2026-10-21T12:00:00+00:00"
+        return real(snap, technique, include_unknown=True)
+
+    assert target in reached(result(), ALICE, technique)
+    assert target not in reached(result(None), ALICE, technique)
+    assert_unresolved(result(None), ALICE, technique)
+    assert target not in reached(result([proof, dict(proof)]), ALICE, technique)
+    for changed in ({"TargetAccount": STRANGER}, {"TargetRegion": "eu-west-1"},
+                    {"ParentOrgUnitId": "ou-other-12345678"},
+                    {"PermissionModel": "SELF_MANAGED"},
+                    {"StackSetDeploymentSucceeded": False},
+                    {"MemberAdminAccessConfirmed": False},
+                    {"MemberAdminCredentialsUsable": False},
+                    {"MemberAdminPrincipalId": "AROADIFFERENT"},
+                    {"SourceArn": f"arn:aws:iam::{ACCOUNT}:user/other"},
+                    {"EvidenceObservedAt": "2026-10-21T11:40:00+00:00"}):
+        assert target not in reached(result(dict(proof, **changed)), ALICE, technique)
+    assert target not in reached(result(trusted_access="DISABLED"), ALICE, technique)
+    assert target not in reached(result(parent_id="ou-other-12345678"), ALICE, technique)
+    untrusted = role("deployed-admin", "ec2.amazonaws.com", allow("*"), account=OTHER)
+    untrusted["RoleId"] = member_admin["RoleId"]
+    assert target not in reached(result(member_role=untrusted), ALICE, technique)
+    deployed_user = user("deployed-admin", allow("*"), account=OTHER)
+    deployed_user["UserId"] = "AIDADEPLOYED123456789"
+    key_proof = dict(proof, MemberAdminCredentialKind="access_key",
+                     MemberAdminPrincipalArn=deployed_user["Arn"],
+                     MemberAdminPrincipalId=deployed_user["UserId"],
+                     MemberAccessKeyId="AKIAEXAMPLE12345678")
+    assert target in reached(result(key_proof, member_user=deployed_user), ALICE, technique)
+    assert target not in reached(result(dict(key_proof, MemberAccessKeyId="invalid"),
+                                         member_user=deployed_user), ALICE, technique)
 
 
 def test_new_iam_user_routes_do_not_reuse_an_existing_exact_name():
@@ -328,10 +1453,11 @@ def test_appstream_new_resources_need_a_startable_streaming_path():
                {"SubnetId": "subnet-b", "VpcId": "vpc-1", "AvailabilityZone": "us-east-1b", "State": "available"}]
     bucket = {"Name": "packages", "Location": {"collection_status": "collected", "LocationConstraint": REGION}}
 
-    def reach(start=True, stream_arn=builder_arn, subnet_rows=subnets, bucket_row=bucket, occupied=()):
+    def reach(start=True, stream_arn=builder_arn, subnet_rows=subnets, bucket_row=bucket,
+              occupied=(), create_block_resource="*"):
         grants = [allow("iam:PassRole", resource=target["Arn"]),
                   allow("appstream:CreateAppBlockBuilder", resource=builder_arn),
-                  allow("appstream:CreateAppBlock"),
+                  allow("appstream:CreateAppBlock", resource=create_block_resource),
                   allow("appstream:AssociateAppBlockBuilderAppBlock", resource=[builder_arn, block_arn]),
                   allow("appstream:CreateAppBlockBuilderStreamingURL", resource=stream_arn)]
         if start:
@@ -349,6 +1475,7 @@ def test_appstream_new_resources_need_a_startable_streaming_path():
     assert reach(subnet_rows=subnets[:1]) == {}
     assert reach(bucket_row={**bucket, "Location": {"collection_status": "collected", "LocationConstraint": "eu-west-1"}}) == {}
     assert reach(occupied=("team-a",)) == {}
+    assert reach(create_block_resource=block_arn) == {}
 
 
 def test_appstream_new_builder_can_use_existing_unassociated_app_block():
@@ -707,9 +1834,11 @@ CLUSTER_ARN = f"arn:aws:ecs:{REGION}:{ACCOUNT}:cluster/web"
 def ecs_snap(cluster, task_defs=None, instances=("i-1",)):
     node = role("ecs-node", "ec2.amazonaws.com", allow("ecs:DiscoverPollEndpoint", "ecs:Poll"),
                 profiles=[profile_arn("ecs-node")])
-    roles = [node, role("app", "ecs-tasks.amazonaws.com"), role("far", "ecs-tasks.amazonaws.com")]
+    roles = [node, role("app", "ecs-tasks.amazonaws.com"), role("app-execution", "ecs-tasks.amazonaws.com"),
+             role("far", "ecs-tasks.amazonaws.com")]
     tds = task_defs if task_defs is not None else [
         {"taskDefinitionArn": f"arn:aws:ecs:{REGION}:{ACCOUNT}:task-definition/app:1", "taskRoleArn": role_arn("app"),
+         "executionRoleArn": role_arn("app-execution"),
          "compatibilities": ["EC2", "FARGATE"]},
         {"taskDefinitionArn": f"arn:aws:ecs:{REGION}:{ACCOUNT}:task-definition/far:1", "taskRoleArn": role_arn("far"),
          "compatibilities": ["EC2"]}]
@@ -730,9 +1859,9 @@ def placed_cluster():
                        "containerInstanceArn": ci2, "launchType": "EC2"}]}
 
 
-def test_ecscape_reaches_only_task_roles_on_the_source_instance():
+def test_ecscape_reaches_task_and_execution_roles_on_the_source_instance():
     got = reached(real(ecs_snap(placed_cluster()), ECSCAPE), NODE_ARN)
-    assert set(got) == {role_arn("app")}   # "far" runs on i-2, not on the source's instance
+    assert set(got) == {role_arn("app"), role_arn("app-execution")}   # "far" runs on i-2
 
 
 def test_ecscape_fargate_only_or_no_container_instances_is_dropped():
@@ -782,11 +1911,63 @@ def org_trust(org=ORG):
 CREATE_ACCOUNT = "aws-organizations-createaccount-principalorgid-trust"
 
 
+def complete_root_scp(snap, *statements):
+    root = "r-root123"
+    content = policy(*(statements or (allow("*"),)))
+    row = {"Id": "p-root", "TargetId": root, "TargetType": "ROOT",
+           "Detail": {"Policy": {"Content": content}}, "InheritanceComplete": True,
+           "InheritedPolicies": {"complete": True, "collection_status": "collected",
+                                 "ParentPath": [{"Id": ACCOUNT, "Type": "ACCOUNT"},
+                                                {"Id": root, "Type": "ROOT"}],
+                                 "items": [{"Id": "p-root", "TargetId": root, "Content": content}]}}
+    management = next(c for c in snap["collections"] if c["type"] == "scp_policy" and c["scope"] == SCOPE)
+    management["status"] = "collected"
+    management["items"].append(row)
+    snap["collections"].append({"type": "organization_parent", "scope": SCOPE,
+                                "service": "organization_parent", "status": "collected",
+                                "items": [{"ChildId": ACCOUNT, "ParentId": root}], "error": None})
+    for collection in list(snap["collections"]):
+        if collection["type"] != "organization_account":
+            continue
+        for member in collection["items"]:
+            member_scope = f"{member['Id']}/{REGION}"
+            if not any(c["type"] == "rcp_policy" and c["scope"] == member_scope
+                       for c in snap["collections"]):
+                snap["collections"].append({"type": "rcp_policy", "scope": member_scope,
+                                            "service": "organizations", "status": "empty",
+                                            "items": [], "error": None})
+    return snap
+
+
 def test_createaccount_reaches_principalorgid_trusts_from_management_account():
     alice = user("alice", allow("organizations:CreateAccount", "sts:AssumeRole"))
     shared, foreign = role("shared", org_trust(), account=OTHER), role("foreign", org_trust("o-zzzzzzzzzz"), account=OTHER)
-    snap = aws_snap([alice], extra=[org_accounts(OTHER)], other_roles=[(OTHER, [shared, foreign])])
+    snap = complete_root_scp(aws_snap([alice], extra=[org_accounts(OTHER)],
+                                     other_roles=[(OTHER, [shared, foreign])]))
     assert set(reached(real(snap, CREATE_ACCOUNT), ALICE)) == {role_arn("shared", OTHER)}
+
+
+def test_createaccount_needs_generated_access_role_grant_not_target_role_grant():
+    shared = role("shared", org_trust(), account=OTHER)
+    only_target = user("alice", allow("organizations:CreateAccount"),
+                       allow("sts:AssumeRole", resource=shared["Arn"]))
+    snap = aws_snap([only_target], extra=[org_accounts(OTHER)], other_roles=[(OTHER, [shared])])
+    result = real(snap, CREATE_ACCOUNT, include_unknown=True)
+    assert shared["Arn"] not in reached(result, ALICE, CREATE_ACCOUNT)
+    assert_unresolved(result, ALICE, CREATE_ACCOUNT)
+
+    generated_role = user("alice", allow("organizations:CreateAccount"),
+                          allow("sts:AssumeRole",
+                                resource="arn:aws:iam::*:role/OrganizationAccountAccessRole"))
+    snap = complete_root_scp(aws_snap([generated_role], extra=[org_accounts(OTHER)],
+                                     other_roles=[(OTHER, [shared])]))
+    assert shared["Arn"] in reached(real(snap, CREATE_ACCOUNT), ALICE, CREATE_ACCOUNT)
+
+    custom_role = user("alice", allow("organizations:CreateAccount"),
+                       allow("sts:AssumeRole", resource="arn:aws:iam::*:role/ChosenAccessRole"))
+    snap = complete_root_scp(aws_snap([custom_role], extra=[org_accounts(OTHER)],
+                                     other_roles=[(OTHER, [shared])]))
+    assert shared["Arn"] in reached(real(snap, CREATE_ACCOUNT), ALICE, CREATE_ACCOUNT)
 
 
 def test_createaccount_does_not_override_explicit_role_trust_deny():
@@ -795,6 +1976,168 @@ def test_createaccount_does_not_override_explicit_role_trust_deny():
                                             "Action": "sts:AssumeRole"}], account=OTHER)
     snap = aws_snap([alice], extra=[org_accounts(OTHER)], other_roles=[(OTHER, [denied])])
     assert role_arn("denied", OTHER) not in reached(real(snap, CREATE_ACCOUNT), ALICE)
+
+
+def test_createaccount_additional_target_trust_condition_is_unknown():
+    alice = user("alice", allow("organizations:CreateAccount", "sts:AssumeRole"))
+    target_trust = org_trust()
+    target_trust[0]["Condition"]["IpAddress"] = {"aws:SourceIp": "192.0.2.0/24"}
+    target = role("shared", target_trust, account=OTHER)
+    snap = complete_root_scp(aws_snap([alice], extra=[org_accounts(OTHER)],
+                                     other_roles=[(OTHER, [target])]))
+    result = real(snap, CREATE_ACCOUNT, include_unknown=True)
+    assert target["Arn"] not in reached(result, ALICE, CREATE_ACCOUNT)
+    assert_unresolved(result, ALICE, CREATE_ACCOUNT)
+
+
+def test_createaccount_new_member_cannot_bypass_root_scp_assume_role_deny():
+    alice = user("alice", allow("organizations:CreateAccount", "sts:AssumeRole"))
+    target = role("shared", org_trust(), account=OTHER)
+    unaffected = role("other-shared", org_trust(), account=OTHER)
+    root = "r-root123"
+    parent = col("organization_parent", [{"ChildId": ACCOUNT, "ParentId": root}])
+    baseline = complete_root_scp(aws_snap([alice], extra=[org_accounts(OTHER), parent],
+                                         other_roles=[(OTHER, [target, unaffected])]))
+    assert target["Arn"] in reached(real(baseline, CREATE_ACCOUNT), ALICE)
+    snap = complete_root_scp(aws_snap([alice], extra=[org_accounts(OTHER)],
+                                     other_roles=[(OTHER, [target, unaffected])]),
+                             allow("*"), {"Effect": "Deny", "Action": "sts:AssumeRole",
+                                          "Resource": target["Arn"]})
+    assert target["Arn"] not in reached(real(snap, CREATE_ACCOUNT), ALICE)
+    assert unaffected["Arn"] in reached(real(snap, CREATE_ACCOUNT), ALICE)
+
+
+def test_createaccount_new_member_needs_root_scp_assume_role_allow():
+    alice = user("alice", allow("organizations:CreateAccount", "sts:AssumeRole"))
+    target = role("shared", org_trust(), account=OTHER)
+    snap = complete_root_scp(aws_snap([alice], extra=[org_accounts(OTHER)],
+                                     other_roles=[(OTHER, [target])]), allow("s3:*"))
+    result = real(snap, CREATE_ACCOUNT, include_unknown=True)
+    assert target["Arn"] not in reached(result, ALICE, CREATE_ACCOUNT)
+    assert_unresolved(result, ALICE, CREATE_ACCOUNT)
+
+
+def test_createaccount_new_member_root_scp_conditional_deny_is_unknown():
+    alice = user("alice", allow("organizations:CreateAccount", "sts:AssumeRole"))
+    target = role("shared", org_trust(), account=OTHER)
+    snap = complete_root_scp(aws_snap([alice], extra=[org_accounts(OTHER)],
+                                     other_roles=[(OTHER, [target])]),
+                             allow("*"), {"Effect": "Deny", "Action": "sts:AssumeRole",
+                                          "Resource": target["Arn"], "Condition": {"StringEquals": {
+                                              "aws:PrincipalTag/Environment": "restricted"}}})
+    result = real(snap, CREATE_ACCOUNT, include_unknown=True)
+    assert target["Arn"] not in reached(result, ALICE, CREATE_ACCOUNT)
+    assert_unresolved(result, ALICE, CREATE_ACCOUNT)
+
+
+def test_createaccount_new_member_needs_complete_root_scp_inventory():
+    alice = user("alice", allow("organizations:CreateAccount", "sts:AssumeRole"))
+    target = role("shared", org_trust(), account=OTHER)
+    snap = aws_snap([alice], extra=[org_accounts(OTHER)], other_roles=[(OTHER, [target])])
+    result = real(snap, CREATE_ACCOUNT, include_unknown=True)
+    assert target["Arn"] not in reached(result, ALICE, CREATE_ACCOUNT)
+    assert_unresolved(result, ALICE, CREATE_ACCOUNT)
+
+
+def test_createaccount_partial_scp_cannot_broaden_complete_root_allowlist():
+    alice = user("alice", allow("organizations:CreateAccount", "sts:AssumeRole"))
+    target = role("shared", org_trust(), account=OTHER)
+    snap = complete_root_scp(aws_snap([alice], extra=[org_accounts(OTHER)],
+                                     other_roles=[(OTHER, [target])]), allow("s3:*"))
+    member = next(c for c in snap["collections"] if c["type"] == "scp_policy" and
+                  c["scope"] == f"{OTHER}/{REGION}")
+    member["status"] = "partial"
+    member["items"].append({"Id": "p-incomplete", "TargetId": "r-root123",
+                            "Detail": {"Policy": {"Content": policy(allow("*"))}}})
+    result = real(snap, CREATE_ACCOUNT, include_unknown=True)
+    assert target["Arn"] not in reached(result, ALICE, CREATE_ACCOUNT)
+    assert_unresolved(result, ALICE, CREATE_ACCOUNT)
+
+
+def test_createaccount_target_role_rcp_deny_blocks_new_member():
+    alice = user("alice", allow("organizations:CreateAccount", "sts:AssumeRole"))
+    target = role("shared", org_trust(), account=OTHER)
+    snap = complete_root_scp(aws_snap([alice], extra=[org_accounts(OTHER)],
+                                     other_roles=[(OTHER, [target])]))
+    snap["collections"].append({"type": "organization_parent", "scope": f"{OTHER}/{REGION}",
+                                "service": "organization_parent", "status": "collected",
+                                "items": [{"ChildId": OTHER, "ParentId": "r-root123"}], "error": None})
+    rcp = next(c for c in snap["collections"] if c["type"] == "rcp_policy" and
+               c["scope"] == f"{OTHER}/{REGION}")
+    rcp["status"] = "collected"
+    rcp["items"] = [{"Id": "p-deny", "TargetId": OTHER, "Content": policy(
+        {"Effect": "Deny", "Action": "sts:AssumeRole", "Resource": target["Arn"]})}]
+    assert target["Arn"] not in reached(real(snap, CREATE_ACCOUNT), ALICE, CREATE_ACCOUNT)
+
+
+def test_createaccount_target_role_rcp_unknown_stays_unresolved():
+    alice = user("alice", allow("organizations:CreateAccount", "sts:AssumeRole"))
+    target = role("shared", org_trust(), account=OTHER)
+    snap = complete_root_scp(aws_snap([alice], extra=[org_accounts(OTHER)],
+                                     other_roles=[(OTHER, [target])]))
+    rcp = next(c for c in snap["collections"] if c["type"] == "rcp_policy" and
+               c["scope"] == f"{OTHER}/{REGION}")
+    rcp["status"] = "access_denied"
+    result = real(snap, CREATE_ACCOUNT, include_unknown=True)
+    assert target["Arn"] not in reached(result, ALICE, CREATE_ACCOUNT)
+    assert_unresolved(result, ALICE, CREATE_ACCOUNT)
+
+
+def test_createaccount_can_use_complete_root_scp_from_known_member():
+    alice = user("alice", allow("organizations:CreateAccount", "sts:AssumeRole"))
+    target = role("shared", org_trust(), account=OTHER)
+    snap = complete_root_scp(aws_snap([alice], extra=[org_accounts(OTHER)],
+                                     other_roles=[(OTHER, [target])]))
+    management = next(c for c in snap["collections"] if c["type"] == "scp_policy" and c["scope"] == SCOPE)
+    member = next(c for c in snap["collections"] if c["type"] == "scp_policy" and
+                  c["scope"] == f"{OTHER}/{REGION}")
+    root_policy = management["items"].pop()
+    management["status"] = "empty"
+    member["status"] = "collected"
+    root_policy["InheritedPolicies"]["ParentPath"][0]["Id"] = OTHER
+    member["items"].append(root_policy)
+    assert target["Arn"] in reached(real(snap, CREATE_ACCOUNT), ALICE, CREATE_ACCOUNT)
+
+
+def test_createaccount_new_member_needs_definite_generated_role_grant():
+    assume = allow("sts:AssumeRole", resource="arn:aws:iam::*:role/OrganizationAccountAccessRole")
+    assume["Condition"] = {"IpAddress": {"aws:SourceIp": "192.0.2.0/24"}}
+    alice = user("alice", allow("organizations:CreateAccount"), assume)
+    target = role("shared", org_trust(), account=OTHER)
+    snap = complete_root_scp(aws_snap([alice], extra=[org_accounts(OTHER)],
+                                     other_roles=[(OTHER, [target])]))
+    result = real(snap, CREATE_ACCOUNT, include_unknown=True)
+    assert target["Arn"] not in reached(result, ALICE, CREATE_ACCOUNT)
+    assert_unresolved(result, ALICE, CREATE_ACCOUNT)
+
+
+def test_createaccount_management_identity_is_exempt_from_scps():
+    alice = user("alice", allow("organizations:CreateAccount", "sts:AssumeRole"))
+    target = role("shared", org_trust(), account=OTHER)
+    snap = complete_root_scp(aws_snap([alice], extra=[org_accounts(OTHER)],
+                                     other_roles=[(OTHER, [target])]))
+    management_scp = next(c for c in snap["collections"] if c["type"] == "scp_policy" and c["scope"] == SCOPE)
+    management_scp["status"] = "collected"
+    management_scp["items"].append({"Id": "p-management", "TargetId": ACCOUNT,
+        "Detail": {"Policy": {"Content": {"Version": "2012-10-17", "Statement": [
+            {"Effect": "Deny", "Action": ["organizations:CreateAccount", "sts:AssumeRole"],
+             "Resource": "*"}]}}}, "InheritanceComplete": True,
+        "InheritedPolicies": {"complete": True, "collection_status": "collected",
+                              "ParentPath": [{"Id": ACCOUNT, "Type": "ACCOUNT"},
+                                             {"Id": "r-root123", "Type": "ROOT"}], "items": []}})
+    assert target["Arn"] in reached(real(snap, CREATE_ACCOUNT), ALICE)
+
+    member = user("bob", allow("sts:AssumeRole"), account=OTHER)
+    member_snap = aws_snap([], extra=[org_accounts(OTHER),
+        col("iam_user", [member], scope=f"{OTHER}/{REGION}")], other_roles=[(OTHER, [])])
+    member_scp = next(c for c in member_snap["collections"]
+                      if c["type"] == "scp_policy" and c["scope"] == f"{OTHER}/{REGION}")
+    member_scp["status"] = "collected"
+    member_scp["items"] = [{"Id": "p-member", "TargetId": OTHER,
+        "Detail": {"Policy": {"Content": {"Version": "2012-10-17", "Statement": [
+            {"Effect": "Deny", "Action": "sts:AssumeRole", "Resource": "*"}]}}}}]
+    model = privesc.MODELS["aws"](member_snap)
+    assert model._check_action(model.principals[member["Arn"]], "sts:AssumeRole", target["Arn"]) is None
 
 
 def test_createaccount_from_member_account_is_not_an_edge():
@@ -848,7 +2191,9 @@ def test_orphaned_oidc_and_saml_trusts():
 
 # --------------------------------------------------------------------------- EMR
 def emr_roles():
-    ec2 = role("emr-ec2", "ec2.amazonaws.com", profiles=[profile_arn("emr-ec2")])
+    ec2 = role("emr-ec2", "ec2.amazonaws.com",
+               allow("sts:AssumeRole", "sts:TagSession", resource=role_arn("runtime")),
+               profiles=[profile_arn("emr-ec2")])
     runtime = role("runtime", [{"Effect": "Allow", "Principal": {"AWS": role_arn("emr-ec2")},
                                 "Action": ["sts:AssumeRole", "sts:TagSession"]}], profiles=[])
     return [ec2, runtime, role("unrelated", "ec2.amazonaws.com", profiles=[])]
@@ -874,11 +2219,10 @@ def test_emr_getclustersessioncredentials_reaches_runtime_roles():
     tid = "aws-emr-getclustersessioncredentials-runtime-role"
     alice = user("alice", allow("elasticmapreduce:GetClusterSessionCredentials"))
     active = [col("emr_cluster", [emr_cluster()]), col("emr_security_configuration", [emr_security_config(True)])]
-    assert set(reached(real(aws_snap([alice], emr_roles(), active), tid), ALICE)) == \
-        {role_arn("runtime")}
+    assert_unresolved(real(aws_snap([alice], emr_roles(), active), tid, include_unknown=True), ALICE)
     cluster_arn = f"arn:aws:elasticmapreduce:{REGION}:{ACCOUNT}:cluster/j-1"
     scoped = user("alice", allow("elasticmapreduce:GetClusterSessionCredentials", resource=cluster_arn))
-    assert set(reached(real(aws_snap([scoped], emr_roles(), active), tid), ALICE)) == {role_arn("runtime")}
+    assert_unresolved(real(aws_snap([scoped], emr_roles(), active), tid, include_unknown=True), ALICE)
     wrong_cluster = user("alice", allow("elasticmapreduce:GetClusterSessionCredentials",
                                 resource=cluster_arn.replace("j-1", "j-other")))
     assert edges(real(aws_snap([wrong_cluster], emr_roles(), active), tid), ALICE) == []
@@ -889,7 +2233,8 @@ def test_emr_getclustersessioncredentials_reaches_runtime_roles():
     matching_role_condition = user("alice", {"Effect": "Allow",
         "Action": "elasticmapreduce:GetClusterSessionCredentials", "Resource": cluster_arn,
         "Condition": {"ArnEquals": {"elasticmapreduce:ExecutionRoleArn": role_arn("runtime")}}})
-    assert set(reached(real(aws_snap([matching_role_condition], emr_roles(), active), tid), ALICE)) == {role_arn("runtime")}
+    assert_unresolved(real(aws_snap([matching_role_condition], emr_roles(), active),
+                           tid, include_unknown=True), ALICE)
     external_id_roles = emr_roles()
     external_id_roles[1]["AssumeRolePolicyDocument"]["Statement"][0]["Condition"] = {
         "StringEquals": {"sts:ExternalId": "uncollected-emr-external-id"}}
@@ -897,7 +2242,8 @@ def test_emr_getclustersessioncredentials_reaches_runtime_roles():
     assert all(finding["status"] != "FAIL" for finding in conditional_trust["findings"])
     matched_external = [col("emr_cluster", [emr_cluster()]),
                         col("emr_security_configuration", [emr_security_config(True, "uncollected-emr-external-id")])]
-    assert set(reached(real(aws_snap([alice], external_id_roles, matched_external), tid), ALICE)) == {role_arn("runtime")}
+    assert_unresolved(real(aws_snap([alice], external_id_roles, matched_external),
+                           tid, include_unknown=True), ALICE)
     wrong_external = [col("emr_cluster", [emr_cluster()]),
                       col("emr_security_configuration", [emr_security_config(True, "different-external-id")])]
     assert edges(real(aws_snap([alice], external_id_roles, wrong_external), tid), ALICE) == []
@@ -912,7 +2258,37 @@ def test_emr_getclustersessioncredentials_reaches_runtime_roles():
     missing_config = real(aws_snap([alice], emr_roles(), [col("emr_cluster", [emr_cluster()])]),
                           tid, include_unknown=True)
     assert all(finding["status"] != "FAIL" for finding in missing_config["findings"])
-    assert_unresolved(real(aws_snap([alice], emr_roles()), tid, include_unknown=True), ALICE)
+    missing_cluster = real(aws_snap([alice], emr_roles()), tid, include_unknown=True)
+    assert all(finding["status"] != "FAIL" for finding in missing_cluster["findings"])
+    assert any(row.get("status") == "unresolved" for row in missing_cluster["coverage"])
+
+
+def test_emr_runtime_role_steps_need_exact_cluster_role_and_host_permissions():
+    tid = "aws-emr-addjobflowsteps-runtime-role"
+    cluster_arn = f"arn:aws:elasticmapreduce:{REGION}:{ACCOUNT}:cluster/j-1"
+    active = [col("emr_cluster", [emr_cluster()]),
+              col("emr_security_configuration", [emr_security_config(True)])]
+    allowed = user("alice", {"Effect": "Allow", "Action": "elasticmapreduce:AddJobFlowSteps",
+                             "Resource": cluster_arn, "Condition": {"ArnEquals": {
+                                 "elasticmapreduce:ExecutionRoleArn": role_arn("runtime")}}})
+    assert reached(real(aws_snap([allowed], emr_roles(), active), tid), ALICE, tid) == {
+        role_arn("runtime"): "conditional"}
+    wrong_cluster = user("alice", allow("elasticmapreduce:AddJobFlowSteps",
+                                         resource=cluster_arn.replace("j-1", "j-other")))
+    assert edges(real(aws_snap([wrong_cluster], emr_roles(), active), tid), ALICE) == []
+    wrong_role = user("alice", {"Effect": "Allow", "Action": "elasticmapreduce:AddJobFlowSteps",
+                               "Resource": cluster_arn, "Condition": {"ArnEquals": {
+                                   "elasticmapreduce:ExecutionRoleArn": role_arn("unrelated")}}})
+    assert edges(real(aws_snap([wrong_role], emr_roles(), active), tid), ALICE) == []
+    no_host_grant = emr_roles()
+    no_host_grant[0]["RolePolicyList"] = []
+    assert edges(real(aws_snap([allowed], no_host_grant, active), tid), ALICE) == []
+    no_host_tag = emr_roles()
+    no_host_tag[0]["RolePolicyList"][0]["PolicyDocument"]["Statement"][0]["Action"] = "sts:AssumeRole"
+    assert edges(real(aws_snap([allowed], no_host_tag, active), tid), ALICE) == []
+    disabled = [col("emr_cluster", [emr_cluster()]),
+                col("emr_security_configuration", [emr_security_config(False)])]
+    assert edges(real(aws_snap([allowed], emr_roles(), disabled), tid), ALICE) == []
 
 
 def test_emr_on_eks_execution_roles_trust_the_cluster_oidc_provider():
@@ -933,9 +2309,9 @@ def test_emr_on_eks_execution_roles_trust_the_cluster_oidc_provider():
                      "arn": f"arn:aws:eks:{REGION}:{ACCOUNT}:cluster/cluster-one",
                      "status": "ACTIVE", "identity": {"oidc": {
                          "issuer": f"https://oidc.eks.{REGION}.amazonaws.com/id/ABC"}}}}])]
-    result = real(aws_snap([alice], [job, irsa], inventory), *ids)
+    result = real(aws_snap([alice], [job, irsa], inventory), *ids, include_unknown=True)
     for tid in ids:
-        assert set(reached(result, ALICE, tid)) == {role_arn("emr-job")}
+        assert_unresolved(result, ALICE, tid)
     no_pass = user("alice", allow("emr-containers:StartJobRun"))
     assert edges(real(aws_snap([no_pass], [job], inventory), *ids), ALICE) == []
     wrong_action = copy.deepcopy(job)
@@ -983,13 +2359,14 @@ def test_emr_on_eks_execution_roles_trust_the_cluster_oidc_provider():
         f"oidc.eks.{REGION}.amazonaws.com/id/ABC:sub"] = (
             f"system:serviceaccount:spark:emr-containers-sa-spark-client-{ACCOUNT}-7t3vvv3mh5u")
     for tid in ids:
-        assert set(reached(real(aws_snap([alice], [exact_subject], inventory), tid), ALICE)) == {role_arn("emr-job")}
+        assert_unresolved(real(aws_snap([alice], [exact_subject], inventory), tid,
+                               include_unknown=True), ALICE, tid)
     scoped = user("alice", allow("iam:PassRole", resource=role_arn("emr-job")),
                   allow("emr-containers:StartJobRun", resource=virtual_cluster),
                   allow("emr-containers:GetManagedEndpointSessionCredentials", resource=endpoint))
-    scoped_result = real(aws_snap([scoped], [job], inventory), *ids)
+    scoped_result = real(aws_snap([scoped], [job], inventory), *ids, include_unknown=True)
     for tid in ids:
-        assert set(reached(scoped_result, ALICE, tid)) == {role_arn("emr-job")}
+        assert_unresolved(scoped_result, ALICE, tid)
     wrong_role_context = user("alice", allow("iam:PassRole", resource=role_arn("emr-job")),
                               {"Effect": "Allow", "Action": "emr-containers:StartJobRun",
                                "Resource": virtual_cluster,
@@ -1030,7 +2407,8 @@ def test_emr_on_eks_pod_identity_requires_matching_associations_and_exact_grants
                  col("eks_cluster", [{"cluster": {"name": "cluster-one", "arn": cluster_arn,
                      "status": "ACTIVE"}}]),
                  col("eks_pod_identity_association", associations)]
-    assert set(reached(real(aws_snap([alice], [target], inventory), tid), ALICE)) == {role_arn("pod-job")}
+    assert_unresolved(real(aws_snap([alice], [target], inventory), tid,
+                           include_unknown=True), ALICE, tid)
     missing_executor = copy.deepcopy(inventory)
     missing_executor[2][2].pop()
     assert edges(real(aws_snap([alice], [target], missing_executor), tid), ALICE) == []
@@ -1081,11 +2459,24 @@ def test_servicecatalog_associate_principal_needs_the_launch_roles_portfolio():
     prov = allow("servicecatalog:CreateProvisioningArtifact", "servicecatalog:ProvisionProduct")
     alice = user("alice", allow("servicecatalog:AssociatePrincipalWithPortfolio", resource=PORTFOLIO), prov)
     snap = aws_snap([alice], roles, [col("servicecatalog_portfolio", [sc_portfolio()])])
-    assert set(reached(real(snap, tid), ALICE)) == {role_arn("launch")}
+    result = real(snap, tid, include_unknown=True)
+    assert role_arn("launch") not in reached(result, ALICE, tid)
+    assert_unresolved(result, ALICE, tid)
     wrong = user("alice", allow("servicecatalog:AssociatePrincipalWithPortfolio",
                                 resource=f"arn:aws:catalog:{REGION}:{ACCOUNT}:portfolio/port-2"), prov)
     assert edges(real(aws_snap([wrong], roles, [col("servicecatalog_portfolio", [sc_portfolio()])]), tid), ALICE) == []
     assert_unresolved(real(aws_snap([alice], roles), tid, include_unknown=True), ALICE)
+
+
+def test_servicecatalog_create_artifact_does_not_prove_launch_role_effect():
+    tid = "aws-servicecatalog-createprovisioningartifact-provisionproduct"
+    alice = user("alice", allow("servicecatalog:CreateProvisioningArtifact",
+                                "servicecatalog:ProvisionProduct"))
+    target = role("launch", "servicecatalog.amazonaws.com", allow("iam:CreateRole"))
+    snap = aws_snap([alice], [target], [col("servicecatalog_portfolio", [sc_portfolio()])])
+    result = real(snap, tid, include_unknown=True)
+    assert target["Arn"] not in reached(result, ALICE, tid)
+    assert_unresolved(result, ALICE, tid)
 
 
 def test_pca_connector_ad_template_chain_is_an_unresolved_domain_admin_target():
@@ -1114,9 +2505,35 @@ def test_redshift_matches_serverless_only_trust():
 def test_lambda_dynamodb_stream_variant_needs_table_and_item_write():
     tid = "aws-lambda-passrole-createfunction-dynamodb-stream-trigger"
     base = ("iam:PassRole", "lambda:CreateFunction", "lambda:CreateEventSourceMapping", "dynamodb:CreateTable")
-    roles = [role("fn", "lambda.amazonaws.com"), role("ec2", "ec2.amazonaws.com")]
-    assert set(reached(real(aws_snap([user("alice", allow(*base, "dynamodb:PutItem"))], roles), tid), ALICE)) == {role_arn("fn")}
-    assert edges(real(aws_snap([user("alice", allow(*base))], roles), tid), ALICE) == []
+    read = ("dynamodb:DescribeStream", "dynamodb:GetShardIterator", "dynamodb:GetRecords",
+            "dynamodb:ListStreams")
+    roles = [role("fn", "lambda.amazonaws.com", allow(*read)), role("ec2", "ec2.amazonaws.com")]
+    inventory = [col("lambda_function", [], "empty"), col("dynamodb_table", [], "empty")]
+    assert reached(real(aws_snap([user("alice", allow(*base, "dynamodb:PutItem"))], roles,
+                                 inventory), tid), ALICE) == {role_arn("fn"): "conditional"}
+    assert edges(real(aws_snap([user("alice", allow(*base))], roles, inventory), tid), ALICE) == []
+    assert edges(real(aws_snap([user("alice", allow(*base, "dynamodb:PutItem"))],
+                               [role("fn", "lambda.amazonaws.com")], inventory), tid), ALICE) == []
+    no_list = role("fn", "lambda.amazonaws.com", allow(*read[:-1]))
+    assert role_arn("fn") not in reached(real(aws_snap(
+        [user("alice", allow(*base, "dynamodb:PutItem"))], [no_list], inventory), tid), ALICE)
+    assert role_arn("fn") not in reached(real(aws_snap(
+        [user("alice", allow(*base, "dynamodb:PutItem"))], roles), tid), ALICE)
+    table_a = f"arn:aws:dynamodb:{REGION}:{ACCOUNT}:table/alpha"
+    table_b = f"arn:aws:dynamodb:{REGION}:{ACCOUNT}:table/beta"
+    function = f"arn:aws:lambda:{REGION}:{ACCOUNT}:function:alpha"
+    disjoint = user("alice", allow("iam:PassRole", resource=role_arn("fn")),
+                    allow("lambda:CreateFunction", resource=function),
+                    allow("lambda:CreateEventSourceMapping"),
+                    allow("dynamodb:CreateTable", resource=table_a),
+                    allow("dynamodb:PutItem", resource=table_b))
+    assert edges(real(aws_snap([disjoint], roles, inventory), tid), ALICE) == []
+    wrong_mapping = user("alice", allow("iam:PassRole", resource=role_arn("fn")),
+                         allow("lambda:CreateFunction", resource=function),
+                         {"Effect": "Allow", "Action": "lambda:CreateEventSourceMapping", "Resource": "*",
+                          "Condition": {"ArnEquals": {"lambda:FunctionArn": function.replace("alpha", "beta")}}},
+                         allow("dynamodb:CreateTable", "dynamodb:PutItem", resource=table_a))
+    assert edges(real(aws_snap([wrong_mapping], roles, inventory), tid), ALICE) == []
 
 
 def test_lambda_new_function_url_requires_both_invoke_actions_on_one_function():
@@ -1163,17 +2580,20 @@ def test_lambda_eventbridge_trigger_joins_rule_region_and_passrole_function():
     def snap(principal, rules=(), rule_status="empty"):
         return aws_snap([principal], roles, [col("lambda_function", [], "empty"),
                                            col("event_rule", rules, rule_status)])
-    def principal(rule_arn, associated=function, grant_principal=None):
+    def principal(rule_arn, associated=function, grant_principal=None, allowed_target=None):
         add_permission = allow("lambda:AddPermission", resource=function)
         if grant_principal:
             add_permission["Condition"] = {"StringEquals": {"lambda:Principal": grant_principal}}
+        put_targets = allow("events:PutTargets", resource=rule_arn)
+        if allowed_target:
+            put_targets["Condition"] = {"ForAnyValue:ArnEquals": {"events:TargetArn": allowed_target}}
         return user("alice",
                     allow("iam:PassRole", resource=role_arn("fn")) |
                     {"Condition": {"ArnEquals": {"iam:AssociatedResourceArn": associated}}},
                     allow("lambda:CreateFunction", resource=function),
                     add_permission,
                     allow("events:PutRule", resource=rule_arn),
-                    allow("events:PutTargets", resource=rule_arn))
+                    put_targets)
     assert reached(real(snap(principal(rule)), tid), ALICE) == {role_arn("fn"): "conditional"}
     wildcard_rule = f"arn:aws:events:*:{ACCOUNT}:rule/*"
     assert reached(real(snap(principal(wildcard_rule)), tid), ALICE) == {
@@ -1183,6 +2603,13 @@ def test_lambda_eventbridge_trigger_joins_rule_region_and_passrole_function():
     assert edges(real(snap(principal(rule, grant_principal="s3.amazonaws.com")), tid), ALICE) == []
     assert reached(real(snap(principal(rule, grant_principal="events.amazonaws.com")), tid), ALICE) == {
         role_arn("fn"): "conditional"}
+    assert reached(real(snap(principal(rule, allowed_target=function)), tid), ALICE) == {
+        role_arn("fn"): "conditional"}
+    assert edges(real(snap(principal(rule, allowed_target=function.replace("alpha", "beta"))), tid), ALICE) == []
+    source_required = principal(rule)
+    source_required["UserPolicyList"][0]["PolicyDocument"]["Statement"][-2]["Condition"] = {
+        "Null": {"events:source": "false"}}
+    assert reached(real(snap(source_required), tid), ALICE) == {role_arn("fn"): "conditional"}
     assert edges(real(snap(principal(rule), [{"Arn": rule, "ManagedBy": "aws.events"}],
                            "collected"), tid), ALICE) == []
     assert edges(real(snap(principal(rule), [{"Arn": rule}], "collected"), tid), ALICE) == []
@@ -1366,8 +2793,402 @@ def test_braket_passrole_service_condition_is_evaluated():
         return aws_snap([user("alice", passrole, allow("braket:CreateJob"))],
                         [role("job", "braket.amazonaws.com")])
     assert edges(real(snap("lambda.amazonaws.com"), tid), ALICE) == []
-    assert reached(real(snap("braket.amazonaws.com"), tid), ALICE) == {
-        role_arn("job"): "conditional"}
+    assert_unresolved(real(snap("braket.amazonaws.com"), tid, include_unknown=True), ALICE)
+
+
+def test_braket_prior_catalog_binding_keeps_global_createjob_requirement():
+    from peaso.privesc import versioned_catalog as catalog
+
+    prior_binding = {"schema": catalog.BINDING_SCHEMA,
+                     "manifest_sha256": catalog.BRAKET_690_PREVIOUS_MANIFEST,
+                     "effective_tree_sha256": catalog.BRAKET_690_PREVIOUS_TREE,
+                     "source_revision": catalog.V4_REVISION}
+    old, old_status = catalog.lookup_entries(["aws-braket-passrole-createjob"], prior_binding)
+    new, new_status = catalog.lookup_entries(["aws-braket-passrole-createjob"],
+                                             catalog.current_binding())
+    assert old_status == "exact_previous_current"
+    assert new_status == "exact_strict_privesc"
+    assert any(req["action"] == "braket:CreateJob"
+               for req in old["aws-braket-passrole-createjob"]["requires"]["all_of"])
+    assert all(req["action"] != "braket:CreateJob"
+               for req in new["aws-braket-passrole-createjob"]["requires"]["all_of"])
+
+
+def test_scheduler_requires_grant_on_same_account_schedule_resource():
+    from pathlib import Path
+    import yaml
+    from peaso.privesc.effective_permissions.aws import AwsModel
+    from peaso.privesc.evaluator import Evaluator
+
+    catalog_file = Path(__file__).resolve().parents[1] / "peaso/privesc/catalog/aws/scheduler.yaml"
+    entry = next(item for item in yaml.safe_load(catalog_file.read_text())
+                 if item["id"] == "aws-scheduler-passrole-createschedule-or-updateschedule")
+    passed = role("scheduled", "scheduler.amazonaws.com",
+                  allow("iam:PutUserPolicy", resource=ALICE))
+
+    def evaluate(schedule_resource, *, target_role=passed, pass_service=None, source_grants=()):
+        passing = allow("iam:PassRole", resource=passed["Arn"])
+        if pass_service is not None:
+            passing["Condition"] = {"StringEquals": {"iam:PassedToService": pass_service}}
+        caller = user("alice", passing, allow("scheduler:CreateSchedule", resource=schedule_resource),
+                      *source_grants)
+        snap = aws_snap([caller], [target_role])
+        return [reach.targets for reach in Evaluator(AwsModel(snap), [entry],
+                 include_unknown=False).run() if reach.source.id == ALICE]
+
+    same_account = f"arn:aws:scheduler:{REGION}:{ACCOUNT}:schedule/default/*"
+    other_account = f"arn:aws:scheduler:{REGION}:{OTHER}:schedule/default/*"
+    assert evaluate(f"arn:aws:scheduler:{REGION}:{ACCOUNT}:schedule-group/*") == []
+    assert evaluate(other_account) == []
+    assert any(any("scheduler-policy:" in target for target in targets)
+               for targets in evaluate(same_account))
+    assert evaluate(same_account, target_role=role("scheduled", "scheduler.amazonaws.com")) == []
+    assert evaluate(same_account, target_role=role("scheduled", "lambda.amazonaws.com",
+                                                    allow("iam:PutUserPolicy", resource=ALICE))) == []
+    wrong_schedule_trust = role("scheduled", [{"Effect": "Allow",
+        "Principal": {"Service": "scheduler.amazonaws.com"}, "Action": "sts:AssumeRole",
+        "Condition": {"ArnEquals": {"aws:SourceArn":
+            f"arn:aws:scheduler:{REGION}:{ACCOUNT}:schedule/default/other"}}}],
+        allow("iam:PutUserPolicy", resource=ALICE))
+    assert evaluate(same_account, target_role=wrong_schedule_trust) == []
+    assert evaluate(same_account, target_role=role("scheduled", "scheduler.amazonaws.com",
+                                                    allow("iam:PutUserPolicy", resource=role_arn("other")))) == []
+    assert evaluate(same_account, pass_service="lambda.amazonaws.com") == []
+    assert evaluate(same_account, source_grants=[allow("iam:CreateUser")]) == []
+    assert evaluate(same_account, source_grants=[{"Effect": "Deny", "Action": "iam:CreateUser",
+                                                  "Resource": "*"}]) == []
+
+
+def test_scheduler_inline_policy_route_can_target_creator_role():
+    from pathlib import Path
+    import yaml
+    from peaso.privesc.effective_permissions.aws import AwsModel
+    from peaso.privesc.evaluator import Evaluator
+
+    entry = yaml.safe_load((Path(__file__).resolve().parents[1] /
+                            "peaso/privesc/catalog/aws/scheduler.yaml").read_text())[0]
+    executor_arn = role_arn("scheduled")
+    creator = role("creator", "ec2.amazonaws.com",
+                   allow("iam:PassRole", resource=executor_arn),
+                   allow("scheduler:CreateSchedule", resource=
+                         f"arn:aws:scheduler:{REGION}:{ACCOUNT}:schedule/default/*"))
+    executor = role("scheduled", "scheduler.amazonaws.com",
+                    allow("iam:PutRolePolicy", resource=creator["Arn"]))
+    reaches = [reach.targets for reach in Evaluator(AwsModel(aws_snap([], [creator, executor])),
+               [entry], include_unknown=False).run() if reach.source.id == creator["Arn"]]
+    assert any(any("scheduler-policy:" in target for target in targets) for targets in reaches)
+
+
+def test_datapipeline_grants_without_customer_and_role_pair_stay_unresolved():
+    from pathlib import Path
+    import yaml
+    from peaso.privesc.effective_permissions.aws import AwsModel
+    from peaso.privesc.evaluator import Evaluator
+
+    entry = yaml.safe_load((Path(__file__).resolve().parents[1] /
+                            "peaso/privesc/catalog/aws/datapipeline.yaml").read_text())[0]
+    target = role("instance", "ec2.amazonaws.com", profiles=[profile_arn("instance")])
+    caller = user("alice", allow("iam:PassRole", resource=target["Arn"]),
+                  allow("datapipeline:CreatePipeline", "datapipeline:PutPipelineDefinition",
+                        "datapipeline:ActivatePipeline"))
+    snap = aws_snap([caller], [target])
+    assert [r for r in Evaluator(AwsModel(snap), [entry], include_unknown=False).run()
+            if r.source.id == ALICE] == []
+    unresolved = [r for r in Evaluator(AwsModel(snap), [entry], include_unknown=True).run()
+                  if r.source.id == ALICE]
+    assert unresolved and all(grant.confidence == "unknown" for r in unresolved
+                              for grant in r.targets.values())
+
+
+def test_datapipeline_created_pipeline_joins_both_roles_and_observed_ec2_effect():
+    technique = "aws-datapipeline-passrole-create-activate"
+    pipeline_id = "df-ABC123"
+    pipeline_arn = f"arn:aws:datapipeline:{REGION}:{ACCOUNT}:pipeline/{pipeline_id}"
+    profile = profile_arn("instance")
+    instance = role("instance", "ec2.amazonaws.com",
+                    allow("s3:PutObject", resource="arn:aws:s3:::private-example/pipeline-output.txt"),
+                    profiles=[profile])
+    instance["RoleId"] = "AROAINSTANCE123456789"
+    pipeline = role("pipeline", "datapipeline.amazonaws.com")
+    pipeline["RoleId"] = "AROAPIPELINE123456789"
+    put_object = "arn:aws:s3:::private-example/pipeline-output.txt"
+    proof = {"TechniqueId": technique, "SourceArn": ALICE, "TargetKind": "aws_role",
+             "TargetId": instance["Arn"], "TargetScope": SCOPE, "TargetRoleId": instance["RoleId"],
+             "Status": "verified", "VerifiedPreconditions": True,
+             "PipelineRoleArn": pipeline["Arn"], "PipelineRoleId": pipeline["RoleId"],
+             "DefinitionPipelineRoleArn": pipeline["Arn"],
+             "DefinitionResourceRoleArn": instance["Arn"],
+             "ResourceRoleProfileArn": profile, "ExistingCustomerEligible": True,
+             "PipelineId": pipeline_id, "PipelineArn": pipeline_arn,
+             "CreatePipelineSucceeded": True, "PutPipelineDefinitionSucceeded": True,
+             "ActivatePipelineSucceeded": True,
+             "ActivityType": "ShellCommandActivity", "ResourceType": "Ec2Resource",
+             "CommandControlledBySource": True,
+             "InstanceArn": f"arn:aws:ec2:{REGION}:{ACCOUNT}:instance/i-0123456789abcdef0",
+             "InstanceLaunchedWithProfile": True, "ShellCommandSucceeded": True,
+             "RoleAction": "s3:PutObject", "RoleResource": put_object,
+             "RoleActionSucceeded": True, "EffectUsefulToSource": True,
+             "EvidenceRef": "reviewed-data-pipeline-command",
+             "EvidenceObservedAt": "2026-10-21T11:59:00+00:00",
+             "EvidenceExpiresAt": "2026-10-21T12:05:00+00:00"}
+
+    def result(evidence=proof, *, pipeline_pass=True, definition_resource=pipeline_arn,
+               activate_resource=pipeline_arn, target_role=instance, grants=()):
+        pass_instance = allow("iam:PassRole", resource=instance["Arn"])
+        pass_instance["Condition"] = {"StringEquals": {"iam:PassedToService": "ec2.amazonaws.com"}}
+        pass_pipeline = allow("iam:PassRole", resource=pipeline["Arn"])
+        pass_pipeline["Condition"] = {"StringEquals": {"iam:PassedToService": "datapipeline.amazonaws.com"}}
+        principal = user("alice", pass_instance,
+            *([pass_pipeline] if pipeline_pass else []),
+            allow("datapipeline:CreatePipeline"),
+            allow("datapipeline:PutPipelineDefinition", resource=definition_resource),
+            allow("datapipeline:ActivatePipeline", resource=activate_resource), *grants)
+        proofs = evidence if isinstance(evidence, list) else ([evidence] if evidence else [])
+        state = aws_snap([principal], [target_role, pipeline],
+                         [col("aws_privesc_challenge_evidence", proofs)])
+        state["created_at"] = "2026-10-21T12:00:00+00:00"
+        return real(state, technique, include_unknown=True)
+
+    assert instance["Arn"] in reached(result(), ALICE, technique)
+    assert instance["Arn"] not in reached(result(None), ALICE, technique)
+    assert_unresolved(result(None), ALICE, technique)
+    assert instance["Arn"] not in reached(result([proof, dict(proof)]), ALICE, technique)
+    for changed in ({"ExistingCustomerEligible": False},
+                    {"PipelineRoleArn": instance["Arn"]},
+                    {"DefinitionPipelineRoleArn": instance["Arn"]},
+                    {"DefinitionResourceRoleArn": pipeline["Arn"]},
+                    {"ResourceRoleProfileArn": profile_arn("other")},
+                    {"PipelineId": "df-OTHER"},
+                    {"PutPipelineDefinitionSucceeded": False},
+                    {"ActivatePipelineSucceeded": False},
+                    {"ActivityType": "SqlActivity"}, {"ResourceType": "EmrCluster"},
+                    {"CommandControlledBySource": False},
+                    {"InstanceLaunchedWithProfile": False},
+                    {"ShellCommandSucceeded": False},
+                    {"RoleAction": "s3:DeleteObject"},
+                    {"RoleActionSucceeded": False}, {"EffectUsefulToSource": False},
+                    {"TargetRoleId": "AROAOTHER"},
+                    {"EvidenceObservedAt": "2026-10-21T11:40:00+00:00"}):
+        assert instance["Arn"] not in reached(result(dict(proof, **changed)), ALICE, technique)
+    assert instance["Arn"] not in reached(result(pipeline_pass=False), ALICE, technique)
+    assert instance["Arn"] not in reached(result(definition_resource=pipeline_arn + "-other"), ALICE, technique)
+    assert instance["Arn"] not in reached(result(activate_resource=pipeline_arn + "-other"), ALICE, technique)
+    assert instance["Arn"] not in reached(result(grants=[allow("s3:PutObject", resource=put_object)]),
+                                           ALICE, technique)
+
+
+def test_synthetics_canary_inventory_binds_exact_execution_role():
+    import ast
+    from pathlib import Path
+    from peaso.privesc.effective_permissions.aws import AwsModel, HOST_KIND
+
+    collector = ast.parse((Path(__file__).resolve().parents[1] / "peaso/collectors/aws.py").read_text())
+    declared = {node.targets[0].id: ast.literal_eval(node.value)
+                for node in collector.body if isinstance(node, ast.Assign) and len(node.targets) == 1
+                and isinstance(node.targets[0], ast.Name) and node.targets[0].id in {"SPECS", "_NATIVE_IDS"}}
+    assert declared["SPECS"]["synthetics_canary"] == ("synthetics", "describe_canaries", "Canaries")
+    assert declared["_NATIVE_IDS"]["synthetics_canary"] == "Name"
+
+    canary_role = role("canary", "lambda.amazonaws.com")
+    canary_arn = f"arn:aws:synthetics:{REGION}:{ACCOUNT}:canary:daily_check"
+    snap = aws_snap([user("alice")], [canary_role], [col("synthetics_canary", [
+        {"Id": "canary-id", "Name": "daily_check", "ExecutionRoleArn": canary_role["Arn"]}])])
+    model = AwsModel(snap)
+    assert HOST_KIND["synthetics_canary"] == "synthetics_canary"
+    assert model.hosts[canary_role["Arn"]]["synthetics_canary"] == [canary_arn]
+    assert model.host_status[(ACCOUNT, "synthetics_canary")] == "collected"
+
+    missing_role = aws_snap([user("alice")], [canary_role], [col("synthetics_canary", [
+        {"Id": "canary-id", "Name": "daily_check"}])])
+    incomplete = AwsModel(missing_role)
+    assert incomplete.hosts.get(canary_role["Arn"], {}).get("synthetics_canary") is None
+    assert incomplete.host_status[(ACCOUNT, "synthetics_canary")] == "partial"
+
+
+def test_sqs_queue_policy_self_grant_requires_new_effective_receive_permission():
+    from pathlib import Path
+    import yaml
+    from peaso.privesc.effective_permissions.aws import AwsModel
+    from peaso.privesc.evaluator import Evaluator
+
+    catalog_file = Path(__file__).resolve().parents[1] / "peaso/privesc/catalog/aws/sqs.yaml"
+    entry = yaml.safe_load(catalog_file.read_text())[0]
+    queue_arn = f"arn:aws:sqs:{REGION}:{ACCOUNT}:sensitive"
+    queue_url = f"https://sqs.{REGION}.amazonaws.com/{ACCOUNT}/sensitive"
+
+    def evaluate(*, grants=(), encryption="", queue_policy=None, details="collected", writer_resource=None,
+                 queue_location=queue_url, boundary_deny=None, key_policy=None, key_status="collected"):
+        attrs = {"QueueArn": queue_arn, "KmsMasterKeyId": encryption}
+        if queue_policy is not None:
+            attrs["Policy"] = queue_policy
+        queue = {"QueueUrl": queue_location, "Attributes": {"collection_status": details,
+                 "Attributes": attrs}}
+        caller = user("alice", allow("sqs:SetQueueAttributes", resource=writer_resource or queue_arn), *grants)
+        if boundary_deny is not None:
+            boundary_arn = f"arn:aws:iam::{ACCOUNT}:policy/sqs-boundary"
+            caller["PermissionsBoundary"] = {"PermissionsBoundaryArn": boundary_arn}
+        extra = [col("sqs_queue", [queue])]
+        if key_policy is not None:
+            key_arn = f"arn:aws:kms:{REGION}:{ACCOUNT}:key/12345678-1234-1234-1234-123456789012"
+            extra.append(col("kms_key", [{"KeyId": key_arn.rsplit("/", 1)[1], "KeyArn": key_arn,
+                "Metadata": {"collection_status": key_status, "KeyMetadata": {"Arn": key_arn}},
+                "Policy": {"collection_status": key_status, "Policy": key_policy}}]))
+        snap = aws_snap([caller], [], extra)
+        if boundary_deny is not None:
+            statements = [allow("sqs:SetQueueAttributes", resource=queue_arn)]
+            if boundary_deny:
+                statements.append({"Effect": "Deny", "Action": "sqs:ReceiveMessage", "Resource": queue_arn})
+            next(c for c in snap["collections"] if c["type"] == "iam_policy")["items"] = [
+                {"Arn": boundary_arn, "PolicyName": "sqs-boundary", "PolicyVersionList": [
+                    {"IsDefaultVersion": True, "Document": policy(*statements)}]}]
+        return [reach.targets for reach in Evaluator(AwsModel(snap), [entry],
+                 include_unknown=False).run() if reach.source.id == ALICE]
+
+    gained = evaluate()
+    assert len(gained) == 1
+    assert any("sqs-policy:" in target and grant.confidence == "conditional"
+               for target, grant in gained[0].items())
+    assert len(evaluate(boundary_deny=False)) == 1
+    assert evaluate(grants=[allow("sqs:ReceiveMessage", resource=queue_arn)]) == []
+    assert evaluate(boundary_deny=True) == []
+    assert evaluate(grants=[{"Effect": "Deny", "Action": "sqs:ReceiveMessage", "Resource": queue_arn}]) == []
+    assert evaluate(writer_resource=f"arn:aws:sqs:{REGION}:{ACCOUNT}:other") == []
+    assert evaluate(queue_location=f"https://sqs.{REGION}.amazonaws.com/{ACCOUNT}/other") == []
+    deny_policy = policy({"Effect": "Deny", "Principal": {"AWS": ALICE},
+                          "Action": "sqs:ReceiveMessage", "Resource": queue_arn})
+    assert len(evaluate(queue_policy=deny_policy)) == 1
+    not_principal_deny = policy({"Effect": "Deny", "NotPrincipal": {"AWS": ALICE},
+                                 "Action": "sqs:ReceiveMessage", "Resource": queue_arn})
+    assert len(evaluate(queue_policy=not_principal_deny)) == 1
+    assert len(evaluate(queue_policy=not_principal_deny, boundary_deny=False)) == 1
+    existing_allow = policy({"Effect": "Allow", "Principal": {"AWS": ALICE},
+                             "Action": "sqs:ReceiveMessage", "Resource": queue_arn})
+    assert evaluate(queue_policy=existing_allow) == []
+    assert evaluate(queue_policy=existing_allow, boundary_deny=False) == []
+    assert len(evaluate(queue_policy=policy(*existing_allow["Statement"], *deny_policy["Statement"]))) == 1
+    account_delegation = policy({"Effect": "Allow", "Principal": {"AWS": f"arn:aws:iam::{ACCOUNT}:root"},
+                                 "Action": "sqs:ReceiveMessage", "Resource": queue_arn})
+    assert len(evaluate(queue_policy=account_delegation)) == 1
+    assert evaluate(encryption=None) == []
+    assert evaluate(encryption="alias/aws/sqs") == []
+    key_arn = f"arn:aws:kms:{REGION}:{ACCOUNT}:key/12345678-1234-1234-1234-123456789012"
+    decrypt_policy = policy({"Effect": "Allow", "Principal": {"AWS": ALICE},
+                             "Action": "kms:Decrypt", "Resource": "*"})
+    assert evaluate(encryption=key_arn) == []
+    assert len(evaluate(encryption=key_arn, key_policy=decrypt_policy)) == 1
+    assert len(evaluate(encryption=key_arn.rsplit("/", 1)[1], key_policy=decrypt_policy)) == 1
+    assert evaluate(encryption=key_arn, key_policy=decrypt_policy, key_status="access_denied") == []
+    assert evaluate(encryption=key_arn, key_policy=policy()) == []
+    assert evaluate(details="access_denied") == []
+
+
+def test_sns_topic_policy_self_grant_requires_new_effective_subscribe_permission():
+    from pathlib import Path
+    import yaml
+    from peaso.privesc.effective_permissions.aws import AwsModel
+    from peaso.privesc.evaluator import Evaluator
+
+    catalog_file = Path(__file__).resolve().parents[1] / "peaso/privesc/catalog/aws/sns.yaml"
+    entry = yaml.safe_load(catalog_file.read_text())[0]
+    topic_arn = f"arn:aws:sns:{REGION}:{ACCOUNT}:alerts"
+
+    def evaluate(*, grants=(), topic_policy=None, details="collected", writer_resource=None,
+                 boundary_deny=None):
+        attrs = {"TopicArn": topic_arn}
+        if topic_policy is not None:
+            attrs["Policy"] = topic_policy
+        topic = {"TopicArn": topic_arn, "Attributes": {"collection_status": details,
+                 "Attributes": attrs}}
+        caller = user("alice", allow("sns:SetTopicAttributes", resource=writer_resource or topic_arn), *grants)
+        if boundary_deny is not None:
+            boundary_arn = f"arn:aws:iam::{ACCOUNT}:policy/sns-boundary"
+            caller["PermissionsBoundary"] = {"PermissionsBoundaryArn": boundary_arn}
+        snap = aws_snap([caller], [], [col("sns_topic", [topic])])
+        if boundary_deny is not None:
+            statements = [allow("sns:SetTopicAttributes", resource=topic_arn)]
+            if boundary_deny:
+                statements.append({"Effect": "Deny", "Action": "sns:Subscribe", "Resource": topic_arn})
+            next(c for c in snap["collections"] if c["type"] == "iam_policy")["items"] = [
+                {"Arn": boundary_arn, "PolicyName": "sns-boundary", "PolicyVersionList": [
+                    {"IsDefaultVersion": True, "Document": policy(*statements)}]}]
+        return [reach.targets for reach in Evaluator(AwsModel(snap), [entry],
+                 include_unknown=False).run() if reach.source.id == ALICE]
+
+    assert len(evaluate()) == 1
+    assert len(evaluate(boundary_deny=False)) == 1
+    assert evaluate(boundary_deny=True) == []
+    assert evaluate(grants=[allow("sns:Subscribe", resource=topic_arn)]) == []
+    assert evaluate(grants=[{"Effect": "Deny", "Action": "sns:Subscribe", "Resource": topic_arn}]) == []
+    assert evaluate(writer_resource=f"arn:aws:sns:{REGION}:{ACCOUNT}:other") == []
+    existing_allow = policy({"Effect": "Allow", "Principal": {"AWS": ALICE},
+                             "Action": "sns:Subscribe", "Resource": topic_arn})
+    assert evaluate(topic_policy=existing_allow) == []
+    deny_policy = policy({"Effect": "Deny", "Principal": {"AWS": ALICE},
+                          "Action": "sns:Subscribe", "Resource": topic_arn})
+    assert len(evaluate(topic_policy=deny_policy)) == 1
+    assert len(evaluate(topic_policy=policy(*existing_allow["Statement"], *deny_policy["Statement"]))) == 1
+    assert evaluate(details="access_denied") == []
+
+
+def test_dynamodb_table_policy_self_grant_requires_new_effective_getitem_permission():
+    from pathlib import Path
+    import yaml
+    from peaso.privesc.effective_permissions.aws import AwsModel
+    from peaso.privesc.evaluator import Evaluator
+
+    catalog_file = Path(__file__).resolve().parents[1] / "peaso/privesc/catalog/aws/dynamodb.yaml"
+    entry = yaml.safe_load(catalog_file.read_text())[0]
+    table_arn = f"arn:aws:dynamodb:{REGION}:{ACCOUNT}:table/sensitive"
+
+    def evaluate(*, grants=(), table_policy=None, policy_status="empty", table_status="ACTIVE",
+                 encryption=None, writer_resource=None, boundary_deny=None):
+        table = {"TableArn": table_arn, "TableName": "sensitive", "TableStatus": table_status}
+        if encryption is not None:
+            table["SSEDescription"] = {"SSEType": encryption}
+        resource_policy = {"collection_status": policy_status}
+        if table_policy is not None:
+            resource_policy.update(collection_status="collected", Policy=table_policy)
+        item = {"TableName": "sensitive", "Table": {"collection_status": "collected", "Table": table},
+                "ResourcePolicy": resource_policy}
+        caller = user("alice", allow("dynamodb:PutResourcePolicy", resource=writer_resource or table_arn), *grants)
+        if boundary_deny is not None:
+            boundary_arn = f"arn:aws:iam::{ACCOUNT}:policy/dynamodb-boundary"
+            caller["PermissionsBoundary"] = {"PermissionsBoundaryArn": boundary_arn}
+        snap = aws_snap([caller], [], [col("dynamodb_table", [item])])
+        if boundary_deny is not None:
+            statements = [allow("dynamodb:PutResourcePolicy", resource=table_arn)]
+            if boundary_deny:
+                statements.append({"Effect": "Deny", "Action": "dynamodb:GetItem", "Resource": table_arn})
+            next(c for c in snap["collections"] if c["type"] == "iam_policy")["items"] = [
+                {"Arn": boundary_arn, "PolicyName": "dynamodb-boundary", "PolicyVersionList": [
+                    {"IsDefaultVersion": True, "Document": policy(*statements)}]}]
+        return [reach.targets for reach in Evaluator(AwsModel(snap), [entry],
+                 include_unknown=False).run() if reach.source.id == ALICE]
+
+    assert len(evaluate()) == 1
+    assert len(evaluate(boundary_deny=False)) == 1
+    assert evaluate(boundary_deny=True) == []
+    assert evaluate(grants=[allow("dynamodb:GetItem", resource=table_arn)]) == []
+    assert evaluate(grants=[{"Effect": "Deny", "Action": "dynamodb:GetItem", "Resource": table_arn}]) == []
+    assert evaluate(writer_resource=f"arn:aws:dynamodb:{REGION}:{ACCOUNT}:table/other") == []
+    existing_allow = policy({"Effect": "Allow", "Principal": {"AWS": ALICE},
+                             "Action": "dynamodb:GetItem", "Resource": table_arn})
+    assert evaluate(table_policy=existing_allow) == []
+    assert evaluate(table_policy=existing_allow, boundary_deny=False) == []
+    account_delegation = policy({"Effect": "Allow", "Principal": {"AWS": f"arn:aws:iam::{ACCOUNT}:root"},
+                                 "Action": "dynamodb:GetItem", "Resource": table_arn})
+    assert len(evaluate(table_policy=account_delegation)) == 1
+    deny_policy = policy({"Effect": "Deny", "Principal": {"AWS": ALICE},
+                          "Action": "dynamodb:GetItem", "Resource": table_arn})
+    assert len(evaluate(table_policy=deny_policy)) == 1
+    not_principal_deny = policy({"Effect": "Deny", "NotPrincipal": {"AWS": ALICE},
+                                 "Action": "dynamodb:GetItem", "Resource": table_arn})
+    assert len(evaluate(table_policy=not_principal_deny)) == 1
+    assert len(evaluate(table_policy=not_principal_deny, boundary_deny=False)) == 1
+    assert len(evaluate(table_policy=policy(*existing_allow["Statement"], *deny_policy["Statement"]))) == 1
+    assert evaluate(table_status="DELETING") == []
+    assert evaluate(encryption="KMS") == []
+    assert evaluate(policy_status="denied") == []
 
 
 def test_agentcore_created_interpreter_needs_grants_covering_its_generated_id():
@@ -1386,6 +3207,11 @@ def test_agentcore_created_interpreter_needs_grants_covering_its_generated_id():
                real(aws_snap([permitted], roles), tid, include_unknown=True)["coverage"])
     broad = candidate(prefix + "*", prefix + "*")
     assert reached(real(aws_snap([broad], roles), tid), ALICE) == {role_arn("core"): "conditional"}
+    scoped_create = user("alice", allow("iam:PassRole", resource=role_arn("core")),
+                         allow("bedrock-agentcore:CreateCodeInterpreter", resource=prefix + "*"),
+                         allow("bedrock-agentcore:StartCodeInterpreterSession", resource=prefix + "*"),
+                         allow("bedrock-agentcore:InvokeCodeInterpreter", resource=prefix + "*"))
+    assert edges(real(aws_snap([scoped_create], roles), tid), ALICE) == []
     restricted_role = role("core", [{"Effect": "Allow", "Principal": {
         "Service": "bedrock-agentcore.amazonaws.com"}, "Action": "sts:AssumeRole",
         "Condition": {"ArnEquals": {"aws:SourceArn": prefix + "other-1234567890"}}}])
@@ -1394,6 +3220,446 @@ def test_agentcore_created_interpreter_needs_grants_covering_its_generated_id():
     assert edges(real(aws_snap([exact], roles), tid), ALICE) == []
     disjoint = candidate(prefix + "alpha-*", prefix + "beta-*")
     assert edges(real(aws_snap([disjoint], roles), tid), ALICE) == []
+    free_name = candidate(prefix + "alpha-*", prefix + "alpha-??????????")
+    available = aws_snap([free_name], roles, extra=[col("agentcore_code_interpreter", [], "empty")])
+    assert reached(real(available, tid), ALICE, tid) == {role_arn("core"): "conditional"}
+    occupied = {"codeInterpreterArn": prefix + "alpha-1234567890", "name": "alpha",
+                "codeInterpreterId": "alpha-1234567890", "status": "READY",
+                "executionRoleArn": role_arn("core")}
+    occupied_snap = aws_snap([free_name], roles,
+                             extra=[col("agentcore_code_interpreter", [occupied])])
+    assert edges(real(occupied_snap, tid), ALICE) == []
+    unnamed_snap = aws_snap([free_name], roles,
+                            extra=[col("agentcore_code_interpreter", [{k: v for k, v in occupied.items()
+                                                                      if k != "name"}])])
+    assert edges(real(unnamed_snap, tid), ALICE) == []
+    partial_snap = aws_snap([free_name], roles,
+                            extra=[col("agentcore_code_interpreter", [], "partial")])
+    assert edges(real(partial_snap, tid), ALICE) == []
+
+
+def test_agentcore_existing_interpreter_joins_exact_ready_role_and_grants():
+    tid = "aws-bedrock-agentcore-codeinterpreter-existing"
+    arn = f"arn:aws:bedrock-agentcore:{REGION}:{ACCOUNT}:code-interpreter-custom/team-0123456789"
+    other = f"arn:aws:bedrock-agentcore:{REGION}:{ACCOUNT}:code-interpreter-custom/other-0123456789"
+    execution_role = role("core", "bedrock-agentcore.amazonaws.com")
+    ready = {"codeInterpreterArn": arn, "codeInterpreterId": "team-0123456789",
+             "executionRoleArn": role_arn("core"), "status": "READY"}
+    principal = user("alice", allow("bedrock-agentcore:StartCodeInterpreterSession", resource=arn),
+                     allow("bedrock-agentcore:InvokeCodeInterpreter", resource=arn))
+    result = real(aws_snap([principal], [execution_role],
+                           extra=[col("agentcore_code_interpreter", [ready])]), tid)
+    assert reached(result, ALICE, tid) == {role_arn("core"): "conditional"}
+    wrong_invoke = user("alice", allow("bedrock-agentcore:StartCodeInterpreterSession", resource=arn),
+                        allow("bedrock-agentcore:InvokeCodeInterpreter", resource=other))
+    assert edges(real(aws_snap([wrong_invoke], [execution_role],
+                               extra=[col("agentcore_code_interpreter", [ready])]), tid), ALICE) == []
+    failed = {**ready, "status": "CREATE_FAILED"}
+    assert edges(real(aws_snap([principal], [execution_role],
+                               extra=[col("agentcore_code_interpreter", [failed])]), tid), ALICE) == []
+    incomplete = {**ready, "status": "READY"}
+    partial_result = real(aws_snap([principal], [execution_role],
+                                   extra=[col("agentcore_code_interpreter", [incomplete], "partial")]),
+                          tid, include_unknown=True)
+    assert_unresolved(partial_result, ALICE, tid)
+
+
+def test_agentcore_runtime_update_needs_one_runtime_and_default_endpoint():
+    tid = "aws-bedrock-agentcore-updateagentruntime-passrole"
+    arn = f"arn:aws:bedrock-agentcore:{REGION}:{ACCOUNT}:runtime/team-0123456789"
+    endpoint = arn + "/runtime-endpoint/DEFAULT"
+    other = f"arn:aws:bedrock-agentcore:{REGION}:{ACCOUNT}:runtime/other-0123456789"
+    target = role("core", "bedrock-agentcore.amazonaws.com")
+    runtime = {"agentRuntimeArn": arn, "agentRuntimeId": "team-0123456789", "status": "READY",
+               "roleArn": role_arn("old")}
+    default = {"agentRuntimeArn": arn, "agentRuntimeEndpointArn": endpoint,
+               "name": "DEFAULT", "status": "READY"}
+    passed = allow("iam:PassRole", resource=role_arn("core"))
+    def scan(principal, runtime_rows=(runtime,), endpoint_rows=(default,), endpoint_status="collected"):
+        return real(aws_snap([principal], [target], extra=[
+            col("agentcore_agent_runtime", runtime_rows),
+            col("agentcore_runtime_endpoint", endpoint_rows, endpoint_status)]), tid)
+    principal = user("alice", passed, allow("bedrock-agentcore:UpdateAgentRuntime", resource=arn),
+                     allow("bedrock-agentcore:InvokeAgentRuntime", resource=[arn, endpoint]))
+    assert reached(scan(principal), ALICE, tid) == {}
+    wrong_update = user("alice", passed, allow("bedrock-agentcore:UpdateAgentRuntime", resource=other),
+                        allow("bedrock-agentcore:InvokeAgentRuntime", resource=[arn, endpoint]))
+    assert edges(scan(wrong_update), ALICE) == []
+    no_endpoint_grant = user("alice", passed, allow("bedrock-agentcore:UpdateAgentRuntime", resource=arn),
+                             allow("bedrock-agentcore:InvokeAgentRuntime", resource=arn))
+    assert edges(scan(no_endpoint_grant), ALICE) == []
+    wrong_pass = user("alice", {"Effect": "Allow", "Action": "iam:PassRole",
+                                "Resource": role_arn("core"),
+                                "Condition": {"ArnEquals": {"iam:AssociatedResourceArn": other}}},
+                      allow("bedrock-agentcore:UpdateAgentRuntime", resource=arn),
+                      allow("bedrock-agentcore:InvokeAgentRuntime", resource=[arn, endpoint]))
+    assert edges(scan(wrong_pass), ALICE) == []
+    nondefault = {**default, "name": "STAGING", "agentRuntimeEndpointArn": arn + "/runtime-endpoint/STAGING"}
+    assert edges(scan(principal, endpoint_rows=(nondefault,)), ALICE) == []
+    failed = {**default, "status": "UPDATE_FAILED"}
+    assert edges(scan(principal, endpoint_rows=(failed,)), ALICE) == []
+    partial = real(aws_snap([principal], [target], extra=[
+        col("agentcore_agent_runtime", [runtime]),
+        col("agentcore_runtime_endpoint", [default], "partial")]), tid, include_unknown=True)
+    assert_unresolved(partial, ALICE, tid)
+
+
+def test_agentcore_new_runtime_binds_generated_id_endpoint_and_free_name():
+    tid = "aws-bedrock-agentcore-createagentruntime-passrole"
+    prefix = f"arn:aws:bedrock-agentcore:{REGION}:{ACCOUNT}:runtime/"
+    target = role("core", "bedrock-agentcore.amazonaws.com")
+    pass_role = allow("iam:PassRole", resource=role_arn("core"))
+    create = allow("bedrock-agentcore:CreateAgentRuntime")
+    def principal(runtime_scope, endpoint_scope):
+        return user("alice", pass_role, create,
+                    allow("bedrock-agentcore:CreateAgentRuntimeEndpoint", resource=runtime_scope),
+                    allow("bedrock-agentcore:InvokeAgentRuntime",
+                          resource=[runtime_scope, endpoint_scope]))
+    def scan(who, rows=(), status="empty"):
+        return real(aws_snap([who], [target], extra=[col("agentcore_agent_runtime", rows, status)]), tid)
+    broad = principal("*", "*")
+    assert reached(scan(broad), ALICE, tid) == {}
+    without_endpoint_creation = user("alice", pass_role, create,
+        allow("bedrock-agentcore:InvokeAgentRuntime", resource="*"))
+    assert reached(scan(without_endpoint_creation), ALICE, tid) == {}
+    named = principal(prefix + "alpha-*", prefix + "alpha-*/runtime-endpoint/DEFAULT")
+    assert reached(scan(named), ALICE, tid) == {}
+    generated_suffix = principal(prefix + "alpha-??????????",
+                                 prefix + "alpha-??????????/runtime-endpoint/DEFAULT")
+    assert reached(scan(generated_suffix), ALICE, tid) == {}
+    occupied = {"agentRuntimeArn": prefix + "alpha-1234567890", "agentRuntimeName": "alpha",
+                "agentRuntimeId": "alpha-1234567890", "status": "READY", "roleArn": role_arn("core")}
+    assert edges(scan(named, [occupied], "collected"), ALICE) == []
+    assert edges(scan(named, [], "partial"), ALICE) == []
+    partial = real(aws_snap([named], [target], extra=[
+        col("agentcore_agent_runtime", [], "partial")]), tid, include_unknown=True)
+    assert_unresolved(partial, ALICE, tid)
+    disjoint = principal(prefix + "alpha-*", prefix + "beta-*/runtime-endpoint/DEFAULT")
+    assert edges(scan(disjoint), ALICE) == []
+    wrong_endpoint = principal(prefix + "alpha-*", prefix + "alpha-*/runtime-endpoint/STAGING")
+    assert edges(scan(wrong_endpoint), ALICE) == []
+    exact_generated_id = principal(prefix + "alpha-1234567890",
+                                   prefix + "alpha-1234567890/runtime-endpoint/DEFAULT")
+    assert edges(scan(exact_generated_id), ALICE) == []
+    wrong_service = user("alice", {"Effect": "Allow", "Action": "iam:PassRole",
+                                   "Resource": role_arn("core"),
+                                   "Condition": {"StringEquals": {"iam:PassedToService": "lambda.amazonaws.com"}}},
+                         create, allow("bedrock-agentcore:CreateAgentRuntimeEndpoint"),
+                         allow("bedrock-agentcore:InvokeAgentRuntime"))
+    assert edges(scan(wrong_service), ALICE) == []
+
+
+def test_agentcore_create_and_update_runtime_need_current_role_execution():
+    create_id = "aws-bedrock-agentcore-createagentruntime-passrole"
+    update_id = "aws-bedrock-agentcore-updateagentruntime-passrole"
+    runtime_arn = f"arn:aws:bedrock-agentcore:{REGION}:{ACCOUNT}:runtime/previous-0123456789"
+    endpoint_arn = runtime_arn + "/runtime-endpoint/DEFAULT"
+    object_arn = "arn:aws:s3:::private-bucket/evidence.txt"
+    target = role("core", "bedrock-agentcore.amazonaws.com",
+                  allow("s3:PutObject", resource=object_arn))
+    target["RoleId"] = "AROAAGENTCORE123456789"
+    passed = allow("iam:PassRole", resource=target["Arn"])
+    passed["Condition"] = {"StringEquals": {
+        "iam:PassedToService": "bedrock-agentcore.amazonaws.com"}}
+
+    def result(technique, evidence=None, *, version="1", role_row=target,
+               runtime_role=None, extra_caller=()):
+        caller = user("alice", passed, allow("bedrock-agentcore:CreateAgentRuntime"),
+                      allow("bedrock-agentcore:UpdateAgentRuntime", resource=runtime_arn),
+                      allow("bedrock-agentcore:InvokeAgentRuntime"), *extra_caller)
+        runtime = {"agentRuntimeArn": runtime_arn, "agentRuntimeId": "previous-0123456789",
+                   "agentRuntimeName": "previous", "agentRuntimeVersion": version,
+                   "roleArn": runtime_role or target["Arn"], "status": "READY"}
+        endpoint = {"agentRuntimeArn": runtime_arn, "agentRuntimeEndpointArn": endpoint_arn,
+                    "agentRuntimeVersion": version, "name": "DEFAULT", "status": "READY"}
+        proofs = evidence if isinstance(evidence, list) else ([evidence] if evidence else [])
+        snap = aws_snap([caller], [role_row], [col("agentcore_agent_runtime", [runtime]),
+            col("agentcore_runtime_endpoint", [endpoint]),
+            col("aws_privesc_challenge_evidence", proofs)])
+        snap["created_at"] = "2026-10-21T12:00:00+00:00"
+        return real(snap, technique, include_unknown=True)
+
+    for technique, operation in ((create_id, "CreateAgentRuntime"),
+                                 (update_id, "UpdateAgentRuntime")):
+        proof = {"TechniqueId": technique, "SourceArn": ALICE, "TargetKind": "aws_role",
+                 "TargetId": target["Arn"], "TargetRoleId": target["RoleId"],
+                 "TargetScope": SCOPE, "RuntimeOperation": operation,
+                 "RuntimeArn": runtime_arn, "EndpointArn": endpoint_arn,
+                 "RuntimeVersion": "1", "ArtifactDigest": "sha256:reviewed-artifact",
+                 "Status": "verified", "VerifiedPreconditions": True,
+                 "ArtifactControlledBySource": True, "ArtifactPullable": True,
+                 "EndpointServedRuntimeVersion": True, "RuntimeInvocationSucceeded": True,
+                 "RoleOperationSucceeded": True, "EffectUsefulToSource": True,
+                 "NewSessionUsed": True, "RoleAction": "s3:PutObject",
+                 "RoleResource": object_arn, "EvidenceRef": "reviewed-runtime-invocation",
+                 "EvidenceObservedAt": "2026-10-21T11:59:00+00:00",
+                 "EvidenceExpiresAt": "2026-10-21T12:05:00+00:00"}
+        assert target["Arn"] in reached(result(technique, proof), ALICE, technique)
+        assert target["Arn"] not in reached(result(technique), ALICE, technique)
+        assert_unresolved(result(technique), ALICE, technique)
+        assert target["Arn"] not in reached(result(technique, [proof, dict(proof)]), ALICE, technique)
+        for changed in ({"TargetRoleId": "AROADIFFERENT"}, {"RuntimeVersion": "2"},
+                        {"ArtifactPullable": False}, {"EndpointServedRuntimeVersion": False},
+                        {"RuntimeInvocationSucceeded": False}, {"RoleOperationSucceeded": False},
+                        {"EffectUsefulToSource": False}, {"RoleAction": "s3:DeleteObject"},
+                        {"SourceArn": f"arn:aws:iam::{ACCOUNT}:user/other"},
+                        {"EvidenceObservedAt": "2026-10-21T11:40:00+00:00"}):
+            assert target["Arn"] not in reached(result(technique, dict(proof, **changed)), ALICE, technique)
+        assert target["Arn"] not in reached(result(technique, proof, version="2"), ALICE, technique)
+        assert target["Arn"] not in reached(result(technique, proof,
+            runtime_role=role_arn("other")), ALICE, technique)
+        assert target["Arn"] not in reached(result(technique, proof,
+            extra_caller=[allow("s3:PutObject", resource=object_arn)]), ALICE, technique)
+        if operation == "UpdateAgentRuntime":
+            assert target["Arn"] not in reached(result(technique, dict(proof, NewSessionUsed=False)),
+                                                ALICE, technique)
+
+
+def test_agentcore_new_harness_requires_composite_actions_on_one_generated_scope():
+    tid = "aws-bedrock-agentcore-createharness-passrole"
+    target = role("core", "bedrock-agentcore.amazonaws.com")
+    creates = allow("bedrock-agentcore:CreateHarness", "bedrock-agentcore:CreateAgentRuntime",
+                    "bedrock-agentcore:CreateMemory")
+    pass_role = allow("iam:PassRole", resource=role_arn("core"))
+    def principal(invokes="*", command="*", memory="*", create=creates):
+        return user("alice", pass_role, create,
+                    allow("bedrock-agentcore:GetMemory", resource=memory),
+                    allow("bedrock-agentcore:InvokeHarness", "bedrock-agentcore:InvokeAgentRuntime",
+                          resource=invokes),
+                    allow("bedrock-agentcore:InvokeAgentRuntimeCommand", resource=command))
+    def scan(who, *, unknown=False, harnesses=None, status="empty"):
+        extra = [] if harnesses is None else [col("agentcore_harness", harnesses, status)]
+        return real(aws_snap([who], [target], extra=extra), tid, include_unknown=unknown)
+    assert reached(scan(principal()), ALICE, tid) == {}
+    assert edges(scan(principal(create=allow("bedrock-agentcore:CreateHarness",
+                                              "bedrock-agentcore:CreateAgentRuntime"))), ALICE) == []
+    assert_unresolved(scan(principal(memory="arn:aws:bedrock-agentcore:us-east-1:111111111111:memory/specific"),
+                           unknown=True), ALICE, tid)
+    scoped = "arn:aws:bedrock-agentcore:us-east-1:111111111111:harness/alpha-*"
+    assert_unresolved(scan(principal(invokes=scoped, command=scoped), unknown=True), ALICE, tid)
+    assert reached(scan(principal(invokes=scoped, command=scoped), harnesses=[]), ALICE, tid) == {}
+    occupied = {"arn": scoped[:-1] + "1234567890", "harnessId": "alpha-1234567890",
+                "harnessName": "alpha", "status": "READY", "executionRoleArn": role_arn("core")}
+    assert edges(scan(principal(invokes=scoped, command=scoped), harnesses=[occupied], status="collected"), ALICE) == []
+    assert_unresolved(scan(principal(invokes=scoped, command=scoped), harnesses=[], status="partial",
+                           unknown=True), ALICE, tid)
+    assert edges(scan(principal(command="arn:aws:bedrock-agentcore:us-east-1:111111111111:harness/beta-*")), ALICE) == []
+    missing_start = user("alice", pass_role, creates, allow("bedrock-agentcore:GetMemory"),
+                         allow("bedrock-agentcore:InvokeAgentRuntime",
+                               "bedrock-agentcore:InvokeAgentRuntimeCommand"))
+    assert edges(scan(missing_start), ALICE) == []
+    wrong_service = user("alice", {"Effect": "Allow", "Action": "iam:PassRole",
+                                   "Resource": role_arn("core"),
+                                   "Condition": {"StringEquals": {"iam:PassedToService": "lambda.amazonaws.com"}}},
+                         creates, allow("bedrock-agentcore:GetMemory"),
+                         allow("bedrock-agentcore:InvokeHarness", "bedrock-agentcore:InvokeAgentRuntime",
+                               "bedrock-agentcore:InvokeAgentRuntimeCommand"))
+    assert edges(scan(wrong_service), ALICE) == []
+
+
+def test_agentcore_harness_requires_reviewed_command_effect():
+    technique = "aws-bedrock-agentcore-createharness-passrole"
+    harness_arn = f"arn:aws:bedrock-agentcore:{REGION}:{ACCOUNT}:harness/previous-0123456789"
+    object_arn = "arn:aws:s3:::private-bucket/evidence.txt"
+    target = role("core", "bedrock-agentcore.amazonaws.com",
+                  allow("s3:PutObject", resource=object_arn))
+    target["RoleId"] = "AROAHARNESS123456789"
+    passed = allow("iam:PassRole", resource=target["Arn"])
+    passed["Condition"] = {"StringEquals": {
+        "iam:PassedToService": "bedrock-agentcore.amazonaws.com"}}
+    harness = {"arn": harness_arn, "harnessId": "previous-0123456789",
+               "harnessName": "previous", "harnessVersion": "1",
+               "executionRoleArn": target["Arn"], "status": "READY"}
+    proof = {"TechniqueId": technique, "SourceArn": ALICE, "TargetKind": "aws_role",
+             "TargetId": target["Arn"], "TargetRoleId": target["RoleId"],
+             "TargetScope": SCOPE, "HarnessArn": harness_arn, "HarnessVersion": "1",
+             "Status": "verified", "VerifiedPreconditions": True,
+             "ManagedImageReady": True, "ActiveSessionConfirmed": True,
+             "CommandSucceeded": True, "CommandRoleActionSucceeded": True,
+             "EffectUsefulToSource": True, "SessionId": "session-123",
+             "RoleAction": "s3:PutObject", "RoleResource": object_arn,
+             "EvidenceRef": "reviewed-harness-command",
+             "EvidenceObservedAt": "2026-10-21T11:59:00+00:00",
+             "EvidenceExpiresAt": "2026-10-21T12:05:00+00:00"}
+
+    def result(evidence=proof, *, harness_row=harness, extra_caller=()):
+        caller = user("alice", passed,
+                      allow("bedrock-agentcore:CreateHarness", "bedrock-agentcore:CreateAgentRuntime",
+                            "bedrock-agentcore:CreateMemory"),
+                      allow("bedrock-agentcore:InvokeHarness",
+                            "bedrock-agentcore:InvokeAgentRuntime",
+                            "bedrock-agentcore:InvokeAgentRuntimeCommand",
+                            "bedrock-agentcore:GetMemory"), *extra_caller)
+        proofs = evidence if isinstance(evidence, list) else ([evidence] if evidence else [])
+        snap = aws_snap([caller], [target], [col("agentcore_harness", [harness_row]),
+            col("aws_privesc_challenge_evidence", proofs)])
+        snap["created_at"] = "2026-10-21T12:00:00+00:00"
+        return real(snap, technique, include_unknown=True)
+
+    assert target["Arn"] in reached(result(), ALICE, technique)
+    assert target["Arn"] not in reached(result(None), ALICE, technique)
+    assert_unresolved(result(None), ALICE, technique)
+    assert target["Arn"] not in reached(result([proof, dict(proof)]), ALICE, technique)
+    for changed in ({"TargetRoleId": "AROADIFFERENT"}, {"HarnessVersion": "2"},
+                    {"ManagedImageReady": False}, {"ActiveSessionConfirmed": False},
+                    {"CommandSucceeded": False}, {"CommandRoleActionSucceeded": False},
+                    {"EffectUsefulToSource": False}, {"RoleAction": "s3:DeleteObject"},
+                    {"SourceArn": f"arn:aws:iam::{ACCOUNT}:user/other"},
+                    {"EvidenceObservedAt": "2026-10-21T11:40:00+00:00"}):
+        assert target["Arn"] not in reached(result(dict(proof, **changed)), ALICE, technique)
+    assert target["Arn"] not in reached(result(proof, harness_row=dict(harness, status="CREATE_FAILED")),
+                                        ALICE, technique)
+    assert target["Arn"] not in reached(result(proof, harness_row=dict(harness,
+        executionRoleArn=role_arn("other"))), ALICE, technique)
+    assert target["Arn"] not in reached(result(proof,
+        extra_caller=[allow("s3:PutObject", resource=object_arn)]), ALICE, technique)
+
+
+def test_sagemaker_job_scopes_and_passrole_service_remain_unresolved_without_execution():
+    target = role("core", "sagemaker.amazonaws.com")
+    for suffix, action, resource_type in (
+        ("createprocessingjob", "sagemaker:CreateProcessingJob", "processing-job"),
+        ("createtrainingjob", "sagemaker:CreateTrainingJob", "training-job"),
+        ("createhyperparametertuningjob", "sagemaker:CreateHyperParameterTuningJob",
+         "hyper-parameter-tuning-job"),
+    ):
+        tid = "aws-sagemaker-passrole-" + suffix
+        job = f"arn:aws:sagemaker:{REGION}:{ACCOUNT}:{resource_type}/alpha-*"
+        caller = user("alice", allow("iam:PassRole", resource=role_arn("core")),
+                      allow(action, resource=job))
+        assert_unresolved(real(aws_snap([caller], [target]), tid, include_unknown=True), ALICE, tid)
+        wrong_service = user("alice", {"Effect": "Allow", "Action": "iam:PassRole",
+                                       "Resource": role_arn("core"),
+                                       "Condition": {"StringEquals": {"iam:PassedToService": "lambda.amazonaws.com"}}},
+                             allow(action, resource=job))
+        assert edges(real(aws_snap([wrong_service], [target]), tid), ALICE, tid) == []
+
+
+def test_sagemaker_processing_inline_route_requires_free_scoped_job_and_matching_passrole():
+    tid = "aws-sagemaker-passrole-createprocessingjob"
+    target = role("core", "sagemaker.amazonaws.com")
+    job = f"arn:aws:sagemaker:{REGION}:{ACCOUNT}:processing-job/alpha-*"
+    create = allow("sagemaker:CreateProcessingJob", resource=job)
+    passed = allow("iam:PassRole", resource=role_arn("core"))
+
+    def evaluate(grants, inventory=(), status="collected"):
+        caller = user("alice", *grants)
+        result = real(aws_snap([caller], [target], [col("sagemaker_processing_job", inventory, status)]),
+                      tid, include_unknown=True)
+        return reached(result, ALICE, tid), result
+
+    members, _ = evaluate((passed, create))
+    assert members == {role_arn("core"): "conditional"}
+    exact = allow("sagemaker:CreateProcessingJob", resource=job[:-1] + "fixed")
+    assert role_arn("core") not in evaluate((passed, exact),
+        [{"ProcessingJobName": "alpha-fixed"}])[0]
+    assert role_arn("core") not in evaluate((passed, create), status="denied")[0]
+    wrong_service = {"Effect": "Allow", "Action": "iam:PassRole", "Resource": role_arn("core"),
+                     "Condition": {"StringEquals": {"iam:PassedToService": "lambda.amazonaws.com"}}}
+    assert role_arn("core") not in evaluate((wrong_service, create))[0]
+    isolated = {"Effect": "Allow", "Action": "sagemaker:CreateProcessingJob", "Resource": job,
+                "Condition": {"Bool": {"sagemaker:NetworkIsolation": "true"}}}
+    assert role_arn("core") not in evaluate((passed, isolated))[0]
+
+
+def test_sagemaker_training_inline_route_requires_writable_regional_output():
+    tid = "aws-sagemaker-passrole-createtrainingjob"
+    target = role("core", "sagemaker.amazonaws.com", allow("s3:PutObject",
+        resource="arn:aws:s3:::training-output/peaso-training-*"))
+    job = f"arn:aws:sagemaker:{REGION}:{ACCOUNT}:training-job/alpha-*"
+    passed = allow("iam:PassRole", resource=role_arn("core"))
+    create = allow("sagemaker:CreateTrainingJob", resource=job)
+    bucket = {"Name": "training-output", "Location": {"collection_status": "collected",
+              "LocationConstraint": REGION}, "Policy": {"collection_status": "empty", "absent": True},
+              "Encryption": {"collection_status": "empty", "absent": True}}
+
+    def evaluate(grants=(passed, create), role_item=target, buckets=(bucket,), bucket_state="collected",
+                 jobs=(), job_state="collected"):
+        caller = user("alice", *grants)
+        snap = aws_snap([caller], [role_item], [col("sagemaker_training_job", jobs, job_state),
+            col("bucket", buckets, bucket_state, scope=f"{ACCOUNT}/global")])
+        result = real(snap, tid, include_unknown=True)
+        return reached(result, ALICE, tid), result
+
+    assert evaluate()[0] == {role_arn("core"): "conditional"}
+    assert role_arn("core") not in evaluate(role_item=role("core", "sagemaker.amazonaws.com"))[0]
+    public_bucket = {**bucket, "Policy": {"collection_status": "collected", "Policy": policy({
+        "Effect": "Allow", "Principal": "*", "Action": "s3:PutObject",
+        "Resource": "arn:aws:s3:::training-output/*"})}}
+    assert role_arn("core") not in evaluate(role_item=role("core", "sagemaker.amazonaws.com"),
+                                             buckets=(public_bucket,))[0]
+    assert role_arn("core") not in evaluate(role_item=role("core", "sagemaker.amazonaws.com",
+        allow("s3:PutObject", resource="arn:aws:s3:::other-output/*")))[0]
+    assert role_arn("core") not in evaluate(buckets=())[0]
+    assert role_arn("core") not in evaluate(bucket_state="denied")[0]
+    assert role_arn("core") not in evaluate(jobs=[{"TrainingJobName": "alpha-fixed"}],
+        grants=(passed, allow("sagemaker:CreateTrainingJob", resource=job[:-1] + "fixed")))[0]
+    other_region = {**bucket, "Location": {"collection_status": "collected",
+                                         "LocationConstraint": "eu-west-1"}}
+    assert role_arn("core") not in evaluate(buckets=(other_region,))[0]
+    kms_bucket = {**bucket, "Encryption": {"collection_status": "collected",
+        "ServerSideEncryptionConfiguration": {"Rules": [{"ApplyServerSideEncryptionByDefault":
+            {"SSEAlgorithm": "aws:kms", "KMSMasterKeyID": "key"}}]}}}
+    assert role_arn("core") not in evaluate(buckets=(kms_bucket,))[0]
+    denying_bucket = {**bucket, "Policy": {"collection_status": "collected", "Policy": policy({
+        "Effect": "Deny", "Principal": "*", "Action": "s3:PutObject",
+        "Resource": "arn:aws:s3:::training-output/*"})}}
+    assert role_arn("core") not in evaluate(buckets=(denying_bucket,))[0]
+    isolated = {"Effect": "Allow", "Action": "sagemaker:CreateTrainingJob", "Resource": job,
+                "Condition": {"Bool": {"sagemaker:NetworkIsolation": "true"}}}
+    assert role_arn("core") not in evaluate(grants=(passed, isolated))[0]
+
+
+def test_sagemaker_hpo_script_route_joins_code_output_and_tuning_job():
+    tid = "aws-sagemaker-passrole-createhyperparametertuningjob"
+    job = f"arn:aws:sagemaker:{REGION}:{ACCOUNT}:hyper-parameter-tuning-job/alpha-*"
+    code = "arn:aws:s3:::training-output/peaso-hpo-*/code.tar.gz"
+    passed = allow("iam:PassRole", resource=role_arn("core"))
+    create = allow("sagemaker:CreateHyperParameterTuningJob", resource=job)
+    upload = allow("s3:PutObject", resource=code)
+    target = role("core", "sagemaker.amazonaws.com", allow("s3:GetObject", resource=code),
+                  allow("s3:PutObject", resource="arn:aws:s3:::training-output/output/*"))
+    bucket = {"Name": "training-output", "Location": {"collection_status": "collected",
+              "LocationConstraint": REGION}, "Policy": {"collection_status": "empty", "absent": True},
+              "Encryption": {"collection_status": "empty", "absent": True}}
+
+    def evaluate(grants=(passed, create, upload), role_item=target, buckets=(bucket,),
+                 bucket_state="collected", jobs=(), job_state="collected"):
+        caller = user("alice", *grants)
+        snap = aws_snap([caller], [role_item], [
+            col("sagemaker_hyperparameter_tuning_job", jobs, job_state),
+            col("bucket", buckets, bucket_state, scope=f"{ACCOUNT}/global")])
+        result = real(snap, tid, include_unknown=True)
+        return reached(result, ALICE, tid), result
+
+    assert evaluate()[0] == {role_arn("core"): "conditional"}
+    assert role_arn("core") not in evaluate(grants=(passed, create))[0]
+    assert role_arn("core") not in evaluate(role_item=role("core", "sagemaker.amazonaws.com",
+        allow("s3:PutObject", resource="arn:aws:s3:::training-output/output/*")))[0]
+    assert role_arn("core") not in evaluate(role_item=role("core", "sagemaker.amazonaws.com",
+        allow("s3:GetObject", resource=code)))[0]
+    assert role_arn("core") not in evaluate(buckets=())[0]
+    assert role_arn("core") not in evaluate(job_state="denied")[0]
+    other_region = {**bucket, "Location": {"collection_status": "collected",
+                                         "LocationConstraint": "eu-west-1"}}
+    assert role_arn("core") not in evaluate(buckets=(other_region,))[0]
+    kms_bucket = {**bucket, "Encryption": {"collection_status": "collected",
+        "ServerSideEncryptionConfiguration": {"Rules": [{"ApplyServerSideEncryptionByDefault":
+            {"SSEAlgorithm": "aws:kms", "KMSMasterKeyID": "key"}}]}}}
+    assert role_arn("core") not in evaluate(buckets=(kms_bucket,))[0]
+    denying_bucket = {**bucket, "Policy": {"collection_status": "collected", "Policy": policy({
+        "Effect": "Deny", "Principal": "*", "Action": "s3:PutObject",
+        "Resource": "arn:aws:s3:::training-output/*"})}}
+    assert role_arn("core") not in evaluate(buckets=(denying_bucket,))[0]
+    assert role_arn("core") not in evaluate(jobs=[{"HyperParameterTuningJobName": "alpha-fixed"}],
+        grants=(passed, allow("sagemaker:CreateHyperParameterTuningJob",
+            resource=job[:-1] + "fixed"), upload))[0]
+    wrong_service = {"Effect": "Allow", "Action": "iam:PassRole", "Resource": role_arn("core"),
+                     "Condition": {"StringEquals": {"iam:PassedToService": "lambda.amazonaws.com"}}}
+    assert role_arn("core") not in evaluate(grants=(wrong_service, create, upload))[0]
+    isolated = {"Effect": "Allow", "Action": "sagemaker:CreateHyperParameterTuningJob",
+                "Resource": job, "Condition": {"Bool": {"sagemaker:NetworkIsolation": "true"}}}
+    assert role_arn("core") not in evaluate(grants=(passed, isolated, upload))[0]
 
 
 def test_lambda_edge_requires_both_replication_permissions_in_us_east_1():
@@ -1439,6 +3705,39 @@ def test_lambda_edge_requires_both_replication_permissions_in_us_east_1():
                  allow("cloudfront:UpdateDistribution", "iam:CreateServiceLinkedRole"))
     assert reached(real(snap(exact), tid), ALICE) == {role_arn("edge"): "conditional"}
     assert edges(real(snap(exact, functions=({"FunctionName": "alpha", "FunctionArn": alpha},)), tid), ALICE) == []
+
+
+def test_lambda_edge_new_distribution_and_scoped_existing_distribution():
+    tid = "aws-cloudfront-lambda-edge-passrole"
+    edge_role = role("edge", [{"Effect": "Allow", "Principal": {"Service": [
+        "lambda.amazonaws.com", "edgelambda.amazonaws.com"]}, "Action": "sts:AssumeRole"}])
+    function_actions = ("lambda:CreateFunction", "lambda:PublishVersion", "lambda:GetFunction",
+                        "lambda:EnableReplication", "lambda:DisableReplication")
+    distribution_arn = f"arn:aws:cloudfront::{ACCOUNT}:distribution/DIST1"
+    def principal(distribution_action=None, resource="*"):
+        grants = [allow("iam:PassRole", resource=role_arn("edge")), allow(*function_actions),
+                  allow("iam:CreateServiceLinkedRole")]
+        if distribution_action:
+            grants.append(allow(distribution_action, resource=resource))
+        return user("alice", *grants)
+    def snapshot(source, distributions=None):
+        collections = [col("lambda_function", [], scope=f"{ACCOUNT}/us-east-1")]
+        if distributions is not None:
+            collections.append(col("cloudfront_distribution", distributions, scope=f"{ACCOUNT}/global"))
+        return aws_snap([source], [edge_role], collections)
+    assert reached(real(snapshot(principal("cloudfront:CreateDistribution")), tid), ALICE) == {
+        role_arn("edge"): "conditional"}
+    assert edges(real(snapshot(principal()), tid), ALICE) == []
+    assert edges(real(snapshot(principal("cloudfront:CreateDistribution", distribution_arn)), tid), ALICE) == []
+    only_lambda_trust = aws_snap([principal("cloudfront:CreateDistribution")],
+                                 [role("edge", "lambda.amazonaws.com")],
+                                 [col("lambda_function", [], scope=f"{ACCOUNT}/us-east-1")])
+    assert edges(real(only_lambda_trust, tid), ALICE) == []
+    deployed = {"ARN": distribution_arn, "Id": "DIST1", "Status": "Deployed"}
+    assert reached(real(snapshot(principal("cloudfront:UpdateDistribution", distribution_arn),
+                                 [deployed]), tid), ALICE) == {role_arn("edge"): "conditional"}
+    assert edges(real(snapshot(principal("cloudfront:UpdateDistribution", distribution_arn),
+                               []), tid), ALICE) == []
 
 
 def test_codebuild_startbuild_requires_permission_for_a_buildspec_override():
@@ -1595,6 +3894,7 @@ def test_codepipeline_updateproject_uses_one_configured_pipeline_and_project():
     project_arn = f"arn:aws:codebuild:{REGION}:{ACCOUNT}:project/demo"
     builder = role_arn("builder")
     pipeline_role = role_arn("pipeline")
+    role_action_resource = "arn:aws:s3:::private-example/pipeline-output.txt"
     def snap(principal, *, artifact="src-out", override=None, action_role=None,
              pipeline_start=True, pipeline_passrole=False, buildspec_override=False,
              batch_enabled=False, batch_role_can_start=True):
@@ -1619,8 +3919,10 @@ def test_codepipeline_updateproject_uses_one_configured_pipeline_and_project():
                                       resource=project_arn)] if pipeline_start else []
         if pipeline_passrole:
             pipeline_permissions.append(allow("iam:PassRole", resource=override))
-        roles = [role("builder", "codebuild.amazonaws.com"),
+        roles = [role("builder", "codebuild.amazonaws.com",
+                      allow("s3:PutObject", resource=role_action_resource)),
                  role("pipeline", "codepipeline.amazonaws.com", *pipeline_permissions)]
+        roles[0]["RoleId"] = "AROAPIPELINEBUILD1234"
         if override:
             roles.append(role("override", "codebuild.amazonaws.com"))
         if batch_enabled:
@@ -1637,6 +3939,56 @@ def test_codepipeline_updateproject_uses_one_configured_pipeline_and_project():
     allowed = user("alice", allow("codebuild:UpdateProject", resource=project_arn),
                    allow("codepipeline:StartPipelineExecution", resource=pipeline_arn))
     assert_unresolved(real(snap(allowed), tid, include_unknown=True), ALICE, tid)
+
+    def witnessed(changed=None, *, principal=allowed):
+        state = snap(principal)
+        definition = state["collections"][-2]["items"][0]["ActionMetadata"]["pipeline"]
+        project = state["collections"][-1]["items"][0]["Configuration"]["projects"][0]
+        digest = lambda value: hashlib.sha256(json.dumps(value, sort_keys=True,
+            separators=(",", ":"), default=str).encode()).hexdigest()
+        proof = {"TechniqueId": tid, "SourceArn": ALICE, "TargetKind": "aws_role",
+                 "TargetId": builder, "TargetScope": SCOPE, "TargetRoleId": "AROAPIPELINEBUILD1234",
+                 "Status": "verified", "VerifiedPreconditions": True,
+                 "PipelineArn": pipeline_arn, "ProjectArn": project_arn,
+                 "BuildActionName": "build", "PipelineDefinitionSha256": digest(definition),
+                 "ProjectConfigurationSha256": digest(project),
+                 "PipelineRoleArn": pipeline_role, "BuildActionRoleArn": pipeline_role,
+                 "BuildServiceRoleArn": builder, "BatchEnabled": False,
+                 "ServiceRoleOverrideArn": None, "InputArtifacts": ["src-out"],
+                 "SourceArtifactsProduced": True, "BuildConsumedInputs": True,
+                 "BuildspecUpdatedBySource": True, "BuildspecExecuted": True,
+                 "BuildStarted": True, "RoleActionSucceeded": True,
+                 "EffectUsefulToSource": True, "PipelineExecutionId": "execution-123",
+                 "BuildId": "demo:12345678-1234-1234-1234-123456789012",
+                 "RoleAction": "s3:PutObject", "RoleResource": role_action_resource,
+                 "EvidenceRef": "reviewed-pipeline-build-execution",
+                 "EvidenceObservedAt": "2026-10-21T11:59:00+00:00",
+                 "EvidenceExpiresAt": "2026-10-21T12:05:00+00:00"}
+        if changed:
+            proof.update(changed)
+        state["collections"].append({"type": "aws_privesc_challenge_evidence",
+            "scope": SCOPE, "service": "aws_privesc_challenge_evidence", "status": "collected",
+            "items": [proof], "error": None})
+        state["created_at"] = "2026-10-21T12:00:00+00:00"
+        return state
+
+    assert builder in reached(real(witnessed(), tid), ALICE, tid)
+    for changed in ({"InputArtifacts": ["other"]}, {"InputArtifacts": [7]},
+                    {"SourceArtifactsProduced": False},
+                    {"BuildConsumedInputs": False}, {"BuildspecExecuted": False},
+                    {"RoleActionSucceeded": False}, {"RoleAction": "s3:DeleteObject"},
+                    {"PipelineDefinitionSha256": "old-definition"},
+                    {"ProjectConfigurationSha256": "old-project"},
+                    {"TargetRoleId": "AROAOTHER"},
+                    {"EvidenceObservedAt": "2026-10-21T11:40:00+00:00"}):
+        assert builder not in reached(real(witnessed(changed,), tid), ALICE, tid)
+    assert builder not in reached(real(witnessed(principal=user("alice",
+        allow("codebuild:UpdateProject", resource=project_arn),
+        allow("codepipeline:StartPipelineExecution", resource=pipeline_arn),
+        allow("s3:PutObject", resource=role_action_resource))), tid), ALICE, tid)
+    duplicate = witnessed()
+    duplicate["collections"][-1]["items"].append(dict(duplicate["collections"][-1]["items"][0]))
+    assert builder not in reached(real(duplicate, tid), ALICE, tid)
     wrong_pipeline = user("alice", allow("codebuild:UpdateProject", resource=project_arn),
                           allow("codepipeline:StartPipelineExecution", resource=pipeline_arn + "-other"))
     assert edges(real(snap(wrong_pipeline), tid), ALICE) == []
@@ -1884,3 +4236,40 @@ def test_codebuild_updateproject_needs_existing_project_and_target_role_allowed(
     no_child_grant = aws_snap([batch_only], [roles[0], roles[1], role("batch", "codebuild.amazonaws.com")],
                               [col("codebuild_project", [existing_batch])])
     assert edges(real(no_child_grant, tid), ALICE) == []
+
+
+def test_runinstances_scoped_grant_stays_visible_without_claiming_role_execution():
+    ident = "aws-ec2-passrole-runinstances"
+    target = role("target", "ec2.amazonaws.com", profiles=[profile_arn("target")])
+    image = f"arn:aws:ec2:{REGION}::image/ami-1234567890abcdef0"
+
+    def caller(service, run=True):
+        passrole = {"Effect": "Allow", "Action": "iam:PassRole", "Resource": target["Arn"],
+                    "Condition": {"StringEquals": {"iam:PassedToService": service}}}
+        statements = [passrole]
+        if run:
+            statements.append(allow("ec2:RunInstances", resource=image))
+        return user("alice", *statements)
+
+    result = real(aws_snap([caller("ec2.amazonaws.com")], [target]), ident, include_unknown=True)
+    assert target["Arn"] not in reached(result, ALICE, ident)
+    assert_unresolved(result, ALICE, ident)
+    for source in (caller("lambda.amazonaws.com"), caller("ec2.amazonaws.com", run=False)):
+        assert not reached(real(aws_snap([source], [target]), ident), ALICE, ident)
+
+
+def test_runinstances_prior_catalog_binding_preserves_earlier_requirements():
+    from peaso.privesc import versioned_catalog as catalog
+
+    ident = "aws-ec2-passrole-runinstances"
+    old_binding = {"schema": catalog.BINDING_SCHEMA,
+                   "manifest_sha256": catalog.EC2_RUNINSTANCES_689_PREVIOUS_MANIFEST,
+                   "effective_tree_sha256": catalog.EC2_RUNINSTANCES_689_PREVIOUS_TREE,
+                   "source_revision": catalog.V4_REVISION}
+    old, old_status = catalog.lookup_entries([ident], old_binding)
+    new, new_status = catalog.lookup_entries([ident], catalog.current_binding())
+    assert old_status == "exact_previous_current"
+    assert new_status == "exact_strict_privesc"
+    assert any(req["action"] == "ec2:RunInstances" for req in old[ident]["requires"]["all_of"])
+    assert all(req["action"] != "ec2:RunInstances" for req in new[ident]["requires"]["all_of"])
+    assert new[ident]["preconditions"] == ["ec2_runinstances_launch_with_passed_profile_unverified"]

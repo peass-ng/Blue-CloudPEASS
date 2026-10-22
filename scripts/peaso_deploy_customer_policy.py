@@ -21,6 +21,13 @@ VERIFIED_ACTIONS = frozenset(('access-analyzer:ListAnalyzers', 'access-analyzer:
 
 # Reviewed metadata-only reads: IAM ListPolicies and EMR ListInstances.
 VERIFIED_ACTIONS = VERIFIED_ACTIONS | {"iam:ListPolicies", "iam:GetPolicyVersion", "elasticmapreduce:ListInstances"}
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | {"amplify:ListBranches"}
+# Exact queue-to-role binding for the Deadline Cloud privilege-escalation map.
+# https://docs.aws.amazon.com/service-authorization/latest/reference/list_deadline.html
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | {"deadline:ListQueues", "deadline:GetQueue", "deadline:ListWorkers"}
+# Studio space inventory reads the existing space and its execution-role owner.
+# https://docs.aws.amazon.com/service-authorization/latest/reference/list_sagemaker.html
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | {"sagemaker:ListSpaces", "sagemaker:DescribeSpace"}
 # Current collector reads verified against the AWS service authorization references:
 # https://docs.aws.amazon.com/service-authorization/latest/reference/list_elb.html
 # https://docs.aws.amazon.com/macie/latest/user/security_iam_id-based-policy-examples.html
@@ -579,6 +586,65 @@ CONTROLTOWER_ACTIONS = frozenset(action for rows in CONTROLTOWER_STATEMENTS.valu
 
 VERIFIED_ACTIONS = VERIFIED_ACTIONS | WAF_ASSOCIATION_ACTIONS | NATIVE_METADATA_ACTIONS | CONTROLTOWER_ACTIONS
 
+# Session inventory is required to join an existing Athena Spark session to its
+# exact execution role. These APIs return metadata, never endpoint/notebook tokens.
+ATHENA_SESSION_METADATA_REFERENCES = {
+    "athena:ListSessions": "https://docs.aws.amazon.com/athena/latest/APIReference/API_ListSessions.html",
+    "athena:GetSession": "https://docs.aws.amazon.com/athena/latest/APIReference/API_GetSession.html",
+}
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(ATHENA_SESSION_METADATA_REFERENCES)
+
+# The exact live session and its RoleArn are needed for the GameLift Streams
+# administrative-shell route; both APIs return session metadata only.
+GAMELIFT_STREAM_SESSION_METADATA_REFERENCES = {
+    "gameliftstreams:ListStreamGroups": "https://docs.aws.amazon.com/gameliftstreams/latest/apireference/API_ListStreamGroups.html",
+    "gameliftstreams:ListStreamSessions": "https://docs.aws.amazon.com/gameliftstreams/latest/apireference/API_ListStreamSessions.html",
+}
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(GAMELIFT_STREAM_SESSION_METADATA_REFERENCES)
+
+# Fleet configuration and compute IDs bind GetComputeAccess to the exact
+# existing EC2 instance role. These reads return metadata, not shell credentials.
+GAMELIFT_FLEET_METADATA_REFERENCES = {
+    "gamelift:ListFleets": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_gamelift.html",
+    "gamelift:DescribeFleetAttributes": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_gamelift.html",
+    "gamelift:ListCompute": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_gamelift.html",
+}
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(GAMELIFT_FLEET_METADATA_REFERENCES)
+
+# Existing IoT aliases are read with their target role to bind certificate paths
+# to an exact IAM principal. These calls return no certificate or private key.
+IOT_ROLE_ALIAS_METADATA_REFERENCE = {
+    "iot:ListRoleAliases": "https://docs.aws.amazon.com/iot/latest/apireference/API_ListRoleAliases.html",
+    "iot:DescribeRoleAlias": "https://docs.aws.amazon.com/iot/latest/apireference/API_DescribeRoleAlias.html",
+}
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(IOT_ROLE_ALIAS_METADATA_REFERENCE)
+
+# Device Farm upload and device-pool names are needed to bind a custom test
+# specification to an existing project and run. Upload URLs are discarded.
+DEVICEFARM_TEST_METADATA_REFERENCES = {
+    "devicefarm:GetDevicePoolCompatibility": "https://docs.aws.amazon.com/devicefarm/latest/APIReference/API_GetDevicePoolCompatibility.html",
+    "devicefarm:ListUploads": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_devicefarm.html",
+    "devicefarm:ListDevicePools": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_devicefarm.html",
+}
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(DEVICEFARM_TEST_METADATA_REFERENCES)
+
+# Exact lifecycle-configuration names prevent a create permission on an
+# already occupied name from being mistaken for notebook role execution.
+SAGEMAKER_NOTEBOOK_LIFECYCLE_METADATA_REFERENCE = {
+    "sagemaker:ListNotebookInstanceLifecycleConfigs":
+        "https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ListNotebookInstanceLifecycleConfigs.html",
+}
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(SAGEMAKER_NOTEBOOK_LIFECYCLE_METADATA_REFERENCE)
+SAGEMAKER_STUDIO_LIFECYCLE_METADATA_REFERENCE = {
+    "sagemaker:ListStudioLifecycleConfigs":
+        "https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ListStudioLifecycleConfigs.html",
+}
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(SAGEMAKER_STUDIO_LIFECYCLE_METADATA_REFERENCE)
+BRAKET_DEVICE_METADATA_REFERENCE = {
+    "braket:SearchDevices": "https://docs.aws.amazon.com/braket/latest/APIReference/API_SearchDevices.html",
+}
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(BRAKET_DEVICE_METADATA_REFERENCE)
+
 
 def build_policy(read_actions=None, *, include_credential_report_generation=None,
                  include_waf_association_companions=True):
@@ -915,6 +981,21 @@ def refresh(root: Path, *, read_actions=None, include_credential_report_generati
     template["Metadata"]["PeasoNetworkServiceMetadataReference"] = {
         "Sources": NETWORK_SERVICE_READ_REFERENCES,
         "Boundary": "Read-only VPC origin and subnet/security-group attachments; no application content or network changes.",
+    }
+    template["Metadata"]["PeasoGameLiftFleetMetadataReference"] = {
+        "Actions": sorted(GAMELIFT_FLEET_METADATA_REFERENCES),
+        "Sources": GAMELIFT_FLEET_METADATA_REFERENCES,
+        "Boundary": "Fleet role configuration and compute identifiers only; no remote access or role credentials.",
+    }
+    template["Metadata"]["PeasoIoTRoleAliasMetadataReference"] = {
+        "Actions": sorted(IOT_ROLE_ALIAS_METADATA_REFERENCE),
+        "Sources": IOT_ROLE_ALIAS_METADATA_REFERENCE,
+        "Boundary": "Existing IoT role alias names and target role ARNs only; no certificates, private keys or role credentials.",
+    }
+    template["Metadata"]["PeasoDeviceFarmTestMetadataReference"] = {
+        "Actions": sorted(DEVICEFARM_TEST_METADATA_REFERENCES),
+        "Sources": DEVICEFARM_TEST_METADATA_REFERENCES,
+        "Boundary": "Project upload and device-pool metadata only; no signed upload URLs, test content or role credentials.",
     }
     # Compact new templates to preserve source export budgets. Archived versions
     # are never reformatted or overwritten; CloudFormation parses the same JSON.

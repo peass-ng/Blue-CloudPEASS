@@ -1,39 +1,4 @@
 {
-  "aws-audit-use-existing-parameterized-automation-runbook-with-runtime-passrole": {
-    "provider": "aws",
-    "target_kind": "aws_role",
-    "conditions": [
-      "exact_verified_prerequisites"
-    ],
-    "requires": {
-      "all_of": [
-        {
-          "action": "ssm:StartAutomationExecution",
-          "resource": "*"
-        },
-        {
-          "action": "iam:PassRole",
-          "resource": "*"
-        }
-      ]
-    }
-  },
-  "aws-codebuild-ssm-debug-session-role": {
-    "provider": "aws",
-    "target_kind": "aws_role",
-    "conditions": [
-      "live_breakpoint",
-      "verified_collector_fact"
-    ],
-    "requires": {
-      "all_of": [
-        {
-          "action": "ssm:StartSession",
-          "resource": "*"
-        }
-      ]
-    }
-  },
   "aws-devicefarm-schedulerun-existing-test-spec-passrole": {
     "provider": "aws",
     "target_kind": "aws_role",
@@ -43,16 +8,7 @@
       "verified_collector_fact"
     ],
     "requires": {
-      "all_of": [
-        {
-          "action": "devicefarm:ScheduleRun",
-          "resource": "*"
-        },
-        {
-          "action": "iam:PassRole",
-          "resource": "*"
-        }
-      ]
+      "all_of": []
     }
   },
   "aws-iot-byo-certificate-existing-rolealias": {

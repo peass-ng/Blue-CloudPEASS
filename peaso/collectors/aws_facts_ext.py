@@ -19,13 +19,13 @@ Outputs are explicit field allowlists:
   endpoints, IAM Roles Anywhere profiles.
 * Workload hosts: Image Builder pipelines with their infrastructure instance
   profile and their image recipe's component ARNs (GetImageRecipe; no recipe
-  content, parameters or user data), SageMaker user profiles / HyperPod clusters with their execution roles,
+  content, parameters or user data), SageMaker user profiles / spaces / HyperPod clusters with their execution roles,
   SageMaker domain default execution roles.
 * Application planes: Managed Grafana workspaces, QuickSight users (role and
   identity type, no e-mail) and subscription status/authentication type,
   Supply Chain instances, Amplify apps with their
   Gen 1 backend environments (no environment variables, build specs or basic-auth
-  credentials).
+  credentials), Device Farm uploads and device pools (no signed upload URLs or test content).
 * IAM Identity Center account assignments (permission set, account, principal
   type/id) and group display names.
 
@@ -55,8 +55,13 @@ SPECS = {
     "rolesanywhere_profile": ("rolesanywhere", "list_profiles", "profiles"),
     "imagebuilder_pipeline": ("imagebuilder", "list_image_pipelines", "imagePipelineList"),
     "sagemaker_user_profile": ("sagemaker", "list_user_profiles", "UserProfiles"),
+    "sagemaker_space": ("sagemaker", "list_spaces", "Spaces"),
     "sagemaker_cluster": ("sagemaker", "list_clusters", "ClusterSummaries"),
     "grafana_workspace": ("grafana", "list_workspaces", "workspaces"),
+    "gamelift_ec2_compute": ("gamelift", "list_fleets", "FleetIds"),
+    "iot_role_alias": ("iot", "list_role_aliases", "roleAliases"),
+    "devicefarm_upload": ("devicefarm", "list_uploads", "uploads"),
+    "devicefarm_device_pool": ("devicefarm", "list_device_pools", "devicePools"),
     "quicksight_user": ("quicksight", "list_users", "UserList"),
     "quicksight_account_subscription": ("quicksight", "describe_account_subscription", None),
     "supplychain_instance": ("supplychain", "list_instances", "instances"),
@@ -80,8 +85,12 @@ READ_ACTIONS = {
     ("cloudformation", "describe_organizations_access"),
     ("imagebuilder", "list_infrastructure_configurations"), ("imagebuilder", "get_image_recipe"),
     ("sagemaker", "describe_user_profile"), ("sagemaker", "describe_cluster"), ("sagemaker", "describe_domain"),
-    ("amplify", "list_backend_environments"),
+    ("sagemaker", "describe_space"),
+    ("amplify", "list_backend_environments"), ("amplify", "list_branches"),
     ("quicksight", "describe_account_subscription"),
+    ("gamelift", "describe_fleet_attributes"), ("gamelift", "list_compute"),
+    ("devicefarm", "list_projects"), ("devicefarm", "get_device_pool_compatibility"),
+    ("iot", "describe_role_alias"),
     ("sso-admin", "list_instances"), ("sso-admin", "list_permission_sets"),
     ("sso-admin", "list_accounts_for_provisioned_permission_set"), ("identitystore", "list_groups"),
 }
@@ -96,6 +105,88 @@ _ESM_FIELDS = ("UUID", "EventSourceMappingArn", "EventSourceArn", "FunctionArn",
 def _aws():
     from . import aws
     return aws
+
+
+def _iot_role_aliases(requests, session, region, account):
+    read = requests.pages(session, "iot", region, "list_role_aliases", "roleAliases",
+                          _tokens=("marker", "nextMarker"))
+    if read.status not in OK:
+        return _finish([], _cause(read))
+    rows, failure = [], None
+    for name in read.items:
+        if not isinstance(name, str) or not re.fullmatch(r"[A-Za-z0-9_=,@-]{1,128}", name):
+            failure = failure or ("malformed", {"code": "malformed_iot_role_alias"})
+            continue
+        arn = f"arn:{_partition(region)}:iot:{region}:{account}:rolealias/{name}"
+        detail = requests.detail(session, "iot", region, "describe_role_alias", roleAlias=name)
+        if detail.get("collection_status") != "collected":
+            failure = failure or (detail.get("collection_status") or "unknown",
+                                  {"code": "iot_role_alias_detail_unavailable"})
+            continue
+        description = detail.get("roleAliasDescription")
+        role_arn = description.get("roleArn") if isinstance(description, dict) else None
+        if (not isinstance(description, dict) or description.get("roleAlias") != name or
+                description.get("roleAliasArn") != arn or
+                not isinstance(role_arn, str) or not re.fullmatch(
+                    rf"arn:{_partition(region)}:iam::{account}:role/.+", role_arn)):
+            failure = failure or ("malformed", {"code": "malformed_iot_role_alias_detail"})
+            continue
+        rows.append({"RoleAlias": name, "RoleAliasArn": arn, "RoleArn": role_arn, "id": arn})
+    return _finish(rows, failure)
+
+
+def _devicefarm_project_children(kind):
+    operation, response_key, fields = {
+        "devicefarm_upload": ("list_uploads", "uploads", ("arn", "name", "type", "status", "category")),
+        "devicefarm_device_pool": ("list_device_pools", "devicePools", ("arn", "name", "type", "maxDevices")),
+    }[kind]
+
+    def fetch(requests, session, region, account):
+        projects = requests.pages(session, "devicefarm", region, "list_projects", "projects")
+        if projects.status not in OK:
+            return _finish([], _cause(projects))
+        rows, failure = [], None
+        project_prefix = f"arn:{_partition(region)}:devicefarm:{region}:{account}:project:"
+        for project in projects.items:
+            project_arn = project.get("arn") if isinstance(project, dict) else None
+            if (not isinstance(project_arn, str) or not project_arn.startswith(project_prefix)
+                    or not re.fullmatch(r"[A-Za-z0-9-]+", project_arn[len(project_prefix):])):
+                failure = failure or ("malformed", {"code": "malformed_devicefarm_project"})
+                continue
+            children = requests.pages(session, "devicefarm", region, operation, response_key, arn=project_arn)
+            if children.status not in OK:
+                failure = failure or _cause(children)
+            for child in children.items:
+                arn = child.get("arn") if isinstance(child, dict) else None
+                if kind == "devicefarm_upload":
+                    valid_arn = isinstance(arn, str) and arn.startswith(
+                        project_arn.replace(":project:", ":upload:") + "/")
+                else:
+                    pool_prefix = f"arn:{_partition(region)}:devicefarm:{region}:"
+                    valid_arn = isinstance(arn, str) and any(
+                        arn.startswith(pool_prefix + owner + ":devicepool:") and
+                        re.fullmatch(r"[A-Za-z0-9-]+", arn[len(pool_prefix + owner + ":devicepool:"):])
+                        for owner in (account, ""))
+                if not valid_arn:
+                    failure = failure or ("malformed", {"code": "malformed_devicefarm_child"})
+                    continue
+                row = {**_pick(child, fields), "ProjectArn": project_arn, "id": arn}
+                if kind == "devicefarm_device_pool":
+                    compatibility = requests.detail(session, "devicefarm", region,
+                        "get_device_pool_compatibility", devicePoolArn=arn,
+                        projectArn=project_arn, testType="APPIUM_WEB_NODE")
+                    status = compatibility.get("collection_status")
+                    if status != "collected":
+                        failure = failure or (status or "unknown", {"code": "devicefarm_pool_compatibility_unavailable"})
+                    elif not isinstance(compatibility.get("compatibleDevices"), list):
+                        failure = failure or ("malformed", {"code": "malformed_devicefarm_pool_compatibility"})
+                    else:
+                        row["CompatibleWebNodeDevices"] = sum(
+                            device.get("compatible") is True for device in compatibility["compatibleDevices"]
+                            if isinstance(device, dict))
+                rows.append(row)
+        return _finish(rows, failure)
+    return fetch
 
 
 def _partition(region):
@@ -661,6 +752,85 @@ def _sagemaker_domain(requests, session, region, items):
     return output
 
 
+def _spaces(requests, session, region, account):
+    read = requests.pages(session, "sagemaker", region, "list_spaces", "Spaces")
+    if read.status not in OK:
+        return _finish([], _cause(read))
+    output, failure = [], None
+    for space in read.items:
+        domain = space.get("DomainId") if isinstance(space, dict) else None
+        name = space.get("SpaceName") if isinstance(space, dict) else None
+        if not isinstance(domain, str) or not domain or not isinstance(name, str) or not name:
+            failure = failure or ("malformed", {"code": "malformed_space"})
+            continue
+        row = {"DomainId": domain, "SpaceName": name, "id": f"{domain}/{name}"}
+        detail = requests.detail(session, "sagemaker", region, "describe_space", DomainId=domain, SpaceName=name)
+        if detail.get("collection_status") != "collected":
+            row["_coverage"] = {"SpaceDetails": {"status": detail.get("collection_status"),
+                                                   "source_operation": "sagemaker:DescribeSpace"}}
+            output.append(row)
+            failure = failure or (detail.get("collection_status") or "not_collected", {"code": "space_detail_unavailable"})
+            continue
+        arn = detail.get("SpaceArn")
+        expected_arn = f"arn:{_partition(region)}:sagemaker:{region}:{account}:space/{domain}/{name}"
+        if arn != expected_arn or detail.get("DomainId") not in (None, domain) or detail.get("SpaceName") not in (None, name):
+            failure = failure or ("malformed", {"code": "missing_space_arn"})
+            output.append(row)
+            continue
+        settings = detail.get("SpaceSettings") or {}
+        summary_settings = space.get("SpaceSettingsSummary") or {}
+        detail_sharing = (detail.get("SpaceSharingSettings") or {}).get("SharingType")
+        summary_sharing = (space.get("SpaceSharingSettingsSummary") or {}).get("SharingType")
+        detail_owner = (detail.get("OwnershipSettings") or {}).get("OwnerUserProfileName")
+        summary_owner = (space.get("OwnershipSettingsSummary") or {}).get("OwnerUserProfileName")
+        detail_app, summary_app = settings.get("AppType"), summary_settings.get("AppType")
+        if any(a and b and a != b for a, b in ((detail_sharing, summary_sharing),
+                                                (detail_owner, summary_owner), (detail_app, summary_app),
+                                                (detail.get("Status"), space.get("Status")))):
+            row["_coverage"] = {"SpaceDetails": {"status": "malformed", "source_operation": "sagemaker:DescribeSpace"}}
+            failure = failure or ("malformed", {"code": "space_list_detail_mismatch"})
+            output.append(row)
+            continue
+        sharing = detail_sharing or summary_sharing
+        owner = detail_owner or summary_owner
+        row.update({"id": arn, "SpaceArn": arn, "Status": detail.get("Status") or space.get("Status"),
+                    "AppType": detail_app or summary_app, "SharingType": sharing,
+                    "OwnerUserProfileName": owner})
+        if sharing == "Shared":
+            defaults = _domain_roles(requests, session, region, domain)
+            if defaults is None:
+                row["_coverage"] = {"ExecutionRole": {"status": "not_collected", "source_operation": "sagemaker:DescribeDomain"}}
+                failure = failure or ("not_collected", {"code": "space_domain_role_unavailable"})
+            else:
+                row["ExecutionRole"] = defaults.get("DefaultSpaceExecutionRole")
+                row["ExecutionRoleSource"] = "domain_default_space"
+        elif sharing == "Private" and isinstance(owner, str) and owner:
+            profile = requests.detail(session, "sagemaker", region, "describe_user_profile",
+                                      DomainId=domain, UserProfileName=owner)
+            if profile.get("collection_status") != "collected":
+                row["_coverage"] = {"ExecutionRole": {"status": profile.get("collection_status"),
+                                                       "source_operation": "sagemaker:DescribeUserProfile"}}
+                failure = failure or (profile.get("collection_status") or "not_collected", {"code": "space_owner_role_unavailable"})
+            else:
+                role = (profile.get("UserSettings") or {}).get("ExecutionRole")
+                if isinstance(role, str) and role:
+                    row["ExecutionRole"] = role
+                    row["ExecutionRoleSource"] = "owner_user_settings"
+                else:
+                    defaults = _domain_roles(requests, session, region, domain)
+                    if defaults is None:
+                        row["_coverage"] = {"ExecutionRole": {"status": "not_collected", "source_operation": "sagemaker:DescribeDomain"}}
+                        failure = failure or ("not_collected", {"code": "space_domain_role_unavailable"})
+                    else:
+                        row["ExecutionRole"] = defaults.get("DefaultUserExecutionRole")
+                        row["ExecutionRoleSource"] = "domain_default_user"
+        else:
+            row["_coverage"] = {"ExecutionRole": {"status": "malformed", "source_operation": "sagemaker:DescribeSpace"}}
+            failure = failure or ("malformed", {"code": "space_sharing_or_owner_missing"})
+        output.append(row)
+    return _finish(output, failure)
+
+
 def _hyperpod_clusters(requests, session, region, account):
     read = requests.pages(session, "sagemaker", region, "list_clusters", "ClusterSummaries")
     if read.status not in OK:
@@ -678,7 +848,7 @@ def _hyperpod_clusters(requests, session, region, account):
         else:
             groups = []
             for field in ("InstanceGroups", "RestrictedInstanceGroups"):
-                groups += [_pick(g, ("InstanceGroupName", "InstanceType", "ExecutionRole", "CurrentCount", "Status"))
+                groups += [_pick(g, ("InstanceGroupName", "InstanceType", "ExecutionRole", "CurrentCount", "Status", "ImageId"))
                            for g in detail.get(field) or [] if isinstance(g, dict)]
             row["InstanceGroups"] = groups
             row["Orchestrator"] = copy.deepcopy(detail.get("Orchestrator"))
@@ -687,6 +857,54 @@ def _hyperpod_clusters(requests, session, region, account):
 
 
 # ------------------------------------------------------------------------- application planes
+def _gamelift_ec2_computes(requests, session, region, account):
+    """Join fleet role configuration to its computes without requesting access tokens."""
+    fleets = requests.pages(session, "gamelift", region, "list_fleets", "FleetIds")
+    if fleets.status not in OK:
+        return _finish([], _cause(fleets))
+    rows, failure = [], None
+    for fleet_id in fleets.items:
+        if not isinstance(fleet_id, str) or not fleet_id:
+            failure = failure or ("malformed", {"code": "malformed_fleet_id"})
+            continue
+        if fleet_id.startswith("containerfleet-"):
+            # DescribeFleetAttributes supports EC2/Anywhere, not containers.
+            continue
+        attributes = requests.pages(session, "gamelift", region, "describe_fleet_attributes",
+                                    "FleetAttributes", FleetIds=[fleet_id])
+        if attributes.status not in OK:
+            failure = failure or _cause(attributes)
+            continue
+        if len(attributes.items) != 1 or not isinstance(attributes.items[0], dict):
+            failure = failure or ("malformed", {"code": "missing_fleet_attributes"})
+            continue
+        fleet = attributes.items[0]
+        if fleet.get("ComputeType") != "EC2":
+            continue
+        arn = fleet.get("FleetArn")
+        valid_arns = {f"arn:{_partition(region)}:gamelift:{region}:{owner}:fleet/{fleet_id}"
+                      for owner in ("", account)}
+        if fleet.get("FleetId") != fleet_id or arn not in valid_arns:
+            failure = failure or ("malformed", {"code": "fleet_identity_mismatch"})
+            continue
+        computes = requests.pages(session, "gamelift", region, "list_compute", "ComputeList", FleetId=fleet_id)
+        if computes.status not in OK:
+            failure = failure or _cause(computes)
+        compute_rows = []
+        for compute in computes.items:
+            if (not isinstance(compute, dict) or compute.get("FleetId") != fleet_id
+                    or (compute.get("FleetArn") not in (None, arn))
+                    or not isinstance(compute.get("ComputeName"), str)):
+                failure = failure or ("malformed", {"code": "compute_identity_mismatch"})
+                continue
+            compute_rows.append(_pick(compute, ("FleetId", "FleetArn", "ComputeName", "ComputeStatus")))
+        row = _pick(fleet, ("FleetId", "FleetArn", "ComputeType", "Status", "InstanceRoleArn",
+                            "InstanceRoleCredentialsProvider"))
+        row.update({"id": arn, "Computes": _child(computes, compute_rows)})
+        rows.append(row)
+    return _finish(rows, failure)
+
+
 def _grafana_workspaces(requests, session, region, account):
     read = requests.pages(session, "grafana", region, "list_workspaces", "workspaces")
     items = []
@@ -707,7 +925,7 @@ def _quicksight_users(requests, session, region, account):
     items = []
     for user in read.items:
         if isinstance(user, dict) and isinstance(user.get("Arn"), str):
-            items.append({**_pick(user, ("Arn", "UserName", "PrincipalId", "Role", "IdentityType", "Active")), "id": user["Arn"]})
+            items.append({**_pick(user, ("Arn", "UserName", "PrincipalId", "Role", "IdentityType", "Active", "CustomPermissionsName")), "id": user["Arn"]})
     read.items = items
     return read
 
@@ -752,6 +970,8 @@ def _amplify_apps(requests, session, region, account):
         # Never environmentVariables, basicAuthCredentials, buildSpec or customHeaders.
         row = _pick(app, ("appId", "appArn", "name", "platform", "iamServiceRoleArn", "computeRoleArn", "defaultDomain", "enableBasicAuth",
                           "createTime", "updateTime"))
+        row["RepositoryConnected"] = bool(app.get("repository"))
+        row["AppBuildSpecPresent"] = bool(app.get("buildSpec"))
         if "AdditionalSecretIndicators" in app:
             row["AdditionalSecretIndicators"] = copy.deepcopy(app["AdditionalSecretIndicators"])
         row["id"] = app.get("appArn") or app["appId"]
@@ -759,6 +979,12 @@ def _amplify_apps(requests, session, region, account):
                                   _tokens=("nextToken", "nextToken"), appId=app["appId"])
         row["BackendEnvironments"] = _child(backends, [_pick(x, ("backendEnvironmentArn", "environmentName", "stackName"))
                                                        for x in backends.items if isinstance(x, dict)])
+        branches = requests.pages(session, "amplify", region, "list_branches", "branches",
+                                  _tokens=("nextToken", "nextToken"), appId=app["appId"])
+        row["Branches"] = _child(branches, [
+            {**_pick(x, ("branchArn", "branchName", "stage", "enableAutoBuild", "framework", "computeRoleArn")),
+             "BranchBuildSpecPresent": bool(x.get("buildSpec"))}
+            for x in branches.items if isinstance(x, dict)])
         items.append(row)
     return _finish(items, failure)
 
@@ -826,8 +1052,13 @@ FETCHERS = {
     "rolesanywhere_profile": _rolesanywhere_profiles,
     "imagebuilder_pipeline": _image_pipelines,
     "sagemaker_user_profile": _user_profiles,
+    "sagemaker_space": _spaces,
     "sagemaker_cluster": _hyperpod_clusters,
     "grafana_workspace": _grafana_workspaces,
+    "gamelift_ec2_compute": _gamelift_ec2_computes,
+    "iot_role_alias": _iot_role_aliases,
+    "devicefarm_upload": _devicefarm_project_children("devicefarm_upload"),
+    "devicefarm_device_pool": _devicefarm_project_children("devicefarm_device_pool"),
     "quicksight_user": _quicksight_users,
     "quicksight_account_subscription": _quicksight_account_subscription,
     "supplychain_instance": _supplychain_instances,

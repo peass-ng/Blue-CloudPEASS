@@ -424,7 +424,7 @@ class Requests:
         metadata_report = (service == 'iam' and self.iam_report_generation_requested and (
             operation == 'generate_credential_report' and self.iam_credential_report_generation_requested or
             operation == 'generate_service_last_accessed_details' and self.iam_service_access_reports_requested))
-        readonly_name = operation.startswith(("get_", "list_", "describe_", "batch_get_", "batch_describe_")) or (service, operation) == ("ec2", "search_transit_gateway_routes")
+        readonly_name = operation.startswith(("get_", "list_", "describe_", "batch_get_", "batch_describe_")) or (service, operation) in {("ec2", "search_transit_gateway_routes"), ("braket", "search_devices")}
         content_profiles = {'aws-code-log-content-indicators-v1', 'aws-package-content-indicators-v1', 'aws-lambda-environment-content-v1', 'aws-selected-configuration-content-v1'}
         content_profile = isinstance(_metadata_profile, str) and _metadata_profile in content_profiles
         content_log = (service, operation) == ('logs', 'filter_log_events') and _metadata_profile == 'aws-code-log-content-indicators-v1'
@@ -950,6 +950,7 @@ SPECS = {
     "log_resource_policy": ("logs", "describe_resource_policies", "resourcePolicies"),
     "config_aggregate_authorization": ("config", "describe_aggregation_authorizations", "AggregationAuthorizations"),
     "dlm_policy": ("dlm", "get_lifecycle_policies", "Policies"),
+    "gameliftstreams_stream_session": ("gameliftstreams", "list_stream_groups", "Items"),
     "cloudtrail_account_inventory": ("cloudtrail", "describe_trails", "trailList"),
     # One row per enabled Region (Macie jobs are regional, buckets account-global).
     "macie2_account_classification_job_inventory": ("macie2", "list_classification_jobs", "items"),
@@ -990,6 +991,7 @@ SPECS = {
     "config_recorder": ("config", "describe_configuration_recorders", "ConfigurationRecorders"),
     "config_delivery_channel": ("config", "describe_delivery_channels", "DeliveryChannels"),
     "guardduty_detector": ("guardduty", "list_detectors", "DetectorIds"),
+    "synthetics_canary": ("synthetics", "describe_canaries", "Canaries"),
     "rds_instance": ("rds", "describe_db_instances", "DBInstances"),
     "rds_cluster": ("rds", "describe_db_clusters", "DBClusters"),
     "rds_snapshot": ("rds", "describe_db_snapshots", "DBSnapshots"),
@@ -1029,6 +1031,7 @@ _DETAIL_ACTIONS = {
     "cloudtrail": "get_trail_status get_event_selectors get_insight_selectors lookup_events",
     "config": "describe_configuration_recorder_status",
     "dlm": "get_lifecycle_policy",
+    "gameliftstreams": "list_stream_sessions",
     "guardduty": "get_detector",
     "eks": "describe_cluster",
     "lambda": "get_policy get_function_url_config",
@@ -1049,6 +1052,7 @@ _NATIVE_IDS = {
     "vpc_account_inventory": "id",
     "ssm_managed_instance": "InstanceId", "autoscaling_group": "AutoScalingGroupARN", "config_delegated_administrator": "Id", "config_aggregator": "ConfigurationAggregatorArn", "config_account_aggregator_inventory": "ConfigurationAggregatorArn",
     "log_resource_policy": "policyName", "config_aggregate_authorization": "AggregationAuthorizationArn", "dlm_policy": "PolicyId",
+    "gameliftstreams_stream_session": "Arn",
     "cloudtrail_account_inventory": "TrailARN", "config_account_region_coverage": "id",
     "macie2_account_classification_job_inventory": "id",
     "ec2_image": "ImageId", "ebs_snapshot": "SnapshotId",
@@ -1069,6 +1073,7 @@ _NATIVE_IDS = {
     "vpn_gateway": "VpnGatewayId", "load_balancer": "LoadBalancerArn", "classic_load_balancer": "LoadBalancerName",
     "target_group": "TargetGroupArn", "kms_key": "KeyArn", "cloudtrail": "TrailARN",
     "config_recorder": "name", "config_delivery_channel": "name", "guardduty_detector": "DetectorId",
+    "synthetics_canary": "Name",
     "rds_instance": "DBInstanceArn", "rds_cluster": "DBClusterArn", "rds_snapshot": "DBSnapshotArn",
     "eks_cluster": "name", "lambda_function": "FunctionArn", "ecr_repository": "repositoryArn",
     "log_group": "logGroupName", "cloudwatch_alarm": "AlarmArn", "secret": "ARN",
@@ -1571,6 +1576,74 @@ def network_relationships(collections):
                     relationships.append({"scope": collection["scope"], "source": source, "target": target,
                         "relation": relation, "evidence_type": collection["type"], "reachability": "unknown"})
     return sorted(relationships, key=lambda x: (x["scope"], x["source"], x["relation"], x["target"]))
+
+
+_GAMELIFT_SHELL_STATES = ("ACTIVE", "CONNECTED", "PENDING_CLIENT_RECONNECTION", "RECONNECTING")
+
+
+def _gameliftstreams_shell_sessions(requests, session, region, account, partition):
+    """Read only role-bearing/live session metadata; retain incomplete group reads."""
+    groups = requests.pages(session, "gameliftstreams", region, "list_stream_groups", "Items")
+    if groups.status not in ("collected", "empty", "partial"):
+        return groups
+    items, errors, seen, conflicting = [], [], {}, set()
+    complete = groups.status in ("collected", "empty")
+    group_prefix = f"arn:{partition}:gameliftstreams:{region}:{account}:streamgroup/"
+    session_prefix = f"arn:{partition}:gameliftstreams:{region}:{account}:streamsession/"
+    if not complete:
+        errors.append({"operation": "ListStreamGroups", "error": groups.error})
+    for group in groups.items:
+        arn = group.get("Arn") if isinstance(group, dict) else None
+        if not isinstance(arn, str) or not arn.startswith(group_prefix) or not arn[len(group_prefix):]:
+            complete = False
+            errors.append({"operation": "ListStreamGroups", "code": "malformed_group_arn"})
+            continue
+        group_id = arn[len(group_prefix):]
+        if "/" in group_id:
+            complete = False
+            errors.append({"operation": "ListStreamGroups", "code": "malformed_group_arn"})
+            continue
+        group_status = group.get("Status")
+        if not isinstance(group_status, str) or not group_status:
+            complete = False
+            errors.append({"operation": "ListStreamGroups", "code": "missing_group_status"})
+            group_status = ""
+        for status in _GAMELIFT_SHELL_STATES:
+            read = requests.pages(session, "gameliftstreams", region, "list_stream_sessions", "Items",
+                                  Identifier=arn, Status=status)
+            if read.status not in ("collected", "empty"):
+                complete = False
+                errors.append({"operation": "ListStreamSessions", "group": arn, "status": status,
+                               "error": read.error})
+            for raw in read.items:
+                session_arn = raw.get("Arn") if isinstance(raw, dict) else None
+                if (not isinstance(session_arn, str) or
+                        not session_arn.startswith(session_prefix + group_id + "/") or
+                        not session_arn[len(session_prefix + group_id + "/"):]):
+                    complete = False
+                    errors.append({"operation": "ListStreamSessions", "code": "malformed_session_arn"})
+                    continue
+                if raw.get("Status") != status:
+                    complete = False
+                    errors.append({"operation": "ListStreamSessions", "code": "mismatched_session_status"})
+                    continue
+                role = raw.get("RoleArn")
+                if role is not None and (not isinstance(role, str) or
+                                         not role.startswith(f"arn:{partition}:iam::{account}:role/")):
+                    complete = False
+                    errors.append({"operation": "ListStreamSessions", "code": "malformed_session_role"})
+                    continue
+                row = {"Arn": session_arn, "Status": status, "RoleArn": role or "",
+                       "StreamGroupArn": arn, "StreamGroupStatus": group_status}
+                if session_arn in seen and seen[session_arn] != row:
+                    complete = False
+                    conflicting.add(session_arn)
+                    errors.append({"operation": "ListStreamSessions", "code": "conflicting_session_metadata"})
+                else:
+                    seen[session_arn] = row
+    items = [row for arn, row in seen.items() if arn not in conflicting]
+    return ReadResult(items, ("collected" if items else "empty") if complete else "partial",
+                      {"code": "gameliftstreams_session_inventory_incomplete", "sources": errors} if errors else None)
 
 
 def _single(requests, session, region, service, operation, *, absent=(), **arguments):
@@ -2540,6 +2613,9 @@ def collect(connector, requirements=None):
             read = _cloudtrail_activity(requests, session, region)
         elif kind in {"aws_identity_center_user", "aws_identity_center_permission_set"}:
             read = _identity_center(requests, session, region, kind)
+        elif kind == "gameliftstreams_stream_session":
+            read = _gameliftstreams_shell_sessions(
+                requests, session, region, identity["Account"], identity["Arn"].split(":")[1])
         elif kind == aws_lambda_environment_secret_indicators.KIND:
             read = aws_lambda_environment_secret_indicators.collect_selected(requests, session, region, identity, options, connector.get('scopes') or [])
         elif kind == aws_selected_configuration_secret_indicators.KIND:
@@ -2891,7 +2967,7 @@ def _load_metadata_extension(name="peaso.collectors.aws_b_services"):
     actions = set(getattr(extension, "READ_ACTIONS", set()))
     for service, operation in actions | {(s, o) for s, o, expression in specs.values()}:
         content_log = name == 'peaso.collectors.aws_code_log_content_indicators' and (service, operation) == ('logs', 'filter_log_events')
-        if (operation in _PROHIBITED_VALUE_OPERATIONS and not content_log) or (not operation.startswith(("get_", "list_", "describe_", "batch_get_", "batch_describe_")) and (service, operation) not in {("cloudtrail", "lookup_events"), ("iam", "simulate_principal_policy")} and not content_log):
+        if (operation in _PROHIBITED_VALUE_OPERATIONS and not content_log) or (not operation.startswith(("get_", "list_", "describe_", "batch_get_", "batch_describe_")) and (service, operation) not in {("cloudtrail", "lookup_events"), ("iam", "simulate_principal_policy"), ("braket", "search_devices")} and not content_log):
             raise ValueError("AWS extension includes a prohibited operation")
     fetchers = getattr(extension, "FETCHERS", {})
     for kind in fetchers:

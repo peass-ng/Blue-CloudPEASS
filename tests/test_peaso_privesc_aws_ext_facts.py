@@ -13,7 +13,7 @@ HISTORICAL = {
     "aws-cognito-adminaddusertogroup", "aws-cognito-admincreateuser",
     "aws-codedeploy-createdeployment-instance-roles",
     "aws-rolesanywhere-updateprofile-remove-session-policy",
-    "aws-quicksight-updateuser-admin", "aws-identitystore-creategroupmembership",
+    "aws-identitystore-creategroupmembership",
 }
 
 
@@ -232,6 +232,21 @@ def test_imagebuilder_and_hyperpod_hosts_loaded():
     assert m.host_status[(ACCOUNT, "imagebuilder_pipeline")] == "collected"
 
 
+def test_sagemaker_space_host_uses_only_its_collected_execution_role():
+    space = f"arn:aws:sagemaker:{REGION}:{ACCOUNT}:space/d-1/shared"
+    roles = [role("space", trust_service("sagemaker.amazonaws.com")),
+             role("other", trust_service("sagemaker.amazonaws.com"))]
+    record = {"SpaceArn": space, "DomainId": "d-1", "SpaceName": "shared",
+              "SharingType": "Shared", "AppType": "JupyterLab", "Status": "InService",
+              "ExecutionRole": arn("space"), "ExecutionRoleSource": "domain_default_space"}
+    m = model(aws_snap([user("alice")], roles, [("sagemaker_space", SCOPE, [record])]))
+    assert m.hosts[arn("space")]["sagemaker_space"] == [space]
+    assert not m.hosts.get(arn("other"), {}).get("sagemaker_space")
+    record.pop("ExecutionRole")
+    m = model(aws_snap([user("alice")], roles, [("sagemaker_space", SCOPE, [record])]))
+    assert not m.hosts.get(arn("space"), {}).get("sagemaker_space")
+
+
 # --- application planes / Identity Center -----------------------------------------------------------------
 def test_grafana_workspace_is_a_service_plane_target():
     ws = f"arn:aws:grafana:{REGION}:{ACCOUNT}:/workspaces/g-1"
@@ -253,12 +268,39 @@ def test_service_plane_not_collected_stays_unresolved():
     assert targets and all(t["id"].startswith(("unresolved:", "unknown:")) and t["confidence"] == "unknown" for t in targets)
 
 
-def test_quicksight_subscription_found_in_any_region():
-    users = [("quicksight_user", SCOPE, [{"Arn": f"arn:aws:quicksight:{REGION}:{ACCOUNT}:user/default/bob", "Role": "ADMIN"}]),
-             ("quicksight_user", f"{ACCOUNT}/eu-west-1", [], "denied")]
-    result = privesc.analyze(aws_snap([user("alice", allow("quicksight:UpdateUser"))], [], users),
-                             entries=[catalog_entry("aws-quicksight-updateuser-admin")])
-    assert set(reached(result, ALICE)) == {f"aws_service_plane_admin:quicksight:arn:aws:quicksight:*:{ACCOUNT}:user/*"}
+def test_quicksight_existing_iam_user_self_promotion_requires_exact_identity_and_resource():
+    technique = active_catalog_entry("aws-quicksight-updateuser-admin")
+    user_arn = f"arn:aws:quicksight:{REGION}:{ACCOUNT}:user/default/qs-alice"
+    subscription = ("quicksight_account_subscription", SCOPE, [{"id": ACCOUNT,
+        "AccountSubscriptionStatus": "ACCOUNT_CREATED", "AuthenticationType": "IAM_ONLY"}])
+    identity = {"Arn": user_arn, "UserName": "qs-alice", "PrincipalId": "federated/iam/AIDAALICE123456789",
+                "IdentityType": "IAM", "Role": "AUTHOR", "Active": True}
+
+    def route(source, row=identity, sub=subscription, status="collected"):
+        return privesc.analyze(aws_snap([source], [], [("quicksight_user", SCOPE, [row], status), sub]),
+                               entries=[technique])
+
+    def caller(resource=user_arn):
+        principal = user("alice", allow("quicksight:UpdateUser", resource))
+        principal["UserId"] = "AIDAALICE123456789"
+        return principal
+
+    target = f"aws_service_plane_admin:quicksight:{user_arn}"
+    assert set(reached(route(caller()), ALICE)) == {target}
+    other_region_denied = privesc.analyze(aws_snap([caller()], [], [
+        ("quicksight_user", SCOPE, [identity]), subscription,
+        ("quicksight_user", f"{ACCOUNT}/eu-west-1", [], "denied")]), entries=[technique])
+    assert set(reached(other_region_denied, ALICE)) == {target}
+    assert reached(route(caller(user_arn + "-other")), ALICE) == {}
+    assert reached(route(caller(), {**identity, "PrincipalId": "federated/iam/AIDABOB123456789"}), ALICE) == {}
+    assert reached(route(caller(), {**identity, "Role": "ADMIN"}), ALICE) == {}
+    assert reached(route(caller(), {**identity, "Active": False}), ALICE) == {}
+    assert reached(route(caller(), {**identity, "IdentityType": "QUICKSIGHT"}), ALICE) == {}
+    assert reached(route(caller(), {**identity, "CustomPermissionsName": "restricted"}), ALICE) == {}
+    assert reached(route(caller(), status="denied"), ALICE) == {}
+    inactive = ("quicksight_account_subscription", SCOPE, [{"id": ACCOUNT,
+        "AccountSubscriptionStatus": "ACCOUNT_CREATED", "AuthenticationType": "ACTIVE_DIRECTORY"}])
+    assert reached(route(caller(), sub=inactive), ALICE) == {}
 
 
 def test_quicksight_registeruser_requires_iam_subscription_and_controlled_identity():
@@ -305,6 +347,102 @@ def test_quicksight_registeruser_requires_iam_subscription_and_controlled_identi
     assert reached(route(role_session_only), ALICE) == {}
 
 
+def test_bedrock_lambda_action_group_needs_deployed_alias_function_join():
+    ident = "aws-bedrock-agent-lambda-actiongroup-hijack"
+    technique = catalog_entry(ident)
+    function_arn = f"arn:aws:lambda:{REGION}:{ACCOUNT}:function:tool"
+    source = user("alice", allow("lambda:UpdateFunctionCode", function_arn),
+                  allow("bedrock:InvokeAgent"))
+    target = role("tool-role", trust_service("lambda.amazonaws.com"))
+    function = ("lambda_function", SCOPE, [{"FunctionName": "tool",
+        "FunctionArn": function_arn, "Role": target["Arn"]}])
+    result = privesc.analyze(aws_snap([source], [target], [function]),
+                             entries=[technique], include_unknown=True)
+    assert target["Arn"] not in reached(result, ALICE)
+    by_id = nodes(result)
+    unresolved = [by_id[edge["target"]]["id"] for edge in edges(result, ALICE)]
+    assert unresolved and all(item.startswith("unresolved:") for item in unresolved)
+
+    from peaso.privesc import versioned_catalog
+    old = {"schema": versioned_catalog.BINDING_SCHEMA,
+           "manifest_sha256": versioned_catalog.BEDROCK_ACTIONGROUP_691_PREVIOUS_MANIFEST,
+           "effective_tree_sha256": versioned_catalog.BEDROCK_ACTIONGROUP_691_PREVIOUS_TREE,
+           "source_revision": versioned_catalog.V4_REVISION}
+    previous, status = versioned_catalog.lookup_entries([ident], old)
+    assert status == "exact_previous_current"
+    assert "preconditions" not in previous[ident]
+
+
+def test_lambda_signer_route_joins_exact_profile_and_config_without_wildcard_grants():
+    ident = "aws-lambda-signer-startsigningjob-updatefunctioncode"
+    technique = catalog_entry(ident)
+    function_arn = f"arn:aws:lambda:{REGION}:{ACCOUNT}:function:signed"
+    config_arn = f"arn:aws:lambda:{REGION}:{ACCOUNT}:code-signing-config:csc-123"
+    profile = f"arn:aws:signer:{REGION}:{ACCOUNT}:/signing-profiles/release"
+    target = role("signed-role", trust_service("lambda.amazonaws.com"))
+    function = {"FunctionName": "signed", "FunctionArn": function_arn, "Role": target["Arn"],
+        "PackageType": "Zip", "State": "Active", "LastUpdateStatus": "Successful",
+        "CodeSigning": {"collection_status": "collected", "CodeSigningConfigArn": config_arn,
+                        "_request": {"FunctionName": "signed"}},
+        "CodeSigningConfig": {"collection_status": "collected", "CodeSigningConfig": {
+            "CodeSigningConfigArn": config_arn,
+            "CodeSigningPolicies": {"UntrustedArtifactOnDeployment": "Enforce"},
+            "AllowedPublishers": {"SigningProfileVersionArns": [profile + "/1"]}}}}
+    def run(profile_resource, version="1", config_resource=config_arn, profile_state="ACTIVE",
+            bucket_ready=False, bucket_versioning="Enabled", object_prefix="/*",
+            owner_enforced=True, invoke=True, source_version_read=True):
+        signer = {"Effect": "Allow", "Action": "signer:StartSigningJob",
+                  "Resource": profile_resource,
+                  "Condition": {"StringEquals": {"signer:ProfileVersion": version}}}
+        bucket_arn = f"arn:aws:s3:::signed-code-{ACCOUNT}"
+        extra = ([allow(["s3:PutObject", "s3:GetObject"] +
+                        (["s3:GetObjectVersion"] if source_version_read else []), bucket_arn + object_prefix),
+                  allow("s3:ListBucket", bucket_arn)] if bucket_ready else [])
+        if bucket_ready and invoke:
+            extra.append(allow("lambda:InvokeFunction", function_arn))
+        source = user("alice", allow("lambda:UpdateFunctionCode", function_arn),
+                      allow("lambda:GetCodeSigningConfig", config_resource), signer, *extra)
+        profile_row = {"profileName": "release", "profileVersion": "1",
+                       "profileVersionArn": profile + "/1", "arn": profile,
+                       "platformId": "AWSLambda-SHA384-ECDSA", "status": profile_state}
+        facts = [("lambda_function", SCOPE, [function]), ("signer_profile", SCOPE, [profile_row])]
+        if bucket_ready:
+            facts.append(("bucket", f"{ACCOUNT}/global", [{"Name": f"signed-code-{ACCOUNT}",
+                "Location": {"collection_status": "collected", "LocationConstraint": None},
+                "Versioning": {"collection_status": "collected", "Status": bucket_versioning},
+                "Policy": {"collection_status": "empty"},
+                "Encryption": {"collection_status": "empty"},
+                "OwnershipControls": {"collection_status": "collected",
+                    "OwnershipControls": {"Rules": [{"ObjectOwnership":
+                        "BucketOwnerEnforced" if owner_enforced else "ObjectWriter"}]}}}]))
+        return privesc.analyze(aws_snap([source], [target], facts),
+                               entries=[technique], include_unknown=True)
+
+    matching = run(profile)
+    assert target["Arn"] not in reached(matching, ALICE)
+    assert any(nodes(matching)[edge["target"]]["id"].startswith("unresolved:")
+               for edge in edges(matching, ALICE))
+    assert edges(run(profile + "-other"), ALICE) == []
+    assert edges(run(profile, "2"), ALICE) == []
+    assert edges(run(profile, config_resource=config_arn + "-other"), ALICE) == []
+    assert edges(run(profile, profile_state="CANCELED"), ALICE) == []
+    assert reached(run(profile, bucket_ready=True), ALICE)[target["Arn"]] == "conditional"
+    assert reached(run(profile, bucket_ready=True, object_prefix="/release/*"), ALICE)[target["Arn"]] == "conditional"
+    assert target["Arn"] not in reached(run(profile, bucket_ready=True, bucket_versioning="Suspended"), ALICE)
+    assert target["Arn"] not in reached(run(profile, bucket_ready=True, owner_enforced=False), ALICE)
+    assert target["Arn"] not in reached(run(profile, bucket_ready=True, invoke=False), ALICE)
+    assert target["Arn"] not in reached(run(profile, bucket_ready=True, source_version_read=False), ALICE)
+
+    from peaso.privesc import versioned_catalog
+    old = {"schema": versioned_catalog.BINDING_SCHEMA,
+           "manifest_sha256": versioned_catalog.LAMBDA_SIGNER_691_PREVIOUS_MANIFEST,
+           "effective_tree_sha256": versioned_catalog.LAMBDA_SIGNER_691_PREVIOUS_TREE,
+           "source_revision": versioned_catalog.V4_REVISION}
+    previous, status = versioned_catalog.lookup_entries([ident], old)
+    assert status == "exact_previous_current"
+    assert "preconditions" not in previous[ident]
+
+
 def test_flink_passrole_binds_service_condition():
     technique = catalog_entry("aws-flink-passrole-createapplication")
     target = role("flink", trust_service("kinesisanalytics.amazonaws.com"))
@@ -334,6 +472,18 @@ def test_flink_start_permission_selects_one_unused_application_name():
     assert reached(route(application, names=("new-app",)), ALICE) == {}
     assert reached(route(application.replace(ACCOUNT, "999999999999")), ALICE) == {}
     assert reached(route(application, inventory_status="denied"), ALICE) == {}
+
+
+def test_flink_create_application_needs_global_resource_grant():
+    technique = catalog_entry("aws-flink-passrole-createapplication")
+    target = role("flink", trust_service("kinesisanalytics.amazonaws.com"))
+    application = f"arn:aws:kinesisanalytics:{REGION}:{ACCOUNT}:application/new-app"
+    source = user("alice", allow("iam:PassRole", target["Arn"]),
+                  allow("kinesisanalytics:CreateApplication", application),
+                  allow("kinesisanalytics:StartApplication", application))
+    inventory = ("flink_application", SCOPE, [], "empty")
+    assert reached(privesc.analyze(aws_snap([source], [target], [inventory]),
+                                   entries=[technique], include_unknown=False), ALICE) == {}
 
 
 def test_spot_fleet_requires_passable_fleet_role_and_service_linked_roles():

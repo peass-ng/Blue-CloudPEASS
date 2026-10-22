@@ -50,6 +50,49 @@
       "nextToken"
     ]
   },
+  "agentcore_harness": {
+    "detail": {
+      "arguments": {
+        "harnessId": "harnessId"
+      },
+      "key": "harness",
+      "operation": "get_harness"
+    },
+    "identity": "arn",
+    "key": "harnesses",
+    "operation": "list_harnesses",
+    "service": "bedrock-agentcore-control",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "agentcore_runtime_endpoint": {
+    "arguments": {
+      "agentRuntimeId": "agentRuntimeId"
+    },
+    "identity": "agentRuntimeEndpointArn",
+    "key": "runtimeEndpoints",
+    "operation": "list_agent_runtime_endpoints",
+    "parents": [
+      {
+        "exports": {
+          "agentRuntimeId": "agentRuntimeId"
+        },
+        "key": "agentRuntimes",
+        "operation": "list_agent_runtimes",
+        "tokens": [
+          "nextToken",
+          "nextToken"
+        ]
+      }
+    ],
+    "service": "bedrock-agentcore-control",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
   "aoss_network_policy": {
     "constants": {
       "type": "network"
@@ -1588,6 +1631,10 @@
       "operation": "describe_application"
     },
     "identity": "ApplicationARN",
+    "identity_fields": [
+      "ApplicationMode",
+      "ServiceExecutionRole"
+    ],
     "key": "ApplicationSummaries",
     "operation": "list_applications",
     "service": "kinesisanalyticsv2",

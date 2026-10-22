@@ -21,6 +21,7 @@ SPECS = {
     "batch_job_definition": ("batch", "describe_job_definitions", "jobDefinitions"),
     "kms_external_key_store": ("kms", "describe_custom_key_stores", "CustomKeyStores"),
     "ami": ("ec2", "describe_images", "Images"),
+    "signer_profile": ("signer", "list_signing_profiles", "profiles"),
 }
 NATIVE_IDS = {
     "eventbridge_rule": "Arn",
@@ -30,6 +31,7 @@ NATIVE_IDS = {
     "ecr_public_repository": "repositoryArn", "cognito_user_pool_client": "id",
     "client_vpn_endpoint": "ClientVpnEndpointId", "lightsail_bucket": "arn",
     "batch_job_definition": "jobDefinitionArn", "kms_external_key_store": "CustomKeyStoreId", "ami": "ImageId",
+    "signer_profile": "profileVersionArn",
 }
 READ_ACTIONS = {
     ("events", "list_event_buses"), ("events", "list_targets_by_rule"),
@@ -63,6 +65,19 @@ def _fetch(service, operation, expression, tokens=None, **arguments):
     def fetch(requests, session, region, account):
         return requests.pages(session, service, region, operation, expression, _tokens=tokens, **arguments)
     return fetch
+
+
+def _signer_profiles(requests, session, region, account):
+    """Retain active and canceled profile-version identity without signing material."""
+    from .aws import ReadResult
+    read = requests.pages(session, "signer", region, "list_signing_profiles", "profiles", includeCanceled=True)
+    rows = []
+    for item in read.items:
+        if not isinstance(item, dict) or not all(isinstance(item.get(key), str) and item[key]
+            for key in ("profileName", "profileVersion", "profileVersionArn", "arn", "status")):
+            return ReadResult(rows, "partial" if rows else "malformed", {"code": "signer_profile_identity_invalid"})
+        rows.append(_pick(item, ("profileName", "profileVersion", "profileVersionArn", "arn", "platformId", "status")))
+    return ReadResult(rows, read.status, read.error)
 
 
 def _rules(requests, session, region, account):
@@ -419,7 +434,9 @@ _LOG = [("logConfiguration", ["logDriver", ("options", ["awslogs-group"])])]
 
 @_each
 def _job(requests, session, region, item):
-    return _provenance(_pick(item, ["jobDefinitionArn", "status", "AdditionalSecretIndicators", ("containerProperties", _LOG),
+    return _provenance(_pick(item, ["jobDefinitionArn", "jobDefinitionName", "revision", "status", "type",
+        "platformCapabilities", "AdditionalSecretIndicators",
+        ("containerProperties", ["jobRoleArn", "image", *_LOG]),
         ("nodeProperties", [("nodeRangeProperties", [("container", _LOG)])]),
         ("ecsProperties", [("taskProperties", [("containers", _LOG)])])]), "describe_job_definitions")
 
@@ -448,6 +465,7 @@ def _ami(requests, session, region, item):
 
 
 FETCHERS = {
+    "signer_profile": _signer_profiles,
     "ecr_public_repository": _public_ecr,
     "cognito_user_pool_client": _clients,
     "lightsail_bucket": _fetch("lightsail", "get_buckets", "buckets", ("pageToken", "nextPageToken")),

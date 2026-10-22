@@ -25,6 +25,56 @@ def case(entry):
                 CredentialSubjectId=target,RevocationChecked=True,CredentialKind=cred,VerifiedConditionIds=CONTRACT[entry['id']]['conditions'],
                 EvidenceObservedAt='2026-10-14T12:29:00Z',CredentialExpiresAt='2026-10-14T12:40:00Z',ActionResources=bindings,
                 AuthorizationFingerprint=fingerprint(snap,entry['provider'],target))
+    if entry['id'] == 'aws-devicefarm-schedulerun-existing-test-spec-passrole':
+        project='arn:aws:devicefarm:us-east-1:111111111111:project:project-id'
+        pool='arn:aws:devicefarm:us-east-1:111111111111:devicepool:pool-id'
+        spec='arn:aws:devicefarm:us-east-1:111111111111:upload:project-id/spec-id'
+        package='arn:aws:devicefarm:us-east-1:111111111111:upload:project-id/package-id'
+        run='arn:aws:devicefarm:us-east-1:111111111111:run:project-id/run-id'
+        user=next(c for c in snap['collections']if c['type']=='iam_user')['items'][0]
+        user['UserPolicyList'][0]['PolicyDocument']['Statement']=[
+            {'Effect':'Allow','Action':'devicefarm:ScheduleRun','Resource':[project,pool,spec,package]},
+            {'Effect':'Allow','Action':'iam:PassRole','Resource':target,
+             'Condition':{'StringEquals':{'iam:PassedToService':'devicefarm.amazonaws.com'}}}]
+        role['RoleId']='AROADEVICEFARM123456789'
+        snap['collections'].extend([
+            {'type':'devicefarm_project','scope':'111111111111/us-east-1','service':'devicefarm',
+             'status':'collected','items':[{'arn':project}],'error':None},
+            {'type':'devicefarm_device_pool','scope':'111111111111/us-east-1','service':'devicefarm',
+             'status':'collected','items':[{'arn':pool,'ProjectArn':project,'CompatibleWebNodeDevices':1}],'error':None},
+            {'type':'devicefarm_upload','scope':'111111111111/us-east-1','service':'devicefarm',
+             'status':'collected','items':[
+                 {'arn':spec,'ProjectArn':project,'status':'SUCCEEDED','type':'APPIUM_WEB_NODE_TEST_SPEC'},
+                 {'arn':package,'ProjectArn':project,'status':'SUCCEEDED','type':'APPIUM_WEB_NODE_TEST_PACKAGE'}],
+             'error':None}])
+        fact.update(ProjectArn=project,DevicePoolArn=pool,TestSpecArn=spec,TestPackageArn=package,
+                    AppArn=None,RunArn=run,TestType='APPIUM_WEB_NODE',TargetRoleId=role['RoleId'],
+                    ExecutionRoleArn=target,ScheduleRunSucceeded=True,RunExecutedTestSpec=True,
+                    TestSpecControlledBySource=True,RoleAction='iam:ListUsers',RoleActionResource='*',
+                    RoleActionSucceeded=True,EffectUsefulToSource=True,AuthorizationFingerprint=fingerprint(snap,'aws',target))
+    if entry['id'] in ('aws-iot-byo-certificate-existing-rolealias',
+                       'aws-iot-provisioning-claim-existing-rolealias'):
+        alias='arn:aws:iot:us-east-1:111111111111:rolealias/existing'
+        cert='arn:aws:iot:us-east-1:111111111111:cert/'+'a'*64
+        snap['collections'].append({'type':'iot_role_alias','scope':'111111111111/us-east-1',
+            'service':'iot','status':'collected','items':[{'RoleAlias':'existing',
+                'RoleAliasArn':alias,'RoleArn':target,'id':alias}],'error':None})
+        fact.update(RoleAliasArn=alias,CertificateArn=cert,PrivateKeyHeld=True,
+                    CertificateActive=True,IoTPolicyAttached=True,PolicyAllowsRoleAlias=True,
+                    CredentialProviderAuthenticated=True)
+        if entry['id']=='aws-iot-byo-certificate-existing-rolealias':
+            fact['CertificateRegisteredWithoutCA']=True
+            fact['ActionResources']={'iot:RegisterCertificateWithoutCA':['*'],
+                                     'iot:AttachPolicy':[cert]}
+        else:
+            template='arn:aws:iot:us-east-1:111111111111:provisioningtemplate/verified'
+            registration_role='arn:aws:iam::111111111111:role/provisioning'
+            fact.update(ProvisioningTemplateArn=template,ProvisioningRoleArn=registration_role,
+                        ClaimCertificateIssued=True,ClaimUsedOverMqtt=True,
+                        PermanentCertificateRegistered=True,ProvisioningTemplateApplied=True)
+            fact['ActionResources']={'iot:CreateProvisioningTemplate':[template],
+                                     'iot:CreateProvisioningClaim':[template],
+                                     'iam:PassRole':[registration_role]}
     if entry['provider']=='gcp':fact['OAuthScopes']=['https://www.googleapis.com/auth/cloud-platform']
     return snap,source,col
 
@@ -60,3 +110,16 @@ def test_principal_attestation_does_not_replace_action_resource_permissions_or_r
     snap,source,col=case(entry);next(c for c in snap['collections']if c['type']=='iam_role')['items'][0]['AssumeRolePolicyDocument']={'Statement':[]}
     col['items'][0]['AuthorizationFingerprint']=fingerprint(snap,'aws',col['items'][0]['TargetId'])
     assert 'conditional'not in reached(privesc.analyze(snap,entries=[entry]),source,entry['id']).values()
+
+
+@pytest.mark.parametrize('entry',[e for e in ENTRIES if e['id'] in (
+    'aws-iot-byo-certificate-existing-rolealias',
+    'aws-iot-provisioning-claim-existing-rolealias')],ids=lambda e:e['id'])
+def test_iot_existing_alias_chain_must_name_exact_target(entry):
+    for mutate in ('different_role','denied_alias','wrong_certificate'):
+        snap,source,col=case(entry)
+        alias=next(c for c in snap['collections']if c['type']=='iot_role_alias')
+        if mutate=='different_role':alias['items'][0]['RoleArn']='arn:aws:iam::111111111111:role/other'
+        elif mutate=='denied_alias':alias['status']='access_denied'
+        else:col['items'][0]['CertificateArn']='arn:aws:iot:us-east-1:111111111111:cert/not-a-hash'
+        assert 'conditional'not in reached(privesc.analyze(snap,entries=[entry]),source,entry['id']).values()

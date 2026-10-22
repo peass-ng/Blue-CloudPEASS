@@ -36,7 +36,10 @@ def _fact(tid, action, resource):
             "CredentialKind": "aws_iam_user_access_key", "CredentialSubjectArn": TARGET,
             "CredentialResourceArn": resource, "AccessAction": action,
             "CredentialUsable": True, "EvidenceRef": "reviewed-fixture-1",
-            "Status": "verified", "VerifiedPreconditions": True}
+            "Status": "verified", "VerifiedPreconditions": True,
+            "CredentialReadSucceeded": True, "CredentialAuthenticatedAsSubject": True,
+            "SourcePreviouslyDenied": True, "TargetAccessAfterAllowed": True,
+            "NewEffectiveAction": "iam:ListRoles", "NewEffectiveResource": "*"}
 
 
 def _run(tid, action, resource, fact=None, permission_resource=None, permission_action=None):
@@ -65,7 +68,11 @@ def test_wrong_target_resource_or_effective_permission_cannot_reach(tid, action,
     for change in ({"CredentialSubjectArn": OTHER}, {"TargetId": OTHER},
                    {"CredentialResourceArn": resource.replace("us-east-1", "us-west-2")},
                    {"AccessAction": "iam:CreateUser"}, {"CredentialKind": "aws_sts_session"},
-                   {"CredentialUsable": False}, {"Status": "disproven"},
+                   {"CredentialUsable": False}, {"CredentialReadSucceeded": False},
+                   {"CredentialAuthenticatedAsSubject": False},
+                   {"SourcePreviouslyDenied": False}, {"TargetAccessAfterAllowed": False},
+                   {"NewEffectiveAction": ""}, {"NewEffectiveResource": ""},
+                   {"Status": "disproven"},
                    {"SourceArn": OTHER}):
         altered = dict(fact, **change)
         result = _run(tid, action, resource, altered)

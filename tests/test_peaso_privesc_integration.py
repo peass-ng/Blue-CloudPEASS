@@ -49,20 +49,12 @@ def report():
 def test_engine_produces_privesc_findings_graph_coverage_and_stats(report):
     privesc = [f for f in report["findings"] if f["category"] == "privesc"]
     assert privesc and len(privesc) == report["stats"]["finding_count"]
-    passrole = next(f for f in privesc if f["check_id"] == "aws-ec2-passrole-runinstances")
-    assert passrole["resource_id"] == ALICE and passrole["status"] == "FAIL"
-    assert passrole["frameworks"] == ["HackTricks Cloud Best Practices"]
-    assert passrole["resource_name"] == "alice" and passrole["evidence"]["granting_statements"]
-    permissions = passrole["evidence"]["granting_permissions"]
-    assert {(item["permission"].lower(), item["grant"].get("statement")) for item in permissions
-            if item["grant"].get("policy_name") == "alice-inline"} >= {
-        ("iam:passrole", 0), ("ec2:runinstances", 1)}
+    assert not any(f["check_id"] == "aws-ec2-passrole-runinstances" for f in privesc)
+    assert any(f["check_id"] == "admin-equivalent" and f["status"] == "FAIL" for f in privesc)
     assert {f["status"] for f in privesc} <= {"FAIL", "UNKNOWN"}
     graph = report["graphs"]["privesc"]
     assert graph["nodes"] and graph["edges"] and report["graphs"]["network"] == {"nodes": [], "edges": []}
-    edge = next(e for e in graph["edges"] if "aws-ec2-passrole-runinstances" in e["techniques"])
-    detail = next(d for d in edge["technique_details"] if d["id"] == "aws-ec2-passrole-runinstances")
-    assert any(item["permission"].lower() == "iam:passrole" for item in detail["granting_permissions"])
+    assert not any("aws-ec2-passrole-runinstances" in e["techniques"] for e in graph["edges"])
     assert any(c["level"] == "privesc" for c in report["coverage"]) or report["stats"]["privesc"]["catalog_errors"] == 0
     summary = next(c for c in report["coverage"] if c["level"] == "check" and c["check_id"] == "privesc")
     assert summary["by_status"].get("FAIL")

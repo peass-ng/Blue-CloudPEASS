@@ -352,6 +352,49 @@ def test_sagemaker_user_profiles_domain_default_and_clusters(stub):
     assert read.items[0]["InstanceGroups"][0]["ExecutionRole"].endswith("role/hp")
 
 
+def test_sagemaker_spaces_join_shared_and_private_execution_roles(stub):
+    session, add = stub
+    sm = add("sagemaker")
+    shared_arn = f"arn:aws:sagemaker:{REGION}:{ACCOUNT}:space/d-example/shared"
+    private_arn = f"arn:aws:sagemaker:{REGION}:{ACCOUNT}:space/d-example/private"
+    shared_role = f"arn:aws:iam::{ACCOUNT}:role/shared-space"
+    private_role = f"arn:aws:iam::{ACCOUNT}:role/owner"
+    sm.add_response("list_spaces", {"Spaces": [
+        {"DomainId": "d-example", "SpaceName": "shared"},
+        {"DomainId": "d-example", "SpaceName": "private"}]})
+    sm.add_response("describe_space", {"DomainId": "d-example", "SpaceName": "shared", "SpaceArn": shared_arn,
+        "Status": "InService", "SpaceSettings": {"AppType": "JupyterLab"},
+        "SpaceSharingSettings": {"SharingType": "Shared"}},
+        {"DomainId": "d-example", "SpaceName": "shared"})
+    sm.add_response("describe_domain", {"DomainId": "d-example", "DefaultSpaceSettings": {"ExecutionRole": shared_role}},
+        {"DomainId": "d-example"})
+    sm.add_response("describe_space", {"DomainId": "d-example", "SpaceName": "private", "SpaceArn": private_arn,
+        "Status": "InService", "SpaceSettings": {"AppType": "CodeEditor"},
+        "SpaceSharingSettings": {"SharingType": "Private"},
+        "OwnershipSettings": {"OwnerUserProfileName": "alice"}},
+        {"DomainId": "d-example", "SpaceName": "private"})
+    sm.add_response("describe_user_profile", {"DomainId": "d-example", "UserProfileName": "alice",
+        "UserSettings": {"ExecutionRole": private_role}},
+        {"DomainId": "d-example", "UserProfileName": "alice"})
+    read = run("sagemaker_space", session)
+    assert read.status == "collected"
+    assert [(r["SpaceArn"], r["ExecutionRole"], r["ExecutionRoleSource"]) for r in read.items] == [
+        (shared_arn, shared_role, "domain_default_space"),
+        (private_arn, private_role, "owner_user_settings")]
+
+
+def test_sagemaker_space_denied_detail_does_not_infer_role(stub):
+    session, add = stub
+    sm = add("sagemaker")
+    sm.add_response("list_spaces", {"Spaces": [{"DomainId": "d-example", "SpaceName": "private"}]})
+    sm.add_client_error("describe_space", "AccessDeniedException", http_status_code=403,
+                        expected_params={"DomainId": "d-example", "SpaceName": "private"})
+    read = run("sagemaker_space", session)
+    assert read.status == "partial"
+    assert "ExecutionRole" not in read.items[0]
+    assert read.items[0]["_coverage"]["SpaceDetails"]["source_operation"] == "sagemaker:DescribeSpace"
+
+
 def test_service_planes_drop_secrets(stub):
     session, add = stub
     graf, qs, scn, amp = add("grafana"), add("quicksight"), add("supplychain"), add("amplify")
@@ -361,9 +404,11 @@ def test_service_planes_drop_secrets(stub):
     read = run("grafana_workspace", session)
     assert read.items[0]["Arn"] == f"arn:aws:grafana:{REGION}:{ACCOUNT}:/workspaces/g-1" and "glsa_secret" not in json.dumps(read.items, default=str)
     qs.add_response("list_users", {"UserList": [{"Arn": f"arn:aws:quicksight:{REGION}:{ACCOUNT}:user/default/bob", "Role": "ADMIN",
-        "Email": "bob@example.com", "IdentityType": "IAM", "Active": True}]}, {"AwsAccountId": ACCOUNT, "Namespace": "default"})
+        "Email": "bob@example.com", "IdentityType": "IAM", "Active": True,
+        "CustomPermissionsName": "restricted"}]}, {"AwsAccountId": ACCOUNT, "Namespace": "default"})
     read = run("quicksight_user", session)
-    assert read.items[0]["Role"] == "ADMIN" and "bob@example.com" not in json.dumps(read.items)
+    assert read.items[0]["Role"] == "ADMIN" and read.items[0]["CustomPermissionsName"] == "restricted"
+    assert "bob@example.com" not in json.dumps(read.items)
     scn.add_response("list_instances", {"instances": [{"instanceId": "11111111-2222-3333-4444-555555555555", "awsAccountId": ACCOUNT, "state": "Active"}]})
     read = run("supplychain_instance", session)
     assert read.items[0]["Arn"] == f"arn:aws:scn:{REGION}:{ACCOUNT}:instance/11111111-2222-3333-4444-555555555555"
@@ -373,10 +418,18 @@ def test_service_planes_drop_secrets(stub):
         "enableBasicAuth": True, "basicAuthCredentials": "dXNlcjpwYXNz", "buildSpec": "secret-build"}]})
     amp.add_response("list_backend_environments", {"backendEnvironments": [{"backendEnvironmentArn": "arn:aws:amplify:us-east-1:123456789012:apps/a1/backendenvironments/dev",
         "environmentName": "dev", "createTime": "2026-01-01T00:00:00Z", "updateTime": "2026-01-01T00:00:00Z"}]}, {"appId": "a1"})
+    amp.add_response("list_branches", {"branches": [{"branchArn": f"arn:aws:amplify:{REGION}:{ACCOUNT}:apps/a1/branches/main",
+        "branchName": "main", "stage": "PRODUCTION", "enableAutoBuild": True,
+        "environmentVariables": {"TOKEN": "branch-secret"}, "buildSpec": "branch-secret-build"}]}, {"appId": "a1"})
     read = run("amplify_app", session)
     dumped = json.dumps(read.items, default=str)
     assert read.items[0]["BackendEnvironments"]["items"][0]["environmentName"] == "dev"
+    assert read.items[0]["Branches"]["items"][0]["branchName"] == "main"
+    assert read.items[0]["RepositoryConnected"] is False
+    assert read.items[0]["AppBuildSpecPresent"] is True
+    assert read.items[0]["Branches"]["items"][0]["BranchBuildSpecPresent"] is True
     assert "sk_live_secret" not in dumped and "dXNlcjpwYXNz" not in dumped and "secret-build" not in dumped
+    assert "branch-secret" not in dumped
 
 
 def test_quicksight_not_subscribed_is_empty(stub):

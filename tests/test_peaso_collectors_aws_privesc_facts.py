@@ -70,12 +70,15 @@ def test_ecs_tasks_drop_container_overrides_and_failures_are_partial(stub):
         "containerInstanceArn": "arn:aws:ecs:us-east-1:123456789012:container-instance/prod/1",
         "overrides": {"taskRoleArn": f"arn:aws:iam::{ACCOUNT}:role/override", "containerOverrides": [{"name": "app",
             "environment": [{"name": "PASSWORD", "value": "hunter2"}]}]},
-        "containers": [{"name": "app", "reason": "x"}]}],
+        "containers": [{"name": "app", "lastStatus": "RUNNING", "reason": "x", "environment": [{"name": "SECRET", "value": "drop"}],
+                        "managedAgents": [{"name": "ExecuteCommandAgent", "lastStatus": "RUNNING", "reason": "drop"}]}]}],
         "failures": [{"arn": task + "x", "reason": "MISSING"}]}, None)
     read = facts.FETCHERS["ecs_task"](aws.Requests({}), session, REGION, ACCOUNT)
     assert read.status == "partial"
     assert read.items[0]["overrides"] == {"taskRoleArn": f"arn:aws:iam::{ACCOUNT}:role/override"}
-    assert "hunter2" not in json.dumps(read.items) and "containers" not in read.items[0]
+    assert "hunter2" not in json.dumps(read.items) and "drop" not in json.dumps(read.items)
+    assert read.items[0]["containers"] == [{"name": "app", "lastStatus": "RUNNING",
+                                           "managedAgents": [{"name": "ExecuteCommandAgent", "lastStatus": "RUNNING"}]}]
 
 
 def test_ecs_denied_cluster_listing_is_denied_not_empty(stub):
