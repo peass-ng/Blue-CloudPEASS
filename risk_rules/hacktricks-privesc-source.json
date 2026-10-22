@@ -1,6 +1,6 @@
 {
   "repository": "HackTricks-wiki/hacktricks-cloud",
-  "revision": "fff2fd0a055da890c27a434d4da8106ef00bb043",
+  "revision": "0bcdd63ab36141eedb65a7a80bbb386cf95544dd",
   "path": "src/privilege-escalation-paths",
   "canonical_sha256": {
     "aws/_excluded_171e_g1.yaml": "2160b8f57f029e74e5a31727815316f459d8364147c47be2c36639c831b9dcb3",
@@ -74,7 +74,7 @@
     "aws/config.yaml": "05dcdb743e5c10cb67aafada8e0fd02d3cb90565c52ee478bfdff7b995a4eecd",
     "aws/connect.yaml": "952f8ce0df399a86587124cb35c90264f2f0bf25f2896a03a670118f34d2ca52",
     "aws/controltower.yaml": "54d711672b8a0ca30148840f1dd3efb731d15a568a9408d74cf8851ebf286308",
-    "aws/datapipeline.yaml": "d0cd911056af980f78e338ed57841e1db5e9caadab2ad655f1e006e10eff6276",
+    "aws/datapipeline.yaml": "7ce2255973bd7fe322fc33e1a9063dd6a202b0ac7e925a5a03d2b4eb94c9a74d",
     "aws/datasync.yaml": "09b3ddd05db6aa46f02f301e85e60ff3dd8087c4c1af73a2b5e3ab558ec3779b",
     "aws/datazone.yaml": "4941d8ff6a55db08843957217fe134e977b7e209dd80f58f70f89a9333bb2002",
     "aws/deadline.yaml": "5eac90672eb7ff7b5481043dd786cdb31cf8174537b9f458841b387c225f7e68",
@@ -367,7 +367,7 @@
     "aws/config.yaml": "05dcdb743e5c10cb67aafada8e0fd02d3cb90565c52ee478bfdff7b995a4eecd",
     "aws/connect.yaml": "952f8ce0df399a86587124cb35c90264f2f0bf25f2896a03a670118f34d2ca52",
     "aws/controltower.yaml": "54d711672b8a0ca30148840f1dd3efb731d15a568a9408d74cf8851ebf286308",
-    "aws/datapipeline.yaml": "d0cd911056af980f78e338ed57841e1db5e9caadab2ad655f1e006e10eff6276",
+    "aws/datapipeline.yaml": "7ce2255973bd7fe322fc33e1a9063dd6a202b0ac7e925a5a03d2b4eb94c9a74d",
     "aws/datasync.yaml": "09b3ddd05db6aa46f02f301e85e60ff3dd8087c4c1af73a2b5e3ab558ec3779b",
     "aws/datazone.yaml": "4941d8ff6a55db08843957217fe134e977b7e209dd80f58f70f89a9333bb2002",
     "aws/deadline.yaml": "5eac90672eb7ff7b5481043dd786cdb31cf8174537b9f458841b387c225f7e68",

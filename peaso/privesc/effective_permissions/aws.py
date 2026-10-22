@@ -7131,6 +7131,12 @@ class AwsModel(Model):
                 if uncertain else None)
 
     def precondition(self, pid, candidates, source):
+        if pid == "datapipeline_existing_customer_role_pair_and_runnable_ec2":
+            # IAM grants on their own neither establish legacy customer
+            # eligibility nor bind the separately passed pipeline role and
+            # generated pipeline ID to a runnable EC2 command definition.
+            return {tid: ("unknown", "datapipeline_customer_role_pair_and_pipeline_run_not_verified")
+                    for tid in candidates}
         if pid == "braket_createjob_device_authorized":
             if source is None:
                 return None

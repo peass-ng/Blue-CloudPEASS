@@ -1466,6 +1466,27 @@ def test_scheduler_inline_policy_route_can_target_creator_role():
     assert any(any("scheduler-policy:" in target for target in targets) for targets in reaches)
 
 
+def test_datapipeline_grants_without_customer_and_role_pair_stay_unresolved():
+    from pathlib import Path
+    import yaml
+    from peaso.privesc.effective_permissions.aws import AwsModel
+    from peaso.privesc.evaluator import Evaluator
+
+    entry = yaml.safe_load((Path(__file__).resolve().parents[1] /
+                            "peaso/privesc/catalog/aws/datapipeline.yaml").read_text())[0]
+    target = role("instance", "ec2.amazonaws.com", profiles=[profile_arn("instance")])
+    caller = user("alice", allow("iam:PassRole", resource=target["Arn"]),
+                  allow("datapipeline:CreatePipeline", "datapipeline:PutPipelineDefinition",
+                        "datapipeline:ActivatePipeline"))
+    snap = aws_snap([caller], [target])
+    assert [r for r in Evaluator(AwsModel(snap), [entry], include_unknown=False).run()
+            if r.source.id == ALICE] == []
+    unresolved = [r for r in Evaluator(AwsModel(snap), [entry], include_unknown=True).run()
+                  if r.source.id == ALICE]
+    assert unresolved and all(grant.confidence == "unknown" for r in unresolved
+                              for grant in r.targets.values())
+
+
 def test_synthetics_canary_inventory_binds_exact_execution_role():
     import ast
     from pathlib import Path
