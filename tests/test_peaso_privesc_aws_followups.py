@@ -975,6 +975,60 @@ def test_cloudformation_passrole_requires_a_reviewed_template_effect():
         assert target["Arn"] not in reached(result(technique, proof, role_row=readonly), ALICE, technique)
 
 
+def test_cloudformation_private_extension_requires_a_reviewed_handler_effect():
+    technique = "aws-cloudformation-registertype-passrole-extension"
+    package = "arn:aws:s3:::extension-packages/handler.zip"
+    object_arn = "arn:aws:s3:::private-bucket/evidence.txt"
+    target = role("extension", "resources.cloudformation.amazonaws.com",
+                  allow("s3:PutObject", resource=object_arn))
+    target["RoleId"] = "AROAEXTENSION12345678"
+    passed = allow("iam:PassRole", resource=target["Arn"])
+    passed["Condition"] = {"StringEquals": {
+        "iam:PassedToService": "resources.cloudformation.amazonaws.com"}}
+    proof = {"TechniqueId": technique, "SourceArn": ALICE, "TargetKind": "aws_role",
+             "TargetId": target["Arn"], "TargetScope": SCOPE, "TargetRoleId": target["RoleId"],
+             "HandlerPackageArn": package,
+             "TypeVersionArn": f"arn:aws:cloudformation:{REGION}:{ACCOUNT}:type/resource/Peaso-Example/00000001",
+             "Status": "verified", "VerifiedPreconditions": True,
+             "SourceControlledHandler": True, "RegistrationSucceeded": True,
+             "HandlerInvocationSucceeded": True, "HandlerUsedTargetRole": True,
+             "EffectUsefulToSource": True, "RoleAction": "s3:PutObject",
+             "RoleResource": object_arn, "EvidenceRef": "reviewed-handler-invocation",
+             "EvidenceObservedAt": "2026-10-21T11:59:00+00:00",
+             "EvidenceExpiresAt": "2026-10-21T12:05:00+00:00"}
+
+    def result(evidence=proof, *, role_row=target, create_resource="*", extra_caller=()):
+        caller = user("alice", passed, allow("cloudformation:RegisterType"),
+                      allow("cloudformation:CreateResource", resource=create_resource),
+                      allow("s3:PutObject", "s3:GetObject", resource=package), *extra_caller)
+        proofs = evidence if isinstance(evidence, list) else ([evidence] if evidence else [])
+        snap = aws_snap([caller], [role_row], [
+            col("bucket", [{"Name": "extension-packages"}], scope=f"{ACCOUNT}/global"),
+            col("aws_privesc_challenge_evidence", proofs)])
+        snap["created_at"] = "2026-10-21T12:00:00+00:00"
+        return real(snap, technique, include_unknown=True)
+
+    assert target["Arn"] in reached(result(), ALICE, technique)
+    assert target["Arn"] not in reached(result(None), ALICE, technique)
+    assert_unresolved(result(None), ALICE, technique)
+    assert target["Arn"] not in reached(result([proof, dict(proof)]), ALICE, technique)
+    for changed in ({"RegistrationSucceeded": False}, {"HandlerInvocationSucceeded": False},
+                    {"HandlerUsedTargetRole": False}, {"EffectUsefulToSource": False},
+                    {"TargetRoleId": "AROADIFFERENT"}, {"RoleAction": "s3:DeleteObject"},
+                    {"HandlerPackageArn": "arn:aws:s3:::other-bucket/handler.zip"},
+                    {"SourceArn": f"arn:aws:iam::{ACCOUNT}:user/other"},
+                    {"EvidenceObservedAt": "2026-10-21T11:40:00+00:00"}):
+        assert target["Arn"] not in reached(result(dict(proof, **changed)), ALICE, technique)
+    assert target["Arn"] not in reached(result(create_resource=
+        f"arn:aws:cloudformation:{REGION}:{ACCOUNT}:stack/limited"), ALICE, technique)
+    assert target["Arn"] not in reached(result(extra_caller=[allow("s3:PutObject", resource=object_arn)]),
+                                        ALICE, technique)
+    readonly = role("extension", "resources.cloudformation.amazonaws.com",
+                    allow("s3:GetObject", resource=object_arn))
+    readonly["RoleId"] = target["RoleId"]
+    assert target["Arn"] not in reached(result(role_row=readonly), ALICE, technique)
+
+
 def test_new_iam_user_routes_do_not_reuse_an_existing_exact_name():
     technique = "aws-iam-createuser-policy-accesskey"
     existing = user("reserved")

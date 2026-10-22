@@ -5714,6 +5714,73 @@ class AwsModel(Model):
                 return True
         return False
 
+    def _cloudformation_extension_handler_effect(self, source, role):
+        """Bind a registered private handler's observed useful action to its exact role."""
+        try:
+            now = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            if now.tzinfo is None:
+                return False
+        except (KeyError, TypeError, ValueError):
+            return False
+        role_rows = [row for scope, row in items(self.snapshot, "iam_role")
+                     if scope.split("/")[0] == role.scope and row.get("Arn") == role.id]
+        role_id = role_rows[0].get("RoleId") if len(role_rows) == 1 else None
+        if not isinstance(role_id, str) or not role_id:
+            return False
+        collection_status = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+        technique = (self.current_entry or {}).get("id")
+        for scope in self.snapshot.get("scopes", ()):
+            if not isinstance(scope, str) or not scope.startswith(f"{role.scope}/"):
+                continue
+            rows = [c for c in self.snapshot.get("collections", ())
+                    if c.get("type") == "aws_privesc_challenge_evidence" and c.get("scope") == scope]
+            if len(rows) != 1 or rows[0].get("status") != "collected":
+                continue
+            proofs = [row for proof_scope, row in items(self.snapshot, "aws_privesc_challenge_evidence")
+                      if proof_scope == scope and collection_status.get(scope) == "collected" and
+                      row.get("TechniqueId") == technique and row.get("SourceArn") == source.id and
+                      row.get("TargetKind") == "aws_role" and row.get("TargetId") == role.id]
+            if len(proofs) != 1:
+                continue
+            proof = proofs[0]
+            package = proof.get("HandlerPackageArn")
+            version = proof.get("TypeVersionArn")
+            action, resource = proof.get("RoleAction"), proof.get("RoleResource")
+            prefix = f"arn:{role.id.split(':', 2)[1]}:cloudformation:{scope.split('/', 1)[1]}:{role.scope}:type/resource/"
+            if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                    proof.get("SourceControlledHandler") is not True or
+                    proof.get("RegistrationSucceeded") is not True or
+                    proof.get("HandlerInvocationSucceeded") is not True or
+                    proof.get("HandlerUsedTargetRole") is not True or
+                    proof.get("EffectUsefulToSource") is not True or
+                    proof.get("TargetScope") != scope or proof.get("TargetRoleId") != role_id or
+                    not isinstance(package, str) or not package.startswith(
+                        f"arn:{role.id.split(':', 2)[1]}:s3:::") or
+                    "/" not in package.split(":::", 1)[-1] or
+                    not isinstance(version, str) or not version.startswith(prefix) or
+                    not isinstance(action, str) or
+                    re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                    not isinstance(resource, str) or not resource or
+                    not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"]):
+                continue
+            try:
+                witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+                expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+                if (witnessed.tzinfo is None or expires.tzinfo is None or
+                        not 0 <= (now - witnessed).total_seconds() <= 900 or
+                        not now < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                    continue
+            except (KeyError, TypeError, ValueError):
+                continue
+            package_access = [self.check(source, {"action": name}, package)
+                              for name in ("s3:PutObject", "s3:GetObject")]
+            permitted = self.check(role, {"action": action}, resource)
+            already = self.check(source, {"action": action}, resource)
+            if (all(grant is not None and grant.confidence == "derived" for grant in package_access) and
+                    permitted is not None and permitted.confidence == "derived" and already is None):
+                return True
+        return False
+
     def _cloudformation_stackset_route(self, source, pivot, target):
         """Require one new or existing self-managed StackSet route to the target account."""
         if target.kind != "aws_role" or target.attrs.get("path") not in (None, "/"):
@@ -5856,6 +5923,8 @@ class AwsModel(Model):
             return ("unknown", "extension_handler_package_access_not_verified") if unknown else None
         direct = self._with_context(
             {"request_context": {"cloudformation:RoleArn": {"absent": True}}},
+            # Cloud Control does not support resource-level IAM grants. A
+            # synthetic non-ARN target rejects stack-scoped grants here.
             lambda: self._check_action(source, "cloudformation:createresource",
                                        "peaso-global-cloudcontrol-create-resource"), source)
         if direct is not None:
@@ -11679,7 +11748,14 @@ class AwsModel(Model):
             if source is None:
                 return None
             verdict = self._cloudformation_extension_route(source)
-            return {tid: verdict for tid in candidates} if verdict else {}
+            if not verdict:
+                return {}
+            out = {}
+            for tid, role in candidates.items():
+                out[tid] = (("unknown", "cloudformation_extension_handler_effect_not_verified")
+                            if verdict[0] == "conditional" and
+                            not self._cloudformation_extension_handler_effect(source, role) else verdict)
+            return out
         if pid in ("cloudformation_new_stack_with_role", "cloudformation_new_changeset_with_role"):
             if source is None:
                 return None

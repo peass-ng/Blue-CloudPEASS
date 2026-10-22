@@ -1,6 +1,6 @@
 {
   "repository": "HackTricks-wiki/hacktricks-cloud",
-  "revision": "017007049dbe9f376bef08758d94b881b169f6df",
+  "revision": "e99d8d49ce705ece71a4520ff72c7e0ad43bf87d",
   "path": "src/privilege-escalation-paths",
   "canonical_sha256": {
     "aws/_excluded_171e_g1.yaml": "2160b8f57f029e74e5a31727815316f459d8364147c47be2c36639c831b9dcb3",
@@ -70,7 +70,7 @@
     "aws/chatbot.yaml": "e398c15a28035c658188a837fb3202cca0ee54f44a1fabd5e8039519ed1e7ce5",
     "aws/chime.yaml": "cafa74f355c8c86168255330ba54d1ecd7f725e25ddf288e4ef6fa637e7d5058",
     "aws/cloudcontrol.yaml": "436834573d27e8f2b5cccbc582448f8722af83ed437e08e3e61c95dc50e60fe1",
-    "aws/cloudformation.yaml": "63abc120fed8e7c35b4eca1372bf4475ba427e38ca48101e468a2acdd1cdf6b3",
+    "aws/cloudformation.yaml": "e84fe30d5fc7f34b1e9e96970bcc8c87a798e0436b149384669f76e4b3d91e86",
     "aws/cloudfront.yaml": "9482f919ef731084d0168fe4bdd8718a6c8cbded14ca9ce635c89f0976a1e1e7",
     "aws/cloudwatch.yaml": "6009be1333d9318772206d3668c73831ea888ec3c6b6539db50daa2d16335e24",
     "aws/codeartifact.yaml": "86b6ca8a8625a320fefcad501f3c1e0943410ac3b8009450a639c67be6b7156b",
@@ -372,7 +372,7 @@
     "aws/chatbot.yaml": "e398c15a28035c658188a837fb3202cca0ee54f44a1fabd5e8039519ed1e7ce5",
     "aws/chime.yaml": "cafa74f355c8c86168255330ba54d1ecd7f725e25ddf288e4ef6fa637e7d5058",
     "aws/cloudcontrol.yaml": "436834573d27e8f2b5cccbc582448f8722af83ed437e08e3e61c95dc50e60fe1",
-    "aws/cloudformation.yaml": "63abc120fed8e7c35b4eca1372bf4475ba427e38ca48101e468a2acdd1cdf6b3",
+    "aws/cloudformation.yaml": "e84fe30d5fc7f34b1e9e96970bcc8c87a798e0436b149384669f76e4b3d91e86",
     "aws/cloudfront.yaml": "9482f919ef731084d0168fe4bdd8718a6c8cbded14ca9ce635c89f0976a1e1e7",
     "aws/cloudwatch.yaml": "6009be1333d9318772206d3668c73831ea888ec3c6b6539db50daa2d16335e24",
     "aws/codeartifact.yaml": "86b6ca8a8625a320fefcad501f3c1e0943410ac3b8009450a639c67be6b7156b",
