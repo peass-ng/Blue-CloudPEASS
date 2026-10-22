@@ -2307,9 +2307,9 @@ def test_emr_on_eks_execution_roles_trust_the_cluster_oidc_provider():
                      "arn": f"arn:aws:eks:{REGION}:{ACCOUNT}:cluster/cluster-one",
                      "status": "ACTIVE", "identity": {"oidc": {
                          "issuer": f"https://oidc.eks.{REGION}.amazonaws.com/id/ABC"}}}}])]
-    result = real(aws_snap([alice], [job, irsa], inventory), *ids)
+    result = real(aws_snap([alice], [job, irsa], inventory), *ids, include_unknown=True)
     for tid in ids:
-        assert set(reached(result, ALICE, tid)) == {role_arn("emr-job")}
+        assert_unresolved(result, ALICE, tid)
     no_pass = user("alice", allow("emr-containers:StartJobRun"))
     assert edges(real(aws_snap([no_pass], [job], inventory), *ids), ALICE) == []
     wrong_action = copy.deepcopy(job)
@@ -2357,13 +2357,14 @@ def test_emr_on_eks_execution_roles_trust_the_cluster_oidc_provider():
         f"oidc.eks.{REGION}.amazonaws.com/id/ABC:sub"] = (
             f"system:serviceaccount:spark:emr-containers-sa-spark-client-{ACCOUNT}-7t3vvv3mh5u")
     for tid in ids:
-        assert set(reached(real(aws_snap([alice], [exact_subject], inventory), tid), ALICE)) == {role_arn("emr-job")}
+        assert_unresolved(real(aws_snap([alice], [exact_subject], inventory), tid,
+                               include_unknown=True), ALICE, tid)
     scoped = user("alice", allow("iam:PassRole", resource=role_arn("emr-job")),
                   allow("emr-containers:StartJobRun", resource=virtual_cluster),
                   allow("emr-containers:GetManagedEndpointSessionCredentials", resource=endpoint))
-    scoped_result = real(aws_snap([scoped], [job], inventory), *ids)
+    scoped_result = real(aws_snap([scoped], [job], inventory), *ids, include_unknown=True)
     for tid in ids:
-        assert set(reached(scoped_result, ALICE, tid)) == {role_arn("emr-job")}
+        assert_unresolved(scoped_result, ALICE, tid)
     wrong_role_context = user("alice", allow("iam:PassRole", resource=role_arn("emr-job")),
                               {"Effect": "Allow", "Action": "emr-containers:StartJobRun",
                                "Resource": virtual_cluster,
@@ -2404,7 +2405,8 @@ def test_emr_on_eks_pod_identity_requires_matching_associations_and_exact_grants
                  col("eks_cluster", [{"cluster": {"name": "cluster-one", "arn": cluster_arn,
                      "status": "ACTIVE"}}]),
                  col("eks_pod_identity_association", associations)]
-    assert set(reached(real(aws_snap([alice], [target], inventory), tid), ALICE)) == {role_arn("pod-job")}
+    assert_unresolved(real(aws_snap([alice], [target], inventory), tid,
+                           include_unknown=True), ALICE, tid)
     missing_executor = copy.deepcopy(inventory)
     missing_executor[2][2].pop()
     assert edges(real(aws_snap([alice], [target], missing_executor), tid), ALICE) == []

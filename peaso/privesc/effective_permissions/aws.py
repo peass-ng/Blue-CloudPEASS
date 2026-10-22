@@ -4941,9 +4941,106 @@ class AwsModel(Model):
                 components.add(match.group(1))
         return components == {"client", "driver", "executor"}
 
+    def _emr_containers_role_effect(self, source, role, resource_arn, endpoint, pod_identity, grant):
+        """Require one executed EMR job or interactive session under the exact role."""
+        technique = ("aws-emr-containers-getmanagedendpointsessioncredentials" if endpoint else
+                     "aws-emr-containers-passrole-startjobrun-pod-identity" if pod_identity else
+                     "aws-emr-containers-passrole-startjobrun")
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "emr_containers_role_effect_evidence_missing_or_conflicting")
+        scope, proof = records[0]
+        if (inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"
+                or source.incomplete or role.incomplete or grant.confidence != "derived"):
+            return ("unknown", "emr_containers_role_effect_evidence_incomplete")
+        region = scope.split("/", 1)[1] if "/" in scope else ""
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        virtual_cluster = resource_arn.split("/endpoints/", 1)[0] if endpoint else resource_arn
+        cluster_rows = [row for row_scope, row in items(self.snapshot, "emr_container_virtual_cluster")
+                        if row_scope == scope and row.get("arn") == virtual_cluster]
+        if len(cluster_rows) != 1 or not isinstance(cluster_rows[0].get("EksClusterName"), str):
+            return ("unknown", "emr_containers_exact_cluster_not_verified")
+        eks_cluster = f"arn:{partition}:eks:{region}:{source.scope}:cluster/{cluster_rows[0]['EksClusterName']}"
+        service = proof.get("PassRoleService")
+        associated = proof.get("PassRoleAssociatedResourceArn")
+        role_action, role_resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("TechniqueId") != technique or proof.get("SourceArn") != source.id or
+                proof.get("TargetKind") != "aws_role" or proof.get("TargetId") != role.id or
+                proof.get("ResourceArn") != resource_arn or
+                proof.get("VirtualClusterArn") != virtual_cluster or
+                proof.get("EksClusterArn") != eks_cluster or
+                proof.get("ExecutionRoleArn") != role.id or
+                proof.get("PassRoleContextReviewed") is not True or
+                not isinstance(service, str) or re.fullmatch(
+                    r"[a-z0-9-]+(?:\.[a-z0-9-]+)*\.amazonaws\.com(?:\.cn)?", service) is None or
+                (associated is not None and (not isinstance(associated, str) or
+                 not associated.startswith(f"arn:{partition}:") or
+                 "*" in associated or "?" in associated)) or
+                (pod_identity and (service != "pods.eks.amazonaws.com" or associated != eks_cluster or
+                 proof.get("PodIdentityAgentReady") is not True or
+                 proof.get("PodIdentityCredentialsUsed") is not True or
+                 proof.get("ReleaseSupportsPodIdentity") is not True)) or
+                proof.get("ControlledCodeExecuted") is not True or
+                proof.get("CodeUsedRoleCredentials") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                not isinstance(role_action, str) or re.fullmatch(
+                    r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", role_action) is None or
+                not isinstance(role_resource, str) or not role_resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "emr_containers_executed_role_effect_not_verified")
+        if endpoint:
+            if (proof.get("EndpointArn") != resource_arn or
+                    proof.get("EndpointTokenIssued") is not True or
+                    proof.get("EndpointConnectionSucceeded") is not True):
+                return ("unknown", "emr_containers_endpoint_session_not_verified")
+        else:
+            job = proof.get("JobRunArn")
+            if (not isinstance(job, str) or re.fullmatch(
+                    re.escape(virtual_cluster) + r"/jobruns/[A-Za-z0-9]+", job) is None or
+                    proof.get("JobRunAccepted") is not True or
+                    proof.get("JobRunExecuted") is not True or
+                    proof.get("JobArtifactControlledBySource") is not True or
+                    proof.get("JobArtifactReadByRuntime") is not True):
+                return ("unknown", "emr_containers_job_execution_not_verified")
+        roles = [row for row_scope, row in items(self.snapshot, "iam_role")
+                 if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        if (len(roles) != 1 or not isinstance(proof.get("TargetRoleId"), str) or
+                not proof["TargetRoleId"] or roles[0].get("RoleId") != proof["TargetRoleId"] or
+                proof.get("ExecutionRoleId") != proof["TargetRoleId"]):
+            return ("unknown", "emr_containers_role_identity_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "emr_containers_role_effect_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "emr_containers_role_effect_evidence_time_missing")
+        context = {"iam:PassedToService": service}
+        if associated is not None:
+            context["iam:AssociatedResourceArn"] = associated
+        action = ("emr-containers:GetManagedEndpointSessionCredentials" if endpoint else
+                  "emr-containers:StartJobRun")
+        grants = [self.check(source, {"action": "iam:PassRole", "request_context": context}, role.id),
+                  self.check(source, {"action": action, "request_context": {
+                      "emr-containers:ExecutionRoleArn": role.id}}, resource_arn),
+                  self.check(role, {"action": role_action}, role_resource)]
+        if any(item is None or item.confidence != "derived" for item in grants):
+            return ("unknown", "emr_containers_scoped_permissions_not_verified")
+        if self.check(source, {"action": role_action}, role_resource) is not None:
+            return None
+        return ("conditional", "emr_containers_exact_executed_role_effect")
+
     def _emr_containers_inventory_route(self, source, role, endpoint=False, pod_identity=False):
         """One live EMR on EKS resource and its exact IAM request must agree."""
         if source is None:
+            return None
+        pass_allows, _ = self._statements(source, "iam:passrole")
+        if not pass_allows and not source.incomplete:
             return None
         partition = source.id.split(":", 2)[1]
         cluster_status = inventory_status(self.snapshot, "emr_container_virtual_cluster")
@@ -4997,24 +5094,21 @@ class AwsModel(Model):
                     unknown = True
         else:
             candidates.extend(("emr-containers:startjobrun", arn) for arn in clusters)
+        unresolved = None
         previous = self._ctx_override
         try:
             self._ctx_override = {"emr-containers:executionrolearn": [role.id]}
             for action, arn in candidates:
-                if pod_identity:
-                    scope, name = clusters[arn]
-                    cluster_arn = f"arn:{partition}:eks:{scope.split('/', 1)[1]}:{source.scope}:cluster/{name}"
-                    self._ctx_override = {"iam:associatedresourcearn": [cluster_arn]}
-                    passed = self._check_action(source, "iam:passrole", role.id)
-                    if passed is None:
-                        continue
-                    self._ctx_override = {"emr-containers:executionrolearn": [role.id]}
                 grant = self._check_action(source, action, arn)
                 if grant is not None:
-                    return ("conditional", "active_emr_resource_and_exact_action")
+                    verdict = self._emr_containers_role_effect(source, role, arn, endpoint, pod_identity, grant)
+                    if verdict is None or verdict[0] == "conditional":
+                        return verdict
+                    unknown = True
+                    unresolved = verdict
         finally:
             self._ctx_override = previous
-        return ("unknown", "emr_containers_resource_or_authorization_not_verified") if unknown else None
+        return unresolved or (("unknown", "emr_containers_resource_or_authorization_not_verified") if unknown else None)
 
     def _region_ok(self, kind, account, region):
         status = self.region_status.get(kind, {}).get(f"{account}/{region}")
