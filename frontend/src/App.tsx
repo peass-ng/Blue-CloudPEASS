@@ -397,11 +397,10 @@ export function App() {
               </span>
             </div>
           )}
-          {!demo && partialResult && (
+          {!demo && page === "Scans" && partialResult && (
             <div className="demo-banner" role="status">
               <ShieldCheck size={17} />
               <strong>{["failed", "timed_out", "cancelled", "queue_exhausted"].includes(current?.status || "") ? "Saved partial results" : "Assessment in progress"}</strong>
-              <span>Completed evidence and findings are available. Coverage is still incomplete.</span>
             </div>
           )}
           {!demo && report.data?.publication?.sections && partialResult && (

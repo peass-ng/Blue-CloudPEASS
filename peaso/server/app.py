@@ -465,10 +465,12 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
     @app.get("/api/me")
     def me(user=Depends(account_identity)):
         from peaso.gcp_platform import PLATFORM_EMAIL, enabled as gcp_platform_enabled
+        unlimited = getattr(store, "unlimited_scans", lambda tenant: False)(user.tenant_id)
         return {"tenant_id": user.tenant_id, **({"email": user.email} if user.email else {}),
                 **({"email_verified": user.email_verified} if user.email and user.email_verified is not None else {}),
                 **({"name": user.name} if user.name else {}), "plan": "paid" if user.paid else "free",
-                "auth_kind": user.auth_kind, "weekly_limit": user.weekly_limit, "weekly_used": store.usage(user.tenant_id),
+                "auth_kind": user.auth_kind, "weekly_limit": None if unlimited else user.weekly_limit,
+                "weekly_unlimited": unlimited, "weekly_used": store.usage(user.tenant_id),
                 "plan_source": user.plan_source,
                 **({"plan_expires_at": user.plan_expires_at} if user.plan_expires_at is not None else {}),
                 "auth_mode": settings.auth_mode, "runtime_mode": "hosted" if settings.auth_mode == "cognito" else "local",

@@ -40,6 +40,7 @@ export function Settings({ demo, workspaceId = "personal", onWorkspaceCreated = 
   const quota = me.data?.quota && typeof me.data.quota === "object" ? me.data.quota as Record<string, unknown> : {};
   const used = quotaValue(me.data?.weekly_used) ?? quotaValue(quota.weekly_used);
   const limit = quotaValue(me.data?.weekly_limit) ?? quotaValue(quota.weekly_limit);
+  const weeklyUnlimited = me.data?.weekly_unlimited === true;
   const expiryEpoch = me.data?.plan_expires_at;
   const grantExpiry = typeof expiryEpoch === "number" && Number.isFinite(expiryEpoch)
     ? new Date(expiryEpoch * 1000) : null;
@@ -88,7 +89,7 @@ export function Settings({ demo, workspaceId = "personal", onWorkspaceCreated = 
             </div>
             {me.data?.email && me.data.email_verified === false && <p className="muted small">Email address is not verified with the identity provider.</p>}
             {activeAdminGrant && <p className="muted small">Temporary paid access (administrator grant){grantExpiry ? ` · Expires ${grantExpiry.toLocaleString()}` : ""}</p>}
-            {used !== undefined && limit !== undefined ? <div className="quota-summary"><p className="muted">Assessments used this week</p><p className="quota-value">{used} <span>/ {limit}</span></p><div className="quota-segments" aria-hidden="true">{Array.from({ length: 5 }, (_, index) => <span key={index} className={index < Math.ceil(5 * used / Math.max(1, limit)) ? "used" : ""} />)}</div></div> : <p className="muted">Weekly assessment quota was not supplied by this API.</p>}
+            {weeklyUnlimited ? <div className="quota-summary"><p className="muted">Assessments used this week</p><p className="quota-value">{used ?? 0} <span>/ Unlimited</span></p></div> : used !== undefined && limit !== undefined ? <div className="quota-summary"><p className="muted">Assessments used this week</p><p className="quota-value">{used} <span>/ {limit}</span></p><div className="quota-segments" aria-hidden="true">{Array.from({ length: 5 }, (_, index) => <span key={index} className={index < Math.ceil(5 * used / Math.max(1, limit)) ? "used" : ""} />)}</div></div> : <p className="muted">Weekly assessment quota was not supplied by this API.</p>}
             {localMode && !demo && <button className="text-button small" onClick={() => setTokenDialog(true)}>Manage local API token</button>}
           </div>
         )}

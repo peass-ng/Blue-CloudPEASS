@@ -231,16 +231,19 @@ def _process(role, request, connection):
                                                         without_private_values(redact_report(report)), snapshot)
                         else:
                             report_ref = None
-                        envelope = snapshot["collections"][0] if report is None else None
+                        batch = (report is None and 'batch_revisions' in
+                                 snapshot.get('metadata', {}).get('incremental', {}))
+                        envelope = snapshot["collections"][0] if report is None and not batch else None
                         connection.send(("__checkpoint__", {"sequence": sequence, "stage": "collector",
                             "snapshot_ref": snapshot_ref, "report_ref": report_ref,
-                            "kind": envelope["type"] if envelope else None,
-                            "scope": envelope["scope"] if envelope else None}))
+                            "kind": '__checkpoint_batch__' if batch else envelope["type"] if envelope else None,
+                            "scope": str(sequence) if batch else envelope["scope"] if envelope else None}))
                         if connection.recv() != ("__checkpoint_ack__", sequence, True):
                             raise RuntimeError("checkpoint lease or publication rejected")
 
                 checkpoint_session = CheckpointSession(request, checkpoint, public_checkpoint)
-                restored = [artifacts.get(tenant, reference) for reference in request.get("checkpoint_refs", ())]
+                restored = [artifacts.get(tenant, reference) for reference in
+                    dict.fromkeys(request.get("checkpoint_refs", ()))]
                 checkpoint_session.restore(restored, int(request.get("checkpoint_sequence", 0)))
                 request["_collection_callback"] = checkpoint_session.on_collection
                 try:
@@ -449,8 +452,9 @@ class Worker:
                            "stage_results": self.store.stage_results(job["tenant"], job["id"])}
             request["checkpoint_sequence"] = int(job.get("checkpoint_sequence") or 0)
             if self.role == "collector":
-                request["checkpoint_refs"] = [row["reference"] for row in
-                    self.store.checkpoint_collections(job["tenant"], job["id"])]
+                request["checkpoint_refs"] = [row["reference"] for row in sorted(
+                    self.store.checkpoint_collections(job["tenant"], job["id"]),
+                    key=lambda row: row["sequence"])]
             request.update(tenant_id=job["tenant"], scan_id=job["id"], deadline=job["deadline"], artifact_config={"mode": "file", "root": str(self.artifacts.root)} if isinstance(self.artifacts, FileArtifacts) else {"mode": "s3", "bucket": self.artifacts.bucket, "kms_key": self.artifacts.kms_key})
             request["ai_context"] = {"state_dir": str(self.settings.state_dir), "identity_dir": str(self.settings.identity_dir)}
             request["timeline"] = self.store.public_job(job)["timeline"]

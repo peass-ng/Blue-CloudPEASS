@@ -292,7 +292,10 @@ def test_worker_offline_collection_commits_public_partial_before_analyzer(tmp_pa
     row = store.job(TENANT, job["id"])
     assert row["status"] == "collected", row
     assert row["partial_report"] and row["snapshot"]
-    assert len(store.checkpoint_collections(TENANT, job["id"])) == 1
+    checkpoints = store.checkpoint_collections(TENANT, job["id"])
+    assert len(checkpoints) == 2  # bounded batch, then section-closure revision
+    assert checkpoints[0]["kind"] == "__checkpoint_batch__"
+    assert checkpoints[1]["kind"] == "bucket"
     partial_manifest = artifacts.get(TENANT, row["partial_report"])
     assert partial_manifest["bundle_version"] == 1
     partial = artifacts.get(TENANT, partial_manifest["report_json"])
