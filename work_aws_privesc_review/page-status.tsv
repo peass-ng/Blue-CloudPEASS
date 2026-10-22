@@ -14,8 +14,8 @@ src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-batch-privesc/REA
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-bedrock-agentcore-privesc/README.md	17	1	1	pending	-
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-bedrock-privesc/README.md	19	1	1	pending	-
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-braket-privesc/README.md	4	1	1	pending	-
-src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-budgets-privesc/README.md	8	0	1	pending	-
-src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-chatbot-privesc/README.md	6	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-budgets-privesc/README.md	8	0	1	triaged	CreateBudgetAction with a passed budgets execution role can attach an IAM policy, apply an SCP or run an SSM document only after an existing budget action reaches its trigger or is approved. The role performs bounded chosen operations, not arbitrary role access. A self-admin policy attachment needs exact existing-budget, trigger, execution-role attach permission and controlled target-principal evidence before an IAM permission-grant path; AWS Budgets controls and CreateBudgetAction docs.
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-chatbot-privesc/README.md	6	0	1	triaged	PassRole and channel-configuration creation alone do not prove the source controls an authorized Slack/Teams channel or can invoke commands there. Channel guardrails can also narrow the passed role. The sole documented IAM-role route remains a candidate pending workspace, channel, user access and guardrail evidence; AWS Chatbot API and IAM docs.
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-cloud-control-handler-role-privesc/README.md	4	0	1	pending	-
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-cloudcontrol-privesc/README.md	5	1	0	pending	-
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-cloudformation-privesc/README.md	31	1	1	pending	-
