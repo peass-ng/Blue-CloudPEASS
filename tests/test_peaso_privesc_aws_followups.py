@@ -216,6 +216,45 @@ def test_instance_connect_prior_catalog_binding_keeps_conditional_wording():
     assert "leaves host access and role-credential use unresolved" in new[ident]["notes"]
 
 
+def test_spot_request_scoped_grant_stays_visible_without_claiming_role_execution():
+    ident = "aws-ec2-requestspotinstances-passrole"
+    target = role("target", "ec2.amazonaws.com", profiles=[profile_arn("target")])
+    image = f"arn:aws:ec2:{REGION}:{ACCOUNT}:image/ami-1234567890abcdef0"
+
+    def caller(service, spot=True):
+        passrole = {"Effect": "Allow", "Action": "iam:PassRole", "Resource": target["Arn"],
+                    "Condition": {"StringEquals": {"iam:PassedToService": service}}}
+        statements = [passrole]
+        if spot:
+            statements.append(allow("ec2:RequestSpotInstances", resource=image))
+        return user("alice", *statements)
+
+    source = caller("ec2.amazonaws.com")
+    result = real(aws_snap([source], [target]), ident, include_unknown=True)
+    assert target["Arn"] not in reached(result, ALICE, ident)
+    assert_unresolved(result, ALICE, ident)
+    for source in (caller("lambda.amazonaws.com"), caller("ec2.amazonaws.com", spot=False)):
+        assert not reached(real(aws_snap([source], [target]), ident), ALICE, ident)
+
+
+def test_spot_request_prior_catalog_binding_keeps_global_requirement():
+    from peaso.privesc import versioned_catalog as catalog
+
+    ident = "aws-ec2-requestspotinstances-passrole"
+    old_binding = {"schema": catalog.BINDING_SCHEMA,
+                   "manifest_sha256": catalog.SPOT_REQUEST_690_PREVIOUS_MANIFEST,
+                   "effective_tree_sha256": catalog.SPOT_REQUEST_690_PREVIOUS_TREE,
+                   "source_revision": catalog.V4_REVISION}
+    old, old_status = catalog.lookup_entries([ident], old_binding)
+    new, new_status = catalog.lookup_entries([ident], catalog.current_binding())
+    assert old_status == "exact_previous_current"
+    assert new_status == "exact_strict_privesc"
+    assert any(req["action"] == "ec2:RequestSpotInstances"
+               for req in old[ident]["requires"]["all_of"])
+    assert all(req["action"] != "ec2:RequestSpotInstances"
+               for req in new[ident]["requires"]["all_of"])
+
+
 def test_ec2_changed_user_data_needs_reviewed_reexecution_on_same_instance():
     technique = "aws-ec2-modifyinstanceattribute-userdata"
     instance_arn = f"arn:aws:ec2:{REGION}:{ACCOUNT}:instance/i-1234567890abcdef0"

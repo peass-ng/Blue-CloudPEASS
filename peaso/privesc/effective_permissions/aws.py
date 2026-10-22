@@ -7795,6 +7795,17 @@ class AwsModel(Model):
             # compatible. Neither fact follows from the two caller grants.
             return {tid: ("unknown", "stepfunctions_teststate_role_task_effect_not_verified")
                     for tid in candidates}
+        if pid == "spot_request_with_passed_profile_and_role_ready":
+            if source is None:
+                return None
+            allows, _ = self._statements(source, "ec2:requestspotinstances")
+            if not allows and not source.incomplete:
+                return {}
+            # A Spot request authorizes its chosen image and generated request
+            # separately. The source grants do not identify a compatible
+            # launch specification, attached profile or available capacity.
+            return {tid: ("unknown", "spot_request_image_network_profile_or_capacity_not_verified")
+                    for tid in candidates}
         if pid == "imagebuilder_component_publish_and_pipeline_start":
             if source is None:
                 return None
