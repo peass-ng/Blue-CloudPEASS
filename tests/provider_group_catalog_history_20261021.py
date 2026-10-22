@@ -45,12 +45,12 @@ def combined_predecessor_catalog(value):
     # New main changes the reviewed privilege-path binding/catalog and AWS fact inventory.
     # Reverse those four fields before verifying the unchanged combined fixture.
     successor_raw=(Path(__file__).with_name('fixtures')/'current_privesc_catalog_successor_20261022.json.gz').read_bytes()
-    assert hashlib.sha256(successor_raw).hexdigest()=='2803c16fd0b863144e7f36513ea3f52bd83412ef1b971efc9294dd46e093af66'
+    assert hashlib.sha256(successor_raw).hexdigest()=='36bd58258a400ef973f536471a1bf5eb854a5844e4fb7e90184904d2c201a182'
     successor=json.loads(gzip.decompress(successor_raw))
     assert set(successor['top_changes'])=={'privesc_catalog','privesc_techniques','inventories','inventory_coverage'}
     candidate=deepcopy(value)
     for row in candidate['checks']:row.pop('clarity_evaluation_contract',None)
-    assert digest(candidate)==successor['after_catalog_sha256']
+    assert digest(candidate)==successor['after_catalog_sha256'], 'Combined current catalog changed'
     for key,change in successor['top_changes'].items():
         assert digest(value[key])==change['after_sha256']
         value[key]=deepcopy(change['before'])

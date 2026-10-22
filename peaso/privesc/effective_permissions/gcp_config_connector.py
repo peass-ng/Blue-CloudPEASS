@@ -235,6 +235,9 @@ def select(model, candidates, source):
     out = {}
     rbac_cache = {}
     for ident, target in candidates.items():
+        operation, cluster = target.attrs.get("kcc_operation"), target.attrs.get("host_resource")
+        if not isinstance(operation, str) or not operation or not isinstance(cluster, str) or not cluster:
+            continue
         if target.attrs.get("kcc_service_account") == source.attrs.get("email"):
             continue
         project = target.scope
@@ -246,11 +249,10 @@ def select(model, candidates, source):
         if direct is not None:
             out[ident] = ("unknown", "existing_project_iam_control_uncertain")
             continue
-        action = "container.thirdPartyObjects." + target.attrs["kcc_operation"]
-        write = model.check(source, {"action": action}, target.attrs["host_resource"])
+        action = "container.thirdPartyObjects." + operation
+        write = model.check(source, {"action": action}, cluster)
         authenticate = model.check(source, {"action": "container.clusters.get"},
-                                   target.attrs["host_resource"])
-        cluster = target.attrs["host_resource"]
+                                   cluster)
         joined = (model.related_k8s or {}).get(cluster)
         rbac_uncertain = False
         rbac_write = None

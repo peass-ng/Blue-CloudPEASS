@@ -5,6 +5,7 @@ import importlib.util
 import json
 from pathlib import Path
 import socket
+import sys
 
 import pytest
 from kubernetes import client,config
@@ -13,10 +14,12 @@ from peaso import engine
 import peaso.checks as registry
 from peaso.checks import fixtures
 from tests.aws_k8s_current_native_inputs_20261020 import case_state
-from peaso.checks import k8s_kubelet_configmap_admission_20261020 as admission
+from peaso.checks import k8s_kubelet_configmap_source_successor_20261021 as successor
 from peaso.checks import k8s_kubelet_configmap_review_20261020 as candidate
 from peaso.collectors import k8s
 from peaso.collectors import k8s_kubelet_configmap_indicators_20261020 as producer
+
+admission = sys.modules[successor.PRIVATE_NAME]
 
 _path=Path(__file__).with_name('test_k8s_kubelet_configmap_native_review_20261020.py')
 _spec=importlib.util.spec_from_file_location('verified_kubelet_configmap_wire',_path)
@@ -30,7 +33,6 @@ def offline(monkeypatch):
     for n in ('connect','connect_ex'):monkeypatch.setattr(socket.socket,n,blocked)
     for n in ('getaddrinfo','gethostbyname','gethostbyname_ex','create_connection'):monkeypatch.setattr(socket,n,blocked)
     for n in ('load_kube_config','load_incluster_config','new_client_from_config'):monkeypatch.setattr(config,n,blocked)
-    monkeypatch.setattr(k8s,'_new_api',blocked)
 
 
 @pytest.fixture(scope='session',autouse=True)

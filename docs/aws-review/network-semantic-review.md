@@ -1,6 +1,6 @@
 # AWS network semantic source review
 
-Reviewed 77 currently active AWS IDs across six kinds: network_acl=6, network_interface=3, route_table=1, security_group=48, subnet=2, vpc=17.
+Reviewed 78 currently active AWS IDs across six kinds: network_acl=6, network_interface=3, route_table=2, security_group=48, subnet=2, vpc=17.
 
 Every row resolves the registered callback, per-ID closure/dispatch, source hashes, actual field-access witnesses and admitted meaning. Raw EC2 Describe responses retain native members through the actual deepcopy projection; SDK-valid Stubber chains test all six kinds separately from synthetic predicate fixtures. This is a bounded source review, not a proof of all branches or a live network/listener assessment.
 
@@ -19,9 +19,9 @@ The recorded combined gate also includes `tests/test_aws_ec2_public_reachability
 | Active check | Kind | Predicate source | Family |
 |---|---|---|---|
 | `aws.c2b.bedrock.vpc_endpoints` | vpc | `peaso/checks/claude2_aws_b_identity.py:832` | br_vpc_endpoints |
-| `aws.claude_a.ec2.eni_in_use` | network_interface | `peaso/checks/claude_aws_a_ec2.py:1171` | eni_unused |
-| `aws.claude_a.ec2.eni_no_public_ip` | network_interface | `peaso/checks/claude_aws_a_ec2.py:1162` | eni_public |
-| `aws.claude_a.ec2.eni_source_dest_check` | network_interface | `peaso/checks/claude_aws_a_ec2.py:1149` | eni_sdc |
+| `aws.claude_a.ec2.eni_in_use` | network_interface | `peaso/checks/claude_aws_a_ec2.py:1178` | eni_unused |
+| `aws.claude_a.ec2.eni_no_public_ip` | network_interface | `peaso/checks/claude_aws_a_ec2.py:1169` | eni_public |
+| `aws.claude_a.ec2.eni_source_dest_check` | network_interface | `peaso/checks/claude_aws_a_ec2.py:1156` | eni_sdc |
 | `aws.claude_a.networkfirewall.in_use_vpc_has_firewall` | vpc | `peaso/checks/claude_aws_a_network.py:1193` | nfw_all_vpc |
 | `aws.claude_a.vpc.default_sg_in_use_no_rules` | security_group | `peaso/checks/claude_aws_a_network.py:197` | default_sg_prowler |
 | `aws.claude_a.vpc.default_sg_no_rules` | security_group | `peaso/checks/claude_aws_a_network.py:213` | default_sg |
@@ -47,7 +47,7 @@ The recorded combined gate also includes `tests/test_aws_ec2_public_reachability
 | `aws.claude_a.vpc.route_table_no_default_igw_route` | route_table | `peaso/checks/claude_aws_a_network.py:682` | rtb_igw |
 | `aws.claude_a.vpc.sg_attached_to_eni` | security_group | `peaso/checks/claude_aws_a_network.py:363` | sg_associated_eni |
 | `aws.claude_a.vpc.sg_attached_to_eni_or_instance` | security_group | `peaso/checks/claude_aws_a_network.py:376` | sg_unused_compliance |
-| `aws.claude_a.vpc.sg_in_use_anywhere` | security_group | `peaso/checks/claude_aws_a_network.py:240` | sg_not_used |
+| `aws.claude_a.vpc.sg_in_use_anywhere` | security_group | `peaso/unused_network_aws.py:201` | _security_group |
 | `aws.claude_a.vpc.sg_name_not_launch_wizard` | security_group | `peaso/checks/claude_aws_a_network.py:226` | sg_launch_wizard_name |
 | `aws.claude_a.vpc.sg_no_public_ip_any_port` | security_group | `peaso/checks/claude_aws_a_network.py:95` | sg_any_port_from_ip |
 | `aws.claude_a.vpc.sg_no_wide_public_ipv4` | security_group | `peaso/checks/claude_aws_a_network.py:172` | sg_wide_open |
@@ -89,8 +89,9 @@ The recorded combined gate also includes `tests/test_aws_ec2_public_reachability
 | `aws.claude_a.vpc.subnets_in_multiple_azs` | vpc | `peaso/checks/claude_aws_a_network.py:536` | vpc_multi_az |
 | `aws.claude_a.vpc.vpc_endpoint_ec2` | vpc | `peaso/checks/claude_aws_a_network.py:728` | _endpoint_check |
 | `aws.claude_a.vpc.vpc_has_subnets` | vpc | `peaso/checks/claude_aws_a_network.py:524` | vpc_not_in_use |
-| `aws.ec2.restrict_internet_ingress` | security_group | `peaso/checks/__init__.py:456` | aws_ingress |
+| `aws.ec2.restrict_internet_ingress` | security_group | `peaso/checks/__init__.py:465` | aws_ingress |
 | `aws.gap.vpc.sg_world_any_common_ports` | security_group | `peaso/checks/aws_gap_core.py:585` | sg_common_ports |
+| `aws.network.route_table_associated` | route_table | `peaso/unused_network_aws.py:112` | route_table |
 | `aws_security_group_common_ports_ipv6_all` | security_group | `peaso/checks/batch_remaining_aws.py:173` | _security_group |
 | `aws_security_group_ssh_ipv6_all` | security_group | `peaso/checks/batch_remaining_aws.py:173` | _security_group |
 | `aws_security_group_tcp_udp_ipv6_all` | security_group | `peaso/checks/batch_remaining_aws.py:173` | _security_group |

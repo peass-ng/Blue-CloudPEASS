@@ -1906,11 +1906,14 @@
       "catalog_file": "peaso/privesc/catalog/aws/codepipeline.yaml",
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-codepipeline-privesc/README.md#iampassrole-codepipelinecreatepipeline-codebuildcreateproject-codepipelinestartpipelineexecution",
       "source_revision": "171e422299",
-      "reviewed_contract_sha256": "0fc95bfeab3e03c4389053d9c194c05929355c945ce13b5ef2db0135103fc0ee",
+      "reviewed_contract_sha256": "8ab2f3a9a1e4ba53696d181d4226c6d6a646bd430f1b3d6da4626812cc6aab46",
       "purpose": "A changed pipeline and controlled build project may run code with the build service role.",
       "target_kind": "aws_role",
       "requirement_contract": {
         "all_of": [
+          {
+            "action": "iam:PassRole"
+          },
           {
             "action": "codebuild:CreateProject"
           },
@@ -1942,11 +1945,14 @@
       "catalog_file": "peaso/privesc/catalog/aws/codepipeline.yaml",
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-codepipeline-privesc/README.md#iampassrole-codepipelinecreatepipeline-codebuildcreateproject-codepipelinestartpipelineexecution",
       "source_revision": "171e422299",
-      "reviewed_contract_sha256": "6e09a29b1bcc693b5d8a26df5821aea6a9874b8fb6e4d50c07da3baaf648e370",
+      "reviewed_contract_sha256": "7daf3633136e3b7efb48d141dc29c4827badf5e2cb7e0120f44923e42d2a6a7e",
       "purpose": "The source may obtain a CodeBuild role's privileges by creating a project and pipeline that runs a recorded CodeCommit branch or one it can push.",
       "target_kind": "aws_role",
       "requirement_contract": {
         "all_of": [
+          {
+            "action": "iam:PassRole"
+          },
           {
             "action": "codebuild:CreateProject"
           },
@@ -1981,11 +1987,14 @@
       "catalog_file": "peaso/privesc/catalog/aws/codepipeline.yaml",
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-codepipeline-privesc/README.md#iampassrole-codepipelinecreatepipeline-codebuildcreateproject-codepipelinestartpipelineexecution",
       "source_revision": "171e422299",
-      "reviewed_contract_sha256": "23d111533b2e1a2f5e032578788090b1762dcaf0a6babe400d508ee56e44c3d9",
+      "reviewed_contract_sha256": "752b0b342acdd66a9baf1de45776013921f9d9743d9704fe9a3e51798ad2da46",
       "purpose": "The source may obtain a CodeBuild role's privileges by creating a project and pipeline that uses a recorded tagged ECR image as its source.",
       "target_kind": "aws_role",
       "requirement_contract": {
         "all_of": [
+          {
+            "action": "iam:PassRole"
+          },
           {
             "action": "codebuild:CreateProject"
           },
@@ -2365,11 +2374,15 @@
       "catalog_file": "peaso/privesc/catalog/aws/deadline.yaml",
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-deadline-cloud-privesc/README.md#deadlinecreatequeueupdatequeue--iampassrole--deadlineassumequeueroleforuser",
       "source_revision": "171e422299",
-      "reviewed_contract_sha256": "f665b17606b26ef2d478f16dd20f14b9c898e724a05077ac981de45143ae63be",
+      "reviewed_contract_sha256": "977a748984ad8848ce215c515197d0bb87cd2efe7bf25962c258245cfb10818d",
       "purpose": "A controlled Deadline queue or fleet worker may exchange credentials for the passed role.",
       "target_kind": "aws_role",
       "requirement_contract": {
-        "all_of": [],
+        "all_of": [
+          {
+            "action": "iam:PassRole"
+          }
+        ],
         "any_of": [
           [
             {
@@ -2402,11 +2415,14 @@
       "catalog_file": "peaso/privesc/catalog/aws/deadline.yaml",
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-deadline-cloud-privesc/README.md#deadlinecreatefleetupdatefleet--iampassrole--deadlinecreateworker--deadlineassumefleetroleforworker",
       "source_revision": "d4ab3fa4e4",
-      "reviewed_contract_sha256": "f7ac1933667ed7be0f20ef634d68165b442c3349071f7d2b2584341fcf99d242",
+      "reviewed_contract_sha256": "81df1924612ce273f9b23a2e52c64c2b23ce30a6c3814883348ccdb31a643b43",
       "purpose": "A new Deadline fleet worker may perform a specific reviewed operation through the configured fleet role.",
       "target_kind": "aws_verified_authority",
       "requirement_contract": {
         "all_of": [
+          {
+            "action": "iam:PassRole"
+          },
           {
             "action": "deadline:CreateWorker"
           }
@@ -2524,11 +2540,15 @@
       "catalog_file": "peaso/privesc/catalog/aws/ec2.yaml",
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ec2-privesc/README.md#autoscalingcreatelaunchconfiguration--ec2createlaunchtemplate--iampassrole-autoscalingcreateautoscalinggroup--autoscalingupdateautoscalinggroup",
       "source_revision": "171e422299",
-      "reviewed_contract_sha256": "8d6695115a7d082d100f30aa99818a8ca1f117f79d56a7810ad57fd21feb32e9",
+      "reviewed_contract_sha256": "ee39969887c15dd8dc947430e44ba6f59456bf8315c44dc0dbbddc4793574f7a",
       "purpose": "A newly launched or reconfigured EC2 instance may expose the passed instance-profile role.",
       "target_kind": "aws_role",
       "requirement_contract": {
-        "all_of": [],
+        "all_of": [
+          {
+            "action": "iam:PassRole"
+          }
+        ],
         "any_of": [
           [
             {
@@ -2708,11 +2728,14 @@
       "catalog_file": "peaso/privesc/catalog/aws/ec2.yaml",
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ec2-privesc/README.md#spot-fleet-request",
       "source_revision": "b587e6bd26",
-      "reviewed_contract_sha256": "d30a1bd4de0584c8cd33671f8c67192d35db7129d0f3f009430d73f708f9e19f",
+      "reviewed_contract_sha256": "ff45ab7c74bf8943d1294e592811b9638b05bfcb1963451cbe90e272abfe879c",
       "purpose": "A newly launched or reconfigured EC2 instance may expose the passed instance-profile role.",
       "target_kind": "aws_role",
       "requirement_contract": {
         "all_of": [
+          {
+            "action": "iam:PassRole"
+          },
           {
             "action": "ec2:RequestSpotFleet"
           }
@@ -2737,11 +2760,14 @@
       "catalog_file": "peaso/privesc/catalog/aws/ec2.yaml",
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ec2-privesc/README.md#iampassrole-ec2runinstances",
       "source_revision": "171e422299",
-      "reviewed_contract_sha256": "e38deb98a0f565457ffcc3f0a73d4822b0e15a070c9389995fa2e9452b0b3430",
+      "reviewed_contract_sha256": "46b869f3bba5b918340d0e3cc46d9c0673aa031a4b00827a09cc90a858158635",
       "purpose": "A newly launched or reconfigured EC2 instance may expose the passed instance-profile role.",
       "target_kind": "aws_role",
       "requirement_contract": {
         "all_of": [
+          {
+            "action": "iam:PassRole"
+          },
           {
             "action": "ec2:RunInstances"
           }
@@ -2767,11 +2793,14 @@
       "catalog_file": "peaso/privesc/catalog/aws/ec2.yaml",
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ec2-privesc/README.md#ec2requestspotinstances-iampassrole",
       "source_revision": "171e422299",
-      "reviewed_contract_sha256": "273e03b6eb3caa28d598033791d23223704f7e30091ded9bcba9f38f623fced2",
+      "reviewed_contract_sha256": "2b7124b54f6415e4ac000b745ea427234f8d02c2daa24d8ddd2bf7f67228d7cd",
       "purpose": "A newly launched or reconfigured EC2 instance may expose the passed instance-profile role.",
       "target_kind": "aws_role",
       "requirement_contract": {
         "all_of": [
+          {
+            "action": "iam:PassRole"
+          },
           {
             "action": "ec2:RequestSpotInstances"
           }
@@ -3473,11 +3502,14 @@
       "catalog_file": "peaso/privesc/catalog/aws/events.yaml",
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-eventbridge-privesc/README.md#eventscreatesubscriber--iampassrole--execute-supported-aws-apis-through-an-enhanced-bus-universal-target",
       "source_revision": "6fb9ac51fd",
-      "reviewed_contract_sha256": "c739bb51c2f3217d515d7a1b3f139e05ff403c2512bbdc2ee565d2ddde1f9324",
+      "reviewed_contract_sha256": "08d5c46453ae26cf06972ab40213f2dacc1a767d27e0e91f5c9dc5f2262e0389",
       "purpose": "An EventBridge universal target may exercise supported write actions through the passed role.",
       "target_kind": "aws_role",
       "requirement_contract": {
         "all_of": [
+          {
+            "action": "iam:PassRole"
+          },
           {
             "action": "events:CreateSubscriber"
           }
@@ -3663,11 +3695,15 @@
       "catalog_file": "peaso/privesc/catalog/aws/gameliftstreams.yaml",
       "source": "src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-gamelift-streams-privesc/README.md#gameliftstreamsstartstreamsession--iampassrole-with-attacker-controlled-application-code",
       "source_revision": "171e422299",
-      "reviewed_contract_sha256": "9389c9995cbbf8961fcbf2f95b28e956739e6d5dec8a083bd46d24f587a0bd36",
+      "reviewed_contract_sha256": "667d088c35ab4346b0810ad0ea5a735de9a32c0221889eda5a4698ec5f076bf2",
       "purpose": "A controlled streaming application may expose a passable GameLiftStreams role.",
       "target_kind": "aws_role",
       "requirement_contract": {
-        "all_of": [],
+        "all_of": [
+          {
+            "action": "iam:PassRole"
+          }
+        ],
         "any_of": [
           [
             {

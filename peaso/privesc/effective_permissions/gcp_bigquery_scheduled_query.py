@@ -112,7 +112,10 @@ def select(model, candidates, caller):
         if not isinstance(project, str) or not project.startswith("projects/"):
             continue
         sa = model.sas.get("serviceAccount:" + str(target.attrs.get("email") or ""))
-        if sa is None or sa.attrs.get("disabled"):
+        # A Google-managed service agent is not a customer-selectable query identity.
+        if sa is None or sa.attrs.get("disabled") or (
+            callable(getattr(model, "service_managed", None)) and model.service_managed(sa)
+        ):
             continue
         if not _has(model, caller, "iam.serviceAccounts.actAs", sa.attrs["resource"]):
             continue

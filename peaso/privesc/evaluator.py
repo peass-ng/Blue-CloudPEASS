@@ -1084,7 +1084,8 @@ class Evaluator:
                 allowed = model.allowed_scopes(compiled["scope"], source)
                 if not compiled["selector"].get("same_as_source"):
                     placeholders.update({f"unknown:{cset.id}:{s}": downgrade(base, "unknown", f"target_inventory_{st}")
-                                         for s, st in cset.unknown_scopes.items()})
+                                         for s, st in cset.unknown_scopes.items()
+                                         if allowed is None or s in allowed})
                 placeholders.update({f"{UNRESOLVED_PREFIX}{cset.id}:{s}": downgrade(base, "unknown", why)
                                      for s, why in cset.unresolved.items() if allowed is None or s in allowed})
         placeholders = placeholders or {}

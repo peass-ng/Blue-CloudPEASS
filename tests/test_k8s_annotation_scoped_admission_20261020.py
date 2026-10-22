@@ -10,6 +10,7 @@ import peaso.checks as registry
 from peaso.collectors import k8s
 from peaso.checks import k8s_annotation_native_admission_20261020 as guard
 from peaso.checks import k8s_annotation_indicators_review_20261020 as candidate
+from peaso import private_reviewed_collector_successor_20261022 as reviewed_epoch
 from peaso import private_secret_source_epoch_20261021 as source_epoch
 
 
@@ -20,7 +21,7 @@ K8S_BEFORE_SHA = '86eca83f116bc8fe4a2b28d5ced1ae6612507c5cc3f53968fe6ec28df14a15
 
 def historical_k8s_bytes():
     current = (ROOT / K8S_RELATIVE).read_bytes()
-    before = source_epoch.predecessor_bytes(K8S_RELATIVE, current, K8S_BEFORE_SHA, ROOT)
+    before = reviewed_epoch.predecessor_bytes(K8S_RELATIVE, current, K8S_BEFORE_SHA, ROOT)
     assert hashlib.sha256(before).hexdigest() == K8S_BEFORE_SHA
     return before
 

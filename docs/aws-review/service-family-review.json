@@ -5246,116 +5246,6 @@
   {
    "callback": {
     "captured_parameters": {
-     "allowed": null,
-     "good": false,
-     "kind": "redshift_cluster",
-     "path": "PubliclyAccessible"
-    },
-    "file": "peaso/checks/aws_b_core.py",
-    "line": 39,
-    "qualname": "scalar.<locals>.evaluate"
-   },
-   "callback_and_helpers": [
-    "peaso/checks/aws_b_core.py:39",
-    "peaso/checks/__init__.py:178",
-    "peaso/checks/__init__.py:174"
-   ],
-   "consumer_branch_receipts": {
-    "denied_resource": {
-     "branch_path_trace": "466fcb61c25311e0",
-     "evidence_keys": [
-      "reason"
-     ],
-     "input_unchanged": true,
-     "status": "UNKNOWN"
-    },
-    "fail": {
-     "branch_path_trace": "18d4e3970bed651a",
-     "evidence_keys": [
-      "configured",
-      "field",
-      "official_reference"
-     ],
-     "input_unchanged": true,
-     "status": "FAIL"
-    },
-    "malformed": {
-     "branch_path_trace": "59e7af65d506c329",
-     "evidence_keys": [
-      "reason"
-     ],
-     "input_unchanged": true,
-     "status": "UNKNOWN"
-    },
-    "missing": {
-     "branch_path_trace": "28bb252c77d3b014",
-     "evidence_keys": [
-      "reason"
-     ],
-     "input_unchanged": true,
-     "status": "UNKNOWN"
-    },
-    "pass": {
-     "branch_path_trace": "18d4e3970bed651a",
-     "evidence_keys": [
-      "configured",
-      "field",
-      "official_reference"
-     ],
-     "input_unchanged": true,
-     "status": "PASS"
-    }
-   },
-   "dependencies": [
-    "redshift_cluster"
-   ],
-   "existing_semantic_deviations_reviewed": [],
-   "field_source_review": [
-    {
-     "kind_attribution": "redshift_cluster",
-     "path": "PubliclyAccessible",
-     "sdk_contract": {
-      "model_member": true,
-      "native_path": "Clusters[].PubliclyAccessible",
-      "omission_semantics": "not inferred from optional SDK membership",
-      "operation": "DescribeClusters",
-      "required_in_parent": false,
-      "service": "redshift",
-      "type": "boolean"
-     }
-    }
-   ],
-   "id": "aws.b.redshift.no_public_endpoint",
-   "issues": [],
-   "kind": "redshift_cluster",
-   "not_verified": [
-    "No exhaustive branch or full upstream equivalence claim.",
-    "Consumer fixtures and source inspection alone do not prove native production.",
-    "No independent SDK producer-to-this-consumer execution in this file; shared family producer contract/source inspected."
-   ],
-   "review_status": "bounded_field_source_review",
-   "sdk_producer_consumer_tests": [],
-   "source_references": [
-    {
-     "catalog_revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
-     "catalog_source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/redshift.pp#L29",
-     "id": "aws-compliance.control.foundational_security_redshift_1",
-     "query_sources": [
-      {
-       "body_sha256": "3af440b81919264b127ba7e3e266f4d5ef01bfd76079c4daa206bde7be138724",
-       "file": "steampipe/compliance/conformance_pack/redshift.pp",
-       "line": 308,
-       "query_id": "redshift_cluster_prohibit_public_access"
-      }
-     ],
-     "review": "Pinned SQL CASE conditions/joins/defaults read alongside native callback; no SQL/plugin execution"
-    }
-   ],
-   "target": "resource"
-  },
-  {
-   "callback": {
-    "captured_parameters": {
      "blocked": "awsuser",
      "field": "MasterUsername"
     },
@@ -21298,7 +21188,7 @@
   "cognito_user_pool": 17,
   "emr_cluster": 15,
   "opensearch_domain": 23,
-  "redshift_cluster": 25,
+  "redshift_cluster": 24,
   "secret": 16
  },
  "evidence_boundary": "Per-ID callback/helper and field/source review, exact consumer-fixture branch/path receipts, grouped installed-SDK-shaped producer-to-registered-consumer probes. Fixtures are not producer proof; optional model membership is not omission semantics.",
@@ -33190,7 +33080,6 @@
   "aws.b.redshift.audit_logging",
   "aws.b.redshift.enhanced_vpc_routing",
   "aws.b.redshift.kms_key_declared",
-  "aws.b.redshift.no_public_endpoint",
   "aws.b.redshift.nondefault_admin",
   "aws.b.redshift.nondefault_database",
   "aws.b.redshift.snapshots_seven_days",

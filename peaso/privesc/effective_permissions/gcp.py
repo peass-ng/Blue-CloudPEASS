@@ -4623,6 +4623,8 @@ class GcpModel(Model):
                 return {}
             out = {}
             for tid, target in candidates.items():
+                if tid not in self.sas or target.kind != "gcp_service_account":
+                    continue
                 grant = self.check(target, {"action": "batch.states.report"}, target.scope)
                 if grant and grant.confidence != "unknown":
                     out[tid] = None if grant.confidence == "derived" else ("conditional", "batch_reporter_grant_conditional")
@@ -5793,7 +5795,17 @@ class GcpModel(Model):
             return {tid: None for tid, node in candidates.items()
                     if tid.startswith(f"gcp_verified_authority:{value}:")}
         if key == "gcp_hmac_storage_identity":
-            return dict.fromkeys(candidates) if value is True else {}
+            if value is not True:
+                return {}
+            out = {}
+            for tid, target in candidates.items():
+                if target.kind != "gcp_verified_authority":
+                    continue
+                sa = self.sas.get("serviceAccount:" + str(target.attrs.get("email") or ""))
+                if (sa is not None and tid == f"gcp_verified_authority:hmac:{sa.id}"
+                        and not sa.attrs.get("disabled") and not self.service_managed(sa)):
+                    out[tid] = None
+            return out
         if key == "gcp_cross_project_run_job":
             return (self._cross_project_sa_attachment(candidates, source, ("run.jobs.create", "run.jobs.run"),
                                                       "serverless-robot-prod.iam.gserviceaccount.com", "run_job")

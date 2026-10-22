@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 
 import pytest
-from peaso.checks import azure_function_package_tde_successor_20261020 as admission
+from peaso.checks import azure_metadata_only_tde_admission_successor_20261020 as admission
 from peaso.checks import azure_function_package_shared_successor_20261020 as shared
 from peaso.checks import azure_nsp_query_cmk_production_tde_successor_20261020 as tde_predecessor
 from peaso.checks import azure_nsp_query_cmk_production_admission_20261020 as historical
@@ -45,7 +45,7 @@ def test_current_successor_does_not_repin_the_historical_production_contract():
     assert receipt==json.loads((ROOT/'peaso/checks'/tde_predecessor.RECEIPT).read_bytes())
     assert admission.RECEIPT_SHA256==tde_predecessor.RECEIPT_SHA256
     binding=shared.reviewed_delta()['azure_collect']
-    current=inspect.getsource(admission.azure.collect)
+    current=shared.predecessor_azure_collect(inspect.getsource(admission.azure.collect), ROOT)
     assert hashlib.sha256(current.encode()).hexdigest()==binding['current_sha256']
     assert len(binding['exact_additions'])==6
     for addition in binding['exact_additions']:

@@ -1630,7 +1630,7 @@ class GCPCollector:
                     details = [ref for detail in item.get("_coverage", {}).values()
                                if isinstance(detail, dict)
                                for ref in detail.get("source_requests", [])]
-                    if kind == "project":
+                    if kind in ("project", "workbench_instance"):
                         source_requests.extend(details)
                     representation = item.pop("_representation", None)
                     item["_provenance"] = {"source_requests": sorted(set([request_id, *details])), "scope": scope,

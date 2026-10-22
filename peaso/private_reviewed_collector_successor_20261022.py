@@ -18,8 +18,8 @@ import zlib
 
 from . import private_secret_source_epoch_20261021 as _epoch
 
-_RECEIPT_SHA256 = "0b70278ef105188b52871e99a13e630e730779f61352c22d6525a08b974ef6a2"
-_SELF_SHA256 = "1b4ac259d86b4e548d05aa35d96219f692f8bdbe2b3bcbb4cce1981ff1cf2cf6"
+_RECEIPT_SHA256 = "4260adb22488d55ff8b3c97f78cb931aa94106b4102be33d60bfb31650f49c82"
+_SELF_SHA256 = "cd010f3e92d92c1469e45626cda2507ee1f65aac2dc131d958bf9e6cf8b3dd7f"
 _ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -185,7 +185,7 @@ def trusted_definition(fn: FunctionType, root: str | Path) -> dict:
 def previous_gcp_method_source(name: str, current_fragment: str,
                                root: str | Path) -> str:
     """Project a reviewed GCP collector method to its exact prior source."""
-    if name not in ("__init__", "collect", "dependent_jobs", "finish", "scope_jobs", "workspace_directory"):
+    if name not in ("__init__", "collect", "dependent_jobs", "envelope", "finish", "scope_jobs", "workspace_directory"):
         raise _epoch.AdmissionError("unreviewed GCP method request")
     relative = "peaso/collectors/gcp.py"
     row = _receipt()["sources"][relative]

@@ -184,7 +184,8 @@ def validate_failure_paths(definition):
     expected = [{"Variable": "$.job_status.Item.status.S", "IsPresent": False, "Next": "Failed"}]
     expected += [{"Variable": "$.job_status.Item.status.S", "StringEquals": status, "Next": target}
                  for status, target in [("cancelled", "Cancelled"), ("completed", "Succeeded"),
-                                        ("failed", "Failed"), ("timed_out", "Failed"), ("queue_exhausted", "Failed")]]
+                                        ("failed", "Failed"), ("timed_out", "Failed"),
+                                        ("queue_exhausted", "Failed"), ("credentials_expired", "Failed")]]
     if choices.get("Choices") != expected or choices.get("Default") != "MarkFailed" or states["Cancelled"] != {"Type": "Succeed"}:
         raise ValueError("Failure reconciliation must distinguish cancellation from failed scans")
     catch = states["MarkFailed"].get("Catch", [])

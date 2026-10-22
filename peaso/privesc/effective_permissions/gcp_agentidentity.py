@@ -121,7 +121,9 @@ def select(model, candidates, *, mode="retrieve"):
         if node.attrs.get("unresolved_authorizations"):
             out[ident] = ("unknown", "agentidentity_inventory_incomplete")
             continue
-        auth, provider = node.attrs["authorization"], node.attrs.get("provider")
+        auth, provider = node.attrs.get("authorization"), node.attrs.get("provider")
+        if not isinstance(auth, dict):
+            continue
         if node.attrs.get("conflicting_authorization"):
             out[ident] = ("unknown", "authorization_rows_conflict")
             continue

@@ -90,7 +90,7 @@ def test_partial_inventory_does_not_turn_omission_into_pass(monkeypatch):
 
 
 @pytest.mark.parametrize('region', ['us-west-1', 'eu-north-1'])
-def test_unsupported_region_remains_inventory_unknown(monkeypatch, region):
+def test_unsupported_region_is_not_applicable(monkeypatch, region):
     session = boto3.Session(aws_access_key_id='INERT', aws_secret_access_key='INERT',
                             region_name=region)
     assert region not in session.get_available_regions('appstream')
@@ -128,4 +128,6 @@ def test_unsupported_region_remains_inventory_unknown(monkeypatch, region):
     findings = evaluate_snapshot(snapshot, checks=list(CHECKS))['findings']
     inventory = [f for f in findings if f['check_id'] in CHECKS
                  and f['resource_id'] == 'inventory:appstream_fleet']
-    assert {f['check_id']: f['status'] for f in inventory} == dict.fromkeys(CHECKS, 'UNKNOWN')
+    assert {f['check_id']: f['status'] for f in inventory} == dict.fromkeys(CHECKS, 'NOT_APPLICABLE')
+    assert all(f['evidence']['reason'] == 'service is unavailable in this AWS Region'
+               for f in inventory)

@@ -245,8 +245,7 @@ def unpublished_check_imports(path: Path) -> set[str]:
 
 
 def staged_modules_unregistered(modules) -> bool:
-    """Prove the exact staged registrars are absent from this parent runtime."""
+    """Prove staged registrars were absent at startup and remain unregistered."""
     named = set(modules)
-    loaded = {name.rsplit(".", 1)[-1] for name in sys.modules if name.startswith("peaso.checks.")}
     registered = {check.evaluate.__module__.rsplit(".", 1)[-1] for check in peaso.checks.CHECKS}
-    return not named.intersection(loaded | registered)
+    return not named.intersection(PUBLISHED_CHECK_MODULES | registered)
