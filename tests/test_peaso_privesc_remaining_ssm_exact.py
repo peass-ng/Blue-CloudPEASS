@@ -68,7 +68,8 @@ def _automation_snapshot(*, pass_arn=AUTOMATION_ROLE, create_doc=True, start=Tru
                    "ResponsePlans": {"collection_status": "empty", "items": []}}
         extra.append(col("ssmincidents_account", [account]))
     target_grants = [allow("ssm:StartAutomationExecution")] if incident else []
-    target = role("automation", "ssm.amazonaws.com", *target_grants)
+    trust = "ssm-incidents.amazonaws.com" if incident else "ssm.amazonaws.com"
+    target = role("automation", trust, *target_grants)
     return aws_snap([user("alice", *grants)], [target], extra)
 
 
@@ -87,4 +88,14 @@ def test_maintenance_window_automation_requires_schedule_document_and_passable_r
     assert AUTOMATION_ROLE in run()
     assert AUTOMATION_ROLE not in run(pass_arn=NODE_ROLE)
     assert AUTOMATION_ROLE not in run(window_enabled=False)
+    assert AUTOMATION_ROLE not in run(create_doc=False)
+
+
+def test_incident_response_plan_requires_active_replication_and_executable_runbook():
+    tid = "aws-ssm-incidents-response-plan-automation-passrole"
+    def run(**kwargs):
+        return reached(real(_automation_snapshot(incident=True, **kwargs), tid), ALICE, tid)
+    assert AUTOMATION_ROLE in run()
+    assert AUTOMATION_ROLE not in run(pass_arn=NODE_ROLE)
+    assert AUTOMATION_ROLE not in run(active=False)
     assert AUTOMATION_ROLE not in run(create_doc=False)
