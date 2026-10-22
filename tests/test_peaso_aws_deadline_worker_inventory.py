@@ -4,7 +4,7 @@ from types import SimpleNamespace
 import json
 from pathlib import Path
 
-from peaso.collectors.aws_b_services import _deadline_workers
+from peaso.collectors.aws_b_services import _deadline_fleet_roles, _deadline_workers
 from scripts.peaso_deploy_customer_policy import build_policy, policy_size
 
 
@@ -21,7 +21,9 @@ class Reads:
         self.calls = []
         self.fleet_detail = detail if detail is not None else {
             "collection_status": "collected", "farmId": FARM, "fleetId": FLEET,
-            "roleArn": ROLE, "status": "ACTIVE", "configuration": {"customerManaged": {}}}
+            "roleArn": ROLE, "status": "ACTIVE", "configuration": {"customerManaged": {}},
+            "maxWorkerCount": 2, "workerCount": 1,
+            "hostConfiguration": {"scriptBody": "SECRET_SENTINEL"}}
         self.worker = worker if worker is not None else {
             "farmId": FARM, "fleetId": FLEET, "workerId": WORKER, "status": "RUNNING",
             "log": {"error": "SECRET_SENTINEL"}, "hostProperties": {"hostName": "private"}}
@@ -65,6 +67,18 @@ def test_worker_inventory_rejects_mismatched_parent_or_missing_role():
     for reads in (Reads(worker=wrong_worker), Reads(detail=wrong_detail)):
         result = _deadline_workers(reads, object(), "us-east-1", "111111111111")
         assert result.status == "partial" and result.items == []
+
+
+def test_fleet_role_inventory_keeps_fleets_without_workers_and_omits_host_script():
+    reads = Reads()
+    result = _deadline_fleet_roles(reads, object(), "us-east-1", "111111111111")
+    assert result.status == "collected" and len(result.items) == 1
+    assert result.items[0]["id"] == FARM + "/" + FLEET
+    assert result.items[0]["roleArn"] == ROLE
+    assert result.items[0]["fleetMode"] == "customerManaged"
+    assert result.items[0]["maxWorkerCount"] > result.items[0]["workerCount"]
+    assert "SECRET_SENTINEL" not in json.dumps(result.items)
+    assert [operation for operation, _ in reads.calls] == ["list_farms", "list_fleets", "get_fleet"]
 
 
 def test_customer_template_grants_deadline_worker_metadata_reads_within_quota():

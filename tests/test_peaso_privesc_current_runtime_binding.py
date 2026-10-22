@@ -55,6 +55,34 @@ def test_deadline_existing_worker_binding_preserves_previous_catalog():
     assert len(catalog._verified_deadline_worker_684_previous()) == 684
 
 
+def test_deadline_new_worker_binding_preserves_previous_catalog():
+    ident = "aws-deadline-new-worker-existing-fleet-role-vend"
+    current, status = catalog.lookup_entries([ident], catalog.current_binding())
+    assert status == "exact_strict_privesc" and set(current) == {ident}
+    old = {"schema": catalog.BINDING_SCHEMA,
+           "manifest_sha256": catalog.DEADLINE_NEW_WORKER_685_PREVIOUS_MANIFEST,
+           "effective_tree_sha256": catalog.DEADLINE_NEW_WORKER_685_PREVIOUS_TREE,
+           "source_revision": catalog.V4_REVISION}
+    previous, status = catalog.lookup_entries([ident], old)
+    assert status == "exact_previous_current" and previous == {}
+    assert len(catalog._verified_deadline_new_worker_685_previous()) == 685
+
+
+def test_deadline_worker_dependency_binding_preserves_previous_catalog():
+    ident = "aws-deadline-new-worker-existing-fleet-role-vend"
+    current, status = catalog.lookup_entries([ident], catalog.current_binding())
+    assert status == "exact_strict_privesc"
+    assert "dependent permissions" in current[ident]["summary"]
+    old = {"schema": catalog.BINDING_SCHEMA,
+           "manifest_sha256": catalog.DEADLINE_DEPENDENCIES_686_PREVIOUS_MANIFEST,
+           "effective_tree_sha256": catalog.DEADLINE_DEPENDENCIES_686_PREVIOUS_TREE,
+           "source_revision": catalog.V4_REVISION}
+    previous, status = catalog.lookup_entries([ident], old)
+    assert status == "exact_previous_current"
+    assert "dependent permissions" not in previous[ident]["summary"]
+    assert len(catalog._verified_deadline_dependencies_686_previous()) == 686
+
+
 def test_cloudfront_creation_binding_retains_previous_update_only_catalog():
     ident = "aws-cloudfront-lambda-edge-passrole"
     current, status = catalog.lookup_entries([ident], catalog.current_binding())

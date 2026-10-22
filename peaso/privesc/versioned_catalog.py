@@ -21,7 +21,17 @@ V4_EFFECTIVE_TREE = "413792ea4aec86e48c352ffab2c0bea9e82795bc234251342737ec0276b
 LEGACY_DELTA = Path(__file__).resolve().parent / "catalog_versions/legacy-0b3633-delta.json"
 BOUNDED_MANIFEST = "734401b202895e00ac1b6cb0f1534f77cde4d8e2ba912ca0ee974b1b8ec5035c"
 BOUNDED_TREE = "1a54bad4102d18f89c78f45c915964554a62f994c1bffa693844cac5e119cca8"
-CURRENT_MANIFEST = 'e616da28305d487c70d65f238bfe725e0a69e8eaadba108249b28cdca0bd03a9'
+CURRENT_MANIFEST = 'e1ba0fb3b429fc2bb9ce6dc1c9d307969d3b70cd3b62d3823f4e5fe3711aa976'
+DEADLINE_DEPENDENCIES_686_PREVIOUS_MANIFEST = '296e1b6e6d8359d486cbba8d9a250fc4b2f430bd0d06b98ff31fdf3243fdd360'
+DEADLINE_DEPENDENCIES_686_PREVIOUS_TREE = '3d231c0ab1f30796668b2d12e2de29e9a5357ae4f8e810462e4843814ab1c199'
+DEADLINE_DEPENDENCIES_686_PREVIOUS_ARCHIVE_SHA256 = '2b152b5e753a25243ff73a2ba2a7f22b6c5848224fe42c14ed5ea2dac69cc32f'
+DEADLINE_DEPENDENCIES_686_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-686-deadline-worker-dependencies-source-manifest.json'
+DEADLINE_DEPENDENCIES_686_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-686-deadline-worker-dependencies-catalog.tar.gz'
+DEADLINE_NEW_WORKER_685_PREVIOUS_MANIFEST = 'e616da28305d487c70d65f238bfe725e0a69e8eaadba108249b28cdca0bd03a9'
+DEADLINE_NEW_WORKER_685_PREVIOUS_TREE = '65314cd326eca8023b58b7ecaf1d143ffe1167cbe6c3025858484cc2a8dbd245'
+DEADLINE_NEW_WORKER_685_PREVIOUS_ARCHIVE_SHA256 = 'a4a528b725a6d2a8d8c50a5dfab19b76f945ec115dfa2bf679398d1778cbf539'
+DEADLINE_NEW_WORKER_685_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-685-deadline-new-worker-source-manifest.json'
+DEADLINE_NEW_WORKER_685_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-685-deadline-new-worker-catalog.tar.gz'
 DEADLINE_WORKER_684_PREVIOUS_MANIFEST = '8f1a9abe937cc74f499cc1dc6316544a37f37967cd4f4c254f80ad269fb4e60d'
 DEADLINE_WORKER_684_PREVIOUS_TREE = 'd9bcd120bf3d79acde0e2520e0056a3d77b30988d5201be874e3ccc930293a8b'
 DEADLINE_WORKER_684_PREVIOUS_ARCHIVE_SHA256 = '1ed684664f996a36a05b8c88aea17e55133e6df60af8b54b0d7e8d5ebd8684f3'
@@ -211,9 +221,9 @@ PRIOR_CURRENT_MANIFEST = "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0c
 PRIOR_DISCLOSURE_MANIFEST = "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
 PRIOR_DISCLOSURE_TREE = "5091464bedcb10bb87301695ca733276dc67b865e544c408ccf72a5408176f0f"
 PRIOR_DISCLOSURE_HISTORY = Path(__file__).resolve().parent / "catalog_versions/disclosure-v7-manifest.json"
-CURRENT_TREE = '65314cd326eca8023b58b7ecaf1d143ffe1167cbe6c3025858484cc2a8dbd245'
+CURRENT_TREE = '853549b616c06803bba97771b9d14d1cbca9459f1d750fc9f40a0df83ecf0bc3'
 PRIOR_CURRENT_TREE = "99207e6469fc5e5b3daf21324e6860599b116ffcf7d30600643bd229b0f11494"
-CURRENT_ENTRY_COUNT = 685
+CURRENT_ENTRY_COUNT = 686
 CURRENT_EXCLUDED_COUNT = 3723
 CURRENT_HISTORY = Path(__file__).resolve().parent / "catalog_versions/bulk-principal-v6-manifest.json"
 PRIOR_CATALOG_ARCHIVE = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-catalog-20261016.tar.gz"
@@ -279,6 +289,24 @@ def _verified_cognito_guest_682_previous():
         COGNITO_GUEST_682_PREVIOUS_MANIFEST_PATH, COGNITO_GUEST_682_PREVIOUS_ARCHIVE,
         COGNITO_GUEST_682_PREVIOUS_MANIFEST, COGNITO_GUEST_682_PREVIOUS_ARCHIVE_SHA256,
         COGNITO_GUEST_682_PREVIOUS_TREE, 682, 3723)
+
+
+@lru_cache(maxsize=1)
+def _verified_deadline_dependencies_686_previous():
+    """Keep the exact catalog before worker creation dependencies were documented."""
+    return _verified_archived_current(
+        DEADLINE_DEPENDENCIES_686_PREVIOUS_MANIFEST_PATH, DEADLINE_DEPENDENCIES_686_PREVIOUS_ARCHIVE,
+        DEADLINE_DEPENDENCIES_686_PREVIOUS_MANIFEST, DEADLINE_DEPENDENCIES_686_PREVIOUS_ARCHIVE_SHA256,
+        DEADLINE_DEPENDENCIES_686_PREVIOUS_TREE, 686, 3723)
+
+
+@lru_cache(maxsize=1)
+def _verified_deadline_new_worker_685_previous():
+    """Keep the exact catalog before the new worker route on an existing fleet."""
+    return _verified_archived_current(
+        DEADLINE_NEW_WORKER_685_PREVIOUS_MANIFEST_PATH, DEADLINE_NEW_WORKER_685_PREVIOUS_ARCHIVE,
+        DEADLINE_NEW_WORKER_685_PREVIOUS_MANIFEST, DEADLINE_NEW_WORKER_685_PREVIOUS_ARCHIVE_SHA256,
+        DEADLINE_NEW_WORKER_685_PREVIOUS_TREE, 685, 3723)
 
 
 @lru_cache(maxsize=1)
@@ -637,6 +665,14 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "current", "exact_strict_privesc"
+    elif (binding.get("manifest_sha256") == DEADLINE_DEPENDENCIES_686_PREVIOUS_MANIFEST and
+          binding.get("effective_tree_sha256") == DEADLINE_DEPENDENCIES_686_PREVIOUS_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "deadline_dependencies_686_previous", "exact_previous_current"
+    elif (binding.get("manifest_sha256") == DEADLINE_NEW_WORKER_685_PREVIOUS_MANIFEST and
+          binding.get("effective_tree_sha256") == DEADLINE_NEW_WORKER_685_PREVIOUS_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "deadline_new_worker_685_previous", "exact_previous_current"
     elif (binding.get("manifest_sha256") == DEADLINE_WORKER_684_PREVIOUS_MANIFEST and
           binding.get("effective_tree_sha256") == DEADLINE_WORKER_684_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -782,6 +818,12 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
         if version == "current":
             current = _verified_current(str(catalog_dir), str(manifest_path))
             return {ident: current[ident] for ident in ids if ident in current}, status
+        if version == "deadline_dependencies_686_previous":
+            previous = _verified_deadline_dependencies_686_previous()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
+        if version == "deadline_new_worker_685_previous":
+            previous = _verified_deadline_new_worker_685_previous()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "deadline_worker_684_previous":
             previous = _verified_deadline_worker_684_previous()
             return {ident: previous[ident] for ident in ids if ident in previous}, status
