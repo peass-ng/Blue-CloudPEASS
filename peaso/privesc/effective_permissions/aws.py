@@ -4628,6 +4628,90 @@ class AwsModel(Model):
             return ("unknown", reason)
         return ("unknown", "amplify_app_branch_or_grant_not_verified") if uncertain else None
 
+    def _agentcore_runtime_role_effect(self, source, role, scope, *, operation,
+                                       runtime_arn=None, endpoint_arn=None):
+        """Require a current READY runtime version and an observed useful role action."""
+        try:
+            now = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            if now.tzinfo is None:
+                return False
+        except (KeyError, TypeError, ValueError):
+            return False
+        role_rows = [row for role_scope, row in items(self.snapshot, "iam_role")
+                     if role_scope.split("/")[0] == role.scope and row.get("Arn") == role.id]
+        role_id = role_rows[0].get("RoleId") if len(role_rows) == 1 else None
+        if not isinstance(role_id, str) or not role_id:
+            return False
+        runtime_status = inventory_status(self.snapshot, "agentcore_agent_runtime")
+        endpoint_status = inventory_status(self.snapshot, "agentcore_runtime_endpoint")
+        proof_status = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+        if (runtime_status.get(scope) != "collected" or endpoint_status.get(scope) != "collected" or
+                proof_status.get(scope) != "collected"):
+            return False
+        collections = [c for c in self.snapshot.get("collections", ())
+                       if c.get("type") == "aws_privesc_challenge_evidence" and c.get("scope") == scope]
+        if len(collections) != 1 or collections[0].get("status") != "collected":
+            return False
+        technique = (self.current_entry or {}).get("id")
+        proofs = [row for proof_scope, row in items(self.snapshot, "aws_privesc_challenge_evidence")
+                  if proof_scope == scope and row.get("TechniqueId") == technique and
+                  row.get("SourceArn") == source.id and row.get("TargetKind") == "aws_role" and
+                  row.get("TargetId") == role.id and row.get("RuntimeOperation") == operation and
+                  (runtime_arn is None or row.get("RuntimeArn") == runtime_arn)]
+        if len(proofs) != 1:
+            return False
+        proof = proofs[0]
+        observed_runtime, observed_endpoint = proof.get("RuntimeArn"), proof.get("EndpointArn")
+        prefix = (f"arn:{role.id.split(':', 2)[1]}:bedrock-agentcore:"
+                  f"{scope.split('/', 1)[1]}:{role.scope}:runtime/")
+        if (not isinstance(observed_runtime, str) or not observed_runtime.startswith(prefix) or
+                observed_endpoint != observed_runtime + "/runtime-endpoint/DEFAULT" or
+                (endpoint_arn is not None and observed_endpoint != endpoint_arn)):
+            return False
+        runtimes = [row for row_scope, row in items(self.snapshot, "agentcore_agent_runtime")
+                    if row_scope == scope and row.get("agentRuntimeArn") == observed_runtime]
+        endpoints = [row for row_scope, row in items(self.snapshot, "agentcore_runtime_endpoint")
+                     if row_scope == scope and row.get("agentRuntimeArn") == observed_runtime and
+                     row.get("agentRuntimeEndpointArn") == observed_endpoint and row.get("name") == "DEFAULT"]
+        if len(runtimes) != 1 or len(endpoints) != 1:
+            return False
+        runtime, endpoint = runtimes[0], endpoints[0]
+        version = runtime.get("agentRuntimeVersion")
+        action, resource = proof.get("RoleAction"), proof.get("RoleResource")
+        if (runtime.get("status") != "READY" or endpoint.get("status") != "READY" or
+                runtime.get("roleArn") != role.id or
+                not isinstance(version, str) or not re.fullmatch(r"[1-9][0-9]{0,4}", version) or
+                (endpoint.get("agentRuntimeVersion") is not None and
+                 endpoint.get("agentRuntimeVersion") != version) or
+                proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("TargetRoleId") != role_id or proof.get("TargetScope") != scope or
+                proof.get("RuntimeVersion") != version or
+                proof.get("ArtifactControlledBySource") is not True or
+                proof.get("ArtifactPullable") is not True or
+                proof.get("EndpointServedRuntimeVersion") is not True or
+                proof.get("RuntimeInvocationSucceeded") is not True or
+                proof.get("RoleOperationSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                (operation == "UpdateAgentRuntime" and proof.get("NewSessionUsed") is not True) or
+                not isinstance(proof.get("ArtifactDigest"), str) or not proof["ArtifactDigest"] or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"]):
+            return False
+        try:
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (now - witnessed).total_seconds() <= 900 or
+                    not now < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return False
+        except (KeyError, TypeError, ValueError):
+            return False
+        permitted = self.check(role, {"action": action}, resource)
+        already = self.check(source, {"action": action}, resource)
+        return permitted is not None and permitted.confidence == "derived" and already is None
+
     def _emr_serverless_job_route(self, source, role):
         """Join an actual application, role request, and one shared S3 script object."""
         statuses = inventory_status(self.snapshot, "emr_serverless_application")
@@ -9296,15 +9380,12 @@ class AwsModel(Model):
         if pid == "agentcore_new_runtime_generated_scope_and_role_ready":
             if source is None:
                 return None
-            actions = ("bedrock-agentcore:CreateAgentRuntimeEndpoint",
-                       "bedrock-agentcore:InvokeAgentRuntime")
+            invoke = "bedrock-agentcore:InvokeAgentRuntime"
             scoped = {
-                (actions[0], False): _agentcore_generated_runtime_scopes(
-                    self._statements(source, actions[0])[0], source.scope),
-                (actions[1], False): _agentcore_generated_runtime_scopes(
-                    self._statements(source, actions[1])[0], source.scope),
-                (actions[1], True): _agentcore_generated_runtime_scopes(
-                    self._statements(source, actions[1])[0], source.scope, endpoint=True),
+                False: _agentcore_generated_runtime_scopes(
+                    self._statements(source, invoke)[0], source.scope),
+                True: _agentcore_generated_runtime_scopes(
+                    self._statements(source, invoke)[0], source.scope, endpoint=True),
             }
             regions = sorted(scope.split("/", 1)[1] for scope in self.snapshot.get("scopes", ())
                              if isinstance(scope, str) and scope.startswith(source.scope + "/") and
@@ -9361,13 +9442,15 @@ class AwsModel(Model):
                                 self.check(source, {"action": "iam:PassRole", "request_context": {
                                     "iam:PassedToService": "bedrock-agentcore.amazonaws.com",
                                     "iam:AssociatedResourceArn": arn}}, tid),
-                                self.check(source, {"action": actions[0]}, arn),
-                                self.check(source, {"action": actions[1]}, arn),
-                                self.check(source, {"action": actions[1]}, endpoint),
+                                self.check(source, {"action": invoke}, arn),
+                                self.check(source, {"action": invoke}, endpoint),
                             ))
                         if all(grant is not None and grant.confidence == "derived" for grant in grants):
-                            out[tid] = ("conditional", "agentcore_fresh_runtime_role_and_default_endpoint")
-                            break
+                            if self._agentcore_runtime_role_effect(
+                                    source, role, scope, operation="CreateAgentRuntime"):
+                                out[tid] = ("conditional", "agentcore_fresh_runtime_role_and_default_endpoint")
+                                break
+                            unresolved = True
                         unresolved |= any(grant is not None and grant.confidence != "derived" for grant in grants)
                     if tid in out:
                         break
@@ -9425,8 +9508,12 @@ class AwsModel(Model):
                         invocations = [self.check(source, {"action": "bedrock-agentcore:InvokeAgentRuntime"}, resource)
                                        for resource in (arn, endpoint_arn)]
                         if all(grant is not None and grant.confidence == "derived" for grant in invocations):
-                            out[tid] = ("conditional", "agentcore_runtime_update_artifact_and_endpoint_execution")
-                            break
+                            if self._agentcore_runtime_role_effect(
+                                    source, role, scope, operation="UpdateAgentRuntime",
+                                    runtime_arn=arn, endpoint_arn=endpoint_arn):
+                                out[tid] = ("conditional", "agentcore_runtime_update_artifact_and_endpoint_execution")
+                                break
+                            unknown = True
                         if any(grant is not None and grant.confidence != "derived" for grant in invocations):
                             unknown = True
                     if tid in out:

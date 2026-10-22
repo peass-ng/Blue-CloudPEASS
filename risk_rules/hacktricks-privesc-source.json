@@ -1,6 +1,6 @@
 {
   "repository": "HackTricks-wiki/hacktricks-cloud",
-  "revision": "a535c711adf038d448d9e44bce77bb9a1c95932c",
+  "revision": "7eb17437bcacccc42a6f23f6fd63305fcde1529a",
   "path": "src/privilege-escalation-paths",
   "canonical_sha256": {
     "aws/_excluded_171e_g1.yaml": "2160b8f57f029e74e5a31727815316f459d8364147c47be2c36639c831b9dcb3",
@@ -61,7 +61,7 @@
     "aws/arc-region-switch.yaml": "f66ea819f33f6128cb6a25f2d311e01d1d5e59c81809d2a6e187a49c72a55843",
     "aws/athena.yaml": "a4a2db1f4d00df1f29b642bb5cf23992bbd7a42b9715d046a00797dbd7789695",
     "aws/batch.yaml": "be3a6b9c18228ff17f561ac8e119b011bbddecda5c5821ad7c4b1a7ea8cdc8f9",
-    "aws/bedrock.yaml": "f84079c798c2c344d21b7905a0dd5360e46db09653f819c2852c357e0ec355eb",
+    "aws/bedrock.yaml": "e4d6d50f4545ba3ec8a40de4b146647ff3dcac9fbbad88307a3cc2dae1963708",
     "aws/bounded-effects-v5.yaml": "f3115dd6ad293ec714df36d78cb1d5b7e387c86b69e9c9c5ccf7143d5653520f",
     "aws/braket.yaml": "503af5c75c967cd837d6a0f58890b04d89435fd8c0bb406b0853bbf46dd9dad5",
     "aws/budgets.yaml": "3b36621abc861b1045b0a616a7336df9bf7b8a4474f3376535f667226c894921",
@@ -363,7 +363,7 @@
     "aws/arc-region-switch.yaml": "f66ea819f33f6128cb6a25f2d311e01d1d5e59c81809d2a6e187a49c72a55843",
     "aws/athena.yaml": "a4a2db1f4d00df1f29b642bb5cf23992bbd7a42b9715d046a00797dbd7789695",
     "aws/batch.yaml": "be3a6b9c18228ff17f561ac8e119b011bbddecda5c5821ad7c4b1a7ea8cdc8f9",
-    "aws/bedrock.yaml": "f84079c798c2c344d21b7905a0dd5360e46db09653f819c2852c357e0ec355eb",
+    "aws/bedrock.yaml": "e4d6d50f4545ba3ec8a40de4b146647ff3dcac9fbbad88307a3cc2dae1963708",
     "aws/bounded-effects-v5.yaml": "f3115dd6ad293ec714df36d78cb1d5b7e387c86b69e9c9c5ccf7143d5653520f",
     "aws/braket.yaml": "503af5c75c967cd837d6a0f58890b04d89435fd8c0bb406b0853bbf46dd9dad5",
     "aws/budgets.yaml": "3b36621abc861b1045b0a616a7336df9bf7b8a4474f3376535f667226c894921",

@@ -2908,7 +2908,7 @@ def test_agentcore_runtime_update_needs_one_runtime_and_default_endpoint():
             col("agentcore_runtime_endpoint", endpoint_rows, endpoint_status)]), tid)
     principal = user("alice", passed, allow("bedrock-agentcore:UpdateAgentRuntime", resource=arn),
                      allow("bedrock-agentcore:InvokeAgentRuntime", resource=[arn, endpoint]))
-    assert reached(scan(principal), ALICE, tid) == {role_arn("core"): "conditional"}
+    assert reached(scan(principal), ALICE, tid) == {}
     wrong_update = user("alice", passed, allow("bedrock-agentcore:UpdateAgentRuntime", resource=other),
                         allow("bedrock-agentcore:InvokeAgentRuntime", resource=[arn, endpoint]))
     assert edges(scan(wrong_update), ALICE) == []
@@ -2945,12 +2945,15 @@ def test_agentcore_new_runtime_binds_generated_id_endpoint_and_free_name():
     def scan(who, rows=(), status="empty"):
         return real(aws_snap([who], [target], extra=[col("agentcore_agent_runtime", rows, status)]), tid)
     broad = principal("*", "*")
-    assert reached(scan(broad), ALICE, tid) == {role_arn("core"): "conditional"}
+    assert reached(scan(broad), ALICE, tid) == {}
+    without_endpoint_creation = user("alice", pass_role, create,
+        allow("bedrock-agentcore:InvokeAgentRuntime", resource="*"))
+    assert reached(scan(without_endpoint_creation), ALICE, tid) == {}
     named = principal(prefix + "alpha-*", prefix + "alpha-*/runtime-endpoint/DEFAULT")
-    assert reached(scan(named), ALICE, tid) == {role_arn("core"): "conditional"}
+    assert reached(scan(named), ALICE, tid) == {}
     generated_suffix = principal(prefix + "alpha-??????????",
                                  prefix + "alpha-??????????/runtime-endpoint/DEFAULT")
-    assert reached(scan(generated_suffix), ALICE, tid) == {role_arn("core"): "conditional"}
+    assert reached(scan(generated_suffix), ALICE, tid) == {}
     occupied = {"agentRuntimeArn": prefix + "alpha-1234567890", "agentRuntimeName": "alpha",
                 "agentRuntimeId": "alpha-1234567890", "status": "READY", "roleArn": role_arn("core")}
     assert edges(scan(named, [occupied], "collected"), ALICE) == []
@@ -2971,6 +2974,72 @@ def test_agentcore_new_runtime_binds_generated_id_endpoint_and_free_name():
                          create, allow("bedrock-agentcore:CreateAgentRuntimeEndpoint"),
                          allow("bedrock-agentcore:InvokeAgentRuntime"))
     assert edges(scan(wrong_service), ALICE) == []
+
+
+def test_agentcore_create_and_update_runtime_need_current_role_execution():
+    create_id = "aws-bedrock-agentcore-createagentruntime-passrole"
+    update_id = "aws-bedrock-agentcore-updateagentruntime-passrole"
+    runtime_arn = f"arn:aws:bedrock-agentcore:{REGION}:{ACCOUNT}:runtime/previous-0123456789"
+    endpoint_arn = runtime_arn + "/runtime-endpoint/DEFAULT"
+    object_arn = "arn:aws:s3:::private-bucket/evidence.txt"
+    target = role("core", "bedrock-agentcore.amazonaws.com",
+                  allow("s3:PutObject", resource=object_arn))
+    target["RoleId"] = "AROAAGENTCORE123456789"
+    passed = allow("iam:PassRole", resource=target["Arn"])
+    passed["Condition"] = {"StringEquals": {
+        "iam:PassedToService": "bedrock-agentcore.amazonaws.com"}}
+
+    def result(technique, evidence=None, *, version="1", role_row=target,
+               runtime_role=None, extra_caller=()):
+        caller = user("alice", passed, allow("bedrock-agentcore:CreateAgentRuntime"),
+                      allow("bedrock-agentcore:UpdateAgentRuntime", resource=runtime_arn),
+                      allow("bedrock-agentcore:InvokeAgentRuntime"), *extra_caller)
+        runtime = {"agentRuntimeArn": runtime_arn, "agentRuntimeId": "previous-0123456789",
+                   "agentRuntimeName": "previous", "agentRuntimeVersion": version,
+                   "roleArn": runtime_role or target["Arn"], "status": "READY"}
+        endpoint = {"agentRuntimeArn": runtime_arn, "agentRuntimeEndpointArn": endpoint_arn,
+                    "agentRuntimeVersion": version, "name": "DEFAULT", "status": "READY"}
+        proofs = evidence if isinstance(evidence, list) else ([evidence] if evidence else [])
+        snap = aws_snap([caller], [role_row], [col("agentcore_agent_runtime", [runtime]),
+            col("agentcore_runtime_endpoint", [endpoint]),
+            col("aws_privesc_challenge_evidence", proofs)])
+        snap["created_at"] = "2026-10-21T12:00:00+00:00"
+        return real(snap, technique, include_unknown=True)
+
+    for technique, operation in ((create_id, "CreateAgentRuntime"),
+                                 (update_id, "UpdateAgentRuntime")):
+        proof = {"TechniqueId": technique, "SourceArn": ALICE, "TargetKind": "aws_role",
+                 "TargetId": target["Arn"], "TargetRoleId": target["RoleId"],
+                 "TargetScope": SCOPE, "RuntimeOperation": operation,
+                 "RuntimeArn": runtime_arn, "EndpointArn": endpoint_arn,
+                 "RuntimeVersion": "1", "ArtifactDigest": "sha256:reviewed-artifact",
+                 "Status": "verified", "VerifiedPreconditions": True,
+                 "ArtifactControlledBySource": True, "ArtifactPullable": True,
+                 "EndpointServedRuntimeVersion": True, "RuntimeInvocationSucceeded": True,
+                 "RoleOperationSucceeded": True, "EffectUsefulToSource": True,
+                 "NewSessionUsed": True, "RoleAction": "s3:PutObject",
+                 "RoleResource": object_arn, "EvidenceRef": "reviewed-runtime-invocation",
+                 "EvidenceObservedAt": "2026-10-21T11:59:00+00:00",
+                 "EvidenceExpiresAt": "2026-10-21T12:05:00+00:00"}
+        assert target["Arn"] in reached(result(technique, proof), ALICE, technique)
+        assert target["Arn"] not in reached(result(technique), ALICE, technique)
+        assert_unresolved(result(technique), ALICE, technique)
+        assert target["Arn"] not in reached(result(technique, [proof, dict(proof)]), ALICE, technique)
+        for changed in ({"TargetRoleId": "AROADIFFERENT"}, {"RuntimeVersion": "2"},
+                        {"ArtifactPullable": False}, {"EndpointServedRuntimeVersion": False},
+                        {"RuntimeInvocationSucceeded": False}, {"RoleOperationSucceeded": False},
+                        {"EffectUsefulToSource": False}, {"RoleAction": "s3:DeleteObject"},
+                        {"SourceArn": f"arn:aws:iam::{ACCOUNT}:user/other"},
+                        {"EvidenceObservedAt": "2026-10-21T11:40:00+00:00"}):
+            assert target["Arn"] not in reached(result(technique, dict(proof, **changed)), ALICE, technique)
+        assert target["Arn"] not in reached(result(technique, proof, version="2"), ALICE, technique)
+        assert target["Arn"] not in reached(result(technique, proof,
+            runtime_role=role_arn("other")), ALICE, technique)
+        assert target["Arn"] not in reached(result(technique, proof,
+            extra_caller=[allow("s3:PutObject", resource=object_arn)]), ALICE, technique)
+        if operation == "UpdateAgentRuntime":
+            assert target["Arn"] not in reached(result(technique, dict(proof, NewSessionUsed=False)),
+                                                ALICE, technique)
 
 
 def test_agentcore_new_harness_requires_composite_actions_on_one_generated_scope():
