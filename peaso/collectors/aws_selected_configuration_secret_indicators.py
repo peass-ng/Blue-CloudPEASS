@@ -450,6 +450,16 @@ def extract(response,service,operation,args,info):
             if not isinstance(name,str) or not name or name in seen:raise ValueError('containers_identity')
             seen.add(name)
             for key,text in environment(row.get('environment',[])).items():value[str(index)+':'+key]=text
+            # These are inline task-definition configuration literals. The
+            # adjacent secretOptions fields are manager references, not leaked
+            # values, and are deliberately never resolved or scanned.
+            for field in ('logConfiguration','firelensConfiguration'):
+                config=row.get(field)
+                if config is None:continue
+                if not isinstance(config,dict):raise ValueError('container_configuration_shape')
+                options=config.get('options',{})
+                for key,text in mapping(options).items():
+                    value[str(index)+':'+field+'.options.'+key]=text
     elif surface=='amplify_environment':
         row=response.get('app')
         if not isinstance(row,dict) or row.get('appId')!=args['appId'] or row.get('appArn')!=arn_prefix+'amplify:'+region+':'+account+':apps/'+args['appId']:raise ValueError('app_identity')

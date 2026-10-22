@@ -32,6 +32,29 @@ durable queue; waiting does not consume the execution budget. A request that
 cannot obtain a slot within one hour ends with `queue_exhausted` and a specific
 explanation. Cancellation and terminal transitions release admission capacity.
 
+## Resume after credentials expire
+
+An explicit provider credential-expiration code ends collection as
+`credentials_expired`; ordinary access denial remains an incomplete native read.
+The latest sealed snapshot and committed batches stay on the original scan row.
+After updating the same connector's credentials, `POST /api/scans/{id}/resume`
+with `{}` queues that row again. Its scan ID, creation time, selectors, saved
+reports, checkpoints and private evidence remain attached. Resume does not use
+another weekly scan allowance. A changed provider, selected scope, connector
+identity or options requires a new scan.
+
+The queue admits a resume under the same ten-scan limit and one-hour wait.
+Each attempt has a new owner and hosted workflow execution name; the previous
+worker cannot publish through its old lease. When the native snapshot is sealed,
+the resumed collector reuses a kind only if all explicitly selected scopes for
+that kind were fully collected or empty. It reruns unfinished or denied kinds
+with the refreshed connector, merges their envelopes with prior native evidence,
+and continues report evaluation. A saved checkpoint without a sealed native
+snapshot retains its partial results but is not exposed as resumable: that batch
+cannot prove the complete scope and metadata plan needed to skip settled work.
+Resuming a scan interrupted during analysis uses its
+sealed snapshot and matching review-stage checkpoints without recollecting.
+
 Selected content uses bounded parallel reads and offline detector batches.
 TruffleHog and Kingfisher do not validate discovered credentials. Scan duration
 still depends on the selected cloud scope, data volume, rate limits and enabled

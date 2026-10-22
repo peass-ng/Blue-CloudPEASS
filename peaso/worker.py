@@ -21,6 +21,27 @@ from peaso.storage.runtime import stores, WorkflowDispatcher
 LOGGER = logging.getLogger(__name__)
 
 
+_EXPIRED_CODES = frozenset({"ExpiredToken", "ExpiredTokenException", "RequestExpired",
+                            "TokenExpired", "token_expired", "invalid_grant"})
+
+
+def _expired_exception(exc):
+    response = getattr(exc, "response", None)
+    error = response.get("Error", {}) if isinstance(response, dict) else {}
+    return error.get("Code") in _EXPIRED_CODES or getattr(exc, "code", None) in _EXPIRED_CODES
+
+
+def _expired_snapshot(snapshot):
+    """Only explicit provider expiry codes qualify; ordinary denial stays denied."""
+    for envelope in snapshot.get("collections", ()):
+        error = envelope.get("error") or {}
+        if error.get("code") in _EXPIRED_CODES:
+            return True
+        if any(item.get("code") in _EXPIRED_CODES for item in error.get("additional_errors", ()) if isinstance(item, dict)):
+            return True
+    return False
+
+
 def _verify_aws_credentials(connector):
     """Reject an expired selected session before scheduling native inventory."""
     if (connector.get("provider") != "aws" or
@@ -33,10 +54,16 @@ def _verify_aws_credentials(connector):
         session, _ = _session(connector.get("auth", {}), region)
         session.client("sts", config=Config(connect_timeout=5, read_timeout=10,
             retries={"max_attempts": 1})).get_caller_identity()
-    except Exception:
+    except Exception as exc:
         # Provider exceptions can contain request/credential details. Keep this
         # early failure within the existing sanitized credential error path.
+        if _expired_exception(exc):
+            raise CredentialExpired("AWS connector authentication failed before collection") from None
         raise PermissionError("AWS connector authentication failed before collection") from None
+
+
+class CredentialExpired(PermissionError):
+    pass
 
 
 class _SynchronizedPipe:
@@ -191,6 +218,7 @@ def _process(role, request, connection):
         os.dup2(sink.fileno(), 1)
         os.dup2(sink.fileno(), 2)
     failure_reasons = []
+    resume_reference = None
     def stop_child(*_):
         raise SystemExit()
     signal.signal(signal.SIGTERM, stop_child)
@@ -274,12 +302,42 @@ def _process(role, request, connection):
                 restored = [artifacts.get(tenant, reference) for reference in
                     dict.fromkeys(request.get("checkpoint_refs", ()))]
                 checkpoint_session.restore(restored, int(request.get("checkpoint_sequence", 0)))
+                saved_rows = []
+                prior = None
+                if request.get("resume_snapshot_ref"):
+                    from peaso.snapshot import validate
+                    prior = validate(artifacts.get(tenant, request["resume_snapshot_ref"]))
+                    if prior["provider"] != connector["provider"]:
+                        raise ValueError("Resume snapshot provider mismatch")
+                    checkpoint_session.restore_final(prior)
+                    from peaso.engine import plan_collection
+                    from peaso.collectors.resume import partition, scoped_gcp_lookup
+                    requirements = plan_collection(request)
+                    lookup = scoped_gcp_lookup(connector, requirements, prior)
+                    if lookup is not None:
+                        connector.setdefault("options", {})["_resume_collection_lookup"] = lookup
+                    else:
+                        remaining, saved_rows = partition(connector, requirements, prior)
+                    if saved_rows:
+                        # The original selection is retained in the row and
+                        # checkpoint session.  This per-attempt inventory plan
+                        # schedules only unfinished native kinds.
+                        connector.setdefault("options", {}).pop("collect_all", None)
+                        connector["options"]["inventories"] = remaining
                 request["_collection_callback"] = checkpoint_session.on_collection
                 request["_scope_plan_callback"] = checkpoint_session.on_scope_plan
                 try:
                     from peaso.worker_progress import stream_progress
                     with stream_progress(connection):
-                        snapshot = collect_snapshot(request)
+                        if saved_rows and not remaining:
+                            from peaso.snapshot import make_snapshot
+                            snapshot = make_snapshot(prior["provider"], prior["scopes"], saved_rows,
+                                created_at=prior["created_at"], metadata=prior.get("metadata"))
+                        else:
+                            snapshot = collect_snapshot(request)
+                    if saved_rows and remaining:
+                        from peaso.collectors.resume import merge
+                        snapshot = merge(snapshot, saved_rows, prior)
                     checkpoint_session.finish_collection()
                     snapshot.setdefault("metadata", {})["sections"] = checkpoint_session.sections()
                 finally:
@@ -301,13 +359,17 @@ def _process(role, request, connection):
                     snapshot.setdefault("metadata", {})["ai_access_status"] = "unavailable"
             del ai_credentials
             from peaso.snapshot import nothing_readable
-            if nothing_readable(snapshot):
+            expired = _expired_snapshot(snapshot)
+            if nothing_readable(snapshot) and not expired:
                 # Every read failed (expired/wrong credentials): fail the scan instead of publishing an empty assessment.
                 failure_reasons = _curated_target_reasons(snapshot, request["connector"])
                 raise PermissionError("no collection was readable with the connector credentials")
             snapshot.setdefault("metadata", {})["input_mode"] = request["connector"].get("input_mode", "live")
             value = seal(redact(snapshot, tuple(credential_values(request["connector"].get("auth", {})))))
             reference = artifacts.put(tenant, ident, "snapshot", value)
+            if expired:
+                resume_reference = reference
+                raise CredentialExpired
         else:
             from peaso.engine import evaluate_snapshot
             selectors = request["selectors"]
@@ -355,7 +417,9 @@ def _process(role, request, connection):
         # Large evidence/report objects never cross the supervisor process pipe.
         connection.send((True, reference))
     except BaseException as exc:
-        if isinstance(exc, (ValueError, TypeError, KeyError)):
+        if isinstance(exc, CredentialExpired) or _expired_exception(exc):
+            code = "credentials_expired"
+        elif isinstance(exc, (ValueError, TypeError, KeyError)):
             code = "invalid_input"
         elif isinstance(exc, ImportError):
             code = "dependency_unavailable"
@@ -368,7 +432,7 @@ def _process(role, request, connection):
             code = "collector_timeout"
         else:
             code = "provider_error"
-        connection.send((False, code, _safe_failure_details(exc), failure_reasons))
+        connection.send((False, code, _safe_failure_details(exc), failure_reasons, resume_reference))
     finally:
         connection.close()
 
@@ -459,6 +523,12 @@ class Worker:
         process, parent, child = None, None, None
         try:
             selectors = json.loads(job["data"])
+            if self.role == "collector" and job.get("resume_phase") == "analyzer":
+                if not job.get("snapshot"):
+                    self.store.finish(job["id"], job["owner"], "failed", error_code="artifact_error")
+                else:
+                    self.store.finish(job["id"], job["owner"], "collected", job["snapshot"])
+                return True
             if selectors.get('ai_enabled', True):
                 from peaso.ai.providers import review_disabled
                 if review_disabled(self.store, selectors.get('ai_user_id', job['tenant'])):
@@ -486,6 +556,8 @@ class Worker:
                 request["checkpoint_refs"] = [row["reference"] for row in sorted(
                     self.store.checkpoint_collections(job["tenant"], job["id"]),
                     key=lambda row: row["sequence"])]
+                if job.get("resume_phase") == "collector" and job.get("snapshot"):
+                    request["resume_snapshot_ref"] = job["snapshot"]
             request.update(tenant_id=job["tenant"], scan_id=job["id"], deadline=job["deadline"], artifact_config={"mode": "file", "root": str(self.artifacts.root)} if isinstance(self.artifacts, FileArtifacts) else {"mode": "s3", "bucket": self.artifacts.bucket, "kms_key": self.artifacts.kms_key})
             request["ai_context"] = {"state_dir": str(self.settings.state_dir), "identity_dir": str(self.settings.identity_dir)}
             request["timeline"] = self.store.public_job(job)["timeline"]
@@ -544,7 +616,10 @@ class Worker:
                 if result and len(result) > 2:
                     LOGGER.warning("Scan worker failed: code=%s type=%s source=%s", result[1],
                                    result[2]["exception_type"], result[2]["source"])
-                self.store.finish(job["id"], job["owner"], "failed", error_code=result[1] if result else "worker_interrupted",
+                expired = bool(result and result[1] == "credentials_expired" and self.role == "collector")
+                self.store.finish(job["id"], job["owner"], "credentials_expired" if expired else "failed",
+                                  artifact=result[4] if expired and len(result) > 4 else None,
+                                  error_code=result[1] if result else "worker_interrupted",
                                   failure_reasons=result[3] if result and len(result) > 3 else None)
             return True
         except Exception as exc:

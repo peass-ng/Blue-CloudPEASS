@@ -51,7 +51,7 @@ def report():
 
 
 def action():
-    return dict(rank=1, title='Require IMDSv2', finding_ids=['h1'],
+    return dict(rank=1, severity='high', effort='low', title='Require IMDSv2', finding_ids=['h1'],
         rationale='HttpTokens is optional. Require tokens to reduce instance role credential theft.', steps=['Assess workload compatibility', 'Require IMDSv2'],
         verification='Read the instance metadata settings')
 
@@ -91,8 +91,8 @@ def test_recommendations_require_brief_useful_actions(patch):
         validate_actions({'actions': [action() | patch], 'limitations': []}, report(), [])
 
 
-def test_recommendations_have_exactly_six_fields_and_keep_ranking_and_references():
-    expected = {'rank', 'title', 'finding_ids', 'rationale', 'steps', 'verification'}
+def test_recommendations_have_assessments_and_keep_ranking_and_references():
+    expected = {'rank', 'title', 'finding_ids', 'rationale', 'steps', 'verification', 'severity', 'effort'}
     value = validate_actions({'actions': [action()], 'limitations': []}, report(), [])
     assert set(value['actions'][0]) == expected
     assert set(Recommendations.model_json_schema()['$defs']['Action']['required']) == expected

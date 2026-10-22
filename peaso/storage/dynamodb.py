@@ -44,6 +44,7 @@ class DynamoStore:
             client = boto3.client("dynamodb")
         self.table, self.client = table, client
         self.claims = {}
+        self.claim_attempts = {}
         self.clock = time.time
 
     def key(self, tenant, kind, ident):
@@ -593,7 +594,7 @@ class DynamoStore:
             ident = uuid.uuid4().hex
             value = dict(self.key(tenant, "job", ident), kind="job", rev=0, id=ident, tenant=tenant,
                          connector_id=request["connector_id"], data=json.dumps(request), connector=json.dumps({"data": json.loads(connector["data"]), "auth": connector["auth"]}),
-                         status="queued", created=now, deadline=now + QUEUE_WAIT_SECONDS, execution_timeout=timeout, expires_at=int(now + max(30 * 86400, timeout + 86400)), owner=None, lease=None, snapshot=None, report=None, error=None, error_code=None, error_stage=None, history=[{"status": "queued", "at": utc(now)}], idem=idem, digest=digest)
+                         status="queued", created=now, queued_at=now, deadline=now + QUEUE_WAIT_SECONDS, execution_timeout=timeout, expires_at=int(now + max(30 * 86400, timeout + 86400)), owner=None, lease=None, snapshot=None, report=None, error=None, error_code=None, error_stage=None, resume_attempt=0, history=[{"status": "queued", "at": utc(now)}], idem=idem, digest=digest)
             quota_values = {":kind": "quota", ":one": 1, ":expires": int(now + 14 * 86400)}
             quota_update = {"TableName": self.table, "Key": attrs(self.key(tenant, "quota", week(now))),
                             "UpdateExpression": "SET #kind=:kind, expires_at=:expires ADD used :one",
@@ -635,6 +636,57 @@ class DynamoStore:
                     raise StoreError(429, "Weekly scan quota exhausted")
                 time.sleep(0.01 * (attempt + 1))
         raise StoreError(409, "Concurrent reservation; retry")
+
+    def resume_job(self, tenant, ident, expected_connector, now=None):
+        """Conditionally reset the same item and bind one connector revision."""
+        from peaso.server.scan_resume import resume_stage
+        now = self.clock() if now is None else now
+        job = self.job(tenant, ident)
+        stage = resume_stage(job)
+        if stage is None:
+            raise StoreError(409, "This scan has no recoverable work")
+        connector = self.connector(tenant, job["connector_id"])
+        if (connector["rev"] != expected_connector["rev"]
+                or connector["data"] != expected_connector["data"]
+                or connector["auth"] != expected_connector["auth"]):
+            raise StoreError(409, "Connector changed; check access and retry")
+        status = "queued"
+        events = list(job.get("history") or [])
+        events.append({"status": status, "at": utc(now)})
+        values = {":status": status, ":old_status": job["status"], ":now": now,
+                  ":deadline": now + QUEUE_WAIT_SECONDS,
+                  ":connector": json.dumps({"data": json.loads(connector["data"]), "auth": connector["auth"]}),
+                  ":null": None, ":history": events, ":phase": stage,
+                  ":attempt": int(job.get("resume_attempt") or 0) + 1,
+                  ":old_attempt": int(job.get("resume_attempt") or 0)}
+        try:
+            self.client.transact_write_items(TransactItems=[
+                {"ConditionCheck": {"TableName": self.table,
+                    "Key": attrs(self.key(tenant, "connector", connector["id"])),
+                    "ConditionExpression": "#rev=:revision",
+                    "ExpressionAttributeNames": {"#rev": "rev"},
+                    "ExpressionAttributeValues": attrs({":revision": connector["rev"]})}},
+                {"Update": {"TableName": self.table,
+                    "Key": attrs(self.key(tenant, "job", ident)),
+                    "UpdateExpression": "SET #status=:status,connector=:connector,deadline=:deadline,queued_at=:now,"
+                        "#owner=:null,lease=:null,#error=:null,error_code=:null,error_stage=:null,"
+                        "progress_details=:null,#history=:history,resume_attempt=:attempt,"
+                        "resume_phase=:phase REMOVE admitted_at",
+                    "ConditionExpression": "#status=:old_status AND connector_id=:connector_id "
+                        "AND (attribute_not_exists(resume_attempt) OR resume_attempt=:old_attempt) "
+                        "AND (attribute_not_exists(expires_at) OR expires_at>:now)",
+                    "ExpressionAttributeNames": {"#status": "status", "#owner": "owner",
+                                                 "#error": "error", "#history": "history"},
+                    "ExpressionAttributeValues": attrs({**values, ":connector_id": connector["id"]})}},
+            ])
+        except ClientError as exc:
+            if exc.response["Error"]["Code"] == "TransactionCanceledException":
+                raise StoreError(409, "Scan or connector changed; retry") from None
+            raise
+        # A terminal write can precede its previous attempt's release if that
+        # worker was interrupted. This key is fenced from the new attempt.
+        self.release_admission(tenant, ident, int(job.get("resume_attempt") or 0))
+        return self.public_job(self.job(tenant, ident))
 
     def job(self, tenant, ident):
         value = self._get(tenant, "job", ident)
@@ -861,17 +913,18 @@ class DynamoStore:
             arguments["ExclusiveStartKey"] = page["LastEvaluatedKey"]
 
     def queued_jobs(self):
-        return sorted((item for item in self._scan("job") if item["status"] == "queued"), key=lambda item: (item["created"], item["id"]))
+        return sorted((item for item in self._scan("job") if item["status"] == "queued"), key=lambda item: (item.get("queued_at", item["created"]), item["id"]))
 
     @staticmethod
-    def _reservation_key(tenant, ident):
-        return {"PK": "GLOBAL", "SK": "SCAN_RESERVATION/" + tenant + "/" + ident}
+    def _reservation_key(tenant, ident, attempt=0):
+        suffix = "" if not attempt else "/" + str(attempt)
+        return {"PK": "GLOBAL", "SK": "SCAN_RESERVATION/" + tenant + "/" + ident + suffix}
 
-    def release_admission(self, tenant, ident):
+    def release_admission(self, tenant, ident, attempt=0):
         """Release exactly once; a terminal write may precede this if a process dies."""
         try:
             self.client.transact_write_items(TransactItems=[
-                {"Delete": {"TableName": self.table, "Key": attrs(self._reservation_key(tenant, ident)),
+                {"Delete": {"TableName": self.table, "Key": attrs(self._reservation_key(tenant, ident, attempt)),
                             "ConditionExpression": "attribute_exists(PK)"}},
                 {"Update": {"TableName": self.table, "Key": attrs({"PK": "GLOBAL", "SK": "SCAN_CAPACITY"}),
                             "UpdateExpression": "ADD active_count :minus",
@@ -890,10 +943,10 @@ class DynamoStore:
             except StoreError as exc:
                 if exc.status != 404:
                     raise
-                self.release_admission(reservation["tenant"], reservation["id"])
+                self.release_admission(reservation["tenant"], reservation["id"], reservation.get("attempt", 0))
                 continue
-            if job["status"] in TERMINAL:
-                self.release_admission(job["tenant"], job["id"])
+            if reservation.get("attempt", 0) != int(job.get("resume_attempt") or 0) or job["status"] in TERMINAL:
+                self.release_admission(job["tenant"], job["id"], reservation.get("attempt", 0))
             elif job["deadline"] <= now:
                 self._expire_job(job, now)
 
@@ -913,7 +966,8 @@ class DynamoStore:
         waiting = [item for item in self.queued_jobs() if item.get("admitted_at") is None and item["deadline"] > now]
         if waiting and (waiting[0]["tenant"], waiting[0]["id"]) != (tenant, ident):
             return False
-        reservation = dict(self._reservation_key(tenant, ident), kind="scan_reservation", id=ident, tenant=tenant)
+        attempt = int(job.get("resume_attempt") or 0)
+        reservation = dict(self._reservation_key(tenant, ident, attempt), kind="scan_reservation", id=ident, tenant=tenant, attempt=attempt)
         try:
             self.client.transact_write_items(TransactItems=[
                 {"Update": {"TableName": self.table, "Key": attrs({"PK": "GLOBAL", "SK": "SCAN_CAPACITY"}),
@@ -923,14 +977,16 @@ class DynamoStore:
                 {"Put": {"TableName": self.table, "Item": attrs(reservation), "ConditionExpression": "attribute_not_exists(PK)"}},
                 {"Update": {"TableName": self.table, "Key": attrs(self.key(tenant, "job", ident)),
                             "UpdateExpression": "SET admitted_at=:now, deadline=:execution_deadline",
-                            "ConditionExpression": "#status=:queued AND attribute_not_exists(admitted_at) AND deadline>:now",
+                            "ConditionExpression": "#status=:queued AND attribute_not_exists(admitted_at) AND deadline>:now AND (attribute_not_exists(resume_attempt) OR resume_attempt=:attempt)",
                             "ExpressionAttributeNames": {"#status": "status"},
-                            "ExpressionAttributeValues": attrs({":queued": "queued", ":now": now, ":execution_deadline": now + job.get("execution_timeout", 900)})}},
+                            "ExpressionAttributeValues": attrs({":queued": "queued", ":now": now, ":execution_deadline": now + job.get("execution_timeout", 900), ":attempt": attempt})}},
             ])
             return True
         except ClientError as exc:
             if exc.response["Error"]["Code"] == "TransactionCanceledException":
-                return bool((fresh := self.job(tenant, ident))["status"] == "queued" and fresh.get("admitted_at") is not None)
+                fresh = self.job(tenant, ident)
+                return bool(fresh["status"] == "queued" and fresh.get("admitted_at") is not None
+                            and int(fresh.get("resume_attempt") or 0) == attempt)
             raise
 
     def _update_job(self, tenant, ident, expression, names, values, condition):
@@ -949,10 +1005,12 @@ class DynamoStore:
             raise
 
     def cancel(self, tenant, ident):
-        self.job(tenant, ident)
-        self._update_job(tenant, ident, "SET #status=:cancelled, #owner=:null, lease=:null", {"#status": "status", "#owner": "owner"},
-                         {":cancelled": "cancelled", ":null": None, ":done": "completed", ":failed": "failed", ":timed": "timed_out", ":queue_exhausted": "queue_exhausted"}, "NOT (#status IN (:done,:failed,:cancelled,:timed,:queue_exhausted))")
-        self.release_admission(tenant, ident)
+        job = self.job(tenant, ident)
+        attempt = int(job.get("resume_attempt") or 0)
+        changed = self._update_job(tenant, ident, "SET #status=:cancelled, #owner=:null, lease=:null", {"#status": "status", "#owner": "owner"},
+                         {":cancelled": "cancelled", ":null": None, ":done": "completed", ":failed": "failed", ":timed": "timed_out", ":queue_exhausted": "queue_exhausted", ":credentials_expired": "credentials_expired", ":attempt": attempt}, "NOT (#status IN (:done,:failed,:cancelled,:timed,:queue_exhausted,:credentials_expired)) AND (attribute_not_exists(resume_attempt) OR resume_attempt=:attempt)")
+        if changed:
+            self.release_admission(tenant, ident, attempt)
         return self.public_job(self.job(tenant, ident))
 
     def expire(self, now=None):
@@ -973,17 +1031,18 @@ class DynamoStore:
                                     "SET #status=:queue_exhausted, #error=:error, #error_code=:code, #error_stage=:stage",
                                     {"#status": "status", "#error": "error", "#error_code": "error_code", "#error_stage": "error_stage"},
                                     {":queue_exhausted": "queue_exhausted", ":previous": "queued", ":now": now,
+                                     ":attempt": int(job.get("resume_attempt") or 0),
                                      ":error": "Queue exhausted: no scan slot became available within one hour",
                                      ":code": "queue_exhausted", ":stage": "queue"},
-                                    "deadline<=:now AND #status=:previous AND attribute_not_exists(admitted_at)")
+                                    "deadline<=:now AND #status=:previous AND attribute_not_exists(admitted_at) AND (attribute_not_exists(resume_attempt) OR resume_attempt=:attempt)")
         stage = "collector" if job["status"] in {"queued", "collecting"} else "analyzer"
         changed = self._update_job(job["tenant"], job["id"],
                                 "SET #status=:timed, #owner=:null, lease=:null, #error=:error, #error_code=:code, #error_stage=:stage",
                                 {"#status": "status", "#owner": "owner", "#error": "error", "#error_code": "error_code", "#error_stage": "error_stage"},
-                                {":timed": "timed_out", ":null": None, ":previous": job["status"], ":now": now, ":error": "Scan deadline exceeded", ":code": "deadline_exceeded", ":stage": stage},
-                                "deadline<=:now AND #status=:previous")
+                                {":timed": "timed_out", ":null": None, ":previous": job["status"], ":now": now, ":error": "Scan deadline exceeded", ":code": "deadline_exceeded", ":stage": stage, ":attempt": int(job.get("resume_attempt") or 0)},
+                                "deadline<=:now AND #status=:previous AND (attribute_not_exists(resume_attempt) OR resume_attempt=:attempt)")
         if changed:
-            self.release_admission(job["tenant"], job["id"])
+            self.release_admission(job["tenant"], job["id"], int(job.get("resume_attempt") or 0))
         return changed
 
     def claim(self, role, lease_seconds=30, now=None, tenant=None, ident=None):
@@ -994,7 +1053,7 @@ class DynamoStore:
         now = time.time() if now is None else now
         ready, active = ("queued", "collecting") if role == "collector" else ("collected", "analyzing")
         candidates = [self.job(tenant, ident)] if ident is not None else self._scan("job")
-        for job in sorted(candidates, key=lambda x: x["created"]):
+        for job in sorted(candidates, key=lambda x: (x.get("queued_at", x["created"]), x["id"])):
             if job["deadline"] <= now:
                 self._expire_job(job, now)
                 continue
@@ -1004,10 +1063,11 @@ class DynamoStore:
                 continue
             owner = uuid.uuid4().hex
             success = self._update_job(job["tenant"], job["id"], "SET #status=:active, #owner=:owner, lease=:lease", {"#status": "status", "#owner": "owner"},
-                                      {":active": active, ":ready": ready, ":owner": owner, ":lease": now + lease_seconds, ":now": now},
-                                      "deadline>:now AND (#status=:ready OR (#status=:active AND lease<=:now))" + (" AND attribute_exists(admitted_at)" if role == "collector" else ""))
+                                      {":active": active, ":ready": ready, ":owner": owner, ":lease": now + lease_seconds, ":now": now, ":attempt": int(job.get("resume_attempt") or 0)},
+                                      "deadline>:now AND (#status=:ready OR (#status=:active AND lease<=:now)) AND (attribute_not_exists(resume_attempt) OR resume_attempt=:attempt)" + (" AND attribute_exists(admitted_at)" if role == "collector" else ""))
             if success:
                 self.claims[(job["id"], owner)] = job["tenant"]
+                self.claim_attempts[(job["id"], owner)] = int(job.get("resume_attempt") or 0)
                 return dict(job, status=active, owner=owner, lease=now + lease_seconds)
         return None
 
@@ -1039,29 +1099,37 @@ class DynamoStore:
             return False
 
     def finish(self, ident, owner, status, artifact=None, now=None, error_code="processing_failed", failure_reasons=None):
-        if status not in {"collected", "completed", "failed"}:
+        if status not in {"collected", "completed", "failed", "credentials_expired"}:
             raise ValueError("Invalid worker transition")
         now = time.time() if now is None else now
         tenant = self.claims.get((ident, owner))
         if tenant is None:
             return False
-        names = {"#owner": "owner", "#status": "status", "#artifact": "snapshot" if status == "collected" else "report", "#error": "error"}
+        names = {"#owner": "owner", "#status": "status", "#artifact": "snapshot" if status in {"collected", "credentials_expired"} else "report", "#error": "error"}
         values = {":owner": owner, ":now": now, ":status": status, ":null": None, ":artifact": artifact,
-                  ":error": failure_error(failure_reasons) if status == "failed" else None}
+                  ":error": ("Connector credentials expired during the scan. Update them, then resume this scan or start a new one."
+                             if status == "credentials_expired" else failure_error(failure_reasons) if status == "failed" else None)}
         names.update({"#error_code": "error_code", "#error_stage": "error_stage"})
         allowed = {"processing_failed", "invalid_input", "credential_access_denied", "dependency_unavailable", "provider_error", "collector_timeout", "artifact_error", "worker_interrupted"}
-        values[":error_code"] = error_code if status == "failed" and error_code in allowed else "processing_failed" if status == "failed" else None
-        values[":error_stage"] = ("collector" if self.job(tenant, ident)["status"] == "collecting" else "analyzer") if status == "failed" else None
-        if status == "failed":
+        values[":error_code"] = ("credentials_expired" if status == "credentials_expired" else
+                                 error_code if status == "failed" and error_code in allowed else
+                                 "processing_failed" if status == "failed" else None)
+        values[":error_stage"] = (("collector" if self.job(tenant, ident)["status"] == "collecting" else "analyzer")
+                                   if status in {"failed", "credentials_expired"} else None)
+        if status in {"failed", "credentials_expired"}:
             values.update({":collecting": "collecting", ":analyzing": "analyzing"})
             previous = "#status IN (:collecting,:analyzing)"
         else:
             values[":previous"] = "collecting" if status == "collected" else "analyzing"
             previous = "#status=:previous"
-        changed = self._update_job(tenant, ident, "SET #status=:status, #owner=:null, lease=:null, #artifact=:artifact, #error=:error, #error_code=:error_code, #error_stage=:error_stage", names, values,
+        artifact_assignment = ", #artifact=:artifact" if status != "credentials_expired" or artifact is not None else ""
+        if not artifact_assignment:
+            names.pop("#artifact")
+            values.pop(":artifact")
+        changed = self._update_job(tenant, ident, "SET #status=:status, #owner=:null, lease=:null" + artifact_assignment + ", #error=:error, #error_code=:error_code, #error_stage=:error_stage", names, values,
                                    "#owner=:owner AND lease>:now AND deadline>:now AND " + previous)
-        if changed and status in {"completed", "failed"}:
-            self.release_admission(tenant, ident)
+        if changed and status in {"completed", "failed", "credentials_expired"}:
+            self.release_admission(tenant, ident, self.claim_attempts.get((ident, owner), 0))
         return changed
 
     def schedules(self, tenant):

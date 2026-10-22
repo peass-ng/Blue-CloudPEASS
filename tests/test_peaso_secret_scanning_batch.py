@@ -184,9 +184,9 @@ def test_batch_process_failure_reaps_child_and_falls_back(monkeypatch, tmp_path,
     _pinned_linux()
     script = tmp_path / 'fake-scanner'
     if behavior == 'deadline':
-        script.write_text('#!/usr/bin/env python3\nimport time\ntime.sleep(10)\n')
+        script.write_text(f'#!{sys.executable}\nimport time\ntime.sleep(10)\n')
     else:
-        script.write_text('#!/usr/bin/env python3\nimport sys,time\nsys.stdout.write("x"*2048)\nsys.stdout.flush()\ntime.sleep(10)\n')
+        script.write_text(f'#!{sys.executable}\nimport sys,time\nsys.stdout.write("x"*2048)\nsys.stdout.flush()\ntime.sleep(10)\n')
     script.chmod(0o700)
     children = []
     paths = []

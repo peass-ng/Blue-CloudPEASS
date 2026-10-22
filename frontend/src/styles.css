@@ -3685,7 +3685,9 @@ textarea:focus-visible,
 .ai-settings-section h3 { margin: 0 0 14px; font-size: 15px; }
 .ai-settings-section > p { margin: 0 0 12px; }
 .ai-settings-section > p:last-child { margin-bottom: 0; }
-.ai-settings-section .checkbox { margin-bottom: 10px; }
+.ai-settings, .settings-description { font-family: inherit; font-size: 13px; line-height: 1.65; }
+.ai-settings .ai-disable-toggle { display: flex; font: inherit; margin: 18px 0 16px; }
+.ai-disable-warning { color: #d9b86c; font-size: 13px; }
 .ai-purpose-list { margin: 0 0 16px; padding-left: 20px; }
 .ai-purpose-list li + li { margin-top: 10px; }
 
@@ -3701,3 +3703,6 @@ main.network-map-page { max-width: none; width: 100%; min-width: 0; }
 .connector-identity h3 { margin: 0 0 6px; font-size: 13px; }
 .connector-identity p { margin: 0; color: var(--muted); font-size: 11px; overflow-wrap: anywhere; }
 .connector-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+
+.scan-resume-choice { margin: 16px 0; padding: 16px; border: 1px solid var(--line); display: grid; gap: 12px; }
+.badge.credentials_expired { color: #e7c879; border-color: #c6a04c66; background: #c6a04c12; }

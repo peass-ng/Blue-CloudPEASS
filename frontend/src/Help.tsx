@@ -144,7 +144,7 @@ curl --fail-with-body "$(cat report-url.txt)" -o report.json`} />
       {chapter === "Platform guide" && <>
         <Panel title="What each section is for" kicker="PLATFORM GUIDE"><Definitions rows={sections} /><p>AI sections appear when AI is configured. Their contents depend on an assessment having run the corresponding AI stages.</p></Panel>
         <Panel title="Objects and terminology" kicker="DEFINITIONS"><Definitions rows={concepts} /></Panel>
-        <Panel title="Understand finding statuses" kicker="EVIDENCE AND COVERAGE"><Definitions rows={statuses} /><p>Execution status is separate: queued waits for a worker; running collects or evaluates; completed has finished execution; failed, cancelled and timed_out describe an execution that stopped. Check coverage and optional scanner outcomes even for completed assessments.</p></Panel>
+        <Panel title="Understand finding statuses" kicker="EVIDENCE AND COVERAGE"><Definitions rows={statuses} /><p>Execution status is separate: queued waits for a worker; running collects or evaluates; completed has finished execution; failed, cancelled and timed_out describe an execution that stopped. Credentials expired means you need to renew the connector credentials. Use Resume from saved progress in the scan details to continue the same assessment, or choose a fresh scan when launching. Check coverage and optional scanner outcomes even for completed assessments.</p></Panel>
       </>}
     </div>
   </div>;

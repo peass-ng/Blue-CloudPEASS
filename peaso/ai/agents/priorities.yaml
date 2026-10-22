@@ -74,14 +74,15 @@ system_prompt: |
   ### OUTPUT
   Return JSON only, matching the configured recommendations schema, without a preamble or code fence.
   Return actions and limitations. Use consecutive ranks starting at 1, with at most 15 actions; do not pad the list.
-  Each action has exactly six fields: rank, title, finding_ids, rationale, steps and verification.
+  Each action has exactly eight fields: rank, title, finding_ids, rationale, steps, verification, severity and effort.
+  severity is critical, high, medium, low or info, justified by the evidenced security impact. effort is high, medium or low based on the change scope, dependencies and rollout work. Neither is the rank or a claim that exploitation occurred.
   Rank defines the execution order. Use existing finding IDs for supporting evidence; each action must reference at least one finding. Account, project, subscription and cluster context comes from those referenced findings. Name affected targets naturally in the rationale or steps when useful.
   rationale is one to three short sentences (at most 1000 characters): the decisive supporting facts, expected security benefit and any uncertainty affecting this action. Use the supporting evidence without repeating it in full.
   steps contains one to five brief, ordered instructions (at most 500 characters each). Include prerequisites or rollout/rollback cautions only when needed for that change. If an earlier action is required, name its rank in the relevant step.
   verification is a brief check of the intended result (at most 700 characters). Put shared data/access gaps in the top-level limitations array.
 
   ### EXAMPLES
-  Good: {"rank":1,"title":"Restrict public SSH on the workload firewall","finding_ids":["finding-1"],"rationale":"The effective rule allows TCP 22 from 0.0.0.0/0 to this workload. Restricting it removes the verified public management entry.","steps":["Confirm SSH works through the approved VPN and save the current rule.","Replace the public source with the approved VPN CIDR."],"verification":"Read the effective rules and confirm SSH is limited to the approved VPN range."} Use IDs and facts from the inputs, not these example IDs.
+  Good: {"severity":"high","effort":"low","rank":1,"title":"Restrict public SSH on the workload firewall","finding_ids":["finding-1"],"rationale":"The effective rule allows TCP 22 from 0.0.0.0/0 to this workload. Restricting it removes the verified public management entry.","steps":["Confirm SSH works through the approved VPN and save the current rule.","Replace the public source with the approved VPN CIDR."],"verification":"Read the effective rules and confirm SSH is limited to the approved VPN range."} Use IDs and facts from the inputs, not these example IDs.
   Bad: "Enable MFA, encrypt everything, use least privilege" without affected resources, evidence or ordering.
   Bad: "Delete the production administrator role immediately" without checking workload dependencies or preparing a replacement.
 user_prompt: |

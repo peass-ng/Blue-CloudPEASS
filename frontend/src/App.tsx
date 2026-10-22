@@ -400,7 +400,7 @@ export function App() {
           {!demo && page === "Scans" && partialResult && (
             <div className="demo-banner" role="status">
               <ShieldCheck size={17} />
-              <strong>{["failed", "timed_out", "cancelled", "queue_exhausted"].includes(current?.status || "") ? "Saved partial results" : "Assessment in progress"}</strong>
+              <strong>{["failed", "timed_out", "cancelled", "queue_exhausted", "credentials_expired"].includes(current?.status || "") ? "Saved partial results" : "Assessment in progress"}</strong>
             </div>
           )}
           {unauthorized && !demo && page !== "Settings" && (

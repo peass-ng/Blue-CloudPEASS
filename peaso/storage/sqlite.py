@@ -13,7 +13,7 @@ from .cost import runtime_estimate
 
 SCAN_CAPACITY = 10
 QUEUE_WAIT_SECONDS = 3600
-TERMINAL = {"completed", "failed", "cancelled", "timed_out", "queue_exhausted"}
+TERMINAL = {"completed", "failed", "cancelled", "timed_out", "queue_exhausted", "credentials_expired"}
 GENERIC_FAILURE = "Scan processing failed; check connector access and coverage"
 # Fifty maximum-length role ARNs with the longest fixed message serialize to <64 KiB.
 _MAX_FAILURE_ERROR_BYTES = 128 * 1024
@@ -132,9 +132,12 @@ class SQLiteStore:
                                      ("admitted_at", "REAL"), ("execution_timeout", "REAL NOT NULL DEFAULT 900"),
                                      ("progress_details", "TEXT"), ("checkpoint_sequence", "INTEGER NOT NULL DEFAULT 0"),
                                      ("partial_snapshot", "TEXT"), ("partial_report", "TEXT"),
-                                     ("partial_report_sequence", "INTEGER NOT NULL DEFAULT 0")):
+                                     ("partial_report_sequence", "INTEGER NOT NULL DEFAULT 0"),
+                                     ("resume_attempt", "INTEGER NOT NULL DEFAULT 0"),
+                                     ("resume_phase", "TEXT"), ("queued_at", "REAL")):
                 if name not in columns:
                     db.execute(f"ALTER TABLE jobs ADD COLUMN {name} {definition}")
+            db.execute("UPDATE jobs SET queued_at=created WHERE queued_at IS NULL")
             if "execution_timeout" not in columns:
                 db.execute("UPDATE jobs SET execution_timeout=deadline-created,deadline=created+? WHERE status='queued'",
                            (QUEUE_WAIT_SECONDS,))
@@ -362,13 +365,38 @@ class SQLiteStore:
             raise StoreError(429, "Weekly scan quota exhausted")
         ident = uuid.uuid4().hex
         encrypted_input = json.dumps({"data": json.loads(connector["data"]), "auth": connector["auth"]})
-        db.execute("INSERT INTO jobs(id,tenant,connector_id,data,connector,status,created,deadline,idem,digest,history,execution_timeout) VALUES(?,?,?,?,?,'queued',?,?,?,?,?,?)",
-                   (ident, tenant, request["connector_id"], json.dumps(request), encrypted_input, now, now + QUEUE_WAIT_SECONDS, idem, digest, history({}, "queued", now), timeout))
+        db.execute("INSERT INTO jobs(id,tenant,connector_id,data,connector,status,created,deadline,idem,digest,history,execution_timeout,queued_at) VALUES(?,?,?,?,?,'queued',?,?,?,?,?,?,?)",
+                   (ident, tenant, request["connector_id"], json.dumps(request), encrypted_input, now, now + QUEUE_WAIT_SECONDS, idem, digest, history({}, "queued", now), timeout, now))
         return self.public_job(db.execute("SELECT * FROM jobs WHERE id=?", (ident,)).fetchone())
 
     def enqueue(self, tenant, request, limit=1, timeout=900, idem=None, now=None):
         with self.transaction() as db:
             return self._enqueue(db, tenant, request, limit, timeout, idem, time.time() if now is None else now)
+
+    def resume_job(self, tenant, ident, expected_connector, now=None):
+        """Reset one recoverable row atomically; keep selectors and all evidence refs."""
+        from peaso.server.scan_resume import resume_stage
+        now = time.time() if now is None else now
+        with self.transaction() as db:
+            row = db.execute("SELECT * FROM jobs WHERE tenant=? AND id=?", (tenant, ident)).fetchone()
+            if not row:
+                raise StoreError(404, "Scan not found")
+            stage = resume_stage(dict(row))
+            if stage is None:
+                raise StoreError(409, "This scan has no recoverable work")
+            connector = self.connector(tenant, row["connector_id"], db)
+            if (connector["data"] != expected_connector["data"]
+                    or connector["auth"] != expected_connector["auth"]):
+                raise StoreError(409, "Connector changed; check access and retry")
+            status = "queued"
+            db.execute("UPDATE jobs SET status=?,connector=?,deadline=?,queued_at=?,admitted_at=NULL,owner=NULL,lease=NULL,"
+                       "resume_attempt=resume_attempt+1,resume_phase=?,"
+                       "error=NULL,error_code=NULL,error_stage=NULL,progress_details=NULL,history=? "
+                       "WHERE tenant=? AND id=?",
+                       (status, json.dumps({"data": json.loads(connector["data"]), "auth": connector["auth"]}),
+                        now + QUEUE_WAIT_SECONDS, now,
+                        stage, history(row, status, now), tenant, ident))
+            return self.public_job(db.execute("SELECT * FROM jobs WHERE tenant=? AND id=?", (tenant, ident)).fetchone())
 
     @staticmethod
     def public_job(row):
@@ -377,6 +405,9 @@ class SQLiteStore:
         events = json.loads(events) if isinstance(events, str) else events
         error, reasons = public_failure(row["error"])
         result = dict(json.loads(row["data"]), id=row["id"], status=row["status"], created_at=utc(row["created"]), deadline_at=utc(row["deadline"]), admitted_at=utc(value["admitted_at"]) if value.get("admitted_at") is not None else None, error=error, error_code=value.get("error_code"), error_stage=value.get("error_stage"), timeline=events, updated_at=events[-1]["at"] if events else utc(row["created"]), input_mode=json.loads(row["connector"])["data"].get("input_mode", "live"), runtime=runtime_estimate(events), result_available=bool(value.get("report") or value.get("partial_report")))
+        result["resumable"] = (row["status"] in {"credentials_expired", "failed", "timed_out", "cancelled"}
+                               and result["input_mode"] == "live"
+                               and bool(value.get("snapshot")))
         if reasons:
             result["failure_reasons"] = reasons
         if value.get("progress_details"):
@@ -607,7 +638,7 @@ class SQLiteStore:
 
     def queued_jobs(self):
         with self.connect() as db:
-            return [dict(row) for row in db.execute("SELECT * FROM jobs WHERE status='queued' ORDER BY created,id")]
+            return [dict(row) for row in db.execute("SELECT * FROM jobs WHERE status='queued' ORDER BY queued_at,id")]
 
     def admit(self, tenant, ident, now=None):
         """Reserve one of ten global scan slots under the SQLite write lock."""
@@ -619,8 +650,8 @@ class SQLiteStore:
                 return False
             if row["admitted_at"] is not None:
                 return True
-            older = db.execute("SELECT 1 FROM jobs WHERE status='queued' AND admitted_at IS NULL AND (created<? OR (created=? AND id<?)) LIMIT 1", (row["created"], row["created"], ident)).fetchone()
-            occupied = db.execute("SELECT COUNT(*) FROM jobs WHERE admitted_at IS NOT NULL AND status NOT IN ('completed','failed','cancelled','timed_out','queue_exhausted')").fetchone()[0]
+            older = db.execute("SELECT 1 FROM jobs WHERE status='queued' AND admitted_at IS NULL AND (queued_at<? OR (queued_at=? AND id<?)) LIMIT 1", (row["queued_at"], row["queued_at"], ident)).fetchone()
+            occupied = db.execute("SELECT COUNT(*) FROM jobs WHERE admitted_at IS NOT NULL AND status NOT IN ('completed','failed','cancelled','timed_out','queue_exhausted','credentials_expired')").fetchone()[0]
             if older or occupied >= SCAN_CAPACITY:
                 return False
             db.execute("UPDATE jobs SET admitted_at=?,deadline=? WHERE tenant=? AND id=? AND status='queued'",
@@ -630,7 +661,7 @@ class SQLiteStore:
     def expire(self, now=None):
         now = time.time() if now is None else now
         with self.transaction() as db:
-            for row in db.execute("SELECT * FROM jobs WHERE deadline<=? AND status NOT IN ('completed','failed','cancelled','timed_out','queue_exhausted')", (now,)).fetchall():
+            for row in db.execute("SELECT * FROM jobs WHERE deadline<=? AND status NOT IN ('completed','failed','cancelled','timed_out','queue_exhausted','credentials_expired')", (now,)).fetchall():
                 if row["status"] == "queued" and row["admitted_at"] is None:
                     db.execute("UPDATE jobs SET status='queue_exhausted',error='Queue exhausted: no scan slot became available within one hour',error_code='queue_exhausted',error_stage='queue',history=? WHERE id=?", (history(row, "queue_exhausted", now), row["id"]))
                     continue
@@ -670,12 +701,12 @@ class SQLiteStore:
             if ident is not None:
                 query += " AND tenant=? AND id=?"
                 args += [tenant, ident]
-            row = db.execute(query + " ORDER BY created,id LIMIT 1", args).fetchone()
+            row = db.execute(query + " ORDER BY queued_at,id LIMIT 1", args).fetchone()
             if not row:
                 return None
             if role == "collector" and row["admitted_at"] is None:
-                occupied = db.execute("SELECT COUNT(*) FROM jobs WHERE admitted_at IS NOT NULL AND status NOT IN ('completed','failed','cancelled','timed_out','queue_exhausted')").fetchone()[0]
-                older = db.execute("SELECT 1 FROM jobs WHERE status='queued' AND admitted_at IS NULL AND (created<? OR (created=? AND id<?)) LIMIT 1", (row["created"], row["created"], row["id"])).fetchone()
+                occupied = db.execute("SELECT COUNT(*) FROM jobs WHERE admitted_at IS NOT NULL AND status NOT IN ('completed','failed','cancelled','timed_out','queue_exhausted','credentials_expired')").fetchone()[0]
+                older = db.execute("SELECT 1 FROM jobs WHERE status='queued' AND admitted_at IS NULL AND (queued_at<? OR (queued_at=? AND id<?)) LIMIT 1", (row["queued_at"], row["queued_at"], row["id"])).fetchone()
                 if occupied >= SCAN_CAPACITY or older:
                     return None
                 db.execute("UPDATE jobs SET admitted_at=?,deadline=? WHERE id=?", (now, now + row["execution_timeout"], row["id"]))
@@ -705,19 +736,25 @@ class SQLiteStore:
 
     def finish(self, ident, owner, status, artifact=None, now=None, error_code="processing_failed", failure_reasons=None):
         now = time.time() if now is None else now
-        if status not in {"collected", "completed", "failed"}:
+        if status not in {"collected", "completed", "failed", "credentials_expired"}:
             raise ValueError("Invalid worker transition")
         previous = "collecting" if status == "collected" else "analyzing" if status == "completed" else None
-        field = "snapshot" if status == "collected" else "report"
+        field = "snapshot" if status in {"collected", "credentials_expired"} else "report"
         with self.transaction() as db:
             row = db.execute("SELECT * FROM jobs WHERE id=? AND owner=? AND lease>? AND deadline>?", (ident, owner, now, now)).fetchone()
             if not row or row["status"] not in {"collecting", "analyzing"} or (previous and row["status"] != previous):
                 return False
-            if status == "failed":
+            if status in {"failed", "credentials_expired"}:
                 allowed = {"processing_failed", "invalid_input", "credential_access_denied", "dependency_unavailable", "provider_error", "collector_timeout", "artifact_error", "worker_interrupted"}
-                error_code = error_code if error_code in allowed else "processing_failed"
+                error_code = ("credentials_expired" if status == "credentials_expired" else
+                              error_code if error_code in allowed else "processing_failed")
                 stage = "collector" if row["status"] == "collecting" else "analyzer"
-                db.execute("UPDATE jobs SET status='failed',error=?,error_code=?,error_stage=?,history=?,owner=NULL,lease=NULL WHERE id=? AND owner=?", (failure_error(failure_reasons), error_code, stage, history(row, "failed", now), ident, owner))
+                error = ("Connector credentials expired during the scan. Update them, then resume this scan or start a new one."
+                         if status == "credentials_expired" else failure_error(failure_reasons))
+                if status == "credentials_expired" and artifact is not None:
+                    db.execute("UPDATE jobs SET status=?,snapshot=?,error=?,error_code=?,error_stage=?,history=?,owner=NULL,lease=NULL WHERE id=? AND owner=?", (status, artifact, error, error_code, stage, history(row, status, now), ident, owner))
+                else:
+                    db.execute("UPDATE jobs SET status=?,error=?,error_code=?,error_stage=?,history=?,owner=NULL,lease=NULL WHERE id=? AND owner=?", (status, error, error_code, stage, history(row, status, now), ident, owner))
             else:
                 db.execute(f"UPDATE jobs SET status=?,{field}=?,history=?,owner=NULL,lease=NULL WHERE id=? AND owner=?", (status, artifact, history(row, status, now), ident, owner))
             return True
