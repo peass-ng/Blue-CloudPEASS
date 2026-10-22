@@ -707,9 +707,11 @@ CLUSTER_ARN = f"arn:aws:ecs:{REGION}:{ACCOUNT}:cluster/web"
 def ecs_snap(cluster, task_defs=None, instances=("i-1",)):
     node = role("ecs-node", "ec2.amazonaws.com", allow("ecs:DiscoverPollEndpoint", "ecs:Poll"),
                 profiles=[profile_arn("ecs-node")])
-    roles = [node, role("app", "ecs-tasks.amazonaws.com"), role("far", "ecs-tasks.amazonaws.com")]
+    roles = [node, role("app", "ecs-tasks.amazonaws.com"), role("app-execution", "ecs-tasks.amazonaws.com"),
+             role("far", "ecs-tasks.amazonaws.com")]
     tds = task_defs if task_defs is not None else [
         {"taskDefinitionArn": f"arn:aws:ecs:{REGION}:{ACCOUNT}:task-definition/app:1", "taskRoleArn": role_arn("app"),
+         "executionRoleArn": role_arn("app-execution"),
          "compatibilities": ["EC2", "FARGATE"]},
         {"taskDefinitionArn": f"arn:aws:ecs:{REGION}:{ACCOUNT}:task-definition/far:1", "taskRoleArn": role_arn("far"),
          "compatibilities": ["EC2"]}]
@@ -730,9 +732,9 @@ def placed_cluster():
                        "containerInstanceArn": ci2, "launchType": "EC2"}]}
 
 
-def test_ecscape_reaches_only_task_roles_on_the_source_instance():
+def test_ecscape_reaches_task_and_execution_roles_on_the_source_instance():
     got = reached(real(ecs_snap(placed_cluster()), ECSCAPE), NODE_ARN)
-    assert set(got) == {role_arn("app")}   # "far" runs on i-2, not on the source's instance
+    assert set(got) == {role_arn("app"), role_arn("app-execution")}   # "far" runs on i-2
 
 
 def test_ecscape_fargate_only_or_no_container_instances_is_dropped():

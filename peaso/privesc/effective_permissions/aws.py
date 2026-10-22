@@ -601,18 +601,25 @@ class AwsModel(Model):
         self.ecs_cluster_info = {}     # cluster arn -> {account, count, instances: {ci arn: ec2 id}|None, tasks: [..]|None}
         self.ecs_task_roles = {}       # role arn -> [(account, task definition arn, ec2 capable)]
         self.ecs_taskdef_role = {}     # task definition arn -> task role arn
+        self.ecs_execution_roles = {}  # execution role arn -> [(account, task definition arn, ec2 capable)]
+        self.ecs_taskdef_execution_role = {}  # task definition arn -> execution role arn
         for scope, item in items(snap, "ecs_task_definition"):
             account = item.get("AccountId") or scope.split("/")[0]
             self.ecs_task_definitions[account] = self.ecs_task_definitions.get(account, 0) + 1
             td = (item.get("Definition") or {}).get("taskDefinition") if isinstance(item.get("Definition"), dict) else None
             td = td or item.get("taskDefinition") or item
             role, tdarn = td.get("taskRoleArn"), td.get("taskDefinitionArn") or item.get("taskDefinitionArn") or item.get("id")
+            execution_role = td.get("executionRoleArn")
             compat = [str(c).upper() for c in as_list(td.get("compatibilities")) or as_list(td.get("requiresCompatibilities"))]
             ec2 = not compat or "EC2" in compat or "EXTERNAL" in compat  # no compatibility list: EC2 is the default launch type
             if tdarn and role:
                 self.ecs_taskdef_role[str(tdarn)] = str(role)
             if role:
                 self.ecs_task_roles.setdefault(str(role), []).append((account, tdarn, ec2))
+            if tdarn and execution_role:
+                self.ecs_taskdef_execution_role[str(tdarn)] = str(execution_role)
+            if execution_role:
+                self.ecs_execution_roles.setdefault(str(execution_role), []).append((account, tdarn, ec2))
         extra_ci, extra_tasks = {}, {}
         for scope, item in items(snap, "ecs_container_instance"):
             if item.get("clusterArn"):
@@ -3578,7 +3585,12 @@ class AwsModel(Model):
         return False if self._account_status("ecs_task_definition", role.scope) == "collected" else None
 
     def _task_role(self, task):
-        return (task.get("overrides") or {}).get("taskRoleArn") or self.ecs_taskdef_role.get(str(task.get("taskDefinitionArn")))
+        return (task.get("taskRoleArn") or (task.get("overrides") or {}).get("taskRoleArn")
+                or self.ecs_taskdef_role.get(str(task.get("taskDefinitionArn"))))
+
+    def _task_execution_role(self, task):
+        return (task.get("executionRoleArn") or (task.get("overrides") or {}).get("executionRoleArn")
+                or self.ecs_taskdef_execution_role.get(str(task.get("taskDefinitionArn"))))
 
     def _placement_known(self, clusters, complete):
         return complete and all(c["instances"] is not None and c["tasks"] is not None for c in clusters)
@@ -3628,17 +3640,24 @@ class AwsModel(Model):
         if role.scope != source.scope:
             return False
         clusters, complete = self._ecs_account(role.scope)
-        ec2 = self._ec2_task_role(role)
-        if ec2 is False or (complete and not any(c["count"] for c in clusters)):
+        if complete and not any(c["count"] for c in clusters):
             return False
         if self._placement_known(clusters, complete):
             mine = {a.rsplit("/", 1)[-1] for a in self.hosts.get(source.id, {}).get("ec2_instance", ())}
             cis = {ci for c in clusters for ci, iid in c["instances"].items() if iid in mine}
             norm = _norm_arn(role.id)
-            hit = any(t.get("containerInstanceArn") in cis and _norm_arn(self._task_role(t) or "") == norm
+            hit = any(t.get("containerInstanceArn") in cis and
+                      norm in (_norm_arn(self._task_role(t) or ""), _norm_arn(self._task_execution_role(t) or ""))
                       for _, t in self._ec2_tasks(clusters))
             return None if hit else False
-        if ec2 is None:
+        norm = _norm_arn(role.id)
+        defs = self._ecs_task_def_roles(role)
+        exec_defs = self.ecs_execution_roles.get(role.id)
+        if exec_defs is None:
+            exec_defs = [d for arn, ds in self.ecs_execution_roles.items() if _norm_arn(arn) == norm for d in ds]
+        if not any(d[2] for d in defs) and not any(d[2] for d in exec_defs):
+            if self._account_status("ecs_task_definition", role.scope) == "collected":
+                return False
             return ("unknown", "ecs_task_definition_not_collected")
         return ("unknown", "ecs_task_placement_not_collected")
 

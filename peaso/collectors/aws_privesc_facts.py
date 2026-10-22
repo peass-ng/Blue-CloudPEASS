@@ -49,6 +49,7 @@ SHARE_TYPES = ("ACCOUNT", "ORGANIZATION", "ORGANIZATIONAL_UNIT", "ORGANIZATION_M
 _CI_FIELDS = ("containerInstanceArn", "ec2InstanceId", "status", "statusReason", "agentConnected", "agentUpdateStatus",
     "runningTasksCount", "pendingTasksCount", "capacityProviderName", "registeredAt", "versionInfo")
 _TASK_FIELDS = ("taskArn", "taskDefinitionArn", "clusterArn", "containerInstanceArn", "launchType", "capacityProviderName",
+    "taskRoleArn", "executionRoleArn",
     "lastStatus", "desiredStatus", "group", "platformVersion", "platformFamily", "enableExecuteCommand", "availabilityZone",
     "createdAt", "startedAt", "connectivity", "healthStatus")
 _ENI_DETAILS = {"subnetId", "networkInterfaceId", "privateIPv4Address", "privateDnsName", "macAddress", "ipv6Address"}

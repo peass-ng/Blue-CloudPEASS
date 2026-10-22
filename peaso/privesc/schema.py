@@ -276,8 +276,8 @@ SELECTOR_KEYS = {
         "Target role is the instance role of an ECS container instance or the task role of a task placed on one "
         "(dropped when every cluster has 0 container instances; unknown without container-instance/task inventory)."),
     "ecs_task_colocated_with_source_container_instance": (("aws",), "string",
-        "Value {source.arn}: the source is an EC2 container-instance role and the target task role runs (or, without "
-        "placement facts, may run: unknown) on an EC2 container instance carrying the source's instance profile."),
+        "Value {source.arn}: the source is an EC2 container-instance role and the target task or task-execution role "
+        "runs (or, without placement facts, may run: unknown) on an EC2 container instance carrying the source's instance profile."),
     "eks_authentication_mode": (("aws",), "string_or_list",
         "EKS cluster accessConfig.authenticationMode is one of the values (API, API_AND_CONFIG_MAP, CONFIG_MAP); unknown when not collected."),
     "trust_allows_oidc_provider_covered_by": (("aws",), "action",
@@ -840,7 +840,8 @@ FACTS_NEEDED = {
                                                          "(ecs:ListContainerInstances + DescribeContainerInstances) and Tasks {taskDefinitionArn, "
                                                          "launchType, containerInstanceArn, overrides.taskRoleArn} (ecs:ListTasks + DescribeTasks)",
     "ecs_task_colocated_with_source_container_instance": "AWS: ecs_cluster ContainerInstances {containerInstanceArn, ec2InstanceId} + Tasks "
-                                                         "{taskDefinitionArn, launchType, containerInstanceArn, overrides.taskRoleArn} + instance IamInstanceProfile",
+                                                         "{taskDefinitionArn, launchType, containerInstanceArn, taskRoleArn, executionRoleArn, overrides} "
+                                                         "+ task definitions {taskRoleArn, executionRoleArn} + instance IamInstanceProfile",
     "eks_authentication_mode": "AWS: eks_cluster describe_cluster {cluster.arn, cluster.accessConfig.authenticationMode}",
     "trust_allows_oidc_provider_covered_by": "AWS: iam_role AssumeRolePolicyDocument (collected)",
     "trust_federated_provider_missing": "AWS: iam_saml_provider (iam:ListSAMLProviders {Arn}) / iam_oidc_provider (iam:ListOpenIDConnectProviders {Arn})",
