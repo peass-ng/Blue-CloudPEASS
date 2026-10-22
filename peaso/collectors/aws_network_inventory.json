@@ -50,6 +50,32 @@
       "nextToken"
     ]
   },
+  "agentcore_runtime_endpoint": {
+    "arguments": {
+      "agentRuntimeId": "agentRuntimeId"
+    },
+    "identity": "agentRuntimeEndpointArn",
+    "key": "runtimeEndpoints",
+    "operation": "list_agent_runtime_endpoints",
+    "parents": [
+      {
+        "exports": {
+          "agentRuntimeId": "agentRuntimeId"
+        },
+        "key": "agentRuntimes",
+        "operation": "list_agent_runtimes",
+        "tokens": [
+          "nextToken",
+          "nextToken"
+        ]
+      }
+    ],
+    "service": "bedrock-agentcore-control",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
   "aoss_network_policy": {
     "constants": {
       "type": "network"

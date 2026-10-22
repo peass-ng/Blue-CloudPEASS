@@ -2037,6 +2037,46 @@ def test_agentcore_existing_interpreter_joins_exact_ready_role_and_grants():
     assert_unresolved(partial_result, ALICE, tid)
 
 
+def test_agentcore_runtime_update_needs_one_runtime_and_default_endpoint():
+    tid = "aws-bedrock-agentcore-updateagentruntime-passrole"
+    arn = f"arn:aws:bedrock-agentcore:{REGION}:{ACCOUNT}:runtime/team-0123456789"
+    endpoint = arn + "/runtime-endpoint/DEFAULT"
+    other = f"arn:aws:bedrock-agentcore:{REGION}:{ACCOUNT}:runtime/other-0123456789"
+    target = role("core", "bedrock-agentcore.amazonaws.com")
+    runtime = {"agentRuntimeArn": arn, "agentRuntimeId": "team-0123456789", "status": "READY",
+               "roleArn": role_arn("old")}
+    default = {"agentRuntimeArn": arn, "agentRuntimeEndpointArn": endpoint,
+               "name": "DEFAULT", "status": "READY"}
+    passed = allow("iam:PassRole", resource=role_arn("core"))
+    def scan(principal, runtime_rows=(runtime,), endpoint_rows=(default,), endpoint_status="collected"):
+        return real(aws_snap([principal], [target], extra=[
+            col("agentcore_agent_runtime", runtime_rows),
+            col("agentcore_runtime_endpoint", endpoint_rows, endpoint_status)]), tid)
+    principal = user("alice", passed, allow("bedrock-agentcore:UpdateAgentRuntime", resource=arn),
+                     allow("bedrock-agentcore:InvokeAgentRuntime", resource=[arn, endpoint]))
+    assert reached(scan(principal), ALICE, tid) == {role_arn("core"): "conditional"}
+    wrong_update = user("alice", passed, allow("bedrock-agentcore:UpdateAgentRuntime", resource=other),
+                        allow("bedrock-agentcore:InvokeAgentRuntime", resource=[arn, endpoint]))
+    assert edges(scan(wrong_update), ALICE) == []
+    no_endpoint_grant = user("alice", passed, allow("bedrock-agentcore:UpdateAgentRuntime", resource=arn),
+                             allow("bedrock-agentcore:InvokeAgentRuntime", resource=arn))
+    assert edges(scan(no_endpoint_grant), ALICE) == []
+    wrong_pass = user("alice", {"Effect": "Allow", "Action": "iam:PassRole",
+                                "Resource": role_arn("core"),
+                                "Condition": {"ArnEquals": {"iam:AssociatedResourceArn": other}}},
+                      allow("bedrock-agentcore:UpdateAgentRuntime", resource=arn),
+                      allow("bedrock-agentcore:InvokeAgentRuntime", resource=[arn, endpoint]))
+    assert edges(scan(wrong_pass), ALICE) == []
+    nondefault = {**default, "name": "STAGING", "agentRuntimeEndpointArn": arn + "/runtime-endpoint/STAGING"}
+    assert edges(scan(principal, endpoint_rows=(nondefault,)), ALICE) == []
+    failed = {**default, "status": "UPDATE_FAILED"}
+    assert edges(scan(principal, endpoint_rows=(failed,)), ALICE) == []
+    partial = real(aws_snap([principal], [target], extra=[
+        col("agentcore_agent_runtime", [runtime]),
+        col("agentcore_runtime_endpoint", [default], "partial")]), tid, include_unknown=True)
+    assert_unresolved(partial, ALICE, tid)
+
+
 def test_lambda_edge_requires_both_replication_permissions_in_us_east_1():
     tid = "aws-cloudfront-lambda-edge-passrole"
     edge_role = role("edge", [{"Effect": "Allow", "Principal": {"Service": [

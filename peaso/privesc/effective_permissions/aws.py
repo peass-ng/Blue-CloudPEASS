@@ -8428,6 +8428,66 @@ class AwsModel(Model):
                        else int(version.group(1)) >= 9)):
                     out[tid] = None
             return out
+        if pid == "agentcore_existing_runtime_update_and_invoke":
+            if source is None:
+                return None
+            runtimes = inventory_status(self.snapshot, "agentcore_agent_runtime")
+            endpoints = inventory_status(self.snapshot, "agentcore_runtime_endpoint")
+            by_runtime = {}
+            for scope, row in items(self.snapshot, "agentcore_runtime_endpoint"):
+                runtime_arn = row.get("agentRuntimeArn")
+                if isinstance(runtime_arn, str):
+                    by_runtime.setdefault((scope, runtime_arn), []).append(row)
+            for tid, role in candidates.items():
+                unknown = bool(source.incomplete or role.incomplete)
+                for scope, row in items(self.snapshot, "agentcore_agent_runtime"):
+                    if scope.split("/")[0] != source.scope:
+                        continue
+                    arn = row.get("agentRuntimeArn")
+                    if not isinstance(arn, str) or row.get("status") != "READY":
+                        if row.get("status") not in ("CREATE_FAILED", "DELETING", "DELETE_FAILED"):
+                            unknown = True
+                        continue
+                    if runtimes.get(scope) != "collected" or endpoints.get(scope) != "collected":
+                        unknown = True
+                        continue
+                    defaults = [endpoint for endpoint in by_runtime.get((scope, arn), ())
+                                if endpoint.get("name") == "DEFAULT" and endpoint.get("status") == "READY"
+                                and isinstance(endpoint.get("agentRuntimeEndpointArn"), str)]
+                    if not defaults:
+                        unknown = True
+                        continue
+                    trust = self._service_trust_for_source_arn(tid, "bedrock-agentcore.amazonaws.com", arn)
+                    if trust is not True:
+                        unknown |= trust is None
+                        continue
+                    update = self.check(source, {"action": "bedrock-agentcore:UpdateAgentRuntime"}, arn)
+                    passed = self.check(source, {"action": "iam:PassRole", "request_context": {
+                        "iam:PassedToService": "bedrock-agentcore.amazonaws.com",
+                        "iam:AssociatedResourceArn": arn}}, tid)
+                    if passed is None:
+                        undecided_pass = self.check(source, {"action": "iam:PassRole", "request_context": {
+                            "iam:PassedToService": "bedrock-agentcore.amazonaws.com"}}, tid)
+                        unknown |= undecided_pass is not None
+                    if update is None or passed is None:
+                        continue
+                    if update.confidence != "derived" or passed.confidence != "derived":
+                        unknown = True
+                        continue
+                    for endpoint in defaults:
+                        endpoint_arn = endpoint["agentRuntimeEndpointArn"]
+                        invocations = [self.check(source, {"action": "bedrock-agentcore:InvokeAgentRuntime"}, resource)
+                                       for resource in (arn, endpoint_arn)]
+                        if all(grant is not None and grant.confidence == "derived" for grant in invocations):
+                            out[tid] = ("conditional", "agentcore_runtime_update_artifact_and_endpoint_execution")
+                            break
+                        if any(grant is not None and grant.confidence != "derived" for grant in invocations):
+                            unknown = True
+                    if tid in out:
+                        break
+                if tid not in out and (unknown or not runtimes or not endpoints):
+                    out[tid] = ("unknown", "agentcore_runtime_endpoint_or_role_access_not_verified")
+            return out
         if pid == "agentcore_existing_code_interpreter_role_ready":
             if source is None:
                 return None

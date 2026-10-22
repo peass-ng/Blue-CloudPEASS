@@ -188,6 +188,19 @@ def test_agentcore_existing_binding_preserves_previous_catalog():
     assert len(catalog._verified_agentcore_existing_690_previous()) == 690
 
 
+def test_agentcore_runtime_binding_preserves_previous_catalog():
+    ident = "aws-bedrock-agentcore-updateagentruntime-passrole"
+    current, status = catalog.lookup_entries([ident], catalog.current_binding())
+    assert status == "exact_strict_privesc" and ident in current
+    old = {"schema": catalog.BINDING_SCHEMA,
+           "manifest_sha256": catalog.AGENTCORE_RUNTIME_691_PREVIOUS_MANIFEST,
+           "effective_tree_sha256": catalog.AGENTCORE_RUNTIME_691_PREVIOUS_TREE,
+           "source_revision": catalog.V4_REVISION}
+    previous, status = catalog.lookup_entries([ident], old)
+    assert status == "exact_previous_current" and ident in previous
+    assert len(catalog._verified_agentcore_runtime_691_previous()) == 691
+
+
 def test_deadline_queue_binding_preserves_previous_catalog():
     ident = "aws-deadline-existing-queue-role-vend"
     current, status = catalog.lookup_entries([ident], catalog.current_binding())

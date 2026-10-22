@@ -108,6 +108,12 @@
       "service": "bedrock-agentcore-control",
       "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_bedrock-agentcore.html"
     },
+    "bedrock-agentcore:ListAgentRuntimeEndpoints": {
+      "access": "List",
+      "operation": "list_agent_runtime_endpoints",
+      "service": "bedrock-agentcore-control",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_bedrock-agentcore.html"
+    },
     "bedrock-agentcore:ListAgentRuntimes": {
       "access": "List",
       "operation": "list_agent_runtimes",
