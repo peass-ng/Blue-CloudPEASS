@@ -8368,6 +8368,7 @@ class AwsModel(Model):
             statuses = inventory_status(self.snapshot, "sagemaker_notebook_instance")
             if not statuses:
                 return {tid: ("unknown", "sagemaker_notebook_inventory_not_collected") for tid in candidates}
+            config_statuses = inventory_status(self.snapshot, "sagemaker_notebook_lifecycle_config")
             partition = source.id.split(":", 2)[1]
             out = {}
             for tid, target in candidates.items():
@@ -8412,7 +8413,29 @@ class AwsModel(Model):
                         if stop.confidence != "derived":
                             uncertain = True
                             continue
+                    config_status = config_statuses.get(scope)
+                    if config_status not in ("collected", "empty"):
+                        uncertain = True
+                        continue
                     prefix = f"arn:{partition}:sagemaker:{region}:{account}:notebook-instance-lifecycle-config/"
+                    occupied = set()
+                    valid_inventory = True
+                    config_rows = [row for row_scope, row in items(self.snapshot, "sagemaker_notebook_lifecycle_config")
+                                   if row_scope == scope]
+                    if config_status == "empty" and config_rows:
+                        valid_inventory = False
+                    for row in config_rows:
+                        config_name = row.get("NotebookInstanceLifecycleConfigName") if isinstance(row, dict) else None
+                        config_arn = row.get("NotebookInstanceLifecycleConfigArn") if isinstance(row, dict) else None
+                        if (not isinstance(config_name, str) or
+                                not re.fullmatch(r"[A-Za-z0-9](?:-*[A-Za-z0-9])*", config_name) or
+                                len(config_name) > 63 or config_arn != prefix + config_name):
+                            valid_inventory = False
+                            break
+                        occupied.add(config_name)
+                    if not valid_inventory:
+                        uncertain = True
+                        continue
                     seed = hashlib.sha256((source.id + arn).encode()).hexdigest()[:12]
                     names = {"PeasoBound" + seed + suffix for suffix in ("", "A", "B")}
                     for statement in self._statements(source, "sagemaker:createnotebookinstancelifecycleconfig")[0]:
@@ -8424,7 +8447,8 @@ class AwsModel(Model):
                             if unified and unified.startswith(prefix):
                                 names.add(_instantiate(unified[len(prefix):]))
                     for config_name in sorted(names):
-                        if (not re.fullmatch(r"[A-Za-z0-9](?:-*[A-Za-z0-9])*", config_name)
+                        if (config_name in occupied or
+                                not re.fullmatch(r"[A-Za-z0-9](?:-*[A-Za-z0-9])*", config_name)
                                 or len(config_name) > 63):
                             continue
                         create = self._check_action(source, "sagemaker:createnotebookinstancelifecycleconfig",

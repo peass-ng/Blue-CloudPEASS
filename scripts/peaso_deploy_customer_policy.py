@@ -598,6 +598,14 @@ GAMELIFT_STREAM_SESSION_METADATA_REFERENCES = {
 }
 VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(GAMELIFT_STREAM_SESSION_METADATA_REFERENCES)
 
+# Exact lifecycle-configuration names prevent a create permission on an
+# already occupied name from being mistaken for notebook role execution.
+SAGEMAKER_NOTEBOOK_LIFECYCLE_METADATA_REFERENCE = {
+    "sagemaker:ListNotebookInstanceLifecycleConfigs":
+        "https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ListNotebookInstanceLifecycleConfigs.html",
+}
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(SAGEMAKER_NOTEBOOK_LIFECYCLE_METADATA_REFERENCE)
+
 
 def build_policy(read_actions=None, *, include_credential_report_generation=None,
                  include_waf_association_companions=True):

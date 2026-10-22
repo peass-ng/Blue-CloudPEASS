@@ -1083,7 +1083,7 @@ PRECONDITIONS = {
         "AWS: a collected notebook names the exact existing lifecycle configuration and target RoleArn; UpdateNotebookInstanceLifecycleConfig covers that configuration ARN in the same account and Region, and the notebook can run again"),
     "sagemaker_attach_new_notebook_lifecycle_config": (("aws",), "source",
         "The source can create a lifecycle configuration and attach it to a notebook using the target role.",
-        "AWS: one collected notebook has a restartable platform and target RoleArn; UpdateNotebookInstance covers its exact ARN, CreateNotebookInstanceLifecycleConfig covers a concrete name in its Region, and an InService notebook can be stopped by the source"),
+        "AWS: one collected notebook has a restartable platform and target RoleArn; complete lifecycle-configuration inventory shows a free name in its Region; UpdateNotebookInstance covers the exact notebook ARN, CreateNotebookInstanceLifecycleConfig covers that free name, and an InService notebook can be stopped by the source"),
     "sagemaker_new_notebook_creation_and_url_authorized": (("aws",), "source",
         "The source can create and open one new notebook instance using the passed role.",
         "AWS: a free notebook name in a collected Region is authorized for both CreateNotebookInstance and CreatePresignedNotebookInstanceUrl on the same ARN"),

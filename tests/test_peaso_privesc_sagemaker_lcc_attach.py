@@ -17,7 +17,8 @@ def _entry():
 
 def _snapshot(*, state="Stopped", platform="notebook-al2023-v1", stop=True,
               create=True, update=True, role_arn=ROLE_ARN, notebook_arn=NOTEBOOK_ARN,
-              trust="sagemaker.amazonaws.com", inventory="collected"):
+              trust="sagemaker.amazonaws.com", inventory="collected", config_names=(),
+              config_inventory="empty"):
     actions = []
     if create:
         actions.append("sagemaker:CreateNotebookInstanceLifecycleConfig")
@@ -28,9 +29,14 @@ def _snapshot(*, state="Stopped", platform="notebook-al2023-v1", stop=True,
     notebook = {"NotebookInstanceArn": notebook_arn, "NotebookInstanceName": "nb1",
                 "NotebookInstanceStatus": state, "PlatformIdentifier": platform,
                 "RoleArn": role_arn}
+    config_rows = [{"NotebookInstanceLifecycleConfigName": name,
+                    "NotebookInstanceLifecycleConfigArn":
+                        f"arn:aws:sagemaker:us-east-1:111111111111:notebook-instance-lifecycle-config/{name}"}
+                   for name in config_names]
     return aws_snap([user("alice", {"Effect": "Allow", "Action": actions, "Resource": "*"})],
                     [role("notebook-role", trust_service(trust))],
-                    [("sagemaker_notebook_instance", SCOPE, [notebook], inventory)])
+                    [("sagemaker_notebook_instance", SCOPE, [notebook], inventory),
+                     ("sagemaker_notebook_lifecycle_config", SCOPE, config_rows, config_inventory)])
 
 
 def _reached(snapshot, *, include_unknown=False):
@@ -79,11 +85,28 @@ def test_one_resource_scoped_configuration_name_is_enough():
                   {"Effect": "Allow", "Action": "sagemaker:UpdateNotebookInstance",
                    "Resource": NOTEBOOK_ARN})
     snap = aws_snap([source], [role("notebook-role", trust_service("sagemaker.amazonaws.com"))],
-                    [("sagemaker_notebook_instance", SCOPE, [notebook])])
+                    [("sagemaker_notebook_instance", SCOPE, [notebook]),
+                     ("sagemaker_notebook_lifecycle_config", SCOPE, [], "empty")])
     assert len(_reached(snap)) == 1
+    snap["collections"][-1]["status"] = "collected"
+    snap["collections"][-1]["items"] = [{"NotebookInstanceLifecycleConfigName": "owned",
+                                         "NotebookInstanceLifecycleConfigArn": config_arn}]
+    assert _reached(snap) == []
+    snap["collections"][-1]["items"] = []
+    snap["collections"][-1]["status"] = "empty"
     source["UserPolicyList"][0]["PolicyDocument"]["Statement"][0]["Resource"] = config_arn.replace(
         "us-east-1", "eu-west-1")
     assert _reached(snap) == []
+
+
+def test_denied_or_malformed_configuration_inventory_stays_unknown():
+    for snap in (_snapshot(config_inventory="access_denied"),
+                 _snapshot(config_names=("occupied",), config_inventory="empty")):
+        assert _reached(snap) == []
+        model = AwsModel(snap)
+        verdict = model.precondition("sagemaker_attach_new_notebook_lifecycle_config",
+                                     {ROLE_ARN: model.principals[ROLE_ARN]}, model.principals[ALICE])
+        assert verdict[ROLE_ARN][0] == "unknown"
 
 
 def test_current_and_previous_catalog_bindings_have_exact_meaning():
@@ -97,3 +120,15 @@ def test_current_and_previous_catalog_bindings_have_exact_meaning():
                     effective_tree_sha256=versioned_catalog.SAGEMAKER_ATTACH_682_PREVIOUS_TREE)
     found, status = versioned_catalog.lookup_entries([ident], previous)
     assert status == "exact_previous_current" and found[ident].get("preconditions") is None
+
+
+def test_lifecycle_name_inventory_and_customer_permission_are_registered():
+    from peaso.collectors import aws
+    from scripts.peaso_deploy_customer_policy import build_policy
+
+    assert aws.SPECS["sagemaker_notebook_lifecycle_config"] == (
+        "sagemaker", "list_notebook_instance_lifecycle_configs", "NotebookInstanceLifecycleConfigs")
+    assert aws._NATIVE_IDS["sagemaker_notebook_lifecycle_config"] == "NotebookInstanceLifecycleConfigArn"
+    assert ("sagemaker", "list_notebook_instance_lifecycle_configs") in aws.READ_ACTIONS
+    policy = build_policy({("sagemaker", "list_notebook_instance_lifecycle_configs")})
+    assert policy["Statement"][0]["Action"] == ["sagemaker:ListNotebookInstanceLifecycleConfigs"]
