@@ -2171,6 +2171,16 @@ def package_api():
             info.external_attr = (stat.S_IFREG | public_mode(path)) << 16
             archive.writestr(info, path.read_bytes(), compresslevel=9)
     if package.stat().st_size > CURRENT_API_ARCHIVE_LIMIT:
+        try:
+            from peaso_source_archive import optimize_source_archive
+        except ModuleNotFoundError:
+            from scripts.peaso_source_archive import optimize_source_archive
+        compression = optimize_source_archive(
+            package, max_members=CURRENT_API_MEMBER_LIMIT,
+            max_member_bytes=CURRENT_API_UNCOMPRESSED_LIMIT,
+            max_uncompressed_bytes=CURRENT_API_UNCOMPRESSED_LIMIT, preserve_modes=True)
+        (BUILD / "api-compression.json").write_text(json.dumps(compression, indent=2) + "\n")
+    if package.stat().st_size > CURRENT_API_ARCHIVE_LIMIT:
         raise RuntimeError("API archive byte limit exceeded: "
                            f"{package.stat().st_size} > {CURRENT_API_ARCHIVE_LIMIT}")
     verify_api_source()
