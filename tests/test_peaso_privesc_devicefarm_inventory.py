@@ -2,6 +2,7 @@
 from types import SimpleNamespace
 
 from peaso.collectors import aws_facts_ext
+from peaso.collectors.aws_network_inventory import MetadataClient
 
 
 ACCOUNT = "111111111111"
@@ -60,3 +61,35 @@ def test_wrong_project_child_and_denied_reads_are_not_complete(monkeypatch):
         Requests("list_uploads", "uploads", Read([], "access_denied", {"code": "AccessDeniedException"})),
         None, REGION, ACCOUNT)
     assert denied.status == "access_denied" and denied.items == []
+
+
+def test_run_projection_keeps_only_same_project_app_arn():
+    run = f"arn:aws:devicefarm:{REGION}:{ACCOUNT}:run:project-id/run-id"
+
+    class Native:
+        def get_run(self, **kwargs):
+            assert kwargs == {"arn": run}
+            return {"run": {"arn": run, "appUpload": UPLOAD, "executionRoleArn":
+                    f"arn:aws:iam::{ACCOUNT}:role/DeviceFarmRole", "testSpecArn": UPLOAD,
+                    "parsingResultUrl": "https://signed.example/private",
+                    "environmentVariables": [{"name": "SECRET", "value": "private"}]}}
+
+    result = MetadataClient(Native(), "devicefarm").get_run(arn=run)["run"]
+    assert result["appUpload"] == UPLOAD
+    assert result["executionRoleArn"].endswith(":role/DeviceFarmRole")
+    assert "signed.example" not in str(result) and "private" not in str(result)
+
+
+def test_run_projection_rejects_another_projects_app():
+    run = f"arn:aws:devicefarm:{REGION}:{ACCOUNT}:run:project-id/run-id"
+
+    class Native:
+        def get_run(self, **kwargs):
+            return {"run": {"arn": run, "appUpload": UPLOAD.replace("project-id/", "other-project/")}}
+
+    try:
+        MetadataClient(Native(), "devicefarm").get_run(arn=run)
+    except ValueError as exc:
+        assert str(exc) == "malformed_devicefarm_run_app_upload"
+    else:
+        raise AssertionError("cross-project app upload was accepted")

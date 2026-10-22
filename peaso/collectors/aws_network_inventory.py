@@ -93,6 +93,20 @@ class MetadataClient:
                 body = {key: value for key, value in body.items() if key not in
                     {'IpRestrictionRuleMap', 'VpcIdRestrictionRuleMap', 'VpcEndpointIdRestrictionRuleMap'}} | {'NetworkAttributes': facts}
             projected = projected_metadata(body, identity_fields=READ_IDENTITIES.get((self.service, operation), ()))
+            if self.service == 'devicefarm' and operation == 'get_run' and isinstance(body, dict):
+                # GetRun calls this ARN appUpload, so the generic network
+                # projection omits it. Keep only a same-project upload ARN;
+                # environment variables and signed URLs remain discarded.
+                app = body.get('appUpload')
+                if app is not None:
+                    run = body.get('arn')
+                    if (not isinstance(run, str) or ':run:' not in run or
+                            not isinstance(app, str) or
+                            not app.startswith(run.split(':run:', 1)[0] + ':upload:' +
+                                               run.split(':run:', 1)[1].split('/', 1)[0] + '/') or
+                            '/' not in run.split(':run:', 1)[1]):
+                        raise ValueError('malformed_devicefarm_run_app_upload')
+                    projected['appUpload'] = app
             if self.service == 'emr-containers' and operation == 'list_virtual_clusters' and isinstance(body, list):
                 # Keep the EKS namespace needed to bind a job execution role's
                 # service-account trust to this exact virtual cluster.
