@@ -11,6 +11,7 @@ from peaso.checks.azure_native_review_copy_20261020 import reviewed_fields
 from peaso.checks import CHECKS
 from peaso.checks.azure_bulk_clarity_reviewed import ROWS, _digest, description, remediation, severity_review
 from peaso.checks.azure_bulk_finding_summary import evidence_summary
+from peaso.checks import storage_immutability_native_successor as immutability
 
 ROOT=Path(__file__).resolve().parents[1]
 CHECK_BY_ID={c.id:c for c in CHECKS}
@@ -67,6 +68,9 @@ def test_source_hash_guards_fail_closed(cid,kind,apply,originals):
 @pytest.mark.parametrize('cid',sorted(ROWS))
 def test_source_kind_and_priority_are_the_reviewed_contract(cid):
     check=CHECK_BY_ID[cid];binding=azure_binding(cid,ROWS[cid]['reviewed_binding']);f=inspect.unwrap(check.evaluate)
+    if cid==immutability.CHECK_ID:
+        assert immutability.reviewed_source().id==cid and f is immutability.evaluate
+        f=immutability._signed_function
     assert binding['kind']==check.kind
     assert binding['module']==f.__module__
     assert binding['source_qualname']==f.__qualname__
@@ -84,6 +88,9 @@ def _stable(value):
 def test_exact_predicate_closure_and_delegates_remain_reviewed(cid):
     check=CHECK_BY_ID[cid];binding=azure_binding(cid,ROWS[cid]['reviewed_binding'])
     f=inspect.unwrap(check.evaluate);v=inspect.getclosurevars(f).nonlocals;g=f.__globals__
+    if cid==immutability.CHECK_ID:
+        assert immutability.reviewed_source().id==cid and f is immutability.evaluate
+        f=immutability._signed_function;v=inspect.getclosurevars(f).nonlocals;g=f.__globals__
     fn=v.get('function',v.get('fn',v.get('evaluator',f)))
     if fn is f:
         for key in ('_EVALUATORS','_RULES'):
@@ -112,7 +119,8 @@ def test_replay_real_registered_callback_facts_and_concise_evidence(cid):
     for expected,case in CASES[cid].items():
         native,successor_evidence=azure_case(cid,expected,case)
         item,index=deepcopy((native['item'],native['index']))
-        status,evidence=CHECK_BY_ID[cid].evaluate(item,index)
+        evaluator=immutability._registered.evaluate if cid==immutability.CHECK_ID else CHECK_BY_ID[cid].evaluate
+        status,evidence=evaluator(item,index)
         assert status==expected,(cid,expected,status,evidence)
         if successor_evidence is None:
             assert json.loads(json.dumps(evidence, sort_keys=True))==case['evidence']

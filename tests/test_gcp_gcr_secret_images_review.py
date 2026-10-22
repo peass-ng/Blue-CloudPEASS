@@ -1,5 +1,6 @@
 """Native GCR DockerImage identity and immutable byte inspection; no live calls."""
 import base64
+import json
 from copy import deepcopy
 from types import SimpleNamespace
 from urllib.parse import quote
@@ -8,6 +9,7 @@ import pytest
 
 from peaso.collectors import gcp
 from peaso.collectors import gcp_image_secret_indicators as projection
+from peaso.collectors import gcp_image_stream_inspection_20261021 as stream
 from peaso.collectors.gcp_registry_image_uri import GCR_REPOSITORIES, parse
 from tests.test_gcp_image_secret_review_20261019 import (image, check, SCOPE, PROJECTS, TOKEN,
                                                         clean, real, isolate)  # noqa: F401
@@ -40,8 +42,8 @@ def collected(monkeypatch, host, value='production', wrong_repo=False, extra_for
     old_base = 'https://us-central1-docker.pkg.dev/v2/review/images/app/'
     new_base = 'https://' + host + '/v2/review/team/app/'
     binary = Session({url.replace(old_base, new_base): raw for url, raw in bodies.items()}, new_base)
-    reader_type = projection.Reader
-    monkeypatch.setattr(projection, 'Reader', lambda transport: reader_type(transport, session=binary))
+    reader_type = stream.Reader
+    monkeypatch.setattr(stream, 'Reader', lambda transport: reader_type(transport, session=binary))
     calls = []
 
     def request(method, url, **kwargs):
@@ -50,7 +52,7 @@ def collected(monkeypatch, host, value='production', wrong_repo=False, extra_for
         if url == 'https://cloudresourcemanager.googleapis.com/v3/' + SCOPE:
             data = {**PROJECTS[0], 'state': 'ACTIVE'}
         elif url == 'https://compute.googleapis.com/compute/v1/' + SCOPE:
-            data = {'name': 'review', 'commonInstanceMetadata': {'items': []}}
+            data = {'name': 'review', 'id': '10001', 'commonInstanceMetadata': {'items': []}}
         elif url.endswith('/locations/' + location + '/repositories'):
             data = {'repositories': [{'name': repo, 'format': 'DOCKER'}]}
             if extra_format:
@@ -63,7 +65,8 @@ def collected(monkeypatch, host, value='production', wrong_repo=False, extra_for
             data = {'bindings': []}
         else:
             raise AssertionError('Unexpected native URL: ' + url)
-        return SimpleNamespace(status_code=200, json=lambda: deepcopy(data))
+        return SimpleNamespace(status_code=200, headers={}, content=json.dumps(data).encode(),
+                               json=lambda: deepcopy(data))
 
     options = {'content_secret_scans': True, '_content_secret_scan_kinds': ['artifact_image'],
                'selected_artifact_images': [uri.removeprefix('https://')],

@@ -9,6 +9,7 @@ from fastapi import HTTPException
 from peaso.collectors import gcp
 from peaso.collectors import gcp_cloudrun_image_inspection as bridge
 from peaso.collectors import gcp_image_secret_indicators as projection
+from peaso.collectors import gcp_image_stream_inspection_20261021 as stream
 from peaso.engine import evaluate_snapshot
 from peaso.server.validation import validate_connector
 from tests.test_gcp_cloudrun_content_sources_review import fixture, SERVICE
@@ -19,8 +20,8 @@ from tests.test_gcp_image_secret_review_20261019 import (image, Session, SCOPE, 
 def observed(monkeypatch, mode='complete', *, value='production', enabled=True, kinds=None):
     row, blobs = image(value)
     binary = Session(blobs)
-    reader_type = projection.Reader
-    monkeypatch.setattr(projection, 'Reader', lambda transport: reader_type(transport, session=binary))
+    reader_type = stream.Reader
+    monkeypatch.setattr(stream, 'Reader', lambda transport: reader_type(transport, session=binary))
     inputs = fixture()
     for body in list(inputs['service_reads'].values()) + list(inputs['revision_reads'].values()):
         body['metadata']['namespace'] = '123456789'

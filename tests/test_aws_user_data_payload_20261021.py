@@ -52,9 +52,9 @@ def test_gzip_wrapped_mime_and_gzip_attachment():
     assert 'PASSWORD=synthetic-value' in decoder.decoded_text(gzip.compress(multipart([part])))
 
 
-@pytest.mark.parametrize('raw', [gzip.compress(b'x')[:-1], gzip.compress(b'x') + b'tail',
+@pytest.mark.parametrize('raw', [gzip.compress(b'x', mtime=0)[:-1], gzip.compress(b'x', mtime=0) + b'tail',
     b'\x1f\x8bmalformed', b'\x00binary', b'\xff', b'x' * (decoder.MAX_INPUT + 1),
-    gzip.compress(b'x' * (decoder.MAX_TEXT + 1)),
+    gzip.compress(b'x' * (decoder.MAX_TEXT + 1), mtime=0),
     multipart([b'Content-Type: text/plain\r\nContent-Transfer-Encoding: base64\r\n\r\n@@@@']),
     multipart([b'Content-Type: text/plain\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\n=GG']),
     multipart([b'Content-Type: text/plain; charset=utf-16\r\n\r\nx']),

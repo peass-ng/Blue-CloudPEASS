@@ -66,7 +66,7 @@ def test_logging_metadata_uses_shared_read_and_keeps_denial_explicit():
 def test_review_mapping_preserves_all_exact_source_references():
     root = Path(__file__).resolve().parents[1]
     rows = json.loads((root / "peaso/rulepacks/reviewed_aws_b_redshift.json").read_text())
-    assert {cid for r in rows.values() for cid in r["native_checks"]} == set(module.IDS)
+    assert {cid for r in rows.values() for cid in r["native_checks"]} == set(module.IDS) | {"aws.b.redshift.no_public_endpoint"}
     assert len(rows) == 8
     for row in rows.values():
         assert row["reviewed_source"]["revision"] == "803dda1f7555ed5cea959aef30cfa0719b030d8c"

@@ -13,10 +13,10 @@ def test_extended_fact_hydration_projects_native_metadata_with_exact_read_reques
         url, params = request["url"], request.get("params") or {}
         if url.endswith("/metrics"):
             assert params["fields"] == "metrics(name,filter,disabled,bucketName,labelExtractors,metricDescriptor(type,metricKind,valueType)),nextPageToken"
-            return {"metrics": [{"name": "event", "filter": 'resource.type="gcs_bucket" AND protoPayload.methodName="storage.setIamPermissions"', "metricDescriptor": {"type": "logging.googleapis.com/user/event"}}]}
+            return {"metrics": [{"name": "event", "filter": 'resource.type="gcs_bucket" AND protoPayload.methodName="storage.setIamPermissions"', "metricDescriptor": {"type": "logging.googleapis.com/user/event", "metricKind": "DELTA", "valueType": "INT64"}}]}
         if url.endswith("/alertPolicies"):
             assert "documentation" not in params["fields"] and "conditions" in params["fields"]
-            return {"alertPolicies": [{"name": "projects/p-one/alertPolicies/a", "enabled": True, "conditions": [{"conditionThreshold": {"filter": 'metric.type="logging.googleapis.com/user/event"'}}]}]}
+            return {"alertPolicies": [{"name": "projects/p-one/alertPolicies/a", "enabled": True, "conditions": [{"conditionThreshold": {"filter": 'metric.type="logging.googleapis.com/user/event" resource.type="gcs_bucket"', "comparison": "COMPARISON_GT", "thresholdValue": 0, "duration": "0s"}}]}]}
         if "serviceusage.googleapis.com" in url:
             assert request["method"] == "GET"
             assert url == "https://serviceusage.googleapis.com/v1/projects/p-one/services"
@@ -296,13 +296,15 @@ def test_workspace_directory_reads_only_explicit_metadata_and_paginates_with_sel
     binding = users[0]["_directoryBinding"]
     assert binding["status"] == "collected" and binding["customer"] == "C123"
     assert [row["requested"] for row in binding["chain"]] == ["projects/p-one", "organizations/123"]
-    assert len(reader.requests) == 6
-    assert {request["url"] for request in reader.requests} == {
+    assert [request["url"] for request in reader.requests] == [
         "https://cloudresourcemanager.googleapis.com/v3/projects/p-one",
         "https://cloudresourcemanager.googleapis.com/v3/organizations/123",
         "https://admin.googleapis.com/admin/directory/v1/users",
+        "https://admin.googleapis.com/admin/directory/v1/users",
+        "https://cloudresourcemanager.googleapis.com/v3/projects/p-one",
+        "https://cloudresourcemanager.googleapis.com/v3/organizations/123",
         "https://admin.googleapis.com/admin/directory/v1/customer/C123/roles",
-        "https://admin.googleapis.com/admin/directory/v1/customer/C123/roleassignments"}
+        "https://admin.googleapis.com/admin/directory/v1/customer/C123/roleassignments"]
 
 
 def test_workspace_api_denial_stays_denied_without_enablement_or_consent():
@@ -322,14 +324,14 @@ def test_key_and_table_inventory_is_metadata_only_and_dataproc_regions_are_expli
             return {"keys": [{"name": "projects/p-one/locations/global/keys/k", "uid": "key-id", "createTime": "2026-01-01T00:00:00Z",
                 "restrictions": {"apiTargets": [{"service": "storage.googleapis.com"}]}}]}
         if url.endswith("/datasets"):
-            return {"datasets": [{"datasetReference": {"datasetId": "d"}}]}
+            return {"datasets": [{"datasetReference": {"projectId": "p-one", "datasetId": "d"}}]}
         if url.endswith("/datasets/d"):
-            return {"datasetReference": {"datasetId": "d"}, "access": []}
+            return {"datasetReference": {"projectId": "p-one", "datasetId": "d"}, "access": []}
         if url.endswith("/tables"):
-            return {"tables": [{"tableReference": {"tableId": "t"}, "type": "TABLE"}]}
+            return {"tables": [{"tableReference": {"projectId": "p-one", "datasetId": "d", "tableId": "t"}, "type": "TABLE"}]}
         if url.endswith("/tables/t"):
             assert "view" not in request["params"]["fields"] and "query" not in request["params"]["fields"]
-            return {"tableReference": {"tableId": "t"}, "type": "TABLE", "encryptionConfiguration": {"kmsKeyName": "projects/p/locations/r/keyRings/a/cryptoKeys/k"}}
+            return {"tableReference": {"projectId": "p-one", "datasetId": "d", "tableId": "t"}, "type": "TABLE", "encryptionConfiguration": {"kmsKeyName": "projects/p/locations/r/keyRings/a/cryptoKeys/k"}}
         if "dataproc" in url:
             assert "/regions/r-a/clusters" in url
             return {"clusters": [{"clusterName": "c", "config": {"encryptionConfig": {"gcePdKmsKeyName": "projects/p/locations/r/keyRings/a/cryptoKeys/k"}}}]}

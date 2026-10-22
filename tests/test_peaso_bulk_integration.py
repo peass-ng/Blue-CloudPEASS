@@ -5,6 +5,7 @@ from peaso.checks import CHECKS,evaluate_check
 from peaso.collectors import bulk_evidence
 from peaso.snapshot import make_snapshot
 from scripts.peaso_compliance_compile import verified_file
+from scripts.peaso_compliance_compile import REVIEWED_NATIVE_ALIASES_20261021
 from tests.release_successor_history import registered_before_bulk
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -42,6 +43,9 @@ def test_all_signed_pending_ids_are_unique_and_registered_once():
  original={c.id for c in registered_before_bulk(CHECKS)}
  bulk=set(MANIFEST['checks'])
  assert len(original)==baseline==3434 and len(bulk)==552
+ retired=set(REVIEWED_NATIVE_ALIASES_20261021)
+ assert retired <= original
+ original -= retired
  ledger=ROOT/'docs/compliance-ledgers'
  supervisor=json.loads((ledger/'manifest.json').read_bytes())
  extension_ids=[]
@@ -63,9 +67,9 @@ def test_all_signed_pending_ids_are_unique_and_registered_once():
   'azure.vm.iaas_antimalware_extension_minor_version_selection',
  }
  assert not held.intersection(ids)
- assert set(ids[:baseline])==original
- assert len(ids)==3434+552+len(extensions)
- assert set(ids[baseline:])==bulk|extensions
+ assert set(ids[:len(original)])==original
+ assert len(ids)==3434-len(retired)+552+len(extensions)
+ assert set(ids[len(original):])==bulk|extensions
  assert set(ids)==original|bulk|extensions
  for c in CHECKS:
   if c.id in MANIFEST['checks']:

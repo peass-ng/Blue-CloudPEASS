@@ -144,7 +144,7 @@ def test_early_nsg_refresh_retains_real_later_diagnostics_and_flow_logs(monkeypa
     generic=deepcopy(objects)
     generic[N]['etag']='"initial-before-refresh"'
     objects[N]['etag']='"native-refreshed"'
-    logrow={'id':flow,'name':'fresh','properties':{'enabled':True,'targetResourceId':N,
+    logrow={'id':flow,'name':'fresh','type':'Microsoft.Network/networkWatchers/flowLogs','properties':{'enabled':True,'targetResourceId':N,
         'format':{'type':'JSON','version':2}}}
     diagrow={'id':diagnostic,'name':'fresh','properties':{
         'workspaceId':S+'/resourceGroups/rg/providers/Microsoft.OperationalInsights/workspaces/logs',
@@ -239,7 +239,7 @@ def test_combined_public_edge_nsg_diagnostics_and_flow_logs(monkeypatch):
     generic[N]['etag']='"initial-before-refresh"'
     generic[PIP]['etag']='W/"public-ip-list-prior"'
     objects[N]['etag']='"native-refreshed"'
-    logrow={'id':flow,'name':'fresh','properties':{'enabled':True,'targetResourceId':N,
+    logrow={'id':flow,'name':'fresh','type':'Microsoft.Network/networkWatchers/flowLogs','properties':{'enabled':True,'targetResourceId':N,
         'format':{'type':'JSON','version':2}}}
     diagrow={'id':diagnostic,'name':'fresh','properties':{
         'workspaceId':S+'/resourceGroups/rg/providers/Microsoft.OperationalInsights/workspaces/logs',
