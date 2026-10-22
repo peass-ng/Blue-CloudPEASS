@@ -90,6 +90,7 @@ READ_ACTIONS = {
     ("quicksight", "describe_account_subscription"),
     ("gamelift", "describe_fleet_attributes"), ("gamelift", "list_compute"),
     ("devicefarm", "list_projects"), ("devicefarm", "get_device_pool_compatibility"),
+    ("iot", "describe_role_alias"),
     ("sso-admin", "list_instances"), ("sso-admin", "list_permission_sets"),
     ("sso-admin", "list_accounts_for_provisioned_permission_set"), ("identitystore", "list_groups"),
 }
@@ -117,7 +118,20 @@ def _iot_role_aliases(requests, session, region, account):
             failure = failure or ("malformed", {"code": "malformed_iot_role_alias"})
             continue
         arn = f"arn:{_partition(region)}:iot:{region}:{account}:rolealias/{name}"
-        rows.append({"RoleAlias": name, "RoleAliasArn": arn, "id": arn})
+        detail = requests.detail(session, "iot", region, "describe_role_alias", roleAlias=name)
+        if detail.get("collection_status") != "collected":
+            failure = failure or (detail.get("collection_status") or "unknown",
+                                  {"code": "iot_role_alias_detail_unavailable"})
+            continue
+        description = detail.get("roleAliasDescription")
+        role_arn = description.get("roleArn") if isinstance(description, dict) else None
+        if (not isinstance(description, dict) or description.get("roleAlias") != name or
+                description.get("roleAliasArn") != arn or
+                not isinstance(role_arn, str) or not re.fullmatch(
+                    rf"arn:{_partition(region)}:iam::{account}:role/.+", role_arn)):
+            failure = failure or ("malformed", {"code": "malformed_iot_role_alias_detail"})
+            continue
+        rows.append({"RoleAlias": name, "RoleAliasArn": arn, "RoleArn": role_arn, "id": arn})
     return _finish(rows, failure)
 
 

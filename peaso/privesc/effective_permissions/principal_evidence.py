@@ -37,6 +37,43 @@ def required_paths(value):
     return [common+group for group in alternatives]if alternatives else [common]
 
 
+IOT_EXISTING_ALIAS_TECHNIQUES = {
+    'aws-iot-byo-certificate-existing-rolealias',
+    'aws-iot-provisioning-claim-existing-rolealias',
+}
+
+
+def _iot_existing_alias_valid(snapshot,technique,fact,target,account):
+    alias=fact.get('RoleAliasArn')
+    cert=fact.get('CertificateArn')
+    if not isinstance(alias,str)or not isinstance(cert,str):return False
+    match=re.fullmatch(r'arn:(aws|aws-cn|aws-us-gov):iot:([a-z0-9-]+):'+re.escape(account)+r':rolealias/[A-Za-z0-9_=,@-]{1,128}',alias)
+    if match is None or re.fullmatch(r'arn:'+re.escape(match.group(1))+r':iot:'+re.escape(match.group(2))+':'+re.escape(account)+r':cert/[0-9a-f]{64}',cert)is None:return False
+    scope=account+'/'+match.group(2)
+    if inventory_status(snapshot,'iot_role_alias').get(scope)!='collected':return False
+    aliases=[row for row_scope,row in items(snapshot,'iot_role_alias')if row_scope==scope and row.get('RoleAliasArn')==alias]
+    if len(aliases)!=1 or aliases[0].get('RoleArn')!=target:return False
+    if any(fact.get(key)is not True for key in ('PrivateKeyHeld','CertificateActive','IoTPolicyAttached',
+        'PolicyAllowsRoleAlias','CredentialProviderAuthenticated')):return False
+    bindings=fact.get('ActionResources')
+    if not isinstance(bindings,dict):return False
+    bindings={str(key).lower():value for key,value in bindings.items()}
+    if technique=='aws-iot-byo-certificate-existing-rolealias':
+        return (cert in bindings.get('iot:attachpolicy',[]) and
+                '*'in bindings.get('iot:registercertificatewithoutca',[]) and
+                fact.get('CertificateRegisteredWithoutCA')is True)
+    template=fact.get('ProvisioningTemplateArn')
+    registration_role=fact.get('ProvisioningRoleArn')
+    if (not isinstance(template,str)or re.fullmatch(r'arn:'+re.escape(match.group(1))+r':iot:'+re.escape(match.group(2))+':'+re.escape(account)+r':provisioningtemplate/[A-Za-z0-9_-]+',template)is None
+        or not isinstance(registration_role,str)or re.fullmatch(r'arn:'+re.escape(match.group(1))+r':iam::'+re.escape(account)+r':role/.+',registration_role)is None
+        or registration_role==target):return False
+    if any(fact.get(key)is not True for key in ('ClaimCertificateIssued','ClaimUsedOverMqtt',
+        'PermanentCertificateRegistered','ProvisioningTemplateApplied')):return False
+    return (template in bindings.get('iot:createprovisioningtemplate',[]) and
+            template in bindings.get('iot:createprovisioningclaim',[]) and
+            registration_role in bindings.get('iam:passrole',[]))
+
+
 def valid(snapshot,technique,fact,source,target,scope):
     spec=CONTRACT[technique];provider=spec['provider']
     if (fact.get('TechniqueId')!=technique or fact.get('TargetKind')!=spec['target_kind']or fact.get('TargetId')!=target
@@ -46,6 +83,7 @@ def valid(snapshot,technique,fact,source,target,scope):
     if provider=='aws':
         if fact.get('SourceArn')!=source or fact.get('TargetAccount')!=scope:return False
         if not re.fullmatch(r'arn:(aws|aws-cn|aws-us-gov):iam::'+re.escape(scope)+r':role/.+',target):return False
+        if technique in IOT_EXISTING_ALIAS_TECHNIQUES and not _iot_existing_alias_valid(snapshot,technique,fact,target,scope):return False
     elif fact.get('SourceId')!=source or fact.get('TargetScope')!=scope:return False
     if not isinstance(fact.get('EvidenceRef'),str)or not fact['EvidenceRef'].strip():return False
     conditions=fact.get('VerifiedConditionIds')
@@ -83,7 +121,11 @@ def check_bindings(model,technique,fact,source):
                     if resource=='*':
                         if action.lower()!='iot:registercertificatewithoutca'and not CONTRACT[technique].get('allow_global_source_bindings'):valid_path=False;break
                     elif '*'in resource or '?'in resource or not re.fullmatch(r'arn:(aws|aws-cn|aws-us-gov):[a-z0-9-]+:[a-z0-9-]*:'+re.escape(source.scope)+r':.+',resource):valid_path=False;break
-                    grant=model._check_action(source,action.lower(),resource)
+                    if technique=='aws-iot-provisioning-claim-existing-rolealias'and action.lower()=='iam:passrole':
+                        grant=model.check(source,{'action':action,'request_context':{
+                            'iam:PassedToService':'iot.amazonaws.com'}},resource)
+                    else:
+                        grant=model._check_action(source,action.lower(),resource)
                 else:
                     if '*'in resource or '?'in resource:valid_path=False;break
                     grant=model.check(source,{'action':action},resource)

@@ -181,9 +181,35 @@ def test_existing_alias_collector_keeps_only_valid_names_and_generated_arns():
             assert kwargs == {"_tokens": ("marker", "nextMarker")}
             return ReadResult(["known"])
 
+        def detail(self, _session, service, region, operation, **kwargs):
+            assert (service, region, operation, kwargs) == (
+                "iot", "us-east-1", "describe_role_alias", {"roleAlias": "known"})
+            return {"collection_status": "collected", "roleAliasDescription": {
+                "roleAlias": "known", "roleAliasArn": ALIAS_ARN, "roleArn": TARGET}}
+
     result = module["_iot_role_aliases"](Requests(), object(), "us-east-1", "111111111111")
     assert result.status == "collected" and result.items == [{
-        "RoleAlias": "known", "RoleAliasArn": ALIAS_ARN, "id": ALIAS_ARN}]
+        "RoleAlias": "known", "RoleAliasArn": ALIAS_ARN, "RoleArn": TARGET, "id": ALIAS_ARN}]
+
+
+def test_existing_alias_collector_denied_detail_is_incomplete():
+    module = runpy.run_path(str(Path(__file__).resolve().parents[1] / "peaso/collectors/aws_facts_ext.py"))
+
+    class ReadResult:
+        def __init__(self, items, status="collected", error=None):
+            self.items, self.status, self.error = items, status, error
+
+    module["_iot_role_aliases"].__globals__["_aws"] = lambda: type("Aws", (), {"ReadResult": ReadResult})
+
+    class Requests:
+        def pages(self, *_args, **_kwargs):
+            return ReadResult(["known"])
+
+        def detail(self, *_args, **_kwargs):
+            return {"collection_status": "access_denied", "error": {"code": "AccessDeniedException"}}
+
+    result = module["_iot_role_aliases"](Requests(), object(), "us-east-1", "111111111111")
+    assert result.status == "access_denied" and result.items == []
 
 
 def test_previous_binding_does_not_reinterpret_new_alias_route():
@@ -195,12 +221,15 @@ def test_previous_binding_does_not_reinterpret_new_alias_route():
 
 def test_customer_setup_includes_iot_alias_inventory_read():
     from scripts.peaso_deploy_customer_policy import build_policy
-    generated = build_policy({("iot", "list_role_aliases")},
+    generated = build_policy({("iot", "list_role_aliases"), ("iot", "describe_role_alias")},
                              include_credential_report_generation=False)
     assert "iot:ListRoleAliases" in generated["Statement"][0]["Action"]
+    assert "iot:DescribeRoleAlias" in generated["Statement"][0]["Action"]
     static = json.loads((Path(__file__).resolve().parents[1] / "infra/aws/customer-role.json").read_text())
     documents = [resource["Properties"]["PolicyDocument"] for resource in static["Resources"].values()
                  if resource["Type"] == "AWS::IAM::ManagedPolicy"]
     assert all(len(json.dumps(document, separators=(",", ":"))) <= 6144 for document in documents)
     assert any("iot:ListRoleAliases" in statement.get("Action", [])
+               for document in documents for statement in document["Statement"])
+    assert any("iot:DescribeRoleAlias" in statement.get("Action", [])
                for document in documents for statement in document["Statement"])

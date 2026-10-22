@@ -52,6 +52,29 @@ def case(entry):
                     ExecutionRoleArn=target,ScheduleRunSucceeded=True,RunExecutedTestSpec=True,
                     TestSpecControlledBySource=True,RoleAction='iam:ListUsers',RoleActionResource='*',
                     RoleActionSucceeded=True,EffectUsefulToSource=True,AuthorizationFingerprint=fingerprint(snap,'aws',target))
+    if entry['id'] in ('aws-iot-byo-certificate-existing-rolealias',
+                       'aws-iot-provisioning-claim-existing-rolealias'):
+        alias='arn:aws:iot:us-east-1:111111111111:rolealias/existing'
+        cert='arn:aws:iot:us-east-1:111111111111:cert/'+'a'*64
+        snap['collections'].append({'type':'iot_role_alias','scope':'111111111111/us-east-1',
+            'service':'iot','status':'collected','items':[{'RoleAlias':'existing',
+                'RoleAliasArn':alias,'RoleArn':target,'id':alias}],'error':None})
+        fact.update(RoleAliasArn=alias,CertificateArn=cert,PrivateKeyHeld=True,
+                    CertificateActive=True,IoTPolicyAttached=True,PolicyAllowsRoleAlias=True,
+                    CredentialProviderAuthenticated=True)
+        if entry['id']=='aws-iot-byo-certificate-existing-rolealias':
+            fact['CertificateRegisteredWithoutCA']=True
+            fact['ActionResources']={'iot:RegisterCertificateWithoutCA':['*'],
+                                     'iot:AttachPolicy':[cert]}
+        else:
+            template='arn:aws:iot:us-east-1:111111111111:provisioningtemplate/verified'
+            registration_role='arn:aws:iam::111111111111:role/provisioning'
+            fact.update(ProvisioningTemplateArn=template,ProvisioningRoleArn=registration_role,
+                        ClaimCertificateIssued=True,ClaimUsedOverMqtt=True,
+                        PermanentCertificateRegistered=True,ProvisioningTemplateApplied=True)
+            fact['ActionResources']={'iot:CreateProvisioningTemplate':[template],
+                                     'iot:CreateProvisioningClaim':[template],
+                                     'iam:PassRole':[registration_role]}
     if entry['provider']=='gcp':fact['OAuthScopes']=['https://www.googleapis.com/auth/cloud-platform']
     return snap,source,col
 
@@ -87,3 +110,16 @@ def test_principal_attestation_does_not_replace_action_resource_permissions_or_r
     snap,source,col=case(entry);next(c for c in snap['collections']if c['type']=='iam_role')['items'][0]['AssumeRolePolicyDocument']={'Statement':[]}
     col['items'][0]['AuthorizationFingerprint']=fingerprint(snap,'aws',col['items'][0]['TargetId'])
     assert 'conditional'not in reached(privesc.analyze(snap,entries=[entry]),source,entry['id']).values()
+
+
+@pytest.mark.parametrize('entry',[e for e in ENTRIES if e['id'] in (
+    'aws-iot-byo-certificate-existing-rolealias',
+    'aws-iot-provisioning-claim-existing-rolealias')],ids=lambda e:e['id'])
+def test_iot_existing_alias_chain_must_name_exact_target(entry):
+    for mutate in ('different_role','denied_alias','wrong_certificate'):
+        snap,source,col=case(entry)
+        alias=next(c for c in snap['collections']if c['type']=='iot_role_alias')
+        if mutate=='different_role':alias['items'][0]['RoleArn']='arn:aws:iam::111111111111:role/other'
+        elif mutate=='denied_alias':alias['status']='access_denied'
+        else:col['items'][0]['CertificateArn']='arn:aws:iot:us-east-1:111111111111:cert/not-a-hash'
+        assert 'conditional'not in reached(privesc.analyze(snap,entries=[entry]),source,entry['id']).values()

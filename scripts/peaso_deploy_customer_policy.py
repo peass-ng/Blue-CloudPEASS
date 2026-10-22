@@ -611,10 +611,11 @@ GAMELIFT_FLEET_METADATA_REFERENCES = {
 }
 VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(GAMELIFT_FLEET_METADATA_REFERENCES)
 
-# Existing IoT alias names are required to check UpdateRoleAlias against the
-# exact alias resource. The list contains names only, never device keys.
+# Existing IoT aliases are read with their target role to bind certificate paths
+# to an exact IAM principal. These calls return no certificate or private key.
 IOT_ROLE_ALIAS_METADATA_REFERENCE = {
     "iot:ListRoleAliases": "https://docs.aws.amazon.com/iot/latest/apireference/API_ListRoleAliases.html",
+    "iot:DescribeRoleAlias": "https://docs.aws.amazon.com/iot/latest/apireference/API_DescribeRoleAlias.html",
 }
 VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(IOT_ROLE_ALIAS_METADATA_REFERENCE)
 
@@ -989,7 +990,7 @@ def refresh(root: Path, *, read_actions=None, include_credential_report_generati
     template["Metadata"]["PeasoIoTRoleAliasMetadataReference"] = {
         "Actions": sorted(IOT_ROLE_ALIAS_METADATA_REFERENCE),
         "Sources": IOT_ROLE_ALIAS_METADATA_REFERENCE,
-        "Boundary": "Existing IoT role alias names only; no certificates, private keys or role credentials.",
+        "Boundary": "Existing IoT role alias names and target role ARNs only; no certificates, private keys or role credentials.",
     }
     template["Metadata"]["PeasoDeviceFarmTestMetadataReference"] = {
         "Actions": sorted(DEVICEFARM_TEST_METADATA_REFERENCES),
