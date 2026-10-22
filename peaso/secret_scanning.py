@@ -7,6 +7,7 @@ sink can retain encrypted private matches separately from this public result.
 from copy import deepcopy
 from functools import lru_cache
 from collections import OrderedDict
+from concurrent.futures import Future, ThreadPoolExecutor
 import hashlib
 import base64
 import hmac
@@ -165,7 +166,7 @@ def _scan_trufflehog(payload, path, timeout):
         output = _run([_trufflehog(), 'stdin', '--json', '--no-verification', '--no-update',
                        '--log-level=-1', '--concurrency=1', '--force-skip-archives',
                        '--no-verification-cache', '--fail-on-scan-errors'], payload, timeout)
-    result, full_matches = _DetectorMatches(), []
+    result, full_matches, recovered_lines = _DetectorMatches(), [], {}
     for line in output.splitlines():
         row = json.loads(line)
         # RawV2 is a composite display representation for some detectors. Raw
@@ -179,14 +180,18 @@ def _scan_trufflehog(payload, path, timeout):
             full_matches.append((value, row['RawV2'], row.get('DetectorName', 'secret')))
         # stdin metadata has no file line. Recover all exact plaintext
         # occurrences; decoded-only results have an explicitly unknown line.
-        needle, start, found = value.encode('utf-8'), 0, False
-        while (position := payload.find(needle, start)) != -1:
-            result.append((value, row.get('DetectorName', 'secret'), payload[:position].count(b'\n') + 1))
-            start, found = position + len(needle), True
-            if len(result) > MAX_FINDINGS:
-                raise ValueError('finding bound')
-        if not found:
-            result.append((value, row.get('DetectorName', 'secret'), None))
+        lines = recovered_lines.get(value)
+        if lines is None:
+            needle, start, counted, number = value.encode('utf-8'), 0, 0, 1
+            lines = []
+            while (position := payload.find(needle, start)) != -1:
+                number += payload.count(b'\n', counted, position)
+                lines.append(number)
+                start, counted = position + len(needle), position
+                if len(result) + len(lines) > MAX_FINDINGS:
+                    raise ValueError('finding bound')
+            recovered_lines[value] = lines = lines or [None]
+        result.extend((value, row.get('DetectorName', 'secret'), number) for number in lines)
         if len(result) > MAX_FINDINGS:
             raise ValueError('finding bound')
     # Preserve additional credential components only after this offline engine
@@ -199,7 +204,7 @@ def _scan_trufflehog(payload, path, timeout):
 
 def merge_leaks(rows):
     """Merge already-redacted observations, including different files/layers."""
-    merged = {}
+    merged, seen = {}, {}
     for row in rows:
         if not isinstance(row, dict) or set(row) != {'fingerprint', 'detectors', 'locations'}:
             raise ValueError('invalid secret observation')
@@ -207,6 +212,7 @@ def merge_leaks(rows):
         if not isinstance(ident, str) or re.fullmatch('[0-9a-f]{64}', ident) is None:
             raise ValueError('invalid secret fingerprint')
         item = merged.setdefault(ident, {'fingerprint': ident, 'detectors': [], 'locations': []})
+        unique = seen.setdefault(ident, {'detectors': set(), 'locations': set()})
         if not isinstance(row['detectors'], list) or not row['detectors'] or not isinstance(row['locations'], list) or not row['locations']:
             raise ValueError('missing detector or location')
         for detector in row['detectors']:
@@ -226,7 +232,9 @@ def merge_leaks(rows):
                     raise ValueError('invalid source reference')
         for field in ('detectors', 'locations'):
             for value in row[field]:
-                if value not in item[field]:
+                key = tuple(sorted(value.items()))
+                if key not in unique[field]:
+                    unique[field].add(key)
                     item[field].append(value)
     for row in merged.values():
         row['detectors'].sort(key=lambda d: (d['engine'], d['rule']))
@@ -314,22 +322,39 @@ def scan_content(payload, path='content', *, timeout=15, _redact_values=None):
             _redact_values(frozenset())
         return deepcopy(cached)
     observations, engines, matches_by_engine, known_values = [], [], [], set()
-    for name, version, scanner in (('kingfisher', KINGFISHER_VERSION, _scan_kingfisher),
-                                   ('trufflehog', TRUFFLEHOG_VERSION, _scan_trufflehog)):
+    # TruffleHog stays on the caller thread: prepared batch outputs are
+    # context-local and full-match private evidence uses its source context.
+    # Kingfisher has no capture side effects and retains its existing SDK lock.
+    with ThreadPoolExecutor(max_workers=1, thread_name_prefix='peaso-secret') as executor:
         try:
-            matches = scanner(payload, path, timeout)
-            for value, rule, line in matches:
-                if not isinstance(value, str) or not value:
-                    raise ValueError('empty secret')
-                known_values.add(value)
-            # Complete pairs/components must also be scrubbed from paths and
-            # metadata when private persistence is disabled or reaches a bound.
-            known_values.update(getattr(matches, 'redaction_values', ()))
-            matches_by_engine.append((name, matches))
-            engines.append({'engine': name, 'version': version, 'status': 'complete'})
+            kingfisher = executor.submit(_scan_kingfisher, payload, path, timeout)
+        except RuntimeError:
+            kingfisher = Future()
+            try:
+                kingfisher.set_result(_scan_kingfisher(payload, path, timeout))
+            except Exception:
+                kingfisher.set_exception(RuntimeError('scanner unavailable'))
+        trufflehog = Future()
+        try:
+            trufflehog.set_result(_scan_trufflehog(payload, path, timeout))
         except Exception:
-            # No exception text, matched values, raw JSON or tracebacks escape.
-            engines.append({'engine': name, 'version': version, 'status': 'unavailable'})
+            trufflehog.set_exception(RuntimeError('scanner unavailable'))
+        for name, version, pending in (('kingfisher', KINGFISHER_VERSION, kingfisher),
+                                       ('trufflehog', TRUFFLEHOG_VERSION, trufflehog)):
+            try:
+                matches = pending.result()
+                for value, rule, line in matches:
+                    if not isinstance(value, str) or not value:
+                        raise ValueError('empty secret')
+                    known_values.add(value)
+                # Complete pairs/components must also be scrubbed from paths and
+                # metadata when private persistence is disabled or reaches a bound.
+                known_values.update(getattr(matches, 'redaction_values', ()))
+                matches_by_engine.append((name, matches))
+                engines.append({'engine': name, 'version': version, 'status': 'complete'})
+            except Exception:
+                # No exception text, matched values, raw JSON or tracebacks escape.
+                engines.append({'engine': name, 'version': version, 'status': 'unavailable'})
     # Scrub the UNION of both engines' values before retaining any path. Doing
     # this per engine can disclose the other engine's secret in a filename.
     safe_path = path
@@ -340,13 +365,14 @@ def scan_content(payload, path='content', *, timeout=15, _redact_values=None):
     remember_redactions(known_values)
     for value in sorted(known_values, key=lambda value: (-len(value), value)):
         safe_path = safe_path.replace(value, 'REDACTED')
+    fingerprints = {value: _fingerprint(value) for value in known_values}
     for name, matches in matches_by_engine:
         for value, rule, line in matches:
             # Retain the actual match/value/line association before constructing
             # redacted canonical witnesses. No raw values enter those witnesses.
-            remember(value, _fingerprint(value), path=path, public_path=safe_path, line=line, engine=name, rule=_label(rule),
+            remember(value, fingerprints[value], path=path, public_path=safe_path, line=line, engine=name, rule=_label(rule),
                      observed_bytes=not private_capture() or value.encode('utf-8') in payload)
-            observations.append({'fingerprint': _fingerprint(value),
+            observations.append({'fingerprint': fingerprints[value],
                 'detectors': [{'engine': name, 'rule': _label(rule)}],
                 'locations': [{'path': safe_path, **({'line': line} if type(line) is int and line > 0 else {})}]})
     outcome = {'leaks': merge_leaks(observations), 'engines': engines,
