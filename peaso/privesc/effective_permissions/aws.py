@@ -7676,10 +7676,11 @@ class AwsModel(Model):
             possible = bool(source.incomplete or not regions)
             for region in regions:
                 context = {"aws:RequestedRegion": region}
-                build = self.check(source, {"action": "gamelift:CreateBuild", "request_context": context}, "*")
-                fleet = self.check(source, {"action": "gamelift:CreateFleet", "request_context": context}, "*")
+                global_resource = "peaso-global-gamelift-create-operation"
+                build = self.check(source, {"action": "gamelift:CreateBuild", "request_context": context}, global_resource)
+                fleet = self.check(source, {"action": "gamelift:CreateFleet", "request_context": context}, global_resource)
                 container = self.check(source, {"action": "gamelift:CreateContainerFleet",
-                                                "request_context": context}, "*")
+                                                "request_context": context}, global_resource)
                 if build is not None and fleet is not None and build.confidence == fleet.confidence == "derived":
                     controlled = True
                     break

@@ -136,14 +136,15 @@ def test_customer_setup_policy_includes_all_game_lift_inventory_reads():
 
 def _new_fleet_model(*, build_region=REGION, fleet_region=REGION,
                      pass_service="gamelift.amazonaws.com", create_build=True,
-                     create_fleet=True, container_only=False):
+                     create_fleet=True, container_only=False,
+                     build_resource="*", fleet_resource="*"):
     statements = []
     if create_build:
-        statements.append({**allow("gamelift:CreateBuild"),
+        statements.append({**allow("gamelift:CreateBuild", resource=build_resource),
                            "Condition": {"StringEquals": {"aws:RequestedRegion": build_region}}})
     if create_fleet:
         action = "gamelift:CreateContainerFleet" if container_only else "gamelift:CreateFleet"
-        statements.append({**allow(action),
+        statements.append({**allow(action, resource=fleet_resource),
                            "Condition": {"StringEquals": {"aws:RequestedRegion": fleet_region}}})
     statements.append({**allow("iam:PassRole", resource=TARGET),
                        "Condition": {"StringEquals": {"iam:PassedToService": pass_service}}})
@@ -172,6 +173,15 @@ def test_new_fleet_route_does_not_mix_regions_or_passrole_service():
     container = _new_fleet_model(container_only=True)
     assert container.precondition("gamelift_new_controlled_build_fleet_role",
                                   {TARGET: container.principals[TARGET]}, container.principals[ALICE])[TARGET][0] == "unknown"
+
+
+def test_new_fleet_global_create_actions_reject_scoped_resource_grants():
+    entry = next(x for x in schema.load_catalog(schema.CATALOG_DIR)["entries"]
+                 if x["id"] == "aws-gamelift-passrole-createfleet")
+    for model in (_new_fleet_model(build_resource=f"arn:aws:gamelift:{REGION}:{ACCOUNT}:build/build-1"),
+                  _new_fleet_model(fleet_resource=f"arn:aws:gamelift:{REGION}:{ACCOUNT}:fleet/fleet-1")):
+        assert not [edge for edge in Evaluator(model, [entry], include_unknown=False).run()
+                    if edge.source.id == ALICE and TARGET in edge.targets]
 
 
 def test_previous_game_lift_fleet_catalog_binding_keeps_original_meaning():
