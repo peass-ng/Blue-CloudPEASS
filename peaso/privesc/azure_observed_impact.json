@@ -404,8 +404,8 @@
     "That could let someone use the portal actions allowed to that user."
   ],
   "azure-datafactory-github-oauth-external-principal": [
-    "The recorded factory token may let the source act as the linked GitHub user.",
-    "That could let someone read or change repositories allowed to that user."
+    "The returned token may let the source act as the verified GitHub user.",
+    "That could let someone read or change the exact repository the token allows."
   ],
   "azure-eventgrid-mqtt-client-grant-external-principal": [
     "The recorded MQTT grants may let the source use a broker identity.",
@@ -498,10 +498,6 @@
   "azure-kusto-cluster-principal-assignment-write": [
     "The recorded cluster control may let the source change its administrators.",
     "That could let someone read or change data across Kusto databases."
-  ],
-  "azure-datafactory-dataplane-access-token": [
-    "The recorded factory activity may let the source get its identity token.",
-    "That could let someone reach data allowed to the factory."
   ],
   "azure-databricks-assign-workspace-admin": [
     "The recorded workspace control may let the source change its administrator.",
@@ -626,5 +622,29 @@
   "azure-synapse-entra-admin-write": [
     "The recorded Synapse control may let the source change its SQL administrator.",
     "That could let someone read or change data on that endpoint."
+  ],
+  "azure-apim-developer-portal-shared-token-external-principal": [
+    "The token could let someone sign in as that portal user.",
+    "They may then see or change data that the portal account can reach."
+  ],
+  "azure-aro-list-admin-credentials": [
+    "The returned kubeconfig could allow administrator actions in that ARO cluster.",
+    "Those actions may change workloads or expose data handled by the cluster."
+  ],
+  "azure-authorization-elevateaccess-pim-eligible-global-admin": [
+    "Activation could allow a root scope access grant.",
+    "That may let the user change Azure resources and access private data."
+  ],
+  "azure-entraid-graph-group-readwrite-all-controlled-user": [
+    "The controlled user could be added to a cloud managed group.",
+    "That may give the user access to resources or data shared with the group."
+  ],
+  "azure-storage-local-user-create-with-sftp-access": [
+    "A new SFTP user with a controlled SSH key could read the named container.",
+    "That may expose files belonging to people or services using that container."
+  ],
+  "azure-audit-microsoftwebstaticsiteslistsecretsaction": [
+    "The site deployment token may let someone replace content served by that site.",
+    "Changed content could mislead visitors or collect information they enter."
   ]
 }

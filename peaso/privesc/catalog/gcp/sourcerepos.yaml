@@ -17,7 +17,7 @@
   target:
     kind: gcp_service_account
     selector:
-      attached_to_service: sourcerepo_trigger_consumer
+      gcp_sourcerepo_trigger_path: push
     scope: any
     aggregate_as: Build SAs of triggers on writable Cloud Source repositories
   conditions:
@@ -47,7 +47,7 @@
   target:
     kind: gcp_service_account
     selector:
-      attached_to_service: sourcerepo_trigger_consumer
+      gcp_sourcerepo_trigger_path: selfgrant
     scope: any
     aggregate_as: Build SAs of triggers on Cloud Source repositories whose IAM the source controls
   conditions:

@@ -83,3 +83,22 @@ def test_git_uses_deadline_and_disables_interactive_auth(monkeypatch):
     with pytest.raises(subprocess.TimeoutExpired):
         fetcher._git(['fetch'], 99)
     assert run.call_count == 1
+
+
+def test_pinned_revision_is_fetched_before_sparse_checkout(tmp_path, monkeypatch):
+    revision = 'a' * 40
+    calls = []
+
+    def git(arguments, deadline):
+        calls.append(arguments)
+        complete_checkout(arguments, deadline)
+        if 'fetch' in arguments:
+            checkout = Path(arguments[1])
+            (checkout / 'src/privilege-escalation-paths-cspm-reviewed/aws').mkdir(parents=True)
+
+    monkeypatch.setattr(fetcher, '_git', git)
+    fetcher.fetch(tmp_path / 'source', require_privesc=True, revision=revision)
+    assert [call[-3:] for call in calls if 'fetch' in call] == [['--depth=1', 'origin', revision]]
+    assert calls[-1][-2:] == ['--force', 'FETCH_HEAD']
+    with pytest.raises(ValueError, match='40-character commit SHA'):
+        fetcher.fetch(tmp_path / 'bad', revision='master')

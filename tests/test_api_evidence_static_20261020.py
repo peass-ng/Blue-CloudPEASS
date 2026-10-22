@@ -46,18 +46,32 @@ REVIEWED_SUCCESSORS = {
 
 
 # Preserve the original 12,145 rendered witnesses. This exact successor records
-# reviewed main wording/impact changes and four retired current-catalog IDs;
-# the native formatter must independently reproduce every successor below.
+# reviewed privilege evidence wording and catalog retirements; the native
+# formatter must independently reproduce every successor below.
 PRIVESC_SUCCESSOR_RAW = (ROOT/'tests/fixtures/evidence_static_privesc_successor_20261022.json.gz').read_bytes()
-assert hashlib.sha256(PRIVESC_SUCCESSOR_RAW).hexdigest() == '6bc5a5b297455c921943f9275e31f5d653ab41ec3dfd516be7bd470b8a2d64d5'
+assert hashlib.sha256(PRIVESC_SUCCESSOR_RAW).hexdigest() == '8145a980ec06b8f79a484c04daa799df9569fb777f2172c309c87af5d5cdef9e'
 import gzip
 PRIVESC_SUCCESSOR = json.loads(gzip.decompress(PRIVESC_SUCCESSOR_RAW))
 assert PRIVESC_SUCCESSOR['original_archive_sha256'] == ARCHIVE_SHA256
-assert len(PRIVESC_SUCCESSOR['rows']) == 1897
+assert len(PRIVESC_SUCCESSOR['rows']) == 1899
 for relative, digest in PRIVESC_SUCCESSOR['sources'].items():
     assert hashlib.sha256((ROOT/relative).read_bytes()).hexdigest() == digest, relative
 assert not set(map(int, PRIVESC_SUCCESSOR['rows'])) & set(REVIEWED_SUCCESSORS)
 REVIEWED_SUCCESSORS.update({int(index): row for index, row in PRIVESC_SUCCESSOR['rows'].items()})
+
+AZURE_SUCCESSOR_RAW = (ROOT/'tests/fixtures/evidence_static_azure_successor_20261023.json.gz').read_bytes()
+assert hashlib.sha256(AZURE_SUCCESSOR_RAW).hexdigest() == '5fc0d316a54ef40e5fd0426801a1a47e7f33f60a8fa91ae03f53eba92269e40a'
+AZURE_SUCCESSOR = json.loads(gzip.decompress(AZURE_SUCCESSOR_RAW))
+assert AZURE_SUCCESSOR['original_archive_sha256'] == ARCHIVE_SHA256
+assert len(AZURE_SUCCESSOR['rows']) == 1578
+for relative, digest in AZURE_SUCCESSOR['sources'].items():
+    assert hashlib.sha256((ROOT/relative).read_bytes()).hexdigest() == digest, relative
+for index, row in AZURE_SUCCESSOR['rows'].items():
+    previous = REVIEWED_SUCCESSORS.get(int(index))
+    if previous is not None:
+        assert previous['check_id'] == row['check_id']
+        assert previous['old'] == row['old']
+REVIEWED_SUCCESSORS.update({int(index): row for index, row in AZURE_SUCCESSOR['rows'].items()})
 
 
 def _stage(tmp_path):
@@ -168,9 +182,17 @@ with gzip.open(sys.argv[1],'rt',encoding='utf-8') as file:
  for index,line in enumerate(file):
   row=json.loads(line)
   if row['kind']=='native-pass' and row['finding']['provider'] not in {x['finding']['provider'] for x in rows}:
+   row['_archive_index']=index
    rows.append(row)
   if str(index) in reviewed:changed.append((index,row))
-for row in rows:assert module.evidence_summary(row['finding'])==row['expected']['value']
+for row in rows:
+ actual=module.evidence_summary(row['finding'])
+ successor=reviewed.get(str(row['_archive_index']))
+ if successor:
+  assert successor['old']==row['expected']['value']
+  assert actual==successor['current'],(row['finding']['check_id'],actual,successor['current'])
+ else:
+  assert actual==row['expected']['value'],(row['finding']['check_id'],actual,row['expected']['value'])
 assert 'peaso.checks' not in sys.modules and 'peaso.analysis' not in sys.modules
 from peaso.checks import CHECKS
 from peaso.finding_observation import evidence_summary as original

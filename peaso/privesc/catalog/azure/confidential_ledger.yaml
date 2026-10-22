@@ -12,7 +12,7 @@
   title: Add a principal as ledger Administrator through ledgers/write
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-confidential-ledger-privesc.md#data-plane-role-self-grant-via-ledgerswrite
   source_revision: 171e422
-  summary: The ledger's aadBasedSecurityPrincipals list is part of the ARM resource, so ledgers/write grants the Administrator data-plane role.
+  summary: The source can add its own Entra principal as a ledger Administrator by updating the ledger's aadBasedSecurityPrincipals list.
   requires:
     all_of:
       - action: Microsoft.ConfidentialLedger/ledgers/write
@@ -21,15 +21,18 @@
     kind: azure_dataplane_admin
     selector:
       any_principal_in_scope: true
+      azure_confidential_ledger_admin_path: true
     scope: inherited_scope
     aggregate_as: "Confidential Ledger administrators of {target.scope}"
-  conditions: []
+  conditions:
+    - id: ledger_data_plane_access
+      description: The source must obtain a ledger audience token and reach the ledger endpoint to use the new role.
   blockers:
     - azure_deny_assignment
-  confidence: derived
+  confidence: conditional
   severity: medium
   mitigation: Restrict ledgers/write and monitor aadBasedSecurityPrincipals changes.
   references:
-    - https://learn.microsoft.com/en-us/rest/api/confidentialledger/ledger/update
+    - https://learn.microsoft.com/en-us/rest/api/resource-manager/confidentialledger/ledger/update?view=rest-resource-manager-confidentialledger-2022-05-13
     - https://learn.microsoft.com/en-us/azure/confidential-ledger/manage-azure-ad-users
-  notes: ""
+  notes: The selector requires an inventoried usable ledger and a source user, service principal, or managed identity. The ARM update can grant Administrator; data-plane use remains conditional.

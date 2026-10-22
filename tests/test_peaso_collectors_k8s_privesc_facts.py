@@ -214,7 +214,7 @@ OPENSHIFT = ("api_discovery", C, [{"provenance": PROV, "groups": [{"name": "secu
 
 def scc(name, users=(), groups=(), host=True):
     return {"kind": "SecurityContextConstraints", "metadata": meta(name), "provenance": PROV,
-            "allowHostNetwork": host, "users": list(users), "groups": list(groups)}
+            "allowHostNetwork": host, "allowPrivilegedContainer": host, "users": list(users), "groups": list(groups)}
 
 
 def analyze(sccs, extra_roles=(), extra_bindings=(), sccs_collected=True):
@@ -228,8 +228,8 @@ def analyze(sccs, extra_roles=(), extra_bindings=(), sccs_collected=True):
 
 def test_host_scc_via_users_groups_and_rbac_use():
     target = f"k8s:{C}:node:n1"
-    assert analyze([scc("hostaccess", users=["system:serviceaccount:ops:agent"])]).get(target) == "derived"
-    assert analyze([scc("hostaccess", groups=["system:serviceaccounts:ops"])]).get(target) == "derived"
+    assert analyze([scc("hostaccess", users=["system:serviceaccount:ops:agent"])]).get(target) == "conditional"
+    assert analyze([scc("hostaccess", groups=["system:serviceaccounts:ops"])]).get(target) == "conditional"
     # An SCC granted to another namespace, or a non-host SCC, gives nothing.
     assert target not in analyze([scc("hostaccess", users=["system:serviceaccount:web:agent"]),
                                   scc("restricted", groups=["system:authenticated"], host=False)])
@@ -237,7 +237,7 @@ def test_host_scc_via_users_groups_and_rbac_use():
     use = crole("use-hostaccess", [{"apiGroups": ["security.openshift.io"], "resources": ["securitycontextconstraints"],
                                     "resourceNames": ["hostaccess"], "verbs": ["use"]}])
     binding = rb("agent-scc", "ops", "use-hostaccess", {"kind": "ServiceAccount", "name": "agent", "namespace": "ops"})
-    assert analyze([scc("hostaccess")], [use], [binding]).get(target) == "derived"
+    assert analyze([scc("hostaccess")], [use], [binding]).get(target) == "conditional"
     other = crole("use-other", [{"apiGroups": ["security.openshift.io"], "resources": ["securitycontextconstraints"],
                                  "resourceNames": ["restricted-v2"], "verbs": ["use"]}])
     assert target not in analyze([scc("hostaccess")], [other], [rb("x", "ops", "use-other", {"kind": "ServiceAccount", "name": "agent", "namespace": "ops"})])

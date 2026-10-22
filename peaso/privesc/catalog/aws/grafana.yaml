@@ -105,4 +105,3 @@
   references:
     - https://docs.aws.amazon.com/grafana/latest/APIReference/API_UpdateWorkspaceAuthentication.html
   notes: The grant is limited to Grafana's application plane and configured data sources; it does not issue IAM credentials.
-

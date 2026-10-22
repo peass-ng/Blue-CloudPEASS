@@ -13,26 +13,31 @@
   service: guest_configuration
   title: Create a guest configuration assignment on an Arc-enabled server
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-guest-configuration-privesc.md#in-guest-rce-via-a-guest-configuration-assignment-marquee
-  source_revision: 171e422
+  source_revision: 547f1ea0c8
   summary: The source can obtain the privileges of the Arc machine's managed identity, because the built-in guest configuration agent runs the package as LocalSystem/root.
   requires:
     all_of:
       - action: Microsoft.GuestConfiguration/guestConfigurationAssignments/write
-        scope: "{target.host_resource}"
+        scope: "*"
   target:
     kind: azure_managed_identity
     selector:
       attached_to_service: Microsoft.HybridCompute/machines
+      azure_arc_guest_configuration_path: true
     scope: inherited_scope
     aggregate_as: "Managed identity of Arc machine {target.host_resource}"
   conditions:
     - id: arc_agent_connected
       description: The Connected Machine agent must be connected and guest configuration must not be disabled in the agent's local configuration.
+    - id: custom_package_runs
+      description: The machine must download and run the attacker's valid custom package before its identity can be used.
   blockers:
     - azure_deny_assignment
-  confidence: derived
+  confidence: conditional
   severity: high
   mitigation: Restrict guestConfigurationAssignments/write (Azure Connected Machine Resource Manager, Guest Configuration Resource Contributor) on Arc servers and keep Arc machine identities least-privileged.
   references:
     - https://learn.microsoft.com/en-us/azure/governance/machine-configuration/overview
-  notes: The Arc agent ships guest configuration built in, so the assignment write alone is sufficient. The token is read from HIMDS by the SYSTEM/root payload. Agent-side disablement is not collected.
+    - https://learn.microsoft.com/en-us/azure/governance/machine-configuration/how-to/assign-configuration/azure-resource-manager
+    - https://learn.microsoft.com/en-us/azure/azure-arc/servers/security-extensions
+  notes: The Arc agent includes guest configuration, so no separate extension write is required. The selector checks write authority on the exact machine's assignment child, including an existing assignment if its resource is collected. Agent-side disablement and package execution are not collected and remain conditional.

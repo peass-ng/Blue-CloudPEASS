@@ -50,8 +50,30 @@ def proof(technique="azure-avs-list-vcenter-cloudadmin-external-principal"):
         "Status": "verified", "EvidenceRef": "reviewed-login-and-authorization-1",
     }
     if run_command:
-        fact.update(ExecutedPackageId="Microsoft.AVS.Management", ExecutedCmdletId="Add-CloudAdmin",
+        package = f"{AVS}/scriptPackages/Microsoft.AVS.Identity@1.0"
+        fact.update(ExecutedPackageId=package,
+                    ExecutedCmdletId=f"{package}/scriptCmdlets/Add-GroupToCloudAdmins",
+                    ScriptExecutionResourceId=f"{AVS}/scriptExecutions/run-1",
+                    GrantedGroupName="CloudAdmins", ExecutedGroupName="CloudAdmins",
+                    GroupMembershipEvidenceRef="cloudadmins-member-1",
+                    SourceLoginEvidenceRef="cloudadmin-login-1",
+                    AuthenticatedPrincipalId=subject, SourceControlsTargetLogin=True,
+                    TargetInGrantedGroupVerified=True,
                     GrantOperationEvidenceRef="cmdlet-execution-1", GrantOperationSucceeded=True)
+    elif nsx:
+        action = "GET /api/v1/policy/api/v1/infra/domains/default"
+        fact.update(GainedPermission=action, PriorTestedPermission=action,
+                    AfterTestedPermission=action, NsxtGainedAction=action,
+                    ReturnedNsxtUsername=subject, NsxtPasswordReturnedVerified=True,
+                    NsxtActionAuthorizedVerified=True,
+                    CredentialResponseEvidenceRef="nsx-credential-response-1",
+                    NsxtActionEvidenceRef="nsx-action-1")
+    else:
+        fact.update(VcenterGainedAction="VirtualMachine.Config.EditDevice",
+                    ReturnedVcenterUsername=subject, VcenterPasswordReturnedVerified=True,
+                    VcenterActionAuthorizedVerified=True,
+                    CredentialResponseEvidenceRef="vcenter-credential-response-1",
+                    VcenterActionEvidenceRef="vcenter-action-1")
     return fact
 
 
@@ -134,11 +156,31 @@ def test_named_portal_github_and_mqtt_paths_need_exact_new_authority():
                 "AccessArtifactKind": artifact, "PriorTestedResource": service,
                 "AfterTestedResource": service}
         if plane == "eventgrid_mqtt":
+            fact.update(GainedPermission="publisher", PriorTestedPermission="publisher",
+                        AfterTestedPermission="publisher")
             fact.update(MqttClientId=subject, MqttClientGroupId="ops-clients",
                         PermissionBindingId="ops-publish", OwnedCredentialEvidenceRef="mqtt-cert-1",
                         GrantOperationEvidenceRef="binding-1", ClientCreated=True,
                         ClientGroupBound=True, PermissionBindingCreated=True,
-                        CredentialOwnedBySource=True, GrantOperationSucceeded=True)
+                        CredentialOwnedBySource=True, GrantOperationSucceeded=True,
+                        MqttClientResourceId=f"{resource}/clients/{subject}",
+                        PermissionBindingResourceId=f"{resource}/permissionBindings/ops-publish",
+                        PermissionBindingClientGroupName="ops-clients",
+                        PermissionBindingTopicSpaceName="ops",
+                        PermissionBindingPermission="publisher",
+                        ClientGroupQueryEvidenceRef="client-group-match-1",
+                        ClientGroupQueryMatchedClient=True)
+        elif plane == "github_repository":
+            fact.update(GitHubHost="github.com", GitHubRepositoryOwner="example",
+                        GitHubRepositoryName="factory",
+                        GitHubAuthorizationCodeEvidenceRef="github-code-1",
+                        GitHubTokenResponseEvidenceRef="github-token-1",
+                        GitHubAuthenticatedSubjectEvidenceRef="github-login-1",
+                        GitHubRepositoryActionEvidenceRef="github-repository-read-1",
+                        GitHubAuthorizationCodeSupplied=True,
+                        GitHubTokenFromActionResponseVerified=True,
+                        GitHubTokenUsedForAuthenticationVerified=True,
+                        GitHubRepositoryActionAuthorizedVerified=True)
         actions = [r["action"] for r in entry["requires"]["all_of"]]
         snap = az(assignments=[("u-alice", "User", resource, ROLE_ID)],
                   roles={ROLE_ID: (actions, [])},

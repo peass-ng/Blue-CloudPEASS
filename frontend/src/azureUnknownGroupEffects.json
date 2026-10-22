@@ -1,0 +1,238 @@
+{
+  "logging": [
+    "The monitoring or log setting remains unknown.",
+    "The team cannot tell whether service events or metrics may be available for review."
+  ],
+  "defender": [
+    "The Defender plan or assessment state remains unknown.",
+    "The team cannot tell which security findings or protections may be available."
+  ],
+  "alerts": [
+    "The alert setting remains unknown.",
+    "The team cannot tell whether an important event could notify them."
+  ],
+  "role_assign": [
+    "The access or role policy remains unknown.",
+    "The team cannot tell which permissions or account actions may be allowed."
+  ],
+  "cmk": [
+    "The customer-managed key setting remains unknown.",
+    "The team cannot tell whether they control the key protecting this data."
+  ],
+  "nsg": [
+    "The network rule state remains unknown.",
+    "The team cannot tell which network paths may be allowed."
+  ],
+  "public_access": [
+    "The public access setting remains unknown.",
+    "The team cannot tell whether outside clients may reach this resource."
+  ],
+  "tls": [
+    "The secure connection setting remains unknown.",
+    "The team cannot tell which connection methods clients may use."
+  ],
+  "firewall": [
+    "The network restriction setting remains unknown.",
+    "The team cannot tell which connections may be allowed."
+  ],
+  "private_link": [
+    "The private link setting remains unknown.",
+    "The team cannot tell whether clients have a private network path."
+  ],
+  "local_auth": [
+    "The sign-in method setting remains unknown.",
+    "The team cannot tell which credentials or identities may be accepted."
+  ],
+  "backup": [
+    "The backup or retention setting remains unknown.",
+    "The team cannot tell what recovery copy may be available."
+  ],
+  "encryption": [
+    "The data protection setting remains unknown.",
+    "The team cannot tell which encryption or signing protection may apply."
+  ],
+  "network_policy": [
+    "The network configuration remains unknown.",
+    "The team cannot tell which traffic paths or controls may apply."
+  ],
+  "mfa": [
+    "The multi-factor sign-in setting remains unknown.",
+    "The team cannot tell whether another sign-in step may protect accounts."
+  ],
+  "vulnerability": [
+    "The update or vulnerability state remains unknown.",
+    "The team cannot tell whether known weaknesses may be found or patched."
+  ],
+  "password": [
+    "The account sign-in setting remains unknown.",
+    "The team cannot tell which sign-in restrictions may apply."
+  ],
+  "managed_identity": [
+    "The managed identity setting remains unknown.",
+    "The team cannot tell how this resource may identify itself to other services."
+  ],
+  "guest_review": [
+    "The guest access review state remains unknown.",
+    "The team cannot tell whether guest permissions received a current review."
+  ],
+  "rotation": [
+    "The credential rotation setting remains unknown.",
+    "The team cannot tell when this credential may be replaced."
+  ],
+  "retention": [
+    "The data retention setting remains unknown.",
+    "The team cannot tell how long records may remain available."
+  ],
+  "ddos_waf": [
+    "The web traffic protection setting remains unknown.",
+    "The team cannot tell which incoming requests may be blocked."
+  ],
+  "guest_config": [
+    "The guest configuration state remains unknown.",
+    "The team cannot tell whether VM settings may be reviewed through that service."
+  ],
+  "soft_delete": [
+    "The soft-delete setting remains unknown.",
+    "The team cannot tell whether deleted data may be recoverable."
+  ],
+  "alert_delivery": [
+    "The alert delivery setting remains unknown.",
+    "The team cannot tell whether the right people may receive a notice."
+  ],
+  "integrity": [
+    "The integrity protection state remains unknown.",
+    "The team cannot tell whether changes to startup or records may be detected."
+  ],
+  "sku": [
+    "The service tier remains unknown.",
+    "The team cannot tell which availability features may apply."
+  ],
+  "literal_secrets": [
+    "The secret reference setting remains unknown.",
+    "The team cannot tell whether the app reads secrets from Key Vault."
+  ],
+  "inactive_identity": [
+    "The account sign-in history remains unknown.",
+    "The team cannot tell whether this account is still being used."
+  ],
+  "key_expiry": [
+    "The key expiration setting remains unknown.",
+    "The team cannot tell when this key may stop being valid."
+  ],
+  "immutable": [
+    "The deletion protection setting remains unknown.",
+    "The team cannot tell whether protected items may be removed early."
+  ],
+  "role_wildcard": [
+    "The role action list remains unknown.",
+    "The team cannot tell whether the role may grant broad permissions."
+  ],
+  "secret_expiry": [
+    "The secret expiration setting remains unknown.",
+    "The team cannot tell when this secret may stop being valid."
+  ],
+  "federation": [
+    "The workload trust setting remains unknown.",
+    "The team cannot tell which outside workflow may gain access."
+  ],
+  "cert_alg": [
+    "The certificate setting remains unknown.",
+    "The team cannot tell which certificate may protect client connections."
+  ],
+  "container_privilege": [
+    "The container privilege setting remains unknown.",
+    "The team cannot tell which host capabilities an app may receive."
+  ],
+  "disk": [
+    "The disk setting remains unknown.",
+    "The team cannot tell how the VM stores its data."
+  ],
+  "inventory": [
+    "The resource inventory setting remains unknown.",
+    "The team cannot tell how this resource is classified or grouped."
+  ],
+  "cors": [
+    "The allowed web origin setting remains unknown.",
+    "The team cannot tell which websites may make browser requests."
+  ],
+  "http2": [
+    "The HTTP/2 setting remains unknown.",
+    "The team cannot tell which web protocol clients may use."
+  ],
+  "debug": [
+    "The remote debugging setting remains unknown.",
+    "The team cannot tell whether a debugging path may be available."
+  ],
+  "cert_expiry": [
+    "The certificate validity period remains unknown.",
+    "The team cannot tell when the certificate may need renewal."
+  ],
+  "container_images": [
+    "The allowed container image setting remains unknown.",
+    "The team cannot tell which images workloads may use."
+  ],
+  "incident": [
+    "The incident triage state remains unknown.",
+    "The team cannot tell whether a reported event received review."
+  ],
+  "location": [
+    "The resource region remains unknown.",
+    "The team cannot tell where this resource or its data is hosted."
+  ],
+  "rate_limit": [
+    "The connection rate limit remains unknown.",
+    "The team cannot tell how repeated requests may be handled."
+  ],
+  "deletion_lock": [
+    "The delete lock setting remains unknown.",
+    "The team cannot tell whether accidental deletion may be blocked."
+  ],
+  "database_login": [
+    "The database administrator setting remains unknown.",
+    "The team cannot tell which identity may manage this database."
+  ],
+  "resource_limit": [
+    "The workload resource limit remains unknown.",
+    "The team cannot tell how much compute one workload may consume."
+  ],
+  "backup_restore": [
+    "The restore test state remains unknown.",
+    "The team cannot tell whether a saved copy was recently restored."
+  ],
+  "time": [
+    "The VM time setting remains unknown.",
+    "The team cannot tell whether event times may line up with other records."
+  ],
+  "git_policy": [
+    "The source control setting remains unknown.",
+    "The team cannot tell where changes to this service may be tracked."
+  ],
+  "admin_group": [
+    "The user's group membership remains unknown.",
+    "The team cannot tell which group-based access may apply."
+  ],
+  "purview": [
+    "The data scan setting remains unknown.",
+    "The team cannot tell whether new data may be found for review."
+  ],
+  "network": [
+    "The network access setting remains unknown.",
+    "The team cannot tell which network paths may be allowed."
+  ],
+  "signin_events": [
+    "The sign-in event notice remains unknown.",
+    "The team cannot tell whether suspicious sign-ins may reach a reviewer."
+  ],
+  "permissions": [
+    "The service identity setting remains unknown.",
+    "The team cannot tell how this resource may request access."
+  ],
+  "workload_hardening": [
+    "The prompt protection setting remains unknown.",
+    "The team cannot tell which harmful prompts may be blocked."
+  ],
+  "secrets": [
+    "The saved secret exposure state remains unknown.",
+    "The team cannot tell whether selected content may reveal credentials."
+  ]
+}

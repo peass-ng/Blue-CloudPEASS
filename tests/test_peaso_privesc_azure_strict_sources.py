@@ -15,7 +15,9 @@ def test_databricks_admin_requires_collected_member_user():
     snap = az(assignments=[(p, kind, workspace, ROLE_ID) for p, kind in
                            (("u-member", "User"), ("u-guest", "User"), ("sp-a", "ServicePrincipal"))],
               roles={ROLE_ID: (actions, [])}, users=("u-member", "u-guest"), sps=("sp-a",),
-              graph=({"id": workspace, "type": "Microsoft.Databricks/workspaces"},))
+                  graph=({"id": workspace, "type": "Microsoft.Databricks/workspaces",
+                          "properties": {"provisioningState": "Succeeded",
+                                         "workspaceUrl": "w.azuredatabricks.net"}},))
     users = next(c for c in snap["collections"] if c["type"] == "directory_user")["items"]
     next(u for u in users if u["id"] == "u-guest")["userType"] = "Guest"
     result = privesc.analyze(snap, entries=[entry])

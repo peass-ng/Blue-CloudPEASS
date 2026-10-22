@@ -31,7 +31,7 @@ import json
 import re
 from urllib.parse import unquote, urlsplit
 
-from . import (ANY, AllTargets, Grant, Model, Node, as_list, combine, downgrade, glob_match, inventory_status,
+from . import (ANY, AllTargets, Grant, Model, Node, UniformVerdict, as_list, combine, downgrade, glob_match, inventory_status,
                items, unavailable)
 from . import best as _BEST
 from . import permission_match
@@ -9439,15 +9439,20 @@ class AwsModel(Model):
                 return ("conditional", "appstream_existing_desktop_fleet_role_session")
         return ("unknown", "appstream_existing_fleet_role_session_not_verified") if uncertain else None
 
-    def _appstream_existing_builder_role_session(self, source, target, kind, resource_type, action):
+    def _appstream_existing_builder_role_session(self, source, target, kind, resource_type, action,
+                                                  prepared=None):
         """Join a streamable existing builder to its exact recorded machine role."""
-        statuses = {scope: status for scope, status in inventory_status(self.snapshot, kind).items()
-                    if scope.startswith(source.scope + "/")}
+        if prepared is None:
+            statuses = {scope: status for scope, status in inventory_status(self.snapshot, kind).items()
+                        if scope.startswith(source.scope + "/")}
+            builders = items(self.snapshot, kind)
+        else:
+            statuses, builders = prepared
         if not statuses:
             return ("unknown", f"{kind}_inventory_not_collected")
         uncertain = any(status not in ("collected", "empty") for status in statuses.values())
         partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
-        for scope, builder in items(self.snapshot, kind):
+        for scope, builder in builders:
             if scope not in statuses or statuses[scope] != "collected" or not isinstance(builder, dict):
                 continue
             region = scope.split("/", 1)[1]
@@ -10712,6 +10717,36 @@ class AwsModel(Model):
         return False, unresolved
 
     def precondition(self, pid, candidates, source):
+        # These paths require a recorded running resource. When no collection
+        # exists in the source account, every candidate has the same unknown
+        # verdict; keep it symbolic instead of repeating an inventory scan for
+        # every source/role pair.
+        missing_inventory = {
+            "athena_existing_session_calculation_role": ("athena_session", "athena_session_inventory_not_collected"),
+            "athena_existing_notebook_url_role": ("athena_session", "athena_session_inventory_not_collected"),
+            "athena_existing_spark_connect_role": ("athena_session", "athena_session_inventory_not_collected"),
+            "flink_existing_studio_role_session": ("flink_application", "flink_application_inventory_not_collected"),
+            "gamelift_existing_shared_fleet_role_shell": ("gamelift_ec2_compute", "gamelift_fleet_inventory_not_collected"),
+            "gameliftstreams_live_role_session_admin_shell": ("gameliftstreams_stream_session", "gameliftstreams_sessions_not_collected"),
+        }.get(pid)
+        if source is not None and missing_inventory is not None:
+            kind, reason = missing_inventory
+            if not any(scope.startswith(source.scope + "/") for scope in inventory_status(self.snapshot, kind)):
+                return UniformVerdict(candidates, ("unknown", reason))
+        if source is not None and pid == "batch_existing_definition_submitjob_role":
+            kinds = ("batch_job_definition", "batch_job_queue", "batch_compute_environment")
+            if not any(scope.startswith(source.scope + "/")
+                       for kind in kinds for scope in inventory_status(self.snapshot, kind)):
+                return UniformVerdict(candidates, ("unknown", "batch_existing_definition_inventory_not_collected"))
+        deadline_inventory = {
+            "deadline_existing_queue_role_vend": ("deadline_queue", "deadline_queue_inventory_not_recorded"),
+            "deadline_existing_worker_role_vend": ("deadline_worker", "deadline_worker_inventory_not_recorded"),
+            "deadline_new_worker_role_vend": ("deadline_fleet_role", "deadline_fleet_role_inventory_not_recorded"),
+        }.get(pid)
+        if source is not None and deadline_inventory is not None:
+            kind, reason = deadline_inventory
+            if not inventory_status(self.snapshot, kind):
+                return UniformVerdict(candidates, ("unknown", reason), exclude=source.id)
         if pid == "glue_new_public_dev_endpoint_role":
             if source is None:
                 return None
@@ -10860,6 +10895,9 @@ class AwsModel(Model):
         if pid == "autoscaling_created_launch_input_role_effect_reviewed":
             if source is None:
                 return None
+            pass_allows, _ = self._statements(source, "iam:passrole")
+            if not pass_allows:
+                return {}
             return {tid: verdict for tid, role in candidates.items()
                     if (verdict := self._autoscaling_created_launch_input_role_effect(source, role))}
         if pid == "gamelift_new_controlled_build_fleet_role":
@@ -11739,6 +11777,20 @@ class AwsModel(Model):
         if pid == "ec2_runinstances_instance_role_effect_reviewed":
             if source is None:
                 return None
+            pass_allows, _ = self._statements(source, "iam:passrole")
+            run_allows, _ = self._statements(source, "ec2:runinstances")
+            if not pass_allows or not run_allows:
+                return (UniformVerdict(candidates, ("unknown", "ec2_runinstances_source_permissions_incomplete"),
+                                       exclude=source.id) if source.incomplete else {})
+            evidence_sources = self.__dict__.get("_runinstances_evidence_sources")
+            if evidence_sources is None:
+                evidence_sources = self._runinstances_evidence_sources = {
+                    key[1] for key in self.bounded_evidence_records
+                    if key[0] == "aws-ec2-passrole-runinstances" and key[2] == "aws_role"}
+            if source.id not in evidence_sources:
+                return UniformVerdict(candidates,
+                                      ("unknown", "ec2_runinstances_role_execution_evidence_missing_or_conflicting"),
+                                      exclude=source.id)
             return {tid: verdict for tid, role in candidates.items()
                     if (verdict := self._runinstances_instance_role_effect(source, role))}
         if pid == "ec2_runinstances_launch_with_passed_profile_unverified":
@@ -11752,6 +11804,11 @@ class AwsModel(Model):
         if pid == "ec2_spot_request_instance_role_effect_reviewed":
             if source is None:
                 return None
+            pass_allows, _ = self._statements(source, "iam:passrole")
+            request_allows, _ = self._statements(source, "ec2:requestspotinstances")
+            if not pass_allows or not request_allows:
+                return (UniformVerdict(candidates, ("unknown", "ec2_spot_request_source_permissions_incomplete"),
+                                       exclude=source.id) if source.incomplete else {})
             return {tid: verdict for tid, role in candidates.items()
                     if (verdict := self._spot_request_instance_role_effect(source, role))}
         if pid == "spot_request_with_passed_profile_and_role_ready":
@@ -14859,6 +14916,9 @@ class AwsModel(Model):
         if pid == "appstream_existing_fleet_role_session":
             if source is None:
                 return None
+            if not any(scope.startswith(source.scope + "/")
+                       for scope in inventory_status(self.snapshot, "appstream_fleet")):
+                return UniformVerdict(candidates, ("unknown", "appstream_fleet_inventory_not_collected"))
             for tid, target in candidates.items():
                 verdict = self._appstream_existing_fleet_role_session(source, target)
                 if verdict:
@@ -14874,8 +14934,15 @@ class AwsModel(Model):
                 "appstream_existing_app_block_builder_role_session": (
                     "appstream_app_block_builder", "app-block-builder", "appstream:createappblockbuilderstreamingurl"),
             }[pid]
+            statuses = {scope: status for scope, status in inventory_status(self.snapshot, kind).items()
+                        if scope.startswith(source.scope + "/")}
+            if not statuses:
+                # Every role has the same unresolved inventory prerequisite.
+                return UniformVerdict(candidates, ("unknown", f"{kind}_inventory_not_collected"))
+            prepared = statuses, tuple(items(self.snapshot, kind))
             for tid, target in candidates.items():
-                verdict = self._appstream_existing_builder_role_session(source, target, kind, resource_type, action)
+                verdict = self._appstream_existing_builder_role_session(
+                    source, target, kind, resource_type, action, prepared)
                 if verdict:
                     out[tid] = verdict
             return out
@@ -14954,6 +15021,13 @@ class AwsModel(Model):
         if pid == "deadline_passrole_queue_role_vend":
             if source is None:
                 return None
+            possible, universal = self.possible(source)
+            if not universal and "iam:passrole" not in possible:
+                return {}
+            create_allows, _ = self._statements(source, "deadline:createqueue")
+            update_allows, _ = self._statements(source, "deadline:updatequeue")
+            if not (create_allows or update_allows):
+                return {}
             return {tid: verdict for tid, role in candidates.items()
                     if (verdict := self._deadline_passrole_queue_role_vend(source, role))}
         if pid == "deadline_existing_worker_role_vend":
@@ -16271,6 +16345,19 @@ class AwsModel(Model):
         if pid == "ecs_privileged_task_exact_host_ready":
             if source is None:
                 return None
+            if not any(scope.startswith(source.scope + "/")
+                       for scope in self.region_status.get("ecs_cluster", ())):
+                eligible_cache = self.__dict__.setdefault("_ecs_host_ready_eligible", {})
+                candidate_key = id(candidates)
+                eligible = eligible_cache.get(candidate_key)
+                if eligible is None:
+                    ec2_roles = self.trust_by_service.get("ec2.amazonaws.com", {})
+                    task_roles = self.trust_by_service.get("ecs-tasks.amazonaws.com", {})
+                    eligible = {tid: role for tid, role in candidates.items()
+                                if (role.attrs.get("instance_profiles") and tid in ec2_roles)
+                                or tid in task_roles}
+                    eligible_cache[candidate_key] = eligible
+                return UniformVerdict(eligible, ("unknown", "ecs_privileged_task_host_or_launch_not_verified"))
             partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
             scopes = [scope for scope in self.snapshot.get("scopes", ()) if isinstance(scope, str)
                       and scope.startswith(source.scope + "/") and scope.split("/", 1)[1] not in ("global", "*")]

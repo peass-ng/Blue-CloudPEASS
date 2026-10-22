@@ -2600,3 +2600,105 @@
 - source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-resourcemanager-privesc.md#tagkeystagvaluessetiampolicy--self-grant-use-of-a-privileged-tag
   technique: Self-grant resourcemanager.tagValueBindings.create on a tag key
   reason: Tag keys and values are not project descendants in the typed resource-self-grant evidence contract.
+
+- id: gcp-audit-s01-35-widen-a-view-caller-can-alre
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigtable-privesc.md#bigtableauthorizedviewsupdate--widen-a-view-that-you-can-already-use
+  technique: Widen a view caller can already read or mutate
+  reason: 'Manual-only: a view update must be compared with the caller’s prior read or mutation access and exact rows or columns
+    gained; no collector records this proof.'
+
+- id: gcp-biglake-connection-table-bounded-storage-read
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-biglake-privesc.md#bigquerytablescreate--bigqueryconnectionsdelegate--create-a-table-that-reads-as-the-connection-service-account
+  technique: Read one protected storage object through a connection-backed BigLake table
+  reason: 'Manual-only: the exact connection, table, object, and source denial followed by an allowed read require a reviewed
+    before/after proof that the collector does not produce.'
+
+- id: gcp-bigquery-authorized-routine-bounded-table-access
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#dataset-acl-write--authorize-a-routine-as-an-indirect-access-path
+  technique: Gain bounded protected-table access through one authorized routine
+  reason: 'Manual-only: exact callable routine, dataset authorization, prior denial, and later allowed table result require
+    a reviewed before/after proof that the collector does not produce.'
+
+- id: gcp-bigquery-authorized-view-bounded-table-access
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#dataset-acl-write--authorized-view-or-dataset-as-an-indirect-read-path
+  technique: Gain bounded protected-table access through one authorized view
+  reason: 'Manual-only: exact view, dataset authorization, prior denial, and later allowed table result require a reviewed
+    before/after proof that the collector does not produce.'
+
+- id: gcp-bigquery-authorized-dataset-existing-view-bounded-table-access
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#dataset-acl-write--authorized-view-or-dataset-as-an-indirect-read-path
+  technique: Gain bounded protected-table access through one existing view in an authorized dataset
+  reason: 'Manual-only: the existing view, authorized dataset, protected table, prior denial, and later allowed query require
+    a reviewed before/after proof that the collector does not produce.'
+
+- id: gcp-audit-s01-02-loosen-access-level-for-atta
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-access-context-manager-privesc.md#accesscontextmanageraccesslevelsupdate--loosen-context-aware-access
+  technique: Loosen access level for attacker IP, device, region or principal
+  reason: 'Manual-only: deciding access requires the exact caller context, protected consumer, and before/after authorization;
+    no collector records that complete join.'
+
+- id: gcp-audit-s01-03-create-a-bridge-perimeter-jo
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-access-context-manager-privesc.md#accesscontextmanagerserviceperimetersupdate--defeat-vpc-sc-data-exfil-protection
+  technique: Create a bridge perimeter joining attacker and victim projects
+  reason: 'Manual-only: a bridge matters only for a particular previously blocked request and two eligible projects; no collector
+    records that before/after path.'
+
+- id: gcp-audit-s01-04-delete-a-perimeter-or-access
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-access-context-manager-privesc.md#accesscontextmanagerserviceperimetersupdate--defeat-vpc-sc-data-exfil-protection
+  technique: Delete a perimeter or access level to remove protection
+  reason: 'Manual-only: the specific gate and an otherwise IAM-authorized request must be observed before and after deletion;
+    no collector records this proof.'
+
+- id: gcp-audit-s01-06-delete-or-weaken-a-group-con
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-access-context-manager-privesc.md#gcpuseraccessbindings-cloud-bindings--context-removal-or-extended-workforce-sessions
+  technique: Delete or weaken a group context-aware access binding
+  reason: 'Manual-only: group membership, the affected context gate, and a protected consumer must be joined; no collector
+    records the complete path.'
+
+- id: gcp-audit-s01-21-repoint-accessible-gateway-a
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-beyondcorp-privesc.md#repoint-an-application-the-caller-can-already-use-to-another-web-target-behind-its-existing-upstream
+  technique: Repoint accessible gateway app to new internal HTTP(S) host
+  reason: 'Manual-only: existing app use, upstream route, target host, and target authentication must be established together;
+    no collector records this path.'
+
+- id: gcp-dataproc-staging-object-plant
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-dataproc-privesc.md#dataprocclustersget--config-leak-sa--scopes--buckets--metadata--properties--staging-bucket-poison
+  technique: Plant a new Dataproc staging dependency for a later job
+  reason: 'Manual-only: bucket write access cannot establish an unused exact object name, a later job reference, and execution
+    by the cluster service account; these facts are not collected.'
+
+- id: gcp-bigtable-row-credential
+  source: src/pentesting-cloud/gcp-security/gcp-post-exploitation/gcp-bigtable-post-exploitation.md#read-base-table-rows
+  technique: Read Bigtable base-table rows
+  reason: 'Manual-only: a normal inventory does not read Bigtable cells or verify a reusable private key, exact service-account
+    subject, and successful authentication.'
+
+- id: gcp-bigquery-remote-function-bounded-cloudrun-invoke
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#bigqueryroutinescreate--bigqueryconnectionsdelegateuse--invoke-cloud-run-through-a-remote-function
+  technique: Invoke one protected Cloud Run endpoint through an exact remote function
+  reason: 'Manual-only: exact connection, routine, endpoint, prior denial, and later allowed invocation require a reviewed
+    before/after proof that the collector does not produce.'
+
+- id: gcp-bms-direct-initial-secret-exact-server-user
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bare-metal-solution-privesc.md#retrieve-a-still-valid-initial-server-password
+  technique: Reach one BMS server user through its still-valid initial password secret
+  reason: 'Manual-only: the exact password must still work for the named BMS server user and allow a new OS action; a normal
+    inventory cannot perform that login proof.'
+
+- id: gcp-composer-environments-executeairflowcommand
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-composer-privesc.md#composerenvironmentsexecuteairflowcommand--retrieve-airflow-secrets-or-run-available-dag-code
+  technique: Execute Airflow CLI commands in a Composer environment
+  reason: 'Manual-only: the recorded permission and environment identity do not establish a supported Airflow CLI path or
+    an existing DAG or connection that provides code execution or a usable credential.'
+
+- id: gcp-bigquery-table-row-credential
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigquery-privesc.md#verified-service-account-private-key-in-table-rows
+  technique: Read BigQuery table rows
+  reason: 'Manual-only: a normal inventory does not read table rows or verify a reusable private key, exact service-account
+    subject, and successful authentication.'
+
+- id: gcp-compute-images-create-family-poison
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-compute-privesc/README.md#poison-a-consumed-custom-image-family
+  technique: Publish a newer image into an image family consumed by instance templates
+  reason: 'Manual-only: a family reference in an instance template does not show that a workload consumes it, the source image
+    is controlled, or a later VM boots that image.'

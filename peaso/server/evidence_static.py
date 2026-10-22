@@ -19,8 +19,8 @@ from types import ModuleType, SimpleNamespace
 
 ROOT = Path(__file__).resolve().parent
 SOURCE_ROOT = Path(__file__).resolve().parents[2]
-SOURCE_MANIFEST_SHA256 = '942fbca2f6ad29c221267bbd00bdcabb5b462c4d249d3eda5086a6a189124366'
-DATA_MANIFEST_SHA256 = 'd98c480916a0a1377e06e12340297f883c8ea39077ad7186104c09ec35236df0'
+SOURCE_MANIFEST_SHA256 = '7c4ab7b660b4e2abf82ee0ec2107dc7e1d02ccff80bf0427d01c13bc01aa38d0'
+DATA_MANIFEST_SHA256 = '45d9541093b775e1596e18b9a46b5ca088752c50da42acd4c1bce85ceac84e45'
 
 
 def _load_pinned_manifest(name, expected):
@@ -100,7 +100,10 @@ def _private_import(name, globals=None, locals=None, fromlist=(), level=0):
         return SimpleNamespace(catalog=_catalog)
     if full == 'peaso.checks' and fromlist:
         raise ImportError('native checks registry is unavailable in presentation loader')
-    if full.startswith('peaso.checks.') or full.startswith('peaso.analysis.') or full == 'peaso.privesc.finding_explanation':
+    if (full.startswith('peaso.checks.') or full.startswith('peaso.analysis.')
+            or full in {'peaso.privesc.finding_explanation', 'peaso.privesc.aws_observed_evidence_v3',
+                        'peaso.privesc.gcp_observed_impact', 'peaso.privesc.azure_observed_impact',
+                        'peaso.privesc.k8s_observed_impact'}):
         module = _load_source(full[6:])
         return module
     return builtins.__import__(name, globals, locals, fromlist, level)

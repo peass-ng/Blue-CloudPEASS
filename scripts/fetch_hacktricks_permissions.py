@@ -2,14 +2,16 @@
 """Fetch one consistent revision of HackTricks permission data with bounded retries.
 
 With --with-privesc the same sparse checkout also contains the privilege-escalation path
-catalog (src/privilege-escalation-paths) and the pentesting-cloud pages its `source` fields
-point to, so scripts/sync_hacktricks_privesc.py can validate page paths at that revision.
+catalog (src/privilege-escalation-paths-cspm-reviewed) and the pentesting-cloud pages its `source` fields
+point to. --revision-file pins that checkout to the reviewed Cloud commit.
 """
 from __future__ import annotations
 
 import argparse
+import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import tempfile
 import time
@@ -19,7 +21,8 @@ ATTEMPTS = 5
 ATTEMPT_TIMEOUT = 150
 BACKOFF_SECONDS = (15, 30, 60, 120)
 PERMISSIONS_PATH = 'src/permission-categorizations'
-PRIVESC_PATHS = ('src/privilege-escalation-paths', 'src/pentesting-cloud')
+PRIVESC_PATHS = ('src/privilege-escalation-paths-cspm-reviewed', 'src/pentesting-cloud')
+REVISION_RE = re.compile(r'[0-9a-f]{40}\Z')
 
 
 def _git(arguments, deadline):
@@ -33,8 +36,10 @@ def _git(arguments, deadline):
     )
 
 
-def fetch(destination: Path, *, with_privesc=False, require_privesc=False):
+def fetch(destination: Path, *, with_privesc=False, require_privesc=False, revision=None):
     destination = destination.resolve()
+    if revision is not None and not REVISION_RE.fullmatch(revision):
+        raise ValueError('Cloud revision must be a 40-character commit SHA')
     if destination.exists():
         raise ValueError(f'Refusing to replace an existing destination: {destination}')
     destination.parent.mkdir(parents=True, exist_ok=True)
@@ -48,7 +53,9 @@ def fetch(destination: Path, *, with_privesc=False, require_privesc=False):
                       '--filter=blob:none', '--no-checkout', SOURCE_URL, str(checkout)], deadline)
                 paths = [PERMISSIONS_PATH, *(PRIVESC_PATHS if with_privesc or require_privesc else ())]
                 _git(['-C', str(checkout), 'sparse-checkout', 'set', '--cone', *paths], deadline)
-                _git(['-C', str(checkout), 'checkout', '--force', 'HEAD'], deadline)
+                if revision is not None:
+                    _git(['-C', str(checkout), 'fetch', '--depth=1', 'origin', revision], deadline)
+                _git(['-C', str(checkout), 'checkout', '--force', 'FETCH_HEAD' if revision else 'HEAD'], deadline)
                 for provider in ('aws', 'gcp', 'azure', 'k8s'):
                     if not (checkout / 'src/permission-categorizations' / f'{provider}.yaml').is_file():
                         raise RuntimeError(f'Missing canonical file: {provider}.yaml')
@@ -70,11 +77,17 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--destination', type=Path, default=Path('.canonical-source'))
     parser.add_argument('--with-privesc', action='store_true',
-                        help='also fetch src/privilege-escalation-paths and the pages it cites (optional upstream)')
+                        help='also fetch src/privilege-escalation-paths-cspm-reviewed and its source pages')
     parser.add_argument('--require-privesc', action='store_true',
                         help='like --with-privesc, but retry and fail when the privesc directory is missing')
+    parser.add_argument('--revision-file', type=Path,
+                        help='JSON manifest containing the exact Cloud commit SHA to fetch')
     args = parser.parse_args()
-    fetch(args.destination, with_privesc=args.with_privesc, require_privesc=args.require_privesc)
+    revision = None
+    if args.revision_file:
+        revision = json.loads(args.revision_file.read_text())['revision']
+    fetch(args.destination, with_privesc=args.with_privesc, require_privesc=args.require_privesc,
+          revision=revision)
 
 
 if __name__ == '__main__':

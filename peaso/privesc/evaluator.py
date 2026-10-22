@@ -21,7 +21,7 @@ import functools
 import hashlib
 import re
 
-from .effective_permissions import ANY, CONF_RANK, AllTargets, Grant, as_list, best, combine, downgrade, glob_match, permission_match as _tag_permission
+from .effective_permissions import ANY, CONF_RANK, AllTargets, Grant, UniformVerdict, as_list, best, combine, downgrade, glob_match, permission_match as _tag_permission
 from .schema import (BLOCKER_ALIASES, CHAIN_SOURCE_SELECTORS, EVALUATED_BLOCKERS, FACTS_NEEDED, GENERIC_SELECTORS,
                      GENERIC_SOURCE_SELECTORS, MODEL_BLOCKERS, PRECONDITIONS, expand_requires)
 
@@ -44,13 +44,120 @@ DYNAMIC_SELECTORS = {
     "gcp_agentidentity_update_path",
     "gcp_bounded_access_gain", "gcp_wif_active_path", "gcp_wif_restorable_path", "gcp_workforce_control_path", "gcp_clouddeploy_custom_render_path", "gcp_clouddeploy_existing_custom_render_path", "gcp_clouddeploy_pipeline_policy_custom_render_path", "gcp_clouddeploy_configurable_custom_render_path", "gcp_cloudbuild_writable_trigger_token_path", "gcp_cloudbuild_writable_trigger_policy_path", "gcp_vertex_batch_prediction_path", "gcp_vertex_new_model_endpoint_path", "gcp_workbench_existing_takeover_path", "gcp_run_job_override_path", "gcp_run_job_policy_override_path", "gcp_run_service_update_path", "gcp_run_job_update_execute_path", "gcp_run_instance_create_or_update_path", "gcp_run_instance_ssh_path", "gcp_run_service_ssh_path", "gcp_appengine_instance_ssh_path", "gcp_batch_agent_reporter_on_target", "gcp_run_worker_pool_create_or_update_path", "gcp_cross_project_run_service", "gcp_cross_project_run_job", "gcp_cross_project_cloudbuild",
     "gcp_cross_project_workflows", "gcp_workflows_update_execute_same_workflow", "gcp_workflows_update_attach_path", "gcp_workflows_observed_external_execution", "gcp_cloudscheduler_update_job_path", "gcp_cloudscheduler_authenticated_delivery", "gcp_cloudtasks_enqueue_path", "gcp_cloudtasks_authenticated_delivery", "gcp_cloudtasks_queue_policy_path", "gcp_cloudfunctions_create_path", "gcp_cloudfunctions_existing_source_update_path", "gcp_cloudfunctions_env_startup_path", "gcp_cloudfunctions_source_deploy_build_path",
-    "azure_challenge_fact", "azure_external_principal_evidence", "azure_apim_restorable_backup", "azure_automation_assignable_uami", "azure_automation_runbook_identity_path", "azure_automation_hybrid_worker_path", "azure_batch_job_pool_identity", "azure_batch_pool_starttask_identity", "azure_batch_shared_key_pool_identity", "azure_batch_pool_assignable_uami", "azure_confidential_ledger_admin_path", "azure_containerapp_assignable_uami", "azure_containerapp_create_uami_path", "azure_containerapp_exec_identity", "azure_containerapp_job_assignable_uami", "azure_appservice_assignable_uami", "azure_appservice_backup_restore_code_path", "azure_appservice_config_code_path", "azure_appservice_enable_publishing_credentials_code_path", "azure_appservice_kudu_code_path", "azure_appservice_onedeploy_code_path", "azure_appservice_publishing_credentials_code_path", "azure_appservice_sitecontainers_code_path", "azure_appservice_siteextensions_code_path", "azure_appservice_slot_code_path", "azure_appservice_slot_swap_code_path", "azure_appservice_sourcecontrol_code_path", "azure_arc_entra_admin_ssh_path", "azure_arc_custom_script_code_path", "azure_arc_run_command_code_path", "azure_deployment_script_uami_path", "azure_appservice_slot_publishing_credentials_code_path", "azure_acr_assignable_uami", "azure_acr_existing_task_identity", "azure_aks_rbac_group_impersonation", "azure_aks_rbac_cluster_binding", "azure_flux_cluster_path", "azure_vmss_instance_identity", "azure_aci_assignable_uami", "azure_aci_exec_running_identity", "azure_aci_existing_write_identity", "k8s_challenge_fact", "k8s_helm_values_rbac", "k8s_verified_pivot", "k8s_bound_role_gain", "k8s_clusterrolebinding_gain", "k8s_existing_clusterrolebinding_gain", "k8s_aggregated_rolebinding_namespace",
+    "azure_challenge_fact", "azure_external_principal_evidence", "azure_static_site_deployment_token", "azure_apim_restorable_backup", "azure_automation_assignable_uami", "azure_automation_runbook_identity_path", "azure_automation_hybrid_worker_path", "azure_batch_job_pool_identity", "azure_batch_pool_starttask_identity", "azure_batch_shared_key_pool_identity", "azure_batch_pool_assignable_uami", "azure_confidential_ledger_admin_path", "azure_containerapp_assignable_uami", "azure_containerapp_create_uami_path", "azure_containerapp_exec_identity", "azure_containerapp_job_assignable_uami", "azure_appservice_assignable_uami", "azure_appservice_backup_restore_code_path", "azure_appservice_config_code_path", "azure_appservice_enable_publishing_credentials_code_path", "azure_appservice_kudu_code_path", "azure_appservice_onedeploy_code_path", "azure_appservice_publishing_credentials_code_path", "azure_appservice_sitecontainers_code_path", "azure_appservice_siteextensions_code_path", "azure_appservice_slot_code_path", "azure_appservice_slot_swap_code_path", "azure_appservice_sourcecontrol_code_path", "azure_arc_entra_admin_ssh_path", "azure_arc_custom_script_code_path", "azure_arc_run_command_code_path", "azure_deployment_script_uami_path", "azure_appservice_slot_publishing_credentials_code_path", "azure_acr_assignable_uami", "azure_acr_existing_task_identity", "azure_aks_rbac_group_impersonation", "azure_aks_rbac_cluster_binding", "azure_flux_cluster_path", "azure_vmss_instance_identity", "azure_aci_assignable_uami", "azure_aci_exec_running_identity", "azure_aci_existing_write_identity", "k8s_challenge_fact", "k8s_helm_values_rbac", "k8s_verified_pivot", "k8s_bound_role_gain", "k8s_clusterrolebinding_gain", "k8s_existing_clusterrolebinding_gain", "k8s_aggregated_rolebinding_namespace",
+    "openshift_source_host_scc_path",
+    "openshift_unlabeled_existing_namespace",
+    "k8s_node_schedulable",
+    "k8s_sa_used_by_pending_pod",
+    "k8s_pod_access_path",
+    "k8s_websocket_exec_get_usable",
+    "k8s_mutating_admission_policy_served",
+    "openshift_namespace_without_scc",
+    "k8s_constrained_impersonation_gain",
+    "k8s_dangling_sa_permission_gain",
+    "k8s_sa_namespace_absent",
+    "gcp_sourcerepo_trigger_path",
+    "k8s_existing_rolebinding_gain",
+    "k8s_aggregation_new_role_path",
+    "k8s_csr_same_name_path",
+    "gcp_privatecatalog_dm_iam_path",
+    "gcp_eventarc_oauth_pipeline_path",
+    "k8s_kcc_service_account_key_path",
+    "k8s_kcc_project_policy_grant",
+    "azure_vmss_instance_runcommand_action_path",
+    "azure_vmss_instance_runcommand_path",
+    "azure_vmss_model_rollout_path",
+    "azure_vm_runcommand_action_path",
+    "azure_vm_os_disk_swap_path",
+    "azure_vm_managed_runcommand_path",
+    "azure_vm_gallery_application_path",
+    "azure_vm_extension_execution_path",
+    "azure_vm_reimage_customdata_path",
+    "azure_vm_create_uami_path",
+    "azure_vm_assign_indirect_uami_path",
+    "azure_vm_assign_existing_uami_path",
+    "azure_synapse_entra_admin_path",
+    "azure_spring_deployment_identity_path",
+    "azure_spring_app_uami_path",
+    "azure_servicefabric_application_uami_path",
+    "azure_policy_assignment_identity_path",
+    "azure_sql_server_admin_password_reset",
+    "azure_sql_server_entra_admin_write",
+    "azure_sqlmi_admin_password_reset",
+    "azure_sqlmi_entra_admin_write",
+    "azure_mysql_flexible_admin_password_reset",
+    "azure_mysql_flexible_entra_admin_write",
+    "azure_postgresql_flexible_admin_password_reset",
+    "azure_postgresql_flexible_entra_admin_write",
+    "azure_ml_online_endpoint_create_uami_path",
+    "azure_ml_existing_online_deployment_identity_path",
+    "azure_ml_compute_create_uami_path",
+    "azure_ml_compute_application_identity_path",
+    "azure_uami_fic_write_path",
+    "azure_managedapp_listtokens_path",
+    "azure_logicapp_existing_identity_path",
+    "azure_logicapp_assign_uami_path",
+    "entra_sp_credential_takeover_target",
+    "entra_sp_owner_update_target",
+    "azure_function_definition_code_path",
+    "azure_function_host_vfs_code_path",
+    "azure_function_remote_debug_path",
+    "azure_arc_guest_configuration_path",
+    "azure_hybrid_k8s_admin_credential_path",
+    "azure_imagebuilder_new_template_identity_path",
+    "azure_kusto_cluster_principal_assignment_path",
+    "azure_kusto_database_principal_assignment_path",
+    "azure_loadtesting_assign_uami_path",
+    "azure_loadtesting_existing_engine_identity_path",
+    "entra_agent_blueprint_principal_or_child_identity",
+    "aws_challenge_fact", "aws_s3_policy_self_grant", "aws_s3_access_grants_self_grant",
+    "aws_secretsmanager_policy_self_grant", "aws_efs_policy_self_grant",
+    "aws_cases_tag_self_grant", "aws_sitewise_portal_self_grant",
+    "gcp_challenge_fact", "gcp_resource_self_grant", "gcp_project_iam_sa_token_grant", "gcp_kcc_project_policy_grant", "gcp_gke_clusterrole_bind", "gcp_gke_clusterrole_escalate", "gcp_gke_system_impersonation", "gcp_gke_node_sa_actas", "gcp_gke_webhook_ksa_path", "gcp_gke_namespaced_rbac_ksa_path", "gcp_gke_node_proxy_sa", "gcp_gke_node_proxy_ksa", "gcp_gke_pod_template_ksa", "gcp_gke_pod_template_node_sa", "gcp_gke_pod_exec_node_sa", "gcp_gke_pod_exec_ksa", "gcp_gke_pod_update_ksa", "gcp_gke_secret_ksa", "gcp_gke_token_request_ksa", "gcp_gke_nodepool_metadata_downgrade", "gcp_kcc_generated_key_secret", "gcp_configdelivery_fleet_target", "gcp_fleet_config_management_target", "gcp_fleet_rbac_admin_target", "gcp_external_principal_evidence", "gcp_agentregistry_skill_evidence", "gcp_firebase_apphosting_retarget",
+    "gcp_appengine_deploy_path", "gcp_appengine_legacy_actas_unenforced",
+    "gcp_appintegration_run_as_path",
+    "gcp_bigquery_spark_connection_path",
+    "gcp_mig_existing_template_path",
+    "gcp_vm_create_path",
+    "gcp_osadminlogin_vm_path",
+    "gcp_osconfig_guest_policy_path",
+    "gcp_osconfig_os_policy_assignment_path",
+    "gcp_osconfig_patch_job_path",
+    "gcp_osconfig_policy_orchestrator_path",
+    "gcp_oslogin_vm_path",
+    "gcp_metadata_vm_path",
+    "gcp_project_metadata_vm_path",
+    "gcp_sa_swap_vm_path",
+    "gcp_mig_create_path",
+    "gcp_bounded_service_execution",
+    "gcp_gcr_namespace_path",
+    "gcp_artifact_policy_consumer_path",
+    "gcp_artifact_upload_consumer_path",
+    "gcp_agentidentity_retrieve_path",
+    "gcp_agentidentity_update_path",
+    "gcp_apigee_proxy_deploy_path",
+    "gcp_apigee_sharedflow_hook_path",
+    "gcp_vmmigration_metadata_clone_path",
+    "gcp_composer_storage_policy_path",
+    "gcp_bounded_access_gain", "gcp_wif_active_path", "gcp_wif_restorable_path", "gcp_workforce_control_path", "gcp_clouddeploy_custom_render_path", "gcp_clouddeploy_existing_custom_render_path", "gcp_clouddeploy_pipeline_policy_custom_render_path", "gcp_clouddeploy_configurable_custom_render_path", "gcp_cloudbuild_writable_trigger_token_path", "gcp_cloudbuild_writable_trigger_policy_path", "gcp_vertex_batch_prediction_path", "gcp_vertex_new_model_endpoint_path", "gcp_workbench_existing_takeover_path", "gcp_run_job_override_path", "gcp_run_job_policy_override_path", "gcp_run_service_update_path", "gcp_run_job_update_execute_path", "gcp_run_job_create_execute_path", "gcp_run_service_create_path", "gcp_run_service_policy_update_path", "gcp_run_worker_pool_policy_update_path", "gcp_run_instance_create_or_update_path", "gcp_run_instance_ssh_path", "gcp_run_service_ssh_path", "gcp_appengine_instance_ssh_path", "gcp_batch_agent_reporter_on_target", "gcp_run_worker_pool_create_or_update_path", "gcp_cross_project_run_service", "gcp_cross_project_run_instance", "gcp_cross_project_run_job", "gcp_cross_project_cloudbuild",
+    "gcp_cross_project_workflows", "gcp_cloudbuild_api_enabled", "gcp_datapipelines_scheduled_template_path", "gcp_dataflow_flex_launch_path", "gcp_dataflow_artifact_overwrite_path", "gcp_datafusion_pipeline_path", "gcp_datafusion_selfgrant_path", "gcp_datafusion_artifact_poison_path", "gcp_dataplex_task_path", "gcp_dataproc_create_path", "gcp_dataproc_session_path", "gcp_dataproc_cluster_selfgrant_path", "gcp_dataproc_gateway_path", "gcp_dataproc_job_path", "gcp_dataproc_init_replace_path", "gcp_dataproc_workflow_path", "gcp_deploymentmanager_create_path", "gcp_deploymentmanager_update_path", "gcp_developerconnect_pipeline_path", "gcp_deploymentmanager_selfgrant_path", "gcp_workflows_update_execute_same_workflow", "gcp_workflows_update_attach_path", "gcp_workflows_observed_external_execution", "gcp_workstations_create_config_path", "gcp_workstations_use_existing_path", "gcp_workstations_create_from_config_path", "gcp_cloudscheduler_update_job_path", "gcp_cloudscheduler_authenticated_delivery", "gcp_cloudtasks_enqueue_path", "gcp_cloudtasks_authenticated_delivery", "gcp_cloudtasks_queue_policy_path", "gcp_cloudfunctions_create_path", "gcp_cloudfunctions_existing_source_update_path", "gcp_cloudfunctions_env_startup_path", "gcp_cloudfunctions_source_deploy_build_path", "gcp_composer_dag_upload_path", "gcp_composer_create_with_dag_path", "gcp_composer_pypi_update_path",
+    "azure_challenge_fact", "azure_external_principal_evidence", "azure_apim_restorable_backup", "azure_automation_assignable_uami", "azure_automation_runbook_identity_path", "azure_automation_hybrid_worker_path", "azure_batch_job_pool_identity", "azure_batch_pool_starttask_identity", "azure_batch_shared_key_pool_identity", "azure_batch_pool_assignable_uami", "azure_confidential_ledger_admin_path", "azure_mongo_cluster_admin_password", "azure_mongo_cluster_self_root", "azure_cosmos_mongo_user_write", "azure_cosmos_other_api_role_grant", "azure_cosmos_sql_role_grant", "azure_databricks_workspace_admin", "azure_devtestlab_artifact_identity", "azure_containerapp_assignable_uami", "azure_containerapp_create_uami_path", "azure_containerapp_exec_identity", "azure_containerapp_write_existing_identity", "azure_containerapp_job_assignable_uami", "azure_containerapp_job_execution_identity", "azure_appservice_assignable_uami", "azure_appservice_backup_restore_code_path", "azure_appservice_config_code_path", "azure_appservice_enable_publishing_credentials_code_path", "azure_appservice_kudu_code_path", "azure_appservice_onedeploy_code_path", "azure_appservice_publishing_credentials_code_path", "azure_appservice_sitecontainers_code_path", "azure_appservice_siteextensions_code_path", "azure_appservice_slot_code_path", "azure_appservice_slot_swap_code_path", "azure_appservice_sourcecontrol_code_path", "azure_arc_entra_admin_ssh_path", "azure_arc_custom_script_code_path", "azure_arc_run_command_code_path", "azure_deployment_script_uami_path", "azure_appservice_slot_publishing_credentials_code_path", "azure_acr_assignable_uami", "azure_acr_existing_task_identity", "azure_aks_rbac_group_impersonation", "azure_aks_rbac_cluster_binding", "azure_flux_cluster_path", "azure_vmss_instance_identity", "azure_aci_assignable_uami", "azure_aci_exec_running_identity", "azure_aci_existing_write_identity", "k8s_challenge_fact", "k8s_helm_values_rbac", "k8s_verified_pivot", "k8s_bound_role_gain", "k8s_clusterrolebinding_gain", "k8s_existing_clusterrolebinding_gain", "k8s_aggregated_rolebinding_namespace",
     "same_as_source", "trust_allows_principal_of_source", "source_kind", "source_group_covered_by",
     "source_attached_policy_covered_by", "via_assumable_role_covered_by",
     "via_assumable_role_attached_policy_covered_by", "custom_role_assigned_to_source",
     "entra_source_is_owner_of_application", "entra_source_is_owner_of_service_principal", "entra_source_is_owner_of_group",
     "entra_group_source_self_membership",
     "entra_custom_role_assigned_to_source", "entra_pim_eligible_for_source", "entra_dynamic_rule_attributes_writable_by_source",
+    "entra_group_new_self_membership",
+    "entra_group_owner_new_self_membership",
+    "entra_group_source_not_owner",
+    "entra_auth_admin_user_takeover",
+    "entra_helpdesk_password_reset",
+    "entra_password_admin_reset",
+    "entra_user_admin_password_reset",
+    "entra_nonadmin_password_reset",
+    "entra_privileged_auth_user_takeover",
+    "entra_custom_role_assigned_to_source", "entra_user_upn_on_federatable_custom_domain", "entra_auto_assignment_package_group", "entra_catalog_self_grant_group", "entra_catalog_self_grant_role", "entra_graph_application_credential_target", "entra_graph_self_grant_directory_role", "entra_graph_directory_role_self_grant", "entra_role_assignment_self_grant", "entra_graph_tap_user_target", "entra_graph_group_sp_membership", "entra_graph_group_user_membership", "entra_pim_active_sp_membership", "entra_pim_controlled_user_eligibility", "entra_pim_eligible_for_source", "entra_dynamic_rule_attributes_writable_by_source",
     "entra_role_assignment_scope_covers_target", "entra_reset_matrix_column", "ml_compute_assigned_to_source",
     "k8s_sa_cloud_binding", "trust_allows_k8s_sa_oidc_subject", "gcp_workload_identity_user_granted_to_k8s_sa",
     "azure_fic_matches_k8s_sa", "k8s_node_cloud_identity", "k8s_nodes_mapped_to_cloud_identity",
@@ -161,7 +268,7 @@ class Reach:
 
 def _template_kind(template):
     names = _PH.findall(template) if isinstance(template, str) else []
-    if "source_rolebound_clusterrole" in names:
+    if any(name in names for name in ("source_rolebound_clusterrole", "source_bound_clusterrole", "source_bound_role")):
         return "target"  # the RoleBinding namespace must equal each target SA namespace
     if any(n == "pivot" or n.startswith("pivot.") for n in names):
         return "pivot"
@@ -170,7 +277,7 @@ def _template_kind(template):
     return "static"
 
 
-# These seven legacy claims need exact consumer/target joins or a bounded portal outcome.
+# These remaining legacy claims need exact consumer/target joins or a bounded portal outcome.
 # Preserve their catalog IDs for historical lookup while withholding graph edges.
 # A reviewed v4 correction may replace a hold only after its fact importer and
 # wrong-target validation are admitted together. See shared-suppression.json.
@@ -178,7 +285,6 @@ _SHARED_SEMANTIC_HOLDS = frozenset({
     "aws-codecommit-gitpush-pipeline-source",
     "aws-ec2-passrole-associate-instance-profile",
     "aws-v3-05-add-or-replace-a-workspaces-web-portal-saml-oidc-identi",
-    "gcp-privatecatalog-product-version-poison",
 })
 
 
@@ -240,7 +346,15 @@ class Evaluator:
                 reqs.append(CReq(raw, key, template, mode, localized))
             alternatives.append(reqs)
         if (target.get("kind") in ("azure_dataplane_admin", "k8s_cluster_admin")
-                and model.provider == "azure" and "azure_flux_cluster_path" not in selector):
+                and model.provider == "azure" and "azure_flux_cluster_path" not in selector
+                and "azure_resource_type" not in selector
+                and "azure_hybrid_k8s_admin_credential_path" not in selector
+                and "azure_kusto_cluster_principal_assignment_path" not in selector
+                and "azure_kusto_database_principal_assignment_path" not in selector
+                and "azure_mysql_flexible_entra_admin_write" not in selector
+                and "azure_sql_server_entra_admin_write" not in selector
+                and "azure_sqlmi_entra_admin_write" not in selector
+                and "azure_postgresql_flexible_entra_admin_write" not in selector):
             first = next((r.raw for alt in alternatives for r in alt if "action" in r.raw), None)
             if first is not None:
                 selector["_resource_type_from_action"] = first["action"]
@@ -300,6 +414,18 @@ class Evaluator:
                           for p in ("aws", "gcp", "azure", "k8s")
                           if compiled["selector"].get(p + "_challenge_fact")), None)
         if compiled["selector"].get("gcp_resource_self_grant"):
+            challenge = compiled["entry"]["id"]
+        if compiled["selector"].get("gcp_project_iam_sa_token_grant"):
+            challenge = compiled["entry"]["id"]
+        if compiled["selector"].get("gcp_kcc_project_policy_grant"):
+            challenge = compiled["entry"]["id"]
+        if compiled["selector"].get("gcp_kcc_generated_key_secret"):
+            challenge = compiled["entry"]["id"]
+        if compiled["selector"].get("gcp_configdelivery_fleet_target"):
+            challenge = compiled["entry"]["id"]
+        if compiled["selector"].get("gcp_fleet_config_management_target"):
+            challenge = compiled["entry"]["id"]
+        if compiled["selector"].get("gcp_fleet_rbac_admin_target"):
             challenge = compiled["entry"]["id"]
         if compiled["selector"].get("gcp_external_principal_evidence"):
             challenge = compiled["entry"]["id"]
@@ -409,6 +535,11 @@ class Evaluator:
         for req in reqs:
             reason = self.model.global_unknown(req.raw)
             if reason:
+                if self.model.provider == "azure" and "entra_owner_of" in req.raw:
+                    # Owner lists are per object. A missing list must not downgrade
+                    # a different object's recorded owner to unknown.
+                    sets.append(self.model.unknown_holders(req.raw))
+                    continue
                 unknown.append((req, reason))
                 sets.append(self.model.unknown_holders(req.raw))
                 continue
@@ -433,6 +564,8 @@ class Evaluator:
                 reaches.extend(evaluate_profile_association(self, compiled))
                 continue
             if (technique_id in _SHARED_SEMANTIC_HOLDS or
+                    (technique_id == "gcp-privatecatalog-product-version-poison" and
+                     compiled["selector"].get("gcp_privatecatalog_dm_iam_path") is not True) or
                     (technique_id == "gcp-appengine-versions-create-actas" and
                      compiled["selector"].get("gcp_appengine_deploy_path") is not True) or
                     (technique_id == "gcp-appintegration-runas-sa-actas" and
@@ -441,6 +574,8 @@ class Evaluator:
                      compiled["selector"].get("gcp_gcr_namespace_path") is not True) or
                     (technique_id == "gcp-artifactregistry-repositories-setiampolicy" and
                      compiled["selector"].get("gcp_artifact_policy_consumer_path") is not True) or
+                    (technique_id == "gcp-artifactregistry-upload-artifacts" and
+                     compiled["selector"].get("gcp_artifact_upload_consumer_path") is not True) or
                     (technique_id == "gcp-agentidentity-retrieve-credentials" and
                      compiled["selector"].get("gcp_agentidentity_retrieve_path") is not True) or
                     (technique_id == "gcp-agentidentity-update-token-url" and
@@ -474,6 +609,35 @@ class Evaluator:
                 source = reach.source
                 if reach.source_group or source is None:
                     continue  # aggregated "may reach" sources: the chain cannot be attributed
+                if reach.entry["source_selector"].get("source_reaches_user_outside_target_group"):
+                    targets = (reach.targets.expand(reach.cset, source.id)
+                               if isinstance(reach.targets, AllOf) else reach.targets)
+                    matched = {}
+                    for tid, grant in (targets or {}).items():
+                        group = reach.cset.members.get(tid)
+                        if group is None:
+                            continue
+                        def eligible_user(user_id, group_id=group.id):
+                            user = self.model.principals.get(user_id)
+                            return (user is not None and user.kind == "azure_user"
+                                    and user.attrs.get("account_enabled") is True
+                                    and group_id not in self.model._groups(user_id))
+                        if source.kind == wanted:
+                            level = grant.confidence if eligible_user(source.id) else None
+                        else:
+                            key = (source.id, wanted, tid)
+                            if key not in cache:
+                                cache[key] = self._chain_level(adjacency, source.id, wanted, levels, eligible_user)
+                            level = cache[key]
+                        if level is not None:
+                            matched[tid] = downgrade(grant, level, "source_reaches_nonmember_user_via_chain")
+                    if matched:
+                        kept.append(Reach(reach.entry, source, matched, reach.cset, source_group=reach.source_group))
+                        add_edges(kept[-1])
+                        progress = True
+                    else:
+                        still.append(reach)
+                    continue
                 if source.kind == wanted:
                     kept.append(reach)
                     add_edges(reach)
@@ -497,7 +661,7 @@ class Evaluator:
         return kept
 
     @staticmethod
-    def _chain_level(adjacency, start, wanted, levels):
+    def _chain_level(adjacency, start, wanted, levels, accept_target=None):
         """Best (strongest) confidence level at which `start` reaches a node of kind `wanted`, or None."""
         for level in levels:
             limit = CONF_RANK[level]
@@ -508,7 +672,7 @@ class Evaluator:
                     for tid, (rank, kind) in adjacency.get(nid, {}).items():
                         if rank > limit or tid in seen:
                             continue
-                        if kind == wanted:
+                        if kind == wanted and (accept_target is None or accept_target(tid)):
                             return level
                         seen.add(tid)
                         nxt.append(tid)
@@ -998,14 +1162,24 @@ class Evaluator:
             # target for every source adds no information (notably 10k Azure users).
             key, value = next(iter(compiled["dynamic"].items()))
             first_dynamic_verdict = self._select(key, value, members, source, pivot=pivot_values)
+            if (isinstance(first_dynamic_verdict, UniformVerdict)
+                    and first_dynamic_verdict.verdict[0] == "unknown" and not self.include_unknown):
+                # Every selected target depends on missing facts. No concrete
+                # edge can be produced, including when the selector chose a
+                # subset of the candidate set.
+                return placeholders or None
             if first_dynamic_verdict is None:
                 self.note("selector", "*", "not_evaluated", f"selector {key} not evaluated",
                           "Matching targets reported as one unresolved placeholder per scope (no members); needs "
                           + FACTS_NEEDED.get(key, "facts not in snapshot"))
                 grant = downgrade(current.grant, "unknown", f"selector_{key}_not_evaluated")
-            elif first_dynamic_verdict.keys() == members.keys():
-                first = next(iter(first_dynamic_verdict.values()), None)
-                if first and first[0] == "unknown" and all(v == first for v in first_dynamic_verdict.values()):
+            elif (isinstance(first_dynamic_verdict, UniformVerdict)
+                  and first_dynamic_verdict.candidates is members
+                  and first_dynamic_verdict.exclude in (None, source.id)) or first_dynamic_verdict.keys() == members.keys():
+                first = (first_dynamic_verdict.verdict if isinstance(first_dynamic_verdict, UniformVerdict)
+                         else next(iter(first_dynamic_verdict.values()), None))
+                if first and first[0] == "unknown" and (isinstance(first_dynamic_verdict, UniformVerdict)
+                                                       or all(v == first for v in first_dynamic_verdict.values())):
                     reason = first[1] or f"selector_{key}_unknown"
                     self.note("selector", "*", "unresolved", f"selector {key} unresolved ({first[1]})",
                               "Targets matching only on missing facts reported as one unresolved placeholder per scope; needs "

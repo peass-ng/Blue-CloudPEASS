@@ -44,7 +44,12 @@ def reviewed_inputs(root=None):
                     'peaso/collectors/azure.py:_selected']
                 if record['source_sha256'] != transition['predecessor_sha256']:
                     raise RuntimeError('production selected-source predecessor changed')
-                record['source_sha256'] = transition['current_sha256']
+                from peaso import private_reviewed_collector_successor_20261022 as reviewed_epoch
+                current_fragment = inspect.getsource(fn)
+                epoch_fragment = reviewed_epoch.previous_function_source('peaso/collectors/azure.py', '_selected', current_fragment, root)
+                if hashlib.sha256(epoch_fragment.encode()).hexdigest() != transition['current_sha256']:
+                    raise RuntimeError('production selected-source epoch changed')
+                record['source_sha256'] = hashlib.sha256(current_fragment.encode()).hexdigest()
             path = (root / record['path']).resolve()
             if not path.is_relative_to(root):
                 raise RuntimeError('production callable escaped repository')

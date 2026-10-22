@@ -11,7 +11,7 @@
   service: managed_grafana
   title: Grafana Admin through the ActAsGrafanaAdmin data action
   source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-managed-grafana-privesc.md#microsoftdashboardgrafanaactasgrafanaadminaction
-  source_revision: 171e422
+  source_revision: db5b136660
   summary: The source can obtain Grafana Admin on the workspace, including use of its configured data sources.
   requires:
     all_of:
@@ -21,16 +21,17 @@
   target:
     kind: azure_dataplane_admin
     selector:
-      any_principal_in_scope: true
+      azure_resource_type: Microsoft.Dashboard/grafana
     scope: inherited_scope
     aggregate_as: "Grafana admins of {target.scope}"
   conditions:
     - id: datasource_identity
       description: Data sources configured with the workspace managed identity let Grafana Admin query whatever that identity can read; this partial identity use is configuration-dependent.
   blockers: []
-  confidence: derived
+  confidence: conditional
   severity: high
   mitigation: Restrict the Grafana Admin role assignment and keep the workspace identity read-scoped.
   references:
     - https://learn.microsoft.com/en-us/azure/managed-grafana/how-to-manage-access-permissions-users-identities
-  notes: ""
+    - https://learn.microsoft.com/en-us/azure/managed-grafana/how-to-authenticate-data-plane-api
+  notes: The data action grants Grafana Admin on each collected Grafana workspace covered by the role assignment. The target is the workspace's application-plane administrator, not an unrelated Azure resource or its managed identity. Access to a configured data source depends on that data source's authentication and network path.

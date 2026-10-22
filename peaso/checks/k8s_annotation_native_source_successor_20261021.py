@@ -16,6 +16,7 @@ from urllib.parse import quote
 
 from . import k8s_annotation_native_admission_20261020 as historical
 from peaso import private_secret_source_epoch_20261021 as source_epoch
+from peaso import private_reviewed_collector_successor_20261022 as reviewed_epoch
 
 ROOT = Path(__file__).resolve().parents[2]
 GUARD = ROOT / 'peaso/checks/k8s_annotation_native_admission_20261020.py'
@@ -131,7 +132,7 @@ def _self_proof():
 
 def _source_proofs():
     raw = COLLECTOR.read_bytes()
-    before = source_epoch.predecessor_bytes('peaso/collectors/k8s.py', raw, BEFORE_SHA, ROOT)
+    before = reviewed_epoch.predecessor_bytes('peaso/collectors/k8s.py', raw, BEFORE_SHA, ROOT)
     if _sha(before) != BEFORE_SHA:
         raise RuntimeError('Successor predecessor reconstruction changed')
     if _sha(source_epoch.predecessor_bytes('peaso/secret_evidence.py', HELPER.read_bytes(), HELPER_SHA, ROOT)) != HELPER_SHA:
@@ -205,7 +206,7 @@ def _current_functions(raw):
     epoch_sources = source_epoch.source_rows()
     external = {
         'peaso.collectors.azure': (ROOT / 'peaso/collectors/azure.py',
-                                    epoch_sources['peaso/collectors/azure.py']['after_sha256']),
+                                    reviewed_epoch._receipt()['sources']['peaso/collectors/azure.py']['current_sha256']),
         'peaso.snapshot': (ROOT / 'peaso/snapshot.py', SNAPSHOT_SHA),
     }
     for owner_name, (source_path, source_sha) in external.items():
@@ -302,15 +303,22 @@ def install():
     _helper_proof()
     historical_receipt = historical._source_receipt()
     expected_source = historical_receipt['compiled_sources']['peaso/collectors/k8s.py']
-    exact_before = source_epoch.predecessor_bytes('peaso/collectors/k8s.py', raw, BEFORE_SHA, ROOT)
+    exact_before = reviewed_epoch.predecessor_bytes('peaso/collectors/k8s.py', raw, BEFORE_SHA, ROOT)
     if before != exact_before:
         raise RuntimeError('Successor exact predecessor bytes changed')
-    live_proof = source_epoch.trusted_definition(current_functions['_native'], ROOT)
+    # The reviewed source receipt pins the complete current collector bytes.
+    # _current_functions proves the live callable code and globals against them.
     historical_row = {'path': 'peaso/collectors/k8s.py',
                       'sha256': expected_source['functions']['_native']['source_sha256']}
-    projected = source_epoch.callable_projection(current_functions['_native'], historical_row, ROOT)
-    if (live_proof['historical']['source_sha256'] != historical_row['sha256']
-            or live_proof['current']['source_sha256'] != projected['sha256']):
+    current_matches = [(record, code) for record, code in
+                       historical._compiled_source(raw, str(COLLECTOR), sys.flags.optimize)
+                       if record['qualname'] == '_native']
+    previous_matches = [(record, code) for record, code in
+                        historical._compiled_source(before, str(COLLECTOR), sys.flags.optimize)
+                        if record['qualname'] == '_native']
+    if (len(current_matches) != 1 or len(previous_matches) != 1
+            or previous_matches[0][0]['source_sha256'] != historical_row['sha256']
+            or not source_epoch._code_equal(current_functions['_native'].__code__, current_matches[0][1])):
         raise RuntimeError('Successor shared source epoch changed')
     old_source = historical._verified_source('peaso/collectors/k8s.py', before, expected_source)
     namespace = _namespace()

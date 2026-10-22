@@ -12,6 +12,21 @@ def test_current_catalog_binding_resolves_new_technique():
     assert set(entries) == {"aws-flink-studio-presigned-url"}
 
 
+def test_reviewed_691_binding_retains_retired_techniques_without_reviving_them():
+    ident = "gcp-artifactregistry-repositories-update-dependency-confusion"
+    current, status = catalog.lookup_entries([ident], catalog.current_binding())
+    assert status == "exact_strict_privesc" and current == {}
+    previous_binding = {
+        "schema": catalog.BINDING_SCHEMA,
+        "manifest_sha256": catalog.REVIEWED_691_PREVIOUS_MANIFEST,
+        "effective_tree_sha256": catalog.REVIEWED_691_PREVIOUS_TREE,
+        "source_revision": catalog.V4_REVISION,
+    }
+    previous, status = catalog.lookup_entries([ident], previous_binding)
+    assert status == "exact_previous_current" and ident in previous
+    assert len(catalog._verified_reviewed_691_previous()) == 691
+
+
 def test_stepfunctions_passrole_service_binding_preserves_previous_catalog():
     ids = ["aws-stepfunctions-createstatemachine-passrole-start",
            "aws-stepfunctions-updatestatemachine-passrole"]

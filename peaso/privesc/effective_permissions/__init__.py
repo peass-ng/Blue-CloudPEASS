@@ -11,6 +11,8 @@ Each provider model normalises a snapshot once into:
 from __future__ import annotations
 
 import fnmatch
+from collections.abc import Mapping
+from itertools import repeat
 import re
 from dataclasses import dataclass, field
 from functools import lru_cache
@@ -26,6 +28,35 @@ class _Any:
 
 
 ANY = _Any()  # "the permission on at least one resource"
+
+
+class UniformVerdict(Mapping):
+    """One selector verdict for every candidate without copying the target map."""
+
+    def __init__(self, candidates, verdict, exclude=None):
+        self.candidates = candidates
+        self.verdict = verdict
+        self.exclude = exclude
+
+    def __getitem__(self, key):
+        if key == self.exclude or key not in self.candidates:
+            raise KeyError(key)
+        return self.verdict
+
+    def __iter__(self):
+        return (key for key in self.candidates if key != self.exclude)
+
+    def __len__(self):
+        return len(self.candidates) - (self.exclude is not None and self.exclude in self.candidates)
+
+    def keys(self):
+        return self.candidates.keys() if self.exclude is None else Mapping.keys(self)
+
+    def values(self):
+        return repeat(self.verdict, len(self))
+
+    def items(self):
+        return ((key, self.verdict) for key in self)
 
 
 class Grant:
@@ -192,6 +223,19 @@ class Model:
         self.coverage = []
         self.catalog_keys = set(catalog_keys)
         self._check_cache = {}
+        self._prefilter_catalog = None
+        self._prefilter_indexes = {}
+
+    def prefilter_indexes(self):
+        """Return scan-local indexes for the current set of catalog requirements."""
+        signature = frozenset(self.catalog_keys)
+        if signature != self._prefilter_catalog:
+            self._prefilter_catalog = signature
+            self._prefilter_indexes = {}
+            for key in tuple(self._check_cache):
+                if isinstance(key, tuple) and key and key[0] == "possible":
+                    del self._check_cache[key]
+        return self._prefilter_indexes, self._prefilter_catalog
 
     # ---- coverage -------------------------------------------------------
     def add_coverage(self, kind, scope, status, reason, impact):

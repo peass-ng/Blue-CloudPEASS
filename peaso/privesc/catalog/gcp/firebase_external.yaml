@@ -1,34 +1,6 @@
 # An account update is only an identity pivot when reviewed evidence proves the
 # exact Firebase user, a usable new sign-in credential, and newly allowed access.
 # Canonical policy: peaso/privesc/catalog_policy.yaml
-- id: gcp-firebaseauth-users-update-exact-user-credential
-  provider: gcp
-  service: firebaseauth
-  title: Reset a known Firebase user password and reach that exact app principal
-  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-firebase-privesc.md#firebaseauthusersupdate--take-over-an-application-user-or-set-privileged-custom-claims
-  source_revision: f0f683242a
-  summary: With permission to update a known project or tenant Firebase user, the source may set a password and reach that user's application identity when a reviewed sign-in and newly authorized application action prove the pivot.
-  requires:
-    all_of:
-    - action: firebaseauth.users.update
-      resource: '{target.resource}'
-  target:
-    kind: gcp_external_principal
-    selector:
-      gcp_external_principal_evidence: true
-      gcp_external_plane: firebase_auth
-    scope: same_project
-    outcome: credentials
-    aggregate_as: Exact Firebase user with reviewed new application access
-  conditions:
-  - id: exact_firebase_user_signin
-    description: The reviewed record must bind the project or tenant, target localId, enabled email/password provider, accepted update, usable new password, prior source denial, and a newly allowed application action after sign-in.
-  blockers: []
-  confidence: conditional
-  severity: high
-  mitigation: Restrict Firebase user updates and monitor password resets for privileged application users.
-  notes: TargetPlane must be firebase_auth; TargetServiceResource must identify the exact project or tenant user, TargetPrincipalId and ObservedPrincipalId must identify its localId, and GainedPermission must name one application authorization that was denied to the source before the update. Custom-claim changes without a proven sign-in are not covered by this entry.
-
 - id: gcp-firebase-signblob-exact-custom-token-user
   provider: gcp
   service: firebaseauth
@@ -50,40 +22,12 @@
     aggregate_as: Exact Firebase custom-token user with reviewed new access
   conditions:
   - id: exact_firebase_custom_token_exchange
-    description: The reviewed record must bind the signing service account to the Firebase project, an accepted custom token with exact UID and claims, a successful exchange, prior source denial, and a newly allowed application action.
+    description: The reviewed record must bind the exact signing service account to the RS256 custom token issuer and subject, the Firebase audience and UID, an accepted exchange for that project, tenant when present, and UID, prior source denial, and a newly allowed application action.
   blockers: []
   confidence: conditional
   severity: high
   mitigation: Restrict service-account signing permissions and validate Firebase custom-token issuance.
-  notes: ActionResource is the exact signing service account; TargetServiceResource is the exact Firebase project user, and ObservedPrincipalId must match the chosen UID. A signed JWT without accepted Firebase exchange and new authorization is insufficient.
-
-- id: gcp-firebaseauth-configs-update-exact-idp-principal
-  provider: gcp
-  service: firebaseauth
-  title: Capture one usable federated IdP credential through a configured blocking function
-  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-firebase-privesc.md#firebaseauthconfigsupdate--hijack-identity-platform-blocking-functions
-  source_revision: f0f683242a
-  summary: Updating an Identity Platform blocking-function configuration may send a later user's federated IdP credential to an attacker-controlled function, reaching the named IdP principal only if the credential is actually captured, current, usable, and grants a new target action.
-  requires:
-    all_of:
-    - action: firebaseauth.configs.update
-      resource: '{target.resource}'
-  target:
-    kind: gcp_external_principal
-    selector:
-      gcp_external_principal_evidence: true
-      gcp_external_plane: firebase_idp
-    scope: same_project
-    outcome: credentials
-    aggregate_as: Exact federated IdP principal with reviewed new access
-  conditions:
-  - id: exact_forwarded_idp_credential
-    description: The reviewed record must bind an existing attacker-controlled blocking function, accepted configuration change, supported federated sign-in, actual forwarded token, exact IdP subject/audience, prior source denial, and a newly allowed IdP action.
-  blockers: []
-  confidence: conditional
-  severity: high
-  mitigation: Restrict Identity Platform configuration updates and monitor blocking-function destinations and forwarded credentials.
-  notes: This entry covers an existing deployed blocking function; deploying a new function has separate requirements. TargetServiceResource identifies the exact IdP API resource and ObservedPrincipalId the authenticated federated subject. Claim mutation without a captured usable credential is not a source-to-target identity path.
+  notes: ActionResource is the exact signing service account; TargetServiceResource is the exact Firebase project or tenant user. SignedTokenIssuer and SignedTokenSubject must match that account, SignedTokenUid and ExchangeUid must match the target UID, ExchangeProjectId must match the project, and SignedTokenTenantId and ExchangeTenantId must agree when a tenant is used. A signed JWT without accepted Firebase exchange and new authorization is insufficient.
 
 - id: gcp-firebase-signjwt-exact-custom-token-user
   provider: gcp
@@ -106,9 +50,9 @@
     aggregate_as: Exact Firebase custom-token user with reviewed new access
   conditions:
   - id: exact_firebase_custom_jwt_exchange
-    description: The reviewed record must bind the signing service account to the Firebase project, an accepted custom JWT with exact UID and claims, a successful exchange, prior source denial, and a newly allowed application action.
+    description: The reviewed record must bind the exact signing service account to the RS256 custom JWT issuer and subject, the Firebase audience and UID, an accepted exchange for that project, tenant when present, and UID, prior source denial, and a newly allowed application action.
   blockers: []
   confidence: conditional
   severity: high
   mitigation: Restrict service-account signing permissions and validate Firebase custom-token issuance.
-  notes: ActionResource is the exact signing service account; TargetServiceResource is the exact Firebase project user, and ObservedPrincipalId must match the chosen UID. A signed JWT without accepted Firebase exchange and new authorization is insufficient.
+  notes: ActionResource is the exact signing service account; TargetServiceResource is the exact Firebase project or tenant user. SignedTokenIssuer and SignedTokenSubject must match that account, SignedTokenUid and ExchangeUid must match the target UID, ExchangeProjectId must match the project, and SignedTokenTenantId and ExchangeTenantId must agree when a tenant is used. A signed JWT without accepted Firebase exchange and new authorization is insufficient.

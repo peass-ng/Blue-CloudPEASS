@@ -18,16 +18,16 @@ _TOKEN = re.compile(r"""\s*(?:(?P<str>"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(?P<o
                     r"""(?P<num>\d+)|(?P<id>[A-Za-z_][A-Za-z0-9_]*))""")
 _ATTRS = ("resource.name", "resource.type", "resource.service", "request.time")
 _CACHE = {}
+_UNAVAILABLE = object()
 
 # resource.type per resource-name shape (as modelled by the GCP effective-permission model).
 _TYPES = (
-    (re.compile(r"^projects/[^/]+/serviceAccounts/[^/]+$"), "iam.googleapis.com/ServiceAccount"),
-    (re.compile(r"^projects/[^/]+/(zones|locations)/[^/]+/instances/[^/]+$"), "compute.googleapis.com/Instance"),
-    (re.compile(r"^projects/[^/]+/locations/[^/]+/clusters/[^/]+$"), "container.googleapis.com/Cluster"),
+    (re.compile(r"^projects/_/buckets/[^/]+/objects/.+$"), "storage.googleapis.com/Object"),
+    (re.compile(r"^projects/_/buckets/[^/]+$"), "storage.googleapis.com/Bucket"),
+    (re.compile(r"^projects/[^/]+/zones/[^/]+/instances/[^/]+$"), "compute.googleapis.com/Instance"),
+    (re.compile(r"^projects/[^/]+/(zones|locations)/[^/]+/clusters/[^/]+$"), "container.googleapis.com/Cluster"),
     (re.compile(r"^projects/[^/]+/secrets/[^/]+$"), "secretmanager.googleapis.com/Secret"),
     (re.compile(r"^projects/[^/]+$"), "cloudresourcemanager.googleapis.com/Project"),
-    (re.compile(r"^folders/[^/]+$"), "cloudresourcemanager.googleapis.com/Folder"),
-    (re.compile(r"^organizations/[^/]+$"), "cloudresourcemanager.googleapis.com/Organization"),
 )
 
 
@@ -190,6 +190,8 @@ def _values(node, ctx):
         return (node[1],)
     if kind == "attr":
         value = ctx.get(node[1])
+        if value is _UNAVAILABLE:
+            return _UNAVAILABLE
         if value is None:
             return None
         return tuple(value) if isinstance(value, (list, tuple, set, frozenset)) else (value,)
@@ -202,19 +204,29 @@ def _truth(node, ctx):
         return node[1] if isinstance(node[1], bool) else None
     if kind == "not":
         value = _truth(node[1], ctx)
+        if value is _UNAVAILABLE:
+            return _UNAVAILABLE
         return None if value is None else not value
     if kind in ("and", "or"):
         left, right = _truth(node[1], ctx), _truth(node[2], ctx)
         if kind == "and":
             if left is False or right is False:
                 return False
+            if left is _UNAVAILABLE or right is _UNAVAILABLE:
+                return _UNAVAILABLE
             return True if left is True and right is True else None
         if left is True or right is True:
             return True
+        if left is None or right is None:
+            return None
+        if left is _UNAVAILABLE or right is _UNAVAILABLE:
+            return _UNAVAILABLE
         return False if left is False and right is False else None
     if kind == "cmp":
         _, op, a, b = node
         left, right = _values(a, ctx), _values(b, ctx)
+        if left is _UNAVAILABLE or right is _UNAVAILABLE:
+            return _UNAVAILABLE
         if left is None or right is None:
             return None
         results = set()
@@ -228,6 +240,8 @@ def _truth(node, ctx):
     if kind == "call":
         _, name, target, args = node
         subject, arg = _values(target, ctx), _values(args[0], ctx)
+        if subject is _UNAVAILABLE or arg is _UNAVAILABLE:
+            return _UNAVAILABLE
         if subject is None or arg is None or not all(isinstance(v, str) for v in subject + arg):
             return None
         results = {(s.startswith(a) if name == "startsWith" else s.endswith(a)) for s in subject for a in arg}
@@ -238,22 +252,45 @@ def _truth(node, ctx):
 def evaluate(expr, ctx):
     """True / False when decided, None otherwise."""
     tree = compile_condition(expr)
-    return None if tree is None else _truth(tree, ctx)
+    if tree is None:
+        return None
+    result = _truth(tree, ctx)
+    # An unavailable attribute cannot make a binding grant access, including
+    # when negated. A separate true OR branch can still grant access.
+    return False if result is _UNAVAILABLE else result
 
 
 def now_context(now=None):
     return {"request.time": now or datetime.now(timezone.utc)}
 
 
-def resource_context(resource, aliases=(), now=None):
+def resource_context(resource, aliases=(), now=None, *, attributes_available=True):
     """Context for a resource name as modelled (projects/<id>/..., folders/<n>, ...)."""
     ctx = now_context(now)
     resource = str(resource or "")
+    if resource.startswith("//storage.googleapis.com/projects/_/buckets/"):
+        resource = resource.removeprefix("//storage.googleapis.com/")
+    if re.match(r"^projects/[^/]+/serviceAccounts/[^/]+$", resource):
+        # IAM service-account resources do not expose resource.name/type/service
+        # to IAM Conditions. The resource path is still used for policy lookup.
+        ctx.update({key: _UNAVAILABLE for key in ("resource.name", "resource.type", "resource.service")})
+        return ctx
+    if not attributes_available:
+        # Some services, including Data Fusion, are absent from Google's
+        # supported IAM resource-attribute list. Their API path is not an
+        # available resource.name value for a binding condition.
+        ctx.update({key: _UNAVAILABLE for key in ("resource.name", "resource.type", "resource.service")})
+        return ctx
+    if re.match(r"^projects/[^/]+$", resource):
+        # Resource Manager projects expose type/service, but not resource.name.
+        ctx["resource.name"] = _UNAVAILABLE
+    if re.match(r"^(folders|organizations)/[^/]+$", resource):
+        # Neither type is in the supported type list. Service support here is
+        # unresolved, so leave it undecided rather than inventing a value.
+        ctx.update({key: _UNAVAILABLE for key in ("resource.name", "resource.type")})
+        return ctx
     names = [resource] + [a for a in aliases if a and a != resource]
-    if resource.startswith("projects/") and "/serviceAccounts/" in resource:
-        tail = resource.split("/serviceAccounts/", 1)[1]
-        names += ["projects/-/serviceAccounts/" + tail]
-    if names and resource and not resource.startswith("//"):
+    if names and resource and not resource.startswith("//") and ctx.get("resource.name") is not _UNAVAILABLE:
         ctx["resource.name"] = tuple(dict.fromkeys(names))
     for pattern, rtype in _TYPES:
         if pattern.match(resource):
