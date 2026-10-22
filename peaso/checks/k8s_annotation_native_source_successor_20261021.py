@@ -134,7 +134,7 @@ def _source_proofs():
     before = source_epoch.predecessor_bytes('peaso/collectors/k8s.py', raw, BEFORE_SHA, ROOT)
     if _sha(before) != BEFORE_SHA:
         raise RuntimeError('Successor predecessor reconstruction changed')
-    if _sha(HELPER.read_bytes()) != HELPER_SHA:
+    if _sha(source_epoch.predecessor_bytes('peaso/secret_evidence.py', HELPER.read_bytes(), HELPER_SHA, ROOT)) != HELPER_SHA:
         raise RuntimeError('Successor private evidence helper changed')
     return raw, before
 
@@ -145,7 +145,7 @@ def _helper_proof():
     module = sys.modules.get('peaso.secret_evidence')
     if (not isinstance(module, types.ModuleType)
             or Path(getattr(module, '__file__', '')).resolve() != HELPER
-            or _sha(HELPER.read_bytes()) != HELPER_SHA):
+            or _sha(source_epoch.predecessor_bytes('peaso/secret_evidence.py', HELPER.read_bytes(), HELPER_SHA, ROOT)) != HELPER_SHA):
         raise RuntimeError('Successor helper module changed')
     for name in ('pod_environment', 'enabled', 'named_environment', 'named_literal'):
         value = vars(module).get(name)

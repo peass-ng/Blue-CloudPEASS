@@ -41,7 +41,7 @@ def _receipt():
             or _sha((GUARD.with_name(historical.RECEIPT)).read_bytes()) != row['guard_receipt_sha256']
             or _sha(Path(annotation_successor.__file__).read_bytes()) != row['annotation_successor_sha256']
             or _sha(Path(annotation_successor.__file__).with_suffix('.json').read_bytes()) != row['annotation_successor_receipt_sha256']
-            or _sha((ROOT / 'peaso/secret_evidence.py').read_bytes()) != row['helper_sha256']):
+            or _sha(annotation_successor.source_epoch.predecessor_bytes('peaso/secret_evidence.py', (ROOT / 'peaso/secret_evidence.py').read_bytes(), row['helper_sha256'], ROOT)) != row['helper_sha256']):
         raise RuntimeError('Kubelet source successor or receipt changed')
     caller = (ROOT / 'peaso/checks/__init__.py').read_text()
     hunk = ('from . import k8s_kubelet_configmap_source_successor_20261021\n'

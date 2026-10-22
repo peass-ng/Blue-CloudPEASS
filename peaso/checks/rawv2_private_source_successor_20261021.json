@@ -722,7 +722,7 @@
       ]
     },
     "EphemeralCipher": {
-      "lineno": 793,
+      "lineno": 794,
       "methods": {
         "__init__": {
           "defaults": "None",

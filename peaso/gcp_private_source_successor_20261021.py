@@ -35,7 +35,7 @@ SOURCE_DELTA_SHA256 = '6f803d15053fdccf982ab20883b76a72a821ef98f703192eba25c3a05
 BRIDGE_RECEIPT = 'peaso/checks/gcp_positive_conservation_source_bridge_20261020.json'
 BRIDGE_RECEIPT_SHA256 = '5889b51b210bf8a45f3eb07c5b4a027a2fceec9562e5b6baed8c2ba614d27f1e'
 PRIVATE_RECEIPT = 'peaso/checks/gcp_private_source_successor_20261021.json'
-PRIVATE_RECEIPT_SHA256 = '82923a38428ba12b97e40c5e70b8bedcdb46c39519282e7f50f726c9003edbb7'
+PRIVATE_RECEIPT_SHA256 = 'ad9e781936e6cba85de67f4029778cba32a6f257474a8b5845008c202ccf13e9'
 
 
 _MODULE_ARTIFACTS = ContextVar('gcp_positive_module_artifacts', default=None)
@@ -241,7 +241,8 @@ def _live_helper(root):
     if not path.is_relative_to(root / 'peaso') or Path(private_helper.__file__).resolve() != path:
         raise RuntimeError('Private helper location changed')
     raw = path.read_bytes()
-    if hashlib.sha256(raw).hexdigest() != private_source._HELPER_SHA256:
+    if hashlib.sha256(private_source.predecessor_bytes('peaso/secret_evidence.py', raw,
+            private_source._HELPER_SHA256, root)).hexdigest() != private_source._HELPER_SHA256:
         raise RuntimeError('Private helper source changed')
     if sys.modules.get('peaso.secret_evidence') is not private_helper:
         raise RuntimeError('Private helper module replaced')

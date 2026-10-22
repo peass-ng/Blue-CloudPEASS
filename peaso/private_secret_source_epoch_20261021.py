@@ -24,8 +24,8 @@ import sysconfig
 from types import CodeType, FunctionType, MethodType, ModuleType
 import zipfile
 
-_RECEIPT_SHA256 = "04bee474256ddeacb6da3ea69c129d8cb389244359447816c3972f102262ab3a"
-_SELF_SHA256 = "0e0294d108f38557b2aaf92c0eba4c38852aa7045121057049a0b5341677df74"
+_RECEIPT_SHA256 = "9f7b026dddda2d6e5a86ac9ea577f3756f2e6ae45f1549ec5bd7800f5bbbc35f"
+_SELF_SHA256 = "6b824a1905131fac366c64466a62553198aea35eaffc78c73e292648396b6874"
 _ARCHIVE_SHA256 = "3eb403fa363c559f7053060d409f60ac8c693350350423a6dc775412df4300c0"
 _HELPER_SHA256 = "15092e316c2331e03fdae7fad4dda5ed92310a1c15a827b0009fbcd54a11693a"
 _BASE = "6b6ee759234d7e2dad978342838cb3af4e1fe767"
@@ -516,7 +516,7 @@ def _root_path(root: str | Path, relative: str) -> Path:
 
 def _live(root: str | Path, relative: str, row: dict) -> tuple[bytes, Path]:
     helper = _root_path(root, "peaso/secret_evidence.py")
-    if _sha(helper.read_bytes()) != _HELPER_SHA256:
+    if _sha(helper.read_bytes()) != _receipt()[0]["current_reviewed_files"]["peaso/secret_evidence.py"]["current_sha256"]:
         raise AdmissionError("private dependency mismatch")
     path = _root_path(root, relative)
     data = path.read_bytes()
@@ -902,7 +902,8 @@ def _check_helper_import(value: object, imported: ModuleType, attr: str | None, 
     if Path(getattr(imported, "__file__", "")).resolve(strict=True) != path:
         raise AdmissionError("helper module location mismatch")
     data = path.read_bytes()
-    if _sha(data) != _HELPER_SHA256:
+    if (_sha(data) != _receipt()[0]["current_reviewed_files"]["peaso/secret_evidence.py"]["current_sha256"]
+            or _sha(predecessor_bytes("peaso/secret_evidence.py", data, _HELPER_SHA256, root)) != _HELPER_SHA256):
         raise AdmissionError("helper module source mismatch")
     if attr is None:
         return
