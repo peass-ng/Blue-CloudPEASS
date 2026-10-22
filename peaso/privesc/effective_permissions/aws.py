@@ -7132,6 +7132,99 @@ class AwsModel(Model):
             return None
         return ("conditional", "deadline_exact_worker_new_authority")
 
+    def _devicefarm_existing_test_spec_role_effect(self, source, role):
+        """Join an existing controlled spec and its actual role action to one run."""
+        technique = "aws-devicefarm-schedulerun-existing-test-spec-passrole"
+        if source.scope != role.scope or source.id == role.id:
+            return None
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "devicefarm_existing_spec_evidence_missing_or_conflicting")
+        scope, proof = records[0]
+        statuses = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+        if statuses.get(scope) != "collected" or source.incomplete or role.incomplete:
+            return ("unknown", "devicefarm_existing_spec_evidence_incomplete")
+        project = proof.get("ProjectArn")
+        pool = proof.get("DevicePoolArn")
+        spec = proof.get("TestSpecArn")
+        package = proof.get("TestPackageArn")
+        app = proof.get("AppArn")
+        run = proof.get("RunArn")
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        region = scope.split("/", 1)[1] if "/" in scope else ""
+        prefix = f"arn:{partition}:devicefarm:{region}:{source.scope}:"
+        project_match = (re.fullmatch(re.escape(prefix) + r"project:([A-Za-z0-9-]+)", project)
+                         if isinstance(project, str) else None)
+        if project_match is None:
+            return ("unknown", "devicefarm_existing_spec_project_not_verified")
+        project_id = project_match.group(1)
+        upload_prefix = prefix + "upload:" + project_id + "/"
+        valid_upload = lambda arn: isinstance(arn, str) and arn.startswith(upload_prefix) and bool(
+            re.fullmatch(r"[A-Za-z0-9-]+", arn[len(upload_prefix):]))
+        pool_prefix = f"arn:{partition}:devicefarm:{region}:"
+        valid_pool = isinstance(pool, str) and any(re.fullmatch(
+            re.escape(pool_prefix + owner + ":devicepool:") + r"[A-Za-z0-9-]+", pool)
+            for owner in (source.scope, ""))
+        if (not valid_pool or not valid_upload(spec) or not valid_upload(package) or
+                (app is not None and not valid_upload(app)) or
+                not isinstance(run, str) or re.fullmatch(
+                    re.escape(prefix + "run:" + project_id + "/") + r"[A-Za-z0-9-]+", run) is None or
+                proof.get("TestType") != "APPIUM_WEB_NODE" or
+                proof.get("TargetRoleId") is None or
+                proof.get("ExecutionRoleArn") != role.id or
+                proof.get("ScheduleRunSucceeded") is not True or
+                proof.get("RunExecutedTestSpec") is not True or
+                proof.get("TestSpecControlledBySource") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource):
+            return ("unknown", "devicefarm_existing_spec_run_or_role_effect_not_verified")
+        roles = [row for row_scope, row in items(self.snapshot, "iam_role")
+                 if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        if len(roles) != 1 or roles[0].get("RoleId") != proof["TargetRoleId"]:
+            return ("unknown", "devicefarm_existing_spec_role_identity_not_verified")
+        projects = [row for row_scope, row in items(self.snapshot, "devicefarm_project")
+                    if row_scope == scope and row.get("arn") == project]
+        pools = [row for row_scope, row in items(self.snapshot, "devicefarm_device_pool")
+                 if row_scope == scope and row.get("arn") == pool and row.get("ProjectArn") == project
+                 and type(row.get("CompatibleWebNodeDevices")) is int and row["CompatibleWebNodeDevices"] > 0]
+        uploads = {}
+        for row_scope, row in items(self.snapshot, "devicefarm_upload"):
+            if row_scope == scope and row.get("ProjectArn") == project:
+                uploads.setdefault(row.get("arn"), []).append(row)
+        wanted = [(spec, "APPIUM_WEB_NODE_TEST_SPEC"),
+                  (package, "APPIUM_WEB_NODE_TEST_PACKAGE")]
+        if app is not None:
+            wanted.append((app, None))
+        if (len(projects) != 1 or len(pools) != 1 or
+                any(len(uploads.get(arn, ())) != 1 or
+                    uploads[arn][0].get("status") != "SUCCEEDED" or
+                    (kind is not None and uploads[arn][0].get("type") != kind) or
+                    (kind is None and uploads[arn][0].get("type") not in ("ANDROID_APP", "IOS_APP"))
+                    for arn, kind in wanted)):
+            return ("unknown", "devicefarm_existing_spec_resources_not_verified")
+        for kind in ("devicefarm_project", "devicefarm_device_pool", "devicefarm_upload"):
+            if inventory_status(self.snapshot, kind).get(scope) not in ("collected", "partial"):
+                return ("unknown", "devicefarm_existing_spec_inventory_incomplete")
+        context = {"aws:RequestedRegion": region}
+        requests = [("devicefarm:ScheduleRun", arn) for arn in
+                    (project, pool, spec, package, *([app] if app else []))]
+        grants = [self.check(source, {"action": act, "request_context": context}, arn)
+                  for act, arn in requests]
+        grants.append(self.check(source, {"action": "iam:PassRole", "request_context": {
+            **context, "iam:PassedToService": "devicefarm.amazonaws.com"}}, role.id))
+        target_action = self.check(role, {"action": action}, resource)
+        source_action = self.check(source, {"action": action}, resource)
+        if (any(grant is None or grant.confidence != "derived" for grant in grants) or
+                target_action is None or target_action.confidence != "derived"):
+            return ("unknown", "devicefarm_existing_spec_scoped_permissions_not_verified")
+        if source_action is not None:
+            return None
+        return ("conditional", "devicefarm_existing_spec_exact_run_role_effect")
+
     def _appstream_new_resource_arns(self, source, region, kind, actions):
         """Concrete unused-name candidates from the actions' resource scopes in one Region."""
         partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
@@ -8702,6 +8795,11 @@ class AwsModel(Model):
                 if tid not in out and uncertain:
                     out[tid] = ("unknown", "devicefarm_project_pool_or_upload_permission_incomplete")
             return out
+        if pid == "devicefarm_existing_test_spec_role_effect_reviewed":
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._devicefarm_existing_test_spec_role_effect(source, role))}
         if pid == "gamelift_new_controlled_build_fleet_role":
             if source is None:
                 return None

@@ -25,6 +25,33 @@ def case(entry):
                 CredentialSubjectId=target,RevocationChecked=True,CredentialKind=cred,VerifiedConditionIds=CONTRACT[entry['id']]['conditions'],
                 EvidenceObservedAt='2026-10-14T12:29:00Z',CredentialExpiresAt='2026-10-14T12:40:00Z',ActionResources=bindings,
                 AuthorizationFingerprint=fingerprint(snap,entry['provider'],target))
+    if entry['id'] == 'aws-devicefarm-schedulerun-existing-test-spec-passrole':
+        project='arn:aws:devicefarm:us-east-1:111111111111:project:project-id'
+        pool='arn:aws:devicefarm:us-east-1:111111111111:devicepool:pool-id'
+        spec='arn:aws:devicefarm:us-east-1:111111111111:upload:project-id/spec-id'
+        package='arn:aws:devicefarm:us-east-1:111111111111:upload:project-id/package-id'
+        run='arn:aws:devicefarm:us-east-1:111111111111:run:project-id/run-id'
+        user=next(c for c in snap['collections']if c['type']=='iam_user')['items'][0]
+        user['UserPolicyList'][0]['PolicyDocument']['Statement']=[
+            {'Effect':'Allow','Action':'devicefarm:ScheduleRun','Resource':[project,pool,spec,package]},
+            {'Effect':'Allow','Action':'iam:PassRole','Resource':target,
+             'Condition':{'StringEquals':{'iam:PassedToService':'devicefarm.amazonaws.com'}}}]
+        role['RoleId']='AROADEVICEFARM123456789'
+        snap['collections'].extend([
+            {'type':'devicefarm_project','scope':'111111111111/us-east-1','service':'devicefarm',
+             'status':'collected','items':[{'arn':project}],'error':None},
+            {'type':'devicefarm_device_pool','scope':'111111111111/us-east-1','service':'devicefarm',
+             'status':'collected','items':[{'arn':pool,'ProjectArn':project,'CompatibleWebNodeDevices':1}],'error':None},
+            {'type':'devicefarm_upload','scope':'111111111111/us-east-1','service':'devicefarm',
+             'status':'collected','items':[
+                 {'arn':spec,'ProjectArn':project,'status':'SUCCEEDED','type':'APPIUM_WEB_NODE_TEST_SPEC'},
+                 {'arn':package,'ProjectArn':project,'status':'SUCCEEDED','type':'APPIUM_WEB_NODE_TEST_PACKAGE'}],
+             'error':None}])
+        fact.update(ProjectArn=project,DevicePoolArn=pool,TestSpecArn=spec,TestPackageArn=package,
+                    AppArn=None,RunArn=run,TestType='APPIUM_WEB_NODE',TargetRoleId=role['RoleId'],
+                    ExecutionRoleArn=target,ScheduleRunSucceeded=True,RunExecutedTestSpec=True,
+                    TestSpecControlledBySource=True,RoleAction='iam:ListUsers',RoleActionResource='*',
+                    RoleActionSucceeded=True,EffectUsefulToSource=True,AuthorizationFingerprint=fingerprint(snap,'aws',target))
     if entry['provider']=='gcp':fact['OAuthScopes']=['https://www.googleapis.com/auth/cloud-platform']
     return snap,source,col
 

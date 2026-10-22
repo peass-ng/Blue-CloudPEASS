@@ -345,6 +345,20 @@ def test_deadline_worker_authority_correction_preserves_previous_catalog():
     assert previous[ident]["preconditions"] == ["deadline_fleet_worker_binding_unverified"]
 
 
+def test_devicefarm_existing_spec_correction_preserves_previous_catalog():
+    ident = "aws-devicefarm-schedulerun-existing-test-spec-passrole"
+    current, status = catalog.lookup_entries([ident], catalog.current_binding())
+    assert status == "exact_strict_privesc"
+    assert current[ident]["preconditions"] == ["devicefarm_existing_test_spec_role_effect_reviewed"]
+    old = {"schema": catalog.BINDING_SCHEMA,
+           "manifest_sha256": catalog.DEVICEFARM_EXISTING_SPEC_691_PREVIOUS_MANIFEST,
+           "effective_tree_sha256": catalog.DEVICEFARM_EXISTING_SPEC_691_PREVIOUS_TREE,
+           "source_revision": catalog.V4_REVISION}
+    previous, status = catalog.lookup_entries([ident], old)
+    assert status == "exact_previous_current"
+    assert previous[ident]["requires"]["all_of"][0]["resource"] == "*"
+
+
 def test_deadline_existing_worker_binding_preserves_previous_catalog():
     ident = "aws-deadline-existing-worker-role-vend"
     current, status = catalog.lookup_entries([ident], catalog.current_binding())

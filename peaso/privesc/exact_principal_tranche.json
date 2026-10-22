@@ -8,16 +8,7 @@
       "verified_collector_fact"
     ],
     "requires": {
-      "all_of": [
-        {
-          "action": "devicefarm:ScheduleRun",
-          "resource": "*"
-        },
-        {
-          "action": "iam:PassRole",
-          "resource": "*"
-        }
-      ]
+      "all_of": []
     }
   },
   "aws-iot-byo-certificate-existing-rolealias": {
