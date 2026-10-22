@@ -21,7 +21,14 @@ V4_EFFECTIVE_TREE = "413792ea4aec86e48c352ffab2c0bea9e82795bc234251342737ec0276b
 LEGACY_DELTA = Path(__file__).resolve().parent / "catalog_versions/legacy-0b3633-delta.json"
 BOUNDED_MANIFEST = "734401b202895e00ac1b6cb0f1534f77cde4d8e2ba912ca0ee974b1b8ec5035c"
 BOUNDED_TREE = "1a54bad4102d18f89c78f45c915964554a62f994c1bffa693844cac5e119cca8"
-CURRENT_MANIFEST = 'eada56c3fbbbf06891601ef0711e3b2d2f216cdf8981e5e87e9501f7702ef868'
+CURRENT_MANIFEST = '206b1895056780d15c6707bb434e46a25df4d53bf6c284e8bbb6d7d567a46806'
+INTERMEDIATE_CURRENT_MANIFEST = 'eada56c3fbbbf06891601ef0711e3b2d2f216cdf8981e5e87e9501f7702ef868'
+INTERMEDIATE_CURRENT_TREE = '9cace7c01a6cc13e22b369c99298cc0a4f6df6226aa13a7b63cfb6a4d1ad29e9'
+INTERMEDIATE_CURRENT_ENTRY_COUNT = 660
+INTERMEDIATE_CURRENT_EXCLUDED_COUNT = 3731
+INTERMEDIATE_CURRENT_ARCHIVE_SHA256 = '24ef5805dc374d0b9163abe241dd86bf5edfb05e9e8746241bfab253e19634dd'
+INTERMEDIATE_CURRENT_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-660-source-manifest.json'
+INTERMEDIATE_CURRENT_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-660-catalog.tar.gz'
 PREVIOUS_CURRENT_MANIFEST = '6d994be99fd3fd696c05dd0a352c0cb348da2dc62648e7caf99f03a113162f18'
 PREVIOUS_CURRENT_TREE = '163c469428477120a0b2ff7aa9af4f0dfc82fb8dcf339165ddbae4d32f00914d'
 PREVIOUS_CURRENT_ENTRY_COUNT = 633
@@ -33,10 +40,10 @@ PRIOR_CURRENT_MANIFEST = "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0c
 PRIOR_DISCLOSURE_MANIFEST = "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
 PRIOR_DISCLOSURE_TREE = "5091464bedcb10bb87301695ca733276dc67b865e544c408ccf72a5408176f0f"
 PRIOR_DISCLOSURE_HISTORY = Path(__file__).resolve().parent / "catalog_versions/disclosure-v7-manifest.json"
-CURRENT_TREE = '9cace7c01a6cc13e22b369c99298cc0a4f6df6226aa13a7b63cfb6a4d1ad29e9'
+CURRENT_TREE = 'd3dbaf40848dd14c4c2d199c8f7ec81126724f8311e23f9579282c02026c4f2f'
 PRIOR_CURRENT_TREE = "99207e6469fc5e5b3daf21324e6860599b116ffcf7d30600643bd229b0f11494"
-CURRENT_ENTRY_COUNT = 660
-CURRENT_EXCLUDED_COUNT = 3731
+CURRENT_ENTRY_COUNT = 661
+CURRENT_EXCLUDED_COUNT = 3730
 CURRENT_HISTORY = Path(__file__).resolve().parent / "catalog_versions/bulk-principal-v6-manifest.json"
 PRIOR_CATALOG_ARCHIVE = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-catalog-20261016.tar.gz"
 PRIOR_SOURCE_MANIFEST = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-source-manifest.json"
@@ -79,18 +86,34 @@ def _verified_current(catalog_dir, manifest_path):
 @lru_cache(maxsize=1)
 def _verified_previous_current():
     """Keep the exact 633-entry catalog used by already stored report cards."""
-    if (_sha(PREVIOUS_CURRENT_MANIFEST_PATH) != PREVIOUS_CURRENT_MANIFEST or
-            _sha(PREVIOUS_CURRENT_ARCHIVE) != PREVIOUS_CURRENT_ARCHIVE_SHA256):
-        raise ValueError("previous_current_archive_changed")
-    wanted = json.loads(PREVIOUS_CURRENT_MANIFEST_PATH.read_text())["sha256"]
+    return _verified_archived_current(
+        PREVIOUS_CURRENT_MANIFEST_PATH, PREVIOUS_CURRENT_ARCHIVE,
+        PREVIOUS_CURRENT_MANIFEST, PREVIOUS_CURRENT_ARCHIVE_SHA256,
+        PREVIOUS_CURRENT_TREE, PREVIOUS_CURRENT_ENTRY_COUNT, PREVIOUS_CURRENT_EXCLUDED_COUNT)
+
+
+@lru_cache(maxsize=1)
+def _verified_intermediate_current():
+    """Keep the exact 660-entry catalog used before the next AWS recovery."""
+    return _verified_archived_current(
+        INTERMEDIATE_CURRENT_MANIFEST_PATH, INTERMEDIATE_CURRENT_ARCHIVE,
+        INTERMEDIATE_CURRENT_MANIFEST, INTERMEDIATE_CURRENT_ARCHIVE_SHA256,
+        INTERMEDIATE_CURRENT_TREE, INTERMEDIATE_CURRENT_ENTRY_COUNT, INTERMEDIATE_CURRENT_EXCLUDED_COUNT)
+
+
+def _verified_archived_current(manifest_path, archive_path, manifest_digest, archive_digest,
+                               tree_digest, entry_count, excluded_count):
+    if _sha(manifest_path) != manifest_digest or _sha(archive_path) != archive_digest:
+        raise ValueError("archived_current_changed")
+    wanted = json.loads(manifest_path.read_text())["sha256"]
     actual, entries, excluded = {}, {}, 0
-    with tarfile.open(PREVIOUS_CURRENT_ARCHIVE, "r:gz") as archive:
+    with tarfile.open(archive_path, "r:gz") as archive:
         for member in archive:
             if not member.isfile() or not member.name.startswith("catalog/"):
-                raise ValueError("previous_current_archive_path_mismatch")
+                raise ValueError("archived_current_path_mismatch")
             name = member.name.removeprefix("catalog/")
             if name not in wanted or name in actual:
-                raise ValueError("previous_current_archive_path_mismatch")
+                raise ValueError("archived_current_path_mismatch")
             payload = archive.extractfile(member).read()
             actual[name] = hashlib.sha256(payload).hexdigest()
             rows = yaml.safe_load(payload) or []
@@ -100,12 +123,12 @@ def _verified_previous_current():
                 for row in rows:
                     item = dict(row, _file=name)
                     if item["id"] in entries:
-                        raise ValueError("previous_current_duplicate_id")
+                        raise ValueError("archived_current_duplicate_id")
                     entries[item["id"]] = item
     tree = ''.join(f'{name} {actual[name]}\n' for name in sorted(actual))
-    if (actual != wanted or hashlib.sha256(tree.encode()).hexdigest() != PREVIOUS_CURRENT_TREE or
-            len(entries) != PREVIOUS_CURRENT_ENTRY_COUNT or excluded != PREVIOUS_CURRENT_EXCLUDED_COUNT):
-        raise ValueError("previous_current_archive_mismatch")
+    if (actual != wanted or hashlib.sha256(tree.encode()).hexdigest() != tree_digest or
+            len(entries) != entry_count or excluded != excluded_count):
+        raise ValueError("archived_current_mismatch")
     return entries
 
 
@@ -199,6 +222,10 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == PREVIOUS_CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "previous_current", "exact_previous_current"
+    elif (binding.get("manifest_sha256") == INTERMEDIATE_CURRENT_MANIFEST and
+          binding.get("effective_tree_sha256") == INTERMEDIATE_CURRENT_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "intermediate_current", "exact_previous_current"
     elif (binding.get("manifest_sha256") == PRIOR_CURRENT_MANIFEST and
           binding.get("effective_tree_sha256") == PRIOR_CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -230,6 +257,9 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
             return {ident: current[ident] for ident in ids if ident in current}, status
         if version == "previous_current":
             previous = _verified_previous_current()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
+        if version == "intermediate_current":
+            previous = _verified_intermediate_current()
             return {ident: previous[ident] for ident in ids if ident in previous}, status
         v4, prior_hashes = _verified_prior()
         if version == "prior_current":

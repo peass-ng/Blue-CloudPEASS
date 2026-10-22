@@ -1588,6 +1588,10 @@
       "operation": "describe_application"
     },
     "identity": "ApplicationARN",
+    "identity_fields": [
+      "ApplicationMode",
+      "ServiceExecutionRole"
+    ],
     "key": "ApplicationSummaries",
     "operation": "list_applications",
     "service": "kinesisanalyticsv2",

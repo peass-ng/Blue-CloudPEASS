@@ -6459,8 +6459,46 @@ class AwsModel(Model):
                     uncertain = True
         return ("unknown", "codepipeline_existing_project_path_not_verified") if uncertain else None
 
+    def _flink_existing_studio_role_session(self, source, target):
+        """Bind one streamable Studio notebook to its exact service execution role."""
+        statuses = {scope: status for scope, status in inventory_status(self.snapshot, "flink_application").items()
+                    if scope.startswith(source.scope + "/")}
+        if not statuses:
+            return ("unknown", "flink_application_inventory_not_collected")
+        uncertain = any(status not in ("collected", "empty") for status in statuses.values())
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        for scope, app in items(self.snapshot, "flink_application"):
+            if statuses.get(scope) != "collected" or not isinstance(app, dict):
+                continue
+            region = scope.split("/", 1)[1]
+            name, arn = app.get("ApplicationName"), app.get("ApplicationARN")
+            if not isinstance(name, str) or arn != f"arn:{partition}:kinesisanalytics:{region}:{source.scope}:application/{name}":
+                uncertain = True
+                continue
+            if app.get("ServiceExecutionRole") != target.id:
+                continue
+            if app.get("ApplicationMode") != "INTERACTIVE" or app.get("ApplicationStatus") != "RUNNING":
+                continue
+            detail = app.get("_coverage", {}).get("network_detail") if isinstance(app.get("_coverage"), dict) else None
+            if isinstance(detail, dict) and detail.get("status") not in ("collected", "empty"):
+                uncertain = True
+                continue
+            grant = self._check_action(source, "kinesisanalytics:createapplicationpresignedurl", arn)
+            if grant is None:
+                continue
+            if grant.confidence != "derived":
+                uncertain = True
+                continue
+            return ("conditional", "flink_existing_studio_role_session")
+        return ("unknown", "flink_existing_studio_role_session_not_verified") if uncertain else None
+
     def precondition(self, pid, candidates, source):
         out = {}
+        if pid == "flink_existing_studio_role_session":
+            if source is None:
+                return None
+            return {tid: verdict for tid, target in candidates.items()
+                    if (verdict := self._flink_existing_studio_role_session(source, target)) is not None}
         if pid == "flink_new_application_startable":
             if source is None:
                 return None

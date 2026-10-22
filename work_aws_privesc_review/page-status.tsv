@@ -85,7 +85,7 @@ src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-lightsail-privesc
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-macie-privesc/README.md	5	0	1	pending	-
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-mainframe-modernization-privesc/README.md	8	1	1	pending	-
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-managed-blockchain-privesc/README.md	4	0	0	triaged	The page describes a Fabric network invitation; verify this does not grant an AWS IAM principal.
-src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-managed-flink-privesc/README.md	9	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-managed-flink-privesc/README.md	9	1	1	triaged	Running Studio presigned-URL route is cataloged with exact application-to-role join. Existing streaming application code-update route remains unreviewed because artifact control and execution timing need separate evidence.
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-managed-grafana-privesc/README.md	10	1	1	pending	-
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-mediapackage-privesc/README.md	8	0	1	pending	-
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-memorydb-user-reset-privesc/README.md	4	0	0	triaged	The page describes a MemoryDB ACL password change; check the separate IAM-auth path before excluding an AWS principal transition.
