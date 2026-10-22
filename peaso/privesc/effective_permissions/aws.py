@@ -5571,7 +5571,8 @@ class AwsModel(Model):
             create = self._with_context(
                 {"request_context": {"cloudformation:RoleArn": pivot.id,
                                      "cloudformation:TemplateUrl": {"absent": True}}},
-                lambda: self._check_action(source, "cloudformation:createstackset", "*"), source)
+                lambda: self._check_action(source, "cloudformation:createstackset",
+                                           "peaso-global-cloudformation-create-stackset"), source)
             if create is not None:
                 token = "PeasoBound" + seed
                 names = {token}
@@ -5692,7 +5693,8 @@ class AwsModel(Model):
             return ("unknown", "extension_handler_package_access_not_verified") if unknown else None
         direct = self._with_context(
             {"request_context": {"cloudformation:RoleArn": {"absent": True}}},
-            lambda: self._check_action(source, "cloudformation:createresource", "*"), source)
+            lambda: self._check_action(source, "cloudformation:createresource",
+                                       "peaso-global-cloudcontrol-create-resource"), source)
         if direct is not None:
             if direct.confidence == "derived":
                 return ("conditional", "extension_registration_and_handler_execution")
@@ -5757,7 +5759,8 @@ class AwsModel(Model):
             create = self._with_context(
                 {"request_context": {"cloudformation:RoleArn": {"absent": True},
                                      "cloudformation:TemplateUrl": {"absent": True}}},
-                lambda: self._check_action(source, "cloudformation:createstackset", "*"), source)
+                lambda: self._check_action(source, "cloudformation:createstackset",
+                                           "peaso-global-cloudformation-create-stackset"), source)
             if create is None:
                 continue
             names = {token}
@@ -8277,7 +8280,8 @@ class AwsModel(Model):
                                    for allowed_region, name in scopes[action]) for action in actions):
                         continue  # A fixed name needs complete interpreter-name inventory.
                     create = self.check(source, {"action": "bedrock-agentcore:CreateCodeInterpreter",
-                                                 "request_context": {"aws:RequestedRegion": region}}, "*")
+                                                 "request_context": {"aws:RequestedRegion": region}},
+                                        "peaso-global-agentcore-create-interpreter")
                     if create is None or create.confidence != "derived":
                         continue
                     seed = hashlib.sha256((source.id + region).encode()).hexdigest()[:12]
@@ -8615,7 +8619,8 @@ class AwsModel(Model):
                             isinstance(publishers, list) and any(isinstance(value, str) and value for value in publishers)
                             and broad_put):
                         create = self.check(source, {"action": "lambda:CreateCodeSigningConfig",
-                                                     "request_context": {"aws:RequestedRegion": region}}, "*")
+                                                     "request_context": {"aws:RequestedRegion": region}},
+                                            "peaso-global-lambda-create-code-signing-config")
                         if create is not None and create.confidence == "derived":
                             future_prefix = f"arn:{partition}:lambda:{region}:{account}:code-signing-config:csc-"
                             future_arns = (future_prefix + "0" * 17, future_prefix + "z" * 17)
@@ -8868,6 +8873,14 @@ class AwsModel(Model):
         if pid == "cloudcontrol_source_can_create_admin_user":
             if source is None:
                 return None
+            create = self._check_action(source, "cloudformation:createresource",
+                                        "peaso-global-cloudcontrol-create-resource")
+            if create is None:
+                return ({tid: ("unknown", "cloudcontrol_create_resource_permission_not_verified")
+                        for tid in candidates} if source.incomplete else {})
+            if create.confidence != "derived":
+                return {tid: ("unknown", "cloudcontrol_create_resource_permission_conditional")
+                        for tid in candidates}
             role_statuses = inventory_status(self.snapshot, "iam_role")
             common = [{"action": "iam:CreateUser"}, {"action": "iam:GetUser"},
                       {"action": "iam:CreateLoginProfile"}]

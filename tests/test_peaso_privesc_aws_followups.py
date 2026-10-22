@@ -272,12 +272,33 @@ def test_cloudcontrol_passrole_needs_a_creatable_admin_user_path():
                        allow("iam:CreateUser", "iam:GetUser", "iam:CreateLoginProfile", "iam:AttachUserPolicy"))
     result = real(aws_snap([caller], [wrong_trust]), technique)
     assert admin not in reached(result, caller["Arn"], technique)
+    scoped_control = user("scoped-control", allow("iam:PassRole"),
+                          allow("cloudformation:CreateResource",
+                                resource=f"arn:aws:cloudformation:{REGION}:{ACCOUNT}:stack/example"))
+    result = real(aws_snap([scoped_control], [complete]), technique)
+    assert admin not in reached(result, scoped_control["Arn"], technique)
     existing = user("reserved")
     exact_existing = role("exact-existing", "cloudformation.amazonaws.com",
                           allow("iam:CreateUser", "iam:GetUser", "iam:CreateLoginProfile",
                                 "iam:AttachUserPolicy", resource=existing["Arn"]))
     result = real(aws_snap([caller, existing], [exact_existing]), technique)
     assert admin not in reached(result, caller["Arn"], technique)
+
+
+def test_cloudcontrol_catalog_keeps_previous_global_action_binding():
+    from peaso.privesc import versioned_catalog as catalog
+
+    technique = "aws-cloudcontrol-passrole-createresource"
+    prior = {"schema": catalog.BINDING_SCHEMA,
+             "manifest_sha256": catalog.CLOUDCONTROL_690_PREVIOUS_MANIFEST,
+             "effective_tree_sha256": catalog.CLOUDCONTROL_690_PREVIOUS_TREE,
+             "source_revision": catalog.V4_REVISION}
+    old, old_status = catalog.lookup_entries([technique], prior)
+    current, current_status = catalog.lookup_entries([technique], catalog.current_binding())
+    assert old_status == "exact_previous_current"
+    assert current_status == "exact_strict_privesc"
+    assert old[technique]["requires"]["all_of"][0]["action"] == "cloudformation:CreateResource"
+    assert current[technique]["requires"]["all_of"] == []
 
 
 def test_stepfunctions_teststate_is_a_conditional_service_action():
@@ -1719,6 +1740,11 @@ def test_agentcore_created_interpreter_needs_grants_covering_its_generated_id():
                real(aws_snap([permitted], roles), tid, include_unknown=True)["coverage"])
     broad = candidate(prefix + "*", prefix + "*")
     assert reached(real(aws_snap([broad], roles), tid), ALICE) == {role_arn("core"): "conditional"}
+    scoped_create = user("alice", allow("iam:PassRole", resource=role_arn("core")),
+                         allow("bedrock-agentcore:CreateCodeInterpreter", resource=prefix + "*"),
+                         allow("bedrock-agentcore:StartCodeInterpreterSession", resource=prefix + "*"),
+                         allow("bedrock-agentcore:InvokeCodeInterpreter", resource=prefix + "*"))
+    assert edges(real(aws_snap([scoped_create], roles), tid), ALICE) == []
     restricted_role = role("core", [{"Effect": "Allow", "Principal": {
         "Service": "bedrock-agentcore.amazonaws.com"}, "Action": "sts:AssumeRole",
         "Condition": {"ArnEquals": {"aws:SourceArn": prefix + "other-1234567890"}}}])

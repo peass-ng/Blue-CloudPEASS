@@ -21,7 +21,12 @@ V4_EFFECTIVE_TREE = "413792ea4aec86e48c352ffab2c0bea9e82795bc234251342737ec0276b
 LEGACY_DELTA = Path(__file__).resolve().parent / "catalog_versions/legacy-0b3633-delta.json"
 BOUNDED_MANIFEST = "734401b202895e00ac1b6cb0f1534f77cde4d8e2ba912ca0ee974b1b8ec5035c"
 BOUNDED_TREE = "1a54bad4102d18f89c78f45c915964554a62f994c1bffa693844cac5e119cca8"
-CURRENT_MANIFEST = '7f88162ac1519995d3ca2b4f7e4fb20ba8cf094139f3bf11be1a7f87c9964cc0'
+CURRENT_MANIFEST = 'f618292a0fd784dfd2d63a979494e31e42ca75873fa2c0ba65518ee6380137c4'
+CLOUDCONTROL_690_PREVIOUS_MANIFEST = '7f88162ac1519995d3ca2b4f7e4fb20ba8cf094139f3bf11be1a7f87c9964cc0'
+CLOUDCONTROL_690_PREVIOUS_TREE = '11bf8b5fe6ca71220bcd892902cefe6661f8e7d858ca541fd57c25637e5e4393'
+CLOUDCONTROL_690_PREVIOUS_ARCHIVE_SHA256 = 'e656656a19d2cb82a4e7edd223f6348f621980784a6fefcdbde81a092daa2623'
+CLOUDCONTROL_690_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-690-cloudcontrol-global-source-manifest.json'
+CLOUDCONTROL_690_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-690-cloudcontrol-global-catalog.tar.gz'
 MWAA_SLR_690_PREVIOUS_MANIFEST = '38eb22ca895b154e26c7fb4e57efac2fd1d7c7f2b93cb15e953fd0dd5494a677'
 MWAA_SLR_690_PREVIOUS_TREE = '6a2558eb2f3c33449bbb8a2e81c55caac59394978869706c447f65ebaad8c71f'
 MWAA_SLR_690_PREVIOUS_ARCHIVE_SHA256 = '3618eb55592ef3d104fa4d5568b4745a874f4303513a8b26f62aa56ec0b666e3'
@@ -266,7 +271,7 @@ PRIOR_CURRENT_MANIFEST = "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0c
 PRIOR_DISCLOSURE_MANIFEST = "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
 PRIOR_DISCLOSURE_TREE = "5091464bedcb10bb87301695ca733276dc67b865e544c408ccf72a5408176f0f"
 PRIOR_DISCLOSURE_HISTORY = Path(__file__).resolve().parent / "catalog_versions/disclosure-v7-manifest.json"
-CURRENT_TREE = '11bf8b5fe6ca71220bcd892902cefe6661f8e7d858ca541fd57c25637e5e4393'
+CURRENT_TREE = '39ad82f667cf13b21cfa83c7af9824bdd0196642e7aee919acdd24ae9d038384'
 PRIOR_CURRENT_TREE = "99207e6469fc5e5b3daf21324e6860599b116ffcf7d30600643bd229b0f11494"
 CURRENT_ENTRY_COUNT = 690
 CURRENT_EXCLUDED_COUNT = 3723
@@ -352,6 +357,15 @@ def _verified_gamelift_shared_688_previous():
         GAMELIFT_SHARED_688_PREVIOUS_MANIFEST_PATH, GAMELIFT_SHARED_688_PREVIOUS_ARCHIVE,
         GAMELIFT_SHARED_688_PREVIOUS_MANIFEST, GAMELIFT_SHARED_688_PREVIOUS_ARCHIVE_SHA256,
         GAMELIFT_SHARED_688_PREVIOUS_TREE, 688, 3723)
+
+
+@lru_cache(maxsize=1)
+def _verified_cloudcontrol_690_previous():
+    """Keep the exact catalog before Cloud Control's global action correction."""
+    return _verified_archived_current(
+        CLOUDCONTROL_690_PREVIOUS_MANIFEST_PATH, CLOUDCONTROL_690_PREVIOUS_ARCHIVE,
+        CLOUDCONTROL_690_PREVIOUS_MANIFEST, CLOUDCONTROL_690_PREVIOUS_ARCHIVE_SHA256,
+        CLOUDCONTROL_690_PREVIOUS_TREE, 690, 3723)
 
 
 @lru_cache(maxsize=1)
@@ -791,6 +805,10 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "current", "exact_strict_privesc"
+    elif (binding.get("manifest_sha256") == CLOUDCONTROL_690_PREVIOUS_MANIFEST and
+          binding.get("effective_tree_sha256") == CLOUDCONTROL_690_PREVIOUS_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "cloudcontrol_690_previous", "exact_previous_current"
     elif (binding.get("manifest_sha256") == MWAA_SLR_690_PREVIOUS_MANIFEST and
           binding.get("effective_tree_sha256") == MWAA_SLR_690_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -980,6 +998,9 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
         if version == "current":
             current = _verified_current(str(catalog_dir), str(manifest_path))
             return {ident: current[ident] for ident in ids if ident in current}, status
+        if version == "cloudcontrol_690_previous":
+            previous = _verified_cloudcontrol_690_previous()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "mwaa_slr_690_previous":
             previous = _verified_mwaa_slr_690_previous()
             return {ident: previous[ident] for ident in ids if ident in previous}, status

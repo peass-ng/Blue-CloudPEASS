@@ -253,6 +253,12 @@ def test_stackset_reaches_execution_roles_assumable_by_pivot():
                             "Resource": "*"})
     snap = aws_snap([nopass], [admin, exec_a])
     assert edges(privesc.analyze(snap, entries=[catalog_entry("aws-cloudformation-passrole-stackset")]), ALICE) == []
+    scoped_create = user("alice", {"Effect": "Allow", "Action": "iam:PassRole", "Resource": admin_arn},
+                         {"Effect": "Allow", "Action": "cloudformation:CreateStackSet",
+                          "Resource": f"arn:aws:cloudformation:us-east-1:{ACCOUNT}:stackset/example:*"},
+                         {"Effect": "Allow", "Action": "cloudformation:CreateStackInstances", "Resource": "*"})
+    snap = aws_snap([scoped_create], [admin, exec_a])
+    assert edges(privesc.analyze(snap, entries=[catalog_entry("aws-cloudformation-passrole-stackset")]), ALICE) == []
 
 
 # validator: target ARN on entity targets ------------------------------------------------
