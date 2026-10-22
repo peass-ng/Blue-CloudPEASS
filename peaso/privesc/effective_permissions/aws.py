@@ -7861,30 +7861,126 @@ class AwsModel(Model):
             partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
             simulator = f"arn:{partition}:braket:::device/quantum-simulator/amazon/sv1"
             allows, _ = self._statements(source, "braket:createjob")
-            regions = {scope.split("/", 1)[1] for scope in self.snapshot.get("scopes", ())
-                       if isinstance(scope, str) and scope.startswith(source.scope + "/")}
-            # SV1 is a documented device in these Regions. A CreateJob request
-            # authorizes both its device and its service-generated job ARN.
-            for region in sorted(regions & {"us-east-1", "us-west-1", "us-west-2", "eu-west-2"}):
-                job = (f"arn:{partition}:braket:{region}:{source.scope}:job/"
-                       "00000000-0000-4000-8000-000000000000")
-                broad_job = any(not st.notresource and not st.variables and any(
-                    pattern == "*" or (pattern.endswith(":job/*") and _resource_glob(pattern, job))
-                    for pattern in st.resources) for st in allows)
-                context = {"aws:RequestedRegion": region}
-                device_grant = self.cached_check(source, {"action": "braket:CreateJob",
-                    "request_context": context}, simulator)
-                job_grant = self.cached_check(source, {"action": "braket:CreateJob",
-                    "request_context": context}, job)
-                if (partition == "aws" and broad_job and device_grant is not None
-                        and job_grant is not None and device_grant.confidence == job_grant.confidence == "derived"
-                        and not source.incomplete):
-                    return {tid: ("conditional", "braket_device_and_generated_job_authorized_execution_pending")
-                            for tid in candidates}
-            if allows:
-                return {tid: ("unknown", "braket_device_scope_or_availability_not_verified")
-                        for tid in candidates}
-            return {}
+            devices = {(scope, row.get("deviceArn")): row
+                       for scope, row in items(self.snapshot, "braket_device")
+                       if isinstance(row, dict)}
+            statuses = inventory_status(self.snapshot, "braket_device")
+            bucket_status = inventory_status(self.snapshot, "bucket")
+            source_writes, _ = self._statements(source, "s3:putobject")
+            seed = hashlib.sha256(source.id.encode()).hexdigest()[:12]
+            out = {}
+            for tid, role in candidates.items():
+                blocked = (source.incomplete or role.incomplete or
+                           bool(source.attrs.get("boundary")) or bool(role.attrs.get("boundary")) or
+                           self.scp_status.get(source.scope) != "empty" or
+                           bucket_status.get(f"{source.scope}/global") not in ("collected", "empty"))
+                unresolved = blocked or not statuses
+                if not allows:
+                    continue
+                for scope, status in statuses.items():
+                    if not scope.startswith(source.scope + "/"):
+                        continue
+                    if status not in ("collected", "empty") or blocked:
+                        unresolved = True
+                        continue
+                    device = devices.get((scope, simulator))
+                    if not device or device.get("deviceStatus") != "ONLINE" or \
+                            device.get("deviceType") != "SIMULATOR":
+                        unresolved = True
+                        continue
+                    region = scope.split("/", 1)[1]
+                    job = (f"arn:{partition}:braket:{region}:{source.scope}:job/"
+                           "00000000-0000-4000-8000-000000000000")
+                    broad_job = any(not st.notresource and not st.variables and any(
+                        pattern == "*" or (pattern.endswith(":job/*") and _resource_glob(pattern, job))
+                        for pattern in st.resources) for st in allows)
+                    if not broad_job:
+                        unresolved = True
+                        continue
+                    context = {"aws:RequestedRegion": region}
+                    device_grant = self.cached_check(source, {"action": "braket:CreateJob",
+                        "request_context": context}, simulator)
+                    job_grant = self.cached_check(source, {"action": "braket:CreateJob",
+                        "request_context": context}, job)
+                    passed = self.check(source, {"action": "iam:PassRole", "request_context":
+                        {"iam:PassedToService": "braket.amazonaws.com"}}, tid)
+                    trust = self._service_trust_for_source_arn(tid, "braket.amazonaws.com", job)
+                    source_arn_trust = any("aws:sourcearn" in json.dumps(st.condition).lower()
+                                           for st in self.trust.get(tid, ()) if st.effect == "allow")
+                    if (partition != "aws" or not all(g is not None and g.confidence == "derived"
+                            for g in (device_grant, job_grant, passed)) or trust is not True or source_arn_trust):
+                        unresolved = True
+                        continue
+                    role_reads, _ = self._statements(role, "s3:getobject")
+                    role_writes, role_denies = self._statements(role, "s3:putobject")
+                    if role_denies or not source_writes or not role_reads or not role_writes:
+                        unresolved = True
+                        continue
+                    code_ready, output_ready = False, False
+                    for bucket_scope, bucket in items(self.snapshot, "bucket"):
+                        if bucket_scope != f"{source.scope}/global":
+                            continue
+                        name, location = bucket.get("Name"), bucket.get("Location")
+                        policy, encryption = bucket.get("Policy"), bucket.get("Encryption")
+                        if not isinstance(name, str) or not isinstance(location, dict) or \
+                                location.get("collection_status") != "collected" or \
+                                not isinstance(policy, dict) or \
+                                policy.get("collection_status") not in ("collected", "empty") or \
+                                not isinstance(encryption, dict) or \
+                                encryption.get("collection_status") not in ("collected", "empty"):
+                            unresolved = True
+                            continue
+                        home = location.get("LocationConstraint")
+                        home = "us-east-1" if home is None else "eu-west-1" if home == "EU" else home
+                        if home != region:
+                            continue
+                        rules = (encryption.get("ServerSideEncryptionConfiguration") or {}).get("Rules") or []
+                        if any((rule.get("ApplyServerSideEncryptionByDefault") or {}).get("SSEAlgorithm") == "aws:kms"
+                               for rule in rules if isinstance(rule, dict)):
+                            unresolved = True
+                            continue
+                        bucket_arn = f"arn:{partition}:s3:::{name}"
+                        resource_policy = self.resource_policies.get(bucket_arn)
+                        if resource_policy and any(st.effect == "deny" and any(st.action_matches(action)
+                                for action in ("s3:GetObject", "s3:PutObject")) for st in resource_policy[1]):
+                            unresolved = True
+                            continue
+                        code_arns = {bucket_arn + f"/peaso-braket-{seed}/code.tar.gz"}
+                        for st in source_writes:
+                            if st.notresource or st.variables or st.condition:
+                                continue
+                            code_arns.update(pattern for pattern in st.resources
+                                             if isinstance(pattern, str) and pattern.startswith(bucket_arn + "/")
+                                             and not any(char in pattern for char in ("*", "?"))
+                                             and pattern.endswith(".tar.gz"))
+                        for code_arn in sorted(code_arns)[:40]:
+                            direct = lambda statements: any(not st.notresource and not st.variables and
+                                not st.condition and st.resource_matches(code_arn) is True for st in statements)
+                            if not direct(source_writes) or not direct(role_reads):
+                                continue
+                            source_write = self.check(source, {"action": "s3:PutObject"}, code_arn)
+                            role_read = self.check(role, {"action": "s3:GetObject"}, code_arn)
+                            if source_write is not None and role_read is not None and \
+                                    source_write.confidence == role_read.confidence == "derived":
+                                code_ready = True
+                                break
+                        for st in role_writes:
+                            if st.notresource or st.variables or st.condition:
+                                continue
+                            if any(pattern == "*" or pattern == bucket_arn + "/*" or
+                                   (isinstance(pattern, str) and pattern.startswith(bucket_arn + "/")
+                                    and pattern.endswith("/*") and not any(char in pattern[:-1]
+                                                                             for char in ("*", "?")))
+                                   for pattern in st.resources):
+                                output_ready = True
+                                break
+                    if code_ready and output_ready:
+                        out[tid] = ("conditional", "braket_script_job_start_pending")
+                        break
+                    unresolved = True
+                if tid not in out and unresolved:
+                    out[tid] = ("unknown", "braket_device_script_or_output_not_verified")
+            return out
         if pid == "stepfunctions_teststate_privileged_task_unverified":
             # PassRole and TestState permit an unmocked task only when the
             # exact supported integration and the role's action/resource are

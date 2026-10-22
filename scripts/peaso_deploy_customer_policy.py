@@ -639,6 +639,10 @@ SAGEMAKER_STUDIO_LIFECYCLE_METADATA_REFERENCE = {
         "https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ListStudioLifecycleConfigs.html",
 }
 VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(SAGEMAKER_STUDIO_LIFECYCLE_METADATA_REFERENCE)
+BRAKET_DEVICE_METADATA_REFERENCE = {
+    "braket:SearchDevices": "https://docs.aws.amazon.com/braket/latest/APIReference/API_SearchDevices.html",
+}
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(BRAKET_DEVICE_METADATA_REFERENCE)
 
 
 def build_policy(read_actions=None, *, include_credential_report_generation=None,

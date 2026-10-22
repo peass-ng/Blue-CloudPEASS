@@ -76,6 +76,7 @@ SPECS = {
     "sagemaker_processing_job": ("sagemaker", "list_processing_jobs", "ProcessingJobSummaries"),
     "sagemaker_monitoring_schedule": ("sagemaker", "list_monitoring_schedules", "MonitoringScheduleSummaries"),
     "sagemaker_model_package_group": ("sagemaker", "list_model_package_groups", "ModelPackageGroupSummaryList"),
+    "braket_device": ("braket", "search_devices", "devices"),
     # Security / governance
     "guardduty_finding": ("guardduty", "list_findings", "FindingIds"),
     "guardduty_organization_admin_account": ("guardduty", "list_organization_admin_accounts", "AdminAccounts"),
@@ -124,6 +125,7 @@ NATIVE_IDS = {
     "ses_email_identity": "IdentityName", "sns_subscription": "id",
     "sagemaker_notebook_instance": "NotebookInstanceArn", "sagemaker_notebook_lifecycle_config": "NotebookInstanceLifecycleConfigArn",
     "sagemaker_studio_lifecycle_config": "StudioLifecycleConfigArn",
+    "braket_device": "deviceArn",
     "sagemaker_app": "id", "sagemaker_model": "ModelArn", "sagemaker_training_job": "TrainingJobArn",
     "sagemaker_endpoint_config": "EndpointConfigArn", "sagemaker_domain": "DomainArn", "sagemaker_processing_job": "ProcessingJobArn",
     "sagemaker_monitoring_schedule": "MonitoringScheduleArn", "sagemaker_model_package_group": "ModelPackageGroupArn",
@@ -239,6 +241,25 @@ def _sagemaker_apps(requests, session, region, account):
         row["id"] = "/".join(str(row.get(key) or "") for key in
                              ("DomainId", "UserProfileName", "SpaceName", "AppType", "AppName"))
         rows.append(row)
+    return _finish(rows, failure)
+
+
+def _braket_devices(requests, session, region, account):
+    """Read only the documented SV1 simulator; SearchDevices requires an ARN filter."""
+    arn = "arn:aws:braket:::device/quantum-simulator/amazon/sv1"
+    read = requests.pages(session, "braket", region, "search_devices", "devices",
+                          filters=[{"name": "deviceArn", "values": [arn]}],
+                          _tokens=("nextToken", "nextToken"))
+    if read.status not in _OK:
+        return _result([], *_cause(read))
+    rows, failure = [], None
+    for device in read.items:
+        if not isinstance(device, dict) or device.get("deviceArn") != arn or \
+                device.get("deviceType") != "SIMULATOR" or \
+                device.get("deviceStatus") not in ("ONLINE", "OFFLINE", "RETIRED"):
+            failure = failure or ("malformed", {"code": "malformed_braket_device"})
+            continue
+        rows.append(_pick(device, ("deviceArn", "deviceName", "deviceStatus", "deviceType", "providerName")))
     return _finish(rows, failure)
 
 
@@ -884,6 +905,7 @@ def _incident_manager(requests, session, region, account):
 
 FETCHERS = {
     "sagemaker_app": _sagemaker_apps,
+    "braket_device": _braket_devices,
     "glue_session": _glue_sessions,
     "msk_compatible_version": _msk_compatible_versions,
     "vpc_block_public_access_options": _vpc_block_public_access,

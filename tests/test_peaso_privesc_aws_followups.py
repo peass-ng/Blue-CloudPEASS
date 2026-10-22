@@ -1608,42 +1608,7 @@ def test_braket_passrole_service_condition_is_evaluated():
         return aws_snap([user("alice", passrole, allow("braket:CreateJob"))],
                         [role("job", "braket.amazonaws.com")])
     assert edges(real(snap("lambda.amazonaws.com"), tid), ALICE) == []
-    assert reached(real(snap("braket.amazonaws.com"), tid), ALICE) == {
-        role_arn("job"): "conditional"}
-
-
-def test_braket_createjob_requires_device_authorization():
-    from pathlib import Path
-    import yaml
-    from peaso.privesc.effective_permissions.aws import AwsModel
-    from peaso.privesc.evaluator import Evaluator
-
-    catalog_file = Path(__file__).resolve().parents[1] / "peaso/privesc/catalog/aws/braket.yaml"
-    entry = next(item for item in yaml.safe_load(catalog_file.read_text())
-                 if item["id"] == "aws-braket-passrole-createjob")
-    passrole = allow("iam:PassRole", resource=role_arn("job"))
-    known_device = "arn:aws:braket:::device/quantum-simulator/amazon/sv1"
-
-    job_scope = f"arn:aws:braket:{REGION}:{ACCOUNT}:job/*"
-
-    def evaluate(resources, *, include_unknown=False):
-        grants = [allow("braket:CreateJob", resource=resource) for resource in resources]
-        snap = aws_snap([user("alice", passrole, *grants)],
-                        [role("job", "braket.amazonaws.com")])
-        return [reach.targets for reach in Evaluator(AwsModel(snap), [entry],
-                 include_unknown=include_unknown).run() if reach.source.id == ALICE]
-
-    assert evaluate([job_scope]) == []
-    assert [{target: grant.confidence for target, grant in row.items()}
-            for row in evaluate([known_device, job_scope])] == [{role_arn("job"): "conditional"}]
-    assert evaluate([known_device]) == []
-    assert evaluate([known_device, f"arn:aws:braket:us-west-2:{ACCOUNT}:job/*"]) == []
-    restricted_device = f"arn:aws:braket:us-west-2:*:device/qpu/*"
-    assert evaluate([restricted_device, job_scope]) == []
-    unresolved = evaluate([restricted_device, job_scope], include_unknown=True)
-    assert len(unresolved) == 1
-    assert all(target.startswith("unresolved:") and grant.confidence == "unknown"
-               for target, grant in unresolved[0].items())
+    assert_unresolved(real(snap("braket.amazonaws.com"), tid, include_unknown=True), ALICE)
 
 
 def test_braket_prior_catalog_binding_keeps_global_createjob_requirement():

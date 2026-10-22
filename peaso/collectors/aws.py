@@ -411,7 +411,7 @@ class Requests:
         metadata_report = (service == 'iam' and self.iam_report_generation_requested and (
             operation == 'generate_credential_report' and self.iam_credential_report_generation_requested or
             operation == 'generate_service_last_accessed_details' and self.iam_service_access_reports_requested))
-        readonly_name = operation.startswith(("get_", "list_", "describe_", "batch_get_", "batch_describe_")) or (service, operation) == ("ec2", "search_transit_gateway_routes")
+        readonly_name = operation.startswith(("get_", "list_", "describe_", "batch_get_", "batch_describe_")) or (service, operation) in {("ec2", "search_transit_gateway_routes"), ("braket", "search_devices")}
         content_profiles = {'aws-code-log-content-indicators-v1', 'aws-package-content-indicators-v1', 'aws-lambda-environment-content-v1', 'aws-selected-configuration-content-v1'}
         content_profile = isinstance(_metadata_profile, str) and _metadata_profile in content_profiles
         content_log = (service, operation) == ('logs', 'filter_log_events') and _metadata_profile == 'aws-code-log-content-indicators-v1'
@@ -2894,7 +2894,7 @@ def _load_metadata_extension(name="peaso.collectors.aws_b_services"):
     actions = set(getattr(extension, "READ_ACTIONS", set()))
     for service, operation in actions | {(s, o) for s, o, expression in specs.values()}:
         content_log = name == 'peaso.collectors.aws_code_log_content_indicators' and (service, operation) == ('logs', 'filter_log_events')
-        if (operation in _PROHIBITED_VALUE_OPERATIONS and not content_log) or (not operation.startswith(("get_", "list_", "describe_", "batch_get_", "batch_describe_")) and (service, operation) not in {("cloudtrail", "lookup_events"), ("iam", "simulate_principal_policy")} and not content_log):
+        if (operation in _PROHIBITED_VALUE_OPERATIONS and not content_log) or (not operation.startswith(("get_", "list_", "describe_", "batch_get_", "batch_describe_")) and (service, operation) not in {("cloudtrail", "lookup_events"), ("iam", "simulate_principal_policy"), ("braket", "search_devices")} and not content_log):
             raise ValueError("AWS extension includes a prohibited operation")
     fetchers = getattr(extension, "FETCHERS", {})
     for kind in fetchers:
