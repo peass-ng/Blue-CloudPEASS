@@ -5511,9 +5511,15 @@ class AwsModel(Model):
                    scope.split("/", 1)[1] not in ("", "global", "*")}
         unknown = not regions
         for region in sorted(regions):
-            connector_arn = (f"arn:{partition}:lambda:{region}:aws:"
-                             "network-connector:aws-network-connector:SHELL_INGRESS")
-            connector = self._check_action(source, "lambda:passnetworkconnector", connector_arn)
+            # PassNetworkConnector has no resource type in the Lambda service
+            # authorization reference. A connector ARN in Resource does not
+            # authorize this action, even when it names SHELL_INGRESS.
+            connector_req = {"action": "lambda:PassNetworkConnector",
+                             "request_context": {"aws:RequestedRegion": region}}
+            # Use a literal value that no valid resource ARN can match. Passing
+            # "*" to the IAM pattern matcher would also match ARN-scoped policy
+            # statements by pattern overlap, although AWS requires Resource *.
+            connector = self.check(source, connector_req, "__peaso_resource_less_action__")
             if connector is None:
                 continue
             if connector.confidence != "derived":
@@ -5536,6 +5542,13 @@ class AwsModel(Model):
                     if run.confidence == shell.confidence == "derived":
                         return ("conditional", "same_runnable_microvm_image_and_shell_token")
                     unknown = True
+            # AWS-managed images are listed by a separate API and are not in
+            # the customer-image inventory. If the grants could cover one,
+            # leave this path unresolved until its runtime eligibility is known.
+            managed = f"arn:{partition}:lambda:{region}:aws:microvm-image:*"
+            if (self._check_action(source, "lambda:runmicrovm", managed) is not None and
+                    self._check_action(source, "lambda:createmicrovmshellauthtoken", managed) is not None):
+                unknown = True
         return ("unknown", "lambda_microvm_image_or_permissions_not_verified") if unknown else None
 
     def _eks_existing_self_access_entry_route(self, source, target):

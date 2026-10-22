@@ -1,6 +1,6 @@
 {
   "repository": "HackTricks-wiki/hacktricks-cloud",
-  "revision": "6ff3c4c345c25072c2255e512c9f7178a23d1bb2",
+  "revision": "af0787ffa27bfe01c7842fe66990079b9d068361",
   "path": "src/privilege-escalation-paths",
   "canonical_sha256": {
     "aws/_excluded_171e_g1.yaml": "2160b8f57f029e74e5a31727815316f459d8364147c47be2c36639c831b9dcb3",
@@ -111,7 +111,7 @@
     "aws/iam.yaml": "36eb2b2ae0ef9fb00fd709a8a52a107abd3d0a905dca9fdbd5d2edabc46e4a51",
     "aws/imagebuilder.yaml": "5f69c96da853203a68e672c76050e3516ed64978078f253d3e2d5cc3a2853ee7",
     "aws/iot.yaml": "96fee58b0b3cd22150754e2ca2f59da653ea1f3378ca861136c069476076722e",
-    "aws/lambda.yaml": "e338dd964dc410a5b9c5248ec361327005f4bcaea657f03b6830d96115fb887c",
+    "aws/lambda.yaml": "2de5a931ceea751e1e8e5a8bb7329b8d1494743e0d4da172fc8e96bb9a7e4fb1",
     "aws/lightsail.yaml": "a994d2be23a92774158141deae61b99649786412f37f67d6f5f24f33a1c7dee7",
     "aws/m2.yaml": "5f6af5d896a364a5a5eb0999e42ae1d9733b9bc03fa8e500b44535c03a207461",
     "aws/migrationhub.yaml": "7645ecdfd54f2d9b116c6cb34910c167b0759d497b8a43c619cfac865d0c639a",
@@ -413,7 +413,7 @@
     "aws/iam.yaml": "36eb2b2ae0ef9fb00fd709a8a52a107abd3d0a905dca9fdbd5d2edabc46e4a51",
     "aws/imagebuilder.yaml": "5f69c96da853203a68e672c76050e3516ed64978078f253d3e2d5cc3a2853ee7",
     "aws/iot.yaml": "96fee58b0b3cd22150754e2ca2f59da653ea1f3378ca861136c069476076722e",
-    "aws/lambda.yaml": "e338dd964dc410a5b9c5248ec361327005f4bcaea657f03b6830d96115fb887c",
+    "aws/lambda.yaml": "2de5a931ceea751e1e8e5a8bb7329b8d1494743e0d4da172fc8e96bb9a7e4fb1",
     "aws/lightsail.yaml": "a994d2be23a92774158141deae61b99649786412f37f67d6f5f24f33a1c7dee7",
     "aws/m2.yaml": "5f6af5d896a364a5a5eb0999e42ae1d9733b9bc03fa8e500b44535c03a207461",
     "aws/migrationhub.yaml": "7645ecdfd54f2d9b116c6cb34910c167b0759d497b8a43c619cfac865d0c639a",
