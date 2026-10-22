@@ -25,7 +25,7 @@ Outputs are explicit field allowlists:
   identity type, no e-mail) and subscription status/authentication type,
   Supply Chain instances, Amplify apps with their
   Gen 1 backend environments (no environment variables, build specs or basic-auth
-  credentials).
+  credentials), Device Farm uploads and device pools (no signed upload URLs or test content).
 * IAM Identity Center account assignments (permission set, account, principal
   type/id) and group display names.
 
@@ -60,6 +60,8 @@ SPECS = {
     "grafana_workspace": ("grafana", "list_workspaces", "workspaces"),
     "gamelift_ec2_compute": ("gamelift", "list_fleets", "FleetIds"),
     "iot_role_alias": ("iot", "list_role_aliases", "roleAliases"),
+    "devicefarm_upload": ("devicefarm", "list_uploads", "uploads"),
+    "devicefarm_device_pool": ("devicefarm", "list_device_pools", "devicePools"),
     "quicksight_user": ("quicksight", "list_users", "UserList"),
     "quicksight_account_subscription": ("quicksight", "describe_account_subscription", None),
     "supplychain_instance": ("supplychain", "list_instances", "instances"),
@@ -87,6 +89,7 @@ READ_ACTIONS = {
     ("amplify", "list_backend_environments"),
     ("quicksight", "describe_account_subscription"),
     ("gamelift", "describe_fleet_attributes"), ("gamelift", "list_compute"),
+    ("devicefarm", "list_projects"),
     ("sso-admin", "list_instances"), ("sso-admin", "list_permission_sets"),
     ("sso-admin", "list_accounts_for_provisioned_permission_set"), ("identitystore", "list_groups"),
 }
@@ -116,6 +119,38 @@ def _iot_role_aliases(requests, session, region, account):
         arn = f"arn:{_partition(region)}:iot:{region}:{account}:rolealias/{name}"
         rows.append({"RoleAlias": name, "RoleAliasArn": arn, "id": arn})
     return _finish(rows, failure)
+
+
+def _devicefarm_project_children(kind):
+    operation, response_key, fields = {
+        "devicefarm_upload": ("list_uploads", "uploads", ("arn", "name", "type", "status", "category")),
+        "devicefarm_device_pool": ("list_device_pools", "devicePools", ("arn", "name", "type", "maxDevices")),
+    }[kind]
+
+    def fetch(requests, session, region, account):
+        projects = requests.pages(session, "devicefarm", region, "list_projects", "projects")
+        if projects.status not in OK:
+            return _finish([], _cause(projects))
+        rows, failure = [], None
+        project_prefix = f"arn:{_partition(region)}:devicefarm:{region}:{account}:project:"
+        for project in projects.items:
+            project_arn = project.get("arn") if isinstance(project, dict) else None
+            if (not isinstance(project_arn, str) or not project_arn.startswith(project_prefix)
+                    or not re.fullmatch(r"[A-Za-z0-9-]+", project_arn[len(project_prefix):])):
+                failure = failure or ("malformed", {"code": "malformed_devicefarm_project"})
+                continue
+            children = requests.pages(session, "devicefarm", region, operation, response_key, arn=project_arn)
+            if children.status not in OK:
+                failure = failure or _cause(children)
+            for child in children.items:
+                arn = child.get("arn") if isinstance(child, dict) else None
+                if (not isinstance(arn, str) or not arn.startswith(project_arn.replace(":project:",
+                        ":upload:" if kind == "devicefarm_upload" else ":devicepool:") + "/")):
+                    failure = failure or ("malformed", {"code": "malformed_devicefarm_child"})
+                    continue
+                rows.append({**_pick(child, fields), "ProjectArn": project_arn, "id": arn})
+        return _finish(rows, failure)
+    return fetch
 
 
 def _partition(region):
@@ -978,6 +1013,8 @@ FETCHERS = {
     "grafana_workspace": _grafana_workspaces,
     "gamelift_ec2_compute": _gamelift_ec2_computes,
     "iot_role_alias": _iot_role_aliases,
+    "devicefarm_upload": _devicefarm_project_children("devicefarm_upload"),
+    "devicefarm_device_pool": _devicefarm_project_children("devicefarm_device_pool"),
     "quicksight_user": _quicksight_users,
     "quicksight_account_subscription": _quicksight_account_subscription,
     "supplychain_instance": _supplychain_instances,

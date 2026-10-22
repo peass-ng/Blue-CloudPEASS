@@ -617,6 +617,14 @@ IOT_ROLE_ALIAS_METADATA_REFERENCE = {
 }
 VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(IOT_ROLE_ALIAS_METADATA_REFERENCE)
 
+# Device Farm upload and device-pool names are needed to bind a custom test
+# specification to an existing project and run. Upload URLs are discarded.
+DEVICEFARM_TEST_METADATA_REFERENCES = {
+    "devicefarm:ListUploads": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_devicefarm.html",
+    "devicefarm:ListDevicePools": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_devicefarm.html",
+}
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(DEVICEFARM_TEST_METADATA_REFERENCES)
+
 # Exact lifecycle-configuration names prevent a create permission on an
 # already occupied name from being mistaken for notebook role execution.
 SAGEMAKER_NOTEBOOK_LIFECYCLE_METADATA_REFERENCE = {
@@ -971,6 +979,11 @@ def refresh(root: Path, *, read_actions=None, include_credential_report_generati
         "Actions": sorted(IOT_ROLE_ALIAS_METADATA_REFERENCE),
         "Sources": IOT_ROLE_ALIAS_METADATA_REFERENCE,
         "Boundary": "Existing IoT role alias names only; no certificates, private keys or role credentials.",
+    }
+    template["Metadata"]["PeasoDeviceFarmTestMetadataReference"] = {
+        "Actions": sorted(DEVICEFARM_TEST_METADATA_REFERENCES),
+        "Sources": DEVICEFARM_TEST_METADATA_REFERENCES,
+        "Boundary": "Project upload and device-pool metadata only; no signed upload URLs, test content or role credentials.",
     }
     # Compact new templates to preserve source export budgets. Archived versions
     # are never reformatted or overwritten; CloudFormation parses the same JSON.
