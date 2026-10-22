@@ -1232,6 +1232,7 @@ def _glue_job_flags(requests, session, region, items):
             merged = {**(defaults or {}), **(fixed or {})}
             item["DefaultArgumentFlags"] = {key: value for key, value in merged.items() if key in _GLUE_FLAGS and isinstance(value, str)}
             # Only known argument names are retained. Their values can contain credentials or private paths.
+            item["DefaultCodeArguments"] = sorted(_GLUE_CODE_ARGUMENTS.intersection(defaults or {}))
             item["NonOverridableCodeArguments"] = sorted(_GLUE_CODE_ARGUMENTS.intersection(fixed or {}))
         output.append(item)
     return output
@@ -1252,6 +1253,14 @@ def _glue_trigger_names(requests, session, region, items):
                            if isinstance(action, dict) and isinstance(action.get("JobName"), str)]
                           if isinstance(actions, list) else None,
             "ActionsComplete": isinstance(actions, list) and all(isinstance(action, dict) for action in actions),
+            "ScriptOverrideJobActions": [action.get("JobName") for action in actions
+                                         if isinstance(action, dict) and isinstance(action.get("JobName"), str)
+                                         and isinstance(action.get("Arguments"), dict)
+                                         and "--scriptLocation" in action["Arguments"]]
+                                        if isinstance(actions, list) else None,
+            "ActionArgumentsComplete": isinstance(actions, list) and all(
+                isinstance(action, dict) and (action.get("Arguments") is None or
+                                              isinstance(action.get("Arguments"), dict)) for action in actions),
         })
     return output
 

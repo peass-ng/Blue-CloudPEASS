@@ -8447,6 +8447,81 @@ class AwsModel(Model):
                 if tid not in out and uncertain:
                     out[tid] = ("unknown", "glue_job_override_route_not_verified")
             return out
+        if pid == "glue_existing_job_script_object_writable_and_runnable":
+            if source is None:
+                return None
+            jobs = {(scope, row.get("Name")): row for scope, row in items(self.snapshot, "glue_job")
+                    if isinstance(row, dict) and isinstance(row.get("Name"), str)}
+            job_status = inventory_status(self.snapshot, "glue_job")
+            trigger_status = inventory_status(self.snapshot, "glue_trigger")
+            triggers = {}
+            trigger_unknown = {}
+            for scope, trigger in items(self.snapshot, "glue_trigger"):
+                if not isinstance(trigger, dict) or trigger.get("ActionsComplete") is not True:
+                    continue
+                if (trigger.get("Type") == "SCHEDULED" and trigger.get("State") == "ACTIVATED"
+                        and trigger.get("HasSchedule") is True and isinstance(trigger.get("JobActions"), list)):
+                    names = {name for name in trigger["JobActions"] if isinstance(name, str)}
+                    overrides = trigger.get("ScriptOverrideJobActions")
+                    if trigger.get("ActionArgumentsComplete") is not True or not isinstance(overrides, list):
+                        trigger_unknown.setdefault(scope, set()).update(names)
+                    else:
+                        triggers.setdefault(scope, set()).update(names - set(overrides))
+                        trigger_unknown.setdefault(scope, set()).update(names.intersection(overrides))
+            for tid, target in candidates.items():
+                uncertain = bool(source.incomplete or target.incomplete)
+                for job_arn in self.hosts.get(target.id, {}).get("glue_job", ()):
+                    parts = job_arn.split(":", 5)
+                    if len(parts) != 6 or not parts[5].startswith("job/") or parts[4] != source.scope:
+                        uncertain = True
+                        continue
+                    scope, name = f"{parts[4]}/{parts[3]}", parts[5][4:]
+                    if job_status.get(scope) not in ("collected", "empty"):
+                        uncertain = True
+                        continue
+                    job = jobs.get((scope, name))
+                    command = job.get("Command") if isinstance(job, dict) else None
+                    script = command.get("ScriptLocation") if isinstance(command, dict) else None
+                    kind = command.get("Name") if isinstance(command, dict) else None
+                    if (kind not in ("glueetl", "gluestreaming", "pythonshell", "glueray")
+                            or not isinstance(script, str)):
+                        uncertain = True
+                        continue
+                    fixed = job.get("NonOverridableCodeArguments")
+                    if not isinstance(fixed, list) or "--scriptLocation" in fixed:
+                        uncertain = True
+                        continue
+                    parsed = urlsplit(script)
+                    if (parsed.scheme != "s3" or not re.fullmatch(r"[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]", parsed.netloc)
+                            or not parsed.path.startswith("/") or parsed.path == "/"
+                            or parsed.query or parsed.fragment or "%" in parsed.path
+                            or any(ord(char) < 32 for char in script)):
+                        uncertain = True
+                        continue
+                    object_arn = f"arn:{parts[1]}:s3:::{parsed.netloc}{parsed.path}"
+                    put = self.check(source, {"action": "s3:PutObject"}, object_arn)
+                    read = self.check(target, {"action": "s3:GetObject"}, object_arn)
+                    if put is None or read is None:
+                        continue
+                    start = self.check(source, {"action": "glue:StartJobRun"}, job_arn)
+                    defaults = job.get("DefaultCodeArguments")
+                    scheduled = (isinstance(defaults, list) and "--scriptLocation" not in defaults
+                                 and name in triggers.get(scope, set()))
+                    if start is None and not scheduled:
+                        if (trigger_status.get(scope) not in ("collected", "empty") or
+                                name in trigger_unknown.get(scope, set()) or not isinstance(defaults, list)
+                                or "--scriptLocation" in defaults):
+                            uncertain = True
+                        continue
+                    if (put.confidence == read.confidence == "derived" and
+                            (scheduled or start is not None and start.confidence == "derived") and
+                            not source.incomplete and not target.incomplete):
+                        out[tid] = ("conditional", "glue_exact_script_object_and_run_bound")
+                        break
+                    uncertain = True
+                if tid not in out and uncertain:
+                    out[tid] = ("unknown", "glue_exact_script_object_or_run_not_verified")
+            return out
         if pid == "appstream_new_app_block_builder_with_role":
             if source is None:
                 return None
