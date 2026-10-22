@@ -1,4 +1,6 @@
 """Bounded post-scan agents. AI errors never discard deterministic results."""
+import copy
+import hashlib
 import json
 import os
 import re
@@ -204,6 +206,34 @@ def findings_document(scan, findings, resources=()):
         items.append(item)
     return {'scan': {key: scan[key] for key in ('provider', 'snapshot_id', 'created_at') if key in scan},
             'items': items}
+
+
+def review_fingerprints(report, inventory_by_id, findings, *, identity, entries):
+    """Digest each reviewer's actual per-finding document and its access boundary.
+
+    The access reference identifies the sealed captured credential set; no
+    credential value or plaintext finding/resource is saved in stage metadata.
+    """
+    fingerprints = {}
+    for row in findings:
+        context = review_context(report, inventory_by_id, [row])
+        document = findings_document(context['scan'], [row], context['resources'])
+        # The checkpoint and final snapshot IDs can name different serialized
+        # views of the same section revision. The caller's authoritative
+        # complete-section revision fence supplies that provenance; the
+        # provider, capture time, finding and referenced resources still match.
+        document['scan'].pop('snapshot_id', None)
+        access = review_credentials(entries, report['provider'], [row], context)
+        boundary_keys = ('format', 'provider', 'scope', 'account_id', 'identity_arn',
+                         'audience', 'context_id', 'cluster_id', 'tenant_id',
+                         'quota_project', 'target_scopes', 'subscription_ids',
+                         'namespaces', 'endpoints', 'capture_policy')
+        boundary = [{key: entry[key] for key in boundary_keys if key in entry}
+                    for entry in access]
+        payload = {'document': document, 'identity': identity, 'access_boundary': boundary}
+        fingerprints[row['id']] = hashlib.sha256(json.dumps(
+            payload, sort_keys=True, separators=(',', ':'), ensure_ascii=False).encode()).hexdigest()
+    return fingerprints
 
 
 def review_credentials(entries, provider, findings, context):
@@ -444,6 +474,15 @@ def review_scan(report, snapshot, selectors, *, tenant, artifacts, deadline=None
         from peaso.snapshot import resources
         inventory = resources(snapshot)
         inventory_by_id = {row['id']: row for row in inventory}
+        identity = {'ai_user': ai_user, 'auth_source': result['auth_source'],
+                    'access_reference': reference}
+        result['review_fingerprint_version'] = 1
+        result['review_fingerprints'] = {
+            'hardening': review_fingerprints(report, inventory_by_id, hardening, identity=identity,
+                                              entries=entries),
+            'exposure': review_fingerprints(report, inventory_by_id, exposure, identity=identity,
+                                             entries=entries),
+        }
         end = min(time.monotonic() + int(os.getenv('PEASO_AI_TIMEOUT_SECONDS', '600' if isolation.remote() else '300')),
                   time.monotonic() + max(0, deadline - time.time() - 10) if deadline else float('inf'))
         # Hosted priorities need their task startup and model budget after the
@@ -453,15 +492,16 @@ def review_scan(report, snapshot, selectors, *, tenant, artifacts, deadline=None
         from .network import prepare, with_findings
         network = prepare(report, inventory, snapshot)
         # Completed outputs remain durable outside the advancing collector
-        # manifest. Reuse only matching finding sets; a changed set reruns.
+        # manifest. The caller fences them to complete section revisions.
         pending = set(selected)
+        reusable_reviews = {'hardening': {}, 'exposure': {}}
         for stage in ('hardening', 'exposure', 'network'):
             prior = reused_stages.get(stage)
             if stage not in pending or not isinstance(prior, dict) or prior.get('status') != 'completed':
                 continue
-            if stage in result['stage_inputs'] and prior.get('stage_inputs', {}).get(stage) != result['stage_inputs'][stage]:
-                continue
-            value = prior.get('network') if stage == 'network' else prior.get('reviews', {}).get(stage)
+            prior_reviews = prior.get('reviews')
+            value = prior.get('network') if stage == 'network' else (
+                prior_reviews.get(stage) if isinstance(prior_reviews, dict) else None)
             if stage == 'network' and isinstance(value, dict) and value.get('status') == 'completed':
                 if network is not None:
                     try:
@@ -475,33 +515,61 @@ def review_scan(report, snapshot, selectors, *, tenant, artifacts, deadline=None
                         raw = {'explanation': value['explanation'], 'findings': raw_rows}
                         checked = validate_network(raw, network)
                         if checked['findings'] == value['findings']:
-                            result['network'] = value
+                            result['network'] = copy.deepcopy(value)
                             pending.remove(stage)
                     except (KeyError, TypeError, ValueError):
                         pass
             elif stage != 'network' and isinstance(value, list):
+                if prior.get('review_fingerprint_version') != 1:
+                    continue
+                proofs = prior.get('review_fingerprints')
+                inputs_by_stage = prior.get('stage_inputs')
+                proof = proofs.get(stage) if isinstance(proofs, dict) else None
+                current = result['review_fingerprints'][stage]
+                if not isinstance(proof, dict) or not isinstance(inputs_by_stage, dict):
+                    continue
+                prior_ids = inputs_by_stage.get(stage)
+                if (not isinstance(prior_ids, list) or
+                        not all(isinstance(ident, str) for ident in prior_ids) or
+                        len(prior_ids) != len(set(prior_ids)) or set(proof) != set(prior_ids)):
+                    continue
                 try:
                     checked = validate_reviews({'items': value},
-                        hardening if stage == 'hardening' else exposure)
+                        [{'id': ident} for ident in prior_ids])
                 except (TypeError, ValueError):
                     continue
-                result['reviews'][stage] = checked['items']
-                pending.remove(stage)
+                reusable_reviews[stage] = {row['finding_id']: copy.deepcopy(row)
+                    for row in checked['items'] if row['verdict'] in ('PASS', 'FAIL', 'NOT_APPLICABLE', 'EMPTY')
+                    and proof.get(row['finding_id']) == current.get(row['finding_id'])}
+                if len(reusable_reviews[stage]) == len(current):
+                    ordered = [reusable_reviews[stage][row['id']]
+                        for row in (hardening if stage == 'hardening' else exposure)]
+                    try:
+                        result['reviews'][stage] = validate_reviews({'items': ordered},
+                            hardening if stage == 'hardening' else exposure)['items']
+                    except (TypeError, ValueError):
+                        continue
+                    pending.remove(stage)
         # Independent reviewers can start as each section becomes complete.
         # Priorities below wait for the selected reviewer calls to settle.
+        missing_hardening = [row for row in hardening if row['id'] not in reusable_reviews['hardening']]
+        missing_exposure = [row for row in exposure if row['id'] not in reusable_reviews['exposure']]
         if not pending & {'hardening', 'exposure', 'network'}:
             fresh, failed_stage = {}, False
         elif pending == {'hardening', 'exposure', 'network', 'priorities'}:
-            args = (report, inventory_by_id, entries, token, hardening, exposure, review_end)
+            args = (report, inventory_by_id, entries, token, missing_hardening, missing_exposure, review_end)
             fresh, failed_stage = (review_batches(*args, network=network) if cancel_event is None else
                 review_batches(*args, network=network, cancel_event=cancel_event))
         else:
             fresh, failed_stage = review_batches(report, inventory_by_id, entries, token,
-                hardening, exposure, review_end, network=network, stages=pending,
+                missing_hardening, missing_exposure, review_end, network=network, stages=pending,
                 **({'cancel_event': cancel_event} if cancel_event is not None else {}))
         for stage in ('hardening', 'exposure'):
             if stage in fresh:
-                result['reviews'][stage] = fresh[stage]
+                by_id = {**reusable_reviews[stage], **{row['finding_id']: row for row in fresh[stage]}}
+                expected = hardening if stage == 'hardening' else exposure
+                result['reviews'][stage] = validate_reviews({'items':
+                    [by_id[row['id']] for row in expected]}, expected)['items']
         if 'network' in fresh:
             result['network'] = fresh['network']
         result['network'] = result.get('network', {

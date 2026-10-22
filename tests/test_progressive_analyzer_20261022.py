@@ -283,3 +283,136 @@ def test_reused_review_skips_completed_ai_and_priorities_waits_for_reviewers(mon
     assert failed["status"] == "partial"
     assert failed["reviews"]["exposure"][0]["verdict"] == "UNKNOWN"
     assert report == native and all(row["status"] == "FAIL" for row in report["findings"])
+
+
+def _exact_reuse_fixture(monkeypatch, tmp_path):
+    monkeypatch.setattr(pipeline, "Settings", lambda: SimpleNamespace(
+        state_dir=tmp_path, identity_dir=tmp_path, auth_mode="local"))
+    monkeypatch.setattr("peaso.storage.runtime.stores", lambda _: (SimpleNamespace(), None))
+    monkeypatch.setattr("peaso.ai.providers.review_disabled", lambda *a: False)
+    monkeypatch.setattr("peaso.ai.providers.resolve_access", lambda *a, **kw: ("private-token", "test"))
+    monkeypatch.setattr("peaso.ai.providers.credential_value", lambda _: "private-token")
+    monkeypatch.setattr(pipeline.isolation, "available", lambda: True)
+    monkeypatch.setattr(pipeline.isolation, "remote", lambda: False)
+    monkeypatch.setattr(pipeline, "available_memory", lambda: 4 * 1024**3)
+    monkeypatch.setattr("peaso.snapshot.resources", lambda snapshot: snapshot.get("resources", []))
+    monkeypatch.setattr("peaso.ai.network.prepare", lambda *a: None)
+    monkeypatch.setattr("peaso.ai.network.with_findings", lambda report, findings: report)
+    monkeypatch.setattr("peaso.least_privilege.project", lambda *a, **kw: {"items": []})
+    monkeypatch.setenv("PEASO_AI_MAX_CONCURRENCY", "1")
+    calls = []
+    def invoke(stage, platform, entries, token, findings, reviews, timeout):
+        calls.append((stage, [row["id"] for row in findings], copy.deepcopy(reviews)))
+        if stage == "priorities":
+            return {"actions": [], "limitations": []}
+        return {"items": [{"finding_id": row["id"], "verdict": "FAIL", "reason": ""}
+                           for row in findings]}
+    monkeypatch.setattr(pipeline, "invoke", invoke)
+    return calls
+
+
+def test_exact_finding_reuse_reviews_only_six_new_rows(monkeypatch, tmp_path):
+    calls = _exact_reuse_fixture(monkeypatch, tmp_path)
+    def report(count):
+        return {"provider": "aws", "snapshot_id": "captured", "created_at": "2026-10-22T10:00:00Z",
+                "findings": [{"id": f"h{i:03}", "check_id": f"check{i:03}",
+                              "category": "hardening", "status": "FAIL", "resource_id": "r",
+                              "scope": "123456789012/us-east-1"} for i in range(count)], "graphs": {}}
+    snapshot = {"resources": [{"id": "r", "scope": "123456789012/us-east-1",
+                               "provider": "aws", "data": {"state": "captured"}}]}
+    early = pipeline.review_scan(report(140), snapshot, {}, tenant="tenant", artifacts=None,
+                                 stages=("hardening",))
+    assert early["status"] == "completed" and len(early["reviews"]["hardening"]) == 140, (early, calls)
+    assert [len(ids) for stage, ids, _ in calls if stage == "hardening"] == [40, 40, 40, 20]
+    saved_early = copy.deepcopy(early)
+    final_report = report(146)
+    final_report["snapshot_id"] = "final-view-of-same-section-revision"
+    calls.clear()
+    final = pipeline.review_scan(final_report, snapshot, {}, tenant="tenant", artifacts=None,
+                                 reused_stages={"hardening": early})
+    assert [ids for stage, ids, _ in calls if stage == "hardening"] == [
+        [f"h{i:03}" for i in range(140, 146)]]
+    assert len([row for row in final["reviews"]["hardening"] if row["verdict"] == "FAIL"]) == 146
+    reused_priority_input = next(rows for stage, _, rows in calls if stage == "priorities")
+    calls.clear()
+    reference = pipeline.review_scan(final_report, snapshot, {}, tenant="tenant", artifacts=None)
+    full_priority_input = next(rows for stage, _, rows in calls if stage == "priorities")
+    assert final["reviews"] == reference["reviews"]
+    assert final["coverage"] == reference["coverage"]
+    assert final["actions"] == reference["actions"]
+    assert reused_priority_input == full_priority_input
+    final["reviews"]["hardening"][0]["reason"] = "changed after reuse"
+    assert early == saved_early
+
+
+@pytest.mark.parametrize("change", ["finding", "resource", "time", "provider", "identity", "legacy", "version", "unconcluded", "tampered"])
+def test_exact_finding_reuse_falls_back_without_matching_proof(monkeypatch, tmp_path, change):
+    calls = _exact_reuse_fixture(monkeypatch, tmp_path)
+    base = {"provider": "aws", "snapshot_id": "captured", "created_at": "2026-10-22T10:00:00Z",
+            "findings": [{"id": "h1", "check_id": "check", "category": "hardening",
+                          "status": "FAIL", "resource_id": "r", "scope": "123456789012/us-east-1"}],
+            "graphs": {}}
+    snapshot = {"resources": [{"id": "r", "scope": "123456789012/us-east-1",
+                               "provider": "aws", "data": {"state": "old"}}]}
+    prior = pipeline.review_scan(base, snapshot, {}, tenant="tenant", artifacts=None, stages=("hardening",))
+    prior = copy.deepcopy(prior)
+    report, current_snapshot = copy.deepcopy(base), copy.deepcopy(snapshot)
+    if change == "finding":
+        report["findings"][0]["evidence"] = {"changed": True}
+    elif change == "resource":
+        current_snapshot["resources"][0]["data"]["state"] = "new"
+    elif change == "time":
+        report["created_at"] = "2026-10-22T10:01:00Z"
+    elif change == "provider":
+        report["provider"] = "gcp"
+    elif change == "identity":
+        prior["review_fingerprints"]["hardening"]["h1"] = "0" * 64
+    elif change == "legacy":
+        del prior["review_fingerprints"]
+    elif change == "version":
+        prior["review_fingerprint_version"] = 0
+    elif change == "unconcluded":
+        prior["reviews"]["hardening"][0]["verdict"] = "UNKNOWN"
+    elif change == "tampered":
+        prior["reviews"]["hardening"].append(copy.deepcopy(prior["reviews"]["hardening"][0]))
+    calls.clear()
+    result = pipeline.review_scan(report, current_snapshot, {}, tenant="tenant", artifacts=None,
+                                  stages=("hardening",), reused_stages={"hardening": prior})
+    assert result["status"] == "completed"
+    assert [ids for stage, ids, _ in calls if stage == "hardening"] == [["h1"]]
+
+
+def test_exact_finding_reuse_preserves_cancellation_for_new_rows(monkeypatch, tmp_path):
+    calls = _exact_reuse_fixture(monkeypatch, tmp_path)
+    report = {"provider": "aws", "created_at": "2026-10-22T10:00:00Z", "findings": [
+        {"id": ident, "check_id": ident, "category": "hardening", "status": "FAIL",
+         "resource_id": "r", "scope": "123456789012/us-east-1"} for ident in ("old", "new")],
+        "graphs": {}}
+    prior = pipeline.review_scan(dict(report, findings=report["findings"][:1]), {}, {},
+                                 tenant="tenant", artifacts=None, stages=("hardening",))
+    calls.clear()
+    cancelled = threading.Event()
+    cancelled.set()
+    result = pipeline.review_scan(report, {}, {}, tenant="tenant", artifacts=None,
+                                  stages=("hardening",), reused_stages={"hardening": prior},
+                                  cancel_event=cancelled)
+    assert result["status"] == "partial"
+    assert [(row["finding_id"], row["verdict"]) for row in result["reviews"]["hardening"]] == [
+        ("old", "FAIL"), ("new", "UNKNOWN")]
+    assert calls == []
+
+
+def test_exact_review_artifact_requires_complete_authoritative_revision():
+    from peaso.worker import _reusable_stages
+    class Artifacts:
+        def get(self, tenant, reference):
+            assert (tenant, reference) == ("tenant", "review-ref")
+            return {"stage": "hardening", "data_revision": 9,
+                    "result": {"status": "completed", "review_fingerprint_version": 1}}
+    stages = {"hardening": {"data_revision": 9, "result_ref": "review-ref"}}
+    section = {"hardening": {"status": "complete", "data_revision": 9}}
+    assert "hardening" in _reusable_stages(Artifacts(), "tenant", section, stages)
+    section["hardening"]["data_revision"] = 10
+    assert _reusable_stages(Artifacts(), "tenant", section, stages) == {}
+    section["hardening"].update(status="running", data_revision=9)
+    assert _reusable_stages(Artifacts(), "tenant", section, stages) == {}
