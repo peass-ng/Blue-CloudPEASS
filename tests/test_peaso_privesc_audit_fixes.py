@@ -144,26 +144,28 @@ def test_condition_policy_variable_substitution():
     assert C.substitute("arn:aws:iam::*:user/${aws:PrincipalTag/x}", ctx) is None
 
 
-def test_condition_excluding_technique_drops_edge_and_undecidable_is_manual():
+def test_condition_excluding_technique_drops_edge_and_undecidable_stays_unknown():
     excluded = {"Effect": "Allow", "Action": "iam:PassRole", "Resource": "*",
                 "Condition": {"StringEquals": {"iam:PassedToService": "lambda.amazonaws.com"}}}
     result = real(aws([user("alice", excluded, PASS_RUN[1])], [role("ec2-role")]), "aws-ec2-passrole-runinstances")
     assert reached(result, ALICE) == {}
     mfa = {"Effect": "Allow", "Action": "iam:PassRole", "Resource": "*", "Condition": {"Bool": {"aws:MultiFactorAuthPresent": "true"}}}
-    result = real(aws([user("alice", mfa, PASS_RUN[1])], [role("ec2-role")]), "aws-ec2-passrole-runinstances")
-    assert reached(result, ALICE) == {EC2_ROLE: "conditional"}
-    assert statuses(result, "aws-ec2-passrole-runinstances") == ["MANUAL"]
+    result = real(aws([user("alice", mfa, PASS_RUN[1])], [role("ec2-role")]),
+                  "aws-ec2-passrole-runinstances", include_unknown=True)
+    assert reached(result, ALICE) == {}
+    assert statuses(result, "aws-ec2-passrole-runinstances") == ["UNKNOWN"]
     detail = result["graph"]["edges"][0]["technique_details"][0]
     cited = [r for r in detail["evidence_refs"] if r.get("condition_evaluated") == "undecided"]
     assert cited and cited[0]["policy_name"] == "p" and cited[0]["statement"] == 0     # the exact granting statement
 
 
-def test_proven_condition_keeps_derived_fail():
+def test_proven_passrole_condition_still_needs_ec2_launch_witness():
     ok = {"Effect": "Allow", "Action": "iam:PassRole", "Resource": "*",
           "Condition": {"StringEquals": {"iam:PassedToService": "ec2.amazonaws.com"}}}
-    result = real(aws([user("alice", ok, PASS_RUN[1])], [role("ec2-role")]), "aws-ec2-passrole-runinstances")
-    assert reached(result, ALICE) == {EC2_ROLE: "derived"}
-    assert statuses(result, "aws-ec2-passrole-runinstances") == ["FAIL"]
+    result = real(aws([user("alice", ok, PASS_RUN[1])], [role("ec2-role")]),
+                  "aws-ec2-passrole-runinstances", include_unknown=True)
+    assert reached(result, ALICE) == {}
+    assert statuses(result, "aws-ec2-passrole-runinstances") == ["UNKNOWN"]
 
 
 # -------------------------------------------------------------------- preconditions

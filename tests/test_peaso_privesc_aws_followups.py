@@ -2398,3 +2398,40 @@ def test_codebuild_updateproject_needs_existing_project_and_target_role_allowed(
     no_child_grant = aws_snap([batch_only], [roles[0], roles[1], role("batch", "codebuild.amazonaws.com")],
                               [col("codebuild_project", [existing_batch])])
     assert edges(real(no_child_grant, tid), ALICE) == []
+
+
+def test_runinstances_scoped_grant_stays_visible_without_claiming_role_execution():
+    ident = "aws-ec2-passrole-runinstances"
+    target = role("target", "ec2.amazonaws.com", profiles=[profile_arn("target")])
+    image = f"arn:aws:ec2:{REGION}::image/ami-1234567890abcdef0"
+
+    def caller(service, run=True):
+        passrole = {"Effect": "Allow", "Action": "iam:PassRole", "Resource": target["Arn"],
+                    "Condition": {"StringEquals": {"iam:PassedToService": service}}}
+        statements = [passrole]
+        if run:
+            statements.append(allow("ec2:RunInstances", resource=image))
+        return user("alice", *statements)
+
+    result = real(aws_snap([caller("ec2.amazonaws.com")], [target]), ident, include_unknown=True)
+    assert target["Arn"] not in reached(result, ALICE, ident)
+    assert_unresolved(result, ALICE, ident)
+    for source in (caller("lambda.amazonaws.com"), caller("ec2.amazonaws.com", run=False)):
+        assert not reached(real(aws_snap([source], [target]), ident), ALICE, ident)
+
+
+def test_runinstances_prior_catalog_binding_preserves_earlier_requirements():
+    from peaso.privesc import versioned_catalog as catalog
+
+    ident = "aws-ec2-passrole-runinstances"
+    old_binding = {"schema": catalog.BINDING_SCHEMA,
+                   "manifest_sha256": catalog.EC2_RUNINSTANCES_689_PREVIOUS_MANIFEST,
+                   "effective_tree_sha256": catalog.EC2_RUNINSTANCES_689_PREVIOUS_TREE,
+                   "source_revision": catalog.V4_REVISION}
+    old, old_status = catalog.lookup_entries([ident], old_binding)
+    new, new_status = catalog.lookup_entries([ident], catalog.current_binding())
+    assert old_status == "exact_previous_current"
+    assert new_status == "exact_strict_privesc"
+    assert any(req["action"] == "ec2:RunInstances" for req in old[ident]["requires"]["all_of"])
+    assert all(req["action"] != "ec2:RunInstances" for req in new[ident]["requires"]["all_of"])
+    assert new[ident]["preconditions"] == ["ec2_runinstances_launch_with_passed_profile_unverified"]

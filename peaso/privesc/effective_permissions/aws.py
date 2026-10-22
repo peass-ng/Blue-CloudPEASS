@@ -7795,6 +7795,17 @@ class AwsModel(Model):
             # compatible. Neither fact follows from the two caller grants.
             return {tid: ("unknown", "stepfunctions_teststate_role_task_effect_not_verified")
                     for tid in candidates}
+        if pid == "ec2_runinstances_launch_with_passed_profile_unverified":
+            if source is None:
+                return None
+            allows, _ = self._statements(source, "ec2:runinstances")
+            if not allows and not source.incomplete:
+                return {}
+            # RunInstances checks each resource in a single launch request.
+            # A wildcard IAM probe cannot establish a usable image, network,
+            # instance profile and source-controlled boot path together.
+            return {tid: ("unknown", "ec2_launch_resources_profile_or_boot_path_not_verified")
+                    for tid in candidates}
         if pid == "spot_request_with_passed_profile_and_role_ready":
             if source is None:
                 return None
