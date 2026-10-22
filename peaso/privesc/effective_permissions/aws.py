@@ -7855,6 +7855,11 @@ class AwsModel(Model):
             # generated pipeline ID to a runnable EC2 command definition.
             return {tid: ("unknown", "datapipeline_customer_role_pair_and_pipeline_run_not_verified")
                     for tid in candidates}
+        if pid == "kafkaconnect_plugin_execution_unverified":
+            # IAM grants alone cannot join source-controlled plugin bytes to a
+            # connector with a usable Kafka cluster, network and worker setup.
+            return {tid: ("unknown", "kafkaconnect_plugin_cluster_and_execution_not_verified")
+                    for tid in candidates}
         if pid == "braket_createjob_device_authorized":
             if source is None:
                 return None
