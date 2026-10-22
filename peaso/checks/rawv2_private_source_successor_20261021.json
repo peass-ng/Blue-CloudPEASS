@@ -9,14 +9,14 @@
     "_label": "255fb5aebcc87ef5dc5a202ecde61d17c4ce4926e056b93e27fb3de6b761f5e5",
     "_run": "f06b596efe9882fd8fdb22789b82d74ca85144a31efff04faccf40e28b518284",
     "_scan_kingfisher": "70cf3a5bec42dedc2071d63940e10bb8b67081efbb63f86dd16c4d94782242c8",
-    "_scan_trufflehog": "0563b161e46a952b54f22ecf5fa8d093ae5a16a6e6a272f0cfcd61ae79f1a3e5",
+    "_scan_trufflehog": "627a0bb943172238610db23d3719626cbb7b4d7fea41e507921ca4c98da6a86d",
     "_trufflehog": "68890a08f9490e4c93935083925d55246759a92461ae1bfac8e624c4d325974c",
     "merge_leaks": "c68113ee5f948578f926971b78a1e384e693cb845f8d00e3e6fa7e4051a58b79",
     "omit_free_text_metadata": "f3c757accbb38c8fadccbf7d2b42c66139f2a93b281a68de850b1ce48a340926",
     "redact_matches": "4c334f2c96e96a2bc6b58e9f681c239f4b731b64d530b495c213a182f02e57df",
     "scan_content": "7b9bc28be3a44fe36afbd191de5997678035ffbe01745ef17a9f2e3423ad10d0"
   },
-  "after_sha256": "853c402c0362565849c43cbd89cc82d1e5e8b1b5d8d25f6cc15706a48de6f55f",
+  "after_sha256": "a1c7163c021ac85b945f3b4289a5fa45f4e641bc22e302c51c9014ec7531c322",
   "before_functions": {
     "_after_fork": "f67c4850c2d6fa0ddef37a517c0d584d4b463cc28ae04fe0f635de8b61b3b788",
     "_fingerprint": "d17562e7d08e43ee7f3d8d2a3c2cab315964ab805962c6117575a84568b89975",
@@ -98,7 +98,7 @@
     "__module__",
     "__weakref__"
   ],
-  "detector_class_lineno": 140,
+  "detector_class_lineno": 141,
   "detector_class_static_attributes": [
     "redaction_values"
   ],
@@ -657,6 +657,14 @@
     {
       "after": "            # Retain the actual match/value/line association before constructing\n            # redacted canonical witnesses. No raw values enter those witnesses.\n            remember(value, _fingerprint(value), path=path, public_path=safe_path, line=line, engine=name, rule=_label(rule),\n                     observed_bytes=not private_capture() or value.encode('utf-8') in payload)\n            observations.append({'fingerprint': _fingerprint(value),\n",
       "before": "            observations.append({'fingerprint': _fingerprint(value),\n"
+    },
+    {
+      "after": "import subprocess\nimport threading\nimport time\nfrom .secret_scanning_batch import prepared_content_batch, prepared_output as _prepared_trufflehog_output\n\nKINGFISHER_VERSION = '1.4.0'\nTRUFFLEHOG_VERSION = '3.92.5'\n",
+      "before": "import subprocess\nimport threading\nimport time\n\nKINGFISHER_VERSION = '1.4.0'\nTRUFFLEHOG_VERSION = '3.92.5'\n"
+    },
+    {
+      "after": "\n\ndef _scan_trufflehog(payload, path, timeout):\n    output = _prepared_trufflehog_output(payload, path)\n    if output is None:\n        output = _run([_trufflehog(), 'stdin', '--json', '--no-verification', '--no-update',\n                       '--log-level=-1', '--concurrency=1', '--force-skip-archives',\n                       '--no-verification-cache', '--fail-on-scan-errors'], payload, timeout)\n    result, full_matches = _DetectorMatches(), []\n    for line in output.splitlines():\n        row = json.loads(line)\n",
+      "before": "\n\ndef _scan_trufflehog(payload, path, timeout):\n    output = _run([_trufflehog(), 'stdin', '--json', '--no-verification', '--no-update',\n                   '--log-level=-1', '--concurrency=1', '--force-skip-archives',\n                   '--no-verification-cache', '--fail-on-scan-errors'], payload, timeout)\n    result, full_matches = _DetectorMatches(), []\n    for line in output.splitlines():\n        row = json.loads(line)\n"
     }
   ],
   "private_helper_classes": {

@@ -261,6 +261,8 @@ REPRODUCTION_INPUT_PATTERNS = (
     'tests/test_azure_app_runtime_pipeline_20261021.py',
     'tests/test_container_practical_archive_20261021.py',
     'tests/test_ecr_secret_streaming_20261021.py',
+    'tests/test_peaso_secret_scanning_batch.py',
+    'tests/test_aws_package_content_batch_20261022.py',
     'tests/test_gcp_job_image_vulnerability_lifecycle_20261021.py',
     'tests/test_gcp_job_image_vulnerability_product_20261021.py',
     'tests/test_peaso_cloudrun_selector_static_20261021.py',
