@@ -218,7 +218,7 @@ def test_engine_report_retains_one_row_per_real_leak_across_native_kinds(real_sc
             return key
         def put_text(self, tenant, ident, kind, value): return self.put(tenant, ident, kind, value)
     artifacts = MemoryArtifacts()
-    manifest = artifacts.rows[publish_report(artifacts, 'synthetic-tenant', 'synthetic-scan', report)]
+    manifest = artifacts.rows[publish_report(artifacts, 'synthetic-tenant', 'd' * 32, report)]
     persisted = [row for chunk in manifest['finding_chunks']
                  for row in artifacts.rows[chunk['index_reference']]['items']]
     assert len(group_findings(persisted)) == 2
