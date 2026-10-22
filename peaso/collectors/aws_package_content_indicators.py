@@ -220,24 +220,27 @@ def _download_image_layers(requests, session, region, account, repo, digest,
     def fetch(index):
         ld, size = descriptors[index]
         path = root / f'blob-{index:04}'
-        # Request projection and its stream writer consult this thread-local
-        # binding. Descriptor sums were checked before any worker was started;
-        # each worker reserves exactly its own immutable descriptor size.
-        state.active, state.budget = (ld, size, path), [size]
-        try:
-            with source_context(resource_id=identity, scope=account + '/' + region,
-                                image_digest=digest, layer=ld,
-                                check_ids={'aws.review.ecr_repository.package_content_secret_indicators'}):
-                safe = requests.detail(session, 'ecr', region, 'get_download_url_for_layer',
-                                       _metadata_profile=PROFILE, _cache_refresh=True,
-                                       registryId=account, repositoryName=repo, layerDigest=ld)
-            if (safe.get('collection_status') != 'collected' or safe.get('LayerDigest') != ld or
-                    safe.get('RegistryId') != account or safe.get('RepositoryName') != repo or
-                    safe.get('CompressedBytes') != size or not path.is_file() or path.stat().st_size != size):
-                raise ValueError('layer incomplete')
-            return path
-        finally:
-            del state.active, state.budget
+        def load(path):
+            # The provider projection binds its stream writer through this
+            # thread-local descriptor; every consumer validates its manifest.
+            state.active, state.budget = (ld, size, path), [size]
+            try:
+                with source_context(resource_id=identity, scope=account + '/' + region,
+                                    image_digest=digest, layer=ld,
+                                    check_ids={'aws.review.ecr_repository.package_content_secret_indicators'}):
+                    safe = requests.detail(session, 'ecr', region, 'get_download_url_for_layer',
+                                           _metadata_profile=PROFILE, _cache_refresh=True,
+                                           registryId=account, repositoryName=repo, layerDigest=ld)
+                if (safe.get('collection_status') != 'collected' or safe.get('LayerDigest') != ld or
+                        safe.get('RegistryId') != account or safe.get('RepositoryName') != repo or
+                        safe.get('CompressedBytes') != size or not path.is_file() or path.stat().st_size != size):
+                    raise ValueError('layer incomplete')
+                return path
+            finally:
+                del state.active, state.budget
+        from .aws_image_capture_20261022 import shared_blob
+        return shared_blob(requests, session, account, region, repo, digest,
+                           ld, size, load, path)
 
     paths = []
     with ThreadPoolExecutor(max_workers=2, thread_name_prefix='peaso-ecr-layer') as pool:
@@ -544,7 +547,8 @@ def _image(response, arguments, requests, session, region):
                 document = image_archive.decode(child['raw'])
                 config_desc = image_archive.descriptor(document['config'], image_archive.CONFIGS,
                                                        image_archive.MAX_CONFIG)
-                configuration = image_archive.decode(reader.blob(repo, config_desc))
+                configuration = image_archive.decode(reader.blob(repo, config_desc,
+                    image_digest=child_digest))
                 platform = child['platform']
                 _require_index(type(configuration) is dict and
                     configuration.get('os') == platform['os'] and
