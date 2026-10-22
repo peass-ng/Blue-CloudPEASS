@@ -150,6 +150,14 @@ def _ecs_per_cluster(kind):
                     overrides = row.get("overrides") if isinstance(row.get("overrides"), dict) else {}
                     # Only the role overrides; containerOverrides (environment, command) are discarded.
                     item["overrides"] = {key: overrides[key] for key in ("taskRoleArn", "executionRoleArn") if isinstance(overrides.get(key), str)}
+                    if isinstance(row.get("containers"), list):
+                        item["containers"] = [{
+                            "name": container.get("name"),
+                            "lastStatus": container.get("lastStatus"),
+                            "managedAgents": [{"name": agent.get("name"), "lastStatus": agent.get("lastStatus")}
+                                              for agent in container.get("managedAgents", [])
+                                              if isinstance(agent, dict)],
+                        } for container in row["containers"] if isinstance(container, dict)]
                     item["attachments"] = [{"type": a.get("type"), "status": a.get("status"),
                         "details": [d for d in a.get("details", []) if isinstance(d, dict) and d.get("name") in _ENI_DETAILS]}
                         for a in row.get("attachments", []) if isinstance(a, dict)]

@@ -613,6 +613,7 @@ class AwsModel(Model):
         self.ecs_taskdef_role = {}     # task definition arn -> task role arn
         self.ecs_execution_roles = {}  # execution role arn -> [(account, task definition arn, ec2 capable)]
         self.ecs_taskdef_execution_role = {}  # task definition arn -> execution role arn
+        self.ecs_taskdef_readonly_containers = {}  # task definition arn -> container names with unsupported read-only root
         for scope, item in items(snap, "ecs_task_definition"):
             account = item.get("AccountId") or scope.split("/")[0]
             self.ecs_task_definitions[account] = self.ecs_task_definitions.get(account, 0) + 1
@@ -628,6 +629,11 @@ class AwsModel(Model):
                 self.ecs_task_roles.setdefault(str(role), []).append((account, tdarn, ec2))
             if tdarn and execution_role:
                 self.ecs_taskdef_execution_role[str(tdarn)] = str(execution_role)
+            if tdarn:
+                self.ecs_taskdef_readonly_containers[str(tdarn)] = {
+                    str(container.get("name")) for container in as_list(td.get("containerDefinitions"))
+                    if isinstance(container, dict) and container.get("readonlyRootFilesystem") is True
+                    and isinstance(container.get("name"), str)}
             if execution_role:
                 self.ecs_execution_roles.setdefault(str(execution_role), []).append((account, tdarn, ec2))
         extra_ci, extra_tasks = {}, {}
@@ -660,6 +666,9 @@ class AwsModel(Model):
                 "account": account, "count": count,
                 "status": next((c.get("status") for c in as_list((item.get("Configuration") or {}).get("clusters"))
                                 if isinstance(c, dict) and c.get("clusterArn") == arn), item.get("status")),
+                "exec_kms_key": next(((((c.get("configuration") or {}).get("executeCommandConfiguration") or {}).get("kmsKeyId"))
+                                      for c in as_list((item.get("Configuration") or {}).get("clusters"))
+                                      if isinstance(c, dict) and c.get("clusterArn") == arn), None),
                 "instances": None if instances is None else {
                     str(ci.get("containerInstanceArn")): str(ci.get("ec2InstanceId") or "") for ci in instances if isinstance(ci, dict)},
                 "tasks": None if tasks is None else [t for t in tasks if isinstance(t, dict)]}
@@ -3644,6 +3653,87 @@ class AwsModel(Model):
             norm = _norm_arn(role.id)
             defs = [d for arn, ds in self.ecs_task_roles.items() if _norm_arn(arn) == norm for d in ds]
         return defs
+
+    def _ecs_exec_live_task_role(self, source, role):
+        """Join a running task, ready Exec agent, exact role and both IAM resources."""
+        if source is None:
+            return None
+        statuses = inventory_status(self.snapshot, "ecs_task")
+        if not statuses:
+            return ("unknown", "ecs_running_tasks_not_collected")
+        unknown = (not self._collected(statuses, source.scope) or source.incomplete or role.incomplete)
+        partition = source.id.split(":", 2)[1]
+        prefix = f"arn:{partition}:ecs:"
+        for scope, task in items(self.snapshot, "ecs_task"):
+            if scope.split("/")[0] != source.scope or not isinstance(task, dict):
+                continue
+            task_role = self._task_role(task)
+            if not task_role:
+                unknown = unknown or self._account_status("ecs_task_definition", source.scope) != "collected"
+                continue
+            if _norm_arn(task_role) != _norm_arn(role.id):
+                continue
+            if task.get("lastStatus") != "RUNNING" or task.get("enableExecuteCommand") is not True:
+                unknown = unknown or task.get("lastStatus") is None or task.get("enableExecuteCommand") is None
+                continue
+            cluster_arn, task_arn = task.get("clusterArn"), task.get("taskArn")
+            region = scope.split("/", 1)[1] if "/" in scope else ""
+            if (not isinstance(cluster_arn, str) or not isinstance(task_arn, str)
+                    or not cluster_arn.startswith(f"{prefix}{region}:{source.scope}:cluster/")
+                    or not task_arn.startswith(f"{prefix}{region}:{source.scope}:task/")):
+                unknown = True
+                continue
+            cluster = self.ecs_cluster_info.get(cluster_arn)
+            if cluster is None or cluster.get("status") != "ACTIVE":
+                unknown = True
+                continue
+            containers = task.get("containers")
+            if not isinstance(containers, list):
+                unknown = True
+                continue
+            for container in containers:
+                if not isinstance(container, dict) or not isinstance(container.get("name"), str):
+                    unknown = True
+                    continue
+                if container.get("lastStatus") != "RUNNING":
+                    continue
+                agents = container.get("managedAgents")
+                if not isinstance(agents, list):
+                    unknown = True
+                    continue
+                if not any(isinstance(agent, dict) and agent.get("name") == "ExecuteCommandAgent"
+                           and agent.get("lastStatus") == "RUNNING" for agent in agents):
+                    continue
+                if container["name"] in self.ecs_taskdef_readonly_containers.get(str(task.get("taskDefinitionArn")), ()):
+                    continue
+                request = {"request_context": {"ecs:cluster": cluster_arn,
+                                               "ecs:task": task_arn,
+                                               "ecs:container-name": container["name"]}}
+                grants = [self._with_context(request,
+                          lambda ref=ref: self._check_action(source, "ecs:executecommand", ref), source)
+                          for ref in (cluster_arn, task_arn)]
+                if any(grant is None for grant in grants):
+                    continue
+                grants.extend(self._check_action(role, action, "*") for action in (
+                    "ssmmessages:createcontrolchannel", "ssmmessages:createdatachannel",
+                    "ssmmessages:opencontrolchannel", "ssmmessages:opendatachannel"))
+                if any(grant is None for grant in grants):
+                    unknown = True
+                    continue
+                kms_key = cluster.get("exec_kms_key")
+                if kms_key:
+                    if not isinstance(kms_key, str) or not kms_key.startswith("arn:"):
+                        unknown = True
+                        continue
+                    grants.extend((self._check_action(source, "kms:generatedatakey", kms_key),
+                                   self._check_action(role, "kms:decrypt", kms_key)))
+                    if any(grant is None for grant in grants):
+                        unknown = True
+                        continue
+                if all(grant.confidence == "derived" for grant in grants) and not source.incomplete and not role.incomplete:
+                    return ("conditional", "ecs_running_task_exec_agent_and_role")
+                unknown = True
+        return ("unknown", "ecs_exec_task_or_authorization_not_verified") if unknown else None
 
     def _ec2_task_role(self, role):
         """True: the role is the task role of an EC2/EXTERNAL-capable task definition; False: provably not; None: unknown."""
@@ -7099,6 +7189,15 @@ class AwsModel(Model):
             out = {}
             for tid, role in candidates.items():
                 verdict = self._gameliftstreams_admin_shell(source, role)
+                if verdict:
+                    out[tid] = verdict
+            return out
+        if pid == "ecs_exec_live_task_role":
+            if source is None:
+                return None
+            out = {}
+            for tid, role in candidates.items():
+                verdict = self._ecs_exec_live_task_role(source, role)
                 if verdict:
                     out[tid] = verdict
             return out
