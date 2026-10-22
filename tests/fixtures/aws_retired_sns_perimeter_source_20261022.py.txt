@@ -1,0 +1,10 @@
+@install("aws.cb.sns.policy_prohibit_public_access_perimeter", "sns_topic", "SNS topic policy does not allow public access (perimeter)",
+    _topic(OWN), _topic(PUBLIC), rows=[X + "sns_topic_policy_prohibit_public_access"], severity="high", category="exposure", control="AC-3",
+    remediation="Remove wildcard principals or add restricting conditions to the topic policy.", docs=[D_SNS], extra={"not_applicable": _topic(None)},
+    note="aws-perimeter resource_policy_public_sql; a topic without a readable policy is info (NOT_APPLICABLE).")
+def sns_public_x(item, index):
+    statements = _topic_policy(item)
+    if statements is None:
+        return "NOT_APPLICABLE", {"policy": None}
+    hits = turbot_public_statements(statements)
+    return result(bool(hits), public_statements=len(hits))

@@ -8,6 +8,7 @@ import sys
 import tempfile
 import time
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
+from concurrent.futures import CancelledError
 from urllib.parse import unquote
 
 from peaso.auth.secrets import redact, secret_values
@@ -16,6 +17,10 @@ from peaso.server.config import Settings
 from .auth import personal_token
 from .contracts import validate_actions, validate_reviews, validate_network
 from . import isolation
+
+
+class _SkipPriorities(Exception):
+    """Internal control flow for independent early reviewer calls."""
 
 
 def private_json(path, value):
@@ -41,7 +46,9 @@ def kill_tree(process):
     process.wait(timeout=5)
 
 
-def invoke(stage, platform, entries, token, findings, reviews, timeout):
+def invoke(stage, platform, entries, token, findings, reviews, timeout, *, cancel_event=None):
+    if cancel_event is not None and cancel_event.is_set():
+        raise CancelledError()
     stop_at = time.monotonic() + timeout
     # Chack's Codex backend enables unrestricted shell tools. Refuse to start
     # it in the platform process namespace, even with a clean environment.
@@ -86,7 +93,13 @@ def invoke(stage, platform, entries, token, findings, reviews, timeout):
             private_json(root / (name + '.json'), data)
         if remote:
             from .fargate import invoke as invoke_remote
-            return invoke_remote(stage, root, token, max(.001, stop_at - time.monotonic()))
+            if cancel_event is None:
+                return invoke_remote(stage, root, token, max(.001, stop_at - time.monotonic()))
+            def cancellable_sleep(seconds):
+                if cancel_event.wait(seconds):
+                    raise CancelledError()
+            return invoke_remote(stage, root, token, max(.001, stop_at - time.monotonic()),
+                                 sleep=cancellable_sleep)
         # Allowlist, never a copy of os.environ: scanner/cloud/platform credentials
         # and default credential discovery locations must not reach the agent.
         env = {'PATH': os.getenv('PATH', '/usr/local/bin:/usr/bin:/bin'), 'HOME': directory,
@@ -102,7 +115,19 @@ def invoke(stage, platform, entries, token, findings, reviews, timeout):
         process = subprocess.Popen(command, cwd=directory,
             env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
         try:
-            process.wait(timeout=max(0, stop_at - time.monotonic()))
+            if cancel_event is None:
+                process.wait(timeout=max(0, stop_at - time.monotonic()))
+            else:
+                while process.poll() is None:
+                    if cancel_event.is_set():
+                        raise CancelledError()
+                    remaining = stop_at - time.monotonic()
+                    if remaining <= 0:
+                        raise TimeoutError()
+                    try:
+                        process.wait(timeout=min(.2, remaining))
+                    except subprocess.TimeoutExpired:
+                        pass
             if process.returncode == 78:
                 from .providers import launch_error
                 raise launch_error(token)
@@ -115,14 +140,18 @@ def invoke(stage, platform, entries, token, findings, reviews, timeout):
             kill_tree(process)
 
 
-def invoke_before_deadline(stage, platform, entries, token, findings, reviews, end, limit):
+def invoke_before_deadline(stage, platform, entries, token, findings, reviews, end, limit,
+                           *, cancel_event=None):
     from .fargate import TaskStartupError
     for attempt in range(2):
         remaining = end - time.monotonic()
         if remaining <= 0:
             raise TimeoutError()
         try:
-            return invoke(stage, platform, entries, token, findings, reviews, min(limit, remaining))
+            if cancel_event is None:
+                return invoke(stage, platform, entries, token, findings, reviews, min(limit, remaining))
+            return invoke(stage, platform, entries, token, findings, reviews, min(limit, remaining),
+                          cancel_event=cancel_event)
         except TaskStartupError:
             if attempt:
                 raise
@@ -265,22 +294,26 @@ def review_concurrency():
     return min(requested, capacity)
 
 
-def review_batches(report, inventory_by_id, entries, token, hardening, exposure, end, *, network=None):
+def review_batches(report, inventory_by_id, entries, token, hardening, exposure, end, *, network=None,
+                   stages=None, cancel_event=None):
     """Bounded work queue: overlap independent stages, preserve result order."""
-    output = {'hardening': [], 'exposure': []}
+    stages = frozenset(('hardening', 'exposure', 'network') if stages is None else stages)
+    output = {stage: [] for stage in ('hardening', 'exposure') if stage in stages}
     failed = False
 
     def batches():
         # Admit the holistic network review early; it shares the same memory
         # and concurrency limits as reviewer batches, never an extra pool.
-        if network is not None:
+        if network is not None and 'network' in stages:
             yield 'network', 0, []
         for offset in range(0, max(len(hardening), len(exposure)), 40):
             for stage, findings in (('hardening', hardening), ('exposure', exposure)):
-                if offset < len(findings):
+                if stage in stages and offset < len(findings):
                     yield stage, offset, findings[offset:offset + 40]
 
     def run(stage, batch):
+        if cancel_event is not None and cancel_event.is_set():
+            raise CancelledError()
         remaining = end - time.monotonic()
         if remaining <= 0:
             raise TimeoutError()
@@ -289,14 +322,18 @@ def review_batches(report, inventory_by_id, entries, token, hardening, exposure,
             remaining = end - time.monotonic()
             if remaining <= 0:
                 raise TimeoutError()
-            data = invoke_before_deadline(stage, network, access, token, [], [], end, 600 if isolation.remote() else 150)
+            args = (stage, network, access, token, [], [], end, 600 if isolation.remote() else 150)
+            data = (invoke_before_deadline(*args) if cancel_event is None else
+                    invoke_before_deadline(*args, cancel_event=cancel_event))
             return validate_network(data, network)
         context = review_context(report, inventory_by_id, batch)
         access = review_credentials(entries, report['provider'], batch, context)
         remaining = end - time.monotonic()
         if remaining <= 0:
             raise TimeoutError()
-        data = invoke_before_deadline(stage, context, access, token, batch, [], end, 480 if isolation.remote() else 120)
+        args = (stage, context, access, token, batch, [], end, 480 if isolation.remote() else 120)
+        data = (invoke_before_deadline(*args) if cancel_event is None else
+                invoke_before_deadline(*args, cancel_event=cancel_event))
         return validate_reviews(data, batch)['items']
 
     def record(task, future=None):
@@ -321,6 +358,9 @@ def review_batches(report, inventory_by_id, entries, token, hardening, exposure,
             output[stage].append((offset, rows))
 
     tasks = iter(batches())
+    # Each section uses the existing bounded, memory-aware review pool. A
+    # remaining large section can keep using both default slots after another
+    # section finishes, rather than being forced into serial review batches.
     slots = review_concurrency()
     if slots:
         with ThreadPoolExecutor(max_workers=slots, thread_name_prefix='cspm-ai') as executor:
@@ -347,7 +387,20 @@ def review_batches(report, inventory_by_id, entries, token, hardening, exposure,
             for stage, batches in output.items()}, failed
 
 
-def review_scan(report, snapshot, selectors, *, tenant, artifacts, deadline=None, context=None):
+def review_scan(report, snapshot, selectors, *, tenant, artifacts, deadline=None, context=None,
+                stages=None, reused_stages=None, cancel_event=None):
+    """Review selected independent stages, optionally reusing fenced stage outputs.
+
+    A stage output is the complete public result of a single-stage invocation.
+    Finding IDs are checked again before reuse because final native evaluation
+    may differ from a checkpoint even when the section was marked complete.
+    """
+    selected = frozenset(('hardening', 'exposure', 'network', 'priorities') if stages is None else stages)
+    if not selected <= {'hardening', 'exposure', 'network', 'priorities'}:
+        raise ValueError('unknown_ai_stage')
+    if 'priorities' in selected:
+        selected |= {'hardening', 'exposure', 'network'}
+    reused_stages = reused_stages or {}
     result = {'version': 1, 'status': 'skipped', 'actions': [], 'reviews': {'hardening': [], 'exposure': []},
               'limitations': [], 'duplicates': {}, 'auth_source': None}
     if not selectors.get('ai_enabled', True):
@@ -376,6 +429,10 @@ def review_scan(report, snapshot, selectors, *, tenant, artifacts, deadline=None
             return result
         hardening, exposure, duplicates = inputs(report)
         result['duplicates'] = duplicates
+        result['stage_inputs'] = {
+            'hardening': sorted(row['id'] for row in hardening),
+            'exposure': sorted(row['id'] for row in exposure),
+        }
         entries = []
         reference = snapshot.get('metadata', {}).get('ai_access_reference')
         if reference:
@@ -395,21 +452,74 @@ def review_scan(report, snapshot, selectors, *, tenant, artifacts, deadline=None
                               max(0, end - time.monotonic()) * (.3 if isolation.remote() else .2))
         from .network import prepare, with_findings
         network = prepare(report, inventory, snapshot)
-        # Completion barrier: all reviewer futures and their agent processes
-        # finish before we merge verdicts or build the priorities input.
-        result['reviews'], failed_stage = review_batches(report, inventory_by_id, entries, token,
-                                                       hardening, exposure, review_end, network=network)
-        result['network'] = result['reviews'].pop('network', {
+        # Completed outputs remain durable outside the advancing collector
+        # manifest. Reuse only matching finding sets; a changed set reruns.
+        pending = set(selected)
+        for stage in ('hardening', 'exposure', 'network'):
+            prior = reused_stages.get(stage)
+            if stage not in pending or not isinstance(prior, dict) or prior.get('status') != 'completed':
+                continue
+            if stage in result['stage_inputs'] and prior.get('stage_inputs', {}).get(stage) != result['stage_inputs'][stage]:
+                continue
+            value = prior.get('network') if stage == 'network' else prior.get('reviews', {}).get(stage)
+            if stage == 'network' and isinstance(value, dict) and value.get('status') == 'completed':
+                if network is not None:
+                    try:
+                        from .contracts import NetworkEvidence, NetworkFinding
+                        raw_rows = []
+                        for row in value['findings']:
+                            item = {key: row[key] for key in NetworkFinding.model_fields}
+                            item['evidence'] = {key: row['evidence'][key]
+                                                for key in NetworkEvidence.model_fields}
+                            raw_rows.append(item)
+                        raw = {'explanation': value['explanation'], 'findings': raw_rows}
+                        checked = validate_network(raw, network)
+                        if checked['findings'] == value['findings']:
+                            result['network'] = value
+                            pending.remove(stage)
+                    except (KeyError, TypeError, ValueError):
+                        pass
+            elif stage != 'network' and isinstance(value, list):
+                try:
+                    checked = validate_reviews({'items': value},
+                        hardening if stage == 'hardening' else exposure)
+                except (TypeError, ValueError):
+                    continue
+                result['reviews'][stage] = checked['items']
+                pending.remove(stage)
+        # Independent reviewers can start as each section becomes complete.
+        # Priorities below wait for the selected reviewer calls to settle.
+        if not pending & {'hardening', 'exposure', 'network'}:
+            fresh, failed_stage = {}, False
+        elif pending == {'hardening', 'exposure', 'network', 'priorities'}:
+            args = (report, inventory_by_id, entries, token, hardening, exposure, review_end)
+            fresh, failed_stage = (review_batches(*args, network=network) if cancel_event is None else
+                review_batches(*args, network=network, cancel_event=cancel_event))
+        else:
+            fresh, failed_stage = review_batches(report, inventory_by_id, entries, token,
+                hardening, exposure, review_end, network=network, stages=pending,
+                **({'cancel_event': cancel_event} if cancel_event is not None else {}))
+        for stage in ('hardening', 'exposure'):
+            if stage in fresh:
+                result['reviews'][stage] = fresh[stage]
+        if 'network' in fresh:
+            result['network'] = fresh['network']
+        result['network'] = result.get('network', {
             'status': 'not_available', 'explanation': '', 'findings': [],
             'reason': 'network_inventory_unavailable'})
         priorities_report = with_findings(report, result['network']['findings'])
         reviewed = result['reviews']['hardening'] + result['reviews']['exposure']
         by_id = {row['finding_id']: row for row in reviewed}
-        for duplicate, original in duplicates.items():
-            review = dict(by_id[original], finding_id=duplicate)
-            result['reviews']['exposure'].append(review)
-            reviewed.append(review)
+        if {'hardening', 'exposure'} <= selected:
+            for duplicate, original in duplicates.items():
+                if original not in by_id:
+                    continue
+                review = dict(by_id[original], finding_id=duplicate)
+                result['reviews']['exposure'].append(review)
+                reviewed.append(review)
         try:
+            if 'priorities' not in selected:
+                raise _SkipPriorities()
             remaining = end - time.monotonic()
             if remaining <= 0:
                 raise TimeoutError()
@@ -422,10 +532,15 @@ def review_scan(report, snapshot, selectors, *, tenant, artifacts, deadline=None
             remaining = end - time.monotonic()
             if remaining <= 0:
                 raise TimeoutError()
-            data = invoke_before_deadline('priorities', platform, entries, token, hardening + exposure, reviewed, end, 600 if isolation.remote() else 150)
+            args = ('priorities', platform, entries, token, hardening + exposure, reviewed, end,
+                    600 if isolation.remote() else 150)
+            data = (invoke_before_deadline(*args) if cancel_event is None else
+                    invoke_before_deadline(*args, cancel_event=cancel_event))
             recommendations = validate_actions(data, priorities_report, reviewed)
             result['actions'] = recommendations['actions']
             result['limitations'].extend(recommendations['limitations'])
+        except _SkipPriorities:
+            pass
         except Exception:
             failed_stage = True
             result['limitations'].append('Prioritized recommendations could not be completed.')

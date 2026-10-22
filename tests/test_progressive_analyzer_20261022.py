@@ -1,0 +1,285 @@
+"""Focused progressive AI readiness and final reuse tests."""
+
+import json
+import copy
+import threading
+import time
+from concurrent.futures import CancelledError
+from types import SimpleNamespace
+
+import pytest
+from peaso import progressive_analyzer
+from peaso.ai import pipeline
+
+
+class FakeArtifacts:
+    def __init__(self):
+        self.values = {
+            "partial-report": {"bundle_version": 1, "report_json": "report-json"},
+            "report-json": {"publication": {"state": "partial", "phase": "collecting",
+                                               "sections": {"network": {"status": "running", "data_revision": 1},
+                                                            "hardening": {"status": "running", "data_revision": 1},
+                                                            "images": {"status": "running", "data_revision": 1}}}},
+            "partial-snapshot": {"metadata": {"ai_access_reference": "captured"}},
+        }
+
+    def get(self, tenant, reference):
+        return self.values[reference]
+
+    def put(self, tenant, ident, kind, value):
+        reference = f"{kind}-{len(self.values)}"
+        self.values[reference] = value
+        return reference
+
+
+class FakeStore:
+    def __init__(self):
+        self.lock = threading.Lock()
+        self.row = {"status": "collecting", "deadline": time.time() + 10,
+                    "partial_report": "partial-report", "partial_snapshot": "partial-snapshot",
+                    "data": json.dumps({"ai_enabled": True})}
+        self.leases = {}
+        self.results = {}
+
+    def job(self, tenant, ident):
+        with self.lock:
+            return dict(self.row)
+
+    def claim_stage(self, tenant, ident, stage, revision, owner, lease_seconds):
+        with self.lock:
+            if self.row["status"] != "collecting" or stage in self.results or stage in self.leases:
+                return False
+            self.leases[stage] = (revision, owner)
+            return True
+
+    def heartbeat_stage(self, tenant, ident, stage, revision, owner, lease_seconds):
+        with self.lock:
+            return self.leases.get(stage) == (revision, owner)
+
+    def finish_stage(self, tenant, ident, stage, revision, owner, reference):
+        with self.lock:
+            if self.leases.get(stage) != (revision, owner):
+                return False
+            self.results[stage] = {"data_revision": revision, "result_ref": reference}
+            del self.leases[stage]
+            return True
+
+    def stage_results(self, tenant, ident):
+        with self.lock:
+            return dict(self.results)
+
+    def expire_job(self, tenant, ident):
+        with self.lock:
+            self.row["status"] = "timed_out"
+
+
+class FakeStageProcess:
+    instances = []
+
+    def __init__(self, worker, tenant, ident, stage, revision, job, selectors):
+        self.worker, self.tenant, self.ident = worker, tenant, ident
+        self.stage, self.revision = stage, revision
+        self.job, self.selectors = job, selectors
+        self.cancelled = threading.Event()
+        self.done = threading.Event()
+        self.result_ref = None
+        self.process = self
+        self.thread = threading.Thread(target=self._run)
+        self.instances.append(self)
+
+    def _run(self):
+        try:
+            report, snapshot, _ = progressive_analyzer._ready(self.job, self.worker.artifacts, self.tenant)
+            output = progressive_analyzer.review_scan(report, snapshot, self.selectors,
+                stages=(self.stage,), cancel_event=self.cancelled)
+            if not self.cancelled.is_set():
+                self.result_ref = self.worker.artifacts.put(self.tenant, self.ident, "ai-review",
+                    {"stage": self.stage, "data_revision": self.revision, "result": output})
+        finally:
+            self.done.set()
+
+    def start(self):
+        self.thread.start()
+
+    def poll(self):
+        return (self.result_ref or False) if self.done.is_set() else progressive_analyzer._PENDING
+
+    def request_stop(self):
+        self.cancelled.set()
+
+    def join(self, timeout=None):
+        self.thread.join(timeout)
+
+    def is_alive(self):
+        return self.thread.is_alive()
+
+    def kill(self):
+        self.cancelled.set()
+
+    def close(self):
+        self.thread.join(timeout=1)
+
+
+def test_network_starts_while_images_blocked_and_no_stage_starts_early(monkeypatch, tmp_path):
+    store, artifacts = FakeStore(), FakeArtifacts()
+    store.row["status"] = "queued"
+    network_started, release_network, final_called = (threading.Event() for _ in range(3))
+    calls = []
+
+    def review(report, snapshot, selectors, **kwargs):
+        stage = kwargs["stages"][0]
+        calls.append(stage)
+        if stage == "network":
+            network_started.set()
+            assert release_network.wait(3)
+        return {"status": "completed", "reviews": {stage: []}, "network": {"status": "completed", "findings": []}}
+
+    monkeypatch.setattr(progressive_analyzer, "review_scan", review)
+    monkeypatch.setattr(progressive_analyzer, "review_concurrency", lambda: 2)
+    monkeypatch.setattr(progressive_analyzer, "_StageProcess", FakeStageProcess)
+    worker = SimpleNamespace(role="analyzer", store=store, artifacts=artifacts,
+        settings=SimpleNamespace(state_dir=tmp_path, identity_dir=tmp_path, lease_seconds=30),
+        stopping=threading.Event())
+
+    def final(tenant, ident):
+        assert store.stage_results(tenant, ident)["network"]["data_revision"] == 1
+        final_called.set()
+        with store.lock:
+            store.row["status"] = "completed"
+    worker.run_once = final
+    thread = threading.Thread(target=progressive_analyzer.run_progressive,
+                              args=(worker, "tenant", "scan"), kwargs={"poll_seconds": .01})
+    thread.start()
+    try:
+        time.sleep(.05)
+        assert calls == []
+        with store.lock:
+            store.row["status"] = "collecting"
+        artifacts.values["report-json"]["publication"]["sections"]["network"]["status"] = "complete"
+        assert network_started.wait(2)
+        assert not final_called.is_set()
+        assert artifacts.values["report-json"]["publication"]["sections"]["images"]["status"] == "running"
+        assert calls == ["network"]
+        with store.lock:
+            store.row["status"] = "collected"
+        release_network.set()
+        assert final_called.wait(2)
+    finally:
+        release_network.set()
+        worker.stopping.set()
+        thread.join(timeout=3)
+    assert not thread.is_alive()
+    assert artifacts.values[store.results["network"]["result_ref"]]["result"]["status"] == "completed"
+
+
+def test_cancelled_scan_stops_inflight_stage_and_rejects_late_result(monkeypatch, tmp_path):
+    store, artifacts = FakeStore(), FakeArtifacts()
+    artifacts.values["report-json"]["publication"]["sections"]["network"]["status"] = "complete"
+    started = threading.Event()
+
+    def review(report, snapshot, selectors, **kwargs):
+        started.set()
+        assert kwargs["cancel_event"].wait(2)
+        return {"status": "completed", "network": {"status": "completed", "findings": []}}
+
+    monkeypatch.setattr(progressive_analyzer, "review_scan", review)
+    monkeypatch.setattr(progressive_analyzer, "review_concurrency", lambda: 2)
+    monkeypatch.setattr(progressive_analyzer, "_StageProcess", FakeStageProcess)
+    worker = SimpleNamespace(role="analyzer", store=store, artifacts=artifacts,
+        settings=SimpleNamespace(state_dir=tmp_path, identity_dir=tmp_path, lease_seconds=30),
+        stopping=threading.Event(), run_once=lambda *a: (_ for _ in ()).throw(AssertionError("final run after cancellation")))
+    thread = threading.Thread(target=progressive_analyzer.run_progressive,
+        args=(worker, "tenant", "scan"), kwargs={"poll_seconds": .01})
+    thread.start()
+    assert started.wait(2)
+    with store.lock:
+        store.row["status"] = "cancelled"
+    thread.join(timeout=3)
+    assert not thread.is_alive()
+    assert not store.results
+    assert FakeStageProcess.instances[-1].cancelled.is_set()
+    assert not FakeStageProcess.instances[-1].is_alive()
+
+
+def test_remote_invoke_cancellation_runs_hosted_cleanup(monkeypatch):
+    cancelled, cleaned = threading.Event(), threading.Event()
+    monkeypatch.setattr(pipeline.isolation, "remote", lambda: True)
+    monkeypatch.setattr("peaso.ai.fargate.configuration", lambda: {})
+
+    def hosted(stage, root, token, timeout, *, sleep):
+        try:
+            sleep(30)
+        finally:
+            cleaned.set()
+
+    monkeypatch.setattr("peaso.ai.fargate.invoke", hosted)
+    timer = threading.Timer(.02, cancelled.set)
+    timer.start()
+    try:
+        with pytest.raises(CancelledError):
+            pipeline.invoke("hardening", {"scan": {}, "resources": []}, [], "token", [], [], 40,
+                            cancel_event=cancelled)
+    finally:
+        timer.join()
+    assert cleaned.is_set()
+
+
+def test_reused_review_skips_completed_ai_and_priorities_waits_for_reviewers(monkeypatch, tmp_path):
+    monkeypatch.setattr(pipeline, "Settings", lambda: SimpleNamespace(state_dir=tmp_path, identity_dir=tmp_path, auth_mode="local"))
+    monkeypatch.setattr("peaso.storage.runtime.stores", lambda _: (SimpleNamespace(), None))
+    monkeypatch.setattr("peaso.ai.providers.review_disabled", lambda *a: False)
+    monkeypatch.setattr("peaso.ai.providers.resolve_access", lambda *a, **kw: ("private-token", "test"))
+    monkeypatch.setattr("peaso.ai.providers.credential_value", lambda _: "private-token")
+    monkeypatch.setattr(pipeline.isolation, "available", lambda: True)
+    monkeypatch.setattr(pipeline.isolation, "remote", lambda: False)
+    monkeypatch.setattr(pipeline, "available_memory", lambda: 4 * 1024**3)
+    monkeypatch.setattr("peaso.snapshot.resources", lambda _: [])
+    network_context = {"report": {"provider": "aws", "graphs": {}}, "inventory": [
+        {"id": "r", "provider": "aws", "scope": "123456789012/us-east-1", "type": "security_group"}]}
+    monkeypatch.setattr("peaso.ai.network.prepare", lambda *a: network_context)
+    monkeypatch.setattr("peaso.ai.network.with_findings", lambda report, findings: report)
+    monkeypatch.setattr("peaso.least_privilege.project", lambda *a, **kw: {"items": []})
+    monkeypatch.setenv("PEASO_AI_MAX_CONCURRENCY", "1")
+    report = {"provider": "aws", "findings": [
+        {"id": "h1", "check_id": "h", "category": "hardening", "resource_id": "r", "scope": "123456789012/us-east-1", "status": "FAIL"},
+        {"id": "e1", "check_id": "e", "category": "exposure", "resource_id": "r", "scope": "123456789012/us-east-1", "status": "FAIL"}], "graphs": {}}
+    calls = []
+
+    def invoke(stage, platform, entries, token, findings, reviews, timeout):
+        calls.append(stage)
+        if stage == "priorities":
+            assert {row["finding_id"] for row in reviews} == {"h1", "e1"}
+            return {"actions": [], "limitations": []}
+        return {"items": [{"finding_id": row["id"], "verdict": "FAIL", "reason": ""} for row in findings]}
+
+    monkeypatch.setattr(pipeline, "invoke", invoke)
+    early = pipeline.review_scan(report, {}, {}, tenant="tenant", artifacts=None, stages=("hardening",))
+    assert calls == ["hardening"] and early["status"] == "completed", early
+    network_result = dict(pipeline.validate_network({"explanation": "One security group needs owner review.",
+        "findings": [{"title": "Narrow source range", "description": "The group permits a broad source range.",
+            "rationale": "The broad range weakens the intended tier boundary.", "resource_id": "r",
+            "severity": "medium", "status": "MANUAL", "evidence": {
+                "summary": "The group permits a broad source range.", "resource_ids": ["r"],
+                "graph_refs": [], "observations": ["The source range is broad."]},
+            "remediation": "Confirm client ranges and narrow the rule.",
+            "verification": "Read the resulting rule and confirm required clients."}]}, network_context),
+        status="completed")
+    calls.clear()
+    final = pipeline.review_scan(report, {}, {}, tenant="tenant", artifacts=None,
+        reused_stages={"hardening": early, "network": {"status": "completed",
+            "network": network_result}})
+    assert calls == ["exposure", "priorities"]
+    assert final["status"] == "completed"
+    assert [row["finding_id"] for row in final["reviews"]["hardening"]] == ["h1"]
+    native = copy.deepcopy(report)
+    def failing(stage, platform, entries, token, findings, reviews, timeout):
+        if stage == "exposure":
+            raise RuntimeError("isolated reviewer failed")
+        return {"actions": [], "limitations": []}
+    monkeypatch.setattr(pipeline, "invoke", failing)
+    failed = pipeline.review_scan(report, {}, {}, tenant="tenant", artifacts=None,
+        reused_stages={"hardening": early, "network": {"status": "completed",
+            "network": network_result}})
+    assert failed["status"] == "partial"
+    assert failed["reviews"]["exposure"][0]["verdict"] == "UNKNOWN"
+    assert report == native and all(row["status"] == "FAIL" for row in report["findings"])

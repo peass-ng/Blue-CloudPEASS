@@ -391,18 +391,34 @@ def test_tests_workflow_runs_full_suite_and_gates_skips():
     assert triggers['push'] == {'branches': ['main']} and 'pull_request' in triggers
     assert workflow['permissions'] == {'contents': 'read'}
     shards, python, frontend = (workflow['jobs'][name] for name in ('python_shards', 'python', 'frontend'))
-    assert shards['strategy'] == {'fail-fast': False, 'matrix': {'shard': list(range(8))}}
+    assert shards['strategy'] == {'fail-fast': False, 'matrix': {'shard': list(range(19))}}
     assert python['needs'] == 'python_shards'
     assert "needs.python_shards.result" in python['steps'][0]['run']
     run = '\n'.join(s.get('run', '') for s in shards['steps'])
-    assert re.search(r'python scripts/pytest_shard\.py --shard \$\{\{ matrix\.shard \}\} --shards 8 -- '
+    assert re.search(r'python scripts/pytest_shard\.py --shard \$\{\{ matrix\.shard \}\} --shards 19 -- '
                      r'-q -p no:cacheprovider -n auto --dist loadfile -rs .*--junitxml=pytest-report\.xml', run, re.S)
     from scripts import pytest_shard
     files = pytest_shard.test_files()
-    assigned = pytest_shard.partition(files, 8)
+    assigned = pytest_shard.partition(files, 19)
     assert files and all(assigned)
-    assert sorted(path for group in assigned for path in group) == files
-    assert sum(len(group) for group in assigned) == len(files)
+    owners = {path: [i for i, group in enumerate(assigned) if path in group] for path in files}
+    assert all(len(owners[path]) == pytest_shard.SPLIT_COUNTS.get(path.name, 1) for path in files)
+    assert sum(map(len, assigned)) == sum(len(owners[path]) for path in files)
+    for path in files:
+        for suffix in ('test_plain', 'test_param[value-1]', 'test_param[value-2]'):
+            nodeid = f'{path}::{suffix}'
+            owner = pytest_shard.owner_for(nodeid, path, owners)
+            assert sum(owner == i for i in owners[path]) == 1
+    slow_path = ROOT / 'tests/test_azure_databricks_notebook_secret_integration_20261020.py'
+    slow_path = slow_path.relative_to(ROOT)
+    measured = pytest_shard.MEASURED_NODE_SECONDS[slow_path.name]
+    assert len(measured) == len(owners[slow_path]) == 7
+    measured_loads = {owner: 0.0 for owner in owners[slow_path]}
+    for suffix, seconds in measured.items():
+        owner = pytest_shard.owner_for(f'{slow_path}::{suffix}', slow_path, owners)
+        measured_loads[owner] += seconds
+    assert all(measured_loads.values())
+    assert max(measured_loads.values()) <= 224
     assert "'pytest-xdist==" in run and 'check_test_skips.py pytest pytest-report.xml' in run
     assert any(s.get('with', {}).get('python-version') == '3.12' for s in shards['steps'])
     checkout = [s for s in shards['steps'] if s.get('with', {}).get('repository') == 'HackTricks-wiki/hacktricks-cloud']

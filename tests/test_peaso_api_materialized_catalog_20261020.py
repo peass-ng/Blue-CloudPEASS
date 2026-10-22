@@ -30,8 +30,11 @@ def test_materializer_reproduces_exact_verified_runtime_views_and_selectors():
     assert captured['summary'] == normalized(dict(summary(), privesc_catalog=full['privesc_catalog']))
     assert captured['frameworks'] == normalized(frameworks_view())
     for provider in PROVIDERS:
-        assert captured['selectors'][provider] == dict(zip(('categories', 'checks', 'frameworks'),
-                                                         (sorted(values) for values in _selector_index(provider))))
+        expected = dict(zip(('categories', 'checks', 'frameworks'),
+                            (sorted(values) for values in _selector_index(provider))))
+        expected['checks'] = sorted(set(expected['checks']) | {'privesc'} | {
+            row['id'] for row in full['privesc_techniques'] if row.get('provider') == provider})
+        assert captured['selectors'][provider] == expected
     from peaso.checks.catalog import description_for, expand_framework_selectors
     for cid, expected in captured['descriptions'].items():
         assert runtime.description_for(cid) == expected == description_for(cid)
@@ -127,6 +130,22 @@ def test_provider_selector_aliases_exclusions_and_exact_422_contract():
         with pytest.raises(HTTPException) as rejected:
             runtime.validate_selectors(request, provider)
         assert rejected.value.status_code == 422 and rejected.value.detail == detail
+
+
+def test_explicit_content_checks_can_keep_all_privilege_techniques_in_same_scan():
+    value = runtime._load()
+    for provider in value['full']['providers']:
+        own = [row['id'] for row in value['full']['privesc_techniques']
+               if row.get('provider') == provider]
+        assert own
+        native = next(row['id'] for row in value['full']['checks']
+                      if row.get('provider') == provider)
+        runtime.validate_selectors({'checks': [native, 'privesc', *own]}, provider)
+        foreign = next(row['id'] for row in value['full']['privesc_techniques']
+                       if row.get('provider') != provider)
+        with pytest.raises(HTTPException) as rejected:
+            runtime.validate_selectors({'checks': [foreign]}, provider)
+        assert rejected.value.status_code == 422
 
 
 @pytest.mark.parametrize('scenario', ['full', 'summary', 'frameworks', 'scans', 'scan_create', 'setup', 'lookups', 'full_max'])

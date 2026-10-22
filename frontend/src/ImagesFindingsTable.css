@@ -8,10 +8,10 @@
 .images-findings-loaded-note { margin: 0; padding: 0 16px 10px; color: var(--muted); font-size: 11px; }
 .images-findings-more { padding: 12px 16px; border-top: 1px solid var(--line); color: #e6c98f; font-size: 12px; }
 .images-findings-more .button { margin-left: 8px; }
-.images-findings-scroll { overflow-x: auto; }
+.images-findings-scroll { overflow: auto; }
 .images-findings-table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
 .images-findings-table caption { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
-.images-findings-table th { padding: 10px 14px; background: #101a1f; color: #9aaab1; font-size: 11px; font-weight: 600; white-space: nowrap; }
+.images-findings-table th { position: sticky; top: 0; z-index: 1; padding: 10px 14px; background: #101a1f; color: #9aaab1; font-size: 11px; font-weight: 600; white-space: nowrap; }
 .images-findings-table td { max-width: 330px; padding: 11px 14px; border-top: 1px solid var(--line); vertical-align: top; color: #e6eef0; }
 .images-findings-table tbody tr:hover { background: rgba(166,227,212,.05); }
 .images-findings-table td strong { font-weight: 600; }
@@ -27,3 +27,8 @@
 .images-findings-table details ul { max-height: 16rem; overflow-y: auto; }
 .images-findings-identity { margin-top: .25rem; font-size: .8rem; }
 .images-findings-identity code { display: block; max-width: 28rem; margin-top: .25rem; }
+
+.image-cve-detail { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); }
+.image-cve-detail dd { margin: 4px 0 14px; }
+.image-cve-detail dt { color: var(--muted); font-size: 11px; }
+.image-cve-detail a { overflow-wrap: anywhere; color: var(--mint); }

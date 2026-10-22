@@ -383,8 +383,8 @@ def test_native_portable_capture_replay():
 
 
 def test_source_receipt_and_no_production_registration():
-    from peaso.checks.azure_apim_operation_window_admission_20261020 import validate_proposal
-    receipt = validate_proposal()
+    from peaso.rawv2_private_source_successor_20261021 import install_admission
+    receipt = install_admission('azure_apim_operation_window_admission_20261020')
     assert receipt['registered'] is False and receipt['admission_recommended'] is False and receipt['research_only'] is True
     assert source.KIND not in azure.TYPES
 

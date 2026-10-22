@@ -332,42 +332,55 @@ class Requests:
     def client(self, session, service, region, *, _metadata_profile=None):
         from botocore.config import Config
         key = (id(session), service, region)
+
+        def cached_client(create):
+            # SDK sessions lazily mutate state while constructing clients. Keep
+            # creation serialized per session, outside the lock used for API
+            # budgets, rate limiting and response-cache lookups. Warm clients
+            # need neither that creation lock nor another SDK construction.
+            with self._lock:
+                self._sessions[id(session)] = session
+                if key in self._clients:
+                    return self._clients[key]
+                locks = getattr(self, "_client_creation_locks", None)
+                if locks is None:
+                    locks = self._client_creation_locks = {}
+                creation_lock = locks.setdefault(id(session), threading.RLock())
+            with creation_lock:
+                with self._lock:
+                    if key in self._clients:
+                        return self._clients[key]
+                client = create()
+                with self._lock:
+                    self._clients[key] = client
+                return client
         s3_bootstrap = (_metadata_profile is None and service == 'sts' and self.content_secret_scans
             and bool({'s3_selected_source_content', 'ecs_selected_environment_file_content', 'workload_referenced_source_content', 'build_deployment_referenced_source_content'} & set(getattr(self, 'content_secret_scan_kinds', ()))))
         if s3_bootstrap:
             key += ('aws-selected-s3-bootstrap-v1',)
-            with self._lock:
-                self._sessions[id(session)] = session
-                if key not in self._clients:
-                    self._clients[key] = session.client(service, region_name=region, config=Config(
+            return cached_client(
+                lambda: session.client(service, region_name=region, config=Config(
                         connect_timeout=min(3, self.connect_timeout), read_timeout=min(5, self.timeout),
                         retries={'total_max_attempts': 1, 'mode': 'standard'},
-                        ignore_configured_endpoint_urls=True, use_fips_endpoint=False, use_dualstack_endpoint=False))
-                return self._clients[key]
+                        ignore_configured_endpoint_urls=True, use_fips_endpoint=False, use_dualstack_endpoint=False)))
         if _metadata_profile == 'aws-selected-s3-source-content-v1':
             from .aws_s3_selected_source_secret_indicators import client_config
             key += (_metadata_profile,)
-            with self._lock:
-                self._sessions[id(session)] = session
-                if key not in self._clients:
-                    self._clients[key] = session.client(service, region_name=region, config=client_config(self))
-                return self._clients[key]
+            return cached_client(
+                lambda: session.client(service, region_name=region, config=client_config(self)))
         lambda_environment_profile = _metadata_profile in ('aws-lambda-environment-content-v1', 'aws-selected-configuration-content-v1')
         if _metadata_profile is not None and not lambda_environment_profile:
             raise ReadFailure('not_collected', 'undeclared_client_profile')
         if lambda_environment_profile:
             key += (_metadata_profile,)
-        with self._lock:
-            self._sessions[id(session)] = session
-            if key not in self._clients:
-                self._clients[key] = session.client(service, region_name=region, config=Config(
+        return cached_client(
+            lambda: session.client(service, region_name=region, config=Config(
                     connect_timeout=min(3, self.connect_timeout) if lambda_environment_profile else self.connect_timeout,
                     read_timeout=min(5, self.timeout) if lambda_environment_profile else self.timeout,
                     retries={"total_max_attempts": 1, "mode": "standard"},
                     max_pool_connections=self.workers,
                     **({'ignore_configured_endpoint_urls': True, 'use_fips_endpoint': False, 'use_dualstack_endpoint': False}
-                       if _metadata_profile == 'aws-selected-configuration-content-v1' else {})))
-            return self._clients[key]
+                       if _metadata_profile == 'aws-selected-configuration-content-v1' else {}))))
 
     def call(self, session, service, region, operation, *, _cache_refresh=False, _uncached_credential_exchange=False, _metadata_profile=None, _projection_context=None, _codecommit_routes=None, **arguments):
         if _metadata_profile == 'aws-build-deployment-referenced-source-v1':
@@ -2010,6 +2023,7 @@ def collect(connector, requirements=None):
     if "_ecr_latest_scan_requested" in options and type(options["_ecr_latest_scan_requested"]) is not bool:
         raise ValueError("internal ECR scan fact selection must be boolean")
     progress_callback = options.get("_progress_callback")
+    collection_callback = options.get("_collection_callback")
     progress_total = None
     emit_progress(progress_callback, phase="discovering", provider="aws", scope="", completed=0, total=None, resources=0, dynamic_total=True)
     selected_accounts, regions = _selection(connector)
@@ -2031,6 +2045,7 @@ def collect(connector, requirements=None):
         return discovered_regions.get(account, regions)
 
     requests = Requests(options)
+    requests.progress_callback = progress_callback
     aws_lambda_environment_secret_indicators.initialize(requests, options, connector.get('scopes') or [])
     aws_selected_configuration_secret_indicators.initialize(requests, options, connector.get('scopes') or [])
     aws_s3_selected_source_secret_indicators.initialize(requests, options, connector.get('scopes') or [])
@@ -2201,6 +2216,8 @@ def collect(connector, requirements=None):
         if error:
             envelope["error"] = error
         collections.append(envelope)
+        from peaso.collection_events import emit_collection
+        emit_collection(collection_callback, envelope)
         emit_progress(progress_callback, phase="collecting", provider="aws", scope=scope, completed=len(collections),
             total=progress_total, resources=total_items, dynamic_total=progress_total is None)
 
@@ -2699,11 +2716,12 @@ def collect(connector, requirements=None):
     activity_workers = _bound(options, "activity_concurrency", min(32, max(1, len(regions) * min(scope_workers, max(1, len(contexts))))), maximum=32)
     metadata["activity_concurrency"] = activity_workers
     from .aws_access_analyzer_lifecycle import AnalyzerLifecycle
+    from .aws_image_capture_20261022 import capture_scope
     metadata["access_analyzer_lifecycle"] = []
     if "access_analyzer" in wanted:
         metadata["collection"] = "read-only-with-temporary-access-analyzers"
     analyzer_lifecycle = AnalyzerLifecycle(requests, metadata["access_analyzer_lifecycle"], progress_callback)
-    with analyzer_lifecycle, ThreadPoolExecutor(max_workers=requests.workers, thread_name_prefix="aws-read") as pool, \
+    with capture_scope(requests), analyzer_lifecycle, ThreadPoolExecutor(max_workers=requests.workers, thread_name_prefix="aws-read") as pool, \
             ThreadPoolExecutor(max_workers=activity_workers, thread_name_prefix="aws-activity") as activity_pool:
         for offset in range(0, len(contexts), scope_workers):
             scope_batch = contexts[offset:offset + scope_workers]
@@ -2750,30 +2768,28 @@ def collect(connector, requirements=None):
                             else:
                                 future = pool.submit(regional_job, session, identity, region, kind)
                             regional_jobs.append((kind, identity, region, session, future))
-            for kind, identity, region, job_session, future in jobs:
+            from peaso.collection_events import completed_reads
+            ordered_regional_jobs = [row for region_offset in range(0, len(regions), region_workers)
+                for _, identity in scope_batch
+                for region in regions[region_offset:region_offset + region_workers]
+                for row in regional_jobs if row[1] is identity and row[2] == region]
+            # A slow content read must not hide already completed IAM/network
+            # evidence. Explicit cross-inventory caps retain deterministic order.
+            for kind, identity, region, job_session, future in completed_reads(
+                    jobs + ordered_regional_jobs, preserve_order=requests.max_items is not None):
                 try:
                     read = future.result()
                     if not isinstance(read, ReadResult):
                         raise ReadFailure("malformed", "malformed_extension_result")
-                    if kind in ENRICHERS and kind not in SPECS and kind not in FETCHERS and read.items:
+                    if kind in GLOBAL_TYPES and kind in ENRICHERS and kind not in SPECS and kind not in FETCHERS and read.items:
                         read.items = ENRICHERS[kind](requests, job_session, region, read.items)
                 except Exception as exc:
                     failure = _failure(exc)
                     read = ReadResult([], failure.status, {"code": failure.code})
-                # Account-global inventories are read once and scoped <account>/global, never to a region.
-                append(kind, f"{identity['Account']}/{GLOBAL_SCOPE}", SPECS[kind][0] if kind in SPECS else "sts" if kind == "aws_account" else "s3" if kind == "bucket" else "organizations" if kind in {"organization_account", "organization_parent", "scp_policy"} else "s3control" if kind == "s3_account_public_access_block" else "iam", read, identity["Account"])
-            for region_offset in range(0, len(regions), region_workers):
-                for session, identity in scope_batch:
-                    for region in regions[region_offset:region_offset + region_workers]:
-                        for kind, job_identity, job_region, job_session, future in regional_jobs:
-                            if job_identity is not identity or job_region != region:
-                                continue
-                            try:
-                                read = future.result()
-                            except Exception as exc:
-                                failure = _failure(exc)
-                                read = ReadResult([], failure.status, {"code": failure.code})
-                            append(kind, f"{identity['Account']}/{region}", SPECS[kind][0], read, identity["Account"], region)
+                if kind in GLOBAL_TYPES:
+                    append(kind, f"{identity['Account']}/{GLOBAL_SCOPE}", SPECS[kind][0] if kind in SPECS else "sts" if kind == "aws_account" else "s3" if kind == "bucket" else "organizations" if kind in {"organization_account", "organization_parent", "scp_policy"} else "s3control" if kind == "s3_account_public_access_block" else "iam", read, identity["Account"])
+                else:
+                    append(kind, f"{identity['Account']}/{region}", SPECS[kind][0], read, identity["Account"], region)
             for session, identity in scope_batch:
                 if derive_config_account:
                     from .aws_config_account_native import derive as derive_config_account_proof

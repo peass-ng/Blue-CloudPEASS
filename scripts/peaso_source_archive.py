@@ -21,7 +21,7 @@ PROFILES = ((9, 9, zlib.Z_DEFAULT_STRATEGY), (9, 9, zlib.Z_FILTERED),
             (9, 8, zlib.Z_FILTERED))
 
 
-def optimize_source_archive(path, *, max_members, max_member_bytes, max_uncompressed_bytes):
+def optimize_source_archive(path, *, max_members, max_member_bytes, max_uncompressed_bytes, preserve_modes=False):
     """Keep every member's bytes; replace the archive only when it gets smaller.
 
     Files remain ordinary unencrypted ZIP method 8, readable without an extra
@@ -33,7 +33,7 @@ def optimize_source_archive(path, *, max_members, max_member_bytes, max_uncompre
     before_size = path.stat().st_size
     before_sha = hashlib.sha256(path.read_bytes()).hexdigest()
     temporary = None
-    choices, hashes, entries = Counter(), {}, []
+    choices, hashes, entries, permissions = Counter(), {}, [], {}
     try:
         with zipfile.ZipFile(path) as source, path.open("rb") as raw:
             members = source.infolist()
@@ -57,6 +57,11 @@ def optimize_source_archive(path, *, max_members, max_member_bytes, max_uncompre
                 for member in members:
                     data = source.read(member)  # Also verifies the original CRC.
                     hashes[member.filename] = hashlib.sha256(data).hexdigest()
+                    mode = member.external_attr >> 16
+                    if preserve_modes and (stat.S_IFMT(mode) != stat.S_IFREG
+                                           or stat.S_IMODE(mode) not in (0o644, 0o755)):
+                        raise ValueError("invalid portable API member permissions")
+                    permissions[member.filename] = mode if preserve_modes else 0o100644
                     raw.seek(member.header_offset)
                     header = raw.read(30)
                     if len(header) != 30 or header[:4] != b"PK\x03\x04":
@@ -73,7 +78,8 @@ def optimize_source_archive(path, *, max_members, max_member_bytes, max_uncompre
                         if len(candidate) < len(packed):
                             packed, selected = candidate, f"{level}/{memory}/{strategy}"
                     if zopfli_compress and member.filename in {
-                            "release.json", "peaso/rulepacks/compliance_lookup.json", "peaso/rulepacks/check_descriptions.json",
+                            "release.json", "peaso_release.json", "peaso/rulepacks/compliance_lookup.json",
+                            "peaso/rulepacks/compliance_requirements.json", "peaso/rulepacks/runtime_metadata.json", "peaso/rulepacks/check_descriptions.json",
                             "peaso/rulepacks/native_catalog.json",
                             "peaso/rulepacks/upstream_manifest.json",
                             "docs/compliance-ledgers/descriptions/implemented-new-checks.json",
@@ -93,12 +99,12 @@ def optimize_source_archive(path, *, max_members, max_member_bytes, max_uncompre
                                              0, 33, crc, len(packed), size, len(name), 0))
                     output.write(name)
                     output.write(packed)
-                    entries.append((name, crc, len(packed), size, offset))
+                    entries.append((name, crc, len(packed), size, offset, permissions[member.filename]))
                 central = output.tell()
-                for name, crc, packed_size, size, offset in entries:
+                for name, crc, packed_size, size, offset, mode in entries:
                     output.write(struct.pack("<IHHHHHHIIIHHHHHII", 0x02014B50, (3 << 8) | 20,
                                              20, 0x800, 8, 0, 33, crc, packed_size, size,
-                                             len(name), 0, 0, 0, 0, 0o100644 << 16, offset))
+                                             len(name), 0, 0, 0, 0, mode << 16, offset))
                     output.write(name)
                 length, count = output.tell() - central, len(entries)
                 output.write(struct.pack("<IHHHHIIH", 0x06054B50, 0, 0, count, count, length, central, 0))
@@ -108,7 +114,7 @@ def optimize_source_archive(path, *, max_members, max_member_bytes, max_uncompre
                     or any(hashlib.sha256(result.read(name)).hexdigest() != digest
                            for name, digest in hashes.items())
                     or any(m.compress_type != 8 or m.flag_bits & 1
-                           or m.external_attr >> 16 != 0o100644 for m in result.infolist())):
+                           or m.external_attr >> 16 != permissions[m.filename] for m in result.infolist())):
                 raise ValueError("rewritten source archive differs from its source")
         applied = temporary.stat().st_size < before_size
         if applied:

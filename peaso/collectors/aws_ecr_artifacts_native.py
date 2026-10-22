@@ -137,8 +137,13 @@ def _collect(requests,session,region,account):
   if raw.get('collection_status')!='collected':raise ReadFailure(raw.get('collection_status','malformed'),(raw.get('error')or{}).get('code','ecr_manifest_unavailable'))
   failures=raw.get('failures');images=raw.get('images')
   if (missing and images==[]and isinstance(failures,list)and len(failures)==1 and failures[0].get('failureCode')=='ImageNotFound'and failures[0].get('imageId')==selector):return None
-  if failures!=[]or not isinstance(images,list)or len(images)!=1:raise ValueError('ECR manifest response ambiguous')
-  item=images[0];iid=item.get('imageId');manifest=item.get('imageManifest')
+  if 'imageDigest' in selector:
+   from .aws_ecr_manifest_aliases import select_digest_image
+   item=select_digest_image(images,failures,account,repo,selector['imageDigest'])
+  else:
+   if failures!=[]or not isinstance(images,list)or len(images)!=1:raise ValueError('ECR manifest response ambiguous')
+   item=images[0]
+  iid=item.get('imageId');manifest=item.get('imageManifest')
   if item.get('registryId')!=account or item.get('repositoryName')!=repo or not isinstance(iid,dict)or any(iid.get(k)!=v for k,v in selector.items())or not _digest(iid.get('imageDigest'))or not isinstance(manifest,str)or len(manifest.encode())>MAX_BODY or 'sha256:'+hashlib.sha256(manifest.encode()).hexdigest()!=iid['imageDigest']:raise ValueError('ECR manifest identity/hash mismatch')
   manifest_bytes=len(manifest.encode())
   if content_bytes+manifest_bytes>MAX_CONTENT_BYTES:raise ReadFailure('not_collected','ecr_content_budget_exceeded')

@@ -1862,8 +1862,8 @@ def collect(connector, requirements=None, *, transport=None):
     function_targets, function_checks = azure_function_settings_declarations_20261020.preflight(
         options, connector.get('scopes', []), options.get('_azure_function_settings_checks', []))
     if function_targets:
-        from peaso.checks.azure_function_settings_runtime_admission_20261020 import reviewed_inputs as function_reviewed_inputs
-        function_reviewed_inputs()
+        from peaso.rawv2_private_source_successor_20261021 import install_admission
+        install_admission('azure_function_settings_runtime_admission_20261020')
     azure_selected_storage_secret_indicators.selected_targets(options, connector.get('scopes', []))
     azure_flex_deployment_archives_20261021.selected_targets(options, connector.get('scopes', []))
     azure_devops_selected_content_secret_indicators.selected_targets(options, connector.get('scopes', []), auth)
@@ -1898,6 +1898,8 @@ def collect(connector, requirements=None, *, transport=None):
     trusted_scopes = _trusted_scopes(options)
     reader = _Reader(options)
     reader.progress_callback = options.get("_progress_callback")
+    from peaso.collection_events import SettledCollections
+    reader.collections = SettledCollections(options.get("_collection_callback"), deferred={"subscription", "network_interface"})
     reader.progress_provider = "azure"
     reader.progress("discovering")
     credential_context_id = uuid4().hex
@@ -1982,6 +1984,8 @@ def collect(connector, requirements=None, *, transport=None):
                 scopes = scopes[:max_scopes]
                 scopes_limited = True
                 reader.collections[-1].update(status="partial", error={"code": "scope_limit"})
+            from peaso.collection_events import emit_collection
+            emit_collection(options.get('_collection_callback'), reader.collections[-1])
         elif "subscription" in wanted:
             # An explicit scan must not turn a tenant-wide subscription LIST
             # into subjects for checks bound to the selected subscription.

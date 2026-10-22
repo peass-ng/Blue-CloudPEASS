@@ -526,7 +526,7 @@ def workflow_requirements(text):
 
 def test_workflow_only_its_actual_dynamodb_integrations_have_grants(iam):
     required = set(workflow_requirements((ROOT / "infra/aws/workflow.tf").read_text()))
-    assert {r.action for r in required} == {"dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem"}
+    assert {r.action for r in required} == {"dynamodb:GetItem", "dynamodb:UpdateItem"}
     assert_contract(required, iam)
 
 
@@ -535,9 +535,9 @@ def test_roles_do_not_inherit_every_store_method(requirements):
     assert {"dynamodb:ConditionCheckItem", "dynamodb:TransactWriteItems", "dynamodb:DeleteItem", "dynamodb:DescribeTable", "states:StartExecution"} <= api
     for role in ("collector", "analyzer"):
         actions = {r.action for r in requirements[role]}
-        assert {"dynamodb:GetItem", "dynamodb:UpdateItem", "s3:PutObject"} <= actions
+        assert {"dynamodb:GetItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem", "dynamodb:TransactWriteItems", "s3:PutObject"} <= actions
         assert "dynamodb:Scan" not in actions
-        assert not actions & {"dynamodb:ConditionCheckItem", "dynamodb:TransactWriteItems", "dynamodb:DeleteItem", "dynamodb:DescribeTable", "states:StartExecution"}
+        assert not actions & {"dynamodb:ConditionCheckItem", "dynamodb:DescribeTable", "states:StartExecution"}
         assert not any("schedule_tick" in step or "delete_connector" in step for r in requirements[role] for step in r.trace)
     assert "s3:GetObject" in {r.action for r in requirements["analyzer"]}
     assert not any(r.action.startswith(("secretsmanager:", "kms:")) for r in requirements["analyzer"])
@@ -706,8 +706,8 @@ def test_new_worker_call_changes_only_that_roles_contract(graph):
     mutant = Graph({path: source})
     collector = mutant.requirements("collector", ["Worker.run_once"], "collector")
     analyzer = mutant.requirements("analyzer", ["Worker.run_once"], "analyzer")
-    assert any(r.action == "dynamodb:DeleteItem" for r in collector)
-    assert not any(r.action == "dynamodb:DeleteItem" for r in analyzer)
+    assert any(r.action == "dynamodb:DeleteItem" and any("delete_connector" in step for step in r.trace) for r in collector)
+    assert not any(any("delete_connector" in step for step in r.trace) for r in analyzer)
 
 
 def test_legacy_api_dynamodb_statement_reproduces_conditioncheck_gap(requirements, iam):
@@ -757,7 +757,7 @@ def test_targeted_worker_paths_do_not_scan_but_api_scheduler_still_does(requirem
 
 @pytest.mark.parametrize("path,marker,replacement", [
     ("peaso/worker.py", 'self.store.expire_job(job["tenant"], job["id"], now)', 'self.store.expire(now)'),
-    ("peaso/storage/dynamodb.py", '                self._expire_job(job, now)', '                self.expire(now)'),
+    ("peaso/storage/dynamodb.py", '                self._expire_job(job, now)\n                continue', '                self.expire(now)\n                continue'),
 ])
 def test_reintroducing_global_expiry_in_targeted_paths_fails_contract(graph, iam, path, marker, replacement):
     source = graph.sources[path]
@@ -804,3 +804,9 @@ def test_transaction_arguments_and_worker_call_resource_changes_are_rejected(gra
     assert source != graph.sources[path]
     calls = Graph({path: source}).requirements("api", ["scheduler_handler"], "collector")
     assert any(r.action == "dynamodb:DeleteItem" and any("DynamoStore.enqueue" in step for step in r.trace) for r in calls)
+
+
+def test_progressive_stage_transactions_have_job_condition_permissions(graph, iam):
+    required = graph.requirements("analyzer", ["DynamoStore.claim_stage", "DynamoStore.heartbeat_stage", "DynamoStore.finish_stage", "DynamoStore.stage_results"], "analyzer")
+    assert {"dynamodb:ConditionCheckItem", "dynamodb:UpdateItem", "dynamodb:Query"} <= {row.action for row in required}
+    assert_contract(required, iam)

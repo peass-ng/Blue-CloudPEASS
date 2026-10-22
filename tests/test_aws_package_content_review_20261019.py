@@ -104,7 +104,9 @@ def sdk(monkeypatch, kind, detected=True, *, enabled=True):
     else:
         item = {'repositoryArn': arn('ecr', 'repository/example'), 'repositoryName': 'example', 'registryId': ACCOUNT}
         layer = gzip.compress(tar_bytes([('config.py', text)]))
-        config = json.dumps({'config': {'Env': ['STAGE=prod']}, 'history': [{'created_by': 'COPY safe'}]}).encode()
+        config = json.dumps({'architecture': 'amd64', 'os': 'linux',
+            'rootfs': {'type': 'layers', 'diff_ids': [digest(tar_bytes([('config.py', text)]))]},
+            'config': {'Env': ['STAGE=prod']}, 'history': [{'created_by': 'COPY safe'}]}).encode()
         ld, cd = digest(layer), digest(config)
         manifest = json.dumps({'schemaVersion': 2, 'mediaType': p.OCI,
             'config': {'mediaType': 'application/vnd.oci.image.config.v1+json', 'digest': cd, 'size': len(config)},
@@ -420,6 +422,25 @@ def _replace_manifest(ops, document):
     ops['describe_images']['imageDetails'][0]['imageDigest'] = dg
 
 
+@pytest.mark.parametrize('conflict', [None, 'account', 'digest', 'manifest', 'media', 'failure'])
+def test_installed_secret_projection_two_tag_aliases(monkeypatch, conflict):
+    requests, session, item, ops, calls, downloads, _ = sdk(monkeypatch, 'ecr_repository', False)
+    image = ops['batch_get_image']['images'][0]
+    image['imageId']['imageTag'] = 'stable'
+    alias = deepcopy(image)
+    alias['imageId']['imageTag'] = 'release'
+    if conflict == 'account': alias['registryId'] = '999999999999'
+    elif conflict == 'digest': alias['imageId']['imageDigest'] = 'sha256:' + '9' * 64
+    elif conflict == 'manifest': alias['imageManifest'] += ' '
+    elif conflict == 'media': alias['imageManifestMediaType'] = p.DOCKER
+    elif conflict == 'failure': ops['batch_get_image']['failures'] = [{'failureCode': 'ImageNotFound'}]
+    ops['batch_get_image']['images'].append(alias)
+    result = p.ENRICHERS['ecr_repository'](requests, session, REGION, [item])[0]
+    status = c.image_layers(result, index('ecr_repository', result))[0]
+    assert status == ('PASS' if conflict is None else 'UNKNOWN')
+    assert bool(downloads) is (conflict is None)
+
+
 @pytest.mark.parametrize('mode', ['multiarch', 'external', 'foreign_download_digest', 'unsupported_compression', 'malformed_json', 'duplicate_json'])
 def test_ecr_unsupported_source_never_passes(monkeypatch, mode):
     requests, session, item, ops, calls, downloads, _ = sdk(monkeypatch, 'ecr_repository', False)
@@ -440,9 +461,34 @@ def test_ecr_unsupported_source_never_passes(monkeypatch, mode):
     assert not any('evil.test' in url for url, _ in downloads)
 
 
-def test_real_partial_ecr_positive_survives_missing_config(monkeypatch):
-    requests, session, item, _, calls, downloads, payloads = sdk(monkeypatch, 'ecr_repository', True)
-    payloads[URL + '-config'] = RuntimeError(URL + SECRET)
+def append_bad_layer(ops, payloads):
+    raw = bytearray(tar_bytes([('corrupt.py', 'ready=true')]))
+    raw[0] ^= 1
+    broken = bytes(raw)
+    compressed = gzip.compress(broken)
+    payloads[URL + '-later'] = compressed
+    config = json.loads(payloads[URL + '-config'])
+    config['rootfs']['diff_ids'].append(digest(broken))
+    config_raw = json.dumps(config).encode()
+    payloads[URL + '-config'] = config_raw
+    document = json.loads(ops['batch_get_image']['images'][0]['imageManifest'])
+    document['config'].update(size=len(config_raw), digest=digest(config_raw))
+    document['layers'].append({'mediaType': 'application/vnd.oci.image.layer.v1.tar+gzip',
+                               'digest': digest(compressed), 'size': len(compressed)})
+    _replace_manifest(ops, document)
+    old = ops['get_download_url_for_layer']
+    def location(**kw):
+        layer = kw['layerDigest']
+        if layer == digest(config_raw): url = URL + '-config'
+        elif layer == digest(compressed): url = URL + '-later'
+        else: return old(**kw)
+        return {'layerDigest': layer, 'downloadUrl': url}
+    ops['get_download_url_for_layer'] = location
+
+
+def test_real_partial_ecr_positive_survives_later_bad_layer(monkeypatch):
+    requests, session, item, ops, calls, downloads, payloads = sdk(monkeypatch, 'ecr_repository', True)
+    append_bad_layer(ops, payloads)
     result = p.ENRICHERS['ecr_repository'](requests, session, REGION, [item])[0]
     assert c.image_layers(result, index('ecr_repository', result))[0] == 'FAIL'
     assert result['PackageContentSource']['PackageSecretIndicators']['NativeResponseComplete'] is False
@@ -479,8 +525,8 @@ def test_bounds_enforced_with_small_synthetic_budgets(monkeypatch, mode):
         with pytest.raises(ValueError): p.scan_zip(raw, request)
     else:
         requests, session, item, _, _, downloads, _ = sdk(monkeypatch, 'ecr_repository', False)
-        if mode == 'layer_bytes': monkeypatch.setattr(p, 'LAYER_LIMIT', 3)
-        else: monkeypatch.setattr(p, 'IMAGE_LIMIT', 3)
+        if mode == 'layer_bytes': monkeypatch.setattr(p, 'ECR_LAYER_LIMIT', 3)
+        else: monkeypatch.setattr(p, 'ECR_IMAGE_LIMIT', 3)
         result = p.ENRICHERS['ecr_repository'](requests, session, REGION, [item])[0]
         assert c.image_layers(result, index('ecr_repository', result))[0] == 'UNKNOWN'
         assert not downloads
@@ -538,7 +584,7 @@ def test_zip_central_directory_member_bound_before_zipfile_allocation(monkeypatc
 def test_compressed_image_layers_global_expansion_limit_partial_unknown(monkeypatch):
     requests, session, item, ops, calls, downloads, payloads = sdk(monkeypatch, 'ecr_repository', False)
     # Each blob is individually under 64 MiB but the image aggregate is smaller here.
-    monkeypatch.setattr(p, 'EXPANDED_LIMIT', 10240)
+    monkeypatch.setattr(p, 'ECR_EXPANDED_LIMIT', 10240)
     result = p.ENRICHERS['ecr_repository'](requests, session, REGION, [item])[0]
     assert c.image_layers(result, index('ecr_repository', result))[0] == 'UNKNOWN'
     assert result['PackageContentSource']['PackageSecretIndicators']['NativeResponseComplete'] is False
@@ -564,12 +610,7 @@ def test_bound_zip_preserves_proven_positive_before_later_crc_failure(monkeypatc
 
 def test_bound_tar_preserves_proven_positive_before_later_bad_header(monkeypatch):
     requests, session, item, ops, _, _, payloads = sdk(monkeypatch, 'ecr_repository')
-    raw = bytearray(tar_bytes([('positive.py', "password='" + SECRET + "'"), ('corrupt.py', 'ready=true')]))
-    raw[1024] ^= 1
-    compressed = gzip.compress(bytes(raw)); payloads[URL + '-layer'] = compressed
-    document = json.loads(ops['batch_get_image']['images'][0]['imageManifest'])
-    document['layers'][0].update(size=len(compressed), digest=digest(compressed))
-    _replace_manifest(ops, document)
+    append_bad_layer(ops, payloads)
     result = p.ENRICHERS['ecr_repository'](requests, session, REGION, [item])[0]
     assert c.image_layers(result, index('ecr_repository', result))[0] == 'FAIL'
     assert result['PackageContentSource']['PackageSecretIndicators']['NativeResponseComplete'] is False

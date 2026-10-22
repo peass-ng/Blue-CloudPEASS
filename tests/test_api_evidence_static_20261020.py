@@ -45,6 +45,21 @@ REVIEWED_SUCCESSORS = {
 }
 
 
+# Preserve the original 12,145 rendered witnesses. This exact successor records
+# reviewed main wording/impact changes and four retired current-catalog IDs;
+# the native formatter must independently reproduce every successor below.
+PRIVESC_SUCCESSOR_RAW = (ROOT/'tests/fixtures/evidence_static_privesc_successor_20261022.json.gz').read_bytes()
+assert hashlib.sha256(PRIVESC_SUCCESSOR_RAW).hexdigest() == 'f45cae9583e7dab4d48efdb49c37890fea82d1725f788b6309e1484ace19e5d3'
+import gzip
+PRIVESC_SUCCESSOR = json.loads(gzip.decompress(PRIVESC_SUCCESSOR_RAW))
+assert PRIVESC_SUCCESSOR['original_archive_sha256'] == ARCHIVE_SHA256
+assert len(PRIVESC_SUCCESSOR['rows']) == 1897
+for relative, digest in PRIVESC_SUCCESSOR['sources'].items():
+    assert hashlib.sha256((ROOT/relative).read_bytes()).hexdigest() == digest, relative
+assert not set(map(int, PRIVESC_SUCCESSOR['rows'])) & set(REVIEWED_SUCCESSORS)
+REVIEWED_SUCCESSORS.update({int(index): row for index, row in PRIVESC_SUCCESSOR['rows'].items()})
+
+
 def _stage(tmp_path):
     """Build a package overlay without writing to the source checkout."""
     (tmp_path/'risk_rules').symlink_to(ROOT/'risk_rules', target_is_directory=True)
@@ -68,8 +83,10 @@ def _run(stage, script):
     # the actual source package, as they do after installation.
     assert hashlib.sha256(ARCHIVE.read_bytes()).hexdigest() == ARCHIVE_SHA256
     env=dict(os.environ, PYTHONPATH=str(NATIVE_ROOT)+os.pathsep+str(ROOT)+os.pathsep+str(stage))
+    successors_path = stage/'reviewed-successors.json'
+    successors_path.write_text(json.dumps(REVIEWED_SUCCESSORS), encoding='utf-8')
     result=subprocess.run([sys.executable,'-c',script,str(ARCHIVE),str(stage),
-                           json.dumps(REVIEWED_SUCCESSORS)],
+                           str(successors_path)],
                           cwd=NATIVE_ROOT,env=env,text=True,capture_output=True,timeout=180)
     assert result.returncode == 0, result.stdout+'\n'+result.stderr
     return result.stdout
@@ -82,7 +99,7 @@ path=Path(sys.argv[2])/'peaso/server/evidence_static.py'
 spec=importlib.util.spec_from_file_location('evidence_static_cold',path)
 module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
 assert not any(name=='peaso.checks' or name.startswith('peaso.checks.') or name=='peaso.analysis' or name.startswith('peaso.analysis.') or name=='peaso.engine' for name in sys.modules)
-reviewed=json.loads(sys.argv[3]);count=0;changed=set()
+reviewed=json.loads(Path(sys.argv[3]).read_text());count=0;changed=set()
 with gzip.open(sys.argv[1],'rt',encoding='utf-8') as file:
  for line in file:
   row=json.loads(line);finding=copy.deepcopy(row['finding']);before=copy.deepcopy(finding)
@@ -146,7 +163,7 @@ from pathlib import Path
 path=Path(sys.argv[2])/'peaso/server/evidence_static.py'
 spec=importlib.util.spec_from_file_location('evidence_static_then_native',path)
 module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
-rows=[];reviewed=json.loads(sys.argv[3]);changed=[]
+rows=[];reviewed=json.loads(Path(sys.argv[3]).read_text());changed=[]
 with gzip.open(sys.argv[1],'rt',encoding='utf-8') as file:
  for index,line in enumerate(file):
   row=json.loads(line)

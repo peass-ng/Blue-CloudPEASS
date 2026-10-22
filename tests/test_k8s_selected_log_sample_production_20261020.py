@@ -8,6 +8,7 @@ import json
 import logging
 from pathlib import Path
 import socket
+import sys
 from types import SimpleNamespace
 from urllib.parse import urlencode
 
@@ -16,9 +17,15 @@ from fastapi import HTTPException
 from peaso import checks, engine, secret_scanning as scanning
 from peaso.checks import fixtures
 from tests.aws_k8s_current_native_inputs_20261020 import case_state
-from peaso.checks import k8s_selected_log_sample_admission_20261020 as admission
-from peaso.checks import k8s_annotation_native_admission_20261020 as annotation
-from peaso.checks import k8s_kubelet_configmap_admission_20261020 as configmaps
+from peaso.checks import k8s_selected_log_source_successor_20261021 as log_successor
+from peaso.checks import k8s_annotation_native_source_successor_20261021 as annotation_successor
+from peaso.checks import k8s_kubelet_configmap_source_successor_20261021 as configmap_successor
+admission = sys.modules[log_successor.PRIVATE_NAME]
+annotation = sys.modules[annotation_successor._PRIVATE_NAME]
+configmaps = sys.modules[configmap_successor.PRIVATE_NAME]
+assert admission.__file__ == str(log_successor.GUARD)
+assert annotation.__file__ == str(annotation_successor.GUARD)
+assert configmaps.__file__ == str(configmap_successor.GUARD)
 from peaso.collectors import k8s
 from peaso.collectors import k8s_selected_log_sample_secret_indicators as source
 from peaso.checks import k8s_selected_log_sample_secret_review_20261020 as candidate
@@ -267,9 +274,13 @@ def test_accepted_assets_and_original_test_bytes_retained_exactly():
         'peaso/checks/k8s_selected_log_sample_secret_review_20261020.py',
         'peaso/checks/k8s_selected_log_sample_secret_review_20261020_proposal.json',
         'peaso/checks/k8s_selected_log_sample_secret_review_20261020_native_fixtures.json')
+    from peaso.private_secret_source_epoch_20261021 import predecessor_bytes
     for path in accepted:
         row, = [r for r in prior['files_created'] if r['path'] == path]
-        assert hashlib.sha256(Path(path).read_bytes()).hexdigest() == row['sha256']
+        raw = Path(path).read_bytes()
+        if path == 'peaso/collectors/k8s_selected_log_sample_secret_indicators.py':
+            raw = predecessor_bytes(path, raw, row['sha256'], Path.cwd())
+        assert hashlib.sha256(raw).hexdigest() == row['sha256']
     row, = [r for r in prior['files_created'] if r['path'] == 'tests/test_k8s_selected_log_sample_secret_review_20261020.py']
     retained = Path('docs/check-review/k8s-selected-log-production-lineage-20261020/test_k8s_selected_log_sample_secret_review_20261020.py.pre-log-production.gz')
     assert hashlib.sha256(gzip.decompress(retained.read_bytes())).hexdigest() == row['sha256']
@@ -317,4 +328,6 @@ def test_literal_only_actual_sdk_debug_privacy(monkeypatch, caplog, capsys, deni
 @pytest.mark.parametrize('name', ['allowed_request', 'collect'])
 def test_producer_function_binding_replacement_rejected(monkeypatch, name):
     monkeypatch.setattr(source, name, lambda *args, **kwargs: True)
-    with pytest.raises(RuntimeError, match='callable binding'): admission.install()
+    expected = ('^K8s log executing code changed$' if name == 'collect'
+                else '^K8s log callable binding changed$')
+    with pytest.raises(RuntimeError, match=expected): admission.install()

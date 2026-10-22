@@ -218,7 +218,7 @@ def test_engine_report_retains_one_row_per_real_leak_across_native_kinds(real_sc
             return key
         def put_text(self, tenant, ident, kind, value): return self.put(tenant, ident, kind, value)
     artifacts = MemoryArtifacts()
-    manifest = artifacts.rows[publish_report(artifacts, 'synthetic-tenant', 'synthetic-scan', report)]
+    manifest = artifacts.rows[publish_report(artifacts, 'synthetic-tenant', 'd' * 32, report)]
     persisted = [row for chunk in manifest['finding_chunks']
                  for row in artifacts.rows[chunk['index_reference']]['items']]
     assert len(group_findings(persisted)) == 2
@@ -310,5 +310,5 @@ def test_clean_metadata_callback_can_reuse_redacted_negative_cache(monkeypatch):
     monkeypatch.setattr(scanning, '_scan_trufflehog', lambda *a: calls.append('trufflehog') or [])
     for _ in range(2):
         assert scanning.scan_content(b'plain', _redact_values=callbacks.append)['complete']
-    assert calls == ['kingfisher', 'trufflehog']
+    assert sorted(calls) == ['kingfisher', 'trufflehog']
     assert callbacks == [frozenset(), frozenset()]

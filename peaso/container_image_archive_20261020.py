@@ -88,6 +88,13 @@ MAX_PATH = 4096
 MAX_PATH_BYTES = 64 * 1024 * 1024
 MIN_FREE_DISK = 256 * 1024 * 1024
 DISK_CHECK_STEP = 64 * 1024 * 1024
+STANDARD_CHAR_DEVICES = {
+    'dev/console': (5, 1),
+    'dev/null': (1, 3),
+    'dev/random': (1, 8),
+    'dev/urandom': (1, 9),
+    'dev/zero': (1, 5),
+}
 
 
 def _source(value, expected_size):
@@ -261,6 +268,21 @@ def _tar_members(path, nodes, count, check, layer_index, path_budget):
                 name = pending.get('path', global_pax.get('path', member.name))
                 linkname = pending.get('linkpath', global_pax.get('linkpath', member.linkname))
                 pending = {}
+                # GNU/Debian image layers commonly use './' and a root directory
+                # marker. Canonicalize only that leading prefix, before duplicate
+                # and traversal checks; never extract or create the root marker.
+                require(type(name) is str and bool(name) and len(name.encode('utf-8')) <= MAX_PATH,
+                        'image_path_bound')
+                while name.startswith('./'):
+                    name = name[2:]
+                if name in ('', '.'):
+                    require(member.type == tarfile.DIRTYPE and member.size == 0 and not linkname,
+                            'unsafe_image_path')
+                    require('.' not in seen, 'duplicate_tar_member')
+                    seen.add('.')
+                    count += 1
+                    require(count <= MAX_MEMBERS, 'tar_member_bound')
+                    continue
                 require(name and not name.startswith('/') and '\\' not in name and
                         all(part not in ('', '.', '..') for part in name.rstrip('/').split('/')),
                         'unsafe_image_path')
@@ -313,6 +335,11 @@ def _tar_members(path, nodes, count, check, layer_index, path_budget):
                                if nodes.get(candidate, (None,))[0] in ('file', 'hardlink')]
                     require(bool(targets), 'unsafe_hardlink_target')
                     nodes[actual] = ('hardlink', nodes[targets[0]][1])
+                elif member.type == tarfile.CHRTYPE:
+                    require(member.size == 0 and name == actual and
+                            STANDARD_CHAR_DEVICES.get(actual) == (member.devmajor, member.devminor),
+                            'unsupported_tar_member')
+                    nodes[actual] = ('device', '')
                 else:
                     raise ValueError('unsupported_tar_member')
             pad = ((member.size + 511) // 512) * 512 - member.size

@@ -2,6 +2,8 @@ import { Component, lazy, Suspense, useEffect, useState } from "react";
 import type { ErrorInfo, ReactNode } from "react";
 import {
   ChevronDown,
+  Droplet,
+  Container,
   AlertTriangle,
   Cloud,
   ArrowUpRight,
@@ -42,6 +44,7 @@ import { Settings } from "./Settings";
 import type { Connector, Me, Report, Scan, Workspace } from "./types";
 import { Panel, State, sourceHref } from "./ui";
 import { scanNames } from "./scanNames";
+import { useInsightCounts } from "./InsightCounts";
 function IamIcon({ size = 18 }: { size?: number }) {
   return <svg className="nav-iam-icon" width={24} height={size} viewBox="0 0 24 18"
     style={{ width: 24, flexShrink: 0 }} fill="none" aria-hidden="true">
@@ -80,16 +83,6 @@ const pages = [
     description: "Understand your observed external exposure.",
   },
   {
-    label: "Leaks",
-    icon: Shield,
-    description: "Inspect detected secrets and credential-related findings and their sources.",
-  },
-  {
-    label: "Images CVEs",
-    icon: ShieldCheck,
-    description: "Review image vulnerabilities and their scan coverage.",
-  },
-  {
     label: "Least Privilege",
     icon: IamIcon,
     description: "Review identity permissions and reduce unnecessary access.",
@@ -112,7 +105,17 @@ const pages = [
     description: "Review AI network findings and recommended connectivity changes.",
   },
   {
-    label: "Attack Analysis",
+    label: "Leaks",
+    icon: Droplet,
+    description: "Inspect detected secrets and credential-related findings and their sources.",
+  },
+  {
+    label: "Images CVEs",
+    icon: Container,
+    description: "Review image vulnerabilities and their scan coverage.",
+  },
+  {
+    label: "Attack Detection",
     icon: Radar,
     group: "THREAT DETECTION",
     description: "Review suspicious actions in cloud audit logs.",
@@ -132,7 +135,7 @@ const pages = [
 const pageAliases: Record<string, string> = {
   "AI Review": "Top 15 Actions", "Top 15 Recommended Actions": "Top 15 Actions",
   "Hardening Findings": "Hardening & Compliance", "Network Findings": "Network Architecture",
-  "Images Findings": "Images CVEs",
+  "Images Findings": "Images CVEs", "Attack Analysis": "Attack Detection",
 };
 const normalizePage = (page: string) => pageAliases[page] || page;
 export function App() {
@@ -162,15 +165,26 @@ export function App() {
   const connectors = useApi<{ items: Connector[] }>("/connectors", demo);
   const scans = useApi<{ items: Scan[] }>("/scans", demo, true, true);
   const available = items(scans.data);
+  const hasResult = (scan: Scan) => scan.status === "completed" || scan.result_available === true;
   const names = scanNames(available, items(connectors.data));
   const scanId =
-    (available.some((scan) => scan.id === selected) ? selected : "") || available.find((s) => s.status === "completed")?.id || "";
+    (available.some((scan) => scan.id === selected && hasResult(scan)) ? selected : "") || available.find(hasResult)?.id || "";
   const current = available.find((s) => s.id === scanId);
+  const partialResult = !!current && current.status !== "completed" && hasResult(current);
   const report = useApi<Report>(
     `/scans/${encodeURIComponent(scanId)}/summary?aggregation=check`,
     demo,
-    !!scanId && current?.status === "completed",
+    !!scanId && !!current && hasResult(current),
+    partialResult,
   );
+  const insightCounts = useInsightCounts(scanId, demo, !!scanId && !!current && hasResult(current), aiAvailable, report.data);
+  const partialSequence = report.data?.publication?.state === "partial" ? `${report.data.publication.sequence ?? ""}:${JSON.stringify(report.data.publication.ai_stages || {})}` : undefined;
+  useEffect(() => {
+    if (!scanId || partialSequence === undefined) return;
+    void client.invalidateQueries({ predicate: (query) => query.queryKey[0] === (demo ? "demo" : "live") &&
+      query.queryKey.some((part) => typeof part === "string" &&
+        (part === scanId || part.includes(`/scans/${scanId}/`))) });
+  }, [client, demo, scanId, partialSequence]);
   const pageInfo = pages.find((p) => p.label === page) || pages[0];
   function navigate(p: string) {
     p = normalizePage(p);
@@ -279,25 +293,14 @@ export function App() {
                 aria-current={page === p.label ? "page" : undefined}
               >
                 <p.icon size={18} />
-                <span>{p.label}</span>
+                <span className="nav-label">{p.label}
+                  {p.label === "Attack Detection" && <span className="feature-beta nav-beta">Beta</span>}
+                  {p.ai && <span className="feature-ai nav-ai" aria-hidden="true">✦ AI</span>}
+                </span>
                 {p.label === "Settings" && codex.data?.configuration_error && <AlertTriangle size={16} role="img" aria-label="AI configuration needs attention" />}
-                {p.label === "Attack Analysis" && <span className="feature-beta nav-beta">Beta</span>}
-                {p.ai && <span className="feature-ai nav-ai" aria-hidden="true">✦ AI</span>}
-                {p.label === "Hardening & Compliance" && report.data && (
-                  <span className="nav-count">
-                    {Number(
-                      (
-                        report.data.stats?.failed_by_category as
-                          | Record<string, number>
-                          | undefined
-                      )?.hardening ??
-                        report.data.findings?.filter(
-                          (f) => f.category === "hardening" && f.status === "FAIL",
-                        ).length ??
-                        0,
-                    )}
-                  </span>
-                )}
+                {Object.hasOwn(insightCounts, p.label) && <span className="nav-count" aria-label={`${p.label} total`}>
+                  {insightCounts[p.label] ?? "—"}
+                </span>}
               </button>
             </div>
           ))}
@@ -339,7 +342,7 @@ export function App() {
           <div className="page-heading">
             <div>
               <div className="eyebrow page-kicker"><span>//</span> PEASS'o INTELLIGENCE</div>
-              <h1>{page}{pageInfo.ai && <span className="feature-ai" aria-hidden="true">✦ AI</span>}{page === "Attack Analysis" && <span className="feature-beta">Beta</span>}</h1>
+              <h1>{page}{pageInfo.ai && <span className="feature-ai" aria-hidden="true">✦ AI</span>}{page === "Attack Detection" && <span className="feature-beta">Beta</span>}</h1>
               {pageInfo.description && <p>{pageInfo.description}</p>}
             </div>
             {(insight || page === "Dashboard") && (
@@ -352,11 +355,11 @@ export function App() {
                 >
                   <option value="">
                     {available.length
-                      ? "Choose a completed scan"
-                      : "No completed scans"}
+                      ? "Choose an assessment with results"
+                      : "No assessments with results"}
                   </option>
                   {available
-                    .filter((s) => s.status === "completed")
+                    .filter(hasResult)
                     .map((s) => (
                       <option key={s.id} value={s.id}>
                         {names.get(s.id)}
@@ -394,6 +397,22 @@ export function App() {
               </span>
             </div>
           )}
+          {!demo && page === "Scans" && partialResult && (
+            <div className="demo-banner" role="status">
+              <ShieldCheck size={17} />
+              <strong>{["failed", "timed_out", "cancelled", "queue_exhausted"].includes(current?.status || "") ? "Saved partial results" : "Assessment in progress"}</strong>
+            </div>
+          )}
+          {!demo && report.data?.publication?.sections && partialResult && (
+            <div className="scan-section-batches" aria-label="Scan section progress">
+              {Object.entries(report.data.publication.sections).filter(([, batch]) => batch.status !== "not_selected").map(([section, batch]) => (
+                <span key={section} className={`scan-section-batch ${batch.status}`}>
+                  {{ hardening: "Checks", exposure: "Exposure", least_privilege: "IAM", network: "Network", privesc: "Privilege escalation", leaks: "Leaks", images: "Image CVEs" }[section] || section}
+                  <strong>{batch.status === "complete" ? "Saved" : "Running"}</strong>
+                </span>
+              ))}
+            </div>
+          )}
           {unauthorized && !demo && page !== "Settings" && (
             <div className="auth-banner" role="alert">
               <Shield size={18} />
@@ -425,7 +444,7 @@ export function App() {
             />
           )}
           {page === "Connectors" && <Connectors demo={demo} canWrite={canWriteWorkspace} />}
-          {page === "Attack Analysis" && <AttackAnalysis demo={demo} canWrite={canWriteWorkspace} onNavigate={navigate} />}
+          {page === "Attack Detection" && <AttackAnalysis demo={demo} canWrite={canWriteWorkspace} onNavigate={navigate} />}
           {page === "Scans" && (
             <Scans
               demo={demo}
@@ -449,7 +468,7 @@ export function App() {
                   key={page}
                   scanId={scanId}
                   category={page === "Hardening & Compliance" ? "hardening" : page === "Exposure" ? "exposure" : ""}
-                  findingType={page === "Leaks" ? "secrets" : undefined}
+                  findingType={page === "Leaks" ? "detected_leaks" : undefined}
                   demo={demo}
                 />
               </State>

@@ -4,6 +4,7 @@ from dataclasses import replace
 import hashlib
 import importlib.util
 import json
+import sys
 from pathlib import Path
 import socket
 
@@ -13,7 +14,9 @@ from kubernetes import config
 from peaso import engine
 import peaso.checks as registry
 from peaso.checks.fixtures import CASES
-from peaso.checks import k8s_annotation_native_admission_20261020 as admission
+from peaso.checks import k8s_annotation_native_source_successor_20261021 as current_successor
+admission = sys.modules[current_successor._PRIVATE_NAME]
+assert admission.__file__ == str(current_successor.GUARD)
 from peaso.checks import k8s_annotation_indicators_review_20261020 as candidate
 from peaso.collectors import k8s
 from peaso.collectors import k8s_annotation_indicators_20261020 as producer
@@ -36,7 +39,6 @@ def offline(monkeypatch):
         monkeypatch.setattr(socket, name, blocked)
     for name in ('load_kube_config', 'load_incluster_config', 'new_client_from_config'):
         monkeypatch.setattr(config, name, blocked)
-    monkeypatch.setattr(k8s, '_new_api', blocked)
     yield
     assert {cid: CASES[cid] for cid in admission.IDS} == BASE_CASES
 

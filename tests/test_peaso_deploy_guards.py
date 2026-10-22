@@ -1765,3 +1765,15 @@ class CloudFrontRecoveryGuards(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_two_hour_runtime_successor_reconstructs_the_deployed_configuration():
+    current = (deploy.INFRA / 'variables.tf').read_bytes()
+    assert hashlib.sha256(current).hexdigest() == deploy.RUNTIME_LIMITS_CURRENT_SHA256
+    restored = current
+    for before, after in deploy.RUNTIME_LIMITS_EXACT_REPLACEMENTS:
+        assert restored.count(after) == 1
+        restored = restored.replace(after, before, 1)
+    assert hashlib.sha256(restored).hexdigest() == deploy.RUNTIME_LIMITS_PREDECESSOR_SHA256
+    assert deploy.RUNTIME_CONFIG_SHA256['variables.tf'] == '2824bc1ff26a1cb2bdc97109bd911d301ee1df29688253d5c2cd22236b928a58'
+    assert hashlib.sha256(current + b'\n# unreviewed change\n').hexdigest() != deploy.RUNTIME_LIMITS_CURRENT_SHA256

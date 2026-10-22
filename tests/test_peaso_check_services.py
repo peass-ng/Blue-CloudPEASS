@@ -56,11 +56,14 @@ def test_manifest_covers_collector_services_and_all_kubernetes_kinds():
     aws_aliases = {"elbv2": "elasticloadbalancing", "elb": "elasticloadbalancing",
                    "apigatewayv2": "apigateway", "s3control": "s3", "wafv2": "waf",
                    "waf-regional": "waf", "redshift-serverless": "redshift", "bedrock-agent": "bedrock"}
+    # These selected content kinds can read across account services;
+    # SPECS names only the discovery fallback for each kind.
+    account_content = {"configuration_selected_content",
+                       "workload_referenced_source_content",
+                       "build_deployment_referenced_source_content"}
     for kind, (service, *_) in SPECS.items():
         if ("aws", kind) in kinds:
-            # Selected configuration content has a custom regional_job branch
-            # combining account services; SPECS is only its discovery fallback.
-            expected = "account" if kind == "configuration_selected_content" else aws_aliases.get(service, service)
+            expected = "account" if kind in account_content else aws_aliases.get(service, service)
             assert service_for("aws", kind) == expected
     azure_sources = {**{kind: spec[0].split("/")[0] for kind, spec in ENDPOINTS.items()},
                      **{kind: "Microsoft.Authorization" for kind in AUTHORIZATION},

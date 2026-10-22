@@ -50,6 +50,7 @@ RUNTIME_ADMISSION_INPUTS = {
 # Exact public inputs needed to reproduce the shipped compiler, provenance and
 # tests. Explicit paths/globs only: no .work drafts, caches or private files.
 REPRODUCTION_INPUT_PATTERNS = (
+    'tests/connector_access_receipts.py',
     'scripts/pytest_shard.py',
     'docs/ci-runtime-optimization-20261022.md',
     'tests/test_combined_catalog_history_successor_20261022.py',
@@ -160,6 +161,15 @@ REPRODUCTION_INPUT_PATTERNS = (
     'tests/test_acr_index_functional.py',
     'tests/test_attack_detection_dynamic_catalog.py',
     'tests/test_attack_detection_raw_cloudtrail_catalog.py',
+    'tests/test_attack_detection_lambda_public_layer.py',
+    'tests/test_current_azure_proposal_proof_20261022.py',
+    'tests/test_gcp_k8s_current_evidence_cohort_20261022.py',
+    'tests/fixtures/evidence_static_privesc_successor_20261022.json.gz',
+    'tests/fixtures/current_privesc_catalog_successor_20261022.json.gz',
+    'tests/test_peaso_privesc_current_runtime_binding.py',
+    'tests/current_runtime_admission_inputs_20261022.py',
+    'tests/retired_privesc_catalog_20261022.py',
+    'tests/fixtures/aws_retired_sns_perimeter_source_20261022.py.txt',
     'tests/test_aws_batch_selected_variants_20261021.py',
     'tests/test_aws_build_deployment_referenced_source_20261021.py',
     'tests/test_aws_ecs_environment_file_native_20261021.py',
@@ -241,6 +251,24 @@ REPRODUCTION_INPUT_PATTERNS = (
     'tests/test_peaso_least_privilege.py',
     'tests/test_peaso_aws_access_analyzer_lifecycle.py',
     'tests/test_peaso_finding_group_api.py',
+    'tests/test_peaso_detected_leaks_filter.py',
+    'tests/test_worker_progress_20261022.py',
+    'tests/test_peaso_image_scan_throughput_20261022.py',
+    'tests/test_peaso_scan_queue.py',
+    'tests/test_incremental_checkpoint.py',
+    'tests/test_incremental_storage_20261022.py',
+    'tests/test_incremental_parallel_20261022.py',
+    'tests/test_incremental_ready_reads_20261022.py',
+    'tests/test_scan_section_batches_20261022.py',
+    'tests/test_progressive_analyzer_20261022.py',
+    'tests/test_ai_section_concurrency_20261022.py',
+    'tests/test_private_receipt_compaction_20261022.py',
+    'tests/test_operator_scan_quota.py',
+    'tests/test_partial_evaluation_scheduling_20261022.py',
+    'tests/test_secret_scanning_performance.py',
+    'tests/test_secret_batch_capacity_128.py',
+    'tests/test_aws_image_capture_20261022.py',
+    'tests/test_aws_image_capture_store_20261022.py',
     'tests/test_least_privilege_permissions.py',
     'tests/provider_group_catalog_history_20261021.py',
     'tests/fixtures/provider_group_catalog_history_20261021.json.gz',
@@ -251,6 +279,8 @@ REPRODUCTION_INPUT_PATTERNS = (
     'tests/test_azure_app_runtime_pipeline_20261021.py',
     'tests/test_container_practical_archive_20261021.py',
     'tests/test_ecr_secret_streaming_20261021.py',
+    'tests/test_peaso_secret_scanning_batch.py',
+    'tests/test_aws_package_content_batch_20261022.py',
     'tests/test_gcp_job_image_vulnerability_lifecycle_20261021.py',
     'tests/test_gcp_job_image_vulnerability_product_20261021.py',
     'tests/test_peaso_cloudrun_selector_static_20261021.py',
@@ -1407,6 +1437,10 @@ REPRODUCTION_INPUT_PATTERNS = (
     'examples/benchmark_peaso.py',
     'examples/benchmark_peaso_k8s.py',
     'examples/benchmark_peaso_saved_snapshot.py',
+    'examples/benchmark_peaso_iam.py',
+    'examples/benchmark_peaso_leaks.py',
+    'examples/benchmark_peaso_secret_batch_capacity.py',
+    'examples/benchmark_peaso_network.py',
     'examples/verify_installed_peaso.py',
     'frontend/.gitignore',
     'frontend/tests/fixtures/aws-batch-evidence.json',
@@ -1673,6 +1707,26 @@ RUNTIME_CONFIG_SHA256 = {
     "ai_runtime.tf": "3a1e98be34ff47397d6fb83f5a7f6fdddaaf51f7b8dc4a2c3cdad676e6d017ab",
     "ai_network.tf": "e180dee4032309d52455d23a59062a536dd231caa874a78b17057b7115308eab",
 }
+# Explicitly reviewed two-hour runtime successor; retain the historical source pin.
+RUNTIME_LIMITS_PREDECESSOR_SHA256 = "2c9bdcfc7e08edb02c36dc1640692e1d00a412b326053c8120eff70257870554"
+RUNTIME_LIMITS_CURRENT_SHA256 = "12845ef9a58c6d1064d21054b2f54577c594e30e4773fa36bda1988e593bcd4d"
+RUNTIME_LIMITS_EXACT_REPLACEMENTS = (
+    (b"workflow_seconds = 3600", b"workflow_seconds = 7200"),
+    (b"stage_seconds    = 1800", b"stage_seconds    = 7200"),
+    (b"lease_seconds    = 3900", b"lease_seconds    = 7500"),
+    (b"var.scan_runtime_limits.workflow_seconds <= 3600", b"var.scan_runtime_limits.workflow_seconds <= 7200"),
+    (b"var.scan_runtime_limits.stage_seconds <= 3600", b"var.scan_runtime_limits.stage_seconds <= 7200"),
+    (b"var.scan_runtime_limits.lease_seconds <= 3900", b"var.scan_runtime_limits.lease_seconds <= 7500"),
+    ("900–3600s, stages 300–3600s".encode(), "900–7200s, stages 300–7200s".encode()),
+    (b"(at most3900s)", b"(at most7500s)"),
+)
+# Reviewed 39ff93f IAM successor: the API role may read only the configured
+# Codex token secret ARN. The original runtime contract hashes stay intact.
+IAM_RUNTIME_CURRENT_SHA256 = "319e90d9f2f377be919c815ed27f433ae4f45868bbf3bb984f36c9fddfc213a2"
+IAM_RUNTIME_EXACT_ADDITION = (
+    b'    ], var.codex_token_secret_arn == "" ? [] : [\n'
+    b'    { Effect = "Allow", Action = ["secretsmanager:GetSecretValue"], Resource = var.codex_token_secret_arn }\n'
+)
 ALLOWED_RESOURCES = set("""
 aws_cloudwatch_log_group.api aws_cloudwatch_log_group.scheduler aws_apigatewayv2_stage.api
 aws_budgets_budget.cspm aws_route53_record.cspm aws_ecs_task_definition.tasks
@@ -2154,6 +2208,16 @@ def package_api():
             info.external_attr = (stat.S_IFREG | public_mode(path)) << 16
             archive.writestr(info, path.read_bytes(), compresslevel=9)
     if package.stat().st_size > CURRENT_API_ARCHIVE_LIMIT:
+        try:
+            from peaso_source_archive import optimize_source_archive
+        except ModuleNotFoundError:
+            from scripts.peaso_source_archive import optimize_source_archive
+        compression = optimize_source_archive(
+            package, max_members=CURRENT_API_MEMBER_LIMIT,
+            max_member_bytes=CURRENT_API_UNCOMPRESSED_LIMIT,
+            max_uncompressed_bytes=CURRENT_API_UNCOMPRESSED_LIMIT, preserve_modes=True)
+        (BUILD / "api-compression.json").write_text(json.dumps(compression, indent=2) + "\n")
+    if package.stat().st_size > CURRENT_API_ARCHIVE_LIMIT:
         raise RuntimeError("API archive byte limit exceeded: "
                            f"{package.stat().st_size} > {CURRENT_API_ARCHIVE_LIMIT}")
     verify_api_source()
@@ -2285,14 +2349,32 @@ def deployment_expectations(data, plan):
                     raise RuntimeError("Saved plan configuration differs from frozen source")
     except zipfile.BadZipFile:
         raise RuntimeError("Cannot verify configuration embedded in saved plan") from None
-    if any(tf_files.get(name) != digest for name, digest in RUNTIME_CONFIG_SHA256.items()):
-        raise RuntimeError("Runtime configuration requires a new explicit contract review")
+    for name, historical_digest in RUNTIME_CONFIG_SHA256.items():
+        current_digest = tf_files.get(name)
+        if current_digest == historical_digest:
+            continue
+        if name == "variables.tf" and current_digest == RUNTIME_LIMITS_CURRENT_SHA256:
+            restored = (INFRA / name).read_bytes()
+            for before, after in RUNTIME_LIMITS_EXACT_REPLACEMENTS:
+                if restored.count(after) != 1:
+                    raise RuntimeError("Runtime limit successor differs from its exact reviewed change")
+                restored = restored.replace(after, before, 1)
+            if hashlib.sha256(restored).hexdigest() != RUNTIME_LIMITS_PREDECESSOR_SHA256:
+                raise RuntimeError("Runtime limit successor does not reconstruct its historical source")
+            continue
+        if name != "iam.tf" or current_digest != IAM_RUNTIME_CURRENT_SHA256:
+            raise RuntimeError("Runtime configuration requires a new explicit contract review")
+        current_bytes = (INFRA / name).read_bytes()
+        if (current_bytes.count(IAM_RUNTIME_EXACT_ADDITION) != 2
+                or hashlib.sha256(current_bytes.replace(IAM_RUNTIME_EXACT_ADDITION, b"", 1)).hexdigest()
+                != historical_digest):
+            raise RuntimeError("Runtime configuration requires a new explicit contract review")
     if variables.get("api_zip") != str((BUILD / "api.zip").resolve()):
         raise RuntimeError("Saved API ZIP variable differs from verified package")
     if variables.get("region") != "us-east-1":
         raise RuntimeError("Saved deployment region differs from dedicated account region")
     limits = variables.get("scan_runtime_limits") or {}
-    if not isinstance(limits.get("workflow_seconds"), int) or not 900 <= limits["workflow_seconds"] <= 3600:
+    if not isinstance(limits.get("workflow_seconds"), int) or not 900 <= limits["workflow_seconds"] <= 7200:
         raise RuntimeError("Saved scan runtime limit is missing or unsupported")
     public_template_enabled = variables.get("enable_public_customer_role_template", False)
     if not isinstance(public_template_enabled, bool):

@@ -1547,3 +1547,55 @@ def _make_azure_flex_archives():
     return SimpleNamespace(selected_targets=selected_targets)
 
 azure_flex_archives=_make_azure_flex_archives()
+
+
+def _make_lambda_environment():
+    KIND='lambda_selected_environment'
+
+    OPTION='selected_aws_lambda_functions'
+
+    MAX_TARGETS=8
+
+    MAX_SELECTED_SCOPES=8
+
+    ARN=re.compile(r'arn:(aws|aws-cn|aws-us-gov):lambda:([a-z]{2}(?:-[a-z0-9]+)+-[0-9]+):([0-9]{12}):function:([A-Za-z0-9_-]{1,64})\Z')
+
+    SCOPE=re.compile(r'([0-9]{12})/([a-z]{2}(?:-[a-z0-9]+)+-[0-9]+)\Z')
+
+    class Incomplete(ValueError):
+        """Stable errors only; never include provider text or selected names."""
+
+    def enabled(options):
+        return (options.get('content_secret_scans') is True and isinstance(options.get('_content_secret_scan_kinds'),list)
+            and KIND in options['_content_secret_scan_kinds'])
+
+    def parse(arn):
+        match=ARN.fullmatch(arn) if isinstance(arn,str) else None
+        if not match:raise Incomplete('invalid_lambda_selection')
+        partition='aws-cn' if match[2].startswith('cn-') else 'aws-us-gov' if match[2].startswith('us-gov-') else 'aws'
+        if match[1]!=partition or '-iso' in match[2]:raise Incomplete('invalid_lambda_selection')
+        return match
+
+    def selected_targets(options,scopes):
+        """Exported credential-free public validator; exact unqualified ARN only."""
+        if not isinstance(options,dict) or ('content_secret_scans' in options and type(options['content_secret_scans']) is not bool):
+            raise Incomplete('invalid_lambda_selection')
+        if OPTION not in options and not enabled(options):return []
+        targets=options.get(OPTION)
+        if (not isinstance(scopes,list) or not scopes
+                or any(not isinstance(s,str) or not SCOPE.fullmatch(s) for s in scopes)
+                or len(set(scopes))!=len(scopes) or not isinstance(targets,list) or not 1<=len(targets)<=MAX_TARGETS):
+            raise Incomplete('invalid_lambda_selection')
+        seen=set();selected_scopes=set()
+        for arn in targets:
+            match=parse(arn)
+            if match[3]+'/'+match[2] not in scopes or arn in seen:raise Incomplete('invalid_lambda_selection')
+            seen.add(arn)
+            selected_scopes.add(match[3]+'/'+match[2])
+            if len(selected_scopes)>MAX_SELECTED_SCOPES:raise Incomplete('invalid_lambda_selection')
+        return list(targets)
+
+    return SimpleNamespace(selected_targets=selected_targets)
+
+
+lambda_environment = _make_lambda_environment()

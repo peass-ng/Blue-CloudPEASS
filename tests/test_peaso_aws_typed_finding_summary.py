@@ -4,7 +4,7 @@ import gzip
 import json
 from pathlib import Path
 import pytest
-from peaso.checks import CHECKS
+from peaso.checks import CHECKS, CHECK_ALIASES
 from peaso.checks.fixtures import CASES
 from peaso.checks.aws_typed_finding_summary import evidence_summary, FIELDS
 
@@ -252,15 +252,19 @@ for name in ('aws_bulk_clarity_reviewed','aws_final_clarity_reviewed'):
     EXTRA.update(json.loads(gzip.decompress((ROOT/'tests/fixtures'/f'{name}.json.gz').read_bytes())))
 
 def actual(cid,case):
+    native_id = cid
+    if cid == 'aws.cb.sns.policy_prohibit_public_access_perimeter':
+        native_id = 'aws.cb.sns.policy_no_unrestricted_wildcard'
+        assert CHECK_ALIASES[cid] == native_id
     if cid in EXTRA:
         row=EXTRA[cid].get(case.upper())
         if row is None:return None
         item,index=row['item'],row['index']
     else:
-        row=CASES[cid]
+        row=CASES[native_id]
         if case not in row:return None
         item,index=row[case],row.get(case+'_index',row.get('index',{}))
-    status,evidence=BY_ID[cid].evaluate(deepcopy(item),deepcopy(index))
+    status,evidence=BY_ID[native_id].evaluate(deepcopy(item),deepcopy(index))
     return {'provider':'aws','check_id':cid,'status':status,'evidence':evidence}
 
 @pytest.mark.parametrize('cid',REVIEWED_IDS)

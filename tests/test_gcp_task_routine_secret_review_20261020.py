@@ -303,7 +303,16 @@ def test_unavailable_engine_is_unresolved_even_with_other_detection(monkeypatch,
         raise ImportError('private-exception-' + TOKEN)
     monkeypatch.setattr(scanning, '_scan_' + failed, unavailable)
     snapshot = c.collect()
-    assert {f['status'] for f in findings(snapshot, kind)} == {'UNKNOWN'}
+    result, = findings(snapshot, kind)
+    assert result['status'] == ('FAIL' if positive else 'UNKNOWN')
+    if positive:
+        evidence = result['evidence']
+        item, index = index_of(snapshot, kind)
+        assert item[source.MARKER]['reason'] == 'detector_unavailable'
+        assert evidence['complete'] is False
+        status, native_evidence = checks.evaluate(item, index, kind=kind)
+        assert status == 'FAIL' and native_evidence['coverage'] == 'partial_selected_observed_content_only'
+        assert {d['engine'] for leak in native_evidence['secret_leaks'] for d in leak['detectors']} == ({'kingfisher', 'trufflehog'} - {failed})
     assert TOKEN not in json.dumps(snapshot)
 
 

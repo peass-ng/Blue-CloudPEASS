@@ -10,7 +10,9 @@ MAX_PAGE_BYTES = 1_000_000
 
 def page_report(report, offset, limit):
     page = {key: deepcopy(value) for key, value in report.items() if key != 'rows'}
-    page.update(rows=[], total=len(report['rows']), offset=offset, next_offset=None)
+    page.update(rows=[], total=len(report['rows']), offset=offset, next_offset=None,
+                vulnerability_count=len({row['vulnerability_id'] for row in report['rows']}),
+                image_count=len({(row['provider'], row['scope'], row['image_digest']) for row in report['rows']}))
     for row in report['rows'][offset:offset + limit]:
         item = deepcopy(row)
         assets = item['affected_assets']

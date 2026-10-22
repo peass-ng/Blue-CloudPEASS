@@ -301,8 +301,7 @@ def validate_connector(provider, auth, options, settings, *, server_external_id=
         try:
             if provider != 'aws':
                 raise ValueError('AWS-only content selection')
-            from peaso.collectors.aws_lambda_environment_secret_indicators import selected_targets
-            selected_targets(options, scopes or [])
+            pure_selection.lambda_environment.selected_targets(options, scopes or [])
         except Exception:
             raise HTTPException(422, 'Selected Lambda environments require 1–8 unique unqualified function ARNs in explicit matching account/Region scopes') from None
     if 'selected_azure_acr_images' in options:

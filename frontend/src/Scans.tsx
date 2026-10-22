@@ -45,7 +45,20 @@ export const terminalStatuses = [
   "failed",
   "cancelled",
   "timed_out",
+  "queue_exhausted",
 ];
+const hasResults = (scan: Scan) => scan.status === "completed" || scan.result_available === true;
+function ScanCategories({ selected = [] }: { selected?: string[] }) {
+  const [expanded, setExpanded] = useState(false);
+  const all = categories.every(category => selected.includes(category.id));
+  if (all) return <div className="scan-categories"><span>All checks</span></div>;
+  return <div className="scan-categories">
+    {(expanded ? selected : selected.slice(0, 5)).map(category => <span key={category}>{category.replaceAll("_", " ")}</span>)}
+    {selected.length > 5 && <button type="button" className="text-button" aria-expanded={expanded}
+      onClick={() => setExpanded(!expanded)}>{expanded ? "Show less" : `+${selected.length - 5} more`}</button>}
+  </div>;
+}
+
 export function Scans({
   demo,
   canWrite = true,
@@ -174,24 +187,26 @@ export function Scans({
                     (c) => c.id === s.connector_id,
                   )?.name, date(s.created_at), scanDuration(s)].filter(Boolean).join(" · ")}
                 </p>
-                {s.status === "failed" && s.error && (
+                {["failed", "queue_exhausted"].includes(s.status) && s.error && (
                   <p role="alert">{humanError(s.error)}</p>
                 )}
-                <div className="scan-categories">
-                  {s.categories?.map((c) => (
-                    <span key={c}>{c.replaceAll("_", " ")}</span>
-                  ))}
-                </div>
+                {s.progress_details && !terminalStatuses.includes(s.status) && <p className="scan-progress" aria-label="Latest scan progress">
+                  {(s.progress_details.phase || "collecting").replaceAll("_", " ")}
+                  {s.progress_details.completed != null && ` · ${s.progress_details.completed}${s.progress_details.total != null ? ` / ${s.progress_details.total}` : ""} completed`}
+                  {s.progress_details.resources != null && ` · ${s.progress_details.resources} resources`}
+                  {s.progress_details.at && <> · Last update <time dateTime={s.progress_details.at}>{date(s.progress_details.at)}</time></>}
+                </p>}
+                <ScanCategories selected={s.categories} />
               </div>
               <Badge value={s.status} />
               {s.input_mode && s.input_mode !== "live" && (
                 <Badge value={s.input_mode} />
               )}
-              {s.status === "completed" ? (
+              {hasResults(s) && (
                 <>
                   <button className="button" onClick={() => onSelect(s)}>
                     <Eye size={15} />
-                    View
+                    {s.status === "completed" ? "View" : "View partial"}
                   </button>
                   <button
                     className="icon-button"
@@ -201,17 +216,17 @@ export function Scans({
                     <Download size={17} />
                   </button>
                 </>
-              ) : (
-                !terminalStatuses.includes(s.status) && (
+              )}
+              {!terminalStatuses.includes(s.status) && (
                   <button
-                    className="button"
+                    className="icon-button"
+                    aria-label={`Cancel scan ${names.get(s.id)}`}
+                    title="Cancel scan"
                     disabled={cancel.isPending || demo || !canWrite}
                     onClick={() => cancel.mutate(s.id)}
                   >
                     <Square size={13} />
-                    Cancel
                   </button>
-                )
               )}
               <button className="icon-button danger" aria-label={`Delete scan ${names.get(s.id)}`}
                 disabled={demo || !canWrite || !terminalStatuses.includes(s.status)}
@@ -330,7 +345,7 @@ export function Scans({
           )}
           <h3>Recorded scan details</h3>
           <Evidence data={inspect} />
-          {inspect.status === "completed" && (
+          {hasResults(inspect) && (
             <>
             <Panel title="Coverage & limitations">
               <CoverageView scanId={inspect.id} demo={demo} />

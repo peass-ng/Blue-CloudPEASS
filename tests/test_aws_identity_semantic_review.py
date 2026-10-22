@@ -152,9 +152,22 @@ def test_account_sdk_presence_projection_and_consumers(sdk, state):
 
 def test_complete_report_cohort_and_field_accounting():
     from pathlib import Path
+    from peaso.checks import CHECK_ALIASES
     report = json.loads(Path('docs/aws-review/identity-semantic-review.json').read_text())
     actual = {c.id for c in REGISTRY.values() if c.provider == 'aws' and c.kind in KINDS}
-    assert {r['id'] for r in report['checks']} == actual
+    historical = {r['id'] for r in report['checks']}
+    retired = 'aws.a.cloudwatch.cross_account_role_absent'
+    current = 'aws.iam.group_inline_policies_have_members'
+    assert historical - actual == {retired}
+    assert actual - historical == {current}
+    assert CHECK_ALIASES[retired] == 'aws.claude2_a.cloudwatch.cross_account_sharing_role_absent'
+    successor = json.loads(Path('docs/evidence-reviews/aws-current-successor-20261022.json').read_text())
+    current_row = successor['current_checks'][current]
+    assert current_row['source'] == 'peaso/unused_iam_aws_inline.py'
+    assert {name: witness['status'] for name, witness in current_row['native_witnesses'].items()} == {
+        'pass': 'PASS', 'fail': 'FAIL', 'unknown': 'UNKNOWN'}
+    field_review = json.loads(Path('docs/aws-review/field-producers.json').read_text())
+    assert [row['id'] for row in field_review['checks'] if row['id'] == current] == [current]
     assert len(report['checks']) == len(actual)
     for row in report['checks']:
         assert row['callback'] in report['callbacks']
@@ -208,7 +221,9 @@ def test_active_flag_and_date_boundaries(sdk, cid, state):
     changes = {'no_keys': {}, 'active_no_date': {'access_key_1_active': 'true'},
                'invalid_second': {'access_key_2_active': 'N/A'}}[state]
     read = credential_read(sdk, **changes)
-    expected = 'UNKNOWN' if state == 'invalid_second' or (state == 'active_no_date' and cid.endswith(('rotated_90', 'used_45'))) else 'FAIL' if state == 'active_no_date' and cid.endswith('initial_access_key') else 'PASS'
+    expected = ('NOT_APPLICABLE' if state == 'no_keys' and cid.endswith('access_keys_used_45') else
+                'UNKNOWN' if state == 'invalid_second' or (state == 'active_no_date' and cid.endswith(('rotated_90', 'used_45'))) else
+                'FAIL' if state == 'active_no_date' and cid.endswith('initial_access_key') else 'PASS')
     assert REGISTRY[cid].evaluate(read.items[0], index('iam_credential_report', read))[0] == expected
 
 
