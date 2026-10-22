@@ -4440,6 +4440,124 @@ class AwsModel(Model):
             return ("conditional", "emr_existing_cluster_step_instance_role")
         return ("unknown", "emr_existing_cluster_step_role_not_verified") if uncertain else None
 
+    def _emr_new_cluster_instance_role_effect(self, source, role):
+        """Bind an accepted EMR launch and executed bootstrap to its instance role."""
+        technique = "aws-emr-passrole-runjobflow"
+        if source.scope != role.scope or source.id == role.id:
+            return None
+        run_allows, _ = self._statements(source, "elasticmapreduce:runjobflow")
+        pass_allows, _ = self._statements(source, "iam:passrole")
+        if not run_allows or not pass_allows:
+            return ("unknown", "emr_launch_source_permissions_incomplete") if source.incomplete else None
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "emr_launch_evidence_missing_or_conflicting")
+        scope, proof = records[0]
+        if (inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"
+                or source.incomplete or role.incomplete or "/" not in scope):
+            return ("unknown", "emr_launch_evidence_incomplete")
+        region = scope.split("/", 1)[1]
+        partition = source.id.split(":", 2)[1]
+        cluster = proof.get("ClusterArn")
+        instance = proof.get("InstanceArn")
+        profile = proof.get("InstanceProfileArn")
+        service_arn = proof.get("ServiceRoleArn")
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        cluster_pattern = rf"arn:{re.escape(partition)}:elasticmapreduce:{re.escape(region)}:{source.scope}:cluster/j-[A-Za-z0-9]+"
+        instance_pattern = rf"arn:{re.escape(partition)}:ec2:{re.escape(region)}:{source.scope}:instance/i-[0-9a-f]+"
+        profile_pattern = rf"arn:{re.escape(partition)}:iam::{source.scope}:instance-profile/.+"
+        service_pattern = rf"arn:{re.escape(partition)}:iam::{source.scope}:role/.+"
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("TechniqueId") != technique or proof.get("SourceArn") != source.id or
+                proof.get("TargetKind") != "aws_role" or proof.get("TargetId") != role.id or
+                scope != f"{source.scope}/{region}" or not region or
+                not isinstance(cluster, str) or re.fullmatch(cluster_pattern, cluster) is None or
+                not isinstance(instance, str) or re.fullmatch(instance_pattern, instance) is None or
+                not isinstance(profile, str) or re.fullmatch(profile_pattern, profile) is None or
+                not isinstance(service_arn, str) or re.fullmatch(service_pattern, service_arn) is None or
+                service_arn == role.id or
+                proof.get("RunJobFlowSucceeded") is not True or
+                proof.get("ClusterLaunchedSucceeded") is not True or
+                proof.get("InstanceBelongsToCluster") is not True or
+                proof.get("InstanceProfileApplied") is not True or
+                proof.get("BootstrapOrStepControlledBySource") is not True or
+                proof.get("BootstrapOrStepReadSucceeded") is not True or
+                proof.get("BootstrapOrStepExecuted") is not True or
+                proof.get("CodeUsedInstanceRoleCredentials") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                proof.get("PassRoleContextsReviewed") is not True or
+                proof.get("RunJobFlowRequestContextReviewed") is not True or
+                type(proof.get("AutoScalingRoleRequested")) is not bool or
+                type(proof.get("SpotRequested")) is not bool or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "emr_launch_or_instance_role_effect_not_verified")
+        request_context = proof.get("RunJobFlowRequestContext")
+        if (not isinstance(request_context, dict) or
+                request_context.get("aws:RequestedRegion") != region or
+                any(not isinstance(k, str) or not isinstance(v, (str, list))
+                    for k, v in request_context.items())):
+            return ("unknown", "emr_launch_request_context_not_verified")
+        roles = [row for row_scope, row in items(self.snapshot, "iam_role")
+                 if row_scope.split("/", 1)[0] == source.scope]
+        target_rows = [row for row in roles if row.get("Arn") == role.id]
+        service_rows = [row for row in roles if row.get("Arn") == service_arn]
+        if (len(target_rows) != 1 or len(service_rows) != 1 or
+                not isinstance(proof.get("TargetRoleId"), str) or not proof["TargetRoleId"] or
+                target_rows[0].get("RoleId") != proof["TargetRoleId"] or
+                proof.get("InstanceRoleId") != proof["TargetRoleId"] or
+                not isinstance(proof.get("ServiceRoleId"), str) or not proof["ServiceRoleId"] or
+                service_rows[0].get("RoleId") != proof["ServiceRoleId"] or
+                profile not in [p.get("Arn") for p in target_rows[0].get("InstanceProfileList", ())
+                                if isinstance(p, dict)]):
+            return ("unknown", "emr_launch_role_or_profile_identity_not_verified")
+        service = self.principals.get(service_arn)
+        if service is None or service.incomplete or self._service_trust_for_source_arn(
+                service_arn, "elasticmapreduce.amazonaws.com", cluster) is False:
+            return ("unknown", "emr_launch_service_role_trust_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "emr_launch_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "emr_launch_evidence_time_missing")
+        associated = proof.get("PassRoleAssociatedResourceArn")
+        if associated is not None and associated != cluster:
+            return ("unknown", "emr_launch_passrole_context_not_verified")
+        pass_context = {"aws:RequestedRegion": region}
+        if associated:
+            pass_context["iam:AssociatedResourceArn"] = associated
+        grants = [self.check(source, {"action": "elasticmapreduce:RunJobFlow",
+                                      "request_context": request_context}, "*"),
+                  self.check(source, {"action": "iam:PassRole", "request_context": {
+                      **pass_context, "iam:PassedToService": "ec2.amazonaws.com"}}, role.id),
+                  self.check(source, {"action": "iam:PassRole", "request_context": {
+                      **pass_context, "iam:PassedToService": "elasticmapreduce.amazonaws.com"}}, service_arn),
+                  self.check(role, {"action": action}, resource)]
+        if proof["AutoScalingRoleRequested"]:
+            scaling_arn = proof.get("AutoScalingRoleArn")
+            scaling_rows = [row for row in roles if row.get("Arn") == scaling_arn]
+            if (not isinstance(scaling_arn, str) or re.fullmatch(service_pattern, scaling_arn) is None or
+                    len(scaling_rows) != 1 or scaling_rows[0].get("RoleId") != proof.get("AutoScalingRoleId") or
+                    proof.get("AutoScalingRoleReady") is not True):
+                return ("unknown", "emr_launch_autoscaling_role_not_verified")
+            grants.append(self.check(source, {"action": "iam:PassRole", "request_context": {
+                **pass_context, "iam:PassedToService": "application-autoscaling.amazonaws.com"}}, scaling_arn))
+        if proof["SpotRequested"] and proof.get("SpotServiceLinkedRoleReady") is not True:
+            return ("unknown", "emr_launch_spot_role_not_verified")
+        if any(grant is None or grant.confidence != "derived" for grant in grants):
+            return ("unknown", "emr_launch_scoped_permissions_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "emr_new_cluster_exact_instance_role_effect")
+
     def _emr_cluster_endpoint_role_effect(self, source, role, host, cluster_arn, grant):
         """Require endpoint credentials to run a useful workload under the runtime role."""
         technique = "aws-emr-getclustersessioncredentials-runtime-role"
@@ -10442,6 +10560,11 @@ class AwsModel(Model):
         if pid == "emr_new_cluster_role_execution_unverified":
             return {tid: ("unknown", "emr_service_role_cluster_and_step_execution_not_verified")
                     for tid in candidates}
+        if pid == "emr_new_cluster_instance_role_effect_reviewed":
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._emr_new_cluster_instance_role_effect(source, role))}
         if pid == "emr_cluster_endpoint_role_effect_unverified":
             # The API returns HTTP basic credentials, not AWS STS keys.
             # IAM and cluster inventory cannot prove endpoint reachability or
