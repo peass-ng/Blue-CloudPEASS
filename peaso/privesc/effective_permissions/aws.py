@@ -6672,6 +6672,150 @@ class AwsModel(Model):
             return None
         return ("conditional", "servicecatalog_exact_launch_role_effect_verified")
 
+    def _ssm_jit_verified_instance_role_effect(self, source, role, instance_arn):
+        """Bind approval and the token to one assumed-role session and node."""
+        technique = "aws-ssm-jit-startaccessrequest-getaccesstoken"
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        scope = f"{source.scope}/{instance_arn.split(':')[3]}"
+        if len(records) != 1 or records[0][0] != scope or (
+                inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"):
+            return ("unknown", "ssm_jit_approval_for_source_and_instance_not_verified")
+        proof = records[0][1]
+        role_rows = [row for row_scope, row in items(self.snapshot, "iam_role")
+                     if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        role_id = role_rows[0].get("RoleId") if len(role_rows) == 1 else None
+        source_rows = [row for row_scope, row in items(self.snapshot, "iam_role")
+                       if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == source.id]
+        source_role_id = source_rows[0].get("RoleId") if len(source_rows) == 1 else None
+        request_id = proof.get("AccessRequestId")
+        session = proof.get("RequesterSessionArn")
+        partition = source.id.split(":", 2)[1]
+        session_pattern = rf"arn:{re.escape(partition)}:sts::{source.scope}:assumed-role/{re.escape(source.id.rsplit('/', 1)[-1])}/[^/*?]+"
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("InstanceArn") != instance_arn or
+                proof.get("InstanceRoleArn") != role.id or
+                not isinstance(role_id, str) or not role_id or proof.get("TargetRoleId") != role_id or
+                not isinstance(source_role_id, str) or not source_role_id or
+                proof.get("RequesterRoleId") != source_role_id or
+                not isinstance(session, str) or re.fullmatch(session_pattern, session) is None or
+                proof.get("RequestSessionMatchesRequester") is not True or
+                not isinstance(request_id, str) or not re.fullmatch(r"oi-[A-Za-z0-9-]+", request_id) or
+                proof.get("AccessRequestApproved") is not True or
+                proof.get("ApprovalWindowOpen") is not True or
+                proof.get("AccessTokenIssuedToRequester") is not True or
+                proof.get("SessionEstablishedOnInstance") is not True or
+                proof.get("CodeRanOnInstance") is not True or
+                proof.get("InstanceRoleCredentialsUsed") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "ssm_jit_request_session_or_role_effect_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "ssm_jit_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "ssm_jit_evidence_time_missing")
+        grants = (self._check_action(source, "ssm:StartAccessRequest", instance_arn),
+                  self._check_action(source, "ssm:GetAccessToken", ANY),
+                  self.check(role, {"action": action}, resource))
+        if any(g is None or g.confidence != "derived" for g in grants):
+            return ("unknown", "ssm_jit_current_permissions_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "ssm_jit_exact_session_instance_role_effect_verified")
+
+    def _workspaces_instances_verified_role_effect(self, source, role):
+        """Bind a managed-instance launch to its EC2 resources and role effect."""
+        technique = "aws-workspaces-instances-passrole-createworkspaceinstance"
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "workspaces_instance_launch_and_role_effect_not_verified")
+        scope, proof = records[0]
+        if (not scope.startswith(source.scope + "/") or
+                inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"):
+            return ("unknown", "workspaces_instance_evidence_incomplete")
+        region = scope.split("/", 1)[1]
+        partition = source.id.split(":", 2)[1]
+        instance = proof.get("InstanceArn")
+        profile = proof.get("InstanceProfileArn")
+        instance_pattern = rf"arn:{re.escape(partition)}:ec2:{re.escape(region)}:{source.scope}:instance/i-[0-9a-f]+"
+        profile_pattern = rf"arn:{re.escape(partition)}:iam::{source.scope}:instance-profile/[^*?]+"
+        rows = [row for row_scope, row in items(self.snapshot, "iam_role")
+                if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        role_id = rows[0].get("RoleId") if len(rows) == 1 else None
+        profiles = [p.get("Arn") for p in rows[0].get("InstanceProfileList", ())
+                    if isinstance(p, dict)] if len(rows) == 1 else []
+        resources = proof.get("RunInstancesResources")
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                not isinstance(instance, str) or re.fullmatch(instance_pattern, instance) is None or
+                not isinstance(profile, str) or re.fullmatch(profile_pattern, profile) is None or
+                profile not in profiles or
+                not isinstance(role_id, str) or not role_id or proof.get("TargetRoleId") != role_id or
+                proof.get("InstanceRoleArn") != role.id or
+                not isinstance(proof.get("WorkspaceInstanceId"), str) or
+                not re.fullmatch(r"wsinst-[0-9A-Za-z]{8,63}", proof["WorkspaceInstanceId"]) or
+                proof.get("ManagedInstanceConfigurationSupported") is not True or
+                proof.get("UserDataControlledBySource") is not True or
+                proof.get("CreateWorkspaceInstanceSucceeded") is not True or
+                proof.get("InstanceLaunched") is not True or
+                proof.get("ProfileAttachedToInstance") is not True or
+                proof.get("UserDataExecuted") is not True or
+                proof.get("InstanceRoleCredentialsUsed") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                not isinstance(resources, list) or not resources or
+                any(not isinstance(arn, str) or not arn.startswith(f"arn:{partition}:ec2:{region}:")
+                    or "*" in arn or "?" in arn for arn in resources) or
+                instance not in resources or
+                not any(":image/ami-" in arn for arn in resources) or
+                not any(":subnet/subnet-" in arn for arn in resources) or
+                not any(":security-group/sg-" in arn for arn in resources) or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "workspaces_instance_profile_or_launch_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "workspaces_instance_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "workspaces_instance_evidence_time_missing")
+        slr_arn = (f"arn:{partition}:iam::{source.scope}:role/aws-service-role/"
+                   "workspaces-instances.amazonaws.com/AWSServiceRoleForWorkSpacesInstances")
+        if slr_arn not in self.principals:
+            slr = self.cached_check(source, {"action": "iam:CreateServiceLinkedRole", "resource": slr_arn,
+                "request_context": {"iam:AWSServiceName": "workspaces-instances.amazonaws.com"}}, slr_arn)
+            if slr is None or slr.confidence != "derived":
+                return ("unknown", "workspaces_service_linked_role_not_verified")
+        grants = [self._check_action(source, "workspaces-instances:CreateWorkspaceInstance", ANY),
+                  self.cached_check(source, {"action": "iam:PassRole", "resource": role.id,
+                    "request_context": {"iam:PassedToService": "ec2.amazonaws.com"}}, role.id),
+                  self.check(role, {"action": action}, resource)]
+        for arn in resources:
+            grants.append(self.check(source, {"action": "ec2:RunInstances",
+                "request_context": {"aws:CalledVia": "workspaces-instances.amazonaws.com",
+                                    "aws:RequestedRegion": region}}, arn))
+        if any(grant is None or grant.confidence != "derived" for grant in grants):
+            return ("unknown", "workspaces_current_launch_permissions_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "workspaces_exact_instance_role_effect_verified")
+
     def _ssm_incident_response_route(self, source, execution_role):
         """Bind a creatable Automation document and one usable incident response plan."""
         partition = source.id.split(":", 2)[1]
@@ -14746,6 +14890,11 @@ class AwsModel(Model):
                 return None
             return {tid: verdict for tid, role in candidates.items()
                     if (verdict := self._mgh_verified_automation_role_effect(source, role))}
+        if pid == "workspaces_instances_bound_launch_role_effect":
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._workspaces_instances_verified_role_effect(source, role))}
         if pid == "migrationhub_orchestrator_bound_workflow_script_and_managed_target":
             if source is None:
                 return None
@@ -14878,8 +15027,12 @@ class AwsModel(Model):
                     if online.lower() != "online":
                         continue
                     if self._check_action(source, "ssm:startaccessrequest", instance_arn) is not None:
-                        unknown = True  # Approval policy and requester/node match are not collected yet.
-                if unknown:
+                        verdict = self._ssm_jit_verified_instance_role_effect(source, role, instance_arn)
+                        if verdict and verdict[0] == "conditional":
+                            out[tid] = verdict
+                            break
+                        unknown = True
+                if tid not in out and unknown:
                     out[tid] = ("unknown", "ssm_jit_approval_for_source_and_instance_not_verified")
             return out
         if pid in ("ssm_maintenance_window_run_command_target", "ssm_maintenance_window_automation_task_ready"):
