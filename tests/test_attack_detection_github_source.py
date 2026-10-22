@@ -128,6 +128,7 @@ def test_accepts_provider_and_aws_service_directories(monkeypatch):
     expected = hashlib.sha256(name.encode() + b"\0" + raw + b"\0").hexdigest()
     mock_network(monkeypatch, archive(
         (ROOT, b"", tarfile.DIRTYPE),
+        (f"{ROOT}/AGENTS.md", b"Agent instructions\n", tarfile.REGTYPE),
         (f"{ROOT}/WORK_PLAN.md", b"plan", tarfile.REGTYPE),
         (f"{ROOT}/scripts", b"", tarfile.DIRTYPE),
         (f"{ROOT}/scripts/live_iam_batch.py", b"print('test')", tarfile.REGTYPE),
@@ -137,6 +138,14 @@ def test_accepts_provider_and_aws_service_directories(monkeypatch):
         (f"{ROOT}/rules/{name}", raw, tarfile.REGTYPE),
     ))
     assert fetch(expected) == {name: TEXT}
+
+
+def test_rejects_oversized_or_linked_agent_instructions(monkeypatch):
+    for content, kind in ((b"x" * (source.MAX_MEMBER_BYTES + 1), tarfile.REGTYPE),
+                          (b"", tarfile.SYMTYPE)):
+        mock_network(monkeypatch, pack((f"{ROOT}/AGENTS.md", content, kind)))
+        with pytest.raises(source.RuleSourceError, match="invalid_rule_archive_path"):
+            fetch()
 
 
 def test_archive_supports_catalog_beyond_old_640_rule_limit(monkeypatch):

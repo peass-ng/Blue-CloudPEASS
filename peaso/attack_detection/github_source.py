@@ -135,6 +135,8 @@ def _parse_archive(body: bytes, root: str, expected_sha256: str | None) -> dict[
                     continue
                 if path == f"{root}/README.md" and member.isfile() and member.size <= MAX_MEMBER_BYTES:
                     continue
+                if path == f"{root}/AGENTS.md" and member.isfile() and member.size <= MAX_MEMBER_BYTES:
+                    continue
                 if path in {f"{root}/WORK_PLAN.md", f"{root}/AWS_COVERAGE_REVIEW.md"} and member.isfile() and member.size <= MAX_PLAN_BYTES:
                     continue
                 if path == f"{root}/scripts" and member.isdir():
