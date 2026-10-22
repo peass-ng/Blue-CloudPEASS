@@ -26,8 +26,6 @@ test("assessment sections control the submitted scan work", async ({ page }) => 
   await dialog.getByRole("checkbox", { name: "Least privilege", exact: true }).uncheck();
   await dialog.getByRole("checkbox", { name: "Network Map", exact: true }).uncheck();
   await dialog.getByRole("checkbox", { name: /Top 15 Actions/ }).uncheck();
-  await dialog.getByRole("checkbox", { name: /Leaks/ }).uncheck();
-  await dialog.getByRole("checkbox", { name: /Images CVEs/ }).uncheck();
   await expect(dialog.getByRole("checkbox", { name: /Network Architecture/ })).toBeDisabled();
   await dialog.getByRole("button", { name: "Start scan" }).click();
   await expect.poll(() => submitted !== undefined).toBe(true);
@@ -36,8 +34,6 @@ test("assessment sections control the submitted scan work", async ({ page }) => 
   expect(submitted?.categories).not.toContain("network");
   expect(submitted?.categories).toContain("hardening");
   expect(submitted?.ai_priorities_enabled).toBe(false);
-  expect(submitted?.leaks_enabled).toBe(false);
-  expect(submitted?.images_enabled).toBe(false);
 });
 
 test("scan actions use an icon grid at the right edge", async ({ page }) => {

@@ -43,11 +43,8 @@ class CheckpointSession:
         self.categories = request.get("categories") or list(CATEGORIES)
         self.explicit_checks = request.get("checks")
         self.frameworks = request.get("frameworks")
-        self.leaks_enabled = request.get("leaks_enabled", True)
-        self.images_enabled = request.get("images_enabled", True)
         _, self.native_checks = _selection(self.provider, self.categories,
-                                           self.explicit_checks, self.frameworks,
-                                           leaks_enabled=self.leaks_enabled, images_enabled=self.images_enabled)
+                                           self.explicit_checks, self.frameworks)
         self.analysis_checks = _analysis_selection(self.provider, self.categories,
                                                     self.explicit_checks, self.frameworks)
         self.graph_categories = _selected_graph_categories(self.categories, self.native_checks,
@@ -446,8 +443,7 @@ class CheckpointSession:
             from .engine import evaluate_snapshot
             report = evaluate_snapshot(snapshot, categories=self.categories, checks=ready,
                                        frameworks=self.frameworks, include_not_applicable=False,
-                                       completed_graph_sections=graph_sections,
-                                       leaks_enabled=self.leaks_enabled, images_enabled=self.images_enabled)
+                                       completed_graph_sections=graph_sections)
             report = self._filter_report(report, complete, sequence=sequence, collections=collections, sections=sections)
             self.on_checkpoint(snapshot, report, sequence)
             with self.lock:

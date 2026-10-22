@@ -979,7 +979,7 @@ h1 {
   flex: none;
 }
 .scan-actions .icon-button { width: 34px; height: 34px; }
-.scan-action-delete { grid-column: 2; }
+.scan-action-delete { grid-column: 2; grid-row: 2; }
 .connector-card h3 {
   font-size: 13px;
 }

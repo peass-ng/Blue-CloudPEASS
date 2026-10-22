@@ -323,8 +323,7 @@ def _process(role, request, connection):
             report = evaluate_snapshot(snapshot, categories=selectors.get("categories") or None,
                            checks=selectors.get("checks") or None, frameworks=selectors.get("frameworks") or None,
                            include_not_applicable=bool(selectors.get("include_not_applicable", False)),
-                           related_snapshots=related, leaks_enabled=selectors.get("leaks_enabled", True),
-                           images_enabled=selectors.get("images_enabled", True))
+                           related_snapshots=related)
             for row in report.get("related_snapshots", []):
                 row.update(sources.get(row["snapshot_id"], {}))
             value = redact_report(report)

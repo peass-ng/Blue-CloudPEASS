@@ -416,8 +416,6 @@ export function LaunchForm({
   const [aiEnabled, setAiEnabled] = useState(schedule?.ai_enabled ?? true);
   const [aiPrioritiesEnabled, setAiPrioritiesEnabled] = useState(schedule?.ai_priorities_enabled ?? true);
   const [aiNetworkEnabled, setAiNetworkEnabled] = useState(schedule?.ai_network_enabled ?? true);
-  const [leaksEnabled, setLeaksEnabled] = useState(schedule?.leaks_enabled ?? true);
-  const [imagesEnabled, setImagesEnabled] = useState(schedule?.images_enabled ?? true);
   const codex = useApi<{ available: boolean; disabled?: boolean; isolation_available?: boolean }>("/ai/codex", demo);
   const aiAvailable = !demo && codex.data?.available === true;
   const [checks, setChecks] = useState(schedule?.checks?.join(", ") || "");
@@ -468,8 +466,6 @@ export function LaunchForm({
       ai_enabled: aiAvailable && aiEnabled && aiWorkSelected,
       ai_priorities_enabled: aiPrioritiesEnabled,
       ai_network_enabled: aiNetworkEnabled,
-      leaks_enabled: leaksEnabled,
-      images_enabled: imagesEnabled,
       categories: selected,
       checks: checks
         .split(",")
@@ -587,10 +583,6 @@ export function LaunchForm({
             <label className="checkbox"><input type="checkbox" checked={aiAvailable && aiEnabled && aiNetworkEnabled && selected.includes("network")}
               disabled={!aiAvailable || !aiEnabled || !selected.includes("network")}
               onChange={(event) => setAiNetworkEnabled(event.target.checked)} />Network Architecture <small>Uses AI and Network Map</small></label>
-            <label className="checkbox"><input type="checkbox" checked={leaksEnabled}
-              onChange={(event) => setLeaksEnabled(event.target.checked)} />Leaks <small>Runs matching secret checks</small></label>
-            <label className="checkbox"><input type="checkbox" checked={imagesEnabled}
-              onChange={(event) => setImagesEnabled(event.target.checked)} />Images CVEs <small>Runs matching image checks</small></label>
           </div>
         </section>
         {isSchedule && (
