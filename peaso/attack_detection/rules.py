@@ -245,6 +245,7 @@ from .aws_service_credentials_next import normalize_aws_service_credentials
 from .aws_cloudformation_controls_next import normalize_aws_cloudformation_controls
 from .aws_cloudformation_policy_next import normalize_aws_cloudformation_stack_policy
 from .aws_kms_grants_next import normalize_aws_kms_standing_access, normalize_aws_kms_key_deletion, normalize_aws_kms_key_disabled
+from .aws_kms_grant_decrypt_batch200 import correlate as correlate_aws_kms_grant_decrypt_batch200
 from .aws_kms_alias_rotation_next import normalize_aws_kms_alias_rotation
 from .aws_kms_imported_material_next import normalize_aws_kms_imported_material
 from .aws_kms_cancel_deletion_next import normalize_aws_kms_cancel_deletion
@@ -931,12 +932,15 @@ def detect_aws_events(
     appflow_schedule_batch127_records: list[Mapping[str, Any]] = []
     lex_hook_batch137_records: list[Mapping[str, Any]] = []
     route53_profiles_batch139_records: list[Mapping[str, Any]] = []
+    kms_grant_decrypt_batch200_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
             if (not isinstance(record, Mapping)
                     or not isinstance(record.get("eventSource"), str)
                     or not isinstance(record.get("eventName"), str)):
                 continue
+            if record.get("eventSource") == "kms.amazonaws.com" and record.get("eventName") in {"CreateGrant", "Decrypt", "RevokeGrant"}:
+                kms_grant_decrypt_batch200_records.append(record)
             if record.get("eventSource") == "monitoring.amazonaws.com":
                 cloudwatch_alarm_batch108_records.append(record)
             if record.get("eventSource") in {"firehose.amazonaws.com", "sns.amazonaws.com"}:
@@ -1163,6 +1167,7 @@ def detect_aws_events(
     correlated += correlate_aws_ecr_new_layer_push(ecr_image_records)
     correlated += correlate_aws_chime_live_pipeline_read(chime_media_pipeline_records)
     correlated += correlate_aws_chime_media_insights(chime_media_insights_records)
+    correlated += correlate_aws_kms_grant_decrypt_batch200(kms_grant_decrypt_batch200_records)
     if correlated:
         matches.extend(_detect_events(correlated, selected, lambda event: event, "aws"))
     return matches
