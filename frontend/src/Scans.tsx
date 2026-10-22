@@ -46,6 +46,17 @@ export const terminalStatuses = [
   "cancelled",
   "timed_out",
 ];
+function ScanCategories({ selected = [] }: { selected?: string[] }) {
+  const [expanded, setExpanded] = useState(false);
+  const all = categories.every(category => selected.includes(category.id));
+  if (all) return <div className="scan-categories"><span>All checks</span></div>;
+  return <div className="scan-categories">
+    {(expanded ? selected : selected.slice(0, 5)).map(category => <span key={category}>{category.replaceAll("_", " ")}</span>)}
+    {selected.length > 5 && <button type="button" className="text-button" aria-expanded={expanded}
+      onClick={() => setExpanded(!expanded)}>{expanded ? "Show less" : `+${selected.length - 5} more`}</button>}
+  </div>;
+}
+
 export function Scans({
   demo,
   canWrite = true,
@@ -177,11 +188,7 @@ export function Scans({
                 {s.status === "failed" && s.error && (
                   <p role="alert">{humanError(s.error)}</p>
                 )}
-                <div className="scan-categories">
-                  {s.categories?.map((c) => (
-                    <span key={c}>{c.replaceAll("_", " ")}</span>
-                  ))}
-                </div>
+                <ScanCategories selected={s.categories} />
               </div>
               <Badge value={s.status} />
               {s.input_mode && s.input_mode !== "live" && (
