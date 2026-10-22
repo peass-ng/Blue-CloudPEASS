@@ -2257,6 +2257,58 @@ def test_sagemaker_training_inline_route_requires_writable_regional_output():
     assert role_arn("core") not in evaluate(grants=(passed, isolated))[0]
 
 
+def test_sagemaker_hpo_script_route_joins_code_output_and_tuning_job():
+    tid = "aws-sagemaker-passrole-createhyperparametertuningjob"
+    job = f"arn:aws:sagemaker:{REGION}:{ACCOUNT}:hyper-parameter-tuning-job/alpha-*"
+    code = "arn:aws:s3:::training-output/peaso-hpo-*/code.tar.gz"
+    passed = allow("iam:PassRole", resource=role_arn("core"))
+    create = allow("sagemaker:CreateHyperParameterTuningJob", resource=job)
+    upload = allow("s3:PutObject", resource=code)
+    target = role("core", "sagemaker.amazonaws.com", allow("s3:GetObject", resource=code),
+                  allow("s3:PutObject", resource="arn:aws:s3:::training-output/output/*"))
+    bucket = {"Name": "training-output", "Location": {"collection_status": "collected",
+              "LocationConstraint": REGION}, "Policy": {"collection_status": "empty", "absent": True},
+              "Encryption": {"collection_status": "empty", "absent": True}}
+
+    def evaluate(grants=(passed, create, upload), role_item=target, buckets=(bucket,),
+                 bucket_state="collected", jobs=(), job_state="collected"):
+        caller = user("alice", *grants)
+        snap = aws_snap([caller], [role_item], [
+            col("sagemaker_hyperparameter_tuning_job", jobs, job_state),
+            col("bucket", buckets, bucket_state, scope=f"{ACCOUNT}/global")])
+        result = real(snap, tid, include_unknown=True)
+        return reached(result, ALICE, tid), result
+
+    assert evaluate()[0] == {role_arn("core"): "conditional"}
+    assert role_arn("core") not in evaluate(grants=(passed, create))[0]
+    assert role_arn("core") not in evaluate(role_item=role("core", "sagemaker.amazonaws.com",
+        allow("s3:PutObject", resource="arn:aws:s3:::training-output/output/*")))[0]
+    assert role_arn("core") not in evaluate(role_item=role("core", "sagemaker.amazonaws.com",
+        allow("s3:GetObject", resource=code)))[0]
+    assert role_arn("core") not in evaluate(buckets=())[0]
+    assert role_arn("core") not in evaluate(job_state="denied")[0]
+    other_region = {**bucket, "Location": {"collection_status": "collected",
+                                         "LocationConstraint": "eu-west-1"}}
+    assert role_arn("core") not in evaluate(buckets=(other_region,))[0]
+    kms_bucket = {**bucket, "Encryption": {"collection_status": "collected",
+        "ServerSideEncryptionConfiguration": {"Rules": [{"ApplyServerSideEncryptionByDefault":
+            {"SSEAlgorithm": "aws:kms", "KMSMasterKeyID": "key"}}]}}}
+    assert role_arn("core") not in evaluate(buckets=(kms_bucket,))[0]
+    denying_bucket = {**bucket, "Policy": {"collection_status": "collected", "Policy": policy({
+        "Effect": "Deny", "Principal": "*", "Action": "s3:PutObject",
+        "Resource": "arn:aws:s3:::training-output/*"})}}
+    assert role_arn("core") not in evaluate(buckets=(denying_bucket,))[0]
+    assert role_arn("core") not in evaluate(jobs=[{"HyperParameterTuningJobName": "alpha-fixed"}],
+        grants=(passed, allow("sagemaker:CreateHyperParameterTuningJob",
+            resource=job[:-1] + "fixed"), upload))[0]
+    wrong_service = {"Effect": "Allow", "Action": "iam:PassRole", "Resource": role_arn("core"),
+                     "Condition": {"StringEquals": {"iam:PassedToService": "lambda.amazonaws.com"}}}
+    assert role_arn("core") not in evaluate(grants=(wrong_service, create, upload))[0]
+    isolated = {"Effect": "Allow", "Action": "sagemaker:CreateHyperParameterTuningJob",
+                "Resource": job, "Condition": {"Bool": {"sagemaker:NetworkIsolation": "true"}}}
+    assert role_arn("core") not in evaluate(grants=(passed, isolated, upload))[0]
+
+
 def test_lambda_edge_requires_both_replication_permissions_in_us_east_1():
     tid = "aws-cloudfront-lambda-edge-passrole"
     edge_role = role("edge", [{"Effect": "Allow", "Principal": {"Service": [

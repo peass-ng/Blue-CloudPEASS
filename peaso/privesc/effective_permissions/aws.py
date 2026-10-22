@@ -9283,7 +9283,10 @@ class AwsModel(Model):
                                 if valid_name.fullmatch(alternate):
                                     names.add(alternate)
                     for name in sorted(names)[:80]:
-                        if not valid_name.fullmatch(name) or name in occupied.get(scope, ()):
+                        if not valid_name.fullmatch(name):
+                            continue
+                        if name in occupied.get(scope, ()):
+                            unresolved = True
                             continue
                         arn = prefix + name
                         trust = self._service_trust_for_source_arn(
@@ -9340,6 +9343,7 @@ class AwsModel(Model):
                                     break
                                 unresolved |= write is not None and write.confidence != "derived"
                             if not output_ready:
+                                unresolved = True
                                 continue
                         context = {"aws:RequestedRegion": region,
                                    "sagemaker:NetworkIsolation": "false"}
@@ -9360,6 +9364,159 @@ class AwsModel(Model):
                         break
                 if tid not in out and unresolved:
                     out[tid] = ("unknown", f"sagemaker_{job_kind}_request_or_trust_not_verified")
+            return out
+        if pid == "sagemaker_hpo_script_mode_route":
+            if source is None:
+                return None
+            action = "sagemaker:CreateHyperParameterTuningJob"
+            allows, _ = self._statements(source, action.lower())
+            partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+            statuses = inventory_status(self.snapshot, "sagemaker_hyperparameter_tuning_job")
+            bucket_status = inventory_status(self.snapshot, "bucket")
+            occupied, malformed = {}, set()
+            for scope, row in items(self.snapshot, "sagemaker_hyperparameter_tuning_job"):
+                name = row.get("HyperParameterTuningJobName")
+                if not name and isinstance(row.get("HyperParameterTuningJobArn"), str):
+                    name = row["HyperParameterTuningJobArn"].rsplit("/", 1)[-1]
+                if isinstance(name, str) and name:
+                    occupied.setdefault(scope, set()).add(name.lower())
+                else:
+                    malformed.add(scope)
+            scopes = sorted(scope for scope in statuses if scope.startswith(source.scope + "/"))
+            seed = hashlib.sha256(source.id.encode()).hexdigest()[:12]
+            valid_name = re.compile(r"[A-Za-z0-9](?:-*[A-Za-z0-9]){0,31}\Z")
+            guardrails_unknown = bool(source.attrs.get("boundary")) or self.scp_status.get(source.scope) != "empty"
+            for tid, role in candidates.items():
+                if source.incomplete or role.incomplete or guardrails_unknown or \
+                        bool(role.attrs.get("boundary")) or not scopes or \
+                        bucket_status.get(f"{source.scope}/global") not in ("collected", "empty"):
+                    out[tid] = ("unknown", "sagemaker_hpo_policy_or_inventory_not_verified")
+                    continue
+                unresolved = False
+                for scope in scopes:
+                    if statuses[scope] not in ("collected", "empty") or scope in malformed:
+                        unresolved = True
+                        continue
+                    region = scope.split("/", 1)[1]
+                    marker = "hyper-parameter-tuning-job/"
+                    prefix = f"arn:{partition}:sagemaker:{region}:{source.scope}:{marker}"
+                    names = {"PeasoHpo" + seed, "PeasoHpo" + seed + "A"}
+                    for statement in allows:
+                        if statement.notresource or statement.variables:
+                            unresolved = True
+                            continue
+                        for pattern in statement.resources:
+                            if pattern == "*" or marker not in pattern:
+                                continue
+                            suffix = pattern.split(marker, 1)[-1]
+                            for replacement in ("Peaso" + seed, "Peaso" + seed + "A"):
+                                choice = suffix.replace("*", replacement).replace("?", "X")
+                                if valid_name.fullmatch(choice):
+                                    names.add(choice)
+                    for name in sorted(names)[:80]:
+                        if not valid_name.fullmatch(name):
+                            continue
+                        if name.lower() in occupied.get(scope, ()):
+                            unresolved = True
+                            continue
+                        arn = prefix + name
+                        trust = self._service_trust_for_source_arn(tid, "sagemaker.amazonaws.com", arn)
+                        if trust is not True:
+                            unresolved |= trust is None
+                            continue
+                        passed = self.check(source, {"action": "iam:PassRole",
+                            "request_context": {"iam:PassedToService": "sagemaker.amazonaws.com",
+                                                "iam:AssociatedResourceArn": arn}}, tid)
+                        if passed is None:
+                            continue
+                        s3_ready = False
+                        for bucket_scope, bucket in items(self.snapshot, "bucket"):
+                            if bucket_scope != f"{source.scope}/global":
+                                continue
+                            bucket_name, location = bucket.get("Name"), bucket.get("Location")
+                            policy, encryption = bucket.get("Policy"), bucket.get("Encryption")
+                            if not isinstance(bucket_name, str) or not isinstance(location, dict) or \
+                                    location.get("collection_status") != "collected" or \
+                                    not isinstance(policy, dict) or \
+                                    policy.get("collection_status") not in ("collected", "empty") or \
+                                    not isinstance(encryption, dict) or \
+                                    encryption.get("collection_status") not in ("collected", "empty"):
+                                unresolved = True
+                                continue
+                            home = location.get("LocationConstraint")
+                            home = "us-east-1" if home is None else "eu-west-1" if home == "EU" else home
+                            if home != region:
+                                continue
+                            config = encryption.get("ServerSideEncryptionConfiguration") or {}
+                            if any((rule.get("ApplyServerSideEncryptionByDefault") or {}).get("SSEAlgorithm")
+                                   == "aws:kms" for rule in config.get("Rules", ()) if isinstance(rule, dict)):
+                                unresolved = True
+                                continue
+                            bucket_arn = f"arn:{partition}:s3:::{bucket_name}"
+                            resource_policy = self.resource_policies.get(bucket_arn)
+                            if resource_policy and any(st.effect == "deny" and
+                                    st.action_matches("s3:PutObject") for st in resource_policy[1]):
+                                unresolved = True
+                                continue
+                            code_arn = bucket_arn + f"/peaso-hpo-{seed}/code.tar.gz"
+                            source_write = self.check(source, {"action": "s3:PutObject"}, code_arn)
+                            role_read = self.check(role, {"action": "s3:GetObject"}, code_arn)
+                            source_allows, _ = self._statements(source, "s3:putobject")
+                            read_allows, _ = self._statements(role, "s3:getobject")
+                            direct = lambda statements: any(not st.notresource and not st.variables and
+                                not st.condition and st.resource_matches(code_arn) is True for st in statements)
+                            if not direct(source_allows) or not direct(read_allows):
+                                unresolved = True
+                                continue
+                            if source_write is None or role_read is None:
+                                unresolved = True
+                                continue
+                            if source_write.confidence != role_read.confidence or \
+                                    source_write.confidence != "derived":
+                                unresolved = True
+                                continue
+                            writes, denies = self._statements(role, "s3:putobject")
+                            if denies:
+                                unresolved = True
+                                continue
+                            output_prefixes = set()
+                            for statement in writes:
+                                if statement.notresource or statement.variables or statement.condition:
+                                    unresolved = True
+                                    continue
+                                for pattern in statement.resources:
+                                    if pattern == "*" or pattern == bucket_arn + "/*":
+                                        output_prefixes.add(f"peaso-hpo-output-{seed}")
+                                    elif pattern.startswith(bucket_arn + "/") and pattern.endswith("/*"):
+                                        middle = pattern[len(bucket_arn) + 1:-2]
+                                        if middle and "*" not in middle and "?" not in middle:
+                                            output_prefixes.add(middle)
+                            if not output_prefixes:
+                                unresolved = True
+                                continue
+                            # Generated child training-job names need a complete
+                            # writable output prefix, not one sampled S3 key.
+                            s3_ready = True
+                            break
+                        if not s3_ready:
+                            unresolved = True
+                            continue
+                        context = {"aws:RequestedRegion": region,
+                                   "sagemaker:NetworkIsolation": "false"}
+                        for instance_type in ("ml.m5.large", "ml.m5.xlarge", "ml.t3.medium"):
+                            created = self.check(source, {"action": action, "request_context": {
+                                **context, "sagemaker:InstanceTypes": instance_type}}, arn)
+                            if created is not None and created.confidence == passed.confidence == "derived":
+                                out[tid] = ("conditional", "sagemaker_hpo_script_child_job_start_pending")
+                                break
+                            unresolved |= created is not None and created.confidence != "derived"
+                        if tid in out:
+                            break
+                        unresolved |= passed.confidence != "derived"
+                    if tid in out:
+                        break
+                if tid not in out and unresolved:
+                    out[tid] = ("unknown", "sagemaker_hpo_script_or_job_not_verified")
             return out
         if pid == "sagemaker_job_execution_route_unverified":
             return {tid: ("unknown", "sagemaker_controlled_job_image_and_role_not_verified")
