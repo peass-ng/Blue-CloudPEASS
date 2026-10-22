@@ -2,14 +2,38 @@
 from __future__ import annotations
 
 import hashlib
+import re
 
-from . import Grant, Node
+from . import Grant, Node, inventory_status, items
 
 
-def load(model):
+def load(model, *, update=False):
     nodes, records = {}, {}
     scopes = {scope for scope in model.snapshot.get("scopes", ())
               if isinstance(scope, str) and "/" in scope}
+    existing = {}
+    if update:
+        statuses = inventory_status(model.snapshot, "scheduler_schedule")
+        for scope, row in items(model.snapshot, "scheduler_schedule"):
+            if statuses.get(scope) != "collected" or not isinstance(row, dict):
+                continue
+            account, separator, region = scope.partition("/")
+            arn = row.get("Arn")
+            group, name = row.get("GroupName"), row.get("Name")
+            if not separator or not region or not isinstance(arn, str):
+                continue
+            partition = arn.split(":", 2)[1] if arn.startswith("arn:") else None
+            if (partition not in ("aws", "aws-cn", "aws-us-gov")
+                    or not isinstance(group, str) or not re.fullmatch(r"[A-Za-z0-9_.-]+", group)
+                    or not isinstance(name, str) or not re.fullmatch(r"[A-Za-z0-9_.-]+", name)
+                    or arn != f"arn:{partition}:scheduler:{region}:{account}:schedule/{group}/{name}"
+                    or row.get("State") not in ("ENABLED", "DISABLED")
+                    or not isinstance(row.get("_provenance"), dict)
+                    or row["_provenance"].get("source_operation") != "scheduler:GetSchedule"
+                    or row["_provenance"].get("kms_key_arn_observed") is not True
+                    or row.get("KmsKeyArn")):
+                continue
+            existing.setdefault(scope, set()).add(arn)
     for source in model.principals.values():
         if source.kind not in ("aws_user", "aws_role") or source.incomplete:
             continue
@@ -46,23 +70,33 @@ def load(model):
                 region_account, region = scope.split("/", 1)
                 if region_account != account or not region:
                     continue
-                suffix = hashlib.sha256(f"{source.id}:{role.id}:{region}".encode()).hexdigest()[:16]
-                schedule_arn = (f"arn:{partition}:scheduler:{region}:{account}:"
-                                f"schedule/default/peaso-{suffix}")
-                if model._service_trust_for_source_arn(role.id, "scheduler.amazonaws.com", schedule_arn) is not True:
-                    continue
-                schedule = model._check_action(source, "scheduler:createschedule", schedule_arn)
-                if schedule is None or schedule.confidence != "derived":
-                    continue
-                target_id = f"aws_verified_authority:scheduler-policy:{source.id}:{role.id}:{region}"
-                nodes[target_id] = Node(target_id, "aws_verified_authority", "aws", account,
-                                        f"iam:CreateUser on {new_user_arn} through {role.id}",
-                                        attrs={"account": account, "region": region, "role_arn": role.id,
-                                               "schedule_arn": schedule_arn, "source_id": source.id,
-                                               "resource_arn": schedule_arn,
-                                               "new_user_arn": new_user_arn}, entity=True)
-                records[target_id] = {"SourceArn": source.id, "ExecutorRoleArn": role.id,
-                                      "ScheduleArn": schedule_arn, "TargetAction": action,
-                                      "TargetResource": source.id, "PassRoleGrant": passrole,
-                                      "ScheduleGrant": schedule, "PolicyWriteGrant": writer}
+                if update:
+                    schedules = existing.get(scope, ())
+                    schedule_action = "scheduler:updateschedule"
+                else:
+                    suffix = hashlib.sha256(f"{source.id}:{role.id}:{region}".encode()).hexdigest()[:16]
+                    schedules = (f"arn:{partition}:scheduler:{region}:{account}:"
+                                 f"schedule/default/peaso-{suffix}",)
+                    schedule_action = "scheduler:createschedule"
+                for schedule_arn in schedules:
+                    if not schedule_arn.startswith(f"arn:{partition}:scheduler:{region}:{account}:"):
+                        continue
+                    if model._service_trust_for_source_arn(role.id, "scheduler.amazonaws.com", schedule_arn) is not True:
+                        continue
+                    schedule = model._check_action(source, schedule_action, schedule_arn)
+                    if schedule is None or schedule.confidence != "derived":
+                        continue
+                    target_id = (f"aws_verified_authority:scheduler-policy-update:{source.id}:{role.id}:{schedule_arn}"
+                                 if update else
+                                 f"aws_verified_authority:scheduler-policy:{source.id}:{role.id}:{region}")
+                    nodes[target_id] = Node(target_id, "aws_verified_authority", "aws", account,
+                                            f"iam:CreateUser on {new_user_arn} through {role.id}",
+                                            attrs={"account": account, "region": region, "role_arn": role.id,
+                                                   "schedule_arn": schedule_arn, "source_id": source.id,
+                                                   "resource_arn": schedule_arn,
+                                                   "new_user_arn": new_user_arn}, entity=True)
+                    records[target_id] = {"SourceArn": source.id, "ExecutorRoleArn": role.id,
+                                          "ScheduleArn": schedule_arn, "TargetAction": action,
+                                          "TargetResource": source.id, "PassRoleGrant": passrole,
+                                          "ScheduleGrant": schedule, "PolicyWriteGrant": writer}
     return nodes, records

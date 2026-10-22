@@ -69,9 +69,10 @@ def schedules(requests, session, region, account):
             failures.append('schedule_detail_unavailable')
             continue
         target = detail.get('Target') or {}
-        row = {k: detail[k] for k in ('Arn', 'Name', 'GroupName', 'State') if k in detail}
+        row = {k: detail[k] for k in ('Arn', 'Name', 'GroupName', 'State', 'KmsKeyArn') if k in detail}
         row['Target'] = {k: target[k] for k in ('Arn', 'RoleArn', 'DeadLetterConfig') if k in target}
-        row['_provenance'] = {'source_operation': 'scheduler:GetSchedule', 'read_only': True}
+        row['_provenance'] = {'source_operation': 'scheduler:GetSchedule', 'read_only': True,
+                              'kms_key_arn_observed': True}
         output.append(row)
     status = 'partial' if failures else read.status
     return ReadResult(output, status, {'code': failures[0]} if failures else read.error)
