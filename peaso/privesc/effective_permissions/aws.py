@@ -3735,7 +3735,7 @@ class AwsModel(Model):
                         if got is False:
                             continue
                         verdict = (None if got is True and trust_deny is False else
-                                   ("conditional", "trust_condition_or_deny"))
+                                   ("unknown", "trust_condition_or_deny_not_verified"))
                     if rid not in out or verdict is None or (out[rid] and out[rid][0] == "unknown"):
                         out[rid] = verdict
             return out
@@ -12290,9 +12290,10 @@ class AwsModel(Model):
             scp_rows = {}
             for scope, row in items(self.snapshot, "scp_policy"):
                 scp_rows.setdefault(scope.split("/")[0], []).append(row)
-            root_complete = root is not None and any(
-                account in self.org_accounts and self.scp_status.get(account) == "collected" and
-                bool(rows) and all(
+            root_witnesses = []
+            for account, rows in scp_rows.items():
+                if (root is None or account not in self.org_accounts or
+                        self.scp_status.get(account) != "collected" or not rows or not all(
                     row.get("InheritanceComplete") is True and
                     isinstance(row.get("InheritedPolicies"), dict) and
                     row["InheritedPolicies"].get("complete") is True and
@@ -12300,12 +12301,28 @@ class AwsModel(Model):
                     any(isinstance(parent, dict) and parent.get("Id") == root and
                         parent.get("Type") == "ROOT" for parent in
                         as_list(row["InheritedPolicies"].get("ParentPath")))
-                    for row in rows)
-                for account, rows in scp_rows.items())
-            root_denies = [st for policy in self.scp_by_target.get(root, ())
+                    for row in rows)):
+                    continue
+                documents = {}
+                for row in rows:
+                    inherited = as_list(row["InheritedPolicies"].get("items"))
+                    for policy_row in [row, *inherited]:
+                        if not isinstance(policy_row, dict) or policy_row.get("TargetId") != root:
+                            continue
+                        content = (policy_row.get("Content") or
+                                   ((policy_row.get("Detail") or {}).get("Policy") or {}).get("Content"))
+                        if isinstance(policy_row.get("Id"), str) and isinstance(content, dict):
+                            documents[policy_row["Id"]] = content
+                if documents:
+                    root_witnesses.append(documents)
+            root_complete = bool(root_witnesses) and all(
+                witness == root_witnesses[0] for witness in root_witnesses[1:])
+            root_policies = ([Policy("scp:" + pid, pid, content, "scp")
+                              for pid, content in root_witnesses[0].items()] if root_complete else [])
+            root_denies = [st for policy in root_policies
                            for st in policy.for_action("sts:assumerole")
                            if st.effect == "deny"]
-            root_allows = [st for policy in self.scp_by_target.get(root, ())
+            root_allows = [st for policy in root_policies
                            for st in policy.statements if st.effect == "allow"]
             out = {}
             for tid in candidates:
@@ -12325,7 +12342,33 @@ class AwsModel(Model):
                     # establish access from its generated role.
                     out[tid] = ("unknown", "new_member_root_scp_assume_role_allow_not_verified")
                 else:
-                    out[tid] = verdict
+                    target_account = _account(tid)
+                    rcp_status = self.rcp_status.get(target_account, "not_collected")
+                    if rcp_status not in ("collected", "empty"):
+                        out[tid] = ("unknown", "target_role_rcp_inventory_not_collected")
+                        continue
+                    levels, complete = self._scp_levels(target_account)
+                    if rcp_status == "collected" and not complete:
+                        out[tid] = ("unknown", "target_role_rcp_inheritance_not_collected")
+                        continue
+                    context = Context(action="sts:assumerole", resource=tid, overrides={
+                        "aws:principalorgid": [self.org_id],
+                        "aws:principalorgpaths": [f"{self.org_id}/{root}/"]})
+                    rcp_unknown = False
+                    rcp_denied = False
+                    for level in levels:
+                        for policy in self.rcp_by_target.get(level, ()):
+                            for deny in (st for st in policy.for_action("sts:assumerole")
+                                         if st.effect == "deny"):
+                                applies = self._deny_applies(deny, tid, context)
+                                if applies is True:
+                                    rcp_denied = True
+                                elif applies is None:
+                                    rcp_unknown = True
+                    if rcp_denied:
+                        continue
+                    out[tid] = (("unknown", "target_role_rcp_conditional_deny_unverified")
+                                if rcp_unknown else verdict)
             return out
         if pid == "emr_cluster_session_runtime_role":
             if source is None:

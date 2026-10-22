@@ -974,6 +974,16 @@ def complete_root_scp(snap, *statements):
     snap["collections"].append({"type": "organization_parent", "scope": SCOPE,
                                 "service": "organization_parent", "status": "collected",
                                 "items": [{"ChildId": ACCOUNT, "ParentId": root}], "error": None})
+    for collection in list(snap["collections"]):
+        if collection["type"] != "organization_account":
+            continue
+        for member in collection["items"]:
+            member_scope = f"{member['Id']}/{REGION}"
+            if not any(c["type"] == "rcp_policy" and c["scope"] == member_scope
+                       for c in snap["collections"]):
+                snap["collections"].append({"type": "rcp_policy", "scope": member_scope,
+                                            "service": "organizations", "status": "empty",
+                                            "items": [], "error": None})
     return snap
 
 
@@ -1014,6 +1024,18 @@ def test_createaccount_does_not_override_explicit_role_trust_deny():
                                             "Action": "sts:AssumeRole"}], account=OTHER)
     snap = aws_snap([alice], extra=[org_accounts(OTHER)], other_roles=[(OTHER, [denied])])
     assert role_arn("denied", OTHER) not in reached(real(snap, CREATE_ACCOUNT), ALICE)
+
+
+def test_createaccount_additional_target_trust_condition_is_unknown():
+    alice = user("alice", allow("organizations:CreateAccount", "sts:AssumeRole"))
+    target_trust = org_trust()
+    target_trust[0]["Condition"]["IpAddress"] = {"aws:SourceIp": "192.0.2.0/24"}
+    target = role("shared", target_trust, account=OTHER)
+    snap = complete_root_scp(aws_snap([alice], extra=[org_accounts(OTHER)],
+                                     other_roles=[(OTHER, [target])]))
+    result = real(snap, CREATE_ACCOUNT, include_unknown=True)
+    assert target["Arn"] not in reached(result, ALICE, CREATE_ACCOUNT)
+    assert_unresolved(result, ALICE, CREATE_ACCOUNT)
 
 
 def test_createaccount_new_member_cannot_bypass_root_scp_assume_role_deny():
@@ -1060,6 +1082,50 @@ def test_createaccount_new_member_needs_complete_root_scp_inventory():
     alice = user("alice", allow("organizations:CreateAccount", "sts:AssumeRole"))
     target = role("shared", org_trust(), account=OTHER)
     snap = aws_snap([alice], extra=[org_accounts(OTHER)], other_roles=[(OTHER, [target])])
+    result = real(snap, CREATE_ACCOUNT, include_unknown=True)
+    assert target["Arn"] not in reached(result, ALICE, CREATE_ACCOUNT)
+    assert_unresolved(result, ALICE, CREATE_ACCOUNT)
+
+
+def test_createaccount_partial_scp_cannot_broaden_complete_root_allowlist():
+    alice = user("alice", allow("organizations:CreateAccount", "sts:AssumeRole"))
+    target = role("shared", org_trust(), account=OTHER)
+    snap = complete_root_scp(aws_snap([alice], extra=[org_accounts(OTHER)],
+                                     other_roles=[(OTHER, [target])]), allow("s3:*"))
+    member = next(c for c in snap["collections"] if c["type"] == "scp_policy" and
+                  c["scope"] == f"{OTHER}/{REGION}")
+    member["status"] = "partial"
+    member["items"].append({"Id": "p-incomplete", "TargetId": "r-root123",
+                            "Detail": {"Policy": {"Content": policy(allow("*"))}}})
+    result = real(snap, CREATE_ACCOUNT, include_unknown=True)
+    assert target["Arn"] not in reached(result, ALICE, CREATE_ACCOUNT)
+    assert_unresolved(result, ALICE, CREATE_ACCOUNT)
+
+
+def test_createaccount_target_role_rcp_deny_blocks_new_member():
+    alice = user("alice", allow("organizations:CreateAccount", "sts:AssumeRole"))
+    target = role("shared", org_trust(), account=OTHER)
+    snap = complete_root_scp(aws_snap([alice], extra=[org_accounts(OTHER)],
+                                     other_roles=[(OTHER, [target])]))
+    snap["collections"].append({"type": "organization_parent", "scope": f"{OTHER}/{REGION}",
+                                "service": "organization_parent", "status": "collected",
+                                "items": [{"ChildId": OTHER, "ParentId": "r-root123"}], "error": None})
+    rcp = next(c for c in snap["collections"] if c["type"] == "rcp_policy" and
+               c["scope"] == f"{OTHER}/{REGION}")
+    rcp["status"] = "collected"
+    rcp["items"] = [{"Id": "p-deny", "TargetId": OTHER, "Content": policy(
+        {"Effect": "Deny", "Action": "sts:AssumeRole", "Resource": target["Arn"]})}]
+    assert target["Arn"] not in reached(real(snap, CREATE_ACCOUNT), ALICE, CREATE_ACCOUNT)
+
+
+def test_createaccount_target_role_rcp_unknown_stays_unresolved():
+    alice = user("alice", allow("organizations:CreateAccount", "sts:AssumeRole"))
+    target = role("shared", org_trust(), account=OTHER)
+    snap = complete_root_scp(aws_snap([alice], extra=[org_accounts(OTHER)],
+                                     other_roles=[(OTHER, [target])]))
+    rcp = next(c for c in snap["collections"] if c["type"] == "rcp_policy" and
+               c["scope"] == f"{OTHER}/{REGION}")
+    rcp["status"] = "access_denied"
     result = real(snap, CREATE_ACCOUNT, include_unknown=True)
     assert target["Arn"] not in reached(result, ALICE, CREATE_ACCOUNT)
     assert_unresolved(result, ALICE, CREATE_ACCOUNT)
