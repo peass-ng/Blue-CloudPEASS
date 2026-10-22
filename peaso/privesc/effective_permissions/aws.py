@@ -7765,6 +7765,47 @@ class AwsModel(Model):
                     return {tid: verdict for tid in candidates}
             verdict = ("unknown", "apprunner_image_service_update_not_verified") if uncertain else None
             return {tid: verdict for tid in candidates if verdict} if verdict else {}
+        if pid == "apprunner_existing_instance_role_update":
+            if source is None:
+                return None
+            statuses = {scope: status for scope, status in inventory_status(self.snapshot, "app_runner_service").items()
+                        if scope.startswith(source.scope + "/")}
+            incomplete = not statuses or any(status not in ("collected", "empty") for status in statuses.values())
+            partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+            out = {}
+            for tid, target in candidates.items():
+                uncertain = incomplete
+                for scope, service in items(self.snapshot, "app_runner_service"):
+                    if statuses.get(scope) not in ("collected", "empty") or not isinstance(service, dict):
+                        continue
+                    arn = service.get("ServiceArn")
+                    if (not isinstance(arn, str) or not arn.startswith(
+                            f"arn:{partition}:apprunner:{scope.split('/', 1)[1]}:{source.scope}:service/")):
+                        uncertain = True
+                        continue
+                    detail = service.get("NetworkDetails")
+                    if not isinstance(detail, dict):
+                        uncertain = True
+                        continue
+                    instance_role = detail.get("InstanceRoleArn")
+                    if not isinstance(instance_role, str):
+                        uncertain = True
+                        continue
+                    if instance_role != target.id:
+                        continue
+                    if detail.get("SourceType") != "IMAGE" or (service.get("Status") or detail.get("Status")) != "RUNNING":
+                        if detail.get("SourceType") not in ("IMAGE", "CODE") or not (service.get("Status") or detail.get("Status")):
+                            uncertain = True
+                        continue
+                    grant = self.check(source, {"action": "apprunner:UpdateService"}, arn)
+                    if grant is not None:
+                        out[tid] = (("conditional", "apprunner_existing_role_start_command_update")
+                                    if grant.confidence == "derived" else
+                                    ("unknown", "apprunner_update_service_permission_conditional"))
+                        break
+                if tid not in out and uncertain:
+                    out[tid] = ("unknown", "apprunner_existing_instance_role_not_verified")
+            return out
         if pid == "glue_existing_dev_endpoint_ssh_access":
             if source is None:
                 return None

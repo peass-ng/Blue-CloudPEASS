@@ -114,6 +114,10 @@ class MetadataClient:
                 return {}  # Ordinary detail handling records malformed coverage.
             projected = project_network_data(body)
             if (self.service, name) == ("apprunner", "describe_service") and isinstance(projected, dict):
+                instance = body.get("InstanceConfiguration")
+                role_arn = instance.get("InstanceRoleArn") if isinstance(instance, dict) else None
+                if isinstance(role_arn, str) and role_arn.startswith("arn:"):
+                    projected["InstanceRoleArn"] = role_arn
                 source = body.get("SourceConfiguration")
                 if isinstance(source, dict):
                     image = isinstance(source.get("ImageRepository"), dict)
@@ -290,6 +294,19 @@ def detail_enricher(kind):
             body = body.get(root) if isinstance(body, dict) and root else body
             if isinstance(body, dict):
                 row["NetworkDetails"] = project_network_data(body)
+                if kind == "app_runner_service":
+                    instance = body.get("InstanceConfiguration")
+                    role_arn = body.get("InstanceRoleArn") or (instance.get("InstanceRoleArn") if isinstance(instance, dict) else None)
+                    if isinstance(role_arn, str) and role_arn.startswith("arn:"):
+                        row["NetworkDetails"]["InstanceRoleArn"] = role_arn
+                    source = body.get("SourceConfiguration")
+                    source_type = body.get("SourceType")
+                    if isinstance(source, dict):
+                        image, code = isinstance(source.get("ImageRepository"), dict), isinstance(source.get("CodeRepository"), dict)
+                        if image != code:
+                            source_type = "IMAGE" if image else "CODE"
+                    if source_type in ("IMAGE", "CODE"):
+                        row["NetworkDetails"]["SourceType"] = source_type
                 if kind == "emr_serverless_application" and type(body.get("AutoStartEnabled")) is bool:
                     row["NetworkDetails"]["AutoStartEnabled"] = body["AutoStartEnabled"]
                 from peaso.analysis.network_observations import network_observations

@@ -21,7 +21,14 @@ V4_EFFECTIVE_TREE = "413792ea4aec86e48c352ffab2c0bea9e82795bc234251342737ec0276b
 LEGACY_DELTA = Path(__file__).resolve().parent / "catalog_versions/legacy-0b3633-delta.json"
 BOUNDED_MANIFEST = "734401b202895e00ac1b6cb0f1534f77cde4d8e2ba912ca0ee974b1b8ec5035c"
 BOUNDED_TREE = "1a54bad4102d18f89c78f45c915964554a62f994c1bffa693844cac5e119cca8"
-CURRENT_MANIFEST = 'a295871d623b8091fe0d3c1536293784ec93ec12db1914ae3707134e7840e6a2'
+CURRENT_MANIFEST = '6fbd47a393f3377664859a479c46ca53192305096c5cf8366a249854c406f654'
+BATCH_CURRENT_MANIFEST = 'a295871d623b8091fe0d3c1536293784ec93ec12db1914ae3707134e7840e6a2'
+BATCH_CURRENT_TREE = '79a6945cd533dc781d668c234a59029476948af84d2b4af7198a8c1b10543cd9'
+BATCH_CURRENT_ENTRY_COUNT = 665
+BATCH_CURRENT_EXCLUDED_COUNT = 3726
+BATCH_CURRENT_ARCHIVE_SHA256 = 'bc49a17111242283be708b591eeb95c53f9be60a23f8ff23952ad0476dfc835e'
+BATCH_CURRENT_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-665-source-manifest.json'
+BATCH_CURRENT_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-665-catalog.tar.gz'
 ATHENA_CURRENT_MANIFEST = '9376370a8e63fefb6853e4e07ff750eb91d6aa66450e2eea3e9346930a1092f1'
 ATHENA_CURRENT_TREE = '6aed4798e9eb1ba63eea1a1b4cace68122b1c13f0cd64e52d849951191f51343'
 ATHENA_CURRENT_ENTRY_COUNT = 664
@@ -54,10 +61,10 @@ PRIOR_CURRENT_MANIFEST = "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0c
 PRIOR_DISCLOSURE_MANIFEST = "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
 PRIOR_DISCLOSURE_TREE = "5091464bedcb10bb87301695ca733276dc67b865e544c408ccf72a5408176f0f"
 PRIOR_DISCLOSURE_HISTORY = Path(__file__).resolve().parent / "catalog_versions/disclosure-v7-manifest.json"
-CURRENT_TREE = '79a6945cd533dc781d668c234a59029476948af84d2b4af7198a8c1b10543cd9'
+CURRENT_TREE = '3043d253ecdb229018b0d0a71326a136d1f8d7af669933a22a65d9affc84a7d4'
 PRIOR_CURRENT_TREE = "99207e6469fc5e5b3daf21324e6860599b116ffcf7d30600643bd229b0f11494"
-CURRENT_ENTRY_COUNT = 665
-CURRENT_EXCLUDED_COUNT = 3726
+CURRENT_ENTRY_COUNT = 666
+CURRENT_EXCLUDED_COUNT = 3725
 CURRENT_HISTORY = Path(__file__).resolve().parent / "catalog_versions/bulk-principal-v6-manifest.json"
 PRIOR_CATALOG_ARCHIVE = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-catalog-20261016.tar.gz"
 PRIOR_SOURCE_MANIFEST = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-source-manifest.json"
@@ -131,6 +138,15 @@ def _verified_athena_current():
         ATHENA_CURRENT_MANIFEST_PATH, ATHENA_CURRENT_ARCHIVE,
         ATHENA_CURRENT_MANIFEST, ATHENA_CURRENT_ARCHIVE_SHA256,
         ATHENA_CURRENT_TREE, ATHENA_CURRENT_ENTRY_COUNT, ATHENA_CURRENT_EXCLUDED_COUNT)
+
+
+@lru_cache(maxsize=1)
+def _verified_batch_current():
+    """Keep the exact 665-entry catalog used before App Runner restoration."""
+    return _verified_archived_current(
+        BATCH_CURRENT_MANIFEST_PATH, BATCH_CURRENT_ARCHIVE,
+        BATCH_CURRENT_MANIFEST, BATCH_CURRENT_ARCHIVE_SHA256,
+        BATCH_CURRENT_TREE, BATCH_CURRENT_ENTRY_COUNT, BATCH_CURRENT_EXCLUDED_COUNT)
 
 
 def _verified_archived_current(manifest_path, archive_path, manifest_digest, archive_digest,
@@ -254,6 +270,10 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == PREVIOUS_CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "previous_current", "exact_previous_current"
+    elif (binding.get("manifest_sha256") == BATCH_CURRENT_MANIFEST and
+          binding.get("effective_tree_sha256") == BATCH_CURRENT_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "batch_current", "exact_previous_current"
     elif (binding.get("manifest_sha256") == INTERMEDIATE_CURRENT_MANIFEST and
           binding.get("effective_tree_sha256") == INTERMEDIATE_CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -297,6 +317,9 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
             return {ident: current[ident] for ident in ids if ident in current}, status
         if version == "previous_current":
             previous = _verified_previous_current()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
+        if version == "batch_current":
+            previous = _verified_batch_current()
             return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "intermediate_current":
             previous = _verified_intermediate_current()
