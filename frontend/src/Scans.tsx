@@ -219,12 +219,13 @@ export function Scans({
               )}
               {!terminalStatuses.includes(s.status) && (
                   <button
-                    className="button"
+                    className="icon-button"
+                    aria-label={`Cancel scan ${names.get(s.id)}`}
+                    title="Cancel scan"
                     disabled={cancel.isPending || demo || !canWrite}
                     onClick={() => cancel.mutate(s.id)}
                   >
                     <Square size={13} />
-                    Cancel
                   </button>
               )}
               <button className="icon-button danger" aria-label={`Delete scan ${names.get(s.id)}`}

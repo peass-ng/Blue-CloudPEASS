@@ -2,12 +2,13 @@
 import json
 import sys
 import threading
+import time
 import types
 from types import SimpleNamespace
 
 import pytest
 
-from peaso.snapshot import seal
+from peaso.snapshot import make_snapshot, seal
 from peaso.storage.artifacts import FileArtifacts
 
 
@@ -16,7 +17,7 @@ TENANT = "tenant-a"
 SCAN = "a" * 32
 
 
-def _session(monkeypatch, tmp_path, *, second=False, fail_second=False):
+def _session(monkeypatch, tmp_path, *, second=False, fail_second=False, **batch_options):
     from peaso import engine
     from peaso.incremental import CheckpointSession
 
@@ -65,7 +66,8 @@ def _session(monkeypatch, tmp_path, *, second=False, fail_second=False):
 
     request = {"connector": {"provider": "aws", "scopes": [SCOPE]},
                "categories": [c.category for c in checks], "checks": [c.id for c in checks]}
-    session = CheckpointSession(request, on_checkpoint, public_snapshot, interval=0.02)
+    session = CheckpointSession(request, on_checkpoint, public_snapshot,
+                                interval=0.02, **batch_options)
     return session, artifacts, refs, published
 
 
@@ -96,6 +98,8 @@ def test_duplicate_settlement_does_not_advance_checkpoint(monkeypatch, tmp_path)
     try:
         assert session.on_collection(envelope) == 1
         assert session.on_collection(envelope) == 1
+        assert not [row for row in refs if row[2] is None]
+        session.flush()
         assert len([row for row in refs if row[2] is None]) == 1
     finally:
         session.close()
@@ -149,6 +153,122 @@ def test_real_native_hardening_evaluation_publishes_before_optional_image_phase(
         assert len(rows) == 1 and rows[0]["status"] == "PASS"
         assert report["publication"]["state"] == "partial"
         assert report["stats"]["inventory_complete"] is False
+    finally:
+        session.close()
+
+
+def test_bounded_batches_and_duplicate_key_revision(monkeypatch, tmp_path):
+    session, artifacts, refs, _ = _session(monkeypatch, tmp_path,
+                                           batch_size=64, batch_interval=100)
+    try:
+        for index in range(64):
+            session.on_collection({"type": "other", "scope": f"scope-{index}",
+                                   "status": "empty", "items": []})
+        assert [seq for seq, _, report in refs if report is None] == [64]
+        first = artifacts.get(TENANT, refs[0][1])
+        assert len(first['collections']) == 64
+        assert first['metadata']['incremental']['batch_revisions'] == list(range(1, 65))
+        session.on_collection({"type": "other", "scope": "scope-0",
+                               "status": "denied", "items": []})
+        for index in range(64, 127):
+            session.on_collection({"type": "other", "scope": f"scope-{index}",
+                                   "status": "empty", "items": []})
+        assert [seq for seq, _, report in refs if report is None] == [64, 128]
+        second = artifacts.get(TENANT, refs[-1][1])
+        assert len(second['collections']) == 64
+        assert next(row for row in second['collections'] if row['scope'] == 'scope-0')['status'] == 'denied'
+        session.on_collection({"type": "other", "scope": "scope-0",
+                               "status": "empty", "items": []})
+        session.on_collection({"type": "other", "scope": "scope-0",
+                               "status": "denied", "items": []})
+        session.flush()
+        last = artifacts.get(TENANT, refs[-1][1])
+        assert len(last['collections']) == 1
+        assert last['metadata']['incremental']['batch_revisions'] == [130]
+        assert [seq for seq, _, report in refs if report is None] == [64, 128, 130]
+    finally:
+        session.close()
+
+
+def test_time_and_byte_caps_flush_pending(monkeypatch, tmp_path):
+    session, _, refs, _ = _session(monkeypatch, tmp_path, batch_interval=0.05)
+    try:
+        session.on_collection({"type": "other", "scope": SCOPE,
+                               "status": "empty", "items": []})
+        deadline = time.monotonic() + 2
+        while not refs and time.monotonic() < deadline:
+            time.sleep(0.01)
+        assert [seq for seq, _, report in refs if report is None] == [1]
+    finally:
+        session.close()
+    session, _, refs, _ = _session(monkeypatch, tmp_path / 'bytes',
+                                  batch_interval=100, batch_bytes=1)
+    try:
+        session.on_collection({"type": "other", "scope": SCOPE,
+                               "status": "empty", "items": []})
+        assert [seq for seq, _, report in refs if report is None] == [1]
+    finally:
+        session.close()
+
+
+def test_mixed_legacy_and_batch_restore_uses_latest_exact_key(monkeypatch, tmp_path):
+    session, _, _, _ = _session(monkeypatch, tmp_path, second=True, batch_interval=100)
+    old = {"type": "bucket", "scope": SCOPE, "status": "empty", "items": []}
+    new = dict(old, status="denied")
+    image = {"type": "image", "scope": SCOPE, "status": "empty", "items": []}
+    legacy = make_snapshot('aws', [SCOPE], [old], metadata={
+        'incremental': {'sequence': 1}})
+    batch = make_snapshot('aws', [SCOPE], [new, image], metadata={
+        'incremental': {'sequence': 3, 'batch_revisions': [2, 3]}})
+    try:
+        session.restore([batch, legacy], 3)
+        assert session.sequence == session.next_sequence == 3
+        assert session.collections['bucket', SCOPE]['status'] == 'denied'
+        assert session.collection_revisions == {('bucket', SCOPE): 2, ('image', SCOPE): 3}
+        assert session.on_collection(new) == 3
+    finally:
+        session.close()
+
+
+def test_failed_batch_keeps_prior_commit_and_blocks_publication(monkeypatch, tmp_path):
+    session, artifacts, refs, _ = _session(monkeypatch, tmp_path,
+                                           batch_size=2, batch_interval=100)
+    original = session.on_checkpoint
+    def fail_second(snapshot, report, sequence):
+        if report is None and sequence == 4:
+            raise RuntimeError('fenced checkpoint rejected')
+        original(snapshot, report, sequence)
+    session.on_checkpoint = fail_second
+    for index in range(3):
+        session.on_collection({"type": "other", "scope": f"scope-{index}",
+                               "status": "empty", "items": []})
+    assert session.sequence == 2
+    with pytest.raises(RuntimeError, match='fenced checkpoint rejected'):
+        session.on_collection({"type": "other", "scope": "scope-3",
+                               "status": "empty", "items": []})
+    assert session.sequence == 2
+    assert len(session.collections) == 2
+    assert [seq for seq, _, report in refs if report is None] == [2]
+    assert len(artifacts.get(TENANT, refs[0][1])['collections']) == 2
+    with pytest.raises(RuntimeError, match='checkpoint publication failed'):
+        session.close()
+
+
+def test_report_never_overtakes_pending_batch(monkeypatch, tmp_path):
+    session, artifacts, refs, _ = _session(monkeypatch, tmp_path,
+                                           batch_interval=100)
+    try:
+        session.on_collection({"type": "bucket", "scope": SCOPE,
+                               "status": "empty", "items": []})
+        assert session.sequence == 0 and session.next_sequence == 1
+        assert session._maybe_publish() is None
+        assert refs == []
+        session.flush()
+        checkpoints = [row for row in refs if row[2] is None]
+        reports = [row for row in refs if row[2] is not None]
+        assert len(checkpoints) == len(reports) == 1
+        assert reports[0][0] <= checkpoints[0][0] == session.sequence
+        assert artifacts.get(TENANT, reports[0][1])['metadata']['incremental']['sequence'] == 1
     finally:
         session.close()
 

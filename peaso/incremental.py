@@ -1,13 +1,15 @@
 """Incremental, public scan checkpoints produced from settled native envelopes.
 
 The worker supplies the credential/privacy boundary and durable callbacks. A
-collection callback is invoked for *every* settled envelope before the next
-provider read. Report evaluation is bounded to newly available checks and a
-time/collection cadence; no provider request is repeated by this module.
+collection callback buffers each settled envelope, and commits bounded batches
+before report/section publication. Report evaluation is bounded to newly
+available checks and a time/collection cadence; no provider request is
+repeated by this module.
 """
 from __future__ import annotations
 
 import copy
+import json
 import threading
 import time
 from collections import defaultdict
@@ -20,15 +22,16 @@ class CheckpointSession:
 
     ``public_snapshot`` must apply secret_capture.public_snapshot followed by
     credential redaction and sealing. ``on_checkpoint`` receives a sealed public
-    one-envelope delta with report=None at every settlement; it durably merges
-    that envelope by (type, scope), fenced by (tenant, scan, owner, sequence).
+    bounded batch with report=None; the worker commits it under one fenced
+    (tenant, scan, owner, sequence) checkpoint before exposing its rows.
     A second callback with a cumulative public snapshot and report publishes an
     evaluated partial result. The worker persists encrypted private evidence
     before either callback. Persistence errors must propagate.
     """
 
     def __init__(self, request, on_checkpoint, public_snapshot, *,
-                 interval=8.0, collection_stride=24, clock=time.monotonic):
+                 interval=8.0, collection_stride=24, clock=time.monotonic,
+                 batch_size=64, batch_interval=1.0, batch_bytes=8 * 1024 * 1024):
         from .engine import _selection, _analysis_selection, _privesc_selected, CATEGORIES
         from .analysis import REQUIRED_TYPES, privesc_required_types
 
@@ -85,6 +88,13 @@ class CheckpointSession:
         self.force = False
         self.error = None
         self.sequence = 0
+        self.next_sequence = 0
+        self.pending = {}
+        self.pending_bytes = 0
+        self.pending_since = None
+        self.batch_size = max(1, int(batch_size))
+        self.batch_interval = max(0.0, float(batch_interval))
+        self.batch_bytes = max(1, int(batch_bytes))
         self.last_published = 0
         self.last_time = float("-inf")
         self.published_categories = set()
@@ -129,20 +139,32 @@ class CheckpointSession:
                 raise ValueError("Invalid checkpoint restoration")
             restored = {}
             revisions = {}
-            for candidate in snapshots:
+            for candidate in sorted(snapshots, key=lambda row: row.get('metadata', {}).get('incremental', {}).get('sequence', 0)):
                 snapshot = validate(candidate)
-                if snapshot["provider"] != self.provider or len(snapshot["collections"]) != 1:
+                if snapshot["provider"] != self.provider or not snapshot["collections"]:
                     raise ValueError("Checkpoint provider or envelope mismatch")
-                envelope = snapshot["collections"][0]
-                key = (envelope["type"], envelope["scope"])
-                restored[key] = envelope
                 metadata = snapshot.get('metadata', {}).get('incremental', {})
-                revision = metadata.get('data_revision', metadata.get('sequence', sequence))
-                if type(revision) is not int or not 0 <= revision <= sequence:
-                    raise ValueError('Invalid restored data revision')
-                revisions[key] = revision
+                end = metadata.get('sequence', sequence)
+                if type(end) is not int or not 0 <= end <= sequence:
+                    raise ValueError('Invalid restored checkpoint sequence')
+                batch_revisions = metadata.get('batch_revisions')
+                if batch_revisions is not None and (not isinstance(batch_revisions, list)
+                        or len(batch_revisions) != len(snapshot['collections'])):
+                    raise ValueError('Invalid restored batch revisions')
+                if len(snapshot['collections']) != 1 and batch_revisions is None:
+                    raise ValueError('Multi-envelope checkpoint lacks revisions')
+                for offset, envelope in enumerate(snapshot['collections']):
+                    revision = (batch_revisions[offset] if batch_revisions is not None else
+                                metadata.get('data_revision', end))
+                    if type(revision) is not int or not 0 <= revision <= end:
+                        raise ValueError('Invalid restored data revision')
+                    key = (envelope['type'], envelope['scope'])
+                    if revision >= revisions.get(key, -1):
+                        restored[key] = envelope
+                        revisions[key] = revision
             self.collections = restored
             self.sequence = sequence
+            self.next_sequence = sequence
             self.collection_revisions = revisions
             self.last_published = sequence
             if restored:
@@ -216,7 +238,7 @@ class CheckpointSession:
         return report
 
     def on_collection(self, envelope):
-        """Persist one public delta before returning to the provider scheduler."""
+        """Buffer a bounded public delta before returning to the provider scheduler."""
         with self.lock:
             if self.error is not None:
                 raise RuntimeError("checkpoint publication failed") from self.error
@@ -231,32 +253,73 @@ class CheckpointSession:
             raise TypeError("collection envelope must be an object")
         from .secret_evidence import _lock as private_evidence_lock
         with private_evidence_lock:
-            one = self._snapshot([copy.deepcopy(envelope)], sequence=self.sequence + 1)
+            one = self._snapshot([copy.deepcopy(envelope)], sequence=self.next_sequence + 1)
             one = validate(self.public_snapshot(one))
         public_envelope = one["collections"][0]
         key = (public_envelope["type"], public_envelope["scope"])
-        previous = self.collections.get(key)
+        previous = self.pending.get(key, (None, self.collections.get(key), 0))[1]
         if previous == public_envelope:
-            return self.sequence
-        self.sequence += 1
-        self.on_checkpoint(one, None, self.sequence)
-        self.collections[key] = public_envelope
-        self.collection_revisions[key] = self.sequence
-        if self.provider == 'azure' and public_envelope['type'] == 'subscription' and '*' in self.requested_scopes:
-            selected = [item.get('id') for item in public_envelope.get('items', [])
-                        if isinstance(item.get('id'), str) and item['id'].startswith('/subscriptions/')]
-            maximum = self.request.get('connector', {}).get('options', {}).get('max_scopes')
-            self.effective_scopes = selected if maximum is None else selected[:maximum]
-        return self.sequence
+            return self.next_sequence
+        self.next_sequence += 1
+        size = len(json.dumps(public_envelope, separators=(',', ':'), ensure_ascii=False).encode())
+        if not self.pending:
+            self.pending_since = self.clock()
+        prior = self.pending.get(key)
+        if prior:
+            self.pending_bytes -= prior[2]
+        self.pending[key] = (self.next_sequence, public_envelope, size)
+        self.pending_bytes += size
+        if len(self.pending) >= self.batch_size or self.pending_bytes >= self.batch_bytes:
+            self._flush_pending()
+        return self.next_sequence
+
+    def _flush_pending(self):
+        """Commit one immutable batch before advancing the visible watermark.
+
+        Called with self.lock held. A failed upload or fenced acknowledgment
+        leaves committed collections unchanged and propagates to the collector.
+        """
+        if not self.pending:
+            return
+        entries = sorted(self.pending.values(), key=lambda entry: entry[0])
+        end = self.next_sequence
+        raw = self._snapshot([copy.deepcopy(row) for _, row, _ in entries], sequence=end)
+        raw['metadata']['incremental']['batch_revisions'] = [revision for revision, _, _ in entries]
+        from .secret_evidence import _lock as private_evidence_lock
+        with private_evidence_lock:
+            batch = validate(self.public_snapshot(seal(raw)))
+        try:
+            self.on_checkpoint(batch, None, end)
+        except BaseException as exc:
+            self.error = exc
+            raise
+        for (revision, _, _), row in zip(entries, batch['collections']):
+            key = (row['type'], row['scope'])
+            self.collections[key] = row
+            self.collection_revisions[key] = revision
+            if self.provider == 'azure' and row['type'] == 'subscription' and '*' in self.requested_scopes:
+                selected = [item.get('id') for item in row.get('items', [])
+                    if isinstance(item.get('id'), str) and item['id'].startswith('/subscriptions/')]
+                maximum = self.request.get('connector', {}).get('options', {}).get('max_scopes')
+                self.effective_scopes = selected if maximum is None else selected[:maximum]
+        self.sequence = end
+        self.pending.clear()
+        self.pending_bytes = 0
+        self.pending_since = None
+        self.wake.set()
 
     def _background(self):
         while True:
-            self.wake.wait(timeout=min(self.interval, 1.0) if self.interval else 0.1)
+            self.wake.wait(timeout=min(self.batch_interval, 0.25) if self.batch_interval else 0.1)
             self.wake.clear()
             with self.lock:
                 if self.stop:
                     return
             try:
+                with self.lock:
+                    if (self.pending and self.pending_since is not None and
+                            self.clock() - self.pending_since >= self.batch_interval):
+                        self._flush_pending()
                 self._maybe_publish(force=self.force)
             except BaseException as exc:
                 with self.lock:
@@ -266,6 +329,8 @@ class CheckpointSession:
         # One evaluator at a time; provider settlement never waits for evaluation.
         with self.publish_lock:
             with self.lock:
+                if force:
+                    self._flush_pending()
                 if self.sequence == self.last_published:
                     return None
                 collections = copy.deepcopy(self.collections)
@@ -305,6 +370,7 @@ class CheckpointSession:
     def sections(self):
         from .scan_sections import states
         with self.lock:
+            self._flush_pending()
             return states(self.provider, self.effective_scopes, self.section_dependencies,
                 self.collections, self.collection_revisions, finished=self.collection_finished,
                 global_types=self.global_types, global_scope=self.global_scope)
@@ -314,18 +380,20 @@ class CheckpointSession:
         with self.lock:
             if self.collection_finished:
                 return
+            self._flush_pending()
             self.collection_finished = True
             if self.collections:
                 # A closure publication needs a new durable sequence even when
                 # finalizers left every native envelope byte unchanged.
-                self.sequence += 1
+                closure_sequence = self.sequence + 1
                 envelope = next(reversed(self.collections.values()))
                 from .secret_evidence import _lock as private_evidence_lock
                 with private_evidence_lock:
-                    raw = self._snapshot([copy.deepcopy(envelope)], sequence=self.sequence)
+                    raw = self._snapshot([copy.deepcopy(envelope)], sequence=closure_sequence)
                     raw['metadata']['incremental']['data_revision'] = self.collection_revisions[(envelope['type'], envelope['scope'])]
                     delta = validate(self.public_snapshot(seal(raw)))
-                self.on_checkpoint(delta, None, self.sequence)
+                self.on_checkpoint(delta, None, closure_sequence)
+                self.sequence = self.next_sequence = closure_sequence
             self.wake.set()
 
     def publish(self, **_):

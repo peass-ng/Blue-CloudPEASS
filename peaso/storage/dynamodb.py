@@ -456,6 +456,30 @@ class DynamoStore:
         current = self._get(tenant, "quota", week(time.time() if now is None else now))
         return current.get("used", 0) if current else 0
 
+    def _unlimited_scans_grant(self, tenant):
+        """Read the operator-owned row consistently; malformed rows confer no access."""
+        if not isinstance(tenant, str) or not tenant:
+            return None
+        key = {"PK": "tenant/" + tenant, "SK": "operator_scan_quota"}
+        item = self.client.get_item(TableName=self.table, Key=attrs(key), ConsistentRead=True).get("Item")
+        if not item:
+            return None
+        grant = row(item)
+        strings = ("verified_email", "cognito_pool_id", "actor", "reason", "audit_id")
+        if (grant.get("PK") != key["PK"] or grant.get("SK") != key["SK"] or
+                grant.get("kind") != "operator_scan_quota" or
+                grant.get("tenant") != tenant or grant.get("cognito_subject") != tenant or
+                grant.get("unlimited") is not True or
+                any(not isinstance(grant.get(field), str) or not grant[field].strip() for field in strings) or
+                "@" not in grant["verified_email"] or
+                not grant["actor"].startswith("arn:aws:sts::") or
+                type(grant.get("created")) not in (int, float) or grant["created"] <= 0):
+            return None
+        return grant
+
+    def unlimited_scans(self, tenant):
+        return self._unlimited_scans_grant(tenant) is not None
+
     def get_admin_qa_grant(self, tenant):
         value = self._get(tenant, "entitlement", "admin_qa")
         return value if value and value.get("tenant") == tenant and value.get("kind") == "admin_qa_grant" else None
@@ -564,16 +588,33 @@ class DynamoStore:
         if replay:
             return replay
         for attempt in range(8):
+            grant = self._unlimited_scans_grant(tenant)
             connector = self.connector(tenant, request["connector_id"])
             ident = uuid.uuid4().hex
             value = dict(self.key(tenant, "job", ident), kind="job", rev=0, id=ident, tenant=tenant,
                          connector_id=request["connector_id"], data=json.dumps(request), connector=json.dumps({"data": json.loads(connector["data"]), "auth": connector["auth"]}),
                          status="queued", created=now, deadline=now + QUEUE_WAIT_SECONDS, execution_timeout=timeout, expires_at=int(now + max(30 * 86400, timeout + 86400)), owner=None, lease=None, snapshot=None, report=None, error=None, error_code=None, error_stage=None, history=[{"status": "queued", "at": utc(now)}], idem=idem, digest=digest)
+            quota_values = {":kind": "quota", ":one": 1, ":expires": int(now + 14 * 86400)}
+            quota_update = {"TableName": self.table, "Key": attrs(self.key(tenant, "quota", week(now))),
+                            "UpdateExpression": "SET #kind=:kind, expires_at=:expires ADD used :one",
+                            "ExpressionAttributeNames": {"#kind": "kind"}}
+            if not grant:
+                quota_update["ConditionExpression"] = "attribute_not_exists(used) OR used<:limit"
+                quota_values[":limit"] = limit
+            quota_update["ExpressionAttributeValues"] = attrs(quota_values)
             transactions = [
                 {"ConditionCheck": {"TableName": self.table, "Key": attrs(self.key(tenant, "connector", connector["id"])), "ConditionExpression": "#rev=:rev", "ExpressionAttributeNames": {"#rev": "rev"}, "ExpressionAttributeValues": attrs({":rev": connector["rev"]})}},
-                {"Update": {"TableName": self.table, "Key": attrs(self.key(tenant, "quota", week(now))), "UpdateExpression": "SET #kind=:kind, expires_at=:expires ADD used :one", "ConditionExpression": "attribute_not_exists(used) OR used<:limit", "ExpressionAttributeNames": {"#kind": "kind"}, "ExpressionAttributeValues": attrs({":kind": "quota", ":one": 1, ":limit": limit, ":expires": int(now + 14 * 86400)})}},
+                {"Update": quota_update},
                 {"Put": {"TableName": self.table, "Item": attrs(value), "ConditionExpression": "attribute_not_exists(PK)"}},
             ]
+            if grant:
+                fields = ("kind", "tenant", "cognito_subject", "unlimited", "verified_email",
+                          "cognito_pool_id", "actor", "reason", "created", "audit_id")
+                transactions.append({"ConditionCheck": {"TableName": self.table,
+                    "Key": attrs({"PK": grant["PK"], "SK": grant["SK"]}),
+                    "ConditionExpression": " AND ".join(f"#{field}=:{field}" for field in fields),
+                    "ExpressionAttributeNames": {f"#{field}": field for field in fields},
+                    "ExpressionAttributeValues": attrs({f":{field}": grant[field] for field in fields})}})
             if idem is not None:
                 transactions.append({"Put": {"TableName": self.table, "Item": attrs(dict(self.key(tenant, "idem", hashlib.sha256(idem.encode()).hexdigest()), kind="idem", id=ident, digest=digest, expires_at=value["expires_at"])), "ConditionExpression": "attribute_not_exists(PK) OR expires_at<=:now", "ExpressionAttributeValues": attrs({":now": now})}})
             if extra:
@@ -590,7 +631,7 @@ class DynamoStore:
                 reasons = exc.response.get("CancellationReasons", [])
                 if extra and reasons and reasons[-1].get("Code") == "ConditionalCheckFailed":
                     raise StoreError(409, "Schedule changed concurrently")
-                if self.usage(tenant, now) >= limit:
+                if not self.unlimited_scans(tenant) and self.usage(tenant, now) >= limit:
                     raise StoreError(429, "Weekly scan quota exhausted")
                 time.sleep(0.01 * (attempt + 1))
         raise StoreError(409, "Concurrent reservation; retry")
