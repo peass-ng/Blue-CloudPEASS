@@ -417,6 +417,12 @@ patterns (only `FilterCount`) and non-address Route 53 values (only `ValueCount`
 | `aws_identity_center_account_assignment` | `sso:ListAccountsForProvisionedPermissionSet`, `ListAccountAssignments`, `identitystore:ListGroups` | Permission set / account / principal type and id, group display name |
 | `glue_dev_endpoint` (existing) | unchanged | adds `PublicKeyCount` |
 | `codedeploy_deployment_group` (existing) | unchanged | adds EC2/on-prem tag filters and tag sets, Auto Scaling groups |
+| `athena_session` | `athena:ListWorkGroups`, `ListSessions`, `GetSession` | Session ID, workgroup, state, engine, notebook version and exact execution role; endpoint and notebook tokens are never requested |
+
+The current customer role template grants `athena:ListWorkGroups`, `athena:ListSessions` and
+`athena:GetSession` for existing-session privilege-path analysis. If a customer supplies an
+equivalent role instead of the template, it needs all three reads; a denied session read
+leaves the role path unresolved.
 
 Customer policy: 41 actions added to `VERIFIED_ACTIONS` (431 -> 472; each checked against the
 pinned policy-generator action list) and the `supplychain -> scn` IAM prefix. Regenerated

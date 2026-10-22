@@ -21,7 +21,14 @@ V4_EFFECTIVE_TREE = "413792ea4aec86e48c352ffab2c0bea9e82795bc234251342737ec0276b
 LEGACY_DELTA = Path(__file__).resolve().parent / "catalog_versions/legacy-0b3633-delta.json"
 BOUNDED_MANIFEST = "734401b202895e00ac1b6cb0f1534f77cde4d8e2ba912ca0ee974b1b8ec5035c"
 BOUNDED_TREE = "1a54bad4102d18f89c78f45c915964554a62f994c1bffa693844cac5e119cca8"
-CURRENT_MANIFEST = '206b1895056780d15c6707bb434e46a25df4d53bf6c284e8bbb6d7d567a46806'
+CURRENT_MANIFEST = '9376370a8e63fefb6853e4e07ff750eb91d6aa66450e2eea3e9346930a1092f1'
+RECENT_CURRENT_MANIFEST = '206b1895056780d15c6707bb434e46a25df4d53bf6c284e8bbb6d7d567a46806'
+RECENT_CURRENT_TREE = 'd3dbaf40848dd14c4c2d199c8f7ec81126724f8311e23f9579282c02026c4f2f'
+RECENT_CURRENT_ENTRY_COUNT = 661
+RECENT_CURRENT_EXCLUDED_COUNT = 3730
+RECENT_CURRENT_ARCHIVE_SHA256 = '96e4a5344ab18a45a41ddc1be280d816afe4356a675f9d11ae5871e64b5df484'
+RECENT_CURRENT_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-661-source-manifest.json'
+RECENT_CURRENT_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-661-catalog.tar.gz'
 INTERMEDIATE_CURRENT_MANIFEST = 'eada56c3fbbbf06891601ef0711e3b2d2f216cdf8981e5e87e9501f7702ef868'
 INTERMEDIATE_CURRENT_TREE = '9cace7c01a6cc13e22b369c99298cc0a4f6df6226aa13a7b63cfb6a4d1ad29e9'
 INTERMEDIATE_CURRENT_ENTRY_COUNT = 660
@@ -40,10 +47,10 @@ PRIOR_CURRENT_MANIFEST = "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0c
 PRIOR_DISCLOSURE_MANIFEST = "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
 PRIOR_DISCLOSURE_TREE = "5091464bedcb10bb87301695ca733276dc67b865e544c408ccf72a5408176f0f"
 PRIOR_DISCLOSURE_HISTORY = Path(__file__).resolve().parent / "catalog_versions/disclosure-v7-manifest.json"
-CURRENT_TREE = 'd3dbaf40848dd14c4c2d199c8f7ec81126724f8311e23f9579282c02026c4f2f'
+CURRENT_TREE = '6aed4798e9eb1ba63eea1a1b4cace68122b1c13f0cd64e52d849951191f51343'
 PRIOR_CURRENT_TREE = "99207e6469fc5e5b3daf21324e6860599b116ffcf7d30600643bd229b0f11494"
-CURRENT_ENTRY_COUNT = 661
-CURRENT_EXCLUDED_COUNT = 3730
+CURRENT_ENTRY_COUNT = 664
+CURRENT_EXCLUDED_COUNT = 3727
 CURRENT_HISTORY = Path(__file__).resolve().parent / "catalog_versions/bulk-principal-v6-manifest.json"
 PRIOR_CATALOG_ARCHIVE = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-catalog-20261016.tar.gz"
 PRIOR_SOURCE_MANIFEST = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-source-manifest.json"
@@ -99,6 +106,15 @@ def _verified_intermediate_current():
         INTERMEDIATE_CURRENT_MANIFEST_PATH, INTERMEDIATE_CURRENT_ARCHIVE,
         INTERMEDIATE_CURRENT_MANIFEST, INTERMEDIATE_CURRENT_ARCHIVE_SHA256,
         INTERMEDIATE_CURRENT_TREE, INTERMEDIATE_CURRENT_ENTRY_COUNT, INTERMEDIATE_CURRENT_EXCLUDED_COUNT)
+
+
+@lru_cache(maxsize=1)
+def _verified_recent_current():
+    """Keep the exact 661-entry catalog used before Athena sessions were restored."""
+    return _verified_archived_current(
+        RECENT_CURRENT_MANIFEST_PATH, RECENT_CURRENT_ARCHIVE,
+        RECENT_CURRENT_MANIFEST, RECENT_CURRENT_ARCHIVE_SHA256,
+        RECENT_CURRENT_TREE, RECENT_CURRENT_ENTRY_COUNT, RECENT_CURRENT_EXCLUDED_COUNT)
 
 
 def _verified_archived_current(manifest_path, archive_path, manifest_digest, archive_digest,
@@ -226,6 +242,10 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == INTERMEDIATE_CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "intermediate_current", "exact_previous_current"
+    elif (binding.get("manifest_sha256") == RECENT_CURRENT_MANIFEST and
+          binding.get("effective_tree_sha256") == RECENT_CURRENT_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "recent_current", "exact_previous_current"
     elif (binding.get("manifest_sha256") == PRIOR_CURRENT_MANIFEST and
           binding.get("effective_tree_sha256") == PRIOR_CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -260,6 +280,9 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
             return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "intermediate_current":
             previous = _verified_intermediate_current()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
+        if version == "recent_current":
+            previous = _verified_recent_current()
             return {ident: previous[ident] for ident in ids if ident in previous}, status
         v4, prior_hashes = _verified_prior()
         if version == "prior_current":

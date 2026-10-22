@@ -6459,6 +6459,61 @@ class AwsModel(Model):
                     uncertain = True
         return ("unknown", "codepipeline_existing_project_path_not_verified") if uncertain else None
 
+    def _athena_existing_session_role(self, source, target, pid):
+        """Join a live session to its recorded execution role and exact IAM scope."""
+        statuses = {scope: status for scope, status in inventory_status(self.snapshot, "athena_session").items()
+                    if scope.startswith(source.scope + "/")}
+        if not statuses:
+            return ("unknown", "athena_session_inventory_not_collected")
+        uncertain = any(status not in ("collected", "empty") for status in statuses.values())
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        for scope, session in items(self.snapshot, "athena_session"):
+            if scope not in statuses or not isinstance(session, dict):
+                continue
+            region = scope.split("/", 1)[1]
+            name, session_id = session.get("WorkGroup"), session.get("SessionId")
+            if (not isinstance(name, str) or not re.fullmatch(r"[a-zA-Z0-9._-]{1,128}", name)
+                    or not isinstance(session_id, str) or not session_id or "/" in session_id):
+                uncertain = True
+                continue
+            config = session.get("SessionConfiguration")
+            role_arn = config.get("ExecutionRole") if isinstance(config, dict) else None
+            if not isinstance(role_arn, str):
+                uncertain = True
+                continue
+            if role_arn != target.id:
+                continue
+            state = session.get("Status", {}).get("State") if isinstance(session.get("Status"), dict) else None
+            engine = session.get("EngineVersion")
+            if not isinstance(state, str) or not isinstance(engine, str):
+                uncertain = True
+                continue
+            if pid == "athena_existing_session_calculation_role":
+                if engine != "PySpark engine version 3" or state != "IDLE":
+                    continue
+                action = "athena:startcalculationexecution"
+            elif pid == "athena_existing_notebook_url_role":
+                if (engine != "PySpark engine version 3" or state not in ("CREATED", "IDLE", "BUSY")
+                        or not isinstance(session.get("NotebookVersion"), str)
+                        or not session["NotebookVersion"]):
+                    continue
+                action = "athena:createpresignednotebookurl"
+            else:
+                if engine != "Apache Spark version 3.5" or state not in ("CREATED", "IDLE", "BUSY"):
+                    continue
+                action = "athena:getsessionendpoint"
+            workgroup_arn = f"arn:{partition}:athena:{region}:{source.scope}:workgroup/{name}"
+            grants = [self._check_action(source, action, workgroup_arn)]
+            if pid == "athena_existing_spark_connect_role":
+                grants.append(self._check_action(source, action, f"{workgroup_arn}/session/{session_id}"))
+            if any(grant is None for grant in grants):
+                continue
+            if any(grant.confidence != "derived" for grant in grants):
+                uncertain = True
+                continue
+            return ("conditional", pid)
+        return ("unknown", f"{pid}_not_verified") if uncertain else None
+
     def _flink_existing_studio_role_session(self, source, target):
         """Bind one streamable Studio notebook to its exact service execution role."""
         statuses = {scope: status for scope, status in inventory_status(self.snapshot, "flink_application").items()
@@ -6494,6 +6549,12 @@ class AwsModel(Model):
 
     def precondition(self, pid, candidates, source):
         out = {}
+        if pid in ("athena_existing_session_calculation_role", "athena_existing_notebook_url_role",
+                   "athena_existing_spark_connect_role"):
+            if source is None:
+                return None
+            return {tid: verdict for tid, target in candidates.items()
+                    if (verdict := self._athena_existing_session_role(source, target, pid)) is not None}
         if pid == "flink_existing_studio_role_session":
             if source is None:
                 return None

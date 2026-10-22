@@ -18,6 +18,7 @@ from .aws_b_services import _metadata
 
 SPECS = {
     "athena_workgroup": ("athena", "list_work_groups", "WorkGroups"),
+    "athena_session": ("athena", "list_sessions", "Sessions"),
     "backup_recovery_point": ("backup", "list_recovery_points_by_backup_vault", "RecoveryPoints"),
     "datasync_task": ("datasync", "list_tasks", "Tasks"),
     "dax_cluster": ("dax", "describe_clusters", "Clusters"),
@@ -58,7 +59,7 @@ SPECS = {
     "codeartifact_repository": ("codeartifact", "list_repositories", "repositories"),
 }
 NATIVE_IDS = {
-    "athena_workgroup": "Name", "backup_recovery_point": "RecoveryPointArn", "datasync_task": "TaskArn", "dax_cluster": "ClusterArn",
+    "athena_workgroup": "Name", "athena_session": "SessionId", "backup_recovery_point": "RecoveryPointArn", "datasync_task": "TaskArn", "dax_cluster": "ClusterArn",
     "dlm_lifecycle_policy": "PolicyId", "dms_endpoint": "EndpointArn", "dms_replication_task": "ReplicationTaskArn", "dms_certificate": "CertificateArn",
     "drs_job": "jobID", "drs_source_server": "sourceServerID", "appautoscaling_target": "ScalableTargetARN", "elasticache_subnet_group": "ARN", "efs_access_point": "AccessPointArn",
     "efs_mount_target": "MountTargetId", "emr_security_configuration": "Name", "emr_block_public_access_configuration": "id",
@@ -72,7 +73,8 @@ NATIVE_IDS = {
 GLOBAL_TYPES = {"iam_service_specific_credential"}
 READ_ACTIONS = {(service, operation) for service, operation, expression in SPECS.values()}
 READ_ACTIONS.update({
-    ("athena", "get_work_group"), ("backup", "list_backup_vaults"), ("backup", "get_backup_vault_access_policy"),
+    ("athena", "get_work_group"), ("athena", "list_work_groups"), ("athena", "get_session"),
+    ("backup", "list_backup_vaults"), ("backup", "get_backup_vault_access_policy"),
     ("dynamodb", "get_resource_policy"), ("dynamodb", "list_tags_of_resource"),
     ("efs", "describe_file_systems"), ("efs", "describe_backup_policy"), ("efs", "describe_file_system_policy"),
     ("efs", "describe_mount_target_security_groups"),
@@ -157,6 +159,45 @@ def _paged(service, operation, expression, tokens=None, **fixed):
     def fetch(requests, session, region, account):
         return requests.pages(session, service, region, operation, expression, _tokens=tokens, **fixed)
     return fetch
+
+
+def _athena_sessions(requests, session, region, account):
+    """Collect only the exact role and state of sessions in listed workgroups."""
+    groups = requests.pages(session, "athena", region, "list_work_groups", "WorkGroups",
+                            _tokens=("NextToken", "NextToken"))
+    if groups.status not in ("collected", "empty", "partial"):
+        return _aws().ReadResult([], groups.status, groups.error)
+    rows = []
+    failures = [(groups.status, groups.error)] if groups.status == "partial" else []
+    for group in groups.items:
+        name = group.get("Name") if isinstance(group, dict) else None
+        if not isinstance(name, str) or not name:
+            failures.append(("malformed", {"code": "athena_workgroup_name_missing"}))
+            continue
+        listed = requests.pages(session, "athena", region, "list_sessions", "Sessions",
+                                _tokens=("NextToken", "NextToken"), WorkGroup=name)
+        if listed.status not in ("collected", "empty"):
+            failures.append((listed.status, listed.error))
+        for summary in listed.items:
+            session_id = summary.get("SessionId") if isinstance(summary, dict) else None
+            if not isinstance(session_id, str) or not session_id:
+                failures.append(("malformed", {"code": "athena_session_id_missing"}))
+                continue
+            detail = requests.detail(session, "athena", region, "get_session", SessionId=session_id)
+            if detail.get("collection_status") != "collected":
+                failures.append((detail.get("collection_status", "malformed"), detail.get("error")))
+                continue
+            if detail.get("SessionId") != session_id or detail.get("WorkGroup") != name:
+                failures.append(("malformed", {"code": "athena_session_identity_mismatch"}))
+                continue
+            config = detail.get("SessionConfiguration")
+            status = detail.get("Status")
+            rows.append({"SessionId": session_id, "WorkGroup": name,
+                         "SessionConfiguration": _pick(config, ["ExecutionRole"]),
+                         "Status": _pick(status, ["State"]),
+                         "NotebookVersion": detail.get("NotebookVersion"),
+                         "EngineVersion": detail.get("EngineVersion")})
+    return _result(rows, failures)
 
 
 # ----------------------------------------------------------------------------- data
@@ -329,6 +370,7 @@ def _model_invocation_logging(requests, session, region, account):
 
 FETCHERS = {
     "athena_workgroup": _paged("athena", "list_work_groups", "WorkGroups", ("NextToken", "NextToken")),
+    "athena_session": _athena_sessions,
     "backup_recovery_point": _recovery_points,
     "drs_job": _drs_jobs,
     "drs_source_server": _drs_source_servers,

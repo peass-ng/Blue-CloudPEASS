@@ -579,6 +579,14 @@ CONTROLTOWER_ACTIONS = frozenset(action for rows in CONTROLTOWER_STATEMENTS.valu
 
 VERIFIED_ACTIONS = VERIFIED_ACTIONS | WAF_ASSOCIATION_ACTIONS | NATIVE_METADATA_ACTIONS | CONTROLTOWER_ACTIONS
 
+# Session inventory is required to join an existing Athena Spark session to its
+# exact execution role. These APIs return metadata, never endpoint/notebook tokens.
+ATHENA_SESSION_METADATA_REFERENCES = {
+    "athena:ListSessions": "https://docs.aws.amazon.com/athena/latest/APIReference/API_ListSessions.html",
+    "athena:GetSession": "https://docs.aws.amazon.com/athena/latest/APIReference/API_GetSession.html",
+}
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(ATHENA_SESSION_METADATA_REFERENCES)
+
 
 def build_policy(read_actions=None, *, include_credential_report_generation=None,
                  include_waf_association_companions=True):
