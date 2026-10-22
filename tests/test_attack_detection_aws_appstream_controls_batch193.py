@@ -76,6 +76,25 @@ def test_agent_input_requires_explicit_enablement_and_success():
     assert normalize(failed) == []
 
 
+def test_agent_tool_forwarding_and_observer_mode_are_distinct():
+    row = event("UpdateStack", {
+        "name": "synthetic-stack", "agentAccessConfig": {
+            "settings": [{"agentAction": "FORWARD_MCP_TOOLS", "permission": "ENABLED"}],
+            "userControlMode": "DISABLED",
+        },
+    })
+    signal = normalize(row)[0]
+    assert signal["request.appstream_agent_tools_forwarded"] is True
+    assert signal["request.appstream_agent_observer_disabled"] is True
+    assert "request.appstream_agent_input_enabled" not in signal
+    allowed = deepcopy(row)
+    allowed["requestParameters"]["agentAccessConfig"]["userControlMode"] = "VIEW_STOP"
+    assert "request.appstream_agent_observer_disabled" not in normalize(allowed)[0]
+    disabled = deepcopy(row)
+    disabled["requestParameters"]["agentAccessConfig"]["settings"][0]["permission"] = "DISABLED"
+    assert "request.appstream_agent_tools_forwarded" not in normalize(disabled)[0]
+
+
 def test_unrelated_events_and_invalid_structure_fail_closed():
     row = entitlement("CreateEntitlement")
     for key, value in (("eventSource", "other.amazonaws.com"),

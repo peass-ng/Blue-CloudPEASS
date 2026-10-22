@@ -82,6 +82,11 @@ def normalize(record: Mapping[str, Any]) -> list[dict[str, Any]]:
                 if any(item.get("agentAction") == "COMPUTER_INPUT"
                        and item.get("permission") == "ENABLED" for item in actions):
                     flags["request.appstream_agent_input_enabled"] = True
+                if any(item.get("agentAction") == "FORWARD_MCP_TOOLS"
+                       and item.get("permission") == "ENABLED" for item in actions):
+                    flags["request.appstream_agent_tools_forwarded"] = True
+            if agent.get("userControlMode") == "DISABLED":
+                flags["request.appstream_agent_observer_disabled"] = True
     if not flags:
         return []
     return [{
