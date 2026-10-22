@@ -184,7 +184,21 @@ def test_current_transport_source_successor_and_predecessor():
         if function is azure.AzureTransport.request:
             # The network successor adds only bounded read-only origin and
             # response projection. Keep the original transport receipt intact.
-            assert hashlib.sha256(current_body.encode()).hexdigest() == '4ab47f9547363db048e78c5ff2a9322b9b58c39ca0a9df591cbf120d28e806ab'
+            import ast
+            from peaso.private_secret_source_epoch_20261021 import trusted_definition
+            from peaso.checks.private_secret_shared_source_successor_20261021 import _private_before
+            path = 'peaso/collectors/azure.py'
+            proof = trusted_definition(function, root)
+            expected_before = '4ab47f9547363db048e78c5ff2a9322b9b58c39ca0a9df591cbf120d28e806ab'
+            assert proof['historical']['source_sha256'] == expected_before
+            before = _private_before(path, (root / path).read_bytes(), root)
+            tree = ast.parse(before)
+            owner, = [node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == 'AzureTransport']
+            method, = [node for node in owner.body if isinstance(node, ast.FunctionDef) and node.name == 'request']
+            lines = before.decode().splitlines(keepends=True)
+            predecessor_body = ''.join(lines[method.lineno - 1:method.end_lineno])
+            assert hashlib.sha256(predecessor_body.encode()).hexdigest() == expected_before
+            current_body = predecessor_body
             additions = (
                 '        from .azure_network_data import is_network_audience, allowed_route, project_response\n'
                 '        if is_network_audience(audience):\n'

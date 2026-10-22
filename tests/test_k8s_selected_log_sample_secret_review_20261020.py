@@ -193,7 +193,7 @@ def capture(monkeypatch, *, targets=None, value='service ready', real=False, mis
     def observed_finalize(scopes, collections, metadata, *ledgers):
         # Observation/privacy canaries only: the production collector performs
         # every read and creates every marker, receipt and scope binding.
-        assert len(ledgers) == 3
+        assert len(ledgers) == 6
         trace.ledgers = ledgers
         if combined:
             metadata['other_projection'] = {'name': TOKEN, TOKEN: 'safe',
@@ -246,7 +246,7 @@ def test_native_sample_public_engine_and_privacy(monkeypatch, hit, real):
     assert trace.api.api_client.last_response is None
     assert trace.api.api_client.rest_client.pool_manager.literal_paths == frozenset()
     assert trace.api.api_client.rest_client.pool_manager.selected_log_requests == frozenset()
-    assert trace.ledgers == (set(), set(), set())
+    assert trace.ledgers == (set(), set(), set(), set(), set(), set())
     if hit:
         leak, = evidence['secret_leaks']
         assert {d['engine'] for d in leak['detectors']} == {'kingfisher', 'trufflehog'}
@@ -444,7 +444,7 @@ def test_literal_log_same_value_hmac_and_union_redaction(monkeypatch):
     assert len(leaks) == 1 and len(leaks[0]['locations']) == 2
     assert set(all_rows[0]['linked_check_ids']) == {source.CHECK, literals.CHECK}
     assert TOKEN not in json.dumps([snapshot, all_rows, list(scanning._RESULTS.values())])
-    assert len(trace.calls) == 5 and trace.ledgers == (set(), set(), set())
+    assert len(trace.calls) == 5 and trace.ledgers == (set(), set(), set(), set(), set(), set())
 
 
 def test_identity_text_hits_are_redacted_and_exact_dedup(monkeypatch):
@@ -757,14 +757,32 @@ def test_proposal_owned_source_and_fixture_receipts():
     assert proposal['registration'] == 'unregistered_proposal_only'
     assert proposal['declarations'] == consumer.DECLARATIONS
     assert proposal['native_kind'] == source.KIND and proposal['declarations'][0]['id'] == source.CHECK
+    import ast
+    import hashlib
+    from peaso.checks import k8s_selected_log_source_successor_20261021 as successor
+    _, current_source, predecessor_source = successor._proof()
+    producer_path = 'peaso/collectors/k8s_selected_log_sample_secret_indicators.py'
+    assert current_source == Path(producer_path).read_bytes()
     for row in proposal['files']:
-        assert hashlib.sha256(Path(row['path']).read_bytes()).hexdigest() == row['sha256']
+        raw = predecessor_source if row['path'] == producer_path else Path(row['path']).read_bytes()
+        assert hashlib.sha256(raw).hexdigest() == row['sha256']
+    tree = ast.parse(predecessor_source)
+    lines = predecessor_source.decode().splitlines(keepends=True)
     for row in proposal['functions']:
         module = consumer if row['qualname'] == 'evaluate' else source
         function = inspect.unwrap(getattr(module, row['qualname']))
         assert row['path'] == str(Path(inspect.getsourcefile(function)).relative_to(Path.cwd()))
-        assert row['line'] == inspect.getsourcelines(function)[1]
-        assert row['sha256'] == hashlib.sha256(inspect.getsource(function).encode()).hexdigest()
+        if row['path'] == producer_path:
+            node, = [item for item in tree.body if isinstance(item, ast.FunctionDef) and item.name == row['qualname']]
+            start = min([node.lineno] + [decorator.lineno for decorator in node.decorator_list])
+            historical = ''.join(lines[start - 1:node.end_lineno])
+            assert row['line'] == start
+            assert row['sha256'] == hashlib.sha256(historical.encode()).hexdigest()
+            if row['qualname'] != 'collect':
+                assert inspect.getsource(function) == historical
+        else:
+            assert row['line'] == inspect.getsourcelines(function)[1]
+            assert row['sha256'] == hashlib.sha256(inspect.getsource(function).encode()).hexdigest()
     assert proposal['bounded_cost']['targets'] == 4 and proposal['bounded_cost']['http_gets_max'] == 12
 
 

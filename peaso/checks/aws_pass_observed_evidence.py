@@ -795,12 +795,10 @@ REVIEWED_FIELDS = {'aws.s3.versioning': {'field': 'versioning_status', 'label': 
  'aws.a.cloudtrail.joined_bucket_declared_public_grants': {'field': 'public_acl_groups',
                                                            'label': 'Public bucket ACL groups'},
  'aws.a.cloudtrail.home_bucket_mfa_join': {'field': 'mfa_delete', 'label': 'Bucket MFA Delete setting'},
- 'aws.a.iam.unused_credentials_45_days': {'field': 'stale_enabled_credentials',
-                                          'label': 'Enabled credential slots outside the checked use-age '
-                                                   'window'},
- 'aws.a.iam.unused_credentials_90_days': {'field': 'stale_enabled_credentials',
-                                          'label': 'Enabled credential slots outside the checked use-age '
-                                                   'window'},
+ 'aws.a.iam.unused_credentials_45_days': {'field': 'captured_credentials',
+                                          'label': 'Enabled credentials with recorded use'},
+ 'aws.a.iam.unused_credentials_90_days': {'field': 'captured_credentials',
+                                          'label': 'Enabled credentials with recorded use'},
  'aws.a.iam.root_hardware_mfa': {'field': 'account_mfa_enabled',
                                  'label': 'Root MFA enabled in the account summary'},
  'aws.a.s3.mfa_delete_enabled': {'field': 'mfa_delete', 'label': 'Bucket MFA Delete setting'},
@@ -1146,10 +1144,34 @@ def _readable(value):
     return isinstance(value,str) and bool(value.strip()) and len(value)<=320 and not any(c in value for c in '\n\r\x00')
 
 
+_CURRENT_CREDENTIAL_USE = {
+    'aws.a.iam.unused_credentials_45_days': 45,
+    'aws.a.iam.unused_credentials_90_days': 90,
+    'aws.gap.iam.active_keys_used_within_45_days': 45,
+}
+
+
+def _current_credential_use(cid, evidence):
+    captured = evidence.get('captured_credentials')
+    generated = evidence.get('report_generated_at')
+    if (evidence.get('threshold_days') != _CURRENT_CREDENTIAL_USE[cid]
+            or not isinstance(captured, list) or not captured
+            or any(not isinstance(row, dict) or row.get('state') != 'active'
+                   or not _readable(row.get('last_used')) for row in captured)
+            or evidence.get('stale_credentials') != []
+            or not _readable(generated) or len(generated) < 10):
+        return None
+    family = 'active access keys' if cid.startswith('aws.gap.') else 'enabled credentials'
+    return (f'The IAM user has {len(captured)} {family} with recorded recent use within {_CURRENT_CREDENTIAL_USE[cid]} days.\n'
+            f'The credential report was generated on {generated[:10]}.\n'
+            'Those credentials may still be used to reach account resources and related data.')
+
+
 def evidence_summary(finding):
     if not isinstance(finding,dict) or finding.get('provider')!='aws' or finding.get('status')!='PASS':return None
     cid=finding.get('check_id');e=finding.get('evidence')
     if not isinstance(cid,str) or not isinstance(e,dict):return None
+    if cid in _CURRENT_CREDENTIAL_USE:return _current_credential_use(cid,e)
     from .aws_pass_specific_observations import evidence_summary as specific_summary
     specific=specific_summary(finding)
     if specific is not None:return specific

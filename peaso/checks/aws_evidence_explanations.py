@@ -11,7 +11,11 @@ from pathlib import Path
 
 @lru_cache(maxsize=1)
 def review_rows():
-    return json.loads(Path(__file__).with_suffix('.json').read_text())
+    historical = json.loads(Path(__file__).with_suffix('.json').read_text())
+    current = json.loads(Path(__file__).with_name('aws_current_evidence_rows_20261022.json').read_text())
+    if set(historical) & set(current):
+        raise ValueError('Current AWS evidence rows overlap historical review')
+    return historical | current
 
 
 def reviewed_explanation(check_id, observation, status=None):
@@ -272,6 +276,9 @@ def evidence_summary(finding):
         return None
     if status not in {'PASS', 'FAIL', 'UNKNOWN', 'DENIED', 'MANUAL', 'NOT_APPLICABLE', 'EMPTY'}:
         return None
+    from .aws_current_evidence_20261022 import CURRENT_IDS, explanation as current_explanation
+    if cid in CURRENT_IDS:
+        return current_explanation(cid, e)
     observed_finding = dict(finding, check_id=row['alias_of']) if row.get('alias_of') else finding
     from .aws_natural_evidence import complete_explanation, natural_observation
     complete = complete_explanation(observed_finding)
