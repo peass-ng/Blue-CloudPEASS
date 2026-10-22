@@ -14,8 +14,9 @@ _S3_URI = re.compile(r"s3://[a-z0-9][a-z0-9.-]{1,61}[a-z0-9](?:/[^\s]*)?\Z")
 
 
 def normalize(record: Mapping[str, Any]) -> dict[str, Any] | None:
+    name = record.get("eventName")
     if (record.get("eventSource") != "logs.amazonaws.com"
-            or record.get("eventName") != "CreateScheduledQuery"
+            or name not in {"CreateScheduledQuery", "UpdateScheduledQuery"}
             or record.get("eventType") != "AwsApiCall"
             or record.get("eventCategory") != "Management"
             or record.get("managementEvent") is not True
@@ -53,6 +54,7 @@ def normalize(record: Mapping[str, Any]) -> dict[str, Any] | None:
     resources = record.get("resources")
     if (not isinstance(arn, str)
             or not arn.startswith(f"arn:aws:logs:{region}:{account}:scheduled-query:")
+            or (name == "UpdateScheduledQuery" and request.get("identifier") != arn)
             or not isinstance(resources, list) or len(resources) != 1
             or not isinstance(resources[0], Mapping)
             or resources[0].get("type") != "AWS::Logs::ScheduledQuery"
@@ -63,7 +65,7 @@ def normalize(record: Mapping[str, Any]) -> dict[str, Any] | None:
         return None
     return {
         "cloud.provider": "aws", "event.source": "logs.amazonaws.com",
-        "event.name": "CreateScheduledQuery", "event.outcome": "success",
+        "event.name": name, "event.outcome": "success",
         "event.id": record["eventID"], "event.time": record.get("eventTime"),
         "account.id": account, "actor.id": identity.get("arn"),
         "target.id": "sha256:" + hashlib.sha256(arn.encode()).hexdigest()[:24],

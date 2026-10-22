@@ -46,6 +46,19 @@ def rule():
     )
 
 
+def update_rule():
+    return Rule(
+        id="20800000-0000-4000-8000-000000000001",
+        title="Enabled Logs scheduled query updated", level="medium",
+        description="Accepted enabled scheduled query update",
+        technique_id="aws-logs-enabled-scheduled-query-updated",
+        product="aws", selection={
+            "event.source": "logs.amazonaws.com", "event.name": "UpdateScheduledQuery",
+            "event.outcome": "success", "request.logs_enabled_scheduled_query": True,
+        },
+    )
+
+
 def test_enabled_query_matches_without_exporting_query_or_destination():
     row = event()
     signal = normalize(row)
@@ -53,6 +66,16 @@ def test_enabled_query_matches_without_exporting_query_or_destination():
     assert signal["target.id"].startswith("sha256:")
     assert "synthetic-bucket" not in str(signal) and "@message" not in str(signal)
     assert len(detect_aws_events([row], (rule(),))) == 1
+
+
+def test_enabled_update_requires_matching_query_identifier():
+    row = event()
+    row["eventName"] = "UpdateScheduledQuery"
+    row["requestParameters"]["identifier"] = ARN
+    assert normalize(row) is not None
+    assert len(detect_aws_events([row], (update_rule(),))) == 1
+    row["requestParameters"]["identifier"] = ARN.replace("synthetic-query", "other-query")
+    assert normalize(row) is None
 
 
 def test_disabled_failed_or_incoherent_query_does_not_match():
