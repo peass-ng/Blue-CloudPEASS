@@ -52,7 +52,7 @@ def main():
         f"- HackTricks pages: {page_counts['reviewed']} reviewed, {page_counts['triaged']} still need sign-off.",
         "- Source and data presentation pins: reconciled; 12,145 cold parity witnesses passed. No source drift remains.",
         "- AWS privilege escalation test glob: 77 tests passed, then `test_k8s_openshift_techniques_need_openshift_api` expected FAIL but received MANUAL. This mixed-provider test failure has not been adjudicated.",
-        "- Full test suite: cloud and test extras are installed. Current `origin/main` import of `peaso.checks` fails in `k8s_annotation_native_source_successor_20261021._current_functions` on `_component_config`. The earlier full-suite run also exposed an AWS workload secret-source receipt mismatch for two changed source files; recheck it after import is repaired. Both are global gates, not proof that an AWS privesc technique passed or failed.",
+        "- Full test suite: cloud and test extras are installed. An immediate post-rebase import failed once in Kubernetes `_component_config` admission; three subsequent fresh imports passed. The full-suite run stopped at the AWS workload secret-source receipt, whose pinned hashes do not match `peaso/collectors/aws_workload_command_source_20261020.py` and `peaso/secret_scanning.py`. Review that receipt and rerun. This is a global gate, not an AWS privesc result.",
         "- Publication gate: CSPM work must be present on `origin/main`, and HackTricks Cloud YAML must remain byte-identical to the CSPM catalog. The 138 YAML files matched at this checkpoint; verify both remote heads before final sign-off.",
         "", "## Active techniques: work completed and exact remaining action", "",
     ]
