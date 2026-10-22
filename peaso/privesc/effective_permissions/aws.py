@@ -115,6 +115,7 @@ SELECTOR_HOSTS = {"cognito_user_pool_group_role_covered_by": "cognito_user_pool_
                   "cognito_developer_classic_role": "cognito_developer_classic",
                   "cognito_developer_settable_authenticated_role": "cognito_developer_settable_authenticated",
                   "cognito_developer_enable_classic_role": "cognito_developer_enable_classic",
+                  "cognito_guest_update_classic_role": "cognito_guest_update_classic",
                   "codedeploy_group_instance_role_covered_by": "codedeploy_deployment_group",
                   "rolesanywhere_profile_includes_target": "rolesanywhere_profile"}
 # service_plane value -> collected inventory of that application plane (aws_service_plane_admin targets).
@@ -3467,6 +3468,65 @@ class AwsModel(Model):
                 if rid not in out and (unknown or self.host_status.get((node.scope, host)) not in ("collected", "empty")):
                     out[rid] = ("unknown", "cognito_developer_pool_role_or_trust_not_verified")
             return out
+        if key == "cognito_guest_update_classic_role":
+            if source is None or source.kind not in ("aws_user", "aws_role"):
+                return {}
+            host = "cognito_guest_update_classic"
+            for rid in candidates:
+                unknown = False
+                for pool_arn in self.hosts.get(rid, {}).get(host, ()):
+                    if _account(pool_arn) != source.scope:
+                        continue
+                    partition = str(pool_arn).split(":", 2)[1]
+                    if not source.id.startswith(f"arn:{partition}:") or not rid.startswith(f"arn:{partition}:"):
+                        continue
+                    region = str(pool_arn).split(":")[3]
+                    _, federated, condition_prefix = _cognito_pool_identity(region)
+                    permission = self._check_action(source, "cognito-identity:UpdateIdentityPool", pool_arn)
+                    if permission is None:
+                        continue
+                    if permission.confidence == "unknown":
+                        unknown = True
+                        continue
+                    pool_id = str(pool_arn).split("identitypool/", 1)[-1]
+                    overrides = {condition_prefix + ":aud": [pool_id],
+                                 condition_prefix + ":amr": ["unauthenticated"]}
+                    denied = self._trust_explicit_deny(rid, "sts:AssumeRoleWithWebIdentity",
+                                                        federated=federated, extra_overrides=overrides)
+                    if denied is True:
+                        continue
+                    context = Context(action="sts:assumerolewithwebidentity", resource=rid, overrides=overrides)
+                    not_principal_deny = any(
+                        statement.effect == "deny" and statement.ref.get("not_principal")
+                        and statement.action_matches("sts:AssumeRoleWithWebIdentity")
+                        and (not statement.condition or evaluate_condition(statement.condition, context)[0] is not False)
+                        for statement in self.trust.get(rid, ()))
+                    for statement in self.trust.get(rid, ()):
+                        principal = statement.principals
+                        if (statement.effect != "allow" or statement.ref.get("not_principal")
+                                or not statement.action_matches("sts:AssumeRoleWithWebIdentity")
+                                or not isinstance(principal, dict)
+                                or federated not in
+                                [str(name).lower() for name in as_list(principal.get("Federated"))]):
+                            continue
+                        if _account(rid) != source.scope:
+                            condition_keys = {str(name).lower() for values in (statement.condition or {}).values()
+                                              if isinstance(values, dict) for name in values}
+                            if not {condition_prefix + ":aud", condition_prefix + ":amr"} <= condition_keys:
+                                continue
+                        verdict, _ = evaluate_condition(statement.condition, context) if statement.condition else (True, ())
+                        if verdict is False:
+                            continue
+                        if verdict is True and not statement.variables and denied is False and not not_principal_deny:
+                            out[rid] = None if permission.confidence == "derived" else (
+                                "conditional", "cognito_guest_pool_update_permission_conditional")
+                            break
+                        unknown = True
+                    if rid in out and out[rid] is None:
+                        break
+                if rid not in out and (unknown or self.host_status.get((source.scope, host)) not in ("collected", "empty")):
+                    out[rid] = ("unknown", "cognito_guest_pool_role_or_trust_not_verified")
+            return out
         if key == "consumer_input_writable_via" and str(value).lower().startswith("imagebuilder:"):
             # Recipe component ARNs (GetImageRecipe) decide membership: a version-wildcard account-owned component is derived;
             # fully pinned / AWS-owned components only exclude the role; an uncollected recipe stays conditional.
@@ -3970,6 +4030,7 @@ class AwsModel(Model):
         classic_pools = []
         settable_pools = []
         enable_classic_pools = []
+        guest_update_pools = []
 
         def add(role, host, resource):
             listed = self.hosts.setdefault(role, {}).setdefault(host, [])
@@ -3995,6 +4056,18 @@ class AwsModel(Model):
             pool_id = item.get("IdentityPoolId")
             partition, _, _ = _cognito_pool_identity(region)
             pool_arn = f"arn:{partition}:cognito-identity:{region}:{account}:identitypool/{pool_id}" if pool_id else None
+            if (pool_arn and isinstance(config, dict) and config.get("collection_status") == "collected"
+                    and isinstance(config.get("IdentityPoolName"), str) and config["IdentityPoolName"]
+                    and type(config.get("AllowUnauthenticatedIdentities")) is bool
+                    and isinstance(roles, dict) and roles.get("collection_status") in ok
+                    and isinstance(roles.get("RoleMappings", {}), dict)
+                    and not roles.get("RoleMappings")):
+                # UpdateIdentityPool can enable guest and Basic flow together. Basic flow
+                # cannot issue tokens while the pool has role mappings.
+                guest_update_pools.append((pool_arn, region))
+            elif (not isinstance(config, dict) or config.get("collection_status") != "collected"
+                  or not isinstance(roles, dict) or roles.get("collection_status") not in ok):
+                partial.add((account, "cognito_guest_update_classic"))
             if (pool_arn and isinstance(config, dict) and config.get("collection_status") == "collected"
                     and isinstance(config.get("DeveloperProviderName"), str)
                     and config["DeveloperProviderName"].strip()):
@@ -4088,6 +4161,11 @@ class AwsModel(Model):
             for role_arn in self.trust_by_federated.get(federated, {}):
                 if role_arn in self.principals and role_arn.startswith(f"arn:{partition}:iam::"):
                     add(role_arn, "cognito_developer_enable_classic", pool_arn)
+        for pool_arn, region in guest_update_pools:
+            partition, federated, _ = _cognito_pool_identity(region)
+            for role_arn in self.trust_by_federated.get(federated, {}):
+                if role_arn in self.principals and role_arn.startswith(f"arn:{partition}:iam::"):
+                    add(role_arn, "cognito_guest_update_classic", pool_arn)
         for pool_arn, region in settable_pools:
             partition, federated, _ = _cognito_pool_identity(region)
             for role_arn in self.trust_by_federated.get(federated, {}):
@@ -4100,7 +4178,8 @@ class AwsModel(Model):
                            ("cognito_developer_authenticated", "cognito_identity_pool"),
                            ("cognito_developer_classic", "cognito_identity_pool"),
                            ("cognito_developer_settable_authenticated", "cognito_identity_pool"),
-                           ("cognito_developer_enable_classic", "cognito_identity_pool")):
+                           ("cognito_developer_enable_classic", "cognito_identity_pool"),
+                           ("cognito_guest_update_classic", "cognito_identity_pool")):
             for scope, status in inventory_status(snap, kind).items():
                 key = (scope.split("/")[0], host)
                 if self.host_status.get(key) in (None, "collected", "empty"):

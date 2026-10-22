@@ -21,7 +21,12 @@ V4_EFFECTIVE_TREE = "413792ea4aec86e48c352ffab2c0bea9e82795bc234251342737ec0276b
 LEGACY_DELTA = Path(__file__).resolve().parent / "catalog_versions/legacy-0b3633-delta.json"
 BOUNDED_MANIFEST = "734401b202895e00ac1b6cb0f1534f77cde4d8e2ba912ca0ee974b1b8ec5035c"
 BOUNDED_TREE = "1a54bad4102d18f89c78f45c915964554a62f994c1bffa693844cac5e119cca8"
-CURRENT_MANIFEST = '070ffca432c04525fd59598b50b38e3dace8e7f1f9eaad60f8851fc4ee68fe1e'
+CURRENT_MANIFEST = '70f2970c1744af66851bbe87dfa372a18aa908c89f5f61d7072b8313918f64c6'
+COGNITO_GUEST_682_PREVIOUS_MANIFEST = '070ffca432c04525fd59598b50b38e3dace8e7f1f9eaad60f8851fc4ee68fe1e'
+COGNITO_GUEST_682_PREVIOUS_TREE = '86de91111e926806ad603078a88e1becd5ffc53f50b7323bb9fa0e5ccfa2114b'
+COGNITO_GUEST_682_PREVIOUS_ARCHIVE_SHA256 = '12f90b298900206937bc7c01fbfc2962d495fcb2b2c3975e5f6c45a060c3b82c'
+COGNITO_GUEST_682_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-682-cognito-guest-classic-source-manifest.json'
+COGNITO_GUEST_682_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-682-cognito-guest-classic-catalog.tar.gz'
 SAGEMAKER_ATTACH_682_PREVIOUS_MANIFEST = '1e3da74d7edbd1490aeafccfa650e7e01a7a71163d5aa959b8e6f9244949ebd9'
 SAGEMAKER_ATTACH_682_PREVIOUS_TREE = 'dd09ade57ea0a886c7a37963c60b1f7badfbbb6bbf65bd9abf3f737dfe7c3a07'
 SAGEMAKER_ATTACH_682_PREVIOUS_ARCHIVE_SHA256 = 'd1dd9259a4cbd1383a916e80235d74be26929f604fe8dbc3caf579aeeee02d25'
@@ -181,9 +186,9 @@ PRIOR_CURRENT_MANIFEST = "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0c
 PRIOR_DISCLOSURE_MANIFEST = "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
 PRIOR_DISCLOSURE_TREE = "5091464bedcb10bb87301695ca733276dc67b865e544c408ccf72a5408176f0f"
 PRIOR_DISCLOSURE_HISTORY = Path(__file__).resolve().parent / "catalog_versions/disclosure-v7-manifest.json"
-CURRENT_TREE = '86de91111e926806ad603078a88e1becd5ffc53f50b7323bb9fa0e5ccfa2114b'
+CURRENT_TREE = '781cd6f1481e00cc34086fbcaa4f2bd6147beaad623762725fda6c1ddc2445da'
 PRIOR_CURRENT_TREE = "99207e6469fc5e5b3daf21324e6860599b116ffcf7d30600643bd229b0f11494"
-CURRENT_ENTRY_COUNT = 682
+CURRENT_ENTRY_COUNT = 683
 CURRENT_EXCLUDED_COUNT = 3723
 CURRENT_HISTORY = Path(__file__).resolve().parent / "catalog_versions/bulk-principal-v6-manifest.json"
 PRIOR_CATALOG_ARCHIVE = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-catalog-20261016.tar.gz"
@@ -240,6 +245,15 @@ def _verified_gamelift_group_682_previous():
         GAMELIFT_GROUP_682_PREVIOUS_MANIFEST_PATH, GAMELIFT_GROUP_682_PREVIOUS_ARCHIVE,
         GAMELIFT_GROUP_682_PREVIOUS_MANIFEST, GAMELIFT_GROUP_682_PREVIOUS_ARCHIVE_SHA256,
         GAMELIFT_GROUP_682_PREVIOUS_TREE, 682, 3723)
+
+
+@lru_cache(maxsize=1)
+def _verified_cognito_guest_682_previous():
+    """Keep the exact catalog before the Cognito guest Basic-flow route."""
+    return _verified_archived_current(
+        COGNITO_GUEST_682_PREVIOUS_MANIFEST_PATH, COGNITO_GUEST_682_PREVIOUS_ARCHIVE,
+        COGNITO_GUEST_682_PREVIOUS_MANIFEST, COGNITO_GUEST_682_PREVIOUS_ARCHIVE_SHA256,
+        COGNITO_GUEST_682_PREVIOUS_TREE, 682, 3723)
 
 
 @lru_cache(maxsize=1)
@@ -557,6 +571,10 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == SAGEMAKER_ATTACH_682_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "sagemaker_attach_682_previous", "exact_previous_current"
+    elif (binding.get("manifest_sha256") == COGNITO_GUEST_682_PREVIOUS_MANIFEST and
+          binding.get("effective_tree_sha256") == COGNITO_GUEST_682_PREVIOUS_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "cognito_guest_682_previous", "exact_previous_current"
     elif (binding.get("manifest_sha256") == GAMELIFT_GROUP_682_PREVIOUS_MANIFEST and
           binding.get("effective_tree_sha256") == GAMELIFT_GROUP_682_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -676,6 +694,9 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
             return {ident: current[ident] for ident in ids if ident in current}, status
         if version == "sagemaker_attach_682_previous":
             previous = _verified_sagemaker_attach_682_previous()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
+        if version == "cognito_guest_682_previous":
+            previous = _verified_cognito_guest_682_previous()
             return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "gamelift_group_682_previous":
             previous = _verified_gamelift_group_682_previous()
