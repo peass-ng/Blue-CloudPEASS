@@ -73,7 +73,7 @@ src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iam-privesc/READM
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-invoicing-and-billing-privesc/README.md	9	0	0	triaged	The page separates billing rights and disclosure from IAM role escalation; check each linked bounded operation.
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iot-core-privesc/README.md	9	0	1	pending	-
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iot-privesc/README.md	24	1	1	pending	-
-src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iot-sitewise-privesc/README.md	4	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iot-sitewise-privesc/README.md	4	1	1	triaged	Existing aws-sitewise-createaccesspolicy-portal-self-grant covers an exact reviewed portal self-grant; the wider controlled-identity variant lacks an identity-control join. SiteWise Monitor grants access to portal/project operational data through its portal role, not an IAM identity-policy grant to another principal; legacy enrollment and actual portal access remain conditions.
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-iot-twinmaker-privesc/README.md	5	0	0	triaged	Connector invocation and PassRole may execute service work; inspect exact connector, controllable input and target role before deciding.
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ivs-privesc/README.md	9	0	0	triaged	The page lists stream and stage credentials, not IAM role credentials; verify each token remains within IVS.
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-kinesis-data-streams-privesc/README.md	4	0	1	triaged	CreateChannel and AssociateStreamsWithChannel use a passed service role to deliver selected stream records to S3 or S3 Tables. The caller receives bounded data through a configured destination, not the role or a new IAM permission. No principal-to-principal route on this page; AWS Kinesis CreateChannel API.
@@ -87,7 +87,7 @@ src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-mainframe-moderni
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-managed-blockchain-privesc/README.md	4	0	0	triaged	The page describes a Fabric network invitation; verify this does not grant an AWS IAM principal.
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-managed-flink-privesc/README.md	9	1	1	triaged	Running Studio presigned-URL route is cataloged with exact application-to-role join. Existing streaming application code-update route is a candidate; it needs a collected code pointer, source write access, target role read access and an execution transition.
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-managed-grafana-privesc/README.md	10	1	1	pending	-
-src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-mediapackage-privesc/README.md	8	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-mediapackage-privesc/README.md	8	0	1	triaged	Describe/List/Rotate expose or replace MediaPackage v1 HLS ingest credentials. They can affect media input when an endpoint is reachable but do not yield AWS IAM credentials, policy authority, or another AWS principal. All four routes are already classified as bounded post-exploitation operations.
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-memorydb-user-reset-privesc/README.md	4	0	0	triaged	The page describes a MemoryDB ACL password change; check the separate IAM-auth path before excluding an AWS principal transition.
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-migration-hub-orchestrator-privesc/README.md	5	1	1	pending	-
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-migration-hub-privesc/README.md	4	1	1	pending	-
@@ -107,7 +107,7 @@ src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-rds-privesc/READM
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-redshift-privesc/README.md	18	0	1	pending	-
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-region-switch-privesc/README.md	8	0	1	pending	-
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-resilience-hub-privesc/README.md	4	0	1	pending	-
-src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-resource-explorer-view-privesc/README.md	4	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-resource-explorer-view-privesc/README.md	4	0	1	triaged	UpdateView changes the filter on an existing view and may broaden metadata visible to existing Search/ListResources consumers within the view's scope. It does not change their IAM grants or create access to another principal; excluded as bounded reconnaissance.
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-route53-domains-privesc/README.md	6	0	1	triaged	GetDomainDetail discloses registration contacts, RetrieveDomainAuthCode returns a transfer credential, and TransferDomainToAnotherAwsAccount moves domain registration only after the receiving account accepts with the returned password. None grants control of an AWS IAM principal; AWS Route 53 Domains transfer API.
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-s3-credential-brokers-privesc/README.md	4	0	1	pending	-
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-s3-files-privesc/README.md	6	0	1	pending	-
@@ -127,7 +127,7 @@ src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-supply-chain-priv
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-synthetics-privesc/README.md	7	0	1	pending	-
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-timestream-privesc/README.md	5	0	0	triaged	The page describes scheduled SQL and a fixed workflow trigger; check whether either can produce an exact IAM principal transition.
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-transfer-family-privesc/README.md	16	0	1	pending	-
-src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-verified-permissions-privesc/README.md	6	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-verified-permissions-privesc/README.md	6	0	1	triaged	Create/UpdatePolicy, template changes, identity-source changes and alias rebinding affect Cedar decisions made by a consuming application. An AWS principal transition would need separate evidence that the application maps those decisions to a specific AWS role or operation; no such exact join is on this page. Routes remain bounded application authorization.
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-wickr-privesc/README.md	4	0	0	triaged	The page points to retention-bot takeover; inspect whether the bot exposes an AWS principal or only Wickr data.
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-workdocs-privesc/README.md	8	0	1	pending	-
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-workspaces-appstream-privesc/README.md	2	0	0	triaged	This page redirects to the canonical AppStream page; reconcile its session takeover routes there.
