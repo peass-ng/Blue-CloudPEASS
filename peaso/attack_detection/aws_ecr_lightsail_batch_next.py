@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
 from datetime import datetime, timedelta
+import hashlib
 import json
 import re
 from typing import Any
@@ -166,7 +167,8 @@ def correlate_tag_overwrite(records: Iterable[Mapping[str, Any]]) -> list[dict[s
             out.append({"cloud.provider": "aws", "event.source": "ecr.amazonaws.com",
                         "event.name": "PutImage", "event.outcome": "success",
                         "event.id": record["eventID"], "event.time": record["eventTime"],
-                        "account.id": account, "actor.id": actor, "target.id": repo + ":" + tag,
+                        "account.id": account, "actor.id": actor,
+                        "target.id": "sha256:" + hashlib.sha256(f"{account}:{region}:{repo}:{tag}".encode()).hexdigest()[:24],
                         "request.ecr_image_tag_digest_changed": True})
         seen[key] = when, digest
     return out
