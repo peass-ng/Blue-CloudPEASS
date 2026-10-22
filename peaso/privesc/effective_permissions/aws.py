@@ -12287,13 +12287,23 @@ class AwsModel(Model):
             root_denies = [st for policy in self.scp_by_target.get(root, ())
                            for st in policy.for_action("sts:assumerole")
                            if st.effect == "deny" and not st.conditional]
+            root_allows = [st for policy in self.scp_by_target.get(root, ())
+                           for st in policy.statements if st.effect == "allow"]
             out = {}
             for tid in candidates:
                 # A newly created account starts at the organization root, so
                 # an unconditional root SCP Deny also applies to its new role.
                 if any(st.resource_matches(tid) for st in root_denies):
                     continue
-                out[tid] = verdict
+                if root_allows and not any(st.action_matches("sts:assumerole") and
+                                           st.resource_matches(tid) and not st.conditional
+                                           for st in root_allows):
+                    # A new member account inherits root SCPs. A recorded root
+                    # allowlist without a definite AssumeRole allow cannot
+                    # establish access from its generated role.
+                    out[tid] = ("unknown", "new_member_root_scp_assume_role_allow_not_verified")
+                else:
+                    out[tid] = verdict
             return out
         if pid == "emr_cluster_session_runtime_role":
             if source is None:

@@ -1014,6 +1014,22 @@ def test_createaccount_new_member_cannot_bypass_root_scp_assume_role_deny():
     assert unaffected["Arn"] in reached(real(snap, CREATE_ACCOUNT), ALICE)
 
 
+def test_createaccount_new_member_needs_root_scp_assume_role_allow():
+    alice = user("alice", allow("organizations:CreateAccount", "sts:AssumeRole"))
+    target = role("shared", org_trust(), account=OTHER)
+    root = "r-root123"
+    parent = col("organization_parent", [{"ChildId": ACCOUNT, "ParentId": root}])
+    scp = col("scp_policy", [{"Id": "p-allow-s3", "TargetId": root,
+        "Detail": {"Policy": {"Content": {"Version": "2012-10-17", "Statement": [
+            {"Effect": "Allow", "Action": "s3:*", "Resource": "*"}]}}}}],
+        scope=f"{OTHER}/{REGION}")
+    snap = aws_snap([alice], extra=[org_accounts(OTHER), parent, scp],
+                    other_roles=[(OTHER, [target])])
+    result = real(snap, CREATE_ACCOUNT, include_unknown=True)
+    assert target["Arn"] not in reached(result, ALICE, CREATE_ACCOUNT)
+    assert_unresolved(result, ALICE, CREATE_ACCOUNT)
+
+
 def test_createaccount_management_identity_is_exempt_from_scps():
     alice = user("alice", allow("organizations:CreateAccount", "sts:AssumeRole"))
     target = role("shared", org_trust(), account=OTHER)
