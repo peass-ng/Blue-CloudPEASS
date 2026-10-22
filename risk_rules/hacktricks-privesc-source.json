@@ -1,6 +1,6 @@
 {
   "repository": "HackTricks-wiki/hacktricks-cloud",
-  "revision": "053d715ff5d63449bec672e73b02c13df4ad19af",
+  "revision": "fff2fd0a055da890c27a434d4da8106ef00bb043",
   "path": "src/privilege-escalation-paths",
   "canonical_sha256": {
     "aws/_excluded_171e_g1.yaml": "2160b8f57f029e74e5a31727815316f459d8364147c47be2c36639c831b9dcb3",
@@ -31,7 +31,7 @@
     "aws/_excluded_refresh_g5.yaml": "2d70398aba5c6f624a190184fc4ccf97a5d5144080965308b7d48e53e07dc6e4",
     "aws/_excluded_refresh_g6.yaml": "7bc590373f3562536c71ce2b52809b3e18994be1edf3de2fa89424b8b946ec83",
     "aws/_excluded_refresh_g7.yaml": "24e5d277b17cbfb100995ce2fb246e5a1fd8df0150ef51cc03ca1801fb8c4184",
-    "aws/_excluded_scoped_credential_overclaim_20261016.yaml": "4bdb33bb5100a6833c25fae22165f1db3550121774c34e9800d6c652e4da0098",
+    "aws/_excluded_scoped_credential_overclaim_20261016.yaml": "513dd1a000d73ef80cdc54720aad32d5bd9d455ae1cb566aac46836d6e35a3ab",
     "aws/_excluded_scoped_role_overclaim_20261016.yaml": "f12b33469eb5f6e233861c01c2b62d4383a2bbb8a56d909077bdd1e0b8b48f9b",
     "aws/_excluded_secondary_bounded_role_overclaim_20261016.yaml": "4fb2b7557329810b13d0886e5559137b23723c2b4062e715b409dc39bdaddab3",
     "aws/_excluded_strict_reaudit_20261016.yaml": "fdcee7400fd95643c0c19a640bb32ad243714bdce48dbcf25e294145bad635cc",
@@ -324,7 +324,7 @@
     "aws/_excluded_refresh_g5.yaml": "2d70398aba5c6f624a190184fc4ccf97a5d5144080965308b7d48e53e07dc6e4",
     "aws/_excluded_refresh_g6.yaml": "7bc590373f3562536c71ce2b52809b3e18994be1edf3de2fa89424b8b946ec83",
     "aws/_excluded_refresh_g7.yaml": "24e5d277b17cbfb100995ce2fb246e5a1fd8df0150ef51cc03ca1801fb8c4184",
-    "aws/_excluded_scoped_credential_overclaim_20261016.yaml": "4bdb33bb5100a6833c25fae22165f1db3550121774c34e9800d6c652e4da0098",
+    "aws/_excluded_scoped_credential_overclaim_20261016.yaml": "513dd1a000d73ef80cdc54720aad32d5bd9d455ae1cb566aac46836d6e35a3ab",
     "aws/_excluded_scoped_role_overclaim_20261016.yaml": "f12b33469eb5f6e233861c01c2b62d4383a2bbb8a56d909077bdd1e0b8b48f9b",
     "aws/_excluded_secondary_bounded_role_overclaim_20261016.yaml": "4fb2b7557329810b13d0886e5559137b23723c2b4062e715b409dc39bdaddab3",
     "aws/_excluded_strict_reaudit_20261016.yaml": "fdcee7400fd95643c0c19a640bb32ad243714bdce48dbcf25e294145bad635cc",
