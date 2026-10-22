@@ -409,7 +409,8 @@ def _parsed_rules(texts: tuple[tuple[str, str], ...], product: str | None) -> tu
         raw_cloudtrail = source.get("x_cloudtrail_raw", False)
         if raw_cloudtrail is not False:
             allowed = {"event.source", "event.name", "event.category", "event.outcome",
-                       "event.read_only", "resource.type", "resource.path_scope_checked"}
+                       "event.read_only", "resource.type", "resource.path_scope_checked",
+                       "actor.invoked_by_service"}
             if (raw_cloudtrail is not True or logsource.get("product") != "aws"
                     or not set(selection).issubset(allowed)
                     or not {"event.source", "event.name", "event.category",
@@ -418,7 +419,14 @@ def _parsed_rules(texts: tuple[tuple[str, str], ...], product: str | None) -> tu
                     or not isinstance(selection["event.name"], str)
                     or selection["event.category"] not in {"Management", "Data"}
                     or selection["event.outcome"] != "success"
-                    or not isinstance(selection["resource.type"], str)):
+                    or not isinstance(selection["resource.type"], str)
+                    or ("actor.invoked_by_service" in selection and (
+                        selection.get("actor.invoked_by_service") != "iottwinmaker.amazonaws.com"
+                        or selection.get("event.source") != "lambda.amazonaws.com"
+                        or selection.get("event.name") != "Invoke"
+                        or selection.get("event.category") != "Data"
+                        or selection.get("event.read_only") is not False
+                        or selection.get("resource.type") != "AWS::Lambda::Function"))):
                 raise ValueError(f"Unsupported raw CloudTrail rule: {name}")
         resource_path_prefix = source.get("x_cloudtrail_resource_path_prefix")
         if resource_path_prefix is not None and (
