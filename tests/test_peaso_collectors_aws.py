@@ -875,13 +875,15 @@ def test_hosted_worker_injects_trusted_scan_flag_after_validation(monkeypatch, t
     private = {"auth": auth, "options": {"organization_role_name": "audit"}}
     captured, finished = [], []
     job = {"id": "scan", "tenant": "tenant", "owner": "owner", "deadline": time.time() + 60,
-        "data": "{}", "connector": json.dumps({"data": {"provider": "aws"}, "auth": "encrypted"})}
+        "data": json.dumps({"ai_enabled": False}), "connector": json.dumps({"data": {"provider": "aws"}, "auth": "encrypted"})}
 
     class Store:
         def claim(self, *args, **kwargs):
             return job
         def public_job(self, row):
             return {"timeline": []}
+        def checkpoint_collections(self, tenant, ident):
+            return []
         def heartbeat(self, *args):
             return True
         def job(self, *args):
