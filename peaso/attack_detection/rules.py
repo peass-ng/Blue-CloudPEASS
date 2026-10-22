@@ -99,6 +99,7 @@ from .aws_route53_profiles_batch139 import normalize as normalize_aws_route53_pr
 from .aws_devicefarm_batch140 import normalize as normalize_aws_devicefarm_batch140
 from .aws_devicefarm_sessions_batch141 import normalize as normalize_aws_devicefarm_sessions_batch141
 from .aws_sagemaker_control_next import normalize_aws_sagemaker_control
+from .aws_sagemaker_space_lcc import normalize_aws_sagemaker_space_lcc
 from .aws_rolesanywhere_next import normalize as normalize_aws_rolesanywhere
 from .aws_customer_profiles_next import normalize as normalize_aws_customer_profiles
 from .aws_customer_profiles_read_next import normalize as normalize_aws_customer_profiles_read
@@ -471,6 +472,7 @@ def detect_aws_events(
         appsync_read_function = normalize_aws_appsync_read_function(record)
         appsync_signed_role = normalize_aws_appsync_signed_role(record)
         sagemaker_control = normalize_aws_sagemaker_control(record)
+        sagemaker_space_lcc = normalize_aws_sagemaker_space_lcc(record)
         rolesanywhere = normalize_aws_rolesanywhere(record)
         customer_profiles = normalize_aws_customer_profiles(record)
         customer_profiles_read = normalize_aws_customer_profiles_read(record)
@@ -707,6 +709,7 @@ def detect_aws_events(
                 + ([appsync_read_function] if appsync_read_function is not None else [])
                 + ([appsync_signed_role] if appsync_signed_role is not None else [])
                 + ([sagemaker_control] if sagemaker_control is not None else [])
+                + ([sagemaker_space_lcc] if sagemaker_space_lcc is not None else [])
                 + ([rolesanywhere] if rolesanywhere is not None else [])
                 + ([customer_profiles] if customer_profiles is not None else [])
                 + ([customer_profiles_read] if customer_profiles_read is not None else [])
