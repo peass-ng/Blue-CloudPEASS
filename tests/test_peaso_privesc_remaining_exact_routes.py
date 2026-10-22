@@ -1,8 +1,8 @@
 """Exact positive and blocked graph cases for previously uncovered AWS routes."""
 
 from tests.test_peaso_privesc_aws_followups import (
-    ACCOUNT, ALICE, OTHER, STRANGER, allow, aws_snap, org_accounts,
-    real, reached, role, user,
+    ACCOUNT, ALICE, OTHER, REGION, STRANGER, allow, aws_snap, col,
+    org_accounts, real, reached, role, role_arn, user,
 )
 
 
@@ -43,7 +43,16 @@ def _mfa_snapshot(*, enrolling, target_arn=BOB, credential=True, mfa_count=1):
         {"SerialNumber": f"arn:aws:iam::{ACCOUNT}:mfa/device{i}"} for i in range(mfa_count)]}
     target["AccessKeys"] = {"collection_status": "collected", "items": []}
     target["LoginProfile"] = {"LoginProfile": {"UserName": "bob"}}
-    return aws_snap([user("alice", *grants), target])
+    extra = [col("iam_virtual_mfa_device", [], status="empty")] if enrolling else []
+    return aws_snap([user("alice", *grants), target], extra=extra)
+
+
+def test_enable_attacker_mfa_requires_exact_user_credential_and_available_device_slot():
+    tid = "aws-iam-enable-attacker-mfa-device-other-user"
+    assert BOB in reached(real(_mfa_snapshot(enrolling=True), tid), ALICE, tid)
+    assert BOB not in reached(real(_mfa_snapshot(enrolling=True, target_arn=ALICE), tid), ALICE, tid)
+    assert BOB not in reached(real(_mfa_snapshot(enrolling=True, credential=False), tid), ALICE, tid)
+    assert BOB not in reached(real(_mfa_snapshot(enrolling=True, mfa_count=8), tid), ALICE, tid)
 
 
 def test_deactivate_mfa_requires_enrolled_device_and_password_action_on_same_user():
