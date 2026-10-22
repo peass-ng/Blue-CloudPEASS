@@ -1,6 +1,6 @@
 {
   "repository": "HackTricks-wiki/hacktricks-cloud",
-  "revision": "f49938a54a7dfc5790a6ab9ec5ee702e77e64780",
+  "revision": "e6ec34b5665487714dec6a2f34ec8a09f83ba093",
   "path": "src/privilege-escalation-paths",
   "canonical_sha256": {
     "aws/_excluded_171e_g1.yaml": "2160b8f57f029e74e5a31727815316f459d8364147c47be2c36639c831b9dcb3",
@@ -95,7 +95,7 @@
     "aws/ecr.yaml": "0e47e45324f93a724ce785ffba07d3e40a743f97bbb5169de6e17f0a46e5b0ea",
     "aws/ecs.yaml": "e115d5efdbaa0a88afd440194ee4f228f765d50c2ec99cec647959151e33ea5d",
     "aws/eks.yaml": "29a2b105513036aef128f86b3fe65ce170ff8cfeeb1c51a5ccd87197023f1d24",
-    "aws/elasticbeanstalk.yaml": "74e4bea09a3e9575e17c1edd1cca89bb2b671c0897e2a0a2f9112ec92246fc47",
+    "aws/elasticbeanstalk.yaml": "4326c1206dc59fdae11fe4892d912ea9f1015cbc50f92fe19eae2b7b7fbd426d",
     "aws/emr.yaml": "674e8bd7be8da6d6c00458fe231117f449769ea1b2dc09ec5ad460e1081057a2",
     "aws/emrserverless.yaml": "f9d00c56fcab511b428a6fd2633de60d6c4a57ee1c9de5c152741662e5f4b8e6",
     "aws/events.yaml": "9f314caa754dae44b2f6c25acb6f8901f8521fa864f3a36f4013b3608c579b40",
@@ -397,7 +397,7 @@
     "aws/ecr.yaml": "0e47e45324f93a724ce785ffba07d3e40a743f97bbb5169de6e17f0a46e5b0ea",
     "aws/ecs.yaml": "e115d5efdbaa0a88afd440194ee4f228f765d50c2ec99cec647959151e33ea5d",
     "aws/eks.yaml": "29a2b105513036aef128f86b3fe65ce170ff8cfeeb1c51a5ccd87197023f1d24",
-    "aws/elasticbeanstalk.yaml": "74e4bea09a3e9575e17c1edd1cca89bb2b671c0897e2a0a2f9112ec92246fc47",
+    "aws/elasticbeanstalk.yaml": "4326c1206dc59fdae11fe4892d912ea9f1015cbc50f92fe19eae2b7b7fbd426d",
     "aws/emr.yaml": "674e8bd7be8da6d6c00458fe231117f449769ea1b2dc09ec5ad460e1081057a2",
     "aws/emrserverless.yaml": "f9d00c56fcab511b428a6fd2633de60d6c4a57ee1c9de5c152741662e5f4b8e6",
     "aws/events.yaml": "9f314caa754dae44b2f6c25acb6f8901f8521fa864f3a36f4013b3608c579b40",

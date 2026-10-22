@@ -101,9 +101,8 @@ def test_elasticbeanstalk_role_execution_binding_preserves_previous_catalog():
     current, status = catalog.lookup_entries([ident], catalog.current_binding())
     assert status == "exact_strict_privesc"
     entry = current[ident]
-    assert "elasticbeanstalk_environment_role_execution_unverified" in entry["preconditions"]
-    assert entry["requires"]["all_of"][0]["request_context"] == {
-        "iam:PassedToService": "ec2.amazonaws.com"}
+    assert "elasticbeanstalk_environment_role_effect_reviewed" in entry["preconditions"]
+    assert entry["requires"]["all_of"] == []
     old = {"schema": catalog.BINDING_SCHEMA,
            "manifest_sha256": catalog.ELASTICBEANSTALK_EFFECT_689_PREVIOUS_MANIFEST,
            "effective_tree_sha256": catalog.ELASTICBEANSTALK_EFFECT_689_PREVIOUS_TREE,

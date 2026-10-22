@@ -7338,6 +7338,123 @@ class AwsModel(Model):
             return None
         return ("conditional", "autoscaling_created_input_instance_role_effect")
 
+    def _elasticbeanstalk_environment_role_effect(self, source, role):
+        """Bind a deployed source bundle to an instance using the exact role."""
+        technique = "aws-elasticbeanstalk-passrole-create-environment"
+        if source.scope != role.scope or source.id == role.id:
+            return None
+        pass_allows, _ = self._statements(source, "iam:passrole")
+        create_allows, _ = self._statements(source, "elasticbeanstalk:createenvironment")
+        update_allows, _ = self._statements(source, "elasticbeanstalk:updateenvironment")
+        if not pass_allows or not (create_allows or update_allows):
+            return ("unknown", "beanstalk_source_permissions_incomplete") if source.incomplete else None
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "beanstalk_role_execution_evidence_missing_or_conflicting")
+        scope, proof = records[0]
+        if (inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"
+                or source.incomplete or role.incomplete):
+            return ("unknown", "beanstalk_role_execution_evidence_incomplete")
+        region = scope.split("/", 1)[1] if "/" in scope else ""
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        app_name = proof.get("ApplicationName")
+        env_name = proof.get("EnvironmentName")
+        label = proof.get("VersionLabel")
+        if (not re.fullmatch(r"[a-z0-9-]+", region) or
+                any(not isinstance(value, str) or re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,99}", value) is None
+                    for value in (app_name, env_name, label))):
+            return ("unknown", "beanstalk_application_environment_names_not_verified")
+        prefix = f"arn:{partition}:elasticbeanstalk:{region}:{source.scope}:"
+        app = prefix + "application/" + app_name
+        version = prefix + f"applicationversion/{app_name}/{label}"
+        environment = prefix + f"environment/{app_name}/{env_name}"
+        instance = proof.get("InstanceArn")
+        profile = proof.get("InstanceProfileArn")
+        bundle = proof.get("SourceBundleArn")
+        operation = proof.get("EnvironmentOperation")
+        role_action, role_resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        service = proof.get("PassRoleService")
+        associated = proof.get("PassRoleAssociatedResourceArn")
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("TechniqueId") != technique or proof.get("SourceArn") != source.id or
+                proof.get("TargetKind") != "aws_role" or proof.get("TargetId") != role.id or
+                proof.get("ApplicationArn") != app or proof.get("ApplicationVersionArn") != version or
+                proof.get("EnvironmentArn") != environment or
+                operation not in ("CreateEnvironment", "UpdateEnvironment") or
+                not isinstance(instance, str) or re.fullmatch(
+                    rf"arn:{re.escape(partition)}:ec2:{re.escape(region)}:{re.escape(source.scope)}:instance/i-[0-9a-f]+",
+                    instance) is None or
+                not isinstance(profile, str) or re.fullmatch(
+                    rf"arn:{re.escape(partition)}:iam::{re.escape(source.scope)}:instance-profile/.+",
+                    profile) is None or
+                not isinstance(bundle, str) or re.fullmatch(
+                    rf"arn:{re.escape(partition)}:s3:::[^/]+/.+", bundle) is None or
+                not isinstance(service, str) or re.fullmatch(
+                    r"[a-z0-9-]+(?:\.[a-z0-9-]+)*\.amazonaws\.com(?:\.cn)?", service) is None or
+                (associated is not None and (not isinstance(associated, str) or
+                 not associated.startswith(f"arn:{partition}:") or
+                 "*" in associated or "?" in associated)) or
+                proof.get("PassRoleContextReviewed") is not True or
+                proof.get("ApplicationVersionCreatedBySource") is not True or
+                type(proof.get("ApplicationCreatedBySource")) is not bool or
+                proof.get("SourceBundleUploadedBySource") is not True or
+                proof.get("SourceBundleReadableByEnvironment") is not True or
+                proof.get("SourceBundleSameRegion") is not True or
+                proof.get("EnvironmentServiceRoleReady") is not True or
+                proof.get("EnvironmentOperationSucceeded") is not True or
+                proof.get("EnvironmentVersionApplied") is not True or
+                proof.get("InstanceLaunchedByEnvironment") is not True or
+                proof.get("InstanceProfileApplied") is not True or
+                proof.get("SourceCodeExecuted") is not True or
+                proof.get("SourceCodeUsedRoleCredentials") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                not isinstance(role_action, str) or re.fullmatch(
+                    r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", role_action) is None or
+                not isinstance(role_resource, str) or not role_resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "beanstalk_deployment_or_role_effect_not_verified")
+        roles = [row for row_scope, row in items(self.snapshot, "iam_role")
+                 if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        if (len(roles) != 1 or not isinstance(proof.get("TargetRoleId"), str) or
+                not proof["TargetRoleId"] or roles[0].get("RoleId") != proof["TargetRoleId"] or
+                proof.get("InstanceRoleId") != proof["TargetRoleId"] or
+                profile not in [entry.get("Arn") for entry in roles[0].get("InstanceProfileList", ())
+                                if isinstance(entry, dict)]):
+            return ("unknown", "beanstalk_role_or_profile_identity_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "beanstalk_role_execution_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "beanstalk_role_execution_evidence_time_missing")
+        context = {"aws:RequestedRegion": region, "elasticbeanstalk:InApplication": app,
+                   "elasticbeanstalk:FromApplicationVersion": version}
+        pass_context = {"iam:PassedToService": service}
+        if associated is not None:
+            pass_context["iam:AssociatedResourceArn"] = associated
+        grants = [self.check(source, {"action": "iam:PassRole", "request_context": pass_context}, role.id),
+            self.check(source, {"action": "s3:PutObject"}, bundle),
+            self.check(source, {"action": "elasticbeanstalk:CreateApplicationVersion",
+                                "request_context": context}, app),
+            self.check(source, {"action": "elasticbeanstalk:CreateApplicationVersion",
+                                "request_context": context}, version),
+            self.check(source, {"action": "elasticbeanstalk:" + operation,
+                                "request_context": context}, environment),
+            self.check(role, {"action": role_action}, role_resource)]
+        if proof["ApplicationCreatedBySource"]:
+            grants.append(self.check(source, {"action": "elasticbeanstalk:CreateApplication",
+                                              "request_context": {"aws:RequestedRegion": region}}, app))
+        if any(grant is None or grant.confidence != "derived" for grant in grants):
+            return ("unknown", "beanstalk_scoped_permissions_not_verified")
+        if self.check(source, {"action": role_action}, role_resource) is not None:
+            return None
+        return ("conditional", "beanstalk_exact_environment_instance_role_effect")
+
     def _spot_request_instance_role_effect(self, source, role):
         """Bind one fulfilled Spot request to the instance role actually used."""
         technique = "aws-ec2-requestspotinstances-passrole"
@@ -10103,9 +10220,12 @@ class AwsModel(Model):
                     for tid in candidates}
         if pid == "config_automatic_remediation_effect_unverified":
             return self._config_automatic_remediation_role_effect(source, candidates)
+        if pid == "elasticbeanstalk_environment_role_effect_reviewed":
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._elasticbeanstalk_environment_role_effect(source, role))}
         if pid == "elasticbeanstalk_environment_role_execution_unverified":
-            # IAM grants alone do not prove an environment can be created or
-            # updated, nor that its instances run a controlled source bundle.
             return {tid: ("unknown", "elasticbeanstalk_environment_profile_and_code_execution_not_verified")
                     for tid in candidates}
         if pid in ("amplify_service_role_build_effect_unverified",
@@ -10129,11 +10249,27 @@ class AwsModel(Model):
                 return None
             return {tid: verdict for tid, role in candidates.items()
                     if (verdict := self._runinstances_instance_role_effect(source, role))}
+        if pid == "ec2_runinstances_launch_with_passed_profile_unverified":
+            if source is None:
+                return None
+            allows, _ = self._statements(source, "ec2:runinstances")
+            if not allows and not source.incomplete:
+                return {}
+            return {tid: ("unknown", "ec2_launch_resources_profile_or_boot_path_not_verified")
+                    for tid in candidates}
         if pid == "ec2_spot_request_instance_role_effect_reviewed":
             if source is None:
                 return None
             return {tid: verdict for tid, role in candidates.items()
                     if (verdict := self._spot_request_instance_role_effect(source, role))}
+        if pid == "spot_request_with_passed_profile_and_role_ready":
+            if source is None:
+                return None
+            allows, _ = self._statements(source, "ec2:requestspotinstances")
+            if not allows and not source.incomplete:
+                return {}
+            return {tid: ("unknown", "spot_request_image_network_profile_or_capacity_not_verified")
+                    for tid in candidates}
         if pid == "imagebuilder_component_publish_and_pipeline_start":
             if source is None:
                 return None
