@@ -9639,6 +9639,89 @@ class AwsModel(Model):
             return None
         return ("conditional", "gameliftstreams_exact_controlled_application_role_effect")
 
+    def _kafkaconnect_plugin_role_effect(self, source, role):
+        """Bind an accepted custom plugin and running connector to the exact role."""
+        technique = "aws-kafkaconnect-passrole-createconnector"
+        if source.scope != role.scope or source.id == role.id:
+            return None
+        if any(not self._statements(source, action)[0] for action in (
+                "iam:passrole", "kafkaconnect:createconnector", "kafkaconnect:createcustomplugin")):
+            return ("unknown", "kafkaconnect_source_permissions_incomplete") if source.incomplete else None
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "kafkaconnect_plugin_effect_evidence_missing_or_conflicting")
+        scope, proof = records[0]
+        if (inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"
+                or source.incomplete or role.incomplete or "/" not in scope):
+            return ("unknown", "kafkaconnect_plugin_effect_evidence_incomplete")
+        region = scope.split("/", 1)[1]
+        partition = source.id.split(":", 2)[1]
+        connector, plugin, cluster = (proof.get(key) for key in (
+            "ConnectorArn", "CustomPluginArn", "KafkaClusterArn"))
+        prefix = rf"arn:{re.escape(partition)}:kafkaconnect:{re.escape(region)}:{source.scope}:"
+        if (not isinstance(connector, str) or re.fullmatch(
+                prefix + r"connector/[A-Za-z0-9._-]+/[A-Za-z0-9-]+", connector) is None or
+                not isinstance(plugin, str) or re.fullmatch(
+                    prefix + r"custom-plugin/[A-Za-z0-9._-]+/[A-Za-z0-9-]+", plugin) is None or
+                not isinstance(cluster, str) or re.fullmatch(
+                    rf"arn:{re.escape(partition)}:kafka:{re.escape(region)}:{source.scope}:cluster/[A-Za-z0-9._-]+/[A-Za-z0-9-]+",
+                    cluster) is None):
+            return ("unknown", "kafkaconnect_connector_plugin_or_cluster_not_verified")
+        uri = proof.get("PluginS3Uri")
+        parsed = urlsplit(uri) if isinstance(uri, str) else None
+        if (parsed is None or parsed.scheme != "s3" or
+                not re.fullmatch(r"[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]", parsed.netloc) or
+                not parsed.path.startswith("/") or parsed.path == "/" or parsed.query or parsed.fragment or
+                "%" in parsed.path or not parsed.path.lower().endswith((".jar", ".zip"))):
+            return ("unknown", "kafkaconnect_plugin_artifact_not_verified")
+        object_arn = f"arn:{partition}:s3:::{parsed.netloc}{parsed.path}"
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        needed = ("PluginArtifactControlledBySource", "PluginArtifactReadSucceeded",
+                  "CustomPluginCreated", "PluginCompatible", "KafkaClusterReachable",
+                  "ConnectorNetworkReady", "ConnectorCreated", "ConnectorRunning",
+                  "PluginCodeExecuted", "PluginUsedServiceRoleCredentials",
+                  "RoleActionSucceeded", "EffectUsefulToSource")
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("TechniqueId") != technique or proof.get("SourceArn") != source.id or
+                proof.get("TargetKind") != "aws_role" or proof.get("TargetId") != role.id or
+                proof.get("ConnectorServiceExecutionRoleArn") != role.id or
+                proof.get("ConnectorCustomPluginArn") != plugin or
+                any(proof.get(key) is not True for key in needed) or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "kafkaconnect_plugin_execution_or_role_effect_not_verified")
+        roles = [row for row_scope, row in items(self.snapshot, "iam_role")
+                 if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        if (len(roles) != 1 or not isinstance(proof.get("TargetRoleId"), str) or
+                not proof["TargetRoleId"] or roles[0].get("RoleId") != proof["TargetRoleId"] or
+                self._service_trust_for_source_arn(
+                    role.id, "kafkaconnect.amazonaws.com", connector) is False):
+            return ("unknown", "kafkaconnect_role_identity_or_trust_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "kafkaconnect_plugin_effect_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "kafkaconnect_plugin_effect_evidence_time_missing")
+        context = {"aws:RequestedRegion": region}
+        grants = [self.check(source, {"action": action_name, "request_context": context}, "*")
+                  for action_name in ("kafkaconnect:CreateConnector", "kafkaconnect:CreateCustomPlugin")]
+        grants.extend((self.check(source, {"action": "iam:PassRole", "request_context": {
+            **context, "iam:PassedToService": "kafkaconnect.amazonaws.com"}}, role.id),
+            self.check(source, {"action": "s3:PutObject"}, object_arn),
+            self.check(role, {"action": action}, resource)))
+        if any(grant is None or grant.confidence != "derived" for grant in grants):
+            return ("unknown", "kafkaconnect_scoped_permissions_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "kafkaconnect_exact_plugin_role_effect")
+
     def _glue_job_effect_witness(self, source, role, technique):
         """Use one fresh executed job to cover a script outside job inventory."""
         records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
@@ -10003,10 +10086,10 @@ class AwsModel(Model):
         if pid == "datapipeline_existing_customer_role_pair_and_runnable_ec2":
             return self._datapipeline_created_ec2_role_effect(source, candidates)
         if pid == "kafkaconnect_plugin_execution_unverified":
-            # IAM grants alone cannot join source-controlled plugin bytes to a
-            # connector with a usable Kafka cluster, network and worker setup.
-            return {tid: ("unknown", "kafkaconnect_plugin_cluster_and_execution_not_verified")
-                    for tid in candidates}
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._kafkaconnect_plugin_role_effect(source, role))}
         if pid == "braket_createjob_device_authorized":
             if source is None:
                 return None
