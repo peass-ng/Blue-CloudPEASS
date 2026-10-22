@@ -5236,9 +5236,14 @@ class AwsModel(Model):
         create = self._check_action(source, "airflow-serverless:createworkflow", ANY)
         passrole = self.cached_check(source, {"action": "iam:PassRole", "resource": role.id,
             "request_context": {"iam:PassedToService": "airflow-serverless.amazonaws.com"}}, role.id)
-        linked = self.cached_check(source, {"action": "iam:CreateServiceLinkedRole", "resource": "*",
-            "request_context": {"iam:AWSServiceName": "airflow-serverless.amazonaws.com"}}, "*")
-        if not all(g is not None and g.confidence == "derived" for g in (create, passrole, linked)):
+        slr_arn = (f"arn:{source.id.split(':', 2)[1]}:iam::{source.scope}:role/aws-service-role/"
+                   "airflow-serverless.amazonaws.com/AWSServiceRoleForAmazonMWAAServerless")
+        slr_present = slr_arn in self.principals
+        linked = (None if slr_present else self.cached_check(source, {
+            "action": "iam:CreateServiceLinkedRole", "resource": slr_arn,
+            "request_context": {"iam:AWSServiceName": "airflow-serverless.amazonaws.com"}}, slr_arn))
+        if (not all(g is not None and g.confidence == "derived" for g in (create, passrole)) or
+                not (slr_present or linked is not None and linked.confidence == "derived")):
             return ("unknown", "mwaa_serverless_create_or_passrole_not_verified")
         # The tested creation path needs caller-side Logs access; the execution
         # role also writes worker logs. Require broad grants because generated
