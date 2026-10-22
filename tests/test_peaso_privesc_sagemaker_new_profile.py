@@ -30,11 +30,11 @@ def _grants(*, app_arn=APP_ARN, profile_arn=PROFILE_PREFIX + NAME,
 
 def _evaluate(*, grants=None, domain_auth="IAM", domain_status="InService",
               domain_id=DOMAIN_ID, profiles=(), profile_inventory="empty",
-              trust="sagemaker.amazonaws.com"):
+              trust="sagemaker.amazonaws.com", domains=None):
     domain = {"DomainArn": DOMAIN_ARN, "DomainId": domain_id,
               "Status": domain_status, "AuthMode": domain_auth}
     snap = aws_snap([user("alice", *(grants if grants is not None else _grants()))],
-                    [role("studio", trust)], [col("sagemaker_domain", [domain]),
+                    [role("studio", trust)], [col("sagemaker_domain", domains if domains is not None else [domain]),
                     col("sagemaker_user_profile", profiles, profile_inventory)])
     return reached(real(snap, TECHNIQUE, include_unknown=True), ALICE, TECHNIQUE)
 
@@ -52,3 +52,11 @@ def test_new_profile_joins_scoped_profile_app_url_tags_and_role():
     existing = {"DomainId": DOMAIN_ID, "UserProfileName": NAME,
                 "UserProfileArn": PROFILE_PREFIX + NAME, "Status": "InService"}
     assert ROLE_ARN not in _evaluate(profiles=[existing], profile_inventory="collected")
+
+
+def test_unusable_domain_does_not_hide_another_domain():
+    failed = {"DomainArn": DOMAIN_ARN.replace(DOMAIN_ID, "d-bad"),
+              "DomainId": "d-bad", "Status": "Failed", "AuthMode": "IAM"}
+    good = {"DomainArn": DOMAIN_ARN, "DomainId": DOMAIN_ID,
+            "Status": "InService", "AuthMode": "IAM"}
+    assert _evaluate(domains=[failed, good]) == {ROLE_ARN: "conditional"}

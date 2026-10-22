@@ -9225,6 +9225,100 @@ class AwsModel(Model):
                 if rid not in out and uncertain:
                     out[rid] = ("unknown", "rolesanywhere_new_anchor_profile_or_role_trust_not_verified")
             return out
+        if pid == "sagemaker_existing_profile_role_swap_route":
+            if source is None:
+                return None
+            profile_status = inventory_status(self.snapshot, "sagemaker_user_profile")
+            domain_status = inventory_status(self.snapshot, "sagemaker_domain")
+            app_status = inventory_status(self.snapshot, "sagemaker_app")
+            profiles = [(scope, row) for scope, row in items(self.snapshot, "sagemaker_user_profile")
+                        if scope.startswith(source.scope + "/")]
+            domains = {(scope, row.get("DomainId")): row
+                       for scope, row in items(self.snapshot, "sagemaker_domain")
+                       if isinstance(row.get("DomainId"), str)}
+            apps = [(scope, row) for scope, row in items(self.snapshot, "sagemaker_app")]
+            guardrails_unknown = bool(source.attrs.get("boundary")) or self.scp_status.get(source.scope) != "empty"
+            out = {}
+            for tid, role in candidates.items():
+                blocked = source.incomplete or role.incomplete or guardrails_unknown
+                unresolved = blocked or not profile_status
+                for scope, profile in profiles:
+                    if (profile_status.get(scope) not in ("collected", "empty") or
+                            domain_status.get(scope) not in ("collected", "empty") or
+                            app_status.get(scope) not in ("collected", "empty") or blocked):
+                        unresolved = True
+                        continue
+                    domain_id, name = profile.get("DomainId"), profile.get("UserProfileName")
+                    region = scope.split("/", 1)[1]
+                    partition = tid.split(":", 2)[1]
+                    profile_arn = (f"arn:{partition}:sagemaker:{region}:{source.scope}:"
+                                   f"user-profile/{domain_id}/{name}")
+                    domain_arn = f"arn:{partition}:sagemaker:{region}:{source.scope}:domain/{domain_id}"
+                    domain = domains.get((scope, domain_id))
+                    if (not isinstance(domain_id, str) or not isinstance(name, str) or
+                            profile.get("UserProfileArn") != profile_arn or
+                            profile.get("Status") != "InService" or
+                            not isinstance(domain, dict) or domain.get("DomainArn") != domain_arn or
+                            domain.get("Status") != "InService"):
+                        unresolved = True
+                        continue
+                    if domain.get("AuthMode") == "SSO":
+                        continue
+                    if domain.get("AuthMode") != "IAM":
+                        unresolved = True
+                        continue
+                    if any(app_scope == scope and app.get("DomainId") == domain_id and
+                           app.get("UserProfileName") == name and not app.get("SpaceName")
+                           for app_scope, app in apps):
+                        unresolved = True
+                        continue
+                    context = {"aws:RequestedRegion": region}
+                    update = self.check(source, {"action": "sagemaker:UpdateUserProfile",
+                        "request_context": context}, profile_arn)
+                    url = self.check(source, {"action": "sagemaker:CreatePresignedDomainUrl",
+                        "request_context": context}, profile_arn)
+                    passed = self.check(source, {"action": "iam:PassRole", "request_context":
+                        {"iam:PassedToService": "sagemaker.amazonaws.com"}}, tid)
+                    if any(grant is None for grant in (update, url, passed)):
+                        continue
+                    for app_type in ("JupyterLab", "CodeEditor", "KernelGateway"):
+                        prefix = (f"arn:{partition}:sagemaker:{region}:{source.scope}:"
+                                  f"app/{domain_id}/{name}/{app_type}/")
+                        app_names = {"default"}
+                        allows, _ = self._statements(source, "sagemaker:createapp")
+                        for statement in allows:
+                            if statement.notresource or statement.variables:
+                                unresolved = True
+                                continue
+                            for pattern in statement.resources:
+                                if isinstance(pattern, str) and pattern.startswith(prefix):
+                                    suffix = pattern[len(prefix):]
+                                    choice = suffix.replace("*", "default").replace("?", "x")
+                                    if re.fullmatch(r"[A-Za-z0-9](?:-*[A-Za-z0-9]){0,62}", choice):
+                                        app_names.add(choice)
+                        for app_name in sorted(app_names)[:40]:
+                            app_arn = prefix + app_name
+                            trust = self._service_trust_for_source_arn(tid, "sagemaker.amazonaws.com", app_arn)
+                            if trust is not True:
+                                unresolved |= trust is None
+                                continue
+                            app_context = {**context, "sagemaker:OwnerUserProfileArn": profile_arn}
+                            launch = self.check(source, {"action": "sagemaker:CreateApp",
+                                "request_context": app_context}, app_arn)
+                            tags = self.check(source, {"action": "sagemaker:AddTags",
+                                "request_context": app_context}, app_arn)
+                            if all(grant is not None and grant.confidence == "derived"
+                                   for grant in (update, url, passed, launch, tags)):
+                                out[tid] = ("conditional", "sagemaker_profile_role_swap_app_start_pending")
+                                break
+                            unresolved = True
+                        if tid in out:
+                            break
+                    if tid in out:
+                        break
+                if tid not in out and unresolved:
+                    out[tid] = ("unknown", "sagemaker_profile_role_swap_or_app_not_verified")
+            return out
         if pid == "sagemaker_new_profile_app_route":
             if source is None:
                 return None
@@ -9244,12 +9338,12 @@ class AwsModel(Model):
             guardrails_unknown = bool(source.attrs.get("boundary")) or self.scp_status.get(source.scope) != "empty"
             out = {}
             for tid, role in candidates.items():
-                unresolved = (source.incomplete or role.incomplete or guardrails_unknown or
-                              not domains or not domain_status or not profile_status)
+                blocked = source.incomplete or role.incomplete or guardrails_unknown
+                unresolved = blocked or not domains or not domain_status or not profile_status
                 for scope, domain in domains:
                     if (domain_status.get(scope) not in ("collected", "empty") or
                             profile_status.get(scope) not in ("collected", "empty") or
-                            scope in malformed or unresolved):
+                            scope in malformed or blocked):
                         unresolved = True
                         continue
                     domain_id = domain.get("DomainId")
@@ -9363,7 +9457,8 @@ class AwsModel(Model):
             valid_name = re.compile(r"[A-Za-z0-9](?:-*[A-Za-z0-9]){0,62}\Z")
             guardrails_unknown = bool(source.attrs.get("boundary")) or self.scp_status.get(source.scope) != "empty"
             for tid, role in candidates.items():
-                unresolved = source.incomplete or role.incomplete or guardrails_unknown
+                blocked = source.incomplete or role.incomplete or guardrails_unknown
+                unresolved = blocked
                 for profile_arn in self.hosts.get(tid, {}).get("sagemaker_user_profile", ()):
                     pair = profiles.get(profile_arn)
                     if pair is None:
@@ -9374,7 +9469,7 @@ class AwsModel(Model):
                             domain_status.get(scope) not in ("collected", "empty") or
                             app_status.get(scope) not in ("collected", "empty") or
                             config_status.get(scope) not in ("collected", "empty") or
-                            scope in malformed or unresolved):
+                            scope in malformed or blocked):
                         unresolved = True
                         continue
                     region = scope.split("/", 1)[1]

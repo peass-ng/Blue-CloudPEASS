@@ -12,7 +12,8 @@ APP_PREFIX = f"arn:aws:sagemaker:{REGION}:{ACCOUNT}:app/d-123456789abc/alice/"
 
 
 def _evaluate(*, grants=None, profile_role=ROLE_ARN, profile_status="InService",
-              domain_auth="IAM", apps=(), app_inventory="empty", configs=(), config_inventory="empty"):
+              domain_auth="IAM", apps=(), app_inventory="empty", configs=(), config_inventory="empty",
+              extra_profiles=()):
     if grants is None:
         grants = (allow("sagemaker:CreateStudioLifecycleConfig", resource=LCC_PREFIX + "alpha-*"),
                   allow("sagemaker:UpdateUserProfile", resource=PROFILE_ARN),
@@ -23,7 +24,7 @@ def _evaluate(*, grants=None, profile_role=ROLE_ARN, profile_status="InService",
     domain = {"DomainArn": f"arn:aws:sagemaker:{REGION}:{ACCOUNT}:domain/d-123456789abc",
               "DomainId": "d-123456789abc", "Status": "InService", "AuthMode": domain_auth}
     snap = aws_snap([user("alice", *grants)], [role("studio", "sagemaker.amazonaws.com")], [
-        col("sagemaker_user_profile", [profile]), col("sagemaker_domain", [domain]),
+        col("sagemaker_user_profile", [*extra_profiles, profile]), col("sagemaker_domain", [domain]),
         col("sagemaker_app", apps, app_inventory),
         col("sagemaker_studio_lifecycle_config", configs, config_inventory)])
     result = real(snap, TECHNIQUE, include_unknown=True)
@@ -52,4 +53,11 @@ def test_studio_lcc_requires_matching_profile_lcc_app_and_permissions():
                    "Resource": PROFILE_ARN, "Condition": {"StringEquals": {
                        "sagemaker:StudioLifecycleConfigArns": LCC_PREFIX + "wrong"}}}
     assert ROLE_ARN not in _evaluate(grants=(exact, conditioned, *grants[2:]))
+
+
+def test_unusable_studio_profile_does_not_hide_another_profile():
+    failed = {"UserProfileArn": PROFILE_ARN.replace("alice", "first"),
+              "DomainId": "d-123456789abc", "UserProfileName": "first",
+              "Status": "Failed", "ExecutionRole": ROLE_ARN}
+    assert _evaluate(extra_profiles=[failed]) == {ROLE_ARN: "conditional"}
 
