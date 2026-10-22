@@ -34,6 +34,7 @@ def predecessor_catalog(value):
 # Exact current-main composition, retaining the original provider fixture and
 # every original predecessor digest above. Only metadata is reconstructed.
 COMBINED_FIXTURE_SHA256 = 'bddd5cfec261e1833ac4e0c23310e1423a4b443723aa95a57f4a5264b300270b'
+ARCHIVED_PRIVESC_SUCCESSOR_SHA256 = '2803c16fd0b863144e7f36513ea3f52bd83412ef1b971efc9294dd46e093af66'
 
 def combined_predecessor_catalog(value):
     from copy import deepcopy
@@ -44,13 +45,19 @@ def combined_predecessor_catalog(value):
     digest=lambda obj:hashlib.sha256(json.dumps(obj,sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest()
     # New main changes the reviewed privilege-path binding/catalog and AWS fact inventory.
     # Reverse those four fields before verifying the unchanged combined fixture.
+    archived_raw=(Path(__file__).with_name('fixtures')/f'current_privesc_catalog_successor_20261022-{ARCHIVED_PRIVESC_SUCCESSOR_SHA256}.json.gz').read_bytes()
+    assert hashlib.sha256(archived_raw).hexdigest()==ARCHIVED_PRIVESC_SUCCESSOR_SHA256
+    archived=json.loads(gzip.decompress(archived_raw))
     successor_raw=(Path(__file__).with_name('fixtures')/'current_privesc_catalog_successor_20261022.json.gz').read_bytes()
-    assert hashlib.sha256(successor_raw).hexdigest()=='2803c16fd0b863144e7f36513ea3f52bd83412ef1b971efc9294dd46e093af66'
+    assert hashlib.sha256(successor_raw).hexdigest()=='b9ce0d2d49427c843737d495cd357a082e7b6cb090b9809c2f9b874093ac2b2f'
     successor=json.loads(gzip.decompress(successor_raw))
     assert set(successor['top_changes'])=={'privesc_catalog','privesc_techniques','inventories','inventory_coverage'}
+    assert successor['before_catalog_sha256']==archived['before_catalog_sha256']
+    assert {key: change['before'] for key,change in successor['top_changes'].items()}=={
+        key: change['before'] for key,change in archived['top_changes'].items()}
     candidate=deepcopy(value)
     for row in candidate['checks']:row.pop('clarity_evaluation_contract',None)
-    assert digest(candidate)==successor['after_catalog_sha256']
+    assert digest(candidate)==successor['after_catalog_sha256'], 'Combined current catalog changed'
     for key,change in successor['top_changes'].items():
         assert digest(value[key])==change['after_sha256']
         value[key]=deepcopy(change['before'])
