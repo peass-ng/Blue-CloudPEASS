@@ -91,6 +91,8 @@ def test_config_remediation_binding_preserves_previous_catalog():
     previous, status = catalog.lookup_entries([ident], old)
     assert status == "exact_previous_current"
     assert "preconditions" not in previous[ident]
+    assert previous[ident]["severity"] == "critical"
+    assert len(catalog._verified_deadline_fleet_684_previous()) == 684
     assert len(catalog._verified_config_remediation_689_previous()) == 689
 
 
@@ -319,7 +321,8 @@ def test_deadline_fleet_scope_correction_preserves_previous_catalog():
     ident = "aws-deadline-passrole-fleet-createworker"
     current, status = catalog.lookup_entries([ident], catalog.current_binding())
     assert status == "exact_strict_privesc"
-    assert current[ident]["preconditions"] == ["deadline_fleet_worker_binding_unverified"]
+    assert current[ident]["preconditions"] == ["deadline_fleet_worker_bounded_authority_reviewed"]
+    assert current[ident]["target"]["kind"] == "aws_verified_authority"
     assert current[ident]["severity"] == "high"
     old = {"schema": catalog.BINDING_SCHEMA,
            "manifest_sha256": catalog.DEADLINE_FLEET_684_PREVIOUS_MANIFEST,
@@ -328,8 +331,18 @@ def test_deadline_fleet_scope_correction_preserves_previous_catalog():
     previous, status = catalog.lookup_entries([ident], old)
     assert status == "exact_previous_current"
     assert "preconditions" not in previous[ident]
-    assert previous[ident]["severity"] == "critical"
-    assert len(catalog._verified_deadline_fleet_684_previous()) == 684
+
+
+def test_deadline_worker_authority_correction_preserves_previous_catalog():
+    ident = "aws-deadline-passrole-fleet-createworker"
+    old = {"schema": catalog.BINDING_SCHEMA,
+           "manifest_sha256": catalog.DEADLINE_FLEET_WORKER_691_PREVIOUS_MANIFEST,
+           "effective_tree_sha256": catalog.DEADLINE_FLEET_WORKER_691_PREVIOUS_TREE,
+           "source_revision": catalog.V4_REVISION}
+    previous, status = catalog.lookup_entries([ident], old)
+    assert status == "exact_previous_current"
+    assert previous[ident]["target"]["kind"] == "aws_role"
+    assert previous[ident]["preconditions"] == ["deadline_fleet_worker_binding_unverified"]
 
 
 def test_deadline_existing_worker_binding_preserves_previous_catalog():

@@ -7042,6 +7042,96 @@ class AwsModel(Model):
                 return ("conditional", "deadline_new_worker_role_credentials")
         return ("unknown", "deadline_new_worker_role_path_incomplete") if uncertain else None
 
+    def _deadline_fleet_worker_bounded_authority(self, source, target):
+        """Accept only a witnessed new worker operation, never the whole fleet role."""
+        technique = "aws-deadline-passrole-fleet-createworker"
+        worker_arn = target.attrs.get("resource_arn")
+        if target.scope != source.scope or not isinstance(worker_arn, str):
+            return None
+        match = re.fullmatch(
+            rf"arn:(aws|aws-cn|aws-us-gov):deadline:([a-z0-9-]+):{re.escape(source.scope)}:"
+            r"farm/(farm-[0-9a-f]{32})/fleet/(fleet-[0-9a-f]{32})/worker/(worker-[0-9a-f]{32})",
+            worker_arn)
+        if match is None:
+            return ("unknown", "deadline_worker_identity_not_verified")
+        partition, region, farm_id, fleet_id, worker_id = match.groups()
+        scope = f"{source.scope}/{region}"
+        farm_arn = f"arn:{partition}:deadline:{region}:{source.scope}:farm/{farm_id}"
+        fleet_arn = f"{farm_arn}/fleet/{fleet_id}"
+        records = self.bounded_evidence_records.get(
+            (technique, source.id, "aws_verified_authority", worker_arn), ())
+        statuses = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+        if len(records) != 1 or records[0][0] != scope or statuses.get(scope) != "collected":
+            return ("unknown", "deadline_worker_evidence_missing_or_conflicting")
+        proof = records[0][1]
+        role_arn = proof.get("FleetRoleArn")
+        operation = proof.get("FleetOperation")
+        action = proof.get("WorkerAction")
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("EffectType") != "bounded_resource_operation" or
+                proof.get("VerifiedConditionIds") != ["exact_verified_worker_authority"] or
+                proof.get("TargetAccount") != source.scope or proof.get("TargetId") != worker_arn or
+                proof.get("FarmArn") != farm_arn or proof.get("FleetArn") != fleet_arn or
+                proof.get("WorkerArn") != worker_arn or proof.get("FarmId") != farm_id or
+                proof.get("FleetId") != fleet_id or proof.get("WorkerId") != worker_id or
+                proof.get("FleetMode") != "customerManaged" or
+                operation not in ("CreateFleet", "UpdateFleet") or
+                proof.get("FleetOperationSucceeded") is not True or
+                proof.get("CreateWorkerSucceeded") is not True or
+                proof.get("AssumeFleetRoleForWorkerSucceeded") is not True or
+                proof.get("WorkerCredentialsUsed") is not True or
+                proof.get("WorkerActionSucceeded") is not True or
+                proof.get("SourcePreviouslyDenied") is not True or
+                action not in ("deadline:UpdateWorker", "deadline:UpdateWorkerSchedule",
+                               "deadline:BatchGetJobEntity") or
+                proof.get("WorkerActionResourceArn") != worker_arn or
+                type(proof.get("WorkerTagPropagationEnabled")) is not bool or
+                type(proof.get("FleetTagsRequested")) is not bool or
+                not isinstance(role_arn, str) or
+                not isinstance(proof.get("FleetRoleId"), str) or not proof["FleetRoleId"] or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "deadline_worker_effect_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "deadline_worker_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "deadline_worker_evidence_time_missing")
+        roles = [row for role_scope, row in items(self.snapshot, "iam_role")
+                 if role_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role_arn]
+        if (len(roles) != 1 or roles[0].get("RoleId") != proof["FleetRoleId"] or
+                role_arn not in self.principals):
+            return ("unknown", "deadline_fleet_role_identity_not_verified")
+        role = self.principals[role_arn]
+        if source.incomplete or role.incomplete or self._deadline_role_trust(role_arn, farm_arn) is not True:
+            return ("unknown", "deadline_fleet_role_trust_not_verified")
+        requests = [
+            (source, {"action": "iam:PassRole", "request_context": {
+                "iam:PassedToService": "deadline.amazonaws.com"}}, role_arn),
+            (source, {"action": "deadline:" + operation}, fleet_arn),
+            (source, {"action": "deadline:ListTagsForResource", "request_context": {
+                "deadline:CalledAction": "CreateWorker"}}, fleet_arn),
+            (source, {"action": "deadline:CreateWorker"}, worker_arn),
+            (source, {"action": "deadline:AssumeFleetRoleForWorker"}, worker_arn),
+            (role, {"action": action}, worker_arn),
+        ]
+        if proof.get("WorkerTagPropagationEnabled") is True:
+            requests.append((source, {"action": "deadline:TagResource", "request_context": {
+                "deadline:CalledAction": "CreateWorker"}}, worker_arn))
+        if proof.get("FleetTagsRequested") is True and operation == "CreateFleet":
+            requests.append((source, {"action": "deadline:TagResource", "request_context": {
+                "deadline:CalledAction": "CreateFleet"}}, fleet_arn))
+        grants = [self.check(principal, request, resource) for principal, request, resource in requests]
+        if any(grant is None or grant.confidence != "derived" for grant in grants):
+            return ("unknown", "deadline_worker_scoped_permissions_not_verified")
+        if self.check(source, {"action": action}, worker_arn) is not None:
+            return None
+        return ("conditional", "deadline_exact_worker_new_authority")
+
     def _appstream_new_resource_arns(self, source, region, kind, actions):
         """Concrete unused-name candidates from the actions' resource scopes in one Region."""
         partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
@@ -8695,6 +8785,11 @@ class AwsModel(Model):
             # use. Keep the possible route visible without inventing an edge.
             return {tid: ("unknown", "deadline_fleet_worker_and_role_binding_not_verified")
                     for tid in candidates}
+        if pid == "deadline_fleet_worker_bounded_authority_reviewed":
+            if source is None:
+                return None
+            return {tid: verdict for tid, target in candidates.items()
+                    if (verdict := self._deadline_fleet_worker_bounded_authority(source, target))}
         if pid == "datapipeline_existing_customer_role_pair_and_runnable_ec2":
             return self._datapipeline_created_ec2_role_effect(source, candidates)
         if pid == "kafkaconnect_plugin_execution_unverified":
