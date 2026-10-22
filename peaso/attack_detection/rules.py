@@ -135,6 +135,7 @@ from .aws_config_recorder_next import normalize_aws_config_recorder_stop, normal
 from .aws_eventbridge_archive_next import normalize_aws_eventbridge_archive
 from .aws_eventbridge_rule_targets_next import normalize_aws_eventbridge_rule_targets
 from .aws_scheduler_controls_next import normalize_aws_scheduler_controls
+from .aws_scheduler_iam_policy_target import normalize_aws_scheduler_iam_policy_target
 from .aws_pipes_controls_next import normalize_aws_pipes_controls
 from .aws_eventsv2_controls_next import normalize_aws_eventsv2_controls
 from .aws_eventsv2_policy_next import normalize_aws_eventsv2_policy
@@ -508,6 +509,7 @@ def detect_aws_events(
         eventbridge_archive = normalize_aws_eventbridge_archive(record)
         eventbridge_rule_targets = normalize_aws_eventbridge_rule_targets(record)
         scheduler_controls = normalize_aws_scheduler_controls(record)
+        scheduler_iam_policy_target = normalize_aws_scheduler_iam_policy_target(record)
         pipes_controls = normalize_aws_pipes_controls(record)
         eventsv2_controls = normalize_aws_eventsv2_controls(record)
         eventsv2_policy = normalize_aws_eventsv2_policy(record)
@@ -743,6 +745,7 @@ def detect_aws_events(
                 + ([eventbridge_archive] if eventbridge_archive is not None else [])
                 + ([eventbridge_rule_targets] if eventbridge_rule_targets is not None else [])
                 + ([scheduler_controls] if scheduler_controls is not None else [])
+                + ([scheduler_iam_policy_target] if scheduler_iam_policy_target is not None else [])
                 + ([pipes_controls] if pipes_controls is not None else [])
                 + ([eventsv2_controls] if eventsv2_controls is not None else [])
                 + ([eventsv2_policy] if eventsv2_policy is not None else [])
