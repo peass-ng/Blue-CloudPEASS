@@ -12286,16 +12286,18 @@ class AwsModel(Model):
             root = self._org_root()
             root_denies = [st for policy in self.scp_by_target.get(root, ())
                            for st in policy.for_action("sts:assumerole")
-                           if st.effect == "deny" and not st.conditional]
+                           if st.effect == "deny"]
             root_allows = [st for policy in self.scp_by_target.get(root, ())
                            for st in policy.statements if st.effect == "allow"]
             out = {}
             for tid in candidates:
                 # A newly created account starts at the organization root, so
                 # an unconditional root SCP Deny also applies to its new role.
-                if any(st.resource_matches(tid) for st in root_denies):
+                if any(st.resource_matches(tid) and not st.conditional for st in root_denies):
                     continue
-                if root_allows and not any(st.action_matches("sts:assumerole") and
+                if any(st.resource_matches(tid) and st.conditional for st in root_denies):
+                    out[tid] = ("unknown", "new_member_root_scp_conditional_deny_unverified")
+                elif root_allows and not any(st.action_matches("sts:assumerole") and
                                            st.resource_matches(tid) and not st.conditional
                                            for st in root_allows):
                     # A new member account inherits root SCPs. A recorded root
