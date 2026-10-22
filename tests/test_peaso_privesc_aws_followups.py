@@ -1065,6 +1065,22 @@ def test_createaccount_new_member_needs_complete_root_scp_inventory():
     assert_unresolved(result, ALICE, CREATE_ACCOUNT)
 
 
+def test_createaccount_can_use_complete_root_scp_from_known_member():
+    alice = user("alice", allow("organizations:CreateAccount", "sts:AssumeRole"))
+    target = role("shared", org_trust(), account=OTHER)
+    snap = complete_root_scp(aws_snap([alice], extra=[org_accounts(OTHER)],
+                                     other_roles=[(OTHER, [target])]))
+    management = next(c for c in snap["collections"] if c["type"] == "scp_policy" and c["scope"] == SCOPE)
+    member = next(c for c in snap["collections"] if c["type"] == "scp_policy" and
+                  c["scope"] == f"{OTHER}/{REGION}")
+    root_policy = management["items"].pop()
+    management["status"] = "empty"
+    member["status"] = "collected"
+    root_policy["InheritedPolicies"]["ParentPath"][0]["Id"] = OTHER
+    member["items"].append(root_policy)
+    assert target["Arn"] in reached(real(snap, CREATE_ACCOUNT), ALICE, CREATE_ACCOUNT)
+
+
 def test_createaccount_new_member_needs_definite_generated_role_grant():
     assume = allow("sts:AssumeRole", resource="arn:aws:iam::*:role/OrganizationAccountAccessRole")
     assume["Condition"] = {"IpAddress": {"aws:SourceIp": "192.0.2.0/24"}}

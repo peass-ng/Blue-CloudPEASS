@@ -12285,21 +12285,23 @@ class AwsModel(Model):
                        grant.confidence == "derived" else
                        ("unknown", "new_member_access_role_assume_grant_unverified"))
             root = self._org_root()
-            # The management account is exempt from SCP enforcement, but its
-            # complete account-to-root collection records the root policies a
-            # newly created member account will inherit.
-            management_rows = [row for scope, row in items(self.snapshot, "scp_policy")
-                               if scope.split("/")[0] == self.org_management]
-            root_complete = (root is not None and self.scp_status.get(self.org_management) == "collected" and
-                             bool(management_rows) and all(
-                                 row.get("InheritanceComplete") is True and
-                                 isinstance(row.get("InheritedPolicies"), dict) and
-                                 row["InheritedPolicies"].get("complete") is True and
-                                 row["InheritedPolicies"].get("collection_status") == "collected"
-                                 and any(isinstance(parent, dict) and parent.get("Id") == root and
-                                         parent.get("Type") == "ROOT" for parent in
-                                         as_list(row["InheritedPolicies"].get("ParentPath")))
-                                 for row in management_rows))
+            # A complete account-to-root collection for any known organization
+            # account records the root policies a new member will inherit.
+            scp_rows = {}
+            for scope, row in items(self.snapshot, "scp_policy"):
+                scp_rows.setdefault(scope.split("/")[0], []).append(row)
+            root_complete = root is not None and any(
+                account in self.org_accounts and self.scp_status.get(account) == "collected" and
+                bool(rows) and all(
+                    row.get("InheritanceComplete") is True and
+                    isinstance(row.get("InheritedPolicies"), dict) and
+                    row["InheritedPolicies"].get("complete") is True and
+                    row["InheritedPolicies"].get("collection_status") == "collected" and
+                    any(isinstance(parent, dict) and parent.get("Id") == root and
+                        parent.get("Type") == "ROOT" for parent in
+                        as_list(row["InheritedPolicies"].get("ParentPath")))
+                    for row in rows)
+                for account, rows in scp_rows.items())
             root_denies = [st for policy in self.scp_by_target.get(root, ())
                            for st in policy.for_action("sts:assumerole")
                            if st.effect == "deny"]
