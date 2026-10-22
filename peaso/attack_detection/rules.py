@@ -209,6 +209,7 @@ from .aws_kinesis_video_endpoint_next import normalize_aws_kinesis_video_endpoin
 from .aws_ecs_controls_next import normalize_aws_ecs_controls
 from .aws_ecs_correlations_next import correlate_aws_ecs_dormant_sidecar
 from .aws_emr_serverless_next import normalize_aws_emr_serverless_runtime
+from .aws_emr_serverless_custom_image import normalize_aws_emr_custom_image
 from .aws_emr_serverless_session_next import correlate_aws_emr_session_endpoint_cross_actor
 from .aws_cloudwatch_controls_next import normalize_aws_cloudwatch_controls
 from .aws_lambda_controls_next import normalize_aws_lambda_controls
@@ -568,6 +569,7 @@ def detect_aws_events(
         kinesis_video_endpoint = normalize_aws_kinesis_video_endpoint(record)
         ecs_controls = normalize_aws_ecs_controls(record)
         emr_runtime = normalize_aws_emr_serverless_runtime(record)
+        emr_custom_image = normalize_aws_emr_custom_image(record)
         cloudwatch_controls = normalize_aws_cloudwatch_controls(record)
         cloudwatch_metric_stream_batch109 = normalize_aws_cloudwatch_metric_stream_batch109(record)
         cloudwatch_metric_data_batch110 = normalize_aws_cloudwatch_metric_data_batch110(record)
@@ -803,6 +805,7 @@ def detect_aws_events(
                 + ([kinesis_video_endpoint] if kinesis_video_endpoint is not None else [])
                 + ([ecs_controls] if ecs_controls is not None else [])
                 + ([emr_runtime] if emr_runtime is not None else [])
+                + ([emr_custom_image] if emr_custom_image is not None else [])
                 + ([cloudwatch_controls] if cloudwatch_controls is not None else [])
                 + cloudwatch_metric_stream_batch109
                 + cloudwatch_metric_data_batch110
