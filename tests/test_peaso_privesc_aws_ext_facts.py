@@ -347,6 +347,32 @@ def test_quicksight_registeruser_requires_iam_subscription_and_controlled_identi
     assert reached(route(role_session_only), ALICE) == {}
 
 
+def test_bedrock_lambda_action_group_needs_deployed_alias_function_join():
+    ident = "aws-bedrock-agent-lambda-actiongroup-hijack"
+    technique = catalog_entry(ident)
+    function_arn = f"arn:aws:lambda:{REGION}:{ACCOUNT}:function:tool"
+    source = user("alice", allow("lambda:UpdateFunctionCode", function_arn),
+                  allow("bedrock:InvokeAgent"))
+    target = role("tool-role", trust_service("lambda.amazonaws.com"))
+    function = ("lambda_function", SCOPE, [{"FunctionName": "tool",
+        "FunctionArn": function_arn, "Role": target["Arn"]}])
+    result = privesc.analyze(aws_snap([source], [target], [function]),
+                             entries=[technique], include_unknown=True)
+    assert target["Arn"] not in reached(result, ALICE)
+    by_id = nodes(result)
+    unresolved = [by_id[edge["target"]]["id"] for edge in edges(result, ALICE)]
+    assert unresolved and all(item.startswith("unresolved:") for item in unresolved)
+
+    from peaso.privesc import versioned_catalog
+    old = {"schema": versioned_catalog.BINDING_SCHEMA,
+           "manifest_sha256": versioned_catalog.BEDROCK_ACTIONGROUP_691_PREVIOUS_MANIFEST,
+           "effective_tree_sha256": versioned_catalog.BEDROCK_ACTIONGROUP_691_PREVIOUS_TREE,
+           "source_revision": versioned_catalog.V4_REVISION}
+    previous, status = versioned_catalog.lookup_entries([ident], old)
+    assert status == "exact_previous_current"
+    assert "preconditions" not in previous[ident]
+
+
 def test_flink_passrole_binds_service_condition():
     technique = catalog_entry("aws-flink-passrole-createapplication")
     target = role("flink", trust_service("kinesisanalytics.amazonaws.com"))

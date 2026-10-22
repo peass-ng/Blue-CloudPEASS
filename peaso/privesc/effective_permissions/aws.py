@@ -7992,6 +7992,11 @@ class AwsModel(Model):
             # compatible. Neither fact follows from the two caller grants.
             return {tid: ("unknown", "stepfunctions_teststate_role_task_effect_not_verified")
                     for tid in candidates}
+        if pid == "bedrock_agent_actiongroup_lambda_execution_unverified":
+            # A mutable Lambda function and an InvokeAgent grant do not show
+            # that an invocable deployed alias routes to that same function.
+            return {tid: ("unknown", "bedrock_agent_alias_actiongroup_lambda_join_not_verified")
+                    for tid in candidates}
         if pid == "servicecatalog_new_artifact_effect_unverified":
             # The launch constraint identifies a role, but does not establish
             # that this account owns the product, the source can use its
