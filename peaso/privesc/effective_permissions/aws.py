@@ -7338,6 +7338,108 @@ class AwsModel(Model):
             return None
         return ("conditional", "autoscaling_created_input_instance_role_effect")
 
+    def _runinstances_instance_role_effect(self, source, role):
+        """Join the exact EC2 launch, applied profile and witnessed role action."""
+        technique = "aws-ec2-passrole-runinstances"
+        if source.scope != role.scope or source.id == role.id:
+            return None
+        pass_allows, _ = self._statements(source, "iam:passrole")
+        run_allows, _ = self._statements(source, "ec2:runinstances")
+        if not pass_allows or not run_allows:
+            return ("unknown", "ec2_runinstances_source_permissions_incomplete") if source.incomplete else None
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "ec2_runinstances_role_execution_evidence_missing_or_conflicting")
+        scope, proof = records[0]
+        if (inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"
+                or source.incomplete or role.incomplete):
+            return ("unknown", "ec2_runinstances_role_execution_evidence_incomplete")
+        region = scope.split("/", 1)[1] if "/" in scope else ""
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        ec2_prefix = f"arn:{partition}:ec2:{region}:{source.scope}:"
+        instance = proof.get("InstanceArn")
+        image = proof.get("ImageArn")
+        subnet = proof.get("SubnetArn")
+        group = proof.get("SecurityGroupArn")
+        interface = proof.get("NetworkInterfaceArn")
+        profile = proof.get("InstanceProfileArn")
+        resource_patterns = (
+            (instance, re.escape(ec2_prefix) + r"instance/i-[0-9a-f]+"),
+            (image, rf"arn:{re.escape(partition)}:ec2:{re.escape(region)}::image/ami-[0-9a-f]+"),
+            (subnet, re.escape(ec2_prefix) + r"subnet/subnet-[0-9a-f]+"),
+            (group, re.escape(ec2_prefix) + r"security-group/sg-[0-9a-f]+"),
+            (interface, re.escape(ec2_prefix) + r"network-interface/eni-[0-9a-f]+"),
+            (profile, rf"arn:{re.escape(partition)}:iam::{re.escape(source.scope)}:instance-profile/.+"),
+        )
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("TechniqueId") != technique or proof.get("SourceArn") != source.id or
+                proof.get("TargetKind") != "aws_role" or proof.get("TargetId") != role.id or
+                scope != f"{source.scope}/{region}" or not re.fullmatch(r"[a-z0-9-]+", region) or
+                any(not isinstance(value, str) or re.fullmatch(pattern, value) is None
+                    for value, pattern in resource_patterns) or
+                proof.get("RunInstancesSucceeded") is not True or
+                proof.get("InstanceLaunchedSucceeded") is not True or
+                proof.get("InstanceProfileApplied") is not True or
+                proof.get("UserDataControlledBySource") is not True or
+                proof.get("UserDataExecuted") is not True or
+                proof.get("UserDataUsedRoleCredentials") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                type(proof.get("TagsRequested")) is not bool or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "ec2_runinstances_launch_or_role_effect_not_verified")
+        roles = [row for row_scope, row in items(self.snapshot, "iam_role")
+                 if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        if (len(roles) != 1 or not isinstance(proof.get("TargetRoleId"), str) or
+                not proof["TargetRoleId"] or roles[0].get("RoleId") != proof["TargetRoleId"] or
+                proof.get("InstanceRoleId") != proof["TargetRoleId"] or
+                profile not in [entry.get("Arn") for entry in roles[0].get("InstanceProfileList", ())
+                                if isinstance(entry, dict)]):
+            return ("unknown", "ec2_runinstances_role_or_profile_identity_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "ec2_runinstances_role_execution_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "ec2_runinstances_role_execution_evidence_time_missing")
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        if (not isinstance(action, str) or re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource):
+            return ("unknown", "ec2_runinstances_role_action_not_verified")
+        run_resources = proof.get("RunInstancesAuthorizationResources")
+        required = (instance, image, subnet, group, interface)
+        if (proof.get("RunInstancesAuthorizationResourcesComplete") is not True or
+                not isinstance(run_resources, list) or not run_resources or
+                any(not isinstance(item, str) or "*" in item or "?" in item for item in run_resources) or
+                len(set(run_resources)) != len(run_resources) or
+                any(item not in run_resources for item in required)):
+            return ("unknown", "ec2_runinstances_authorization_resources_not_verified")
+        region_context = {"aws:RequestedRegion": region}
+        grants = [self.check(source, {"action": "iam:PassRole", "request_context": {
+            **region_context, "iam:PassedToService": "ec2.amazonaws.com",
+            "iam:AssociatedResourceArn": instance}}, role.id),
+            self.check(role, {"action": action}, resource)]
+        grants.extend(self.check(source, {"action": "ec2:RunInstances",
+                                          "request_context": region_context}, item)
+                      for item in run_resources)
+        if proof["TagsRequested"]:
+            tag_resources = proof.get("TaggingResources")
+            if (proof.get("TaggingResourcesComplete") is not True or
+                    not isinstance(tag_resources, list) or not tag_resources or
+                    any(not isinstance(item, str) or "*" in item or "?" in item for item in tag_resources)):
+                return ("unknown", "ec2_runinstances_tagging_resources_not_verified")
+            grants.extend(self.check(source, {"action": "ec2:CreateTags", "request_context": {
+                **region_context, "ec2:CreateAction": "RunInstances"}}, item) for item in tag_resources)
+        if any(grant is None or grant.confidence != "derived" for grant in grants):
+            return ("unknown", "ec2_runinstances_scoped_permissions_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "ec2_runinstances_exact_instance_role_effect")
+
     def _spot_fleet_instance_role_effect(self, source, role):
         """Separate the fleet service role from a launched instance's IAM role."""
         technique = "aws-ec2-passrole-requestspotfleet"
@@ -9916,17 +10018,11 @@ class AwsModel(Model):
             # that a workload is accepted under the selected runtime role.
             return {tid: ("unknown", "emr_endpoint_workload_role_effect_not_verified")
                     for tid in candidates}
-        if pid == "ec2_runinstances_launch_with_passed_profile_unverified":
+        if pid == "ec2_runinstances_instance_role_effect_reviewed":
             if source is None:
                 return None
-            allows, _ = self._statements(source, "ec2:runinstances")
-            if not allows and not source.incomplete:
-                return {}
-            # RunInstances checks each resource in a single launch request.
-            # A wildcard IAM probe cannot establish a usable image, network,
-            # instance profile and source-controlled boot path together.
-            return {tid: ("unknown", "ec2_launch_resources_profile_or_boot_path_not_verified")
-                    for tid in candidates}
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._runinstances_instance_role_effect(source, role))}
         if pid == "spot_request_with_passed_profile_and_role_ready":
             if source is None:
                 return None
