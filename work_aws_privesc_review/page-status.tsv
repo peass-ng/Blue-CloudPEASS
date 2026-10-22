@@ -33,9 +33,9 @@ src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-codestar-privesc/
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-codestar-privesc/codestar-createproject-codestar-associateteammember.md	3	0	1	pending	-
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-codestar-privesc/iam-passrole-codestar-createproject.md	8	0	1	pending	-
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-cognito-privesc/README.md	56	0	1	pending	-
-src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-cognito-user-pools-privesc/README.md	6	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-cognito-user-pools-privesc/README.md	6	0	1	triaged	UpdateUserAttributes changes only attributes the app client permits for the authenticated Cognito user. A mutable custom:isAdmin field may alter application authorization only if the consuming application trusts it; the page gives no join to an AWS IAM identity pool role or another principal. Email/username changes are likewise bounded to application login.
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-config-privesc/README.md	13	1	1	pending	-
-src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-connect-cases-privesc/README.md	5	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-connect-cases-privesc/README.md	5	1	1	triaged	The existing scoped-grant route covers exact Connect Cases tag-conditioned self-permission. TagResource or UntagResource can change tags that condition specific Cases actions, but the resulting authority is confined to those case/domain/field resources and matching policy conditions. No second AWS principal or general role transition is shown.
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-connect-privesc/README.md	12	0	1	pending	-
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-control-tower-privesc/README.md	6	0	1	triaged	Account Factory provisioning or update can create an Identity Center user in a new or existing managed account, but a role edge requires source control of that user, its exact assignment and account. AFC can deploy a blueprint in member accounts through CloudFormation, but the hub product, template control, baseline, target account and deployment role permissions must be joined. Neither page claim is an unconditional principal pivot; the retired Account Factory update remains a candidate.
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-customer-profiles-privesc/README.md	8	0	0	triaged	The page says the passed role only performs bounded integrations, exports and event delivery; inspect each linked operation for another IAM principal.
@@ -46,7 +46,7 @@ src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-deadline-cloud-pr
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-device-farm-privesc/README.md	13	1	1	pending	-
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-directory-services-privesc/README.md	6	0	1	pending	-
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-dlm-privesc/README.md	5	0	1	pending	-
-src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-documentdb-privesc/README.md	4	0	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-documentdb-privesc/README.md	4	0	1	triaged	UpdateCluster can replace a DocumentDB Elastic cluster's database administrator password when it uses PLAIN_TEXT authentication. Database login additionally needs the endpoint, user name and network path. This can affect database data but does not yield an AWS IAM principal or AWS API permissions.
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-dynamodb-privesc/README.md	10	0	1	pending	-
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ebs-privesc/README.md	5	0	0	triaged	The page lists snapshot block reads and snapshots; inspect whether any documented step gives another IAM principal rather than data access.
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ec2-image-builder-privesc/README.md	8	1	1	pending	-
