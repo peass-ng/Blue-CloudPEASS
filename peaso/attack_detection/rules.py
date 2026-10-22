@@ -148,6 +148,7 @@ from .aws_secretsmanager_replica_chain_next import normalize_aws_secretsmanager_
 from .aws_prefix_list_backdoor_next import normalize_aws_prefix_list_backdoor, correlate_aws_prefix_list_sg_reference
 from .aws_address_reassignment_next import normalize_aws_address_reassignment, correlate_aws_address_reassignment
 from .aws_ebs_multiattach import correlate_aws_ebs_multiattach
+from .aws_redshift_password_reset import normalize_aws_redshift_password_reset
 from .aws_guardduty_controls_next import normalize_aws_guardduty_controls
 from .aws_ecr_retention_next import normalize_aws_ecr_retention
 from .aws_dynamodb_controls_next import normalize_aws_dynamodb_controls
@@ -632,6 +633,7 @@ def detect_aws_events(
         rds_public_replica = normalize_aws_rds_public_replica(record)
         rds_managed_secret_read = normalize_aws_rds_managed_secret_read(record)
         rds_pending_signals = normalize_aws_rds_pending_signals(record)
+        redshift_password_reset = normalize_aws_redshift_password_reset(record)
         service_credentials = normalize_aws_service_credentials(record)
         cloudformation_controls = normalize_aws_cloudformation_controls(record)
         cloudformation_policy = normalize_aws_cloudformation_stack_policy(record)
@@ -857,6 +859,7 @@ def detect_aws_events(
                 + ([rds_public_replica] if rds_public_replica is not None else [])
                 + ([rds_managed_secret_read] if rds_managed_secret_read is not None else [])
                 + ([rds_pending_signals] if rds_pending_signals is not None else [])
+                + ([redshift_password_reset] if redshift_password_reset is not None else [])
                 + ([service_credentials] if service_credentials is not None else [])
                 + ([cloudformation_controls] if cloudformation_controls is not None else [])
                 + ([cloudformation_policy] if cloudformation_policy is not None else [])
