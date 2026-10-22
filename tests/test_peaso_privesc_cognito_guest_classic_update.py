@@ -23,20 +23,22 @@ def trust(*, audience=POOL_ID, method="unauthenticated", extra=()):
                     "ForAnyValue:StringLike": {"cognito-identity.amazonaws.com:amr": method}}}, *extra)
 
 
-def pool(*, mappings=None, config_status="collected", roles_status="collected", name="test-pool"):
+def pool(*, mappings=None, config_status="collected", roles_status="collected", name="test-pool",
+         guest=False, classic=False):
     return ("cognito_identity_pool", f"{ACCOUNT}/us-east-1", [{
         "IdentityPoolId": POOL_ID,
         "Configuration": {"collection_status": config_status, "IdentityPoolName": name,
-                          "AllowUnauthenticatedIdentities": False, "AllowClassicFlow": False},
+                          "AllowUnauthenticatedIdentities": guest, "AllowClassicFlow": classic},
         "Roles": {"collection_status": roles_status, "Roles": {}, "RoleMappings": mappings or {}}}])
 
 
 def reaches(*, actions=(UPDATE,), audience=POOL_ID, method="unauthenticated",
             mappings=None, config_status="collected", roles_status="collected", name="test-pool",
-            target_account=ACCOUNT, extra_trust=()):
+            target_account=ACCOUNT, extra_trust=(), guest=False, classic=False):
     target = role("target", trust(audience=audience, method=method, extra=extra_trust), account=target_account)
     model = AwsModel(aws_snap([user("alice", *actions)], [target], [
-        pool(mappings=mappings, config_status=config_status, roles_status=roles_status, name=name)]))
+        pool(mappings=mappings, config_status=config_status, roles_status=roles_status, name=name,
+             guest=guest, classic=classic)]))
     return Evaluator(model, [entry()], include_unknown=False).run()
 
 
@@ -59,6 +61,9 @@ def test_guest_basic_update_requires_guest_trust_and_no_role_mappings():
     assert reaches(method="authenticated") == []
     assert reaches(mappings={"provider": {"Type": "Token"}}) == []
     assert reaches(name="") == []
+    assert reaches(guest=True, classic=True) == []  # Already public; this update causes no new access.
+    assert reaches(guest=True, classic=False)
+    assert reaches(guest=False, classic=True)
 
 
 def test_guest_basic_update_does_not_claim_incomplete_pool_facts():

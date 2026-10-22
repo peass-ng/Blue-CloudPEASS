@@ -4059,6 +4059,8 @@ class AwsModel(Model):
             if (pool_arn and isinstance(config, dict) and config.get("collection_status") == "collected"
                     and isinstance(config.get("IdentityPoolName"), str) and config["IdentityPoolName"]
                     and type(config.get("AllowUnauthenticatedIdentities")) is bool
+                    and not (config["AllowUnauthenticatedIdentities"] is True
+                             and config.get("AllowClassicFlow") is True)
                     and isinstance(roles, dict) and roles.get("collection_status") in ok
                     and isinstance(roles.get("RoleMappings", {}), dict)
                     and not roles.get("RoleMappings")):
