@@ -9639,6 +9639,100 @@ class AwsModel(Model):
             return None
         return ("conditional", "gameliftstreams_exact_controlled_application_role_effect")
 
+    def _glue_job_effect_witness(self, source, role, technique):
+        """Use one fresh executed job to cover a script outside job inventory."""
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if not records:
+            return None
+        if len(records) != 1:
+            return ("unknown", "glue_job_effect_evidence_conflicting")
+        scope, proof = records[0]
+        if (inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"
+                or source.incomplete or role.incomplete or "/" not in scope):
+            return ("unknown", "glue_job_effect_evidence_incomplete")
+        region = scope.split("/", 1)[1]
+        partition = source.id.split(":", 2)[1]
+        job_arn, script = proof.get("JobArn"), proof.get("ScriptS3Uri")
+        if not isinstance(job_arn, str) or re.fullmatch(
+                rf"arn:{re.escape(partition)}:glue:{re.escape(region)}:{source.scope}:job/[A-Za-z0-9][A-Za-z0-9_./-]*",
+                job_arn) is None or not isinstance(script, str):
+            return ("unknown", "glue_job_or_script_identity_not_verified")
+        parsed = urlsplit(script)
+        if (parsed.scheme != "s3" or not re.fullmatch(r"[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]", parsed.netloc)
+                or not parsed.path.startswith("/") or parsed.path == "/" or parsed.query or parsed.fragment
+                or "%" in parsed.path):
+            return ("unknown", "glue_job_script_uri_not_verified")
+        object_arn = f"arn:{partition}:s3:::{parsed.netloc}{parsed.path}"
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("TechniqueId") != technique or proof.get("SourceArn") != source.id or
+                proof.get("TargetKind") != "aws_role" or proof.get("TargetId") != role.id or
+                proof.get("JobRoleArn") != role.id or
+                proof.get("ExecutionRoute") not in ("StartJobRun", "CreateTrigger", "ExistingTrigger") or
+                any(proof.get(key) is not True for key in (
+                    "ScriptObjectControlled", "ScriptReadSucceeded", "JobRunSucceeded",
+                    "ScriptExecuted", "CodeUsedJobRoleCredentials", "RoleActionSucceeded",
+                    "EffectUsefulToSource")) or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "glue_job_execution_or_role_effect_not_verified")
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        if (not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource):
+            return ("unknown", "glue_job_role_action_not_verified")
+        rows = [row for row_scope, row in items(self.snapshot, "iam_role")
+                if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        if (len(rows) != 1 or not isinstance(proof.get("TargetRoleId"), str) or
+                not proof["TargetRoleId"] or rows[0].get("RoleId") != proof["TargetRoleId"]):
+            return ("unknown", "glue_job_role_identity_not_verified")
+        if technique != "aws-glue-passrole-createjob-or-updatejob-run" and job_arn not in self.hosts.get(
+                role.id, {}).get("glue_job", ()):
+            return ("unknown", "glue_job_attached_role_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "glue_job_effect_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "glue_job_effect_evidence_time_missing")
+        context = {"aws:RequestedRegion": region}
+        grants = [self.check(source, {"action": "s3:PutObject"}, object_arn),
+                  self.check(role, {"action": "s3:GetObject"}, object_arn),
+                  self.check(role, {"action": action}, resource)]
+        if technique in ("aws-glue-passrole-createjob-or-updatejob-run", "aws-glue-updatejob-existing-role"):
+            change = proof.get("JobChangeAction")
+            allowed = ("CreateJob", "UpdateJob") if technique == "aws-glue-passrole-createjob-or-updatejob-run" else ("UpdateJob",)
+            if change not in allowed or proof.get("JobChangeSucceeded") is not True:
+                return ("unknown", "glue_job_change_not_verified")
+            grants.extend((self.check(source, {"action": "glue:" + change,
+                                               "request_context": context}, job_arn),
+                           self.check(source, {"action": "iam:PassRole", "request_context": {
+                               **context, "iam:PassedToService": "glue.amazonaws.com"}}, role.id)))
+        route = proof["ExecutionRoute"]
+        if route == "StartJobRun":
+            if technique == "aws-glue-updatejob-existing-role":
+                return ("unknown", "glue_updatejob_existing_trigger_not_verified")
+            grants.append(self.check(source, {"action": "glue:StartJobRun",
+                                               "request_context": context}, job_arn))
+        else:
+            trigger_arn = proof.get("TriggerArn")
+            if (not isinstance(trigger_arn, str) or re.fullmatch(
+                    rf"arn:{re.escape(partition)}:glue:{re.escape(region)}:{source.scope}:trigger/[A-Za-z0-9][A-Za-z0-9_./-]*",
+                    trigger_arn) is None or proof.get("TriggerFired") is not True):
+                return ("unknown", "glue_job_trigger_execution_not_verified")
+            if route == "CreateTrigger":
+                grants.append(self.check(source, {"action": "glue:CreateTrigger",
+                                                   "request_context": context}, trigger_arn))
+            elif technique != "aws-glue-updatejob-existing-role":
+                return ("unknown", "glue_job_execution_route_not_verified")
+        if any(grant is None or grant.confidence != "derived" for grant in grants):
+            return ("unknown", "glue_job_scoped_permissions_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "glue_exact_executed_job_role_effect")
+
     def _glue_writable_script_witness(self, source, role, job_status):
         """Find a recorded script object the caller can replace and the role can read."""
         partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
@@ -13482,6 +13576,12 @@ class AwsModel(Model):
                         break
                 if tid not in out and uncertain:
                     out[tid] = ("unknown", "glue_existing_job_trigger_not_verified")
+            for tid, target in candidates.items():
+                if tid not in out or out[tid][0] == "unknown":
+                    proof = self._glue_job_effect_witness(
+                        source, target, "aws-glue-updatejob-existing-role")
+                    if proof:
+                        out[tid] = proof
             return out
         if pid == "glue_job_role_and_execution_bind":
             if source is None:
@@ -13588,6 +13688,12 @@ class AwsModel(Model):
                     unresolved |= witness_uncertain or passed.confidence != "derived"
                 if tid not in out and (unresolved or matched_scopes):
                     out[tid] = ("unknown", "glue_job_change_execution_or_script_object_not_verified")
+            for tid, role in candidates.items():
+                if tid not in out or out[tid][0] == "unknown":
+                    proof = self._glue_job_effect_witness(
+                        source, role, "aws-glue-passrole-createjob-or-updatejob-run")
+                    if proof:
+                        out[tid] = proof
             return out
         if pid == "glue_job_override_arguments_available":
             if source is None:
@@ -13668,6 +13774,12 @@ class AwsModel(Model):
                     uncertain = True
                 if tid not in out and uncertain:
                     out[tid] = ("unknown", "glue_job_override_route_not_verified")
+            for tid, target in candidates.items():
+                if tid not in out or out[tid][0] == "unknown":
+                    proof = self._glue_job_effect_witness(
+                        source, target, "aws-glue-startjobrun-override-script")
+                    if proof:
+                        out[tid] = proof
             return out
         if pid == "glue_existing_job_script_object_writable_and_runnable":
             if source is None:

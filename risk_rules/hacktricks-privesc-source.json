@@ -1,6 +1,6 @@
 {
   "repository": "HackTricks-wiki/hacktricks-cloud",
-  "revision": "6c4e05bb310dbc4442c9e2fdf00249d237a7bb3f",
+  "revision": "62446bfdfa946cd829eb06f32ae42b69d2992f9b",
   "path": "src/privilege-escalation-paths",
   "canonical_sha256": {
     "aws/_excluded_171e_g1.yaml": "2160b8f57f029e74e5a31727815316f459d8364147c47be2c36639c831b9dcb3",
@@ -104,7 +104,7 @@
     "aws/flink.yaml": "ec085b72232ea07de954f9a6f306ab90e528bcd984700d8f4f1b95632f52bc60",
     "aws/gamelift.yaml": "ffd94ace65ab986f61d8f75432c715d94dc74b2a0ab3bd08c51880a3d702f694",
     "aws/gameliftstreams.yaml": "abe13f7c2d123d9d1b8ba6cf41a6d96a1f73ad9190ac2a8bc9dfb7debb965013",
-    "aws/glue.yaml": "f0bf769a486a08f1e41517a904a16abacb03bc6505d70ed1ebaba700302fe2d8",
+    "aws/glue.yaml": "0f37db9198c109acfbf6bb6683cfb799c0111b500da174beb766fb479222cdd9",
     "aws/grafana.yaml": "4b5279e48474294e5b8b551faf7e501d8b263d8bb12bac55347dcf3d5ff6be91",
     "aws/greengrass.yaml": "3d62fce17410c7d24d4fbfe7e4684c4ceb4e1b22a6ded03ad169b9d749e20fae",
     "aws/healthomics.yaml": "7e1dbf078bf98a2cbb323c539a450da78723934d9cfa983fcff3bb756605077e",
@@ -406,7 +406,7 @@
     "aws/flink.yaml": "ec085b72232ea07de954f9a6f306ab90e528bcd984700d8f4f1b95632f52bc60",
     "aws/gamelift.yaml": "ffd94ace65ab986f61d8f75432c715d94dc74b2a0ab3bd08c51880a3d702f694",
     "aws/gameliftstreams.yaml": "abe13f7c2d123d9d1b8ba6cf41a6d96a1f73ad9190ac2a8bc9dfb7debb965013",
-    "aws/glue.yaml": "f0bf769a486a08f1e41517a904a16abacb03bc6505d70ed1ebaba700302fe2d8",
+    "aws/glue.yaml": "0f37db9198c109acfbf6bb6683cfb799c0111b500da174beb766fb479222cdd9",
     "aws/grafana.yaml": "4b5279e48474294e5b8b551faf7e501d8b263d8bb12bac55347dcf3d5ff6be91",
     "aws/greengrass.yaml": "3d62fce17410c7d24d4fbfe7e4684c4ceb4e1b22a6ded03ad169b9d749e20fae",
     "aws/healthomics.yaml": "7e1dbf078bf98a2cbb323c539a450da78723934d9cfa983fcff3bb756605077e",
