@@ -2258,7 +2258,9 @@ def test_emr_getclustersessioncredentials_reaches_runtime_roles():
     missing_config = real(aws_snap([alice], emr_roles(), [col("emr_cluster", [emr_cluster()])]),
                           tid, include_unknown=True)
     assert all(finding["status"] != "FAIL" for finding in missing_config["findings"])
-    assert_unresolved(real(aws_snap([alice], emr_roles()), tid, include_unknown=True), ALICE)
+    missing_cluster = real(aws_snap([alice], emr_roles()), tid, include_unknown=True)
+    assert all(finding["status"] != "FAIL" for finding in missing_cluster["findings"])
+    assert any(row.get("status") == "unresolved" for row in missing_cluster["coverage"])
 
 
 def test_emr_runtime_role_steps_need_exact_cluster_role_and_host_permissions():

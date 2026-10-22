@@ -122,7 +122,8 @@ def test_emr_runtime_role_binding_preserves_previous_catalog():
     assert current[ids[0]]["requires"]["all_of"][0]["request_context"] == {
         "iam:PassedToService": "ec2.amazonaws.com"}
     assert "emr_new_cluster_role_execution_unverified" in current[ids[0]]["preconditions"]
-    assert "emr_cluster_endpoint_role_effect_unverified" in current[ids[1]]["preconditions"]
+    assert current[ids[1]]["preconditions"] == ["emr_cluster_session_runtime_role"]
+    assert current[ids[1]]["requires"]["all_of"] == []
     assert "emr_existing_cluster_runtime_step_role" in current[ids[2]]["preconditions"]
     old = {"schema": catalog.BINDING_SCHEMA,
            "manifest_sha256": catalog.EMR_RUNTIME_689_PREVIOUS_MANIFEST,

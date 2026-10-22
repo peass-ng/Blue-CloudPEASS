@@ -4440,6 +4440,66 @@ class AwsModel(Model):
             return ("conditional", "emr_existing_cluster_step_instance_role")
         return ("unknown", "emr_existing_cluster_step_role_not_verified") if uncertain else None
 
+    def _emr_cluster_endpoint_role_effect(self, source, role, host, cluster_arn, grant):
+        """Require endpoint credentials to run a useful workload under the runtime role."""
+        technique = "aws-emr-getclustersessioncredentials-runtime-role"
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "emr_cluster_endpoint_effect_evidence_missing_or_conflicting")
+        scope, proof = records[0]
+        region = cluster_arn.split(":", 5)[3]
+        if (scope != f"{source.scope}/{region}" or
+                inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected" or
+                source.incomplete or role.incomplete or host.incomplete or grant.confidence != "derived"):
+            return ("unknown", "emr_cluster_endpoint_effect_evidence_incomplete")
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        endpoint = proof.get("EndpointUri")
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("TechniqueId") != technique or proof.get("SourceArn") != source.id or
+                proof.get("TargetKind") != "aws_role" or proof.get("TargetId") != role.id or
+                proof.get("ClusterArn") != cluster_arn or proof.get("HostRoleArn") != host.id or
+                proof.get("RuntimeRoleArn") != role.id or proof.get("CredentialType") != "http_basic" or
+                not isinstance(endpoint, str) or re.fullmatch(r"https?://[^\s/]+/.+", endpoint) is None or
+                proof.get("CredentialsIssued") is not True or
+                proof.get("EndpointReachable") is not True or
+                proof.get("EndpointAuthenticated") is not True or
+                proof.get("InteractiveWorkloadSubmitted") is not True or
+                proof.get("InteractiveWorkloadExecuted") is not True or
+                proof.get("WorkloadUsedRuntimeRole") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                not isinstance(action, str) or re.fullmatch(
+                    r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "emr_cluster_endpoint_workload_or_role_effect_not_verified")
+        roles = [row for row_scope, row in items(self.snapshot, "iam_role")
+                 if row_scope.split("/", 1)[0] == source.scope]
+        targets = [row for row in roles if row.get("Arn") == role.id]
+        hosts = [row for row in roles if row.get("Arn") == host.id]
+        if (len(targets) != 1 or len(hosts) != 1 or
+                not isinstance(proof.get("RuntimeRoleId"), str) or not proof["RuntimeRoleId"] or
+                targets[0].get("RoleId") != proof["RuntimeRoleId"] or
+                not isinstance(proof.get("HostRoleId"), str) or not proof["HostRoleId"] or
+                hosts[0].get("RoleId") != proof["HostRoleId"]):
+            return ("unknown", "emr_cluster_endpoint_role_identity_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "emr_cluster_endpoint_effect_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "emr_cluster_endpoint_effect_evidence_time_missing")
+        permitted = self.check(role, {"action": action}, resource)
+        if permitted is None or permitted.confidence != "derived":
+            return ("unknown", "emr_cluster_runtime_role_action_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "emr_cluster_exact_endpoint_runtime_role_effect")
+
     def _emr_cluster_runtime_route(self, source, role, action):
         """Bind a runtime role to one active cluster and an authorized caller request."""
         hosts = [host for norm in self.trust_names.get(role.id, ()) for host in self._roles_by_norm(norm)
@@ -4448,6 +4508,7 @@ class AwsModel(Model):
         if not hosts:
             return None
         unknown = bool(source.incomplete) or role.scope in self.emr_runtime_config_unknown
+        effect_unresolved = None
         partition = source.id.split(":", 2)[1]
         previous = self._ctx_override
         try:
@@ -4478,11 +4539,18 @@ class AwsModel(Model):
                     if any(item is None for item in trust):
                         continue
                     if grant.confidence == "derived" and all(item.confidence == "derived" for item in host_grants) and all(item[0] == "derived" for item in trust):
+                        if action == "elasticmapreduce:getclustersessioncredentials":
+                            effect = self._emr_cluster_endpoint_role_effect(source, role, host, arn, grant)
+                            if effect is None or effect[0] == "conditional":
+                                return effect
+                            effect_unresolved = effect
+                            unknown = True
+                            continue
                         return ("conditional", "active_emr_cluster_and_exact_runtime_role_authorized")
                     unknown = True
         finally:
             self._ctx_override = previous
-        return ("unknown", "emr_runtime_cluster_or_trust_not_verified") if unknown else None
+        return effect_unresolved or (("unknown", "emr_runtime_cluster_or_trust_not_verified") if unknown else None)
 
     def _emr_cluster_session_route(self, source, role):
         return self._emr_cluster_runtime_route(
