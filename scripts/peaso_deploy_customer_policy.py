@@ -587,6 +587,14 @@ ATHENA_SESSION_METADATA_REFERENCES = {
 }
 VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(ATHENA_SESSION_METADATA_REFERENCES)
 
+# The exact live session and its RoleArn are needed for the GameLift Streams
+# administrative-shell route; both APIs return session metadata only.
+GAMELIFT_STREAM_SESSION_METADATA_REFERENCES = {
+    "gameliftstreams:ListStreamGroups": "https://docs.aws.amazon.com/gameliftstreams/latest/apireference/API_ListStreamGroups.html",
+    "gameliftstreams:ListStreamSessions": "https://docs.aws.amazon.com/gameliftstreams/latest/apireference/API_ListStreamSessions.html",
+}
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(GAMELIFT_STREAM_SESSION_METADATA_REFERENCES)
+
 
 def build_policy(read_actions=None, *, include_credential_report_generation=None,
                  include_waf_association_companions=True):

@@ -6631,7 +6631,49 @@ class AwsModel(Model):
             return ("conditional", "flink_existing_studio_role_session")
         return ("unknown", "flink_existing_studio_role_session_not_verified") if uncertain else None
 
+    def _gameliftstreams_admin_shell(self, source, target):
+        statuses = {scope: status for scope, status in
+                    inventory_status(self.snapshot, "gameliftstreams_stream_session").items()
+                    if scope.startswith(source.scope + "/")}
+        if not statuses:
+            return ("unknown", "gameliftstreams_sessions_not_collected")
+        uncertain = any(status not in ("collected", "empty") for status in statuses.values())
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        for scope, session in items(self.snapshot, "gameliftstreams_stream_session"):
+            if scope not in statuses or not isinstance(session, dict):
+                continue
+            if session.get("RoleArn") != target.id:
+                continue
+            region = scope.split("/", 1)[1]
+            group = session.get("StreamGroupArn")
+            session_arn = session.get("Arn")
+            group_prefix = f"arn:{partition}:gameliftstreams:{region}:{source.scope}:streamgroup/"
+            session_prefix = f"arn:{partition}:gameliftstreams:{region}:{source.scope}:streamsession/"
+            if (session.get("Status") not in ("ACTIVE", "CONNECTED", "PENDING_CLIENT_RECONNECTION", "RECONNECTING")
+                    or not isinstance(group, str) or not group.startswith(group_prefix)
+                    or not isinstance(session_arn, str) or not session_arn.startswith(
+                        session_prefix + group[len(group_prefix):] + "/")):
+                uncertain = True
+                continue
+            grant = self._check_action(source, "gameliftstreams:createstreamsessionadminshell", group)
+            if grant is None:
+                continue
+            if grant.confidence == "derived" and not source.incomplete and not target.incomplete:
+                return ("conditional", "gameliftstreams_live_role_session_shell")
+            uncertain = True
+        return (("unknown", "gameliftstreams_session_or_shell_permission_not_verified")
+                if uncertain else None)
+
     def precondition(self, pid, candidates, source):
+        if pid == "gameliftstreams_live_role_session_admin_shell":
+            if source is None:
+                return None
+            out = {}
+            for tid, role in candidates.items():
+                verdict = self._gameliftstreams_admin_shell(source, role)
+                if verdict:
+                    out[tid] = verdict
+            return out
         out = {}
         if pid == "iot_new_alias_policy_certificate_same_region":
             if source is None:

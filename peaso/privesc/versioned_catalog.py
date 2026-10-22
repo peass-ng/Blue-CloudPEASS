@@ -21,7 +21,14 @@ V4_EFFECTIVE_TREE = "413792ea4aec86e48c352ffab2c0bea9e82795bc234251342737ec0276b
 LEGACY_DELTA = Path(__file__).resolve().parent / "catalog_versions/legacy-0b3633-delta.json"
 BOUNDED_MANIFEST = "734401b202895e00ac1b6cb0f1534f77cde4d8e2ba912ca0ee974b1b8ec5035c"
 BOUNDED_TREE = "1a54bad4102d18f89c78f45c915964554a62f994c1bffa693844cac5e119cca8"
-CURRENT_MANIFEST = '37a6cc93d703b54c1bbf58e346ab0c855bbec910dee9611ee77511928699e7fe'
+CURRENT_MANIFEST = 'fa98e52c3a7b0778d45750885e62c1f08a0b08c68b2a2fe405d407ca24bf8d83'
+GAMELIFT_CURRENT_MANIFEST = '37a6cc93d703b54c1bbf58e346ab0c855bbec910dee9611ee77511928699e7fe'
+GAMELIFT_CURRENT_TREE = '4e029c42de100f8d63ace40173ce4b9e894a5f12bb42f470831a8745b4950399'
+GAMELIFT_CURRENT_ENTRY_COUNT = 667
+GAMELIFT_CURRENT_EXCLUDED_COUNT = 3725
+GAMELIFT_CURRENT_ARCHIVE_SHA256 = 'f16d34175f0dca5d92d316fc2f5d4eaf6506a11fdb0a92dfdcf31e828b32d0af'
+GAMELIFT_CURRENT_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-667-gamelift-source-manifest.json'
+GAMELIFT_CURRENT_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-667-gamelift-catalog.tar.gz'
 IOT_V2_CURRENT_MANIFEST = 'b34c5215e969f886c4b286c3d33afd62f3364d5b58dce96a8393d8ef79465090'
 IOT_V2_CURRENT_TREE = '98e3a4ac18955dec5670e267f03b8f942bfadf01d5cb483d94a928e4229b4428'
 IOT_V2_CURRENT_ENTRY_COUNT = 667
@@ -89,10 +96,10 @@ PRIOR_CURRENT_MANIFEST = "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0c
 PRIOR_DISCLOSURE_MANIFEST = "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
 PRIOR_DISCLOSURE_TREE = "5091464bedcb10bb87301695ca733276dc67b865e544c408ccf72a5408176f0f"
 PRIOR_DISCLOSURE_HISTORY = Path(__file__).resolve().parent / "catalog_versions/disclosure-v7-manifest.json"
-CURRENT_TREE = '4e029c42de100f8d63ace40173ce4b9e894a5f12bb42f470831a8745b4950399'
+CURRENT_TREE = '92585138ea667380fdd66d6cf2c03c46f080034aa8904975fc0ec82feda14a9d'
 PRIOR_CURRENT_TREE = "99207e6469fc5e5b3daf21324e6860599b116ffcf7d30600643bd229b0f11494"
-CURRENT_ENTRY_COUNT = 667
-CURRENT_EXCLUDED_COUNT = 3725
+CURRENT_ENTRY_COUNT = 668
+CURRENT_EXCLUDED_COUNT = 3724
 CURRENT_HISTORY = Path(__file__).resolve().parent / "catalog_versions/bulk-principal-v6-manifest.json"
 PRIOR_CATALOG_ARCHIVE = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-catalog-20261016.tar.gz"
 PRIOR_SOURCE_MANIFEST = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-source-manifest.json"
@@ -139,6 +146,15 @@ def _verified_previous_current():
         PREVIOUS_CURRENT_MANIFEST_PATH, PREVIOUS_CURRENT_ARCHIVE,
         PREVIOUS_CURRENT_MANIFEST, PREVIOUS_CURRENT_ARCHIVE_SHA256,
         PREVIOUS_CURRENT_TREE, PREVIOUS_CURRENT_ENTRY_COUNT, PREVIOUS_CURRENT_EXCLUDED_COUNT)
+
+
+@lru_cache(maxsize=1)
+def _verified_gamelift_current():
+    """Keep the exact catalog used before the GameLift admin-shell route."""
+    return _verified_archived_current(
+        GAMELIFT_CURRENT_MANIFEST_PATH, GAMELIFT_CURRENT_ARCHIVE,
+        GAMELIFT_CURRENT_MANIFEST, GAMELIFT_CURRENT_ARCHIVE_SHA256,
+        GAMELIFT_CURRENT_TREE, GAMELIFT_CURRENT_ENTRY_COUNT, GAMELIFT_CURRENT_EXCLUDED_COUNT)
 
 
 @lru_cache(maxsize=1)
@@ -334,6 +350,10 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == PREVIOUS_CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "previous_current", "exact_previous_current"
+    elif (binding.get("manifest_sha256") == GAMELIFT_CURRENT_MANIFEST and
+          binding.get("effective_tree_sha256") == GAMELIFT_CURRENT_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "gamelift_current", "exact_previous_current"
     elif (binding.get("manifest_sha256") == IOT_CURRENT_MANIFEST and
           binding.get("effective_tree_sha256") == IOT_CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -397,6 +417,9 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
             return {ident: current[ident] for ident in ids if ident in current}, status
         if version == "previous_current":
             previous = _verified_previous_current()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
+        if version == "gamelift_current":
+            previous = _verified_gamelift_current()
             return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "iot_current":
             previous = _verified_iot_current()
