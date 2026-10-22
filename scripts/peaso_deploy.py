@@ -3543,11 +3543,15 @@ import importlib.util
 from bluepeass.k8s import KubernetesApi
 from bluepeass.k8s_risks import PermissionKey
 from scripts.cloud_permission_risks import classify_permission
-from peaso.engine import get_catalog
+import sys
+from peaso.server.materialized_catalog import summary
+from peaso.server.privesc_display_catalog import _load as privilege_display
 from peaso.server.lambda_handler import handler
 assert importlib.util.find_spec('peaso.privesc') is not None
-from peaso.privesc import analyze
-print('Native catalog checks:',len(get_catalog()['checks']))
+print('API catalog checks:',len(summary()['checks']))
+assert privilege_display()['bindings']
+for name in ('peaso.engine', 'peaso.privesc.evaluator', 'peaso.privesc.versioned_catalog'):
+    assert name not in sys.modules, name
 for path, expected in [('/api/health',200),('/api/me',401),('/api/connectors',401)]:
     event={'version':'2.0','routeKey':'$default','rawPath':path,'rawQueryString':'',
            'headers':{'host':'localhost'},'requestContext':{'stage':'$default',
