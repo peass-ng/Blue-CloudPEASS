@@ -1,6 +1,6 @@
 {
   "repository": "HackTricks-wiki/hacktricks-cloud",
-  "revision": "043d9198a2e7deea5e558442cd1939c096b0ccf0",
+  "revision": "99d5f2f8a0be0a395d3ac273f69d7aaddd617f00",
   "path": "src/privilege-escalation-paths",
   "canonical_sha256": {
     "aws/_excluded_171e_g1.yaml": "2160b8f57f029e74e5a31727815316f459d8364147c47be2c36639c831b9dcb3",
@@ -21,7 +21,7 @@
     "aws/_excluded_foothold_strict_reaudit_20261016.yaml": "9e9203f089c71a05431e012badadcec8a61a3781c1ab1aa3a9b690c80a3b40be",
     "aws/_excluded_generated_scope_20261016.yaml": "54492bc2cf4bfc09f731e0aab112d2352477ef662815d7d6b76d07b6aad1d453",
     "aws/_excluded_generic_challenge_strict_reaudit_20261016.yaml": "dcfaf11d73e3f9b949b686671e057c5e090bdc933f5682a1913cda5cdcfd2eb9",
-    "aws/_excluded_greengrass_unjoined_tes_role_final_reaudit_20261016.yaml": "5a780848c89c1dadcb674272fa2f0f489bc8c7662e3a878010223b0a7fa75e3d",
+    "aws/_excluded_greengrass_unjoined_tes_role_final_reaudit_20261016.yaml": "44b5779d0a9a59ef1c9f69d3dee6fb312654aa5879467fc24b9a1f668ca94160",
     "aws/_excluded_org_scope_overclaim_20261016.yaml": "5a70bc0f60f0b48188e4f411663144b8eb764e50407baf535512d2ac1e50d61d",
     "aws/_excluded_pr_head_reconciliation_20261016.yaml": "70d24edaf7851df13a46775312f20119464231dad155b915e7584cfedbac73ff",
     "aws/_excluded_refresh_g1.yaml": "8e0e4edaa820f732e97a22066fdc977485ff0560496bb27d6cb80abe5a9f8e2f",
@@ -311,7 +311,7 @@
     "aws/_excluded_foothold_strict_reaudit_20261016.yaml": "9e9203f089c71a05431e012badadcec8a61a3781c1ab1aa3a9b690c80a3b40be",
     "aws/_excluded_generated_scope_20261016.yaml": "54492bc2cf4bfc09f731e0aab112d2352477ef662815d7d6b76d07b6aad1d453",
     "aws/_excluded_generic_challenge_strict_reaudit_20261016.yaml": "dcfaf11d73e3f9b949b686671e057c5e090bdc933f5682a1913cda5cdcfd2eb9",
-    "aws/_excluded_greengrass_unjoined_tes_role_final_reaudit_20261016.yaml": "5a780848c89c1dadcb674272fa2f0f489bc8c7662e3a878010223b0a7fa75e3d",
+    "aws/_excluded_greengrass_unjoined_tes_role_final_reaudit_20261016.yaml": "44b5779d0a9a59ef1c9f69d3dee6fb312654aa5879467fc24b9a1f668ca94160",
     "aws/_excluded_org_scope_overclaim_20261016.yaml": "5a70bc0f60f0b48188e4f411663144b8eb764e50407baf535512d2ac1e50d61d",
     "aws/_excluded_pr_head_reconciliation_20261016.yaml": "70d24edaf7851df13a46775312f20119464231dad155b915e7584cfedbac73ff",
     "aws/_excluded_refresh_g1.yaml": "8e0e4edaa820f732e97a22066fdc977485ff0560496bb27d6cb80abe5a9f8e2f",
