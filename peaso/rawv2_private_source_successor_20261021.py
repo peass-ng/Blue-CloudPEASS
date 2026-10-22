@@ -22,9 +22,10 @@ PRIVATE_HELPER = 'peaso/secret_evidence.py'
 PRIVATE_HELPER_SHA256 = '15092e316c2331e03fdae7fad4dda5ed92310a1c15a827b0009fbcd54a11693a'
 SCANNER_BEFORE = '72aaf391e3b168d9b8f7a10603a5763c04137b5e7807fef320b4fc22fa1a9d19'
 SCANNER_MIDDLE = '3897b64c134f88e7ad17c3c1f31df2b5497d34df6c1340d04e536313652f94f6'
-SCANNER_AFTER = 'a1c7163c021ac85b945f3b4289a5fa45f4e641bc22e302c51c9014ec7531c322'
+SCANNER_PERFORMANCE_PREDECESSOR = 'a1c7163c021ac85b945f3b4289a5fa45f4e641bc22e302c51c9014ec7531c322'
+SCANNER_AFTER = '7baaed87b7d2923f411ad03a47e41c3627a52136689ec10d79e13150bfbc129c'
 RECEIPT = 'peaso/checks/rawv2_private_source_successor_20261021.json'
-RECEIPT_SHA256 = 'b1cdd6aac0367bb59ddfe4304074bec728afe460b5ea196071638fd41fbdec6b'
+RECEIPT_SHA256 = 'd4661acb5eca058c9d62dacd7bc515539cb9aaf60b5fe7064d237a128f08aa4e'
 BRIDGE_RECEIPT_SHA256 = '5889b51b210bf8a45f3eb07c5b4a027a2fceec9562e5b6baed8c2ba614d27f1e'
 
 
@@ -226,6 +227,13 @@ def _verify_scanner(root, receipt):
     if _digest(current) != SCANNER_AFTER:
         raise RuntimeError('RawV2 scanner current source changed')
     old = current
+    if (receipt['performance_predecessor_sha256'] != SCANNER_PERFORMANCE_PREDECESSOR
+            or receipt['performance_private_edit_count'] != 1):
+        raise RuntimeError('RawV2 performance predecessor relation changed')
+    performance = receipt['private_edits'][-1]
+    if (performance['after'].encode() != current
+            or _digest(performance['before'].encode()) != SCANNER_PERFORMANCE_PREDECESSOR):
+        raise RuntimeError('RawV2 performance exact predecessor changed')
     for edit in reversed(receipt['private_edits']):
         before, after = edit['before'].encode(), edit['after'].encode()
         if old.count(after) != 1:
