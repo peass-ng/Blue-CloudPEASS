@@ -194,6 +194,18 @@ class CheckpointSession:
             if restored:
                 self.wake.set()
 
+    def restore_final(self, snapshot):
+        """Seed the latest sealed native envelopes without replaying publication."""
+        candidate = validate(snapshot)
+        if candidate["provider"] != self.provider:
+            raise ValueError("Resume snapshot provider mismatch")
+        with self.lock:
+            for row in candidate["collections"]:
+                key = (row["type"], row["scope"])
+                self.collections[key] = row
+                self.collection_revisions[key] = max(self.sequence,
+                                                     self.collection_revisions.get(key, 0))
+
     def _scope_ready(self, kind, scope, complete):
         if scope in complete.get(kind, ()):
             return True

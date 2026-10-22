@@ -53,6 +53,10 @@ RUNTIME_ADMISSION_INPUTS = {
 # Exact public inputs needed to reproduce the shipped compiler, provenance and
 # tests. Explicit paths/globs only: no .work drafts, caches or private files.
 REPRODUCTION_INPUT_PATTERNS = (
+    'tests/test_aws_ecs_configuration_literals.py',
+    'tests/test_batch_content_reuse.py',
+    'examples/benchmark_peaso_batch_content_reuse.py',
+    'docs/secret-scanning.md',
     'tests/test_ecr_clean_digest_failure.py',
     'tests/test_ecr_layer_resume.py',
     'tests/test_gcp_log_page_batch.py',
