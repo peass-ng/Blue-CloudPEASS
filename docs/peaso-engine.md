@@ -71,6 +71,12 @@ Diffs compare stable finding IDs, statuses and collected evidence within the sam
 
 Hosted collectors commit bounded batches of settled inventories (64 envelopes, one second, or 8 MiB by default) before publishing their results. Completed sections become available independently; a later timeout retains the last durable partial snapshot and report. An interrupted process can lose the uncommitted batch. Section completion describes finished collection, and denied or incomplete evidence keeps its existing status.
 
+AWS collection reserves separate bounded slots for ordinary inventory and selected artifact content, so slow image downloads do not occupy every inventory worker. Access Analyzer preparation overlaps ordinary reads. A section becomes ready only after its authoritative account/region discovery and required inventories settle; missing or denied discovery cannot declare it complete.
+
+Public report updates coalesce repeated changes to already available sections for eight seconds, while newly completed sections publish immediately. Raw checkpoint durability is independent of that cadence. The watcher reads small publication metadata once per immutable report reference; stage workers load and validate their own complete inputs. Unchanged public artifacts reuse exact same-scan content references.
+
+Image checks share captured payloads, and complete platform-specific CVE results can be reused only under the same account, repository, exact image digest and fresh database lease. Incomplete analyses remain incomplete. Progressive reviews expand grouped cards back into their native observations and reuse only conclusive reviews with identical evidence, referenced resources, access context and section revision. A newer revision waits for the running review of that section to settle; unrelated sections remain parallel.
+
 Privilege evaluation indexes native collections once per model. Network evaluation indexes Kubernetes labels and AWS subnet associations within each evaluation, preserving native order, per-resource evidence and uncertain matches. These changes remove repeated work without reducing the selected checks, pages, resources or graph relationships. Offline phase benchmarks do not establish a cloud scan completion time.
 
 ## Validation and maintenance
