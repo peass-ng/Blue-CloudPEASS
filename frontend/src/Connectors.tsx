@@ -1531,7 +1531,6 @@ function ConnectorForm({
           {accessResult.issues.length > 0 && <ul>{accessResult.issues.filter((issue) => !accessResult.scope_results?.some((row) => row.issues.some((item) => item.scope === issue.scope && item.message === issue.message))).map((item, index) =>
             <li key={`${item.scope}-${index}`}><b>{item.severity === "critical" ? "Required" : "Recommended"}</b> · {item.scope}: {item.message}</li>)}</ul>}
           {accessResult.status === "warning" && <>
-            <p>The access check found limitations or recommendations. Some checks might fail or return incomplete evidence. Resolve the items above and check again, or acknowledge the limitation to continue.</p>
             <label className="checkbox"><input type="checkbox" checked={accessWarningsAcknowledged}
               onChange={event => { event.stopPropagation(); setAccessWarningsAcknowledged(event.target.checked); }} />
               I understand that some checks might fail or return incomplete evidence with this access.
