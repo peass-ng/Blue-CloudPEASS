@@ -62,10 +62,10 @@ SUPPORT_SOURCE = RUNTIME_SOURCE.with_name('runtime_support.py')
 ROUTES_SOURCE = RUNTIME_SOURCE.with_name('runtime_routes.py')
 GCP_SOURCE = Path('/tmp/peaso-gcp-trivy-grant-20261021/peaso/checks/gcp_job_trivy_vulnerability_review_20261020.py')
 GCP_DEPENDENCIES = {'peaso/collectors/gcp_job_image_vulnerability_native_20261021.py': 'e8d3606f8005e998671c21bd57dcd04ab00807f39f243a3452f75535d7dbde50', 'peaso/collectors/gcp_job_image_vulnerability_runtime_20261021.py': 'f7ceab1fca38c7b050ac24c528ae9fbefa82e7c295479dad0fba98ec342231a3', 'peaso/collectors/gcp_job_trivy_capture_20261020.py': '433eb525890040fe6136c65bed94f25de017101096662c2c1608fd01a5c0c5ff', 'peaso/container_image_archive_20261020.py': '3d6ba0510c797bd38e0cea352b4bf1f0dfc786cb492030af31e22b97835807ba', 'peaso/container_scan_process_20261020.py': '21876eb14edfa92d4613c28fd3781014aed05b14ba3d1d6d8409c768ed29a1a3', 'peaso/trivy_container_runner_20261020.py': '6f82c71f3cd273a1fa2a79a9c7ce1b45a262072669e73921c43a6b0b751698f4'}
-CURRENT_DEPENDENCIES = {'peaso/container_image_archive_20261020.py': 'b77c9088ef9b26ab5214b434c62bc9e6a42a1c249ffb818680b6cfdc17555d8f',
+CURRENT_DEPENDENCIES = {'peaso/container_image_archive_20261020.py': 'e0782daf25586a44ee93031dbeb8be39f91655b2a53669e33e56baf8eae3fba8',
  'peaso/aws_image_selection_20261021.py': 'd918cbdb2477d72cdacc1d8f2097e4e987f5977971d96b77c2ba32a7f9764389',
  'peaso/checks/aws_image_vulnerabilities_20261021.py': 'd0174d668b9f10e679d9fc54c5e0e674cb82ca61daf19b19f850c32be0355674',
- 'peaso/collectors/aws_image_vulnerability_native_20261021.py': '70dfcc11cb3fbe34b390155d0bf1221c2fd4a56b83d56915a4104a5acb708bb1',
+ 'peaso/collectors/aws_image_vulnerability_native_20261021.py': 'b38a64e8a07eb568cc371f8a337a08e4d2b7c18eab5fb348445c05e43dbf864d',
  'peaso/collectors/aws_image_vulnerability_runtime_20261021.py': '7052fc2bd34a25fb74cbf0e3778a5f921c4f42e828b1c6eb3af5034b3b6c030f',
  'peaso/collectors/aws_package_content_indicators.py': 'a12dda96cd994d64d008c47e8f903bb2595d1dc308a729499467846cbd42c85e',
  'peaso/collectors/gcp_job_image_vulnerability_native_20261021.py': 'de7ff579c5d79bbf9564f3b9c9883e352939e91264ebf6898235e9322cc2c93f',

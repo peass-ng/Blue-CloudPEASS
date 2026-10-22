@@ -333,3 +333,41 @@ def test_low_free_disk_refuses_and_cleans(tmp_path, monkeypatch):
     with pytest.raises(ValueError, match='scratch_disk_bound'):
         archive.write_archive(output, identity, manifest, config, [layer])
     assert not output.exists() and not list(tmp_path.glob('peaso-image-layers-*'))
+
+
+@pytest.mark.parametrize('archive_format', ['oci', 'docker'])
+def test_standard_dot_prefix_root_and_links(tmp_path, archive_format):
+    args = small_image(tmp_path, [[
+        ('.', tarfile.DIRTYPE, b'', 0, 0, ''),
+        ('./usr', tarfile.DIRTYPE, b'', 0, 0, ''),
+        ('./usr/bin', tarfile.DIRTYPE, b'', 0, 0, ''),
+        ('./usr/bin/tool', tarfile.REGTYPE, b'payload', 0, 0, ''),
+        ('./bin', tarfile.SYMTYPE, b'', 0, 0, 'usr/bin'),
+        ('./usr/bin/copy', tarfile.LNKTYPE, b'', 0, 0, './usr/bin/tool'),
+        ('./dev/null', tarfile.CHRTYPE, b'', 1, 3, ''),
+    ]])
+    observed = {}
+    archive.visit_files(*args, lambda name, reader, size, index:
+                        observed.setdefault(name, reader.read()))
+    assert observed == {'usr/bin/tool': b'payload', 'usr/bin/copy': b'payload'}
+    output = tmp_path / 'dot-prefix.tar'
+    proof = archive.write_archive(output, *args, archive_format=archive_format)
+    assert proof['members'] == 7
+    assert not (tmp_path / 'usr').exists() and not (tmp_path / 'dev').exists()
+
+
+@pytest.mark.parametrize('entries,reason', [
+    ([('./a', tarfile.REGTYPE, b'one', 0, 0, ''),
+      ('a', tarfile.REGTYPE, b'two', 0, 0, '')], 'duplicate_tar_member'),
+    ([('.', tarfile.DIRTYPE, b'', 0, 0, ''),
+      ('./', tarfile.DIRTYPE, b'', 0, 0, '')], 'duplicate_tar_member'),
+    ([('./../outside', tarfile.REGTYPE, b'bad', 0, 0, '')], 'unsafe_image_path'),
+    ([('./etc/./file', tarfile.REGTYPE, b'bad', 0, 0, '')], 'unsafe_image_path'),
+    ([('./etc/../file', tarfile.REGTYPE, b'bad', 0, 0, '')], 'unsafe_image_path'),
+    ([('.', tarfile.REGTYPE, b'bad', 0, 0, '')], 'unsafe_image_path'),
+    ([('./', tarfile.SYMTYPE, b'', 0, 0, 'elsewhere')], 'unsafe_image_path'),
+    ([('.', tarfile.DIRTYPE, b'bad', 0, 0, '')], 'unsafe_image_path'),
+])
+def test_dot_prefix_retains_canonical_path_guards(tmp_path, entries, reason):
+    with pytest.raises(ValueError, match=reason):
+        archive.validate(*small_image(tmp_path, [entries]))
