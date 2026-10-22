@@ -7995,6 +7995,86 @@ class AwsModel(Model):
             # compatible. Neither fact follows from the two caller grants.
             return {tid: ("unknown", "stepfunctions_teststate_role_task_effect_not_verified")
                     for tid in candidates}
+        if pid == "sfn_role_sdk_effect_reviewed":
+            if source is None:
+                return None
+            out = {}
+            try:
+                now = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+                if now.tzinfo is None:
+                    now = None
+            except (KeyError, TypeError, ValueError):
+                now = None
+            proof_status = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+            machine_status = inventory_status(self.snapshot, "sfn_state_machine")
+            technique = (self.current_entry or {}).get("id")
+            for tid, role in candidates.items():
+                pending = ("unknown", "sfn_supported_role_task_effect_not_verified")
+                if now is None or role.scope != source.scope:
+                    out[tid] = pending
+                    continue
+                role_rows = [row for role_scope, row in items(self.snapshot, "iam_role")
+                    if role_scope.split("/")[0] == role.scope and row.get("Arn") == tid]
+                role_id = role_rows[0].get("RoleId") if len(role_rows) == 1 else None
+                if not isinstance(role_id, str) or not role_id:
+                    out[tid] = pending
+                    continue
+                for scope, machine in items(self.snapshot, "sfn_state_machine"):
+                    if not isinstance(machine, dict) or "/" not in scope:
+                        continue
+                    arn = machine.get("stateMachineArn")
+                    revision = machine.get("revisionId")
+                    if (machine_status.get(scope) != "collected" or
+                            machine.get("status") != "ACTIVE" or
+                            _norm_arn(machine.get("roleArn") or "") != _norm_arn(tid) or
+                            not isinstance(arn, str) or not isinstance(revision, str) or not revision or
+                            not arn.startswith(f"arn:{tid.split(':', 2)[1]}:states:{scope.split('/', 1)[1]}:"
+                                                   f"{role.scope}:stateMachine:")):
+                        continue
+                    collections = [collection for collection in self.snapshot.get("collections", ())
+                        if collection.get("type") == "aws_privesc_challenge_evidence" and
+                        collection.get("scope") == scope]
+                    if len(collections) != 1 or collections[0].get("status") != "collected":
+                        continue
+                    proofs = [row for proof_scope, row in items(self.snapshot, "aws_privesc_challenge_evidence")
+                        if proof_scope == scope and proof_status.get(scope) == "collected" and
+                        row.get("TechniqueId") == technique and row.get("SourceArn") == source.id and
+                        row.get("TargetKind") == "aws_role" and row.get("TargetId") == tid and
+                        row.get("StateMachineArn") == arn]
+                    if len(proofs) != 1:
+                        continue
+                    proof = proofs[0]
+                    action, resource = proof.get("TaskAction"), proof.get("TaskResource")
+                    execution_prefix = arn.replace(":stateMachine:", ":execution:") + ":"
+                    if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                            proof.get("SdkTaskSucceeded") is not True or
+                            proof.get("TaskOutcomeUsefulToSource") is not True or
+                            proof.get("TargetScope") != scope or proof.get("TargetRoleId") != role_id or
+                            proof.get("StateMachineRevisionId") != revision or
+                            not isinstance(proof.get("ExecutionArn"), str) or
+                            not proof["ExecutionArn"].startswith(execution_prefix) or
+                            not isinstance(action, str) or
+                            re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                            not isinstance(resource, str) or not resource or
+                            not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"]):
+                        continue
+                    try:
+                        witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+                        expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+                        if (witnessed.tzinfo is None or expires.tzinfo is None or
+                                not 0 <= (now - witnessed).total_seconds() <= 900 or
+                                not now < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                            continue
+                    except (KeyError, TypeError, ValueError):
+                        continue
+                    permitted = self.check(role, {"action": action}, resource)
+                    already = self.check(source, {"action": action}, resource)
+                    if permitted is not None and permitted.confidence == "derived" and already is None:
+                        out[tid] = None
+                        break
+                else:
+                    out[tid] = pending
+            return out
         if pid == "bedrock_agent_actiongroup_lambda_execution_unverified":
             # A mutable Lambda function and an InvokeAgent grant do not show
             # that an invocable deployed alias routes to that same function.

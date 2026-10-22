@@ -800,14 +800,60 @@ def test_stepfunctions_create_and_update_passrole_use_states_service_context():
 
         right = caller("states.amazonaws.com")
         right_result = real(aws_snap([right], [execution_role]), technique, include_unknown=True)
-        if technique == "aws-stepfunctions-createstatemachine-passrole-start":
-            assert execution_role["Arn"] in reached(right_result, right["Arn"], technique)
-        else:
-            assert_unresolved(right_result, right["Arn"], technique)
+        assert execution_role["Arn"] not in reached(right_result, right["Arn"], technique)
+        assert_unresolved(right_result, right["Arn"], technique)
 
         wrong = caller("lambda.amazonaws.com")
         wrong_result = real(aws_snap([wrong], [execution_role]), technique)
         assert not reached(wrong_result, wrong["Arn"], technique)
+
+
+def test_stepfunctions_create_and_update_need_reviewed_role_operation():
+    techniques = ("aws-stepfunctions-createstatemachine-passrole-start",
+                  "aws-stepfunctions-updatestatemachine-passrole")
+    object_arn = "arn:aws:s3:::example-private-bucket/evidence.txt"
+    target = role("execution", "states.amazonaws.com", allow("s3:PutObject", resource=object_arn))
+    target["RoleId"] = "AROAEXECUTION123456789"
+    machine_arn = f"arn:aws:states:{REGION}:{ACCOUNT}:stateMachine:existing"
+    machine = {"stateMachineArn": machine_arn, "roleArn": target["Arn"],
+               "status": "ACTIVE", "type": "STANDARD", "revisionId": "revision-123"}
+    passed = allow("iam:PassRole", resource=target["Arn"])
+    passed["Condition"] = {"StringEquals": {"iam:PassedToService": "states.amazonaws.com"}}
+    caller_actions = allow("states:CreateStateMachine", "states:StartExecution",
+                           "states:UpdateStateMachine")
+
+    def result(technique, *, proof=None, machine_row=machine, extra_caller=()):
+        caller = user("alice", passed, caller_actions, *extra_caller)
+        proofs = proof if isinstance(proof, list) else ([proof] if proof else [])
+        snap = aws_snap([caller], [target], [col("sfn_state_machine", [machine_row]),
+            col("aws_privesc_challenge_evidence", proofs)])
+        snap["created_at"] = "2026-10-21T12:00:00+00:00"
+        return real(snap, technique, include_unknown=True)
+
+    for technique in techniques:
+        proof = {"TechniqueId": technique, "SourceArn": ALICE, "TargetKind": "aws_role",
+                 "TargetId": target["Arn"], "TargetScope": SCOPE, "TargetRoleId": target["RoleId"],
+                 "StateMachineArn": machine_arn, "StateMachineRevisionId": "revision-123",
+                 "ExecutionArn": f"arn:aws:states:{REGION}:{ACCOUNT}:execution:existing:run1",
+                 "Status": "verified", "VerifiedPreconditions": True, "SdkTaskSucceeded": True,
+                 "TaskOutcomeUsefulToSource": True, "TaskAction": "s3:PutObject",
+                 "TaskResource": object_arn, "EvidenceRef": "reviewed-execution",
+                 "EvidenceObservedAt": "2026-10-21T11:59:00+00:00",
+                 "EvidenceExpiresAt": "2026-10-21T12:05:00+00:00"}
+        assert target["Arn"] in reached(result(technique, proof=proof), ALICE, technique)
+        assert target["Arn"] not in reached(result(technique), ALICE, technique)
+        assert_unresolved(result(technique), ALICE, technique)
+        assert target["Arn"] not in reached(result(technique, proof=[proof, dict(proof)]), ALICE, technique)
+        for changed in ({"StateMachineRevisionId": "another"}, {"SdkTaskSucceeded": False},
+                        {"TaskOutcomeUsefulToSource": False}, {"TaskAction": "s3:DeleteObject"},
+                        {"SourceArn": "arn:aws:iam::111111111111:user/other"},
+                        {"EvidenceObservedAt": "2026-10-21T11:40:00+00:00"},
+                        {"ExecutionArn": machine_arn}):
+            assert target["Arn"] not in reached(result(technique, proof=dict(proof, **changed)), ALICE, technique)
+        wrong_role = dict(machine, roleArn=role_arn("other"))
+        assert target["Arn"] not in reached(result(technique, proof=proof, machine_row=wrong_role), ALICE, technique)
+        direct = allow("s3:PutObject", resource=object_arn)
+        assert target["Arn"] not in reached(result(technique, proof=proof, extra_caller=[direct]), ALICE, technique)
 
 
 def test_stepfunctions_teststate_prior_binding_keeps_previous_route():

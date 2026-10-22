@@ -21,6 +21,7 @@ def test_stepfunctions_passrole_service_binding_preserves_previous_catalog():
         passrole = next(req for req in current[ident]["requires"]["all_of"]
                         if req["action"] == "iam:PassRole")
         assert passrole["request_context"] == {"iam:PassedToService": "states.amazonaws.com"}
+        assert "sfn_role_sdk_effect_reviewed" in current[ident]["preconditions"]
 
     old = {"schema": catalog.BINDING_SCHEMA,
            "manifest_sha256": catalog.STEPFUNCTIONS_PASSROLE_689_PREVIOUS_MANIFEST,
