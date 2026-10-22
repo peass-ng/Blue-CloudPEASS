@@ -186,6 +186,8 @@ export type Scan = {
   connector_id: string;
   status: string;
   result_available?: boolean;
+  resumable?: boolean;
+  error_code?: string;
   created_at: string;
   categories: string[];
   error?: string;

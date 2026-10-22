@@ -46,6 +46,7 @@ export const terminalStatuses = [
   "cancelled",
   "timed_out",
   "queue_exhausted",
+  "credentials_expired",
 ];
 const hasResults = (scan: Scan) => scan.status === "completed" || scan.result_available === true;
 function ScanCategories({ selected = [] }: { selected?: string[] }) {
@@ -82,6 +83,11 @@ export function Scans({
   function refresh() {
     void client.invalidateQueries({ queryKey: [demo ? "demo" : "live"] });
   }
+  const resume = useMutation({
+    mutationFn: (id: string) => request<Scan>(`/scans/${encodeURIComponent(id)}/resume`, json({}), demo),
+    onSuccess: value => { if (inspect?.id === value.id) setInspect(value); refresh(); },
+    onError: error => setError(humanError(error)),
+  });
   const cancel = useMutation({
     mutationFn: (id: string) =>
       request(`/scans/${encodeURIComponent(id)}/cancel`, json({}), demo),
@@ -187,7 +193,7 @@ export function Scans({
                     (c) => c.id === s.connector_id,
                   )?.name, date(s.created_at), scanDuration(s)].filter(Boolean).join(" · ")}
                 </p>
-                {["failed", "queue_exhausted"].includes(s.status) && s.error && (
+                {["failed", "queue_exhausted", "credentials_expired"].includes(s.status) && s.error && (
                   <p role="alert">{humanError(s.error)}</p>
                 )}
                 {s.progress_details && !terminalStatuses.includes(s.status) && <p className="scan-progress" aria-label="Latest scan progress">
@@ -217,6 +223,10 @@ export function Scans({
                   </button>
                 </>
               )}
+              {s.resumable && terminalStatuses.includes(s.status) && <button className="button"
+                disabled={demo || !canWrite || resume.isPending} onClick={() => resume.mutate(s.id)}>
+                <Play size={15} />Resume scan
+              </button>}
               {!terminalStatuses.includes(s.status) && (
                   <button
                     className="icon-button"
@@ -340,9 +350,15 @@ export function Scans({
           <p>{names.get(inspect.id)}</p>
           <Badge value={inspect.status} />
           {scanDuration(inspect) && <p title="Total time from launch, including queue and processing time.">{scanDuration(inspect)}</p>}
-          {inspect.status === "failed" && inspect.error && (
+          {["failed", "credentials_expired", "timed_out"].includes(inspect.status) && inspect.error && (
             <p role="alert">{humanError(inspect.error)}</p>
           )}
+          {inspect.resumable && terminalStatuses.includes(inspect.status) && <div className="scan-resume-choice">
+            <p className="muted small">Continue the unfinished work with the connector’s current credentials. Saved results stay in this scan.</p>
+            <button className="button primary" disabled={demo || !canWrite || resume.isPending}
+              onClick={() => resume.mutate(inspect.id)}>{resume.isPending ? "Resuming…" : "Resume from saved progress"}</button>
+            {resume.error && <p role="alert">{humanError(resume.error)}</p>}
+          </div>}
           <h3>Recorded scan details</h3>
           <Evidence data={inspect} />
           {hasResults(inspect) && (
@@ -431,6 +447,12 @@ export function LaunchForm({
   const [scheduleTimezone, setScheduleTimezone] = useState(schedule?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC");
   const [error, setError] = useState("");
   const isSchedule = schedule !== undefined;
+  const previousScans = useApi<{ items: Scan[] }>("/scans", demo, !isSchedule);
+  const [continuePrevious, setContinuePrevious] = useState(false);
+  const latest = items(previousScans.data).filter(scan => scan.connector_id === connector)
+    .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))[0];
+  const previous = latest?.resumable && terminalStatuses.includes(latest.status) ? latest : undefined;
+  const resumePrevious = !isSchedule && continuePrevious && !!previous;
   const mutation = useMutation({
     mutationFn: (payload: unknown) =>
       request(
@@ -452,9 +474,14 @@ export function LaunchForm({
       onClose();
     },
   });
+  const resumeMutation = useMutation({
+    mutationFn: (id: string) => request<Scan>(`/scans/${encodeURIComponent(id)}/resume`, json({}), demo),
+    onSuccess: () => { void client.invalidateQueries({ queryKey: [demo ? "demo" : "live"] }); onClose(); },
+  });
   function submit(e: FormEvent) {
     e.preventDefault();
     if (!connector) return setError("Choose a connector first.");
+    if (resumePrevious) { resumeMutation.mutate(previous.id); return; }
     if (!selected.length)
       return setError("Select at least one assessment category.");
     if (isSchedule && rules.some(rule => !rule.time || (rule.frequency === "weekly" && !rule.weekdays?.length)))
@@ -485,7 +512,7 @@ export function LaunchForm({
           <select
             aria-label="Connector"
             value={connector}
-            onChange={(e) => { setConnector(e.target.value); setFrameworks([]); setFrameworkSearch(""); }}
+            onChange={(e) => { setConnector(e.target.value); setContinuePrevious(false); setFrameworks([]); setFrameworkSearch(""); }}
             required
           >
             <option value="">Select an environment</option>
@@ -499,6 +526,15 @@ export function LaunchForm({
         {!connectors.length && (
           <p className="form-error">Add a connector before launching a scan.</p>
         )}
+        {!isSchedule && previous && <fieldset className="scan-resume-choice">
+          <legend>Previous scan is unfinished</legend>
+          <label className="checkbox"><input type="radio" name="scan-continuation" checked={!resumePrevious}
+            onChange={() => setContinuePrevious(false)} />Start a new scan from scratch</label>
+          <label className="checkbox"><input type="radio" name="scan-continuation" checked={resumePrevious}
+            onChange={() => setContinuePrevious(true)} />Resume the previous scan</label>
+          <p className="muted small">{resumePrevious ? "Keeps the same scan and saved results. Only unfinished work runs, using the original check selection and the connector’s current credentials." : "Collects fresh evidence and creates a new scan."}</p>
+        </fieldset>}
+        {!resumePrevious && <>
         <label className="checkbox"><input type="checkbox" checked={aiAvailable && aiEnabled} disabled={!aiAvailable} onChange={event => setAiEnabled(event.target.checked)} />Use AI to verify failed findings and prioritize security actions</label>
         {!aiAvailable && <p className="muted small">{codex.isPending ? "Checking AI access…" : codex.data?.disabled ? "AI review is disabled for every scan in Settings." : codex.data?.isolation_available === false ? "AI checks are unavailable until the platform administrator configures isolated agent execution." : "Configure an AI provider, model and thinking effort in Settings to enable AI checks."}</p>}
         <fieldset>
@@ -569,18 +605,20 @@ export function LaunchForm({
             <ScheduleRules rules={rules} timezone={scheduleTimezone} onRules={setRules} onTimezone={setScheduleTimezone} />
           </>
         )}
-        {(error || mutation.error) && (
+        </>}
+        {(error || (resumePrevious ? resumeMutation.error : mutation.error)) && (
           <p className="form-error" role="alert">
-            {error || (mutation.error && humanError(mutation.error))}
+            {error || humanError(resumePrevious ? resumeMutation.error : mutation.error)}
           </p>
         )}
         <button
           className="button primary"
-          disabled={mutation.isPending || !connectors.length}
+          disabled={mutation.isPending || resumeMutation.isPending || !connectors.length}
           type="submit"
         >
-          {mutation.isPending
+          {mutation.isPending || resumeMutation.isPending
             ? "Submitting…"
+            : resumePrevious ? "Resume previous scan"
             : isSchedule
               ? "Save schedule"
               : "Start scan"}

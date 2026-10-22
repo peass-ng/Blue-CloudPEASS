@@ -3686,3 +3686,6 @@ main.network-map-page { max-width: none; width: 100%; min-width: 0; }
 .scan-section-batch { display: inline-flex; align-items: center; gap: 12px; padding: 7px 11px; border: 1px solid var(--line); color: var(--muted); font-size: 12px; }
 .scan-section-batch strong { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; }
 .scan-section-batch.complete strong { color: #a8e2cf; }
+
+.scan-resume-choice { margin: 16px 0; padding: 16px; border: 1px solid var(--line); display: grid; gap: 12px; }
+.badge.credentials_expired { color: #e7c879; border-color: #c6a04c66; background: #c6a04c12; }
