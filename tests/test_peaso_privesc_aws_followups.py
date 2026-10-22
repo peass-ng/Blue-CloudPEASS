@@ -794,6 +794,59 @@ def test_stepfunctions_teststate_accepts_only_reviewed_unmocked_role_effect():
                                         ALICE, technique)
 
 
+def test_bedrock_action_group_lambda_requires_same_mutable_function_and_observed_effect():
+    technique = "aws-bedrock-agent-lambda-actiongroup-hijack"
+    function_arn = f"arn:aws:lambda:{REGION}:{ACCOUNT}:function:agent-tool"
+    alias_arn = f"arn:aws:bedrock:{REGION}:{ACCOUNT}:agent-alias/ABCDEFGHIJ/KLMNOPQRST"
+    object_arn = "arn:aws:s3:::private-example/evidence.txt"
+    target = role("agent-tool-role", "lambda.amazonaws.com", allow("s3:PutObject", resource=object_arn))
+    target["RoleId"] = "AROABEDROCK123456789"
+    function = {"FunctionArn": function_arn, "Role": target["Arn"], "State": "Active",
+                "LastUpdateStatus": "Successful", "CodeSha256": "current-function-code-hash"}
+    proof = {"TechniqueId": technique, "SourceArn": ALICE, "TargetKind": "aws_role",
+             "TargetId": target["Arn"], "TargetScope": SCOPE, "TargetRoleId": target["RoleId"],
+             "FunctionArn": function_arn, "FunctionCodeSha256": function["CodeSha256"],
+             "AgentId": "ABCDEFGHIJ", "AgentAliasId": "KLMNOPQRST", "AgentAliasArn": alias_arn,
+             "AgentVersion": "2", "ActionGroupId": "ACTION1234",
+             "ActionGroupExecutorLambdaArn": function_arn,
+             "Status": "verified", "VerifiedPreconditions": True,
+             "AliasReady": True, "AliasRoutingVerified": True, "ActionGroupEnabled": True,
+             "LambdaBedrockInvokeAllowed": True, "CodeUpdateSucceeded": True,
+             "InvokeAgentSucceeded": True, "ActionGroupInvokedSameLambda": True,
+             "RoleActionSucceeded": True, "EffectUsefulToSource": True,
+             "RoleAction": "s3:PutObject", "RoleResource": object_arn,
+             "EvidenceRef": "reviewed-agent-action-group-invocation",
+             "EvidenceObservedAt": "2026-10-21T11:59:00+00:00",
+             "EvidenceExpiresAt": "2026-10-21T12:05:00+00:00"}
+
+    def result(evidence=proof, *, caller_grants=(), function_row=function, role_row=target):
+        caller = user("alice", allow("lambda:UpdateFunctionCode", resource=function_arn),
+                      allow("bedrock:InvokeAgent", resource=alias_arn), *caller_grants)
+        proofs = evidence if isinstance(evidence, list) else ([evidence] if evidence else [])
+        snap = aws_snap([caller], [role_row], [col("lambda_function", [function_row]),
+            col("aws_privesc_challenge_evidence", proofs)])
+        snap["created_at"] = "2026-10-21T12:00:00+00:00"
+        return real(snap, technique, include_unknown=True)
+
+    assert target["Arn"] in reached(result(), ALICE, technique)
+    assert target["Arn"] not in reached(result(None), ALICE, technique)
+    assert_unresolved(result(None), ALICE, technique)
+    assert target["Arn"] not in reached(result([proof, dict(proof)]), ALICE, technique)
+    for changed in ({"ActionGroupExecutorLambdaArn": function_arn + ":3"},
+                    {"AgentAliasArn": alias_arn.replace("KLMNOPQRST", "OTHERALIAS")},
+                    {"AliasRoutingVerified": False}, {"ActionGroupInvokedSameLambda": False},
+                    {"LambdaBedrockInvokeAllowed": False}, {"CodeUpdateSucceeded": False},
+                    {"FunctionCodeSha256": "older-code-hash"}, {"RoleActionSucceeded": False},
+                    {"EffectUsefulToSource": False}, {"RoleAction": "s3:DeleteObject"},
+                    {"TargetRoleId": "AROAOTHER"},
+                    {"EvidenceObservedAt": "2026-10-21T11:40:00+00:00"}):
+        assert target["Arn"] not in reached(result(dict(proof, **changed)), ALICE, technique)
+    assert target["Arn"] not in reached(result(function_row=dict(function, State="Pending")), ALICE, technique)
+    assert target["Arn"] not in reached(result(function_row=dict(function, CodeSha256="new-code")), ALICE, technique)
+    assert target["Arn"] not in reached(result(caller_grants=[allow("s3:PutObject", resource=object_arn)]),
+                                        ALICE, technique)
+
+
 def test_config_automatic_remediation_requires_service_context_and_runtime_witness():
     technique = "aws-config-passrole-automatic-remediation"
     target = role("automation", "ssm.amazonaws.com", allow("iam:AttachUserPolicy"))

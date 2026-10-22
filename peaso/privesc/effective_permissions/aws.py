@@ -8633,10 +8633,101 @@ class AwsModel(Model):
                     out[tid] = pending
             return out
         if pid == "bedrock_agent_actiongroup_lambda_execution_unverified":
-            # A mutable Lambda function and an InvokeAgent grant do not show
-            # that an invocable deployed alias routes to that same function.
-            return {tid: ("unknown", "bedrock_agent_alias_actiongroup_lambda_join_not_verified")
-                    for tid in candidates}
+            if source is None:
+                return None
+            pending = ("unknown", "bedrock_agent_alias_actiongroup_lambda_join_not_verified")
+            out = {}
+            try:
+                now = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+                if now.tzinfo is None:
+                    now = None
+            except (KeyError, TypeError, ValueError):
+                now = None
+            proof_status = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+            technique = (self.current_entry or {}).get("id")
+            for tid, role in candidates.items():
+                out[tid] = pending
+                if now is None or role.scope != source.scope:
+                    continue
+                role_rows = [row for role_scope, row in items(self.snapshot, "iam_role")
+                    if role_scope.split("/")[0] == role.scope and row.get("Arn") == tid]
+                role_id = role_rows[0].get("RoleId") if len(role_rows) == 1 else None
+                if not isinstance(role_id, str) or not role_id:
+                    continue
+                for scope, function in items(self.snapshot, "lambda_function"):
+                    function_arn = function.get("FunctionArn")
+                    code_hash = function.get("CodeSha256")
+                    if (not isinstance(scope, str) or not scope.startswith(f"{role.scope}/") or
+                            function.get("Role") != tid or function.get("State") != "Active" or
+                            function.get("LastUpdateStatus") != "Successful" or
+                            not isinstance(function_arn, str) or
+                            re.fullmatch(rf"arn:[^:]+:lambda:{re.escape(scope.split('/', 1)[1])}:"
+                                         rf"{role.scope}:function:[^:]+", function_arn) is None or
+                            not isinstance(code_hash, str) or not code_hash):
+                        continue
+                    if self.check(source, {"action": "lambda:UpdateFunctionCode"}, function_arn) is None:
+                        continue
+                    collections = [collection for collection in self.snapshot.get("collections", ())
+                        if collection.get("type") == "aws_privesc_challenge_evidence" and
+                        collection.get("scope") == scope]
+                    if len(collections) != 1 or collections[0].get("status") != "collected":
+                        continue
+                    proofs = [row for proof_scope, row in items(self.snapshot, "aws_privesc_challenge_evidence")
+                        if proof_scope == scope and proof_status.get(scope) == "collected" and
+                        row.get("TechniqueId") == technique and row.get("SourceArn") == source.id and
+                        row.get("TargetKind") == "aws_role" and row.get("TargetId") == tid and
+                        row.get("FunctionArn") == function_arn]
+                    if len(proofs) != 1:
+                        continue
+                    proof = proofs[0]
+                    alias_arn = proof.get("AgentAliasArn")
+                    agent_id = proof.get("AgentId")
+                    alias_id = proof.get("AgentAliasId")
+                    action, resource = proof.get("RoleAction"), proof.get("RoleResource")
+                    alias_pattern = (rf"arn:{re.escape(function_arn.split(':')[1])}:bedrock:"
+                                     rf"{re.escape(scope.split('/', 1)[1])}:{role.scope}:"
+                                     rf"agent-alias/{re.escape(agent_id)}/{re.escape(alias_id)}"
+                                     if isinstance(agent_id, str) and agent_id and
+                                     isinstance(alias_id, str) and alias_id else None)
+                    if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                            proof.get("TargetScope") != scope or proof.get("TargetRoleId") != role_id or
+                            proof.get("FunctionCodeSha256") != code_hash or
+                            proof.get("ActionGroupExecutorLambdaArn") != function_arn or
+                            proof.get("AliasReady") is not True or
+                            proof.get("AliasRoutingVerified") is not True or
+                            proof.get("ActionGroupEnabled") is not True or
+                            proof.get("LambdaBedrockInvokeAllowed") is not True or
+                            proof.get("CodeUpdateSucceeded") is not True or
+                            proof.get("InvokeAgentSucceeded") is not True or
+                            proof.get("ActionGroupInvokedSameLambda") is not True or
+                            proof.get("RoleActionSucceeded") is not True or
+                            proof.get("EffectUsefulToSource") is not True or
+                            not isinstance(alias_arn, str) or alias_pattern is None or
+                            re.fullmatch(alias_pattern, alias_arn) is None or
+                            not isinstance(proof.get("AgentVersion"), str) or not proof["AgentVersion"] or
+                            not isinstance(proof.get("ActionGroupId"), str) or not proof["ActionGroupId"] or
+                            not isinstance(action, str) or
+                            re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                            not isinstance(resource, str) or not resource or
+                            not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"]):
+                        continue
+                    try:
+                        witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+                        expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+                        if (witnessed.tzinfo is None or expires.tzinfo is None or
+                                not 0 <= (now - witnessed).total_seconds() <= 900 or
+                                not now < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                            continue
+                    except (KeyError, TypeError, ValueError):
+                        continue
+                    invoke = self.check(source, {"action": "bedrock:InvokeAgent"}, alias_arn)
+                    permitted = self.check(role, {"action": action}, resource)
+                    already = self.check(source, {"action": action}, resource)
+                    if (invoke is not None and invoke.confidence == "derived" and
+                            permitted is not None and permitted.confidence == "derived" and already is None):
+                        out[tid] = None
+                        break
+            return out
         if pid == "lambda_signer_trusted_profile_artifact_unverified":
             if source is None:
                 return None
