@@ -9225,6 +9225,115 @@ class AwsModel(Model):
                 if rid not in out and uncertain:
                     out[rid] = ("unknown", "rolesanywhere_new_anchor_profile_or_role_trust_not_verified")
             return out
+        if pid == "sagemaker_new_profile_app_route":
+            if source is None:
+                return None
+            domain_status = inventory_status(self.snapshot, "sagemaker_domain")
+            profile_status = inventory_status(self.snapshot, "sagemaker_user_profile")
+            domains = [(scope, row) for scope, row in items(self.snapshot, "sagemaker_domain")
+                       if scope.startswith(source.scope + "/")]
+            profiles = [(scope, row) for scope, row in items(self.snapshot, "sagemaker_user_profile")]
+            malformed = {scope for scope, row in profiles
+                         if not isinstance(row.get("DomainId"), str) or
+                         not isinstance(row.get("UserProfileName"), str)}
+            existing = {(scope, row.get("DomainId"), row.get("UserProfileName", "").lower())
+                        for scope, row in profiles if scope not in malformed}
+            allows, _ = self._statements(source, "sagemaker:createuserprofile")
+            seed = hashlib.sha256(source.id.encode()).hexdigest()[:12]
+            valid_name = re.compile(r"[A-Za-z0-9](?:-*[A-Za-z0-9]){0,62}\Z")
+            guardrails_unknown = bool(source.attrs.get("boundary")) or self.scp_status.get(source.scope) != "empty"
+            out = {}
+            for tid, role in candidates.items():
+                unresolved = (source.incomplete or role.incomplete or guardrails_unknown or
+                              not domains or not domain_status or not profile_status)
+                for scope, domain in domains:
+                    if (domain_status.get(scope) not in ("collected", "empty") or
+                            profile_status.get(scope) not in ("collected", "empty") or
+                            scope in malformed or unresolved):
+                        unresolved = True
+                        continue
+                    domain_id = domain.get("DomainId")
+                    region = scope.split("/", 1)[1]
+                    partition = tid.split(":", 2)[1]
+                    domain_arn = f"arn:{partition}:sagemaker:{region}:{source.scope}:domain/{domain_id}"
+                    if domain.get("DomainArn") != domain_arn or domain.get("Status") != "InService":
+                        unresolved = True
+                        continue
+                    if domain.get("AuthMode") == "SSO":
+                        continue
+                    if domain.get("AuthMode") != "IAM":
+                        unresolved = True
+                        continue
+                    profile_prefix = f"arn:{partition}:sagemaker:{region}:{source.scope}:user-profile/{domain_id}/"
+                    names = {"PeasoProfile" + seed, "PeasoProfile" + seed + "A"}
+                    for statement in allows:
+                        if statement.notresource or statement.variables:
+                            unresolved = True
+                            continue
+                        for pattern in statement.resources:
+                            if not isinstance(pattern, str) or not pattern.startswith(profile_prefix):
+                                continue
+                            suffix = pattern[len(profile_prefix):]
+                            for replacement in ("Peaso" + seed, "Peaso" + seed + "A"):
+                                choice = suffix.replace("*", replacement).replace("?", "X")
+                                if valid_name.fullmatch(choice):
+                                    names.add(choice)
+                    passrole = self.check(source, {"action": "iam:PassRole", "request_context":
+                        {"iam:PassedToService": "sagemaker.amazonaws.com"}}, tid)
+                    if passrole is None:
+                        continue
+                    for name in sorted(names)[:80]:
+                        if (scope, domain_id, name.lower()) in existing:
+                            unresolved = True
+                            continue
+                        profile_arn = profile_prefix + name
+                        context = {"aws:RequestedRegion": region}
+                        create = self.check(source, {"action": "sagemaker:CreateUserProfile",
+                            "request_context": context}, profile_arn)
+                        url = self.check(source, {"action": "sagemaker:CreatePresignedDomainUrl",
+                            "request_context": context}, profile_arn)
+                        if any(grant is None for grant in (create, url)):
+                            continue
+                        for app_type in ("JupyterLab", "CodeEditor", "KernelGateway"):
+                            app_prefix = (f"arn:{partition}:sagemaker:{region}:{source.scope}:"
+                                          f"app/{domain_id}/{name}/{app_type}/")
+                            app_names = {"default"}
+                            app_allows, _ = self._statements(source, "sagemaker:createapp")
+                            for statement in app_allows:
+                                if statement.notresource or statement.variables:
+                                    unresolved = True
+                                    continue
+                                for pattern in statement.resources:
+                                    if isinstance(pattern, str) and pattern.startswith(app_prefix):
+                                        suffix = pattern[len(app_prefix):]
+                                        choice = suffix.replace("*", "default").replace("?", "x")
+                                        if valid_name.fullmatch(choice):
+                                            app_names.add(choice)
+                            for app_name in sorted(app_names)[:40]:
+                                app_arn = app_prefix + app_name
+                                trust = self._service_trust_for_source_arn(tid, "sagemaker.amazonaws.com", app_arn)
+                                if trust is not True:
+                                    unresolved |= trust is None
+                                    continue
+                                app_context = {**context, "sagemaker:OwnerUserProfileArn": profile_arn}
+                                launch = self.check(source, {"action": "sagemaker:CreateApp",
+                                    "request_context": app_context}, app_arn)
+                                app_tags = self.check(source, {"action": "sagemaker:AddTags",
+                                    "request_context": app_context}, app_arn)
+                                grants = (passrole, create, url, launch, app_tags)
+                                if all(grant is not None and grant.confidence == "derived" for grant in grants):
+                                    out[tid] = ("conditional", "sagemaker_new_profile_app_start_pending")
+                                    break
+                                unresolved = True
+                            if tid in out:
+                                break
+                        if tid in out:
+                            break
+                    if tid in out:
+                        break
+                if tid not in out and unresolved:
+                    out[tid] = ("unknown", "sagemaker_new_profile_domain_or_grant_not_verified")
+            return out
         if pid == "sagemaker_studio_profile_lcc_route":
             if source is None:
                 return None
