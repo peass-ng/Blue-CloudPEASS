@@ -19,7 +19,7 @@ Outputs are explicit field allowlists:
   endpoints, IAM Roles Anywhere profiles.
 * Workload hosts: Image Builder pipelines with their infrastructure instance
   profile and their image recipe's component ARNs (GetImageRecipe; no recipe
-  content, parameters or user data), SageMaker user profiles / HyperPod clusters with their execution roles,
+  content, parameters or user data), SageMaker user profiles / spaces / HyperPod clusters with their execution roles,
   SageMaker domain default execution roles.
 * Application planes: Managed Grafana workspaces, QuickSight users (role and
   identity type, no e-mail) and subscription status/authentication type,
@@ -55,6 +55,7 @@ SPECS = {
     "rolesanywhere_profile": ("rolesanywhere", "list_profiles", "profiles"),
     "imagebuilder_pipeline": ("imagebuilder", "list_image_pipelines", "imagePipelineList"),
     "sagemaker_user_profile": ("sagemaker", "list_user_profiles", "UserProfiles"),
+    "sagemaker_space": ("sagemaker", "list_spaces", "Spaces"),
     "sagemaker_cluster": ("sagemaker", "list_clusters", "ClusterSummaries"),
     "grafana_workspace": ("grafana", "list_workspaces", "workspaces"),
     "quicksight_user": ("quicksight", "list_users", "UserList"),
@@ -80,6 +81,7 @@ READ_ACTIONS = {
     ("cloudformation", "describe_organizations_access"),
     ("imagebuilder", "list_infrastructure_configurations"), ("imagebuilder", "get_image_recipe"),
     ("sagemaker", "describe_user_profile"), ("sagemaker", "describe_cluster"), ("sagemaker", "describe_domain"),
+    ("sagemaker", "describe_space"),
     ("amplify", "list_backend_environments"),
     ("quicksight", "describe_account_subscription"),
     ("sso-admin", "list_instances"), ("sso-admin", "list_permission_sets"),
@@ -661,6 +663,85 @@ def _sagemaker_domain(requests, session, region, items):
     return output
 
 
+def _spaces(requests, session, region, account):
+    read = requests.pages(session, "sagemaker", region, "list_spaces", "Spaces")
+    if read.status not in OK:
+        return _finish([], _cause(read))
+    output, failure = [], None
+    for space in read.items:
+        domain = space.get("DomainId") if isinstance(space, dict) else None
+        name = space.get("SpaceName") if isinstance(space, dict) else None
+        if not isinstance(domain, str) or not domain or not isinstance(name, str) or not name:
+            failure = failure or ("malformed", {"code": "malformed_space"})
+            continue
+        row = {"DomainId": domain, "SpaceName": name, "id": f"{domain}/{name}"}
+        detail = requests.detail(session, "sagemaker", region, "describe_space", DomainId=domain, SpaceName=name)
+        if detail.get("collection_status") != "collected":
+            row["_coverage"] = {"SpaceDetails": {"status": detail.get("collection_status"),
+                                                   "source_operation": "sagemaker:DescribeSpace"}}
+            output.append(row)
+            failure = failure or (detail.get("collection_status") or "not_collected", {"code": "space_detail_unavailable"})
+            continue
+        arn = detail.get("SpaceArn")
+        expected_arn = f"arn:{_partition(region)}:sagemaker:{region}:{account}:space/{domain}/{name}"
+        if arn != expected_arn or detail.get("DomainId") not in (None, domain) or detail.get("SpaceName") not in (None, name):
+            failure = failure or ("malformed", {"code": "missing_space_arn"})
+            output.append(row)
+            continue
+        settings = detail.get("SpaceSettings") or {}
+        summary_settings = space.get("SpaceSettingsSummary") or {}
+        detail_sharing = (detail.get("SpaceSharingSettings") or {}).get("SharingType")
+        summary_sharing = (space.get("SpaceSharingSettingsSummary") or {}).get("SharingType")
+        detail_owner = (detail.get("OwnershipSettings") or {}).get("OwnerUserProfileName")
+        summary_owner = (space.get("OwnershipSettingsSummary") or {}).get("OwnerUserProfileName")
+        detail_app, summary_app = settings.get("AppType"), summary_settings.get("AppType")
+        if any(a and b and a != b for a, b in ((detail_sharing, summary_sharing),
+                                                (detail_owner, summary_owner), (detail_app, summary_app),
+                                                (detail.get("Status"), space.get("Status")))):
+            row["_coverage"] = {"SpaceDetails": {"status": "malformed", "source_operation": "sagemaker:DescribeSpace"}}
+            failure = failure or ("malformed", {"code": "space_list_detail_mismatch"})
+            output.append(row)
+            continue
+        sharing = detail_sharing or summary_sharing
+        owner = detail_owner or summary_owner
+        row.update({"id": arn, "SpaceArn": arn, "Status": detail.get("Status") or space.get("Status"),
+                    "AppType": detail_app or summary_app, "SharingType": sharing,
+                    "OwnerUserProfileName": owner})
+        if sharing == "Shared":
+            defaults = _domain_roles(requests, session, region, domain)
+            if defaults is None:
+                row["_coverage"] = {"ExecutionRole": {"status": "not_collected", "source_operation": "sagemaker:DescribeDomain"}}
+                failure = failure or ("not_collected", {"code": "space_domain_role_unavailable"})
+            else:
+                row["ExecutionRole"] = defaults.get("DefaultSpaceExecutionRole")
+                row["ExecutionRoleSource"] = "domain_default_space"
+        elif sharing == "Private" and isinstance(owner, str) and owner:
+            profile = requests.detail(session, "sagemaker", region, "describe_user_profile",
+                                      DomainId=domain, UserProfileName=owner)
+            if profile.get("collection_status") != "collected":
+                row["_coverage"] = {"ExecutionRole": {"status": profile.get("collection_status"),
+                                                       "source_operation": "sagemaker:DescribeUserProfile"}}
+                failure = failure or (profile.get("collection_status") or "not_collected", {"code": "space_owner_role_unavailable"})
+            else:
+                role = (profile.get("UserSettings") or {}).get("ExecutionRole")
+                if isinstance(role, str) and role:
+                    row["ExecutionRole"] = role
+                    row["ExecutionRoleSource"] = "owner_user_settings"
+                else:
+                    defaults = _domain_roles(requests, session, region, domain)
+                    if defaults is None:
+                        row["_coverage"] = {"ExecutionRole": {"status": "not_collected", "source_operation": "sagemaker:DescribeDomain"}}
+                        failure = failure or ("not_collected", {"code": "space_domain_role_unavailable"})
+                    else:
+                        row["ExecutionRole"] = defaults.get("DefaultUserExecutionRole")
+                        row["ExecutionRoleSource"] = "domain_default_user"
+        else:
+            row["_coverage"] = {"ExecutionRole": {"status": "malformed", "source_operation": "sagemaker:DescribeSpace"}}
+            failure = failure or ("malformed", {"code": "space_sharing_or_owner_missing"})
+        output.append(row)
+    return _finish(output, failure)
+
+
 def _hyperpod_clusters(requests, session, region, account):
     read = requests.pages(session, "sagemaker", region, "list_clusters", "ClusterSummaries")
     if read.status not in OK:
@@ -826,6 +907,7 @@ FETCHERS = {
     "rolesanywhere_profile": _rolesanywhere_profiles,
     "imagebuilder_pipeline": _image_pipelines,
     "sagemaker_user_profile": _user_profiles,
+    "sagemaker_space": _spaces,
     "sagemaker_cluster": _hyperpod_clusters,
     "grafana_workspace": _grafana_workspaces,
     "quicksight_user": _quicksight_users,

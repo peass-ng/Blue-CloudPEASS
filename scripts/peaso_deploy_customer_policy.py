@@ -21,6 +21,9 @@ VERIFIED_ACTIONS = frozenset(('access-analyzer:ListAnalyzers', 'access-analyzer:
 
 # Reviewed metadata-only reads: IAM ListPolicies and EMR ListInstances.
 VERIFIED_ACTIONS = VERIFIED_ACTIONS | {"iam:ListPolicies", "iam:GetPolicyVersion", "elasticmapreduce:ListInstances"}
+# Studio space inventory reads the existing space and its execution-role owner.
+# https://docs.aws.amazon.com/service-authorization/latest/reference/list_sagemaker.html
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | {"sagemaker:ListSpaces", "sagemaker:DescribeSpace"}
 # Current collector reads verified against the AWS service authorization references:
 # https://docs.aws.amazon.com/service-authorization/latest/reference/list_elb.html
 # https://docs.aws.amazon.com/macie/latest/user/security_iam_id-based-policy-examples.html

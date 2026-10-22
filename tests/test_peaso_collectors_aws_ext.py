@@ -352,6 +352,49 @@ def test_sagemaker_user_profiles_domain_default_and_clusters(stub):
     assert read.items[0]["InstanceGroups"][0]["ExecutionRole"].endswith("role/hp")
 
 
+def test_sagemaker_spaces_join_shared_and_private_execution_roles(stub):
+    session, add = stub
+    sm = add("sagemaker")
+    shared_arn = f"arn:aws:sagemaker:{REGION}:{ACCOUNT}:space/d-example/shared"
+    private_arn = f"arn:aws:sagemaker:{REGION}:{ACCOUNT}:space/d-example/private"
+    shared_role = f"arn:aws:iam::{ACCOUNT}:role/shared-space"
+    private_role = f"arn:aws:iam::{ACCOUNT}:role/owner"
+    sm.add_response("list_spaces", {"Spaces": [
+        {"DomainId": "d-example", "SpaceName": "shared"},
+        {"DomainId": "d-example", "SpaceName": "private"}]})
+    sm.add_response("describe_space", {"DomainId": "d-example", "SpaceName": "shared", "SpaceArn": shared_arn,
+        "Status": "InService", "SpaceSettings": {"AppType": "JupyterLab"},
+        "SpaceSharingSettings": {"SharingType": "Shared"}},
+        {"DomainId": "d-example", "SpaceName": "shared"})
+    sm.add_response("describe_domain", {"DomainId": "d-example", "DefaultSpaceSettings": {"ExecutionRole": shared_role}},
+        {"DomainId": "d-example"})
+    sm.add_response("describe_space", {"DomainId": "d-example", "SpaceName": "private", "SpaceArn": private_arn,
+        "Status": "InService", "SpaceSettings": {"AppType": "CodeEditor"},
+        "SpaceSharingSettings": {"SharingType": "Private"},
+        "OwnershipSettings": {"OwnerUserProfileName": "alice"}},
+        {"DomainId": "d-example", "SpaceName": "private"})
+    sm.add_response("describe_user_profile", {"DomainId": "d-example", "UserProfileName": "alice",
+        "UserSettings": {"ExecutionRole": private_role}},
+        {"DomainId": "d-example", "UserProfileName": "alice"})
+    read = run("sagemaker_space", session)
+    assert read.status == "collected"
+    assert [(r["SpaceArn"], r["ExecutionRole"], r["ExecutionRoleSource"]) for r in read.items] == [
+        (shared_arn, shared_role, "domain_default_space"),
+        (private_arn, private_role, "owner_user_settings")]
+
+
+def test_sagemaker_space_denied_detail_does_not_infer_role(stub):
+    session, add = stub
+    sm = add("sagemaker")
+    sm.add_response("list_spaces", {"Spaces": [{"DomainId": "d-example", "SpaceName": "private"}]})
+    sm.add_client_error("describe_space", "AccessDeniedException", http_status_code=403,
+                        expected_params={"DomainId": "d-example", "SpaceName": "private"})
+    read = run("sagemaker_space", session)
+    assert read.status == "partial"
+    assert "ExecutionRole" not in read.items[0]
+    assert read.items[0]["_coverage"]["SpaceDetails"]["source_operation"] == "sagemaker:DescribeSpace"
+
+
 def test_service_planes_drop_secrets(stub):
     session, add = stub
     graf, qs, scn, amp = add("grafana"), add("quicksight"), add("supplychain"), add("amplify")

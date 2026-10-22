@@ -232,6 +232,21 @@ def test_imagebuilder_and_hyperpod_hosts_loaded():
     assert m.host_status[(ACCOUNT, "imagebuilder_pipeline")] == "collected"
 
 
+def test_sagemaker_space_host_uses_only_its_collected_execution_role():
+    space = f"arn:aws:sagemaker:{REGION}:{ACCOUNT}:space/d-1/shared"
+    roles = [role("space", trust_service("sagemaker.amazonaws.com")),
+             role("other", trust_service("sagemaker.amazonaws.com"))]
+    record = {"SpaceArn": space, "DomainId": "d-1", "SpaceName": "shared",
+              "SharingType": "Shared", "AppType": "JupyterLab", "Status": "InService",
+              "ExecutionRole": arn("space"), "ExecutionRoleSource": "domain_default_space"}
+    m = model(aws_snap([user("alice")], roles, [("sagemaker_space", SCOPE, [record])]))
+    assert m.hosts[arn("space")]["sagemaker_space"] == [space]
+    assert not m.hosts.get(arn("other"), {}).get("sagemaker_space")
+    record.pop("ExecutionRole")
+    m = model(aws_snap([user("alice")], roles, [("sagemaker_space", SCOPE, [record])]))
+    assert not m.hosts.get(arn("space"), {}).get("sagemaker_space")
+
+
 # --- application planes / Identity Center -----------------------------------------------------------------
 def test_grafana_workspace_is_a_service_plane_target():
     ws = f"arn:aws:grafana:{REGION}:{ACCOUNT}:/workspaces/g-1"

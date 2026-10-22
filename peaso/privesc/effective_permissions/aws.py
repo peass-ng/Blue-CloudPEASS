@@ -95,6 +95,7 @@ HOST_KIND = {"lambda": "lambda_function", "lambda_function": "lambda_function", 
              "sagemaker_notebook_instance": "sagemaker_notebook_instance",
              "redshift_serverless_workgroup": "redshift_serverless_workgroup",
              "imagebuilder_pipeline": "imagebuilder_pipeline", "sagemaker_user_profile": "sagemaker_user_profile",
+             "sagemaker_space": "sagemaker_space",
              "sagemaker_cluster": "sagemaker_cluster", "cognito_identity_pool": "cognito_identity_pool"}
 # Collected workload inventories: collection type -> host kind (see AwsModel._load_workload_hosts).
 WORKLOAD_HOSTS = {"codebuild_project": "codebuild_project", "codebuild_sandbox": "codebuild_sandbox", "glue_job": "glue_job", "glue_session": "glue_session",
@@ -103,6 +104,7 @@ WORKLOAD_HOSTS = {"codebuild_project": "codebuild_project", "codebuild_sandbox":
                   "redshift_cluster": "redshift_cluster", "rds_instance": "rds_instance",
                   "sagemaker_notebook_instance": "sagemaker_notebook_instance",
                   "imagebuilder_pipeline": "imagebuilder_pipeline", "sagemaker_user_profile": "sagemaker_user_profile",
+                  "sagemaker_space": "sagemaker_space",
                   "sagemaker_cluster": "sagemaker_cluster"}
 # Selector -> host map (role -> resource ARNs, see AwsModel._load_ext_hosts) deciding the selector and its
 # {target.attached_resource_arn}.
@@ -3731,6 +3733,12 @@ class AwsModel(Model):
                     arn = item.get("UserProfileArn") or (item.get("DomainId") and item.get("UserProfileName") and
                                                          f"arn:aws:sagemaker:{region}:{account}:user-profile/{item['DomainId']}/{item['UserProfileName']}")
                     if "ExecutionRole" not in item:
+                        found.append((None, arn))
+                    elif item["ExecutionRole"]:
+                        found.append((item["ExecutionRole"], arn))
+                elif kind == "sagemaker_space":
+                    arn = item.get("SpaceArn")
+                    if "ExecutionRole" not in item or item.get("Status") != "InService" or not item.get("AppType"):
                         found.append((None, arn))
                     elif item["ExecutionRole"]:
                         found.append((item["ExecutionRole"], arn))
@@ -9899,6 +9907,7 @@ RESOURCE_TYPE_SERVICE = {
     "glue_job": "glue.amazonaws.com", "glue_dev_endpoint": "glue.amazonaws.com", "glue_session": "glue.amazonaws.com",
     "emr_cluster": "ec2.amazonaws.com", "elasticbeanstalk_environment": "ec2.amazonaws.com",
     "sagemaker_notebook_instance": "sagemaker.amazonaws.com", "sagemaker_user_profile": "sagemaker.amazonaws.com",
+    "sagemaker_space": "sagemaker.amazonaws.com",
     "stepfunctions_state_machine": "states.amazonaws.com", "fis_experiment_template": "fis.amazonaws.com",
     "synthetics_canary": "lambda.amazonaws.com", "servicecatalog_product": "servicecatalog.amazonaws.com",
     "rds_db_instance": "rds.amazonaws.com", "redshift_cluster": "redshift.amazonaws.com",

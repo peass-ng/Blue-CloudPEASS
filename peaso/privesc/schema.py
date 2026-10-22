@@ -813,6 +813,8 @@ FACTS_NEEDED = {
                          "fully collected in every region: imagebuilder_pipeline (imagebuilder:ListImagePipelines + "
                          "ListInfrastructureConfigurations {instanceProfileName}), sagemaker_user_profile (sagemaker:ListUserProfiles + "
                          "DescribeUserProfile {UserSettings.ExecutionRole} / DescribeDomain DefaultUserSettings.ExecutionRole), "
+                         "sagemaker_space (ListSpaces + DescribeSpace {SpaceArn, AppType, SharingType, OwnerUserProfileName} "
+                         "+ DescribeDomain DefaultSpaceSettings.ExecutionRole or owner DescribeUserProfile ExecutionRole), "
                          "sagemaker_cluster (sagemaker:ListClusters + DescribeCluster {InstanceGroups[].ExecutionRole})",
     "via_artifact_type": "AWS: artifact consumer mapping (S3 object / ECR repo / SSM document -> consuming role)",
     "consumer_input_writable_via": "AWS: workload input mapping (ECR repo / S3 object -> consuming role); Image Builder: "
