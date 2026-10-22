@@ -1,19 +1,87 @@
-"""Run one complete, deterministic file shard of the ordinary pytest suite.
+"""Run one deterministic shard of the ordinary pytest suite.
 
-Pytest still receives ``tests`` as its collection root.  Ignoring the other
-shards' files avoids importing them on every xdist worker, while preserving the
-full-suite draft isolation and source-admission hooks in tests/conftest.py.
+Every test file is collected from the ``tests`` root. A few historically slow
+modules are collected on multiple jobs, then their individual node IDs are
+assigned to exactly one job. This retains the full-suite draft-isolation and
+source-admission hooks in tests/conftest.py.
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
+import os
 from pathlib import Path
 import subprocess
 import sys
 
 
 TESTS = Path("tests")
+SHARDS = 19
+_SHARD_ENV = "PEASO_CI_PYTEST_SHARD"
+
+# Seconds summed from the completed JUnit files in Actions run 39701781083.
+# The previous run was interrupted on shards 0 and 6, so unmeasured files use
+# source size. Hints schedule work only; they never select test outcomes.
+HISTORIC_SECONDS = {
+    "test_gcp_dataflow_batch_source_runtime_20261020.py": 1229,
+    "test_peaso_compliance_draft_isolation.py": 1019,
+    "test_k8s_selected_metadata_production_20261020.py": 824,
+    "test_provider_combined_source_bridge_20261020.py": 592,
+    "test_k8s_selected_metadata_runtime_gates_20261020.py": 588,
+    "test_peaso_native_pipeline_acceptance.py": 543,
+    "test_azure_function_package_integrated_20261020.py": 525,
+    "test_peaso_privesc_integration.py": 501,
+    "test_collector_noop_authorization_successor_20261020.py": 468,
+    "test_azure_metadata_only_admission_successor_20261020.py": 457,
+    "test_peaso_cli_connector_parity.py": 394,
+    "test_peaso_related_snapshots.py": 382,
+    "test_native_admission_cpu_successor_20261020.py": 374,
+    "test_peaso_gcp_remaining_clarity_reviewed.py": 354,
+    "test_aws_codebuild_buildspec_runtime_20261020.py": 304,
+    "test_gcp_function_secret_paired_integration_20261020.py": 303,
+    "test_peaso_admission_wheel_packaging.py": 295,
+    "test_peaso_graph_scale.py": 206,
+    "test_peaso_engine.py": 196,
+    "test_gcp_function_source_secret_review_20261019.py": 137,
+    "test_gcp_function_secret_partial_page_20261020.py": 121,
+    "test_api_finding_types_static_20261020.py": 107,
+    "test_aws_selected_configuration_secret_review_20261020.py": 107,
+    "test_peaso_iam_grants_api.py": 99,
+    "test_peaso_cli_cancellation.py": 99,
+    "test_peaso_privesc_schema_ext_k8s_blockers.py": 99,
+    "test_native_policy_validation_static_20261020.py": 98,
+    "test_aws_identity_sdk_closure_review.py": 95,
+    "gcp_batch_referenced_source_20261020_test.py": 92,
+    "test_gcp_configuration_secret_review_20261019.py": 92,
+    "test_peaso_compliance_compiler_determinism.py": 88,
+    "test_azure_acr_image_secret_review_20261020.py": 86,
+    "test_aws_network_closure_review.py": 82,
+    "test_aws_identity_closure_review.py": 79,
+    "test_azure_function_package_source_20261020.py": 77,
+}
+
+# Loadfile keeps each selected module on one xdist worker. These modules have
+# independent parametrized cases and dominated the old critical path, so spread
+# their node IDs across isolated Actions jobs without raising per-job CPU use.
+SPLIT_COUNTS = {
+    "test_gcp_dataflow_batch_source_runtime_20261020.py": 4,
+    "test_peaso_compliance_draft_isolation.py": 4,
+    "test_k8s_selected_metadata_production_20261020.py": 4,
+    "test_provider_combined_source_bridge_20261020.py": 2,
+    "test_k8s_selected_metadata_runtime_gates_20261020.py": 2,
+    "test_peaso_native_pipeline_acceptance.py": 2,
+    "test_azure_function_package_integrated_20261020.py": 2,
+    "test_peaso_privesc_integration.py": 2,
+    "test_collector_noop_authorization_successor_20261020.py": 2,
+    "test_azure_metadata_only_admission_successor_20261020.py": 2,
+    "test_peaso_cli_connector_parity.py": 2,
+    "test_native_admission_cpu_successor_20261020.py": 2,
+    "test_peaso_gcp_remaining_clarity_reviewed.py": 2,
+    "test_aws_codebuild_buildspec_runtime_20261020.py": 2,
+    "test_gcp_function_secret_paired_integration_20261020.py": 2,
+    "test_peaso_admission_wheel_packaging.py": 2,
+}
 
 
 def test_files() -> list[Path]:
@@ -23,18 +91,72 @@ def test_files() -> list[Path]:
     )
 
 
+def _weight(path: Path) -> float:
+    return HISTORIC_SECONDS.get(path.name, max(1, path.stat().st_size * 0.0003))
+
+
 def partition(files: list[Path], count: int) -> list[list[Path]]:
     if count < 1 or count > len(files):
         raise ValueError("shard count must be between 1 and the number of test files")
+    if count != SHARDS and any(path.name in SPLIT_COUNTS for path in files):
+        raise ValueError(f"split-module scheduling requires {SHARDS} shards")
     shards: list[list[Path]] = [[] for _ in range(count)]
-    weights = [0] * count
-    # Largest files first limits skew from heavily parametrized modules without
-    # executing or importing any test during scheduling. Ties are stable.
-    for path in sorted(files, key=lambda file: (-file.stat().st_size, str(file))):
-        index = min(range(count), key=lambda shard: (weights[shard], shard))
+    # Shard zero runs the isolated performance gate before its ordinary tests.
+    weights = [240.0 if count == SHARDS else 0.0] + [0.0] * (count - 1)
+    units = [
+        (path, slot, _weight(path) / SPLIT_COUNTS.get(path.name, 1))
+        for path in files
+        for slot in range(SPLIT_COUNTS.get(path.name, 1))
+    ]
+    for path, _, weight in sorted(units, key=lambda unit: (-unit[2], str(unit[0]), unit[1])):
+        choices = [i for i in range(count) if path not in shards[i]]
+        index = min(choices, key=lambda i: (weights[i], i))
         shards[index].append(path)
-        weights[index] += path.stat().st_size
+        weights[index] += weight
     return [sorted(shard) for shard in shards]
+
+
+def _placements(shards: list[list[Path]]) -> dict[Path, list[int]]:
+    result: dict[Path, list[int]] = {}
+    for i, shard in enumerate(shards):
+        for path in shard:
+            result.setdefault(path, []).append(i)
+    return result
+
+
+def _verify(files: list[Path], shards: list[list[Path]]) -> None:
+    placements = _placements(shards)
+    if set(placements) != set(files) or any(not shard for shard in shards):
+        raise RuntimeError("test shard file coverage is incomplete")
+    for path in files:
+        if len(placements[path]) != SPLIT_COUNTS.get(path.name, 1):
+            raise RuntimeError(f"incorrect shard count for {path}")
+
+
+def owner_for(nodeid: str, path: Path, placements: dict[Path, list[int]]) -> int:
+    owners = placements[path]
+    slot = int.from_bytes(hashlib.sha256(nodeid.encode()).digest()[:8], "big") % len(owners)
+    return owners[slot]
+
+
+def pytest_collection_modifyitems(config, items) -> None:
+    """Assign each collected node ID of a split module to exactly one job."""
+    shard_text = os.environ.get(_SHARD_ENV)
+    if shard_text is None:
+        return
+    shard = int(shard_text)
+    placements = _placements(partition(test_files(), SHARDS))
+    selected, deselected = [], []
+    for item in items:
+        path = Path(item.path).relative_to(Path.cwd())
+        owners = placements.get(path)
+        if owners is None:
+            raise RuntimeError(f"collected test outside shard plan: {item.nodeid}")
+        owner = owner_for(item.nodeid, path, placements)
+        (selected if owner == shard else deselected).append(item)
+    if deselected:
+        config.hook.pytest_deselected(items=deselected)
+        items[:] = selected
 
 
 def main() -> int:
@@ -49,8 +171,7 @@ def main() -> int:
     if not files or not 0 <= args.shard < args.shards:
         parser.error("invalid shard or no test files")
     shards = partition(files, args.shards)
-    if sorted(path for shard in shards for path in shard) != files:
-        raise RuntimeError("test shard coverage is incomplete or duplicated")
+    _verify(files, shards)
     print(
         f"shard {args.shard + 1}/{args.shards}: {len(shards[args.shard])}/{len(files)} "
         f"test files, {sum(path.stat().st_size for path in shards[args.shard])} source bytes",
@@ -62,8 +183,9 @@ def main() -> int:
         parser.error("pass pytest options after --")
     selected = set(shards[args.shard])
     ignored = [f"--ignore={path}" for path in files if path not in selected]
-    command = [sys.executable, "-m", "pytest", *pytest_args, *ignored, str(TESTS)]
-    return subprocess.call(command)
+    command = [sys.executable, "-m", "pytest", "-p", "scripts.pytest_shard", *pytest_args, *ignored, str(TESTS)]
+    env = {**os.environ, _SHARD_ENV: str(args.shard)}
+    return subprocess.call(command, env=env)
 
 
 if __name__ == "__main__":
