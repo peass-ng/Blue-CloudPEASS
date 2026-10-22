@@ -15,6 +15,34 @@ def wire(value):
     return json.dumps(value, separators=(',', ':')).encode()
 
 
+def small_image(tmp_path, layer_entries):
+    """Build an independently hashed image from synthetic tar metadata."""
+    layers = []
+    for index, entries in enumerate(layer_entries):
+        layer = tmp_path / f'small-{index}.tar'
+        with tarfile.open(layer, 'w', format=tarfile.USTAR_FORMAT) as tar:
+            for name, kind, data, major, minor, link in entries:
+                item = tarfile.TarInfo(name)
+                item.type, item.devmajor, item.devminor, item.linkname = kind, major, minor, link
+                item.size = len(data)
+                tar.addfile(item, io.BytesIO(data) if data else None)
+        layers.append(layer)
+    config = wire({'os': 'linux', 'architecture': 'amd64',
+                   'rootfs': {'type': 'layers',
+                              'diff_ids': [archive.sha(layer.read_bytes()) for layer in layers]}})
+    manifest = wire({'schemaVersion': 2, 'mediaType': archive.OCI,
+                     'config': {'mediaType': 'application/vnd.oci.image.config.v1+json',
+                                'digest': archive.sha(config), 'size': len(config)},
+                     'layers': [{'mediaType': 'application/vnd.oci.image.layer.v1.tar',
+                                 'digest': archive.sha(layer.read_bytes()), 'size': layer.stat().st_size}
+                                for layer in layers]})
+    digest = archive.sha(manifest)
+    image_identity = {'provider': 'aws', 'scope': '123456789012/us-east-1',
+                      'immutable_reference': '123456789012.dkr.ecr.us-east-1.amazonaws.com/example@' + digest,
+                      'manifest_digest': digest, 'config_digest': archive.sha(config)}
+    return image_identity, manifest, config, layers
+
+
 def image(tmp_path, *, bad=None):
     layer = tmp_path / 'source.tar'
     with tarfile.open(layer, 'w', format=tarfile.USTAR_FORMAT) as tar:
@@ -145,6 +173,67 @@ def test_virtual_files_and_bounded_readers(tmp_path):
     assert selected['usr/lib/libc-copy.so'] == b'library'
     assert 'lib' not in selected and 'lib64' not in selected
     assert not list(tmp_path.glob('peaso-image-visit-*'))
+
+
+@pytest.mark.parametrize('archive_format', ['oci', 'docker'])
+def test_standard_character_devices_validate_build_and_shadow_files(tmp_path, archive_format):
+    regular = lambda name, data: (name, tarfile.REGTYPE, data, 0, 0, '')
+    devices = [(name, tarfile.CHRTYPE, b'', major, minor, '') for name, major, minor in (
+        ('dev/console', 5, 1), ('dev/null', 1, 3), ('dev/random', 1, 8),
+        ('dev/urandom', 1, 9), ('dev/zero', 1, 5))]
+    args = small_image(tmp_path, [[('dev/', tarfile.DIRTYPE, b'', 0, 0, ''),
+                                   regular('dev/null', b'old secret'),
+                                   regular('dev/zero', b'old zero'),
+                                   regular('etc/os-release', b'ID=alpine\n')],
+                                  devices + [regular('etc/updated', b'new content')]])
+    image_identity, manifest, config, layers = args
+    validated, _, budget = archive.validate(image_identity, manifest, config, layers)
+    assert validated['mediaType'] == archive.OCI
+    assert budget[1] == 10
+    seen = {}
+    visit = archive.visit_files(image_identity, manifest, config, layers,
+                                lambda name, reader, size, index:
+                                seen.setdefault(name, (reader.read(), size, index)))
+    assert seen == {'etc/os-release': (b'ID=alpine\n', 10, 0),
+                    'etc/updated': (b'new content', 11, 1)}
+    assert visit['visited_files'] == 2
+    output = tmp_path / f'standard-{archive_format}.tar'
+    proof = archive.write_archive(output, image_identity, manifest, config, layers,
+                                  archive_format=archive_format)
+    assert proof['format'] == archive_format and proof['members'] == 10
+    with tarfile.open(output) as tar:
+        if archive_format == 'oci':
+            names = {'oci-layout', 'index.json'}
+            names.update('blobs/sha256/' + digest[7:] for digest in
+                         [image_identity['manifest_digest'], image_identity['config_digest']])
+            names.update('blobs/sha256/' + archive.sha(layer.read_bytes())[7:] for layer in layers)
+        else:
+            names = {'manifest.json', image_identity['config_digest'][7:] + '.json',
+                     'layer-0/layer.tar', 'layer-1/layer.tar'}
+        assert {member.name for member in tar} == names
+    assert not (tmp_path / 'dev').exists()
+
+
+@pytest.mark.parametrize('name,kind,data,major,minor,link,alias', [
+    ('dev/full', tarfile.CHRTYPE, b'', 1, 7, '', False),
+    ('dev/null', tarfile.CHRTYPE, b'', 2, 3, '', False),
+    ('dev/null', tarfile.CHRTYPE, b'', 1, 4, '', False),
+    ('dev/null', tarfile.CHRTYPE, b'x', 1, 3, '', False),
+    ('alias/null', tarfile.CHRTYPE, b'', 1, 3, '', True),
+    ('dev/null', tarfile.BLKTYPE, b'', 1, 3, '', False),
+    ('dev/null', tarfile.FIFOTYPE, b'', 1, 3, '', False),
+    ('dev/null', b's', b'', 1, 3, '', False),
+])
+def test_nonstandard_special_members_remain_rejected(tmp_path, name, kind, data,
+                                                      major, minor, link, alias):
+    entries = [('dev/', tarfile.DIRTYPE, b'', 0, 0, '')]
+    if alias:
+        entries.append(('alias', tarfile.SYMTYPE, b'', 0, 0, 'dev'))
+    entries.append((name, kind, data, major, minor, link))
+    image_identity, manifest, config, layers = small_image(tmp_path, [entries])
+    with pytest.raises(ValueError, match='unsupported_tar_member'):
+        archive.validate(image_identity, manifest, config, layers)
+    assert not (tmp_path / 'dev').exists()
 
 
 def test_gzip_path_and_diffid(tmp_path):
