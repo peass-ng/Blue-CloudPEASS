@@ -103,23 +103,30 @@ for _check in ANALYSIS_CHECKS:
 
 
 @with_analysis_context
-def analyze_findings(snapshot, resources=None, index=None, *, include_manual_only=True):
+def analyze_findings(snapshot, resources=None, index=None, *, include_manual_only=True, categories=None):
+    """Run only the requested projection categories; None retains the full library default.
+
+    Principal exposure and permission coverage share the native grant review.
+    Its findings are filtered after the existing exception handling and deduplication.
+    Independent exposure projections and inventory coverage are dispatched separately.
+    """
+    selected = {"least_privilege", "exposure"} if categories is None else set(categories)
     from peaso.principal_exposure import exposed_privileged_findings
     if resources is None:
         from peaso.snapshot import resources as snapshot_resources
         resources = snapshot_resources(snapshot)
     results = []
-    for resource in resources:
+    for resource in resources if selected & {"least_privilege", "exposure"} else ():
         try:
             results.extend(review_findings(snapshot, [resource], include_manual_only=include_manual_only))
-            if include_manual_only:
+            if include_manual_only and "exposure" in selected:
                 results.extend(exposure_findings(snapshot, [resource]))
         except (TypeError, AttributeError, KeyError, ValueError, IndexError):
             results.append(finding(snapshot, resource, "least_privilege", "analysis.coverage",
                 "Malformed native fact requires review", "info",
                 {"source": source(snapshot, resource, "data"), "reason": "malformed_native_fact", "risk_state": "unknown"}, status="UNKNOWN"))
     # Azure least-privilege review is per assignment (cross-resource: assignment -> definition by GUID).
-    if include_manual_only:
+    if include_manual_only and "least_privilege" in selected:
         try:
             results.extend(azure_assignment_reviews(snapshot, resources))
         except (TypeError, AttributeError, KeyError, ValueError, IndexError):
@@ -127,7 +134,7 @@ def analyze_findings(snapshot, resources=None, index=None, *, include_manual_onl
                            "provider": snapshot["provider"], "service": "iam", "data": {}}
             results.append(finding(snapshot, placeholder, "least_privilege", "analysis.coverage", "Assignment grant review failed on malformed facts", "info",
                 {"reason": "malformed_native_fact", "risk_state": "unknown"}, status="UNKNOWN"))
-    for derived_findings in (internet_findings, federated_findings, exposed_privileged_findings):
+    for derived_findings in (internet_findings, federated_findings, exposed_privileged_findings) if "exposure" in selected else ():
         try:
             results.extend(derived_findings(snapshot, resources))
         except (TypeError, AttributeError, KeyError, ValueError, IndexError):
@@ -138,7 +145,7 @@ def analyze_findings(snapshot, resources=None, index=None, *, include_manual_onl
     # Unknown coverage never becomes a clean bill of health. Empty, completely
     # enumerated collections are not equivalent to missing/denied collections.
     expected = REQUIRED_TYPES[snapshot["provider"]]["least_privilege"]
-    for scope in snapshot["scopes"]:
+    for scope in snapshot["scopes"] if "least_privilege" in selected else ():
         # An account-global AWS inventory (IAM) is collected once for the account and covers every
         # regional scope of that account; only its absence or failure is a gap.
         account = scope.split("/", 1)[0] if snapshot["provider"] == "aws" else None
@@ -154,11 +161,12 @@ def analyze_findings(snapshot, resources=None, index=None, *, include_manual_onl
             results.append(finding(snapshot, placeholder, "least_privilege", "analysis.coverage",
                 "Analysis inventory context incomplete", "info", {"gaps": gaps, "risk_state": "unknown"}, status=gap_status))
     from .exposure_dedup import deduplicate_principal_exposure
-    return sorted(deduplicate_principal_exposure(results), key=lambda f: (RANK[f["severity"]], f["check_id"], f["scope"], f["resource_id"]))
+    return sorted((f for f in deduplicate_principal_exposure(results) if f["category"] in selected),
+                  key=lambda f: (RANK[f["severity"]], f["check_id"], f["scope"], f["resource_id"]))
 
 
 @with_analysis_context
-def build_graphs(snapshot, resources, index=None, *, max_nodes=500, collapse_unreferenced=False):
+def build_graphs(snapshot, resources, index=None, *, max_nodes=500, collapse_unreferenced=False, graph_kinds=None):
     """collapse_unreferenced: the caller folds edge-less definition nodes (projection.collapse_unreferenced_definitions),
     so their IAM cards are not built."""
     from functools import partial
@@ -166,6 +174,8 @@ def build_graphs(snapshot, resources, index=None, *, max_nodes=500, collapse_unr
     defer = frozenset(UNREFERENCED_DEFINITION_TYPES.get(snapshot.get("provider"), ())) if collapse_unreferenced else frozenset()
     graphs = {}
     for kind, builder in (("network", build_network), ("iam", partial(build_iam, defer_types=defer))):
+        if graph_kinds is not None and kind not in graph_kinds:
+            continue
         try:
             graph = builder(snapshot, resources)
         except (TypeError, AttributeError, KeyError, ValueError, IndexError):

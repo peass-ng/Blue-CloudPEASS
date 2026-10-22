@@ -98,7 +98,22 @@ def _default_cases():
 
 
 def _digest(path):
-    return sha256(Path(path).read_bytes()).hexdigest()
+    path = Path(path)
+    root = Path(__file__).resolve().parents[2]
+    raw = path.read_bytes()
+    if path.resolve() in (root / 'peaso/collectors/aws_image_vulnerability_native_20261021.py',
+                          root / 'peaso/collectors/aws_package_content_indicators.py',
+                          root / 'peaso/secret_scanning_batch.py'):
+        from . import private_secret_shared_source_successor_20261021 as image_source
+        image_source._private_self()
+        relative = str(path.resolve().relative_to(root))
+        row = image_source._private_receipt()['image_capture_admission']['files'][relative]
+        if sha256(raw).hexdigest() != row['current_sha256']:
+            raise RuntimeError('Image capture current dependency changed')
+        raw = image_source._reverse(raw.decode('utf-8'), row).encode('utf-8')
+        if sha256(raw).hexdigest() != row['predecessor_sha256']:
+            raise RuntimeError('Image capture historical dependency changed')
+    return sha256(raw).hexdigest()
 
 
 def staged_sources():

@@ -6,6 +6,7 @@ import re
 from collections import defaultdict
 import hashlib
 from functools import lru_cache
+from heapq import nsmallest
 from urllib.parse import unquote
 
 from .common import (RANK, as_list, derived, externality, finding, native_id, node, node_id,
@@ -55,10 +56,11 @@ def policy_documents(data):
             yield key, doc
     for key in wrappers:
         value = data.get(key)
-        if document(value) is None:
+        doc = document(value)
+        if doc is None:
             yield from nested(value, key, 0)
         elif key not in {"Policy", "policy"}:
-            yield key, document(value)
+            yield key, doc
     for key in ("UserPolicyList", "GroupPolicyList", "RolePolicyList", "PolicyVersionList", "PolicySources"):
         for i, item in enumerate(as_list(data.get(key))):
             if not isinstance(item, dict):
@@ -68,6 +70,10 @@ def policy_documents(data):
             doc = document(item.get("PolicyDocument", item.get("Document", item.get("document"))))
             if doc is not None:
                 yield f"{key}[{i}]", doc
+
+
+def _resource_policy_documents(resource):
+    return derived(resource, "iam_policy_documents", lambda: tuple(policy_documents(resource["data"])))
 
 
 @lru_cache(maxsize=4)
@@ -117,7 +123,7 @@ def _grants(resource):
     data, provider = resource["data"], resource["provider"]
     result = []
     if provider == "aws":
-        for path, doc in policy_documents(data):
+        for path, doc in _resource_policy_documents(resource):
             if path == "AssumeRolePolicyDocument":
                 continue
             for i, statement in enumerate(as_list(doc.get("Statement"))):
@@ -145,9 +151,10 @@ def _grants(resource):
                 "allowed_declaration": True, "conditional": bool(binding.get("condition")),
                 "effective_access": "unknown", "permission_definition": "not inferred from role name"})
         for i, permission in enumerate(as_list(data.get("includedPermissions"))):
+            level = permission_severity(provider, permission)
             result.append({"path": f"includedPermissions[{i}]", "native_grant": permission,
-                "severity": permission_severity(provider, permission) or "info", "broad": "*" in permission,
-                "criticality_state": "rule_based" if permission_severity(provider, permission) else "unknown",
+                "severity": level or "info", "broad": "*" in permission,
+                "criticality_state": "rule_based" if level else "unknown",
                 "allowed_declaration": True, "conditional": False, "effective_access": "unknown"})
     elif provider == "azure":
         props = data.get("properties", data)
@@ -190,8 +197,12 @@ def _grants(resource):
 
 
 def principals(resource):
+    yield from derived(resource, "iam_principals", lambda: tuple(_principals(resource)))
+
+
+def _principals(resource):
     data = resource["data"]
-    for path, doc in policy_documents(data):
+    for path, doc in _resource_policy_documents(resource):
         for i, statement in enumerate(as_list(doc.get("Statement"))):
             if not isinstance(statement, dict) or statement.get("Effect") != "Allow":
                 continue
@@ -349,21 +360,24 @@ def _grant_risk(grant):
 
 def grant_summary(declared):
     by_severity, by_state = defaultdict(int), defaultdict(int)
+    broad = conditional = allowed = high_risk_allowed = 0
     for g in declared:
         by_severity[g.get("severity")] += 1
         by_state[g.get("criticality_state", "unspecified")] += 1
+        broad += bool(g.get("broad"))
+        conditional += bool(g.get("conditional"))
+        allowed += bool(g.get("allowed_declaration"))
+        high_risk_allowed += bool(g.get("allowed_declaration") and RANK.get(g.get("severity"), 9) <= RANK["high"])
     return {"by_severity": {k: by_severity[k] for k in RANK if by_severity.get(k)},
             "by_criticality_state": dict(sorted(by_state.items())),
-            "broad": sum(1 for g in declared if g.get("broad")),
-            "conditional": sum(1 for g in declared if g.get("conditional")),
-            "allowed": sum(1 for g in declared if g.get("allowed_declaration")),
-            "high_risk_allowed": sum(1 for g in declared if g.get("allowed_declaration") and RANK.get(g.get("severity"), 9) <= RANK["high"])}
+            "broad": broad, "conditional": conditional, "allowed": allowed,
+            "high_risk_allowed": high_risk_allowed}
 
 
 def grant_card(declared, resource):
     """Bounded grant view for graph cards: complete when small, else the GRANT_SAMPLE highest-risk grants."""
     truncated = len(declared) > GRANT_SAMPLE
-    sample = sorted(declared, key=_grant_risk)[:GRANT_SAMPLE] if truncated else declared
+    sample = nsmallest(GRANT_SAMPLE, declared, key=_grant_risk) if truncated else declared
     return {"source_grants": sample, "grant_count": len(declared), "source_grants_truncated": truncated,
             "grant_summary": grant_summary(declared),
             "detail_ref": {"resource_ref": resource.get("id", native_id(resource)),
@@ -547,7 +561,7 @@ def build_iam(snapshot, resources, *, defer_types=()):
             if isinstance(policy, dict) and policy.get("PolicyArn"):
                 dst = reference(resource, "iam_policy", policy["PolicyArn"])
                 edges.append(relationship(src, dst, "attached_policy", source(snapshot, resource, f"AttachedManagedPolicies[{i}]")))
-        for path, doc in policy_documents(data):
+        for path, doc in _resource_policy_documents(resource):
             if path == "AssumeRolePolicyDocument" or path in {"Document", "PolicyDocument"}:
                 continue
             dst = reference(resource, "policy_document", stable_id(native_id(resource), path))

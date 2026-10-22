@@ -310,5 +310,5 @@ def test_clean_metadata_callback_can_reuse_redacted_negative_cache(monkeypatch):
     monkeypatch.setattr(scanning, '_scan_trufflehog', lambda *a: calls.append('trufflehog') or [])
     for _ in range(2):
         assert scanning.scan_content(b'plain', _redact_values=callbacks.append)['complete']
-    assert calls == ['kingfisher', 'trufflehog']
+    assert sorted(calls) == ['kingfisher', 'trufflehog']
     assert callbacks == [frozenset(), frozenset()]

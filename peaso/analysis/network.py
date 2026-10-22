@@ -5,7 +5,7 @@ import json
 import re
 from urllib.parse import unquote, urlsplit
 
-from .common import as_list, finding, gcp_interface_resource_id, native_id, node, node_id, relationship, source, stable_id
+from .common import _CONTEXT, as_list, derived, finding, gcp_interface_resource_id, native_id, node, node_id, relationship, source, stable_id
 from .network_services import SERVICE_TYPES, service_references, azure_kind, azure_scope, gcp_ref
 from .network_catalog import CONTROL_TYPES
 
@@ -493,6 +493,13 @@ def references(resource):
 
 
 def _k8s_context(snapshot, resource):
+    context = _CONTEXT.get()
+    if context is not None and context["snapshot"] is snapshot:
+        return derived(resource, "network_k8s_context", lambda: _native_k8s_context(snapshot, resource))
+    return _native_k8s_context(snapshot, resource)
+
+
+def _native_k8s_context(snapshot, resource):
     """Collection scope is administrative; native provenance establishes cluster/namespace."""
     data = resource["data"]
     provenance = data.get("provenance", {})
@@ -559,7 +566,41 @@ def _k8s_matches(labels, requirements):
     return True
 
 
-def _k8s_workload_selector(snapshot, resource, pods, nodes, edges, pod_status, pod_context_gaps):
+class _K8sPodIndex:
+    """Scan-local label postings; candidates retain native pod order."""
+    def __init__(self, pods):
+        self.pods, self.buckets = pods, {}
+
+    def candidates(self, bucket, requirements):
+        if bucket not in self.buckets:
+            valid, values, present, malformed = [], {}, {}, False
+            for pod in self.pods.get(bucket, []):
+                labels = pod["data"].get("metadata", {}).get("labels", {})
+                if not isinstance(labels, dict) or any(not isinstance(k, str) or not isinstance(v, str)
+                                                       for k, v in labels.items()):
+                    malformed = True
+                    continue
+                position = len(valid)
+                valid.append((pod, labels))
+                for key, value in labels.items():
+                    values.setdefault((key, value), set()).add(position)
+                    present.setdefault(key, set()).add(position)
+            self.buckets[bucket] = valid, values, present, malformed
+        valid, values, present, malformed = self.buckets[bucket]
+        smallest = None
+        for key, operator, choices in requirements:
+            if operator == "In":
+                candidates = set().union(*(values.get((key, value), ()) for value in choices))
+            elif operator == "Exists":
+                candidates = present.get(key, set())
+            else:
+                continue  # Negative requirements also admit pods without this label.
+            if smallest is None or len(candidates) < len(smallest):
+                smallest = candidates
+        return (iter(valid) if smallest is None else (valid[i] for i in sorted(smallest))), malformed
+
+
+def _k8s_workload_selector(snapshot, resource, pods, nodes, edges, pod_status, pod_context_gaps, pod_index=None):
     spec = resource["data"].get("spec", {})
     key = "selector" if resource["type"] == "service" else "podSelector"
     if not isinstance(spec, dict) or key not in spec:
@@ -601,12 +642,12 @@ def _k8s_workload_selector(snapshot, resource, pods, nodes, edges, pod_status, p
     if resource["scope"] in pod_context_gaps:
         evidence["matching_workloads"] = "partial"
         evidence["reason"] = "some_pod_context_is_unavailable_or_conflicting"
-    for pod in pods.get((resource["scope"], cluster, namespace), []):
-        labels = pod["data"].get("metadata", {}).get("labels", {})
-        if not isinstance(labels, dict) or any(not isinstance(k, str) or not isinstance(v, str) for k, v in labels.items()):
-            evidence["matching_workloads"] = "partial"
-            evidence["reason"] = "some_pod_labels_are_malformed"
-            continue
+    index = pod_index if pod_index is not None else _K8sPodIndex(pods)
+    candidates, malformed = index.candidates((resource["scope"], cluster, namespace), requirements)
+    if malformed:
+        evidence["matching_workloads"] = "partial"
+        evidence["reason"] = "some_pod_labels_are_malformed"
+    for pod, labels in candidates:
         if _k8s_matches(labels, requirements):
             evidence["matched_pod_count"] += 1
             edges.append(relationship(dst, node_id(pod), "matches_pod", {
@@ -753,6 +794,7 @@ def build_network(snapshot, resources):
                 lookup[(resource["scope"].casefold() if resource["provider"] == "azure" else resource["scope"],
                         resource["type"], str(alias).casefold() if resource["provider"] == "azure" else str(alias))] = node_id(resource)
     edges = []
+    pod_index = _K8sPodIndex(k8s_pods)
     for resource in selected:
         src = node_id(resource)
         if resource["provider"] == "gcp" and resource["type"] == "instance":
@@ -792,7 +834,7 @@ def build_network(snapshot, resources):
             if dst != src:
                 edges.append(relationship(src, dst, relation, source(snapshot, resource, path)))
         if resource["provider"] == "k8s" and resource["type"] in {"service", "networkpolicy"}:
-            _k8s_workload_selector(snapshot, resource, k8s_pods, nodes, edges, pod_status, pod_context_gaps)
+            _k8s_workload_selector(snapshot, resource, k8s_pods, nodes, edges, pod_status, pod_context_gaps, pod_index)
         if resource["provider"] == "k8s" and resource["type"] == "network_interface":
             _k8s_interface(snapshot, resource, k8s_owners, nodes, edges)
         for path, rule, semantics in public_rules(resource):

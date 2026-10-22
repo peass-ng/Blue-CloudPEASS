@@ -11,6 +11,7 @@ import copy
 import re
 
 from .common import _CONTEXT, as_list
+from peaso.snapshot import freeze
 
 ACCOUNT = re.compile(r"^[0-9]{12}$")
 MICROSOFT_TENANTS = {"f8cdef31-a31e-4b4a-93e4-5f571e91255a", "72f988bf-86f1-41af-91ab-2d7cd011db47"}
@@ -378,10 +379,13 @@ def principal_exposure(snapshot, resource, declared):
         severity = "low" if all(e["reason"] == "service_without_source_condition" for e in entries) else "medium"
     else:
         severity = "info"
-    trusted = trusted_scopes(snapshot)
+    # Every finding retains the complete boundary. Share one immutable projection
+    # per evaluation rather than sorting and copying all scopes for every grant.
+    trusted_sources = _cache(snapshot, "trusted_scope_evidence",
+                            lambda: freeze(dict(sorted(trusted_scopes(snapshot)["sources"].items()))))
     evidence = {"principals": entries, "risk_state": "observed" if status == "FAIL" else "conditional" if status == "MANUAL" else "unknown",
         "effective_access": "unknown", "trusted_scope_ids": snapshot.get("metadata", {}).get("trusted_scope_ids", []),
-        "default_trusted_scopes": dict(sorted(trusted["sources"].items())),
+        "default_trusted_scopes": trusted_sources,
         "external_scope_ids": sorted({str(e["external_scope_id"]) for e in entries if e.get("external_scope_id")}),
         "public_unconditional": any(e["reason"] == "public" for e in entries),
         "uncertainty": "Deny statements, SCP/RCP guardrails, Block Public Access and session policies can still narrow declared access."}
