@@ -76,3 +76,23 @@ def test_guest_basic_update_respects_explicit_trust_deny():
             "Action": "sts:AssumeRoleWithWebIdentity", "Condition": {
                 "StringEquals": {"cognito-identity.amazonaws.com:aud": POOL_ID}}}
     assert reaches(extra_trust=(deny,)) == []
+
+
+def test_guest_basic_update_does_not_infer_unknown_guest_subject():
+    constrained = pol({"Effect": "Allow", "Principal": {"Federated": "cognito-identity.amazonaws.com"},
+                       "Action": "sts:AssumeRoleWithWebIdentity", "Condition": {
+                           "StringEquals": {"cognito-identity.amazonaws.com:aud": POOL_ID,
+                                            "cognito-identity.amazonaws.com:sub": "us-east-1:specific-identity"},
+                           "ForAnyValue:StringLike": {"cognito-identity.amazonaws.com:amr": "unauthenticated"}}})
+    model = AwsModel(aws_snap([user("alice", UPDATE)], [role("target", constrained)], [pool()]))
+    assert Evaluator(model, [entry()], include_unknown=False).run() == []
+
+
+def test_guest_basic_update_requires_explicit_cross_account_audience_and_method():
+    for condition in ({"StringEquals": {"cognito-identity.amazonaws.com:aud": POOL_ID}},
+                      {"ForAnyValue:StringLike": {"cognito-identity.amazonaws.com:amr": "unauthenticated"}}):
+        incomplete = pol({"Effect": "Allow", "Principal": {"Federated": "cognito-identity.amazonaws.com"},
+                          "Action": "sts:AssumeRoleWithWebIdentity", "Condition": condition})
+        model = AwsModel(aws_snap([user("alice", UPDATE)], [
+            role("target", incomplete, account=OTHER)], [pool()]))
+        assert Evaluator(model, [entry()], include_unknown=False).run() == []
