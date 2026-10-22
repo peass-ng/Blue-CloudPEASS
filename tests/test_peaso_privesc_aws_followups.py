@@ -2230,6 +2230,11 @@ def test_sagemaker_training_inline_route_requires_writable_regional_output():
 
     assert evaluate()[0] == {role_arn("core"): "conditional"}
     assert role_arn("core") not in evaluate(role_item=role("core", "sagemaker.amazonaws.com"))[0]
+    public_bucket = {**bucket, "Policy": {"collection_status": "collected", "Policy": policy({
+        "Effect": "Allow", "Principal": "*", "Action": "s3:PutObject",
+        "Resource": "arn:aws:s3:::training-output/*"})}}
+    assert role_arn("core") not in evaluate(role_item=role("core", "sagemaker.amazonaws.com"),
+                                             buckets=(public_bucket,))[0]
     assert role_arn("core") not in evaluate(role_item=role("core", "sagemaker.amazonaws.com",
         allow("s3:PutObject", resource="arn:aws:s3:::other-output/*")))[0]
     assert role_arn("core") not in evaluate(buckets=())[0]

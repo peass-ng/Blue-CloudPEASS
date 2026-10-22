@@ -9300,6 +9300,12 @@ class AwsModel(Model):
                             if bucket_status.get(f"{source.scope}/global") not in ("collected", "empty"):
                                 unresolved = True
                                 continue
+                            # A public bucket policy alone may be disabled by S3 public
+                            # access blocks. Require the passed role's own write grant.
+                            role_writes, _ = self._statements(role, "s3:putobject")
+                            if not role_writes:
+                                unresolved = True
+                                continue
                             output_ready = False
                             for bucket_scope, bucket in items(self.snapshot, "bucket"):
                                 if bucket_scope != f"{source.scope}/global":
