@@ -2661,19 +2661,38 @@ def collect(connector, requirements=None):
     # own thread instead of occupying a shared service worker for minutes.
     activity_workers = _bound(options, "activity_concurrency", min(32, max(1, len(regions) * min(scope_workers, max(1, len(contexts))))), maximum=32)
     metadata["activity_concurrency"] = activity_workers
+    content_kinds = ({ecr_public_image.KIND, image_vulnerabilities.KIND,
+        workload_image_secrets.KIND, aws_lambda_environment_secret_indicators.KIND,
+        aws_selected_configuration_secret_indicators.KIND,
+        aws_s3_selected_source_secret_indicators.KIND,
+        aws_ecs_environment_file_secret_indicators.KIND,
+        aws_workload_referenced_source_indicators.KIND,
+        aws_build_deployment_referenced_source_indicators.KIND, codebuild_inline.KIND}
+        | (set(requests.content_secret_scan_kinds) if requests.content_secret_scans else set())) & wanted
+    # Long selected-content reads can otherwise occupy every service worker
+    # before ordinary inventory reaches the FIFO executor queue. Reserve a
+    # bounded part of the same service budget for ordinary reads. A global
+    # call cap retains the original single-queue admission order.
+    content_workers = (min(4, max(1, requests.workers // 3))
+        if content_kinds and requests.workers > 1 and requests.max_calls is None else 0)
+    ordinary_workers = requests.workers - content_workers
     from .aws_access_analyzer_lifecycle import AnalyzerLifecycle
     from .aws_image_capture_20261022 import capture_scope
     metadata["access_analyzer_lifecycle"] = []
     if "access_analyzer" in wanted:
         metadata["collection"] = "read-only-with-temporary-access-analyzers"
     analyzer_lifecycle = AnalyzerLifecycle(requests, metadata["access_analyzer_lifecycle"], progress_callback)
-    with capture_scope(requests), analyzer_lifecycle, ThreadPoolExecutor(max_workers=requests.workers, thread_name_prefix="aws-read") as pool, \
+    # A global call cap assigns budget by admission order. Keep the original
+    # analyzer-first admission in that explicitly limited mode.
+    defer_analyzer_preparation = requests.max_calls is None
+    with capture_scope(requests), analyzer_lifecycle, ThreadPoolExecutor(max_workers=ordinary_workers, thread_name_prefix="aws-read") as pool, \
+            ThreadPoolExecutor(max_workers=max(1, content_workers), thread_name_prefix="aws-content") as content_pool, \
             ThreadPoolExecutor(max_workers=activity_workers, thread_name_prefix="aws-activity") as activity_pool:
         for offset in range(0, len(contexts), scope_workers):
             scope_batch = contexts[offset:offset + scope_workers]
             jobs, activity_jobs = [], {}
             for session, identity in scope_batch:
-                if "access_analyzer" in wanted and identity["Account"] not in region_discovery_errors:
+                if not defer_analyzer_preparation and "access_analyzer" in wanted and identity["Account"] not in region_discovery_errors:
                     analyzer_lifecycle.prepare(session, identity, regions_for(identity["Account"]))
                 # Activity reads start first: they are the longest rate-limited chains.
                 if "aws_cloudtrail_activity" in wanted and identity["Account"] not in region_discovery_errors:
@@ -2694,11 +2713,12 @@ def collect(connector, requirements=None):
                                     future.set_exception(exc)
                             iam_future.add_done_callback(project)
                         else:
-                            future = pool.submit(global_job, session, identity, kind)
+                            lane = content_pool if content_workers and kind in content_kinds else pool
+                            future = lane.submit(global_job, session, identity, kind)
                         jobs.append((kind, identity, regions_for(identity["Account"])[0], session, future))
             # Regional jobs are queued behind the global ones without a per-Region
             # barrier; emission below stays in the same deterministic order.
-            regional_jobs = []
+            regional_jobs, deferred_analyzers = [], []
             for session, identity in scope_batch:
                 for region in regions:
                     if region not in regions_for(identity["Account"]):
@@ -2711,9 +2731,24 @@ def collect(connector, requirements=None):
                                 future.set_result(ReadResult([], failure.status, {"code": failure.code, "reason": "default_region_discovery_incomplete"}))
                             elif kind == "aws_cloudtrail_activity":
                                 future = activity_jobs[(id(identity), region)]
+                            elif kind == "access_analyzer" and defer_analyzer_preparation:
+                                # Preparation can make slow SDK calls in every
+                                # Region. Queue ordinary reads first so they
+                                # progress while analyzers are prepared.
+                                deferred_analyzers.append((len(regional_jobs), session, identity, region))
+                                future = None
                             else:
-                                future = pool.submit(regional_job, session, identity, region, kind)
+                                lane = content_pool if content_workers and kind in content_kinds else pool
+                                future = lane.submit(regional_job, session, identity, region, kind)
                             regional_jobs.append((kind, identity, region, session, future))
+            if deferred_analyzers:
+                for session, identity in scope_batch:
+                    if identity["Account"] not in region_discovery_errors:
+                        analyzer_lifecycle.prepare(session, identity, regions_for(identity["Account"]))
+                        for index, job_session, job_identity, region in deferred_analyzers:
+                            if job_identity is identity:
+                                regional_jobs[index] = ("access_analyzer", identity, region, job_session,
+                                    pool.submit(regional_job, job_session, identity, region, "access_analyzer"))
             from peaso.collection_events import completed_reads
             ordered_regional_jobs = [row for region_offset in range(0, len(regions), region_workers)
                 for _, identity in scope_batch
