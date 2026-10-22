@@ -8468,6 +8468,15 @@ class AwsModel(Model):
             regions = sorted(scope.split("/", 1)[1] for scope in self.snapshot.get("scopes", ())
                              if isinstance(scope, str) and scope.startswith(source.scope + "/") and
                              re.fullmatch(r"[a-z]{2}(?:-[a-z]+)+-\d", scope.split("/", 1)[1]))
+            interpreter_status = inventory_status(self.snapshot, "agentcore_code_interpreter")
+            occupied_names = {}
+            incomplete_names = set()
+            for scope, row in items(self.snapshot, "agentcore_code_interpreter"):
+                name = row.get("name")
+                if isinstance(name, str) and name:
+                    occupied_names.setdefault(scope, set()).add(name)
+                else:
+                    incomplete_names.add(scope)
             partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
             guardrails_unknown = bool(source.attrs.get("boundary")) or self.scp_status.get(source.scope) != "empty"
             for tid, role in candidates.items():
@@ -8475,27 +8484,47 @@ class AwsModel(Model):
                     out[tid] = ("unknown", "agentcore_interpreter_name_trust_or_guardrail_not_verified")
                     continue
                 for region in regions:
-                    if not all(any(name == "*" and allowed_region in ("*", region)
-                                   for allowed_region, name in scopes[action]) for action in actions):
-                        continue  # A fixed name needs complete interpreter-name inventory.
+                    names = [{name for allowed_region, name in scopes[action]
+                              if allowed_region in ("*", region)} for action in actions]
+                    if not all(names):
+                        continue
+                    seed = hashlib.sha256((source.id + region).encode()).hexdigest()[:12]
+                    generated_name = f"PeasoBound{seed}"
+                    broad_name = "*" in names[0] and "*" in names[1]
+                    if broad_name:
+                        candidates_names = [generated_name]
+                    elif "*" in names[0]:
+                        candidates_names = sorted(names[1] - {"*"})
+                    elif "*" in names[1]:
+                        candidates_names = sorted(names[0] - {"*"})
+                    else:
+                        candidates_names = sorted(names[0] & names[1])
                     create = self.check(source, {"action": "bedrock-agentcore:CreateCodeInterpreter",
                                                  "request_context": {"aws:RequestedRegion": region}},
                                         "peaso-global-agentcore-create-interpreter")
                     if create is None or create.confidence != "derived":
                         continue
-                    seed = hashlib.sha256((source.id + region).encode()).hexdigest()[:12]
-                    prefix = (f"arn:{partition}:bedrock-agentcore:{region}:{source.scope}:"
-                              f"code-interpreter-custom/PeasoBound{seed}-")
-                    future_arns = (prefix + "0" * 10, prefix + "z" * 10)
-                    trust = [self._service_trust_for_source_arn(
-                        tid, "bedrock-agentcore.amazonaws.com", future) for future in future_arns]
-                    if trust != [True, True]:
-                        continue
-                    grants = [self.check(source, {"action": action,
-                                                  "request_context": {"aws:RequestedRegion": region}}, future)
-                              for action in actions for future in future_arns]
-                    if all(grant is not None and grant.confidence == "derived" for grant in grants):
-                        out[tid] = ("conditional", "agentcore_fresh_interpreter_role_and_session")
+                    for name in candidates_names:
+                        scope = f"{source.scope}/{region}"
+                        if not broad_name and (interpreter_status.get(scope) not in ("collected", "empty")
+                                               or scope in incomplete_names):
+                            continue  # A fixed name needs complete interpreter inventory.
+                        if name in occupied_names.get(scope, ()):
+                            continue
+                        prefix = (f"arn:{partition}:bedrock-agentcore:{region}:{source.scope}:"
+                                  f"code-interpreter-custom/{name}-")
+                        future_arns = (prefix + "0" * 10, prefix + "z" * 10)
+                        trust = [self._service_trust_for_source_arn(
+                            tid, "bedrock-agentcore.amazonaws.com", future) for future in future_arns]
+                        if trust != [True, True]:
+                            continue
+                        grants = [self.check(source, {"action": action,
+                                                      "request_context": {"aws:RequestedRegion": region}}, future)
+                                  for action in actions for future in future_arns]
+                        if all(grant is not None and grant.confidence == "derived" for grant in grants):
+                            out[tid] = ("conditional", "agentcore_fresh_interpreter_role_and_session")
+                            break
+                    if tid in out:
                         break
                 if tid not in out:
                     out[tid] = ("unknown", "agentcore_interpreter_name_trust_or_guardrail_not_verified")

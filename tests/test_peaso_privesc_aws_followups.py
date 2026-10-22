@@ -1993,6 +1993,22 @@ def test_agentcore_created_interpreter_needs_grants_covering_its_generated_id():
     assert edges(real(aws_snap([exact], roles), tid), ALICE) == []
     disjoint = candidate(prefix + "alpha-*", prefix + "beta-*")
     assert edges(real(aws_snap([disjoint], roles), tid), ALICE) == []
+    free_name = candidate(prefix + "alpha-*", prefix + "alpha-??????????")
+    available = aws_snap([free_name], roles, extra=[col("agentcore_code_interpreter", [], "empty")])
+    assert reached(real(available, tid), ALICE, tid) == {role_arn("core"): "conditional"}
+    occupied = {"codeInterpreterArn": prefix + "alpha-1234567890", "name": "alpha",
+                "codeInterpreterId": "alpha-1234567890", "status": "READY",
+                "executionRoleArn": role_arn("core")}
+    occupied_snap = aws_snap([free_name], roles,
+                             extra=[col("agentcore_code_interpreter", [occupied])])
+    assert edges(real(occupied_snap, tid), ALICE) == []
+    unnamed_snap = aws_snap([free_name], roles,
+                            extra=[col("agentcore_code_interpreter", [{k: v for k, v in occupied.items()
+                                                                      if k != "name"}])])
+    assert edges(real(unnamed_snap, tid), ALICE) == []
+    partial_snap = aws_snap([free_name], roles,
+                            extra=[col("agentcore_code_interpreter", [], "partial")])
+    assert edges(real(partial_snap, tid), ALICE) == []
 
 
 def test_agentcore_existing_interpreter_joins_exact_ready_role_and_grants():
