@@ -215,7 +215,7 @@ EXPLICIT_CONTENT_CHECK_IDS = frozenset({
 })
 
 
-def _selection(provider, categories, checks, frameworks):
+def _selection(provider, categories, checks, frameworks, *, leaks_enabled=True, images_enabled=True):
     selected_categories = list(CATEGORIES) if not categories else _string_list(categories, "categories")
     if any(category not in CATEGORIES for category in selected_categories):
         raise ValueError("unsupported category")
@@ -249,7 +249,18 @@ def _selection(provider, categories, checks, frameworks):
     selected = [c for c in registry if c.provider == provider and c.category in selected_categories
         and (checks is None or c.id in checks) and (frameworks is None or (set(c.frameworks) | set(getattr(c, "framework_ids", []))).intersection(frameworks))]
     selected = [c for c in selected if c.id not in EXPLICIT_CONTENT_CHECK_IDS or checks is not None and c.id in checks]
+    if not leaks_enabled or not images_enabled:
+        from .scan_sections import section_for
+        disabled = ({'leaks'} if not leaks_enabled else set()) | ({'images'} if not images_enabled else set())
+        selected = [check for check in selected if section_for(check) not in disabled]
     return selected_categories, selected
+
+
+def _request_selection(provider, request):
+    flags = {name: request.get(name, True) for name in ('leaks_enabled', 'images_enabled')}
+    if any(type(value) is not bool for value in flags.values()):
+        raise ValueError('scan section switches must be booleans')
+    return _selection(provider, request.get('categories'), request.get('checks'), request.get('frameworks'), **flags)
 
 
 def _string_list(value, name):
@@ -270,7 +281,7 @@ def _request(request):
             raise ValueError("connector " + field + " must be an object")
     if "scopes" in connector:
         _string_list(connector["scopes"], "scopes")
-    _selection(connector["provider"], request.get("categories"), request.get("checks"), request.get("frameworks"))
+    _request_selection(connector["provider"], request)
     content_options = connector.get('options', {})
     from .gcp_image_selection_20261021 import OPTION as REGISTRY_CVE_OPTION, selections as registry_cve_selection
     if REGISTRY_CVE_OPTION in content_options:
@@ -573,7 +584,7 @@ def collect_snapshot(request):
     # predicate as an internal collector fact signal without adding a fake
     # inventory type to the public collection plan.
     if connector["provider"] == "aws":
-        _, selected = _selection("aws", request.get("categories"), request.get("checks"), request.get("frameworks"))
+        _, selected = _request_selection("aws", request)
         from .collectors.aws_image_vulnerability_runtime_20261021 import issue_engine_grant as grant_aws_image_vulnerabilities
         grant_aws_image_vulnerabilities(connector.setdefault('options', {}), connector.get('scopes', []),
             [check.id for check in selected if check.id in (request.get('checks') or [])])
@@ -631,7 +642,7 @@ def collect_snapshot(request):
             connector['options']['_content_secret_scan_kinds'].append(WORKLOAD_COMMAND_KIND)
         grant_workload_commands(connector['options'], connector.get('scopes', []), [c.id for c in selected if c.id in named])
     if connector["provider"] == "gcp":
-        _, selected = _selection("gcp", request.get("categories"), request.get("checks"), request.get("frameworks"))
+        _, selected = _request_selection("gcp", request)
         content_kinds = {
             'gcp.review.dataflow.selected_package_referenced_source_secret_indicators': 'dataflow_selected_package_source',
             'gcp.review.cloudrun_job.declared_image_secret_indicators': 'cloudrun_job_declared_image',
@@ -710,7 +721,7 @@ def collect_snapshot(request):
         connector.setdefault('options', {})['_content_secret_scan_kinds'] = [kind for cid, kind in (
             (K8S_LITERAL_CHECK, K8S_LITERAL_KIND), (K8S_LOG_CHECK, K8S_LOG_KIND), (K8S_TEXT_CHECK, K8S_TEXT_KIND)) if cid in (request.get('checks') or [])]
     if connector["provider"] == "azure":
-        _, selected = _selection("azure", request.get("categories"), request.get("checks"), request.get("frameworks"))
+        _, selected = _request_selection("azure", request)
         from .collectors.azure_app_settings_secret_indicators import KIND as AZURE_SETTINGS_KIND, CHECK as AZURE_SETTINGS_CHECK
         from .collectors.azure_acr_image_secret_indicators import KIND as AZURE_ACR_KIND, CHECK as AZURE_ACR_CHECK
         from .collectors.azure_selected_aks_image_20261021 import KIND as AKS_IMAGE_KIND, CHECK as AKS_IMAGE_CHECK, VULN_KIND as AKS_VULN_KIND, VULN_CHECK as AKS_VULN_CHECK
@@ -761,7 +772,7 @@ def collect_snapshot(request):
             collection_callback(collection)
     emit_progress(phase="collecting", provider=connector["provider"], completed=len(snapshot["collections"]),
                   total=len(snapshot["collections"]), resources=sum(len(c["items"]) for c in snapshot["collections"]), dynamic_total=False)
-    snapshot["metadata"]["collection_plan"] = {"mode": "collect_all" if options.get("collect_all") else "explicit_inventories" if "inventories" in options else "full_default" if _full_selection(connector["provider"], *_selection(connector["provider"], request.get("categories"), request.get("checks"), request.get("frameworks"))) else "dependencies", "requirements": requirements,
+    snapshot["metadata"]["collection_plan"] = {"mode": "collect_all" if options.get("collect_all") else "explicit_inventories" if "inventories" in options else "full_default" if _full_selection(connector["provider"], *_request_selection(connector["provider"], request)) else "dependencies", "requirements": requirements,
         "categories": request.get("categories") or list(CATEGORIES), "checks": request.get("checks") or "all_selected", "frameworks": request.get("frameworks") or "all_selected"}
     return validate(seal(snapshot))
 
@@ -799,7 +810,7 @@ def _selected_graph_categories(categories, native, analyzed, explicit_categories
 def plan_collection(request, *, _runtime_connector=None):
     connector = _request(request)
     provider = connector["provider"]
-    categories, checks = _selection(provider, request.get("categories"), request.get("checks"), request.get("frameworks"))
+    categories, checks = _request_selection(provider, request)
     from .collectors import supported_types
     from .analysis import REQUIRED_TYPES, privesc_required_types
     from .checks.native_only import automated_inventory_types
@@ -1312,7 +1323,7 @@ def _azure_tenant_group_collection_authorized(scope, metadata, collection):
 
 
 def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, timings=None, include_not_applicable=True,
-                      related_snapshots=None, *, completed_graph_sections=None):
+                      related_snapshots=None, *, completed_graph_sections=None, leaks_enabled=True, images_enabled=True):
     """timings: optional dict that receives wall-clock timings; they never enter the deterministic report.
 
     related_snapshots: other-provider snapshots of the same scan group (e.g. the GCP project of a GKE
@@ -1333,7 +1344,8 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
     snapshot = validate(snapshot, read_only=True)
     provider = snapshot["provider"]
     related = _related_snapshots(snapshot, related_snapshots)
-    selected_categories, selected = _selection(provider, categories, checks, frameworks)
+    selected_categories, selected = _selection(provider, categories, checks, frameworks,
+                                               leaks_enabled=leaks_enabled, images_enabled=images_enabled)
     graph_only_checkpoint = completed_graph_sections is not None and checks == []
     if graph_only_checkpoint:
         selected = []
@@ -2087,7 +2099,8 @@ def scan(request):
     timings = {}
     report = evaluate_snapshot(snapshot, request.get("categories"), request.get("checks"), request.get("frameworks"), timings=timings,
                                include_not_applicable=bool(request.get("include_not_applicable", False)),
-                               related_snapshots=request.get("related_snapshots"))
+                               related_snapshots=request.get("related_snapshots"),
+                               leaks_enabled=request.get("leaks_enabled", True), images_enabled=request.get("images_enabled", True))
     if timings:
         report["timings"] = timings
     return report, snapshot

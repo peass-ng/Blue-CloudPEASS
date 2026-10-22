@@ -49,6 +49,10 @@ class ConnectorPatch(StrictModel):
 
 class ScanCreate(StrictModel):
     ai_enabled: StrictBool = True
+    ai_priorities_enabled: StrictBool = True
+    ai_network_enabled: StrictBool = True
+    leaks_enabled: StrictBool = True
+    images_enabled: StrictBool = True
     connector_id: str = Field(min_length=1, max_length=100)
     categories: list[str] = Field(default_factory=list, max_length=100)
     checks: list[str] = Field(default_factory=list, max_length=10000)
@@ -120,6 +124,10 @@ class ScheduleCreate(ScanCreate):
 
 class SchedulePatch(StrictModel):
     ai_enabled: StrictBool | None = None
+    ai_priorities_enabled: StrictBool | None = None
+    ai_network_enabled: StrictBool | None = None
+    leaks_enabled: StrictBool | None = None
+    images_enabled: StrictBool | None = None
     connector_id: str | None = Field(default=None, min_length=1, max_length=100)
     categories: list[str] | None = Field(default=None, max_length=100)
     checks: list[str] | None = Field(default=None, max_length=10000)

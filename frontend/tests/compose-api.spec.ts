@@ -70,10 +70,10 @@ test("Compose live AWS report populates every UI section", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Compose read-only AWS acceptance" })).toBeVisible();
   await screenshot("Connectors");
   await visit("Scans", "scans");
-  await expect(page.getByRole("button", { name: "View", exact: true })).toHaveCount(scanCount);
+  await expect(page.getByRole("button", { name: "Open results", exact: true })).toHaveCount(scanCount);
   await expect(page.getByRole("button", { name: "Pause", exact: true })).toBeVisible();
   await screenshot("Scans");
-  await page.getByRole("button", { name: "View", exact: true }).first().click();
+  await page.getByRole("button", { name: "Open results", exact: true }).first().click();
   await expect(page.getByRole("region", { name: "Findings table" }).getByRole("table")).toBeVisible();
   for (const [label, slug] of [["Hardening & Compliance", "findings"], ["Exposure", "exposure"], ["Least Privilege", "least-privilege"]]) {
     await visit(label, slug);

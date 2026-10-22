@@ -19,7 +19,7 @@ for (const available of [false, true]) {
     });
     await page.goto("/#Scans");
     await page.getByRole("button", { name: "Launch scan", exact: true }).click();
-    const toggle = page.getByRole("checkbox", { name: "Use AI to verify failed findings and prioritize security actions" });
+    const toggle = page.getByRole("checkbox", { name: "Use AI to verify failed findings" });
     if (available) {
       await expect(toggle).toBeEnabled();
       await expect(toggle).toBeChecked();

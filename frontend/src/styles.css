@@ -971,6 +971,15 @@ h1 {
 .scan-row:last-child {
   border: 0;
 }
+.scan-actions {
+  display: grid;
+  grid-template-columns: repeat(2, 34px);
+  gap: 6px;
+  margin-left: auto;
+  flex: none;
+}
+.scan-actions .icon-button { width: 34px; height: 34px; }
+.scan-action-delete { grid-column: 2; }
 .connector-card h3 {
   font-size: 13px;
 }
@@ -1268,6 +1277,19 @@ h1 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px 10px;
 }
+.assessment-config-section {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.assessment-section-heading { display: flex; align-items: flex-start; gap: 12px; }
+.assessment-section-heading > span { color: var(--mint); font: 600 11px 'JetBrains Mono', monospace; padding-top: 3px; }
+.assessment-section-heading h3 { margin: 0 0 4px; font-size: 16px; }
+.assessment-section-heading p { margin: 0; color: var(--muted); font-size: 12px; }
+.assessment-config-section .assessment-category-grid .checkbox { align-items: flex-start; }
+.assessment-config-section .assessment-category-grid small { display: block; font-size: 10px; color: var(--muted); }
 .assessment-category-grid .checkbox {
   min-width: 0;
   line-height: 1.3;
