@@ -2162,6 +2162,26 @@ def test_agentcore_new_harness_requires_composite_actions_on_one_generated_scope
     assert edges(scan(wrong_service), ALICE) == []
 
 
+def test_sagemaker_job_scopes_and_passrole_service_remain_unresolved_without_execution():
+    target = role("core", "sagemaker.amazonaws.com")
+    for suffix, action, resource_type in (
+        ("createprocessingjob", "sagemaker:CreateProcessingJob", "processing-job"),
+        ("createtrainingjob", "sagemaker:CreateTrainingJob", "training-job"),
+        ("createhyperparametertuningjob", "sagemaker:CreateHyperParameterTuningJob",
+         "hyper-parameter-tuning-job"),
+    ):
+        tid = "aws-sagemaker-passrole-" + suffix
+        job = f"arn:aws:sagemaker:{REGION}:{ACCOUNT}:{resource_type}/alpha-*"
+        caller = user("alice", allow("iam:PassRole", resource=role_arn("core")),
+                      allow(action, resource=job))
+        assert_unresolved(real(aws_snap([caller], [target]), tid, include_unknown=True), ALICE, tid)
+        wrong_service = user("alice", {"Effect": "Allow", "Action": "iam:PassRole",
+                                       "Resource": role_arn("core"),
+                                       "Condition": {"StringEquals": {"iam:PassedToService": "lambda.amazonaws.com"}}},
+                             allow(action, resource=job))
+        assert edges(real(aws_snap([wrong_service], [target]), tid), ALICE, tid) == []
+
+
 def test_lambda_edge_requires_both_replication_permissions_in_us_east_1():
     tid = "aws-cloudfront-lambda-edge-passrole"
     edge_role = role("edge", [{"Effect": "Allow", "Principal": {"Service": [

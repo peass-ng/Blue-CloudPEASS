@@ -232,6 +232,30 @@ def test_agentcore_harness_binding_preserves_previous_catalog():
     assert len(catalog._verified_agentcore_harness_691_previous()) == 691
 
 
+def test_sagemaker_jobs_binding_preserves_previous_catalog():
+    ids = ("aws-sagemaker-passrole-createprocessingjob",
+           "aws-sagemaker-passrole-createtrainingjob",
+           "aws-sagemaker-passrole-createhyperparametertuningjob")
+    current, status = catalog.lookup_entries(ids, catalog.current_binding())
+    assert status == "exact_strict_privesc" and set(current) == set(ids)
+    for ident in ids:
+        requirements = current[ident]["requires"]["all_of"]
+        assert next(req for req in requirements if req["action"] == "iam:PassRole")[
+            "request_context"] == {"iam:PassedToService": "sagemaker.amazonaws.com"}
+        assert next(req for req in requirements if req["action"].startswith("sagemaker:Create"))[
+            "resource"].startswith("arn:{source.partition}:sagemaker:")
+    old = {"schema": catalog.BINDING_SCHEMA,
+           "manifest_sha256": catalog.SAGEMAKER_JOBS_691_PREVIOUS_MANIFEST,
+           "effective_tree_sha256": catalog.SAGEMAKER_JOBS_691_PREVIOUS_TREE,
+           "source_revision": catalog.V4_REVISION}
+    previous, status = catalog.lookup_entries(ids, old)
+    assert status == "exact_previous_current" and set(previous) == set(ids)
+    assert all(next(req for req in previous[ident]["requires"]["all_of"]
+                    if req["action"].startswith("sagemaker:Create"))["resource"] == "*"
+               for ident in ids)
+    assert len(catalog._verified_sagemaker_jobs_691_previous()) == 691
+
+
 def test_deadline_queue_binding_preserves_previous_catalog():
     ident = "aws-deadline-existing-queue-role-vend"
     current, status = catalog.lookup_entries([ident], catalog.current_binding())
