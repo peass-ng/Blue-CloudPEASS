@@ -20,6 +20,7 @@ SIGNALS = (
     ("CreateFleet", "deadline_customer_managed_fleet_role_created", "aws-deadline-customer-managed-fleet-role-created"),
     ("CreateQueue", "deadline_queue_role_created", "aws-deadline-queue-role-created"),
     ("UpdateQueue", "deadline_queue_role_update_requested", "aws-deadline-queue-role-update-requested"),
+    ("UpdateFleet", "deadline_fleet_role_update_requested", "aws-deadline-fleet-role-update-requested"),
     ("AssumeFleetRoleForWorker", "deadline_worker_role_vended_after_registration", "aws-deadline-worker-role-vended-after-registration"),
     ("AssumeQueueRoleForUser", "deadline_queue_role_vended_after_update", "aws-deadline-queue-role-vended-after-update"),
 )
@@ -84,16 +85,17 @@ x_hacktricks_technique_id: {technique}
 
 def test_role_assignments_and_both_vending_sequences(tmp_path):
     selected = rules(tmp_path)
-    records = [event("CreateFleet"), event("CreateQueue"),
+    records = [event("CreateFleet"), event("CreateQueue"), event("UpdateFleet", minute=1),
                event("CreateWorker", minute=1), event("UpdateQueue", minute=2),
                event("AssumeFleetRoleForWorker", minute=3),
                event("AssumeQueueRoleForUser", minute=4)]
     hits = detect_aws_events(list(reversed(records)), selected)
     ids = {hit.technique_id for hit in hits}
-    assert len(hits) == 5
+    assert len(hits) == 6
     assert {"aws-deadline-customer-managed-fleet-role-created",
             "aws-deadline-queue-role-created",
             "aws-deadline-queue-role-update-requested",
+            "aws-deadline-fleet-role-update-requested",
             "aws-deadline-worker-role-vended-after-registration",
             "aws-deadline-queue-role-vended-after-update"} <= ids
     assert ROLE not in str(hits)
@@ -103,7 +105,7 @@ def test_role_assignments_and_both_vending_sequences(tmp_path):
 def test_role_assignment_rejects_denial_foreign_role_and_unrelated_update(tmp_path):
     selected = rules(tmp_path)
     variants = []
-    for name in ("CreateFleet", "CreateQueue", "UpdateQueue"):
+    for name in ("CreateFleet", "CreateQueue", "UpdateQueue", "UpdateFleet"):
         base = event(name)
         for change in ({"errorCode": "AccessDeniedException"},
                        {"eventCategory": "Data", "managementEvent": False},
