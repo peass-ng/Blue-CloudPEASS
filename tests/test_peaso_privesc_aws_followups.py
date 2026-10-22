@@ -3698,6 +3698,7 @@ def test_codepipeline_updateproject_uses_one_configured_pipeline_and_project():
     project_arn = f"arn:aws:codebuild:{REGION}:{ACCOUNT}:project/demo"
     builder = role_arn("builder")
     pipeline_role = role_arn("pipeline")
+    role_action_resource = "arn:aws:s3:::private-example/pipeline-output.txt"
     def snap(principal, *, artifact="src-out", override=None, action_role=None,
              pipeline_start=True, pipeline_passrole=False, buildspec_override=False,
              batch_enabled=False, batch_role_can_start=True):
@@ -3722,8 +3723,10 @@ def test_codepipeline_updateproject_uses_one_configured_pipeline_and_project():
                                       resource=project_arn)] if pipeline_start else []
         if pipeline_passrole:
             pipeline_permissions.append(allow("iam:PassRole", resource=override))
-        roles = [role("builder", "codebuild.amazonaws.com"),
+        roles = [role("builder", "codebuild.amazonaws.com",
+                      allow("s3:PutObject", resource=role_action_resource)),
                  role("pipeline", "codepipeline.amazonaws.com", *pipeline_permissions)]
+        roles[0]["RoleId"] = "AROAPIPELINEBUILD1234"
         if override:
             roles.append(role("override", "codebuild.amazonaws.com"))
         if batch_enabled:
@@ -3740,6 +3743,56 @@ def test_codepipeline_updateproject_uses_one_configured_pipeline_and_project():
     allowed = user("alice", allow("codebuild:UpdateProject", resource=project_arn),
                    allow("codepipeline:StartPipelineExecution", resource=pipeline_arn))
     assert_unresolved(real(snap(allowed), tid, include_unknown=True), ALICE, tid)
+
+    def witnessed(changed=None, *, principal=allowed):
+        state = snap(principal)
+        definition = state["collections"][-2]["items"][0]["ActionMetadata"]["pipeline"]
+        project = state["collections"][-1]["items"][0]["Configuration"]["projects"][0]
+        digest = lambda value: hashlib.sha256(json.dumps(value, sort_keys=True,
+            separators=(",", ":"), default=str).encode()).hexdigest()
+        proof = {"TechniqueId": tid, "SourceArn": ALICE, "TargetKind": "aws_role",
+                 "TargetId": builder, "TargetScope": SCOPE, "TargetRoleId": "AROAPIPELINEBUILD1234",
+                 "Status": "verified", "VerifiedPreconditions": True,
+                 "PipelineArn": pipeline_arn, "ProjectArn": project_arn,
+                 "BuildActionName": "build", "PipelineDefinitionSha256": digest(definition),
+                 "ProjectConfigurationSha256": digest(project),
+                 "PipelineRoleArn": pipeline_role, "BuildActionRoleArn": pipeline_role,
+                 "BuildServiceRoleArn": builder, "BatchEnabled": False,
+                 "ServiceRoleOverrideArn": None, "InputArtifacts": ["src-out"],
+                 "SourceArtifactsProduced": True, "BuildConsumedInputs": True,
+                 "BuildspecUpdatedBySource": True, "BuildspecExecuted": True,
+                 "BuildStarted": True, "RoleActionSucceeded": True,
+                 "EffectUsefulToSource": True, "PipelineExecutionId": "execution-123",
+                 "BuildId": "demo:12345678-1234-1234-1234-123456789012",
+                 "RoleAction": "s3:PutObject", "RoleResource": role_action_resource,
+                 "EvidenceRef": "reviewed-pipeline-build-execution",
+                 "EvidenceObservedAt": "2026-10-21T11:59:00+00:00",
+                 "EvidenceExpiresAt": "2026-10-21T12:05:00+00:00"}
+        if changed:
+            proof.update(changed)
+        state["collections"].append({"type": "aws_privesc_challenge_evidence",
+            "scope": SCOPE, "service": "aws_privesc_challenge_evidence", "status": "collected",
+            "items": [proof], "error": None})
+        state["created_at"] = "2026-10-21T12:00:00+00:00"
+        return state
+
+    assert builder in reached(real(witnessed(), tid), ALICE, tid)
+    for changed in ({"InputArtifacts": ["other"]}, {"InputArtifacts": [7]},
+                    {"SourceArtifactsProduced": False},
+                    {"BuildConsumedInputs": False}, {"BuildspecExecuted": False},
+                    {"RoleActionSucceeded": False}, {"RoleAction": "s3:DeleteObject"},
+                    {"PipelineDefinitionSha256": "old-definition"},
+                    {"ProjectConfigurationSha256": "old-project"},
+                    {"TargetRoleId": "AROAOTHER"},
+                    {"EvidenceObservedAt": "2026-10-21T11:40:00+00:00"}):
+        assert builder not in reached(real(witnessed(changed,), tid), ALICE, tid)
+    assert builder not in reached(real(witnessed(principal=user("alice",
+        allow("codebuild:UpdateProject", resource=project_arn),
+        allow("codepipeline:StartPipelineExecution", resource=pipeline_arn),
+        allow("s3:PutObject", resource=role_action_resource))), tid), ALICE, tid)
+    duplicate = witnessed()
+    duplicate["collections"][-1]["items"].append(dict(duplicate["collections"][-1]["items"][0]))
+    assert builder not in reached(real(duplicate, tid), ALICE, tid)
     wrong_pipeline = user("alice", allow("codebuild:UpdateProject", resource=project_arn),
                           allow("codepipeline:StartPipelineExecution", resource=pipeline_arn + "-other"))
     assert edges(real(snap(wrong_pipeline), tid), ALICE) == []

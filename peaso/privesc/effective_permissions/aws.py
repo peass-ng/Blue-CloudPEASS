@@ -7763,10 +7763,12 @@ class AwsModel(Model):
                     if not isinstance(order, int) or isinstance(order, bool) or order < 1:
                         uncertain = True
                         continue
+                    # Any earlier action can produce a named input artifact;
+                    # its actual delivery is checked by the execution witness.
+                    sources.extend((stage_index, order, artifact.get("name"))
+                                   for artifact in action.get("outputArtifacts") or []
+                                   if isinstance(artifact, dict) and isinstance(artifact.get("name"), str))
                     if action.get("category") == "Source":
-                        sources.extend((stage_index, order, artifact.get("name"))
-                                       for artifact in action.get("outputArtifacts") or []
-                                       if isinstance(artifact, dict) and isinstance(artifact.get("name"), str))
                         continue
                     if (action.get("owner") != "AWS" or action.get("category") not in ("Build", "Test")
                             or action.get("provider") != "CodeBuild"):
@@ -7886,10 +7888,79 @@ class AwsModel(Model):
                     if route_uncertain:
                         uncertain = True
                         continue
-                    # GetPipeline records the action declaration, but the collected
-                    # source metadata does not establish a usable source revision or
-                    # artifact-store access. A configured artifact name is not proof
-                    # that this pipeline can deliver input to the build action.
+                    role_rows = [role_row for role_scope, role_row in items(self.snapshot, "iam_role")
+                        if role_scope.split("/")[0] == target.scope and role_row.get("Arn") == target.id]
+                    role_id = role_rows[0].get("RoleId") if len(role_rows) == 1 else None
+                    if not isinstance(role_id, str) or not role_id:
+                        uncertain = True
+                        continue
+                    collections = [collection for collection in self.snapshot.get("collections", ())
+                        if collection.get("type") == "aws_privesc_challenge_evidence" and
+                        collection.get("scope") == scope]
+                    if len(collections) != 1 or collections[0].get("status") != "collected":
+                        uncertain = True
+                        continue
+                    proof_status = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+                    proofs = [proof for proof_scope, proof in items(self.snapshot, "aws_privesc_challenge_evidence")
+                        if proof_scope == scope and proof_status.get(scope) == "collected" and
+                        proof.get("TechniqueId") == (self.current_entry or {}).get("id") and
+                        proof.get("SourceArn") == source.id and proof.get("TargetKind") == "aws_role" and
+                        proof.get("TargetId") == target.id and proof.get("PipelineArn") == pipeline_arn and
+                        proof.get("ProjectArn") == project_arn and proof.get("BuildActionName") == action.get("name")]
+                    if len(proofs) != 1:
+                        uncertain = True
+                        continue
+                    proof = proofs[0]
+                    pipeline_hash = hashlib.sha256(json.dumps(declaration, sort_keys=True,
+                        separators=(",", ":"), default=str).encode()).hexdigest()
+                    project_hash = hashlib.sha256(json.dumps(project, sort_keys=True,
+                        separators=(",", ":"), default=str).encode()).hexdigest()
+                    role_action, role_resource = proof.get("RoleAction"), proof.get("RoleResource")
+                    try:
+                        now = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+                        witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+                        expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+                        fresh = (now.tzinfo is not None and witnessed.tzinfo is not None and
+                                 expires.tzinfo is not None and
+                                 0 <= (now - witnessed).total_seconds() <= 900 and
+                                 now < expires and 0 < (expires - witnessed).total_seconds() <= 900)
+                    except (KeyError, TypeError, ValueError):
+                        fresh = False
+                    artifacts = proof.get("InputArtifacts")
+                    if (not fresh or proof.get("Status") != "verified" or
+                            proof.get("VerifiedPreconditions") is not True or
+                            proof.get("TargetScope") != scope or proof.get("TargetRoleId") != role_id or
+                            proof.get("PipelineDefinitionSha256") != pipeline_hash or
+                            proof.get("ProjectConfigurationSha256") != project_hash or
+                            proof.get("PipelineRoleArn") != pipeline_role.id or
+                            proof.get("BuildActionRoleArn") != actor.id or
+                            proof.get("BuildServiceRoleArn") != target.id or
+                            proof.get("BatchEnabled") is not batch_enabled or
+                            proof.get("ServiceRoleOverrideArn") != override or
+                            not isinstance(artifacts, list) or
+                            any(not isinstance(item, str) for item in artifacts) or
+                            sorted(artifacts) != sorted(inputs) or
+                            proof.get("SourceArtifactsProduced") is not True or
+                            proof.get("BuildConsumedInputs") is not True or
+                            proof.get("BuildspecUpdatedBySource") is not True or
+                            proof.get("BuildspecExecuted") is not True or
+                            proof.get("BuildStarted") is not True or
+                            proof.get("RoleActionSucceeded") is not True or
+                            proof.get("EffectUsefulToSource") is not True or
+                            not isinstance(proof.get("PipelineExecutionId"), str) or
+                            not proof["PipelineExecutionId"] or
+                            not isinstance(proof.get("BuildId"), str) or
+                            not proof["BuildId"].startswith(project_name + ":") or
+                            not isinstance(role_action, str) or
+                            re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", role_action) is None or
+                            not isinstance(role_resource, str) or not role_resource or
+                            not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"]):
+                        uncertain = True
+                        continue
+                    permitted = self.check(target, {"action": role_action}, role_resource)
+                    already = self.check(source, {"action": role_action}, role_resource)
+                    if permitted is not None and permitted.confidence == "derived" and already is None:
+                        return ("conditional", "codepipeline_existing_project_role_effect_verified")
                     uncertain = True
         return ("unknown", "codepipeline_existing_project_path_not_verified") if uncertain else None
 
