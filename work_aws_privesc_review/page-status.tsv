@@ -121,7 +121,7 @@ src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-sns-privesc/READM
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-sqs-privesc/README.md	5	0	1	pending	-
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-ssm-privesc/README.md	55	1	1	pending	-
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-sso-and-identitystore-privesc/README.md	26	0	1	pending	-
-src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-stepfunctions-privesc/README.md	11	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-stepfunctions-privesc/README.md	11	1	1	triaged	Definition-only UpdateStateMachine on a recorded existing role is a possible missing route; exact role attachment is collected, but the iam:PassRole authorization requirement for unchanged roles needs verification.
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-sts-privesc/README.md	22	1	1	pending	-
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-supply-chain-privesc/README.md	4	0	1	pending	-
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-synthetics-privesc/README.md	7	0	1	pending	-
