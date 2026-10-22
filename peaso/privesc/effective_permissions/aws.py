@@ -12606,6 +12606,150 @@ class AwsModel(Model):
                 if tid not in out and uncertain:
                     out[tid] = ("unknown", "ecs_new_task_definition_or_service_not_verified")
             return out
+        if pid == "ecs_privileged_task_exact_host_ready":
+            if source is None:
+                return None
+            partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+            scopes = [scope for scope in self.snapshot.get("scopes", ()) if isinstance(scope, str)
+                      and scope.startswith(source.scope + "/") and scope.split("/", 1)[1] not in ("global", "*")]
+            possible_launch = any(self._statements(source, action)[0] for action in
+                ("ecs:runtask", "ecs:starttask", "ecs:createservice", "ecs:updateservice"))
+
+            def every_revision_allowed(action, task_arn):
+                allows, denies = self._statements(source, action)
+                if denies:
+                    return False
+                future = task_arn.rsplit(":", 1)[0] + ":999999999"
+                return any(not statement.notresource and not statement.variables and
+                           any(pattern.endswith("*") and glob_match(pattern, task_arn, False)
+                               and glob_match(pattern, future, False)
+                               for pattern in statement.resources) for statement in allows)
+
+            for tid, role in candidates.items():
+                node_role = bool(role.attrs.get("instance_profiles")) and (
+                    role.id in self.trust_by_service.get("ec2.amazonaws.com", {}))
+                task_role = role.id in self.trust_by_service.get("ecs-tasks.amazonaws.com", {})
+                if not node_role and not task_role:
+                    continue
+                uncertain = bool(source.incomplete or role.incomplete or not scopes)
+                for scope in scopes:
+                    region = scope.split("/", 1)[1]
+                    if not self._region_ok("ecs_cluster", source.scope, region):
+                        uncertain = True
+                        continue
+                    if task_role and inventory_status(self.snapshot, "ecs_task").get(scope) not in ("collected", "empty"):
+                        uncertain = True
+                    family = "PeasoPrivesc" + hashlib.sha256(
+                        (source.id + tid + region).encode()).hexdigest()[:16]
+                    task_arn = f"arn:{partition}:ecs:{region}:{source.scope}:task-definition/{family}:1"
+                    if not every_revision_allowed("ecs:registertaskdefinition", task_arn):
+                        uncertain = uncertain or bool(self._statements(source, "ecs:registertaskdefinition")[0])
+                        continue
+                    registration = self.check(source, {"action": "ecs:RegisterTaskDefinition",
+                        "request_context": {"ecs:compute-compatibility": "EC2", "ecs:privileged": "true"}}, task_arn)
+                    if registration is None:
+                        continue
+                    can_start = every_revision_allowed("ecs:starttask", task_arn)
+                    for cluster_arn, cluster in self.ecs_cluster_info.items():
+                        if not cluster_arn.startswith(f"arn:{partition}:ecs:{region}:{source.scope}:cluster/"):
+                            continue
+                        if cluster.get("status") != "ACTIVE" or not cluster.get("count"):
+                            uncertain = True
+                            continue
+                        hosts = [item for item_scope, item in items(self.snapshot, "ecs_container_instance")
+                            if item_scope == scope and item.get("clusterArn") == cluster_arn
+                            and item.get("status") == "ACTIVE" and item.get("agentConnected") is True
+                            and isinstance(item.get("containerInstanceArn"), str)
+                            and isinstance(item.get("ec2InstanceId"), str)]
+                        if not hosts:
+                            uncertain = True
+                            continue
+                        for host in hosts:
+                            ci_arn = host["containerInstanceArn"]
+                            ec2_arn = f"arn:{partition}:ec2:{region}:{source.scope}:instance/{host['ec2InstanceId']}"
+                            instance = self.instance_details.get(ec2_arn)
+                            if not isinstance(instance, dict) or self.instances.get(ec2_arn, (None, None, None, None))[3] != "running":
+                                uncertain = True
+                                continue
+                            if str(instance.get("Platform") or "").lower() == "windows":
+                                uncertain = True  # This route uses a Linux privileged container.
+                                continue
+                            matched = False
+                            if node_role and ec2_arn in self.hosts.get(role.id, {}).get("ec2_instance", ()):
+                                metadata = instance.get("MetadataOptions") or {}
+                                matched = metadata.get("HttpEndpoint") == "enabled" and metadata.get("State") == "applied"
+                                if not matched:
+                                    uncertain = True
+                            if task_role:
+                                matched = matched or any(task_scope == scope and
+                                    task.get("clusterArn") == cluster_arn and
+                                    task.get("containerInstanceArn") == ci_arn and
+                                    task.get("lastStatus") == "RUNNING" and
+                                    _norm_arn(self._task_role(task) or "") == _norm_arn(tid)
+                                    for task_scope, task in items(self.snapshot, "ecs_task"))
+                            if not matched:
+                                continue
+                            attempted_start = (self.check(source, {"action": "ecs:StartTask", "request_context": {
+                                "ecs:cluster": cluster_arn, "ecs:container-instances": ci_arn}}, task_arn)
+                                if can_start else None)
+                            can_start_here = (attempted_start is not None and
+                                registration.confidence == attempted_start.confidence == "derived")
+                            if attempted_start is not None and not can_start_here:
+                                uncertain = True
+                            if not can_start_here:
+                                if (cluster["count"] == 1 and len(hosts) == 1 and
+                                        every_revision_allowed("ecs:runtask", task_arn)):
+                                    run = self.check(source, {"action": "ecs:RunTask", "request_context": {
+                                        "ecs:cluster": cluster_arn}}, task_arn)
+                                    if run is not None and registration.confidence == run.confidence == "derived":
+                                        out[tid] = ("conditional", "ecs_privileged_task_only_connected_host_and_role_bound")
+                                        break
+                                if cluster["count"] == 1 and len(hosts) == 1:
+                                    services = [item for item_scope, item in items(self.snapshot, "ecs_service")
+                                        if item_scope == scope and item.get("clusterArn") == cluster_arn
+                                        and isinstance(item.get("serviceArn"), str)]
+                                    service_status = inventory_status(self.snapshot, "ecs_service").get(scope)
+                                    service_name = family
+                                    cluster_name = cluster_arn.rsplit("/", 1)[-1]
+                                    new_service_arn = (f"arn:{partition}:ecs:{region}:{source.scope}:service/"
+                                                       f"{cluster_name}/{service_name}")
+                                    eligible = [item for item in services if item.get("status") == "ACTIVE" and
+                                        (item.get("deploymentController") or {}).get("type", "ECS") == "ECS" and
+                                        item.get("launchType") in (None, "EC2") and
+                                        not any(item.get(key) for key in ("capacityProviderStrategy",
+                                            "networkConfiguration", "loadBalancers", "serviceRegistries",
+                                            "serviceConnectConfiguration"))]
+                                    if service_status in ("collected", "empty") and not any(
+                                            item["serviceArn"] == new_service_arn for item in services):
+                                        eligible.append({"serviceArn": new_service_arn, "_new": True})
+                                    for service in eligible:
+                                        action = "ecs:CreateService" if service.get("_new") else "ecs:UpdateService"
+                                        if self._statements(source, action.lower())[1]:
+                                            uncertain = True
+                                            continue
+                                        context = {"ecs:cluster": cluster_arn, "ecs:task-definition": task_arn}
+                                        grant = self.check(source, {"action": action,
+                                            "request_context": context}, service["serviceArn"])
+                                        context["ecs:task-definition"] = task_arn.rsplit(":", 1)[0] + ":999999999"
+                                        future = self.check(source, {"action": action,
+                                            "request_context": context}, service["serviceArn"])
+                                        if grant is not None and future is not None and (
+                                                registration.confidence == grant.confidence == future.confidence == "derived"):
+                                            out[tid] = ("conditional", "ecs_privileged_service_only_connected_host_and_role_bound")
+                                            break
+                                    if tid in out:
+                                        break
+                                uncertain = uncertain or possible_launch
+                                continue
+                            out[tid] = ("conditional", "ecs_privileged_task_exact_host_and_role_bound")
+                            break
+                        if tid in out:
+                            break
+                    if tid in out:
+                        break
+                if tid not in out and uncertain:
+                    out[tid] = ("unknown", "ecs_privileged_task_host_or_launch_not_verified")
+            return out
         if pid == "ecs_existing_task_override_runnable_with_role":
             if source is None:
                 return None

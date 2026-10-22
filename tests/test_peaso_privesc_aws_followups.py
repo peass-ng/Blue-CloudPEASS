@@ -400,6 +400,84 @@ def test_ecs_new_task_definition_service_binds_cluster_task_and_existing_service
     assert target["Arn"] not in reached(result((passed, register, create, denied_service)), ALICE, technique)
 
 
+def test_ecs_privileged_task_requires_exact_linux_host_and_start_permission():
+    technique = "aws-ecs-registertaskdefinition-node-escape"
+    node = role("node", "ec2.amazonaws.com", profiles=[profile_arn("node")])
+    task_role = role("task", "ecs-tasks.amazonaws.com")
+    unrelated = role("unrelated", "ec2.amazonaws.com", profiles=[profile_arn("unrelated")])
+    cluster_arn = f"arn:aws:ecs:{REGION}:{ACCOUNT}:cluster/prod"
+    ci_arn = f"arn:aws:ecs:{REGION}:{ACCOUNT}:container-instance/prod/host1"
+    instance_id = "i-1234567890abcdef0"
+    family = "PeasoPrivesc" + hashlib.sha256((ALICE + node["Arn"] + REGION).encode()).hexdigest()[:16]
+    task_scope = f"arn:aws:ecs:{REGION}:{ACCOUNT}:task-definition/{family}:*"
+    # Each target gets its own deterministic family, so the caller may cover all families.
+    register = allow("ecs:RegisterTaskDefinition", resource=f"arn:aws:ecs:{REGION}:{ACCOUNT}:task-definition/PeasoPrivesc*:*")
+    register["Condition"] = {"StringEquals": {"ecs:privileged": "true"}}
+    start = allow("ecs:StartTask", resource=f"arn:aws:ecs:{REGION}:{ACCOUNT}:task-definition/PeasoPrivesc*:*")
+    start["Condition"] = {"ArnEquals": {"ecs:cluster": cluster_arn,
+                                       "ecs:container-instances": ci_arn}}
+
+    def result(statements=(register, start), *, connected=True, host_id=instance_id,
+               platform=None, metadata="enabled", task_ci=ci_arn, capacity=1,
+               services=(), service_status="empty"):
+        cluster = {"clusterArn": cluster_arn, "status": "ACTIVE", "registeredContainerInstancesCount": capacity}
+        ci = {"clusterArn": cluster_arn, "containerInstanceArn": ci_arn, "ec2InstanceId": host_id,
+              "status": "ACTIVE", "agentConnected": connected}
+        instance = {"InstanceId": instance_id, "State": {"Name": "running"},
+                    "IamInstanceProfile": {"Arn": profile_arn("node")},
+                    "MetadataOptions": {"HttpEndpoint": metadata, "State": "applied"}}
+        if platform:
+            instance["Platform"] = platform
+        task = {"clusterArn": cluster_arn, "containerInstanceArn": task_ci,
+                "taskDefinitionArn": f"arn:aws:ecs:{REGION}:{ACCOUNT}:task-definition/existing:1",
+                "taskRoleArn": task_role["Arn"], "launchType": "EC2", "lastStatus": "RUNNING"}
+        return real(aws_snap([user("alice", *statements)], [node, task_role, unrelated], [
+            col("ecs_cluster", [cluster]), col("ecs_container_instance", [ci]),
+            col("instance", [instance]), col("ecs_task", [task]),
+            col("ecs_service", services if service_status == "collected" else [], service_status)]),
+            technique, include_unknown=True)
+
+    positive = reached(result(), ALICE, technique)
+    assert node["Arn"] in positive and task_role["Arn"] in positive
+    assert unrelated["Arn"] not in positive
+    assert node["Arn"] not in reached(result(connected=False), ALICE, technique)
+    assert node["Arn"] not in reached(result(host_id="i-other"), ALICE, technique)
+    assert node["Arn"] not in reached(result(platform="windows"), ALICE, technique)
+    assert node["Arn"] not in reached(result(metadata="disabled"), ALICE, technique)
+    assert task_role["Arn"] not in reached(result(task_ci=ci_arn.replace("host1", "host2")), ALICE, technique)
+    wrong_ci = copy.deepcopy(start)
+    wrong_ci["Condition"]["ArnEquals"]["ecs:container-instances"] = ci_arn.replace("host1", "host2")
+    assert node["Arn"] not in reached(result((register, wrong_ci)), ALICE, technique)
+    unprivileged = copy.deepcopy(register)
+    unprivileged["Condition"]["StringEquals"]["ecs:privileged"] = "false"
+    assert node["Arn"] not in reached(result((unprivileged, start)), ALICE, technique)
+    one_revision = allow("ecs:StartTask", resource=task_scope[:-1] + "1")
+    assert node["Arn"] not in reached(result((register, one_revision)), ALICE, technique)
+    assert_unresolved(result((register, one_revision)), ALICE, technique)
+    run_only = allow("ecs:RunTask", resource=f"arn:aws:ecs:{REGION}:{ACCOUNT}:task-definition/PeasoPrivesc*:*")
+    assert node["Arn"] in reached(result((register, run_only)), ALICE, technique)
+    assert node["Arn"] in reached(result((register, start, run_only)), ALICE, technique)
+    assert node["Arn"] not in reached(result((register, run_only), capacity=2), ALICE, technique)
+    assert_unresolved(result((register, run_only), capacity=2), ALICE, technique)
+    create_service = allow("ecs:CreateService",
+                           resource=f"arn:aws:ecs:{REGION}:{ACCOUNT}:service/prod/PeasoPrivesc*")
+    create_service["Condition"] = {"ArnEquals": {"ecs:cluster": cluster_arn}}
+    assert node["Arn"] in reached(result((register, create_service)), ALICE, technique)
+    existing_service_arn = f"arn:aws:ecs:{REGION}:{ACCOUNT}:service/prod/existing"
+    update_service = allow("ecs:UpdateService", resource=existing_service_arn)
+    update_service["Condition"] = {"ArnEquals": {"ecs:cluster": cluster_arn}}
+    existing_service = {"serviceArn": existing_service_arn, "clusterArn": cluster_arn,
+                        "status": "ACTIVE", "deploymentController": {"type": "ECS"}, "launchType": "EC2"}
+    assert node["Arn"] in reached(result((register, update_service), services=[existing_service],
+                                     service_status="collected"), ALICE, technique)
+    assert node["Arn"] not in reached(result((register, create_service), capacity=2), ALICE, technique)
+    assert_unresolved(result((register, create_service), capacity=2), ALICE, technique)
+    denied_revision = {"Effect": "Deny", "Action": "ecs:RegisterTaskDefinition",
+                       "Resource": task_scope[:-1] + "2"}
+    assert node["Arn"] not in reached(result((register, start, denied_revision)), ALICE, technique)
+    assert_unresolved(result((register, start, denied_revision)), ALICE, technique)
+
+
 def test_spot_request_scoped_grant_stays_visible_without_claiming_role_execution():
     ident = "aws-ec2-requestspotinstances-passrole"
     target = role("target", "ec2.amazonaws.com", profiles=[profile_arn("target")])
