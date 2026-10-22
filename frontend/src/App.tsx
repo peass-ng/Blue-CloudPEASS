@@ -400,17 +400,7 @@ export function App() {
           {!demo && page === "Scans" && partialResult && (
             <div className="demo-banner" role="status">
               <ShieldCheck size={17} />
-              <strong>{["failed", "timed_out", "cancelled", "queue_exhausted"].includes(current?.status || "") ? "Saved partial results" : "Assessment in progress"}</strong>
-            </div>
-          )}
-          {!demo && report.data?.publication?.sections && partialResult && (
-            <div className="scan-section-batches" aria-label="Scan section progress">
-              {Object.entries(report.data.publication.sections).filter(([, batch]) => batch.status !== "not_selected").map(([section, batch]) => (
-                <span key={section} className={`scan-section-batch ${batch.status}`}>
-                  {{ hardening: "Checks", exposure: "Exposure", least_privilege: "IAM", network: "Network", privesc: "Privilege escalation", leaks: "Leaks", images: "Image CVEs" }[section] || section}
-                  <strong>{batch.status === "complete" ? "Saved" : "Running"}</strong>
-                </span>
-              ))}
+              <strong>{["failed", "timed_out", "cancelled", "queue_exhausted", "credentials_expired"].includes(current?.status || "") ? "Saved partial results" : "Assessment in progress"}</strong>
             </div>
           )}
           {unauthorized && !demo && page !== "Settings" && (

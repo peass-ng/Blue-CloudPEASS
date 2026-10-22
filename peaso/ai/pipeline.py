@@ -419,6 +419,28 @@ def review_batches(report, inventory_by_id, entries, token, hardening, exposure,
             for stage, batches in output.items()}, failed
 
 
+def selected_stages(selectors, stages=None):
+    """Choose only the AI work requested for this assessment."""
+    if stages is not None:
+        selected = set(stages)
+        if 'priorities' in selected:
+            selected |= {'hardening', 'exposure', 'network'}
+        return frozenset(selected)
+    categories = set(selectors.get('categories') or ())
+    if not categories:
+        categories = {'hardening', 'exposure', 'network'}
+    selected = set()
+    if categories - {'exposure', 'least_privilege', 'iam_graph', 'network', 'privesc'}:
+        selected.add('hardening')
+    if 'exposure' in categories:
+        selected.add('exposure')
+    if 'network' in categories and selectors.get('ai_network_enabled', True):
+        selected.add('network')
+    if selectors.get('ai_priorities_enabled', True):
+        selected.add('priorities')
+    return frozenset(selected)
+
+
 def review_scan(report, snapshot, selectors, *, tenant, artifacts, deadline=None, context=None,
                 stages=None, reused_stages=None, cancel_event=None):
     """Review selected independent stages, optionally reusing fenced stage outputs.
@@ -427,16 +449,17 @@ def review_scan(report, snapshot, selectors, *, tenant, artifacts, deadline=None
     Finding IDs are checked again before reuse because final native evaluation
     may differ from a checkpoint even when the section was marked complete.
     """
-    selected = frozenset(('hardening', 'exposure', 'network', 'priorities') if stages is None else stages)
+    selected = selected_stages(selectors, stages)
     if not selected <= {'hardening', 'exposure', 'network', 'priorities'}:
         raise ValueError('unknown_ai_stage')
-    if 'priorities' in selected:
-        selected |= {'hardening', 'exposure', 'network'}
     reused_stages = reused_stages or {}
     result = {'version': 1, 'status': 'skipped', 'actions': [], 'reviews': {'hardening': [], 'exposure': []},
               'limitations': [], 'duplicates': {}, 'auth_source': None}
     if not selectors.get('ai_enabled', True):
         result['reason'] = 'disabled_for_scan'
+        return result
+    if not selected:
+        result['reason'] = 'no_ai_sections_selected'
         return result
     try:
         from peaso.storage.runtime import stores
@@ -606,7 +629,7 @@ def review_scan(report, snapshot, selectors, *, tenant, artifacts, deadline=None
                     600 if isolation.remote() else 150)
             data = (invoke_before_deadline(*args) if cancel_event is None else
                     invoke_before_deadline(*args, cancel_event=cancel_event))
-            recommendations = validate_actions(data, priorities_report, reviewed)
+            recommendations = validate_actions(data, priorities_report, reviewed, require_assessment=True)
             result['actions'] = recommendations['actions']
             result['limitations'].extend(recommendations['limitations'])
         except _SkipPriorities:

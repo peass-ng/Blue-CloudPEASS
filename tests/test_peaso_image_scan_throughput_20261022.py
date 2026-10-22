@@ -69,14 +69,14 @@ def test_tar_batches_exact_files_and_keeps_both_engine_positives(monkeypatch):
     monkeypatch.setattr(scanning, '_run', lambda *a: pytest.fail('serial scanner started'))
     requests = Requests()
     refs, expanded, members = package.scan_tar(archive(files), MEDIA, requests)
-    assert [len(group) for group in groups] == [32, 8]
-    assert groups[0] + groups[1] == [name for name, _ in files]
-    assert len(threads) == 40 and set(threads) == {threading.get_ident()}
+    assert [len(group) for group in groups] == [40]
+    assert [name for group in groups for name in group] == [name for name, _ in files]
+    assert len(threads) == 40 and all(thread != threading.get_ident() for thread in threads)
     assert members == 40 and expanded > 0
     assert {(ref['File'], leak['detectors'][0]['engine'], leak['locations'][0]['line'])
             for ref in refs for leak in ref['Leaks']} == {
                 (files[3][0], 'kingfisher', 2), (files[35][0], 'trufflehog', 2)}
-    assert [event['completed'] for event in requests.events] == [32, 40]
+    assert [event['completed'] for event in requests.events] == [40]
     assert all(event['provider'] == 'aws' and event['phase'] in
                {'collecting', 'scanning_images'} and event['dynamic_total'] is True
                and event['total'] is None and set(event) ==
@@ -240,7 +240,7 @@ def test_log_page_batches_messages_and_retains_each_event_source(monkeypatch):
                'logStreamName': 'owned-stream',
                'message': ('token=' + TOKEN_A if i in (3, 70) else f'clean event {i}')}
               for i in range(100)]
-    groups, contexts = [], []
+    groups = []
 
     def prepare(items, timeout):
         groups.append(list(items))
@@ -251,7 +251,6 @@ def test_log_page_batches_messages_and_retains_each_event_source(monkeypatch):
     def kingfisher(payload, path, timeout):
         if TOKEN_A.encode() not in payload:
             return []
-        contexts.append(dict(evidence._source.fields))
         return [(TOKEN_A, 'synthetic', 1)]
 
     monkeypatch.setattr(batch, '_prepare_trufflehog_batch', prepare)
@@ -265,7 +264,7 @@ def test_log_page_batches_messages_and_retains_each_event_source(monkeypatch):
             result = code_log.project_response({'events': events}, 'logs',
                 'filter_log_events', arguments, region='us-east-1',
                 request_context={'remaining_bytes': code_log.MAX_BYTES})['value']
-    assert [len(group) for group in groups] == [32, 32, 32, 4]
+    assert [len(group) for group in groups] == [100]
     assert all(path == 'log-message' for group in groups for _, path in group)
     assert [row['timestamp'] for row in result['events']] == list(range(100, 200))
     assert all(row['scanner_complete'] for row in result['events'])
@@ -273,6 +272,9 @@ def test_log_page_batches_messages_and_retains_each_event_source(monkeypatch):
     assert all({d['engine'] for leak in result['events'][i]['leaks']
                 for d in leak['detectors']} == {'kingfisher', 'trufflehog'}
                for i in (3, 70))
+    # Private capture runs on the caller; the Kingfisher worker deliberately
+    # has no thread-local source context. Inspect actual persisted locations.
+    contexts = cipher.decrypt(sink.records[scanning._fingerprint(TOKEN_A)])['locations']
     assert [json.loads(context['source'])['eventId'] for context in contexts] == [
         'event-3', 'event-70']
     assert all(context['path'] == 'owned-group' and

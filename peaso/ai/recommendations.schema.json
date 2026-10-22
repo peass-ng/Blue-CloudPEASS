@@ -44,6 +44,26 @@
           "minLength": 1,
           "title": "Verification",
           "type": "string"
+        },
+        "severity": {
+          "enum": [
+            "critical",
+            "high",
+            "medium",
+            "low",
+            "info"
+          ],
+          "title": "Severity",
+          "type": "string"
+        },
+        "effort": {
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ],
+          "title": "Effort",
+          "type": "string"
         }
       },
       "required": [
@@ -52,7 +72,9 @@
         "finding_ids",
         "rationale",
         "steps",
-        "verification"
+        "verification",
+        "severity",
+        "effort"
       ],
       "title": "Action",
       "type": "object"

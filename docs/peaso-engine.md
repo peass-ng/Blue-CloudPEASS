@@ -111,3 +111,11 @@ Compliance inputs and reviewed descriptions live in [compliance-ledgers](complia
 Hosted API packages contain a build-generated privilege display index: technique descriptions, required permissions, references and exact historical report bindings. The API serves this metadata without loading the evaluator or reading privilege YAML catalogs. Complete catalogs and historical replay data stay in the worker image and CLI source. Local server installations retain the engine for local scans.
 
 Release source archives store repeated historical catalog archives and manifests in `peaso/privesc/catalog_versions/runtime-history-v1.zip`. The source freezer verifies every original before omitting its duplicate copy; Git checkouts retain the originals. To restore exact historical files from a release source archive, run `python scripts/peaso_build_privesc_history_pack.py --materialize` in the pinned Linux Python build environment. Exact gzip reproduction depends on the recorded zlib behavior; incompatible compressors fail closed. Current catalog evaluation does not require restoring historical archives, and API historical views use the independent display index.
+
+### Log-page scanning and interrupted image downloads
+
+AWS and GCP application-log pages share one bounded offline TruffleHog preparation pass. Each admitted message still runs through both detectors with its own source, timestamps and private evidence locations; failed preparation falls back to individual scanning. Message, byte, output and time limits remain in force.
+
+ECR layer downloads can resume twice after an interrupted read using the same validated signed URL. A continuation must return the exact remaining byte range; only a file with the full expected size and SHA-256 enters the image scanners. Resumes share the original download deadline, and explicit request caps retain their existing behavior.
+
+Section readiness aggregates settled collection keys once per poll. Sections still publish independently when their required reads finish; denied and partial evidence keep their original status.

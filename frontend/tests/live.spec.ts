@@ -104,7 +104,7 @@ test("real API native snapshot workflow, schedules, downloads, quota and graphs"
     ),
   );
   await expect(
-    page.getByRole("button", { name: "View", exact: true }),
+    page.getByRole("button", { name: "Open results", exact: true }),
   ).toBeVisible({ timeout: 60000 });
   await page.screenshot({
     path: "evidence/live-scan-history.png",
@@ -113,7 +113,7 @@ test("real API native snapshot workflow, schedules, downloads, quota and graphs"
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: /Download JSON/ }).click();
   expect((await download).suggestedFilename()).toMatch(/\.json$/);
-  await page.getByRole("button", { name: "View", exact: true }).click();
+  await page.getByRole("button", { name: "Open results", exact: true }).click();
   await expect(page.getByRole("table")).toBeVisible();
   await expect(
     page.getByRole("button", { name: /Reset filters/ }),

@@ -8,7 +8,7 @@ import { NetworkArchitecture } from "./NetworkArchitecture";
 import { Remediation } from "./Remediation";
 import { FindingInspector } from "./Findings";
 import type { Finding } from "./types";
-type Action = { rank: number; title: string; finding_ids: string[]; rationale: string; steps: string[]; verification: string };
+type Action = { severity?: "critical" | "high" | "medium" | "low" | "info"; effort?: "high" | "medium" | "low"; rank: number; title: string; finding_ids: string[]; rationale: string; steps: string[]; verification: string };
 type NetworkResult = { status: string; explanation: string; findings: (Finding & { verification?: string })[]; total?: number };
 type Result = { network?: NetworkResult; actions: Action[] };
 
@@ -145,17 +145,20 @@ export function AiReview({ scanId, demo }: { scanId: string; demo: boolean }) {
         <span className="count-pill" aria-live="polite">{term ? `${actions.length} / ${data.actions.length}` : data.actions.length} actions</span>
       </div>
       <div className="table-scroll" role="region" aria-label="Prioritized actions" tabIndex={0}>
-        <table className="findings-table actions-table"><thead><tr><th scope="col">Action</th><th scope="col">Reason & benefit</th></tr></thead>
+        <table className="findings-table actions-table"><thead><tr><th scope="col">Action</th><th scope="col">Severity</th><th scope="col">Effort</th><th scope="col">Reason & benefit</th></tr></thead>
           <tbody>{actions.map(action => <tr key={action.rank}>
             <td><button className="finding-title action-title" aria-haspopup="dialog" title={action.title} onClick={event => openPlan(action, event.currentTarget)}>{action.title}</button></td>
+            <td>{action.severity ? <Badge value={action.severity} /> : <span className="muted">Not assessed</span>}</td>
+            <td>{action.effort ? <span className={`action-effort effort-${action.effort}`}>{action.effort}</span> : <span className="muted">Not assessed</span>}</td>
             <td><p className="action-summary">{action.rationale}</p></td>
           </tr>)}
-          {!actions.length && <tr><td colSpan={2} className="actions-empty">{term ? "No actions match your search." : "No recommended actions are available for this scan."}</td></tr>}
+          {!actions.length && <tr><td colSpan={4} className="actions-empty">{term ? "No actions match your search." : "No recommended actions are available for this scan."}</td></tr>}
           </tbody>
         </table>
       </div>
     </Panel>
     {selected && <Inspector title={selected.title} onClose={closePlan} className="action-inspector">
+      <div className="action-assessment">{selected.severity && <span>Severity <Badge value={selected.severity} /></span>}{selected.effort && <span>Effort <span className={`action-effort effort-${selected.effort}`}>{selected.effort}</span></span>}</div>
       <h3>Reason & benefit</h3><p>{selected.rationale}</p>
       <h3>Implementation plan</h3><ol className="action-steps">{selected.steps.map((step, index) => <li key={index}>{step}</li>)}</ol>
       <h3>Verification</h3><p>{selected.verification}</p>

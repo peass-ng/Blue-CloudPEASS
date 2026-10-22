@@ -235,7 +235,6 @@ pre { background: #050a0d; color: var(--mint); border-color: var(--line); }
 .least-row-count.recommended { border-color: rgba(166,227,212,.35); color: var(--mint); background: rgba(166,227,212,.08); }
 .least-coverage { border: 1px solid rgba(217,183,122,.26); background: linear-gradient(90deg,rgba(217,183,122,.09),rgba(217,183,122,.02)); color: #e6c98f; padding: 18px 20px; }
 .least-coverage p { color: #cdbf9f; font-size: 12px; }
-.least-inspector .least-detail { padding: 0; }
 .least-inspector .least-detail h2 { font: 600 22px 'Chakra Petch',sans-serif; color: #eef7f6; }
 .least-inspector .least-detail > p { font: 11px 'JetBrains Mono',monospace; color: #7d8d95; }
 .least-suggestions article { border-color: rgba(166,227,212,.2); background: linear-gradient(160deg,rgba(166,227,212,.055),rgba(10,16,22,.4)); }

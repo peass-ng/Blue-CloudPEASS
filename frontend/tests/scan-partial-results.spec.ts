@@ -14,9 +14,9 @@ for (const status of ['collecting', 'timed_out']) {
       await route.fulfill({ json });
     });
     await page.goto('/#Scans');
-    await expect(page.getByRole('button', { name: 'View partial', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Open partial results', exact: true })).toBeVisible();
     await expect(page.getByText(status === 'collecting' ? 'Assessment in progress' : 'Saved partial results', { exact: true })).toBeVisible();
-    await page.getByRole('button', { name: 'View partial', exact: true }).click();
+    await page.getByRole('button', { name: 'Open partial results', exact: true }).click();
     await expect(page).toHaveURL(/Hardening/);
     await expect(page.getByText('Assessment in progress', { exact: true })).toHaveCount(0);
     await expect(page.getByText('Saved partial results', { exact: true })).toHaveCount(0);

@@ -2,7 +2,7 @@ import type { Scan } from "./types";
 
 /** Total launch-to-terminal time, including queueing and worker startup. */
 export function scanDuration(scan: Scan): string | undefined {
-  if (!["completed", "failed", "cancelled", "timed_out", "queue_exhausted"].includes(scan.status)) return;
+  if (!["completed", "failed", "cancelled", "timed_out", "queue_exhausted", "credentials_expired"].includes(scan.status)) return;
   const start = Date.parse(scan.created_at);
   const event = (Array.isArray(scan.timeline) ? [...scan.timeline].reverse() : [])
     .find((item) => item.status === scan.status);

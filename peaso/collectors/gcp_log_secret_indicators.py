@@ -9,7 +9,7 @@ import re
 import time
 from datetime import datetime, timedelta, timezone
 
-from peaso.secret_scanning import scan_content, merge_leaks
+from peaso.secret_scanning import scan_content, merge_leaks, prepared_content_batch
 
 KIND = 'log_secret_sample'
 OPERATION = 'application-log-secret-sample'
@@ -141,17 +141,25 @@ def project_page(data, *, scope, first, last, page_size, page_number, check_canc
         result['entries'] = len(rows)
         if not payloads:
             payloads = [(f'page/{page_number}/empty', b'', {})]
-        for path, payload, source in payloads:
-            check_cancelled()
-            remaining = deadline - time.monotonic()
-            if remaining <= 0:
-                raise TimeoutError('scan deadline')
-            scan = scan_with_source(scan_content, payload, path, source=source, timeout=min(10, remaining / 2))
-            result['bytes'] += len(payload)
-            result['scans'].append({'path': path, 'complete': scan['complete'], 'engines': scan['engines']})
-            result['leaks'] = merge_leaks(result['leaks'] + scan['leaks'])
-            if len(result['leaks']) > 256 or sum(len(x['locations']) for x in result['leaks']) > 512:
-                raise ValueError('result bound')
+        check_cancelled()
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise TimeoutError('scan deadline')
+        # Every validated message still enters the normal scanner with its
+        # original source context. Only offline TruffleHog startup is shared.
+        with prepared_content_batch([(payload, path) for path, payload, _ in payloads],
+                                    timeout=min(10, remaining / 2)):
+            for path, payload, source in payloads:
+                check_cancelled()
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise TimeoutError('scan deadline')
+                scan = scan_with_source(scan_content, payload, path, source=source, timeout=min(10, remaining / 2))
+                result['bytes'] += len(payload)
+                result['scans'].append({'path': path, 'complete': scan['complete'], 'engines': scan['engines']})
+                result['leaks'] = merge_leaks(result['leaks'] + scan['leaks'])
+                if len(result['leaks']) > 256 or sum(len(x['locations']) for x in result['leaks']) > 512:
+                    raise ValueError('result bound')
         result['complete'] = all(s['complete'] is True for s in result['scans'])
     except Exception:
         # Never interpolate engine, HTTP, JSON, payload or cancellation errors.

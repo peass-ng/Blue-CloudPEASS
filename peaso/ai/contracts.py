@@ -25,13 +25,28 @@ class Reviews(Strict):
     items: list[Review]
 
 
-class Action(Strict):
+class LegacyAction(Strict):
     rank: int = Field(ge=1, le=15)
     title: str = Field(min_length=1, max_length=300)
     finding_ids: list[str]
     rationale: str = Field(min_length=1, max_length=1000)
     steps: list[Annotated[str, Field(min_length=1, max_length=500)]] = Field(min_length=1, max_length=5)
     verification: str = Field(min_length=1, max_length=700)
+
+
+class Action(LegacyAction):
+    severity: Literal['critical', 'high', 'medium', 'low', 'info']
+    effort: Literal['high', 'medium', 'low']
+
+
+class ArchivedAction(LegacyAction):
+    severity: Literal['critical', 'high', 'medium', 'low', 'info'] | None = None
+    effort: Literal['high', 'medium', 'low'] | None = None
+
+
+class ArchivedRecommendations(Strict):
+    actions: list[ArchivedAction] = Field(max_length=15)
+    limitations: list[str]
 
 
 class Recommendations(Strict):
@@ -113,8 +128,9 @@ def validate_reviews(data, findings):
     return value
 
 
-def validate_actions(data, report, reviews):
-    value = Recommendations.model_validate(data).model_dump()
+def validate_actions(data, report, reviews, *, require_assessment=False):
+    model = Recommendations if require_assessment else ArchivedRecommendations
+    value = model.model_validate(data).model_dump(exclude_none=True)
     actions = value['actions']
     if [a['rank'] for a in actions] != list(range(1, len(actions) + 1)):
         raise ValueError('action_rank_mismatch')

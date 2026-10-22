@@ -47,7 +47,7 @@ test("real API queued scan cancellation retains honest status", async ({
     page.locator(".scan-row .badge").filter({ hasText: "cancelled" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "View", exact: true }),
+    page.getByRole("button", { name: "Open results", exact: true }),
   ).toHaveCount(0);
   await page.screenshot({
     path: "evidence/live-cancelled-scan.png",

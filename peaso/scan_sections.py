@@ -30,30 +30,56 @@ def dependencies(native, analyzed, requirements, privesc, planned):
 
 
 def states(provider, scopes, needed, collections, revisions, *, finished=False, global_types=(), global_scope=None):
-    """A section completes only after all of its expected reads have settled.
+    """Calculate all section watermarks from one pass over settled read keys.
 
     Completion describes execution, not success: denied/partial evidence keeps
     its native status. Dynamic scope discovery remains running until sealed.
     """
     explicit = bool(scopes) and all(isinstance(scope, str) and (scope not in ('*', '/') or provider == 'k8s') for scope in scopes)
+    groups = {section: set(kinds) if kinds else set() for section, kinds in needed.items()}
+    kinds = set().union(*groups.values())
+    expected_scopes = set(scopes) if explicit else set()
+    if explicit and provider == 'aws':
+        global_scopes = {scope.split('/', 1)[0] + '/global' for scope in scopes}
+    elif explicit and provider in ('k8s', 'azure'):
+        global_scopes = {global_scope or scopes[0]}
+    else:
+        global_scopes = expected_scopes
+    scopes_by_kind = {kind: global_scopes if kind in global_types else expected_scopes for kind in kinds}
+    # Kinds partition keys, so per-kind counts can be added without materializing
+    # a cross product or repeatedly rebuilding all collection-key sets.
+    observed = {}
+    if kinds:
+        for key in collections:
+            kind = key[0]
+            if kind not in kinds:
+                continue
+            revision = revisions.get(key, 0)
+            stats = observed.get(kind)
+            if stats is None:
+                stats = observed[kind] = [0, revision, 0]
+            stats[0] += 1
+            if revision > stats[1]:
+                stats[1] = revision
+            if isinstance(key, tuple) and len(key) == 2 and key[1] in scopes_by_kind[kind]:
+                stats[2] += 1
     out = {}
-    for section, kinds in needed.items():
+    for section, kinds in groups.items():
         if not kinds:
             out[section] = {'status': 'not_selected', 'data_revision': 0}
             continue
-        expected = set()
-        if explicit:
-            for kind in kinds:
-                for scope in scopes:
-                    if provider == 'aws' and kind in global_types:
-                        scope = scope.split('/', 1)[0] + '/global'
-                    elif kind in global_types and provider in ('k8s', 'azure'):
-                        scope = global_scope or scopes[0]
-                    expected.add((kind, scope))
-        observed = {key for key in collections if key[0] in kinds}
-        complete = finished or bool(expected) and expected <= set(collections)
-        revision = max((revisions.get(key, 0) for key in observed), default=0)
-        out[section] = {'status': 'complete' if complete else 'running', 'data_revision': revision,
-                        'completed_collections': len(observed & expected) if expected else len(observed),
-                        'expected_collections': len(expected) if expected else None}
+        expected = completed = count = 0
+        revision = None
+        for kind in kinds:
+            expected += len(scopes_by_kind[kind])
+            stats = observed.get(kind)
+            if stats is not None:
+                count += stats[0]
+                completed += stats[2]
+                revision = stats[1] if revision is None else max(revision, stats[1])
+        complete = finished or bool(expected) and completed == expected
+        out[section] = {'status': 'complete' if complete else 'running',
+                        'data_revision': revision if revision is not None else 0,
+                        'completed_collections': completed if expected else count,
+                        'expected_collections': expected if expected else None}
     return out

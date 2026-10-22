@@ -36,7 +36,9 @@
 [aria-label="Principal exposure"] pre { white-space: pre-wrap; max-height: 20rem; overflow: auto; }
 
 .least-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem; }
-.inspector.least-inspector { width: min(1100px, 100vw); padding: 0; }
+.least-toolbar .search-field { flex: 1 1 20rem; max-width: none; }
+.least-toolbar select { flex: 0 1 16rem; width: 16rem; height: 39px; }
+.inspector.least-inspector { width: min(693px, 100vw); padding: 0; }
 .least-inspector .inspector-heading { padding: 34px 24px 16px; position: sticky; top: 0; z-index: 2; background: #142028; border-bottom: 1px solid var(--line); }
 .least-detail-identity { display: flex; justify-content: space-between; align-items: start; gap: 16px; }
 .least-detail-identity > div { min-width: 0; }

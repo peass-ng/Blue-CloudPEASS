@@ -1257,10 +1257,6 @@ function ConnectorForm({
             <small>One role per AWS account; additional roles for the same account are skipped.</small>
           </label>
         )}
-        {provider === "aws" && selected.id === "access_keys" && (
-          <label className="checkbox"><input type="checkbox" checked={includeSourceAccount}
-            onChange={(e) => setIncludeSourceAccount(e.target.checked)} />Include source account in scan</label>
-        )}
         {provider === "gcp" && selected.id === "impersonation" && replace && (
           <label>
             Source authentication
@@ -1275,88 +1271,92 @@ function ConnectorForm({
             </select>
           </label>
         )}
-        <label>
-          {provider === "aws" ? "AWS account IDs to Audit (comma separated) - All by default"
-            : `${provider === "gcp" ? "Project IDs" : provider === "azure" ? "Subscription IDs" : "Namespaces"} (comma separated)`}
-          <input
-            value={(provider === "azure" && allSubscriptions) || (provider === "k8s" && allNamespaces) ? "" : scopes}
-            disabled={(provider === "azure" && allSubscriptions) || (provider === "k8s" && allNamespaces)}
-            onChange={(e) => setScopes(e.target.value)}
-            placeholder={provider === "aws" ? "123456789012, 210987654321" : provider === "gcp" ? "my-project, another-project" : "Leave empty for the default accessible scope"}
-          />
-          {provider === "aws" && <small>Choose which AWS accounts to scan. Leave empty to scan {hosted && selected.id === "assume_role" ? "all configured target roles you can access" : "the source account and any configured target roles you can access"}.</small>}
-          {provider === "gcp" && <small>{hosted && selected.id === "platform-service-account"
-            ? "Enter the exact project IDs to audit. Discovery is unavailable with the shared HackTricks service account."
-            : "Enter the project IDs to scan, or select “Discover all accessible projects” below."}</small>}
-        </label>
-        {provider === "aws" && (
-          <label>
-            Regions (comma separated) - All by default
-            <input
-              value={regions}
-              onChange={(e) => setRegions(e.target.value)}
-              placeholder="us-east-1, eu-west-1"
-            />
-            <small>Choose which AWS Regions to scan. Leave empty to discover accessible Regions for each selected account.</small>
-          </label>
-        )}
-        {provider === "k8s" && (
-          <fieldset>
-            <legend>Namespace policy declaration</legend>
-            <label className="checkbox">
-              <input type="checkbox" checked={k8sPolicyEnabled}
-                onChange={(e) => setK8sPolicyEnabled(e.target.checked)} />
-              Declare system namespaces for this cluster
-            </label>
-            {k8sPolicyEnabled && (
-              <div className="form">
-                <label>Exact cluster ID
-                  <input value={k8sClusterId} onChange={(e) => setK8sClusterId(e.target.value)}
-                    placeholder="cluster-a" />
-                </label>
-                <label>Declaration observed at (UTC, optional)
-                  <input value={k8sObservedAt} onChange={(e) => setK8sObservedAt(e.target.value)}
-                    placeholder="2026-10-13T10:00:00Z" />
-                </label>
-                <label>Maximum declaration age (seconds, optional)
-                  <input type="number" min="1" max="31536000" step="1" value={k8sMaxAge}
-                    onChange={(e) => setK8sMaxAge(e.target.value)} />
-                </label>
-                <label>Maximum policy items
-                  <input type="number" min="1" max="10000" step="1" value={k8sMaxItems}
-                    onChange={(e) => setK8sMaxItems(e.target.value)} />
-                </label>
-                <label>System namespaces (comma separated)
-                  <textarea value={k8sSystemNamespaces} rows={2}
-                    onChange={(e) => setK8sSystemNamespaces(e.target.value)}
-                    placeholder="kube-system, kube-public" />
-                </label>
-                <small>Set when this list was checked and how long it stays valid.</small>
-              </div>
-            )}
-          </fieldset>
-        )}
-        {provider === "azure" && <label className="checkbox">
-          <input type="checkbox" checked={allSubscriptions} onChange={(e) => { setAllSubscriptions(e.target.checked); if (scopes === "*") setScopes(""); }} />
-          Discover and analyze all accessible subscriptions
-        </label>}
-        {provider === "k8s" && <label className="checkbox">
-          <input type="checkbox" checked={allNamespaces} onChange={(e) => { setAllNamespaces(e.target.checked); if (scopes === "*") setScopes(""); }} />
-          Discover and analyze all namespaces
-        </label>}
-        {provider === "gcp" && selected.id !== "platform-service-account" && (
-          <label className="checkbox">
-            <input
-              type="checkbox"
-              checked={allProjects}
-              onChange={(e) => setAllProjects(e.target.checked)}
-            />
-            Discover all accessible projects
-          </label>
-        )}
         <details>
           <summary>Advanced configuration</summary>
           <div className="form" style={{ marginTop: 16 }}>
+            <label>
+              {provider === "aws" ? "AWS account IDs to Audit (comma separated) - All by default"
+                : `${provider === "gcp" ? "Project IDs" : provider === "azure" ? "Subscription IDs" : "Namespaces"} (comma separated)`}
+              <input
+                value={(provider === "azure" && allSubscriptions) || (provider === "k8s" && allNamespaces) ? "" : scopes}
+                disabled={(provider === "azure" && allSubscriptions) || (provider === "k8s" && allNamespaces)}
+                onChange={(e) => setScopes(e.target.value)}
+                placeholder={provider === "aws" ? "123456789012, 210987654321" : provider === "gcp" ? "my-project, another-project" : "Leave empty for the default accessible scope"}
+              />
+              {provider === "aws" && <small>Choose which AWS accounts to scan. Leave empty to scan {hosted && selected.id === "assume_role" ? "all configured target roles you can access" : "the source account and any configured target roles you can access"}.</small>}
+              {provider === "gcp" && <small>{hosted && selected.id === "platform-service-account"
+                ? "Enter the exact project IDs to audit. Discovery is unavailable with the shared HackTricks service account."
+                : "Enter the project IDs to scan, or select “Discover all accessible projects” below."}</small>}
+            </label>
+            {provider === "aws" && (
+              <label>
+                Regions (comma separated) - All by default
+                <input
+                  value={regions}
+                  onChange={(e) => setRegions(e.target.value)}
+                  placeholder="us-east-1, eu-west-1"
+                />
+                <small>Choose which AWS Regions to scan. Leave empty to discover accessible Regions for each selected account.</small>
+              </label>
+            )}
+            {provider === "aws" && selected.id === "access_keys" && (
+              <label className="checkbox"><input type="checkbox" checked={includeSourceAccount}
+                onChange={(e) => setIncludeSourceAccount(e.target.checked)} />Include source account in scan</label>
+            )}
+            {provider === "azure" && <label className="checkbox">
+              <input type="checkbox" checked={allSubscriptions} onChange={(e) => { setAllSubscriptions(e.target.checked); if (scopes === "*") setScopes(""); }} />
+              Discover and analyze all accessible subscriptions
+            </label>}
+            {provider === "k8s" && <label className="checkbox">
+              <input type="checkbox" checked={allNamespaces} onChange={(e) => { setAllNamespaces(e.target.checked); if (scopes === "*") setScopes(""); }} />
+              Discover and analyze all namespaces
+            </label>}
+            {provider === "gcp" && selected.id !== "platform-service-account" && (
+              <label className="checkbox">
+                <input
+                  type="checkbox"
+                  checked={allProjects}
+                  onChange={(e) => setAllProjects(e.target.checked)}
+                />
+                Discover all accessible projects
+              </label>
+            )}
+            {provider === "k8s" && (
+              <fieldset>
+                <legend>Namespace policy declaration</legend>
+                <label className="checkbox">
+                  <input type="checkbox" checked={k8sPolicyEnabled}
+                    onChange={(e) => setK8sPolicyEnabled(e.target.checked)} />
+                  Declare system namespaces for this cluster
+                </label>
+                {k8sPolicyEnabled && (
+                  <div className="form">
+                    <label>Exact cluster ID
+                      <input value={k8sClusterId} onChange={(e) => setK8sClusterId(e.target.value)}
+                        placeholder="cluster-a" />
+                    </label>
+                    <label>Declaration observed at (UTC, optional)
+                      <input value={k8sObservedAt} onChange={(e) => setK8sObservedAt(e.target.value)}
+                        placeholder="2026-10-13T10:00:00Z" />
+                    </label>
+                    <label>Maximum declaration age (seconds, optional)
+                      <input type="number" min="1" max="31536000" step="1" value={k8sMaxAge}
+                        onChange={(e) => setK8sMaxAge(e.target.value)} />
+                    </label>
+                    <label>Maximum policy items
+                      <input type="number" min="1" max="10000" step="1" value={k8sMaxItems}
+                        onChange={(e) => setK8sMaxItems(e.target.value)} />
+                    </label>
+                    <label>System namespaces (comma separated)
+                      <textarea value={k8sSystemNamespaces} rows={2}
+                        onChange={(e) => setK8sSystemNamespaces(e.target.value)}
+                        placeholder="kube-system, kube-public" />
+                    </label>
+                    <small>Set when this list was checked and how long it stays valid.</small>
+                  </div>
+                )}
+              </fieldset>
+            )}
             {provider === "aws" && (
               <fieldset>
                 <legend>AWS Backup plan policy</legend>
