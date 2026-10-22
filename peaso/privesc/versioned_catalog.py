@@ -21,7 +21,12 @@ V4_EFFECTIVE_TREE = "413792ea4aec86e48c352ffab2c0bea9e82795bc234251342737ec0276b
 LEGACY_DELTA = Path(__file__).resolve().parent / "catalog_versions/legacy-0b3633-delta.json"
 BOUNDED_MANIFEST = "734401b202895e00ac1b6cb0f1534f77cde4d8e2ba912ca0ee974b1b8ec5035c"
 BOUNDED_TREE = "1a54bad4102d18f89c78f45c915964554a62f994c1bffa693844cac5e119cca8"
-CURRENT_MANIFEST = '51881e49473f48dac6fa4b1a724dcdf2bd08fe6d6ae9b7d1833c127999298365'
+CURRENT_MANIFEST = 'af62253634cee8f664d4fe5d7e25133734a363cd8c917f6e74bdadc3ecb71732'
+DEADLINE_QUEUE_683_PREVIOUS_MANIFEST = '51881e49473f48dac6fa4b1a724dcdf2bd08fe6d6ae9b7d1833c127999298365'
+DEADLINE_QUEUE_683_PREVIOUS_TREE = '73524d94236f143acfa52452e22c28e37111f997ec8ed841fa218846ce4a88fd'
+DEADLINE_QUEUE_683_PREVIOUS_ARCHIVE_SHA256 = '83134ca0fb63e6b30aa52f8d3776be8fbfcef56a61e6376c5d78d7549881a68e'
+DEADLINE_QUEUE_683_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-683-deadline-queue-source-manifest.json'
+DEADLINE_QUEUE_683_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-683-deadline-queue-catalog.tar.gz'
 CLOUDFRONT_CREATE_683_PREVIOUS_MANIFEST = '473c03db5521c972b4eabbd478955243825d55055a834b336786f4415f1a235e'
 CLOUDFRONT_CREATE_683_PREVIOUS_TREE = '9b57effb04904ecbeb32ce792ed3668b4ea1fb645b8ca6790ec73a572a4475c3'
 CLOUDFRONT_CREATE_683_PREVIOUS_ARCHIVE_SHA256 = '12100524ae96a118b67541532819b3ccf0a40d1144a95bdda89dcf8fc30711a0'
@@ -196,9 +201,9 @@ PRIOR_CURRENT_MANIFEST = "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0c
 PRIOR_DISCLOSURE_MANIFEST = "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
 PRIOR_DISCLOSURE_TREE = "5091464bedcb10bb87301695ca733276dc67b865e544c408ccf72a5408176f0f"
 PRIOR_DISCLOSURE_HISTORY = Path(__file__).resolve().parent / "catalog_versions/disclosure-v7-manifest.json"
-CURRENT_TREE = '73524d94236f143acfa52452e22c28e37111f997ec8ed841fa218846ce4a88fd'
+CURRENT_TREE = 'ca26d6b56ae3848b61da6ba96ab413616223877caa5973be1f00e4b0d2f3c95b'
 PRIOR_CURRENT_TREE = "99207e6469fc5e5b3daf21324e6860599b116ffcf7d30600643bd229b0f11494"
-CURRENT_ENTRY_COUNT = 683
+CURRENT_ENTRY_COUNT = 684
 CURRENT_EXCLUDED_COUNT = 3723
 CURRENT_HISTORY = Path(__file__).resolve().parent / "catalog_versions/bulk-principal-v6-manifest.json"
 PRIOR_CATALOG_ARCHIVE = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-catalog-20261016.tar.gz"
@@ -264,6 +269,15 @@ def _verified_cognito_guest_682_previous():
         COGNITO_GUEST_682_PREVIOUS_MANIFEST_PATH, COGNITO_GUEST_682_PREVIOUS_ARCHIVE,
         COGNITO_GUEST_682_PREVIOUS_MANIFEST, COGNITO_GUEST_682_PREVIOUS_ARCHIVE_SHA256,
         COGNITO_GUEST_682_PREVIOUS_TREE, 682, 3723)
+
+
+@lru_cache(maxsize=1)
+def _verified_deadline_queue_683_previous():
+    """Keep the exact catalog before the existing Deadline queue role route."""
+    return _verified_archived_current(
+        DEADLINE_QUEUE_683_PREVIOUS_MANIFEST_PATH, DEADLINE_QUEUE_683_PREVIOUS_ARCHIVE,
+        DEADLINE_QUEUE_683_PREVIOUS_MANIFEST, DEADLINE_QUEUE_683_PREVIOUS_ARCHIVE_SHA256,
+        DEADLINE_QUEUE_683_PREVIOUS_TREE, 683, 3723)
 
 
 @lru_cache(maxsize=1)
@@ -595,6 +609,10 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "current", "exact_strict_privesc"
+    elif (binding.get("manifest_sha256") == DEADLINE_QUEUE_683_PREVIOUS_MANIFEST and
+          binding.get("effective_tree_sha256") == DEADLINE_QUEUE_683_PREVIOUS_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "deadline_queue_683_previous", "exact_previous_current"
     elif (binding.get("manifest_sha256") == CLOUDFRONT_CREATE_683_PREVIOUS_MANIFEST and
           binding.get("effective_tree_sha256") == CLOUDFRONT_CREATE_683_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -728,6 +746,9 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
         if version == "current":
             current = _verified_current(str(catalog_dir), str(manifest_path))
             return {ident: current[ident] for ident in ids if ident in current}, status
+        if version == "deadline_queue_683_previous":
+            previous = _verified_deadline_queue_683_previous()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "cloudfront_create_683_previous":
             previous = _verified_cloudfront_create_683_previous()
             return {ident: previous[ident] for ident in ids if ident in previous}, status

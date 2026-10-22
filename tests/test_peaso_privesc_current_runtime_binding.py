@@ -12,6 +12,19 @@ def test_current_catalog_binding_resolves_new_technique():
     assert set(entries) == {"aws-flink-studio-presigned-url"}
 
 
+def test_deadline_queue_binding_preserves_previous_catalog():
+    ident = "aws-deadline-existing-queue-role-vend"
+    current, status = catalog.lookup_entries([ident], catalog.current_binding())
+    assert status == "exact_strict_privesc" and set(current) == {ident}
+    old = {"schema": catalog.BINDING_SCHEMA,
+           "manifest_sha256": catalog.DEADLINE_QUEUE_683_PREVIOUS_MANIFEST,
+           "effective_tree_sha256": catalog.DEADLINE_QUEUE_683_PREVIOUS_TREE,
+           "source_revision": catalog.V4_REVISION}
+    previous, status = catalog.lookup_entries([ident], old)
+    assert status == "exact_previous_current" and previous == {}
+    assert len(catalog._verified_deadline_queue_683_previous()) == 683
+
+
 def test_cloudfront_creation_binding_retains_previous_update_only_catalog():
     ident = "aws-cloudfront-lambda-edge-passrole"
     current, status = catalog.lookup_entries([ident], catalog.current_binding())

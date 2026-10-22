@@ -21,6 +21,9 @@ VERIFIED_ACTIONS = frozenset(('access-analyzer:ListAnalyzers', 'access-analyzer:
 
 # Reviewed metadata-only reads: IAM ListPolicies and EMR ListInstances.
 VERIFIED_ACTIONS = VERIFIED_ACTIONS | {"iam:ListPolicies", "iam:GetPolicyVersion", "elasticmapreduce:ListInstances"}
+# Exact queue-to-role binding for the Deadline Cloud privilege-escalation map.
+# https://docs.aws.amazon.com/service-authorization/latest/reference/list_deadline.html
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | {"deadline:ListQueues", "deadline:GetQueue"}
 # Studio space inventory reads the existing space and its execution-role owner.
 # https://docs.aws.amazon.com/service-authorization/latest/reference/list_sagemaker.html
 VERIFIED_ACTIONS = VERIFIED_ACTIONS | {"sagemaker:ListSpaces", "sagemaker:DescribeSpace"}

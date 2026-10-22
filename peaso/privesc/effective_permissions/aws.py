@@ -6118,6 +6118,72 @@ class AwsModel(Model):
                     "conditional", "cloudfront_distribution_and_new_function_version_available")
         return ("unknown", "cloudfront_edge_function_permissions_not_verified") if uncertain else None
 
+    def _deadline_queue_trust(self, role_arn, farm_arn):
+        """Check the existing queue role against the exact farm used by Deadline."""
+        account = self.principals[role_arn].scope
+        ctx = Context(action="sts:assumerole", resource=role_arn, overrides={
+            "aws:sourcearn": [farm_arn], "aws:sourceaccount": [account]})
+        allowed, denied, uncertain = False, False, False
+        for statement in self.trust.get(role_arn, ()):
+            if not statement.action_matches("sts:AssumeRole"):
+                continue
+            principal = statement.principals
+            matches = principal == "*" or isinstance(principal, dict) and any(
+                str(value).lower() in ("*", "credentials.deadline.amazonaws.com")
+                for value in as_list(principal.get("Service")))
+            if statement.ref.get("not_principal"):
+                uncertain = True
+                continue
+            if not matches:
+                continue
+            verdict, _ = evaluate_condition(statement.condition, ctx) if statement.condition else (True, ())
+            if verdict is None or statement.variables:
+                uncertain = True
+            elif verdict is True and statement.effect == "deny":
+                denied = True
+            elif verdict is True and statement.effect == "allow":
+                allowed = True
+        return False if denied else None if uncertain else allowed
+
+    def _deadline_existing_queue_role_vend(self, source, role):
+        if source.scope != role.scope or source.id == role.id:
+            return None
+        statuses = inventory_status(self.snapshot, "deadline_queue")
+        if not statuses:
+            return ("unknown", "deadline_queue_inventory_not_recorded")
+        uncertain = bool(source.incomplete or role.incomplete or
+                         any(status not in ("collected", "empty") for status in statuses.values()))
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        for scope, queue in items(self.snapshot, "deadline_queue"):
+            if scope.split("/", 1)[0] != source.scope or not isinstance(queue, dict):
+                continue
+            if queue.get("roleArn") != role.id:
+                continue
+            region = scope.split("/", 1)[1] if "/" in scope else ""
+            farm_id, queue_id = queue.get("farmId"), queue.get("queueId")
+            if (queue.get("collection_status") != "collected" or not re.fullmatch(r"[a-z0-9-]+", region)
+                    or not isinstance(farm_id, str) or not re.fullmatch(r"farm-[0-9a-f]{32}", farm_id)
+                    or not isinstance(queue_id, str) or not re.fullmatch(r"queue-[0-9a-f]{32}", queue_id)
+                    or queue.get("id") != farm_id + "/" + queue_id):
+                uncertain = True
+                continue
+            queue_arn = f"arn:{partition}:deadline:{region}:{source.scope}:farm/{farm_id}/queue/{queue_id}"
+            farm_arn = f"arn:{partition}:deadline:{region}:{source.scope}:farm/{farm_id}"
+            trust = self._deadline_queue_trust(role.id, farm_arn)
+            if trust is False:
+                continue
+            if trust is None:
+                uncertain = True
+                continue
+            grant = self.check(source, {"action": "deadline:AssumeQueueRoleForUser"}, queue_arn)
+            if grant is None:
+                continue
+            if grant.confidence != "derived" or source.incomplete or role.incomplete:
+                uncertain = True
+                continue
+            return ("conditional", "deadline_queue_role_credentials")
+        return ("unknown", "deadline_queue_role_path_incomplete") if uncertain else None
+
     def _appstream_new_resource_arns(self, source, region, kind, actions):
         """Concrete unused-name candidates from the actions' resource scopes in one Region."""
         partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
@@ -9394,6 +9460,11 @@ class AwsModel(Model):
                 return None
             verdict = self._cloudfront_edge_distribution_and_service_roles(source)
             return {tid: verdict for tid in candidates} if verdict else {}
+        if pid == "deadline_existing_queue_role_vend":
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._deadline_existing_queue_role_vend(source, role))}
         if pid == "lambda_microvm_shell_runnable_image_and_role":
             if source is None:
                 return None
