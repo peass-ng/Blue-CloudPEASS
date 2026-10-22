@@ -7225,6 +7225,119 @@ class AwsModel(Model):
             return None
         return ("conditional", "devicefarm_existing_spec_exact_run_role_effect")
 
+    def _autoscaling_created_launch_input_role_effect(self, source, role):
+        """Require one accepted ASG launch and a witnessed useful instance-role action."""
+        technique = "aws-ec2-autoscaling-create-update-asg-passrole"
+        if source.scope != role.scope or source.id == role.id:
+            return None
+        passed = self.check(source, {"action": "iam:PassRole", "request_context": {
+            "iam:PassedToService": "ec2.amazonaws.com"}}, role.id)
+        if passed is None:
+            return None
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "autoscaling_launch_role_evidence_missing_or_conflicting")
+        scope, proof = records[0]
+        if (inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"
+                or source.incomplete or role.incomplete):
+            return ("unknown", "autoscaling_launch_role_evidence_incomplete")
+        region = scope.split("/", 1)[1] if "/" in scope else ""
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        lc = proof.get("LaunchConfigurationArn")
+        lt = proof.get("LaunchTemplateArn")
+        group = proof.get("AutoScalingGroupArn")
+        instance = proof.get("InstanceArn")
+        profile = proof.get("InstanceProfileArn")
+        operation = proof.get("GroupOperation")
+        kind = proof.get("LaunchInputKind")
+        asg_prefix = f"arn:{partition}:autoscaling:{region}:{source.scope}:"
+        ec2_prefix = f"arn:{partition}:ec2:{region}:{source.scope}:"
+        group_pattern = (re.escape(asg_prefix) +
+            r"autoScalingGroup:[A-Za-z0-9-]+:autoScalingGroupName/[A-Za-z0-9_.-]+")
+        lc_pattern = (re.escape(asg_prefix) +
+            r"launchConfiguration:[A-Za-z0-9-]+:launchConfigurationName/[A-Za-z0-9_.-]+")
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("TechniqueId") != technique or proof.get("SourceArn") != source.id or
+                proof.get("TargetKind") != "aws_role" or proof.get("TargetId") != role.id or
+                scope != f"{source.scope}/{region}" or not re.fullmatch(r"[a-z0-9-]+", region) or
+                not isinstance(group, str) or re.fullmatch(group_pattern, group) is None or
+                not isinstance(instance, str) or
+                re.fullmatch(re.escape(ec2_prefix) + r"instance/i-[0-9a-f]+", instance) is None or
+                not isinstance(profile, str) or
+                re.fullmatch(rf"arn:{re.escape(partition)}:iam::{re.escape(source.scope)}:"
+                             r"instance-profile/.+", profile) is None or
+                operation not in ("CreateAutoScalingGroup", "UpdateAutoScalingGroup") or
+                kind not in ("LaunchConfiguration", "LaunchTemplate") or
+                proof.get("LaunchInputCreatedSucceeded") is not True or
+                proof.get("GroupOperationSucceeded") is not True or
+                proof.get("GroupUsesCreatedLaunchInput") is not True or
+                proof.get("InstanceLaunchedSucceeded") is not True or
+                proof.get("InstanceInGroup") is not True or
+                proof.get("InstanceProfileApplied") is not True or
+                proof.get("UserDataControlledBySource") is not True or
+                proof.get("UserDataExecuted") is not True or
+                proof.get("UserDataUsedRoleCredentials") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "autoscaling_launch_or_role_effect_not_verified")
+        if kind == "LaunchConfiguration":
+            if (not isinstance(lc, str) or re.fullmatch(lc_pattern, lc) is None or
+                    lt is not None):
+                return ("unknown", "autoscaling_launch_configuration_identity_not_verified")
+            input_arn, create_action = lc, "autoscaling:CreateLaunchConfiguration"
+        else:
+            if (not isinstance(lt, str) or
+                    re.fullmatch(re.escape(ec2_prefix) + r"launch-template/lt-[0-9a-f]+", lt) is None or
+                    lc is not None or proof.get("LaunchTemplateVersion") != "1" or
+                    proof.get("RunInstancesAuthorizationResourcesComplete") is not True):
+                return ("unknown", "autoscaling_launch_template_identity_not_verified")
+            input_arn, create_action = lt, "ec2:CreateLaunchTemplate"
+        roles = [row for row_scope, row in items(self.snapshot, "iam_role")
+                 if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        if (len(roles) != 1 or not isinstance(proof.get("TargetRoleId"), str) or
+                not proof["TargetRoleId"] or roles[0].get("RoleId") != proof["TargetRoleId"] or
+                proof.get("InstanceRoleId") != proof.get("TargetRoleId") or
+                profile not in [entry.get("Arn") for entry in roles[0].get("InstanceProfileList", ())
+                                if isinstance(entry, dict)]):
+            return ("unknown", "autoscaling_instance_profile_role_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "autoscaling_launch_role_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "autoscaling_launch_role_evidence_time_missing")
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        if (not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource):
+            return ("unknown", "autoscaling_role_action_not_verified")
+        context = {"aws:RequestedRegion": region}
+        grants = [passed,
+            self.check(source, {"action": create_action, "request_context": context}, input_arn),
+            self.check(source, {"action": "autoscaling:" + operation,
+                                "request_context": context}, group),
+            self.check(role, {"action": action}, resource)]
+        if kind == "LaunchTemplate":
+            resources = proof.get("RunInstancesAuthorizationResources")
+            if (not isinstance(resources, list) or not resources or
+                    any(not isinstance(item, str) or "*" in item or "?" in item for item in resources) or
+                    len(set(resources)) != len(resources) or
+                    instance not in resources or input_arn not in resources):
+                return ("unknown", "autoscaling_runinstances_resource_set_not_verified")
+            grants.extend(self.check(source, {"action": "ec2:RunInstances",
+                                              "request_context": context}, item)
+                          for item in resources)
+        if any(grant is None or grant.confidence != "derived" for grant in grants):
+            return ("unknown", "autoscaling_launch_scoped_permissions_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "autoscaling_created_input_instance_role_effect")
+
     def _appstream_new_resource_arns(self, source, region, kind, actions):
         """Concrete unused-name candidates from the actions' resource scopes in one Region."""
         partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
@@ -8800,6 +8913,11 @@ class AwsModel(Model):
                 return None
             return {tid: verdict for tid, role in candidates.items()
                     if (verdict := self._devicefarm_existing_test_spec_role_effect(source, role))}
+        if pid == "autoscaling_created_launch_input_role_effect_reviewed":
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._autoscaling_created_launch_input_role_effect(source, role))}
         if pid == "gamelift_new_controlled_build_fleet_role":
             if source is None:
                 return None

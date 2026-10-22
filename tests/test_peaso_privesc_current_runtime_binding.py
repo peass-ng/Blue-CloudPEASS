@@ -359,6 +359,20 @@ def test_devicefarm_existing_spec_correction_preserves_previous_catalog():
     assert previous[ident]["requires"]["all_of"][0]["resource"] == "*"
 
 
+def test_asg_role_execution_correction_preserves_previous_catalog():
+    ident = "aws-ec2-autoscaling-create-update-asg-passrole"
+    current, status = catalog.lookup_entries([ident], catalog.current_binding())
+    assert status == "exact_strict_privesc"
+    assert current[ident]["preconditions"] == ["autoscaling_created_launch_input_role_effect_reviewed"]
+    old = {"schema": catalog.BINDING_SCHEMA,
+           "manifest_sha256": catalog.ASG_ROLE_EXECUTION_691_PREVIOUS_MANIFEST,
+           "effective_tree_sha256": catalog.ASG_ROLE_EXECUTION_691_PREVIOUS_TREE,
+           "source_revision": catalog.V4_REVISION}
+    previous, status = catalog.lookup_entries([ident], old)
+    assert status == "exact_previous_current"
+    assert previous[ident]["requires"]["all_of"][0]["action"] == "iam:PassRole"
+
+
 def test_deadline_existing_worker_binding_preserves_previous_catalog():
     ident = "aws-deadline-existing-worker-role-vend"
     current, status = catalog.lookup_entries([ident], catalog.current_binding())
