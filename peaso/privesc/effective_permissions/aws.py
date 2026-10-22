@@ -2813,6 +2813,27 @@ class AwsModel(Model):
             return list(targets.values())
         plane = str(selector.get("service_plane"))
         if (kind == "aws_service_plane_admin" and plane == "quicksight"
+                and selector.get("quicksight_existing_iam_user")):
+            targets = {}
+            for scope, row in items(self.snapshot, "quicksight_user"):
+                if not isinstance(row, dict) or row.get("IdentityType") != "IAM" or row.get("Active") is not True:
+                    continue
+                if row.get("Role") not in ("READER", "AUTHOR", "RESTRICTED_READER", "RESTRICTED_AUTHOR",
+                                          "READER_PRO", "AUTHOR_PRO"):
+                    continue
+                arn = row.get("Arn")
+                match = (re.fullmatch(r"arn:(?:aws|aws-cn|aws-us-gov):quicksight:([^:]+):(\d{12}):user/default/[^*?\s]+", arn)
+                         if isinstance(arn, str) else None)
+                if not match or scope != f"{match.group(2)}/{match.group(1)}":
+                    continue
+                targets[arn] = Node(f"aws_service_plane_admin:quicksight:{arn}", kind, "aws", match.group(2),
+                                    f"QuickSight administrator for {arn}",
+                                    attrs={"account": match.group(2), "region": match.group(1),
+                                           "service_plane": "quicksight", "resource_arn": arn,
+                                           "principal_id": row.get("PrincipalId"),
+                                           "custom_permissions": row.get("CustomPermissionsName")}, entity=True)
+            return list(targets.values())
+        if (kind == "aws_service_plane_admin" and plane == "quicksight"
                 and (self.current_entry or {}).get("id") == "aws-quicksight-registeruser-admin"):
             statuses = inventory_status(self.snapshot, "quicksight_account_subscription")
             targets = {}
@@ -3615,6 +3636,9 @@ class AwsModel(Model):
         if key == "service_plane":
             # Application-plane entities carry attrs.service_plane once collected; none are today (placeholders only).
             return {tid: None for tid, n in candidates.items() if n.attrs.get("service_plane") == value}
+        if key == "quicksight_existing_iam_user":
+            return {tid: None for tid, n in candidates.items()
+                    if n.attrs.get("service_plane") == "quicksight" and n.attrs.get("principal_id")}
         if key == "assigned_to_identity_center_group":
             return {tid: None for tid, n in candidates.items() if bool(n.attrs.get("group_assignments")) == bool(value)}
         if key in SELECTOR_HOSTS:
@@ -7768,6 +7792,34 @@ class AwsModel(Model):
                     uncertain = True
                 else:
                     out[tid] = (("conditional", "spot_fleet_role_or_service_linked_role_conditions") if uncertain else None)
+            return out
+        if pid == "quicksight_existing_iam_user_self_admin":
+            if source is None or source.kind != "aws_user":
+                return None
+            subscriptions = inventory_status(self.snapshot, "quicksight_account_subscription")
+            users = inventory_status(self.snapshot, "quicksight_user")
+            source_id = source.attrs.get("principal_id")
+            for tid, node in candidates.items():
+                scope = f"{node.scope}/{node.attrs.get('region')}"
+                if users.get(scope) != "collected" or subscriptions.get(scope) != "collected":
+                    out[tid] = ("unknown", "quicksight_user_or_subscription_incomplete")
+                    continue
+                if not isinstance(source_id, str) or not source_id.startswith("AIDA"):
+                    out[tid] = ("unknown", "iam_user_id_missing")
+                    continue
+                if node.attrs.get("principal_id") not in (f"federated/iam/{source_id}",
+                                                          f"federated-iam-{source_id}"):
+                    continue
+                if node.attrs.get("custom_permissions"):
+                    out[tid] = ("unknown", "quicksight_custom_permissions_may_limit_admin")
+                    continue
+                active = any(row.get("id") == node.scope
+                             and row.get("AccountSubscriptionStatus") == "ACCOUNT_CREATED"
+                             and row.get("AuthenticationType") in ("IAM_ONLY", "IAM_AND_QUICKSIGHT")
+                             for item_scope, row in items(self.snapshot, "quicksight_account_subscription")
+                             if item_scope == scope and isinstance(row, dict))
+                if active:
+                    out[tid] = None
             return out
         if pid == "quicksight_subscribed":
             if source is None:

@@ -1,6 +1,6 @@
 {
   "repository": "HackTricks-wiki/hacktricks-cloud",
-  "revision": "9aeb9e5eb6c295e95ce50b1712fc4a556cbf8fc0",
+  "revision": null,
   "path": "src/privilege-escalation-paths",
   "canonical_sha256": {
     "aws/_excluded_171e_g1.yaml": "2160b8f57f029e74e5a31727815316f459d8364147c47be2c36639c831b9dcb3",
@@ -111,7 +111,7 @@
     "aws/organizations.yaml": "7b61bdd9d5bbc8be72d973a8a4783e75e6a41060a86b52846bddc8ecf5bd66f6",
     "aws/pcaconnectorad.yaml": "985d63fcf31b0d8057ca0bf1ea0da6201cb3287085cc1cc39aff3fbe901ace6f",
     "aws/pipes.yaml": "35576e19c5476a2356e38377ccea5637bdf9f6acbdbf4b0074effbdc5012cff8",
-    "aws/quicksight.yaml": "a4104ddd00a4d93fbc5cfad8a253e96942b222a7816f9fc0f47e5b92c51a4ae4",
+    "aws/quicksight.yaml": "19c0a738031c4a66e69b669276e75ab5e2c98f81637ac0177a7515928b056f67",
     "aws/rds.yaml": "29671b1961a17002b30fb31186bd74c7c2332f70495fb8b4b07e4d19fc2df030",
     "aws/redshift.yaml": "55f31de378cc5f67949fbfa21474a068afc65ab47b1357a8885f3a9684323e3b",
     "aws/s3.yaml": "5690dda8cf38b0252c4ae9d526848dc0dbae572e22729613c02519a28af43aad",
@@ -404,7 +404,7 @@
     "aws/organizations.yaml": "7b61bdd9d5bbc8be72d973a8a4783e75e6a41060a86b52846bddc8ecf5bd66f6",
     "aws/pcaconnectorad.yaml": "985d63fcf31b0d8057ca0bf1ea0da6201cb3287085cc1cc39aff3fbe901ace6f",
     "aws/pipes.yaml": "35576e19c5476a2356e38377ccea5637bdf9f6acbdbf4b0074effbdc5012cff8",
-    "aws/quicksight.yaml": "a4104ddd00a4d93fbc5cfad8a253e96942b222a7816f9fc0f47e5b92c51a4ae4",
+    "aws/quicksight.yaml": "19c0a738031c4a66e69b669276e75ab5e2c98f81637ac0177a7515928b056f67",
     "aws/rds.yaml": "29671b1961a17002b30fb31186bd74c7c2332f70495fb8b4b07e4d19fc2df030",
     "aws/redshift.yaml": "55f31de378cc5f67949fbfa21474a068afc65ab47b1357a8885f3a9684323e3b",
     "aws/s3.yaml": "5690dda8cf38b0252c4ae9d526848dc0dbae572e22729613c02519a28af43aad",

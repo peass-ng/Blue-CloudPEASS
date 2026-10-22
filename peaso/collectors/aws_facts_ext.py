@@ -788,7 +788,7 @@ def _quicksight_users(requests, session, region, account):
     items = []
     for user in read.items:
         if isinstance(user, dict) and isinstance(user.get("Arn"), str):
-            items.append({**_pick(user, ("Arn", "UserName", "PrincipalId", "Role", "IdentityType", "Active")), "id": user["Arn"]})
+            items.append({**_pick(user, ("Arn", "UserName", "PrincipalId", "Role", "IdentityType", "Active", "CustomPermissionsName")), "id": user["Arn"]})
     read.items = items
     return read
 

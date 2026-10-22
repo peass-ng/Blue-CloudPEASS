@@ -21,7 +21,12 @@ V4_EFFECTIVE_TREE = "413792ea4aec86e48c352ffab2c0bea9e82795bc234251342737ec0276b
 LEGACY_DELTA = Path(__file__).resolve().parent / "catalog_versions/legacy-0b3633-delta.json"
 BOUNDED_MANIFEST = "734401b202895e00ac1b6cb0f1534f77cde4d8e2ba912ca0ee974b1b8ec5035c"
 BOUNDED_TREE = "1a54bad4102d18f89c78f45c915964554a62f994c1bffa693844cac5e119cca8"
-CURRENT_MANIFEST = '2bbb1711fccc2d4de32e9f80f30a44b5fa90eea3c40233da917217222897790f'
+CURRENT_MANIFEST = 'c648f41340d496c29427e978189b79c7ae21dbaf6be15e93f2f121c664f48d3f'
+SCHEDULER_UPDATE_687_PREVIOUS_MANIFEST = '2bbb1711fccc2d4de32e9f80f30a44b5fa90eea3c40233da917217222897790f'
+SCHEDULER_UPDATE_687_PREVIOUS_TREE = '7ecbbce66663c7cafab4d2ff70b75e56fb4048d854f0a0b039fcb321e1b1c2bb'
+SCHEDULER_UPDATE_687_PREVIOUS_ARCHIVE_SHA256 = '1aeb24e40c36b96d529d620dd60a6e51307a7556935c599e14a8443c4a455b14'
+SCHEDULER_UPDATE_687_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-687-scheduler-update-source-manifest.json'
+SCHEDULER_UPDATE_687_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-687-scheduler-update-catalog.tar.gz'
 SCHEDULER_CREATE_686_PREVIOUS_MANIFEST = 'e1ba0fb3b429fc2bb9ce6dc1c9d307969d3b70cd3b62d3823f4e5fe3711aa976'
 SCHEDULER_CREATE_686_PREVIOUS_TREE = '853549b616c06803bba97771b9d14d1cbca9459f1d750fc9f40a0df83ecf0bc3'
 SCHEDULER_CREATE_686_PREVIOUS_ARCHIVE_SHA256 = 'd1e84bdcc4d0c54dbaffbddaaab4db987a46a979f80c05d4ed924a65655d203a'
@@ -226,9 +231,9 @@ PRIOR_CURRENT_MANIFEST = "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0c
 PRIOR_DISCLOSURE_MANIFEST = "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
 PRIOR_DISCLOSURE_TREE = "5091464bedcb10bb87301695ca733276dc67b865e544c408ccf72a5408176f0f"
 PRIOR_DISCLOSURE_HISTORY = Path(__file__).resolve().parent / "catalog_versions/disclosure-v7-manifest.json"
-CURRENT_TREE = '7ecbbce66663c7cafab4d2ff70b75e56fb4048d854f0a0b039fcb321e1b1c2bb'
+CURRENT_TREE = '2932696952ff3d375e67011d9d390f44a47bda268dd3715f4a18e96e784ebaf9'
 PRIOR_CURRENT_TREE = "99207e6469fc5e5b3daf21324e6860599b116ffcf7d30600643bd229b0f11494"
-CURRENT_ENTRY_COUNT = 687
+CURRENT_ENTRY_COUNT = 688
 CURRENT_EXCLUDED_COUNT = 3723
 CURRENT_HISTORY = Path(__file__).resolve().parent / "catalog_versions/bulk-principal-v6-manifest.json"
 PRIOR_CATALOG_ARCHIVE = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-catalog-20261016.tar.gz"
@@ -294,6 +299,15 @@ def _verified_cognito_guest_682_previous():
         COGNITO_GUEST_682_PREVIOUS_MANIFEST_PATH, COGNITO_GUEST_682_PREVIOUS_ARCHIVE,
         COGNITO_GUEST_682_PREVIOUS_MANIFEST, COGNITO_GUEST_682_PREVIOUS_ARCHIVE_SHA256,
         COGNITO_GUEST_682_PREVIOUS_TREE, 682, 3723)
+
+
+@lru_cache(maxsize=1)
+def _verified_scheduler_update_687_previous():
+    """Keep the exact 687-entry catalog before QuickSight self-promotion."""
+    return _verified_archived_current(
+        SCHEDULER_UPDATE_687_PREVIOUS_MANIFEST_PATH, SCHEDULER_UPDATE_687_PREVIOUS_ARCHIVE,
+        SCHEDULER_UPDATE_687_PREVIOUS_MANIFEST, SCHEDULER_UPDATE_687_PREVIOUS_ARCHIVE_SHA256,
+        SCHEDULER_UPDATE_687_PREVIOUS_TREE, 687, 3723)
 
 
 @lru_cache(maxsize=1)
@@ -679,6 +693,10 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "current", "exact_strict_privesc"
+    elif (binding.get("manifest_sha256") == SCHEDULER_UPDATE_687_PREVIOUS_MANIFEST and
+          binding.get("effective_tree_sha256") == SCHEDULER_UPDATE_687_PREVIOUS_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "scheduler_update_687_previous", "exact_previous_current"
     elif (binding.get("manifest_sha256") == SCHEDULER_CREATE_686_PREVIOUS_MANIFEST and
           binding.get("effective_tree_sha256") == SCHEDULER_CREATE_686_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -836,6 +854,9 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
         if version == "current":
             current = _verified_current(str(catalog_dir), str(manifest_path))
             return {ident: current[ident] for ident in ids if ident in current}, status
+        if version == "scheduler_update_687_previous":
+            previous = _verified_scheduler_update_687_previous()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "scheduler_create_686_previous":
             previous = _verified_scheduler_create_686_previous()
             return {ident: previous[ident] for ident in ids if ident in previous}, status

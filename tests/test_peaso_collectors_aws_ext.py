@@ -404,9 +404,11 @@ def test_service_planes_drop_secrets(stub):
     read = run("grafana_workspace", session)
     assert read.items[0]["Arn"] == f"arn:aws:grafana:{REGION}:{ACCOUNT}:/workspaces/g-1" and "glsa_secret" not in json.dumps(read.items, default=str)
     qs.add_response("list_users", {"UserList": [{"Arn": f"arn:aws:quicksight:{REGION}:{ACCOUNT}:user/default/bob", "Role": "ADMIN",
-        "Email": "bob@example.com", "IdentityType": "IAM", "Active": True}]}, {"AwsAccountId": ACCOUNT, "Namespace": "default"})
+        "Email": "bob@example.com", "IdentityType": "IAM", "Active": True,
+        "CustomPermissionsName": "restricted"}]}, {"AwsAccountId": ACCOUNT, "Namespace": "default"})
     read = run("quicksight_user", session)
-    assert read.items[0]["Role"] == "ADMIN" and "bob@example.com" not in json.dumps(read.items)
+    assert read.items[0]["Role"] == "ADMIN" and read.items[0]["CustomPermissionsName"] == "restricted"
+    assert "bob@example.com" not in json.dumps(read.items)
     scn.add_response("list_instances", {"instances": [{"instanceId": "11111111-2222-3333-4444-555555555555", "awsAccountId": ACCOUNT, "state": "Active"}]})
     read = run("supplychain_instance", session)
     assert read.items[0]["Arn"] == f"arn:aws:scn:{REGION}:{ACCOUNT}:instance/11111111-2222-3333-4444-555555555555"

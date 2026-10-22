@@ -13,7 +13,7 @@ HISTORICAL = {
     "aws-cognito-adminaddusertogroup", "aws-cognito-admincreateuser",
     "aws-codedeploy-createdeployment-instance-roles",
     "aws-rolesanywhere-updateprofile-remove-session-policy",
-    "aws-quicksight-updateuser-admin", "aws-identitystore-creategroupmembership",
+    "aws-identitystore-creategroupmembership",
 }
 
 
@@ -268,12 +268,39 @@ def test_service_plane_not_collected_stays_unresolved():
     assert targets and all(t["id"].startswith(("unresolved:", "unknown:")) and t["confidence"] == "unknown" for t in targets)
 
 
-def test_quicksight_subscription_found_in_any_region():
-    users = [("quicksight_user", SCOPE, [{"Arn": f"arn:aws:quicksight:{REGION}:{ACCOUNT}:user/default/bob", "Role": "ADMIN"}]),
-             ("quicksight_user", f"{ACCOUNT}/eu-west-1", [], "denied")]
-    result = privesc.analyze(aws_snap([user("alice", allow("quicksight:UpdateUser"))], [], users),
-                             entries=[catalog_entry("aws-quicksight-updateuser-admin")])
-    assert set(reached(result, ALICE)) == {f"aws_service_plane_admin:quicksight:arn:aws:quicksight:*:{ACCOUNT}:user/*"}
+def test_quicksight_existing_iam_user_self_promotion_requires_exact_identity_and_resource():
+    technique = active_catalog_entry("aws-quicksight-updateuser-admin")
+    user_arn = f"arn:aws:quicksight:{REGION}:{ACCOUNT}:user/default/qs-alice"
+    subscription = ("quicksight_account_subscription", SCOPE, [{"id": ACCOUNT,
+        "AccountSubscriptionStatus": "ACCOUNT_CREATED", "AuthenticationType": "IAM_ONLY"}])
+    identity = {"Arn": user_arn, "UserName": "qs-alice", "PrincipalId": "federated/iam/AIDAALICE123456789",
+                "IdentityType": "IAM", "Role": "AUTHOR", "Active": True}
+
+    def route(source, row=identity, sub=subscription, status="collected"):
+        return privesc.analyze(aws_snap([source], [], [("quicksight_user", SCOPE, [row], status), sub]),
+                               entries=[technique])
+
+    def caller(resource=user_arn):
+        principal = user("alice", allow("quicksight:UpdateUser", resource))
+        principal["UserId"] = "AIDAALICE123456789"
+        return principal
+
+    target = f"aws_service_plane_admin:quicksight:{user_arn}"
+    assert set(reached(route(caller()), ALICE)) == {target}
+    other_region_denied = privesc.analyze(aws_snap([caller()], [], [
+        ("quicksight_user", SCOPE, [identity]), subscription,
+        ("quicksight_user", f"{ACCOUNT}/eu-west-1", [], "denied")]), entries=[technique])
+    assert set(reached(other_region_denied, ALICE)) == {target}
+    assert reached(route(caller(user_arn + "-other")), ALICE) == {}
+    assert reached(route(caller(), {**identity, "PrincipalId": "federated/iam/AIDABOB123456789"}), ALICE) == {}
+    assert reached(route(caller(), {**identity, "Role": "ADMIN"}), ALICE) == {}
+    assert reached(route(caller(), {**identity, "Active": False}), ALICE) == {}
+    assert reached(route(caller(), {**identity, "IdentityType": "QUICKSIGHT"}), ALICE) == {}
+    assert reached(route(caller(), {**identity, "CustomPermissionsName": "restricted"}), ALICE) == {}
+    assert reached(route(caller(), status="denied"), ALICE) == {}
+    inactive = ("quicksight_account_subscription", SCOPE, [{"id": ACCOUNT,
+        "AccountSubscriptionStatus": "ACCOUNT_CREATED", "AuthenticationType": "ACTIVE_DIRECTORY"}])
+    assert reached(route(caller(), sub=inactive), ALICE) == {}
 
 
 def test_quicksight_registeruser_requires_iam_subscription_and_controlled_identity():

@@ -122,6 +122,20 @@ def test_previous_strict_binding_uses_retained_633_entry_catalog():
     assert len(catalog._verified_previous_current()) == 633
 
 
+def test_quicksight_self_promotion_binding_preserves_scheduler_catalog():
+    ident = "aws-quicksight-updateuser-admin"
+    current, status = catalog.lookup_entries([ident], catalog.current_binding())
+    assert status == "exact_strict_privesc" and set(current) == {ident}
+    old = {"schema": catalog.BINDING_SCHEMA,
+           "manifest_sha256": catalog.SCHEDULER_UPDATE_687_PREVIOUS_MANIFEST,
+           "effective_tree_sha256": catalog.SCHEDULER_UPDATE_687_PREVIOUS_TREE,
+           "source_revision": catalog.V4_REVISION}
+    previous, status = catalog.lookup_entries([ident, "aws-scheduler-passrole-updateschedule-self-grant"], old)
+    assert status == "exact_previous_current"
+    assert set(previous) == {"aws-scheduler-passrole-updateschedule-self-grant"}
+    assert len(catalog._verified_scheduler_update_687_previous()) == 687
+
+
 def test_azure_and_kubernetes_finding_explanations_load():
     for provider in ("azure", "k8s"):
         for confidence in ("derived", "conditional", "unknown"):

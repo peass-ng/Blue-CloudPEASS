@@ -207,6 +207,8 @@ SELECTOR_KEYS = {
     "aws_challenge_fact": (("aws",), "string",
         "Exact externally verified technique/source/target evidence from aws_privesc_challenge_evidence. "
         "Missing or incomplete evidence is unresolved; a different source or target never matches."),
+    "quicksight_existing_iam_user": (("aws",), "bool_true",
+        "Existing active QuickSight IAM user with a non-admin role and an exact principal ID; only its matching IAM user can gain this application-plane authority."),
     "aws_scheduler_iam_self_grant": (("aws",), "bool_true", "Exact Scheduler schedule and passed role can add an inline policy to its creator through a role-authorized IAM target API."),
     "aws_scheduler_iam_self_grant_update": (("aws",), "bool_true", "An exact existing Scheduler schedule and passed role can add an inline policy to the caller through a role-authorized IAM target API."),
     "aws_s3_policy_self_grant": (("aws",), "bool_true", "Reviewed exact S3 bucket-policy self-grant for the caller and a bounded object prefix."),
@@ -1051,6 +1053,9 @@ PRECONDITIONS = {
     "quicksight_subscribed": (("aws",), "source",
       "The account has an active IAM-compatible QuickSight subscription and the source user's name is available.",
       "AWS: QuickSight subscription ACCOUNT_CREATED with IAM_ONLY or IAM_AND_QUICKSIGHT, and complete ListUsers in the registration Region"),
+    "quicksight_existing_iam_user_self_admin": (("aws",), "source",
+      "The existing active QuickSight user maps by immutable IAM user ID to the caller and the subscription supports IAM sign-in.",
+      "AWS: ListUsers PrincipalId equals federated/iam/<IAM UserId> or federated-iam-<IAM UserId>, non-admin role, no custom permissions, and active IAM-compatible subscription in the same Region"),
     "ec2_userdata_restart_execution_reviewed": (("aws",), "source",
       "The exact role-bearing EC2 instance executes changed user data on its next start.",
       "AWS: a fresh verified aws_privesc_challenge_evidence record naming the source, target role and instance, "
