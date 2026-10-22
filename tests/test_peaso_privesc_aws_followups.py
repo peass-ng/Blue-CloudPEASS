@@ -1427,7 +1427,16 @@ def test_scheduler_requires_grant_on_same_account_schedule_resource():
 
 
 def test_synthetics_canary_inventory_binds_exact_execution_role():
+    import ast
+    from pathlib import Path
     from peaso.privesc.effective_permissions.aws import AwsModel, HOST_KIND
+
+    collector = ast.parse((Path(__file__).resolve().parents[1] / "peaso/collectors/aws.py").read_text())
+    declared = {node.targets[0].id: ast.literal_eval(node.value)
+                for node in collector.body if isinstance(node, ast.Assign) and len(node.targets) == 1
+                and isinstance(node.targets[0], ast.Name) and node.targets[0].id in {"SPECS", "_NATIVE_IDS"}}
+    assert declared["SPECS"]["synthetics_canary"] == ("synthetics", "describe_canaries", "Canaries")
+    assert declared["_NATIVE_IDS"]["synthetics_canary"] == "Name"
 
     canary_role = role("canary", "lambda.amazonaws.com")
     canary_arn = f"arn:aws:synthetics:{REGION}:{ACCOUNT}:canary:daily_check"
