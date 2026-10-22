@@ -58,3 +58,14 @@ def test_unverified_script_is_unknown():
     assert TARGET not in members
     assert any(name.startswith("unresolved:") and confidence == "unknown"
                for name, confidence in members.items())
+
+
+def test_source_startable_on_demand_trigger_binds():
+    snapshot = _case(trigger_state="CREATED")
+    trigger = next(c for c in snapshot["collections"] if c["type"] == "glue_trigger")["items"][0]
+    trigger["Type"] = "ON_DEMAND"
+    user = next(c for c in snapshot["collections"] if c["type"] == "iam_user")["items"][0]
+    user["UserPolicyList"][0]["PolicyDocument"]["Statement"].append({
+        "Effect": "Allow", "Action": "glue:StartTrigger",
+        "Resource": "arn:aws:glue:us-east-1:111111111111:trigger/daily"})
+    assert _definite(snapshot) == {TARGET: "conditional"}

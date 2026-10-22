@@ -82,3 +82,23 @@ def test_catalog_binding_preserves_prior_glue_wording():
     assert current_status == "exact_strict_privesc"
     assert "one recorded S3 script object" not in previous[ID]["notes"]
     assert "recorded S3 script object" in current[ID]["notes"]
+
+
+def test_existing_job_update_and_new_scheduled_trigger_also_bind():
+    updated = _case()
+    user = next(c for c in updated["collections"] if c["type"] == "iam_user")["items"][0]
+    user["UserPolicyList"][0]["PolicyDocument"]["Statement"][0] = {
+        "Effect": "Allow", "Action": ["glue:UpdateJob", "glue:StartJobRun"],
+        "Resource": "arn:aws:glue:us-east-1:111111111111:job/reference"}
+    assert _definite(updated) == {TARGET: "conditional"}
+
+    triggered = _case()
+    user = next(c for c in triggered["collections"] if c["type"] == "iam_user")["items"][0]
+    statements = user["UserPolicyList"][0]["PolicyDocument"]["Statement"]
+    statements[0] = {"Effect": "Allow", "Action": "glue:CreateJob",
+                     "Resource": "arn:aws:glue:us-east-1:111111111111:job/*"}
+    statements.append({"Effect": "Allow", "Action": "glue:CreateTrigger",
+                       "Resource": "arn:aws:glue:us-east-1:111111111111:trigger/*"})
+    triggered["collections"].append({"type": "glue_trigger", "scope": "111111111111/us-east-1",
+                                     "service": "glue", "status": "empty", "items": [], "error": None})
+    assert _definite(triggered) == {TARGET: "conditional"}

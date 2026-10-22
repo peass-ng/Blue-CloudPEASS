@@ -51,3 +51,14 @@ def test_missing_script_witness_is_unknown():
     assert TARGET not in members
     assert any(name.startswith("unresolved:") and confidence == "unknown"
                for name, confidence in members.items())
+
+
+def test_new_scheduled_trigger_uses_same_script_witness():
+    snapshot = _case()
+    user = next(c for c in snapshot["collections"] if c["type"] == "iam_user")["items"][0]
+    user["UserPolicyList"][0]["PolicyDocument"]["Statement"][0] = {
+        "Effect": "Allow", "Action": "glue:CreateTrigger",
+        "Resource": "arn:aws:glue:us-east-1:111111111111:trigger/*"}
+    snapshot["collections"].append({"type": "glue_trigger", "scope": "111111111111/us-east-1",
+                                    "service": "glue", "status": "empty", "items": [], "error": None})
+    assert _definite(snapshot) == {TARGET: "conditional"}
