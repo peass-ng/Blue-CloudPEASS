@@ -2,6 +2,8 @@ import { Component, lazy, Suspense, useEffect, useState } from "react";
 import type { ErrorInfo, ReactNode } from "react";
 import {
   ChevronDown,
+  Droplet,
+  Container,
   AlertTriangle,
   Cloud,
   ArrowUpRight,
@@ -104,12 +106,12 @@ const pages = [
   },
   {
     label: "Leaks",
-    icon: Shield,
+    icon: Droplet,
     description: "Inspect detected secrets and credential-related findings and their sources.",
   },
   {
     label: "Images CVEs",
-    icon: ShieldCheck,
+    icon: Container,
     description: "Review image vulnerabilities and their scan coverage.",
   },
   {
