@@ -973,7 +973,9 @@ def test_codebuild_debug_session_requires_paused_exact_build_role_and_shell_effe
 
 def test_config_automatic_remediation_requires_service_context_and_runtime_witness():
     technique = "aws-config-passrole-automatic-remediation"
-    target = role("automation", "ssm.amazonaws.com", allow("iam:AttachUserPolicy"))
+    object_arn = "arn:aws:s3:::private-example/remediation-output.txt"
+    target = role("automation", "ssm.amazonaws.com", allow("s3:PutObject", resource=object_arn))
+    target["RoleId"] = "AROACONFIGREMED123456"
 
     def caller(service):
         return user("caller", {"Effect": "Allow", "Action": "iam:PassRole",
@@ -998,6 +1000,83 @@ def test_config_automatic_remediation_requires_service_context_and_runtime_witne
 
     wrong = caller("lambda.amazonaws.com")
     assert not reached(real(aws_snap([wrong], [target]), technique), wrong["Arn"], technique)
+
+    remediation_arn = f"arn:aws:config:{REGION}:{ACCOUNT}:remediation-configuration/config-rule-abc123"
+    document_arn = f"arn:aws:ssm:{REGION}:{ACCOUNT}:document/ApprovedRemediation"
+    proof = {"TechniqueId": technique, "SourceArn": scoped["Arn"], "TargetKind": "aws_role",
+             "TargetId": target["Arn"], "TargetScope": SCOPE, "TargetRoleId": target["RoleId"],
+             "Status": "verified", "VerifiedPreconditions": True,
+             "ConfigRuleName": "approved-rule",
+             "ConfigRuleArn": f"arn:aws:config:{REGION}:{ACCOUNT}:config-rule/config-rule-abc123",
+             "RuleIsServiceLinked": False, "ConfigRecorderRecording": True,
+             "ComplianceSnapshotNoncompliant": True,
+             "ConfigRemediationServiceLinkedRoleReady": True,
+             "RemediationConfigurationArn": remediation_arn,
+             "RemediationAutomatic": True, "RemediationTargetType": "SSM_DOCUMENT",
+             "RemediationTargetId": "ApprovedRemediation",
+             "AutomationDocumentArn": document_arn,
+             "AutomationAssumeRoleParameterValue": target["Arn"],
+             "DocumentUsesAutomationAssumeRole": True, "DocumentRoutable": True,
+             "ExistingDocumentUsed": True, "DocumentCreatedBySource": False,
+             "PutRemediationConfigurationsSucceeded": True,
+             "AutomaticRemediationStarted": True,
+             "ExecutedRoleArn": target["Arn"],
+             "RemediationExecutionId": "remediation-execution-123",
+             "AutomationExecutionId": "automation-execution-123",
+             "RoleAction": "s3:PutObject", "RoleResource": object_arn,
+             "RoleActionSucceeded": True, "EffectUsefulToSource": True,
+             "EvidenceRef": "reviewed-config-automatic-remediation",
+             "EvidenceObservedAt": "2026-10-21T11:59:00+00:00",
+             "EvidenceExpiresAt": "2026-10-21T12:05:00+00:00"}
+
+    def witnessed(evidence=proof, *, source=None, target_role=target, put_resource=remediation_arn):
+        if source is None:
+            source = user("caller", {"Effect": "Allow", "Action": "iam:PassRole",
+                "Resource": target["Arn"],
+                "Condition": {"StringEquals": {"iam:PassedToService": "ssm.amazonaws.com"}}},
+                allow("config:PutRemediationConfigurations", resource=put_resource))
+        proofs = evidence if isinstance(evidence, list) else ([evidence] if evidence else [])
+        state = aws_snap([source], [target_role], [col("aws_privesc_challenge_evidence", proofs)])
+        state["created_at"] = "2026-10-21T12:00:00+00:00"
+        return real(state, technique, include_unknown=True), source["Arn"]
+
+    positive, who = witnessed()
+    assert target["Arn"] in reached(positive, who, technique)
+    missing, who = witnessed(None)
+    assert target["Arn"] not in reached(missing, who, technique)
+    assert_unresolved(missing, who, technique)
+    assert target["Arn"] not in reached(witnessed([proof, dict(proof)])[0], who, technique)
+    for changed in ({"RuleIsServiceLinked": True}, {"ConfigRecorderRecording": False},
+                    {"ComplianceSnapshotNoncompliant": False},
+                    {"ConfigRemediationServiceLinkedRoleReady": False},
+                    {"RemediationAutomatic": False},
+                    {"RemediationTargetId": "OtherDocument"},
+                    {"AutomationAssumeRoleParameterValue": role_arn("other")},
+                    {"DocumentUsesAutomationAssumeRole": False},
+                    {"PutRemediationConfigurationsSucceeded": False},
+                    {"AutomaticRemediationStarted": False},
+                    {"ExecutedRoleArn": role_arn("other")},
+                    {"RoleActionSucceeded": False}, {"RoleAction": "s3:DeleteObject"},
+                    {"EffectUsefulToSource": False}, {"TargetRoleId": "AROAOTHER"},
+                    {"EvidenceObservedAt": "2026-10-21T11:40:00+00:00"}):
+        got, source_arn = witnessed(dict(proof, **changed))
+        assert target["Arn"] not in reached(got, source_arn, technique)
+    wrong_put, who = witnessed(put_resource=remediation_arn.replace("abc123", "other"))
+    assert target["Arn"] not in reached(wrong_put, who, technique)
+    created = dict(proof, ExistingDocumentUsed=False, DocumentCreatedBySource=True)
+    created_source = user("caller", {"Effect": "Allow", "Action": "iam:PassRole",
+        "Resource": target["Arn"],
+        "Condition": {"StringEquals": {"iam:PassedToService": "ssm.amazonaws.com"}}},
+        allow("config:PutRemediationConfigurations", resource=remediation_arn),
+        allow("ssm:CreateDocument", resource=document_arn))
+    got, who = witnessed(created, source=created_source)
+    assert target["Arn"] in reached(got, who, technique)
+    got, who = witnessed(created)
+    assert target["Arn"] not in reached(got, who, technique)
+    direct_source = user("caller", *created_source["UserPolicyList"][0]["PolicyDocument"]["Statement"],
+                         allow("s3:PutObject", resource=object_arn))
+    got, who = witnessed(proof, source=direct_source)
+    assert target["Arn"] not in reached(got, who, technique)
 
 
 def test_stepfunctions_create_and_update_passrole_use_states_service_context():

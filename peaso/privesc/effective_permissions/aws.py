@@ -7704,6 +7704,116 @@ class AwsModel(Model):
                                 return ("conditional", f"codepipeline_new_{provider}_source_and_roles_available")
         return ("unknown", "codepipeline_new_source_or_role_not_verified") if uncertain else None
 
+    def _config_automatic_remediation_role_effect(self, source, candidates):
+        if source is None:
+            return None
+        put_allows, _ = self._statements(source, "config:putremediationconfigurations")
+        if not put_allows:
+            return {}
+        pending = ("unknown", "config_rule_document_and_automatic_role_effect_not_verified")
+        out = {}
+        try:
+            now = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            if now.tzinfo is None:
+                now = None
+        except (KeyError, TypeError, ValueError):
+            now = None
+        proof_status = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+        technique = (self.current_entry or {}).get("id")
+        for tid, role in candidates.items():
+            out[tid] = pending
+            if now is None or role.scope != source.scope:
+                continue
+            role_rows = [row for role_scope, row in items(self.snapshot, "iam_role")
+                if role_scope.split("/")[0] == role.scope and row.get("Arn") == tid]
+            role_id = role_rows[0].get("RoleId") if len(role_rows) == 1 else None
+            if not isinstance(role_id, str) or not role_id:
+                continue
+            for scope in self.snapshot.get("scopes", ()):
+                if not isinstance(scope, str) or not scope.startswith(f"{role.scope}/"):
+                    continue
+                collections = [collection for collection in self.snapshot.get("collections", ())
+                    if collection.get("type") == "aws_privesc_challenge_evidence" and
+                    collection.get("scope") == scope]
+                if len(collections) != 1 or collections[0].get("status") != "collected":
+                    continue
+                proofs = [row for proof_scope, row in items(self.snapshot, "aws_privesc_challenge_evidence")
+                    if proof_scope == scope and proof_status.get(scope) == "collected" and
+                    row.get("TechniqueId") == technique and row.get("SourceArn") == source.id and
+                    row.get("TargetKind") == "aws_role" and row.get("TargetId") == tid]
+                if len(proofs) != 1:
+                    continue
+                proof = proofs[0]
+                partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+                region = scope.split("/", 1)[1]
+                rule_arn = proof.get("ConfigRuleArn")
+                remediation_arn = proof.get("RemediationConfigurationArn")
+                document = proof.get("AutomationDocumentArn")
+                action, resource = proof.get("RoleAction"), proof.get("RoleResource")
+                rule_prefix = f"arn:{partition}:config:{region}:{role.scope}:config-rule/"
+                remediation_prefix = f"arn:{partition}:config:{region}:{role.scope}:remediation-configuration/"
+                if (not isinstance(rule_arn, str) or
+                        re.fullmatch(re.escape(rule_prefix) + r"config-rule-[A-Za-z0-9]+", rule_arn) is None or
+                        not isinstance(remediation_arn, str) or
+                        not remediation_arn.startswith(remediation_prefix) or
+                        not remediation_arn[len(remediation_prefix):] or
+                        any(ch in remediation_arn for ch in "*? \t\r\n") or
+                        not isinstance(document, str) or
+                        re.fullmatch(rf"arn:{re.escape(partition)}:ssm:{re.escape(region)}:"
+                                     r"(?:[0-9]{12})?:document/[A-Za-z0-9_.-]+", document) is None):
+                    continue
+                document_name = document.rsplit("/", 1)[1]
+                if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                        proof.get("TargetScope") != scope or proof.get("TargetRoleId") != role_id or
+                        not isinstance(proof.get("ConfigRuleName"), str) or not proof["ConfigRuleName"] or
+                        proof.get("RuleIsServiceLinked") is not False or
+                        proof.get("ConfigRecorderRecording") is not True or
+                        proof.get("ComplianceSnapshotNoncompliant") is not True or
+                        proof.get("ConfigRemediationServiceLinkedRoleReady") is not True or
+                        proof.get("RemediationAutomatic") is not True or
+                        proof.get("RemediationTargetType") != "SSM_DOCUMENT" or
+                        proof.get("RemediationTargetId") != document_name or
+                        proof.get("AutomationAssumeRoleParameterValue") != tid or
+                        proof.get("DocumentUsesAutomationAssumeRole") is not True or
+                        proof.get("DocumentRoutable") is not True or
+                        proof.get("PutRemediationConfigurationsSucceeded") is not True or
+                        proof.get("AutomaticRemediationStarted") is not True or
+                        proof.get("ExecutedRoleArn") != tid or
+                        proof.get("RoleActionSucceeded") is not True or
+                        proof.get("EffectUsefulToSource") is not True or
+                        not isinstance(proof.get("RemediationExecutionId"), str) or
+                        not proof["RemediationExecutionId"] or
+                        not isinstance(proof.get("AutomationExecutionId"), str) or
+                        not proof["AutomationExecutionId"] or
+                        not isinstance(action, str) or
+                        re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                        not isinstance(resource, str) or not resource or
+                        not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"]):
+                    continue
+                if proof.get("DocumentCreatedBySource") is True:
+                    created = self.check(source, {"action": "ssm:CreateDocument"}, document)
+                    if created is None or created.confidence != "derived":
+                        continue
+                elif proof.get("ExistingDocumentUsed") is not True:
+                    continue
+                try:
+                    witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+                    expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+                    if (witnessed.tzinfo is None or expires.tzinfo is None or
+                            not 0 <= (now - witnessed).total_seconds() <= 900 or
+                            not now < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                        continue
+                except (KeyError, TypeError, ValueError):
+                    continue
+                put = self.check(source, {"action": "config:PutRemediationConfigurations"}, remediation_arn)
+                permitted = self.check(role, {"action": action}, resource)
+                already = self.check(source, {"action": action}, resource)
+                if (put is not None and put.confidence == "derived" and
+                        permitted is not None and permitted.confidence == "derived" and already is None):
+                    out[tid] = None
+                    break
+        return out
+
     def _codepipeline_existing_project_update_buildspec(self, source, target):
         pipeline_status = inventory_status(self.snapshot, "codepipeline_pipeline")
         project_status = inventory_status(self.snapshot, "codebuild_project")
@@ -9180,11 +9290,7 @@ class AwsModel(Model):
             return {tid: ("unknown", "servicecatalog_owned_product_template_and_role_effect_not_verified")
                     for tid in candidates}
         if pid == "config_automatic_remediation_effect_unverified":
-            # PutRemediationConfigurations and PassRole do not establish a
-            # non-service-linked rule, noncompliant resource, runnable SSM
-            # document, service-linked role, or privileged Automation effect.
-            return {tid: ("unknown", "config_rule_document_and_automatic_role_effect_not_verified")
-                    for tid in candidates}
+            return self._config_automatic_remediation_role_effect(source, candidates)
         if pid == "elasticbeanstalk_environment_role_execution_unverified":
             # IAM grants alone do not prove an environment can be created or
             # updated, nor that its instances run a controlled source bundle.
