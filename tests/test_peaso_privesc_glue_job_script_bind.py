@@ -92,7 +92,8 @@ def test_catalog_binding_preserves_prior_glue_wording():
     assert previous_status == "exact_previous_current"
     assert current_status == "exact_strict_privesc"
     assert "one recorded S3 script object" not in previous[ID]["notes"]
-    assert "script outside recorded job definitions" in current[ID]["notes"]
+    assert "one concrete S3 script object" in current[ID]["notes"]
+    assert "script may differ from existing job definitions" in current[ID]["notes"]
 
 
 def test_existing_job_update_and_new_scheduled_trigger_also_bind():
