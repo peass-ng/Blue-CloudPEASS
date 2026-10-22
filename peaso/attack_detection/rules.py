@@ -20,6 +20,7 @@ import yaml
 
 from .aws import normalize_aws_cloudtrail
 from .aws_raw_cloudtrail import normalize as normalize_aws_raw_cloudtrail
+from .aws_frauddetector_event_replace import correlate_aws_frauddetector_event_replacement
 from .aws_login_profile_next import normalize_aws_other_user_login_profile, normalize_aws_other_user_login_profile_update
 from .aws_security_controls import normalize_aws_security_control
 from .aws_trail_update import normalize_aws_trail_update
@@ -147,6 +148,7 @@ from .aws_secretsmanager_rotation_next import normalize_aws_secretsmanager_rotat
 from .aws_secretsmanager_replica_chain_next import normalize_aws_secretsmanager_replica_chain, correlate_aws_secretsmanager_replica_chain
 from .aws_prefix_list_backdoor_next import normalize_aws_prefix_list_backdoor, correlate_aws_prefix_list_sg_reference
 from .aws_address_reassignment_next import normalize_aws_address_reassignment, correlate_aws_address_reassignment
+from .aws_ebs_multiattach import correlate_aws_ebs_multiattach
 from .aws_guardduty_controls_next import normalize_aws_guardduty_controls
 from .aws_ecr_retention_next import normalize_aws_ecr_retention
 from .aws_dynamodb_controls_next import normalize_aws_dynamodb_controls
@@ -236,6 +238,10 @@ from .aws_sfn_role_routes_next import normalize_aws_sfn_role_routes, correlate_a
 from .aws_sfn_http_credentials_next import normalize_aws_sfn_reveal_secrets, correlate_aws_sfn_connection_secret_read
 from .aws_sfn_map_run_next import normalize_aws_sfn_map_run
 from .aws_rds_controls_next import normalize_aws_rds_controls
+from .aws_redshift_admin_reset import normalize_aws_redshift_admin_reset
+from .aws_redshift_serverless_workgroup import normalize_aws_redshift_serverless_workgroup
+from .aws_redshift_serverless_default_role import normalize_aws_redshift_serverless_default_role
+from .aws_budgets_iam_action import normalize_aws_budgets_iam_action
 from .aws_rds_restore_next import normalize_aws_rds_restore_controls, correlate_aws_rds_public_clone_password_reset
 from .aws_rds_parameters_next import normalize_aws_rds_parameters, correlate_aws_rds_sql_log_capture_path
 from .aws_rds_replica_next import normalize_aws_rds_public_replica, correlate_aws_rds_public_replica_controls
@@ -626,6 +632,10 @@ def detect_aws_events(
         sfn_reveal_secrets = normalize_aws_sfn_reveal_secrets(record)
         sfn_map_run = normalize_aws_sfn_map_run(record)
         rds_controls = normalize_aws_rds_controls(record)
+        redshift_admin_reset = normalize_aws_redshift_admin_reset(record)
+        redshift_serverless_workgroup = normalize_aws_redshift_serverless_workgroup(record)
+        redshift_serverless_default_role = normalize_aws_redshift_serverless_default_role(record)
+        budgets_iam_action = normalize_aws_budgets_iam_action(record)
         rds_restore_controls = normalize_aws_rds_restore_controls(record)
         rds_parameters = normalize_aws_rds_parameters(record)
         rds_public_replica = normalize_aws_rds_public_replica(record)
@@ -851,6 +861,10 @@ def detect_aws_events(
                 + ([sfn_reveal_secrets] if sfn_reveal_secrets is not None else [])
                 + ([sfn_map_run] if sfn_map_run is not None else [])
                 + ([rds_controls] if rds_controls is not None else [])
+                + ([redshift_admin_reset] if redshift_admin_reset is not None else [])
+                + ([redshift_serverless_workgroup] if redshift_serverless_workgroup is not None else [])
+                + ([redshift_serverless_default_role] if redshift_serverless_default_role is not None else [])
+                + ([budgets_iam_action] if budgets_iam_action is not None else [])
                 + ([rds_restore_controls] if rds_restore_controls is not None else [])
                 + ([rds_parameters] if rds_parameters is not None else [])
                 + ([rds_public_replica] if rds_public_replica is not None else [])
@@ -893,6 +907,7 @@ def detect_aws_events(
     secret_replica_chain_records: list[Mapping[str, Any]] = []
     prefix_list_records: list[Mapping[str, Any]] = []
     address_reassignment_records: list[Mapping[str, Any]] = []
+    ebs_multiattach_records: list[Mapping[str, Any]] = []
     lambda_privesc_records: list[Mapping[str, Any]] = []
     ssm_command_records: list[Mapping[str, Any]] = []
     ssm_automation_window_records: list[Mapping[str, Any]] = []
@@ -931,12 +946,15 @@ def detect_aws_events(
     appflow_schedule_batch127_records: list[Mapping[str, Any]] = []
     lex_hook_batch137_records: list[Mapping[str, Any]] = []
     route53_profiles_batch139_records: list[Mapping[str, Any]] = []
+    frauddetector_event_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
             if (not isinstance(record, Mapping)
                     or not isinstance(record.get("eventSource"), str)
                     or not isinstance(record.get("eventName"), str)):
                 continue
+            if record.get("eventSource") == "frauddetector.amazonaws.com" and record.get("eventName") == "SendEvent":
+                frauddetector_event_records.append(record)
             if record.get("eventSource") == "monitoring.amazonaws.com":
                 cloudwatch_alarm_batch108_records.append(record)
             if record.get("eventSource") in {"firehose.amazonaws.com", "sns.amazonaws.com"}:
@@ -1049,6 +1067,8 @@ def detect_aws_events(
                                                     "AssignPrivateIpAddresses", "UnassignPrivateIpAddresses",
                                                     "AuthorizeSecurityGroupIngress"}):
                 address_reassignment_records.append(record)
+            if record.get("eventSource") == "ec2.amazonaws.com" and record.get("eventName") in {"AttachVolume", "DetachVolume"}:
+                ebs_multiattach_records.append(record)
             if ((record.get("eventSource") == "codepipeline.amazonaws.com" and record.get("eventName") in {
                     "CreatePipeline", "UpdatePipeline", "StartPipelineExecution", "AcknowledgeJob", "PutJobSuccessResult"})
                     or (record.get("eventSource") == "codebuild.amazonaws.com" and record.get("eventName") == "UpdateProject")
@@ -1118,6 +1138,7 @@ def detect_aws_events(
     correlated += correlate_aws_secretsmanager_replica_chain(secret_replica_chain_records)
     correlated += correlate_aws_prefix_list_sg_reference(prefix_list_records)
     correlated += correlate_aws_address_reassignment(address_reassignment_records)
+    correlated += correlate_aws_ebs_multiattach(ebs_multiattach_records)
     correlated += correlate_aws_lambda_privesc(lambda_privesc_records)
     correlated += correlate_aws_ssm_command_output_read(ssm_command_records)
     correlated += correlate_aws_ssm_document_window(ssm_automation_window_records)
@@ -1146,6 +1167,7 @@ def detect_aws_events(
     correlated += correlate_aws_appflow_schedule_batch127(appflow_schedule_batch127_records)
     correlated += correlate_aws_lex_role_hook_batch137(lex_hook_batch137_records)
     correlated += correlate_aws_route53_profiles_batch139(route53_profiles_batch139_records)
+    correlated += correlate_aws_frauddetector_event_replacement(frauddetector_event_records)
     correlated += correlate_aws_apigateway_portal(apigateway_portal_records)
     correlated += correlate_aws_cloudformation_triggers(cloudformation_trigger_records)
     correlated += correlate_aws_cloudformation_inputs(cloudformation_input_records)
