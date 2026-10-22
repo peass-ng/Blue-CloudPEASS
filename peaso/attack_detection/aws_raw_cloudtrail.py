@@ -7,6 +7,7 @@ from datetime import datetime
 import hashlib
 import re
 from typing import Any
+from urllib.parse import quote, unquote_to_bytes
 
 
 _ACCOUNT = re.compile(r"[0-9]{12}\Z")
@@ -16,7 +17,26 @@ _NAME = re.compile(r"[A-Za-z][A-Za-z0-9]{0,127}\Z")
 _TYPE = re.compile(r"AWS::[A-Za-z][A-Za-z0-9]*::[A-Za-z][A-Za-z0-9]*\Z")
 _ARN = re.compile(r"arn:(aws(?:-[a-z-]+)?):[a-z0-9-]+:([a-z0-9-]*):([0-9]{12}):([^\s]+)\Z")
 _ARTIFACT_REPORT_PATH = re.compile(r"report/(?:[A-Za-z0-9_-]+|\*)(?::(?:[0-9]+|\*))?\Z")
+_NETWORKMANAGER_ATTACHMENT = re.compile(
+    r"arn:aws(?:-[a-z-]+)?:networkmanager::([0-9]{12}):attachment/attachment-[0-9a-f]{8,17}\Z"
+)
 _UNSCOPED_TYPE = "CloudTrail::UnscopedEvent"
+
+
+def _networkmanager_attachment_arn(value: Any, account: str) -> str | None:
+    if not isinstance(value, str) or len(value) > 2048:
+        return None
+    if value.startswith("arn:"):
+        arn = value
+    else:
+        try:
+            arn = unquote_to_bytes(value).decode("ascii")
+        except (UnicodeDecodeError, ValueError):
+            return None
+        if quote(arn, safe="") != value:
+            return None
+    match = _NETWORKMANAGER_ATTACHMENT.fullmatch(arn)
+    return arn if match is not None and match.group(1) == account else None
 
 
 def normalize(record: Mapping[str, Any]) -> list[dict[str, Any]]:
@@ -56,17 +76,37 @@ def normalize(record: Mapping[str, Any]) -> list[dict[str, Any]]:
         return []
     identity = record.get("userIdentity")
     actor = identity.get("arn") if isinstance(identity, Mapping) else None
+    twinmaker_connector = (
+        source == "lambda.amazonaws.com" and name == "Invoke"
+        and category == "Data" and read_only is False
+        and isinstance(identity, Mapping)
+        and identity.get("type") == "AssumedRole"
+        and identity.get("accountId") == account
+        and identity.get("invokedBy") == "iottwinmaker.amazonaws.com"
+        and record.get("sourceIPAddress") == "iottwinmaker.amazonaws.com"
+        and record.get("userAgent") == "iottwinmaker.amazonaws.com"
+    )
     if console_token and isinstance(actor, str):
         actor = "sha256:" + hashlib.sha256(actor.encode("utf-8")).hexdigest()[:24]
     if not resources:
-        target = "sha256:" + hashlib.sha256(
-            f"{account}:{region}:{event_id}".encode("utf-8")
-        ).hexdigest()[:24]
+        request = record.get("requestParameters")
+        attachment_arn = _networkmanager_attachment_arn(
+            request.get("resourceArn") if isinstance(request, Mapping) else None, account
+        )
+        attachment = (
+            source == "networkmanager.amazonaws.com"
+            and name in {"TagResource", "UntagResource"}
+            and category == "Management" and read_only is False
+            and attachment_arn is not None
+        )
+        target_material = attachment_arn if attachment else f"{account}:{region}:{event_id}"
+        target = "sha256:" + hashlib.sha256(target_material.encode("utf-8")).hexdigest()[:24]
         return [{
             "cloud.provider": "aws", "event.source": source,
             "event.name": name, "event.category": category,
             "event.read_only": read_only, "event.outcome": "success",
-            "resource.type": _UNSCOPED_TYPE, "event.id": event_id,
+            "resource.type": "AWS::NetworkManager::Attachment" if attachment else _UNSCOPED_TYPE,
+            "event.id": event_id,
             "event.time": stamp, "account.id": account,
             "actor.id": actor, "target.id": target,
             "__raw_cloudtrail": True,
@@ -99,7 +139,7 @@ def normalize(record: Mapping[str, Any]) -> list[dict[str, Any]]:
             continue
         seen.add(key)
         target = "sha256:" + hashlib.sha256(arn.encode("utf-8")).hexdigest()[:24]
-        result.append({
+        envelope = {
             "cloud.provider": "aws", "event.source": source,
             "event.name": name, "event.category": category,
             "event.read_only": read_only, "event.outcome": "success",
@@ -109,5 +149,8 @@ def normalize(record: Mapping[str, Any]) -> list[dict[str, Any]]:
             "__raw_cloudtrail": True,
             "__resource_path": resource_path,
             "resource.path_scope_checked": True,
-        })
+        }
+        if twinmaker_connector and kind == "AWS::Lambda::Function":
+            envelope["actor.invoked_by_service"] = "iottwinmaker.amazonaws.com"
+        result.append(envelope)
     return result
