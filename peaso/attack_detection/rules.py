@@ -177,6 +177,7 @@ from .aws_glue_controls_next import normalize_aws_glue_controls
 from .aws_cloudfront_controls_next import normalize_aws_cloudfront_controls
 from .aws_glue_session_correlations_next import correlate_aws_glue_cross_actor_statements
 from .aws_glue_job_correlations_next import correlate_aws_glue_job_script_runs
+from .aws_deadline_role_routes import normalize_aws_deadline_role_route, correlate_aws_deadline_role_vending
 from .aws_cognito_controls_next import normalize_aws_cognito_controls
 from .aws_cognito_directory_next import normalize_aws_cognito_directory
 from .aws_cognito_m2m_next import normalize_aws_cognito_m2m
@@ -447,6 +448,7 @@ def detect_aws_events(
         codebuild_sandbox_read = normalize_codebuild_sandbox_read(record)
         codepipeline_five = normalize_aws_codepipeline_five(record)
         codepipeline_remaining = normalize_aws_codepipeline_remaining(record)
+        deadline_role_route = normalize_aws_deadline_role_route(record)
         codepipeline_reads = normalize_aws_codepipeline_reads(record)
         lightsail_six = normalize_aws_lightsail_six(record)
         lightsail_snapshot_dns = normalize_aws_lightsail_snapshot_dns(record)
@@ -676,6 +678,7 @@ def detect_aws_events(
                 + ([codebuild_sandbox_read] if codebuild_sandbox_read is not None else [])
                 + ([codepipeline_five] if codepipeline_five is not None else [])
                 + ([codepipeline_remaining] if codepipeline_remaining is not None else [])
+                + ([deadline_role_route] if deadline_role_route is not None else [])
                 + ([codepipeline_reads] if codepipeline_reads is not None else [])
                 + ([lightsail_six] if lightsail_six is not None else [])
                 + ([lightsail_snapshot_dns] if lightsail_snapshot_dns is not None else [])
@@ -927,6 +930,7 @@ def detect_aws_events(
     cloudformation_input_records: list[Mapping[str, Any]] = []
     codebuild_gap_records: list[Mapping[str, Any]] = []
     codepipeline_remaining_records: list[Mapping[str, Any]] = []
+    deadline_role_records: list[Mapping[str, Any]] = []
     codecommit_consumer_records: list[Mapping[str, Any]] = []
     appconfig_hosted_records: list[Mapping[str, Any]] = []
     cloudtrail_log_dest_records: list[Mapping[str, Any]] = []
@@ -974,6 +978,10 @@ def detect_aws_events(
                 route53_profiles_batch139_records.append(record)
             if record.get("eventSource") == "dynamodb.amazonaws.com":
                 dynamodb_data_batch106_records.append(record)
+            if (record.get("eventSource") == "deadline.amazonaws.com"
+                    and record.get("eventName") in {"CreateWorker", "AssumeFleetRoleForWorker",
+                                                    "UpdateQueue", "AssumeQueueRoleForUser"}):
+                deadline_role_records.append(record)
             if (isinstance(record.get("eventSource"), str)
                     and record.get("eventSource") in {"kinesis.amazonaws.com", "codeartifact.amazonaws.com", "s3tables.amazonaws.com", "s3vectors.amazonaws.com", "aps.amazonaws.com"}
                     and isinstance(record.get("eventName"), str)
@@ -1130,6 +1138,7 @@ def detect_aws_events(
     correlated += correlate_aws_emr_session_endpoint_cross_actor(emr_session_records)
     correlated += correlate_aws_vpc_custom_dns(vpc_network_records)
     correlated += correlate_aws_eic_ssh_ingress(eic_endpoint_records)
+    correlated += correlate_aws_deadline_role_vending(deadline_role_records)
     correlated += correlate_aws_sqs_tagged_receive(sqs_tag_records)
     correlated += correlate_aws_sqs_fifo_dedup_collision(sqs_fifo_records)
     correlated += correlate_aws_sfn_new_machine_start(sfn_new_machine_records)
