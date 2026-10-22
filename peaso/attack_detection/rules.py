@@ -162,6 +162,7 @@ from .aws_secretsmanager_rotation_next import normalize_aws_secretsmanager_rotat
 from .aws_secretsmanager_replica_chain_next import normalize_aws_secretsmanager_replica_chain, correlate_aws_secretsmanager_replica_chain
 from .aws_prefix_list_backdoor_next import normalize_aws_prefix_list_backdoor, correlate_aws_prefix_list_sg_reference
 from .aws_address_reassignment_next import normalize_aws_address_reassignment, correlate_aws_address_reassignment
+from .aws_mq_broker_chain import correlate_aws_mq_broker_chain
 from .aws_ebs_multiattach import correlate_aws_ebs_multiattach
 from .aws_guardduty_controls_next import normalize_aws_guardduty_controls
 from .aws_ecr_retention_next import normalize_aws_ecr_retention
@@ -273,6 +274,7 @@ from .aws_rds_restore_next import normalize_aws_rds_restore_controls, correlate_
 from .aws_rds_parameters_next import normalize_aws_rds_parameters, correlate_aws_rds_sql_log_capture_path
 from .aws_rds_replica_next import normalize_aws_rds_public_replica, correlate_aws_rds_public_replica_controls
 from .aws_rds_secret_read_next import normalize_aws_rds_managed_secret_read, correlate_aws_rds_proxy_auth_secret_read
+from .aws_pcs_slurm_secret_next import normalize_aws_pcs_slurm_secret_read
 from .aws_rds_pending_signals_next import normalize_aws_rds_pending_signals
 from .aws_service_credentials_next import normalize_aws_service_credentials
 from .aws_cloudformation_controls_next import normalize_aws_cloudformation_controls
@@ -698,6 +700,7 @@ def detect_aws_events(
         rds_parameters = normalize_aws_rds_parameters(record)
         rds_public_replica = normalize_aws_rds_public_replica(record)
         rds_managed_secret_read = normalize_aws_rds_managed_secret_read(record)
+        pcs_slurm_secret_read = normalize_aws_pcs_slurm_secret_read(record)
         rds_pending_signals = normalize_aws_rds_pending_signals(record)
         service_credentials = normalize_aws_service_credentials(record)
         cloudformation_controls = normalize_aws_cloudformation_controls(record)
@@ -950,6 +953,7 @@ def detect_aws_events(
                 + ([rds_parameters] if rds_parameters is not None else [])
                 + ([rds_public_replica] if rds_public_replica is not None else [])
                 + ([rds_managed_secret_read] if rds_managed_secret_read is not None else [])
+                + ([pcs_slurm_secret_read] if pcs_slurm_secret_read is not None else [])
                 + ([rds_pending_signals] if rds_pending_signals is not None else [])
                 + ([service_credentials] if service_credentials is not None else [])
                 + ([cloudformation_controls] if cloudformation_controls is not None else [])
@@ -989,6 +993,7 @@ def detect_aws_events(
     secret_replica_chain_records: list[Mapping[str, Any]] = []
     prefix_list_records: list[Mapping[str, Any]] = []
     address_reassignment_records: list[Mapping[str, Any]] = []
+    mq_broker_chain_records: list[Mapping[str, Any]] = []
     ebs_multiattach_records: list[Mapping[str, Any]] = []
     lambda_privesc_records: list[Mapping[str, Any]] = []
     ssm_command_records: list[Mapping[str, Any]] = []
@@ -1140,6 +1145,9 @@ def detect_aws_events(
                 vpc_network_records.append(record)
             if record.get("eventSource") == "ec2.amazonaws.com" and record.get("eventName") in {"CreateInstanceConnectEndpoint", "AuthorizeSecurityGroupIngress"}:
                 eic_endpoint_records.append(record)
+            if (record.get("eventSource") == "amazonmq.amazonaws.com"
+                    and record.get("eventName") in {"UpdateConfiguration", "UpdateBroker", "CreateUser", "UpdateUser"}):
+                mq_broker_chain_records.append(record)
             if ((record.get("eventSource") == "iam.amazonaws.com" and record.get("eventName") == "PutRolePolicy")
                     or (record.get("eventSource") == "sqs.amazonaws.com" and record.get("eventName") == "TagQueue")):
                 sqs_tag_records.append(record)
@@ -1239,6 +1247,7 @@ def detect_aws_events(
     correlated += correlate_aws_secretsmanager_replica_chain(secret_replica_chain_records)
     correlated += correlate_aws_prefix_list_sg_reference(prefix_list_records)
     correlated += correlate_aws_address_reassignment(address_reassignment_records)
+    correlated += correlate_aws_mq_broker_chain(mq_broker_chain_records)
     correlated += correlate_aws_ebs_multiattach(ebs_multiattach_records)
     correlated += correlate_aws_lambda_privesc(lambda_privesc_records)
     correlated += correlate_aws_ssm_command_output_read(ssm_command_records)
