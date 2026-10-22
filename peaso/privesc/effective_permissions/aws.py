@@ -365,6 +365,8 @@ class AwsModel(Model):
             "iam_user": "Users and their inherited permissions are unknown", "iam_group": "Group-inherited permissions are unknown",
             "iam_role": "Role targets and trust policies are unknown", "iam_policy": "Managed policy documents are unknown"})
         for account in sorted(self.accounts):
+            if account == self.org_management:
+                continue  # Organizations SCPs do not apply to the management account.
             status = self.scp_status.get(account, "not_collected")
             if status not in ("collected", "empty"):
                 self.add_coverage("guardrail", account, status, "scp_policy not evaluated",
@@ -1751,7 +1753,7 @@ class AwsModel(Model):
         boundary = self.policies.get(principal.attrs.get("boundary") or "")
         if boundary is not None:
             denies.extend(st for st in boundary.for_action(action) if st.effect == "deny")
-        if self.scp_status.get(principal.scope) == "collected":
+        if principal.scope != self.org_management and self.scp_status.get(principal.scope) == "collected":
             levels, _ = self._scp_levels(principal.scope)
             for level in levels:
                 policies = (self.scp.get(principal.scope, []) if level == principal.scope
@@ -1821,7 +1823,8 @@ class AwsModel(Model):
                     return None
                 grant = combine(grant, Grant(limit.confidence, [], limit.conditions))
         account = principal.scope
-        status = self.scp_status.get(account, "not_collected")
+        # SCPs never limit identities in the Organizations management account.
+        status = "empty" if account == self.org_management else self.scp_status.get(account, "not_collected")
         if status == "collected":
             levels, complete = self._scp_levels(account)
             for level in levels:

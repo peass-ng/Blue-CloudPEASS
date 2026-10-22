@@ -1014,6 +1014,31 @@ def test_createaccount_new_member_cannot_bypass_root_scp_assume_role_deny():
     assert unaffected["Arn"] in reached(real(snap, CREATE_ACCOUNT), ALICE)
 
 
+def test_createaccount_management_identity_is_exempt_from_scps():
+    alice = user("alice", allow("organizations:CreateAccount", "sts:AssumeRole"))
+    target = role("shared", org_trust(), account=OTHER)
+    snap = aws_snap([alice], extra=[org_accounts(OTHER)], other_roles=[(OTHER, [target])])
+    management_scp = next(c for c in snap["collections"] if c["type"] == "scp_policy" and c["scope"] == SCOPE)
+    management_scp["status"] = "collected"
+    management_scp["items"] = [{"Id": "p-management", "TargetId": ACCOUNT,
+        "Detail": {"Policy": {"Content": {"Version": "2012-10-17", "Statement": [
+            {"Effect": "Deny", "Action": ["organizations:CreateAccount", "sts:AssumeRole"],
+             "Resource": "*"}]}}}}]
+    assert target["Arn"] in reached(real(snap, CREATE_ACCOUNT), ALICE)
+
+    member = user("bob", allow("sts:AssumeRole"), account=OTHER)
+    member_snap = aws_snap([], extra=[org_accounts(OTHER),
+        col("iam_user", [member], scope=f"{OTHER}/{REGION}")], other_roles=[(OTHER, [])])
+    member_scp = next(c for c in member_snap["collections"]
+                      if c["type"] == "scp_policy" and c["scope"] == f"{OTHER}/{REGION}")
+    member_scp["status"] = "collected"
+    member_scp["items"] = [{"Id": "p-member", "TargetId": OTHER,
+        "Detail": {"Policy": {"Content": {"Version": "2012-10-17", "Statement": [
+            {"Effect": "Deny", "Action": "sts:AssumeRole", "Resource": "*"}]}}}}]
+    model = privesc.MODELS["aws"](member_snap)
+    assert model._check_action(model.principals[member["Arn"]], "sts:AssumeRole", target["Arn"]) is None
+
+
 def test_createaccount_from_member_account_is_not_an_edge():
     bob = user("bob", allow("organizations:CreateAccount", "sts:AssumeRole"), account=OTHER)
     snap = aws_snap([], extra=[org_accounts(OTHER), col("iam_user", [bob], scope=f"{OTHER}/{REGION}")],
