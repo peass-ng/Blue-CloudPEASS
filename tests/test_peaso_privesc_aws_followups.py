@@ -328,10 +328,11 @@ def test_appstream_new_resources_need_a_startable_streaming_path():
                {"SubnetId": "subnet-b", "VpcId": "vpc-1", "AvailabilityZone": "us-east-1b", "State": "available"}]
     bucket = {"Name": "packages", "Location": {"collection_status": "collected", "LocationConstraint": REGION}}
 
-    def reach(start=True, stream_arn=builder_arn, subnet_rows=subnets, bucket_row=bucket, occupied=()):
+    def reach(start=True, stream_arn=builder_arn, subnet_rows=subnets, bucket_row=bucket,
+              occupied=(), create_block_resource="*"):
         grants = [allow("iam:PassRole", resource=target["Arn"]),
                   allow("appstream:CreateAppBlockBuilder", resource=builder_arn),
-                  allow("appstream:CreateAppBlock"),
+                  allow("appstream:CreateAppBlock", resource=create_block_resource),
                   allow("appstream:AssociateAppBlockBuilderAppBlock", resource=[builder_arn, block_arn]),
                   allow("appstream:CreateAppBlockBuilderStreamingURL", resource=stream_arn)]
         if start:
@@ -349,6 +350,7 @@ def test_appstream_new_resources_need_a_startable_streaming_path():
     assert reach(subnet_rows=subnets[:1]) == {}
     assert reach(bucket_row={**bucket, "Location": {"collection_status": "collected", "LocationConstraint": "eu-west-1"}}) == {}
     assert reach(occupied=("team-a",)) == {}
+    assert reach(create_block_resource=block_arn) == {}
 
 
 def test_appstream_new_builder_can_use_existing_unassociated_app_block():

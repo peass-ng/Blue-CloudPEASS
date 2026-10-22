@@ -6415,7 +6415,7 @@ class AwsModel(Model):
         bucket_status = inventory_status(self.snapshot, "bucket")
         partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
         uncertain = any(status not in ("collected", "empty") for status in builder_status.values())
-        create_block = self._check_action(source, "appstream:createappblock", "*")
+        create_block = self._check_action(source, "appstream:createappblock", "peaso-global-appstream-create-app-block")
         for scope, status in builder_status.items():
             if status not in ("collected", "empty"):
                 continue
@@ -6683,7 +6683,7 @@ class AwsModel(Model):
                         ("conditional", "appstream_associated_app_block_builder_available"))
             # A builder without an app block cannot be started. New app block creation also needs
             # S3 packaging facts, which this route has not verified.
-            if self._check_action(source, "appstream:createappblock", "*") is not None and self._check_action(
+            if self._check_action(source, "appstream:createappblock", "peaso-global-appstream-create-app-block") is not None and self._check_action(
                     source, "appstream:associateappblockbuilderappblock", arn) is not None:
                 uncertain = True
         return ("unknown", "appstream_app_block_builder_route_not_verified") if uncertain else None
