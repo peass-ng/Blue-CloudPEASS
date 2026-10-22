@@ -9319,14 +9319,17 @@ class AwsModel(Model):
                 if tid not in out and unresolved:
                     out[tid] = ("unknown", "sagemaker_profile_role_swap_or_app_not_verified")
             return out
-        if pid == "sagemaker_new_profile_app_route":
+        if pid in ("sagemaker_new_profile_app_route", "sagemaker_domain_default_new_profile_route"):
             if source is None:
                 return None
+            domain_default = pid == "sagemaker_domain_default_new_profile_route"
             domain_status = inventory_status(self.snapshot, "sagemaker_domain")
             profile_status = inventory_status(self.snapshot, "sagemaker_user_profile")
+            app_status = inventory_status(self.snapshot, "sagemaker_app") if domain_default else {}
             domains = [(scope, row) for scope, row in items(self.snapshot, "sagemaker_domain")
                        if scope.startswith(source.scope + "/")]
             profiles = [(scope, row) for scope, row in items(self.snapshot, "sagemaker_user_profile")]
+            apps = [(scope, row) for scope, row in items(self.snapshot, "sagemaker_app")] if domain_default else []
             malformed = {scope for scope, row in profiles
                          if not isinstance(row.get("DomainId"), str) or
                          not isinstance(row.get("UserProfileName"), str)}
@@ -9358,6 +9361,19 @@ class AwsModel(Model):
                     if domain.get("AuthMode") != "IAM":
                         unresolved = True
                         continue
+                    if domain_default:
+                        if app_status.get(scope) not in ("collected", "empty"):
+                            unresolved = True
+                            continue
+                        if any(app_scope == scope and (not isinstance(app.get("DomainId"), str) or
+                                                      app.get("DomainId") == domain_id)
+                               for app_scope, app in apps):
+                            unresolved = True
+                            continue
+                        domain_update = self.check(source, {"action": "sagemaker:UpdateDomain",
+                            "request_context": {"aws:RequestedRegion": region}}, domain_arn)
+                        if domain_update is None:
+                            continue
                     profile_prefix = f"arn:{partition}:sagemaker:{region}:{source.scope}:user-profile/{domain_id}/"
                     names = {"PeasoProfile" + seed, "PeasoProfile" + seed + "A"}
                     for statement in allows:
@@ -9414,9 +9430,11 @@ class AwsModel(Model):
                                     "request_context": app_context}, app_arn)
                                 app_tags = self.check(source, {"action": "sagemaker:AddTags",
                                     "request_context": app_context}, app_arn)
-                                grants = (passrole, create, url, launch, app_tags)
+                                grants = ((domain_update,) if domain_default else ()) + (
+                                    passrole, create, url, launch, app_tags)
                                 if all(grant is not None and grant.confidence == "derived" for grant in grants):
-                                    out[tid] = ("conditional", "sagemaker_new_profile_app_start_pending")
+                                    out[tid] = ("conditional", "sagemaker_domain_default_app_start_pending" if
+                                                domain_default else "sagemaker_new_profile_app_start_pending")
                                     break
                                 unresolved = True
                             if tid in out:
