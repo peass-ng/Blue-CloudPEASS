@@ -1429,6 +1429,24 @@ def test_braket_createjob_requires_device_authorization():
                for target, grant in unresolved[0].items())
 
 
+def test_braket_prior_catalog_binding_keeps_global_createjob_requirement():
+    from peaso.privesc import versioned_catalog as catalog
+
+    prior_binding = {"schema": catalog.BINDING_SCHEMA,
+                     "manifest_sha256": catalog.BRAKET_690_PREVIOUS_MANIFEST,
+                     "effective_tree_sha256": catalog.BRAKET_690_PREVIOUS_TREE,
+                     "source_revision": catalog.V4_REVISION}
+    old, old_status = catalog.lookup_entries(["aws-braket-passrole-createjob"], prior_binding)
+    new, new_status = catalog.lookup_entries(["aws-braket-passrole-createjob"],
+                                             catalog.current_binding())
+    assert old_status == "exact_previous_current"
+    assert new_status == "exact_strict_privesc"
+    assert any(req["action"] == "braket:CreateJob"
+               for req in old["aws-braket-passrole-createjob"]["requires"]["all_of"])
+    assert all(req["action"] != "braket:CreateJob"
+               for req in new["aws-braket-passrole-createjob"]["requires"]["all_of"])
+
+
 def test_scheduler_requires_grant_on_same_account_schedule_resource():
     from pathlib import Path
     import yaml
