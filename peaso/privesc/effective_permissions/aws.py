@@ -7493,6 +7493,81 @@ class AwsModel(Model):
                 if uncertain else None)
 
     def precondition(self, pid, candidates, source):
+        if pid == "glue_new_public_dev_endpoint_role":
+            if source is None:
+                return None
+            inventories = {collection.get("scope"): collection for collection in
+                           self.snapshot.get("collections", [])
+                           if collection.get("type") == "glue_dev_endpoint" and
+                           isinstance(collection.get("scope"), str) and
+                           collection["scope"].startswith(source.scope + "/")}
+            if not inventories:
+                return {tid: ("unknown", "glue_dev_endpoint_inventory_not_collected") for tid in candidates}
+            get_allows, _ = self._statements(source, "glue:getdevendpoint")
+            list_allows, _ = self._statements(source, "glue:getdevendpoints")
+            create_allows, _ = self._statements(source, "glue:createdevendpoint")
+            pass_allows, _ = self._statements(source, "iam:passrole")
+            out = {}
+            for tid, role in candidates.items():
+                uncertain = bool(source.incomplete or role.incomplete)
+                for scope, collection in inventories.items():
+                    status = collection.get("status")
+                    error = collection.get("error") or {}
+                    if status == "empty" and error.get("code") in (
+                            "operation_disabled_for_account", "region_operation_unsupported"):
+                        continue
+                    if status not in ("collected", "empty") or error:
+                        uncertain = True
+                        continue
+                    region = scope.split("/", 1)[1]
+                    context = {"aws:RequestedRegion": region}
+                    existing = {row.get("EndpointName").casefold() for row in collection.get("items", [])
+                                if isinstance(row, dict) and isinstance(row.get("EndpointName"), str)}
+                    if len(existing) != len(collection.get("items", [])):
+                        uncertain = True
+                        continue
+                    create = self.cached_check(source, {"action": "glue:CreateDevEndpoint",
+                        "request_context": context}, "peaso-global-glue-dev-endpoint-operation")
+                    if create is None:
+                        uncertain |= bool(create_allows)
+                        continue
+                    list_read = self.cached_check(source, {"action": "glue:GetDevEndpoints",
+                        "request_context": context}, "peaso-global-glue-dev-endpoint-operation")
+                    prefix = f"arn:{source.id.split(':', 2)[1]}:glue:{region}:{source.scope}:devEndpoint/"
+                    names = {f"PeasoGlue{number}" for number in range(len(existing) + 2)} if list_read else set()
+                    for statement in get_allows:
+                        for pattern in statement.resources if not statement.notresource and not statement.variables else ():
+                            suffix = "*" if pattern == "*" else pattern.rsplit("devEndpoint/", 1)[1] if "devEndpoint/" in pattern else None
+                            if suffix is None or "/" in suffix or ":" in suffix:
+                                continue
+                            for number in range(len(existing) + 2 if "*" in suffix or "?" in suffix else 1):
+                                name = suffix.replace("*", f"PeasoGlue{number}").replace("?", "x")
+                                if re.fullmatch(r"[A-Za-z0-9_.-]{1,255}", name):
+                                    names.add(name)
+                    for name in sorted(names):
+                        if name.casefold() in existing:
+                            continue
+                        read = list_read or self.cached_check(source, {"action": "glue:GetDevEndpoint",
+                            "request_context": context}, prefix + name)
+                        if read is None:
+                            uncertain |= bool(get_allows or list_allows)
+                            continue
+                        passed = self.cached_check(source, {"action": "iam:PassRole",
+                            "request_context": {**context, "iam:PassedToService": "glue.amazonaws.com"}}, tid)
+                        if passed is None:
+                            uncertain |= bool(pass_allows)
+                            continue
+                        if all(grant.confidence == "derived" for grant in (create, read, passed)):
+                            out[tid] = ("conditional", "glue_new_public_dev_endpoint_with_ssh_key")
+                            break
+                        uncertain = True
+                    if tid in out:
+                        break
+                    if not names and (get_allows or list_allows):
+                        uncertain = True
+                if tid not in out and uncertain:
+                    out[tid] = ("unknown", "glue_dev_endpoint_region_or_permissions_unresolved")
+            return out
         if pid == "devicefarm_existing_project_new_web_test_role":
             if source is None:
                 return None
@@ -7880,7 +7955,7 @@ class AwsModel(Model):
                     continue
                 existing = {row["ApplicationName"].casefold() for row in observed}
                 create = self.cached_check(source, {"action": "kinesisanalytics:CreateApplication",
-                    "request_context": {"aws:RequestedRegion": region}}, "*")
+                    "request_context": {"aws:RequestedRegion": region}}, "peaso-global-flink-create-application")
                 if create is None:
                     continue
                 names = set()

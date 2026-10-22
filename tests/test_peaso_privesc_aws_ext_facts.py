@@ -378,6 +378,18 @@ def test_flink_start_permission_selects_one_unused_application_name():
     assert reached(route(application, inventory_status="denied"), ALICE) == {}
 
 
+def test_flink_create_application_needs_global_resource_grant():
+    technique = catalog_entry("aws-flink-passrole-createapplication")
+    target = role("flink", trust_service("kinesisanalytics.amazonaws.com"))
+    application = f"arn:aws:kinesisanalytics:{REGION}:{ACCOUNT}:application/new-app"
+    source = user("alice", allow("iam:PassRole", target["Arn"]),
+                  allow("kinesisanalytics:CreateApplication", application),
+                  allow("kinesisanalytics:StartApplication", application))
+    inventory = ("flink_application", SCOPE, [], "empty")
+    assert reached(privesc.analyze(aws_snap([source], [target], [inventory]),
+                                   entries=[technique], include_unknown=False), ALICE) == {}
+
+
 def test_spot_fleet_requires_passable_fleet_role_and_service_linked_roles():
     technique = catalog_entry("aws-ec2-passrole-requestspotfleet")
     target = role("power", trust_service("ec2.amazonaws.com"), profile=True)
