@@ -409,6 +409,16 @@ def test_tests_workflow_runs_full_suite_and_gates_skips():
             nodeid = f'{path}::{suffix}'
             owner = pytest_shard.owner_for(nodeid, path, owners)
             assert sum(owner == i for i in owners[path]) == 1
+    slow_path = ROOT / 'tests/test_azure_databricks_notebook_secret_integration_20261020.py'
+    slow_path = slow_path.relative_to(ROOT)
+    measured = pytest_shard.MEASURED_NODE_SECONDS[slow_path.name]
+    assert len(measured) == len(owners[slow_path]) == 7
+    measured_loads = {owner: 0.0 for owner in owners[slow_path]}
+    for suffix, seconds in measured.items():
+        owner = pytest_shard.owner_for(f'{slow_path}::{suffix}', slow_path, owners)
+        measured_loads[owner] += seconds
+    assert all(measured_loads.values())
+    assert max(measured_loads.values()) <= 224
     assert "'pytest-xdist==" in run and 'check_test_skips.py pytest pytest-report.xml' in run
     assert any(s.get('with', {}).get('python-version') == '3.12' for s in shards['steps'])
     checkout = [s for s in shards['steps'] if s.get('with', {}).get('repository') == 'HackTricks-wiki/hacktricks-cloud']
