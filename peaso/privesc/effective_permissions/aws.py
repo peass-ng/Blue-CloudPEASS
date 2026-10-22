@@ -2685,10 +2685,19 @@ class AwsModel(Model):
             cached = self.__dict__["_sqs_self_grant_cache"] = load(self)
         return cached
 
+    def _sns_self_grants(self):
+        cached = self.__dict__.get("_sns_self_grant_cache")
+        if cached is None:
+            from .aws_sns_self_grant import load
+            cached = self.__dict__["_sns_self_grant_cache"] = load(self)
+        return cached
+
     def targets_for(self, kind, selector):
         selector = selector or {}
         if kind == "aws_verified_authority" and selector.get("aws_sqs_policy_self_grant"):
             return list(self._sqs_self_grants()[0].values())
+        if kind == "aws_verified_authority" and selector.get("aws_sns_policy_self_grant"):
+            return list(self._sns_self_grants()[0].values())
         if kind == "aws_verified_authority" and any(key in self.scoped_grants and selector.get(key)
                                                  for key in self.scoped_grants):
             key = next(key for key in self.scoped_grants if selector.get(key))
@@ -2779,6 +2788,9 @@ class AwsModel(Model):
         return cache[key]
 
     def unknown_target_scopes(self, kind):
+        if (self.current_selector or {}).get("aws_sns_policy_self_grant"):
+            return {scope.split("/")[0]: status for scope, status in
+                    unavailable(inventory_status(self.snapshot, "sns_topic")).items()}
         if (self.current_selector or {}).get("aws_sqs_policy_self_grant"):
             return {scope.split("/")[0]: status for scope, status in
                     unavailable(inventory_status(self.snapshot, "sqs_queue")).items()}
@@ -3042,6 +3054,13 @@ class AwsModel(Model):
                 return None
             records = self._sqs_self_grants()[1]
             return {target_id: ("conditional", "sqs_same_account_queue_policy_self_grant")
+                    for target_id in candidates
+                    if (record := records.get(target_id)) and record["SourceArn"] == source.id}
+        if key == "aws_sns_policy_self_grant":
+            if source is None:
+                return None
+            records = self._sns_self_grants()[1]
+            return {target_id: ("conditional", "sns_same_account_topic_policy_self_grant")
                     for target_id in candidates
                     if (record := records.get(target_id)) and record["SourceArn"] == source.id}
         if key == "aws_challenge_fact":

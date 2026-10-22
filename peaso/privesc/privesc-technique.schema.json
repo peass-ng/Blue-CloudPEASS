@@ -632,6 +632,10 @@
                   "const": true,
                   "description": "Reviewed SiteWise Monitor portal ADMINISTRATOR grant to the source identity."
                 },
+                "aws_sns_policy_self_grant": {
+                  "const": true,
+                  "description": "Same-account IAM user can grant itself Subscribe on an exact topic through SetTopicAttributes."
+                },
                 "aws_sqs_policy_self_grant": {
                   "const": true,
                   "description": "Same-account IAM user can grant itself ReceiveMessage on an exact unencrypted queue through SetQueueAttributes."
