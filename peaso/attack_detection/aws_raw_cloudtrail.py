@@ -56,6 +56,15 @@ def normalize(record: Mapping[str, Any]) -> list[dict[str, Any]]:
         return []
     identity = record.get("userIdentity")
     actor = identity.get("arn") if isinstance(identity, Mapping) else None
+    twinmaker_connector = (
+        source == "lambda.amazonaws.com" and name == "Invoke"
+        and category == "Data" and read_only is False
+        and isinstance(identity, Mapping)
+        and identity.get("type") == "AssumedRole"
+        and identity.get("invokedBy") == "iottwinmaker.amazonaws.com"
+        and record.get("sourceIPAddress") == "iottwinmaker.amazonaws.com"
+        and record.get("userAgent") == "iottwinmaker.amazonaws.com"
+    )
     if console_token and isinstance(actor, str):
         actor = "sha256:" + hashlib.sha256(actor.encode("utf-8")).hexdigest()[:24]
     if not resources:
@@ -99,7 +108,7 @@ def normalize(record: Mapping[str, Any]) -> list[dict[str, Any]]:
             continue
         seen.add(key)
         target = "sha256:" + hashlib.sha256(arn.encode("utf-8")).hexdigest()[:24]
-        result.append({
+        envelope = {
             "cloud.provider": "aws", "event.source": source,
             "event.name": name, "event.category": category,
             "event.read_only": read_only, "event.outcome": "success",
@@ -109,5 +118,8 @@ def normalize(record: Mapping[str, Any]) -> list[dict[str, Any]]:
             "__raw_cloudtrail": True,
             "__resource_path": resource_path,
             "resource.path_scope_checked": True,
-        })
+        }
+        if twinmaker_connector and kind == "AWS::Lambda::Function":
+            envelope["actor.invoked_by_service"] = "iottwinmaker.amazonaws.com"
+        result.append(envelope)
     return result

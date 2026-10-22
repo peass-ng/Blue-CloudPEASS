@@ -245,3 +245,68 @@ def test_resource_path_prefix_rejects_unsafe_or_nonraw_values(tmp_path):
         rule(tmp_path, extra="x_cloudtrail_resource_path_prefix: ../private\n")
     with pytest.raises(ValueError, match="Unsupported raw CloudTrail resource prefix"):
         rule(tmp_path, extra="x_cloudtrail_resource_path_prefix: /keyspace/system\n")
+
+
+def test_twinmaker_connector_invoke_requires_correlated_service_identity(tmp_path):
+    (tmp_path / "twinmaker.yml").write_text("""title: Synthetic TwinMaker connector invocation
+id: 23000000-0000-4000-8000-000000000001
+status: experimental
+description: Synthetic connector invocation test.
+references: [https://example.test/twinmaker]
+logsource: {product: aws, service: cloudtrail}
+detection:
+  selection:
+    event.source: lambda.amazonaws.com
+    event.name: Invoke
+    event.category: Data
+    event.outcome: success
+    event.read_only: false
+    resource.type: AWS::Lambda::Function
+    actor.invoked_by_service: iottwinmaker.amazonaws.com
+  condition: selection
+falsepositives: [Approved TwinMaker connector]
+level: medium
+x_hacktricks_technique_id: synthetic-twinmaker-connector-invoke
+x_cloudtrail_raw: true
+""", encoding="utf-8")
+    selected = load_rules(tmp_path, product="aws")
+    sample = event()
+    sample.update({
+        "eventSource": "lambda.amazonaws.com", "eventName": "Invoke",
+        "readOnly": False,
+        "userIdentity": {
+            "type": "AssumedRole", "invokedBy": "iottwinmaker.amazonaws.com",
+            "arn": f"arn:aws:sts::{ACCOUNT}:assumed-role/synthetic-workspace/synthetic-session",
+        },
+        "sourceIPAddress": "iottwinmaker.amazonaws.com",
+        "userAgent": "iottwinmaker.amazonaws.com",
+        "requestParameters": {"functionName": "private-function-name"},
+        "resources": [{"type": "AWS::Lambda::Function",
+                       "ARN": f"arn:aws:lambda:us-east-1:{ACCOUNT}:function:synthetic-connector"}],
+    })
+    hits = detect_aws_events([sample], selected)
+    assert len(hits) == 1
+    assert "private-function-name" not in str(hits)
+    assert "synthetic-connector" not in str(hits)
+    for path, value in (
+        (("userIdentity", "invokedBy"), "other.amazonaws.com"),
+        (("userIdentity", "type"), "IAMUser"),
+        (("sourceIPAddress",), "other.amazonaws.com"),
+        (("userAgent",), "other.amazonaws.com"),
+        (("resources",), []),
+        (("errorCode",), "AccessDeniedException"),
+    ):
+        changed = deepcopy(sample)
+        parent = changed
+        for part in path[:-1]:
+            parent = parent[part]
+        parent[path[-1]] = value
+        assert detect_aws_events([changed], selected) == []
+    wrong_event = deepcopy(sample)
+    wrong_event["eventName"] = "InvokeAsync"
+    assert detect_aws_events([wrong_event], selected) == []
+
+
+def test_twinmaker_service_field_cannot_be_used_for_other_raw_events(tmp_path):
+    with pytest.raises(ValueError, match="Unsupported raw CloudTrail rule"):
+        rule(tmp_path, selection_extra="    actor.invoked_by_service: iottwinmaker.amazonaws.com\n")
