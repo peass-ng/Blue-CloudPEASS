@@ -41,24 +41,24 @@ def load(model):
             if model._explicit_deny_for_action(source, "sns:subscribe", arn) is not False:
                 continue
             ctx = model._ctx(source, "sns:subscribe", arn)
-            blocked = False
+            prior_direct_allow = prior_resource_deny = False
             if existing:
                 for statement in existing[1]:
                     if not statement.action_matches("sns:subscribe") or statement.match(arn, ctx) is False:
                         continue
                     principal_match = _resource_principal(statement, source)
                     if statement.ref.get("not_principal"):
-                        if statement.effect == "deny" and source.attrs.get("boundary"):
-                            principal_match = "direct"
-                        else:
-                            principal_match = None if principal_match else "direct"
-                    if principal_match is None or model._cond(statement, ctx, statement.effect)[0] is False:
+                        principal_match = ("direct" if statement.effect == "deny" and source.attrs.get("boundary")
+                                           else None if principal_match else "direct")
+                    if principal_match is None:
                         continue
-                    if statement.effect == "deny" or (statement.effect == "allow" and
-                                                       principal_match == "direct"):
-                        blocked = True
-                        break
-            if blocked:
+                    verdict = model._cond(statement, ctx, statement.effect)[0]
+                    if statement.effect == "deny" and verdict is True:
+                        prior_resource_deny = True
+                    elif statement.effect == "allow" and principal_match == "direct" and verdict is not False:
+                        prior_direct_allow = True
+            # The old policy is replaced; its Deny does not survive the write.
+            if prior_direct_allow and not prior_resource_deny:
                 continue
             # An exact resource-policy Allow for a same-account IAM user bypasses
             # an implicit boundary deny; explicit denies were checked above.

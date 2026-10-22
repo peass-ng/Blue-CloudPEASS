@@ -48,24 +48,24 @@ def load(model):
             if model._explicit_deny_for_action(source, "dynamodb:getitem", arn) is not False:
                 continue
             ctx = model._ctx(source, "dynamodb:getitem", arn)
-            blocked = False
+            prior_direct_allow = prior_resource_deny = False
             if existing:
                 for statement in existing[1]:
                     if not statement.action_matches("dynamodb:getitem") or statement.match(arn, ctx) is False:
                         continue
                     principal_match = _resource_principal(statement, source)
                     if statement.ref.get("not_principal"):
-                        if statement.effect == "deny" and source.attrs.get("boundary"):
-                            principal_match = "direct"
-                        else:
-                            principal_match = None if principal_match else "direct"
-                    if principal_match is None or model._cond(statement, ctx, statement.effect)[0] is False:
+                        principal_match = ("direct" if statement.effect == "deny" and source.attrs.get("boundary")
+                                           else None if principal_match else "direct")
+                    if principal_match is None:
                         continue
-                    if statement.effect == "deny" or (statement.effect == "allow" and
-                                                       principal_match == "direct"):
-                        blocked = True
-                        break
-            if blocked:
+                    verdict = model._cond(statement, ctx, statement.effect)[0]
+                    if statement.effect == "deny" and verdict is True:
+                        prior_resource_deny = True
+                    elif statement.effect == "allow" and principal_match == "direct" and verdict is not False:
+                        prior_direct_allow = True
+            # PutResourcePolicy replaces the old policy and its Deny statements.
+            if prior_direct_allow and not prior_resource_deny:
                 continue
             # A direct same-account user grant bypasses an implicit boundary deny.
             recipient = (replace(source, attrs={**source.attrs, "boundary": None})

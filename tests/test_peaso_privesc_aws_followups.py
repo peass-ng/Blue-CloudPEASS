@@ -1490,15 +1490,16 @@ def test_sqs_queue_policy_self_grant_requires_new_effective_receive_permission()
     assert evaluate(queue_location=f"https://sqs.{REGION}.amazonaws.com/{ACCOUNT}/other") == []
     deny_policy = policy({"Effect": "Deny", "Principal": {"AWS": ALICE},
                           "Action": "sqs:ReceiveMessage", "Resource": queue_arn})
-    assert evaluate(queue_policy=deny_policy) == []
+    assert len(evaluate(queue_policy=deny_policy)) == 1
     not_principal_deny = policy({"Effect": "Deny", "NotPrincipal": {"AWS": ALICE},
                                  "Action": "sqs:ReceiveMessage", "Resource": queue_arn})
     assert len(evaluate(queue_policy=not_principal_deny)) == 1
-    assert evaluate(queue_policy=not_principal_deny, boundary_deny=False) == []
+    assert len(evaluate(queue_policy=not_principal_deny, boundary_deny=False)) == 1
     existing_allow = policy({"Effect": "Allow", "Principal": {"AWS": ALICE},
                              "Action": "sqs:ReceiveMessage", "Resource": queue_arn})
     assert evaluate(queue_policy=existing_allow) == []
     assert evaluate(queue_policy=existing_allow, boundary_deny=False) == []
+    assert len(evaluate(queue_policy=policy(*existing_allow["Statement"], *deny_policy["Statement"]))) == 1
     account_delegation = policy({"Effect": "Allow", "Principal": {"AWS": f"arn:aws:iam::{ACCOUNT}:root"},
                                  "Action": "sqs:ReceiveMessage", "Resource": queue_arn})
     assert len(evaluate(queue_policy=account_delegation)) == 1
@@ -1551,7 +1552,8 @@ def test_sns_topic_policy_self_grant_requires_new_effective_subscribe_permission
     assert evaluate(topic_policy=existing_allow) == []
     deny_policy = policy({"Effect": "Deny", "Principal": {"AWS": ALICE},
                           "Action": "sns:Subscribe", "Resource": topic_arn})
-    assert evaluate(topic_policy=deny_policy) == []
+    assert len(evaluate(topic_policy=deny_policy)) == 1
+    assert len(evaluate(topic_policy=policy(*existing_allow["Statement"], *deny_policy["Statement"]))) == 1
     assert evaluate(details="access_denied") == []
 
 
@@ -1605,11 +1607,12 @@ def test_dynamodb_table_policy_self_grant_requires_new_effective_getitem_permiss
     assert len(evaluate(table_policy=account_delegation)) == 1
     deny_policy = policy({"Effect": "Deny", "Principal": {"AWS": ALICE},
                           "Action": "dynamodb:GetItem", "Resource": table_arn})
-    assert evaluate(table_policy=deny_policy) == []
+    assert len(evaluate(table_policy=deny_policy)) == 1
     not_principal_deny = policy({"Effect": "Deny", "NotPrincipal": {"AWS": ALICE},
                                  "Action": "dynamodb:GetItem", "Resource": table_arn})
     assert len(evaluate(table_policy=not_principal_deny)) == 1
-    assert evaluate(table_policy=not_principal_deny, boundary_deny=False) == []
+    assert len(evaluate(table_policy=not_principal_deny, boundary_deny=False)) == 1
+    assert len(evaluate(table_policy=policy(*existing_allow["Statement"], *deny_policy["Statement"]))) == 1
     assert evaluate(table_status="DELETING") == []
     assert evaluate(encryption="KMS") == []
     assert evaluate(policy_status="denied") == []

@@ -51,7 +51,7 @@ def load(model):
             existing = model.resource_policies.get(arn)
             if "Policy" in attrs and existing is None:
                 continue
-            undecided = False
+            prior_direct_allow = prior_resource_deny = False
             if existing:
                 for statement in existing[1]:
                     if not statement.action_matches("sqs:receivemessage"):
@@ -60,21 +60,18 @@ def load(model):
                         continue
                     principal_match = _resource_principal(statement, source)
                     if statement.ref.get("not_principal"):
-                        if statement.effect == "deny" and source.attrs.get("boundary"):
-                            # IAM documents this Deny as applying to bounded users
-                            # even when the NotPrincipal names the user.
-                            principal_match = "direct"
-                        else:
-                            principal_match = None if principal_match else "direct"
-                    if principal_match is None or model._cond(statement, ctx, statement.effect)[0] is False:
+                        principal_match = ("direct" if statement.effect == "deny" and source.attrs.get("boundary")
+                                           else None if principal_match else "direct")
+                    if principal_match is None:
                         continue
-                    # Account-root Allow delegates to IAM; it does not give this user
-                    # ReceiveMessage without an identity Allow. A direct Allow does.
-                    if statement.effect == "deny" or (statement.effect == "allow" and
-                                                       principal_match == "direct"):
-                        undecided = True
-                        break
-            if undecided:
+                    verdict = model._cond(statement, ctx, statement.effect)[0]
+                    if statement.effect == "deny" and verdict is True:
+                        prior_resource_deny = True
+                    elif statement.effect == "allow" and principal_match == "direct" and verdict is not False:
+                        prior_direct_allow = True
+            # A direct Allow is already effective unless an existing Deny applied.
+            # SetQueueAttributes replaces the old policy, including its Deny.
+            if prior_direct_allow and not prior_resource_deny:
                 continue
             # An exact resource-policy grant to an IAM user bypasses a boundary's implicit deny.
             # Explicit boundary denies were already checked above.
