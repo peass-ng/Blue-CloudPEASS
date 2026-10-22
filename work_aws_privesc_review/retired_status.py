@@ -43,8 +43,12 @@ def main():
     if invalid:
         raise SystemExit(f"Invalid page review rows: {invalid[:10]}")
 
-    print("Retired techniques:", dict(sorted(Counter(row["review_state"] for row in retired).items())))
-    print("Privesc pages:", dict(sorted(Counter(row["review_state"] for row in pages).items())))
+    retired_counts = Counter(row["review_state"] for row in retired)
+    page_counts = Counter(row["review_state"] for row in pages)
+    print("Retired techniques:", dict(sorted(retired_counts.items())))
+    print("Retired unresolved:", sum(retired_counts[state] for state in ("pending", "triaged", "candidate")))
+    print("Privesc pages:", dict(sorted(page_counts.items())))
+    print("Pages awaiting sign-off:", sum(page_counts[state] for state in ("pending", "triaged")))
 
 
 if __name__ == "__main__":
