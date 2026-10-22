@@ -3,8 +3,8 @@ import json
 
 import pytest
 
-from peaso.checks import claude2_aws_b_data as data
-from peaso.checks.claude2_aws_b_common import Unavailable, IDS
+from peaso.checks import CHECKS, CHECK_ALIASES, claude2_aws_b_data as data
+from peaso.checks.claude2_aws_b_common import Unavailable
 
 
 def test_world_open_matches_prowler_all_ports_semantics():
@@ -34,6 +34,10 @@ def test_task_logging_parse():
 
 
 def test_collector_facts_reference_registered_checks():
+    registered = {check.id for check in CHECKS}
+    retired_alias = "aws.c2b.elasticache.cluster_public_subnet"
+    assert CHECK_ALIASES[retired_alias] == "aws.c2b.elasticache.cluster_public_subnet_prowler"
+    assert CHECK_ALIASES[retired_alias] in registered
     for fact in data.COLLECTOR_FACTS:
         assert fact["kind"] and fact["api"] and fact["fields"]
-        assert all(cid in IDS for cid in fact["checks"]), fact["kind"]
+        assert all(cid in registered or cid == retired_alias for cid in fact["checks"]), fact["kind"]
