@@ -848,7 +848,7 @@ def _hyperpod_clusters(requests, session, region, account):
         else:
             groups = []
             for field in ("InstanceGroups", "RestrictedInstanceGroups"):
-                groups += [_pick(g, ("InstanceGroupName", "InstanceType", "ExecutionRole", "CurrentCount", "Status"))
+                groups += [_pick(g, ("InstanceGroupName", "InstanceType", "ExecutionRole", "CurrentCount", "Status", "ImageId"))
                            for g in detail.get(field) or [] if isinstance(g, dict)]
             row["InstanceGroups"] = groups
             row["Orchestrator"] = copy.deepcopy(detail.get("Orchestrator"))

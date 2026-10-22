@@ -6816,6 +6816,146 @@ class AwsModel(Model):
             return None
         return ("conditional", "workspaces_exact_instance_role_effect_verified")
 
+    def _sagemaker_hyperpod_verified_ami_role_effect(self, source, role):
+        """Bind a supported group AMI transition and executed startup to its role."""
+        technique = "aws-sagemaker-updateclustersoftware-custom-ami"
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "hyperpod_group_ami_and_role_effect_not_verified")
+        scope, proof = records[0]
+        if (not scope.startswith(source.scope + "/") or
+                inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"):
+            return ("unknown", "hyperpod_ami_evidence_incomplete")
+        region = scope.split("/", 1)[1]
+        partition = source.id.split(":", 2)[1]
+        cluster_arn = proof.get("ClusterArn")
+        cluster_pattern = rf"arn:{re.escape(partition)}:sagemaker:{re.escape(region)}:{source.scope}:cluster/[a-z0-9]{{12}}"
+        if not isinstance(cluster_arn, str) or re.fullmatch(cluster_pattern, cluster_arn) is None:
+            return ("unknown", "hyperpod_cluster_identity_not_verified")
+        clusters = [row for row_scope, row in items(self.snapshot, "sagemaker_cluster")
+                    if row_scope == scope and row.get("ClusterArn") == cluster_arn]
+        group_name = proof.get("InstanceGroupName")
+        groups = [g for cluster in clusters for g in cluster.get("InstanceGroups", ())
+                  if isinstance(g, dict) and g.get("InstanceGroupName") == group_name and
+                  g.get("ExecutionRole") == role.id]
+        role_rows = [row for row_scope, row in items(self.snapshot, "iam_role")
+                     if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        role_id = role_rows[0].get("RoleId") if len(role_rows) == 1 else None
+        if len(clusters) != 1 or len(groups) != 1 or not isinstance(role_id, str) or not role_id:
+            return ("unknown", "hyperpod_instance_group_role_not_verified")
+        cluster, group = clusters[0], groups[0]
+        orchestrator = cluster.get("Orchestrator") or {}
+        kind = "slurm" if isinstance(orchestrator, dict) and orchestrator.get("Slurm") is not None else (
+            "eks" if isinstance(orchestrator, dict) and orchestrator.get("Eks") is not None else None)
+        current_image = group.get("ImageId")
+        previous_image = proof.get("PreviousImageId")
+        new_image = proof.get("NewAmiId")
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        if (cluster.get("ClusterStatus") != "InService" or kind is None or
+                proof.get("OrchestratorType") != kind or
+                current_image != proof.get("NewAmiId") or
+                (kind == "slurm" and (not isinstance(previous_image, str) or
+                                       re.fullmatch(r"ami-[0-9a-fA-F]{8,17}", previous_image) is None)) or
+                not isinstance(new_image, str) or
+                re.fullmatch(r"ami-[0-9a-fA-F]{8,17}", new_image) is None or
+                proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("TargetRoleId") != role_id or proof.get("InstanceGroupRoleArn") != role.id or
+                proof.get("NewAmiOwnedByAccount") is not True or
+                proof.get("NewAmiUnencrypted") is not True or
+                proof.get("NewAmiPrimaryVolumeOnly") is not True or
+                proof.get("NewAmiCompatibleWithGroup") is not True or
+                proof.get("NewAmiControlledBySource") is not True or
+                proof.get("UpdateClusterSoftwareSucceeded") is not True or
+                proof.get("GroupNodesBootedFromNewAmi") is not True or
+                proof.get("StartupCodeExecuted") is not True or
+                proof.get("InstanceRoleCredentialsUsed") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "hyperpod_ami_transition_or_role_effect_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "hyperpod_ami_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "hyperpod_ami_evidence_time_missing")
+        grants = (self._check_action(source, "sagemaker:UpdateClusterSoftware", cluster_arn),
+                  self.check(role, {"action": action}, resource))
+        if any(g is None or g.confidence != "derived" for g in grants):
+            return ("unknown", "hyperpod_current_permissions_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "hyperpod_exact_group_ami_role_effect_verified")
+
+    def _org_created_member_verified_role_effect(self, source, role, root):
+        """Confirm asynchronous account creation and the new-role trust route."""
+        technique = "aws-organizations-createaccount-principalorgid-trust"
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "new_member_account_creation_or_role_effect_not_verified")
+        scope, proof = records[0]
+        if (scope.split("/", 1)[0] != role.scope or
+                inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"):
+            return ("unknown", "new_member_account_evidence_incomplete")
+        partition = source.id.split(":", 2)[1]
+        account = proof.get("NewAccountId")
+        access_role = proof.get("NewAccessRoleArn")
+        account_pattern = r"[0-9]{12}"
+        access_pattern = (rf"arn:{re.escape(partition)}:iam::{account}:role/"
+                          r"[A-Za-z0-9_+=,.@-]{1,64}") if isinstance(account, str) else "^$"
+        target_rows = [row for row_scope, row in items(self.snapshot, "iam_role")
+                       if row_scope.split("/", 1)[0] == role.scope and row.get("Arn") == role.id]
+        target_id = target_rows[0].get("RoleId") if len(target_rows) == 1 else None
+        new_rows = [row for row_scope, row in items(self.snapshot, "iam_role")
+                    if row_scope.split("/", 1)[0] == account and row.get("Arn") == access_role]
+        new_role_id = new_rows[0].get("RoleId") if len(new_rows) == 1 else None
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                not isinstance(account, str) or re.fullmatch(account_pattern, account) is None or
+                account in (source.scope, role.scope) or
+                not isinstance(access_role, str) or re.fullmatch(access_pattern, access_role) is None or
+                proof.get("OrganizationId") != self.org_id or proof.get("RootId") != root or
+                proof.get("CreateAccountState") != "SUCCEEDED" or
+                proof.get("NewAccountActive") is not True or
+                proof.get("NewAccountInOrganizationRoot") is not True or
+                not isinstance(new_role_id, str) or not new_role_id or
+                proof.get("NewAccessRoleId") != new_role_id or
+                proof.get("SourceAssumedNewAccessRole") is not True or
+                proof.get("NewAccessRoleAssumedTargetRole") is not True or
+                not isinstance(target_id, str) or not target_id or
+                proof.get("TargetRoleId") != target_id or
+                proof.get("EffectUsefulToSource") is not True or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "new_member_account_or_target_trust_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "new_member_account_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "new_member_account_evidence_time_missing")
+        grants = (self._check_action(source, "organizations:CreateAccount", ANY),
+                  self._check_action(source, "sts:AssumeRole", access_role),
+                  self.check(role, {"action": action}, resource))
+        if any(g is None or g.confidence != "derived" for g in grants):
+            return ("unknown", "new_member_account_current_permissions_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "new_member_account_exact_target_role_effect_verified")
+
     def _ssm_incident_response_route(self, source, execution_role):
         """Bind a creatable Automation document and one usable incident response plan."""
         partition = source.id.split(":", 2)[1]
@@ -14895,6 +15035,11 @@ class AwsModel(Model):
                 return None
             return {tid: verdict for tid, role in candidates.items()
                     if (verdict := self._workspaces_instances_verified_role_effect(source, role))}
+        if pid == "sagemaker_hyperpod_custom_ami_group_role_effect":
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._sagemaker_hyperpod_verified_ami_role_effect(source, role))}
         if pid == "migrationhub_orchestrator_bound_workflow_script_and_managed_target":
             if source is None:
                 return None
@@ -15882,7 +16027,10 @@ class AwsModel(Model):
                     if rcp_denied:
                         continue
                     out[tid] = (("unknown", "target_role_rcp_conditional_deny_unverified")
-                                if rcp_unknown else verdict)
+                                if rcp_unknown else
+                                self._org_created_member_verified_role_effect(
+                                    source, candidates[tid], root)
+                                if verdict[0] == "conditional" else verdict)
             return out
         if pid == "emr_cluster_session_runtime_role":
             if source is None:
