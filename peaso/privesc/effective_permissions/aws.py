@@ -9561,6 +9561,84 @@ class AwsModel(Model):
         return (("unknown", "gameliftstreams_session_or_shell_permission_not_verified")
                 if uncertain else None)
 
+    def _gameliftstreams_controlled_role_session(self, source, role):
+        """Require an accepted session and executed controlled code under this role."""
+        technique = "aws-gameliftstreams-passrole-startstreamsession"
+        if source.scope != role.scope or source.id == role.id:
+            return None
+        pass_allows, _ = self._statements(source, "iam:passrole")
+        start_allows, _ = self._statements(source, "gameliftstreams:startstreamsession")
+        url_allows, _ = self._statements(source, "gameliftstreams:createstreamurl")
+        if not pass_allows or not (start_allows or url_allows):
+            return ("unknown", "gameliftstreams_source_permissions_incomplete") if source.incomplete else None
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "gameliftstreams_role_session_evidence_missing_or_conflicting")
+        scope, proof = records[0]
+        if (inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"
+                or source.incomplete or role.incomplete or "/" not in scope):
+            return ("unknown", "gameliftstreams_role_session_evidence_incomplete")
+        region = scope.split("/", 1)[1]
+        partition = source.id.split(":", 2)[1]
+        prefix = rf"arn:{re.escape(partition)}:gameliftstreams:{re.escape(region)}:{source.scope}:"
+        group, app, session = proof.get("StreamGroupArn"), proof.get("ApplicationArn"), proof.get("StreamSessionArn")
+        route = proof.get("RouteAction")
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        if (not isinstance(group, str) or re.fullmatch(prefix + r"streamgroup/sg-[A-Za-z0-9-]+", group) is None or
+                not isinstance(app, str) or re.fullmatch(prefix + r"application/a-[A-Za-z0-9-]+", app) is None or
+                not isinstance(session, str) or re.fullmatch(
+                    prefix + r"streamsession/" + re.escape(group.rsplit("/", 1)[-1]) + r"/[A-Za-z0-9-]+",
+                    session) is None or route not in ("StartStreamSession", "CreateStreamUrl") or
+                proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("TechniqueId") != technique or proof.get("SourceArn") != source.id or
+                proof.get("TargetKind") != "aws_role" or proof.get("TargetId") != role.id or
+                any(proof.get(key) is not True for key in (
+                    "GroupSupportsSessionCredentials", "GroupActive", "GroupCapacityAvailable",
+                    "ApplicationReady", "ApplicationAssociated", "ApplicationControlledBySource",
+                    "LaunchAccepted", "SessionActive", "ClientConnected", "ApplicationCodeExecuted",
+                    "SessionCredentialsIssued", "CodeUsedSessionRoleCredentials", "RoleActionSucceeded",
+                    "EffectUsefulToSource")) or
+                (route == "CreateStreamUrl" and proof.get("StreamUrlCreated") is not True) or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "gameliftstreams_application_or_role_effect_not_verified")
+        rows = [row for row_scope, row in items(self.snapshot, "iam_role")
+                if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        if (len(rows) != 1 or not isinstance(proof.get("TargetRoleId"), str) or
+                not proof["TargetRoleId"] or rows[0].get("RoleId") != proof["TargetRoleId"] or
+                self._service_trust_for_source_arn(
+                    role.id, "gameliftstreams.amazonaws.com", session) is False):
+            return ("unknown", "gameliftstreams_role_identity_or_trust_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "gameliftstreams_role_session_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "gameliftstreams_role_session_evidence_time_missing")
+        context = {"aws:RequestedRegion": region, "gameliftstreams:RoleArn": role.id}
+        grants = [self.check(source, {"action": "iam:PassRole", "request_context": {
+            "aws:RequestedRegion": region, "iam:PassedToService": "gameliftstreams.amazonaws.com"}}, role.id),
+            self.check(role, {"action": action}, resource)]
+        if route == "StartStreamSession":
+            grants.append(self.check(source, {"action": "gameliftstreams:StartStreamSession",
+                                               "request_context": context}, group))
+        else:
+            grants.extend(self.check(source, {"action": "gameliftstreams:CreateStreamUrl",
+                                              "request_context": context}, item) for item in (group, app))
+            grants.append(self.check(source, {"action": "gameliftstreams:StartStreamSession",
+                                               "request_context": context}, group))
+        if any(grant is None or grant.confidence != "derived" for grant in grants):
+            return ("unknown", "gameliftstreams_scoped_session_permissions_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "gameliftstreams_exact_controlled_application_role_effect")
+
     def _glue_writable_script_witness(self, source, role, job_status):
         """Find a recorded script object the caller can replace and the role can read."""
         partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
@@ -10709,12 +10787,10 @@ class AwsModel(Model):
                     out[tid] = verdict
             return out
         if pid == "gameliftstreams_controlled_application_role_session":
-            # Start/URL and PassRole grants do not identify an application the
-            # source controls or a usable group associated with that application.
-            # Keep the possible role target unresolved until those facts can be
-            # joined to one launch request; a prose condition cannot prove them.
-            return {tid: ("unknown", "gameliftstreams_controlled_application_or_group_not_verified")
-                    for tid in candidates}
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._gameliftstreams_controlled_role_session(source, role))}
         out = {}
         if pid in ("iot_new_alias_policy_certificate_same_region",
                    "iot_existing_alias_new_policy_certificate_same_region"):

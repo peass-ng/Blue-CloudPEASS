@@ -21,7 +21,12 @@ V4_EFFECTIVE_TREE = "413792ea4aec86e48c352ffab2c0bea9e82795bc234251342737ec0276b
 LEGACY_DELTA = Path(__file__).resolve().parent / "catalog_versions/legacy-0b3633-delta.json"
 BOUNDED_MANIFEST = "734401b202895e00ac1b6cb0f1534f77cde4d8e2ba912ca0ee974b1b8ec5035c"
 BOUNDED_TREE = "1a54bad4102d18f89c78f45c915964554a62f994c1bffa693844cac5e119cca8"
-CURRENT_MANIFEST = '8ffa2192b4873d378c61865ef16459a70529aed1a2a081164500143060a0bc1b'
+CURRENT_MANIFEST = '9225c65918dd67e038c1753eae411ccccf2cf31b83d72548f1e621424cd13438'
+GAMELIFTSTREAMS_SESSION_EFFECT_691_PREVIOUS_MANIFEST = '8ffa2192b4873d378c61865ef16459a70529aed1a2a081164500143060a0bc1b'
+GAMELIFTSTREAMS_SESSION_EFFECT_691_PREVIOUS_TREE = '55c05ebddf380fd4153ed664b0c9ec81cafc06e6e9c6fb06596927cae216ba93'
+GAMELIFTSTREAMS_SESSION_EFFECT_691_PREVIOUS_ARCHIVE_SHA256 = '73abab86f21dec872666d59d2a053b452ee85bed4aebf76463fbe71571d73663'
+GAMELIFTSTREAMS_SESSION_EFFECT_691_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-691-gameliftstreams-session-effect-source-manifest.json'
+GAMELIFTSTREAMS_SESSION_EFFECT_691_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-691-gameliftstreams-session-effect-catalog.tar.gz'
 EVENTS_SUBSCRIBER_EFFECT_691_PREVIOUS_MANIFEST = '119bc1a1db78a8410c732e79e5de8a840acb37ee9bc67417861c775d08989694'
 EVENTS_SUBSCRIBER_EFFECT_691_PREVIOUS_TREE = '8d048c0beb291b34ff95f6262ea81ff2d7e5dfd2d28043fdea202cff0d04ca19'
 EVENTS_SUBSCRIBER_EFFECT_691_PREVIOUS_ARCHIVE_SHA256 = 'dae4f0d10a2b59b65c4f450d15506bda677fa5e296d4e72cd1cf66228126dcad'
@@ -617,7 +622,7 @@ PRIOR_CURRENT_MANIFEST = "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0c
 PRIOR_DISCLOSURE_MANIFEST = "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
 PRIOR_DISCLOSURE_TREE = "5091464bedcb10bb87301695ca733276dc67b865e544c408ccf72a5408176f0f"
 PRIOR_DISCLOSURE_HISTORY = Path(__file__).resolve().parent / "catalog_versions/disclosure-v7-manifest.json"
-CURRENT_TREE = '55c05ebddf380fd4153ed664b0c9ec81cafc06e6e9c6fb06596927cae216ba93'
+CURRENT_TREE = '6fe49fa21c83ca15cd3c32f803bdd58c080df5d6807f9bdafd97e36ec70f216e'
 PRIOR_CURRENT_TREE = "99207e6469fc5e5b3daf21324e6860599b116ffcf7d30600643bd229b0f11494"
 CURRENT_ENTRY_COUNT = 691
 CURRENT_EXCLUDED_COUNT = 3737
@@ -739,6 +744,17 @@ def _verified_teststate_690_previous():
         TESTSTATE_690_PREVIOUS_MANIFEST_PATH, TESTSTATE_690_PREVIOUS_ARCHIVE,
         TESTSTATE_690_PREVIOUS_MANIFEST, TESTSTATE_690_PREVIOUS_ARCHIVE_SHA256,
         TESTSTATE_690_PREVIOUS_TREE, 690, 3723)
+
+
+@lru_cache(maxsize=1)
+def _verified_gameliftstreams_session_effect_691_previous():
+    """Keep the exact catalog before GameLift Streams role session binding."""
+    return _verified_archived_current(
+        GAMELIFTSTREAMS_SESSION_EFFECT_691_PREVIOUS_MANIFEST_PATH,
+        GAMELIFTSTREAMS_SESSION_EFFECT_691_PREVIOUS_ARCHIVE,
+        GAMELIFTSTREAMS_SESSION_EFFECT_691_PREVIOUS_MANIFEST,
+        GAMELIFTSTREAMS_SESSION_EFFECT_691_PREVIOUS_ARCHIVE_SHA256,
+        GAMELIFTSTREAMS_SESSION_EFFECT_691_PREVIOUS_TREE, 691, 3737)
 
 
 @lru_cache(maxsize=1)
@@ -1830,6 +1846,10 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "current", "exact_strict_privesc"
+    elif (binding.get("manifest_sha256") == GAMELIFTSTREAMS_SESSION_EFFECT_691_PREVIOUS_MANIFEST and
+          binding.get("effective_tree_sha256") == GAMELIFTSTREAMS_SESSION_EFFECT_691_PREVIOUS_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "gameliftstreams_session_effect_691_previous", "exact_previous_current"
     elif (binding.get("manifest_sha256") == EVENTS_SUBSCRIBER_EFFECT_691_PREVIOUS_MANIFEST and
           binding.get("effective_tree_sha256") == EVENTS_SUBSCRIBER_EFFECT_691_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -2305,6 +2325,9 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
         if version == "current":
             current = _verified_current(str(catalog_dir), str(manifest_path))
             return {ident: current[ident] for ident in ids if ident in current}, status
+        if version == "gameliftstreams_session_effect_691_previous":
+            previous = _verified_gameliftstreams_session_effect_691_previous()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "events_subscriber_effect_691_previous":
             previous = _verified_events_subscriber_effect_691_previous()
             return {ident: previous[ident] for ident in ids if ident in previous}, status
