@@ -20,6 +20,7 @@ import yaml
 
 from .aws import normalize_aws_cloudtrail
 from .aws_raw_cloudtrail import normalize as normalize_aws_raw_cloudtrail
+from .aws_workspaces_web_batch231 import normalize as normalize_aws_workspaces_web_batch231
 from .aws_frauddetector_event_replace import correlate_aws_frauddetector_event_replacement
 from .aws_login_profile_next import normalize_aws_other_user_login_profile, normalize_aws_other_user_login_profile_update
 from .aws_security_controls import normalize_aws_security_control
@@ -103,6 +104,8 @@ from .aws_waf_ipset_untag_batch205 import normalize as normalize_aws_waf_ipset_u
 from .aws_logs_scheduled_query_batch207 import normalize as normalize_aws_logs_scheduled_query_batch207
 from .aws_devicefarm_batch140 import normalize as normalize_aws_devicefarm_batch140
 from .aws_devicefarm_sessions_batch141 import normalize as normalize_aws_devicefarm_sessions_batch141
+from .aws_apprunner_batch210 import normalize as normalize_aws_apprunner_batch210
+from .aws_apprunner_ecr_batch211 import correlate as correlate_aws_apprunner_ecr_batch211
 from .aws_appstream_controls_batch193 import normalize as normalize_aws_appstream_controls_batch193
 from .aws_eks_access_batch192 import normalize as normalize_aws_eks_access_batch192
 from .aws_appstream_stack_batch213 import normalize as normalize_aws_appstream_stack_batch213
@@ -636,6 +639,7 @@ def detect_aws_events(
         logs_scheduled_query_batch207 = normalize_aws_logs_scheduled_query_batch207(record)
         devicefarm_batch140 = normalize_aws_devicefarm_batch140(record)
         devicefarm_sessions_batch141 = normalize_aws_devicefarm_sessions_batch141(record)
+        apprunner_batch210 = normalize_aws_apprunner_batch210(record)
         appstream_controls_batch193 = normalize_aws_appstream_controls_batch193(record)
         eks_access_batch192 = normalize_aws_eks_access_batch192(record)
         appstream_stack_batch213 = normalize_aws_appstream_stack_batch213(record)
@@ -705,6 +709,7 @@ def detect_aws_events(
         iam_identity_deletion = normalize_aws_iam_identity_deletion(record)
         iam_credential_deletion = normalize_aws_iam_credential_deletion(record)
         iam_cert_key_controls = normalize_aws_iam_cert_key_controls(record)
+        workspaces_web_batch231 = normalize_aws_workspaces_web_batch231(record)
         return (([base] if base is not None else [])
                 + ([cloudtrail_selectors] if cloudtrail_selectors is not None else [])
                 + ([profile] if profile is not None else [])
@@ -888,6 +893,7 @@ def detect_aws_events(
                 + ([logs_scheduled_query_batch207] if logs_scheduled_query_batch207 is not None else [])
                 + devicefarm_batch140
                 + devicefarm_sessions_batch141
+                + ([apprunner_batch210] if apprunner_batch210 is not None else [])
                 + appstream_controls_batch193
                 + eks_access_batch192
                 + ([appstream_stack_batch213] if appstream_stack_batch213 is not None else [])
@@ -955,6 +961,7 @@ def detect_aws_events(
                 + ([iam_identity_deletion] if iam_identity_deletion is not None else [])
                 + ([iam_credential_deletion] if iam_credential_deletion is not None else [])
                 + ([iam_cert_key_controls] if iam_cert_key_controls is not None else [])
+                + ([workspaces_web_batch231] if workspaces_web_batch231 is not None else [])
                 + (normalize_aws_raw_cloudtrail(record) if raw_enabled else []))
 
     selected = rules if rules is not None else load_rules(product="aws")
@@ -1085,6 +1092,9 @@ def detect_aws_events(
                     and record["eventSource"] in {"ecr.amazonaws.com", "ecr-public.amazonaws.com"}
                     and isinstance(record.get("eventName"), str)
                     and record["eventName"] in {"PutImage", "CompleteLayerUpload"}):
+                ecr_image_records.append(record)
+            if (record.get("eventSource") == "apprunner.amazonaws.com"
+                    and record.get("eventName") in {"CreateService", "UpdateService", "DeleteService"}):
                 ecr_image_records.append(record)
             if record.get("eventSource") == "athena.amazonaws.com" and record.get("eventName") in {"StartQueryExecution", "ListQueryExecutions", "GetQueryExecution", "BatchGetQueryExecution", "GetQueryResults", "GetQueryRuntimeStatistics"}:
                 athena_history_records.append(record)
@@ -1265,6 +1275,7 @@ def detect_aws_events(
     correlated += correlate_aws_iot_external_cert_policy(iot_external_cert_records)
     correlated += correlate_aws_lambda_mapping_repoint(lambda_mapping_records)
     correlated += correlate_aws_ecr_tag_overwrite(ecr_image_records)
+    correlated += correlate_aws_apprunner_ecr_batch211(ecr_image_records)
     correlated += correlate_aws_ecr_new_layer_push(ecr_image_records)
     correlated += correlate_aws_chime_live_pipeline_read(chime_media_pipeline_records)
     correlated += correlate_aws_chime_media_insights(chime_media_insights_records)
