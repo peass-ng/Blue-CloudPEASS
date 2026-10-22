@@ -294,6 +294,11 @@ def run_progressive(worker, tenant, ident, *, poll_seconds=0.25):
                 if checkpoint_sections is not None:
                     eligible = []
                     for stage in STAGES:
+                        # A higher revision can supersede a live durable claim.
+                        # Keep the running child's handle until it settles so
+                        # every child remains bounded, heartbeated and drained.
+                        if stage in active:
+                            continue
                         section = checkpoint_sections.get(stage, {})
                         if not isinstance(section, dict) or section.get("status") != "complete":
                             continue
