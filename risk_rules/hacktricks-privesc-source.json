@@ -1,6 +1,6 @@
 {
   "repository": "HackTricks-wiki/hacktricks-cloud",
-  "revision": "9f40115a639225d2a93022daebc8884d76492154",
+  "revision": "825c5bcdb37619c524e9b0465577d8faa2330e68",
   "path": "src/privilege-escalation-paths",
   "canonical_sha256": {
     "aws/_excluded_171e_g1.yaml": "2160b8f57f029e74e5a31727815316f459d8364147c47be2c36639c831b9dcb3",
@@ -116,7 +116,7 @@
     "aws/redshift.yaml": "55f31de378cc5f67949fbfa21474a068afc65ab47b1357a8885f3a9684323e3b",
     "aws/s3.yaml": "5690dda8cf38b0252c4ae9d526848dc0dbae572e22729613c02519a28af43aad",
     "aws/s3files.yaml": "77f1132d1bd905e56ae2bbd39496d2cfe70e3e865eb87c99c037724b2dc01159",
-    "aws/sagemaker.yaml": "9b981fc47c08b01527cf2b3575a45844f151af8d3a4ff42ea3d375c9b33b0099",
+    "aws/sagemaker.yaml": "635a0c36311a1adeb750d3e232ce81b83c79d2636a7d9396d8df7aea3f2062b3",
     "aws/scheduler.yaml": "9aeef5e2e96be9b5f4b4eda6b4951161c9aafde7ff19382bf6847e53a2543d39",
     "aws/scoped_grants.yaml": "5d823300caabe6038c338bdfdfed4436f2b020ffac1211a3b9743e078260890f",
     "aws/servicecatalog.yaml": "ce875946ac107aab77c6ab037add8f007c28c05a00f6f528f369a58ba09987f3",
@@ -409,7 +409,7 @@
     "aws/redshift.yaml": "55f31de378cc5f67949fbfa21474a068afc65ab47b1357a8885f3a9684323e3b",
     "aws/s3.yaml": "5690dda8cf38b0252c4ae9d526848dc0dbae572e22729613c02519a28af43aad",
     "aws/s3files.yaml": "77f1132d1bd905e56ae2bbd39496d2cfe70e3e865eb87c99c037724b2dc01159",
-    "aws/sagemaker.yaml": "9b981fc47c08b01527cf2b3575a45844f151af8d3a4ff42ea3d375c9b33b0099",
+    "aws/sagemaker.yaml": "635a0c36311a1adeb750d3e232ce81b83c79d2636a7d9396d8df7aea3f2062b3",
     "aws/scheduler.yaml": "9aeef5e2e96be9b5f4b4eda6b4951161c9aafde7ff19382bf6847e53a2543d39",
     "aws/scoped_grants.yaml": "5d823300caabe6038c338bdfdfed4436f2b020ffac1211a3b9743e078260890f",
     "aws/servicecatalog.yaml": "ce875946ac107aab77c6ab037add8f007c28c05a00f6f528f369a58ba09987f3",

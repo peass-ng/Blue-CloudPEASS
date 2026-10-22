@@ -8362,6 +8362,82 @@ class AwsModel(Model):
                 uncertain = True
             verdict = ("unknown", "sfn_existing_machine_update_and_start_not_verified") if uncertain else None
             return {tid: verdict for tid in candidates if verdict} if verdict else {}
+        if pid == "sagemaker_attach_new_notebook_lifecycle_config":
+            if source is None:
+                return None
+            statuses = inventory_status(self.snapshot, "sagemaker_notebook_instance")
+            if not statuses:
+                return {tid: ("unknown", "sagemaker_notebook_inventory_not_collected") for tid in candidates}
+            partition = source.id.split(":", 2)[1]
+            out = {}
+            for tid, target in candidates.items():
+                uncertain = bool(source.incomplete or target.incomplete or
+                                 any(state not in ("collected", "empty") for state in statuses.values()))
+                for scope, notebook in items(self.snapshot, "sagemaker_notebook_instance"):
+                    if (statuses.get(scope) != "collected" or not scope.startswith(source.scope + "/")
+                            or not isinstance(notebook, dict) or notebook.get("RoleArn") != target.id):
+                        continue
+                    account, region = scope.split("/", 1)
+                    name = notebook.get("NotebookInstanceName")
+                    arn = notebook.get("NotebookInstanceArn")
+                    if (not isinstance(name, str) or not re.fullmatch(r"[A-Za-z0-9](?:-*[A-Za-z0-9])*", name)
+                            or len(name) > 63 or arn != f"arn:{partition}:sagemaker:{region}:{account}:notebook-instance/{name}"):
+                        uncertain = True
+                        continue
+                    state = notebook.get("NotebookInstanceStatus")
+                    platform = notebook.get("PlatformIdentifier")
+                    if state not in ("InService", "Stopped"):
+                        uncertain = uncertain or state not in ("Deleting", "Failed")
+                        continue
+                    if platform != "notebook-al2023-v1":
+                        uncertain = True  # Platform migration may be possible but is not joined here.
+                        continue
+                    trust = self._service_trust_for_source_arn(tid, "sagemaker.amazonaws.com", arn)
+                    if trust is False:
+                        continue
+                    if trust is None:
+                        uncertain = True
+                        continue
+                    update = self._check_action(source, "sagemaker:updatenotebookinstance", arn)
+                    if update is None:
+                        continue
+                    if update.confidence != "derived":
+                        uncertain = True
+                        continue
+                    if state == "InService":
+                        stop = self._check_action(source, "sagemaker:stopnotebookinstance", arn)
+                        if stop is None:
+                            uncertain = True  # Another operator could stop the notebook later.
+                            continue
+                        if stop.confidence != "derived":
+                            uncertain = True
+                            continue
+                    prefix = f"arn:{partition}:sagemaker:{region}:{account}:notebook-instance-lifecycle-config/"
+                    seed = hashlib.sha256((source.id + arn).encode()).hexdigest()[:12]
+                    names = {"PeasoBound" + seed + suffix for suffix in ("", "A", "B")}
+                    for statement in self._statements(source, "sagemaker:createnotebookinstancelifecycleconfig")[0]:
+                        if statement.notresource or statement.variables:
+                            uncertain = True
+                            continue
+                        for pattern in statement.resources:
+                            unified = _unify_arn(pattern, prefix + "*") if pattern != "*" else None
+                            if unified and unified.startswith(prefix):
+                                names.add(_instantiate(unified[len(prefix):]))
+                    for config_name in sorted(names):
+                        if (not re.fullmatch(r"[A-Za-z0-9](?:-*[A-Za-z0-9])*", config_name)
+                                or len(config_name) > 63):
+                            continue
+                        create = self._check_action(source, "sagemaker:createnotebookinstancelifecycleconfig",
+                                                    prefix + config_name)
+                        if create is not None and create.confidence == "derived":
+                            out[tid] = ("conditional", "sagemaker_new_lifecycle_config_attached_to_restartable_notebook")
+                            break
+                        uncertain = uncertain or create is not None
+                    if tid in out:
+                        break
+                if tid not in out and uncertain:
+                    out[tid] = ("unknown", "sagemaker_new_lifecycle_config_attachment_not_verified")
+            return out
         if pid == "sagemaker_attached_notebook_lifecycle_update":
             if source is None:
                 return None
