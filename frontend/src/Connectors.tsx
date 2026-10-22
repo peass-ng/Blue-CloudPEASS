@@ -7,7 +7,7 @@ import { authGuides, gcpRoles } from "./authGuides";
 import { ConnectorFieldHelp } from "./ConnectorFieldHelp";
 import { providers } from "./types";
 import type { Catalog, Connector, Me, Provider } from "./types";
-import { Badge, humanError, Inspector, Panel, ProviderIcon, State } from "./ui";
+import { Badge, date, humanError, Inspector, Panel, ProviderIcon, State } from "./ui";
 import { LaunchForm } from "./Scans";
 const COLLECTOR_ROLE_ARN = "REPLACE_WITH_COLLECTOR_ROLE_FROM_PREPARATION";
 const ROLE_ARN = /^arn:aws:iam::[0-9]{12}:role\/[A-Za-z0-9+=,.@_/-]{1,512}$/;
@@ -390,6 +390,8 @@ export function Connectors({ demo, canWrite = true }: { demo: boolean; canWrite?
   const [onboarding, setOnboarding] = useState<Connector>();
   const [remove, setRemove] = useState<Connector>();
   const [launchConnector, setLaunchConnector] = useState<string>();
+  const connectorsNewestFirst = [...items(query.data)].sort((a, b) =>
+    (Date.parse(b.created_at || "") || 0) - (Date.parse(a.created_at || "") || 0));
   const catalog = useApi<Catalog>(catalogFrameworksPath, demo, !!launchConnector);
   const del = useMutation({
     mutationFn: (id: string) =>
@@ -449,51 +451,26 @@ export function Connectors({ demo, canWrite = true }: { demo: boolean; canWrite?
           </button>
         </State>
         {items(query.data).length > 0 && (
-          <div className="card-list">
-            {items(query.data).map((c) => (
-              <article className="connector-card" key={c.id}>
-                <ProviderIcon provider={c.provider} size={36} />
-                <div className="grow">
-                  <h3>{c.name}</h3>
-                  <p>
-                    {c.scopes?.join(" · ") || "Default accessible scope"} ·{" "}
-                    {c.auth_mode ||
-                      String(c.auth?.mode || "Configured credentials")}
-                  </p>
-                </div>
-                <Badge
-                  value={
-                    c.input_mode && c.input_mode !== "live"
-                      ? c.input_mode
-                      : c.status || "configured"
-                  }
-                />
-                <button className="button" disabled={demo || !canWrite}
-                  aria-label={`Launch scan for ${c.name}`} onClick={() => setLaunchConnector(c.id)}>
-                  <Play size={15} />Launch scan</button>
-                {(c.onboarding || c.gcp_onboarding) && (
-                  <button className="button" onClick={() => setOnboarding(c)}>
-                    Onboarding
-                  </button>
-                )}
-                <button
-                  className="icon-button"
-                  aria-label={`Edit ${c.name}`}
-                  disabled={demo || !canWrite}
-                  onClick={() => setEdit(c)}
-                >
-                  <Pencil size={17} />
-                </button>
-                <button
-                  className="icon-button danger"
-                  aria-label={`Delete ${c.name}`}
-                  disabled={demo || !canWrite}
-                  onClick={() => setRemove(c)}
-                >
-                  <Trash2 size={17} />
-                </button>
-              </article>
-            ))}
+          <div className="table-scroll" role="region" aria-label="Connectors table" tabIndex={0}>
+            <table className="findings-table connectors-table">
+              <thead><tr><th scope="col">Connector</th><th scope="col">Created</th><th scope="col">Actions</th></tr></thead>
+              <tbody>{connectorsNewestFirst.map(c => <tr key={c.id}>
+                <td><div className="connector-identity"><ProviderIcon provider={c.provider} size={30} /><div>
+                  <h3>{c.name}</h3><p>{c.scopes?.join(" · ") || "Default accessible scope"}
+                    {(c.auth_mode || c.auth?.mode) ? ` · ${c.auth_mode || String(c.auth?.mode)}` : ""}</p>
+                  {c.input_mode && c.input_mode !== "live" && <Badge value={c.input_mode} />}
+                </div></div></td>
+                <td><time dateTime={c.created_at} title={c.created_at}>{date(c.created_at)}</time></td>
+                <td><div className="connector-actions">
+                  <button className="button" disabled={demo || !canWrite}
+                    aria-label={`Launch scan for ${c.name}`} onClick={() => setLaunchConnector(c.id)}>
+                    <Play size={15} />Launch scan</button>
+                  {(c.onboarding || c.gcp_onboarding) && <button className="button" onClick={() => setOnboarding(c)}>Onboarding</button>}
+                  <button className="icon-button" aria-label={`Edit ${c.name}`} disabled={demo || !canWrite} onClick={() => setEdit(c)}><Pencil size={17} /></button>
+                  <button className="icon-button danger" aria-label={`Delete ${c.name}`} disabled={demo || !canWrite} onClick={() => setRemove(c)}><Trash2 size={17} /></button>
+                </div></td>
+              </tr>)}</tbody>
+            </table>
           </div>
         )}
       </Panel>
