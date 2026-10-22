@@ -7704,6 +7704,115 @@ class AwsModel(Model):
                                 return ("conditional", f"codepipeline_new_{provider}_source_and_roles_available")
         return ("unknown", "codepipeline_new_source_or_role_not_verified") if uncertain else None
 
+    def _datapipeline_created_ec2_role_effect(self, source, candidates):
+        if source is None:
+            return None
+        pending = ("unknown", "datapipeline_customer_role_pair_and_pipeline_run_not_verified")
+        out = {}
+        try:
+            now = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            if now.tzinfo is None:
+                now = None
+        except (KeyError, TypeError, ValueError):
+            now = None
+        proof_status = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+        technique = (self.current_entry or {}).get("id")
+        for tid, role in candidates.items():
+            out[tid] = pending
+            if now is None or role.scope != source.scope:
+                continue
+            role_rows = [row for role_scope, row in items(self.snapshot, "iam_role")
+                if role_scope.split("/")[0] == role.scope and row.get("Arn") == tid]
+            role_id = role_rows[0].get("RoleId") if len(role_rows) == 1 else None
+            profiles = role_rows[0].get("InstanceProfileList") if len(role_rows) == 1 else None
+            profile_arns = {p.get("Arn") for p in profiles if isinstance(p, dict) and
+                            isinstance(p.get("Arn"), str)} if isinstance(profiles, list) else set()
+            if not isinstance(role_id, str) or not role_id or not profile_arns:
+                continue
+            for scope in self.snapshot.get("scopes", ()):
+                if not isinstance(scope, str) or not scope.startswith(f"{role.scope}/"):
+                    continue
+                collections = [collection for collection in self.snapshot.get("collections", ())
+                    if collection.get("type") == "aws_privesc_challenge_evidence" and
+                    collection.get("scope") == scope]
+                if len(collections) != 1 or collections[0].get("status") != "collected":
+                    continue
+                proofs = [row for proof_scope, row in items(self.snapshot, "aws_privesc_challenge_evidence")
+                    if proof_scope == scope and proof_status.get(scope) == "collected" and
+                    row.get("TechniqueId") == technique and row.get("SourceArn") == source.id and
+                    row.get("TargetKind") == "aws_role" and row.get("TargetId") == tid]
+                if len(proofs) != 1:
+                    continue
+                proof = proofs[0]
+                pipeline_role_arn = proof.get("PipelineRoleArn")
+                pipeline_role = self.principals.get(pipeline_role_arn) if isinstance(pipeline_role_arn, str) else None
+                if (pipeline_role is None or pipeline_role.scope != role.scope or
+                        pipeline_role.id == tid or pipeline_role.incomplete):
+                    continue
+                pipeline_rows = [row for row_scope, row in items(self.snapshot, "iam_role")
+                    if row_scope.split("/")[0] == role.scope and row.get("Arn") == pipeline_role_arn]
+                pipeline_role_id = pipeline_rows[0].get("RoleId") if len(pipeline_rows) == 1 else None
+                if (not isinstance(pipeline_role_id, str) or not pipeline_role_id or
+                        proof.get("PipelineRoleId") != pipeline_role_id or
+                        self._non_iam_trust_verdict(pipeline_role_arn, "Service",
+                            "datapipeline.amazonaws.com", "sts:AssumeRole") != "derived"):
+                    continue
+                partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+                region = scope.split("/", 1)[1]
+                pipeline_id = proof.get("PipelineId")
+                if (not isinstance(pipeline_id, str) or
+                        re.fullmatch(r"df-[A-Za-z0-9]+", pipeline_id) is None):
+                    continue
+                pipeline_arn = f"arn:{partition}:datapipeline:{region}:{role.scope}:pipeline/{pipeline_id}"
+                instance_arn = proof.get("InstanceArn")
+                if (proof.get("PipelineArn") != pipeline_arn or
+                        not isinstance(instance_arn, str) or
+                        re.fullmatch(rf"arn:{re.escape(partition)}:ec2:{re.escape(region)}:"
+                                     rf"{role.scope}:instance/i-[a-f0-9]+", instance_arn) is None):
+                    continue
+                action, resource = proof.get("RoleAction"), proof.get("RoleResource")
+                if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                        proof.get("TargetScope") != scope or proof.get("TargetRoleId") != role_id or
+                        proof.get("ResourceRoleProfileArn") not in profile_arns or
+                        proof.get("ExistingCustomerEligible") is not True or
+                        proof.get("CreatePipelineSucceeded") is not True or
+                        proof.get("PutPipelineDefinitionSucceeded") is not True or
+                        proof.get("ActivatePipelineSucceeded") is not True or
+                        proof.get("DefinitionPipelineRoleArn") != pipeline_role_arn or
+                        proof.get("DefinitionResourceRoleArn") != tid or
+                        proof.get("ActivityType") != "ShellCommandActivity" or
+                        proof.get("ResourceType") != "Ec2Resource" or
+                        proof.get("CommandControlledBySource") is not True or
+                        proof.get("InstanceLaunchedWithProfile") is not True or
+                        proof.get("ShellCommandSucceeded") is not True or
+                        proof.get("RoleActionSucceeded") is not True or
+                        proof.get("EffectUsefulToSource") is not True or
+                        not isinstance(action, str) or
+                        re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                        not isinstance(resource, str) or not resource or
+                        not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"]):
+                    continue
+                try:
+                    witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+                    expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+                    if (witnessed.tzinfo is None or expires.tzinfo is None or
+                            not 0 <= (now - witnessed).total_seconds() <= 900 or
+                            not now < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                        continue
+                except (KeyError, TypeError, ValueError):
+                    continue
+                passed = self.check(source, {"action": "iam:PassRole",
+                    "request_context": {"iam:PassedToService": "datapipeline.amazonaws.com"}}, pipeline_role_arn)
+                put = self.check(source, {"action": "datapipeline:PutPipelineDefinition"}, pipeline_arn)
+                activate = self.check(source, {"action": "datapipeline:ActivatePipeline"}, pipeline_arn)
+                permitted = self.check(role, {"action": action}, resource)
+                already = self.check(source, {"action": action}, resource)
+                if (all(g is not None and g.confidence == "derived" for g in (passed, put, activate, permitted))
+                        and already is None):
+                    out[tid] = None
+                    break
+        return out
+
     def _config_automatic_remediation_role_effect(self, source, candidates):
         if source is None:
             return None
@@ -8533,11 +8642,7 @@ class AwsModel(Model):
             return {tid: ("unknown", "deadline_fleet_worker_and_role_binding_not_verified")
                     for tid in candidates}
         if pid == "datapipeline_existing_customer_role_pair_and_runnable_ec2":
-            # IAM grants on their own neither establish legacy customer
-            # eligibility nor bind the separately passed pipeline role and
-            # generated pipeline ID to a runnable EC2 command definition.
-            return {tid: ("unknown", "datapipeline_customer_role_pair_and_pipeline_run_not_verified")
-                    for tid in candidates}
+            return self._datapipeline_created_ec2_role_effect(source, candidates)
         if pid == "kafkaconnect_plugin_execution_unverified":
             # IAM grants alone cannot join source-controlled plugin bytes to a
             # connector with a usable Kafka cluster, network and worker setup.

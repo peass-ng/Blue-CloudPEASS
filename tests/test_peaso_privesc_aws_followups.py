@@ -2860,6 +2860,83 @@ def test_datapipeline_grants_without_customer_and_role_pair_stay_unresolved():
                               for grant in r.targets.values())
 
 
+def test_datapipeline_created_pipeline_joins_both_roles_and_observed_ec2_effect():
+    technique = "aws-datapipeline-passrole-create-activate"
+    pipeline_id = "df-ABC123"
+    pipeline_arn = f"arn:aws:datapipeline:{REGION}:{ACCOUNT}:pipeline/{pipeline_id}"
+    profile = profile_arn("instance")
+    instance = role("instance", "ec2.amazonaws.com",
+                    allow("s3:PutObject", resource="arn:aws:s3:::private-example/pipeline-output.txt"),
+                    profiles=[profile])
+    instance["RoleId"] = "AROAINSTANCE123456789"
+    pipeline = role("pipeline", "datapipeline.amazonaws.com")
+    pipeline["RoleId"] = "AROAPIPELINE123456789"
+    put_object = "arn:aws:s3:::private-example/pipeline-output.txt"
+    proof = {"TechniqueId": technique, "SourceArn": ALICE, "TargetKind": "aws_role",
+             "TargetId": instance["Arn"], "TargetScope": SCOPE, "TargetRoleId": instance["RoleId"],
+             "Status": "verified", "VerifiedPreconditions": True,
+             "PipelineRoleArn": pipeline["Arn"], "PipelineRoleId": pipeline["RoleId"],
+             "DefinitionPipelineRoleArn": pipeline["Arn"],
+             "DefinitionResourceRoleArn": instance["Arn"],
+             "ResourceRoleProfileArn": profile, "ExistingCustomerEligible": True,
+             "PipelineId": pipeline_id, "PipelineArn": pipeline_arn,
+             "CreatePipelineSucceeded": True, "PutPipelineDefinitionSucceeded": True,
+             "ActivatePipelineSucceeded": True,
+             "ActivityType": "ShellCommandActivity", "ResourceType": "Ec2Resource",
+             "CommandControlledBySource": True,
+             "InstanceArn": f"arn:aws:ec2:{REGION}:{ACCOUNT}:instance/i-0123456789abcdef0",
+             "InstanceLaunchedWithProfile": True, "ShellCommandSucceeded": True,
+             "RoleAction": "s3:PutObject", "RoleResource": put_object,
+             "RoleActionSucceeded": True, "EffectUsefulToSource": True,
+             "EvidenceRef": "reviewed-data-pipeline-command",
+             "EvidenceObservedAt": "2026-10-21T11:59:00+00:00",
+             "EvidenceExpiresAt": "2026-10-21T12:05:00+00:00"}
+
+    def result(evidence=proof, *, pipeline_pass=True, definition_resource=pipeline_arn,
+               activate_resource=pipeline_arn, target_role=instance, grants=()):
+        pass_instance = allow("iam:PassRole", resource=instance["Arn"])
+        pass_instance["Condition"] = {"StringEquals": {"iam:PassedToService": "ec2.amazonaws.com"}}
+        pass_pipeline = allow("iam:PassRole", resource=pipeline["Arn"])
+        pass_pipeline["Condition"] = {"StringEquals": {"iam:PassedToService": "datapipeline.amazonaws.com"}}
+        principal = user("alice", pass_instance,
+            *([pass_pipeline] if pipeline_pass else []),
+            allow("datapipeline:CreatePipeline"),
+            allow("datapipeline:PutPipelineDefinition", resource=definition_resource),
+            allow("datapipeline:ActivatePipeline", resource=activate_resource), *grants)
+        proofs = evidence if isinstance(evidence, list) else ([evidence] if evidence else [])
+        state = aws_snap([principal], [target_role, pipeline],
+                         [col("aws_privesc_challenge_evidence", proofs)])
+        state["created_at"] = "2026-10-21T12:00:00+00:00"
+        return real(state, technique, include_unknown=True)
+
+    assert instance["Arn"] in reached(result(), ALICE, technique)
+    assert instance["Arn"] not in reached(result(None), ALICE, technique)
+    assert_unresolved(result(None), ALICE, technique)
+    assert instance["Arn"] not in reached(result([proof, dict(proof)]), ALICE, technique)
+    for changed in ({"ExistingCustomerEligible": False},
+                    {"PipelineRoleArn": instance["Arn"]},
+                    {"DefinitionPipelineRoleArn": instance["Arn"]},
+                    {"DefinitionResourceRoleArn": pipeline["Arn"]},
+                    {"ResourceRoleProfileArn": profile_arn("other")},
+                    {"PipelineId": "df-OTHER"},
+                    {"PutPipelineDefinitionSucceeded": False},
+                    {"ActivatePipelineSucceeded": False},
+                    {"ActivityType": "SqlActivity"}, {"ResourceType": "EmrCluster"},
+                    {"CommandControlledBySource": False},
+                    {"InstanceLaunchedWithProfile": False},
+                    {"ShellCommandSucceeded": False},
+                    {"RoleAction": "s3:DeleteObject"},
+                    {"RoleActionSucceeded": False}, {"EffectUsefulToSource": False},
+                    {"TargetRoleId": "AROAOTHER"},
+                    {"EvidenceObservedAt": "2026-10-21T11:40:00+00:00"}):
+        assert instance["Arn"] not in reached(result(dict(proof, **changed)), ALICE, technique)
+    assert instance["Arn"] not in reached(result(pipeline_pass=False), ALICE, technique)
+    assert instance["Arn"] not in reached(result(definition_resource=pipeline_arn + "-other"), ALICE, technique)
+    assert instance["Arn"] not in reached(result(activate_resource=pipeline_arn + "-other"), ALICE, technique)
+    assert instance["Arn"] not in reached(result(grants=[allow("s3:PutObject", resource=put_object)]),
+                                           ALICE, technique)
+
+
 def test_synthetics_canary_inventory_binds_exact_execution_role():
     import ast
     from pathlib import Path
