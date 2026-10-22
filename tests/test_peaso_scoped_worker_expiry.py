@@ -35,7 +35,10 @@ def dynamo_store():
 
 def enqueue(store, tenant="alice", timeout=10, auth="ciphertext"):
     connector = store.add_connector(tenant, {"provider": "aws"}, auth)
-    return store.enqueue(tenant, {"connector_id": connector["id"]}, now=1000, timeout=timeout, limit=10)
+    job = store.enqueue(tenant, {"connector_id": connector["id"]}, now=1000, timeout=timeout, limit=10)
+    # These cases exercise the execution deadline after a scan slot is granted.
+    assert store.admit(tenant, job["id"], now=1000)
+    return job
 
 
 def no_global_expiry(store, monkeypatch):

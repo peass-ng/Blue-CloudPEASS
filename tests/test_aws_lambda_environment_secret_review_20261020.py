@@ -262,7 +262,7 @@ def test_actual_scanner_runner_is_unverified(monkeypatch):
     for a in runs:assert {'--no-verification','--no-update','--no-verification-cache','--force-skip-archives','--fail-on-scan-errors','--concurrency=1'}<=set(a)
 
 
-def test_native_derived_fixture_receipt(monkeypatch):
+def test_native_derived_fixture_receipt(monkeypatch, tmp_path):
     cases={}
     for state in ('pass','fail','unknown'):
         with monkeypatch.context() as patch:
@@ -270,7 +270,7 @@ def test_native_derived_fixture_receipt(monkeypatch):
             assert findings(snapshot)[0]['status']==state.upper()
             item,index=index_of(snapshot);cases[state]=deepcopy(item);cases[state+'_index']=deepcopy(index)
     cases.update(index=deepcopy(cases['pass_index']),missing={},malformed={source.MARKER:None})
-    Path('/tmp/peasso-secret-surface-review-20261020/aws-lambda-environment/native-fixtures.json').write_text(json.dumps({source.CHECK:cases},sort_keys=True,indent=2)+'\n')
+    (tmp_path/'native-fixtures.json').write_text(json.dumps({source.CHECK:cases},sort_keys=True,indent=2)+'\n')
 
 
 def test_optional_client_timeout_and_cache_namespace_preserve_metadata_defaults():
