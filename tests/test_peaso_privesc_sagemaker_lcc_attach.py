@@ -1,6 +1,8 @@
 """A new notebook lifecycle hook must be attachable to one exact notebook role."""
 
 import yaml
+import json
+from pathlib import Path
 
 from peaso.privesc.effective_permissions.aws import AwsModel
 from peaso.privesc.evaluator import Evaluator
@@ -132,3 +134,20 @@ def test_lifecycle_name_inventory_and_customer_permission_are_registered():
     assert ("sagemaker", "list_notebook_instance_lifecycle_configs") in aws.READ_ACTIONS
     policy = build_policy({("sagemaker", "list_notebook_instance_lifecycle_configs")})
     assert policy["Statement"][0]["Action"] == ["sagemaker:ListNotebookInstanceLifecycleConfigs"]
+
+
+def test_published_customer_role_can_collect_lifecycle_names_within_iam_limits():
+    root = Path(__file__).resolve().parents[1]
+    template = json.loads((root / "infra/aws/customer-role.json").read_text())
+    actions = []
+    for resource in template["Resources"].values():
+        if resource["Type"] != "AWS::IAM::ManagedPolicy":
+            continue
+        document = resource["Properties"]["PolicyDocument"]
+        assert len(json.dumps(document, separators=(",", ":"))) <= 6144
+        for statement in document["Statement"]:
+            values = statement["Action"]
+            actions.extend(values if isinstance(values, list) else [values])
+    assert actions.count("sagemaker:ListNotebookInstanceLifecycleConfigs") == 1
+    assert template["Metadata"]["PeasoSageMakerNotebookLifecycleMetadataReference"]["Actions"] == [
+        "sagemaker:ListNotebookInstanceLifecycleConfigs"]
