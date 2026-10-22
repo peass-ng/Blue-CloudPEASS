@@ -51,6 +51,10 @@ RUNTIME_ADMISSION_INPUTS = {
 # tests. Explicit paths/globs only: no .work drafts, caches or private files.
 REPRODUCTION_INPUT_PATTERNS = (
     'tests/test_api_privesc_display_20261022.py',
+    'tests/test_aws*.py',
+    'work_aws_privesc_review/*.md',
+    'work_aws_privesc_review/*.tsv',
+    'work_aws_privesc_review/*.py',
     'tests/test_progressive_owned_tasks.py',
     'examples/benchmark_peaso_checkpoint_cadence.py',
     'examples/benchmark_peaso_progressive_poll.py',
