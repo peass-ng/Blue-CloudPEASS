@@ -2182,6 +2182,33 @@ def test_sagemaker_job_scopes_and_passrole_service_remain_unresolved_without_exe
         assert edges(real(aws_snap([wrong_service], [target]), tid), ALICE, tid) == []
 
 
+def test_sagemaker_processing_inline_route_requires_free_scoped_job_and_matching_passrole():
+    tid = "aws-sagemaker-passrole-createprocessingjob"
+    target = role("core", "sagemaker.amazonaws.com")
+    job = f"arn:aws:sagemaker:{REGION}:{ACCOUNT}:processing-job/alpha-*"
+    create = allow("sagemaker:CreateProcessingJob", resource=job)
+    passed = allow("iam:PassRole", resource=role_arn("core"))
+
+    def evaluate(grants, inventory=(), status="collected"):
+        caller = user("alice", *grants)
+        result = real(aws_snap([caller], [target], [col("sagemaker_processing_job", inventory, status)]),
+                      tid, include_unknown=True)
+        return reached(result, ALICE, tid), result
+
+    members, _ = evaluate((passed, create))
+    assert members == {role_arn("core"): "conditional"}
+    exact = allow("sagemaker:CreateProcessingJob", resource=job[:-1] + "fixed")
+    assert role_arn("core") not in evaluate((passed, exact),
+        [{"ProcessingJobName": "alpha-fixed"}])[0]
+    assert role_arn("core") not in evaluate((passed, create), status="denied")[0]
+    wrong_service = {"Effect": "Allow", "Action": "iam:PassRole", "Resource": role_arn("core"),
+                     "Condition": {"StringEquals": {"iam:PassedToService": "lambda.amazonaws.com"}}}
+    assert role_arn("core") not in evaluate((wrong_service, create))[0]
+    isolated = {"Effect": "Allow", "Action": "sagemaker:CreateProcessingJob", "Resource": job,
+                "Condition": {"Bool": {"sagemaker:NetworkIsolation": "true"}}}
+    assert role_arn("core") not in evaluate((passed, isolated))[0]
+
+
 def test_lambda_edge_requires_both_replication_permissions_in_us_east_1():
     tid = "aws-cloudfront-lambda-edge-passrole"
     edge_role = role("edge", [{"Effect": "Allow", "Principal": {"Service": [

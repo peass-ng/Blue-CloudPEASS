@@ -21,7 +21,12 @@ V4_EFFECTIVE_TREE = "413792ea4aec86e48c352ffab2c0bea9e82795bc234251342737ec0276b
 LEGACY_DELTA = Path(__file__).resolve().parent / "catalog_versions/legacy-0b3633-delta.json"
 BOUNDED_MANIFEST = "734401b202895e00ac1b6cb0f1534f77cde4d8e2ba912ca0ee974b1b8ec5035c"
 BOUNDED_TREE = "1a54bad4102d18f89c78f45c915964554a62f994c1bffa693844cac5e119cca8"
-CURRENT_MANIFEST = '0a7b194cdaceb8c90e1595914f39a8d40aef3b30c56364ccf6473d3263b7068e'
+CURRENT_MANIFEST = 'fa4f4499c5cb0a1ea4dc496168823bf43793442796e3dc05f9ea9fed9a2cdec0'
+SAGEMAKER_PROCESSING_691_PREVIOUS_MANIFEST = '0a7b194cdaceb8c90e1595914f39a8d40aef3b30c56364ccf6473d3263b7068e'
+SAGEMAKER_PROCESSING_691_PREVIOUS_TREE = 'de0d1a5f2bdc6f27fb016007c6f7d3963a6b40b7c7be3c1bebadf979468f76a3'
+SAGEMAKER_PROCESSING_691_PREVIOUS_ARCHIVE_SHA256 = 'be0662361f363634bb51f05a1b2f80b3dfad55f93ea25050e857b0c2412ef2e4'
+SAGEMAKER_PROCESSING_691_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-691-sagemaker-processing-source-manifest.json'
+SAGEMAKER_PROCESSING_691_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-691-sagemaker-processing-catalog.tar.gz'
 SAGEMAKER_JOBS_691_PREVIOUS_MANIFEST = '47fdcba8d133a306b9317f2bcad6c7a77e96d12a65123d2f486dfd0700f68c04'
 SAGEMAKER_JOBS_691_PREVIOUS_TREE = '848f9d1792a34ea8c00efad0bf1937b21ed2b9f93a15aee1829b245e1fc79304'
 SAGEMAKER_JOBS_691_PREVIOUS_ARCHIVE_SHA256 = '7cbfcb11a726a8475fae954481fea6db84b47309ab7c46d8a9cc54b288216833'
@@ -386,7 +391,7 @@ PRIOR_CURRENT_MANIFEST = "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0c
 PRIOR_DISCLOSURE_MANIFEST = "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
 PRIOR_DISCLOSURE_TREE = "5091464bedcb10bb87301695ca733276dc67b865e544c408ccf72a5408176f0f"
 PRIOR_DISCLOSURE_HISTORY = Path(__file__).resolve().parent / "catalog_versions/disclosure-v7-manifest.json"
-CURRENT_TREE = 'de0d1a5f2bdc6f27fb016007c6f7d3963a6b40b7c7be3c1bebadf979468f76a3'
+CURRENT_TREE = '231f6c0a3e59f7657ef024e97092eecba2806d7d1be6ba77827cd121b4df1cba'
 PRIOR_CURRENT_TREE = "99207e6469fc5e5b3daf21324e6860599b116ffcf7d30600643bd229b0f11494"
 CURRENT_ENTRY_COUNT = 691
 CURRENT_EXCLUDED_COUNT = 3736
@@ -508,6 +513,15 @@ def _verified_teststate_690_previous():
         TESTSTATE_690_PREVIOUS_MANIFEST_PATH, TESTSTATE_690_PREVIOUS_ARCHIVE,
         TESTSTATE_690_PREVIOUS_MANIFEST, TESTSTATE_690_PREVIOUS_ARCHIVE_SHA256,
         TESTSTATE_690_PREVIOUS_TREE, 690, 3723)
+
+
+@lru_cache(maxsize=1)
+def _verified_sagemaker_processing_691_previous():
+    """Keep the exact catalog before the Processing job inline-entrypoint route."""
+    return _verified_archived_current(
+        SAGEMAKER_PROCESSING_691_PREVIOUS_MANIFEST_PATH, SAGEMAKER_PROCESSING_691_PREVIOUS_ARCHIVE,
+        SAGEMAKER_PROCESSING_691_PREVIOUS_MANIFEST, SAGEMAKER_PROCESSING_691_PREVIOUS_ARCHIVE_SHA256,
+        SAGEMAKER_PROCESSING_691_PREVIOUS_TREE, 691, 3736)
 
 
 @lru_cache(maxsize=1)
@@ -1127,6 +1141,10 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "current", "exact_strict_privesc"
+    elif (binding.get("manifest_sha256") == SAGEMAKER_PROCESSING_691_PREVIOUS_MANIFEST and
+          binding.get("effective_tree_sha256") == SAGEMAKER_PROCESSING_691_PREVIOUS_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "sagemaker_processing_691_previous", "exact_previous_current"
     elif (binding.get("manifest_sha256") == SAGEMAKER_JOBS_691_PREVIOUS_MANIFEST and
           binding.get("effective_tree_sha256") == SAGEMAKER_JOBS_691_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -1412,6 +1430,9 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
         if version == "current":
             current = _verified_current(str(catalog_dir), str(manifest_path))
             return {ident: current[ident] for ident in ids if ident in current}, status
+        if version == "sagemaker_processing_691_previous":
+            previous = _verified_sagemaker_processing_691_previous()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "sagemaker_jobs_691_previous":
             previous = _verified_sagemaker_jobs_691_previous()
             return {ident: previous[ident] for ident in ids if ident in previous}, status
