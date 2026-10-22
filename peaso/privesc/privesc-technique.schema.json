@@ -632,6 +632,10 @@
                   "const": true,
                   "description": "Reviewed exact S3 bucket-policy self-grant for the caller and a bounded object prefix."
                 },
+                "aws_scheduler_iam_self_grant": {
+                  "const": true,
+                  "description": "Exact Scheduler schedule and passed role can add an inline policy to its creator through a role-authorized IAM target API."
+                },
                 "aws_secretsmanager_policy_self_grant": {
                   "const": true,
                   "description": "Reviewed GetSecretValue self-grant for the exact IAM user and secret."

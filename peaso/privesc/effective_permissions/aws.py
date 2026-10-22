@@ -2701,6 +2701,13 @@ class AwsModel(Model):
             cached = self.__dict__["_sqs_self_grant_cache"] = load(self)
         return cached
 
+    def _scheduler_self_grants(self):
+        cached = self.__dict__.get("_scheduler_self_grant_cache")
+        if cached is None:
+            from .aws_scheduler_self_grant import load
+            cached = self.__dict__["_scheduler_self_grant_cache"] = load(self)
+        return cached
+
     def _sns_self_grants(self):
         cached = self.__dict__.get("_sns_self_grant_cache")
         if cached is None:
@@ -2717,6 +2724,8 @@ class AwsModel(Model):
 
     def targets_for(self, kind, selector):
         selector = selector or {}
+        if kind == "aws_verified_authority" and selector.get("aws_scheduler_iam_self_grant"):
+            return list(self._scheduler_self_grants()[0].values())
         if kind == "aws_verified_authority" and selector.get("aws_sqs_policy_self_grant"):
             return list(self._sqs_self_grants()[0].values())
         if kind == "aws_verified_authority" and selector.get("aws_sns_policy_self_grant"):
@@ -2813,6 +2822,9 @@ class AwsModel(Model):
         return cache[key]
 
     def unknown_target_scopes(self, kind):
+        if (self.current_selector or {}).get("aws_scheduler_iam_self_grant"):
+            return {scope.split("/")[0]: status for scope, status in
+                    unavailable(inventory_status(self.snapshot, "iam_role")).items()}
         if (self.current_selector or {}).get("aws_dynamodb_policy_self_grant"):
             return {scope.split("/")[0]: status for scope, status in
                     unavailable(inventory_status(self.snapshot, "dynamodb_table")).items()}
@@ -3056,6 +3068,13 @@ class AwsModel(Model):
         return None if denied is True else "conditional" if denied is None else best
 
     def selector(self, key, value, candidates, source, pivot=None):
+        if key == "aws_scheduler_iam_self_grant":
+            if source is None:
+                return None
+            records = self._scheduler_self_grants()[1]
+            return {target_id: ("conditional", "scheduler_exact_iam_inline_policy_self_grant")
+                    for target_id in candidates
+                    if (record := records.get(target_id)) and record["SourceArn"] == source.id}
         if key in self.scoped_grants:
             if source is None:
                 return None

@@ -1410,12 +1410,16 @@ def test_scheduler_requires_grant_on_same_account_schedule_resource():
     catalog_file = Path(__file__).resolve().parents[1] / "peaso/privesc/catalog/aws/scheduler.yaml"
     entry = next(item for item in yaml.safe_load(catalog_file.read_text())
                  if item["id"] == "aws-scheduler-passrole-createschedule-or-updateschedule")
-    passed = role("scheduled", "scheduler.amazonaws.com")
+    passed = role("scheduled", "scheduler.amazonaws.com",
+                  allow("iam:PutUserPolicy", resource=ALICE))
 
-    def evaluate(schedule_resource):
-        caller = user("alice", allow("iam:PassRole", resource=passed["Arn"]),
-                      allow("scheduler:CreateSchedule", resource=schedule_resource))
-        snap = aws_snap([caller], [passed])
+    def evaluate(schedule_resource, *, target_role=passed, pass_service=None, source_grants=()):
+        passing = allow("iam:PassRole", resource=passed["Arn"])
+        if pass_service is not None:
+            passing["Condition"] = {"StringEquals": {"iam:PassedToService": pass_service}}
+        caller = user("alice", passing, allow("scheduler:CreateSchedule", resource=schedule_resource),
+                      *source_grants)
+        snap = aws_snap([caller], [target_role])
         return [reach.targets for reach in Evaluator(AwsModel(snap), [entry],
                  include_unknown=False).run() if reach.source.id == ALICE]
 
@@ -1423,7 +1427,43 @@ def test_scheduler_requires_grant_on_same_account_schedule_resource():
     other_account = f"arn:aws:scheduler:{REGION}:{OTHER}:schedule/default/*"
     assert evaluate(f"arn:aws:scheduler:{REGION}:{ACCOUNT}:schedule-group/*") == []
     assert evaluate(other_account) == []
-    assert any(passed["Arn"] in targets for targets in evaluate(same_account))
+    assert any(any("scheduler-policy:" in target for target in targets)
+               for targets in evaluate(same_account))
+    assert evaluate(same_account, target_role=role("scheduled", "scheduler.amazonaws.com")) == []
+    assert evaluate(same_account, target_role=role("scheduled", "lambda.amazonaws.com",
+                                                    allow("iam:PutUserPolicy", resource=ALICE))) == []
+    wrong_schedule_trust = role("scheduled", [{"Effect": "Allow",
+        "Principal": {"Service": "scheduler.amazonaws.com"}, "Action": "sts:AssumeRole",
+        "Condition": {"ArnEquals": {"aws:SourceArn":
+            f"arn:aws:scheduler:{REGION}:{ACCOUNT}:schedule/default/other"}}}],
+        allow("iam:PutUserPolicy", resource=ALICE))
+    assert evaluate(same_account, target_role=wrong_schedule_trust) == []
+    assert evaluate(same_account, target_role=role("scheduled", "scheduler.amazonaws.com",
+                                                    allow("iam:PutUserPolicy", resource=role_arn("other")))) == []
+    assert evaluate(same_account, pass_service="lambda.amazonaws.com") == []
+    assert evaluate(same_account, source_grants=[allow("iam:CreateUser")]) == []
+    assert evaluate(same_account, source_grants=[{"Effect": "Deny", "Action": "iam:CreateUser",
+                                                  "Resource": "*"}]) == []
+
+
+def test_scheduler_inline_policy_route_can_target_creator_role():
+    from pathlib import Path
+    import yaml
+    from peaso.privesc.effective_permissions.aws import AwsModel
+    from peaso.privesc.evaluator import Evaluator
+
+    entry = yaml.safe_load((Path(__file__).resolve().parents[1] /
+                            "peaso/privesc/catalog/aws/scheduler.yaml").read_text())[0]
+    executor_arn = role_arn("scheduled")
+    creator = role("creator", "ec2.amazonaws.com",
+                   allow("iam:PassRole", resource=executor_arn),
+                   allow("scheduler:CreateSchedule", resource=
+                         f"arn:aws:scheduler:{REGION}:{ACCOUNT}:schedule/default/*"))
+    executor = role("scheduled", "scheduler.amazonaws.com",
+                    allow("iam:PutRolePolicy", resource=creator["Arn"]))
+    reaches = [reach.targets for reach in Evaluator(AwsModel(aws_snap([], [creator, executor])),
+               [entry], include_unknown=False).run() if reach.source.id == creator["Arn"]]
+    assert any(any("scheduler-policy:" in target for target in targets) for targets in reaches)
 
 
 def test_synthetics_canary_inventory_binds_exact_execution_role():
