@@ -1952,7 +1952,37 @@ class AwsModel(Model):
                         passrole = self.cached_check(principal, {**req, "request_context": context}, target.id)
                         if passrole is None:
                             continue
+                        target_grant = None
+                        if rule_arn:
+                            schedule_grant = None
+                            # A rule may carry both an EventPattern and a
+                            # ScheduleExpression. Try an omitted field and a
+                            # caller-chosen field for each IAM condition key.
+                            for source_context in ({"absent": True}, {"chosen": True}):
+                                for detail_context in ({"absent": True}, {"chosen": True}):
+                                    candidate_grant = self.cached_check(principal, {
+                                        "action": "events:PutRule", "request_context": {
+                                            "events:source": source_context,
+                                            "events:detail-type": detail_context,
+                                            "aws:RequestedRegion": function_parts[3]}}, rule_arn)
+                                    schedule_grant = _best(schedule_grant, candidate_grant)
+                            if schedule_grant is None:
+                                continue
+                            # PutTargets can be restricted to specific target ARNs.
+                            # The bound rule alone cannot establish that this new
+                            # function is an authorized target of the rule.
+                            target_grant = self.cached_check(principal, {
+                                "action": "events:PutTargets", "request_context": {
+                                    "events:TargetArn": function_arn,
+                                    "aws:RequestedRegion": function_parts[3]}}, rule_arn)
+                            if target_grant is None:
+                                continue
                         got = combine(function_grant, passrole, rule_grant) if rule_grant else combine(function_grant, passrole)
+                        if target_grant is not None:
+                            got = combine(got, schedule_grant, target_grant)
+                            if (schedule_grant.confidence != "derived" or
+                                    target_grant.confidence != "derived"):
+                                got = downgrade(got, "unknown", "eventbridge_schedule_or_target_condition_not_verified")
                         refs = ({"bound_resource": function_arn},)
                         if rule_arn:
                             refs += ({"scheduled_rule": rule_arn},)

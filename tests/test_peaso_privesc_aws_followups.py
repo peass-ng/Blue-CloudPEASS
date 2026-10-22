@@ -2554,17 +2554,20 @@ def test_lambda_eventbridge_trigger_joins_rule_region_and_passrole_function():
     def snap(principal, rules=(), rule_status="empty"):
         return aws_snap([principal], roles, [col("lambda_function", [], "empty"),
                                            col("event_rule", rules, rule_status)])
-    def principal(rule_arn, associated=function, grant_principal=None):
+    def principal(rule_arn, associated=function, grant_principal=None, allowed_target=None):
         add_permission = allow("lambda:AddPermission", resource=function)
         if grant_principal:
             add_permission["Condition"] = {"StringEquals": {"lambda:Principal": grant_principal}}
+        put_targets = allow("events:PutTargets", resource=rule_arn)
+        if allowed_target:
+            put_targets["Condition"] = {"ForAnyValue:ArnEquals": {"events:TargetArn": allowed_target}}
         return user("alice",
                     allow("iam:PassRole", resource=role_arn("fn")) |
                     {"Condition": {"ArnEquals": {"iam:AssociatedResourceArn": associated}}},
                     allow("lambda:CreateFunction", resource=function),
                     add_permission,
                     allow("events:PutRule", resource=rule_arn),
-                    allow("events:PutTargets", resource=rule_arn))
+                    put_targets)
     assert reached(real(snap(principal(rule)), tid), ALICE) == {role_arn("fn"): "conditional"}
     wildcard_rule = f"arn:aws:events:*:{ACCOUNT}:rule/*"
     assert reached(real(snap(principal(wildcard_rule)), tid), ALICE) == {
@@ -2574,6 +2577,13 @@ def test_lambda_eventbridge_trigger_joins_rule_region_and_passrole_function():
     assert edges(real(snap(principal(rule, grant_principal="s3.amazonaws.com")), tid), ALICE) == []
     assert reached(real(snap(principal(rule, grant_principal="events.amazonaws.com")), tid), ALICE) == {
         role_arn("fn"): "conditional"}
+    assert reached(real(snap(principal(rule, allowed_target=function)), tid), ALICE) == {
+        role_arn("fn"): "conditional"}
+    assert edges(real(snap(principal(rule, allowed_target=function.replace("alpha", "beta"))), tid), ALICE) == []
+    source_required = principal(rule)
+    source_required["UserPolicyList"][0]["PolicyDocument"]["Statement"][-2]["Condition"] = {
+        "Null": {"events:source": "false"}}
+    assert reached(real(snap(source_required), tid), ALICE) == {role_arn("fn"): "conditional"}
     assert edges(real(snap(principal(rule), [{"Arn": rule, "ManagedBy": "aws.events"}],
                            "collected"), tid), ALICE) == []
     assert edges(real(snap(principal(rule), [{"Arn": rule}], "collected"), tid), ALICE) == []
