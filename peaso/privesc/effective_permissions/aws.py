@@ -9539,9 +9539,11 @@ class AwsModel(Model):
             if source is None:
                 return None
             status = inventory_status(self.snapshot, "glue_trigger")
+            job_status = inventory_status(self.snapshot, "glue_job")
             partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
             for tid, target in candidates.items():
-                uncertain = False
+                witness, witness_uncertain = self._glue_writable_script_witness(source, target, job_status)
+                uncertain = witness_uncertain or bool(source.incomplete or target.incomplete)
                 for job_arn in self.hosts.get(target.id, {}).get("glue_job", ()):
                     parts = job_arn.split(":", 5)
                     if len(parts) != 6 or not parts[5].startswith("job/"):
@@ -9555,6 +9557,12 @@ class AwsModel(Model):
                     update = self.check(source, {"action": "glue:UpdateJob"}, job_arn)
                     if update is None:
                         continue
+                    passed = self.cached_check(source, {"action": "iam:PassRole",
+                        "request_context": {"iam:PassedToService": "glue.amazonaws.com",
+                                            "aws:RequestedRegion": region}}, tid)
+                    if passed is None:
+                        uncertain = True
+                        continue
                     for trigger_scope, trigger in items(self.snapshot, "glue_trigger"):
                         if trigger_scope != scope:
                             continue
@@ -9566,17 +9574,19 @@ class AwsModel(Model):
                             continue
                         kind, state = trigger.get("Type"), trigger.get("State")
                         if kind == "SCHEDULED" and state == "ACTIVATED" and trigger.get("HasSchedule") is True:
-                            if update.confidence == "derived":
+                            if (update.confidence == passed.confidence == "derived" and witness
+                                    and not source.incomplete and not target.incomplete):
                                 out[tid] = ("conditional", "glue_existing_job_active_schedule")
                                 break
                             uncertain = True
                         elif kind == "ON_DEMAND" and state == "CREATED":
                             trigger_arn = f"arn:{partition}:glue:{region}:{source.scope}:trigger/{trigger['Name']}"
                             start = self.check(source, {"action": "glue:StartTrigger"}, trigger_arn)
-                            if start is not None and update.confidence == start.confidence == "derived":
+                            if (start is not None and update.confidence == passed.confidence == start.confidence == "derived"
+                                    and witness and not source.incomplete and not target.incomplete):
                                 out[tid] = ("conditional", "glue_existing_job_startable_trigger")
                                 break
-                            uncertain |= start is not None and start.confidence != "derived"
+                            uncertain |= start is not None
                         elif state in ("ACTIVATING", "UPDATING") or kind in ("CONDITIONAL", "EVENT"):
                             uncertain = True
                     if tid in out:
