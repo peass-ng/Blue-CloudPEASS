@@ -44,6 +44,33 @@ def test_ai_ecs_roles_are_separate_and_minimal():
     }
 
 
+@pytest.mark.parametrize('credential', [
+    'AWS_CONTAINER_CREDENTIALS_RELATIVE_URI', 'AWS_CONTAINER_CREDENTIALS_FULL_URI',
+    'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AWS_SESSION_TOKEN',
+    'AWS_PROFILE', 'AWS_WEB_IDENTITY_TOKEN_FILE', 'AWS_ROLE_ARN',
+])
+def test_ai_task_rejects_ambient_aws_identity_before_bootstrap(monkeypatch, credential):
+    for name in ('AWS_CONTAINER_CREDENTIALS_RELATIVE_URI', 'AWS_CONTAINER_CREDENTIALS_FULL_URI',
+                 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AWS_SESSION_TOKEN',
+                 'AWS_PROFILE', 'AWS_WEB_IDENTITY_TOKEN_FILE', 'AWS_ROLE_ARN'):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv(credential, 'unexpected')
+    monkeypatch.setattr(task_runtime.sys, 'argv', ['task_runtime', 'relay'])
+    monkeypatch.setattr(task_runtime, 'transfer', lambda *args, **kwargs: pytest.fail('bootstrap attempted'))
+    with pytest.raises(SystemExit) as error:
+        task_runtime.main()
+    assert error.value.code == 1
+
+
+def test_ai_task_allows_region_without_aws_identity(monkeypatch):
+    for name in ('AWS_CONTAINER_CREDENTIALS_RELATIVE_URI', 'AWS_CONTAINER_CREDENTIALS_FULL_URI',
+                 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AWS_SESSION_TOKEN',
+                 'AWS_PROFILE', 'AWS_WEB_IDENTITY_TOKEN_FILE', 'AWS_ROLE_ARN'):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv('AWS_DEFAULT_REGION', 'us-east-1')
+    task_runtime.reject_ambient_aws_credentials()
+
+
 @pytest.fixture
 def configured(monkeypatch):
     monkeypatch.setattr('peaso.ai.providers.validate_before_launch', lambda access: access)
