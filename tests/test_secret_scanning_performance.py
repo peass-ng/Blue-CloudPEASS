@@ -141,7 +141,8 @@ def test_parallel_detectors_preserve_prepared_batch_and_private_source_context(m
     payload, path = b'synthetic-primary', 'artifact/config.txt'
     output = json.dumps({'Raw': 'synthetic-primary', 'RawV2': 'synthetic-primary:component',
                          'Verified': False, 'DetectorName': 'Synthetic'}).encode()
-    monkeypatch.setattr(batch, '_prepare_trufflehog_batch', lambda items, timeout: {(payload, path): output})
+    monkeypatch.setattr(batch, '_prepare_trufflehog_batch',
+                        lambda items, timeout: {item: output if item == (payload, path) else b'' for item in items})
     monkeypatch.setattr(scanning, '_scan_kingfisher', lambda *args: [])
     def must_not_spawn(*args):
         raise AssertionError('Prepared TruffleHog output must stay available on caller context')
@@ -152,7 +153,7 @@ def test_parallel_detectors_preserve_prepared_batch_and_private_source_context(m
     original = getattr(evidence._source, 'fields', {})
     evidence._source.fields = {'resource_id': 'synthetic-workload', 'scope': 'synthetic-scope'}
     try:
-        with batch.prepared_content_batch([(payload, path)]):
+        with batch.prepared_content_batch([(payload, path), (b'clean', 'artifact/other.txt')]):
             result = scanning.scan_content(payload, path)
     finally:
         evidence._source.fields = original
