@@ -23,7 +23,8 @@ LOGGER = logging.getLogger(__name__)
 
 def _verify_aws_credentials(connector):
     """Reject an expired selected session before scheduling native inventory."""
-    if connector.get("provider") != "aws":
+    if (connector.get("provider") != "aws" or
+            connector.get("input_mode") in {"offline_snapshot", "demo"}):
         return
     from botocore.config import Config
     from peaso.collectors.aws import _session
