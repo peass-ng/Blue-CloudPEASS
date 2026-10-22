@@ -5,6 +5,7 @@ run under the analyzer role, where AI authentication and isolated invocation
 are available. Stage artifacts are stored separately from collector manifests.
 """
 
+import copy
 import json
 import logging
 import multiprocessing
@@ -42,6 +43,47 @@ def _ready(job, artifacts, tenant):
     sections = publication.get("sections", {})
     if not isinstance(sections, dict):
         return None
+    if report.get("finding_grouping") == "check-v1":
+        # The download has check cards, while final review receives native
+        # per-asset findings. Each card contains its lossless observations.
+        groups = report.get("findings")
+        stats = report.get("stats")
+        if (not isinstance(groups, list) or not isinstance(stats, dict)
+                or stats.get("finding_count") != len(groups)):
+            return None
+        observations, seen = [], set()
+        for group in groups:
+            if not isinstance(group, dict):
+                return None
+            members = group.get("observations")
+            if not isinstance(members, list) or not members or not isinstance(members[0], dict):
+                return None
+            grouped = group.get("grouped") is True
+            if grouped:
+                if group.get("member_count") != len(members):
+                    return None
+            elif (not (group.get("secret_fingerprint") or
+                       group.get("check_id") == "analysis.internet_exposure")
+                  or group.get("id") != members[0].get("id")
+                  or group.get("status") != members[0].get("status")):
+                return None
+            counts = {}
+            for member in members:
+                if (not isinstance(member, dict) or not isinstance(member.get("id"), str)
+                        or not member["id"] or member["id"] in seen
+                        or member.get("provider") != group.get("provider")
+                        or member.get("check_id") != group.get("check_id")
+                        or "observations" in member or "_detail_reference" in member):
+                    return None
+                seen.add(member["id"])
+                status = member.get("status")
+                counts[status] = counts.get(status, 0) + 1
+                observations.append(copy.deepcopy(member))
+            if grouped and group.get("status_counts") != counts:
+                return None
+        if stats.get("observation_count") != len(observations):
+            return None
+        report = dict(report, findings=observations)
     snapshot = artifacts.get(tenant, snapshot_ref)
     return report, snapshot, sections
 

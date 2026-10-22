@@ -218,16 +218,18 @@ def review_fingerprints(report, inventory_by_id, findings, *, identity, entries)
     for row in findings:
         context = review_context(report, inventory_by_id, [row])
         document = findings_document(context['scan'], [row], context['resources'])
-        # The checkpoint and final snapshot IDs can name different serialized
-        # views of the same section revision. The caller's authoritative
-        # complete-section revision fence supplies that provenance; the
-        # provider, capture time, finding and referenced resources still match.
+        # Checkpoint/final snapshot IDs and created_at values name separately
+        # serialized views. The caller's complete-section data revision fence
+        # supplies their provenance; finding evidence, referenced resources,
+        # provider and credential capture/expiry still have to match exactly.
         document['scan'].pop('snapshot_id', None)
+        document['scan'].pop('created_at', None)
         access = review_credentials(entries, report['provider'], [row], context)
         boundary_keys = ('format', 'provider', 'scope', 'account_id', 'identity_arn',
                          'audience', 'context_id', 'cluster_id', 'tenant_id',
                          'quota_project', 'target_scopes', 'subscription_ids',
-                         'namespaces', 'endpoints', 'capture_policy')
+                         'namespaces', 'endpoints', 'capture_policy',
+                         'captured_at', 'expires_at')
         boundary = [{key: entry[key] for key in boundary_keys if key in entry}
                     for entry in access]
         payload = {'document': document, 'identity': identity, 'access_boundary': boundary}
@@ -476,7 +478,7 @@ def review_scan(report, snapshot, selectors, *, tenant, artifacts, deadline=None
         inventory_by_id = {row['id']: row for row in inventory}
         identity = {'ai_user': ai_user, 'auth_source': result['auth_source'],
                     'access_reference': reference}
-        result['review_fingerprint_version'] = 1
+        result['review_fingerprint_version'] = 2
         result['review_fingerprints'] = {
             'hardening': review_fingerprints(report, inventory_by_id, hardening, identity=identity,
                                               entries=entries),
@@ -497,12 +499,12 @@ def review_scan(report, snapshot, selectors, *, tenant, artifacts, deadline=None
         reusable_reviews = {'hardening': {}, 'exposure': {}}
         for stage in ('hardening', 'exposure', 'network'):
             prior = reused_stages.get(stage)
-            if stage not in pending or not isinstance(prior, dict) or prior.get('status') != 'completed':
+            if stage not in pending or not isinstance(prior, dict) or prior.get('status') not in ('completed', 'partial'):
                 continue
             prior_reviews = prior.get('reviews')
             value = prior.get('network') if stage == 'network' else (
                 prior_reviews.get(stage) if isinstance(prior_reviews, dict) else None)
-            if stage == 'network' and isinstance(value, dict) and value.get('status') == 'completed':
+            if stage == 'network' and prior.get('status') == 'completed' and isinstance(value, dict) and value.get('status') == 'completed':
                 if network is not None:
                     try:
                         from .contracts import NetworkEvidence, NetworkFinding
@@ -520,7 +522,7 @@ def review_scan(report, snapshot, selectors, *, tenant, artifacts, deadline=None
                     except (KeyError, TypeError, ValueError):
                         pass
             elif stage != 'network' and isinstance(value, list):
-                if prior.get('review_fingerprint_version') != 1:
+                if prior.get('review_fingerprint_version') != 2:
                     continue
                 proofs = prior.get('review_fingerprints')
                 inputs_by_stage = prior.get('stage_inputs')

@@ -111,6 +111,20 @@ def _reusable_stages(artifacts, tenant, sections, stage_results):
             reused[stage] = artifact["result"]
     return reused
 
+
+def _cached_ai_access_reference(artifacts, tenant, ident, bound, cache, identity_dir):
+    """Keep one sealed reference per exact bound access set in this scan process."""
+    marker = hashlib.sha256(json.dumps(bound, sort_keys=True,
+        separators=(",", ":")).encode()).hexdigest()
+    key = (tenant, ident, marker)
+    reference = cache.get(key)
+    if reference is None:
+        from peaso.ai.crypto import AICipher
+        reference = artifacts.put(tenant, ident, "ai-access", {"sealed":
+            AICipher(identity_dir).encrypt({"entries": bound})})
+        cache[key] = reference
+    return reference
+
 _ROLE_ARN = re.compile(r"arn:(?:aws|aws-us-gov|aws-cn):iam::[0-9]{12}:role/[A-Za-z0-9+=,.@_/-]{1,512}\Z")
 _TARGET_MESSAGES = {
     "external_id_not_required_by_trust": "trust policy does not require External ID; add the sts:ExternalId condition shown in onboarding.",
@@ -221,14 +235,8 @@ def _process(role, request, connection):
                             entries = ai_access.peek()
                             bound = ai_access.bind_targets(entries, public) if entries else []
                             if bound:
-                                marker = hashlib.sha256(json.dumps(bound, sort_keys=True,
-                                    separators=(",", ":")).encode()).hexdigest()
-                                reference = ai_access_cache.get(marker)
-                                if reference is None:
-                                    from peaso.ai.crypto import AICipher
-                                    reference = artifacts.put(tenant, ident, "ai-access", {"sealed":
-                                        AICipher(Path(request.get('ai_context', {}).get('identity_dir') or Settings().identity_dir)).encrypt({"entries": bound})})
-                                    ai_access_cache[marker] = reference
+                                reference = _cached_ai_access_reference(artifacts, tenant, ident,
+                                    bound, ai_access_cache, Path(request.get('ai_context', {}).get('identity_dir') or Settings().identity_dir))
                                 public.setdefault("metadata", {})["ai_access_reference"] = reference
                         except Exception:
                             public.setdefault("metadata", {})["ai_access_status"] = "unavailable"
@@ -286,8 +294,8 @@ def _process(role, request, connection):
             if request.get("ai_enabled", True) and ai_credentials:
                 try:
                     ai_credentials = ai_access.bind_targets(ai_credentials, snapshot)
-                    from peaso.ai.crypto import AICipher
-                    access_reference = artifacts.put(tenant, ident, "ai-access", {"sealed": AICipher(Path(request.get("ai_context", {}).get("identity_dir") or Settings().identity_dir)).encrypt({"entries": ai_credentials})})
+                    access_reference = _cached_ai_access_reference(artifacts, tenant, ident,
+                        ai_credentials, ai_access_cache, Path(request.get("ai_context", {}).get("identity_dir") or Settings().identity_dir))
                     snapshot.setdefault("metadata", {})["ai_access_reference"] = access_reference
                 except Exception:
                     snapshot.setdefault("metadata", {})["ai_access_status"] = "unavailable"
