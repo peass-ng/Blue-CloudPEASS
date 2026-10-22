@@ -396,6 +396,35 @@ def test_stepfunctions_teststate_needs_a_supported_role_task_witness():
                        wrong_service["Arn"], technique)
 
 
+def test_config_automatic_remediation_requires_service_context_and_runtime_witness():
+    technique = "aws-config-passrole-automatic-remediation"
+    target = role("automation", "ssm.amazonaws.com", allow("iam:AttachUserPolicy"))
+
+    def caller(service):
+        return user("caller", {"Effect": "Allow", "Action": "iam:PassRole",
+                               "Resource": target["Arn"],
+                               "Condition": {"StringEquals": {"iam:PassedToService": service}}},
+                    allow("config:PutRemediationConfigurations", "ssm:CreateDocument"))
+
+    correct = caller("ssm.amazonaws.com")
+    result = real(aws_snap([correct], [target]), technique, include_unknown=True)
+    assert target["Arn"] not in reached(result, correct["Arn"], technique)
+    assert_unresolved(result, correct["Arn"], technique)
+
+    scoped = user("caller", {"Effect": "Allow", "Action": "iam:PassRole",
+                             "Resource": target["Arn"], "Condition": {"StringEquals": {
+                                 "iam:PassedToService": "ssm.amazonaws.com"}}},
+                  allow("config:PutRemediationConfigurations",
+                        resource=f"arn:aws:config:{REGION}:{ACCOUNT}:remediation-configuration/*"),
+                  allow("ssm:CreateDocument",
+                        resource=f"arn:aws:ssm:{REGION}:{ACCOUNT}:document/*"))
+    assert_unresolved(real(aws_snap([scoped], [target]), technique, include_unknown=True),
+                      scoped["Arn"], technique)
+
+    wrong = caller("lambda.amazonaws.com")
+    assert not reached(real(aws_snap([wrong], [target]), technique), wrong["Arn"], technique)
+
+
 def test_stepfunctions_create_and_update_passrole_use_states_service_context():
     execution_role = role("execution", "states.amazonaws.com", allow("iam:AttachUserPolicy"))
     techniques = ("aws-stepfunctions-createstatemachine-passrole-start",

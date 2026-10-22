@@ -21,7 +21,12 @@ V4_EFFECTIVE_TREE = "413792ea4aec86e48c352ffab2c0bea9e82795bc234251342737ec0276b
 LEGACY_DELTA = Path(__file__).resolve().parent / "catalog_versions/legacy-0b3633-delta.json"
 BOUNDED_MANIFEST = "734401b202895e00ac1b6cb0f1534f77cde4d8e2ba912ca0ee974b1b8ec5035c"
 BOUNDED_TREE = "1a54bad4102d18f89c78f45c915964554a62f994c1bffa693844cac5e119cca8"
-CURRENT_MANIFEST = '7ce57468896503c2d0d674e3588357872b5e9d9e4a182f78471d1b66988f3b47'
+CURRENT_MANIFEST = '093fc183e5cd8f1b97afd29330d06e8aa5c4ce6bcd4a9a01236ab3ff6ac3c936'
+CONFIG_REMEDIATION_689_PREVIOUS_MANIFEST = '7ce57468896503c2d0d674e3588357872b5e9d9e4a182f78471d1b66988f3b47'
+CONFIG_REMEDIATION_689_PREVIOUS_TREE = '3847c9b4ef67600aebfcbfaf0d1866faeaea1f4e27a69fc140680906d434fb17'
+CONFIG_REMEDIATION_689_PREVIOUS_ARCHIVE_SHA256 = 'b56e63f84f09b3cc3623950ba2f665f7ef460d166c32669986d5178d2b3bf330'
+CONFIG_REMEDIATION_689_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-689-config-remediation-source-manifest.json'
+CONFIG_REMEDIATION_689_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-689-config-remediation-catalog.tar.gz'
 SERVICECATALOG_EFFECT_689_PREVIOUS_MANIFEST = '29b74a9633cc0900893ce77dabd373fa53efd6f4b1f58739cc9b2544f9b53d28'
 SERVICECATALOG_EFFECT_689_PREVIOUS_TREE = '1311ff4ef2de5f6e0fca5c8fccb108d3ce258d2c0077c8c193c4db9a00b21785'
 SERVICECATALOG_EFFECT_689_PREVIOUS_ARCHIVE_SHA256 = '12af6717d5601a0e0ffa7765a15648f7c3c0fe3c0e1cef7f9c9f32a7e6ce4344'
@@ -331,10 +336,10 @@ PRIOR_CURRENT_MANIFEST = "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0c
 PRIOR_DISCLOSURE_MANIFEST = "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
 PRIOR_DISCLOSURE_TREE = "5091464bedcb10bb87301695ca733276dc67b865e544c408ccf72a5408176f0f"
 PRIOR_DISCLOSURE_HISTORY = Path(__file__).resolve().parent / "catalog_versions/disclosure-v7-manifest.json"
-CURRENT_TREE = '3847c9b4ef67600aebfcbfaf0d1866faeaea1f4e27a69fc140680906d434fb17'
+CURRENT_TREE = 'f4a38f3b6628abbb56b900b6a740aa7406be26a95512bce16b42845778b87663'
 PRIOR_CURRENT_TREE = "99207e6469fc5e5b3daf21324e6860599b116ffcf7d30600643bd229b0f11494"
 CURRENT_ENTRY_COUNT = 689
-CURRENT_EXCLUDED_COUNT = 3729
+CURRENT_EXCLUDED_COUNT = 3730
 CURRENT_HISTORY = Path(__file__).resolve().parent / "catalog_versions/bulk-principal-v6-manifest.json"
 PRIOR_CATALOG_ARCHIVE = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-catalog-20261016.tar.gz"
 PRIOR_SOURCE_MANIFEST = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-source-manifest.json"
@@ -453,6 +458,15 @@ def _verified_teststate_690_previous():
         TESTSTATE_690_PREVIOUS_MANIFEST_PATH, TESTSTATE_690_PREVIOUS_ARCHIVE,
         TESTSTATE_690_PREVIOUS_MANIFEST, TESTSTATE_690_PREVIOUS_ARCHIVE_SHA256,
         TESTSTATE_690_PREVIOUS_TREE, 690, 3723)
+
+
+@lru_cache(maxsize=1)
+def _verified_config_remediation_689_previous():
+    """Keep the exact catalog before Config remediation runtime gating."""
+    return _verified_archived_current(
+        CONFIG_REMEDIATION_689_PREVIOUS_MANIFEST_PATH, CONFIG_REMEDIATION_689_PREVIOUS_ARCHIVE,
+        CONFIG_REMEDIATION_689_PREVIOUS_MANIFEST, CONFIG_REMEDIATION_689_PREVIOUS_ARCHIVE_SHA256,
+        CONFIG_REMEDIATION_689_PREVIOUS_TREE, 689, 3729)
 
 
 @lru_cache(maxsize=1)
@@ -973,6 +987,10 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "current", "exact_strict_privesc"
+    elif (binding.get("manifest_sha256") == CONFIG_REMEDIATION_689_PREVIOUS_MANIFEST and
+          binding.get("effective_tree_sha256") == CONFIG_REMEDIATION_689_PREVIOUS_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "config_remediation_689_previous", "exact_previous_current"
     elif (binding.get("manifest_sha256") == SERVICECATALOG_EFFECT_689_PREVIOUS_MANIFEST and
           binding.get("effective_tree_sha256") == SERVICECATALOG_EFFECT_689_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -1214,6 +1232,9 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
         if version == "current":
             current = _verified_current(str(catalog_dir), str(manifest_path))
             return {ident: current[ident] for ident in ids if ident in current}, status
+        if version == "config_remediation_689_previous":
+            previous = _verified_config_remediation_689_previous()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "servicecatalog_effect_689_previous":
             previous = _verified_servicecatalog_effect_689_previous()
             return {ident: previous[ident] for ident in ids if ident in previous}, status

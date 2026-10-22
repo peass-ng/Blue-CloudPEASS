@@ -71,6 +71,28 @@ def test_servicecatalog_artifact_effect_binding_preserves_previous_catalog():
     assert len(catalog._verified_servicecatalog_effect_689_previous()) == 689
 
 
+def test_config_remediation_binding_preserves_previous_catalog():
+    ident = "aws-config-passrole-automatic-remediation"
+    current, status = catalog.lookup_entries([ident], catalog.current_binding())
+    assert status == "exact_strict_privesc"
+    entry = current[ident]
+    assert "config_automatic_remediation_effect_unverified" in entry["preconditions"]
+    requirements = {req["action"]: req for req in entry["requires"]["all_of"]}
+    assert requirements["iam:PassRole"]["request_context"] == {
+        "iam:PassedToService": "ssm.amazonaws.com"}
+    assert requirements["config:PutRemediationConfigurations"]["resource"].endswith(
+        ":remediation-configuration/*")
+    assert requirements["ssm:CreateDocument"]["resource"].endswith(":document/*")
+    old = {"schema": catalog.BINDING_SCHEMA,
+           "manifest_sha256": catalog.CONFIG_REMEDIATION_689_PREVIOUS_MANIFEST,
+           "effective_tree_sha256": catalog.CONFIG_REMEDIATION_689_PREVIOUS_TREE,
+           "source_revision": catalog.V4_REVISION}
+    previous, status = catalog.lookup_entries([ident], old)
+    assert status == "exact_previous_current"
+    assert "preconditions" not in previous[ident]
+    assert len(catalog._verified_config_remediation_689_previous()) == 689
+
+
 def test_deadline_queue_binding_preserves_previous_catalog():
     ident = "aws-deadline-existing-queue-role-vend"
     current, status = catalog.lookup_entries([ident], catalog.current_binding())

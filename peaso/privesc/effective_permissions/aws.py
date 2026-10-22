@@ -7801,6 +7801,12 @@ class AwsModel(Model):
             # portfolio, or a controlled template will grant any new authority.
             return {tid: ("unknown", "servicecatalog_owned_product_template_and_role_effect_not_verified")
                     for tid in candidates}
+        if pid == "config_automatic_remediation_effect_unverified":
+            # PutRemediationConfigurations and PassRole do not establish a
+            # non-service-linked rule, noncompliant resource, runnable SSM
+            # document, service-linked role, or privileged Automation effect.
+            return {tid: ("unknown", "config_rule_document_and_automatic_role_effect_not_verified")
+                    for tid in candidates}
         if pid == "ec2_runinstances_launch_with_passed_profile_unverified":
             if source is None:
                 return None
