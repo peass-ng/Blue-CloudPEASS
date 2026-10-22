@@ -1,6 +1,6 @@
 {
   "repository": "HackTricks-wiki/hacktricks-cloud",
-  "revision": "0bcdd63ab36141eedb65a7a80bbb386cf95544dd",
+  "revision": "2099a8ce5689ba7e09be66e247a43d173a484fd5",
   "path": "src/privilege-escalation-paths",
   "canonical_sha256": {
     "aws/_excluded_171e_g1.yaml": "2160b8f57f029e74e5a31727815316f459d8364147c47be2c36639c831b9dcb3",
@@ -11,7 +11,7 @@
     "aws/_excluded_artifact_join_strict_reaudit_20261016.yaml": "96e06173366e52ad549e94c2a4a22aaea6ef27c297f3255d20fd402e3dc1db24",
     "aws/_excluded_audit_6fb9.yaml": "f0d4ed4f552202184de7756a6ea8ae6c1ef5a621319ee023336bad433ae18e74",
     "aws/_excluded_b.yaml": "6904877e1dd474782a976509c24df72f4764a9243927bfa8b98781c3da7158cc",
-    "aws/_excluded_bounded_service_role_overclaim_20261016.yaml": "dfca9b20e3834bff4a1640913c77c3d5d136720440bb433a0f75cb3af020e209",
+    "aws/_excluded_bounded_service_role_overclaim_20261016.yaml": "e64c3c2496539c410c1b314eb0ca3a72cf937a76c92d50562382852fcd4f90a1",
     "aws/_excluded_cognito_strict_reaudit_20261016.yaml": "b6e5487270ba56254f87a0d6115b2bff34dac8b7113975113d046d4bd3d8ab30",
     "aws/_excluded_consumer_input_join_strict_reaudit_20261016.yaml": "85c6bea42f4b72cc7bf77b9dd254744fc7788f14cbf30dcb751ef6e50e323cd2",
     "aws/_excluded_consumer_semantics_strict_reaudit_20261016.yaml": "2c2e2d277b44d61b98cc9c3e293e65bfd3c71a2f64fae57951f665fae38a8e53",
@@ -304,7 +304,7 @@
     "aws/_excluded_artifact_join_strict_reaudit_20261016.yaml": "96e06173366e52ad549e94c2a4a22aaea6ef27c297f3255d20fd402e3dc1db24",
     "aws/_excluded_audit_6fb9.yaml": "f0d4ed4f552202184de7756a6ea8ae6c1ef5a621319ee023336bad433ae18e74",
     "aws/_excluded_b.yaml": "6904877e1dd474782a976509c24df72f4764a9243927bfa8b98781c3da7158cc",
-    "aws/_excluded_bounded_service_role_overclaim_20261016.yaml": "dfca9b20e3834bff4a1640913c77c3d5d136720440bb433a0f75cb3af020e209",
+    "aws/_excluded_bounded_service_role_overclaim_20261016.yaml": "e64c3c2496539c410c1b314eb0ca3a72cf937a76c92d50562382852fcd4f90a1",
     "aws/_excluded_cognito_strict_reaudit_20261016.yaml": "b6e5487270ba56254f87a0d6115b2bff34dac8b7113975113d046d4bd3d8ab30",
     "aws/_excluded_consumer_input_join_strict_reaudit_20261016.yaml": "85c6bea42f4b72cc7bf77b9dd254744fc7788f14cbf30dcb751ef6e50e323cd2",
     "aws/_excluded_consumer_semantics_strict_reaudit_20261016.yaml": "2c2e2d277b44d61b98cc9c3e293e65bfd3c71a2f64fae57951f665fae38a8e53",
