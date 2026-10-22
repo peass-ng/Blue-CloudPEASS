@@ -38,6 +38,33 @@ def test_source_repin_keeps_previous_700_entry_meanings():
     assert len(catalog._verified_source_repin_700_previous()) == 700
 
 
+def test_appstream_resource_requirements_keep_previous_report_meanings():
+    ident = "aws-appstream-createimagebuilderstreamingurl"
+    current, status = catalog.lookup_entries([ident], catalog.current_binding())
+    assert status == "exact_strict_privesc"
+    assert current[ident]["requires"]["all_of"][0]["action"] == "appstream:CreateImageBuilderStreamingURL"
+    old = {"schema": catalog.BINDING_SCHEMA,
+           "manifest_sha256": catalog.APPSTREAM_RESOURCE_700_PREVIOUS_MANIFEST,
+           "effective_tree_sha256": catalog.APPSTREAM_RESOURCE_700_PREVIOUS_TREE,
+           "source_revision": catalog.V4_REVISION}
+    previous, status = catalog.lookup_entries([ident], old)
+    assert status == "exact_previous_current"
+    assert previous[ident]["requires"]["all_of"] == []
+    assert len(catalog._verified_appstream_resource_700_previous()) == 700
+
+
+def test_revisionless_organizations_binding_retains_original_catalog_tree():
+    ident = "aws-appstream-createimagebuilderstreamingurl"
+    old = {"schema": catalog.BINDING_SCHEMA,
+           "manifest_sha256": catalog.ORGANIZATIONS_RCP_691_REVISIONLESS_MANIFEST,
+           "effective_tree_sha256": catalog.ORGANIZATIONS_RCP_691_REVISIONLESS_TREE,
+           "source_revision": catalog.V4_REVISION}
+    previous, status = catalog.lookup_entries([ident], old)
+    assert status == "exact_previous_current"
+    assert previous[ident]["requires"]["all_of"] == []
+    assert catalog.ORGANIZATIONS_RCP_691_REVISIONLESS_TREE != catalog.CURRENT_TREE
+
+
 def test_stepfunctions_passrole_service_binding_preserves_previous_catalog():
     ids = ["aws-stepfunctions-createstatemachine-passrole-start",
            "aws-stepfunctions-updatestatemachine-passrole"]

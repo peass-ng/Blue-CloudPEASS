@@ -105,7 +105,7 @@
   "peaso/privesc/finding_explanation.py": "3d0a530d20ecfb3468fd87bae99438d8f8e6e802c39e55a55cc36363884d8206",
   "peaso/privesc/k8s_observed_impact.py": "01141a47effc35169da31453150697e94c2940a051b789f3cd8d01cf01ec178a",
   "peaso/privesc/schema.py": "c0be08097db221393c9c93ce036b4d75c48c0716b77bde327f1df41f1ff990aa",
-  "peaso/privesc/versioned_catalog.py": "5c4c874517f51a9d4d021ca77174864e10111020739f8a43989b7b916cfc3358",
+  "peaso/privesc/versioned_catalog.py": "80bf2e41efa5b113b5205b4c9502a5511a1c7e6836df6bb22e40fa48ca76a06f",
   "peaso/provider_followup_observations_20261021.py": "84d18fb252d53059c2ea486e98e8b3301e79bc1f9bdee24a4d063570c109c313",
-  "risk_rules/hacktricks-privesc-source.json": "9c3c20a056723d3a6628f52361c658ed63fa7a6553a799c7d215546b5bc3cd97"
+  "risk_rules/hacktricks-privesc-source.json": "b5e56997930799b0c6194b64f4031ea924a9d9591191181b480148c47f03049b"
 }

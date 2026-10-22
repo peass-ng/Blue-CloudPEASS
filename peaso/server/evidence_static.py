@@ -19,7 +19,7 @@ from types import ModuleType, SimpleNamespace
 
 ROOT = Path(__file__).resolve().parent
 SOURCE_ROOT = Path(__file__).resolve().parents[2]
-SOURCE_MANIFEST_SHA256 = '7e9253300441e2e04bc4b68b9940138c907bf8c6485983bdd6a9a25885d5d55e'
+SOURCE_MANIFEST_SHA256 = '0a588e06973730b9ff2dde11ae13f0dadff9b9d124cc313baf90f42c6533ab29'
 DATA_MANIFEST_SHA256 = 'd98c480916a0a1377e06e12340297f883c8ea39077ad7186104c09ec35236df0'
 
 

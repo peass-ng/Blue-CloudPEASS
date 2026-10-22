@@ -138,6 +138,78 @@ def _compact(document):
     return document
 
 
+def _incremental_appstream_documents(main_manifest, current, cases):
+    """Reuse pinned historical rows while rebuilding both changed 700-entry bindings."""
+    previous = _compact(_pinned_existing())
+    old_current = previous['current_binding']
+    if (old_current['manifest_sha256'] != catalog.APPSTREAM_RESOURCE_700_PREVIOUS_MANIFEST
+            or old_current['effective_tree_sha256'] != catalog.APPSTREAM_RESOURCE_700_PREVIOUS_TREE
+            or old_current['source_revision'] != catalog.V4_REVISION):
+        raise ValueError('previous AppStream display binding changed')
+    identity = lambda row: (row[0], row[1], row[2], row[3])
+    old = {identity(row): row for row in previous['bindings']}
+    wanted = {(values['manifest_sha256'], values.get('effective_tree_sha256'),
+               values['source_revision'], status) for _, status, values in cases}
+    old_current_key = (catalog.APPSTREAM_RESOURCE_700_PREVIOUS_MANIFEST,
+                       catalog.APPSTREAM_RESOURCE_700_PREVIOUS_TREE,
+                       catalog.V4_REVISION, 'exact_strict_privesc')
+    new_current_key = (catalog.CURRENT_MANIFEST, catalog.CURRENT_TREE,
+                       catalog.V4_REVISION, 'exact_strict_privesc')
+    archive_key = (catalog.APPSTREAM_RESOURCE_700_PREVIOUS_MANIFEST,
+                   catalog.APPSTREAM_RESOURCE_700_PREVIOUS_TREE,
+                   catalog.V4_REVISION, 'exact_previous_current')
+    removed, added = set(old) - wanted, wanted - set(old)
+    if (len(old) != len(previous['bindings']) or removed != {old_current_key}
+            or added != {new_current_key, archive_key}):
+        raise ValueError(f'AppStream display changed outside two reviewed bindings: {removed!r}, {added!r}')
+    prior_details = previous['details']
+    details = {hashlib.sha256(encoded(row)).hexdigest(): row for row in prior_details}
+    if len(details) != len(prior_details):
+        raise ValueError('previous display detail identities changed')
+    current_ids = {row['id'] for row in engine.get_catalog()['privesc_techniques']}
+    prior, _ = catalog._verified_prior()
+    legacy = catalog._verified_history(str(catalog.LEGACY_DELTA))
+    common_ids = current_ids | set(prior) | set(legacy['legacy_ids']) | set(legacy['old_entries'])
+    loaders = archived_loaders()
+    bindings = []
+    for version, status, values in cases:
+        key = (values['manifest_sha256'], values.get('effective_tree_sha256'),
+               values['source_revision'], status)
+        if key in old:
+            references = {ident: hashlib.sha256(encoded(prior_details[index])).hexdigest()
+                          for ident, index in old[key][4].items()}
+        else:
+            ids = set(common_ids)
+            loader = loaders.get(version)
+            if loader is not None:
+                ids.update(loader())
+            bound = dict(schema=catalog.BINDING_SCHEMA, tenant_id='display-build', **values)
+            rows = engine.privesc_technique_details(sorted(ids), catalog_binding=bound,
+                                                    tenant_id='display-build')
+            references = {}
+            for ident, row in rows.items():
+                if row.get('unknown'):
+                    continue
+                if row['catalog_lookup_status'] != status:
+                    raise ValueError(f'lookup status drift: {version}')
+                payload = dict(row)
+                payload.pop('catalog_lookup_status')
+                digest = hashlib.sha256(encoded(payload)).hexdigest()
+                details.setdefault(digest, payload)
+                references[ident] = digest
+            if loader is not None and hasattr(loader, 'cache_clear'):
+                loader.cache_clear()
+            print(version, len(references), len(details), flush=True)
+        if not references:
+            raise ValueError(f'empty verified catalog: {version}')
+        bindings.append([*key, references])
+    document = {'schema_version': 1, 'catalog_document_sha256': main_manifest['document_sha256'],
+                'catalog_source_identities': {name: main_manifest['sources'][name] for name in FROZEN_SOURCES},
+                'current_binding': current, 'legacy_manifest': catalog.LEGACY_MANIFEST,
+                'legacy_revision': catalog.LEGACY_REVISION, 'bindings': bindings, 'details': details}
+    return _documents(_compact(document), main_manifest)
+
+
 def render_documents():
     main_manifest = json.loads((PACK / 'api_catalog_manifest.json').read_bytes())
     current = catalog.current_binding()
@@ -154,6 +226,10 @@ def render_documents():
         document['catalog_source_identities'] = {name: main_manifest['sources'][name] for name in FROZEN_SOURCES}
         return _documents(_compact(document), main_manifest)
     cases = binding_cases()
+    if sys.argv[1:] == ['--incremental-appstream']:
+        return _incremental_appstream_documents(main_manifest, current, cases)
+    if sys.argv[1:]:
+        raise ValueError('unsupported privilege display build mode')
     loaders = archived_loaders()
     current_ids = {row['id'] for row in engine.get_catalog()['privesc_techniques']}
     prior, _ = catalog._verified_prior()
