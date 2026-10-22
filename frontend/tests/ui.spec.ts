@@ -446,7 +446,8 @@ test("HTML in API names is rendered as text", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "<img src=x onerror=alert(1)>" }),
   ).toBeVisible();
-  expect(await page.locator(".connector-card img").count()).toBe(1);
+  await expect(page.locator(".connectors-table img")).toHaveCount(1);
+  await expect(page.locator(".connectors-table img")).toHaveAttribute("src", "/icons/aws.svg");
 });
 test("large map bounded and complete table searchable", async ({ page }) => {
   await emptyApi(page);
