@@ -634,6 +634,11 @@ SAGEMAKER_NOTEBOOK_LIFECYCLE_METADATA_REFERENCE = {
         "https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ListNotebookInstanceLifecycleConfigs.html",
 }
 VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(SAGEMAKER_NOTEBOOK_LIFECYCLE_METADATA_REFERENCE)
+SAGEMAKER_STUDIO_LIFECYCLE_METADATA_REFERENCE = {
+    "sagemaker:ListStudioLifecycleConfigs":
+        "https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ListStudioLifecycleConfigs.html",
+}
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(SAGEMAKER_STUDIO_LIFECYCLE_METADATA_REFERENCE)
 
 
 def build_policy(read_actions=None, *, include_credential_report_generation=None,

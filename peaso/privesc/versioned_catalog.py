@@ -21,7 +21,12 @@ V4_EFFECTIVE_TREE = "413792ea4aec86e48c352ffab2c0bea9e82795bc234251342737ec0276b
 LEGACY_DELTA = Path(__file__).resolve().parent / "catalog_versions/legacy-0b3633-delta.json"
 BOUNDED_MANIFEST = "734401b202895e00ac1b6cb0f1534f77cde4d8e2ba912ca0ee974b1b8ec5035c"
 BOUNDED_TREE = "1a54bad4102d18f89c78f45c915964554a62f994c1bffa693844cac5e119cca8"
-CURRENT_MANIFEST = '0f335824eeb4cc48a61e8933dafb44e642ad6d6ae14a6b505cd69a2adb718add'
+CURRENT_MANIFEST = '4dcaaedf17e9a32f4be83a2bdf2b89449d0e26f50e2ceebcdcd660654a076b58'
+SAGEMAKER_STUDIO_PROFILE_691_PREVIOUS_MANIFEST = '0f335824eeb4cc48a61e8933dafb44e642ad6d6ae14a6b505cd69a2adb718add'
+SAGEMAKER_STUDIO_PROFILE_691_PREVIOUS_TREE = '3aff7843f0fa840ec3972b1e45135ab115bbc7a9d42e7c9d5942dfe10d5acdd5'
+SAGEMAKER_STUDIO_PROFILE_691_PREVIOUS_ARCHIVE_SHA256 = '8e18ccbe4fe86756a95178897dfa68c67becf4198378b0efca0af924212b49b9'
+SAGEMAKER_STUDIO_PROFILE_691_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-691-sagemaker-studio-profile-source-manifest.json'
+SAGEMAKER_STUDIO_PROFILE_691_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-691-sagemaker-studio-profile-catalog.tar.gz'
 SAGEMAKER_HPO_691_PREVIOUS_MANIFEST = '89035f1582caf6c7432d96e9588c9fefb12672f0c7803bf18237c5de6333a07e'
 SAGEMAKER_HPO_691_PREVIOUS_TREE = 'd1da99310af26bc3bf72599cb916b73ecfd5f2bdf7e2c49985686b9ee02b038e'
 SAGEMAKER_HPO_691_PREVIOUS_ARCHIVE_SHA256 = 'c2ad00104eb25ae4b053915e9fa50a1ce6a71bbf135fad2f6593c31d88701855'
@@ -401,7 +406,7 @@ PRIOR_CURRENT_MANIFEST = "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0c
 PRIOR_DISCLOSURE_MANIFEST = "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
 PRIOR_DISCLOSURE_TREE = "5091464bedcb10bb87301695ca733276dc67b865e544c408ccf72a5408176f0f"
 PRIOR_DISCLOSURE_HISTORY = Path(__file__).resolve().parent / "catalog_versions/disclosure-v7-manifest.json"
-CURRENT_TREE = '3aff7843f0fa840ec3972b1e45135ab115bbc7a9d42e7c9d5942dfe10d5acdd5'
+CURRENT_TREE = '3be383bad95b339d945719d0f945077b49ed3cba1e7e836ccb256d520bd44def'
 PRIOR_CURRENT_TREE = "99207e6469fc5e5b3daf21324e6860599b116ffcf7d30600643bd229b0f11494"
 CURRENT_ENTRY_COUNT = 691
 CURRENT_EXCLUDED_COUNT = 3736
@@ -523,6 +528,17 @@ def _verified_teststate_690_previous():
         TESTSTATE_690_PREVIOUS_MANIFEST_PATH, TESTSTATE_690_PREVIOUS_ARCHIVE,
         TESTSTATE_690_PREVIOUS_MANIFEST, TESTSTATE_690_PREVIOUS_ARCHIVE_SHA256,
         TESTSTATE_690_PREVIOUS_TREE, 690, 3723)
+
+
+@lru_cache(maxsize=1)
+def _verified_sagemaker_studio_profile_691_previous():
+    """Keep the exact catalog before the Studio profile lifecycle route."""
+    return _verified_archived_current(
+        SAGEMAKER_STUDIO_PROFILE_691_PREVIOUS_MANIFEST_PATH,
+        SAGEMAKER_STUDIO_PROFILE_691_PREVIOUS_ARCHIVE,
+        SAGEMAKER_STUDIO_PROFILE_691_PREVIOUS_MANIFEST,
+        SAGEMAKER_STUDIO_PROFILE_691_PREVIOUS_ARCHIVE_SHA256,
+        SAGEMAKER_STUDIO_PROFILE_691_PREVIOUS_TREE, 691, 3736)
 
 
 @lru_cache(maxsize=1)
@@ -1169,6 +1185,10 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "current", "exact_strict_privesc"
+    elif (binding.get("manifest_sha256") == SAGEMAKER_STUDIO_PROFILE_691_PREVIOUS_MANIFEST and
+          binding.get("effective_tree_sha256") == SAGEMAKER_STUDIO_PROFILE_691_PREVIOUS_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "sagemaker_studio_profile_691_previous", "exact_previous_current"
     elif (binding.get("manifest_sha256") == SAGEMAKER_HPO_691_PREVIOUS_MANIFEST and
           binding.get("effective_tree_sha256") == SAGEMAKER_HPO_691_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -1466,6 +1486,9 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
         if version == "current":
             current = _verified_current(str(catalog_dir), str(manifest_path))
             return {ident: current[ident] for ident in ids if ident in current}, status
+        if version == "sagemaker_studio_profile_691_previous":
+            previous = _verified_sagemaker_studio_profile_691_previous()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "sagemaker_hpo_691_previous":
             previous = _verified_sagemaker_hpo_691_previous()
             return {ident: previous[ident] for ident in ids if ident in previous}, status
