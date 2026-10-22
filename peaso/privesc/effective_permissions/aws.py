@@ -8132,6 +8132,63 @@ class AwsModel(Model):
                 uncertain = True
             verdict = ("unknown", "sfn_existing_machine_update_and_start_not_verified") if uncertain else None
             return {tid: verdict for tid in candidates if verdict} if verdict else {}
+        if pid == "sagemaker_attached_notebook_lifecycle_update":
+            if source is None:
+                return None
+            statuses = inventory_status(self.snapshot, "sagemaker_notebook_instance")
+            if not statuses:
+                return {tid: ("unknown", "sagemaker_notebook_inventory_not_collected") for tid in candidates}
+            partition = source.id.split(":", 2)[1]
+            for tid, target in candidates.items():
+                uncertain = bool(source.incomplete or target.incomplete or
+                                 any(state not in ("collected", "empty") for state in statuses.values()))
+                for scope, notebook in items(self.snapshot, "sagemaker_notebook_instance"):
+                    if (statuses.get(scope) != "collected" or not scope.startswith(source.scope + "/")
+                            or not isinstance(notebook, dict) or notebook.get("RoleArn") != target.id):
+                        continue
+                    account, region = scope.split("/", 1)
+                    name = notebook.get("NotebookInstanceLifecycleConfigName")
+                    notebook_arn = notebook.get("NotebookInstanceArn")
+                    if not isinstance(name, str) or not re.fullmatch(r"[A-Za-z0-9](?:-*[A-Za-z0-9])*", name) or len(name) > 63:
+                        uncertain = True
+                        continue
+                    notebook_name = notebook.get("NotebookInstanceName")
+                    if (not isinstance(notebook_name, str) or not re.fullmatch(
+                            r"[A-Za-z0-9](?:-*[A-Za-z0-9])*", notebook_name) or len(notebook_name) > 63 or
+                            notebook_arn != f"arn:{partition}:sagemaker:{region}:{account}:notebook-instance/{notebook_name}"):
+                        uncertain = True
+                        continue
+                    state = notebook.get("NotebookInstanceStatus")
+                    platform = notebook.get("PlatformIdentifier")
+                    if state not in ("InService", "Stopped"):
+                        uncertain = uncertain or state not in ("Deleting", "Failed")
+                        continue
+                    if not isinstance(platform, str):
+                        uncertain = True
+                        continue
+                    if platform == "notebook-al1-v1":
+                        continue
+                    if platform not in ("notebook-al2-v1", "notebook-al2-v2", "notebook-al2-v3",
+                                        "notebook-al2023-v1"):
+                        uncertain = True
+                        continue
+                    if state == "Stopped" and platform.startswith("notebook-al2-"):
+                        continue
+                    trust = self._service_trust_for_source_arn(tid, "sagemaker.amazonaws.com", notebook_arn)
+                    if trust is False:
+                        continue
+                    if trust is None:
+                        uncertain = True
+                        continue
+                    lcc_arn = f"arn:{partition}:sagemaker:{region}:{account}:notebook-instance-lifecycle-config/{name}"
+                    grant = self._check_action(source, "sagemaker:updatenotebookinstancelifecycleconfig", lcc_arn)
+                    if grant is not None and grant.confidence == "derived":
+                        out[tid] = ("conditional", "sagemaker_attached_notebook_lifecycle_update_on_next_start")
+                        break
+                    uncertain = uncertain or grant is not None
+                if tid not in out and uncertain:
+                    out[tid] = ("unknown", "sagemaker_attached_notebook_lifecycle_or_authorization_not_verified")
+            return out
         if pid == "sagemaker_notebook_instance_accessible":
             if source is None:
                 return None

@@ -1,6 +1,6 @@
 {
   "repository": "HackTricks-wiki/hacktricks-cloud",
-  "revision": "3af89b11ead0d758ab37db9f1ccd91e6f3883ee2",
+  "revision": "f22014683548b7b050c8e91aa10f7a86b2f2c696",
   "path": "src/privilege-escalation-paths",
   "canonical_sha256": {
     "aws/_excluded_171e_g1.yaml": "2160b8f57f029e74e5a31727815316f459d8364147c47be2c36639c831b9dcb3",
@@ -13,7 +13,7 @@
     "aws/_excluded_b.yaml": "6904877e1dd474782a976509c24df72f4764a9243927bfa8b98781c3da7158cc",
     "aws/_excluded_bounded_service_role_overclaim_20261016.yaml": "339661609d51ddf30e8ecf013c1f60a4b2061f4e21108ff45ef5dd8c46d2f55f",
     "aws/_excluded_cognito_strict_reaudit_20261016.yaml": "b6e5487270ba56254f87a0d6115b2bff34dac8b7113975113d046d4bd3d8ab30",
-    "aws/_excluded_consumer_input_join_strict_reaudit_20261016.yaml": "c884fd293e65eda53d7387df338b19cf4baac02e9bb37ad88e4ddb0aa6b597c2",
+    "aws/_excluded_consumer_input_join_strict_reaudit_20261016.yaml": "524eda207611a6753db7fa8b426f506051dd6318c13f6710dcbb50f4214876ee",
     "aws/_excluded_consumer_semantics_strict_reaudit_20261016.yaml": "2c2e2d277b44d61b98cc9c3e293e65bfd3c71a2f64fae57951f665fae38a8e53",
     "aws/_excluded_effective_gain_strict_reaudit_20261016.yaml": "8ec2e7d14ba8f2da38e3d7f011bfa24f11fafdc10539fbee370e4e1c58f5afd5",
     "aws/_excluded_eks_strict_reaudit_20261016.yaml": "4ce99488d31b8b83672f031214b0818614cf4a3c4843758e180c277efc929091",
@@ -115,7 +115,7 @@
     "aws/redshift.yaml": "55f31de378cc5f67949fbfa21474a068afc65ab47b1357a8885f3a9684323e3b",
     "aws/s3.yaml": "5690dda8cf38b0252c4ae9d526848dc0dbae572e22729613c02519a28af43aad",
     "aws/s3files.yaml": "77f1132d1bd905e56ae2bbd39496d2cfe70e3e865eb87c99c037724b2dc01159",
-    "aws/sagemaker.yaml": "3bdad3c0f9ffa7103f3ae42306c660250a4584c29710d481187d7f67cdd4b680",
+    "aws/sagemaker.yaml": "9b981fc47c08b01527cf2b3575a45844f151af8d3a4ff42ea3d375c9b33b0099",
     "aws/scheduler.yaml": "95ef350bb76a1f87bc085d706a7958404fb34b6cd6a7ae39950dcd4dc0ee2cd0",
     "aws/scoped_grants.yaml": "5d823300caabe6038c338bdfdfed4436f2b020ffac1211a3b9743e078260890f",
     "aws/servicecatalog.yaml": "ce875946ac107aab77c6ab037add8f007c28c05a00f6f528f369a58ba09987f3",
@@ -303,7 +303,7 @@
     "aws/_excluded_b.yaml": "6904877e1dd474782a976509c24df72f4764a9243927bfa8b98781c3da7158cc",
     "aws/_excluded_bounded_service_role_overclaim_20261016.yaml": "339661609d51ddf30e8ecf013c1f60a4b2061f4e21108ff45ef5dd8c46d2f55f",
     "aws/_excluded_cognito_strict_reaudit_20261016.yaml": "b6e5487270ba56254f87a0d6115b2bff34dac8b7113975113d046d4bd3d8ab30",
-    "aws/_excluded_consumer_input_join_strict_reaudit_20261016.yaml": "c884fd293e65eda53d7387df338b19cf4baac02e9bb37ad88e4ddb0aa6b597c2",
+    "aws/_excluded_consumer_input_join_strict_reaudit_20261016.yaml": "524eda207611a6753db7fa8b426f506051dd6318c13f6710dcbb50f4214876ee",
     "aws/_excluded_consumer_semantics_strict_reaudit_20261016.yaml": "2c2e2d277b44d61b98cc9c3e293e65bfd3c71a2f64fae57951f665fae38a8e53",
     "aws/_excluded_effective_gain_strict_reaudit_20261016.yaml": "8ec2e7d14ba8f2da38e3d7f011bfa24f11fafdc10539fbee370e4e1c58f5afd5",
     "aws/_excluded_eks_strict_reaudit_20261016.yaml": "4ce99488d31b8b83672f031214b0818614cf4a3c4843758e180c277efc929091",
@@ -405,7 +405,7 @@
     "aws/redshift.yaml": "55f31de378cc5f67949fbfa21474a068afc65ab47b1357a8885f3a9684323e3b",
     "aws/s3.yaml": "5690dda8cf38b0252c4ae9d526848dc0dbae572e22729613c02519a28af43aad",
     "aws/s3files.yaml": "77f1132d1bd905e56ae2bbd39496d2cfe70e3e865eb87c99c037724b2dc01159",
-    "aws/sagemaker.yaml": "3bdad3c0f9ffa7103f3ae42306c660250a4584c29710d481187d7f67cdd4b680",
+    "aws/sagemaker.yaml": "9b981fc47c08b01527cf2b3575a45844f151af8d3a4ff42ea3d375c9b33b0099",
     "aws/scheduler.yaml": "95ef350bb76a1f87bc085d706a7958404fb34b6cd6a7ae39950dcd4dc0ee2cd0",
     "aws/scoped_grants.yaml": "5d823300caabe6038c338bdfdfed4436f2b020ffac1211a3b9743e078260890f",
     "aws/servicecatalog.yaml": "ce875946ac107aab77c6ab037add8f007c28c05a00f6f528f369a58ba09987f3",
@@ -741,9 +741,9 @@
   },
   "ledger": {
     "path": "risk_rules/reviewed-privesc-ledger.json",
-    "sha256": "02091e5576922cdc4e8acdb27adc2b38fe5b4fc10451748c4f2034d01a17c6d1",
+    "sha256": "cc5426ce7c8bef38511f7dcac293133dc73192c2eb4303df8009f8fbde716796",
     "review": {
-      "description": "Review of 79 local item removals when syncing HackTricks Cloud PR #465 (f98a67fc92a011fe316713fc90d15eef11a67c6d): 78 exclusion records and one GCP Connectors technique are absent from the merged canonical catalog. Upstream catalog takes precedence."
+      "description": "Review of 79 local item removals when syncing HackTricks Cloud PR #465 (f98a67fc92a011fe316713fc90d15eef11a67c6d): 78 exclusion records and one GCP Connectors technique are absent from the merged canonical catalog. Upstream catalog takes precedence. A later SageMaker exclusion was superseded by its exact implemented route."
     }
   }
 }

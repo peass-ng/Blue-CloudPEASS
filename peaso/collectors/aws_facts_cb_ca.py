@@ -932,7 +932,7 @@ _MERGES = {
          "FirewallPolicyChangeProtection", "EncryptionConfiguration", "Description", "FirewallId", "EnabledAnalysisTypes",
          "TransitGatewayId", "TransitGatewayOwnerAccountId", "AvailabilityZoneMappings", "NoSourcePreservation", "VpcEndpoint")),
     "sagemaker_notebook_instance": ("sagemaker", "describe_notebook_instance", "NotebookInstanceName", "NotebookInstanceName", None,
-        ("NotebookInstanceArn", "NotebookInstanceName", "NotebookInstanceStatus", "InstanceType", "SubnetId", "SecurityGroups", "RoleArn", "KmsKeyId",
+        ("NotebookInstanceArn", "NotebookInstanceName", "NotebookInstanceStatus", "NotebookInstanceLifecycleConfigName", "InstanceType", "SubnetId", "SecurityGroups", "RoleArn", "KmsKeyId",
          "DirectInternetAccess", "RootAccess", "PlatformIdentifier", "InstanceMetadataServiceConfiguration", "CreationTime")),
     "sagemaker_model": ("sagemaker", "describe_model", "ModelName", "ModelName", None,
         ("ModelName", "ModelArn", "ExecutionRoleArn", "VpcConfig", "EnableNetworkIsolation", "CreationTime")),
