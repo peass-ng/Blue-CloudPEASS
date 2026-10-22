@@ -2640,11 +2640,12 @@ def collect(connector, requirements=None):
     activity_workers = _bound(options, "activity_concurrency", min(32, max(1, len(regions) * min(scope_workers, max(1, len(contexts))))), maximum=32)
     metadata["activity_concurrency"] = activity_workers
     from .aws_access_analyzer_lifecycle import AnalyzerLifecycle
+    from .aws_image_capture_20261022 import capture_scope
     metadata["access_analyzer_lifecycle"] = []
     if "access_analyzer" in wanted:
         metadata["collection"] = "read-only-with-temporary-access-analyzers"
     analyzer_lifecycle = AnalyzerLifecycle(requests, metadata["access_analyzer_lifecycle"], progress_callback)
-    with analyzer_lifecycle, ThreadPoolExecutor(max_workers=requests.workers, thread_name_prefix="aws-read") as pool, \
+    with capture_scope(requests), analyzer_lifecycle, ThreadPoolExecutor(max_workers=requests.workers, thread_name_prefix="aws-read") as pool, \
             ThreadPoolExecutor(max_workers=activity_workers, thread_name_prefix="aws-activity") as activity_pool:
         for offset in range(0, len(contexts), scope_workers):
             scope_batch = contexts[offset:offset + scope_workers]
