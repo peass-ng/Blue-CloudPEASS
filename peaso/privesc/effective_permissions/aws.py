@@ -12281,9 +12281,25 @@ class AwsModel(Model):
                 grant = self._check_action(source, "sts:assumerole", probe)
                 if grant is not None:
                     break
-            verdict = (("conditional", "new_member_account_creation_pending") if grant is not None else
+            verdict = (("conditional", "new_member_account_creation_pending") if grant is not None and
+                       grant.confidence == "derived" else
                        ("unknown", "new_member_access_role_assume_grant_unverified"))
             root = self._org_root()
+            # The management account is exempt from SCP enforcement, but its
+            # complete account-to-root collection records the root policies a
+            # newly created member account will inherit.
+            management_rows = [row for scope, row in items(self.snapshot, "scp_policy")
+                               if scope.split("/")[0] == self.org_management]
+            root_complete = (root is not None and self.scp_status.get(self.org_management) == "collected" and
+                             bool(management_rows) and all(
+                                 row.get("InheritanceComplete") is True and
+                                 isinstance(row.get("InheritedPolicies"), dict) and
+                                 row["InheritedPolicies"].get("complete") is True and
+                                 row["InheritedPolicies"].get("collection_status") == "collected"
+                                 and any(isinstance(parent, dict) and parent.get("Id") == root and
+                                         parent.get("Type") == "ROOT" for parent in
+                                         as_list(row["InheritedPolicies"].get("ParentPath")))
+                                 for row in management_rows))
             root_denies = [st for policy in self.scp_by_target.get(root, ())
                            for st in policy.for_action("sts:assumerole")
                            if st.effect == "deny"]
@@ -12295,11 +12311,13 @@ class AwsModel(Model):
                 # an unconditional root SCP Deny also applies to its new role.
                 if any(st.resource_matches(tid) and not st.conditional for st in root_denies):
                     continue
-                if any(st.resource_matches(tid) and st.conditional for st in root_denies):
+                if not root_complete:
+                    out[tid] = ("unknown", "new_member_root_scp_inventory_incomplete")
+                elif any(st.resource_matches(tid) and st.conditional for st in root_denies):
                     out[tid] = ("unknown", "new_member_root_scp_conditional_deny_unverified")
-                elif root_allows and not any(st.action_matches("sts:assumerole") and
-                                           st.resource_matches(tid) and not st.conditional
-                                           for st in root_allows):
+                elif not any(st.action_matches("sts:assumerole") and
+                             st.resource_matches(tid) and not st.conditional
+                             for st in root_allows):
                     # A new member account inherits root SCPs. A recorded root
                     # allowlist without a definite AssumeRole allow cannot
                     # establish access from its generated role.

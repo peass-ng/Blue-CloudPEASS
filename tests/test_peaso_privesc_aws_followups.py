@@ -959,10 +959,29 @@ def org_trust(org=ORG):
 CREATE_ACCOUNT = "aws-organizations-createaccount-principalorgid-trust"
 
 
+def complete_root_scp(snap, *statements):
+    root = "r-root123"
+    content = policy(*(statements or (allow("*"),)))
+    row = {"Id": "p-root", "TargetId": root, "TargetType": "ROOT",
+           "Detail": {"Policy": {"Content": content}}, "InheritanceComplete": True,
+           "InheritedPolicies": {"complete": True, "collection_status": "collected",
+                                 "ParentPath": [{"Id": ACCOUNT, "Type": "ACCOUNT"},
+                                                {"Id": root, "Type": "ROOT"}],
+                                 "items": [{"Id": "p-root", "TargetId": root, "Content": content}]}}
+    management = next(c for c in snap["collections"] if c["type"] == "scp_policy" and c["scope"] == SCOPE)
+    management["status"] = "collected"
+    management["items"].append(row)
+    snap["collections"].append({"type": "organization_parent", "scope": SCOPE,
+                                "service": "organization_parent", "status": "collected",
+                                "items": [{"ChildId": ACCOUNT, "ParentId": root}], "error": None})
+    return snap
+
+
 def test_createaccount_reaches_principalorgid_trusts_from_management_account():
     alice = user("alice", allow("organizations:CreateAccount", "sts:AssumeRole"))
     shared, foreign = role("shared", org_trust(), account=OTHER), role("foreign", org_trust("o-zzzzzzzzzz"), account=OTHER)
-    snap = aws_snap([alice], extra=[org_accounts(OTHER)], other_roles=[(OTHER, [shared, foreign])])
+    snap = complete_root_scp(aws_snap([alice], extra=[org_accounts(OTHER)],
+                                     other_roles=[(OTHER, [shared, foreign])]))
     assert set(reached(real(snap, CREATE_ACCOUNT), ALICE)) == {role_arn("shared", OTHER)}
 
 
@@ -978,12 +997,14 @@ def test_createaccount_needs_generated_access_role_grant_not_target_role_grant()
     generated_role = user("alice", allow("organizations:CreateAccount"),
                           allow("sts:AssumeRole",
                                 resource="arn:aws:iam::*:role/OrganizationAccountAccessRole"))
-    snap = aws_snap([generated_role], extra=[org_accounts(OTHER)], other_roles=[(OTHER, [shared])])
+    snap = complete_root_scp(aws_snap([generated_role], extra=[org_accounts(OTHER)],
+                                     other_roles=[(OTHER, [shared])]))
     assert shared["Arn"] in reached(real(snap, CREATE_ACCOUNT), ALICE, CREATE_ACCOUNT)
 
     custom_role = user("alice", allow("organizations:CreateAccount"),
                        allow("sts:AssumeRole", resource="arn:aws:iam::*:role/ChosenAccessRole"))
-    snap = aws_snap([custom_role], extra=[org_accounts(OTHER)], other_roles=[(OTHER, [shared])])
+    snap = complete_root_scp(aws_snap([custom_role], extra=[org_accounts(OTHER)],
+                                     other_roles=[(OTHER, [shared])]))
     assert shared["Arn"] in reached(real(snap, CREATE_ACCOUNT), ALICE, CREATE_ACCOUNT)
 
 
@@ -1001,15 +1022,13 @@ def test_createaccount_new_member_cannot_bypass_root_scp_assume_role_deny():
     unaffected = role("other-shared", org_trust(), account=OTHER)
     root = "r-root123"
     parent = col("organization_parent", [{"ChildId": ACCOUNT, "ParentId": root}])
-    baseline = aws_snap([alice], extra=[org_accounts(OTHER), parent],
-                        other_roles=[(OTHER, [target, unaffected])])
+    baseline = complete_root_scp(aws_snap([alice], extra=[org_accounts(OTHER), parent],
+                                         other_roles=[(OTHER, [target, unaffected])]))
     assert target["Arn"] in reached(real(baseline, CREATE_ACCOUNT), ALICE)
-    scp = col("scp_policy", [{"Id": "p-denyassume", "TargetId": root,
-        "Detail": {"Policy": {"Content": {"Version": "2012-10-17", "Statement": [
-            {"Effect": "Deny", "Action": "sts:AssumeRole", "Resource": target["Arn"]}]}}}}],
-        scope=f"{OTHER}/{REGION}")
-    snap = aws_snap([alice], extra=[org_accounts(OTHER), parent, scp],
-                    other_roles=[(OTHER, [target, unaffected])])
+    snap = complete_root_scp(aws_snap([alice], extra=[org_accounts(OTHER)],
+                                     other_roles=[(OTHER, [target, unaffected])]),
+                             allow("*"), {"Effect": "Deny", "Action": "sts:AssumeRole",
+                                          "Resource": target["Arn"]})
     assert target["Arn"] not in reached(real(snap, CREATE_ACCOUNT), ALICE)
     assert unaffected["Arn"] in reached(real(snap, CREATE_ACCOUNT), ALICE)
 
@@ -1017,14 +1036,8 @@ def test_createaccount_new_member_cannot_bypass_root_scp_assume_role_deny():
 def test_createaccount_new_member_needs_root_scp_assume_role_allow():
     alice = user("alice", allow("organizations:CreateAccount", "sts:AssumeRole"))
     target = role("shared", org_trust(), account=OTHER)
-    root = "r-root123"
-    parent = col("organization_parent", [{"ChildId": ACCOUNT, "ParentId": root}])
-    scp = col("scp_policy", [{"Id": "p-allow-s3", "TargetId": root,
-        "Detail": {"Policy": {"Content": {"Version": "2012-10-17", "Statement": [
-            {"Effect": "Allow", "Action": "s3:*", "Resource": "*"}]}}}}],
-        scope=f"{OTHER}/{REGION}")
-    snap = aws_snap([alice], extra=[org_accounts(OTHER), parent, scp],
-                    other_roles=[(OTHER, [target])])
+    snap = complete_root_scp(aws_snap([alice], extra=[org_accounts(OTHER)],
+                                     other_roles=[(OTHER, [target])]), allow("s3:*"))
     result = real(snap, CREATE_ACCOUNT, include_unknown=True)
     assert target["Arn"] not in reached(result, ALICE, CREATE_ACCOUNT)
     assert_unresolved(result, ALICE, CREATE_ACCOUNT)
@@ -1033,16 +1046,32 @@ def test_createaccount_new_member_needs_root_scp_assume_role_allow():
 def test_createaccount_new_member_root_scp_conditional_deny_is_unknown():
     alice = user("alice", allow("organizations:CreateAccount", "sts:AssumeRole"))
     target = role("shared", org_trust(), account=OTHER)
-    root = "r-root123"
-    parent = col("organization_parent", [{"ChildId": ACCOUNT, "ParentId": root}])
-    scp = col("scp_policy", [{"Id": "p-conditional-deny", "TargetId": root,
-        "Detail": {"Policy": {"Content": {"Version": "2012-10-17", "Statement": [
-            {"Effect": "Allow", "Action": "*", "Resource": "*"},
-            {"Effect": "Deny", "Action": "sts:AssumeRole", "Resource": target["Arn"],
-             "Condition": {"StringEquals": {"aws:PrincipalTag/Environment": "restricted"}}}]}}}}],
-        scope=f"{OTHER}/{REGION}")
-    snap = aws_snap([alice], extra=[org_accounts(OTHER), parent, scp],
-                    other_roles=[(OTHER, [target])])
+    snap = complete_root_scp(aws_snap([alice], extra=[org_accounts(OTHER)],
+                                     other_roles=[(OTHER, [target])]),
+                             allow("*"), {"Effect": "Deny", "Action": "sts:AssumeRole",
+                                          "Resource": target["Arn"], "Condition": {"StringEquals": {
+                                              "aws:PrincipalTag/Environment": "restricted"}}})
+    result = real(snap, CREATE_ACCOUNT, include_unknown=True)
+    assert target["Arn"] not in reached(result, ALICE, CREATE_ACCOUNT)
+    assert_unresolved(result, ALICE, CREATE_ACCOUNT)
+
+
+def test_createaccount_new_member_needs_complete_root_scp_inventory():
+    alice = user("alice", allow("organizations:CreateAccount", "sts:AssumeRole"))
+    target = role("shared", org_trust(), account=OTHER)
+    snap = aws_snap([alice], extra=[org_accounts(OTHER)], other_roles=[(OTHER, [target])])
+    result = real(snap, CREATE_ACCOUNT, include_unknown=True)
+    assert target["Arn"] not in reached(result, ALICE, CREATE_ACCOUNT)
+    assert_unresolved(result, ALICE, CREATE_ACCOUNT)
+
+
+def test_createaccount_new_member_needs_definite_generated_role_grant():
+    assume = allow("sts:AssumeRole", resource="arn:aws:iam::*:role/OrganizationAccountAccessRole")
+    assume["Condition"] = {"IpAddress": {"aws:SourceIp": "192.0.2.0/24"}}
+    alice = user("alice", allow("organizations:CreateAccount"), assume)
+    target = role("shared", org_trust(), account=OTHER)
+    snap = complete_root_scp(aws_snap([alice], extra=[org_accounts(OTHER)],
+                                     other_roles=[(OTHER, [target])]))
     result = real(snap, CREATE_ACCOUNT, include_unknown=True)
     assert target["Arn"] not in reached(result, ALICE, CREATE_ACCOUNT)
     assert_unresolved(result, ALICE, CREATE_ACCOUNT)
@@ -1051,13 +1080,17 @@ def test_createaccount_new_member_root_scp_conditional_deny_is_unknown():
 def test_createaccount_management_identity_is_exempt_from_scps():
     alice = user("alice", allow("organizations:CreateAccount", "sts:AssumeRole"))
     target = role("shared", org_trust(), account=OTHER)
-    snap = aws_snap([alice], extra=[org_accounts(OTHER)], other_roles=[(OTHER, [target])])
+    snap = complete_root_scp(aws_snap([alice], extra=[org_accounts(OTHER)],
+                                     other_roles=[(OTHER, [target])]))
     management_scp = next(c for c in snap["collections"] if c["type"] == "scp_policy" and c["scope"] == SCOPE)
     management_scp["status"] = "collected"
-    management_scp["items"] = [{"Id": "p-management", "TargetId": ACCOUNT,
+    management_scp["items"].append({"Id": "p-management", "TargetId": ACCOUNT,
         "Detail": {"Policy": {"Content": {"Version": "2012-10-17", "Statement": [
             {"Effect": "Deny", "Action": ["organizations:CreateAccount", "sts:AssumeRole"],
-             "Resource": "*"}]}}}}]
+             "Resource": "*"}]}}}, "InheritanceComplete": True,
+        "InheritedPolicies": {"complete": True, "collection_status": "collected",
+                              "ParentPath": [{"Id": ACCOUNT, "Type": "ACCOUNT"},
+                                             {"Id": "r-root123", "Type": "ROOT"}], "items": []}})
     assert target["Arn"] in reached(real(snap, CREATE_ACCOUNT), ALICE)
 
     member = user("bob", allow("sts:AssumeRole"), account=OTHER)
