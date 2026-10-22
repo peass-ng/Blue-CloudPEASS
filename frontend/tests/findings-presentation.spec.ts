@@ -578,7 +578,7 @@ test("framework picker defaults to all, sorts and searches versions, and selects
 test('Leaks navigation filters secret findings across categories and opens retained values and locations', async ({ page }) => {
   const requests: URL[] = [];
   const finding = { id: 'leak-1', category: 'hardening', check_id: 'aws.review.lambda.environment_literal_secret_indicators',
-    title: 'Detected secret in Lambda configuration', finding_type: 'secrets', provider: 'aws', service: 'lambda', scope: 'test-account/us-east-1',
+    title: 'Detected secret in Lambda configuration', finding_type: 'detected_leaks', provider: 'aws', service: 'lambda', scope: 'test-account/us-east-1',
     resource_id: 'lambda-1', status: 'FAIL', severity: 'high', frameworks: [], evidence_summary: 'A secret was detected in a selected environment value.' };
   await page.route('**/api/**', async route => {
     const url = new URL(route.request().url()); let json: unknown = { items: [] };
@@ -601,6 +601,7 @@ test('Leaks navigation filters secret findings across categories and opens retai
   await expect(page.getByRole('dialog').getByText('SYNTHETIC-SECRET-FOR-UI-ONLY', { exact: true })).toBeVisible();
   await expect(page.getByRole('dialog').getByText('configuration.environment', { exact: true })).toBeVisible();
   await expect(page.getByRole('dialog').getByText('DEMO_API_KEY', { exact: true })).toBeVisible();
-  expect(requests.length).toBeGreaterThanOrEqual(2);
-  expect(requests.every(url => url.searchParams.get('finding_type') === 'secrets' && url.searchParams.get('status') === 'FAIL' && !url.searchParams.has('categories'))).toBe(true);
+  const resultRequests = requests.filter(url => url.searchParams.get('group_by') === 'service');
+  expect(resultRequests.length).toBeGreaterThanOrEqual(2);
+  expect(resultRequests.every(url => url.searchParams.get('finding_type') === 'detected_leaks' && url.searchParams.get('status') === 'FAIL' && !url.searchParams.has('categories'))).toBe(true);
 });
