@@ -59,10 +59,10 @@ def test_exact_image_payload_once_and_scanner_parity(monkeypatch, order):
         descriptor = package._json(ops['batch_get_image']['images'][0]['imageManifest'])['config']
         config_barrier = threading.Barrier(2)
         original = capture._Capture.blob
-        def synchronized(self, *args):
+        def synchronized(self, *args, **kwargs):
             if args[6] == descriptor['digest']:
                 config_barrier.wait(timeout=5)
-            return original(self, *args)
+            return original(self, *args, **kwargs)
         monkeypatch.setattr(capture._Capture, 'blob', synchronized)
     with capture.capture_scope(requests) as store:
         root = store.root

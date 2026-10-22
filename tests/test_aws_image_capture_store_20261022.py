@@ -51,7 +51,7 @@ def test_cancelled_waiter_does_not_remove_active_owner_payload():
     def check():
         if threading.current_thread().name == 'waiter' and cancelled.is_set():
             raise RuntimeError('cancelled_waiter')
-    requests = SimpleNamespace(_lock=threading.RLock(), check_deadline=check)
+    requests = SimpleNamespace(_lock=threading.RLock(), check_deadline=lambda: None)
     session, outcomes = object(), []
     def load(path):
         path.write_bytes(b'abc')
@@ -61,7 +61,7 @@ def test_cancelled_waiter_does_not_remove_active_owner_payload():
     def consume():
         try:
             outcomes.append(capture.shared_blob(requests, session, ACCOUNT, REGION,
-                'repo', 'image', 'blob', 3, load, None))
+                'repo', 'image', 'blob', 3, load, None, check=check))
         except RuntimeError as exc:
             outcomes.append(str(exc))
     with capture.capture_scope(requests) as store:

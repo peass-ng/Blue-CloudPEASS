@@ -37,7 +37,10 @@ class _Capture:
         self.entries, self.sessions, self.reserved = {}, [], 0
         self.closed = False
 
-    def blob(self, requests, session, account, region, repo, image_digest, digest, size, load):
+    def blob(self, requests, session, account, region, repo, image_digest, digest, size, load,
+             *, check=None):
+        check = check or requests.check_deadline
+        check()
         authority = _authority(session)
         key = (id(authority), account, region, repo, image_digest, digest)
         with self.lock:
@@ -71,7 +74,8 @@ class _Capture:
                     entry['ready'].set()
         else:
             while not entry['ready'].wait(0.1):
-                requests.check_deadline()
+                check()
+        check()
         requests.check_deadline()
         if not entry['ok']:
             raise ValueError('image_capture_unavailable')
@@ -110,10 +114,10 @@ def capture_scope(requests):
 
 
 def shared_blob(requests, session, account, region, repo, image_digest,
-                digest, size, load, fallback):
+                digest, size, load, fallback, *, check=None):
     """Reuse only after the caller independently authorized its exact manifest."""
     capture = getattr(requests, '_ecr_image_capture', None)
     if capture is None:
         return load(fallback)
     return capture.blob(requests, session, account, region, repo,
-                        image_digest, digest, size, load)
+                        image_digest, digest, size, load, check=check)
