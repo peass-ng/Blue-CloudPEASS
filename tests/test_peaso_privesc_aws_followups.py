@@ -216,6 +216,51 @@ def test_instance_connect_prior_catalog_binding_keeps_conditional_wording():
     assert "leaves host access and role-credential use unresolved" in new[ident]["notes"]
 
 
+def test_ecs_runtask_override_binds_task_cluster_and_passed_roles():
+    technique = "aws-ecs-passrole-runtask-overrides"
+    target = role("target", "ecs-tasks.amazonaws.com", allow("s3:GetObject"))
+    execution = role("execution", "ecs-tasks.amazonaws.com")
+    task_arn = f"arn:aws:ecs:{REGION}:{ACCOUNT}:task-definition/app:1"
+    cluster_arn = f"arn:aws:ecs:{REGION}:{ACCOUNT}:cluster/prod"
+    definition = {"taskDefinitionArn": task_arn, "status": "ACTIVE", "compatibilities": ["EC2"],
+                  "networkMode": "bridge", "executionRoleArn": execution["Arn"],
+                  "containerDefinitions": [{"name": "app", "image": "public.ecr.aws/docker/library/alpine:latest"}]}
+    task = {"taskDefinitionArn": task_arn,
+            "Definition": {"collection_status": "collected", "taskDefinition": definition}}
+    cluster = {"clusterArn": cluster_arn, "status": "ACTIVE", "registeredContainerInstancesCount": 1}
+    passed = allow("iam:PassRole", resource=[target["Arn"], execution["Arn"]])
+    passed["Condition"] = {"StringEquals": {"iam:PassedToService": "ecs-tasks.amazonaws.com"}}
+    run = allow("ecs:RunTask", resource=task_arn)
+    run["Condition"] = {"ArnEquals": {"ecs:cluster": cluster_arn}}
+
+    def result(passrole=passed, runtask=run, state="ACTIVE", compatibility="EC2", capacity=1):
+        item = copy.deepcopy(task)
+        item["Definition"]["taskDefinition"]["status"] = state
+        item["Definition"]["taskDefinition"]["compatibilities"] = [compatibility]
+        current_cluster = {**cluster, "registeredContainerInstancesCount": capacity}
+        caller = user("alice", passrole, runtask)
+        return real(aws_snap([caller], [target, execution], [
+            col("ecs_task_definition", [item]), col("ecs_cluster", [current_cluster])]),
+            technique, include_unknown=True)
+
+    assert target["Arn"] in reached(result(), ALICE, technique)
+    wrong_task = allow("ecs:RunTask", resource=task_arn.replace("app:1", "other:1"))
+    assert target["Arn"] not in reached(result(runtask=wrong_task), ALICE, technique)
+    wrong_cluster = copy.deepcopy(run)
+    wrong_cluster["Condition"]["ArnEquals"]["ecs:cluster"] = cluster_arn.replace("prod", "other")
+    assert target["Arn"] not in reached(result(runtask=wrong_cluster), ALICE, technique)
+    wrong_service = copy.deepcopy(passed)
+    wrong_service["Condition"]["StringEquals"]["iam:PassedToService"] = "lambda.amazonaws.com"
+    assert target["Arn"] not in reached(result(passrole=wrong_service), ALICE, technique)
+    no_execution_role = allow("iam:PassRole", resource=target["Arn"])
+    assert target["Arn"] not in reached(result(passrole=no_execution_role), ALICE, technique)
+    assert target["Arn"] not in reached(result(state="INACTIVE"), ALICE, technique)
+    assert target["Arn"] not in reached(result(capacity=0), ALICE, technique)
+    fargate = result(compatibility="FARGATE")
+    assert target["Arn"] not in reached(fargate, ALICE, technique)
+    assert_unresolved(fargate, ALICE, technique)
+
+
 def test_spot_request_scoped_grant_stays_visible_without_claiming_role_execution():
     ident = "aws-ec2-requestspotinstances-passrole"
     target = role("target", "ec2.amazonaws.com", profiles=[profile_arn("target")])

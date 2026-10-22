@@ -21,7 +21,8 @@ V4_EFFECTIVE_TREE = "413792ea4aec86e48c352ffab2c0bea9e82795bc234251342737ec0276b
 LEGACY_DELTA = Path(__file__).resolve().parent / "catalog_versions/legacy-0b3633-delta.json"
 BOUNDED_MANIFEST = "734401b202895e00ac1b6cb0f1534f77cde4d8e2ba912ca0ee974b1b8ec5035c"
 BOUNDED_TREE = "1a54bad4102d18f89c78f45c915964554a62f994c1bffa693844cac5e119cca8"
-CURRENT_MANIFEST = '7d528406be7793c99131834f3b4747dbf14fec5ac0515d813c60949670c1baba'
+CURRENT_MANIFEST = 'eaa7ebf65018ebf1050dd6e0da0f0fe5faeba1cb8860e58d767ff5514f1b26a0'
+ORGANIZATIONS_RCP_691_REVISIONLESS_MANIFEST = '7d528406be7793c99131834f3b4747dbf14fec5ac0515d813c60949670c1baba'
 ORGANIZATIONS_RCP_691_PREVIOUS_MANIFEST = 'fb78323d003a13e56cb130b11cbc5b5236bd91c31a67f0cc81c5aae05eaac45e'
 ORGANIZATIONS_RCP_691_PREVIOUS_TREE = 'e79cf10386508df546b33f8383e78907948571eaf6479b2047a8a45683b65ae8'
 ORGANIZATIONS_RCP_691_PREVIOUS_ARCHIVE_SHA256 = '511107dedd9565230d7b23cd67856f2d4c658e2429460796cf8b9fb097c38c6f'
@@ -1327,6 +1328,12 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "current", "exact_strict_privesc"
+    elif (binding.get("manifest_sha256") == ORGANIZATIONS_RCP_691_REVISIONLESS_MANIFEST and
+          binding.get("effective_tree_sha256") == CURRENT_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        # The source commit became known after the YAML was committed; the
+        # effective catalog tree did not change.
+        version, status = "current", "exact_previous_current"
     elif (binding.get("manifest_sha256") == ORGANIZATIONS_RCP_691_PREVIOUS_MANIFEST and
           binding.get("effective_tree_sha256") == ORGANIZATIONS_RCP_691_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
