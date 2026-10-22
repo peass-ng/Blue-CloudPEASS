@@ -4783,7 +4783,13 @@ class AwsModel(Model):
         return permitted is not None and permitted.confidence == "derived" and already is None
 
     def _emr_serverless_job_route(self, source, role):
-        """Join an actual application, role request, and one shared S3 script object."""
+        """Require one accepted and executed job under the exact runtime role."""
+        if source.scope != role.scope or source.id == role.id:
+            return None
+        pass_allows, _ = self._statements(source, "iam:passrole")
+        start_allows, _ = self._statements(source, "emr-serverless:startjobrun")
+        if not pass_allows or not start_allows:
+            return ("unknown", "emr_serverless_source_permissions_incomplete") if source.incomplete else None
         statuses = inventory_status(self.snapshot, "emr_serverless_application")
         scopes = {scope: status for scope, status in statuses.items()
                   if scope.startswith(source.scope + "/")}
@@ -4791,70 +4797,106 @@ class AwsModel(Model):
             return ("unknown", "emr_serverless_application_inventory_not_recorded")
         unknown = bool(source.incomplete or role.incomplete or
                        any(status not in ("collected", "empty") for status in scopes.values()))
-        bucket_status = inventory_status(self.snapshot, "bucket")
-        if not any(scope.startswith(source.scope + "/") and status in ("collected", "empty")
-                   for scope, status in bucket_status.items()):
-            unknown = True
-        partition = source.id.split(":", 2)[1]
-        object_key = "peaso-job-" + hashlib.sha256((source.id + role.id).encode()).hexdigest()[:16] + ".py"
+        records = self.bounded_evidence_records.get(
+            ("aws-emr-serverless-passrole-startjobrun", source.id, "aws_role", role.id), ())
         for scope, app in items(self.snapshot, "emr_serverless_application"):
-            if scope not in scopes or scopes[scope] not in ("collected", "empty") or not isinstance(app, dict):
+            if scope not in scopes or scopes[scope] != "collected" or not isinstance(app, dict):
                 continue
             region = scope.split("/", 1)[1]
+            partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
             app_id, arn = app.get("id"), app.get("arn")
-            if (not isinstance(app_id, str) or not isinstance(arn, str) or
+            if (not isinstance(app_id, str) or not re.fullmatch(r"[0-9a-z]+", app_id) or
                     arn != f"arn:{partition}:emr-serverless:{region}:{source.scope}:/applications/{app_id}"):
                 unknown = True
                 continue
-            state = app.get("state")
             detail = app.get("NetworkDetails")
             auto_start = detail.get("AutoStartEnabled") if isinstance(detail, dict) else None
-            if app.get("type") != "SPARK" or not (state == "STARTED" or
-                    state in ("CREATED", "STOPPED") and auto_start is True):
-                if not state or (state in ("CREATED", "STOPPED") and auto_start is None) or not app.get("type"):
+            if app.get("type") != "SPARK" or not (app.get("state") == "STARTED" or
+                    app.get("state") in ("CREATED", "STOPPED") and auto_start is True):
+                if not app.get("type") or not app.get("state") or auto_start is None:
                     unknown = True
                 continue
-            start = self.cached_check(source, {"action": "emr-serverless:StartJobRun",
-                "request_context": {"aws:RequestedRegion": region}}, arn)
-            passed = self.cached_check(source, {"action": "iam:PassRole", "resource": role.id,
-                "request_context": {"iam:PassedToService": "emr-serverless.amazonaws.com"}}, role.id)
-            if start is None or passed is None:
+            start = self.check(source, {"action": "emr-serverless:StartJobRun",
+                                        "request_context": {"aws:RequestedRegion": region}}, arn)
+            if start is None:
                 continue
-            # The associated resource used by this service is not established by
-            # the collected response. Do not derive a route from a condition on it.
-            allows, _ = self._statements(source, "iam:passrole")
-            if any("iam:associatedresourcearn" in str(statement.condition).lower() for statement in allows):
+            if len(records) != 1 or records[0][0] != scope or \
+                    inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected":
                 unknown = True
                 continue
-            for bucket_scope, bucket in items(self.snapshot, "bucket"):
-                if (bucket_scope.split("/", 1)[0] != source.scope or
-                        bucket_status.get(bucket_scope) not in ("collected", "empty") or
-                        not isinstance(bucket, dict) or not isinstance(bucket.get("Name"), str)):
-                    continue
-                location = bucket.get("Location")
-                if not isinstance(location, dict) or location.get("collection_status") != "collected":
-                    unknown = True
-                    continue
-                bucket_region = location.get("LocationConstraint") or "us-east-1"
-                if bucket_region == "EU":
-                    bucket_region = "eu-west-1"
-                if bucket_region != region:
-                    continue
-                encryption = bucket.get("Encryption")
-                if not isinstance(encryption, dict) or encryption.get("collection_status") not in ("collected", "absent"):
-                    unknown = True
-                    continue
-                if "aws:kms" in str(encryption).lower() or "aws:kms:dsse" in str(encryption).lower():
-                    unknown = True
-                    continue
-                obj = f"arn:{partition}:s3:::{bucket['Name']}/{object_key}"
-                grants = (start, passed, self._check_action(source, "s3:putobject", obj),
-                          self._check_action(role, "s3:getobject", obj))
-                if all(grant is not None and grant.confidence == "derived" for grant in grants):
-                    return ("conditional", "emr_serverless_application_and_readable_script")
-                if any(grant is not None for grant in grants[2:]):
-                    unknown = True
-        return ("unknown", "emr_serverless_application_or_script_path_not_verified") if unknown else None
+            proof = records[0][1]
+            service = proof.get("PassRoleService")
+            associated = proof.get("PassRoleAssociatedResourceArn")
+            job = proof.get("JobRunArn")
+            artifact_kind = proof.get("JobArtifactKind")
+            artifact = proof.get("JobArtifactArn")
+            action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+            if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                    proof.get("TechniqueId") != "aws-emr-serverless-passrole-startjobrun" or
+                    proof.get("SourceArn") != source.id or proof.get("TargetKind") != "aws_role" or
+                    proof.get("TargetId") != role.id or proof.get("ApplicationArn") != arn or
+                    proof.get("ExecutionRoleArn") != role.id or
+                    not isinstance(job, str) or re.fullmatch(
+                        re.escape(arn) + r"/jobruns/[0-9a-zA-Z]+", job) is None or
+                    service != "emr-serverless.amazonaws.com" or
+                    (associated is not None and (not isinstance(associated, str) or
+                     not associated.startswith(f"arn:{partition}:") or
+                     "*" in associated or "?" in associated)) or
+                    proof.get("PassRoleContextReviewed") is not True or
+                    proof.get("JobRunAccepted") is not True or
+                    proof.get("JobRunExecuted") is not True or
+                    artifact_kind not in ("s3", "other") or
+                    not isinstance(artifact, str) or not artifact or
+                    (artifact_kind == "s3" and re.fullmatch(
+                        rf"arn:{re.escape(partition)}:s3:::[^/]+/.+", artifact) is None) or
+                    proof.get("JobArtifactControlledBySource") is not True or
+                    proof.get("JobArtifactReadByRuntime") is not True or
+                    proof.get("ControlledCodeExecuted") is not True or
+                    proof.get("CodeUsedRoleCredentials") is not True or
+                    proof.get("RoleActionSucceeded") is not True or
+                    proof.get("EffectUsefulToSource") is not True or
+                    not isinstance(action, str) or re.fullmatch(
+                        r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                    not isinstance(resource, str) or not resource or
+                    not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+                unknown = True
+                continue
+            roles = [row for role_scope, row in items(self.snapshot, "iam_role")
+                     if role_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+            if (len(roles) != 1 or not isinstance(proof.get("TargetRoleId"), str) or
+                    not proof["TargetRoleId"] or roles[0].get("RoleId") != proof["TargetRoleId"] or
+                    proof.get("ExecutionRoleId") != proof["TargetRoleId"]):
+                unknown = True
+                continue
+            try:
+                observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+                witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+                expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+                fresh = (observed.tzinfo is not None and witnessed.tzinfo is not None and
+                         expires.tzinfo is not None and
+                         0 <= (observed - witnessed).total_seconds() <= 900 and observed < expires and
+                         0 < (expires - witnessed).total_seconds() <= 900)
+            except (KeyError, TypeError, ValueError):
+                fresh = False
+            if not fresh:
+                unknown = True
+                continue
+            pass_context = {"iam:PassedToService": service}
+            if associated is not None:
+                pass_context["iam:AssociatedResourceArn"] = associated
+            grants = (start,
+                      self.check(source, {"action": "iam:PassRole", "request_context": pass_context}, role.id),
+                      self.check(role, {"action": action}, resource))
+            if artifact_kind == "s3":
+                grants += (self.check(source, {"action": "s3:PutObject"}, artifact),
+                           self.check(role, {"action": "s3:GetObject"}, artifact))
+            if any(grant is None or grant.confidence != "derived" for grant in grants):
+                unknown = True
+                continue
+            if self.check(source, {"action": action}, resource) is not None:
+                return None
+            return ("conditional", "emr_serverless_exact_executed_role_effect")
+        return ("unknown", "emr_serverless_application_or_executed_job_not_verified") if unknown else None
 
     def _emr_container_cluster_trust(self, role, scope, cluster_name, namespace):
         """True when the recorded EKS issuer and namespace fit one IRSA Allow."""
