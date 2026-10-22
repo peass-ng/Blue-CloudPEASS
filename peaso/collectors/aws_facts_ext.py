@@ -86,7 +86,7 @@ READ_ACTIONS = {
     ("imagebuilder", "list_infrastructure_configurations"), ("imagebuilder", "get_image_recipe"),
     ("sagemaker", "describe_user_profile"), ("sagemaker", "describe_cluster"), ("sagemaker", "describe_domain"),
     ("sagemaker", "describe_space"),
-    ("amplify", "list_backend_environments"),
+    ("amplify", "list_backend_environments"), ("amplify", "list_branches"),
     ("quicksight", "describe_account_subscription"),
     ("gamelift", "describe_fleet_attributes"), ("gamelift", "list_compute"),
     ("devicefarm", "list_projects"), ("devicefarm", "get_device_pool_compatibility"),
@@ -956,6 +956,8 @@ def _amplify_apps(requests, session, region, account):
         # Never environmentVariables, basicAuthCredentials, buildSpec or customHeaders.
         row = _pick(app, ("appId", "appArn", "name", "platform", "iamServiceRoleArn", "computeRoleArn", "defaultDomain", "enableBasicAuth",
                           "createTime", "updateTime"))
+        row["RepositoryConnected"] = bool(app.get("repository"))
+        row["AppBuildSpecPresent"] = bool(app.get("buildSpec"))
         if "AdditionalSecretIndicators" in app:
             row["AdditionalSecretIndicators"] = copy.deepcopy(app["AdditionalSecretIndicators"])
         row["id"] = app.get("appArn") or app["appId"]
@@ -963,6 +965,12 @@ def _amplify_apps(requests, session, region, account):
                                   _tokens=("nextToken", "nextToken"), appId=app["appId"])
         row["BackendEnvironments"] = _child(backends, [_pick(x, ("backendEnvironmentArn", "environmentName", "stackName"))
                                                        for x in backends.items if isinstance(x, dict)])
+        branches = requests.pages(session, "amplify", region, "list_branches", "branches",
+                                  _tokens=("nextToken", "nextToken"), appId=app["appId"])
+        row["Branches"] = _child(branches, [
+            {**_pick(x, ("branchArn", "branchName", "stage", "enableAutoBuild", "framework", "computeRoleArn")),
+             "BranchBuildSpecPresent": bool(x.get("buildSpec"))}
+            for x in branches.items if isinstance(x, dict)])
         items.append(row)
     return _finish(items, failure)
 

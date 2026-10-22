@@ -1,6 +1,6 @@
 {
   "repository": "HackTricks-wiki/hacktricks-cloud",
-  "revision": "4b6c67ea5a34508537cfbc5366d17757eab3f166",
+  "revision": "582f48435f3e1cf4fd2c7eeeea40ea3e093e2b14",
   "path": "src/privilege-escalation-paths",
   "canonical_sha256": {
     "aws/_excluded_171e_g1.yaml": "2160b8f57f029e74e5a31727815316f459d8364147c47be2c36639c831b9dcb3",
@@ -49,7 +49,7 @@
     "aws/_excluded_unproven_ssm_dlm_target_final_reaudit_20261016.yaml": "b571034c8ac55fb99e35808c283ba9fd64b1ecab1200c8bd6d0fbe129ac5041f",
     "aws/_excluded_verify_a66f.yaml": "86e5ce670972642d2c498756246898ade0317d4a3561ccf2a3403158edc01216",
     "aws/account.yaml": "24cb11e73d418f9990894275debc482ac866581e2c1fa2b722df82f0a25f12d6",
-    "aws/amplify.yaml": "bbe4822db2eb820ca7630b3c51089dcc57ac14e1d49d67db459df74a3ddc6db4",
+    "aws/amplify.yaml": "4b61e2bc607a807bcbff9f90ea0bb58929eff1d5f0a5623e2c0ba73e02692ccc",
     "aws/appconfig.yaml": "f5c9a774af8f34771f891dd17aaceff6b4378ce70403298066a1d205653c56ba",
     "aws/appflow.yaml": "5c5fe2e779b6dd5f2f6feb41f5a1d8665e8acf005a756cc6f6a508a787abb29a",
     "aws/apprunner.yaml": "6d0d91514b775d184d2475f069536558c21511452beacd9c41669d023ee9f46a",
@@ -348,7 +348,7 @@
     "aws/_excluded_unproven_ssm_dlm_target_final_reaudit_20261016.yaml": "b571034c8ac55fb99e35808c283ba9fd64b1ecab1200c8bd6d0fbe129ac5041f",
     "aws/_excluded_verify_a66f.yaml": "86e5ce670972642d2c498756246898ade0317d4a3561ccf2a3403158edc01216",
     "aws/account.yaml": "24cb11e73d418f9990894275debc482ac866581e2c1fa2b722df82f0a25f12d6",
-    "aws/amplify.yaml": "bbe4822db2eb820ca7630b3c51089dcc57ac14e1d49d67db459df74a3ddc6db4",
+    "aws/amplify.yaml": "4b61e2bc607a807bcbff9f90ea0bb58929eff1d5f0a5623e2c0ba73e02692ccc",
     "aws/appconfig.yaml": "f5c9a774af8f34771f891dd17aaceff6b4378ce70403298066a1d205653c56ba",
     "aws/appflow.yaml": "5c5fe2e779b6dd5f2f6feb41f5a1d8665e8acf005a756cc6f6a508a787abb29a",
     "aws/apprunner.yaml": "6d0d91514b775d184d2475f069536558c21511452beacd9c41669d023ee9f46a",

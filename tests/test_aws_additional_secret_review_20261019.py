@@ -153,6 +153,7 @@ class Client:
                 return deepcopy(self.response)
             if operation == 'get_rest_apis': return {'items': [{'id': 'abc123'}]}
             if operation == 'list_backend_environments': return {'backendEnvironments': []}
+            if operation == 'list_branches': return {'branches': []}
             raise AssertionError('unexpected operation ' + operation)
         return call
 

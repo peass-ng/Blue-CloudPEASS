@@ -418,10 +418,18 @@ def test_service_planes_drop_secrets(stub):
         "enableBasicAuth": True, "basicAuthCredentials": "dXNlcjpwYXNz", "buildSpec": "secret-build"}]})
     amp.add_response("list_backend_environments", {"backendEnvironments": [{"backendEnvironmentArn": "arn:aws:amplify:us-east-1:123456789012:apps/a1/backendenvironments/dev",
         "environmentName": "dev", "createTime": "2026-01-01T00:00:00Z", "updateTime": "2026-01-01T00:00:00Z"}]}, {"appId": "a1"})
+    amp.add_response("list_branches", {"branches": [{"branchArn": f"arn:aws:amplify:{REGION}:{ACCOUNT}:apps/a1/branches/main",
+        "branchName": "main", "stage": "PRODUCTION", "enableAutoBuild": True,
+        "environmentVariables": {"TOKEN": "branch-secret"}, "buildSpec": "branch-secret-build"}]}, {"appId": "a1"})
     read = run("amplify_app", session)
     dumped = json.dumps(read.items, default=str)
     assert read.items[0]["BackendEnvironments"]["items"][0]["environmentName"] == "dev"
+    assert read.items[0]["Branches"]["items"][0]["branchName"] == "main"
+    assert read.items[0]["RepositoryConnected"] is False
+    assert read.items[0]["AppBuildSpecPresent"] is True
+    assert read.items[0]["Branches"]["items"][0]["BranchBuildSpecPresent"] is True
     assert "sk_live_secret" not in dumped and "dXNlcjpwYXNz" not in dumped and "secret-build" not in dumped
+    assert "branch-secret" not in dumped
 
 
 def test_quicksight_not_subscribed_is_empty(stub):

@@ -1,11 +1,11 @@
 {
   "aws-amplify-updateapp-passrole": {
-    "purpose": "Changing an Amplify role and controlled build or SSR code may expose the passed role\u2019s privileges.",
-    "label": "Repoint an Amplify app's service or compute role to a passed role and build it",
+    "purpose": "A controlled Amplify build may use the service role assigned to its app.",
+    "label": "Assign a passed service role to an Amplify app build",
     "review_status": "source_reviewed"
   },
   "aws-amplify-updateapp-passrole-ssr": {
-    "purpose": "Changing an Amplify role and controlled build or SSR code may expose the passed role\u2019s privileges.",
+    "purpose": "A reachable deployed SSR route may use the compute role assigned to its app.",
     "label": "Repoint an Amplify SSR compute role and invoke controlled SSR code",
     "review_status": "source_reviewed"
   },

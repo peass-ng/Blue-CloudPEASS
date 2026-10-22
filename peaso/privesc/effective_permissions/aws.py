@@ -4481,6 +4481,74 @@ class AwsModel(Model):
         return self._emr_cluster_runtime_route(
             source, role, "elasticmapreduce:getclustersessioncredentials")
 
+    def _amplify_role_route(self, source, role, *, compute):
+        """Require one collected app and branch before considering a role swap."""
+        statuses = inventory_status(self.snapshot, "amplify_app")
+        scopes = {scope: status for scope, status in statuses.items()
+                  if scope.startswith(source.scope + "/")}
+        if not scopes:
+            return ("unknown", "amplify_app_inventory_not_collected")
+        uncertain = bool(source.incomplete or
+                         any(status not in ("collected", "empty") for status in scopes.values()))
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        for scope, app in items(self.snapshot, "amplify_app"):
+            if scopes.get(scope) != "collected" or not isinstance(app, dict):
+                continue
+            account, region = scope.split("/", 1)
+            app_id = app.get("appId")
+            app_arn = f"arn:{partition}:amplify:{region}:{account}:apps/{app_id}"
+            if (not isinstance(app_id, str) or not re.fullmatch(r"d[a-z0-9]+", app_id) or
+                    app.get("appArn") != app_arn):
+                uncertain = True
+                continue
+            if compute:
+                if app.get("platform") not in ("WEB_COMPUTE", "WEB_DYNAMIC"):
+                    if app.get("platform") is None:
+                        uncertain = True
+                    continue
+            elif app.get("RepositoryConnected") is not True:
+                if app.get("RepositoryConnected") is None:
+                    uncertain = True
+                continue
+            branches = app.get("Branches")
+            if not isinstance(branches, dict) or branches.get("collection_status") not in ("collected", "empty"):
+                uncertain = True
+                continue
+            update = self._check_action(source, "amplify:updateapp", app_arn)
+            if update is None:
+                continue
+            for branch in branches.get("items") or ():
+                if not isinstance(branch, dict):
+                    uncertain = True
+                    continue
+                name = branch.get("branchName")
+                if not isinstance(name, str) or not name or branch.get("branchArn") != (
+                        f"{app_arn}/branches/{name}"):
+                    uncertain = True
+                    continue
+                if compute:
+                    # A branch-specific compute role takes precedence over
+                    # the app-level role changed by UpdateApp.
+                    if branch.get("computeRoleArn") not in (None, "", role.id):
+                        continue
+                else:
+                    job_arn = f"{app_arn}/branches/{name}/jobs/*"
+                    start = self._check_action(source, "amplify:startjob", job_arn)
+                    if start is None:
+                        continue
+                    if start.confidence != "derived":
+                        uncertain = True
+                        continue
+                if update.confidence != "derived":
+                    uncertain = True
+                    continue
+                # Branch presence and scoped grants do not establish a
+                # controllable build command or deployed SSR route.
+                reason = ("amplify_ssr_code_and_request_not_verified" if compute else
+                          "amplify_buildspec_precedence_and_code_execution_not_verified")
+                return ("unknown", reason)
+        return ("unknown", "amplify_app_branch_or_grant_not_verified") if uncertain else None
+
     def _emr_serverless_job_route(self, source, role):
         """Join an actual application, role request, and one shared S3 script object."""
         statuses = inventory_status(self.snapshot, "emr_serverless_application")
@@ -7836,6 +7904,13 @@ class AwsModel(Model):
             # updated, nor that its instances run a controlled source bundle.
             return {tid: ("unknown", "elasticbeanstalk_environment_profile_and_code_execution_not_verified")
                     for tid in candidates}
+        if pid in ("amplify_service_role_build_effect_unverified",
+                   "amplify_compute_role_ssr_effect_unverified"):
+            if source is None:
+                return None
+            compute = pid == "amplify_compute_role_ssr_effect_unverified"
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._amplify_role_route(source, role, compute=compute)) is not None}
         if pid == "emr_new_cluster_role_execution_unverified":
             return {tid: ("unknown", "emr_service_role_cluster_and_step_execution_not_verified")
                     for tid in candidates}

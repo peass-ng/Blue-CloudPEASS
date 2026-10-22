@@ -132,6 +132,23 @@ def test_emr_runtime_role_binding_preserves_previous_catalog():
     assert len(catalog._verified_emr_runtime_689_previous()) == 689
 
 
+def test_amplify_role_binding_preserves_previous_catalog():
+    ids = ("aws-amplify-updateapp-passrole", "aws-amplify-updateapp-passrole-ssr")
+    current, status = catalog.lookup_entries(ids, catalog.current_binding())
+    assert status == "exact_strict_privesc"
+    assert "amplify_service_role_build_effect_unverified" in current[ids[0]]["preconditions"]
+    assert "amplify_compute_role_ssr_effect_unverified" in current[ids[1]]["preconditions"]
+    assert all(len(current[ident]["requires"]["all_of"]) == 1 for ident in ids)
+    old = {"schema": catalog.BINDING_SCHEMA,
+           "manifest_sha256": catalog.AMPLIFY_ROLE_690_PREVIOUS_MANIFEST,
+           "effective_tree_sha256": catalog.AMPLIFY_ROLE_690_PREVIOUS_TREE,
+           "source_revision": catalog.V4_REVISION}
+    previous, status = catalog.lookup_entries(ids, old)
+    assert status == "exact_previous_current" and set(previous) == set(ids)
+    assert all("preconditions" not in previous[ident] for ident in ids)
+    assert len(catalog._verified_amplify_role_690_previous()) == 690
+
+
 def test_deadline_queue_binding_preserves_previous_catalog():
     ident = "aws-deadline-existing-queue-role-vend"
     current, status = catalog.lookup_entries([ident], catalog.current_binding())
