@@ -31,7 +31,8 @@ class CheckpointSession:
 
     def __init__(self, request, on_checkpoint, public_snapshot, *,
                  interval=8.0, collection_stride=24, clock=time.monotonic,
-                 batch_size=64, batch_interval=1.0, batch_bytes=8 * 1024 * 1024):
+                 batch_size=64, batch_interval=1.0, batch_bytes=8 * 1024 * 1024,
+                 min_report_interval=None):
         from .engine import _selection, _analysis_selection, _privesc_selected, _selected_graph_categories, CATEGORIES
         from .analysis import REQUIRED_TYPES, privesc_required_types
 
@@ -90,6 +91,11 @@ class CheckpointSession:
         self.public_snapshot = public_snapshot
         self.on_checkpoint = on_checkpoint
         self.interval = max(0.0, float(interval))
+        # Raw batches remain durable at their own cadence. Re-evaluating the
+        # cumulative inventory needs a minimum interval even when one batch
+        # already exceeds collection_stride. New sections bypass this delay.
+        self.min_report_interval = (self.interval if min_report_interval is None
+                                    else max(0.0, float(min_report_interval)))
         self.collection_stride = max(1, int(collection_stride))
         self.clock = clock
         self.collections = {}
@@ -419,13 +425,18 @@ class CheckpointSession:
                 now = self.clock()
                 if (not force and categories <= self.published_categories
                         and completed_sections <= self.published_sections
-                        and sequence - self.last_published < self.collection_stride
-                        and now - self.last_time < self.interval):
+                        and (now - self.last_time < self.min_report_interval
+                             or (sequence - self.last_published < self.collection_stride
+                                 and now - self.last_time < self.interval))):
                     return None
-                collections = copy.deepcopy(self.collections)
-                raw = self._snapshot(list(collections.values()), sequence=sequence)
-                raw['metadata']['sections'] = sections
-                raw = seal(raw)
+                # Committed envelopes are replaced, never edited in place.
+                # Capture their mapping atomically, then copy/seal without
+                # blocking provider settlement behind the growing inventory.
+                collections = dict(self.collections)
+            collections = copy.deepcopy(collections)
+            raw = self._snapshot(list(collections.values()), sequence=sequence)
+            raw['metadata']['sections'] = sections
+            raw = seal(raw)
             from .secret_evidence import _lock as private_evidence_lock
             with private_evidence_lock:
                 snapshot = validate(self.public_snapshot(raw))
@@ -438,7 +449,9 @@ class CheckpointSession:
             with self.lock:
                 self.published_categories.update(categories)
                 self.published_sections.update(completed_sections)
-                self.last_published, self.last_time = sequence, now
+                # Give collection a full interval after a slow publication;
+                # its evaluation time must not consume the next quiet period.
+                self.last_published, self.last_time = sequence, self.clock()
             return report
 
     def sections(self):
