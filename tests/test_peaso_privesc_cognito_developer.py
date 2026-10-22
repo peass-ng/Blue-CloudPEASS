@@ -70,7 +70,10 @@ def test_developer_token_requires_exact_pool_permission_and_provider():
 
 
 def test_developer_token_requires_matching_role_trust():
-    for _, selected in (_result(audience="us-east-1:different"), _result(method="unauthenticated")):
+    _, selected = _result(method="login.example.app")
+    assert selected == {f"arn:aws:iam::{ACCOUNT}:role/authenticated": None}
+    for _, selected in (_result(audience="us-east-1:different"), _result(method="unauthenticated"),
+                        _result(method="cognito-identity.amazonaws.com")):
         assert f"arn:aws:iam::{ACCOUNT}:role/authenticated" not in selected
 
 

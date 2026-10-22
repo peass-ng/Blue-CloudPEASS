@@ -3279,8 +3279,12 @@ class AwsModel(Model):
                 unknown = False
                 for pool_arn in pools:
                     pool_id = str(pool_arn).split("identitypool/", 1)[-1]
+                    provider_name = self.cognito_developer_provider.get(pool_arn)
+                    if not provider_name:
+                        unknown = True
+                        continue
                     overrides = {"cognito-identity.amazonaws.com:aud": [pool_id],
-                                 "cognito-identity.amazonaws.com:amr": ["authenticated", "cognito-identity.amazonaws.com"]}
+                                 "cognito-identity.amazonaws.com:amr": ["authenticated", provider_name]}
                     denied = self._trust_explicit_deny(rid, "sts:AssumeRoleWithWebIdentity",
                                                         federated="cognito-identity.amazonaws.com",
                                                         extra_overrides=overrides)
@@ -3708,6 +3712,7 @@ class AwsModel(Model):
         deployment groups -> tag-matched EC2 instance roles, Roles Anywhere profiles; application planes and Identity
         Center group assignments. Returns the partial (account, host) keys."""
         ok, partial = ("collected", "empty"), set()
+        self.cognito_developer_provider = {}
 
         def add(role, host, resource):
             listed = self.hosts.setdefault(role, {}).setdefault(host, [])
@@ -3742,6 +3747,7 @@ class AwsModel(Model):
                     authenticated = (roles.get("Roles") or {}).get("authenticated") if isinstance(roles.get("Roles"), dict) else None
                     if isinstance(authenticated, str) and authenticated:
                         add(authenticated, "cognito_developer_authenticated", pool_arn)
+                        self.cognito_developer_provider[pool_arn] = config["DeveloperProviderName"].strip()
             else:
                 partial.add((account, "cognito_identity_pool"))
             if (not isinstance(roles, dict) or roles.get("collection_status") not in ok
