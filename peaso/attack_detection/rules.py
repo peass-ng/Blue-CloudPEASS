@@ -215,6 +215,7 @@ from .aws_emr_serverless_next import normalize_aws_emr_serverless_runtime
 from .aws_emr_serverless_custom_image import normalize_aws_emr_custom_image
 from .aws_emr_classic import normalize_aws_emr_classic
 from .aws_emr_inventory import correlate_aws_emr_inventory
+from .aws_emr_security_read import correlate_aws_emr_security_reads
 from .aws_aoss_broad_grant import normalize_aws_aoss_broad_grant
 from .aws_emr_serverless_session_next import correlate_aws_emr_session_endpoint_cross_actor
 from .aws_cloudwatch_controls_next import normalize_aws_cloudwatch_controls
@@ -1228,6 +1229,7 @@ def detect_aws_events(
     correlated += correlate_aws_chime_media_insights(chime_media_insights_records)
     correlated += correlate_aws_migration_strategy_inventory(migration_strategy_inventory_records)
     correlated += correlate_aws_emr_inventory(emr_inventory_records)
+    correlated += correlate_aws_emr_security_reads(emr_inventory_records)
     if correlated:
         matches.extend(_detect_events(correlated, selected, lambda event: event, "aws"))
     return matches
