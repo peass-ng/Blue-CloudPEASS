@@ -601,6 +601,15 @@ GAMELIFT_STREAM_SESSION_METADATA_REFERENCES = {
 }
 VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(GAMELIFT_STREAM_SESSION_METADATA_REFERENCES)
 
+# Fleet configuration and compute IDs bind GetComputeAccess to the exact
+# existing EC2 instance role. These reads return metadata, not shell credentials.
+GAMELIFT_FLEET_METADATA_REFERENCES = {
+    "gamelift:ListFleets": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_gamelift.html",
+    "gamelift:DescribeFleetAttributes": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_gamelift.html",
+    "gamelift:ListCompute": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_gamelift.html",
+}
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(GAMELIFT_FLEET_METADATA_REFERENCES)
+
 # Exact lifecycle-configuration names prevent a create permission on an
 # already occupied name from being mistaken for notebook role execution.
 SAGEMAKER_NOTEBOOK_LIFECYCLE_METADATA_REFERENCE = {
@@ -945,6 +954,11 @@ def refresh(root: Path, *, read_actions=None, include_credential_report_generati
     template["Metadata"]["PeasoNetworkServiceMetadataReference"] = {
         "Sources": NETWORK_SERVICE_READ_REFERENCES,
         "Boundary": "Read-only VPC origin and subnet/security-group attachments; no application content or network changes.",
+    }
+    template["Metadata"]["PeasoGameLiftFleetMetadataReference"] = {
+        "Actions": sorted(GAMELIFT_FLEET_METADATA_REFERENCES),
+        "Sources": GAMELIFT_FLEET_METADATA_REFERENCES,
+        "Boundary": "Fleet role configuration and compute identifiers only; no remote access or role credentials.",
     }
     # Compact new templates to preserve source export budgets. Archived versions
     # are never reformatted or overwritten; CloudFormation parses the same JSON.

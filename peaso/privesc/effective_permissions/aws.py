@@ -7493,6 +7493,56 @@ class AwsModel(Model):
                 if uncertain else None)
 
     def precondition(self, pid, candidates, source):
+        if pid == "gamelift_existing_shared_fleet_role_shell":
+            if source is None:
+                return None
+            statuses = inventory_status(self.snapshot, "gamelift_ec2_compute")
+            account_scopes = {scope: status for scope, status in statuses.items()
+                              if scope.startswith(source.scope + "/")}
+            if not account_scopes:
+                return {tid: ("unknown", "gamelift_fleet_inventory_not_collected") for tid in candidates}
+            out = {}
+            for tid, role in candidates.items():
+                uncertain = bool(source.incomplete or role.incomplete or
+                                 any(status not in ("collected", "empty") for status in account_scopes.values()))
+                for scope, fleet in items(self.snapshot, "gamelift_ec2_compute"):
+                    if scope not in account_scopes or not isinstance(fleet, dict):
+                        continue
+                    if fleet.get("InstanceRoleArn") != role.id:
+                        continue
+                    if (fleet.get("ComputeType") != "EC2" or fleet.get("Status") != "ACTIVE"
+                            or fleet.get("InstanceRoleCredentialsProvider") != "SHARED_CREDENTIAL_FILE"):
+                        continue
+                    arn = fleet.get("FleetArn")
+                    region = scope.split("/", 1)[1]
+                    partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+                    expected_id = fleet.get("FleetId")
+                    if not isinstance(expected_id, str) or arn not in {
+                            f"arn:{partition}:gamelift:{region}:{owner}:fleet/{expected_id}"
+                            for owner in ("", source.scope)}:
+                        uncertain = True
+                        continue
+                    computes = fleet.get("Computes")
+                    if not isinstance(computes, dict) or computes.get("collection_status") not in ("collected", "empty"):
+                        uncertain = True
+                        continue
+                    active = any(isinstance(compute, dict) and compute.get("FleetId") == fleet.get("FleetId")
+                                 and isinstance(compute.get("ComputeName"), str)
+                                 and str(compute.get("ComputeStatus", "")).upper() == "ACTIVE"
+                                 for compute in computes.get("items", []))
+                    if not active:
+                        continue
+                    # IAM's service authorization reference uses the accountful
+                    # fleet ARN even though API examples sometimes omit it.
+                    iam_fleet_arn = f"arn:{partition}:gamelift:{region}:{source.scope}:fleet/{expected_id}"
+                    grant = self._check_action(source, "gamelift:getcomputeaccess", iam_fleet_arn)
+                    if grant is not None and grant.confidence == "derived" and not source.incomplete and not role.incomplete:
+                        out[tid] = ("conditional", "gamelift_active_ec2_shared_role_shell")
+                        break
+                    uncertain |= grant is not None and grant.confidence == "unknown"
+                if tid not in out and uncertain:
+                    out[tid] = ("unknown", "gamelift_fleet_compute_role_or_permission_not_verified")
+            return out
         if pid == "deadline_fleet_worker_binding_unverified":
             # A passable fleet role and broad API grants do not identify a
             # customer-managed fleet or a worker the source can register and

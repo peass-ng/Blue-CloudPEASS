@@ -58,6 +58,7 @@ SPECS = {
     "sagemaker_space": ("sagemaker", "list_spaces", "Spaces"),
     "sagemaker_cluster": ("sagemaker", "list_clusters", "ClusterSummaries"),
     "grafana_workspace": ("grafana", "list_workspaces", "workspaces"),
+    "gamelift_ec2_compute": ("gamelift", "list_fleets", "FleetIds"),
     "quicksight_user": ("quicksight", "list_users", "UserList"),
     "quicksight_account_subscription": ("quicksight", "describe_account_subscription", None),
     "supplychain_instance": ("supplychain", "list_instances", "instances"),
@@ -84,6 +85,7 @@ READ_ACTIONS = {
     ("sagemaker", "describe_space"),
     ("amplify", "list_backend_environments"),
     ("quicksight", "describe_account_subscription"),
+    ("gamelift", "describe_fleet_attributes"), ("gamelift", "list_compute"),
     ("sso-admin", "list_instances"), ("sso-admin", "list_permission_sets"),
     ("sso-admin", "list_accounts_for_provisioned_permission_set"), ("identitystore", "list_groups"),
 }
@@ -768,6 +770,54 @@ def _hyperpod_clusters(requests, session, region, account):
 
 
 # ------------------------------------------------------------------------- application planes
+def _gamelift_ec2_computes(requests, session, region, account):
+    """Join fleet role configuration to its computes without requesting access tokens."""
+    fleets = requests.pages(session, "gamelift", region, "list_fleets", "FleetIds")
+    if fleets.status not in OK:
+        return _finish([], _cause(fleets))
+    rows, failure = [], None
+    for fleet_id in fleets.items:
+        if not isinstance(fleet_id, str) or not fleet_id:
+            failure = failure or ("malformed", {"code": "malformed_fleet_id"})
+            continue
+        if fleet_id.startswith("containerfleet-"):
+            # DescribeFleetAttributes supports EC2/Anywhere, not containers.
+            continue
+        attributes = requests.pages(session, "gamelift", region, "describe_fleet_attributes",
+                                    "FleetAttributes", FleetIds=[fleet_id])
+        if attributes.status not in OK:
+            failure = failure or _cause(attributes)
+            continue
+        if len(attributes.items) != 1 or not isinstance(attributes.items[0], dict):
+            failure = failure or ("malformed", {"code": "missing_fleet_attributes"})
+            continue
+        fleet = attributes.items[0]
+        if fleet.get("ComputeType") != "EC2":
+            continue
+        arn = fleet.get("FleetArn")
+        valid_arns = {f"arn:{_partition(region)}:gamelift:{region}:{owner}:fleet/{fleet_id}"
+                      for owner in ("", account)}
+        if fleet.get("FleetId") != fleet_id or arn not in valid_arns:
+            failure = failure or ("malformed", {"code": "fleet_identity_mismatch"})
+            continue
+        computes = requests.pages(session, "gamelift", region, "list_compute", "ComputeList", FleetId=fleet_id)
+        if computes.status not in OK:
+            failure = failure or _cause(computes)
+        compute_rows = []
+        for compute in computes.items:
+            if (not isinstance(compute, dict) or compute.get("FleetId") != fleet_id
+                    or (compute.get("FleetArn") not in (None, arn))
+                    or not isinstance(compute.get("ComputeName"), str)):
+                failure = failure or ("malformed", {"code": "compute_identity_mismatch"})
+                continue
+            compute_rows.append(_pick(compute, ("FleetId", "FleetArn", "ComputeName", "ComputeStatus")))
+        row = _pick(fleet, ("FleetId", "FleetArn", "ComputeType", "Status", "InstanceRoleArn",
+                            "InstanceRoleCredentialsProvider"))
+        row.update({"id": arn, "Computes": _child(computes, compute_rows)})
+        rows.append(row)
+    return _finish(rows, failure)
+
+
 def _grafana_workspaces(requests, session, region, account):
     read = requests.pages(session, "grafana", region, "list_workspaces", "workspaces")
     items = []
@@ -910,6 +960,7 @@ FETCHERS = {
     "sagemaker_space": _spaces,
     "sagemaker_cluster": _hyperpod_clusters,
     "grafana_workspace": _grafana_workspaces,
+    "gamelift_ec2_compute": _gamelift_ec2_computes,
     "quicksight_user": _quicksight_users,
     "quicksight_account_subscription": _quicksight_account_subscription,
     "supplychain_instance": _supplychain_instances,

@@ -1014,6 +1014,9 @@ FACTS_NEEDED = {
 # an "Unresolved" placeholder (unknown confidence, never FAIL). mode "target" depends only on the target and the
 # inventory (shared candidate set); mode "source" also depends on the source principal.
 PRECONDITIONS = {
+    "gamelift_existing_shared_fleet_role_shell": (("aws",), "source",
+      "The caller can reach an active GameLift EC2 compute whose fleet exposes the target instance role in a shared credentials file.",
+      "AWS: complete fleet and compute inventory, exact InstanceRoleArn, ACTIVE EC2 fleet and compute, SHARED_CREDENTIAL_FILE, and GetComputeAccess on the fleet ARN; the shell must be able to read the file"),
     "datapipeline_existing_customer_role_pair_and_runnable_ec2": (("aws",), "source",
       "A legacy Data Pipeline customer can create and run one command-bearing EC2 pipeline with both passable service and instance roles.",
       "AWS: existing-customer availability, a creatable pipeline ID, PutPipelineDefinition and ActivatePipeline on that generated pipeline, separately passable Data Pipeline and EC2 roles, effective pipeline-role EC2 launch permissions, and a runnable command-bearing definition"),
