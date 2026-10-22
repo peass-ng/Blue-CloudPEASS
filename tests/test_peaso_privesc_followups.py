@@ -237,7 +237,7 @@ def test_source_assumable_role_arn_placeholder():
 
 
 # assumable_by_pivot_role ----------------------------------------------------------------
-def test_stackset_reaches_execution_roles_assumable_by_pivot():
+def test_stackset_role_join_needs_a_reviewed_execution_effect():
     admin_arn = f"arn:aws:iam::{ACCOUNT}:role/stackset-admin"
     admin = role("stackset-admin", trust_service("cloudformation.amazonaws.com"),
                  {"Effect": "Allow", "Action": "sts:AssumeRole", "Resource": "arn:aws:iam::*:role/exec-*"})
@@ -247,8 +247,11 @@ def test_stackset_reaches_execution_roles_assumable_by_pivot():
     alice = user("alice", {"Effect": "Allow", "Action": "iam:PassRole", "Resource": admin_arn},
                  {"Effect": "Allow", "Action": ["cloudformation:CreateStackSet", "cloudformation:CreateStackInstances"], "Resource": "*"})
     snap = aws_snap([alice], [admin, exec_a, unrelated], [("iam_role", f"{OTHER}/us-east-1", [exec_b])])
-    result = privesc.analyze(snap, entries=[catalog_entry("aws-cloudformation-passrole-stackset")])
-    assert set(reached(result, ALICE)) == {f"arn:aws:iam::{ACCOUNT}:role/exec-a", f"arn:aws:iam::{OTHER}:role/exec-b"}
+    result = privesc.analyze(snap, entries=[catalog_entry("aws-cloudformation-passrole-stackset")],
+                             include_unknown=True)
+    assert f"arn:aws:iam::{ACCOUNT}:role/exec-a" not in reached(result, ALICE)
+    assert f"arn:aws:iam::{OTHER}:role/exec-b" not in reached(result, ALICE)
+    assert any(n["id"].startswith("unresolved:") for n in result["graph"]["nodes"])
     nopass = user("alice", {"Effect": "Allow", "Action": ["cloudformation:CreateStackSet", "cloudformation:CreateStackInstances"],
                             "Resource": "*"})
     snap = aws_snap([nopass], [admin, exec_a])

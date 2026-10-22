@@ -5781,6 +5781,70 @@ class AwsModel(Model):
                 return True
         return False
 
+    def _cloudformation_stackset_role_effect(self, source, pivot, target, operation,
+                                            admin_region, target_region, stackset_arn=None):
+        """Verify a useful StackSet template action under the exact execution role."""
+        try:
+            now = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            if now.tzinfo is None:
+                return False
+        except (KeyError, TypeError, ValueError):
+            return False
+        def role_id(role):
+            rows = [row for scope, row in items(self.snapshot, "iam_role")
+                    if scope.split("/")[0] == role.scope and row.get("Arn") == role.id]
+            value = rows[0].get("RoleId") if len(rows) == 1 else None
+            return value if isinstance(value, str) and value else None
+        pivot_id, target_id = role_id(pivot), role_id(target)
+        if not pivot_id or not target_id:
+            return False
+        scope = f"{source.scope}/{admin_region}"
+        collections = [c for c in self.snapshot.get("collections", ())
+                       if c.get("type") == "aws_privesc_challenge_evidence" and c.get("scope") == scope]
+        if len(collections) != 1 or collections[0].get("status") != "collected":
+            return False
+        proof_status = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+        technique = (self.current_entry or {}).get("id")
+        proofs = [row for proof_scope, row in items(self.snapshot, "aws_privesc_challenge_evidence")
+                  if proof_scope == scope and proof_status.get(scope) == "collected" and
+                  row.get("TechniqueId") == technique and row.get("SourceArn") == source.id and
+                  row.get("TargetKind") == "aws_role" and row.get("TargetId") == target.id and
+                  row.get("PivotRoleArn") == pivot.id]
+        if len(proofs) != 1:
+            return False
+        proof = proofs[0]
+        observed_stackset = proof.get("StackSetArn")
+        prefix = (f"arn:{pivot.id.split(':', 2)[1]}:cloudformation:{admin_region}:"
+                  f"{source.scope}:stackset/")
+        action, resource = proof.get("RoleAction"), proof.get("RoleResource")
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("StackSetOperation") != operation or
+                proof.get("TemplateControlledBySource") is not True or
+                proof.get("StackSetDeploymentSucceeded") is not True or
+                proof.get("ExecutionRoleOperationUsed") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                proof.get("PivotRoleId") != pivot_id or proof.get("TargetRoleId") != target_id or
+                proof.get("TargetScope") != f"{target.scope}/{target_region}" or
+                not isinstance(observed_stackset, str) or not observed_stackset.startswith(prefix) or
+                (stackset_arn is not None and observed_stackset != stackset_arn) or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"]):
+            return False
+        try:
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (now - witnessed).total_seconds() <= 900 or
+                    not now < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return False
+        except (KeyError, TypeError, ValueError):
+            return False
+        permitted = self.check(target, {"action": action}, resource)
+        already = self.check(source, {"action": action}, resource)
+        return permitted is not None and permitted.confidence == "derived" and already is None
+
     def _cloudformation_stackset_route(self, source, pivot, target):
         """Require one new or existing self-managed StackSet route to the target account."""
         if target.kind != "aws_role" or target.attrs.get("path") not in (None, "/"):
@@ -5846,7 +5910,10 @@ class AwsModel(Model):
                             break
                         if len(grants) == 5:
                             if all(g.confidence == "derived" for g in grants):
-                                return ("conditional", "stackset_target_region_and_template_effects")
+                                if self._cloudformation_stackset_role_effect(
+                                        source, pivot, target, "CreateStackInstances", region, target_region):
+                                    return ("conditional", "stackset_target_region_and_template_effects")
+                                unknown = True
                             unknown = True
             else:
                 unknown = unknown or bool(source.incomplete)
@@ -5877,7 +5944,10 @@ class AwsModel(Model):
                 for ref in (arn, target_arn)]
             if all(grant is not None for grant in grants):
                 if all(grant.confidence == "derived" for grant in grants):
-                    return ("conditional", "stackset_update_template_effects")
+                    if self._cloudformation_stackset_role_effect(
+                            source, pivot, target, "UpdateStackSet", region, target_region, arn):
+                        return ("conditional", "stackset_update_template_effects")
+                    unknown = True
                 unknown = True
         if any(not self._region_ok("cloudformation_stack_instance", source.scope, r) for r in regions):
             unknown = True
@@ -5960,6 +6030,74 @@ class AwsModel(Model):
                 unknown = True
         return ("unknown", "extension_invocation_route_not_verified") if unknown else None
 
+    def _cloudformation_service_managed_effect(self, source, target, parent,
+                                               admin_region, target_region):
+        """Require reviewed member-account administrator access from the deployment."""
+        try:
+            now = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            if now.tzinfo is None:
+                return False
+        except (KeyError, TypeError, ValueError):
+            return False
+        scope = f"{source.scope}/{admin_region}"
+        collections = [c for c in self.snapshot.get("collections", ())
+                       if c.get("type") == "aws_privesc_challenge_evidence" and c.get("scope") == scope]
+        if len(collections) != 1 or collections[0].get("status") != "collected":
+            return False
+        proof_status = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+        technique = (self.current_entry or {}).get("id")
+        proofs = [row for proof_scope, row in items(self.snapshot, "aws_privesc_challenge_evidence")
+                  if proof_scope == scope and proof_status.get(scope) == "collected" and
+                  row.get("TechniqueId") == technique and row.get("SourceArn") == source.id and
+                  row.get("TargetKind") == "aws_account_admin" and row.get("TargetId") == target.id]
+        if len(proofs) != 1:
+            return False
+        proof = proofs[0]
+        account = target.attrs.get("account", target.scope)
+        stackset = proof.get("StackSetArn")
+        prefix = (f"arn:{source.id.split(':', 2)[1]}:cloudformation:{admin_region}:"
+                  f"{source.scope}:stackset/")
+        principal_arn = proof.get("MemberAdminPrincipalArn")
+        principal_id = proof.get("MemberAdminPrincipalId")
+        credential_kind = proof.get("MemberAdminCredentialKind")
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("PermissionModel") != "SERVICE_MANAGED" or
+                proof.get("StackSetDeploymentSucceeded") is not True or
+                proof.get("TemplateControlledBySource") is not True or
+                proof.get("MemberAdminAccessConfirmed") is not True or
+                proof.get("MemberAdminCredentialsUsable") is not True or
+                proof.get("TargetAccount") != account or proof.get("TargetRegion") != target_region or
+                proof.get("ParentOrgUnitId") != parent or
+                not isinstance(stackset, str) or not stackset.startswith(prefix) or
+                not isinstance(principal_arn, str) or not principal_arn.startswith(
+                    f"arn:{source.id.split(':', 2)[1]}:iam::{account}:") or
+                not isinstance(principal_id, str) or not principal_id or
+                credential_kind not in ("assume_role", "access_key") or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"]):
+            return False
+        if credential_kind == "assume_role" and principal_arn not in self._assumable(source):
+            return False
+        if credential_kind == "access_key" and not principal_arn.startswith(
+                f"arn:{source.id.split(':', 2)[1]}:iam::{account}:user/"):
+            return False
+        if credential_kind == "access_key" and (not isinstance(proof.get("MemberAccessKeyId"), str) or
+                                                 re.fullmatch(r"[A-Z0-9]{16,128}", proof["MemberAccessKeyId"]) is None):
+            return False
+        kinds = ("iam_role",) if credential_kind == "assume_role" else ("iam_user",)
+        matches = [row for kind in kinds for member_scope, row in items(self.snapshot, kind)
+                   if member_scope.split("/")[0] == account and row.get("Arn") == principal_arn and
+                   (row.get("RoleId") if kind == "iam_role" else row.get("UserId")) == principal_id]
+        if len(matches) != 1:
+            return False
+        try:
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            return (witnessed.tzinfo is not None and expires.tzinfo is not None and
+                    0 <= (now - witnessed).total_seconds() <= 900 and
+                    now < expires and 0 < (expires - witnessed).total_seconds() <= 900)
+        except (KeyError, TypeError, ValueError):
+            return False
+
     def _cloudformation_service_managed_route(self, source, target):
         """Check trusted access and one deployable StackSet/OU pair for a member account."""
         account = target.attrs.get("account", target.scope)
@@ -6034,7 +6172,10 @@ class AwsModel(Model):
                         break
                     if len(grants) == 7:
                         if all(grant.confidence == "derived" for grant in grants):
-                            return ("conditional", "service_managed_stackset_template_and_region_effects")
+                            if self._cloudformation_service_managed_effect(
+                                    source, target, parent, admin_region, target_region):
+                                return ("conditional", "service_managed_stackset_template_and_region_effects")
+                            unknown = True
                         unknown = True
         return ("unknown", "service_managed_stackset_target_or_permission_not_verified") if unknown else None
 

@@ -1029,6 +1029,138 @@ def test_cloudformation_private_extension_requires_a_reviewed_handler_effect():
     assert target["Arn"] not in reached(result(role_row=readonly), ALICE, technique)
 
 
+def test_self_managed_stackset_requires_reviewed_execution_role_effect():
+    technique = "aws-cloudformation-passrole-stackset"
+    pivot_arn = role_arn("stackset-admin")
+    target_arn = f"arn:aws:iam::{OTHER}:role/stackset-execution"
+    object_arn = "arn:aws:s3:::private-bucket/evidence.txt"
+    pivot = role("stackset-admin", "cloudformation.amazonaws.com",
+                 allow("sts:AssumeRole", resource=target_arn))
+    pivot["RoleId"] = "AROAADMIN123456789012"
+    target = role("stackset-execution", [{"Effect": "Allow", "Principal": {"AWS": pivot_arn},
+                                          "Action": "sts:AssumeRole"}],
+                  allow("s3:PutObject", resource=object_arn), account=OTHER)
+    target["RoleId"] = "AROAEXEC1234567890123"
+    passed = allow("iam:PassRole", resource=pivot_arn)
+    passed["Condition"] = {"StringEquals": {"iam:PassedToService": "cloudformation.amazonaws.com"}}
+    proof = {"TechniqueId": technique, "SourceArn": ALICE, "TargetKind": "aws_role",
+             "TargetId": target_arn, "PivotRoleArn": pivot_arn, "PivotRoleId": pivot["RoleId"],
+             "TargetRoleId": target["RoleId"], "TargetScope": f"{OTHER}/{REGION}",
+             "StackSetArn": (f"arn:aws:cloudformation:{REGION}:{ACCOUNT}:stackset/Example:"
+                             "01234567-89ab-4def-8123-456789abcdef"),
+             "StackSetOperation": "CreateStackInstances", "Status": "verified",
+             "VerifiedPreconditions": True, "TemplateControlledBySource": True,
+             "StackSetDeploymentSucceeded": True, "ExecutionRoleOperationUsed": True,
+             "EffectUsefulToSource": True, "RoleAction": "s3:PutObject",
+             "RoleResource": object_arn, "EvidenceRef": "reviewed-stackset-deployment",
+             "EvidenceObservedAt": "2026-10-21T11:59:00+00:00",
+             "EvidenceExpiresAt": "2026-10-21T12:05:00+00:00"}
+
+    def result(evidence=proof, *, execution_role=target, extra_caller=(), operation="create"):
+        grants = (allow("cloudformation:UpdateStackSet") if operation == "update" else
+                  allow("cloudformation:CreateStackSet", "cloudformation:CreateStackInstances"))
+        caller = user("alice", passed, grants, *extra_caller)
+        proofs = evidence if isinstance(evidence, list) else ([evidence] if evidence else [])
+        instances = ([{"Account": OTHER, "Region": REGION,
+                       "StackSetId": proof["StackSetArn"], "StackSetName": "Example",
+                       "PermissionModel": "SELF_MANAGED", "Status": "CURRENT"}]
+                     if operation == "update" else [])
+        snap = aws_snap([caller], [pivot], [col("aws_privesc_challenge_evidence", proofs),
+                                          col("cloudformation_stack_instance", instances)],
+                        other_roles=[(OTHER, [execution_role])])
+        snap["created_at"] = "2026-10-21T12:00:00+00:00"
+        return real(snap, technique, include_unknown=True)
+
+    assert target_arn in reached(result(), ALICE, technique)
+    assert target_arn not in reached(result(None), ALICE, technique)
+    assert_unresolved(result(None), ALICE, technique)
+    assert target_arn not in reached(result([proof, dict(proof)]), ALICE, technique)
+    for changed in ({"PivotRoleId": "AROADIFFERENT"}, {"TargetRoleId": "AROADIFFERENT"},
+                    {"TargetScope": f"{OTHER}/eu-west-1"},
+                    {"StackSetOperation": "UpdateStackSet"},
+                    {"StackSetDeploymentSucceeded": False},
+                    {"ExecutionRoleOperationUsed": False},
+                    {"RoleAction": "s3:DeleteObject"},
+                    {"SourceArn": f"arn:aws:iam::{ACCOUNT}:user/other"},
+                    {"EvidenceObservedAt": "2026-10-21T11:40:00+00:00"}):
+        assert target_arn not in reached(result(dict(proof, **changed)), ALICE, technique)
+    assert target_arn not in reached(result(extra_caller=[allow("s3:PutObject", resource=object_arn)]),
+                                     ALICE, technique)
+    update_proof = dict(proof, StackSetOperation="UpdateStackSet")
+    assert target_arn in reached(result(update_proof, operation="update"), ALICE, technique)
+    assert target_arn not in reached(result(None, operation="update"), ALICE, technique)
+    assert target_arn not in reached(result(dict(update_proof, StackSetArn=proof["StackSetArn"] + "-other"),
+                                     operation="update"), ALICE, technique)
+
+
+def test_service_managed_stackset_requires_reviewed_member_admin_access():
+    technique = "aws-cloudformation-service-managed-stackset-org-members"
+    member_admin = role("deployed-admin", [{"Effect": "Allow", "Principal": {"AWS": ALICE},
+                                            "Action": "sts:AssumeRole"}], allow("*"), account=OTHER)
+    member_admin["RoleId"] = "AROADEPLOYED123456789"
+    target = f"aws_account_admin:{OTHER}"
+    parent = "ou-abcd-12345678"
+    proof = {"TechniqueId": technique, "SourceArn": ALICE,
+             "TargetKind": "aws_account_admin", "TargetId": target,
+             "TargetAccount": OTHER, "TargetRegion": REGION, "ParentOrgUnitId": parent,
+             "StackSetArn": (f"arn:aws:cloudformation:{REGION}:{ACCOUNT}:stackset/Example:"
+                             "01234567-89ab-4def-8123-456789abcdef"),
+             "PermissionModel": "SERVICE_MANAGED", "Status": "verified",
+             "VerifiedPreconditions": True, "StackSetDeploymentSucceeded": True,
+             "TemplateControlledBySource": True, "MemberAdminAccessConfirmed": True,
+             "MemberAdminCredentialsUsable": True, "MemberAdminCredentialKind": "assume_role",
+             "MemberAdminPrincipalArn": member_admin["Arn"],
+             "MemberAdminPrincipalId": member_admin["RoleId"],
+             "EvidenceRef": "reviewed-member-admin-access",
+             "EvidenceObservedAt": "2026-10-21T11:59:00+00:00",
+             "EvidenceExpiresAt": "2026-10-21T12:05:00+00:00"}
+
+    def result(evidence=proof, *, trusted_access="ENABLED", member_role=member_admin,
+               member_user=None, parent_id=parent, extra_caller=()):
+        caller = user("alice", allow("cloudformation:CreateStackSet",
+                                     "cloudformation:CreateStackInstances"),
+                      allow("sts:AssumeRole", resource=member_admin["Arn"]), *extra_caller)
+        proofs = evidence if isinstance(evidence, list) else ([evidence] if evidence else [])
+        extra = [org_accounts(OTHER),
+                 col("organization_parent", [{"ChildId": OTHER, "ParentId": parent_id}]),
+                 col("cloudformation_organizations_access", [{"Status": trusted_access}]),
+                 col("aws_privesc_challenge_evidence", proofs)]
+        if member_user is not None:
+            extra.append(col("iam_user", [member_user], scope=f"{OTHER}/{REGION}"))
+        snap = aws_snap([caller], extra=extra, other_roles=[(OTHER, [member_role])])
+        snap["created_at"] = "2026-10-21T12:00:00+00:00"
+        return real(snap, technique, include_unknown=True)
+
+    assert target in reached(result(), ALICE, technique)
+    assert target not in reached(result(None), ALICE, technique)
+    assert_unresolved(result(None), ALICE, technique)
+    assert target not in reached(result([proof, dict(proof)]), ALICE, technique)
+    for changed in ({"TargetAccount": STRANGER}, {"TargetRegion": "eu-west-1"},
+                    {"ParentOrgUnitId": "ou-other-12345678"},
+                    {"PermissionModel": "SELF_MANAGED"},
+                    {"StackSetDeploymentSucceeded": False},
+                    {"MemberAdminAccessConfirmed": False},
+                    {"MemberAdminCredentialsUsable": False},
+                    {"MemberAdminPrincipalId": "AROADIFFERENT"},
+                    {"SourceArn": f"arn:aws:iam::{ACCOUNT}:user/other"},
+                    {"EvidenceObservedAt": "2026-10-21T11:40:00+00:00"}):
+        assert target not in reached(result(dict(proof, **changed)), ALICE, technique)
+    assert target not in reached(result(trusted_access="DISABLED"), ALICE, technique)
+    assert target not in reached(result(parent_id="ou-other-12345678"), ALICE, technique)
+    untrusted = role("deployed-admin", "ec2.amazonaws.com", allow("*"), account=OTHER)
+    untrusted["RoleId"] = member_admin["RoleId"]
+    assert target not in reached(result(member_role=untrusted), ALICE, technique)
+    deployed_user = user("deployed-admin", allow("*"), account=OTHER)
+    deployed_user["UserId"] = "AIDADEPLOYED123456789"
+    key_proof = dict(proof, MemberAdminCredentialKind="access_key",
+                     MemberAdminPrincipalArn=deployed_user["Arn"],
+                     MemberAdminPrincipalId=deployed_user["UserId"],
+                     MemberAccessKeyId="AKIAEXAMPLE12345678")
+    assert target in reached(result(key_proof, member_user=deployed_user), ALICE, technique)
+    assert target not in reached(result(dict(key_proof, MemberAccessKeyId="invalid"),
+                                         member_user=deployed_user), ALICE, technique)
+
+
 def test_new_iam_user_routes_do_not_reuse_an_existing_exact_name():
     technique = "aws-iam-createuser-policy-accesskey"
     existing = user("reserved")
