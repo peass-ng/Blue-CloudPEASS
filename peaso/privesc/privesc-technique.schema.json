@@ -612,6 +612,10 @@
                   "description": "Exact externally verified technique/source/target evidence from aws_privesc_challenge_evidence. Missing or incomplete evidence is unresolved; a different source or target never matches.",
                   "type": "string"
                 },
+                "aws_dynamodb_policy_self_grant": {
+                  "const": true,
+                  "description": "Same-account IAM user can grant itself GetItem on an exact AWS-owned-key table through PutResourcePolicy."
+                },
                 "aws_efs_policy_self_grant": {
                   "const": true,
                   "description": "Reviewed ClientMount self-grant for the exact EFS file system."

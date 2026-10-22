@@ -1555,6 +1555,66 @@ def test_sns_topic_policy_self_grant_requires_new_effective_subscribe_permission
     assert evaluate(details="access_denied") == []
 
 
+def test_dynamodb_table_policy_self_grant_requires_new_effective_getitem_permission():
+    from pathlib import Path
+    import yaml
+    from peaso.privesc.effective_permissions.aws import AwsModel
+    from peaso.privesc.evaluator import Evaluator
+
+    catalog_file = Path(__file__).resolve().parents[1] / "peaso/privesc/catalog/aws/dynamodb.yaml"
+    entry = yaml.safe_load(catalog_file.read_text())[0]
+    table_arn = f"arn:aws:dynamodb:{REGION}:{ACCOUNT}:table/sensitive"
+
+    def evaluate(*, grants=(), table_policy=None, policy_status="empty", table_status="ACTIVE",
+                 encryption=None, writer_resource=None, boundary_deny=None):
+        table = {"TableArn": table_arn, "TableName": "sensitive", "TableStatus": table_status}
+        if encryption is not None:
+            table["SSEDescription"] = {"SSEType": encryption}
+        resource_policy = {"collection_status": policy_status}
+        if table_policy is not None:
+            resource_policy.update(collection_status="collected", Policy=table_policy)
+        item = {"TableName": "sensitive", "Table": {"collection_status": "collected", "Table": table},
+                "ResourcePolicy": resource_policy}
+        caller = user("alice", allow("dynamodb:PutResourcePolicy", resource=writer_resource or table_arn), *grants)
+        if boundary_deny is not None:
+            boundary_arn = f"arn:aws:iam::{ACCOUNT}:policy/dynamodb-boundary"
+            caller["PermissionsBoundary"] = {"PermissionsBoundaryArn": boundary_arn}
+        snap = aws_snap([caller], [], [col("dynamodb_table", [item])])
+        if boundary_deny is not None:
+            statements = [allow("dynamodb:PutResourcePolicy", resource=table_arn)]
+            if boundary_deny:
+                statements.append({"Effect": "Deny", "Action": "dynamodb:GetItem", "Resource": table_arn})
+            next(c for c in snap["collections"] if c["type"] == "iam_policy")["items"] = [
+                {"Arn": boundary_arn, "PolicyName": "dynamodb-boundary", "PolicyVersionList": [
+                    {"IsDefaultVersion": True, "Document": policy(*statements)}]}]
+        return [reach.targets for reach in Evaluator(AwsModel(snap), [entry],
+                 include_unknown=False).run() if reach.source.id == ALICE]
+
+    assert len(evaluate()) == 1
+    assert len(evaluate(boundary_deny=False)) == 1
+    assert evaluate(boundary_deny=True) == []
+    assert evaluate(grants=[allow("dynamodb:GetItem", resource=table_arn)]) == []
+    assert evaluate(grants=[{"Effect": "Deny", "Action": "dynamodb:GetItem", "Resource": table_arn}]) == []
+    assert evaluate(writer_resource=f"arn:aws:dynamodb:{REGION}:{ACCOUNT}:table/other") == []
+    existing_allow = policy({"Effect": "Allow", "Principal": {"AWS": ALICE},
+                             "Action": "dynamodb:GetItem", "Resource": table_arn})
+    assert evaluate(table_policy=existing_allow) == []
+    assert evaluate(table_policy=existing_allow, boundary_deny=False) == []
+    account_delegation = policy({"Effect": "Allow", "Principal": {"AWS": f"arn:aws:iam::{ACCOUNT}:root"},
+                                 "Action": "dynamodb:GetItem", "Resource": table_arn})
+    assert len(evaluate(table_policy=account_delegation)) == 1
+    deny_policy = policy({"Effect": "Deny", "Principal": {"AWS": ALICE},
+                          "Action": "dynamodb:GetItem", "Resource": table_arn})
+    assert evaluate(table_policy=deny_policy) == []
+    not_principal_deny = policy({"Effect": "Deny", "NotPrincipal": {"AWS": ALICE},
+                                 "Action": "dynamodb:GetItem", "Resource": table_arn})
+    assert len(evaluate(table_policy=not_principal_deny)) == 1
+    assert evaluate(table_policy=not_principal_deny, boundary_deny=False) == []
+    assert evaluate(table_status="DELETING") == []
+    assert evaluate(encryption="KMS") == []
+    assert evaluate(policy_status="denied") == []
+
+
 def test_agentcore_created_interpreter_needs_grants_covering_its_generated_id():
     tid = "aws-bedrock-agentcore-createcodeinterpreter-passrole"
     prefix = f"arn:aws:bedrock-agentcore:{REGION}:{ACCOUNT}:code-interpreter-custom/"

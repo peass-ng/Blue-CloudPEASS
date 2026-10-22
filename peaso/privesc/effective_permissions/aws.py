@@ -585,6 +585,13 @@ class AwsModel(Model):
         for scope, item in items(snap, "sqs_queue"):
             attrs = (item.get("Attributes") or {}).get("Attributes") or {}
             add(attrs.get("QueueArn"), scope.split("/")[0], attrs.get("Policy"), "sqs")
+        for scope, item in items(snap, "dynamodb_table"):
+            table = item.get("Table") or {}
+            policy = item.get("ResourcePolicy") or {}
+            if (table.get("collection_status") == "collected" and
+                    policy.get("collection_status") == "collected"):
+                arn = (table.get("Table") or {}).get("TableArn")
+                add(arn, scope.split("/")[0], policy.get("Policy"), "dynamodb")
         for scope, item in items(snap, "secret"):
             add(item.get("ARN"), scope.split("/")[0], (item.get("Policy") or {}).get("ResourcePolicy"), "secretsmanager")
         for scope, item in items(snap, "ecr_repository"):
@@ -2692,12 +2699,21 @@ class AwsModel(Model):
             cached = self.__dict__["_sns_self_grant_cache"] = load(self)
         return cached
 
+    def _dynamodb_self_grants(self):
+        cached = self.__dict__.get("_dynamodb_self_grant_cache")
+        if cached is None:
+            from .aws_dynamodb_self_grant import load
+            cached = self.__dict__["_dynamodb_self_grant_cache"] = load(self)
+        return cached
+
     def targets_for(self, kind, selector):
         selector = selector or {}
         if kind == "aws_verified_authority" and selector.get("aws_sqs_policy_self_grant"):
             return list(self._sqs_self_grants()[0].values())
         if kind == "aws_verified_authority" and selector.get("aws_sns_policy_self_grant"):
             return list(self._sns_self_grants()[0].values())
+        if kind == "aws_verified_authority" and selector.get("aws_dynamodb_policy_self_grant"):
+            return list(self._dynamodb_self_grants()[0].values())
         if kind == "aws_verified_authority" and any(key in self.scoped_grants and selector.get(key)
                                                  for key in self.scoped_grants):
             key = next(key for key in self.scoped_grants if selector.get(key))
@@ -2788,6 +2804,9 @@ class AwsModel(Model):
         return cache[key]
 
     def unknown_target_scopes(self, kind):
+        if (self.current_selector or {}).get("aws_dynamodb_policy_self_grant"):
+            return {scope.split("/")[0]: status for scope, status in
+                    unavailable(inventory_status(self.snapshot, "dynamodb_table")).items()}
         if (self.current_selector or {}).get("aws_sns_policy_self_grant"):
             return {scope.split("/")[0]: status for scope, status in
                     unavailable(inventory_status(self.snapshot, "sns_topic")).items()}
@@ -3061,6 +3080,13 @@ class AwsModel(Model):
                 return None
             records = self._sns_self_grants()[1]
             return {target_id: ("conditional", "sns_same_account_topic_policy_self_grant")
+                    for target_id in candidates
+                    if (record := records.get(target_id)) and record["SourceArn"] == source.id}
+        if key == "aws_dynamodb_policy_self_grant":
+            if source is None:
+                return None
+            records = self._dynamodb_self_grants()[1]
+            return {target_id: ("conditional", "dynamodb_same_account_table_policy_self_grant")
                     for target_id in candidates
                     if (record := records.get(target_id)) and record["SourceArn"] == source.id}
         if key == "aws_challenge_fact":
