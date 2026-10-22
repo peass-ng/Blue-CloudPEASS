@@ -16,9 +16,9 @@ ASSUMABLE = "aws-iam-putrolepermissionsboundary-assumable-admin"
 TARGET = f"aws_account_admin:{ACCOUNT}"
 
 
-def _analyze(snapshot, technique):
+def _analyze(snapshot, technique, *, include_unknown=False):
     entry = next(e for e in yaml.safe_load(CATALOG.read_text()) if e.get("id") == technique)
-    return privesc.analyze(snapshot, entries=[entry])
+    return privesc.analyze(snapshot, entries=[entry], include_unknown=include_unknown)
 
 
 def _snapshot(*, self_role=False, identity_admin=True, boundary_write=True,
@@ -75,6 +75,18 @@ def test_assumable_role_boundary_gain_requires_prior_admin_and_exact_mutation():
 def test_self_role_boundary_gain_remains_conditional_on_fresh_session():
     snap, role_arn = _snapshot(self_role=True)
     assert reached(_analyze(snap, SELF), role_arn, SELF)[TARGET] == "conditional"
+
+
+def test_self_role_needs_an_existing_admin_grant_and_boundary_edit_permission():
+    for kwargs in ({"identity_admin": False}, {"boundary_write": False}):
+        snap, role_arn = _snapshot(self_role=True, **kwargs)
+        assert TARGET not in reached(_analyze(snap, SELF), role_arn, SELF), kwargs
+
+
+def test_self_role_missing_boundary_document_stays_unresolved():
+    snap, role_arn = _snapshot(self_role=True, boundary_collected=False)
+    result = _analyze(snap, SELF, include_unknown=True)
+    assert TARGET not in reached(result, role_arn, SELF)
 
 
 def test_uncollected_boundary_does_not_claim_derived_admin():
