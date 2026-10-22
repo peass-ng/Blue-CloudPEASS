@@ -5627,60 +5627,101 @@ class AwsModel(Model):
             return ("unknown", "eks_access_entry_authorization_not_verified")
         return None
 
-    def _eventbridge_subscriber_route(self, source):
-        """Require one active v2 bus and permission on it and a new subscriber."""
-        if source.incomplete:
-            return ("unknown", "source_permissions_incomplete")
+    def _eventbridge_subscriber_route(self, source, role):
+        """Bind one accepted universal target to a delivered role action."""
+        technique = "aws-events-passrole-createsubscriber-universal-target"
+        if source.scope != role.scope or source.id == role.id:
+            return None
+        create_allows, _ = self._statements(source, "events:createsubscriber")
+        pass_allows, _ = self._statements(source, "iam:passrole")
+        if not create_allows or not pass_allows:
+            return ("unknown", "eventbridge_subscriber_source_permissions_incomplete") if source.incomplete else None
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "eventbridge_subscriber_effect_evidence_missing_or_conflicting")
+        scope, proof = records[0]
+        if (inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"
+                or source.incomplete or role.incomplete or "/" not in scope):
+            return ("unknown", "eventbridge_subscriber_effect_evidence_incomplete")
+        region = scope.split("/", 1)[1]
         partition = source.id.split(":", 2)[1]
-        token = "PeasoBound" + hashlib.sha256(source.id.encode()).hexdigest()[:12]
-        generated_ids = ("a" * 25, "b" * 25)
-        unknown = False
-        if not self.eventbridge_custom_buses:
-            return ("unknown", "eventbridge_custom_bus_not_recorded")
-        for bus in self.eventbridge_custom_buses:
-            arn = bus.get("EventBusArn")
-            parts = arn.split(":", 5)
-            if (len(parts) != 6 or parts[0:3] != ["arn", partition, "events"] or
-                    parts[4] != source.scope or not re.fullmatch(
-                        r"event-busv2/[A-Za-z0-9][A-Za-z0-9._-]{0,255}/[a-z0-9]{25}", parts[5])):
-                continue
-            if bus.get("State") not in ("ACTIVE", "UPDATE_FAILED"):
-                if bus.get("State") is None:
-                    unknown = True
-                continue
-            # A KMS-encrypted bus can reject producers or subscriber owners at the key policy.
-            if bus.get("KmsKeyIdentifier"):
-                unknown = True
-                continue
-            bus_grant = self._check_action(source, "events:createsubscriber", arn)
-            if bus_grant is None:
-                continue
-            publish = self._check_action(source, "events:putevents", arn)
-            if publish is None:
-                continue
-            prefix = f"arn:{partition}:events:{parts[3]}:{source.scope}:subscriber/"
-            names = {token}
-            allows, _ = self._statements(source, "events:createsubscriber")
-            for statement in allows:
-                if statement.notresource or statement.variables:
-                    continue
-                for pattern in statement.resources:
-                    if not pattern.startswith(prefix):
-                        continue
-                    candidate = pattern[len(prefix):].split("/", 1)[0].replace("*", token).replace("?", "x")
-                    if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,255}", candidate):
-                        names.add(candidate)
-            for name in sorted(names)[:80]:
-                grants = [self._check_action(source, "events:createsubscriber", prefix + name + "/" + suffix)
-                          for suffix in generated_ids]
-                if all(grant is not None and grant.confidence == "derived" for grant in [bus_grant, publish, *grants]):
-                    # CreateSubscriber can invoke only a supported API action through the role.
-                    # Bus access and PassRole do not establish access to the role itself or
-                    # even one privileged action allowed by its effective policy.
-                    return ("unknown", "universal_target_action_and_privilege_gain_not_verified")
-                if any(grant is not None for grant in grants):
-                    unknown = True
-        return ("unknown", "eventbridge_bus_or_subscriber_authorization_not_verified") if unknown else None
+        bus_arn = proof.get("EventBusArn")
+        subscriber_arn = proof.get("SubscriberArn")
+        target_arn = proof.get("UniversalTargetArn")
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        bus_pattern = rf"arn:{re.escape(partition)}:events:{re.escape(region)}:{source.scope}:event-busv2/[A-Za-z0-9][A-Za-z0-9._-]{{0,255}}/[a-z0-9]{{25}}"
+        sub_pattern = rf"arn:{re.escape(partition)}:events:{re.escape(region)}:{source.scope}:subscriber/[A-Za-z0-9][A-Za-z0-9._-]{{0,255}}/[a-z0-9]{{25}}"
+        target_pattern = rf"arn:{re.escape(partition)}:events:::aws-sdk:([a-z0-9-]+):([a-z][A-Za-z0-9]*)"
+        target_match = re.fullmatch(target_pattern, target_arn) if isinstance(target_arn, str) else None
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("TechniqueId") != technique or proof.get("SourceArn") != source.id or
+                proof.get("TargetKind") != "aws_role" or proof.get("TargetId") != role.id or
+                not isinstance(bus_arn, str) or re.fullmatch(bus_pattern, bus_arn) is None or
+                not isinstance(subscriber_arn, str) or re.fullmatch(sub_pattern, subscriber_arn) is None or
+                target_match is None or not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                target_match.group(2).lower() != action.split(":", 1)[1].lower() or
+                target_match.group(2).lower().startswith(("get", "list", "describe")) or
+                target_arn.endswith((":putEvents", ":putPartnerEvents")) or
+                not isinstance(resource, str) or not resource or
+                proof.get("UniversalTargetAccepted") is not True or
+                proof.get("CreateSubscriberSucceeded") is not True or
+                proof.get("SubscriberRunning") is not True or
+                proof.get("EventPublished") is not True or
+                proof.get("EventMatched") is not True or
+                proof.get("TargetDeliverySucceeded") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                type(proof.get("TagsRequested")) is not bool or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "eventbridge_subscriber_delivery_or_role_effect_not_verified")
+        buses = [bus for bus in self.eventbridge_custom_buses if bus.get("EventBusArn") == bus_arn]
+        roles = [row for row_scope, row in items(self.snapshot, "iam_role")
+                 if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        if (len(buses) != 1 or buses[0].get("State") not in ("ACTIVE", "UPDATE_FAILED") or
+                len(roles) != 1 or not isinstance(proof.get("TargetRoleId"), str) or
+                not proof["TargetRoleId"] or roles[0].get("RoleId") != proof["TargetRoleId"] or
+                (buses[0].get("KmsKeyIdentifier") and proof.get("BusKmsAccessVerified") is not True)):
+            return ("unknown", "eventbridge_subscriber_bus_or_role_identity_not_verified")
+        if self._service_trust_for_source_arn(role.id, "events.amazonaws.com", subscriber_arn) is False:
+            return ("unknown", "eventbridge_subscriber_delivery_role_trust_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "eventbridge_subscriber_effect_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "eventbridge_subscriber_effect_evidence_time_missing")
+        # CreateSubscriber checks the not-yet-created subscriber with name/*.
+        subscriber_prefix = subscriber_arn.rsplit("/", 1)[0] + "/*"
+        # A wildcard resource in the authorization request is a literal part of
+        # that request. The generic IAM matcher also tests pattern overlap, which
+        # would incorrectly accept a policy scoped to this completed subscriber.
+        if not any(st.notresource or any(glob_match(pattern, subscriber_prefix, False)
+                                         for pattern in st.resources)
+                   for st in create_allows):
+            return ("unknown", "eventbridge_subscriber_create_name_authorization_not_verified")
+        region_context = {"aws:RequestedRegion": region}
+        grants = [self.check(source, {"action": "events:CreateSubscriber",
+                                      "request_context": region_context}, bus_arn),
+                  self.check(source, {"action": "events:CreateSubscriber",
+                                      "request_context": region_context}, subscriber_prefix),
+                  self.check(source, {"action": "events:PutEvents",
+                                      "request_context": region_context}, bus_arn),
+                  self.check(source, {"action": "iam:PassRole", "request_context": {
+                      **region_context, "iam:PassedToService": "events.amazonaws.com"}}, role.id),
+                  self.check(role, {"action": action}, resource)]
+        if proof["TagsRequested"]:
+            grants.append(self.check(source, {"action": "events:TagResource",
+                                              "request_context": region_context}, subscriber_prefix))
+        if any(grant is None or grant.confidence != "derived" for grant in grants):
+            return ("unknown", "eventbridge_subscriber_scoped_permissions_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "eventbridge_subscriber_exact_delivered_role_action")
 
     def _mwaa_existing_environment_route(self, source, role):
         """Bind the role change and an attacker-written DAG to one live environment."""
@@ -13804,8 +13845,8 @@ class AwsModel(Model):
         if pid == "eventbridge_subscriber_has_active_bus_and_bound_permissions":
             if source is None:
                 return None
-            verdict = self._eventbridge_subscriber_route(source)
-            return {tid: verdict for tid in candidates} if verdict else {}
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._eventbridge_subscriber_route(source, role))}
         if pid == "mwaa_existing_environment_update_with_dag_code":
             if source is None:
                 return None
