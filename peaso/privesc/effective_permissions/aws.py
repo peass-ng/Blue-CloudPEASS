@@ -8544,6 +8544,91 @@ class AwsModel(Model):
                 if tid not in out and uncertain:
                     out[tid] = ("unknown", "apprunner_existing_instance_role_not_verified")
             return out
+        if pid == "apprunner_mutable_ecr_autodeploy_instance_role":
+            if source is None:
+                return None
+            service_status = {scope: status for scope, status in inventory_status(self.snapshot, "app_runner_service").items()
+                              if scope.startswith(source.scope + "/")}
+            ecr_status = {scope: status for scope, status in inventory_status(self.snapshot, "ecr_repository").items()
+                          if scope.startswith(source.scope + "/")}
+            incomplete = (not service_status or not ecr_status or
+                          any(status not in ("collected", "empty") for status in (*service_status.values(), *ecr_status.values())))
+            partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+            token = self._check_action(source, "ecr:GetAuthorizationToken", "*")
+            push_actions = ("ecr:BatchCheckLayerAvailability", "ecr:InitiateLayerUpload",
+                            "ecr:UploadLayerPart", "ecr:CompleteLayerUpload", "ecr:PutImage")
+            out = {}
+            for tid, target in candidates.items():
+                uncertain = incomplete
+                for scope, service in items(self.snapshot, "app_runner_service"):
+                    if service_status.get(scope) != "collected" or not isinstance(service, dict):
+                        continue
+                    region = scope.split("/", 1)[1]
+                    arn = service.get("ServiceArn")
+                    if not isinstance(arn, str) or not arn.startswith(
+                            f"arn:{partition}:apprunner:{region}:{source.scope}:service/"):
+                        uncertain = True
+                        continue
+                    detail = service.get("NetworkDetails")
+                    if not isinstance(detail, dict):
+                        uncertain = True
+                        continue
+                    if detail.get("InstanceRoleArn") != target.id:
+                        continue
+                    if (service.get("Status") or detail.get("Status")) != "RUNNING":
+                        continue
+                    if detail.get("SourceType") != "IMAGE" or detail.get("AutoDeploymentsEnabled") is not True:
+                        uncertain |= detail.get("SourceType") not in ("IMAGE", "CODE") or type(detail.get("AutoDeploymentsEnabled")) is not bool
+                        continue
+                    image = detail.get("ImageIdentifier")
+                    if not isinstance(image, str):
+                        uncertain = True
+                        continue
+                    for repo_scope, repo in items(self.snapshot, "ecr_repository"):
+                        if repo_scope != scope or ecr_status.get(repo_scope) != "collected" or not isinstance(repo, dict):
+                            continue
+                        repo_arn = repo.get("repositoryArn")
+                        uri = repo.get("repositoryUri")
+                        if not (isinstance(repo_arn, str) and repo_arn.startswith(
+                                f"arn:{partition}:ecr:{region}:{source.scope}:repository/") and
+                                isinstance(uri, str) and image.startswith(uri + ":") and
+                                image[len(uri) + 1:] and "@" not in image[len(uri) + 1:]):
+                            continue
+                        tag = image[len(uri) + 1:]
+                        mode = repo.get("imageTagMutability")
+                        filters = repo.get("imageTagMutabilityExclusionFilters")
+                        if mode in ("IMMUTABLE_WITH_EXCLUSION", "MUTABLE_WITH_EXCLUSION"):
+                            if not isinstance(filters, list) or not all(
+                                    isinstance(row, dict) and row.get("filterType") == "WILDCARD" and
+                                    isinstance(row.get("filter"), str) for row in filters):
+                                uncertain = True
+                                continue
+                            matched = any(re.fullmatch(re.escape(row["filter"]).replace(r"\*", ".*"), tag)
+                                          for row in filters)
+                            mutable = matched if mode == "IMMUTABLE_WITH_EXCLUSION" else not matched
+                        elif mode in ("MUTABLE", "IMMUTABLE"):
+                            mutable = mode == "MUTABLE"
+                        else:
+                            uncertain = True
+                            continue
+                        settings_grant = None
+                        if not mutable:
+                            settings_grant = self._check_action(source, "ecr:PutImageTagMutability", repo_arn)
+                            if settings_grant is None:
+                                continue
+                        grants = [self._check_action(source, action, repo_arn) for action in push_actions]
+                        if token is None or any(grant is None for grant in grants):
+                            continue
+                        out[tid] = (("conditional", "apprunner_mutable_ecr_autodeploy_push")
+                                    if token.confidence == "derived" and all(grant.confidence == "derived" for grant in grants)
+                                    and (settings_grant is None or settings_grant.confidence == "derived")
+                                    else ("unknown", "apprunner_ecr_push_permission_conditional"))
+                        break
+                    if tid in out:
+                        break
+                if tid not in out and uncertain:
+                    out[tid] = ("unknown", "apprunner_ecr_autodeploy_join_not_verified")
+            return out
         if pid == "appsync_new_api_global_setup":
             if source is None:
                 return None

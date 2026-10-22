@@ -124,6 +124,12 @@ class MetadataClient:
                     code = isinstance(source.get("CodeRepository"), dict)
                     if image != code:
                         projected["SourceType"] = "IMAGE" if image else "CODE"
+                    if type(source.get("AutoDeploymentsEnabled")) is bool:
+                        projected["AutoDeploymentsEnabled"] = source["AutoDeploymentsEnabled"]
+                    if image:
+                        image_id = source["ImageRepository"].get("ImageIdentifier")
+                        if isinstance(image_id, str):
+                            projected["ImageIdentifier"] = image_id
             if (self.service, name) == ("emr-serverless", "get_application") and isinstance(projected, dict):
                 auto_start = body.get("autoStartConfiguration")
                 if isinstance(auto_start, dict) and type(auto_start.get("enabled")) is bool:
@@ -295,6 +301,11 @@ def detail_enricher(kind):
             if isinstance(body, dict):
                 row["NetworkDetails"] = project_network_data(body)
                 if kind == "app_runner_service":
+                    for field in ("AutoDeploymentsEnabled", "ImageIdentifier"):
+                        value = body.get(field)
+                        if (field == "AutoDeploymentsEnabled" and type(value) is bool or
+                                field == "ImageIdentifier" and isinstance(value, str)):
+                            row["NetworkDetails"][field] = value
                     instance = body.get("InstanceConfiguration")
                     role_arn = body.get("InstanceRoleArn") or (instance.get("InstanceRoleArn") if isinstance(instance, dict) else None)
                     if isinstance(role_arn, str) and role_arn.startswith("arn:"):
@@ -305,6 +316,12 @@ def detail_enricher(kind):
                         image, code = isinstance(source.get("ImageRepository"), dict), isinstance(source.get("CodeRepository"), dict)
                         if image != code:
                             source_type = "IMAGE" if image else "CODE"
+                        if type(source.get("AutoDeploymentsEnabled")) is bool:
+                            row["NetworkDetails"]["AutoDeploymentsEnabled"] = source["AutoDeploymentsEnabled"]
+                        if image:
+                            image_id = source["ImageRepository"].get("ImageIdentifier")
+                            if isinstance(image_id, str):
+                                row["NetworkDetails"]["ImageIdentifier"] = image_id
                     if source_type in ("IMAGE", "CODE"):
                         row["NetworkDetails"]["SourceType"] = source_type
                 if kind == "emr_serverless_application" and type(body.get("AutoStartEnabled")) is bool:
