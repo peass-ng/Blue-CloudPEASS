@@ -28,7 +28,7 @@ def test_every_packed_tar_block_and_manifest_matches_pinned_original():
         refs = archive.read('references.bin')
         manifests = archive.read('manifests.bin')
     assert index['schema'] == 'privesc-exact-history-v1'
-    assert len(index['versions']) == len(declarations()) == 126
+    assert len(index['versions']) == len(declarations()) == 127
     assert len(blocks) == 512 * len(index['block_sha256'])
     assert all(_sha(blocks[n*512:(n+1)*512]) == digest
                for n, digest in enumerate(index['block_sha256']))
@@ -96,7 +96,7 @@ def test_source_freeze_omits_only_verified_reconstructible_originals():
     from scripts.peaso_deploy import _omit_verified_reconstructible_privesc_history
     root, source = _history_source_bytes()
     omitted = _omit_verified_reconstructible_privesc_history(source, root)
-    assert len(omitted) == 252
+    assert len(omitted) == 254
     assert set(source) == {'peaso/privesc/versioned_catalog.py',
                            'peaso/privesc/catalog_versions/runtime-history-v1.zip'}
 

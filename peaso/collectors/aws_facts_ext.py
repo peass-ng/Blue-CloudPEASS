@@ -87,6 +87,7 @@ READ_ACTIONS = {
     ("sagemaker", "describe_user_profile"), ("sagemaker", "describe_cluster"), ("sagemaker", "describe_domain"),
     ("sagemaker", "describe_space"),
     ("amplify", "list_backend_environments"), ("amplify", "list_branches"),
+    ("grafana", "list_workspace_service_accounts"),
     ("quicksight", "describe_account_subscription"),
     ("gamelift", "describe_fleet_attributes"), ("gamelift", "list_compute"),
     ("devicefarm", "list_projects"), ("devicefarm", "get_device_pool_compatibility"),
@@ -912,6 +913,16 @@ def _grafana_workspaces(requests, session, region, account):
         if isinstance(workspace, dict) and isinstance(workspace.get("id"), str):
             row = _pick(workspace, ("id", "name", "status", "authentication", "licenseType", "grafanaVersion", "created", "modified"))
             row["Arn"] = f"arn:{_partition(region)}:grafana:{region}:{account}:/workspaces/{workspace['id']}"
+            version = re.match(r"^(\d+)(?:\.|$)", str(workspace.get("grafanaVersion") or ""))
+            if version and int(version.group(1)) < 9:
+                row["ServiceAccounts"] = {"collection_status": "empty", "items": []}
+            else:
+                accounts = requests.pages(session, "grafana", region,
+                                          "list_workspace_service_accounts", "serviceAccounts",
+                                          workspaceId=workspace["id"])
+                summaries = [_pick(item, ("id", "name", "grafanaRole", "isDisabled"))
+                             for item in accounts.items if isinstance(item, dict)]
+                row["ServiceAccounts"] = _child(accounts, summaries)
             items.append(row)
     read.items = items
     return read

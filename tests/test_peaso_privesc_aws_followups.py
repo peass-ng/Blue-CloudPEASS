@@ -3363,8 +3363,10 @@ def test_agentcore_create_and_update_runtime_need_current_role_execution():
         "iam:PassedToService": "bedrock-agentcore.amazonaws.com"}}
 
     def result(technique, evidence=None, *, version="1", role_row=target,
-               runtime_role=None, extra_caller=()):
+               runtime_role=None, extra_caller=(), endpoint_grant=True):
         caller = user("alice", passed, allow("bedrock-agentcore:CreateAgentRuntime"),
+                      *([allow("bedrock-agentcore:CreateAgentRuntimeEndpoint", resource="*")]
+                        if endpoint_grant else []),
                       allow("bedrock-agentcore:UpdateAgentRuntime", resource=runtime_arn),
                       allow("bedrock-agentcore:InvokeAgentRuntime"), *extra_caller)
         runtime = {"agentRuntimeArn": runtime_arn, "agentRuntimeId": "previous-0123456789",
@@ -3395,6 +3397,9 @@ def test_agentcore_create_and_update_runtime_need_current_role_execution():
                  "EvidenceObservedAt": "2026-10-21T11:59:00+00:00",
                  "EvidenceExpiresAt": "2026-10-21T12:05:00+00:00"}
         assert target["Arn"] in reached(result(technique, proof), ALICE, technique)
+        if operation == "CreateAgentRuntime":
+            assert target["Arn"] not in reached(result(technique, proof, endpoint_grant=False),
+                                                ALICE, technique)
         assert target["Arn"] not in reached(result(technique), ALICE, technique)
         assert_unresolved(result(technique), ALICE, technique)
         assert target["Arn"] not in reached(result(technique, [proof, dict(proof)]), ALICE, technique)

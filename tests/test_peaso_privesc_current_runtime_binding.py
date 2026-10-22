@@ -12,6 +12,17 @@ def test_current_catalog_binding_resolves_new_technique():
     assert set(entries) == {"aws-flink-studio-presigned-url"}
 
 
+def test_previous_aws_audit_binding_keeps_its_original_entries():
+    old = {"schema": catalog.BINDING_SCHEMA,
+           "manifest_sha256": catalog.FINAL_AWS_AUDIT_691_PREVIOUS_MANIFEST,
+           "effective_tree_sha256": catalog.FINAL_AWS_AUDIT_691_PREVIOUS_TREE,
+           "source_revision": catalog.V4_REVISION}
+    entries, status = catalog.lookup_entries(["aws-flink-studio-presigned-url"], old)
+    assert status == "exact_previous_current"
+    assert set(entries) == {"aws-flink-studio-presigned-url"}
+    assert len(catalog._verified_final_aws_audit_691_previous()) == 691
+
+
 def test_stepfunctions_passrole_service_binding_preserves_previous_catalog():
     ids = ["aws-stepfunctions-createstatemachine-passrole-start",
            "aws-stepfunctions-updatestatemachine-passrole"]
@@ -81,9 +92,8 @@ def test_config_remediation_binding_preserves_previous_catalog():
     requirements = {req["action"]: req for req in entry["requires"]["all_of"]}
     assert requirements["iam:PassRole"]["request_context"] == {
         "iam:PassedToService": "ssm.amazonaws.com"}
-    assert requirements["config:PutRemediationConfigurations"]["resource"].endswith(
-        ":remediation-configuration/*")
-    assert requirements["ssm:CreateDocument"]["resource"].endswith(":document/*")
+    assert set(requirements) == {"iam:PassRole"}
+    assert any(condition["id"] == "document_reuse" for condition in entry["conditions"])
     old = {"schema": catalog.BINDING_SCHEMA,
            "manifest_sha256": catalog.CONFIG_REMEDIATION_689_PREVIOUS_MANIFEST,
            "effective_tree_sha256": catalog.CONFIG_REMEDIATION_689_PREVIOUS_TREE,
