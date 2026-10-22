@@ -84,6 +84,7 @@ export function CodexSettings() {
     <section className="ai-settings-section" aria-labelledby="ai-configure-heading">
       <h3 id="ai-configure-heading">Configure AI</h3>
     {connection.error && <State error={connection.error} onRetry={() => void connection.refetch()} />}
+    {active?.isolation_available === false && <p role="status">AI review is unavailable until isolated agent execution is configured.</p>}
     {active?.configuration_error && <p role="alert">AI is paused: {active.configuration_error.message} No AI workloads will be launched. Validate and save your settings to resume.</p>}
     {active?.configuration_error && <button className="button" disabled={revalidate.isPending} onClick={() => revalidate.mutate()}>Revalidate saved AI configuration</button>}
     {active?.hosted && <p className="muted small">HackTricks AI is the default when no personal configuration is selected. If validation fails, AI stops until you fix your settings or explicitly select and validate HackTricks AI.</p>}
