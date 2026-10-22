@@ -172,6 +172,42 @@ def test_index_child_platform_config_and_both_scanners_use_one_capture(monkeypat
     assert not store.root.exists()
 
 
+def test_shared_capture_failure_is_incomplete_for_both_scanners_and_cleans(monkeypatch):
+    requests, session, item, ops, calls, downloads, payloads, target = fixture(monkeypatch)
+    layer_url = next(url for url in payloads if url.endswith('-layer'))
+    payloads[layer_url] += b'corrupt'
+    with capture.capture_scope(requests) as store, ThreadPoolExecutor(2) as pool:
+        secret = pool.submit(package.enrich, 'ecr_repository', requests, session, REGION, [item])
+        cve = pool.submit(native.collect_native, requests, session, ACCOUNT, REGION,
+                          [target], enabled=True, runner=scan_runner())
+        assert not secret.result(timeout=30)[0]['PackageContentSource']['PackageSecretIndicators']['NativeResponseComplete']
+        assert not cve.result(timeout=30)['complete']
+        assert Counter(url for url, _ in downloads) == Counter({url: 1 for url in payloads})
+        assert len(list(store.root.iterdir())) == 1  # Only verified config survives to scope exit.
+    assert not store.root.exists()
+
+
+def test_shared_bytes_do_not_replay_a_changed_lambda_association(monkeypatch):
+    requests, session, item, ops, calls, downloads, payloads, target = fixture(monkeypatch)
+    arn = f'arn:aws:lambda:{REGION}:{ACCOUNT}:function:fixture'
+    reference = f'{ACCOUNT}.dkr.ecr.{REGION}.amazonaws.com/example@' + target['image_digest']
+    reads = []
+    def function(**args):
+        reads.append(args)
+        return {'Configuration': {'FunctionArn': arn, 'PackageType': 'Image',
+            'Version': '$LATEST', 'RevisionId': 'first' if len(reads) == 1 else 'changed'},
+            'Code': {'ResolvedImageUri': reference}}
+    ops['get_function'] = function
+    with capture.capture_scope(requests):
+        assert package.enrich('ecr_repository', requests, session, REGION, [item])[0][
+            'PackageContentSource']['PackageSecretIndicators']['NativeResponseComplete']
+        before = len(downloads)
+        result = native.collect_native(requests, session, ACCOUNT, REGION,
+            [{'scope': target['scope'], 'function_arn': arn}], enabled=True, runner=scan_runner())
+        assert not result['complete'] and result['status'] == 'UNKNOWN'
+        assert len(reads) >= 2 and len(downloads) == before == 2
+
+
 def test_pinned_workload_session_shares_original_authority(monkeypatch):
     requests = SimpleNamespace(_lock=threading.RLock(), check_deadline=lambda: None)
     session = object()
