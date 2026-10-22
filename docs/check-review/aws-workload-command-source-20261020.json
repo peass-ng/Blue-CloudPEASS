@@ -2,11 +2,11 @@
   "proposal": "aws-workload-command-source-20261020",
   "status": "unregistered-local-native-proof-succeeded",
   "source_hashes": {
-    "peaso/collectors/aws_workload_command_source_20261020.py": "605a8e7c54866d5d4705acd6d71f0fb473225304dca560712f9dc4f315e5675d",
+    "peaso/collectors/aws_workload_command_source_20261020.py": "c5c5c24b7fbd4b696903d38b6e84a02ad3ebfa35616e6378a67afb97b8ae757e",
     "peaso/checks/aws_workload_command_source_20261020.py": "40dd0dfa2e01885c7e0226afec7f2c6e1961d6681f17d5aa714c821aabc05f05",
     "tests/aws_workload_command_source_20261020_test.py": "99e1fa65cf149af11d96942e76aec82ea8235e9750057ce93005279355ec98b7",
     "docs/aws-workload-command-source-setup-20261020.md": "3dd48fa9fb395dd5955512940f15ddb1c645f9666d30d657067621944dcd1542",
-    "peaso/secret_scanning.py": "7baaed87b7d2923f411ad03a47e41c3627a52136689ec10d79e13150bfbc129c"
+    "peaso/secret_scanning.py": "72aaf391e3b168d9b8f7a10603a5763c04137b5e7807fef320b4fc22fa1a9d19"
   },
   "review_date": "2026-10-20",
   "check_id": "aws.review.workload.selected_command_literal_secret_indicators",
