@@ -21,7 +21,12 @@ V4_EFFECTIVE_TREE = "413792ea4aec86e48c352ffab2c0bea9e82795bc234251342737ec0276b
 LEGACY_DELTA = Path(__file__).resolve().parent / "catalog_versions/legacy-0b3633-delta.json"
 BOUNDED_MANIFEST = "734401b202895e00ac1b6cb0f1534f77cde4d8e2ba912ca0ee974b1b8ec5035c"
 BOUNDED_TREE = "1a54bad4102d18f89c78f45c915964554a62f994c1bffa693844cac5e119cca8"
-CURRENT_MANIFEST = '2d85f83a0367d243011a00f1b176bfea9f96464a6518b99db1db8acb592271ca'
+CURRENT_MANIFEST = '2c3da3d187ff9dfa1f5b3ce05a8cb3f90bfa71a877d4a448fe667c894248cd62'
+FINSPACE_SUNSET_690_PREVIOUS_MANIFEST = '2d85f83a0367d243011a00f1b176bfea9f96464a6518b99db1db8acb592271ca'
+FINSPACE_SUNSET_690_PREVIOUS_TREE = '7e8ac01d407a05d8d6babf57eb02b43f3cd28d8906147594dc5e87d81c472992'
+FINSPACE_SUNSET_690_PREVIOUS_ARCHIVE_SHA256 = '1b8753caaeb7141ee06ccd62d550bb6dce8223d6d92bb61a7c2d41b4b3f80fdf'
+FINSPACE_SUNSET_690_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-690-finspace-sunset-source-manifest.json'
+FINSPACE_SUNSET_690_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-690-finspace-sunset-catalog.tar.gz'
 SPOT_REQUEST_690_PREVIOUS_MANIFEST = 'caa32ddb832aae734f3b96f0a9de124802995b23c9f375e72dfde64e5d8ba196'
 SPOT_REQUEST_690_PREVIOUS_TREE = '9c1b10cde6cbc0fb180b7b6908bf1d9dc1979942fd253647903d00eb3d9b700e'
 SPOT_REQUEST_690_PREVIOUS_ARCHIVE_SHA256 = 'e384f312ff4e88b7a0667b8b2333910febeefb2d84583938d6a557beb3bf2089'
@@ -291,10 +296,10 @@ PRIOR_CURRENT_MANIFEST = "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0c
 PRIOR_DISCLOSURE_MANIFEST = "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
 PRIOR_DISCLOSURE_TREE = "5091464bedcb10bb87301695ca733276dc67b865e544c408ccf72a5408176f0f"
 PRIOR_DISCLOSURE_HISTORY = Path(__file__).resolve().parent / "catalog_versions/disclosure-v7-manifest.json"
-CURRENT_TREE = '7e8ac01d407a05d8d6babf57eb02b43f3cd28d8906147594dc5e87d81c472992'
+CURRENT_TREE = '74d2b6e516ce9f2d5b6fa13b1a220697c5800d9330c160ac0fdb89b19ea47038'
 PRIOR_CURRENT_TREE = "99207e6469fc5e5b3daf21324e6860599b116ffcf7d30600643bd229b0f11494"
-CURRENT_ENTRY_COUNT = 690
-CURRENT_EXCLUDED_COUNT = 3723
+CURRENT_ENTRY_COUNT = 689
+CURRENT_EXCLUDED_COUNT = 3724
 CURRENT_HISTORY = Path(__file__).resolve().parent / "catalog_versions/bulk-principal-v6-manifest.json"
 PRIOR_CATALOG_ARCHIVE = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-catalog-20261016.tar.gz"
 PRIOR_SOURCE_MANIFEST = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-source-manifest.json"
@@ -413,6 +418,15 @@ def _verified_teststate_690_previous():
         TESTSTATE_690_PREVIOUS_MANIFEST_PATH, TESTSTATE_690_PREVIOUS_ARCHIVE,
         TESTSTATE_690_PREVIOUS_MANIFEST, TESTSTATE_690_PREVIOUS_ARCHIVE_SHA256,
         TESTSTATE_690_PREVIOUS_TREE, 690, 3723)
+
+
+@lru_cache(maxsize=1)
+def _verified_finspace_sunset_690_previous():
+    """Keep the exact catalog before Amazon FinSpace became unavailable."""
+    return _verified_archived_current(
+        FINSPACE_SUNSET_690_PREVIOUS_MANIFEST_PATH, FINSPACE_SUNSET_690_PREVIOUS_ARCHIVE,
+        FINSPACE_SUNSET_690_PREVIOUS_MANIFEST, FINSPACE_SUNSET_690_PREVIOUS_ARCHIVE_SHA256,
+        FINSPACE_SUNSET_690_PREVIOUS_TREE, 690, 3723)
 
 
 @lru_cache(maxsize=1)
@@ -861,6 +875,10 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "current", "exact_strict_privesc"
+    elif (binding.get("manifest_sha256") == FINSPACE_SUNSET_690_PREVIOUS_MANIFEST and
+          binding.get("effective_tree_sha256") == FINSPACE_SUNSET_690_PREVIOUS_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "finspace_sunset_690_previous", "exact_previous_current"
     elif (binding.get("manifest_sha256") == SPOT_REQUEST_690_PREVIOUS_MANIFEST and
           binding.get("effective_tree_sha256") == SPOT_REQUEST_690_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -1070,6 +1088,9 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
         if version == "current":
             current = _verified_current(str(catalog_dir), str(manifest_path))
             return {ident: current[ident] for ident in ids if ident in current}, status
+        if version == "finspace_sunset_690_previous":
+            previous = _verified_finspace_sunset_690_previous()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "spot_request_690_previous":
             previous = _verified_spot_request_690_previous()
             return {ident: previous[ident] for ident in ids if ident in previous}, status
