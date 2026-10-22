@@ -5451,7 +5451,8 @@ class AwsModel(Model):
                         if update.confidence == start.confidence == "derived":
                             return ("conditional", "response_plan_automation_execution")
                         unknown = True
-            create = self._check_action(source, "ssm-incidents:createresponseplan", "*")
+            create = self._check_action(source, "ssm-incidents:createresponseplan",
+                                        "peaso-global-incident-create-response-plan")
             if create is None:
                 continue
             names = {token}
@@ -8722,9 +8723,11 @@ class AwsModel(Model):
                         continue
                     context = {"aws:RequestedRegion": region}
                     create_anchor = self.cached_check(source, {"action": "rolesanywhere:CreateTrustAnchor",
-                                                              "request_context": context}, "*")
+                                                              "request_context": context},
+                                                      "peaso-global-rolesanywhere-create-anchor")
                     create_profile = self.cached_check(source, {"action": "rolesanywhere:CreateProfile",
-                                                               "request_context": context}, "*")
+                                                               "request_context": context},
+                                                       "peaso-global-rolesanywhere-create-profile")
                     if create_anchor is None or create_profile is None:
                         continue
                     if create_anchor.confidence != create_profile.confidence or create_anchor.confidence != "derived":
