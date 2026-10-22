@@ -1,6 +1,6 @@
 {
   "repository": "HackTricks-wiki/hacktricks-cloud",
-  "revision": "2b61104efb9472d3d0f8c53e50c1fc1057087568",
+  "revision": "69b618c444e7b0d1534f08bd4f8150a12d456467",
   "path": "src/privilege-escalation-paths",
   "canonical_sha256": {
     "aws/_excluded_171e_g1.yaml": "2160b8f57f029e74e5a31727815316f459d8364147c47be2c36639c831b9dcb3",
@@ -20,7 +20,7 @@
     "aws/_excluded_execution_foothold_strict_reaudit_20261016.yaml": "4b28e179e0148e86e2aee4c64d483c23b6d652006fa9310435d293913e85bbb8",
     "aws/_excluded_finspace_sunset_20261022.yaml": "57d87f4f5144d8a05342630581c2f06e2b26c3838affd3bed33e81ea6bf1d42a",
     "aws/_excluded_foothold_strict_reaudit_20261016.yaml": "9e9203f089c71a05431e012badadcec8a61a3781c1ab1aa3a9b690c80a3b40be",
-    "aws/_excluded_generated_scope_20261016.yaml": "c5bfc0d6311258161cff511d2687a7b9eb8f2999f90361377a4e2b328fa1dd3f",
+    "aws/_excluded_generated_scope_20261016.yaml": "9138b1251e05c318e8506c2039c544503383c3689d3e8a1a9b84ec976ae31289",
     "aws/_excluded_generic_challenge_strict_reaudit_20261016.yaml": "dcfaf11d73e3f9b949b686671e057c5e090bdc933f5682a1913cda5cdcfd2eb9",
     "aws/_excluded_greengrass_unjoined_tes_role_final_reaudit_20261016.yaml": "44b5779d0a9a59ef1c9f69d3dee6fb312654aa5879467fc24b9a1f668ca94160",
     "aws/_excluded_org_scope_overclaim_20261016.yaml": "5a70bc0f60f0b48188e4f411663144b8eb764e50407baf535512d2ac1e50d61d",
@@ -314,7 +314,7 @@
     "aws/_excluded_execution_foothold_strict_reaudit_20261016.yaml": "4b28e179e0148e86e2aee4c64d483c23b6d652006fa9310435d293913e85bbb8",
     "aws/_excluded_finspace_sunset_20261022.yaml": "57d87f4f5144d8a05342630581c2f06e2b26c3838affd3bed33e81ea6bf1d42a",
     "aws/_excluded_foothold_strict_reaudit_20261016.yaml": "9e9203f089c71a05431e012badadcec8a61a3781c1ab1aa3a9b690c80a3b40be",
-    "aws/_excluded_generated_scope_20261016.yaml": "c5bfc0d6311258161cff511d2687a7b9eb8f2999f90361377a4e2b328fa1dd3f",
+    "aws/_excluded_generated_scope_20261016.yaml": "9138b1251e05c318e8506c2039c544503383c3689d3e8a1a9b84ec976ae31289",
     "aws/_excluded_generic_challenge_strict_reaudit_20261016.yaml": "dcfaf11d73e3f9b949b686671e057c5e090bdc933f5682a1913cda5cdcfd2eb9",
     "aws/_excluded_greengrass_unjoined_tes_role_final_reaudit_20261016.yaml": "44b5779d0a9a59ef1c9f69d3dee6fb312654aa5879467fc24b9a1f668ca94160",
     "aws/_excluded_org_scope_overclaim_20261016.yaml": "5a70bc0f60f0b48188e4f411663144b8eb764e50407baf535512d2ac1e50d61d",
