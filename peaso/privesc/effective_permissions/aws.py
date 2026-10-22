@@ -6601,6 +6601,77 @@ class AwsModel(Model):
             return None
         return ("conditional", "orchestrator_exact_managed_instance_role_effect_verified")
 
+    def _servicecatalog_verified_artifact_role_effect(self, source, role, *, self_associate):
+        """Bind the modified product, portfolio launch role and useful provision."""
+        technique = ("aws-servicecatalog-associateprincipal-createartifact-provision" if self_associate else
+                     "aws-servicecatalog-createprovisioningartifact-provisionproduct")
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "servicecatalog_owned_product_template_and_role_effect_not_verified")
+        scope, proof = records[0]
+        if (not scope.startswith(source.scope + "/") or
+                inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"):
+            return ("unknown", "servicecatalog_provision_evidence_incomplete")
+        region = scope.split("/", 1)[1]
+        partition = source.id.split(":", 2)[1]
+        product, portfolio = proof.get("ProductArn"), proof.get("PortfolioArn")
+        product_pattern = rf"arn:{re.escape(partition)}:catalog:{re.escape(region)}:{source.scope}:product/[^/*?]+"
+        portfolio_pattern = rf"arn:{re.escape(partition)}:catalog:{re.escape(region)}:{source.scope}:portfolio/[^/*?]+"
+        rows = [row for row_scope, row in items(self.snapshot, "iam_role")
+                if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        role_id = rows[0].get("RoleId") if len(rows) == 1 else None
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                not isinstance(product, str) or re.fullmatch(product_pattern, product) is None or
+                not isinstance(portfolio, str) or re.fullmatch(portfolio_pattern, portfolio) is None or
+                product not in self.hosts.get(role.id, {}).get("servicecatalog_product", ()) or
+                portfolio not in self.sc_portfolios.get(_norm_arn(role.id), ()) or
+                not isinstance(role_id, str) or not role_id or proof.get("TargetRoleId") != role_id or
+                proof.get("LaunchConstraintRoleArn") != role.id or
+                proof.get("ProductOwnedByAccount") is not True or
+                proof.get("PortfolioContainsProduct") is not True or
+                proof.get("TemplateControlledBySource") is not True or
+                proof.get("ArtifactCreatedSucceeded") is not True or
+                proof.get("TemplateAccepted") is not True or
+                proof.get("ProvisionSucceeded") is not True or
+                proof.get("LaunchConstraintApplied") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                not isinstance(proof.get("ArtifactId"), str) or not proof["ArtifactId"] or
+                not isinstance(proof.get("ProvisionedProductId"), str) or
+                not proof["ProvisionedProductId"] or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "servicecatalog_artifact_or_role_effect_not_verified")
+        if self_associate:
+            if (proof.get("SourceAssociatedToPortfolio") is not True or
+                    proof.get("SelfAssociationSucceeded") is not True):
+                return ("unknown", "servicecatalog_portfolio_self_association_not_verified")
+        elif proof.get("SourceAlreadyPortfolioEndUser") is not True:
+            return ("unknown", "servicecatalog_portfolio_end_user_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "servicecatalog_provision_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "servicecatalog_provision_evidence_time_missing")
+        grants = [self._check_action(source, name, product) for name in
+                  ("servicecatalog:CreateProvisioningArtifact", "servicecatalog:ProvisionProduct")]
+        if self_associate:
+            grants.append(self._check_action(source, "servicecatalog:AssociatePrincipalWithPortfolio", portfolio))
+        grants.append(self.check(role, {"action": action}, resource))
+        if any(grant is None or grant.confidence != "derived" for grant in grants):
+            return ("unknown", "servicecatalog_current_permissions_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "servicecatalog_exact_launch_role_effect_verified")
+
     def _ssm_incident_response_route(self, source, execution_role):
         """Bind a creatable Automation document and one usable incident response plan."""
         partition = source.id.split(":", 2)[1]
@@ -11343,11 +11414,13 @@ class AwsModel(Model):
                     out[tid] = ("unknown", "lambda_signer_function_config_or_profile_not_collected")
             return out
         if pid == "servicecatalog_new_artifact_effect_unverified":
-            # The launch constraint identifies a role, but does not establish
-            # that this account owns the product, the source can use its
-            # portfolio, or a controlled template will grant any new authority.
-            return {tid: ("unknown", "servicecatalog_owned_product_template_and_role_effect_not_verified")
-                    for tid in candidates}
+            if source is None:
+                return None
+            self_associate = (self.current_entry or {}).get("id") == (
+                "aws-servicecatalog-associateprincipal-createartifact-provision")
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._servicecatalog_verified_artifact_role_effect(
+                        source, role, self_associate=self_associate))}
         if pid == "config_automatic_remediation_effect_unverified":
             return self._config_automatic_remediation_role_effect(source, candidates)
         if pid == "elasticbeanstalk_environment_role_effect_reviewed":
