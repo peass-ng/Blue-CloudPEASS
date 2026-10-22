@@ -1426,6 +1426,25 @@ def test_scheduler_requires_grant_on_same_account_schedule_resource():
     assert any(passed["Arn"] in targets for targets in evaluate(same_account))
 
 
+def test_synthetics_canary_inventory_binds_exact_execution_role():
+    from peaso.privesc.effective_permissions.aws import AwsModel, HOST_KIND
+
+    canary_role = role("canary", "lambda.amazonaws.com")
+    canary_arn = f"arn:aws:synthetics:{REGION}:{ACCOUNT}:canary:daily_check"
+    snap = aws_snap([user("alice")], [canary_role], [col("synthetics_canary", [
+        {"Id": "canary-id", "Name": "daily_check", "ExecutionRoleArn": canary_role["Arn"]}])])
+    model = AwsModel(snap)
+    assert HOST_KIND["synthetics_canary"] == "synthetics_canary"
+    assert model.hosts[canary_role["Arn"]]["synthetics_canary"] == [canary_arn]
+    assert model.host_status[(ACCOUNT, "synthetics_canary")] == "collected"
+
+    missing_role = aws_snap([user("alice")], [canary_role], [col("synthetics_canary", [
+        {"Id": "canary-id", "Name": "daily_check"}])])
+    incomplete = AwsModel(missing_role)
+    assert incomplete.hosts.get(canary_role["Arn"], {}).get("synthetics_canary") is None
+    assert incomplete.host_status[(ACCOUNT, "synthetics_canary")] == "partial"
+
+
 def test_agentcore_created_interpreter_needs_grants_covering_its_generated_id():
     tid = "aws-bedrock-agentcore-createcodeinterpreter-passrole"
     prefix = f"arn:aws:bedrock-agentcore:{REGION}:{ACCOUNT}:code-interpreter-custom/"

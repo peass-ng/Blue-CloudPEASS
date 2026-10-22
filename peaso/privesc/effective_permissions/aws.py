@@ -96,7 +96,8 @@ HOST_KIND = {"lambda": "lambda_function", "lambda_function": "lambda_function", 
              "redshift_serverless_workgroup": "redshift_serverless_workgroup",
              "imagebuilder_pipeline": "imagebuilder_pipeline", "sagemaker_user_profile": "sagemaker_user_profile",
              "sagemaker_space": "sagemaker_space",
-             "sagemaker_cluster": "sagemaker_cluster", "cognito_identity_pool": "cognito_identity_pool"}
+             "sagemaker_cluster": "sagemaker_cluster", "cognito_identity_pool": "cognito_identity_pool",
+             "synthetics_canary": "synthetics_canary"}
 # Collected workload inventories: collection type -> host kind (see AwsModel._load_workload_hosts).
 WORKLOAD_HOSTS = {"codebuild_project": "codebuild_project", "codebuild_sandbox": "codebuild_sandbox", "glue_job": "glue_job", "glue_session": "glue_session",
                   "glue_dev_endpoint": "glue_dev_endpoint",
@@ -105,7 +106,7 @@ WORKLOAD_HOSTS = {"codebuild_project": "codebuild_project", "codebuild_sandbox":
                   "sagemaker_notebook_instance": "sagemaker_notebook_instance",
                   "imagebuilder_pipeline": "imagebuilder_pipeline", "sagemaker_user_profile": "sagemaker_user_profile",
                   "sagemaker_space": "sagemaker_space",
-                  "sagemaker_cluster": "sagemaker_cluster"}
+                  "sagemaker_cluster": "sagemaker_cluster", "synthetics_canary": "synthetics_canary"}
 # Selector -> host map (role -> resource ARNs, see AwsModel._load_ext_hosts) deciding the selector and its
 # {target.attached_resource_arn}.
 SELECTOR_HOSTS = {"cognito_user_pool_group_role_covered_by": "cognito_user_pool_group",
@@ -3747,6 +3748,12 @@ class AwsModel(Model):
                     if not isinstance(groups, list):
                         found.append((None, None))
                     found += [((g or {}).get("ExecutionRole"), item.get("ClusterArn")) for g in groups or []]
+                elif kind == "synthetics_canary":
+                    name = item.get("Name")
+                    passed_role = item.get("ExecutionRoleArn")
+                    partition = passed_role.split(":", 2)[1] if isinstance(passed_role, str) and passed_role.startswith("arn:") else "aws"
+                    arn = f"arn:{partition}:synthetics:{region}:{account}:canary:{name}" if name else None
+                    found.append((passed_role, arn))
                 else:
                     found += [((r or {}).get("RoleArn"), item.get("DBInstanceArn")) for r in as_list(item.get("AssociatedRoles"))]
                 for role, resource in found:
