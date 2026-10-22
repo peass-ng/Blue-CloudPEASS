@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import re
+from dataclasses import replace
 from urllib.parse import urlparse
 
 from . import Grant, Node, inventory_status, items
@@ -39,9 +40,6 @@ def load(model):
         for source in model.principals.values():
             if source.kind != "aws_user" or source.scope != match.group(3) or source.incomplete:
                 continue
-            if source.attrs.get("boundary"):
-                # IAM-user resource grants have special boundary semantics; do not infer through that case here.
-                continue
             writer = model._check_action(source, "sqs:setqueueattributes", arn)
             if writer is None or writer.confidence != "derived":
                 continue
@@ -51,24 +49,38 @@ def load(model):
                 continue
             ctx = model._ctx(source, "sqs:receivemessage", arn)
             existing = model.resource_policies.get(arn)
+            if "Policy" in attrs and existing is None:
+                continue
             undecided = False
             if existing:
                 for statement in existing[1]:
-                    if statement.effect != "deny" or not statement.action_matches("sqs:receivemessage"):
+                    if not statement.action_matches("sqs:receivemessage"):
                         continue
                     if statement.match(arn, ctx) is False:
                         continue
                     principal_match = _resource_principal(statement, source)
                     if statement.ref.get("not_principal"):
-                        principal_match = None if principal_match else "direct"
-                    if principal_match is None or model._cond(statement, ctx, "deny")[0] is False:
+                        if statement.effect == "deny" and source.attrs.get("boundary"):
+                            # IAM documents this Deny as applying to bounded users
+                            # even when the NotPrincipal names the user.
+                            principal_match = "direct"
+                        else:
+                            principal_match = None if principal_match else "direct"
+                    if principal_match is None or model._cond(statement, ctx, statement.effect)[0] is False:
                         continue
-                    # A matching or unresolved queue-policy Deny can defeat the proposed Allow.
-                    undecided = True
-                    break
+                    # Account-root Allow delegates to IAM; it does not give this user
+                    # ReceiveMessage without an identity Allow. A direct Allow does.
+                    if statement.effect == "deny" or (statement.effect == "allow" and
+                                                       principal_match == "direct"):
+                        undecided = True
+                        break
             if undecided:
                 continue
-            hypothetical = model._guardrails(source, "sqs:receivemessage", arn,
+            # An exact resource-policy grant to an IAM user bypasses a boundary's implicit deny.
+            # Explicit boundary denies were already checked above.
+            recipient = (replace(source, attrs={**source.attrs, "boundary": None})
+                         if source.attrs.get("boundary") else source)
+            hypothetical = model._guardrails(recipient, "sqs:receivemessage", arn,
                                             Grant("derived", [{"proposed_queue_policy": arn}]), ctx)
             if hypothetical is None or hypothetical.confidence != "derived":
                 continue

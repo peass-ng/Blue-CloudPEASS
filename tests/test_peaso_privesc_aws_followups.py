@@ -1457,14 +1457,24 @@ def test_sqs_queue_policy_self_grant_requires_new_effective_receive_permission()
     queue_url = f"https://sqs.{REGION}.amazonaws.com/{ACCOUNT}/sensitive"
 
     def evaluate(*, grants=(), encryption="", queue_policy=None, details="collected", writer_resource=None,
-                 queue_location=queue_url):
+                 queue_location=queue_url, boundary_deny=None):
         attrs = {"QueueArn": queue_arn, "KmsMasterKeyId": encryption}
         if queue_policy is not None:
             attrs["Policy"] = queue_policy
         queue = {"QueueUrl": queue_location, "Attributes": {"collection_status": details,
                  "Attributes": attrs}}
         caller = user("alice", allow("sqs:SetQueueAttributes", resource=writer_resource or queue_arn), *grants)
+        if boundary_deny is not None:
+            boundary_arn = f"arn:aws:iam::{ACCOUNT}:policy/sqs-boundary"
+            caller["PermissionsBoundary"] = {"PermissionsBoundaryArn": boundary_arn}
         snap = aws_snap([caller], [], [col("sqs_queue", [queue])])
+        if boundary_deny is not None:
+            statements = [allow("sqs:SetQueueAttributes", resource=queue_arn)]
+            if boundary_deny:
+                statements.append({"Effect": "Deny", "Action": "sqs:ReceiveMessage", "Resource": queue_arn})
+            next(c for c in snap["collections"] if c["type"] == "iam_policy")["items"] = [
+                {"Arn": boundary_arn, "PolicyName": "sqs-boundary", "PolicyVersionList": [
+                    {"IsDefaultVersion": True, "Document": policy(*statements)}]}]
         return [reach.targets for reach in Evaluator(AwsModel(snap), [entry],
                  include_unknown=False).run() if reach.source.id == ALICE]
 
@@ -1472,16 +1482,26 @@ def test_sqs_queue_policy_self_grant_requires_new_effective_receive_permission()
     assert len(gained) == 1
     assert any("sqs-policy:" in target and grant.confidence == "conditional"
                for target, grant in gained[0].items())
+    assert len(evaluate(boundary_deny=False)) == 1
     assert evaluate(grants=[allow("sqs:ReceiveMessage", resource=queue_arn)]) == []
+    assert evaluate(boundary_deny=True) == []
     assert evaluate(grants=[{"Effect": "Deny", "Action": "sqs:ReceiveMessage", "Resource": queue_arn}]) == []
     assert evaluate(writer_resource=f"arn:aws:sqs:{REGION}:{ACCOUNT}:other") == []
     assert evaluate(queue_location=f"https://sqs.{REGION}.amazonaws.com/{ACCOUNT}/other") == []
     deny_policy = policy({"Effect": "Deny", "Principal": {"AWS": ALICE},
                           "Action": "sqs:ReceiveMessage", "Resource": queue_arn})
     assert evaluate(queue_policy=deny_policy) == []
+    not_principal_deny = policy({"Effect": "Deny", "NotPrincipal": {"AWS": ALICE},
+                                 "Action": "sqs:ReceiveMessage", "Resource": queue_arn})
+    assert len(evaluate(queue_policy=not_principal_deny)) == 1
+    assert evaluate(queue_policy=not_principal_deny, boundary_deny=False) == []
     existing_allow = policy({"Effect": "Allow", "Principal": {"AWS": ALICE},
                              "Action": "sqs:ReceiveMessage", "Resource": queue_arn})
     assert evaluate(queue_policy=existing_allow) == []
+    assert evaluate(queue_policy=existing_allow, boundary_deny=False) == []
+    account_delegation = policy({"Effect": "Allow", "Principal": {"AWS": f"arn:aws:iam::{ACCOUNT}:root"},
+                                 "Action": "sqs:ReceiveMessage", "Resource": queue_arn})
+    assert len(evaluate(queue_policy=account_delegation)) == 1
     assert evaluate(encryption=None) == []
     assert evaluate(encryption="alias/aws/sqs") == []
     assert evaluate(encryption=f"arn:aws:kms:{REGION}:{ACCOUNT}:key/12345678-1234-1234-1234-123456789012") == []

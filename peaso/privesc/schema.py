@@ -793,7 +793,7 @@ FACTS_NEEDED = {
     "source_boundary_policy_version_contents": "stored versions of the source permissions boundary policy",
     "source_boundary_replacement_authorization": "the replacement boundary policy and request conditions on changing the source boundary",
     "aws_s3_policy_self_grant": "unique collected aws_s3_policy_self_grant_evidence with exact source, bucket, prefix, policy principal/resource and observed before/after GetObject authorization",
-    "aws_sqs_policy_self_grant": "the exact queue ARN, a same-account IAM user's SetQueueAttributes grant, absent prior ReceiveMessage and no applicable deny, boundary or customer-managed KMS key",
+    "aws_sqs_policy_self_grant": "the exact queue ARN, a same-account IAM user's SetQueueAttributes grant, absent prior ReceiveMessage and no applicable explicit deny or SSE-KMS key",
     "aws_s3_access_grants_self_grant": "unique collected aws_s3_access_grants_self_grant_evidence with exact source, location role, grant, target prefix, scoped session and observed before/after GetObject authorization",
     "aws_secretsmanager_policy_self_grant": "unique reviewed exact-source, exact-secret policy grant with observed before/after GetSecretValue and KMS authorization",
     "aws_efs_policy_self_grant": "unique reviewed exact-source, exact-file-system policy grant with observed before/after ClientMount authorization",
