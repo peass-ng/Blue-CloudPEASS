@@ -10847,7 +10847,9 @@ class AwsModel(Model):
                     if grant is None:
                         continue
                     if grant.confidence == "derived":
-                        out[rid] = ("conditional", "instance_connect_ssh_and_role_credentials")
+                        # The key-push API alone does not establish an SSH login
+                        # or access to the instance-profile credentials.
+                        out[rid] = ("unknown", "instance_connect_agent_network_user_or_credentials_not_verified")
                         break
                     unknown = True
                 else:

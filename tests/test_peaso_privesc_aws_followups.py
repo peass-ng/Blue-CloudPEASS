@@ -179,6 +179,43 @@ def test_ec2_launch_template_asg_mixed_override_uses_its_own_template():
                                   allow("ec2:ModifyLaunchTemplate", resource=override)])
 
 
+def test_instance_connect_key_push_does_not_prove_host_role_access():
+    technique = "aws-ec2-instance-connect-sendsshpublickey"
+    instance_arn = f"arn:aws:ec2:{REGION}:{ACCOUNT}:instance/i-1234567890abcdef0"
+    target = role("target", "ec2.amazonaws.com", profiles=[profile_arn("target")])
+    instance = {"InstanceId": "i-1234567890abcdef0", "State": {"Name": "running"},
+                "IamInstanceProfile": {"Arn": profile_arn("target")},
+                "MetadataOptions": {"HttpEndpoint": "enabled", "State": "applied"}}
+    caller = user("alice", allow("ec2-instance-connect:SendSSHPublicKey", resource=instance_arn))
+    result = real(aws_snap([caller], [target], [col("instance", [instance])]),
+                  technique, include_unknown=True)
+    assert target["Arn"] not in reached(result, ALICE, technique)
+    assert_unresolved(result, ALICE, technique)
+
+    wrong = user("alice", allow("ec2-instance-connect:SendSSHPublicKey",
+                                resource=instance_arn.replace("i-1234567890abcdef0", "i-fffffffffffffffff")))
+    result = real(aws_snap([wrong], [target], [col("instance", [instance])]),
+                  technique, include_unknown=False)
+    assert not reached(result, ALICE, technique)
+
+
+def test_instance_connect_prior_catalog_binding_keeps_conditional_wording():
+    from peaso.privesc import versioned_catalog as catalog
+
+    ident = "aws-ec2-instance-connect-sendsshpublickey"
+    prior_binding = {"schema": catalog.BINDING_SCHEMA,
+                     "manifest_sha256": catalog.INSTANCE_CONNECT_690_PREVIOUS_MANIFEST,
+                     "effective_tree_sha256": catalog.INSTANCE_CONNECT_690_PREVIOUS_TREE,
+                     "source_revision": catalog.V4_REVISION}
+    old, old_status = catalog.lookup_entries([ident], prior_binding)
+    new, new_status = catalog.lookup_entries([ident], catalog.current_binding())
+    assert old_status == "exact_previous_current"
+    assert new_status == "exact_strict_privesc"
+    assert "remain conditional" in old[ident]["notes"]
+    assert "remain unresolved" not in old[ident]["notes"]
+    assert "leaves host access and role-credential use unresolved" in new[ident]["notes"]
+
+
 def test_ec2_changed_user_data_needs_reviewed_reexecution_on_same_instance():
     technique = "aws-ec2-modifyinstanceattribute-userdata"
     instance_arn = f"arn:aws:ec2:{REGION}:{ACCOUNT}:instance/i-1234567890abcdef0"
