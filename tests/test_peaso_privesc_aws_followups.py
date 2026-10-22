@@ -2077,6 +2077,48 @@ def test_agentcore_runtime_update_needs_one_runtime_and_default_endpoint():
     assert_unresolved(partial, ALICE, tid)
 
 
+def test_agentcore_new_runtime_binds_generated_id_endpoint_and_free_name():
+    tid = "aws-bedrock-agentcore-createagentruntime-passrole"
+    prefix = f"arn:aws:bedrock-agentcore:{REGION}:{ACCOUNT}:runtime/"
+    target = role("core", "bedrock-agentcore.amazonaws.com")
+    pass_role = allow("iam:PassRole", resource=role_arn("core"))
+    create = allow("bedrock-agentcore:CreateAgentRuntime")
+    def principal(runtime_scope, endpoint_scope):
+        return user("alice", pass_role, create,
+                    allow("bedrock-agentcore:CreateAgentRuntimeEndpoint", resource=runtime_scope),
+                    allow("bedrock-agentcore:InvokeAgentRuntime",
+                          resource=[runtime_scope, endpoint_scope]))
+    def scan(who, rows=(), status="empty"):
+        return real(aws_snap([who], [target], extra=[col("agentcore_agent_runtime", rows, status)]), tid)
+    broad = principal("*", "*")
+    assert reached(scan(broad), ALICE, tid) == {role_arn("core"): "conditional"}
+    named = principal(prefix + "alpha-*", prefix + "alpha-*/runtime-endpoint/DEFAULT")
+    assert reached(scan(named), ALICE, tid) == {role_arn("core"): "conditional"}
+    generated_suffix = principal(prefix + "alpha-??????????",
+                                 prefix + "alpha-??????????/runtime-endpoint/DEFAULT")
+    assert reached(scan(generated_suffix), ALICE, tid) == {role_arn("core"): "conditional"}
+    occupied = {"agentRuntimeArn": prefix + "alpha-1234567890", "agentRuntimeName": "alpha",
+                "agentRuntimeId": "alpha-1234567890", "status": "READY", "roleArn": role_arn("core")}
+    assert edges(scan(named, [occupied], "collected"), ALICE) == []
+    assert edges(scan(named, [], "partial"), ALICE) == []
+    partial = real(aws_snap([named], [target], extra=[
+        col("agentcore_agent_runtime", [], "partial")]), tid, include_unknown=True)
+    assert_unresolved(partial, ALICE, tid)
+    disjoint = principal(prefix + "alpha-*", prefix + "beta-*/runtime-endpoint/DEFAULT")
+    assert edges(scan(disjoint), ALICE) == []
+    wrong_endpoint = principal(prefix + "alpha-*", prefix + "alpha-*/runtime-endpoint/STAGING")
+    assert edges(scan(wrong_endpoint), ALICE) == []
+    exact_generated_id = principal(prefix + "alpha-1234567890",
+                                   prefix + "alpha-1234567890/runtime-endpoint/DEFAULT")
+    assert edges(scan(exact_generated_id), ALICE) == []
+    wrong_service = user("alice", {"Effect": "Allow", "Action": "iam:PassRole",
+                                   "Resource": role_arn("core"),
+                                   "Condition": {"StringEquals": {"iam:PassedToService": "lambda.amazonaws.com"}}},
+                         create, allow("bedrock-agentcore:CreateAgentRuntimeEndpoint"),
+                         allow("bedrock-agentcore:InvokeAgentRuntime"))
+    assert edges(scan(wrong_service), ALICE) == []
+
+
 def test_lambda_edge_requires_both_replication_permissions_in_us_east_1():
     tid = "aws-cloudfront-lambda-edge-passrole"
     edge_role = role("edge", [{"Effect": "Allow", "Principal": {"Service": [

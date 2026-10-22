@@ -21,7 +21,12 @@ V4_EFFECTIVE_TREE = "413792ea4aec86e48c352ffab2c0bea9e82795bc234251342737ec0276b
 LEGACY_DELTA = Path(__file__).resolve().parent / "catalog_versions/legacy-0b3633-delta.json"
 BOUNDED_MANIFEST = "734401b202895e00ac1b6cb0f1534f77cde4d8e2ba912ca0ee974b1b8ec5035c"
 BOUNDED_TREE = "1a54bad4102d18f89c78f45c915964554a62f994c1bffa693844cac5e119cca8"
-CURRENT_MANIFEST = 'f92c37efdda62e967b9d9ade6e8e54177d6aee388adccadab7f56ac285dc4962'
+CURRENT_MANIFEST = '81627b08898b863af35f59a5332f7621f8aa8d06cd375b7f9753e733da3e2395'
+AGENTCORE_CREATE_691_PREVIOUS_MANIFEST = 'f92c37efdda62e967b9d9ade6e8e54177d6aee388adccadab7f56ac285dc4962'
+AGENTCORE_CREATE_691_PREVIOUS_TREE = 'e236cb6644af345fccdbb4fc360ecba35cc1da5eadaf416dd64ef1d17d718399'
+AGENTCORE_CREATE_691_PREVIOUS_ARCHIVE_SHA256 = 'b97efb36f1a85326abd19a80d0276460962daac558e9ed37e155a1362abca530'
+AGENTCORE_CREATE_691_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-691-agentcore-create-source-manifest.json'
+AGENTCORE_CREATE_691_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-691-agentcore-create-catalog.tar.gz'
 AGENTCORE_RUNTIME_691_PREVIOUS_MANIFEST = 'ac9b5fef566fed0d17edec1e7c59851693e7f046791eb17372eb3ea6e4917f08'
 AGENTCORE_RUNTIME_691_PREVIOUS_TREE = 'b24b77793e75ed4604d2ef9e9a4ac80f1f5285c0cdc38d1f66952537ca4a416f'
 AGENTCORE_RUNTIME_691_PREVIOUS_ARCHIVE_SHA256 = '7e06d00f5871dadeca62ce7826945ebebcfc9e30b6037e7729150553a6e47d96'
@@ -371,7 +376,7 @@ PRIOR_CURRENT_MANIFEST = "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0c
 PRIOR_DISCLOSURE_MANIFEST = "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
 PRIOR_DISCLOSURE_TREE = "5091464bedcb10bb87301695ca733276dc67b865e544c408ccf72a5408176f0f"
 PRIOR_DISCLOSURE_HISTORY = Path(__file__).resolve().parent / "catalog_versions/disclosure-v7-manifest.json"
-CURRENT_TREE = 'e236cb6644af345fccdbb4fc360ecba35cc1da5eadaf416dd64ef1d17d718399'
+CURRENT_TREE = 'ea1e585646eaea4c98b43fca034d006cae9fd40f03cf288f98862b5649aea6cf'
 PRIOR_CURRENT_TREE = "99207e6469fc5e5b3daf21324e6860599b116ffcf7d30600643bd229b0f11494"
 CURRENT_ENTRY_COUNT = 691
 CURRENT_EXCLUDED_COUNT = 3736
@@ -493,6 +498,15 @@ def _verified_teststate_690_previous():
         TESTSTATE_690_PREVIOUS_MANIFEST_PATH, TESTSTATE_690_PREVIOUS_ARCHIVE,
         TESTSTATE_690_PREVIOUS_MANIFEST, TESTSTATE_690_PREVIOUS_ARCHIVE_SHA256,
         TESTSTATE_690_PREVIOUS_TREE, 690, 3723)
+
+
+@lru_cache(maxsize=1)
+def _verified_agentcore_create_691_previous():
+    """Keep the exact catalog before generated AgentCore Runtime scope binding."""
+    return _verified_archived_current(
+        AGENTCORE_CREATE_691_PREVIOUS_MANIFEST_PATH, AGENTCORE_CREATE_691_PREVIOUS_ARCHIVE,
+        AGENTCORE_CREATE_691_PREVIOUS_MANIFEST, AGENTCORE_CREATE_691_PREVIOUS_ARCHIVE_SHA256,
+        AGENTCORE_CREATE_691_PREVIOUS_TREE, 691, 3736)
 
 
 @lru_cache(maxsize=1)
@@ -1085,6 +1099,10 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "current", "exact_strict_privesc"
+    elif (binding.get("manifest_sha256") == AGENTCORE_CREATE_691_PREVIOUS_MANIFEST and
+          binding.get("effective_tree_sha256") == AGENTCORE_CREATE_691_PREVIOUS_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "agentcore_create_691_previous", "exact_previous_current"
     elif (binding.get("manifest_sha256") == AGENTCORE_RUNTIME_691_PREVIOUS_MANIFEST and
           binding.get("effective_tree_sha256") == AGENTCORE_RUNTIME_691_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -1358,6 +1376,9 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
         if version == "current":
             current = _verified_current(str(catalog_dir), str(manifest_path))
             return {ident: current[ident] for ident in ids if ident in current}, status
+        if version == "agentcore_create_691_previous":
+            previous = _verified_agentcore_create_691_previous()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "agentcore_runtime_691_previous":
             previous = _verified_agentcore_runtime_691_previous()
             return {ident: previous[ident] for ident in ids if ident in previous}, status

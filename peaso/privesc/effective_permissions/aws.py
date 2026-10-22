@@ -8428,6 +8428,87 @@ class AwsModel(Model):
                        else int(version.group(1)) >= 9)):
                     out[tid] = None
             return out
+        if pid == "agentcore_new_runtime_generated_scope_and_role_ready":
+            if source is None:
+                return None
+            actions = ("bedrock-agentcore:CreateAgentRuntimeEndpoint",
+                       "bedrock-agentcore:InvokeAgentRuntime")
+            scoped = {
+                (actions[0], False): _agentcore_generated_runtime_scopes(
+                    self._statements(source, actions[0])[0], source.scope),
+                (actions[1], False): _agentcore_generated_runtime_scopes(
+                    self._statements(source, actions[1])[0], source.scope),
+                (actions[1], True): _agentcore_generated_runtime_scopes(
+                    self._statements(source, actions[1])[0], source.scope, endpoint=True),
+            }
+            regions = sorted(scope.split("/", 1)[1] for scope in self.snapshot.get("scopes", ())
+                             if isinstance(scope, str) and scope.startswith(source.scope + "/") and
+                             re.fullmatch(r"[a-z]{2}(?:-[a-z]+)+-\d", scope.split("/", 1)[1]))
+            runtime_status = inventory_status(self.snapshot, "agentcore_agent_runtime")
+            occupied, incomplete = {}, set()
+            for scope, row in items(self.snapshot, "agentcore_agent_runtime"):
+                name = row.get("agentRuntimeName")
+                if isinstance(name, str) and name:
+                    occupied.setdefault(scope, set()).add(name)
+                else:
+                    incomplete.add(scope)
+            partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+            guardrails_unknown = bool(source.attrs.get("boundary")) or self.scp_status.get(source.scope) != "empty"
+            for tid, role in candidates.items():
+                if role.incomplete or source.incomplete or guardrails_unknown or not regions:
+                    out[tid] = ("unknown", "agentcore_runtime_name_trust_or_guardrail_not_verified")
+                    continue
+                unresolved = False
+                for region in regions:
+                    names = [{name for allowed_region, name in scoped[key]
+                              if allowed_region in ("*", region)} for key in scoped]
+                    if not all(names):
+                        continue
+                    broad_name = all("*" in names_for_action for names_for_action in names)
+                    seed = hashlib.sha256((source.id + region + "runtime").encode()).hexdigest()[:12]
+                    chosen = f"PeasoRuntime{seed}"
+                    specific = set.intersection(*(values - {"*"} for values in names if "*" not in values)) if not broad_name else set()
+                    candidate_names = [chosen] if broad_name else sorted(specific)
+                    create = self.check(source, {"action": "bedrock-agentcore:CreateAgentRuntime",
+                                                 "request_context": {"aws:RequestedRegion": region}},
+                                        "peaso-global-agentcore-create-runtime")
+                    if create is None or create.confidence != "derived":
+                        continue
+                    for name in candidate_names:
+                        scope = f"{source.scope}/{region}"
+                        if not broad_name and (runtime_status.get(scope) not in ("collected", "empty")
+                                               or scope in incomplete):
+                            unresolved = True
+                            continue
+                        if name in occupied.get(scope, ()):
+                            continue
+                        prefix = f"arn:{partition}:bedrock-agentcore:{region}:{source.scope}:runtime/{name}-"
+                        future = (prefix + "0" * 10, prefix + "z" * 10)
+                        trust = [self._service_trust_for_source_arn(
+                            tid, "bedrock-agentcore.amazonaws.com", arn) for arn in future]
+                        if trust != [True, True]:
+                            unresolved |= None in trust
+                            continue
+                        grants = []
+                        for arn in future:
+                            endpoint = arn + "/runtime-endpoint/DEFAULT"
+                            grants.extend((
+                                self.check(source, {"action": "iam:PassRole", "request_context": {
+                                    "iam:PassedToService": "bedrock-agentcore.amazonaws.com",
+                                    "iam:AssociatedResourceArn": arn}}, tid),
+                                self.check(source, {"action": actions[0]}, arn),
+                                self.check(source, {"action": actions[1]}, arn),
+                                self.check(source, {"action": actions[1]}, endpoint),
+                            ))
+                        if all(grant is not None and grant.confidence == "derived" for grant in grants):
+                            out[tid] = ("conditional", "agentcore_fresh_runtime_role_and_default_endpoint")
+                            break
+                        unresolved |= any(grant is not None and grant.confidence != "derived" for grant in grants)
+                    if tid in out:
+                        break
+                if tid not in out and unresolved:
+                    out[tid] = ("unknown", "agentcore_runtime_generated_scope_or_name_not_verified")
+            return out
         if pid == "agentcore_existing_runtime_update_and_invoke":
             if source is None:
                 return None
@@ -11400,6 +11481,25 @@ def _agentcore_generated_id_scopes(statements, account):
             match = re.fullmatch(
                 r"arn:aws(?:-[a-z0-9-]+)?:bedrock-agentcore:([^:]+):([^:]+):code-interpreter-custom/"
                 r"(\*|[A-Za-z][A-Za-z0-9_]{0,47}-(?:\*|\?{10}))", resource)
+            if match and match.group(2) in ("*", account):
+                suffix = match.group(3)
+                scopes.add((match.group(1), "*" if suffix == "*" else suffix.rsplit("-", 1)[0]))
+    return scopes
+
+def _agentcore_generated_runtime_scopes(statements, account, *, endpoint=False):
+    """IAM scopes covering a chosen name and all ten generated runtime ID characters."""
+    scopes = set()
+    tail = r"/runtime-endpoint/(?:DEFAULT|\*)" if endpoint else ""
+    for statement in statements:
+        if statement.notresource or statement.variables:
+            continue
+        for resource in statement.resources:
+            if resource == "*":
+                scopes.add(("*", "*"))
+                continue
+            match = re.fullmatch(
+                r"arn:aws(?:-[a-z0-9-]+)?:bedrock-agentcore:([^:]+):([^:]+):runtime/"
+                r"(\*|[A-Za-z][A-Za-z0-9_]{0,47}-(?:\*|\?{10}))" + tail, resource)
             if match and match.group(2) in ("*", account):
                 suffix = match.group(3)
                 scopes.add((match.group(1), "*" if suffix == "*" else suffix.rsplit("-", 1)[0]))
