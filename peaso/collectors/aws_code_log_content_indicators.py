@@ -197,7 +197,7 @@ def project_response(response, service, operation, arguments, *, request_context
                 if readable:
                     pending.append((timestamp, message, payload, row))
                     remaining -= size
-                    if len(pending) == 32:
+                    if len(pending) == MAX_MESSAGES:
                         flush()
                 else:
                     flush()

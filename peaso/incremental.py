@@ -418,9 +418,10 @@ class CheckpointSession:
                 ready, complete = self._ready(sections=sections)
                 if not ready and not graph_sections:
                     return None
-                categories = {check.category for check in self.native_checks if check.id in ready}
-                categories.update(check["category"] for check in self.analysis_checks if check["id"] in ready)
-                if "privesc" in ready:
+                ready_ids = set(ready)
+                categories = {check.category for check in self.native_checks if check.id in ready_ids}
+                categories.update(check["category"] for check in self.analysis_checks if check["id"] in ready_ids)
+                if "privesc" in ready_ids:
                     categories.add("privesc")
                 now = self.clock()
                 if (not force and categories <= self.published_categories

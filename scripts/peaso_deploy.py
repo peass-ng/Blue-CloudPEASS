@@ -53,6 +53,15 @@ RUNTIME_ADMISSION_INPUTS = {
 # Exact public inputs needed to reproduce the shipped compiler, provenance and
 # tests. Explicit paths/globs only: no .work drafts, caches or private files.
 REPRODUCTION_INPUT_PATTERNS = (
+    'tests/test_ecr_clean_digest_failure.py',
+    'tests/test_ecr_layer_resume.py',
+    'tests/test_gcp_log_page_batch.py',
+    'tests/test_log_page_batch.py',
+    'tests/test_scan_section_single_pass.py',
+    'examples/benchmark_peaso_ecr_resume.py',
+    'examples/benchmark_peaso_gcp_log_page_batch.py',
+    'examples/benchmark_peaso_log_page_batch.py',
+    'examples/benchmark_peaso_section_readiness.py',
     'tests/test_api_privesc_display_20261022.py',
     'tests/test_aws*.py',
     'work_aws_privesc_review/*.md',
