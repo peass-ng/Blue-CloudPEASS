@@ -6118,8 +6118,8 @@ class AwsModel(Model):
                     "conditional", "cloudfront_distribution_and_new_function_version_available")
         return ("unknown", "cloudfront_edge_function_permissions_not_verified") if uncertain else None
 
-    def _deadline_queue_trust(self, role_arn, farm_arn):
-        """Check the existing queue role against the exact farm used by Deadline."""
+    def _deadline_role_trust(self, role_arn, farm_arn):
+        """Check an existing Deadline role against the exact farm using it."""
         account = self.principals[role_arn].scope
         ctx = Context(action="sts:assumerole", resource=role_arn, overrides={
             "aws:sourcearn": [farm_arn], "aws:sourceaccount": [account]})
@@ -6169,7 +6169,7 @@ class AwsModel(Model):
                 continue
             queue_arn = f"arn:{partition}:deadline:{region}:{source.scope}:farm/{farm_id}/queue/{queue_id}"
             farm_arn = f"arn:{partition}:deadline:{region}:{source.scope}:farm/{farm_id}"
-            trust = self._deadline_queue_trust(role.id, farm_arn)
+            trust = self._deadline_role_trust(role.id, farm_arn)
             if trust is False:
                 continue
             if trust is None:
@@ -6183,6 +6183,51 @@ class AwsModel(Model):
                 continue
             return ("conditional", "deadline_queue_role_credentials")
         return ("unknown", "deadline_queue_role_path_incomplete") if uncertain else None
+
+    def _deadline_existing_worker_role_vend(self, source, role):
+        if source.scope != role.scope or source.id == role.id:
+            return None
+        statuses = inventory_status(self.snapshot, "deadline_worker")
+        if not statuses:
+            return ("unknown", "deadline_worker_inventory_not_recorded")
+        uncertain = bool(source.incomplete or role.incomplete or
+                         any(status not in ("collected", "empty") for status in statuses.values()))
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        for scope, worker in items(self.snapshot, "deadline_worker"):
+            if scope.split("/", 1)[0] != source.scope or not isinstance(worker, dict):
+                continue
+            if worker.get("roleArn") != role.id:
+                continue
+            region = scope.split("/", 1)[1] if "/" in scope else ""
+            farm_id, fleet_id, worker_id = (worker.get("farmId"), worker.get("fleetId"),
+                                            worker.get("workerId"))
+            if (worker.get("collection_status") != "collected" or not re.fullmatch(r"[a-z0-9-]+", region)
+                    or not isinstance(farm_id, str) or not re.fullmatch(r"farm-[0-9a-f]{32}", farm_id)
+                    or not isinstance(fleet_id, str) or not re.fullmatch(r"fleet-[0-9a-f]{32}", fleet_id)
+                    or not isinstance(worker_id, str) or not re.fullmatch(r"worker-[0-9a-f]{32}", worker_id)
+                    or worker.get("id") != farm_id + "/" + fleet_id + "/" + worker_id):
+                uncertain = True
+                continue
+            if (worker.get("fleetStatus") != "ACTIVE" or
+                    worker.get("workerStatus") not in ("CREATED", "STARTED", "RUNNING", "IDLE")):
+                uncertain = True
+                continue
+            farm_arn = f"arn:{partition}:deadline:{region}:{source.scope}:farm/{farm_id}"
+            trust = self._deadline_role_trust(role.id, farm_arn)
+            if trust is False:
+                continue
+            if trust is None:
+                uncertain = True
+                continue
+            worker_arn = f"{farm_arn}/fleet/{fleet_id}/worker/{worker_id}"
+            grant = self.check(source, {"action": "deadline:AssumeFleetRoleForWorker"}, worker_arn)
+            if grant is None:
+                continue
+            if grant.confidence != "derived" or source.incomplete or role.incomplete:
+                uncertain = True
+                continue
+            return ("conditional", "deadline_existing_worker_role_credentials")
+        return ("unknown", "deadline_worker_role_path_incomplete") if uncertain else None
 
     def _appstream_new_resource_arns(self, source, region, kind, actions):
         """Concrete unused-name candidates from the actions' resource scopes in one Region."""
@@ -9471,6 +9516,11 @@ class AwsModel(Model):
                 return None
             return {tid: verdict for tid, role in candidates.items()
                     if (verdict := self._deadline_existing_queue_role_vend(source, role))}
+        if pid == "deadline_existing_worker_role_vend":
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._deadline_existing_worker_role_vend(source, role))}
         if pid == "lambda_microvm_shell_runnable_image_and_role":
             if source is None:
                 return None

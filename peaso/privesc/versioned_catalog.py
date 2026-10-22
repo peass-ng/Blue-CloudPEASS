@@ -21,7 +21,12 @@ V4_EFFECTIVE_TREE = "413792ea4aec86e48c352ffab2c0bea9e82795bc234251342737ec0276b
 LEGACY_DELTA = Path(__file__).resolve().parent / "catalog_versions/legacy-0b3633-delta.json"
 BOUNDED_MANIFEST = "734401b202895e00ac1b6cb0f1534f77cde4d8e2ba912ca0ee974b1b8ec5035c"
 BOUNDED_TREE = "1a54bad4102d18f89c78f45c915964554a62f994c1bffa693844cac5e119cca8"
-CURRENT_MANIFEST = '8f1a9abe937cc74f499cc1dc6316544a37f37967cd4f4c254f80ad269fb4e60d'
+CURRENT_MANIFEST = 'e616da28305d487c70d65f238bfe725e0a69e8eaadba108249b28cdca0bd03a9'
+DEADLINE_WORKER_684_PREVIOUS_MANIFEST = '8f1a9abe937cc74f499cc1dc6316544a37f37967cd4f4c254f80ad269fb4e60d'
+DEADLINE_WORKER_684_PREVIOUS_TREE = 'd9bcd120bf3d79acde0e2520e0056a3d77b30988d5201be874e3ccc930293a8b'
+DEADLINE_WORKER_684_PREVIOUS_ARCHIVE_SHA256 = '1ed684664f996a36a05b8c88aea17e55133e6df60af8b54b0d7e8d5ebd8684f3'
+DEADLINE_WORKER_684_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-684-deadline-existing-worker-source-manifest.json'
+DEADLINE_WORKER_684_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-684-deadline-existing-worker-catalog.tar.gz'
 DEADLINE_FLEET_684_PREVIOUS_MANIFEST = 'af62253634cee8f664d4fe5d7e25133734a363cd8c917f6e74bdadc3ecb71732'
 DEADLINE_FLEET_684_PREVIOUS_TREE = 'ca26d6b56ae3848b61da6ba96ab413616223877caa5973be1f00e4b0d2f3c95b'
 DEADLINE_FLEET_684_PREVIOUS_ARCHIVE_SHA256 = 'e3ce247d4403235280743256dc19d890f4c8dad6d96199cc6c3bf7cc551b6d88'
@@ -206,9 +211,9 @@ PRIOR_CURRENT_MANIFEST = "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0c
 PRIOR_DISCLOSURE_MANIFEST = "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
 PRIOR_DISCLOSURE_TREE = "5091464bedcb10bb87301695ca733276dc67b865e544c408ccf72a5408176f0f"
 PRIOR_DISCLOSURE_HISTORY = Path(__file__).resolve().parent / "catalog_versions/disclosure-v7-manifest.json"
-CURRENT_TREE = 'd9bcd120bf3d79acde0e2520e0056a3d77b30988d5201be874e3ccc930293a8b'
+CURRENT_TREE = '65314cd326eca8023b58b7ecaf1d143ffe1167cbe6c3025858484cc2a8dbd245'
 PRIOR_CURRENT_TREE = "99207e6469fc5e5b3daf21324e6860599b116ffcf7d30600643bd229b0f11494"
-CURRENT_ENTRY_COUNT = 684
+CURRENT_ENTRY_COUNT = 685
 CURRENT_EXCLUDED_COUNT = 3723
 CURRENT_HISTORY = Path(__file__).resolve().parent / "catalog_versions/bulk-principal-v6-manifest.json"
 PRIOR_CATALOG_ARCHIVE = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-catalog-20261016.tar.gz"
@@ -274,6 +279,15 @@ def _verified_cognito_guest_682_previous():
         COGNITO_GUEST_682_PREVIOUS_MANIFEST_PATH, COGNITO_GUEST_682_PREVIOUS_ARCHIVE,
         COGNITO_GUEST_682_PREVIOUS_MANIFEST, COGNITO_GUEST_682_PREVIOUS_ARCHIVE_SHA256,
         COGNITO_GUEST_682_PREVIOUS_TREE, 682, 3723)
+
+
+@lru_cache(maxsize=1)
+def _verified_deadline_worker_684_previous():
+    """Keep the exact catalog before the existing Deadline worker role route."""
+    return _verified_archived_current(
+        DEADLINE_WORKER_684_PREVIOUS_MANIFEST_PATH, DEADLINE_WORKER_684_PREVIOUS_ARCHIVE,
+        DEADLINE_WORKER_684_PREVIOUS_MANIFEST, DEADLINE_WORKER_684_PREVIOUS_ARCHIVE_SHA256,
+        DEADLINE_WORKER_684_PREVIOUS_TREE, 684, 3723)
 
 
 @lru_cache(maxsize=1)
@@ -623,6 +637,10 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "current", "exact_strict_privesc"
+    elif (binding.get("manifest_sha256") == DEADLINE_WORKER_684_PREVIOUS_MANIFEST and
+          binding.get("effective_tree_sha256") == DEADLINE_WORKER_684_PREVIOUS_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "deadline_worker_684_previous", "exact_previous_current"
     elif (binding.get("manifest_sha256") == DEADLINE_FLEET_684_PREVIOUS_MANIFEST and
           binding.get("effective_tree_sha256") == DEADLINE_FLEET_684_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -764,6 +782,9 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
         if version == "current":
             current = _verified_current(str(catalog_dir), str(manifest_path))
             return {ident: current[ident] for ident in ids if ident in current}, status
+        if version == "deadline_worker_684_previous":
+            previous = _verified_deadline_worker_684_previous()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "deadline_fleet_684_previous":
             previous = _verified_deadline_fleet_684_previous()
             return {ident: previous[ident] for ident in ids if ident in previous}, status
