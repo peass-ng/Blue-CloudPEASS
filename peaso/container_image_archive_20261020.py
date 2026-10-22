@@ -88,6 +88,13 @@ MAX_PATH = 4096
 MAX_PATH_BYTES = 64 * 1024 * 1024
 MIN_FREE_DISK = 256 * 1024 * 1024
 DISK_CHECK_STEP = 64 * 1024 * 1024
+STANDARD_CHAR_DEVICES = {
+    'dev/console': (5, 1),
+    'dev/null': (1, 3),
+    'dev/random': (1, 8),
+    'dev/urandom': (1, 9),
+    'dev/zero': (1, 5),
+}
 
 
 def _source(value, expected_size):
@@ -313,6 +320,11 @@ def _tar_members(path, nodes, count, check, layer_index, path_budget):
                                if nodes.get(candidate, (None,))[0] in ('file', 'hardlink')]
                     require(bool(targets), 'unsafe_hardlink_target')
                     nodes[actual] = ('hardlink', nodes[targets[0]][1])
+                elif member.type == tarfile.CHRTYPE:
+                    require(member.size == 0 and name == actual and
+                            STANDARD_CHAR_DEVICES.get(actual) == (member.devmajor, member.devminor),
+                            'unsupported_tar_member')
+                    nodes[actual] = ('device', '')
                 else:
                     raise ValueError('unsupported_tar_member')
             pad = ((member.size + 511) // 512) * 512 - member.size
