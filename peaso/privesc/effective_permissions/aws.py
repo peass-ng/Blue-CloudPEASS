@@ -792,17 +792,21 @@ class AwsModel(Model):
         self.emr_runtime_profiles = set()  # (account, instance-profile name) with active runtime-role authorization
         self.emr_runtime_clusters = []  # (account, region, cluster id, instance-profile name, external-id digest)
         self.emr_runtime_config_unknown = set()
+        self.emr_runtime_mode_by_cluster = {}  # (scope, cluster id) -> enabled, disabled, or unknown
         for scope, item in items(snap, "emr_cluster"):
             cluster = (item.get("Cluster") or {}).get("Cluster") if isinstance(item.get("Cluster"), dict) else None
             cluster = cluster or item.get("Cluster") or item
             if not isinstance(cluster, dict) or not cluster.get("SecurityConfiguration"):
                 continue
+            cluster_id = str(cluster.get("Id") or item.get("Id") or "")
+            config = configs.get((scope, cluster["SecurityConfiguration"]))
+            if cluster_id:
+                self.emr_runtime_mode_by_cluster[(scope, cluster_id)] = config[0] if config else None
             state = (cluster.get("Status") or {}).get("State") if isinstance(cluster.get("Status"), dict) else None
             if state not in ("RUNNING", "WAITING"):
                 if state is None:
                     self.emr_runtime_config_unknown.add(scope.split("/", 1)[0])
                 continue
-            config = configs.get((scope, cluster["SecurityConfiguration"]))
             if config is None:
                 if config_status.get(scope) not in ("collected", "empty") or (scope, cluster["SecurityConfiguration"]) not in configs:
                     self.emr_runtime_config_unknown.add(scope.split("/", 1)[0])
@@ -4412,6 +4416,14 @@ class AwsModel(Model):
             if not any(isinstance(p, str) and p.startswith(f"arn:{partition}:iam::{source.scope}:instance-profile/")
                        and p.rsplit("/", 1)[-1] == profile.rsplit("/", 1)[-1] for p in profiles):
                 continue
+            runtime_mode = self.emr_runtime_mode_by_cluster.get((scope, cluster_id), False)
+            if runtime_mode is True:
+                # Runtime-role clusters isolate steps from the instance profile.
+                # A separately authorized runtime-role route needs its own join.
+                continue
+            if runtime_mode is None:
+                uncertain = True
+                continue
             grant = self._check_action(source, "elasticmapreduce:addjobflowsteps", arn)
             if grant is None:
                 continue
@@ -4421,8 +4433,8 @@ class AwsModel(Model):
             return ("conditional", "emr_existing_cluster_step_instance_role")
         return ("unknown", "emr_existing_cluster_step_role_not_verified") if uncertain else None
 
-    def _emr_cluster_session_route(self, source, role):
-        """Check the real cluster ARN and requested runtime role together."""
+    def _emr_cluster_runtime_route(self, source, role, action):
+        """Bind a runtime role to one active cluster and an authorized caller request."""
         hosts = [host for norm in self.trust_names.get(role.id, ()) for host in self._roles_by_norm(norm)
                  if host.id != role.id and host.id in self.trust_by_service.get("ec2.amazonaws.com", {})
                  and host.attrs.get("instance_profiles")]
@@ -4437,7 +4449,7 @@ class AwsModel(Model):
                 if account != source.scope:
                     continue
                 arn = f"arn:{partition}:elasticmapreduce:{region}:{account}:cluster/{cluster_id}"
-                grant = self._check_action(source, "elasticmapreduce:getclustersessioncredentials", arn)
+                grant = self._check_action(source, action, arn)
                 if grant is None:
                     continue
                 for host in hosts:
@@ -4446,16 +4458,28 @@ class AwsModel(Model):
                     external = self._emr_external_id_candidate(role, external_digest)
                     if external is False:
                         continue
-                    trust = self._trust_verdict(host, role.id, host.id,
-                                                extra_overrides={"sts:externalid": [external]} if external else None)
-                    if trust is None:
+                    host_grants = [self._check_action(host, sts_action, role.id)
+                                   for sts_action in ("sts:assumerole", "sts:tagsession")]
+                    if any(item is None for item in host_grants):
+                        if host.incomplete:
+                            unknown = True
                         continue
-                    if trust[0] == "derived":
+                    overrides = {"sts:externalid": [external]} if external else None
+                    trust = [self._trust_verdict(host, role.id, host.id, action=sts_action,
+                                                 extra_overrides=overrides)
+                             for sts_action in ("sts:assumerole", "sts:tagsession")]
+                    if any(item is None for item in trust):
+                        continue
+                    if grant.confidence == "derived" and all(item.confidence == "derived" for item in host_grants) and all(item[0] == "derived" for item in trust):
                         return ("conditional", "active_emr_cluster_and_exact_runtime_role_authorized")
                     unknown = True
         finally:
             self._ctx_override = previous
         return ("unknown", "emr_runtime_cluster_or_trust_not_verified") if unknown else None
+
+    def _emr_cluster_session_route(self, source, role):
+        return self._emr_cluster_runtime_route(
+            source, role, "elasticmapreduce:getclustersessioncredentials")
 
     def _emr_serverless_job_route(self, source, role):
         """Join an actual application, role request, and one shared S3 script object."""
@@ -7812,6 +7836,15 @@ class AwsModel(Model):
             # updated, nor that its instances run a controlled source bundle.
             return {tid: ("unknown", "elasticbeanstalk_environment_profile_and_code_execution_not_verified")
                     for tid in candidates}
+        if pid == "emr_new_cluster_role_execution_unverified":
+            return {tid: ("unknown", "emr_service_role_cluster_and_step_execution_not_verified")
+                    for tid in candidates}
+        if pid == "emr_cluster_endpoint_role_effect_unverified":
+            # The API returns HTTP basic credentials, not AWS STS keys.
+            # IAM and cluster inventory cannot prove endpoint reachability or
+            # that a workload is accepted under the selected runtime role.
+            return {tid: ("unknown", "emr_endpoint_workload_role_effect_not_verified")
+                    for tid in candidates}
         if pid == "ec2_runinstances_launch_with_passed_profile_unverified":
             if source is None:
                 return None
@@ -10968,6 +11001,12 @@ class AwsModel(Model):
                 return None
             return {rid: verdict for rid, role in candidates.items()
                     if (verdict := self._emr_cluster_session_route(source, role)) is not None}
+        if pid == "emr_existing_cluster_runtime_step_role":
+            if source is None:
+                return None
+            return {rid: verdict for rid, role in candidates.items()
+                    if (verdict := self._emr_cluster_runtime_route(
+                        source, role, "elasticmapreduce:addjobflowsteps")) is not None}
         if pid == "emr_existing_cluster_step_instance_role":
             if source is None:
                 return None

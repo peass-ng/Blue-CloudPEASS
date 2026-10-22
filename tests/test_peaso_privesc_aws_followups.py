@@ -1046,7 +1046,9 @@ def test_orphaned_oidc_and_saml_trusts():
 
 # --------------------------------------------------------------------------- EMR
 def emr_roles():
-    ec2 = role("emr-ec2", "ec2.amazonaws.com", profiles=[profile_arn("emr-ec2")])
+    ec2 = role("emr-ec2", "ec2.amazonaws.com",
+               allow("sts:AssumeRole", "sts:TagSession", resource=role_arn("runtime")),
+               profiles=[profile_arn("emr-ec2")])
     runtime = role("runtime", [{"Effect": "Allow", "Principal": {"AWS": role_arn("emr-ec2")},
                                 "Action": ["sts:AssumeRole", "sts:TagSession"]}], profiles=[])
     return [ec2, runtime, role("unrelated", "ec2.amazonaws.com", profiles=[])]
@@ -1072,11 +1074,10 @@ def test_emr_getclustersessioncredentials_reaches_runtime_roles():
     tid = "aws-emr-getclustersessioncredentials-runtime-role"
     alice = user("alice", allow("elasticmapreduce:GetClusterSessionCredentials"))
     active = [col("emr_cluster", [emr_cluster()]), col("emr_security_configuration", [emr_security_config(True)])]
-    assert set(reached(real(aws_snap([alice], emr_roles(), active), tid), ALICE)) == \
-        {role_arn("runtime")}
+    assert_unresolved(real(aws_snap([alice], emr_roles(), active), tid, include_unknown=True), ALICE)
     cluster_arn = f"arn:aws:elasticmapreduce:{REGION}:{ACCOUNT}:cluster/j-1"
     scoped = user("alice", allow("elasticmapreduce:GetClusterSessionCredentials", resource=cluster_arn))
-    assert set(reached(real(aws_snap([scoped], emr_roles(), active), tid), ALICE)) == {role_arn("runtime")}
+    assert_unresolved(real(aws_snap([scoped], emr_roles(), active), tid, include_unknown=True), ALICE)
     wrong_cluster = user("alice", allow("elasticmapreduce:GetClusterSessionCredentials",
                                 resource=cluster_arn.replace("j-1", "j-other")))
     assert edges(real(aws_snap([wrong_cluster], emr_roles(), active), tid), ALICE) == []
@@ -1087,7 +1088,8 @@ def test_emr_getclustersessioncredentials_reaches_runtime_roles():
     matching_role_condition = user("alice", {"Effect": "Allow",
         "Action": "elasticmapreduce:GetClusterSessionCredentials", "Resource": cluster_arn,
         "Condition": {"ArnEquals": {"elasticmapreduce:ExecutionRoleArn": role_arn("runtime")}}})
-    assert set(reached(real(aws_snap([matching_role_condition], emr_roles(), active), tid), ALICE)) == {role_arn("runtime")}
+    assert_unresolved(real(aws_snap([matching_role_condition], emr_roles(), active),
+                           tid, include_unknown=True), ALICE)
     external_id_roles = emr_roles()
     external_id_roles[1]["AssumeRolePolicyDocument"]["Statement"][0]["Condition"] = {
         "StringEquals": {"sts:ExternalId": "uncollected-emr-external-id"}}
@@ -1095,7 +1097,8 @@ def test_emr_getclustersessioncredentials_reaches_runtime_roles():
     assert all(finding["status"] != "FAIL" for finding in conditional_trust["findings"])
     matched_external = [col("emr_cluster", [emr_cluster()]),
                         col("emr_security_configuration", [emr_security_config(True, "uncollected-emr-external-id")])]
-    assert set(reached(real(aws_snap([alice], external_id_roles, matched_external), tid), ALICE)) == {role_arn("runtime")}
+    assert_unresolved(real(aws_snap([alice], external_id_roles, matched_external),
+                           tid, include_unknown=True), ALICE)
     wrong_external = [col("emr_cluster", [emr_cluster()]),
                       col("emr_security_configuration", [emr_security_config(True, "different-external-id")])]
     assert edges(real(aws_snap([alice], external_id_roles, wrong_external), tid), ALICE) == []
@@ -1111,6 +1114,34 @@ def test_emr_getclustersessioncredentials_reaches_runtime_roles():
                           tid, include_unknown=True)
     assert all(finding["status"] != "FAIL" for finding in missing_config["findings"])
     assert_unresolved(real(aws_snap([alice], emr_roles()), tid, include_unknown=True), ALICE)
+
+
+def test_emr_runtime_role_steps_need_exact_cluster_role_and_host_permissions():
+    tid = "aws-emr-addjobflowsteps-runtime-role"
+    cluster_arn = f"arn:aws:elasticmapreduce:{REGION}:{ACCOUNT}:cluster/j-1"
+    active = [col("emr_cluster", [emr_cluster()]),
+              col("emr_security_configuration", [emr_security_config(True)])]
+    allowed = user("alice", {"Effect": "Allow", "Action": "elasticmapreduce:AddJobFlowSteps",
+                             "Resource": cluster_arn, "Condition": {"ArnEquals": {
+                                 "elasticmapreduce:ExecutionRoleArn": role_arn("runtime")}}})
+    assert reached(real(aws_snap([allowed], emr_roles(), active), tid), ALICE, tid) == {
+        role_arn("runtime"): "conditional"}
+    wrong_cluster = user("alice", allow("elasticmapreduce:AddJobFlowSteps",
+                                         resource=cluster_arn.replace("j-1", "j-other")))
+    assert edges(real(aws_snap([wrong_cluster], emr_roles(), active), tid), ALICE) == []
+    wrong_role = user("alice", {"Effect": "Allow", "Action": "elasticmapreduce:AddJobFlowSteps",
+                               "Resource": cluster_arn, "Condition": {"ArnEquals": {
+                                   "elasticmapreduce:ExecutionRoleArn": role_arn("unrelated")}}})
+    assert edges(real(aws_snap([wrong_role], emr_roles(), active), tid), ALICE) == []
+    no_host_grant = emr_roles()
+    no_host_grant[0]["RolePolicyList"] = []
+    assert edges(real(aws_snap([allowed], no_host_grant, active), tid), ALICE) == []
+    no_host_tag = emr_roles()
+    no_host_tag[0]["RolePolicyList"][0]["PolicyDocument"]["Statement"][0]["Action"] = "sts:AssumeRole"
+    assert edges(real(aws_snap([allowed], no_host_tag, active), tid), ALICE) == []
+    disabled = [col("emr_cluster", [emr_cluster()]),
+                col("emr_security_configuration", [emr_security_config(False)])]
+    assert edges(real(aws_snap([allowed], emr_roles(), disabled), tid), ALICE) == []
 
 
 def test_emr_on_eks_execution_roles_trust_the_cluster_oidc_provider():
