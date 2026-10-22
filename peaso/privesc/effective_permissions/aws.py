@@ -7102,6 +7102,13 @@ class AwsModel(Model):
                 if verdict:
                     out[tid] = verdict
             return out
+        if pid == "gameliftstreams_controlled_application_role_session":
+            # Start/URL and PassRole grants do not identify an application the
+            # source controls or a usable group associated with that application.
+            # Keep the possible role target unresolved until those facts can be
+            # joined to one launch request; a prose condition cannot prove them.
+            return {tid: ("unknown", "gameliftstreams_controlled_application_or_group_not_verified")
+                    for tid in candidates}
         out = {}
         if pid == "iot_new_alias_policy_certificate_same_region":
             if source is None:

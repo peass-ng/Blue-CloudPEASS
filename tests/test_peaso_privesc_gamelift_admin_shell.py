@@ -13,7 +13,7 @@ from peaso.privesc import versioned_catalog
 from peaso.privesc.effective_permissions.aws import AwsModel
 from scripts.peaso_deploy_customer_policy import build_policy, policy_size
 from tests.test_peaso_privesc_aws_followups import (
-    ACCOUNT, ALICE, REGION, allow, aws_snap, col, reached, real, role, role_arn, user,
+    ACCOUNT, ALICE, REGION, allow, assert_unresolved, aws_snap, col, reached, real, role, role_arn, user,
 )
 
 
@@ -131,6 +131,19 @@ def test_wrong_group_session_state_or_role_cannot_reach_target(change):
 
 def test_missing_session_inventory_is_not_a_confirmed_route():
     assert route(inventory_status="access_denied")[TARGET][0] == "unknown"
+
+
+def test_passrole_without_controlled_application_is_unresolved(monkeypatch):
+    exposure = types.ModuleType("peaso.principal_exposure")
+    exposure.annotate_privesc = lambda *args: None
+    monkeypatch.setitem(sys.modules, exposure.__name__, exposure)
+    technique = "aws-gameliftstreams-passrole-startstreamsession"
+    snap = aws_snap([user("alice", allow("gameliftstreams:StartStreamSession"),
+                          allow("iam:PassRole", resource=TARGET))],
+                    [role("GameLiftStreams-target", "gameliftstreams.amazonaws.com")])
+    result = real(snap, technique, include_unknown=True)
+    assert reached(result, ALICE, technique) == {}
+    assert_unresolved(result, ALICE, technique)
 
 
 def test_current_and_previous_catalog_bindings_keep_their_exact_meanings():
