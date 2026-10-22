@@ -1,6 +1,6 @@
 {
   "repository": "HackTricks-wiki/hacktricks-cloud",
-  "revision": "582f48435f3e1cf4fd2c7eeeea40ea3e093e2b14",
+  "revision": "e350a39af509852bc7f98cd844ded07bf566313f",
   "path": "src/privilege-escalation-paths",
   "canonical_sha256": {
     "aws/_excluded_171e_g1.yaml": "2160b8f57f029e74e5a31727815316f459d8364147c47be2c36639c831b9dcb3",
@@ -41,6 +41,7 @@
     "aws/_excluded_scoped_role_overclaim_20261016.yaml": "f12b33469eb5f6e233861c01c2b62d4383a2bbb8a56d909077bdd1e0b8b48f9b",
     "aws/_excluded_secondary_bounded_role_overclaim_20261016.yaml": "4fb2b7557329810b13d0886e5559137b23723c2b4062e715b409dc39bdaddab3",
     "aws/_excluded_strict_reaudit_20261016.yaml": "fdcee7400fd95643c0c19a640bb32ad243714bdce48dbcf25e294145bad635cc",
+    "aws/_excluded_sts_federation_tokens_20261022.yaml": "bf4b90d5964024e403d590bba2a6469e93ee282e9fe1ea97477c54e7dfaba2cd",
     "aws/_excluded_studio_space_strict_reaudit_20261016.yaml": "1bbcda6626d6f75353f8eb3cdf43f3cd6a0d8aa85897e2d55cf75169e2df83c0",
     "aws/_excluded_sweep.yaml": "83cda037d04330b02bde8b4cbbae6284f2f5e3c2ae8f04969f232f44839e3243",
     "aws/_excluded_uncollected_host_join_strict_reaudit_20261016.yaml": "7d67a3b3c0e17ab4fb2d4bb5731e94d7bf5295133cfa69c0df0556bb7297494f",
@@ -340,6 +341,7 @@
     "aws/_excluded_scoped_role_overclaim_20261016.yaml": "f12b33469eb5f6e233861c01c2b62d4383a2bbb8a56d909077bdd1e0b8b48f9b",
     "aws/_excluded_secondary_bounded_role_overclaim_20261016.yaml": "4fb2b7557329810b13d0886e5559137b23723c2b4062e715b409dc39bdaddab3",
     "aws/_excluded_strict_reaudit_20261016.yaml": "fdcee7400fd95643c0c19a640bb32ad243714bdce48dbcf25e294145bad635cc",
+    "aws/_excluded_sts_federation_tokens_20261022.yaml": "bf4b90d5964024e403d590bba2a6469e93ee282e9fe1ea97477c54e7dfaba2cd",
     "aws/_excluded_studio_space_strict_reaudit_20261016.yaml": "1bbcda6626d6f75353f8eb3cdf43f3cd6a0d8aa85897e2d55cf75169e2df83c0",
     "aws/_excluded_sweep.yaml": "83cda037d04330b02bde8b4cbbae6284f2f5e3c2ae8f04969f232f44839e3243",
     "aws/_excluded_uncollected_host_join_strict_reaudit_20261016.yaml": "7d67a3b3c0e17ab4fb2d4bb5731e94d7bf5295133cfa69c0df0556bb7297494f",
