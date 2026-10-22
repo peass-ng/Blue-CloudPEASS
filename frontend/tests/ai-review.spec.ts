@@ -50,11 +50,15 @@ test('Top 15 Actions shows prioritized plans without duplicate verification tabl
   await setup(page);
   await page.route('**/api/scans', route => route.fulfill({ json: { items: [{ id: 'scan', connector_id: 'account', status: 'completed' }] } }));
   await page.route('**/api/scans/scan/ai?*', route => route.fulfill({ json: {
-    status: 'partial', auth_source: 'platform', limitations: ['Review scope detail'], coverage: { reviewed: 1, total: 2 }, review_totals: { hardening: 1, exposure: 1 }, actions: [{ rank: 1, title: 'Require IMDSv2', resource_ids: ['i-123'], finding_ids: ['h1'], rationale: 'Reduce credential theft', steps: ['Check workload compatibility', 'Require metadata tokens'], verification: 'HttpTokens must be required' }],
+    status: 'partial', auth_source: 'platform', limitations: ['Review scope detail'], coverage: { reviewed: 1, total: 2 }, review_totals: { hardening: 1, exposure: 1 }, actions: [{ severity: 'high', effort: 'low', rank: 1, title: 'Require IMDSv2', resource_ids: ['i-123'], finding_ids: ['h1'], rationale: 'Reduce credential theft', steps: ['Check workload compatibility', 'Require metadata tokens'], verification: 'HttpTokens must be required' }],
     reviews: { hardening: [{ finding_id: 'h1', verdict: 'FAIL', reason: '' }], exposure: [{ finding_id: 'e1', verdict: 'UNKNOWN', reason: 'Route association was not collected' }] }
   } }));
   await page.goto('/#AI%20Review');
   await expect(page.getByText('Require IMDSv2', { exact: true })).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: 'Severity', exact: true })).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: 'Effort', exact: true })).toBeVisible();
+  await expect(page.getByRole('row').filter({ has: page.getByRole('button', { name: 'Require IMDSv2', exact: true }) })).toContainText('high');
+  await expect(page.getByRole('row').filter({ has: page.getByRole('button', { name: 'Require IMDSv2', exact: true }) })).toContainText('low');
   await expect(page.getByRole('columnheader', { name: 'Order', exact: true })).toHaveCount(0);
   await expect(page.getByRole('columnheader', { name: 'Plan', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: /View plan|Review plan:/ })).toHaveCount(0);

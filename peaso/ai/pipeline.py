@@ -606,7 +606,7 @@ def review_scan(report, snapshot, selectors, *, tenant, artifacts, deadline=None
                     600 if isolation.remote() else 150)
             data = (invoke_before_deadline(*args) if cancel_event is None else
                     invoke_before_deadline(*args, cancel_event=cancel_event))
-            recommendations = validate_actions(data, priorities_report, reviewed)
+            recommendations = validate_actions(data, priorities_report, reviewed, require_assessment=True)
             result['actions'] = recommendations['actions']
             result['limitations'].extend(recommendations['limitations'])
         except _SkipPriorities:
