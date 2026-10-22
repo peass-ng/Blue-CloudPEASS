@@ -24,6 +24,7 @@ _SHARD_ENV = "PEASO_CI_PYTEST_SHARD"
 # The previous run was interrupted on shards 0 and 6, so unmeasured files use
 # source size. Hints schedule work only; they never select test outcomes.
 HISTORIC_SECONDS = {
+    "test_azure_databricks_notebook_secret_integration_20261020.py": 1501.49,
     "test_gcp_dataflow_batch_source_runtime_20261020.py": 1229,
     "test_peaso_compliance_draft_isolation.py": 1019,
     "test_k8s_selected_metadata_production_20261020.py": 824,
@@ -61,10 +62,27 @@ HISTORIC_SECONDS = {
     "test_azure_function_package_source_20261020.py": 77,
 }
 
+# Individual testcase seconds from the completed shard 11 JUnit in Actions run
+# 39723210201. With loadfile, the module took 1,501.49 seconds on one worker;
+# these seven cases account for 1,492.45 seconds of it. Assign them longest
+# first so each occupies a different job; unknown nodes retain their hash owner.
+MEASURED_NODE_SECONDS = {
+    "test_azure_databricks_notebook_secret_integration_20261020.py": {
+        "test_reviewed_bytes_cannot_change_before_admission[consumer]": 223.60,
+        "test_reviewed_bytes_cannot_change_before_admission[producer]": 222.51,
+        "test_reviewed_bytes_cannot_change_before_admission[fixture]": 212.27,
+        "test_typed_consumer_and_reachable_helper_identity_guard[helper]": 210.41,
+        "test_reviewed_bytes_cannot_change_before_admission[receipt]": 210.13,
+        "test_typed_consumer_and_reachable_helper_identity_guard[function]": 208.01,
+        "test_reviewed_bytes_cannot_change_before_admission[proposal]": 205.52,
+    },
+}
+
 # Loadfile keeps each selected module on one xdist worker. These modules have
 # independent parametrized cases and dominated the old critical path, so spread
 # their node IDs across isolated Actions jobs without raising per-job CPU use.
 SPLIT_COUNTS = {
+    "test_azure_databricks_notebook_secret_integration_20261020.py": 7,
     "test_gcp_dataflow_batch_source_runtime_20261020.py": 4,
     "test_peaso_compliance_draft_isolation.py": 4,
     "test_k8s_selected_metadata_production_20261020.py": 4,
@@ -135,6 +153,16 @@ def _verify(files: list[Path], shards: list[list[Path]]) -> None:
 
 def owner_for(nodeid: str, path: Path, placements: dict[Path, list[int]]) -> int:
     owners = placements[path]
+    measured = MEASURED_NODE_SECONDS.get(path.name, {})
+    prefix = f"{path}::"
+    if nodeid.startswith(prefix) and nodeid[len(prefix):] in measured:
+        loads = {owner: 0.0 for owner in owners}
+        assigned = {}
+        for name, seconds in sorted(measured.items(), key=lambda item: (-item[1], item[0])):
+            owner = min(owners, key=lambda index: (loads[index], index))
+            assigned[name] = owner
+            loads[owner] += seconds
+        return assigned[nodeid[len(prefix):]]
     slot = int.from_bytes(hashlib.sha256(nodeid.encode()).digest()[:8], "big") % len(owners)
     return owners[slot]
 
