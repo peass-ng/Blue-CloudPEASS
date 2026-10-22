@@ -6039,7 +6039,7 @@ class AwsModel(Model):
                       self._check_action(role, "s3:listbucket", bucket),
                       self._check_action(role, "s3:getobject", obj))
             if all(g is not None and g.confidence == "derived" for g in grants):
-                return ("conditional", "mwaa_existing_environment_dag_execution")
+                return self._mwaa_verified_role_effect(source, role, arn, obj, serverless=False)
             unknown = True  # Startup scripts, plugins, and Airflow tokens may provide another code path.
         return ("unknown", "mwaa_environment_or_code_path_not_verified") if unknown else None
 
@@ -6275,9 +6275,66 @@ class AwsModel(Model):
                           for action in ("s3:putobject", "s3:getobject")]
                 grants.append(self._check_action(source, "s3:listbucket", bucket_arn))
                 if all(g is not None and g.confidence == "derived" for g in grants):
-                    return ("conditional", "mwaa_serverless_new_workflow_and_definition_bound")
+                    return self._mwaa_verified_role_effect(source, role, root + name + "-", definition,
+                                                           serverless=True)
                 unknown = True
         return ("unknown", "mwaa_serverless_definition_or_start_not_verified") if unknown else None
+
+    def _mwaa_verified_role_effect(self, source, role, workload_arn, object_arn, *, serverless):
+        """Require a fresh task execution under the exact MWAA execution role."""
+        technique = ("aws-mwaa-serverless-passrole-createworkflow" if serverless else
+                     "aws-mwaa-passrole-updateenvironment")
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "mwaa_role_execution_evidence_missing_or_conflicting")
+        scope, proof = records[0]
+        region = workload_arn.split(":")[3]
+        if (scope != f"{source.scope}/{region}" or
+                inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"):
+            return ("unknown", "mwaa_role_execution_evidence_incomplete")
+        rows = [row for row_scope, row in items(self.snapshot, "iam_role")
+                if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        role_id = rows[0].get("RoleId") if len(rows) == 1 else None
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        if serverless:
+            prefix = workload_arn
+            workflow = proof.get("WorkflowArn")
+            route_ok = (isinstance(workflow, str) and workflow.startswith(prefix) and
+                        re.fullmatch(r"[A-Za-z0-9]{10}", workflow[len(prefix):]) is not None and
+                        proof.get("DefinitionAccepted") is True and
+                        proof.get("WorkflowCreated") is True and proof.get("RunSucceeded") is True)
+        else:
+            route_ok = (proof.get("EnvironmentArn") == workload_arn and
+                        proof.get("UpdateSucceeded") is True and
+                        proof.get("DagParsed") is True and proof.get("DagTaskRan") is True)
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                not route_ok or proof.get("ControlledObjectArn") != object_arn or
+                proof.get("ExecutionRoleArn") != role.id or
+                not isinstance(role_id, str) or not role_id or proof.get("TargetRoleId") != role_id or
+                proof.get("ObjectControlledBySource") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "mwaa_workload_or_role_effect_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "mwaa_role_execution_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "mwaa_role_execution_evidence_time_missing")
+        grant = self.check(role, {"action": action}, resource)
+        if grant is None or grant.confidence != "derived":
+            return ("unknown", "mwaa_role_action_not_authorized")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "mwaa_exact_execution_role_effect_verified")
 
     def _m2_new_application_route(self, source, role):
         """Bind deployment to one available runtime and all generated app IDs."""
