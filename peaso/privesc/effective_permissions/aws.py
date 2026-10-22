@@ -4719,6 +4719,61 @@ class AwsModel(Model):
             unknown = True  # Startup scripts, plugins, and Airflow tokens may provide another code path.
         return ("unknown", "mwaa_environment_or_code_path_not_verified") if unknown else None
 
+    def _mwaa_existing_dag_object_route(self, source, role):
+        """Join a writable DAG object to the environment's existing execution role."""
+        statuses = inventory_status(self.snapshot, "mwaa_environment")
+        if not statuses:
+            return ("unknown", "mwaa_environment_inventory_not_recorded")
+        unknown = bool(source.incomplete or role.incomplete or
+                       any(s not in ("collected", "empty") for s in statuses.values()))
+        partition = source.id.split(":", 2)[1]
+        for scope, env in items(self.snapshot, "mwaa_environment"):
+            if statuses.get(scope) != "collected":
+                continue
+            if not isinstance(env, dict) or env.get("ExecutionRoleArn") != role.id:
+                continue
+            arn = env.get("Arn")
+            if (not isinstance(arn, str) or not re.fullmatch(
+                    rf"arn:{re.escape(partition)}:airflow:[a-z0-9-]+:{re.escape(source.scope)}:environment/[A-Za-z][A-Za-z0-9_-]*", arn)
+                    or scope != f"{source.scope}/{arn.split(':')[3]}"):
+                unknown = True
+                continue
+            if env.get("Status") != "AVAILABLE":
+                unknown = unknown or not env.get("Status")
+                continue
+            bucket = env.get("SourceBucketArn")
+            dag_path = env.get("DagS3Path")
+            if (not isinstance(bucket, str) or not re.fullmatch(
+                    rf"arn:{re.escape(partition)}:s3:::[^/*?]+", bucket)
+                    or not isinstance(dag_path, str)):
+                unknown = True
+                continue
+            prefix = dag_path.strip("/")
+            if not prefix or any(segment in ("", ".", "..") for segment in prefix.split("/")):
+                unknown = True
+                continue
+            keys = {prefix + "/peaso_bound.py"}
+            allows, _ = self._statements(source, "s3:putobject")
+            for statement in allows:
+                if statement.notresource or statement.variables:
+                    continue
+                for resource in statement.resources:
+                    if not resource.startswith(bucket + "/"):
+                        continue
+                    candidate = resource[len(bucket) + 1:].replace("*", "peaso_bound.py").replace("?", "x")
+                    if candidate.startswith(prefix + "/") and candidate.endswith(".py") and len(candidate) <= 1024:
+                        keys.add(candidate)
+            for key in sorted(keys)[:80]:
+                obj = bucket + "/" + key
+                grants = (self._check_action(source, "s3:putobject", obj),
+                          self._check_action(role, "s3:listbucket", bucket),
+                          self._check_action(role, "s3:getobject", obj))
+                if all(grant is not None and grant.confidence == "derived" for grant in grants):
+                    return ("conditional", "mwaa_existing_dag_object_and_execution_role")
+                if any(grant is not None for grant in grants):
+                    unknown = True
+        return ("unknown", "mwaa_dag_object_or_role_read_not_verified") if unknown else None
+
     def _mwaa_serverless_new_workflow_route(self, source, role):
         """Prove one writable definition and run scope for every generated workflow ID."""
         workflow_status = inventory_status(self.snapshot, "mwaa_serverless_workflow")
@@ -8738,6 +8793,11 @@ class AwsModel(Model):
                 return None
             return {tid: verdict for tid, role in candidates.items()
                     if (verdict := self._mwaa_existing_environment_route(source, role))}
+        if pid == "mwaa_existing_dag_object_execution_role":
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._mwaa_existing_dag_object_route(source, role))}
         if pid == "mwaa_serverless_new_workflow_definition_and_start":
             if source is None:
                 return None
