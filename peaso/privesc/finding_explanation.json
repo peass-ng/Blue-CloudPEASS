@@ -54,6 +54,11 @@
     "label": "Create an AgentCore Code Interpreter with a passed execution role and run code in it",
     "review_status": "source_reviewed"
   },
+  "aws-bedrock-agentcore-codeinterpreter-existing": {
+    "purpose": "Invoking a ready Code Interpreter may run code with its recorded execution role.",
+    "label": "Run code through an existing AgentCore Code Interpreter role",
+    "review_status": "source_reviewed"
+  },
   "aws-bedrock-agent-lambda-actiongroup-hijack": {
     "purpose": "Replacing action-group Lambda code may run it with the existing function\u2019s execution role.",
     "label": "Modify a Lambda action-group function and trigger it through a Bedrock agent",

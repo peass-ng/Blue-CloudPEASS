@@ -1995,6 +1995,32 @@ def test_agentcore_created_interpreter_needs_grants_covering_its_generated_id():
     assert edges(real(aws_snap([disjoint], roles), tid), ALICE) == []
 
 
+def test_agentcore_existing_interpreter_joins_exact_ready_role_and_grants():
+    tid = "aws-bedrock-agentcore-codeinterpreter-existing"
+    arn = f"arn:aws:bedrock-agentcore:{REGION}:{ACCOUNT}:code-interpreter-custom/team-0123456789"
+    other = f"arn:aws:bedrock-agentcore:{REGION}:{ACCOUNT}:code-interpreter-custom/other-0123456789"
+    execution_role = role("core", "bedrock-agentcore.amazonaws.com")
+    ready = {"codeInterpreterArn": arn, "codeInterpreterId": "team-0123456789",
+             "executionRoleArn": role_arn("core"), "status": "READY"}
+    principal = user("alice", allow("bedrock-agentcore:StartCodeInterpreterSession", resource=arn),
+                     allow("bedrock-agentcore:InvokeCodeInterpreter", resource=arn))
+    result = real(aws_snap([principal], [execution_role],
+                           extra=[col("agentcore_code_interpreter", [ready])]), tid)
+    assert reached(result, ALICE, tid) == {role_arn("core"): "conditional"}
+    wrong_invoke = user("alice", allow("bedrock-agentcore:StartCodeInterpreterSession", resource=arn),
+                        allow("bedrock-agentcore:InvokeCodeInterpreter", resource=other))
+    assert edges(real(aws_snap([wrong_invoke], [execution_role],
+                               extra=[col("agentcore_code_interpreter", [ready])]), tid), ALICE) == []
+    failed = {**ready, "status": "CREATE_FAILED"}
+    assert edges(real(aws_snap([principal], [execution_role],
+                               extra=[col("agentcore_code_interpreter", [failed])]), tid), ALICE) == []
+    incomplete = {**ready, "status": "READY"}
+    partial_result = real(aws_snap([principal], [execution_role],
+                                   extra=[col("agentcore_code_interpreter", [incomplete], "partial")]),
+                          tid, include_unknown=True)
+    assert_unresolved(partial_result, ALICE, tid)
+
+
 def test_lambda_edge_requires_both_replication_permissions_in_us_east_1():
     tid = "aws-cloudfront-lambda-edge-passrole"
     edge_role = role("edge", [{"Effect": "Allow", "Principal": {"Service": [

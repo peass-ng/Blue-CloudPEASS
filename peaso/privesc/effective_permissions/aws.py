@@ -86,6 +86,7 @@ SERVICE_PRINCIPALS = {"ecs": "ecs-tasks.amazonaws.com", "apprunner": "tasks.appr
                       "elasticbeanstalk": "elasticbeanstalk.amazonaws.com", "datapipeline": "datapipeline.amazonaws.com"}
 ASSUME_ACTIONS = {"sts:assumerole", "sts:tagsession", "sts:setsourceidentity"}
 HOST_KIND = {"lambda": "lambda_function", "lambda_function": "lambda_function", "ec2": "ec2_instance",
+             "bedrock-agentcore-code-interpreter": "agentcore_code_interpreter",
              "ec2_instance": "ec2_instance", "servicecatalog_product": "servicecatalog_product",
              "cloudformation_stack": "cloudformation_stack",
              "codebuild": "codebuild_project", "codebuild_project": "codebuild_project",
@@ -100,6 +101,7 @@ HOST_KIND = {"lambda": "lambda_function", "lambda_function": "lambda_function", 
              "synthetics_canary": "synthetics_canary"}
 # Collected workload inventories: collection type -> host kind (see AwsModel._load_workload_hosts).
 WORKLOAD_HOSTS = {"codebuild_project": "codebuild_project", "codebuild_sandbox": "codebuild_sandbox", "glue_job": "glue_job", "glue_session": "glue_session",
+                  "agentcore_code_interpreter": "agentcore_code_interpreter",
                   "glue_dev_endpoint": "glue_dev_endpoint",
                   "cloudformation_stack": "cloudformation_stack",
                   "redshift_cluster": "redshift_cluster", "rds_instance": "rds_instance",
@@ -4025,6 +4027,8 @@ class AwsModel(Model):
                         found.append((None, None))
                     for project in projects if isinstance(projects, list) else ():
                         found.append((project.get("serviceRole"), project.get("arn")))
+                elif kind == "agentcore_code_interpreter":
+                    found.append((item.get("executionRoleArn"), item.get("codeInterpreterArn")))
                 elif kind == "codebuild_sandbox":
                     detail = item.get("Detail") if isinstance(item, dict) else None
                     if isinstance(detail, dict) and detail.get("collection_status") == "collected":
@@ -8423,6 +8427,36 @@ class AwsModel(Model):
                       (int(version.group(1)) < 12 if pid == "grafana_api_key_workspace_eligible"
                        else int(version.group(1)) >= 9)):
                     out[tid] = None
+            return out
+        if pid == "agentcore_existing_code_interpreter_role_ready":
+            if source is None:
+                return None
+            statuses = inventory_status(self.snapshot, "agentcore_code_interpreter")
+            rows = {row.get("codeInterpreterArn"): (scope, row)
+                    for scope, row in items(self.snapshot, "agentcore_code_interpreter")
+                    if isinstance(row.get("codeInterpreterArn"), str)}
+            for tid, role in candidates.items():
+                if source.incomplete or role.incomplete:
+                    out[tid] = ("unknown", "agentcore_interpreter_or_role_inventory_incomplete")
+                    continue
+                unknown = False
+                for arn in self.hosts.get(tid, {}).get("agentcore_code_interpreter", ()):
+                    record = rows.get(arn)
+                    if record is None:
+                        unknown = True
+                        continue
+                    scope, row = record
+                    if row.get("executionRoleArn") != tid or statuses.get(scope) != "collected":
+                        unknown = True
+                        continue
+                    if row.get("status") == "READY":
+                        out[tid] = ("conditional", "agentcore_ready_interpreter_session_execution")
+                        break
+                    if row.get("status") not in ("CREATE_FAILED", "DELETING", "DELETE_FAILED", "DELETED"):
+                        unknown = True
+                if tid not in out and (unknown or self.host_status.get((role.scope, "agentcore_code_interpreter"))
+                                       not in ("collected", "empty")):
+                    out[tid] = ("unknown", "agentcore_interpreter_status_or_role_not_verified")
             return out
         if pid == "agentcore_new_interpreter_broad_name_and_role_ready":
             if source is None:

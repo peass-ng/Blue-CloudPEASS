@@ -179,6 +179,7 @@
             "anyOf": [
               {
                 "enum": [
+                  "agentcore_existing_code_interpreter_role_ready",
                   "agentcore_new_interpreter_broad_name_and_role_ready",
                   "amplifybackend_create_token_backend_scope",
                   "apprunner_existing_customer_account",
@@ -334,6 +335,7 @@
                   },
                   "id": {
                     "enum": [
+                      "agentcore_existing_code_interpreter_role_ready",
                       "agentcore_new_interpreter_broad_name_and_role_ready",
                       "amplifybackend_create_token_backend_scope",
                       "apprunner_existing_customer_account",
