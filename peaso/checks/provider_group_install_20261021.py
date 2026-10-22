@@ -62,16 +62,15 @@ SUPPORT_SOURCE = RUNTIME_SOURCE.with_name('runtime_support.py')
 ROUTES_SOURCE = RUNTIME_SOURCE.with_name('runtime_routes.py')
 GCP_SOURCE = Path('/tmp/peaso-gcp-trivy-grant-20261021/peaso/checks/gcp_job_trivy_vulnerability_review_20261020.py')
 GCP_DEPENDENCIES = {'peaso/collectors/gcp_job_image_vulnerability_native_20261021.py': 'e8d3606f8005e998671c21bd57dcd04ab00807f39f243a3452f75535d7dbde50', 'peaso/collectors/gcp_job_image_vulnerability_runtime_20261021.py': 'f7ceab1fca38c7b050ac24c528ae9fbefa82e7c295479dad0fba98ec342231a3', 'peaso/collectors/gcp_job_trivy_capture_20261020.py': '433eb525890040fe6136c65bed94f25de017101096662c2c1608fd01a5c0c5ff', 'peaso/container_image_archive_20261020.py': '3d6ba0510c797bd38e0cea352b4bf1f0dfc786cb492030af31e22b97835807ba', 'peaso/container_scan_process_20261020.py': '21876eb14edfa92d4613c28fd3781014aed05b14ba3d1d6d8409c768ed29a1a3', 'peaso/trivy_container_runner_20261020.py': '6f82c71f3cd273a1fa2a79a9c7ce1b45a262072669e73921c43a6b0b751698f4'}
-CURRENT_DEPENDENCIES = {
-    'peaso/collectors/gcp_job_image_vulnerability_native_20261021.py': 'de7ff579c5d79bbf9564f3b9c9883e352939e91264ebf6898235e9322cc2c93f',
-    'peaso/collectors/gcp_job_image_vulnerability_runtime_20261021.py': '508873aecc2006e1680949ec25ce9a59f5937d4c08c0d2a6e65f456a4e0f2cec',
-    'peaso/aws_image_selection_20261021.py': 'd918cbdb2477d72cdacc1d8f2097e4e987f5977971d96b77c2ba32a7f9764389',
-    'peaso/collectors/aws_image_vulnerability_native_20261021.py': '8c69a404b53568e57fadde6767ac8be2c1004f0ba97f7152210ce81809089303',
-    'peaso/collectors/aws_image_vulnerability_runtime_20261021.py': '7052fc2bd34a25fb74cbf0e3778a5f921c4f42e828b1c6eb3af5034b3b6c030f',
-    'peaso/checks/aws_image_vulnerabilities_20261021.py': 'd0174d668b9f10e679d9fc54c5e0e674cb82ca61daf19b19f850c32be0355674',
-    'peaso/collectors/aws_package_content_indicators.py': '877e9aeecc13f85b47d5e223c1076e0048d4e5b62644d5d42fee04ffdaffc7c4',
-}
+CURRENT_DEPENDENCIES = {'peaso/aws_image_selection_20261021.py': 'd918cbdb2477d72cdacc1d8f2097e4e987f5977971d96b77c2ba32a7f9764389',
+ 'peaso/checks/aws_image_vulnerabilities_20261021.py': 'd0174d668b9f10e679d9fc54c5e0e674cb82ca61daf19b19f850c32be0355674',
+ 'peaso/collectors/aws_image_vulnerability_native_20261021.py': '70dfcc11cb3fbe34b390155d0bf1221c2fd4a56b83d56915a4104a5acb708bb1',
+ 'peaso/collectors/aws_image_vulnerability_runtime_20261021.py': '7052fc2bd34a25fb74cbf0e3778a5f921c4f42e828b1c6eb3af5034b3b6c030f',
+ 'peaso/collectors/aws_package_content_indicators.py': 'a12dda96cd994d64d008c47e8f903bb2595d1dc308a729499467846cbd42c85e',
+ 'peaso/collectors/gcp_job_image_vulnerability_native_20261021.py': 'de7ff579c5d79bbf9564f3b9c9883e352939e91264ebf6898235e9322cc2c93f',
+ 'peaso/collectors/gcp_job_image_vulnerability_runtime_20261021.py': '508873aecc2006e1680949ec25ce9a59f5937d4c08c0d2a6e65f456a4e0f2cec'}
 AWS_DEPENDENCIES = {'peaso/aws_image_selection_20261021.py': '1f9ba632715d237fbbe297a452c590850a5624d3d5c4b85f430bb215b96c120d', 'peaso/collectors/aws_image_vulnerability_native_20261021.py': '0122d3199b1be2a077cda4fe70898b4abf584011b7cf15a88df607cc4eac5bcf', 'peaso/collectors/aws_image_vulnerability_runtime_20261021.py': '398e866a21e3641bc0eb812dcabe1d5412d0fe95c78051c09a89e7faf0d6571d', 'peaso/checks/aws_image_vulnerabilities_20261021.py': 'ae64470182e6cd2cf89ec65ff63965c42912b28046b2153201c264bfa7be5912', 'peaso/container_image_archive_20261020.py': '3d6ba0510c797bd38e0cea352b4bf1f0dfc786cb492030af31e22b97835807ba', 'peaso/container_scan_process_20261020.py': '21876eb14edfa92d4613c28fd3781014aed05b14ba3d1d6d8409c768ed29a1a3', 'peaso/trivy_container_runner_20261020.py': '6f82c71f3cd273a1fa2a79a9c7ce1b45a262072669e73921c43a6b0b751698f4', 'peaso/trivy_database_20261021.py': '5e3686c4712175557ab4b1182e2bb82d155a78e4f39aa6c28ec0373860fe5987', 'peaso/image_findings.py': '1a5e81f9a02a7262e4be384dd3d5bc0c4deb6db00eeea2994602f493b08e4b85', 'peaso/collectors/aws_package_content_indicators.py': '368f52e8d782d68a879b8badcdfd3fba02bee6b8d5c24f1b483e18a9d3584433'}
+AWS_DEPENDENCIES = {**AWS_DEPENDENCIES, 'peaso/collectors/aws_ecr_manifest_aliases.py': '3281dd7764dea750e1e9c2b557c58d41932e16ce54b291ffde90f49dcb256c94'}
 WITNESS_HASHES = {
     STORAGE_SOURCE.with_name('spec-successor.json'): '972dd7ee516f51e7c95b34f3bf8aa18fbb5744096696c525eb83ca69d0e89bb6',
     STORAGE_SOURCE.with_name('test_storage_immutability_native_successor.py'): '8b4969c3cd082693ae0ea7d9154dd04a5d0bf50f9b24b5afb8fd0b0b993bd78b',

@@ -390,10 +390,8 @@ def _image(response, arguments, requests, session, region):
         raise ValueError('exact image digest required')
     digest = ids[0]['imageDigest']
     identity = f'arn:{_partition(region)}:ecr:{region}:{account}:repository/{repo}@{digest}'
-    images = response['images']
-    if response.get('failures') != [] or not isinstance(images, list) or len(images) != 1:
-        raise ValueError('ambiguous image response')
-    image = images[0]
+    from .aws_ecr_manifest_aliases import select_digest_image
+    image = select_digest_image(response.get('images'), response.get('failures'), account, repo, digest)
     raw = image['imageManifest']
     if (image.get('registryId') != account or image.get('repositoryName') != repo or
             image.get('imageId', {}).get('imageDigest') != digest or not isinstance(raw, str) or
