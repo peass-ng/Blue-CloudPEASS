@@ -8428,6 +8428,98 @@ class AwsModel(Model):
                        else int(version.group(1)) >= 9)):
                     out[tid] = None
             return out
+        if pid == "agentcore_new_harness_generated_scope_and_role_ready":
+            if source is None:
+                return None
+            actions = ("bedrock-agentcore:InvokeHarness",
+                       "bedrock-agentcore:InvokeAgentRuntime",
+                       "bedrock-agentcore:InvokeAgentRuntimeCommand")
+            scoped = {
+                action: _agentcore_generated_harness_scopes(
+                    self._statements(source, action)[0], source.scope)
+                for action in actions
+            }
+            has_invoke_statements = all(self._statements(source, action)[0] for action in actions)
+            memory_allows, _ = self._statements(source, "bedrock-agentcore:GetMemory")
+            harness_status = inventory_status(self.snapshot, "agentcore_harness")
+            occupied, incomplete = {}, set()
+            for scope, row in items(self.snapshot, "agentcore_harness"):
+                name = row.get("harnessName")
+                if isinstance(name, str) and name:
+                    occupied.setdefault(scope, set()).add(name)
+                else:
+                    incomplete.add(scope)
+            regions = sorted(scope.split("/", 1)[1] for scope in self.snapshot.get("scopes", ())
+                             if isinstance(scope, str) and scope.startswith(source.scope + "/") and
+                             re.fullmatch(r"[a-z]{2}(?:-[a-z]+)+-\d", scope.split("/", 1)[1]))
+            partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+            guardrails_unknown = bool(source.attrs.get("boundary")) or self.scp_status.get(source.scope) != "empty"
+            for tid, role in candidates.items():
+                if role.incomplete or source.incomplete or guardrails_unknown or not regions:
+                    out[tid] = ("unknown", "agentcore_harness_role_or_guardrail_not_verified")
+                    continue
+                unresolved = bool(has_invoke_statements and any(not scopes for scopes in scoped.values()))
+                for region in regions:
+                    names = [{name for allowed_region, name in scoped[action]
+                              if allowed_region in ("*", region)} for action in actions]
+                    if not all(names):
+                        continue
+                    broad = all("*" in values for values in names)
+                    seed = hashlib.sha256((source.id + region + "harness").encode()).hexdigest()[:12]
+                    chosen = f"PeasoHarness{seed}"
+                    specific = set.intersection(*(values - {"*"} for values in names if "*" not in values)) if not broad else set()
+                    candidate_names = [chosen] if broad else sorted(specific)
+                    context = {"aws:RequestedRegion": region}
+                    create = [self.check(source, {"action": action, "request_context": context},
+                                         f"peaso-global-agentcore-{action.rsplit(':', 1)[-1].lower()}")
+                              for action in ("bedrock-agentcore:CreateHarness",
+                                             "bedrock-agentcore:CreateAgentRuntime",
+                                             "bedrock-agentcore:CreateMemory")]
+                    if any(grant is None or grant.confidence != "derived" for grant in create):
+                        unresolved |= any(grant is not None and grant.confidence != "derived" for grant in create)
+                        continue
+                    for name in candidate_names:
+                        scope = f"{source.scope}/{region}"
+                        if not broad and (harness_status.get(scope) not in ("collected", "empty")
+                                          or scope in incomplete):
+                            unresolved = True
+                            continue
+                        if name in occupied.get(scope, ()):
+                            continue
+                        harness_prefix = f"arn:{partition}:bedrock-agentcore:{region}:{source.scope}:harness/{name}-"
+                        memory = f"arn:{partition}:bedrock-agentcore:{region}:{source.scope}:memory/harness_{name}_example"
+                        memory_broad = any(not st.notresource and not st.variables and any(
+                            pattern == "*" or (pattern.endswith(":memory/*") and _resource_glob(pattern, memory))
+                            for pattern in st.resources) for st in memory_allows)
+                        if not memory_broad:
+                            unresolved = True
+                            continue
+                        grants = []
+                        for suffix in ("0" * 10, "z" * 10):
+                            arn = harness_prefix + suffix
+                            trust = self._service_trust_for_source_arn(
+                                tid, "bedrock-agentcore.amazonaws.com", arn)
+                            if trust is not True:
+                                unresolved = True
+                                break
+                            grants.append(self.check(source, {"action": "iam:PassRole", "request_context": {
+                                "iam:PassedToService": "bedrock-agentcore.amazonaws.com",
+                                "iam:AssociatedResourceArn": arn}}, tid))
+                            grants.extend(self.check(source, {"action": action,
+                                "request_context": context}, arn) for action in actions)
+                        if len(grants) != 8:
+                            continue
+                        grants.append(self.check(source, {"action": "bedrock-agentcore:GetMemory",
+                            "request_context": context}, memory))
+                        if all(grant is not None and grant.confidence == "derived" for grant in grants):
+                            out[tid] = ("conditional", "agentcore_harness_generated_scope_and_command_session_pending")
+                            break
+                        unresolved |= any(grant is not None and grant.confidence != "derived" for grant in grants)
+                    if tid in out:
+                        break
+                if tid not in out and unresolved:
+                    out[tid] = ("unknown", "agentcore_harness_scope_or_memory_not_verified")
+            return out
         if pid == "agentcore_new_runtime_generated_scope_and_role_ready":
             if source is None:
                 return None
@@ -11500,6 +11592,24 @@ def _agentcore_generated_runtime_scopes(statements, account, *, endpoint=False):
             match = re.fullmatch(
                 r"arn:aws(?:-[a-z0-9-]+)?:bedrock-agentcore:([^:]+):([^:]+):runtime/"
                 r"(\*|[A-Za-z][A-Za-z0-9_]{0,47}-(?:\*|\?{10}))" + tail, resource)
+            if match and match.group(2) in ("*", account):
+                suffix = match.group(3)
+                scopes.add((match.group(1), "*" if suffix == "*" else suffix.rsplit("-", 1)[0]))
+    return scopes
+
+def _agentcore_generated_harness_scopes(statements, account):
+    """IAM scopes covering every generated ten-character harness ID suffix."""
+    scopes = set()
+    for statement in statements:
+        if statement.notresource or statement.variables:
+            continue
+        for resource in statement.resources:
+            if resource == "*":
+                scopes.add(("*", "*"))
+                continue
+            match = re.fullmatch(
+                r"arn:aws(?:-[a-z0-9-]+)?:bedrock-agentcore:([^:]+):([^:]+):harness/"
+                r"(\*|[A-Za-z][A-Za-z0-9_]{0,39}-(?:\*|\?{10}))", resource)
             if match and match.group(2) in ("*", account):
                 suffix = match.group(3)
                 scopes.add((match.group(1), "*" if suffix == "*" else suffix.rsplit("-", 1)[0]))

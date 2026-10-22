@@ -2119,6 +2119,49 @@ def test_agentcore_new_runtime_binds_generated_id_endpoint_and_free_name():
     assert edges(scan(wrong_service), ALICE) == []
 
 
+def test_agentcore_new_harness_requires_composite_actions_on_one_generated_scope():
+    tid = "aws-bedrock-agentcore-createharness-passrole"
+    target = role("core", "bedrock-agentcore.amazonaws.com")
+    creates = allow("bedrock-agentcore:CreateHarness", "bedrock-agentcore:CreateAgentRuntime",
+                    "bedrock-agentcore:CreateMemory")
+    pass_role = allow("iam:PassRole", resource=role_arn("core"))
+    def principal(invokes="*", command="*", memory="*", create=creates):
+        return user("alice", pass_role, create,
+                    allow("bedrock-agentcore:GetMemory", resource=memory),
+                    allow("bedrock-agentcore:InvokeHarness", "bedrock-agentcore:InvokeAgentRuntime",
+                          resource=invokes),
+                    allow("bedrock-agentcore:InvokeAgentRuntimeCommand", resource=command))
+    def scan(who, *, unknown=False, harnesses=None, status="empty"):
+        extra = [] if harnesses is None else [col("agentcore_harness", harnesses, status)]
+        return real(aws_snap([who], [target], extra=extra), tid, include_unknown=unknown)
+    assert reached(scan(principal()), ALICE, tid) == {role_arn("core"): "conditional"}
+    assert edges(scan(principal(create=allow("bedrock-agentcore:CreateHarness",
+                                              "bedrock-agentcore:CreateAgentRuntime"))), ALICE) == []
+    assert_unresolved(scan(principal(memory="arn:aws:bedrock-agentcore:us-east-1:111111111111:memory/specific"),
+                           unknown=True), ALICE, tid)
+    scoped = "arn:aws:bedrock-agentcore:us-east-1:111111111111:harness/alpha-*"
+    assert_unresolved(scan(principal(invokes=scoped, command=scoped), unknown=True), ALICE, tid)
+    assert reached(scan(principal(invokes=scoped, command=scoped), harnesses=[]), ALICE, tid) == {
+        role_arn("core"): "conditional"}
+    occupied = {"arn": scoped[:-1] + "1234567890", "harnessId": "alpha-1234567890",
+                "harnessName": "alpha", "status": "READY", "executionRoleArn": role_arn("core")}
+    assert edges(scan(principal(invokes=scoped, command=scoped), harnesses=[occupied], status="collected"), ALICE) == []
+    assert_unresolved(scan(principal(invokes=scoped, command=scoped), harnesses=[], status="partial",
+                           unknown=True), ALICE, tid)
+    assert edges(scan(principal(command="arn:aws:bedrock-agentcore:us-east-1:111111111111:harness/beta-*")), ALICE) == []
+    missing_start = user("alice", pass_role, creates, allow("bedrock-agentcore:GetMemory"),
+                         allow("bedrock-agentcore:InvokeAgentRuntime",
+                               "bedrock-agentcore:InvokeAgentRuntimeCommand"))
+    assert edges(scan(missing_start), ALICE) == []
+    wrong_service = user("alice", {"Effect": "Allow", "Action": "iam:PassRole",
+                                   "Resource": role_arn("core"),
+                                   "Condition": {"StringEquals": {"iam:PassedToService": "lambda.amazonaws.com"}}},
+                         creates, allow("bedrock-agentcore:GetMemory"),
+                         allow("bedrock-agentcore:InvokeHarness", "bedrock-agentcore:InvokeAgentRuntime",
+                               "bedrock-agentcore:InvokeAgentRuntimeCommand"))
+    assert edges(scan(wrong_service), ALICE) == []
+
+
 def test_lambda_edge_requires_both_replication_permissions_in_us_east_1():
     tid = "aws-cloudfront-lambda-edge-passrole"
     edge_role = role("edge", [{"Effect": "Allow", "Principal": {"Service": [

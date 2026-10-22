@@ -180,6 +180,7 @@
               {
                 "enum": [
                   "agentcore_new_runtime_generated_scope_and_role_ready",
+                  "agentcore_new_harness_generated_scope_and_role_ready",
                   "agentcore_existing_runtime_update_and_invoke",
                   "agentcore_existing_code_interpreter_role_ready",
                   "agentcore_new_interpreter_broad_name_and_role_ready",
@@ -338,6 +339,7 @@
                   "id": {
                     "enum": [
                       "agentcore_new_runtime_generated_scope_and_role_ready",
+                      "agentcore_new_harness_generated_scope_and_role_ready",
                       "agentcore_existing_runtime_update_and_invoke",
                       "agentcore_existing_code_interpreter_role_ready",
                       "agentcore_new_interpreter_broad_name_and_role_ready",

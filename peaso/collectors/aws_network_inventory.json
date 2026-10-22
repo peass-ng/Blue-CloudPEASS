@@ -50,6 +50,23 @@
       "nextToken"
     ]
   },
+  "agentcore_harness": {
+    "detail": {
+      "arguments": {
+        "harnessId": "harnessId"
+      },
+      "key": "harness",
+      "operation": "get_harness"
+    },
+    "identity": "arn",
+    "key": "harnesses",
+    "operation": "list_harnesses",
+    "service": "bedrock-agentcore-control",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
   "agentcore_runtime_endpoint": {
     "arguments": {
       "agentRuntimeId": "agentRuntimeId"

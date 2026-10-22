@@ -108,6 +108,12 @@
       "service": "bedrock-agentcore-control",
       "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_bedrock-agentcore.html"
     },
+    "bedrock-agentcore:GetHarness": {
+      "access": "Read",
+      "operation": "get_harness",
+      "service": "bedrock-agentcore-control",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_bedrock-agentcore.html"
+    },
     "bedrock-agentcore:ListAgentRuntimeEndpoints": {
       "access": "List",
       "operation": "list_agent_runtime_endpoints",
@@ -129,6 +135,12 @@
     "bedrock-agentcore:ListCodeInterpreters": {
       "access": "List",
       "operation": "list_code_interpreters",
+      "service": "bedrock-agentcore-control",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_bedrock-agentcore.html"
+    },
+    "bedrock-agentcore:ListHarnesses": {
+      "access": "List",
+      "operation": "list_harnesses",
       "service": "bedrock-agentcore-control",
       "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_bedrock-agentcore.html"
     },
