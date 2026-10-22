@@ -8000,6 +8000,72 @@ class AwsModel(Model):
             # that an invocable deployed alias routes to that same function.
             return {tid: ("unknown", "bedrock_agent_alias_actiongroup_lambda_join_not_verified")
                     for tid in candidates}
+        if pid == "lambda_signer_trusted_profile_artifact_unverified":
+            if source is None:
+                return None
+            out = {}
+            functions = {row.get("FunctionArn"): row for _, row in items(self.snapshot, "lambda_function")
+                         if isinstance(row, dict) and isinstance(row.get("FunctionArn"), str)}
+            for tid, role in candidates.items():
+                missing = bool(source.incomplete)
+                for arn in self.hosts.get(tid, {}).get("lambda_function", ()):
+                    function = functions.get(arn)
+                    if not function or function.get("Role") != tid:
+                        missing = True
+                        continue
+                    configuration = function.get("Configuration") or function
+                    package = configuration.get("PackageType")
+                    state = configuration.get("State")
+                    updated = configuration.get("LastUpdateStatus")
+                    if not all(isinstance(value, str) for value in (package, state, updated)):
+                        missing = True
+                        continue
+                    if package != "Zip" or state != "Active" or updated != "Successful":
+                        continue
+                    signing = function.get("CodeSigning") or {}
+                    request = signing.get("_request") or {}
+                    config_arn = signing.get("CodeSigningConfigArn")
+                    detail = function.get("CodeSigningConfig") or {}
+                    config = detail.get("CodeSigningConfig") or {}
+                    if (signing.get("collection_status") != "collected" or
+                            request.get("FunctionName") != function.get("FunctionName") or
+                            not isinstance(config_arn, str)):
+                        missing = True
+                        continue
+                    if not config_arn:
+                        continue
+                    if (detail.get("collection_status") != "collected" or
+                            config.get("CodeSigningConfigArn") != config_arn):
+                        missing = True
+                        continue
+                    if (config.get("CodeSigningPolicies") or {}).get("UntrustedArtifactOnDeployment") != "Enforce":
+                        continue
+                    publishers = (config.get("AllowedPublishers") or {}).get("SigningProfileVersionArns")
+                    if not isinstance(publishers, list) or not publishers:
+                        missing = True
+                        continue
+                    if (self._check_action(source, "lambda:updatefunctioncode", arn) is None or
+                            self._check_action(source, "lambda:getcodesigningconfig", config_arn) is None):
+                        continue
+                    for version_arn in publishers:
+                        match = re.fullmatch(
+                            r"(arn:[^:]+:signer:[^:]+:\d{12}:/signing-profiles/[^/]+)/([^/]+)",
+                            version_arn) if isinstance(version_arn, str) else None
+                        if not match:
+                            missing = True
+                            continue
+                        profile_arn, version = match.groups()
+                        start = self.check(source, {"action": "signer:StartSigningJob",
+                            "request_context": {"signer:ProfileVersion": version}}, profile_arn)
+                        if start is not None:
+                            out[tid] = ("unknown", "lambda_signer_profile_and_artifact_execution_not_verified")
+                            break
+                    if tid in out:
+                        break
+                if tid not in out and (missing or self.host_status.get((role.scope, "lambda_function"))
+                                       not in ("collected", "empty")):
+                    out[tid] = ("unknown", "lambda_signer_function_config_or_profile_not_collected")
+            return out
         if pid == "servicecatalog_new_artifact_effect_unverified":
             # The launch constraint identifies a role, but does not establish
             # that this account owns the product, the source can use its

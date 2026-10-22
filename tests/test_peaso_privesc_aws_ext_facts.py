@@ -373,6 +373,48 @@ def test_bedrock_lambda_action_group_needs_deployed_alias_function_join():
     assert "preconditions" not in previous[ident]
 
 
+def test_lambda_signer_route_joins_exact_profile_and_config_without_wildcard_grants():
+    ident = "aws-lambda-signer-startsigningjob-updatefunctioncode"
+    technique = catalog_entry(ident)
+    function_arn = f"arn:aws:lambda:{REGION}:{ACCOUNT}:function:signed"
+    config_arn = f"arn:aws:lambda:{REGION}:{ACCOUNT}:code-signing-config:csc-123"
+    profile = f"arn:aws:signer:{REGION}:{ACCOUNT}:/signing-profiles/release"
+    target = role("signed-role", trust_service("lambda.amazonaws.com"))
+    function = {"FunctionName": "signed", "FunctionArn": function_arn, "Role": target["Arn"],
+        "PackageType": "Zip", "State": "Active", "LastUpdateStatus": "Successful",
+        "CodeSigning": {"collection_status": "collected", "CodeSigningConfigArn": config_arn,
+                        "_request": {"FunctionName": "signed"}},
+        "CodeSigningConfig": {"collection_status": "collected", "CodeSigningConfig": {
+            "CodeSigningConfigArn": config_arn,
+            "CodeSigningPolicies": {"UntrustedArtifactOnDeployment": "Enforce"},
+            "AllowedPublishers": {"SigningProfileVersionArns": [profile + "/1"]}}}}
+    def run(profile_resource, version="1", config_resource=config_arn):
+        signer = {"Effect": "Allow", "Action": "signer:StartSigningJob",
+                  "Resource": profile_resource,
+                  "Condition": {"StringEquals": {"signer:ProfileVersion": version}}}
+        source = user("alice", allow("lambda:UpdateFunctionCode", function_arn),
+                      allow("lambda:GetCodeSigningConfig", config_resource), signer)
+        return privesc.analyze(aws_snap([source], [target], [("lambda_function", SCOPE, [function])]),
+                               entries=[technique], include_unknown=True)
+
+    matching = run(profile)
+    assert target["Arn"] not in reached(matching, ALICE)
+    assert any(nodes(matching)[edge["target"]]["id"].startswith("unresolved:")
+               for edge in edges(matching, ALICE))
+    assert edges(run(profile + "-other"), ALICE) == []
+    assert edges(run(profile, "2"), ALICE) == []
+    assert edges(run(profile, config_resource=config_arn + "-other"), ALICE) == []
+
+    from peaso.privesc import versioned_catalog
+    old = {"schema": versioned_catalog.BINDING_SCHEMA,
+           "manifest_sha256": versioned_catalog.LAMBDA_SIGNER_691_PREVIOUS_MANIFEST,
+           "effective_tree_sha256": versioned_catalog.LAMBDA_SIGNER_691_PREVIOUS_TREE,
+           "source_revision": versioned_catalog.V4_REVISION}
+    previous, status = versioned_catalog.lookup_entries([ident], old)
+    assert status == "exact_previous_current"
+    assert "preconditions" not in previous[ident]
+
+
 def test_flink_passrole_binds_service_condition():
     technique = catalog_entry("aws-flink-passrole-createapplication")
     target = role("flink", trust_service("kinesisanalytics.amazonaws.com"))
