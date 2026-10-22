@@ -78,3 +78,38 @@ def test_corrupt_crc_or_deflate_stream_leaves_original_and_no_temporary_file(tmp
         optimize_source_archive(path, **LIMITS)
     assert hashlib.sha256(path.read_bytes()).hexdigest() == digest
     assert not list(tmp_path.glob("*.deflate-*"))
+
+
+def test_api_recompression_preserves_executable_and_regular_modes(tmp_path):
+    path = tmp_path / "api.zip"
+    expected = {"bin/runner": (b"#!/bin/sh\n" + b"echo retained executable\n" * 2000, 0o100755),
+                "module.py": (b"# exact retained source\n" * 2000, 0o100644)}
+    with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as archive:
+        for name, (raw, mode) in expected.items():
+            info = zipfile.ZipInfo(name)
+            info.create_system = 3
+            info.compress_type = 8
+            info.external_attr = mode << 16
+            archive.writestr(info, raw, compresslevel=1)
+    receipt = optimize_source_archive(path, **LIMITS, preserve_modes=True)
+    assert receipt["applied"] and receipt["saved_bytes"] > 0
+    with zipfile.ZipFile(path) as archive:
+        assert len(archive.infolist()) == len(expected)
+        for info in archive.infolist():
+            raw, mode = expected[info.filename]
+            assert archive.read(info) == raw
+            assert info.create_system == 3 and info.external_attr >> 16 == mode
+
+
+def test_api_recompression_rejects_unsafe_modes_without_replacement(tmp_path):
+    path = tmp_path / "api.zip"
+    info = zipfile.ZipInfo("setuid")
+    info.create_system = 3
+    info.compress_type = 8
+    info.external_attr = 0o104755 << 16
+    with zipfile.ZipFile(path, "w") as archive:
+        archive.writestr(info, b"blocked")
+    original = path.read_bytes()
+    with pytest.raises(ValueError, match="portable API member permissions"):
+        optimize_source_archive(path, **LIMITS, preserve_modes=True)
+    assert path.read_bytes() == original
