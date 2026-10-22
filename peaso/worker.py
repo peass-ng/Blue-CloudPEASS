@@ -184,6 +184,8 @@ def _process(role, request, connection):
         config = request.pop("artifact_config")
         artifacts = FileArtifacts(Path(config["root"])) if config["mode"] == "file" else S3Artifacts(config["bucket"], kms_key=config.get("kms_key"))
         tenant, ident = request["tenant_id"], request["scan_id"]
+        from peaso.storage.report_reuse import ReusableReportArtifacts
+        publication_artifacts = ReusableReportArtifacts(artifacts, tenant, ident)
         if role == "collector":
             _verify_aws_credentials(request.get("connector", {}))
             from peaso.engine import collect_snapshot
@@ -246,7 +248,7 @@ def _process(role, request, connection):
                         snapshot_ref = artifacts.put(tenant, ident, "snapshot", snapshot)
                         if report is not None:
                             from peaso.storage.reports import publish_report
-                            report_ref = publish_report(artifacts, tenant, ident,
+                            report_ref = publish_report(publication_artifacts, tenant, ident,
                                                         without_private_values(redact_report(report)), snapshot)
                         else:
                             report_ref = None
@@ -326,7 +328,7 @@ def _process(role, request, connection):
             sections = sections if isinstance(sections, dict) else {}
             native_value = dict(value, publication={"state": "partial", "phase": "analyzing",
                                                     "sequence": native_sequence, "sections": sections})
-            native_reference = publish_report(artifacts, tenant, ident, native_value, snapshot)
+            native_reference = publish_report(publication_artifacts, tenant, ident, native_value, snapshot)
             connection.send(("__checkpoint__", {"sequence": native_sequence,
                 "stage": "analyzer_native", "snapshot_ref": request["snapshot_ref"],
                 "report_ref": native_reference, "kind": None, "scope": None}))
@@ -341,7 +343,7 @@ def _process(role, request, connection):
             value = with_findings(value, value["ai"].get("network", {}).get("findings", []))
             value["publication"] = {"state": "final", "phase": "completed", "sequence": native_sequence,
                                     "sections": sections}
-            reference = publish_report(artifacts, tenant, ident, value, snapshot)
+            reference = publish_report(publication_artifacts, tenant, ident, value, snapshot)
         # Large evidence/report objects never cross the supervisor process pipe.
         connection.send((True, reference))
     except BaseException as exc:
