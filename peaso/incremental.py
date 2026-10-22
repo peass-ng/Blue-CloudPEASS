@@ -32,7 +32,7 @@ class CheckpointSession:
     def __init__(self, request, on_checkpoint, public_snapshot, *,
                  interval=8.0, collection_stride=24, clock=time.monotonic,
                  batch_size=64, batch_interval=1.0, batch_bytes=8 * 1024 * 1024):
-        from .engine import _selection, _analysis_selection, _privesc_selected, CATEGORIES
+        from .engine import _selection, _analysis_selection, _privesc_selected, _selected_graph_categories, CATEGORIES
         from .analysis import REQUIRED_TYPES, privesc_required_types
 
         connector = request["connector"]
@@ -46,14 +46,25 @@ class CheckpointSession:
                                            self.explicit_checks, self.frameworks)
         self.analysis_checks = _analysis_selection(self.provider, self.categories,
                                                     self.explicit_checks, self.frameworks)
+        self.graph_categories = _selected_graph_categories(self.categories, self.native_checks,
+            self.analysis_checks, request.get("categories"), self.explicit_checks, self.frameworks)
         self.analysis_requirements = REQUIRED_TYPES.get(self.provider, {})
         self.privesc = _privesc_selected(self.provider, self.categories,
                                         self.explicit_checks, self.frameworks)
         self.privesc_requirements = set(privesc_required_types(self.provider)) if self.privesc is not None else set()
         from .engine import plan_collection
         from .scan_sections import dependencies
+        section_requirements = {name: values for name, values in self.analysis_requirements.items()
+                                if name in self.categories}
+        # IAM graphs share a completion marker with least privilege. The graph
+        # requirements are a subset of that section's inventories; include them
+        # even for requests selecting only iam_graph.
+        if "iam_graph" in self.graph_categories:
+            section_requirements["least_privilege"] = sorted(
+                set(section_requirements.get("least_privilege", ()))
+                | set(self.analysis_requirements.get("iam_graph", ())))
         self.section_dependencies = dependencies(self.native_checks, self.analysis_checks,
-            {name: values for name, values in self.analysis_requirements.items() if name in self.categories},
+            section_requirements,
             self.privesc_requirements if self.privesc is not None else None, plan_collection(request))
         self.collection_revisions = {}
         self.collection_finished = False
@@ -98,6 +109,7 @@ class CheckpointSession:
         self.last_published = 0
         self.last_time = float("-inf")
         self.published_categories = set()
+        self.published_sections = set()
         self.thread = threading.Thread(target=self._background, name="peaso-checkpoint", daemon=True)
         self.thread.start()
 
@@ -117,8 +129,14 @@ class CheckpointSession:
             attach_metadata(metadata, envelopes, self.image_targets)
         return make_snapshot(self.provider, scopes, envelopes, metadata=metadata)
 
-    def _ready(self, collections=None):
+    def _ready(self, collections=None, *, sections=None):
         collections = self.collections if collections is None else collections
+        if sections is None:
+            from .scan_sections import states
+            with self.lock:
+                sections = states(self.provider, self.effective_scopes, self.section_dependencies,
+                    collections, self.collection_revisions, finished=self.collection_finished,
+                    global_types=self.global_types, global_scope=self.global_scope)
         complete = defaultdict(set)
         for (kind, scope), row in collections.items():
             if row["status"] in {"collected", "empty"}:
@@ -127,9 +145,8 @@ class CheckpointSession:
         native = [check.id for check in self.native_checks
                   if ({check.kind} | set(getattr(check, "dependencies", ()))) <= available]
         analysis = [check["id"] for check in self.analysis_checks
-                    if self.analysis_requirements.get(check["category"])
-                    and set(self.analysis_requirements[check["category"]]) <= available]
-        privesc = ["privesc"] if self.privesc is not None and self.privesc_requirements <= available else []
+                    if sections.get(check["category"], {}).get("status") == "complete"]
+        privesc = ["privesc"] if self.privesc is not None and sections.get("privesc", {}).get("status") == "complete" else []
         return native + analysis + privesc, complete
 
     def restore(self, snapshots, sequence):
@@ -334,8 +351,18 @@ class CheckpointSession:
                 if self.sequence == self.last_published:
                     return None
                 sequence = self.sequence
-                ready, complete = self._ready()
-                if not ready:
+                from .scan_sections import states
+                sections = states(self.provider, self.effective_scopes, self.section_dependencies,
+                    self.collections, self.collection_revisions, finished=self.collection_finished,
+                    global_types=self.global_types, global_scope=self.global_scope)
+                completed_sections = {name for name, state in sections.items() if state['status'] == 'complete'}
+                graph_sections = set()
+                if 'network' in completed_sections and 'network' in self.graph_categories:
+                    graph_sections.add('network')
+                if 'least_privilege' in completed_sections and 'iam_graph' in self.graph_categories:
+                    graph_sections.add('iam_graph')
+                ready, complete = self._ready(sections=sections)
+                if not ready and not graph_sections:
                     return None
                 categories = {check.category for check in self.native_checks if check.id in ready}
                 categories.update(check["category"] for check in self.analysis_checks if check["id"] in ready)
@@ -343,14 +370,11 @@ class CheckpointSession:
                     categories.add("privesc")
                 now = self.clock()
                 if (not force and categories <= self.published_categories
+                        and completed_sections <= self.published_sections
                         and sequence - self.last_published < self.collection_stride
                         and now - self.last_time < self.interval):
                     return None
                 collections = copy.deepcopy(self.collections)
-                from .scan_sections import states
-                sections = states(self.provider, self.effective_scopes, self.section_dependencies,
-                    collections, dict(self.collection_revisions), finished=self.collection_finished,
-                    global_types=self.global_types, global_scope=self.global_scope)
                 raw = self._snapshot(list(collections.values()), sequence=sequence)
                 raw['metadata']['sections'] = sections
                 raw = seal(raw)
@@ -359,11 +383,13 @@ class CheckpointSession:
                 snapshot = validate(self.public_snapshot(raw))
             from .engine import evaluate_snapshot
             report = evaluate_snapshot(snapshot, categories=self.categories, checks=ready,
-                                       frameworks=self.frameworks, include_not_applicable=False)
+                                       frameworks=self.frameworks, include_not_applicable=False,
+                                       completed_graph_sections=graph_sections)
             report = self._filter_report(report, complete, sequence=sequence, collections=collections, sections=sections)
             self.on_checkpoint(snapshot, report, sequence)
             with self.lock:
                 self.published_categories.update(categories)
+                self.published_sections.update(completed_sections)
                 self.last_published, self.last_time = sequence, now
             return report
 
