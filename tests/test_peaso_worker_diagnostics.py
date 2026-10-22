@@ -65,6 +65,7 @@ def test_owned_sigkill_uses_existing_worker_lifecycle(crash_store, tmp_path, rol
     secret = "fixture-private-credential-value"
     connector = crash_store.add_connector("alice", {"provider": "aws"}, cipher.encrypt({"auth": {"token": secret}, "options": {}}))
     job = crash_store.enqueue("alice", {"connector_id": connector["id"]})
+    assert crash_store.admit("alice", job["id"])
     if role == "analyzer":
         claim = crash_store.claim("collector", tenant="alice", ident=job["id"])
         assert crash_store.finish(job["id"], claim["owner"], "collected", "unused-snapshot")
@@ -136,6 +137,7 @@ def test_all_targets_refused_surfaces_only_curated_reason(crash_store, tmp_path,
         "auth": {"method": "task_role", "assume_roles": [{"role_arn": arn}], "external_id": secret},
         "options": {"hosted": True}}))
     job = crash_store.enqueue("alice", {"connector_id": connector["id"]})
+    assert crash_store.admit("alice", job["id"])
     denied = make_snapshot("aws", ["222222222222"], [{"type": "vpc", "scope": "222222222222/us-east-1",
         "service": "ec2", "status": "denied", "items": [], "error": {"code": "AccessDenied"}}],
         metadata={"authentication_errors": [
@@ -200,6 +202,7 @@ def test_store_rejects_untrusted_failure_text_and_preserves_generic_errors(crash
     settings = Settings(state_dir=tmp_path / "state", identity_dir=tmp_path / "identity")
     connector = crash_store.add_connector("alice", {"provider": "aws"}, CredentialCipher(settings.identity_dir).encrypt({"auth": {}, "options": {}}))
     job = crash_store.enqueue("alice", {"connector_id": connector["id"]})
+    assert crash_store.admit("alice", job["id"])
     claim = crash_store.claim("collector", tenant="alice", ident=job["id"])
     secret = "fixture-private-sdk-response"
     assert crash_store.finish(job["id"], claim["owner"], "failed", error_code="provider_error", failure_reasons=[
@@ -215,6 +218,7 @@ def test_store_rejects_untrusted_failure_text_and_preserves_generic_errors(crash
     assert secret not in str(crash_store.job("alice", job["id"])["error"])
 
     other = crash_store.enqueue("alice", {"connector_id": connector["id"]}, limit=2)
+    assert crash_store.admit("alice", other["id"])
     claim = crash_store.claim("collector", tenant="alice", ident=other["id"])
     assert crash_store.finish(other["id"], claim["owner"], "failed", error_code="provider_error")
     generic = crash_store.public_job(crash_store.job("alice", other["id"]))
