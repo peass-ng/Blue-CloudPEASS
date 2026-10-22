@@ -94,7 +94,7 @@ def test_context_rejects_unbounded_input_before_preparation(monkeypatch):
     monkeypatch.setattr(batch, '_prepare_trufflehog_batch',
                         lambda *args: pytest.fail('invalid batch reached preparation'))
     with pytest.raises(ValueError, match='content batch bound'):
-        with scanning.prepared_content_batch([(b'x', 'p')] * 33):
+        with scanning.prepared_content_batch([(b'x', 'p')] * (batch.MAX_BATCH_ITEMS + 1)):
             pass
     assert batch.MAX_BATCH_BYTES == 64 * 1024 * 1024
     monkeypatch.setattr(batch, 'MAX_BATCH_BYTES', 5)
