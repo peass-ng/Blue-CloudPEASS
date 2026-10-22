@@ -4488,6 +4488,73 @@ class AwsModel(Model):
         return self._emr_cluster_runtime_route(
             source, role, "elasticmapreduce:getclustersessioncredentials")
 
+    def _amplify_role_effect(self, source, role, app_arn, branch_arn, *, compute):
+        """Verify the exact build or SSR route ran a useful action under the target role."""
+        try:
+            now = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            if now.tzinfo is None:
+                return False
+        except (KeyError, TypeError, ValueError):
+            return False
+        region = app_arn.split(":")[3]
+        scope = f"{role.scope}/{region}"
+        role_rows = [row for role_scope, row in items(self.snapshot, "iam_role")
+                     if role_scope.split("/")[0] == role.scope and row.get("Arn") == role.id]
+        role_id = role_rows[0].get("RoleId") if len(role_rows) == 1 else None
+        if not isinstance(role_id, str) or not role_id:
+            return False
+        collections = [c for c in self.snapshot.get("collections", ())
+                       if c.get("type") == "aws_privesc_challenge_evidence" and c.get("scope") == scope]
+        if len(collections) != 1 or collections[0].get("status") != "collected":
+            return False
+        proof_status = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+        technique = (self.current_entry or {}).get("id")
+        proofs = [row for proof_scope, row in items(self.snapshot, "aws_privesc_challenge_evidence")
+                  if proof_scope == scope and proof_status.get(scope) == "collected" and
+                  row.get("TechniqueId") == technique and row.get("SourceArn") == source.id and
+                  row.get("TargetKind") == "aws_role" and row.get("TargetId") == role.id and
+                  row.get("AppArn") == app_arn and row.get("BranchArn") == branch_arn]
+        if len(proofs) != 1:
+            return False
+        proof = proofs[0]
+        action, resource = proof.get("RoleAction"), proof.get("RoleResource")
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("ExecutionKind") != ("ssr" if compute else "build") or
+                proof.get("TargetRoleId") != role_id or proof.get("TargetScope") != scope or
+                proof.get("RoleAssociationConfirmed") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"]):
+            return False
+        if compute:
+            if (proof.get("DeployedSsrCodeControlledBySource") is not True or
+                    proof.get("HttpRequestReachedSsrRoute") is not True or
+                    proof.get("SsrRoleOperationSucceeded") is not True or
+                    not isinstance(proof.get("RequestPath"), str) or
+                    not proof["RequestPath"].startswith("/")):
+                return False
+        else:
+            if (proof.get("EffectiveBuildCommandsControlledBySource") is not True or
+                    proof.get("BuildJobSucceeded") is not True or
+                    proof.get("RoleOperationObservedInBuild") is not True or
+                    not isinstance(proof.get("JobArn"), str) or
+                    not proof["JobArn"].startswith(branch_arn + "/jobs/")):
+                return False
+        try:
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (now - witnessed).total_seconds() <= 900 or
+                    not now < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return False
+        except (KeyError, TypeError, ValueError):
+            return False
+        permitted = self.check(role, {"action": action}, resource)
+        already = self.check(source, {"action": action}, resource)
+        return permitted is not None and permitted.confidence == "derived" and already is None
+
     def _amplify_role_route(self, source, role, *, compute):
         """Require one collected app and branch before considering a role swap."""
         statuses = inventory_status(self.snapshot, "amplify_app")
@@ -4497,6 +4564,7 @@ class AwsModel(Model):
             return ("unknown", "amplify_app_inventory_not_collected")
         uncertain = bool(source.incomplete or
                          any(status not in ("collected", "empty") for status in scopes.values()))
+        eligible_without_effect = False
         partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
         for scope, app in items(self.snapshot, "amplify_app"):
             if scopes.get(scope) != "collected" or not isinstance(app, dict):
@@ -4551,9 +4619,13 @@ class AwsModel(Model):
                     continue
                 # Branch presence and scoped grants do not establish a
                 # controllable build command or deployed SSR route.
-                reason = ("amplify_ssr_code_and_request_not_verified" if compute else
-                          "amplify_buildspec_precedence_and_code_execution_not_verified")
-                return ("unknown", reason)
+                if self._amplify_role_effect(source, role, app_arn, branch["branchArn"], compute=compute):
+                    return ("conditional", "amplify_role_operation_observed")
+                eligible_without_effect = True
+        if eligible_without_effect:
+            reason = ("amplify_ssr_code_and_request_not_verified" if compute else
+                      "amplify_buildspec_precedence_and_code_execution_not_verified")
+            return ("unknown", reason)
         return ("unknown", "amplify_app_branch_or_grant_not_verified") if uncertain else None
 
     def _emr_serverless_job_route(self, source, role):
