@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
 from datetime import datetime, timedelta
+import hashlib
 import re
 from typing import Any
 
@@ -69,6 +70,25 @@ def normalize_aws_ssm_automation_window(record: Mapping[str, Any]) -> dict[str, 
         if (isinstance(document, str) and document and isinstance(execution, str)
                 and _UUID.fullmatch(execution)):
             return _event(record, document, 'ssm_automation_started')
+    if name == 'UpdateMaintenanceWindowTask':
+        window, task = req.get('windowId'), req.get('windowTaskId')
+        identity = record.get('userIdentity')
+        account, region = record['recipientAccountId'], record.get('awsRegion')
+        targets = response.get('targets')
+        if (isinstance(window, str) and _WINDOW.fullmatch(window)
+                and isinstance(task, str) and _UUID.fullmatch(task)
+                and response.get('windowId') == window
+                and response.get('windowTaskId') == task
+                and response.get('taskArn') == 'AWS-RunShellScript'
+                and isinstance(targets, list) and bool(targets)
+                and isinstance(identity, Mapping) and identity.get('accountId') == account
+                and identity.get('type') != 'AWSService' and _actor(record)
+                and isinstance(region, str) and re.fullmatch(r'[a-z]{2}(?:-[a-z]+)+-[0-9]', region)
+                and isinstance(record.get('eventID'), str) and record['eventID']
+                and _time(record.get('eventTime'))):
+            target = 'sha256:' + hashlib.sha256(
+                f'{account}:{region}:{window}:{task}'.encode()).hexdigest()[:24]
+            return _event(record, target, 'ssm_window_shell_task_updated')
     return None
 
 
