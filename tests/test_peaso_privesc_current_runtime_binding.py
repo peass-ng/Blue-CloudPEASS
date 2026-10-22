@@ -12,6 +12,59 @@ def test_current_catalog_binding_resolves_new_technique():
     assert set(entries) == {"aws-flink-studio-presigned-url"}
 
 
+def test_previous_aws_audit_binding_keeps_its_original_entries():
+    old = {"schema": catalog.BINDING_SCHEMA,
+           "manifest_sha256": catalog.FINAL_AWS_AUDIT_691_PREVIOUS_MANIFEST,
+           "effective_tree_sha256": catalog.FINAL_AWS_AUDIT_691_PREVIOUS_TREE,
+           "source_revision": catalog.V4_REVISION}
+    entries, status = catalog.lookup_entries(["aws-flink-studio-presigned-url"], old)
+    assert status == "exact_previous_current"
+    assert set(entries) == {"aws-flink-studio-presigned-url"}
+    assert len(catalog._verified_final_aws_audit_691_previous()) == 691
+
+
+def test_source_repin_keeps_previous_700_entry_meanings():
+    ident = "aws-cloudcontrol-passrole-createresource"
+    current, status = catalog.lookup_entries([ident], catalog.current_binding())
+    assert status == "exact_strict_privesc"
+    assert current[ident]["source_revision"] == "9e5d46375b53cbd2d0cdce63771f3e36f0c30bae"
+    old = {"schema": catalog.BINDING_SCHEMA,
+           "manifest_sha256": catalog.SOURCE_REPIN_700_PREVIOUS_MANIFEST,
+           "effective_tree_sha256": catalog.SOURCE_REPIN_700_PREVIOUS_TREE,
+           "source_revision": catalog.V4_REVISION}
+    previous, status = catalog.lookup_entries([ident], old)
+    assert status == "exact_previous_current"
+    assert previous[ident]["source_revision"] == "171e422299"
+    assert len(catalog._verified_source_repin_700_previous()) == 700
+
+
+def test_appstream_resource_requirements_keep_previous_report_meanings():
+    ident = "aws-appstream-createimagebuilderstreamingurl"
+    current, status = catalog.lookup_entries([ident], catalog.current_binding())
+    assert status == "exact_strict_privesc"
+    assert current[ident]["requires"]["all_of"][0]["action"] == "appstream:CreateImageBuilderStreamingURL"
+    old = {"schema": catalog.BINDING_SCHEMA,
+           "manifest_sha256": catalog.APPSTREAM_RESOURCE_700_PREVIOUS_MANIFEST,
+           "effective_tree_sha256": catalog.APPSTREAM_RESOURCE_700_PREVIOUS_TREE,
+           "source_revision": catalog.V4_REVISION}
+    previous, status = catalog.lookup_entries([ident], old)
+    assert status == "exact_previous_current"
+    assert previous[ident]["requires"]["all_of"] == []
+    assert len(catalog._verified_appstream_resource_700_previous()) == 700
+
+
+def test_revisionless_organizations_binding_retains_original_catalog_tree():
+    ident = "aws-appstream-createimagebuilderstreamingurl"
+    old = {"schema": catalog.BINDING_SCHEMA,
+           "manifest_sha256": catalog.ORGANIZATIONS_RCP_691_REVISIONLESS_MANIFEST,
+           "effective_tree_sha256": catalog.ORGANIZATIONS_RCP_691_REVISIONLESS_TREE,
+           "source_revision": catalog.V4_REVISION}
+    previous, status = catalog.lookup_entries([ident], old)
+    assert status == "exact_previous_current"
+    assert previous[ident]["requires"]["all_of"] == []
+    assert catalog.ORGANIZATIONS_RCP_691_REVISIONLESS_TREE != catalog.CURRENT_TREE
+
+
 def test_stepfunctions_passrole_service_binding_preserves_previous_catalog():
     ids = ["aws-stepfunctions-createstatemachine-passrole-start",
            "aws-stepfunctions-updatestatemachine-passrole"]
@@ -81,9 +134,8 @@ def test_config_remediation_binding_preserves_previous_catalog():
     requirements = {req["action"]: req for req in entry["requires"]["all_of"]}
     assert requirements["iam:PassRole"]["request_context"] == {
         "iam:PassedToService": "ssm.amazonaws.com"}
-    assert requirements["config:PutRemediationConfigurations"]["resource"].endswith(
-        ":remediation-configuration/*")
-    assert requirements["ssm:CreateDocument"]["resource"].endswith(":document/*")
+    assert set(requirements) == {"iam:PassRole"}
+    assert any(condition["id"] == "document_reuse" for condition in entry["conditions"])
     old = {"schema": catalog.BINDING_SCHEMA,
            "manifest_sha256": catalog.CONFIG_REMEDIATION_689_PREVIOUS_MANIFEST,
            "effective_tree_sha256": catalog.CONFIG_REMEDIATION_689_PREVIOUS_TREE,
@@ -186,7 +238,11 @@ def test_agentcore_existing_binding_preserves_previous_catalog():
            "effective_tree_sha256": catalog.AGENTCORE_EXISTING_690_PREVIOUS_TREE,
            "source_revision": catalog.V4_REVISION}
     previous, status = catalog.lookup_entries([ident], old)
-    assert status == "exact_previous_current" and previous[ident] == current[ident]
+    assert status == "exact_previous_current"
+    assert previous[ident]["source_revision"] == "6fb9ac51fd"
+    assert current[ident]["source_revision"] == "9e5d46375b53cbd2d0cdce63771f3e36f0c30bae"
+    assert {key: value for key, value in previous[ident].items() if key != "source_revision"} == {
+        key: value for key, value in current[ident].items() if key != "source_revision"}
     assert len(catalog._verified_agentcore_existing_690_previous()) == 690
 
 

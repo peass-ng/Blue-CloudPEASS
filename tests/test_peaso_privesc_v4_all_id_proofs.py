@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 from pathlib import Path
 
@@ -60,7 +61,11 @@ def _fixture(entry):
             source = "aws_challenge_foothold:111111111111:local"
         if target_kind == "aws_user":
             collections["iam_user"]["items"].append({"UserName": "victim", "Arn": target,
-                "GroupList": [], "AttachedManagedPolicies": [], "UserPolicyList": []})
+                "GroupList": [], "AttachedManagedPolicies": [], "UserPolicyList": [],
+                "AccessKeys": {"collection_status": "collected", "items": [{
+                    "AccessKeyFingerprint": hashlib.sha256(b"AKIAEXAMPLE12345678").hexdigest(),
+                    "Status": "Active"}]}})
+            snap["created_at"] = "2026-10-22T12:00:00Z"
         user = collections["iam_user"]["items"][0]
         user["UserPolicyList"] = [{"PolicyName": "proof", "PolicyDocument": {
             "Version": "2012-10-17", "Statement": [{"Effect": "Allow", "Action": actions,
@@ -77,13 +82,18 @@ def _fixture(entry):
                  "Action": "sts:AssumeRole"}]}
         if target_kind == "aws_user":
             service, action, resource = {
-                "aws-apprunner-plaintext-credential": ("apprunner", "apprunner:DescribeService", "service/s"),
-                "aws-codebuild-plaintext-env-credential": ("codebuild", "codebuild:BatchGetProjects", "project/p"),
+                "aws-apprunner-plaintext-credential": ("apprunner", "apprunner:DescribeService", "service/s/id"),
+                "aws-codebuild-plaintext-env-credential": ("codebuild", "codebuild:BatchGetProjects", "project/proof"),
                 "aws-lambda-getconfig-secret-identity": ("lambda", "lambda:GetFunctionConfiguration", "function:f"),
             }[ident]
             fact.update(CredentialSubjectArn=target, CredentialKind="aws_iam_user_access_key",
+                        CredentialAccessKeyFingerprint=hashlib.sha256(b"AKIAEXAMPLE12345678").hexdigest(),
+                        EvidenceObservedAt="2026-10-22T11:59:00Z",
                         CredentialUsable=True, CredentialResourceArn=f"arn:aws:{service}:us-east-1:111111111111:{resource}",
-                        AccessAction=action)
+                        AccessAction=action, CredentialReadSucceeded=True,
+                        CredentialAuthenticatedAsSubject=True, SourcePreviouslyDenied=True,
+                        TargetAccessAfterAllowed=True, NewEffectiveAction="iam:ListRoles",
+                        NewEffectiveResource="*")
         return snap, source, target, fact, collections["aws_privesc_challenge_evidence"]
     if provider == "gcp":
         snap = base_snapshot(entry)

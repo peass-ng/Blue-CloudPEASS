@@ -14,7 +14,8 @@ SCRIPT = "arn:aws:s3:::glue-scripts/example.py"
 JOB = "arn:aws:glue:us-east-1:111111111111:job/victim-job"
 
 
-def _case(*, writer=SCRIPT, reader=SCRIPT, fixed=(), job_resource=JOB, inventory="collected"):
+def _case(*, writer=SCRIPT, reader=SCRIPT, fixed=(), job_resource=JOB, inventory="collected",
+          encryption="absent"):
     snapshot = _snapshot(ENTRY)
     user = next(c for c in snapshot["collections"] if c["type"] == "iam_user")["items"][0]
     user["UserPolicyList"][0]["PolicyDocument"]["Statement"] = [
@@ -28,6 +29,12 @@ def _case(*, writer=SCRIPT, reader=SCRIPT, fixed=(), job_resource=JOB, inventory
         "items": [{"Name": "victim-job", "Role": TARGET,
                    "Command": {"Name": "glueetl", "ScriptLocation": "s3://glue-scripts/example.py"},
                    "NonOverridableCodeArguments": list(fixed)}] if inventory == "collected" else []})
+    snapshot["collections"].append({"type": "bucket", "scope": "111111111111/global",
+        "service": "s3", "status": "collected", "error": None,
+        "items": [{"Name": "glue-scripts", "Encryption":
+                   {"collection_status": encryption} if encryption != "kms" else
+                   {"collection_status": "collected", "ServerSideEncryptionConfiguration":
+                    {"Rules": [{"ApplyServerSideEncryptionByDefault": {"SSEAlgorithm": "aws:kms"}}]}}}]})
     return snapshot
 
 
@@ -51,6 +58,12 @@ def test_missing_script_witness_is_unknown():
     assert TARGET not in members
     assert any(name.startswith("unresolved:") and confidence == "unknown"
                for name, confidence in members.items())
+
+
+def test_override_may_use_different_controlled_script_but_kms_is_unresolved():
+    alternate = "arn:aws:s3:::glue-scripts/alternate.py"
+    assert _definite(_case(writer=alternate, reader=alternate)) == {TARGET: "conditional"}
+    assert not _definite(_case(writer=alternate, reader=alternate, encryption="kms"))
 
 
 def test_new_scheduled_trigger_uses_same_script_witness():

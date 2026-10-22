@@ -78,7 +78,7 @@
   "peaso/checks/selected_content_observed.py": "1444fd24081adc3cfa5d86c9650ebdd88fbf9cd6f80669e251b84eafd6ca8161",
   "peaso/finding_observation.py": "2232b4bc5c705ed8afdec0dadfc6ad1b1b28517938325450f318ee3851231254",
   "peaso/privesc/azure_observed_impact.py": "622b5a56363ae774cec39ad2d069c4cbfcd3cdf9b690bba119250e838155e233",
-  "peaso/privesc/effective_permissions/aws.py": "f5fdd1c45e8037a1de0b9fa7ae13d96f5f105f3cd332599104cd6009dfa56b99",
+  "peaso/privesc/effective_permissions/aws.py": "c513d46501f890b9f0ff4994157a28c4569955152bb86719f4a762869d34e82c",
   "peaso/privesc/effective_permissions/aws_conditions.py": "050705908b1b5f7fad124dba2c379fee04e140dc38ca37c94dd6f314e1dd26b3",
   "peaso/privesc/effective_permissions/aws_s3_access_grants.py": "a3b1847e504e61f36a5860fc9d1c691215acb952716c2b756b5d1a0ee6c075d0",
   "peaso/privesc/effective_permissions/aws_s3_self_grant.py": "b4ab4792bc79db2ed6c8b9ae1af215ac3b33145a1ca73ef00cdaaf69b976090c",
@@ -104,8 +104,8 @@
   "peaso/privesc/effective_permissions/storage_local_identity.py": "7671720b0780e47c583e0877888235406c220e64b937d361edb555f3300df7d0",
   "peaso/privesc/finding_explanation.py": "3d0a530d20ecfb3468fd87bae99438d8f8e6e802c39e55a55cc36363884d8206",
   "peaso/privesc/k8s_observed_impact.py": "01141a47effc35169da31453150697e94c2940a051b789f3cd8d01cf01ec178a",
-  "peaso/privesc/schema.py": "af643d50b61eca16d1629445da70144f4ed4054333a62bed4fca741f51ba17f4",
-  "peaso/privesc/versioned_catalog.py": "ac92ecc2f6c7ca94ee63fc5372a7cad06dc2309c85ccc758ac4ee29aea9ba34e",
+  "peaso/privesc/schema.py": "c0be08097db221393c9c93ce036b4d75c48c0716b77bde327f1df41f1ff990aa",
+  "peaso/privesc/versioned_catalog.py": "80bf2e41efa5b113b5205b4c9502a5511a1c7e6836df6bb22e40fa48ca76a06f",
   "peaso/provider_followup_observations_20261021.py": "84d18fb252d53059c2ea486e98e8b3301e79bc1f9bdee24a4d063570c109c313",
-  "risk_rules/hacktricks-privesc-source.json": "16e83c81081977912ae81f40981ba0a6ed5ad4cb939ecf3801ef5bd4302e8917"
+  "risk_rules/hacktricks-privesc-source.json": "b5e56997930799b0c6194b64f4031ea924a9d9591191181b480148c47f03049b"
 }

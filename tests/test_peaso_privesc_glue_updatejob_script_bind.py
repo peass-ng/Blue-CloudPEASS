@@ -15,7 +15,7 @@ JOB = "arn:aws:glue:us-east-1:111111111111:job/job1"
 
 
 def _case(*, writer=SCRIPT, reader=SCRIPT, service="glue.amazonaws.com",
-          job_resource=JOB, trigger_state="ACTIVATED"):
+          job_resource=JOB, trigger_state="ACTIVATED", encryption="absent"):
     snapshot = _snapshot(ENTRY)
     user = next(c for c in snapshot["collections"] if c["type"] == "iam_user")["items"][0]
     user["UserPolicyList"][0]["PolicyDocument"]["Statement"] = [
@@ -34,6 +34,11 @@ def _case(*, writer=SCRIPT, reader=SCRIPT, service="glue.amazonaws.com",
          "status": "collected", "error": None, "items": [{"Name": "daily", "Type": "SCHEDULED",
          "State": trigger_state, "HasSchedule": True, "ActionsComplete": True,
          "JobActions": ["job1"]}]},
+        {"type": "bucket", "scope": "111111111111/global", "service": "s3",
+         "status": "collected", "error": None, "items": [{"Name": "glue-scripts",
+         "Encryption": {"collection_status": encryption} if encryption != "kms" else
+         {"collection_status": "collected", "ServerSideEncryptionConfiguration":
+          {"Rules": [{"ApplyServerSideEncryptionByDefault": {"SSEAlgorithm": "aws:kms"}}]}}}]},
     ])
     return snapshot
 
@@ -50,6 +55,12 @@ def test_update_job_joins_role_trigger_and_script():
                    {"job_resource": "arn:aws:glue:us-east-1:111111111111:job/other"},
                    {"trigger_state": "CREATED"}):
         assert not _definite(_case(**kwargs)), kwargs
+
+
+def test_update_job_can_replace_script_location_but_kms_needs_more_evidence():
+    alternate = "arn:aws:s3:::glue-scripts/alternate.py"
+    assert _definite(_case(writer=alternate, reader=alternate)) == {TARGET: "conditional"}
+    assert not _definite(_case(writer=alternate, reader=alternate, encryption="kms"))
 
 
 def test_unverified_script_is_unknown():

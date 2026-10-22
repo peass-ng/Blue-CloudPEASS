@@ -21,7 +21,7 @@ ENTRY = next(row for row in schema.load_catalog(schema.CATALOG_DIR)["entries"]
 
 def _model(*, put=OBJECT, start=JOB, read=OBJECT, script="s3://scripts.example/report.py",
            job_role=TARGET, job_status="collected", scheduled=False, fixed=(), defaults=(),
-           trigger_override=False):
+           trigger_override=False, encryption="absent"):
     actor = user("alice", {"Effect": "Allow", "Action": "s3:PutObject", "Resource": put},
                  {"Effect": "Allow", "Action": "glue:StartJobRun", "Resource": start} if start else
                  {"Effect": "Allow", "Action": "s3:ListBucket", "Resource": "*"})
@@ -32,7 +32,11 @@ def _model(*, put=OBJECT, start=JOB, read=OBJECT, script="s3://scripts.example/r
     extra = [("glue_job", SCOPE, [{"Name": "report", "Role": job_role,
                                    "Command": {"Name": "pythonshell", "ScriptLocation": script},
                                    "DefaultCodeArguments": list(defaults),
-                                   "NonOverridableCodeArguments": list(fixed)}], job_status)]
+                                   "NonOverridableCodeArguments": list(fixed)}], job_status),
+             ("bucket", f"{ACCOUNT}/global", [{"Name": "scripts.example",
+                "Encryption": {"collection_status": encryption} if encryption != "kms" else
+                {"collection_status": "collected", "ServerSideEncryptionConfiguration":
+                 {"Rules": [{"ApplyServerSideEncryptionByDefault": {"SSEAlgorithm": "aws:kms"}}]}}}], "collected")]
     if scheduled:
         extra.append(("glue_trigger", SCOPE, [{"Name": "nightly", "Type": "SCHEDULED",
                                                 "State": "ACTIVATED", "HasSchedule": True,
@@ -56,6 +60,10 @@ def test_exact_script_put_and_start_reaches_job_role():
     assert _verdict(model) == ("conditional", "glue_exact_script_object_and_run_bound")
     edges = Evaluator(model, [ENTRY], include_unknown=False).run()
     assert {target for edge in edges if edge.source.id == ALICE for target in edge.targets} == {TARGET}
+
+
+def test_kms_encrypted_script_needs_key_access_evidence():
+    assert _verdict(_model(encryption="kms"))[0] == "unknown"
 
 
 def test_active_schedule_can_run_exact_job_without_start_permission():
