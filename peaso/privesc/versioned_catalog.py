@@ -2,9 +2,14 @@
 from __future__ import annotations
 
 from functools import lru_cache
+import base64
 import hashlib
+import io
 import json
+import struct
 import tarfile
+import zipfile
+import zlib
 from pathlib import Path
 
 import yaml
@@ -698,6 +703,9 @@ CURRENT_ENTRY_COUNT = 691
 CURRENT_EXCLUDED_COUNT = 3737
 CURRENT_HISTORY = Path(__file__).resolve().parent / "catalog_versions/bulk-principal-v6-manifest.json"
 PRIOR_CATALOG_ARCHIVE = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-catalog-20261016.tar.gz"
+PRIOR_CATALOG_ARCHIVE_SHA256 = "498459a1979833e9e1a09b64bbeb859beb004980ad7baa81818621e5c810c030"
+RUNTIME_HISTORY_PACK = Path(__file__).resolve().parent / "catalog_versions/runtime-history-v1.zip"
+RUNTIME_HISTORY_SHA256 = "1bea8a2a4bf0a8eb0cc8e4d66add36c368ffd0a013e635c529c2967aa768d6c6"
 PRIOR_SOURCE_MANIFEST = Path(__file__).resolve().parent / "catalog_versions/prior-disclosure-source-manifest.json"
 PRIOR_BOUNDED_MANIFEST = "082451e81fa450830ae5f6835e241dd412a6c30a8b2a0b1172cdbc89b2d71429"
 PRIOR_BOUNDED_TREE = "695e38b0bc93df9ba031828ffefbabe8e10b60741580554a5f36b8f37aa05414"
@@ -1953,13 +1961,96 @@ def _verified_apprunner_current():
         APPRUNNER_CURRENT_TREE, APPRUNNER_CURRENT_ENTRY_COUNT, APPRUNNER_CURRENT_EXCLUDED_COUNT)
 
 
+def _history_json_unique(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("archived_history_duplicate_index_key")
+        result[key] = value
+    return result
+
+
+def _history_original_pair(manifest_path, archive_path, manifest_digest, archive_digest):
+    """Prefer exact originals; recover either missing file from the pinned pack."""
+    if manifest_path.exists() and archive_path.exists():
+        manifest = manifest_path.read_bytes()
+        archived = archive_path.read_bytes()
+    else:
+        if (manifest_path.parent.resolve() != RUNTIME_HISTORY_PACK.parent.resolve()
+                or archive_path.parent.resolve() != RUNTIME_HISTORY_PACK.parent.resolve()
+                or manifest_path.name != manifest_path.as_posix().rsplit('/', 1)[-1]
+                or archive_path.name != archive_path.as_posix().rsplit('/', 1)[-1]):
+            raise ValueError("archived_history_location_mismatch")
+        packed = RUNTIME_HISTORY_PACK.read_bytes()
+        if hashlib.sha256(packed).hexdigest() != RUNTIME_HISTORY_SHA256:
+            raise ValueError("archived_history_pack_changed")
+        with zipfile.ZipFile(io.BytesIO(packed)) as container:
+            names = container.namelist()
+            if len(names) != len(set(names)) or set(names) != {
+                    'index.json', 'blocks.bin', 'references.bin', 'manifests.bin'}:
+                raise ValueError("archived_history_pack_members_mismatch")
+            index = json.loads(container.read('index.json'), object_pairs_hook=_history_json_unique)
+            if (type(index) is not dict or set(index) != {'schema', 'block_sha256', 'versions'}
+                    or index['schema'] != 'privesc-exact-history-v1'
+                    or type(index['block_sha256']) is not list
+                    or type(index['versions']) is not dict or len(index['versions']) != 126):
+                raise ValueError("archived_history_pack_index_mismatch")
+            for archive_name, version in index['versions'].items():
+                if (type(archive_name) is not str or '/' in archive_name or '\\' in archive_name
+                        or not archive_name.endswith('.tar.gz') or type(version) is not dict
+                        or type(version.get('manifest_name')) is not str
+                        or '/' in version['manifest_name'] or '\\' in version['manifest_name']
+                        or not version['manifest_name'].endswith('.json')):
+                    raise ValueError("archived_history_pack_index_mismatch")
+            blocks = container.read('blocks.bin')
+            refs = container.read('references.bin')
+            manifests = container.read('manifests.bin')
+        hashes = index['block_sha256']
+        if (len(blocks) != 512 * len(hashes) or len(hashes) > 65536
+                or any(type(digest) is not str or len(digest) != 64
+                       or hashlib.sha256(blocks[i*512:(i+1)*512]).hexdigest() != digest
+                       for i, digest in enumerate(hashes))):
+            raise ValueError("archived_history_block_mismatch")
+        row = index['versions'].get(archive_path.name)
+        if (type(row) is not dict or set(row) != {'archive_sha256', 'manifest_name',
+                'manifest_sha256', 'header', 'trailer', 'tar_size', 'reference_offset',
+                'reference_count', 'manifest_offset', 'manifest_size'}
+                or row['archive_sha256'] != archive_digest
+                or row['manifest_name'] != manifest_path.name
+                or row['manifest_sha256'] != manifest_digest):
+            raise ValueError("archived_history_identity_mismatch")
+        offset, count = row['reference_offset'], row['reference_count']
+        moffset, msize = row['manifest_offset'], row['manifest_size']
+        if (type(offset) is not int or type(count) is not int or count < 1
+                or offset < 0 or offset + count * 2 > len(refs)
+                or type(moffset) is not int or type(msize) is not int
+                or moffset < 0 or msize < 1 or moffset + msize > len(manifests)
+                or row['tar_size'] != count * 512):
+            raise ValueError("archived_history_offset_mismatch")
+        recovered_manifest = manifests[moffset:moffset+msize]
+        ids = struct.unpack_from('<' + 'H' * count, refs, offset)
+        if any(i >= len(hashes) for i in ids):
+            raise ValueError("archived_history_reference_mismatch")
+        raw_tar = b''.join(blocks[i*512:(i+1)*512] for i in ids)
+        header = base64.b64decode(row['header'], validate=True)
+        trailer = base64.b64decode(row['trailer'], validate=True)
+        compressor = zlib.compressobj(9, zlib.DEFLATED, -15)
+        recovered_archive = header + compressor.compress(raw_tar) + compressor.flush() + trailer
+        manifest = manifest_path.read_bytes() if manifest_path.exists() else recovered_manifest
+        archived = archive_path.read_bytes() if archive_path.exists() else recovered_archive
+    if (hashlib.sha256(manifest).hexdigest() != manifest_digest
+            or hashlib.sha256(archived).hexdigest() != archive_digest):
+        raise ValueError("archived_current_changed")
+    return manifest, archived
+
+
 def _verified_archived_current(manifest_path, archive_path, manifest_digest, archive_digest,
                                tree_digest, entry_count, excluded_count):
-    if _sha(manifest_path) != manifest_digest or _sha(archive_path) != archive_digest:
-        raise ValueError("archived_current_changed")
-    wanted = json.loads(manifest_path.read_text())["sha256"]
+    manifest, archived = _history_original_pair(
+        manifest_path, archive_path, manifest_digest, archive_digest)
+    wanted = json.loads(manifest)["sha256"]
     actual, entries, excluded = {}, {}, 0
-    with tarfile.open(archive_path, "r:gz") as archive:
+    with tarfile.open(fileobj=io.BytesIO(archived), mode="r:gz") as archive:
         for member in archive:
             if not member.isfile() or not member.name.startswith("catalog/"):
                 raise ValueError("archived_current_path_mismatch")
@@ -1987,11 +2078,11 @@ def _verified_archived_current(manifest_path, archive_path, manifest_digest, arc
 @lru_cache(maxsize=1)
 def _verified_prior():
     """Read the exact previous catalog so old report bindings keep their meanings."""
-    if _sha(PRIOR_SOURCE_MANIFEST) != PRIOR_CURRENT_MANIFEST:
-        raise ValueError("prior_catalog_manifest_mismatch")
-    wanted = json.loads(PRIOR_SOURCE_MANIFEST.read_text())["sha256"]
+    manifest, archived = _history_original_pair(PRIOR_SOURCE_MANIFEST, PRIOR_CATALOG_ARCHIVE,
+                                                PRIOR_CURRENT_MANIFEST, PRIOR_CATALOG_ARCHIVE_SHA256)
+    wanted = json.loads(manifest)["sha256"]
     actual, entries, excluded = {}, {}, 0
-    with tarfile.open(PRIOR_CATALOG_ARCHIVE, "r:gz") as archive:
+    with tarfile.open(fileobj=io.BytesIO(archived), mode="r:gz") as archive:
         for member in archive:
             if not member.isfile():
                 continue

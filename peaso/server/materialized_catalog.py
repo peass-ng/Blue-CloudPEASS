@@ -27,6 +27,10 @@ SOURCE_PATHS = frozenset({'peaso/rulepacks/native_catalog.json',
     'peaso/rulepacks/catalog_summary.json', 'peaso/checks/native_only.json',
     'peaso/privesc/versioned_catalog.py', 'peaso/privesc/schema.py',
     'risk_rules/hacktricks-privesc-source.json'})
+# These reviewed build inputs are intentionally absent from the API package.
+# Their exact identities remain frozen in the catalog manifest and envelope.
+ENGINE_ONLY_SOURCES = frozenset({'peaso/privesc/versioned_catalog.py',
+    'peaso/privesc/schema.py', 'risk_rules/hacktricks-privesc-source.json'})
 
 
 def _encoded(value):
@@ -83,8 +87,11 @@ def _load():
                 or not 0 < manifest['uncompressed_bytes'] <= MAX_DOCUMENT_BYTES):
             raise ValueError('catalog manifest schema')
         for relative, expected in manifest['sources'].items():
-            if _digest_file(ROOT.parent / relative) != expected:
+            source_path = ROOT.parent / relative
+            if source_path.exists() and _digest_file(source_path) != expected:
                 raise ValueError('catalog source generation mismatch')
+            if not source_path.exists() and relative not in ENGINE_ONLY_SOURCES:
+                raise ValueError('catalog source missing')
         path = PACK / 'api_catalog.json.gz'
         if not 0 < path.stat().st_size <= MAX_COMPRESSED_BYTES:
             raise ValueError('compressed catalog budget')
@@ -126,22 +133,15 @@ def _load():
             raise ValueError('catalog view parity')
         if any(not wire_fits(_encoded(value[name])) for name in ('summary', 'frameworks')):
             raise ValueError('compact catalog wire budget')
-        # Verify the exact build-time privilege catalog without importing its
-        # YAML/schema/evaluator code at API request time.
+        # The API package has no privilege YAML tree. The materialized display
+        # index pins the same current binding and verifies its own bytes.
         binding = full['privesc_catalog']
         privesc_source = 'risk_rules/hacktricks-privesc-source.json'
         if binding['manifest_sha256'] != manifest['sources'][privesc_source]:
             raise ValueError('privilege catalog manifest binding')
-        privesc_manifest = _json((ROOT.parent / privesc_source).read_bytes())
-        catalog_root = ROOT / 'privesc/catalog'
-        paths = sorted(catalog_root.rglob('*.yaml'))
-        if len(paths) > 2048 or sum(path.stat().st_size for path in paths) > 16 * 1024 * 1024:
-            raise ValueError('privilege catalog source budget')
-        actual = {path.relative_to(catalog_root).as_posix(): _digest_file(path) for path in paths}
-        tree = ''.join(name + ' ' + actual[name] + '\n' for name in sorted(actual))
-        if (actual != privesc_manifest['sha256']
-                or hashlib.sha256(tree.encode()).hexdigest() != binding['effective_tree_sha256']):
-            raise ValueError('privilege catalog tree binding')
+        from .privesc_display_catalog import current_binding
+        if binding != current_binding(manifest):
+            raise ValueError('privilege catalog display binding')
         if (not isinstance(value['descriptions'], dict)
                 or not isinstance(value['framework_expansion'], dict)
                 or not isinstance(value['framework_display'], dict)

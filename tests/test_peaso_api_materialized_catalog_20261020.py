@@ -158,20 +158,16 @@ def test_fresh_mangum_blocks_all_native_imports_and_outbound_calls(scenario):
     assert proof['body_bytes'] <= runtime.MAX_WIRE_BYTES and proof['mangum_envelope_bytes'] <= 6 * 1024 * 1024
 
 
-def test_privesc_catalog_change_invalidates_materialized_generation(tmp_path, monkeypatch):
-    # A private miniature source root proves even an added YAML file fails the
-    # existing exact manifest/tree binding; production inputs stay read-only.
-    for relative in runtime.SOURCE_PATHS:
+def test_api_catalog_uses_frozen_privilege_identity_without_yaml_tree(tmp_path, monkeypatch):
+    # The API release packages reviewed source identities and display bytes,
+    # but omits the engine's YAML tree and history archives.
+    for relative in runtime.SOURCE_PATHS - runtime.ENGINE_ONLY_SOURCES:
         path = tmp_path / relative
         path.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(ROOT / relative, path)
-    shutil.copytree(ROOT / 'peaso/privesc/catalog', tmp_path / 'peaso/privesc/catalog')
-    (tmp_path / 'peaso/privesc/catalog/unreviewed.yaml').write_text('unreviewed: true')
     runtime._load.cache_clear()
     monkeypatch.setattr(runtime, 'ROOT', tmp_path / 'peaso')
     try:
-        with pytest.raises(HTTPException) as rejected:
-            runtime.summary()
-        assert rejected.value.status_code == 503
+        assert runtime.summary()['privesc_catalog'] == runtime._load()['full']['privesc_catalog']
     finally:
         runtime._load.cache_clear()

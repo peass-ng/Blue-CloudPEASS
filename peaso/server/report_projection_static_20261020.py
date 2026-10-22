@@ -1,17 +1,12 @@
-"""API report projections copied exactly from the reviewed engine source.
+"""API report projections over archived report fields.
 
-These functions use archived report fields and tenant-bound public catalog
-lookups. They never import the engine, checks registry, or analysis package.
-SOURCE_SHA256 records the source generation; focused tests bind both that
-identity and the function ASTs to the real engine in a separate process.
+Non-privilege helpers retain reviewed engine behavior. Privilege details come
+from a build-verified API display index with exact tenant-bound catalog
+lookups. Request handling never imports the engine or checks registry.
 """
 import copy
 
-SOURCE_SHA256 = {'peaso/engine.py': '8e00227aa81c91869e025f7f4c18426e6a2383c3eff05ae7d904fd63c34bfe5b',
- 'peaso/privesc/schema.py': '6de9324c85af2bd58d1e2feab6cf255b4b2c2f17704668371c8cc4fcad2de674',
- 'peaso/privesc/versioned_catalog.py': 'b14f581917d7c626600cf9ebb0eecfec69f2055787efaa143bda0faff7683b36',
- 'peaso/privesc/effective_permissions/principal_evidence.py': '2c4bd5e2e2fa33db271b963387787003a42e1c741dad27b22e7b37f23fc2f7e3',
- 'peaso/privesc/bulk_principal_tranche.json': '6cb1c21ba90b1ae08d0e5671efa373c8711d42cdb97d3f9055f84d3a239428a8',
+SOURCE_SHA256 = {'peaso/engine.py': '23aaa0374c25931d54b24fc935ea837b8185dc555aa0bf88bab7c5d976ce4b70',
  'peaso/remediation.py': '32cec77aafda1498ff57831c11756c195985d8a26a02fc30879e232cf446081b'}
 
 
@@ -77,33 +72,18 @@ def _required_permissions(requires):
 
 def privesc_technique_details(technique_ids, *, catalog_binding=None, tenant_id=None):
     """Catalog details (summary, required permissions, HackTricks source, conditions, mitigation) per technique id."""
-    try:
-        from peaso.privesc.versioned_catalog import lookup_entries
-        entries, lookup_status = lookup_entries(technique_ids, catalog_binding, tenant_id=tenant_id)
-    except ImportError:
-        entries, lookup_status = {}, "catalog_unavailable"
+    from .privesc_display_catalog import lookup_details
+    entries, lookup_status = lookup_details(technique_ids, catalog_binding, tenant_id=tenant_id)
     details = {}
     for technique in technique_ids:
         if technique == "admin-equivalent" and lookup_status in ("exact_bounded_v5", "exact_additive_v4", "exact_legacy", "legacy_unversioned_fallback"):
             details[technique] = dict(copy.deepcopy(ADMIN_EQUIVALENT_TECHNIQUE), catalog_lookup_status="synthetic")
             continue
-        entry = entries.get(technique)
-        if entry is None:
+        detail = entries.get(technique)
+        if detail is None:
             details[technique] = {"id": technique, "unknown": True, "catalog_lookup_status": lookup_status}
             continue
-        requires = entry.get("requires") or {}
-        from peaso.privesc.effective_permissions.principal_evidence import BULK_CONTRACT
-        if technique in BULK_CONTRACT:
-            requires = BULK_CONTRACT[technique]["requires"]
-        details[technique] = {
-            "id": technique, "title": entry.get("title"), "provider": entry.get("provider"), "service": entry.get("service"),
-            "summary": entry.get("summary"), "requires": copy.deepcopy(requires),
-            "required_permissions": _required_permissions(requires),
-            "source": entry.get("source"), "source_revision": entry.get("source_revision"),
-            "conditions": copy.deepcopy(entry.get("conditions") or []), "blockers": list(entry.get("blockers") or []),
-            "severity": entry.get("severity"), "catalog_confidence": entry.get("confidence"),
-            "mitigation": entry.get("mitigation"), "references": list(entry.get("references") or []),
-            "catalog_lookup_status": lookup_status}
+        details[technique] = detail
     return details
 
 
