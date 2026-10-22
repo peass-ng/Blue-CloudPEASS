@@ -23,6 +23,21 @@ def test_previous_aws_audit_binding_keeps_its_original_entries():
     assert len(catalog._verified_final_aws_audit_691_previous()) == 691
 
 
+def test_source_repin_keeps_previous_700_entry_meanings():
+    ident = "aws-cloudcontrol-passrole-createresource"
+    current, status = catalog.lookup_entries([ident], catalog.current_binding())
+    assert status == "exact_strict_privesc"
+    assert current[ident]["source_revision"] == "9e5d46375b53cbd2d0cdce63771f3e36f0c30bae"
+    old = {"schema": catalog.BINDING_SCHEMA,
+           "manifest_sha256": catalog.SOURCE_REPIN_700_PREVIOUS_MANIFEST,
+           "effective_tree_sha256": catalog.SOURCE_REPIN_700_PREVIOUS_TREE,
+           "source_revision": catalog.V4_REVISION}
+    previous, status = catalog.lookup_entries([ident], old)
+    assert status == "exact_previous_current"
+    assert previous[ident]["source_revision"] == "171e422299"
+    assert len(catalog._verified_source_repin_700_previous()) == 700
+
+
 def test_stepfunctions_passrole_service_binding_preserves_previous_catalog():
     ids = ["aws-stepfunctions-createstatemachine-passrole-start",
            "aws-stepfunctions-updatestatemachine-passrole"]
@@ -196,7 +211,11 @@ def test_agentcore_existing_binding_preserves_previous_catalog():
            "effective_tree_sha256": catalog.AGENTCORE_EXISTING_690_PREVIOUS_TREE,
            "source_revision": catalog.V4_REVISION}
     previous, status = catalog.lookup_entries([ident], old)
-    assert status == "exact_previous_current" and previous[ident] == current[ident]
+    assert status == "exact_previous_current"
+    assert previous[ident]["source_revision"] == "6fb9ac51fd"
+    assert current[ident]["source_revision"] == "9e5d46375b53cbd2d0cdce63771f3e36f0c30bae"
+    assert {key: value for key, value in previous[ident].items() if key != "source_revision"} == {
+        key: value for key, value in current[ident].items() if key != "source_revision"}
     assert len(catalog._verified_agentcore_existing_690_previous()) == 690
 
 
