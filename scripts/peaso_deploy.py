@@ -261,6 +261,8 @@ REPRODUCTION_INPUT_PATTERNS = (
     'tests/test_incremental_ready_reads_20261022.py',
     'tests/test_scan_section_batches_20261022.py',
     'tests/test_progressive_analyzer_20261022.py',
+    'tests/test_ai_section_concurrency_20261022.py',
+    'tests/test_private_receipt_compaction_20261022.py',
     'tests/test_least_privilege_permissions.py',
     'tests/provider_group_catalog_history_20261021.py',
     'tests/fixtures/provider_group_catalog_history_20261021.json.gz',

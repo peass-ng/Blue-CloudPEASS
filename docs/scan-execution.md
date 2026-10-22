@@ -17,6 +17,11 @@ section is complete. Their outputs are saved separately from advancing native
 reports. Top 15 Actions waits for the reviews it uses. Final analysis reuses
 completed reviews only when their section revision and finding inputs match.
 AI tools remain isolated and receive only the captured, scoped cloud access.
+The progressive analyzer admits up to two sections concurrently. Each section
+uses the memory-aware review pool (two batches by default, up to 40 findings per
+batch), allowing up to four simultaneous AI agents per scan.
+`PEASO_AI_MAX_CONCURRENCY` sets the per-section limit from one to six; available
+task memory can reduce admission. Top 15 runs after its prerequisite reviews.
 
 The UI and the normal authenticated scan APIs expose saved results while other
 sections are running. Saved partial results remain available after a later

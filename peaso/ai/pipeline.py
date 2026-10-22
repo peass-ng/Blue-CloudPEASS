@@ -358,10 +358,10 @@ def review_batches(report, inventory_by_id, entries, token, hardening, exposure,
             output[stage].append((offset, rows))
 
     tasks = iter(batches())
-    # The progressive watcher can run two sections at once. Keep each
-    # single-section invocation to one slot so their combined admission stays
-    # within the usual two-agent default rather than multiplying two pools.
-    slots = min(1, review_concurrency()) if len(stages) == 1 else review_concurrency()
+    # Each section uses the existing bounded, memory-aware review pool. A
+    # remaining large section can keep using both default slots after another
+    # section finishes, rather than being forced into serial review batches.
+    slots = review_concurrency()
     if slots:
         with ThreadPoolExecutor(max_workers=slots, thread_name_prefix='cspm-ai') as executor:
             pending = {}
