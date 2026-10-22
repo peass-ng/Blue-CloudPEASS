@@ -268,6 +268,21 @@ def _tar_members(path, nodes, count, check, layer_index, path_budget):
                 name = pending.get('path', global_pax.get('path', member.name))
                 linkname = pending.get('linkpath', global_pax.get('linkpath', member.linkname))
                 pending = {}
+                # GNU/Debian image layers commonly use './' and a root directory
+                # marker. Canonicalize only that leading prefix, before duplicate
+                # and traversal checks; never extract or create the root marker.
+                require(type(name) is str and bool(name) and len(name.encode('utf-8')) <= MAX_PATH,
+                        'image_path_bound')
+                while name.startswith('./'):
+                    name = name[2:]
+                if name in ('', '.'):
+                    require(member.type == tarfile.DIRTYPE and member.size == 0 and not linkname,
+                            'unsafe_image_path')
+                    require('.' not in seen, 'duplicate_tar_member')
+                    seen.add('.')
+                    count += 1
+                    require(count <= MAX_MEMBERS, 'tar_member_bound')
+                    continue
                 require(name and not name.startswith('/') and '\\' not in name and
                         all(part not in ('', '.', '..') for part in name.rstrip('/').split('/')),
                         'unsafe_image_path')
