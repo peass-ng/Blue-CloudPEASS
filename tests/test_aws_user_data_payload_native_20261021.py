@@ -39,7 +39,7 @@ def test_gzip_mime_literal_reaches_existing_native_secret_indicator(encoded):
     assert 'SyntheticPassword907!' not in repr(observed)
 
 
-@pytest.mark.parametrize('wire', [b'\x1f\x8bmalformed', gzip.compress(b'x')[:-1],
+@pytest.mark.parametrize('wire', [b'\x1f\x8bmalformed', gzip.compress(b'x', mtime=0)[:-1],
     multipart([b'Content-Type: text/plain\r\nContent-Transfer-Encoding: base64\r\n\r\n@@@'])])
 def test_bad_payload_uses_existing_readfailure_boundary(wire):
     with pytest.raises(aws.ReadFailure):

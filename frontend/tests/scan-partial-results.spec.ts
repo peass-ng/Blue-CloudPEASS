@@ -18,6 +18,8 @@ for (const status of ['collecting', 'timed_out']) {
     await expect(page.getByText(status === 'collecting' ? 'Assessment in progress' : 'Saved partial results', { exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'View partial', exact: true }).click();
     await expect(page).toHaveURL(/Hardening/);
-    await expect(page.getByText('Completed evidence and findings are available. Coverage is still incomplete.')).toBeVisible();
+    await expect(page.getByText('Assessment in progress', { exact: true })).toHaveCount(0);
+    await expect(page.getByText('Saved partial results', { exact: true })).toHaveCount(0);
+    await expect(page.getByText('Completed evidence and findings are available. Coverage is still incomplete.')).toHaveCount(0);
   });
 }
