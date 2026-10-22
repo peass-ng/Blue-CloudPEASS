@@ -1250,11 +1250,24 @@ def test_servicecatalog_associate_principal_needs_the_launch_roles_portfolio():
     prov = allow("servicecatalog:CreateProvisioningArtifact", "servicecatalog:ProvisionProduct")
     alice = user("alice", allow("servicecatalog:AssociatePrincipalWithPortfolio", resource=PORTFOLIO), prov)
     snap = aws_snap([alice], roles, [col("servicecatalog_portfolio", [sc_portfolio()])])
-    assert set(reached(real(snap, tid), ALICE)) == {role_arn("launch")}
+    result = real(snap, tid, include_unknown=True)
+    assert role_arn("launch") not in reached(result, ALICE, tid)
+    assert_unresolved(result, ALICE, tid)
     wrong = user("alice", allow("servicecatalog:AssociatePrincipalWithPortfolio",
                                 resource=f"arn:aws:catalog:{REGION}:{ACCOUNT}:portfolio/port-2"), prov)
     assert edges(real(aws_snap([wrong], roles, [col("servicecatalog_portfolio", [sc_portfolio()])]), tid), ALICE) == []
     assert_unresolved(real(aws_snap([alice], roles), tid, include_unknown=True), ALICE)
+
+
+def test_servicecatalog_create_artifact_does_not_prove_launch_role_effect():
+    tid = "aws-servicecatalog-createprovisioningartifact-provisionproduct"
+    alice = user("alice", allow("servicecatalog:CreateProvisioningArtifact",
+                                "servicecatalog:ProvisionProduct"))
+    target = role("launch", "servicecatalog.amazonaws.com", allow("iam:CreateRole"))
+    snap = aws_snap([alice], [target], [col("servicecatalog_portfolio", [sc_portfolio()])])
+    result = real(snap, tid, include_unknown=True)
+    assert target["Arn"] not in reached(result, ALICE, tid)
+    assert_unresolved(result, ALICE, tid)
 
 
 def test_pca_connector_ad_template_chain_is_an_unresolved_domain_admin_target():

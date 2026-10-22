@@ -7795,6 +7795,12 @@ class AwsModel(Model):
             # compatible. Neither fact follows from the two caller grants.
             return {tid: ("unknown", "stepfunctions_teststate_role_task_effect_not_verified")
                     for tid in candidates}
+        if pid == "servicecatalog_new_artifact_effect_unverified":
+            # The launch constraint identifies a role, but does not establish
+            # that this account owns the product, the source can use its
+            # portfolio, or a controlled template will grant any new authority.
+            return {tid: ("unknown", "servicecatalog_owned_product_template_and_role_effect_not_verified")
+                    for tid in candidates}
         if pid == "ec2_runinstances_launch_with_passed_profile_unverified":
             if source is None:
                 return None

@@ -54,6 +54,23 @@ def test_organizations_generated_access_role_binding_preserves_previous_catalog(
     assert len(catalog._verified_org_access_role_689_previous()) == 689
 
 
+def test_servicecatalog_artifact_effect_binding_preserves_previous_catalog():
+    ids = ("aws-servicecatalog-createprovisioningartifact-provisionproduct",
+           "aws-servicecatalog-associateprincipal-createartifact-provision")
+    current, status = catalog.lookup_entries(ids, catalog.current_binding())
+    assert status == "exact_strict_privesc"
+    assert all("servicecatalog_new_artifact_effect_unverified" in current[ident]["preconditions"]
+               for ident in ids)
+    old = {"schema": catalog.BINDING_SCHEMA,
+           "manifest_sha256": catalog.SERVICECATALOG_EFFECT_689_PREVIOUS_MANIFEST,
+           "effective_tree_sha256": catalog.SERVICECATALOG_EFFECT_689_PREVIOUS_TREE,
+           "source_revision": catalog.V4_REVISION}
+    previous, status = catalog.lookup_entries(ids, old)
+    assert status == "exact_previous_current" and set(previous) == set(ids)
+    assert all("preconditions" not in previous[ident] for ident in ids)
+    assert len(catalog._verified_servicecatalog_effect_689_previous()) == 689
+
+
 def test_deadline_queue_binding_preserves_previous_catalog():
     ident = "aws-deadline-existing-queue-role-vend"
     current, status = catalog.lookup_entries([ident], catalog.current_binding())
