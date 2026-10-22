@@ -12,6 +12,30 @@ def test_current_catalog_binding_resolves_new_technique():
     assert set(entries) == {"aws-flink-studio-presigned-url"}
 
 
+def test_stepfunctions_passrole_service_binding_preserves_previous_catalog():
+    ids = ["aws-stepfunctions-createstatemachine-passrole-start",
+           "aws-stepfunctions-updatestatemachine-passrole"]
+    current, status = catalog.lookup_entries(ids, catalog.current_binding())
+    assert status == "exact_strict_privesc"
+    for ident in ids:
+        passrole = next(req for req in current[ident]["requires"]["all_of"]
+                        if req["action"] == "iam:PassRole")
+        assert passrole["request_context"] == {"iam:PassedToService": "states.amazonaws.com"}
+
+    old = {"schema": catalog.BINDING_SCHEMA,
+           "manifest_sha256": catalog.STEPFUNCTIONS_PASSROLE_689_PREVIOUS_MANIFEST,
+           "effective_tree_sha256": catalog.STEPFUNCTIONS_PASSROLE_689_PREVIOUS_TREE,
+           "source_revision": catalog.V4_REVISION}
+    previous, status = catalog.lookup_entries(ids, old)
+    assert status == "exact_previous_current"
+    assert set(previous) == set(ids)
+    for ident in ids:
+        passrole = next(req for req in previous[ident]["requires"]["all_of"]
+                        if req["action"] == "iam:PassRole")
+        assert "request_context" not in passrole
+    assert len(catalog._verified_stepfunctions_passrole_689_previous()) == 689
+
+
 def test_deadline_queue_binding_preserves_previous_catalog():
     ident = "aws-deadline-existing-queue-role-vend"
     current, status = catalog.lookup_entries([ident], catalog.current_binding())

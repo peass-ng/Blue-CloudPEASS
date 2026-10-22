@@ -396,6 +396,30 @@ def test_stepfunctions_teststate_needs_a_supported_role_task_witness():
                        wrong_service["Arn"], technique)
 
 
+def test_stepfunctions_create_and_update_passrole_use_states_service_context():
+    execution_role = role("execution", "states.amazonaws.com", allow("iam:AttachUserPolicy"))
+    techniques = ("aws-stepfunctions-createstatemachine-passrole-start",
+                  "aws-stepfunctions-updatestatemachine-passrole")
+    for technique in techniques:
+        def caller(service):
+            return user("caller", {"Effect": "Allow", "Action": "iam:PassRole",
+                                   "Resource": role_arn("execution"),
+                                   "Condition": {"StringEquals": {"iam:PassedToService": service}}},
+                        allow("states:CreateStateMachine", "states:StartExecution",
+                              "states:UpdateStateMachine"))
+
+        right = caller("states.amazonaws.com")
+        right_result = real(aws_snap([right], [execution_role]), technique, include_unknown=True)
+        if technique == "aws-stepfunctions-createstatemachine-passrole-start":
+            assert execution_role["Arn"] in reached(right_result, right["Arn"], technique)
+        else:
+            assert_unresolved(right_result, right["Arn"], technique)
+
+        wrong = caller("lambda.amazonaws.com")
+        wrong_result = real(aws_snap([wrong], [execution_role]), technique)
+        assert not reached(wrong_result, wrong["Arn"], technique)
+
+
 def test_stepfunctions_teststate_prior_binding_keeps_previous_route():
     from peaso.privesc import versioned_catalog as catalog
 
