@@ -1466,7 +1466,7 @@ def test_sqs_queue_policy_self_grant_requires_new_effective_receive_permission()
     queue_url = f"https://sqs.{REGION}.amazonaws.com/{ACCOUNT}/sensitive"
 
     def evaluate(*, grants=(), encryption="", queue_policy=None, details="collected", writer_resource=None,
-                 queue_location=queue_url, boundary_deny=None):
+                 queue_location=queue_url, boundary_deny=None, key_policy=None, key_status="collected"):
         attrs = {"QueueArn": queue_arn, "KmsMasterKeyId": encryption}
         if queue_policy is not None:
             attrs["Policy"] = queue_policy
@@ -1476,7 +1476,13 @@ def test_sqs_queue_policy_self_grant_requires_new_effective_receive_permission()
         if boundary_deny is not None:
             boundary_arn = f"arn:aws:iam::{ACCOUNT}:policy/sqs-boundary"
             caller["PermissionsBoundary"] = {"PermissionsBoundaryArn": boundary_arn}
-        snap = aws_snap([caller], [], [col("sqs_queue", [queue])])
+        extra = [col("sqs_queue", [queue])]
+        if key_policy is not None:
+            key_arn = f"arn:aws:kms:{REGION}:{ACCOUNT}:key/12345678-1234-1234-1234-123456789012"
+            extra.append(col("kms_key", [{"KeyId": key_arn.rsplit("/", 1)[1], "KeyArn": key_arn,
+                "Metadata": {"collection_status": key_status, "KeyMetadata": {"Arn": key_arn}},
+                "Policy": {"collection_status": key_status, "Policy": key_policy}}]))
+        snap = aws_snap([caller], [], extra)
         if boundary_deny is not None:
             statements = [allow("sqs:SetQueueAttributes", resource=queue_arn)]
             if boundary_deny:
@@ -1514,7 +1520,14 @@ def test_sqs_queue_policy_self_grant_requires_new_effective_receive_permission()
     assert len(evaluate(queue_policy=account_delegation)) == 1
     assert evaluate(encryption=None) == []
     assert evaluate(encryption="alias/aws/sqs") == []
-    assert evaluate(encryption=f"arn:aws:kms:{REGION}:{ACCOUNT}:key/12345678-1234-1234-1234-123456789012") == []
+    key_arn = f"arn:aws:kms:{REGION}:{ACCOUNT}:key/12345678-1234-1234-1234-123456789012"
+    decrypt_policy = policy({"Effect": "Allow", "Principal": {"AWS": ALICE},
+                             "Action": "kms:Decrypt", "Resource": "*"})
+    assert evaluate(encryption=key_arn) == []
+    assert len(evaluate(encryption=key_arn, key_policy=decrypt_policy)) == 1
+    assert len(evaluate(encryption=key_arn.rsplit("/", 1)[1], key_policy=decrypt_policy)) == 1
+    assert evaluate(encryption=key_arn, key_policy=decrypt_policy, key_status="access_denied") == []
+    assert evaluate(encryption=key_arn, key_policy=policy()) == []
     assert evaluate(details="access_denied") == []
 
 

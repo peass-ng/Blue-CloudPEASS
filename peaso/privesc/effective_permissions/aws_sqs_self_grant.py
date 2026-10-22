@@ -8,6 +8,29 @@ from urllib.parse import urlparse
 from . import Grant, Node, inventory_status, items
 
 _QUEUE = re.compile(r"arn:(aws|aws-cn|aws-us-gov):sqs:([^:]+):(\d{12}):([^:*?\s]+)")
+_KMS_KEY = re.compile(r"arn:(aws|aws-cn|aws-us-gov):kms:([^:]+):(\d{12}):key/([^:*?\s]+)")
+
+
+def _collected_kms_key(model, scope, identifier):
+    """Resolve only a key whose exact ARN and policy are in the same regional inventory."""
+    if inventory_status(model.snapshot, "kms_key").get(scope) != "collected":
+        return None
+    for key_scope, key in items(model.snapshot, "kms_key"):
+        if key_scope != scope or not isinstance(key, dict):
+            continue
+        metadata = key.get("Metadata") or {}
+        policy = key.get("Policy") or {}
+        arn = key.get("KeyArn") or (metadata.get("KeyMetadata") or {}).get("Arn")
+        match = _KMS_KEY.fullmatch(arn) if isinstance(arn, str) else None
+        if (not match or key_scope != f"{match.group(3)}/{match.group(2)}" or
+                key.get("KeyId") != match.group(4) or
+                metadata.get("collection_status") != "collected" or
+                policy.get("collection_status") != "collected" or
+                arn not in model.resource_policies):
+            continue
+        if identifier in (arn, key.get("KeyId")):
+            return arn
+    return None
 
 
 def load(model):
@@ -34,14 +57,22 @@ def load(model):
                 not (queue_url.hostname or "").startswith(f"sqs.{match.group(2)}.") or
                 not (queue_url.hostname or "").endswith((".amazonaws.com", ".amazonaws.com.cn"))):
             continue
-        # SSE-KMS needs a separate exact Decrypt authorization, including for an AWS-managed key.
-        if attrs.get("KmsMasterKeyId") != "":
+        # A configured KMS key must be resolved to its collected policy and exact ARN.
+        # Aliases and unavailable key policies remain unresolved.
+        key_id = attrs.get("KmsMasterKeyId")
+        if key_id is None:
+            continue
+        kms_arn = _collected_kms_key(model, scope, key_id) if key_id else None
+        if key_id and kms_arn is None:
             continue
         for source in model.principals.values():
             if source.kind != "aws_user" or source.scope != match.group(3) or source.incomplete:
                 continue
             writer = model._check_action(source, "sqs:setqueueattributes", arn)
             if writer is None or writer.confidence != "derived":
+                continue
+            decrypt = model._check_action(source, "kms:decrypt", kms_arn) if kms_arn else None
+            if kms_arn and (decrypt is None or decrypt.confidence != "derived"):
                 continue
             if model._check_action(source, "sqs:receivemessage", arn) is not None:
                 continue
@@ -87,5 +118,6 @@ def load(model):
                                     attrs={"account": source.scope, "arn": arn, "resource_arn": arn,
                                            "source_id": source.id}, entity=True)
             records[target_id] = {"SourceArn": source.id, "QueueArn": arn,
-                                  "WriterGrant": writer, "QueueUrl": queue["QueueUrl"]}
+                                  "WriterGrant": writer, "QueueUrl": queue["QueueUrl"],
+                                  **({"KmsKeyArn": kms_arn, "DecryptGrant": decrypt} if kms_arn else {})}
     return nodes, records

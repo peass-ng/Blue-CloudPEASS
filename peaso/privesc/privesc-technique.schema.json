@@ -646,7 +646,7 @@
                 },
                 "aws_sqs_policy_self_grant": {
                   "const": true,
-                  "description": "Same-account IAM user can grant itself ReceiveMessage on an exact unencrypted queue through SetQueueAttributes."
+                  "description": "Same-account IAM user can grant itself ReceiveMessage on an exact queue through SetQueueAttributes; an SSE-KMS queue also needs effective Decrypt on its collected key."
                 },
                 "codedeploy_group_instance_role_covered_by": {
                   "description": "Target role is the instance role of a CodeDeploy deployment group covered by the action (not collected).",
