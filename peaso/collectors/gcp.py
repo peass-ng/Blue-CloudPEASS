@@ -1033,6 +1033,7 @@ class GCPCollector:
         from .gcp_appengine_versions import approved_version_maxima
         approved_version_maxima(self.options)
         self.progress_callback = self.options.pop("_progress_callback", None)
+        self.collection_callback = self.options.pop("_collection_callback", None)
         if self.progress_callback is None:
             from peaso.progress import current_callback
             self.progress_callback = current_callback()
@@ -1611,6 +1612,8 @@ class GCPCollector:
                 elif output:
                     envelope["status"] = envelope["coverage_status"] = "collected"
             self.collections[key] = envelope
+        from peaso.collection_events import emit_collection
+        emit_collection(self.collection_callback, envelope)
         self.progress(scope=scope)
         return envelope
 

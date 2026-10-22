@@ -162,19 +162,48 @@ def project_response(response, service, operation, arguments, *, request_context
             if value['nextToken'] is not None and not _text(value['nextToken'], 1024):
                 raise ValueError()
             remaining = request_context['remaining_bytes']
+            from peaso.secret_scanning import prepared_content_batch, scan_content
+            pending = []
+            def flush():
+                nonlocal pending
+                if not pending:
+                    return
+                batch, pending = pending, []
+                # Preparation stages only already-admitted message bytes in
+                # volatile tmpfs. Each original event still enters the normal
+                # scanner with its own thread-local source context.
+                with prepared_content_batch([(payload, 'log-message')
+                                             for _, message, payload, _ in batch], timeout=60):
+                    for timestamp, message, payload, row in batch:
+                        outcome = scan_with_source(scan_content, payload, 'log-message', source={
+                            'path': arguments['logGroupName'], 'scope': region,
+                            'source': json.dumps({**{k: arguments[k] for k in ('logGroupName', 'logStreamName')
+                                                       if k in arguments},
+                                                  **{k: row[k] for k in ('timestamp', 'eventId', 'logStreamName')
+                                                     if k in row}}),
+                            'location_kind': 'log'})
+                        value['events'].append({'timestamp': timestamp, 'size': len(payload),
+                            'readable': True, 'leaks': outcome['leaks'],
+                            'scanner_complete': outcome['complete'],
+                            'categories': sorted(set(_categories(message)) |
+                                                 ({'secret'} if outcome['leaks'] else set()))})
             for row in events:
                 timestamp, message = row['timestamp'], row['message']
                 if type(timestamp) is not int or not arguments['startTime'] <= timestamp < arguments['endTime'] or not isinstance(message, str):
                     raise ValueError()
-                size = len(message.encode('utf-8'))
+                payload = message.encode('utf-8')
+                size = len(payload)
                 readable = size <= remaining
-                from peaso.secret_scanning import scan_content
-                outcome = scan_with_source(scan_content, message.encode('utf-8'), 'log-message', source={'path': arguments['logGroupName'], 'scope': region, 'source': json.dumps({**{k: arguments[k] for k in ('logGroupName', 'logStreamName') if k in arguments}, **{k: row[k] for k in ('timestamp', 'eventId', 'logStreamName') if k in row}}), 'location_kind': 'log'}) if readable else {'leaks': [], 'complete': False}
-                value['events'].append({'timestamp': timestamp, 'size': size, 'readable': readable,
-                    'leaks': outcome['leaks'], 'scanner_complete': outcome['complete'],
-                    'categories': sorted(set(_categories(message)) | ({'secret'} if outcome['leaks'] else set())) if readable else []})
                 if readable:
+                    pending.append((timestamp, message, payload, row))
                     remaining -= size
+                    if len(pending) == 32:
+                        flush()
+                else:
+                    flush()
+                    value['events'].append({'timestamp': timestamp, 'size': size, 'readable': False,
+                        'leaks': [], 'scanner_complete': False, 'categories': []})
+            flush()
         return {'binding': binding, 'value': value}
     except (KeyError, TypeError, ValueError, UnicodeError):
         raise ReadFailure('malformed', 'content_response_invalid') from None
@@ -294,6 +323,10 @@ def scan_logs(requests, session, region, item):
                 if readable:
                     scan['inspected_bytes'] += event['size']
                 scan['records'].append({'timestamp': event['timestamp'], 'size': event['size'], 'inspected_bytes': event['size'] if readable else 0, 'readable': readable, 'categories': event['categories'] if readable else [], 'leaks': event.get('leaks', []), 'scanner_complete': event.get('scanner_complete', False)})
+            from peaso.progress import PHASES, emit_progress
+            emit_progress(getattr(requests, 'progress_callback', None),
+                phase='scanning_content' if 'scanning_content' in PHASES else 'collecting',
+                provider='aws', completed=len(scan['records']), total=None, dynamic_total=True)
             token = row['nextToken']
             if token is None:
                 scan['complete'] = all(r['readable'] and r.get('scanner_complete', False) for r in scan['records'])

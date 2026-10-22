@@ -3669,3 +3669,8 @@ main.network-map-page { max-width: none; width: 100%; min-width: 0; }
 .connector-identity h3 { margin: 0 0 6px; font-size: 13px; }
 .connector-identity p { margin: 0; color: var(--muted); font-size: 11px; overflow-wrap: anywhere; }
 .connector-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+
+.scan-section-batches { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 20px; }
+.scan-section-batch { display: inline-flex; align-items: center; gap: 12px; padding: 7px 11px; border: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+.scan-section-batch strong { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; }
+.scan-section-batch.complete strong { color: #a8e2cf; }

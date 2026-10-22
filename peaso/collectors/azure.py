@@ -1898,6 +1898,8 @@ def collect(connector, requirements=None, *, transport=None):
     trusted_scopes = _trusted_scopes(options)
     reader = _Reader(options)
     reader.progress_callback = options.get("_progress_callback")
+    from peaso.collection_events import SettledCollections
+    reader.collections = SettledCollections(options.get("_collection_callback"), deferred={"subscription", "network_interface"})
     reader.progress_provider = "azure"
     reader.progress("discovering")
     credential_context_id = uuid4().hex
@@ -1982,6 +1984,8 @@ def collect(connector, requirements=None, *, transport=None):
                 scopes = scopes[:max_scopes]
                 scopes_limited = True
                 reader.collections[-1].update(status="partial", error={"code": "scope_limit"})
+            from peaso.collection_events import emit_collection
+            emit_collection(options.get('_collection_callback'), reader.collections[-1])
         elif "subscription" in wanted:
             # An explicit scan must not turn a tenant-wide subscription LIST
             # into subjects for checks bound to the selected subscription.

@@ -538,6 +538,11 @@ def _full_selection(provider, categories, selected):
 
 def collect_snapshot(request):
     connector = _request(request)
+    collection_callback = request.get("_collection_callback")
+    if collection_callback is not None:
+        if not callable(collection_callback):
+            raise TypeError("internal collection callback must be callable")
+        connector.setdefault("options", {})["_collection_callback"] = collection_callback
     emit_progress(phase="collecting", provider=connector["provider"], completed=0, total=None, resources=0, dynamic_total=True)
     options = connector.get("options", {})
     if "snapshot" in options:
@@ -547,12 +552,18 @@ def collect_snapshot(request):
         requested = connector.get("scopes", [])
         if requested and requested != snapshot["scopes"]:
             raise ValueError("connector/snapshot scope mismatch")
+        if collection_callback is not None:
+            for collection in snapshot["collections"]:
+                collection_callback(collection)
         emit_progress(phase="collecting", provider=connector["provider"], completed=len(snapshot["collections"]),
                       total=len(snapshot["collections"]), resources=sum(len(c["items"]) for c in snapshot["collections"]), dynamic_total=False)
         return snapshot
     if options.get("demo"):
         from .demo import demo_snapshot
         snapshot = demo_snapshot(connector["provider"])
+        if collection_callback is not None:
+            for collection in snapshot["collections"]:
+                collection_callback(collection)
         emit_progress(phase="collecting", provider=connector["provider"], completed=len(snapshot["collections"]),
                       total=len(snapshot["collections"]), resources=sum(len(c["items"]) for c in snapshot["collections"]), dynamic_total=False)
         return snapshot
@@ -740,6 +751,12 @@ def collect_snapshot(request):
         if PACKAGE_GRANT in connector.get('options', {}):
             return collect_package_pipeline(connector, requirements, request)
     snapshot = validate(collect_live(connector, requirements))
+    if collection_callback is not None:
+        # Provider-specific finalizers and reviewed native aliases may add or
+        # revise envelopes after their scheduler emitted earlier settlements.
+        # The checkpoint session deduplicates unchanged (type, scope) content.
+        for collection in snapshot["collections"]:
+            collection_callback(collection)
     emit_progress(phase="collecting", provider=connector["provider"], completed=len(snapshot["collections"]),
                   total=len(snapshot["collections"]), resources=sum(len(c["items"]) for c in snapshot["collections"]), dynamic_total=False)
     snapshot["metadata"]["collection_plan"] = {"mode": "collect_all" if options.get("collect_all") else "explicit_inventories" if "inventories" in options else "full_default" if _full_selection(connector["provider"], *_selection(connector["provider"], request.get("categories"), request.get("checks"), request.get("frameworks"))) else "dependencies", "requirements": requirements,

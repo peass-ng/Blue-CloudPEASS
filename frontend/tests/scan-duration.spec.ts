@@ -11,6 +11,9 @@ test("duration uses final wall time, including queueing, rather than summed work
   ] })).toBe("Completed in 8m 5s");
   expect(scanDuration({ ...base, updated_at: "2026-10-19T12:34:03Z" })).toBe("Completed in 1h 2m 3s");
   expect(scanDuration({ ...base, status: "failed", updated_at: "2026-10-19T11:32:45Z" })).toBe("Duration: 45s");
+  expect(scanDuration({ ...base, status: "queue_exhausted", timeline: [
+    { status: "queued", at: base.created_at }, { status: "queue_exhausted", at: "2026-10-19T12:32:00Z" },
+  ] })).toBe("Duration: 1h");
 });
 
 test("legacy, running and malformed timestamps do not invent completed durations", () => {

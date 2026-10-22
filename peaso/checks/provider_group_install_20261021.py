@@ -66,7 +66,7 @@ CURRENT_DEPENDENCIES = {'peaso/aws_image_selection_20261021.py': 'd918cbdb2477d7
  'peaso/checks/aws_image_vulnerabilities_20261021.py': 'd0174d668b9f10e679d9fc54c5e0e674cb82ca61daf19b19f850c32be0355674',
  'peaso/collectors/aws_image_vulnerability_native_20261021.py': 'b38a64e8a07eb568cc371f8a337a08e4d2b7c18eab5fb348445c05e43dbf864d',
  'peaso/collectors/aws_image_vulnerability_runtime_20261021.py': '7052fc2bd34a25fb74cbf0e3778a5f921c4f42e828b1c6eb3af5034b3b6c030f',
- 'peaso/collectors/aws_package_content_indicators.py': '75ce96597d017fdd1cd3567a45928ba756997157d4cd9b34ee33cc53cdb068b6',
+ 'peaso/collectors/aws_package_content_indicators.py': '03a62985743638498b5c7c4b8ecdb2e3622ad1209c254b474e1e435b1b4c9dd3',
  'peaso/collectors/gcp_job_image_vulnerability_native_20261021.py': 'de7ff579c5d79bbf9564f3b9c9883e352939e91264ebf6898235e9322cc2c93f',
  'peaso/collectors/gcp_job_image_vulnerability_runtime_20261021.py': '508873aecc2006e1680949ec25ce9a59f5937d4c08c0d2a6e65f456a4e0f2cec',
  'peaso/container_image_archive_20261020.py': 'e0782daf25586a44ee93031dbeb8be39f91655b2a53669e33e56baf8eae3fba8'}

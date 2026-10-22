@@ -1566,6 +1566,9 @@ def collect(connector, requirements=None, *, api=None):
         raise ValueError("max_scopes must be a positive explicit limit")
     scopes = scopes if max_scopes is None else scopes[:max_scopes]
     reader = K8sReader(options)
+    reader.collection_callback = options.get("_collection_callback")
+    from peaso.collection_events import SettledCollections
+    reader.collections = SettledCollections(reader.collection_callback, deferred={"network_interface"})
     private_content = ((log_samples.KIND in wanted and log_samples.enabled(options))
         or (literals.KIND in wanted and literals.enabled(options))
         or (selected_metadata.KIND in wanted and selected_metadata.enabled(options, scopes))
@@ -1600,26 +1603,6 @@ def collect(connector, requirements=None, *, api=None):
             selected_metadata.assert_private_transport(api)
         cluster = _cluster_id(api, auth)
         annotation_context = annotation_indicators.collection_context(api, cluster)
-        if literals.KIND in wanted:
-            if private_content:
-                with log_samples.private_native_logs():
-                    literal_metadata, literal_matches = literals.collect(reader, api, options, scopes, cluster)
-            else:
-                literal_metadata, literal_matches = literals.collect(reader, api, options, scopes, cluster)
-        if selected_metadata.KIND in wanted:
-            selected_metadata_facts, selected_metadata_matches = selected_metadata.collect(
-                reader, api, options, scopes, cluster)
-        if selected_text.KIND in wanted:
-            text_facts, text_matches = selected_text.collect(reader, api, options, scopes, cluster)
-        if flux_artifacts.KIND in wanted:
-            flux_facts, flux_matches = flux_artifacts.collect(reader, api, options, scopes, cluster)
-        if wanted & {registry_images.SECRET_KIND, registry_images.VULN_KIND}:
-            registry_facts, registry_matches = registry_images.collect(reader, api, options, scopes, cluster, auth)
-        if log_samples.KIND in wanted:
-            selected_logs = [target for target in log_targets if target['namespace'] in scopes]
-            if selected_logs:
-                log_options = {**options, log_samples.OPTION: selected_logs}
-                log_metadata, log_matches = log_samples.collect(reader, api, log_options, scopes, cluster)
         from peaso.ai.access import k8s as capture_ai_access
         if not ((literals.KIND in wanted and literals.enabled(options))
                 or (log_samples.KIND in wanted and log_samples.enabled(options))
@@ -1912,6 +1895,30 @@ def collect(connector, requirements=None, *, api=None):
                 reader.run([("network_interface", scope, "kubernetes", lambda interfaces=interfaces: iter([interfaces]))])
                 if not complete:
                     reader.collections[-1].update(status="partial", error={"code": "source_inventory_incomplete"})
+                from peaso.collection_events import emit_collection
+                emit_collection(reader.collection_callback, reader.collections[-1])
+        # Optional content/images run after native inventory and network batches
+        # have become durable; their latency never hides completed core data.
+        if literals.KIND in wanted:
+            if private_content:
+                with log_samples.private_native_logs():
+                    literal_metadata, literal_matches = literals.collect(reader, api, options, scopes, cluster)
+            else:
+                literal_metadata, literal_matches = literals.collect(reader, api, options, scopes, cluster)
+        if selected_metadata.KIND in wanted:
+            selected_metadata_facts, selected_metadata_matches = selected_metadata.collect(
+                reader, api, options, scopes, cluster)
+        if selected_text.KIND in wanted:
+            text_facts, text_matches = selected_text.collect(reader, api, options, scopes, cluster)
+        if flux_artifacts.KIND in wanted:
+            flux_facts, flux_matches = flux_artifacts.collect(reader, api, options, scopes, cluster)
+        if wanted & {registry_images.SECRET_KIND, registry_images.VULN_KIND}:
+            registry_facts, registry_matches = registry_images.collect(reader, api, options, scopes, cluster, auth)
+        if log_samples.KIND in wanted:
+            selected_logs = [target for target in log_targets if target['namespace'] in scopes]
+            if selected_logs:
+                log_options = {**options, log_samples.OPTION: selected_logs}
+                log_metadata, log_matches = log_samples.collect(reader, api, log_options, scopes, cluster)
     except Exception as exc:
         existing = {(c["type"], c["scope"]) for c in reader.collections}
         for scope in scopes:

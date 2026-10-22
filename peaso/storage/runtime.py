@@ -15,9 +15,10 @@ def stores(settings):
 
 
 class WorkflowDispatcher:
-    def __init__(self, arn=None, client=None):
+    def __init__(self, arn=None, client=None, store=None):
         self.arn = arn or os.getenv("PEASO_WORKFLOW_ARN")
         self.client = client
+        self.store = store
 
     def dispatch(self, tenant, job):
         if not self.arn:
@@ -33,14 +34,23 @@ class WorkflowDispatcher:
                 require_local_codex(settings, store, job.get('ai_user_id', tenant))
             except Exception:
                 return False
+        if self.store is None:
+            from peaso.server.config import Settings
+            self.store, _ = stores(Settings())
+        try:
+            if not self.store.admit(tenant, job["id"]):
+                return False
+        except Exception:
+            # Enqueue already committed; the scheduler retries durable queue rows.
+            return False
         if self.client is None:
             import boto3
             self.client = boto3.client("stepfunctions")
         import json
-        import time
-        now = int(time.time())
+        if self.store.job(tenant, job["id"])["status"] != "queued":
+            return False
         try:
-            self.client.start_execution(stateMachineArn=self.arn, name="scan-" + job["id"], input=json.dumps({"tenant_id": tenant, "scan_id": job["id"], "now_epoch": now, "lock_expires_at": now + 2100}))
+            self.client.start_execution(stateMachineArn=self.arn, name="scan-" + job["id"], input=json.dumps({"tenant_id": tenant, "scan_id": job["id"]}))
             return True
         except self.client.exceptions.ExecutionAlreadyExists:
             return True

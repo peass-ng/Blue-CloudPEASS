@@ -24,6 +24,13 @@ def begin(*, allow_live=True):
         _entries = {} if allow_live else None
 
 
+def peek():
+    """Copy currently captured sessions without closing the collector sink."""
+    from copy import deepcopy
+    with _lock:
+        return deepcopy(list((_entries or {}).values()))
+
+
 def finish():
     global _entries
     with _lock:
