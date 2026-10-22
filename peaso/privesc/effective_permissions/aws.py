@@ -6408,6 +6408,142 @@ class AwsModel(Model):
             return None
         return ("conditional", "m2_application_exact_role_effect_verified")
 
+    def _mgh_verified_automation_role_effect(self, source, role):
+        """Resolve preview automation only with an exact, recent role-only run."""
+        technique = "aws-mgh-passrole-automation-unit"
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        scope = f"{source.scope}/us-east-1"
+        if len(records) != 1 or records[0][0] != scope or (
+                inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"):
+            return ("unknown", "mgh_home_region_and_runtime_target_not_verified")
+        proof = records[0][1]
+        unit, run, runtime = (proof.get(k) for k in
+                              ("AutomationUnitArn", "AutomationRunArn", "RuntimeTargetArn"))
+        partition = source.id.split(":", 2)[1]
+        unit_pattern = rf"arn:{re.escape(partition)}:mgh:us-east-1:{source.scope}:automation-unit/[^/*?]+"
+        run_pattern = rf"arn:{re.escape(partition)}:mgh:us-east-1:{source.scope}:automation-run/[^/*?]+"
+        rows = [row for row_scope, row in items(self.snapshot, "iam_role")
+                if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        role_id = rows[0].get("RoleId") if len(rows) == 1 else None
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        kind = proof.get("RuntimeTargetType")
+        runtime_pattern = (rf"arn:{re.escape(partition)}:ssm:us-east-1:{source.scope}:document/[^/*?]+"
+                           if kind == "ssm_document" else
+                           rf"arn:{re.escape(partition)}:lambda:us-east-1:{source.scope}:function:[^:*?]+"
+                           if kind == "lambda_function" else None)
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("HomeRegion") != "us-east-1" or proof.get("FeatureAvailable") is not True or
+                not isinstance(unit, str) or re.fullmatch(unit_pattern, unit) is None or
+                not isinstance(run, str) or re.fullmatch(run_pattern, run) is None or
+                not runtime_pattern or not isinstance(runtime, str) or
+                re.fullmatch(runtime_pattern, runtime) is None or
+                not isinstance(role_id, str) or not role_id or proof.get("TargetRoleId") != role_id or
+                proof.get("AssociatedRoleArn") != role.id or
+                proof.get("RuntimeTargetControlledBySource") is not True or
+                proof.get("UnitCreatedSucceeded") is not True or
+                proof.get("RoleAssociatedSucceeded") is not True or
+                proof.get("RunSucceeded") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "mgh_automation_run_or_role_effect_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "mgh_automation_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "mgh_automation_evidence_time_missing")
+        grants = [self._check_action(source, action, ANY) for action in
+                  ("mgh:CreateAutomationUnit", "mgh:CreateAutomationRun")]
+        grants.append(self._check_action(source, "mgh:AssociateAutomationUnitRole", unit))
+        grants.append(self.cached_check(source, {"action": "iam:PassRole", "resource": role.id,
+            "request_context": {"iam:PassedToService": "migrationhub.amazonaws.com"}}, role.id))
+        grants.append(self.check(role, {"action": action}, resource))
+        if any(grant is None or grant.confidence != "derived" for grant in grants):
+            return ("unknown", "mgh_current_permissions_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "mgh_exact_automation_role_effect_verified")
+
+    def _orchestrator_verified_workflow_role_effect(self, source, role):
+        """Require an automated step to execute on one managed node using this role."""
+        technique = "aws-migrationhub-orchestrator-workflow-step"
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "orchestrator_workflow_script_and_target_not_verified")
+        scope, proof = records[0]
+        if (inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"
+                or not scope.startswith(source.scope + "/")):
+            return ("unknown", "orchestrator_execution_evidence_incomplete")
+        region = scope.split("/", 1)[1]
+        partition = source.id.split(":", 2)[1]
+        workflow, instance, script = (proof.get(k) for k in
+                                       ("WorkflowArn", "InstanceArn", "ScriptObjectArn"))
+        workflow_pattern = rf"arn:{re.escape(partition)}:migrationhub-orchestrator:{re.escape(region)}:{source.scope}:workflow/[^/*?]+"
+        instance_pattern = rf"arn:{re.escape(partition)}:ec2:{re.escape(region)}:{source.scope}:instance/i-[0-9a-f]+"
+        script_pattern = rf"arn:{re.escape(partition)}:s3:::migrationhub-orchestrator-[a-z0-9.-]+/[^*?]+"
+        rows = [row for row_scope, row in items(self.snapshot, "iam_role")
+                if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        role_id = rows[0].get("RoleId") if len(rows) == 1 else None
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        variant = proof.get("StepVariant")
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                not region or not isinstance(workflow, str) or
+                re.fullmatch(workflow_pattern, workflow) is None or
+                not isinstance(instance, str) or re.fullmatch(instance_pattern, instance) is None or
+                not isinstance(script, str) or re.fullmatch(script_pattern, script) is None or
+                variant not in ("create_start", "update_retry") or
+                not isinstance(proof.get("StepGroupId"), str) or not proof["StepGroupId"] or
+                not isinstance(proof.get("StepId"), str) or not proof["StepId"] or
+                not isinstance(role_id, str) or not role_id or proof.get("TargetRoleId") != role_id or
+                proof.get("InstanceRoleArn") != role.id or
+                proof.get("StepBelongsToWorkflow") is not True or
+                proof.get("StepAutomated") is not True or
+                proof.get("StepTargetsInstance") is not True or
+                proof.get("InstanceManagedOnline") is not True or
+                proof.get("ScriptControlledBySource") is not True or
+                proof.get("ScriptRetrievedByInstance") is not True or
+                proof.get("WorkflowStateRunnable") is not True or
+                proof.get("StepExecutionSucceeded") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "orchestrator_step_or_role_effect_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "orchestrator_execution_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "orchestrator_execution_evidence_time_missing")
+        workflow_actions = (("migrationhub-orchestrator:CreateWorkflowStep", "migrationhub-orchestrator:StartWorkflow")
+                            if variant == "create_start" else
+                            ("migrationhub-orchestrator:UpdateWorkflowStep", "migrationhub-orchestrator:RetryWorkflowStep"))
+        grants = [self._check_action(source, name, workflow) for name in workflow_actions]
+        script_write = self._check_action(source, "s3:PutObject", script)
+        if (script_write is None or script_write.confidence != "derived") and (
+                proof.get("ExistingUsableScript") is not True):
+            return ("unknown", "orchestrator_script_control_not_reusable")
+        grants.append(self.check(role, {"action": action}, resource))
+        if any(grant is None or grant.confidence != "derived" for grant in grants):
+            return ("unknown", "orchestrator_current_permissions_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "orchestrator_exact_managed_instance_role_effect_verified")
+
     def _ssm_incident_response_route(self, source, execution_role):
         """Bind a creatable Automation document and one usable incident response plan."""
         partition = source.id.split(":", 2)[1]
@@ -14476,16 +14612,15 @@ class AwsModel(Model):
             return {tid: verdict for tid, role in candidates.items()
                     if (verdict := self._m2_new_application_route(source, role))}
         if pid == "mgh_automation_unit_home_region_target_and_run":
-            # The account home Region and a source-controlled SSM/Lambda target
-            # are not in the current evidence. Four IAM grants alone do not
-            # prove that a new custom unit can run under this role.
-            return {tid: ("unknown", "mgh_home_region_and_runtime_target_not_verified")
-                    for tid in candidates}
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._mgh_verified_automation_role_effect(source, role))}
         if pid == "migrationhub_orchestrator_bound_workflow_script_and_managed_target":
-            # Matching IAM actions and an instance profile do not identify a
-            # startable workflow, mutable step group, script or selected node.
-            return {tid: ("unknown", "orchestrator_workflow_script_and_target_not_verified")
-                    for tid in candidates}
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._orchestrator_verified_workflow_role_effect(source, role))}
         if pid == "ssm_incident_response_plan_runs_new_automation_document":
             if source is None:
                 return None

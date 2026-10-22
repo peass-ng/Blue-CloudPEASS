@@ -21,7 +21,12 @@ V4_EFFECTIVE_TREE = "413792ea4aec86e48c352ffab2c0bea9e82795bc234251342737ec0276b
 LEGACY_DELTA = Path(__file__).resolve().parent / "catalog_versions/legacy-0b3633-delta.json"
 BOUNDED_MANIFEST = "734401b202895e00ac1b6cb0f1534f77cde4d8e2ba912ca0ee974b1b8ec5035c"
 BOUNDED_TREE = "1a54bad4102d18f89c78f45c915964554a62f994c1bffa693844cac5e119cca8"
-CURRENT_MANIFEST = '4259b27bdd6b54410a048045d78549cc966d0f620444a492340c2265d9173db1'
+CURRENT_MANIFEST = 'c1585b66113b1da29e29dc214fd1a6caff8c3aace230e97e48c1e74ad0657cc9'
+MIGRATIONHUB_ROLE_EFFECTS_691_PREVIOUS_MANIFEST = '4259b27bdd6b54410a048045d78549cc966d0f620444a492340c2265d9173db1'
+MIGRATIONHUB_ROLE_EFFECTS_691_PREVIOUS_TREE = '3a42fb1524dba200926da33d2bd6290da18ea581fddbd4ed51e84163a8f178bf'
+MIGRATIONHUB_ROLE_EFFECTS_691_PREVIOUS_ARCHIVE_SHA256 = '1d816c7dfc4f5b8a9becf3e064526a59b67466d7c2a4f579ced776c95e98970b'
+MIGRATIONHUB_ROLE_EFFECTS_691_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-691-migrationhub-role-effects-source-manifest.json'
+MIGRATIONHUB_ROLE_EFFECTS_691_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-691-migrationhub-role-effects-catalog.tar.gz'
 M2_ROLE_EFFECT_691_PREVIOUS_MANIFEST = '683947c2a982ef489e52b2ad6225e55d6c3f63148f3328b66bcb385b97d0259d'
 M2_ROLE_EFFECT_691_PREVIOUS_TREE = 'e69a1d5c138e55b58987221c79213ffe918a888d46ea24b66f5a580fd5e09710'
 M2_ROLE_EFFECT_691_PREVIOUS_ARCHIVE_SHA256 = '3fc7680fd06dde5d9eee9316461dd87c73988285a891ef9ae2e47a95790c56eb'
@@ -667,7 +672,7 @@ PRIOR_CURRENT_MANIFEST = "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0c
 PRIOR_DISCLOSURE_MANIFEST = "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
 PRIOR_DISCLOSURE_TREE = "5091464bedcb10bb87301695ca733276dc67b865e544c408ccf72a5408176f0f"
 PRIOR_DISCLOSURE_HISTORY = Path(__file__).resolve().parent / "catalog_versions/disclosure-v7-manifest.json"
-CURRENT_TREE = '3a42fb1524dba200926da33d2bd6290da18ea581fddbd4ed51e84163a8f178bf'
+CURRENT_TREE = '637e2fbeb83b920d9dba26d8674378ebb71322263ff0cdc1088f5bd4f641e3a4'
 PRIOR_CURRENT_TREE = "99207e6469fc5e5b3daf21324e6860599b116ffcf7d30600643bd229b0f11494"
 CURRENT_ENTRY_COUNT = 691
 CURRENT_EXCLUDED_COUNT = 3737
@@ -789,6 +794,17 @@ def _verified_teststate_690_previous():
         TESTSTATE_690_PREVIOUS_MANIFEST_PATH, TESTSTATE_690_PREVIOUS_ARCHIVE,
         TESTSTATE_690_PREVIOUS_MANIFEST, TESTSTATE_690_PREVIOUS_ARCHIVE_SHA256,
         TESTSTATE_690_PREVIOUS_TREE, 690, 3723)
+
+
+@lru_cache(maxsize=1)
+def _verified_migrationhub_role_effects_691_previous():
+    """Keep the exact catalog before Migration Hub role-effect binding."""
+    return _verified_archived_current(
+        MIGRATIONHUB_ROLE_EFFECTS_691_PREVIOUS_MANIFEST_PATH,
+        MIGRATIONHUB_ROLE_EFFECTS_691_PREVIOUS_ARCHIVE,
+        MIGRATIONHUB_ROLE_EFFECTS_691_PREVIOUS_MANIFEST,
+        MIGRATIONHUB_ROLE_EFFECTS_691_PREVIOUS_ARCHIVE_SHA256,
+        MIGRATIONHUB_ROLE_EFFECTS_691_PREVIOUS_TREE, 691, 3737)
 
 
 @lru_cache(maxsize=1)
@@ -1990,6 +2006,10 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "current", "exact_strict_privesc"
+    elif (binding.get("manifest_sha256") == MIGRATIONHUB_ROLE_EFFECTS_691_PREVIOUS_MANIFEST and
+          binding.get("effective_tree_sha256") == MIGRATIONHUB_ROLE_EFFECTS_691_PREVIOUS_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "migrationhub_role_effects_691_previous", "exact_previous_current"
     elif (binding.get("manifest_sha256") == M2_ROLE_EFFECT_691_PREVIOUS_MANIFEST and
           binding.get("effective_tree_sha256") == M2_ROLE_EFFECT_691_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -2505,6 +2525,9 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
         if version == "current":
             current = _verified_current(str(catalog_dir), str(manifest_path))
             return {ident: current[ident] for ident in ids if ident in current}, status
+        if version == "migrationhub_role_effects_691_previous":
+            previous = _verified_migrationhub_role_effects_691_previous()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "m2_role_effect_691_previous":
             previous = _verified_m2_role_effect_691_previous()
             return {ident: previous[ident] for ident in ids if ident in previous}, status
