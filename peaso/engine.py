@@ -1310,12 +1310,16 @@ def _azure_tenant_group_collection_authorized(scope, metadata, collection):
 
 
 def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, timings=None, include_not_applicable=True,
-                      related_snapshots=None):
+                      related_snapshots=None, *, completed_graph_sections=None):
     """timings: optional dict that receives wall-clock timings; they never enter the deterministic report.
 
     related_snapshots: other-provider snapshots of the same scan group (e.g. the GCP project of a GKE
     cluster scan). They are read only and only joined by the privesc evaluator (K8s cloud identities,
     GKE/EKS cluster techniques); findings, coverage and every other category stay about `snapshot`.
+
+    completed_graph_sections: optional partial-evaluation schedule, containing network and/or iam_graph.
+    None preserves final graph selection; an empty set defers both graphs. With this partial schedule,
+    checks=[] means no ready checks (a graph-only checkpoint), rather than the final default selection.
 
     include_not_applicable=False keeps NOT_APPLICABLE / EMPTY results out of findings and reports them as
     per-check counts in finding_aggregates (stats.by_status still counts every result). Scan entry points
@@ -1328,6 +1332,9 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
     provider = snapshot["provider"]
     related = _related_snapshots(snapshot, related_snapshots)
     selected_categories, selected = _selection(provider, categories, checks, frameworks)
+    graph_only_checkpoint = completed_graph_sections is not None and checks == []
+    if graph_only_checkpoint:
+        selected = []
     inventory = resources(snapshot)
     index = _index(snapshot, inventory)
     coverage, findings = [], []
@@ -1578,11 +1585,12 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
     from .analysis import analysis_context
     from scripts.cloud_permission_risks import offline_rules
     with offline_rules(), analysis_context(snapshot):
-        analysis_selected = _analysis_selection(provider, selected_categories, checks, frameworks)
+        analysis_selected = [] if graph_only_checkpoint else _analysis_selection(provider, selected_categories, checks, frameworks)
         if analysis_selected:
             from .analysis import analyze_findings
             expected_ids = {c["id"] for c in analysis_selected}
-            analyzed = [f for f in analyze_findings(snapshot, inventory, index, include_manual_only=False) if f["check_id"] in expected_ids and f["category"] in selected_categories]
+            analyzed = [f for f in analyze_findings(snapshot, inventory, index, include_manual_only=False,
+                categories={c["category"] for c in analysis_selected}) if f["check_id"] in expected_ids and f["category"] in selected_categories]
             # Group once (order kept) instead of rescanning every analyzed finding per analysis check.
             analyzed_by_check = defaultdict(list)
             for f in analyzed:
@@ -1598,10 +1606,13 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
         graphs = {"network": {"nodes": [], "edges": []}, "iam": {"nodes": [], "edges": []}}
         graph_categories = _selected_graph_categories(selected_categories, selected, analysis_selected,
             categories, checks, frameworks)
+        if completed_graph_sections is not None:
+            graph_categories &= set(completed_graph_sections)
         if graph_categories:
             from .analysis import build_graphs
             # The report keeps the complete (uncollapsed) graph; bounded views are server-side projections.
-            built = build_graphs(snapshot, inventory, index, max_nodes=None, collapse_unreferenced=not include_not_applicable)
+            built = build_graphs(snapshot, inventory, index, max_nodes=None, collapse_unreferenced=not include_not_applicable,
+                graph_kinds={"network" if category == "network" else "iam" for category in graph_categories})
             for graph, category in (("network", "network"), ("iam", "iam_graph")):
                 if category in graph_categories:
                     graphs[graph] = built[graph]
@@ -1610,7 +1621,7 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
                 graphs["iam"] = collapse_unreferenced_definitions(graphs["iam"])
     privesc_stats = None
     graphs.setdefault("privesc", {"nodes": [], "edges": []})
-    privesc_filter = _privesc_selected(provider, selected_categories, checks, frameworks)
+    privesc_filter = None if graph_only_checkpoint else _privesc_selected(provider, selected_categories, checks, frameworks)
     if privesc_filter is not None:
         privesc_findings, privesc_coverage, graphs["privesc"], privesc_stats, privesc_timing = _run_privesc(snapshot, privesc_filter, related)
         if timings is not None:

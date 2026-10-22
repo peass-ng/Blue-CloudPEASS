@@ -7,7 +7,7 @@ import sys
 import tempfile
 
 
-MAX_BATCH_ITEMS = 32
+MAX_BATCH_ITEMS = 128
 MAX_BATCH_BYTES = 64 * 1024 * 1024
 _PREPARED_BATCH = ContextVar('prepared_content_batch', default=None)
 

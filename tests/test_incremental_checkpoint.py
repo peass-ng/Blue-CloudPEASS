@@ -273,3 +273,25 @@ def test_report_never_overtakes_pending_batch(monkeypatch, tmp_path):
         session.close()
 
 
+
+
+def test_throttled_publication_does_not_copy_the_accumulated_inventory(monkeypatch, tmp_path):
+    session, _, _, _ = _session(monkeypatch, tmp_path)
+    session.stop = True
+    session.wake.set()
+    session.thread.join(2)
+    try:
+        session.on_collection({'type': 'bucket', 'scope': SCOPE, 'status': 'collected', 'items': [{'id': 'b'}]})
+        session.flush()
+        session.on_collection({'type': 'bucket', 'scope': SCOPE, 'status': 'collected', 'items': [{'id': 'b', 'changed': True}]})
+        with session.lock:
+            session._flush_pending()
+        session.interval = 1000000
+        session.collection_stride = 1000000
+        with monkeypatch.context() as guarded:
+            def unnecessary_copy(*args, **kwargs):
+                raise AssertionError('A throttled evaluation must not copy the full accumulated inventory')
+            guarded.setattr('peaso.incremental.copy.deepcopy', unnecessary_copy)
+            assert session._maybe_publish() is None
+    finally:
+        session.close()

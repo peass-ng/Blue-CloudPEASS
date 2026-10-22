@@ -19,6 +19,7 @@ from __future__ import annotations
 import ipaddress
 import json
 import re
+from peaso.snapshot import freeze
 
 from .common import RANK, _CONTEXT, as_list, finding, native_id, node, node_id, relationship, source, stable_id
 
@@ -185,6 +186,7 @@ class Inventory:
         self.snapshot = snapshot
         self.provider = snapshot["provider"]
         self.by_type, self.by_id, self.status = {}, {}, {}
+        self.network_cache = {}
         for resource in resources:
             self.by_type.setdefault(resource["type"], []).append(resource)
             for key in self._keys(resource):
@@ -226,6 +228,24 @@ class Inventory:
         else:
             value = "not_collected"
         return value if value in AVAILABLE else "missing:" + value
+
+    def aws_associations(self, kind):
+        """First native association/default in inventory order, as in the path readers."""
+        key = ("aws_associations", kind)
+        if key not in self.network_cache:
+            subnets, defaults = {}, {}
+            for resource in self.items(kind):
+                data = resource["data"]
+                associations = [a for a in as_list(data.get("Associations")) if isinstance(a, dict)]
+                for association in associations:
+                    subnet = association.get("SubnetId")
+                    if isinstance(subnet, str):
+                        subnets.setdefault(subnet, resource)
+                default = data.get("IsDefault") if kind == "network_acl" else any(a.get("Main") for a in associations)
+                if default and isinstance(data.get("VpcId"), str):
+                    defaults.setdefault(data["VpcId"], resource)
+            self.network_cache[key] = subnets, defaults
+        return self.network_cache[key]
 
 
 class Assessment:
@@ -310,41 +330,61 @@ def _aws_sg_ports(inventory, group_ids, assessment, where):
         if group is None:
             assessment.gap("security_group", f"{group_id} not in inventory ({inventory.state('security_group')})", "ec2 describe_security_groups")
             continue
-        rules = []
-        for permission in as_list(group["data"].get("IpPermissions")):
-            if not isinstance(permission, dict):
-                continue
-            protocol = _proto(permission.get("IpProtocol"))
-            ports = pset(permission.get("IpProtocol"), permission.get("FromPort", 0) if protocol in ("tcp", "udp") else 0,
-                         permission.get("ToPort", 65535) if protocol in ("tcp", "udp") else 65535) if protocol else None
-            if protocol in ("tcp", "udp") and permission.get("FromPort") in (None, -1):
-                ports = pset(protocol)
-            if ports is None:
-                continue
-            cidrs = [r.get("CidrIp") for r in as_list(permission.get("IpRanges")) if isinstance(r, dict)] + \
-                    [r.get("CidrIpv6") for r in as_list(permission.get("Ipv6Ranges")) if isinstance(r, dict)]
-            if any(_internet(c) for c in cidrs):
-                allowed = union(allowed, ports)
-                rules.append({"ports": describe(ports), "cidrs": [c for c in cidrs if _internet(c)]})
-            if as_list(permission.get("PrefixListIds")):
-                assessment.gap("security_group_prefix_list", f"{group_id} references prefix lists {[p.get('PrefixListId') for p in permission['PrefixListIds'] if isinstance(p, dict)]}",
-                               "ec2 get_managed_prefix_list_entries")
+        cache_key = ("aws_sg_ports", group["id"])
+        if cache_key not in inventory.network_cache:
+            inventory.network_cache[cache_key] = _aws_group_rules(group)
+        ports, rules, prefix_lists = inventory.network_cache[cache_key]
+        allowed = union(allowed, ports)
+        for prefix_ids in prefix_lists:
+            assessment.gap("security_group_prefix_list", f"{group_id} references prefix lists {prefix_ids}",
+                           "ec2 get_managed_prefix_list_entries")
         seen.append({"group_id": group_id, "internet_rules": rules})
     assessment.step("security_group", "allow" if not empty(allowed) else "block" if not any(g["layer"] == "security_group" for g in assessment.unresolved) else "unknown",
                     groups=seen, allowed=describe(allowed), at=where)
     return allowed
 
 
+def _aws_group_rules(group):
+    allowed, rules, prefix_lists = {}, [], []
+    for permission in as_list(group["data"].get("IpPermissions")):
+        if not isinstance(permission, dict):
+            continue
+        protocol = _proto(permission.get("IpProtocol"))
+        ports = pset(permission.get("IpProtocol"), permission.get("FromPort", 0) if protocol in ("tcp", "udp") else 0,
+                     permission.get("ToPort", 65535) if protocol in ("tcp", "udp") else 65535) if protocol else None
+        if protocol in ("tcp", "udp") and permission.get("FromPort") in (None, -1):
+            ports = pset(protocol)
+        if ports is None:
+            continue
+        cidrs = [r.get("CidrIp") for r in as_list(permission.get("IpRanges")) if isinstance(r, dict)] + \
+                [r.get("CidrIpv6") for r in as_list(permission.get("Ipv6Ranges")) if isinstance(r, dict)]
+        internet_cidrs = [c for c in cidrs if _internet(c)]
+        if internet_cidrs:
+            allowed = union(allowed, ports)
+            rules.append({"ports": describe(ports), "cidrs": internet_cidrs})
+        if as_list(permission.get("PrefixListIds")):
+            prefix_lists.append([p.get('PrefixListId') for p in permission['PrefixListIds'] if isinstance(p, dict)])
+    return allowed, freeze(rules), prefix_lists
+
+
 def _aws_nacl(inventory, subnet_id, ports, assessment, where):
     if not subnet_id:
         assessment.gap("network_acl", "subnet unknown")
         return ports
-    acl = next((a for a in inventory.items("network_acl") if any(
-        isinstance(x, dict) and x.get("SubnetId") == subnet_id for x in as_list(a["data"].get("Associations")))), None)
+    associations, defaults = inventory.aws_associations("network_acl")
+    if isinstance(subnet_id, str):
+        acl = associations.get(subnet_id)
+    else:
+        acl = next((a for a in inventory.items("network_acl") if any(
+            isinstance(x, dict) and x.get("SubnetId") == subnet_id for x in as_list(a["data"].get("Associations")))), None)
     if acl is None:
         subnet = inventory.get("subnet", subnet_id)
         vpc = subnet["data"].get("VpcId") if subnet else None
-        acl = next((a for a in inventory.items("network_acl") if a["data"].get("IsDefault") and a["data"].get("VpcId") == vpc), None) if vpc else None
+        if isinstance(vpc, str):
+            acl = defaults.get(vpc)
+        elif vpc:
+            acl = next((a for a in inventory.items("network_acl")
+                        if a["data"].get("IsDefault") and a["data"].get("VpcId") == vpc), None)
     if acl is None:
         assessment.gap("network_acl", f"no NACL association for {subnet_id} ({inventory.state('network_acl')})", "ec2 describe_network_acls")
         return ports
@@ -366,8 +406,10 @@ def _aws_nacl(inventory, subnet_id, ports, assessment, where):
                 allowed = union(allowed, fresh)
             decided = union(decided, rule)
         return allowed
-    inbound = evaluate(False)
-    outbound = evaluate(True)
+    cache_key = ("aws_acl_ports", acl["id"])
+    if cache_key not in inventory.network_cache:
+        inventory.network_cache[cache_key] = evaluate(False), evaluate(True)
+    inbound, outbound = inventory.network_cache[cache_key]
     result = intersect(ports, inbound)
     if not empty(result) and empty(intersect(outbound, pset("tcp", 1024, 65535))) and result.get("tcp"):
         assessment.notes.append(f"NACL {native_id(acl)} egress to 0.0.0.0/0 does not allow TCP ephemeral ports; stateless return traffic may be dropped")
@@ -381,15 +423,26 @@ def _aws_route(inventory, subnet_id, vpc_id, assessment, where, ipv6=False):
         assessment.gap("route", "subnet unknown")
         return None
     tables = inventory.items("route_table")
-    table = next((t for t in tables if any(isinstance(a, dict) and a.get("SubnetId") == subnet_id for a in as_list(t["data"].get("Associations")))), None)
+    associations, defaults = inventory.aws_associations("route_table")
+    if isinstance(subnet_id, str):
+        table = associations.get(subnet_id)
+    else:
+        table = next((t for t in tables if any(isinstance(a, dict) and a.get("SubnetId") == subnet_id
+                     for a in as_list(t["data"].get("Associations")))), None)
     if table is None and vpc_id:
-        table = next((t for t in tables if t["data"].get("VpcId") == vpc_id and any(
-            isinstance(a, dict) and a.get("Main") for a in as_list(t["data"].get("Associations")))), None)
+        if isinstance(vpc_id, str):
+            table = defaults.get(vpc_id)
+        else:
+            table = next((t for t in tables if t["data"].get("VpcId") == vpc_id and any(
+                isinstance(a, dict) and a.get("Main") for a in as_list(t["data"].get("Associations")))), None)
     if table is None:
         assessment.gap("route", f"no route table for {subnet_id} ({inventory.state('route_table')})", "ec2 describe_route_tables")
         return None
-    routes = [r for r in as_list(table["data"].get("Routes")) if isinstance(r, dict) and str(r.get("GatewayId", "")).startswith("igw-")
-              and r.get("State", "active") == "active" and (r.get("DestinationCidrBlock") == "0.0.0.0/0" or r.get("DestinationIpv6CidrBlock") == "::/0")]
+    cache_key = ("aws_internet_routes", table["id"])
+    if cache_key not in inventory.network_cache:
+        inventory.network_cache[cache_key] = [r for r in as_list(table["data"].get("Routes")) if isinstance(r, dict) and str(r.get("GatewayId", "")).startswith("igw-")
+            and r.get("State", "active") == "active" and (r.get("DestinationCidrBlock") == "0.0.0.0/0" or r.get("DestinationIpv6CidrBlock") == "::/0")]
+    routes = inventory.network_cache[cache_key]
     if routes:
         assessment.step("route", "allow", route_table=native_id(table), internet_gateway=routes[0]["GatewayId"], subnet=subnet_id, at=where)
         return True

@@ -60,21 +60,21 @@ variable "worker_resources" {
 variable "scan_runtime_limits" {
   type = object({ workflow_seconds = number, stage_seconds = number, lease_seconds = number })
   default = {
-    workflow_seconds = 3600
-    stage_seconds    = 1800
-    lease_seconds    = 3900
+    workflow_seconds = 7200
+    stage_seconds    = 7200
+    lease_seconds    = 7500
   }
   description = "Bounded whole-job/workflow, per-ECS-stage and owned global lease durations. A stage may use the existing whole-workflow window for selected content scans."
   validation {
     condition = (
-      var.scan_runtime_limits.workflow_seconds >= 900 && var.scan_runtime_limits.workflow_seconds <= 3600 &&
-      var.scan_runtime_limits.stage_seconds >= 300 && var.scan_runtime_limits.stage_seconds <= 3600 &&
+      var.scan_runtime_limits.workflow_seconds >= 900 && var.scan_runtime_limits.workflow_seconds <= 7200 &&
+      var.scan_runtime_limits.stage_seconds >= 300 && var.scan_runtime_limits.stage_seconds <= 7200 &&
       var.scan_runtime_limits.stage_seconds <= var.scan_runtime_limits.workflow_seconds &&
       var.scan_runtime_limits.lease_seconds >= var.scan_runtime_limits.workflow_seconds + 300 &&
-      var.scan_runtime_limits.lease_seconds <= 3900 &&
+      var.scan_runtime_limits.lease_seconds <= 7500 &&
       alltrue([for value in values(var.scan_runtime_limits) : value == floor(value)])
     )
-    error_message = "Use integer bounded job/workflow 900–3600s, stages 300–3600s within workflow, and an owned lease at least 300s longer (at most3900s)."
+    error_message = "Use integer bounded job/workflow 900–7200s, stages 300–7200s within workflow, and an owned lease at least 300s longer (at most7500s)."
   }
 }
 variable "budget_email" {
