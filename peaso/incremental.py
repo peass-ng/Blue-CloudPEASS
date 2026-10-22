@@ -72,6 +72,7 @@ class CheckpointSession:
         self.global_types = set()
         self.global_scope = None
         self.effective_scopes = list(self.requested_scopes)
+        self.scope_plan = None
         if self.provider == 'azure':
             from .collectors.azure import DIRECTORY, DIRECTORY_SINGLETONS, _subscription
             self.effective_scopes = [_subscription(scope) for scope in self.requested_scopes if scope != '*']
@@ -265,6 +266,53 @@ class CheckpointSession:
 
     settled = on_collection
 
+    def on_scope_plan(self, scopes):
+        """Accept one immutable native AWS discovery plan, never observed scopes.
+
+        Restored checkpoints carry facts, not discovery authority. A retry must
+        rediscover its plan; if facts are already durable, give the new section
+        states their own watermark without changing those facts' revisions.
+        """
+        import re
+        if (self.provider != 'aws' or not isinstance(scopes, tuple) or not scopes
+                or any(not isinstance(scope, str) or not re.fullmatch(
+                    r'[0-9]{12}/[a-z]{2}(?:-[a-z0-9]+)+-[0-9]+', scope) for scope in scopes)
+                or len(set(scopes)) != len(scopes)):
+            raise ValueError('Invalid native scope plan')
+        scopes = tuple(sorted(scopes))
+        with self.lock:
+            if self.error is not None:
+                raise RuntimeError('checkpoint publication failed') from self.error
+            if self.scope_plan is not None:
+                if self.scope_plan != scopes:
+                    raise ValueError('Native scope plan changed during collection')
+                return
+            if self.collection_finished:
+                raise ValueError('Native scope plan arrived after collection closure')
+            self._flush_pending()
+            self.scope_plan = scopes
+            self.effective_scopes = list(scopes)
+            self._advance_watermark()
+            self.wake.set()
+
+    def _advance_watermark(self):
+        """Persist a state-only update with the existing envelope revision."""
+        if not self.collections:
+            return
+        sequence = self.sequence + 1
+        envelope = next(reversed(self.collections.values()))
+        from .secret_evidence import _lock as private_evidence_lock
+        with private_evidence_lock:
+            raw = self._snapshot([copy.deepcopy(envelope)], sequence=sequence)
+            raw['metadata']['incremental']['data_revision'] = self.collection_revisions[(envelope['type'], envelope['scope'])]
+            delta = validate(self.public_snapshot(seal(raw)))
+        try:
+            self.on_checkpoint(delta, None, sequence)
+        except BaseException as exc:
+            self.error = exc
+            raise
+        self.sequence = self.next_sequence = sequence
+
     def _settled(self, envelope):
         if not isinstance(envelope, dict):
             raise TypeError("collection envelope must be an object")
@@ -408,18 +456,7 @@ class CheckpointSession:
                 return
             self._flush_pending()
             self.collection_finished = True
-            if self.collections:
-                # A closure publication needs a new durable sequence even when
-                # finalizers left every native envelope byte unchanged.
-                closure_sequence = self.sequence + 1
-                envelope = next(reversed(self.collections.values()))
-                from .secret_evidence import _lock as private_evidence_lock
-                with private_evidence_lock:
-                    raw = self._snapshot([copy.deepcopy(envelope)], sequence=closure_sequence)
-                    raw['metadata']['incremental']['data_revision'] = self.collection_revisions[(envelope['type'], envelope['scope'])]
-                    delta = validate(self.public_snapshot(seal(raw)))
-                self.on_checkpoint(delta, None, closure_sequence)
-                self.sequence = self.next_sequence = closure_sequence
+            self._advance_watermark()
             self.wake.set()
 
     def publish(self, **_):

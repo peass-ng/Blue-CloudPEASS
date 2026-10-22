@@ -750,7 +750,9 @@ def collect_snapshot(request):
         from .collectors.azure_function_package_integration_20261020 import GRANT as PACKAGE_GRANT, collect_pipeline as collect_package_pipeline
         if PACKAGE_GRANT in connector.get('options', {}):
             return collect_package_pipeline(connector, requirements, request)
-    snapshot = validate(collect_live(connector, requirements))
+    from .collection_events import scope_plan_callback
+    with scope_plan_callback(request.get('_scope_plan_callback')):
+        snapshot = validate(collect_live(connector, requirements))
     if collection_callback is not None:
         # Provider-specific finalizers and reviewed native aliases may add or
         # revise envelopes after their scheduler emitted earlier settlements.

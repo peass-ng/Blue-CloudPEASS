@@ -4,6 +4,33 @@ The callback is installed only by the scan worker. It sees native facts so it
 must publish through the worker's public snapshot and credential redaction
 boundary; it is never a progress event or a field in a saved connector.
 """
+from contextlib import contextmanager
+from contextvars import ContextVar
+
+
+_scope_plan_callback = ContextVar('peaso_scope_plan_callback', default=None)
+
+
+@contextmanager
+def scope_plan_callback(callback):
+    """Bind a worker-only discovery callback to this synchronous collection.
+
+    Unlike connector options or progress, this channel never crosses a public
+    serialization boundary. Nested collections restore their caller's binding.
+    """
+    if callback is not None and not callable(callback):
+        raise TypeError('internal scope plan callback must be callable')
+    token = _scope_plan_callback.set(callback)
+    try:
+        yield
+    finally:
+        _scope_plan_callback.reset(token)
+
+
+def emit_scope_plan(scopes):
+    callback = _scope_plan_callback.get()
+    if callback is not None:
+        callback(scopes)
 
 
 def emit_collection(callback, envelope):

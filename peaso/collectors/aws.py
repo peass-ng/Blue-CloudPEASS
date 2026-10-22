@@ -2320,6 +2320,28 @@ def collect(connector, requirements=None):
         if discovered_regions:
             regions[:] = sorted({region for values in discovered_regions.values() for region in values})
         metadata["regions"] = list(regions)
+    # Freeze exact account/region pairs only after target resolution and region
+    # discovery have succeeded for the entire selection. An observed subset,
+    # fallback region, truncated organization roster or failed role is not a
+    # discovery-completion proof. This is a private in-process signal, never a
+    # connector option, progress event or credential-bearing identity payload.
+    target_roster_complete = org_inventory is None or (
+        org_inventory.status in {'collected', 'empty'}
+        and all(isinstance(row, dict) and re.fullmatch(r'[0-9]{12}', str(row.get('Id', '')))
+                and row.get('State', row.get('Status')) in {
+                    'ACTIVE', 'PENDING_ACTIVATION', 'SUSPENDED', 'PENDING_CLOSURE', 'CLOSED'}
+                for row in org_inventory.items)
+        and len({row['Id'] for row in org_inventory.items}) == len(org_inventory.items))
+    identities_bound = all(re.fullmatch(
+        rf"arn:[^:]+:(?:iam|sts)::{identity['Account']}:.+", identity.get('Arn', ''))
+        for _, identity in contexts)
+    if (contexts and target_roster_complete and identities_bound
+            and not auth_errors and not region_discovery_errors
+            and metadata.get('role_target_selection', {}).get('status') == 'collected'
+            and set(selected_accounts) <= {identity['Account'] for _, identity in contexts}):
+        from peaso.collection_events import emit_scope_plan
+        emit_scope_plan(tuple(sorted({f"{identity['Account']}/{region}"
+            for _, identity in contexts for region in regions_for(identity['Account'])})))
     workload_command_capture = workload_commands.collect_selected(workload_command_plan, contexts, requests)
     from peaso.ai.access import aws as capture_ai_access
     capture_ai_access(contexts)

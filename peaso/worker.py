@@ -265,6 +265,7 @@ def _process(role, request, connection):
                     dict.fromkeys(request.get("checkpoint_refs", ()))]
                 checkpoint_session.restore(restored, int(request.get("checkpoint_sequence", 0)))
                 request["_collection_callback"] = checkpoint_session.on_collection
+                request["_scope_plan_callback"] = checkpoint_session.on_scope_plan
                 try:
                     from peaso.worker_progress import stream_progress
                     with stream_progress(connection):
@@ -274,6 +275,7 @@ def _process(role, request, connection):
                 finally:
                     checkpoint_session.close()
                     request.pop("_collection_callback", None)
+                    request.pop("_scope_plan_callback", None)
                     ai_credentials = ai_access.finish()
             # Separate encrypted per-scan object; no reference or value enters
             # the native snapshot, public report, supervisor pipe or AI context.
