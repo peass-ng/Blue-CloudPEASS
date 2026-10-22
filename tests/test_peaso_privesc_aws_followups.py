@@ -1372,6 +1372,35 @@ def test_braket_passrole_service_condition_is_evaluated():
         role_arn("job"): "conditional"}
 
 
+def test_braket_createjob_requires_device_authorization():
+    from pathlib import Path
+    import yaml
+    from peaso.privesc.effective_permissions.aws import AwsModel
+    from peaso.privesc.evaluator import Evaluator
+
+    catalog_file = Path(__file__).resolve().parents[1] / "peaso/privesc/catalog/aws/braket.yaml"
+    entry = next(item for item in yaml.safe_load(catalog_file.read_text())
+                 if item["id"] == "aws-braket-passrole-createjob")
+    passrole = allow("iam:PassRole", resource=role_arn("job"))
+    known_device = "arn:aws:braket:::device/quantum-simulator/amazon/sv1"
+
+    def evaluate(resource, *, include_unknown=False):
+        snap = aws_snap([user("alice", passrole, allow("braket:CreateJob", resource=resource))],
+                        [role("job", "braket.amazonaws.com")])
+        return [reach.targets for reach in Evaluator(AwsModel(snap), [entry],
+                 include_unknown=include_unknown).run() if reach.source.id == ALICE]
+
+    assert evaluate(f"arn:aws:braket:{REGION}:{ACCOUNT}:job/*") == []
+    assert [{target: grant.confidence for target, grant in row.items()}
+            for row in evaluate(known_device)] == [{role_arn("job"): "conditional"}]
+    restricted_device = f"arn:aws:braket:us-west-2:*:device/qpu/*"
+    assert evaluate(restricted_device) == []
+    unresolved = evaluate(restricted_device, include_unknown=True)
+    assert len(unresolved) == 1
+    assert all(target.startswith("unresolved:") and grant.confidence == "unknown"
+               for target, grant in unresolved[0].items())
+
+
 def test_agentcore_created_interpreter_needs_grants_covering_its_generated_id():
     tid = "aws-bedrock-agentcore-createcodeinterpreter-passrole"
     prefix = f"arn:aws:bedrock-agentcore:{REGION}:{ACCOUNT}:code-interpreter-custom/"

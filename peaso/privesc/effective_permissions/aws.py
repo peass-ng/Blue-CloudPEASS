@@ -6951,6 +6951,25 @@ class AwsModel(Model):
                 if uncertain else None)
 
     def precondition(self, pid, candidates, source):
+        if pid == "braket_createjob_device_authorized":
+            if source is None:
+                return None
+            partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+            simulator = f"arn:{partition}:braket:::device/quantum-simulator/amazon/sv1"
+            allowed = (self.cached_check(source, {"action": "braket:CreateJob"}, simulator)
+                       if partition == "aws" else None)
+            if allowed is not None:
+                verdict = (("unknown", "braket_device_permission_conditional") if allowed.confidence == "unknown"
+                           else ("conditional", "braket_known_device_authorized_job_execution_pending"))
+                return {tid: verdict for tid in candidates}
+            allows, _ = self._statements(source, "braket:createjob")
+            possible_device = any(st.notresource or st.variables or any(
+                resource == "*" or ":device/" in resource for resource in st.resources)
+                for st in allows)
+            if possible_device:
+                return {tid: ("unknown", "braket_device_scope_or_availability_not_verified")
+                        for tid in candidates}
+            return {}
         if pid == "imagebuilder_component_publish_and_pipeline_start":
             if source is None:
                 return None
