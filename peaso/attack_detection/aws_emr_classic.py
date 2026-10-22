@@ -14,6 +14,7 @@ _REGION = re.compile(r"[a-z]{2}(?:-[a-z]+)+-[0-9]\Z")
 _CLUSTER = re.compile(r"j-[A-Z0-9]{8,32}\Z")
 _IAM_NAME = re.compile(r"[A-Za-z0-9_+=,.@-]{1,64}\Z")
 _STEP = re.compile(r"s-[A-Z0-9]{8,32}\Z")
+_RUNTIME_ROLE = re.compile(r"arn:aws:iam::[0-9]{12}:role/[A-Za-z0-9_+=,.@/-]{1,128}\Z")
 
 
 def _same_account_role(value: Any, account: str, kind: str) -> bool:
@@ -55,6 +56,7 @@ def normalize_aws_emr_classic(record: Mapping[str, Any]) -> dict[str, Any] | Non
         return None
     role_selected = False
     command_runner_added = False
+    runtime_role_step_added = False
     if action == "RunJobFlow":
         cluster_id = response.get("jobFlowId")
         cluster_arn = f"arn:aws:elasticmapreduce:{region}:{account}:cluster/{cluster_id}"
@@ -81,7 +83,11 @@ def normalize_aws_emr_classic(record: Mapping[str, Any]) -> dict[str, Any] | Non
             and step["hadoopJarStep"].get("jar") == "command-runner.jar"
             for step in steps
         )
-        if not command_runner_added:
+        runtime = request.get("executionRoleArn")
+        runtime_role_step_added = bool(
+            isinstance(runtime, str) and _RUNTIME_ROLE.fullmatch(runtime)
+        )
+        if not (command_runner_added or runtime_role_step_added):
             return None
     target = f"arn:aws:elasticmapreduce:{region}:{account}:cluster/{cluster_id}"
     return {
@@ -92,4 +98,5 @@ def normalize_aws_emr_classic(record: Mapping[str, Any]) -> dict[str, Any] | Non
         "target.id": "sha256:" + hashlib.sha256(target.encode("utf-8")).hexdigest()[:24],
         "request.emr_instance_profile_selected": role_selected,
         "request.emr_command_runner_step_added": command_runner_added,
+        "request.emr_runtime_role_step_added": runtime_role_step_added,
     }
