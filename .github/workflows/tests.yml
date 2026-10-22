@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 env:
   # HackTricks Cloud revision the privesc catalog, ledgers and check page links are verified against.
-  HACKTRICKS_REVISION: 171e422299df4e3c1477847d80439c13aadf55fc
+  HACKTRICKS_REVISION: 9e5d46375b53cbd2d0cdce63771f3e36f0c30bae
   TERRAFORM_VERSION: 1.14.3
 jobs:
   python_shards:
@@ -30,6 +30,14 @@ jobs:
           repository: HackTricks-wiki/hacktricks-cloud
           ref: ${{ env.HACKTRICKS_REVISION }}
           path: .hacktricks-cloud
+          sparse-checkout: src
+          persist-credentials: false
+      - name: Check out the exact GCP heading ledger revision
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          repository: HackTricks-wiki/hacktricks-cloud
+          ref: 171e422299df4e3c1477847d80439c13aadf55fc
+          path: .hacktricks-cloud-gcp
           sparse-checkout: src
           persist-credentials: false
       - name: Check out the exact Azure provenance revision
@@ -198,7 +206,7 @@ jobs:
       - name: Run the test suite
         if: ${{ !cancelled() }}
         env:
-          HACKTRICKS_CLOUD_ROOT: ${{ github.workspace }}/.hacktricks-cloud:${{ github.workspace }}/.hacktricks-cloud-azure:${{ github.workspace }}/.hacktricks-cloud-k8s
+          HACKTRICKS_CLOUD_ROOT: ${{ github.workspace }}/.hacktricks-cloud:${{ github.workspace }}/.hacktricks-cloud-gcp:${{ github.workspace }}/.hacktricks-cloud-azure:${{ github.workspace }}/.hacktricks-cloud-k8s
           PEASO_HACKTRICKS_ROOT: ${{ github.workspace }}/.hacktricks-cloud
         # Each shard collects its assigned files; split modules select disjoint node IDs.
         # loadfile keeps module fixtures on one worker within each job.
