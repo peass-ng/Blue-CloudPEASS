@@ -3273,11 +3273,21 @@ class AwsModel(Model):
     def _selector_ext(self, key, value, candidates, source):
         out = {}
         if key == "cognito_developer_authenticated_role":
+            if source is None:
+                return None
             host = "cognito_developer_authenticated"
             for rid, node in candidates.items():
                 pools = self.hosts.get(rid, {}).get(host, ())
                 unknown = False
                 for pool_arn in pools:
+                    if _account(pool_arn) != source.scope:
+                        continue
+                    permission = self._check_action(source, "cognito-identity:GetOpenIdTokenForDeveloperIdentity", pool_arn)
+                    if permission is None:
+                        continue
+                    if permission.confidence == "unknown":
+                        unknown = True
+                        continue
                     pool_id = str(pool_arn).split("identitypool/", 1)[-1]
                     provider_name = self.cognito_developer_provider.get(pool_arn)
                     if not provider_name:
@@ -3310,10 +3320,11 @@ class AwsModel(Model):
                         if verdict is False:
                             continue
                         if verdict is True and not statement.variables and denied is False and not not_principal_deny:
-                            out[rid] = None
+                            out[rid] = (None if permission.confidence == "derived" else
+                                        ("conditional", "cognito_developer_pool_permission_conditional"))
                             break
                         unknown = True
-                    if rid in out:
+                    if rid in out and out[rid] is None:
                         break
                 if rid not in out and (unknown or self.host_status.get((node.scope, host)) not in ("collected", "empty")):
                     out[rid] = ("unknown", "cognito_developer_pool_role_or_trust_not_verified")

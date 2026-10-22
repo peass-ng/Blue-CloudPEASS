@@ -62,11 +62,28 @@ def test_developer_token_targets_only_exact_authenticated_role():
 
 def test_developer_token_requires_exact_pool_permission_and_provider():
     model, selected = _result(permission=POOL_ARN + "-other")
-    assert selected == {f"arn:aws:iam::{ACCOUNT}:role/authenticated": None}
+    assert selected == {}
     assert model._check_action(model.principals[ALICE],
         "cognito-identity:GetOpenIdTokenForDeveloperIdentity", POOL_ARN) is None
     for _, selected in (_result(developer=False), _result(authenticated=False)):
         assert f"arn:aws:iam::{ACCOUNT}:role/authenticated" not in selected
+
+
+def test_developer_token_does_not_mix_permission_and_trust_from_different_pools():
+    second_id = "us-east-1:87654321-4321-4321-4321-cba987654321"
+    second_arn = f"arn:aws:cognito-identity:us-east-1:{ACCOUNT}:identitypool/{second_id}"
+    target = f"arn:aws:iam::{ACCOUNT}:role/authenticated"
+    first = _pool()[2][0]
+    second = {**first, "IdentityPoolId": second_id}
+    actor = user("alice", {"Effect": "Allow", "Action": "cognito-identity:GetOpenIdTokenForDeveloperIdentity",
+                            "Resource": second_arn})
+    snap = aws_snap([actor], [role("authenticated", _trust())],
+                    [("cognito_identity_pool", SCOPE, [first, second])])
+    model = AwsModel(snap)
+    selected = model.selector("cognito_developer_authenticated_role", True, {target: model.principals[target]},
+                              model.principals[ALICE])
+    assert selected == {}
+    assert Evaluator(model, [_entry()], include_unknown=False).run() == []
 
 
 def test_developer_token_requires_matching_role_trust():
