@@ -332,42 +332,55 @@ class Requests:
     def client(self, session, service, region, *, _metadata_profile=None):
         from botocore.config import Config
         key = (id(session), service, region)
+
+        def cached_client(create):
+            # SDK sessions lazily mutate state while constructing clients. Keep
+            # creation serialized per session, outside the lock used for API
+            # budgets, rate limiting and response-cache lookups. Warm clients
+            # need neither that creation lock nor another SDK construction.
+            with self._lock:
+                self._sessions[id(session)] = session
+                if key in self._clients:
+                    return self._clients[key]
+                locks = getattr(self, "_client_creation_locks", None)
+                if locks is None:
+                    locks = self._client_creation_locks = {}
+                creation_lock = locks.setdefault(id(session), threading.RLock())
+            with creation_lock:
+                with self._lock:
+                    if key in self._clients:
+                        return self._clients[key]
+                client = create()
+                with self._lock:
+                    self._clients[key] = client
+                return client
         s3_bootstrap = (_metadata_profile is None and service == 'sts' and self.content_secret_scans
             and bool({'s3_selected_source_content', 'ecs_selected_environment_file_content', 'workload_referenced_source_content', 'build_deployment_referenced_source_content'} & set(getattr(self, 'content_secret_scan_kinds', ()))))
         if s3_bootstrap:
             key += ('aws-selected-s3-bootstrap-v1',)
-            with self._lock:
-                self._sessions[id(session)] = session
-                if key not in self._clients:
-                    self._clients[key] = session.client(service, region_name=region, config=Config(
+            return cached_client(
+                lambda: session.client(service, region_name=region, config=Config(
                         connect_timeout=min(3, self.connect_timeout), read_timeout=min(5, self.timeout),
                         retries={'total_max_attempts': 1, 'mode': 'standard'},
-                        ignore_configured_endpoint_urls=True, use_fips_endpoint=False, use_dualstack_endpoint=False))
-                return self._clients[key]
+                        ignore_configured_endpoint_urls=True, use_fips_endpoint=False, use_dualstack_endpoint=False)))
         if _metadata_profile == 'aws-selected-s3-source-content-v1':
             from .aws_s3_selected_source_secret_indicators import client_config
             key += (_metadata_profile,)
-            with self._lock:
-                self._sessions[id(session)] = session
-                if key not in self._clients:
-                    self._clients[key] = session.client(service, region_name=region, config=client_config(self))
-                return self._clients[key]
+            return cached_client(
+                lambda: session.client(service, region_name=region, config=client_config(self)))
         lambda_environment_profile = _metadata_profile in ('aws-lambda-environment-content-v1', 'aws-selected-configuration-content-v1')
         if _metadata_profile is not None and not lambda_environment_profile:
             raise ReadFailure('not_collected', 'undeclared_client_profile')
         if lambda_environment_profile:
             key += (_metadata_profile,)
-        with self._lock:
-            self._sessions[id(session)] = session
-            if key not in self._clients:
-                self._clients[key] = session.client(service, region_name=region, config=Config(
+        return cached_client(
+            lambda: session.client(service, region_name=region, config=Config(
                     connect_timeout=min(3, self.connect_timeout) if lambda_environment_profile else self.connect_timeout,
                     read_timeout=min(5, self.timeout) if lambda_environment_profile else self.timeout,
                     retries={"total_max_attempts": 1, "mode": "standard"},
                     max_pool_connections=self.workers,
                     **({'ignore_configured_endpoint_urls': True, 'use_fips_endpoint': False, 'use_dualstack_endpoint': False}
-                       if _metadata_profile == 'aws-selected-configuration-content-v1' else {})))
-            return self._clients[key]
+                       if _metadata_profile == 'aws-selected-configuration-content-v1' else {}))))
 
     def call(self, session, service, region, operation, *, _cache_refresh=False, _uncached_credential_exchange=False, _metadata_profile=None, _projection_context=None, _codecommit_routes=None, **arguments):
         if _metadata_profile == 'aws-build-deployment-referenced-source-v1':
