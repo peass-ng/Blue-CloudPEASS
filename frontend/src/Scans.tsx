@@ -47,6 +47,7 @@ export const terminalStatuses = [
   "timed_out",
   "queue_exhausted",
 ];
+const hasResults = (scan: Scan) => scan.status === "completed" || scan.result_available === true;
 function ScanCategories({ selected = [] }: { selected?: string[] }) {
   const [expanded, setExpanded] = useState(false);
   const all = categories.every(category => selected.includes(category.id));
@@ -201,11 +202,11 @@ export function Scans({
               {s.input_mode && s.input_mode !== "live" && (
                 <Badge value={s.input_mode} />
               )}
-              {s.status === "completed" ? (
+              {hasResults(s) && (
                 <>
                   <button className="button" onClick={() => onSelect(s)}>
                     <Eye size={15} />
-                    View
+                    {s.status === "completed" ? "View" : "View partial"}
                   </button>
                   <button
                     className="icon-button"
@@ -215,8 +216,8 @@ export function Scans({
                     <Download size={17} />
                   </button>
                 </>
-              ) : (
-                !terminalStatuses.includes(s.status) && (
+              )}
+              {!terminalStatuses.includes(s.status) && (
                   <button
                     className="button"
                     disabled={cancel.isPending || demo || !canWrite}
@@ -225,7 +226,6 @@ export function Scans({
                     <Square size={13} />
                     Cancel
                   </button>
-                )
               )}
               <button className="icon-button danger" aria-label={`Delete scan ${names.get(s.id)}`}
                 disabled={demo || !canWrite || !terminalStatuses.includes(s.status)}
@@ -344,7 +344,7 @@ export function Scans({
           )}
           <h3>Recorded scan details</h3>
           <Evidence data={inspect} />
-          {inspect.status === "completed" && (
+          {hasResults(inspect) && (
             <>
             <Panel title="Coverage & limitations">
               <CoverageView scanId={inspect.id} demo={demo} />

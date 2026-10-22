@@ -90,12 +90,12 @@ locals {
       Overrides = {
         ContainerOverrides = [{
           Name        = stage
-          "Command.$" = "States.Array('${stage}', '--once', '--tenant-id', $.tenant_id, '--scan-id', $.scan_id)"
+          "Command.$" = stage == "collector" ? "States.Array('collector', '--once', '--tenant-id', $.tenant_id, '--scan-id', $.scan_id)" : "States.Array('analyzer', '--progressive', '--once', '--tenant-id', $.tenant_id, '--scan-id', $.scan_id)"
         }]
       }
     }
     ResultPath = null
-    Catch      = [{ ErrorEquals = ["States.ALL"], ResultPath = "$.failure", Next = stage == "collector" ? "CollectorTaskFailed" : "AnalyzerTaskFailed" }]
+    Catch      = [{ ErrorEquals = ["States.ALL"], ResultPath = "$.failure", Next = stage == "collector" ? "CollectorBranchFailed" : "AnalyzerBranchFailed" }]
     Next       = stage == "collector" ? "ReadCollectedStatus" : "ReadCompletedStatus"
   } }
   read_job_status = {
@@ -140,29 +140,67 @@ resource "aws_sfn_state_machine" "scan" {
   role_arn = aws_iam_role.workflow.arn
   type     = "STANDARD"
   definition = jsonencode({
-    Comment        = "One bounded cloud collector followed by an offline analyzer with separate credentials"
-    StartAt        = "Collect"
+    Comment        = "Bounded collection and progressive analysis run concurrently with separate credentials"
+    StartAt        = "ScanStages"
     TimeoutSeconds = var.scan_runtime_limits.workflow_seconds
     States = {
-      Collect             = local.run_tasks.collector
-      Analyze             = local.run_tasks.analyzer
-      ReadCollectedStatus = merge(local.read_job_status, { Next = "CollectedStatus" })
-      CollectedStatus = {
-        Type    = "Choice"
-        Choices = [{ Variable = "$.job_status.Item.status.S", StringEquals = "collected", Next = "Analyze" }]
-        Default = "CollectorTaskFailed"
-      }
-      ReadCompletedStatus = merge(local.read_job_status, { Next = "CompletedStatus" })
-      CompletedStatus = {
-        Type    = "Choice"
-        Choices = [{ Variable = "$.job_status.Item.status.S", StringEquals = "completed", Next = "ReleaseSucceeded" }]
-        Default = "AnalyzerTaskFailed"
+      ScanStages = {
+        Type       = "Parallel"
+        ResultPath = null
+        Branches = [
+          {
+            StartAt = "Collect"
+            States = {
+              Collect = local.run_tasks.collector
+              ReadCollectedStatus = merge(local.read_job_status, {
+                Next  = "CollectedStatus"
+                Catch = [{ ErrorEquals = ["States.ALL"], ResultPath = "$.failure", Next = "CollectorBranchFailed" }]
+              })
+              CollectedStatus = {
+                Type = "Choice"
+                # The analyzer may claim or complete just before this read.
+                Choices = [for status in ["collected", "analyzing", "completed"] : {
+                  Variable = "$.job_status.Item.status.S", StringEquals = status, Next = "CollectorSucceeded"
+                }]
+                Default = "CollectorBranchFailed"
+              }
+              CollectorBranchFailed = { Type = "Fail", Error = "CollectorBranchFailed", Cause = "Collector task did not complete" }
+              CollectorSucceeded    = { Type = "Succeed" }
+            }
+          },
+          {
+            StartAt = "Analyze"
+            States = {
+              Analyze = local.run_tasks.analyzer
+              ReadCompletedStatus = merge(local.read_job_status, {
+                Next  = "CompletedStatus"
+                Catch = [{ ErrorEquals = ["States.ALL"], ResultPath = "$.failure", Next = "AnalyzerBranchFailed" }]
+              })
+              CompletedStatus = {
+                Type    = "Choice"
+                Choices = [{ Variable = "$.job_status.Item.status.S", StringEquals = "completed", Next = "AnalyzerSucceeded" }]
+                Default = "AnalyzerBranchFailed"
+              }
+              AnalyzerBranchFailed = { Type = "Fail", Error = "AnalyzerBranchFailed", Cause = "Analyzer task did not complete" }
+              AnalyzerSucceeded    = { Type = "Succeed" }
+            }
+          },
+        ]
+        Catch = [
+          { ErrorEquals = ["CollectorBranchFailed"], ResultPath = "$.failure", Next = "CollectorTaskFailed" },
+          { ErrorEquals = ["AnalyzerBranchFailed"], ResultPath = "$.failure", Next = "AnalyzerTaskFailed" },
+          { ErrorEquals = ["States.ALL"], ResultPath = "$.failure", Next = "ParallelTaskFailed" },
+        ]
+        Next = "ReleaseSucceeded"
       }
       CollectorTaskFailed = {
         Type = "Pass", Result = { code = "worker_task_failed", stage = "collector" }, ResultPath = "$.task_failure", Next = "ReleaseFailed"
       }
       AnalyzerTaskFailed = {
         Type = "Pass", Result = { code = "worker_task_failed", stage = "analyzer" }, ResultPath = "$.task_failure", Next = "ReleaseFailed"
+      }
+      ParallelTaskFailed = {
+        Type = "Pass", Result = { code = "workflow_failed", stage = "workflow" }, ResultPath = "$.task_failure", Next = "ReleaseFailed"
       }
       # The worker releases its durable admission on terminal transition. A
       # scheduler sweep reconciles abnormal workflow exits and lease loss.

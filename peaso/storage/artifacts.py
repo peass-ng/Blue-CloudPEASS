@@ -72,18 +72,23 @@ class FileArtifacts:
         check_reference(tenant, reference)
         path = self.root / reference
         path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
-        temp = path.with_suffix(".tmp")
-        fd = os.open(temp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-        with os.fdopen(fd, "w") as stream:
-            stream.write(value)
-            stream.flush()
-            os.fsync(stream.fileno())
-        os.replace(temp, path)
-        directory = os.open(path.parent, os.O_RDONLY)
+        # A killed writer may leave its temp file behind. A fresh name lets
+        # a reclaimed scan replace the same private artifact safely.
+        temp = path.with_name(path.name + "." + uuid.uuid4().hex + ".tmp")
         try:
-            os.fsync(directory)
+            fd = os.open(temp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+            with os.fdopen(fd, "w") as stream:
+                stream.write(value)
+                stream.flush()
+                os.fsync(stream.fileno())
+            os.replace(temp, path)
+            directory = os.open(path.parent, os.O_RDONLY)
+            try:
+                os.fsync(directory)
+            finally:
+                os.close(directory)
         finally:
-            os.close(directory)
+            temp.unlink(missing_ok=True)
         return reference
 
     def get(self, tenant, reference):

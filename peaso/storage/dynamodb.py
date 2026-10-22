@@ -608,6 +608,171 @@ class DynamoStore:
                                 "#status=:completed AND #report=:expected AND (attribute_not_exists(expires_at) OR expires_at>:now)"):
             raise StoreError(409, "Completed scan report changed")
 
+    def record_checkpoint(self, tenant, ident, owner, sequence, reference, *, kind=None, scope=None,
+                          report_ref=None, stage="collector", now=None):
+        """Tenant, lease, owner and monotonic sequence fenced checkpoint write."""
+        from .artifacts import job_prefix
+        now = self.clock() if now is None else now
+        if (type(sequence) is not int or sequence < 1 or not isinstance(reference, str)
+                or not reference.startswith(job_prefix(tenant, ident))
+                or report_ref is not None and (not isinstance(report_ref, str) or not report_ref.startswith(job_prefix(tenant, ident)))):
+            raise ValueError("Invalid checkpoint reference or sequence")
+        if stage not in {"collector", "analyzer_native"}:
+            raise ValueError("Invalid checkpoint stage")
+        if report_ref is None:
+            if not isinstance(kind, str) or not isinstance(scope, str) or stage != "collector":
+                raise ValueError("Collection checkpoint needs native type and scope")
+            checkpoint_id = ident + "/" + hashlib.sha256((kind + "\0" + scope).encode()).hexdigest()
+            item = dict(self.key(tenant, "scan_checkpoint", checkpoint_id), kind="scan_checkpoint",
+                        scan_id=ident, native_kind=kind, scope=scope, sequence=sequence,
+                        reference=reference, expires_at=int(now + 30 * 86400))
+            update = {"Update": {"TableName": self.table, "Key": attrs(self.key(tenant, "job", ident)),
+                         "UpdateExpression": "SET checkpoint_sequence=:seq",
+                         "ConditionExpression": "#status=:collecting AND #owner=:owner AND lease>:now AND deadline>:now AND (attribute_not_exists(checkpoint_sequence) OR checkpoint_sequence<:seq)",
+                         "ExpressionAttributeNames": {"#status": "status", "#owner": "owner"},
+                         "ExpressionAttributeValues": attrs({":seq": sequence, ":collecting": "collecting", ":owner": owner, ":now": now})}}
+            actions = [update, {"Put": {"TableName": self.table, "Item": attrs(item)}}]
+        else:
+            phase = "analyzing" if stage == "analyzer_native" else "collecting"
+            expression = "SET partial_snapshot=:snapshot,partial_report=:report,partial_report_sequence=:seq"
+            condition = ("#status=:phase AND #owner=:owner AND lease>:now AND deadline>:now "
+                         "AND (attribute_not_exists(partial_report_sequence) OR partial_report_sequence<:seq) "
+                         "AND " + ("(attribute_not_exists(checkpoint_sequence) OR checkpoint_sequence<:seq)"
+                                    if stage == "analyzer_native" else "checkpoint_sequence>=:seq"))
+            if stage == "analyzer_native":
+                expression += ",checkpoint_sequence=:seq"
+            actions = [{"Update": {"TableName": self.table, "Key": attrs(self.key(tenant, "job", ident)),
+                        "UpdateExpression": expression,
+                        "ConditionExpression": condition,
+                        "ExpressionAttributeNames": {"#status": "status", "#owner": "owner"},
+                        "ExpressionAttributeValues": attrs({":snapshot": reference, ":report": report_ref,
+                                                            ":phase": phase, ":owner": owner,
+                                                            ":now": now, ":seq": sequence})}}]
+        try:
+            self.client.transact_write_items(TransactItems=actions)
+            return True
+        except ClientError as exc:
+            if exc.response["Error"]["Code"] == "TransactionCanceledException":
+                return False
+            raise
+
+    def checkpoint_collections(self, tenant, ident):
+        self.job(tenant, ident)
+        prefix = "scan_checkpoint/" + ident + "/"
+        arguments = {"TableName": self.table, "ConsistentRead": True,
+                     "KeyConditionExpression": "PK=:tenant AND begins_with(SK,:prefix)",
+                     "ExpressionAttributeValues": attrs({":tenant": "tenant/" + tenant, ":prefix": prefix})}
+        out = []
+        while True:
+            page = self.client.query(**arguments)
+            out.extend({"kind": value["native_kind"], "scope": value["scope"],
+                        "sequence": value["sequence"], "reference": value["reference"]}
+                       for value in (row(item) for item in page.get("Items", [])))
+            if not page.get("LastEvaluatedKey"):
+                return sorted(out, key=lambda value: value["sequence"])
+            arguments["ExclusiveStartKey"] = page["LastEvaluatedKey"]
+
+    @staticmethod
+    def _stage_key(tenant, ident, stage):
+        return {"PK": "tenant/" + tenant, "SK": "scan_stage/" + ident + "/" + stage}
+
+    def claim_stage(self, tenant, ident, stage, data_revision, owner, lease_seconds, now=None):
+        SQLiteStore._stage_args(stage, data_revision, owner)
+        if lease_seconds <= 0:
+            raise ValueError("Invalid progressive lease")
+        now = self.clock() if now is None else now
+        try:
+            self.client.transact_write_items(TransactItems=[
+                {"ConditionCheck": {"TableName": self.table, "Key": attrs(self.key(tenant, "job", ident)),
+                    "ConditionExpression": "#status IN (:collecting,:collected,:analyzing) AND deadline>:now AND (attribute_not_exists(#owner) OR #owner<>:owner)",
+                    "ExpressionAttributeNames": {"#status": "status", "#owner": "owner"},
+                    "ExpressionAttributeValues": attrs({":collecting": "collecting", ":collected": "collected",
+                        ":analyzing": "analyzing", ":now": now, ":owner": owner})}},
+                {"Update": {"TableName": self.table, "Key": attrs(self._stage_key(tenant, ident, stage)),
+                    "UpdateExpression": "SET data_revision=:revision,#status=:running,#owner=:owner,lease=:lease,result_ref=:null,expires_at=:expires",
+                    "ConditionExpression": "attribute_not_exists(PK) OR data_revision<:revision OR (data_revision=:revision AND #status=:running AND lease<=:now)",
+                    "ExpressionAttributeNames": {"#status": "status", "#owner": "owner"},
+                    "ExpressionAttributeValues": attrs({":revision": data_revision, ":running": "running",
+                        ":owner": owner, ":lease": now + lease_seconds, ":now": now,
+                        ":null": None, ":expires": int(now + 30 * 86400)})}},
+            ])
+            return True
+        except ClientError as exc:
+            if exc.response["Error"]["Code"] == "TransactionCanceledException":
+                return False
+            raise
+
+    def heartbeat_stage(self, tenant, ident, stage, data_revision, owner, lease_seconds, now=None):
+        SQLiteStore._stage_args(stage, data_revision, owner)
+        if lease_seconds <= 0:
+            raise ValueError("Invalid progressive lease")
+        now = self.clock() if now is None else now
+        try:
+            self.client.transact_write_items(TransactItems=[
+                {"ConditionCheck": {"TableName": self.table, "Key": attrs(self.key(tenant, "job", ident)),
+                    "ConditionExpression": "#status IN (:collecting,:collected,:analyzing) AND deadline>:now",
+                    "ExpressionAttributeNames": {"#status": "status"},
+                    "ExpressionAttributeValues": attrs({":collecting": "collecting", ":collected": "collected",
+                        ":analyzing": "analyzing", ":now": now})}},
+                {"Update": {"TableName": self.table, "Key": attrs(self._stage_key(tenant, ident, stage)),
+                    "UpdateExpression": "SET lease=:lease",
+                    "ConditionExpression": "data_revision=:revision AND #status=:running AND #owner=:owner AND lease>:now",
+                    "ExpressionAttributeNames": {"#status": "status", "#owner": "owner"},
+                    "ExpressionAttributeValues": attrs({":revision": data_revision, ":running": "running",
+                        ":owner": owner, ":lease": now + lease_seconds, ":now": now})}},
+            ])
+            return True
+        except ClientError as exc:
+            if exc.response["Error"]["Code"] == "TransactionCanceledException":
+                return False
+            raise
+
+    def finish_stage(self, tenant, ident, stage, data_revision, owner, result_ref, now=None):
+        from .artifacts import job_prefix
+        SQLiteStore._stage_args(stage, data_revision, owner)
+        if not isinstance(result_ref, str) or not result_ref.startswith(job_prefix(tenant, ident)):
+            raise ValueError("Invalid progressive result reference")
+        now = self.clock() if now is None else now
+        try:
+            self.client.transact_write_items(TransactItems=[
+                {"ConditionCheck": {"TableName": self.table, "Key": attrs(self.key(tenant, "job", ident)),
+                    "ConditionExpression": "#status IN (:collecting,:collected,:analyzing) AND deadline>:now",
+                    "ExpressionAttributeNames": {"#status": "status"},
+                    "ExpressionAttributeValues": attrs({":collecting": "collecting", ":collected": "collected",
+                        ":analyzing": "analyzing", ":now": now})}},
+                {"Update": {"TableName": self.table, "Key": attrs(self._stage_key(tenant, ident, stage)),
+                    "UpdateExpression": "SET #status=:completed,#owner=:null,lease=:null,result_ref=:result",
+                    "ConditionExpression": "data_revision=:revision AND #status=:running AND #owner=:owner AND lease>:now",
+                    "ExpressionAttributeNames": {"#status": "status", "#owner": "owner"},
+                    "ExpressionAttributeValues": attrs({":revision": data_revision, ":running": "running",
+                        ":completed": "completed", ":owner": owner, ":null": None,
+                        ":result": result_ref, ":now": now})}},
+            ])
+            return True
+        except ClientError as exc:
+            if exc.response["Error"]["Code"] == "TransactionCanceledException":
+                return False
+            raise
+
+    def _stage_rows(self, tenant, ident):
+        prefix = "scan_stage/" + ident + "/"
+        arguments = {"TableName": self.table, "ConsistentRead": True,
+                     "KeyConditionExpression": "PK=:tenant AND begins_with(SK,:prefix)",
+                     "ExpressionAttributeValues": attrs({":tenant": "tenant/" + tenant, ":prefix": prefix})}
+        out = []
+        while True:
+            page = self.client.query(**arguments)
+            out.extend(row(item) for item in page.get("Items", []))
+            if not page.get("LastEvaluatedKey"):
+                return out
+            arguments["ExclusiveStartKey"] = page["LastEvaluatedKey"]
+
+    def stage_results(self, tenant, ident):
+        self.job(tenant, ident)
+        return {entry["SK"].split("/")[-1]: {"data_revision": entry["data_revision"],
+                "result_ref": entry["result_ref"]} for entry in self._stage_rows(tenant, ident)
+                if entry.get("status") == "completed" and entry.get("result_ref")}
+
     def jobs(self, tenant, transform=None):
         return [(transform or self.public_job)(value) for value in sorted(self._query(tenant, "job"), key=lambda x: x["created"], reverse=True) if value.get("expires_at", float("inf")) > self.clock()]
 
@@ -632,6 +797,27 @@ class DynamoStore:
             if exc.response["Error"]["Code"] == "ConditionalCheckFailedException":
                 raise StoreError(409, "Scan changed; refresh and retry") from None
             raise
+        # Keep the separately keyed native deltas bounded to the deleted scan.
+        for checkpoint in self.checkpoint_collections_for_deleted(tenant, ident):
+            digest_id = hashlib.sha256((checkpoint["kind"] + "\0" + checkpoint["scope"]).encode()).hexdigest()
+            self.client.delete_item(TableName=self.table,
+                                    Key=attrs(self.key(tenant, "scan_checkpoint", ident + "/" + digest_id)))
+        for stage in self._stage_rows(tenant, ident):
+            self.client.delete_item(TableName=self.table, Key=attrs({"PK": stage["PK"], "SK": stage["SK"]}))
+
+    def checkpoint_collections_for_deleted(self, tenant, ident):
+        prefix = "scan_checkpoint/" + ident + "/"
+        arguments = {"TableName": self.table, "ConsistentRead": True,
+                     "KeyConditionExpression": "PK=:tenant AND begins_with(SK,:prefix)",
+                     "ExpressionAttributeValues": attrs({":tenant": "tenant/" + tenant, ":prefix": prefix})}
+        out = []
+        while True:
+            page = self.client.query(**arguments)
+            out.extend({"kind": value["native_kind"], "scope": value["scope"]}
+                       for value in (row(item) for item in page.get("Items", [])))
+            if not page.get("LastEvaluatedKey"):
+                return out
+            arguments["ExclusiveStartKey"] = page["LastEvaluatedKey"]
 
     def queued_jobs(self):
         return sorted((item for item in self._scan("job") if item["status"] == "queued"), key=lambda item: (item["created"], item["id"]))

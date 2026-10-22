@@ -804,3 +804,9 @@ def test_transaction_arguments_and_worker_call_resource_changes_are_rejected(gra
     assert source != graph.sources[path]
     calls = Graph({path: source}).requirements("api", ["scheduler_handler"], "collector")
     assert any(r.action == "dynamodb:DeleteItem" and any("DynamoStore.enqueue" in step for step in r.trace) for r in calls)
+
+
+def test_progressive_stage_transactions_have_job_condition_permissions(graph, iam):
+    required = graph.requirements("analyzer", ["DynamoStore.claim_stage", "DynamoStore.heartbeat_stage", "DynamoStore.finish_stage", "DynamoStore.stage_results"], "analyzer")
+    assert {"dynamodb:ConditionCheckItem", "dynamodb:UpdateItem", "dynamodb:Query"} <= {row.action for row in required}
+    assert_contract(required, iam)

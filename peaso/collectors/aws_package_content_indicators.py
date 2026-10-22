@@ -6,7 +6,9 @@ is executed or extracted into the host filesystem.
 """
 from peaso.secret_evidence import source_context, reuse_image_layer
 import base64
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import nullcontext
+from contextvars import copy_context
 from copy import deepcopy
 import hashlib
 import io
@@ -202,6 +204,55 @@ def _prepared_batch(items):
     return prepare(items, timeout=60) if prepare is not None else nullcontext()
 
 
+def _scan_progress(requests, count, label):
+    """Report only a local file/window count, never a native path or payload."""
+    from peaso.progress import PHASES, current_callback, emit_progress
+    callback = getattr(requests, 'progress_callback', None) or current_callback()
+    phase = 'scanning_images' if label == 'image' else 'scanning_content'
+    emit_progress(callback, phase=phase if phase in PHASES else 'collecting',
+                  provider=getattr(requests, 'progress_provider', 'aws'),
+                  completed=count, total=None, dynamic_total=True)
+
+
+def _download_image_layers(requests, session, region, account, repo, digest,
+                           identity, descriptors, root, state):
+    """Fetch at most two independently bound ECR blobs at a time, in descriptor order."""
+    def fetch(index):
+        ld, size = descriptors[index]
+        path = root / f'blob-{index:04}'
+        # Request projection and its stream writer consult this thread-local
+        # binding. Descriptor sums were checked before any worker was started;
+        # each worker reserves exactly its own immutable descriptor size.
+        state.active, state.budget = (ld, size, path), [size]
+        try:
+            with source_context(resource_id=identity, scope=account + '/' + region,
+                                image_digest=digest, layer=ld,
+                                check_ids={'aws.review.ecr_repository.package_content_secret_indicators'}):
+                safe = requests.detail(session, 'ecr', region, 'get_download_url_for_layer',
+                                       _metadata_profile=PROFILE, _cache_refresh=True,
+                                       registryId=account, repositoryName=repo, layerDigest=ld)
+            if (safe.get('collection_status') != 'collected' or safe.get('LayerDigest') != ld or
+                    safe.get('RegistryId') != account or safe.get('RepositoryName') != repo or
+                    safe.get('CompressedBytes') != size or not path.is_file() or path.stat().st_size != size):
+                raise ValueError('layer incomplete')
+            return path
+        finally:
+            del state.active, state.budget
+
+    paths = []
+    with ThreadPoolExecutor(max_workers=2, thread_name_prefix='peaso-ecr-layer') as pool:
+        pending = {}
+        for index in range(min(2, len(descriptors))):
+            pending[index] = pool.submit(copy_context().run, fetch, index)
+        for index in range(len(descriptors)):
+            requests.check_deadline()
+            paths.append(pending.pop(index).result())
+            next_index = index + 2
+            if next_index < len(descriptors):
+                pending[next_index] = pool.submit(copy_context().run, fetch, next_index)
+    return paths
+
+
 class PartialArchive(ValueError):
     """Carries safe observations only; caught before the projection boundary."""
     def __init__(self, refs, expanded, members):
@@ -233,9 +284,9 @@ def scan_zip(raw, requests):
             names.add(name)
             total += member.file_size
             if total > EXPANDED_LIMIT or member.file_size > max(1024, member.compress_size * 200): raise ValueError('ZIP expansion bound')
-        actual, pending, pending_bytes = 0, [], 0
+        actual, pending, pending_bytes, scanned_files = 0, [], 0, 0
         def flush():
-            nonlocal pending, pending_bytes
+            nonlocal pending, pending_bytes, scanned_files
             if not pending: return
             items, pending, pending_bytes = pending, [], 0
             requests.check_deadline()
@@ -243,6 +294,8 @@ def scan_zip(raw, requests):
                 for payload, name in items:
                     refs.extend(_scan(payload, name, requests))
                     if len(refs) > MEMBER_LIMIT: raise ValueError('too many observations')
+                    scanned_files += 1
+            _scan_progress(requests, scanned_files, 'package')
         try:
             for member in members:
                 if member.is_dir(): continue
@@ -290,6 +343,18 @@ def scan_tar(raw, media_type, requests, budget=None):
         raise ValueError('truncated or oversized tar')
     expanded += len(raw)
     refs, names, offset, ended = [], set(), 0, False
+    pending, pending_bytes, scanned_files = [], 0, 0
+    def flush():
+        nonlocal pending, pending_bytes, scanned_files
+        if not pending: return
+        items, pending, pending_bytes = pending, [], 0
+        requests.check_deadline()
+        with _prepared_batch(items):
+            for payload, name in items:
+                refs.extend(_scan(payload, name, requests))
+                if len(refs) > MEMBER_LIMIT: raise ValueError('too many observations')
+                scanned_files += 1
+        _scan_progress(requests, scanned_files, 'image')
     try:
         while offset + 512 <= len(raw):
             requests.check_deadline()
@@ -309,11 +374,25 @@ def scan_tar(raw, media_type, requests, budget=None):
             end = offset + member.size
             next_offset = offset + ((member.size + 511) // 512) * 512
             if end > len(raw) or next_offset > len(raw): raise ValueError('truncated tar member')
-            if member.isfile(): refs.extend(_scan(raw[offset:end], name, requests))
+            if member.isfile():
+                payload = raw[offset:end]
+                if _scan is _DEFAULT_SCAN:
+                    if pending and (len(pending) == BATCH_ITEMS or pending_bytes + len(payload) > BATCH_BYTES):
+                        flush()
+                    pending.append((payload, name))
+                    pending_bytes += len(payload)
+                    if len(pending) == BATCH_ITEMS: flush()
+                else:
+                    refs.extend(_scan(payload, name, requests))
             offset = next_offset
         if not ended: raise ValueError('tar missing terminator')
+        flush()
     except Exception as exc:
         if isinstance(exc, PartialArchive): refs.extend(exc.refs)
+        if pending:
+            try: flush()
+            except PartialArchive as partial: refs.extend(partial.refs)
+            except Exception: pass
         if refs: raise PartialArchive(refs, expanded, count) from None
         raise
     return refs, expanded, count
@@ -547,8 +626,9 @@ def _image(response, arguments, requests, session, region):
             refs.append(projected)
             output_bytes[0] += size
     pending, pending_bytes, failed_files, file_counts = [], 0, set(), {}
+    scanned_windows = 0
     def flush_pending():
-        nonlocal pending, pending_bytes, complete
+        nonlocal pending, pending_bytes, complete, scanned_windows
         if not pending: return
         windows, pending, pending_bytes = pending, [], 0
         requests.check_deadline()
@@ -573,6 +653,8 @@ def _image(response, arguments, requests, session, region):
                     continue
                 file_counts[file_key] = count
                 add_refs(found, ld)
+                scanned_windows += 1
+        _scan_progress(requests, scanned_windows, 'image')
     def enqueue_window(payload, name, ld, file_key):
         nonlocal pending_bytes
         if file_key in failed_files: return False
@@ -586,21 +668,8 @@ def _image(response, arguments, requests, session, region):
     with tempfile.TemporaryDirectory(prefix='peaso-ecr-secret-') as directory:
         root = Path(directory)
         try:
-            for index, (ld, size) in enumerate(descriptors):
-                requests.check_deadline()
-                path = root / f'blob-{index:04}'
-                state.active = (ld, size, path)
-                with source_context(resource_id=identity, scope=account + '/' + region,
-                                    image_digest=digest, layer=ld,
-                                    check_ids={'aws.review.ecr_repository.package_content_secret_indicators'}):
-                    safe = requests.detail(session, 'ecr', region, 'get_download_url_for_layer',
-                                           _metadata_profile=PROFILE, _cache_refresh=True,
-                                           registryId=account, repositoryName=repo, layerDigest=ld)
-                if (safe.get('collection_status') != 'collected' or safe.get('LayerDigest') != ld or
-                        safe.get('RegistryId') != account or safe.get('RepositoryName') != repo or
-                        safe.get('CompressedBytes') != size or not path.is_file() or path.stat().st_size != size):
-                    raise ValueError('layer incomplete')
-                paths.append(path)
+            paths = _download_image_layers(requests, session, region, account, repo,
+                digest, identity, descriptors, root, state)
             config_raw = paths[0].read_bytes()
             if len(config_raw) > 1024 * 1024: raise ValueError('config size bound')
             document = _json(config_raw.decode('utf-8'))

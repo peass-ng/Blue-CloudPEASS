@@ -288,18 +288,82 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             from peaso.storage.artifacts import job_prefix
             if not bundle["ai_review"].startswith(job_prefix(tenant, ident)):
                 raise ValueError("AI review does not belong to this scan")
-        reviews = finding_review_index(tenant, bundle["ai_review"]) if bundle.get("ai_review") else review_index(bundle.get("ai", {}))
+        reviews = (review_index(bundle["_stage_ai"]) if bundle.get("_stage_ai") else
+                   finding_review_index(tenant, bundle["ai_review"]) if bundle.get("ai_review") else
+                   review_index(bundle.get("ai", {})))
         return dict(bundle, _finding_reviews=reviews)
+
+    def partial_stage_overlay(tenant, ident, bundle):
+        """Project completed AI sections onto the current public checkpoint."""
+        from peaso.secret_evidence import without_private_values
+        from peaso.storage.artifacts import job_prefix
+        summary = bundle.get("summary", bundle)
+        publication = summary.get("publication", {}) if isinstance(summary, dict) else {}
+        if not isinstance(publication, dict) or publication.get("state") != "partial":
+            return bundle
+        sections = publication.get("sections", {})
+        if not isinstance(sections, dict):
+            return bundle
+        completed = {}
+        stage_rows = store.stage_results(tenant, ident)
+        for stage, entry in stage_rows.items():
+            if stage not in {"hardening", "exposure", "network"} or not isinstance(entry, dict):
+                continue
+            section = sections.get(stage)
+            if (not isinstance(section, dict) or section.get("status") != "complete"
+                    or section.get("data_revision") != entry.get("data_revision")):
+                continue
+            reference = entry.get("result_ref")
+            if not isinstance(reference, str) or not reference.startswith(job_prefix(tenant, ident)):
+                continue
+            try:
+                artifact = artifacts.get(tenant, reference)
+            except (OSError, ValueError):
+                continue
+            if (not isinstance(artifact, dict) or artifact.get("stage") != stage
+                    or artifact.get("data_revision") != entry["data_revision"]
+                    or not isinstance(artifact.get("result"), dict)):
+                continue
+            completed[stage] = without_private_values(artifact["result"])
+        if not completed:
+            return bundle
+        overlay = {"version": 1, "status": "partial", "actions": [],
+                   "reviews": {"hardening": [], "exposure": []}, "limitations": [],
+                   "completed_stages": sorted(completed)}
+        for stage, result in completed.items():
+            if stage == "network" and isinstance(result.get("network"), dict):
+                overlay["network"] = result["network"]
+            if stage in {"hardening", "exposure"} and isinstance(result.get("reviews", {}).get(stage), list):
+                overlay["reviews"][stage] = result["reviews"][stage]
+            overlay["limitations"].extend(result.get("limitations", []) if isinstance(result.get("limitations"), list) else [])
+        stage_revisions = {stage: entry["data_revision"] for stage, entry in stage_rows.items()
+                           if stage in completed}
+        publication = dict(publication, ai_stages=stage_revisions)
+        result = dict(bundle, _stage_ai=overlay, ai=overlay, publication=publication)
+        if bundle.get("bundle_version") == 1:
+            result["summary"] = dict(bundle["summary"], ai=overlay, publication=publication)
+        return result
 
     def owned_bundle(tenant, ident):
         row = store.job(tenant, ident)
-        if row["status"] != "completed" or not row["report"]:
-            raise HTTPException(409, "Report is available after scan completion")
-        return row, artifacts.get(tenant, row["report"])
+        reference = row.get("report") if row["status"] == "completed" else None
+        reference = reference or row.get("partial_report")
+        if not reference:
+            raise HTTPException(409, "No evaluated scan results are available yet")
+        # Existing read paths bind all finding/chunk lookups to row['report'].
+        # Keep that binding tenant/scan scoped for a partial report too, while
+        # a completed final report always wins over the partial reference.
+        bundle = artifacts.get(tenant, reference)
+        if row["status"] != "completed":
+            bundle = partial_stage_overlay(tenant, ident, bundle)
+        return dict(row, report=reference), bundle
 
     def owned_report(tenant, ident):
         row, bundle = owned_bundle(tenant, ident)
         value = artifacts.get(tenant, bundle["report_json"]) if bundle.get("bundle_version") == 1 else bundle
+        if bundle.get("_stage_ai"):
+            value = dict(value, ai=bundle["_stage_ai"],
+                         publication=bundle.get("summary", bundle)["publication"])
         value["runtime"] = store.public_job(row)["runtime"]
         return value
 
@@ -915,6 +979,9 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         row, bundle = owned_bundle(user.tenant_id, ident)
         ext = "md" if format == "markdown" else "json"
         filename = f"hacktricks-cspm-{row['id']}.{ext}"
+        if bundle.get("_stage_ai") and format == "json":
+            return Response(json.dumps(owned_report(user.tenant_id, ident)), media_type="application/json",
+                headers={"Content-Disposition": f'attachment; filename="{filename}"'})
         if aggregation == "check" and bundle.get("report_grouping") != "check-v1":
             reference = grouped_download_reference(user.tenant_id, row["id"], row["report"], format)
             if hasattr(artifacts, "presign"):
@@ -1280,7 +1347,9 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
     @app.get("/api/scans/{ident}/ai")
     def scan_ai(ident: str, offset: int = Query(default=0, ge=0), limit: int = Query(default=50, ge=1, le=100), user=Depends(identity)):
         _, bundle = owned_bundle(user.tenant_id, ident)
-        value = artifacts.get(user.tenant_id, bundle["ai_review"]) if bundle.get("ai_review") else bundle.get("summary", bundle).get("ai", {"status": "not_requested", "actions": [], "reviews": {}})
+        value = (bundle["_stage_ai"] if bundle.get("_stage_ai") else
+                 artifacts.get(user.tenant_id, bundle["ai_review"]) if bundle.get("ai_review") else
+                 bundle.get("summary", bundle).get("ai", {"status": "not_requested", "actions": [], "reviews": {}}))
         reviews = value.get("reviews", {})
         network = value.get("network")
         if isinstance(network, dict):

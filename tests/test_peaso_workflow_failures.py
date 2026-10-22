@@ -33,8 +33,12 @@ def workflow(terraform):
     definition, bounds = validator.compile_definition(ROOT, terraform)
     assert bounds == {"workflow_seconds": 3600, "stage_seconds": 1800, "lease_seconds": 3900}
     compiled = json.loads(definition)
-    assert compiled["States"]["Collect"]["TimeoutSeconds"] == bounds["stage_seconds"]
-    assert compiled["States"]["Analyze"]["TimeoutSeconds"] == bounds["workflow_seconds"]
+    parallel = compiled["States"]["ScanStages"]
+    assert parallel["Type"] == "Parallel" and compiled["StartAt"] == "ScanStages"
+    assert [branch["StartAt"] for branch in parallel["Branches"]] == ["Collect", "Analyze"]
+    assert parallel["Branches"][0]["States"]["Collect"]["TimeoutSeconds"] == bounds["stage_seconds"]
+    assert parallel["Branches"][1]["States"]["Analyze"]["TimeoutSeconds"] == bounds["workflow_seconds"]
+    assert "'--progressive'" in parallel["Branches"][1]["States"]["Analyze"]["Parameters"]["Overrides"]["ContainerOverrides"][0]["Command.$"]
     return compiled
 
 
@@ -149,7 +153,10 @@ def run_failure(workflow, stage, failure, terminal=None, *, terminal_race=False)
     private = "fixture-private-provider-cause"
     data = {"tenant_id": "alice", "scan_id": "fixture"}
     execution = "arn:aws:states:us-east-1:111122223333:execution:hacktricks-cspm:fixture"
-    states = workflow["States"]
+    outer = workflow["States"]
+    parallel = outer["ScanStages"]
+    branch = parallel["Branches"][0 if stage == "collector" else 1]
+    states = {**outer, **branch["States"]}
     state_name = "Collect" if stage == "collector" else "Analyze"
     visited = []
     with moto.mock_aws():
@@ -159,11 +166,18 @@ def run_failure(workflow, stage, failure, terminal=None, *, terminal_race=False)
                             AttributeDefinitions=[{"AttributeName": key, "AttributeType": "S"} for key in ["PK", "SK"]])
         key = attrs({"PK": "tenant/alice", "SK": "job/fixture"})
         initial_status = ("collecting" if stage == "collector" else "analyzing") if terminal_race else terminal or ("collecting" if stage == "collector" else "analyzing")
-        client.put_item(TableName="hacktricks-cspm", Item=attrs({"PK": "tenant/alice", "SK": "job/fixture", "status": initial_status, "owner": "worker-owner", "lease": 100, "rev": 0}))
+        client.put_item(TableName="hacktricks-cspm", Item=attrs({"PK": "tenant/alice", "SK": "job/fixture", "status": initial_status, "owner": "worker-owner", "lease": 100, "rev": 0,
+                                                               "partial_report": "tenant/alice/partial-report", "checkpoint_sequence": 2}))
         raced = False
         for _ in range(15):
             state = states[state_name]
             visited.append(state_name)
+            if state["Type"] == "Fail" and state_name in {"CollectorBranchFailed", "AnalyzerBranchFailed"}:
+                error = state["Error"]
+                handler = next(item for item in parallel["Catch"] if error in item["ErrorEquals"])
+                data["failure"] = {"Error": error, "Cause": state["Cause"]}
+                state_name = handler["Next"]
+                continue
             if state["Type"] in {"Fail", "Succeed"}:
                 break
             try:
@@ -205,12 +219,15 @@ def run_failure(workflow, stage, failure, terminal=None, *, terminal_race=False)
             pytest.fail("Compiled failure path did not terminate")
         persisted = row(client.get_item(TableName="hacktricks-cspm", Key=key)["Item"])
         assert persisted["status"] == (terminal or "failed")
+        assert persisted["partial_report"] == "tenant/alice/partial-report"
+        assert persisted["checkpoint_sequence"] == 2
         if not terminal:
             assert persisted["error_code"] == "worker_task_failed" and persisted["error_stage"] == stage
             assert persisted["owner"] is None and persisted["lease"] is None
             assert persisted["history"][-1]["status"] == "failed"
         assert private not in json.dumps(persisted)
-        assert states["Collect"]["Type"] == "Task" and workflow["StartAt"] == "Collect"
+        assert states["Collect" if stage == "collector" else "Analyze"]["Type"] == "Task"
+        assert workflow["StartAt"] == "ScanStages"
         expected_end = {"cancelled": "Cancelled", "completed": "Succeeded"}.get(terminal, "Failed")
         assert visited[-1] == expected_end
         assert ("MarkFailed" in visited) == (not terminal or terminal_race)

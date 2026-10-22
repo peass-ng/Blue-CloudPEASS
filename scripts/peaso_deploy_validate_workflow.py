@@ -105,13 +105,19 @@ def compile_definition(root: Path, terraform: str):
         definition = json.loads(result.stdout.strip())
     compiled = json.loads(definition)
     workflow_seconds = compiled["TimeoutSeconds"]
-    stage_seconds = compiled["States"]["Collect"]["TimeoutSeconds"]
+    stages = compiled["States"]
+    parallel = stages.get("ScanStages", {})
+    branches = parallel.get("Branches", [])
+    if compiled.get("StartAt") != "ScanStages" or parallel.get("Type") != "Parallel" or len(branches) != 2:
+        raise ValueError("Collector and progressive analyzer must start in one Parallel state")
+    collector, analyzer = (branch["States"] for branch in branches)
+    stage_seconds = collector["Collect"]["TimeoutSeconds"]
     lease_match = re.search(r'["\s]*lease_seconds["\s]*[:=]\s*([0-9]+)', values["var.scan_runtime_limits"])
     if not lease_match or not 0 < stage_seconds <= workflow_seconds < int(lease_match[1]):
         raise ValueError("Workflow stage/deadline/admission invariant violated")
-    if compiled["States"]["Analyze"]["TimeoutSeconds"] != workflow_seconds:
+    if analyzer["Analyze"]["TimeoutSeconds"] != workflow_seconds:
         raise ValueError("Analyzer must fit the workflow deadline while collection retains its stage limit")
-    if compiled.get("StartAt") != "Collect" or "AcquireSlot" in compiled["States"] or "SCAN_LOCK" in json.dumps(compiled):
+    if "AcquireSlot" in stages or "SCAN_LOCK" in json.dumps(compiled):
         raise ValueError("Only durable pre-workflow admission may reserve scan capacity")
     validate_failure_paths(compiled)
     return definition, {"workflow_seconds": workflow_seconds, "stage_seconds": stage_seconds,
@@ -121,19 +127,52 @@ def compile_definition(root: Path, terraform: str):
 def validate_failure_paths(definition):
     """Check the compiled deployed path, including uncatchable worker death."""
     states = definition["States"]
-    for stage, task, failed, status in [
-        ("collector", "Collect", "CollectorTaskFailed", "CollectedStatus"),
-        ("analyzer", "Analyze", "AnalyzerTaskFailed", "CompletedStatus"),
+    parallel = states["ScanStages"]
+    if parallel.get("ResultPath", "missing") is not None or parallel.get("Next") != "ReleaseSucceeded":
+        raise ValueError("Parallel workers must both settle before success")
+    expected_catches = [
+        {"ErrorEquals": ["CollectorBranchFailed"], "ResultPath": "$.failure", "Next": "CollectorTaskFailed"},
+        {"ErrorEquals": ["AnalyzerBranchFailed"], "ResultPath": "$.failure", "Next": "AnalyzerTaskFailed"},
+        {"ErrorEquals": ["States.ALL"], "ResultPath": "$.failure", "Next": "ParallelTaskFailed"},
+    ]
+    if parallel.get("Catch") != expected_catches:
+        raise ValueError("Parallel branch failure must cancel its sibling and reconcile the job")
+    for branch, stage, task, failed, status, good in [
+        (parallel["Branches"][0], "collector", "Collect", "CollectorBranchFailed", "CollectedStatus", "CollectorSucceeded"),
+        (parallel["Branches"][1], "analyzer", "Analyze", "AnalyzerBranchFailed", "CompletedStatus", "AnalyzerSucceeded"),
     ]:
-        if states[task]["Resource"] != "arn:aws:states:::ecs:runTask.sync":
+        branch_states = branch["States"]
+        if branch.get("StartAt") != task or branch_states[task]["Resource"] != "arn:aws:states:::ecs:runTask.sync":
             raise ValueError("Worker failure detection requires ECS synchronous tasks")
-        catch = states[task].get("Catch", [])
+        command = branch_states[task]["Parameters"]["Overrides"]["ContainerOverrides"][0]["Command.$"]
+        expected_command = "States.Array('" + stage + "', " + ("'--progressive', " if stage == "analyzer" else "") + "'--once', '--tenant-id', $.tenant_id, '--scan-id', $.scan_id)"
+        if command != expected_command:
+            raise ValueError("Worker command must bind exact scan and progressive analyzer mode")
+        catch = branch_states[task].get("Catch", [])
         if not any(item["ErrorEquals"] == ["States.ALL"] and item["Next"] == failed for item in catch):
             raise ValueError("ECS worker failures must enter the persisted failure path")
-        if states[status]["Default"] != failed:
+        if branch_states[status]["Default"] != failed:
             raise ValueError("Stopped tasks without a completed job must fail the scan")
-        if states[failed].get("Result") != {"code": "worker_task_failed", "stage": stage} or states[failed]["Next"] != "ReleaseFailed":
+        read = branch_states["ReadCollectedStatus" if stage == "collector" else "ReadCompletedStatus"]
+        if (read.get("Parameters", {}).get("ConsistentRead") is not True or
+                read.get("Catch") != [{"ErrorEquals": ["States.ALL"], "ResultPath": "$.failure", "Next": failed}]):
+            raise ValueError("Each branch must read authoritative status before reporting success")
+        if branch_states[failed] != {"Type": "Fail", "Error": failed, "Cause": "Collector task did not complete" if stage == "collector" else "Analyzer task did not complete"}:
+            raise ValueError("Branch failure must stop the sibling worker")
+        if branch_states[good] != {"Type": "Succeed"}:
+            raise ValueError("Branch success must be explicit")
+        if states["CollectorTaskFailed" if stage == "collector" else "AnalyzerTaskFailed"].get("Result") != {"code": "worker_task_failed", "stage": stage}:
             raise ValueError("Task failures require a safe code and persisted failure path")
+    collector_choices = parallel["Branches"][0]["States"]["CollectedStatus"].get("Choices")
+    if collector_choices != [{"Variable": "$.job_status.Item.status.S", "StringEquals": value, "Next": "CollectorSucceeded"}
+                             for value in ("collected", "analyzing", "completed")]:
+        raise ValueError("Collector status read must tolerate analyzer claim racing the read")
+    if parallel["Branches"][1]["States"]["CompletedStatus"].get("Choices") != [
+            {"Variable": "$.job_status.Item.status.S", "StringEquals": "completed", "Next": "AnalyzerSucceeded"}]:
+        raise ValueError("Progressive analyzer exit must verify final completion")
+    for failure in ("CollectorTaskFailed", "AnalyzerTaskFailed", "ParallelTaskFailed"):
+        if states[failure].get("Next") != "ReleaseFailed":
+            raise ValueError("Workflow branch failure must reconcile persisted status")
     release = states["ReleaseFailed"]
     if release != {"Type": "Pass", "Next": "ReadFailureStatus"} or states["ReleaseSucceeded"] != {"Type": "Pass", "Next": "Succeeded"}:
         raise ValueError("Workflow must rely on fenced worker release and scheduler reconciliation")

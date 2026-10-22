@@ -1,5 +1,6 @@
 """Durable collection and analysis with optional post-scan AI and fenced jobs."""
 import argparse
+import hashlib
 import json
 import logging
 import multiprocessing
@@ -18,6 +19,79 @@ from peaso.storage import SQLiteStore, FileArtifacts, S3Artifacts
 from peaso.storage.runtime import stores, WorkflowDispatcher
 
 LOGGER = logging.getLogger(__name__)
+
+
+class _SynchronizedPipe:
+    """Serialize child progress and background checkpoint frames on one pipe."""
+    def __init__(self, connection):
+        self.connection = connection
+        self.lock = threading.Lock()
+
+    def send(self, value):
+        with self.lock:
+            self.connection.send(value)
+
+    def recv(self):
+        return self.connection.recv()
+
+    def close(self):
+        self.connection.close()
+
+
+def _restore_secret_capture(sink, artifacts, tenant, scan_id):
+    """Carry encrypted prior witnesses into a reclaimed collector attempt."""
+    from peaso.secret_evidence import (SCHEMA, MAX_BYTES, MAX_LOCATIONS, MAX_VALUES,
+                                       private_reference, _lock as private_evidence_lock)
+    document = artifacts.get(tenant, private_reference(tenant, scan_id))
+    if (not isinstance(document, dict) or document.get("schema") != SCHEMA
+            or document.get("tenant") != tenant or document.get("scan_id") != scan_id
+            or not isinstance(document.get("records"), dict)
+            or len(document["records"]) > MAX_VALUES or not isinstance(document.get("index"), str)):
+        raise ValueError("Private checkpoint evidence boundary mismatch")
+    index = sink.cipher.decrypt(document["index"])
+    related = index.get("related") if isinstance(index, dict) else None
+    if not isinstance(related, dict):
+        raise ValueError("Private checkpoint index malformed")
+    count, size = 0, 0
+    for fingerprint, sealed in document["records"].items():
+        if not isinstance(fingerprint, str) or not re.fullmatch(r"[0-9a-f]{64}", fingerprint) or not isinstance(sealed, str):
+            raise ValueError("Private checkpoint record malformed")
+        row = sink.cipher.decrypt(sealed)
+        if not isinstance(row, dict) or not isinstance(row.get("value"), str) or not isinstance(row.get("locations"), list):
+            raise ValueError("Private checkpoint record malformed")
+        count += len(row["locations"])
+        size += len(sealed) + len(fingerprint)
+    if count > MAX_LOCATIONS or size > MAX_BYTES:
+        raise ValueError("Private checkpoint evidence budget exceeded")
+    with private_evidence_lock:
+        sink.records = dict(document["records"])
+        sink.related = {key: set(value) for key, value in related.items()
+                        if isinstance(key, str) and isinstance(value, list)
+                        and all(isinstance(item, str) for item in value)}
+        sink.locations, sink.bytes = count, size
+        sink.related_count = sum(len(value) for value in sink.related.values())
+        sink.incomplete = bool(document.get("incomplete"))
+
+
+def _reusable_stages(artifacts, tenant, sections, stage_results):
+    """Accept only stage artifacts bound to a complete final data revision."""
+    reused = {}
+    for stage, result in (stage_results or {}).items():
+        if stage not in {"network", "hardening", "exposure"} or not isinstance(result, dict):
+            continue
+        section = sections.get(stage)
+        if (not isinstance(section, dict) or section.get("status") != "complete"
+                or section.get("data_revision") != result.get("data_revision")):
+            continue
+        try:
+            artifact = artifacts.get(tenant, result["result_ref"])
+        except (KeyError, ValueError, OSError):
+            continue
+        if (isinstance(artifact, dict) and artifact.get("stage") == stage
+                and artifact.get("data_revision") == result.get("data_revision")
+                and isinstance(artifact.get("result"), dict)):
+            reused[stage] = artifact["result"]
+    return reused
 
 _ROLE_ARN = re.compile(r"arn:(?:aws|aws-us-gov|aws-cn):iam::[0-9]{12}:role/[A-Za-z0-9+=,.@_/-]{1,512}\Z")
 _TARGET_MESSAGES = {
@@ -79,6 +153,7 @@ def _safe_failure_details(exc):
 
 
 def _process(role, request, connection):
+    connection = _SynchronizedPipe(connection)
     # Provider exceptions and third-party libraries must never log credentials.
     with open(os.devnull, "w") as sink:
         os.dup2(sink.fileno(), 1)
@@ -110,11 +185,73 @@ def _process(role, request, connection):
             evidence_cipher = CredentialCipher(Path(request.get('ai_context', {}).get('identity_dir') or Settings().identity_dir))
             with capture(evidence_cipher, tenant=tenant, scan_id=ident, options=connector.get('options'),
                          selected_checks=checks_for_request(request)) as secret_capture:
+                from peaso.incremental import CheckpointSession
+                from peaso.secret_evidence import _lock as private_evidence_lock, without_private_values
+                if request.get("checkpoint_refs"):
+                    _restore_secret_capture(secret_capture, artifacts, tenant, ident)
+
+                ai_access_cache = {}
+
+                def public_checkpoint(raw):
+                    public = seal(redact(secret_capture.public_snapshot(raw),
+                                         tuple(credential_values(connector.get("auth", {})))))
+                    if request.get("ai_enabled", True):
+                        try:
+                            entries = ai_access.peek()
+                            bound = ai_access.bind_targets(entries, public) if entries else []
+                            if bound:
+                                marker = hashlib.sha256(json.dumps(bound, sort_keys=True,
+                                    separators=(",", ":")).encode()).hexdigest()
+                                reference = ai_access_cache.get(marker)
+                                if reference is None:
+                                    from peaso.ai.crypto import AICipher
+                                    reference = artifacts.put(tenant, ident, "ai-access", {"sealed":
+                                        AICipher(Path(request.get('ai_context', {}).get('identity_dir') or Settings().identity_dir)).encrypt({"entries": bound})})
+                                    ai_access_cache[marker] = reference
+                                public.setdefault("metadata", {})["ai_access_reference"] = reference
+                        except Exception:
+                            public.setdefault("metadata", {})["ai_access_status"] = "unavailable"
+                    return seal(public)
+
+                checkpoint_lock = threading.Lock()
+
+                def checkpoint(snapshot, report, sequence):
+                    # Commit private evidence before the supervisor can expose
+                    # any public checkpoint from this native read. The entire
+                    # handoff is serialized so an older publisher cannot
+                    # overwrite the latest encrypted private document.
+                    with checkpoint_lock:
+                        with private_evidence_lock:
+                            document = secret_capture.document()
+                        artifacts.put_secret_evidence(tenant, ident, document)
+                        snapshot_ref = artifacts.put(tenant, ident, "snapshot", snapshot)
+                        if report is not None:
+                            from peaso.storage.reports import publish_report
+                            report_ref = publish_report(artifacts, tenant, ident,
+                                                        without_private_values(redact_report(report)), snapshot)
+                        else:
+                            report_ref = None
+                        envelope = snapshot["collections"][0] if report is None else None
+                        connection.send(("__checkpoint__", {"sequence": sequence, "stage": "collector",
+                            "snapshot_ref": snapshot_ref, "report_ref": report_ref,
+                            "kind": envelope["type"] if envelope else None,
+                            "scope": envelope["scope"] if envelope else None}))
+                        if connection.recv() != ("__checkpoint_ack__", sequence, True):
+                            raise RuntimeError("checkpoint lease or publication rejected")
+
+                checkpoint_session = CheckpointSession(request, checkpoint, public_checkpoint)
+                restored = [artifacts.get(tenant, reference) for reference in request.get("checkpoint_refs", ())]
+                checkpoint_session.restore(restored, int(request.get("checkpoint_sequence", 0)))
+                request["_collection_callback"] = checkpoint_session.on_collection
                 try:
                     from peaso.worker_progress import stream_progress
                     with stream_progress(connection):
                         snapshot = collect_snapshot(request)
+                    checkpoint_session.finish_collection()
+                    snapshot.setdefault("metadata", {})["sections"] = checkpoint_session.sections()
                 finally:
+                    checkpoint_session.close()
+                    request.pop("_collection_callback", None)
                     ai_credentials = ai_access.finish()
             # Separate encrypted per-scan object; no reference or value enters
             # the native snapshot, public report, supervisor pipe or AI context.
@@ -159,11 +296,27 @@ def _process(role, request, connection):
             value["input_mode"] = snapshot.get("metadata", {}).get("input_mode", "live")
             from peaso.storage.cost import runtime_estimate
             value["runtime"] = runtime_estimate(request["timeline"])
+            from peaso.storage.reports import publish_report
+            native_sequence = int(request.get("checkpoint_sequence", 0)) + 1
+            sections = snapshot.get("metadata", {}).get("sections", {})
+            sections = sections if isinstance(sections, dict) else {}
+            native_value = dict(value, publication={"state": "partial", "phase": "analyzing",
+                                                    "sequence": native_sequence, "sections": sections})
+            native_reference = publish_report(artifacts, tenant, ident, native_value, snapshot)
+            connection.send(("__checkpoint__", {"sequence": native_sequence,
+                "stage": "analyzer_native", "snapshot_ref": request["snapshot_ref"],
+                "report_ref": native_reference, "kind": None, "scope": None}))
+            if connection.recv() != ("__checkpoint_ack__", native_sequence, True):
+                raise RuntimeError("native analysis checkpoint rejected")
             from peaso.ai.pipeline import review_scan
-            value["ai"] = review_scan(value, snapshot, selectors, tenant=tenant, artifacts=artifacts, deadline=request.get("deadline"), context=request.get("ai_context"))
+            reused_stages = _reusable_stages(artifacts, tenant, sections, request.get("stage_results"))
+            value["ai"] = review_scan(value, snapshot, selectors, tenant=tenant, artifacts=artifacts,
+                                      deadline=request.get("deadline"), context=request.get("ai_context"),
+                                      reused_stages=reused_stages)
             from peaso.ai.network import with_findings
             value = with_findings(value, value["ai"].get("network", {}).get("findings", []))
-            from peaso.storage.reports import publish_report
+            value["publication"] = {"state": "final", "phase": "completed", "sequence": native_sequence,
+                                    "sections": sections}
             reference = publish_report(artifacts, tenant, ident, value, snapshot)
         # Large evidence/report objects never cross the supervisor process pipe.
         connection.send((True, reference))
@@ -291,12 +444,18 @@ class Worker:
                     connector["auth"]["method"] = "profile" if connector["auth"].get("profile") else "access_keys" if connector["auth"].get("aws_access_key_id") else "default"
                 request = dict(selectors, connector=connector)
             else:
-                request = {"snapshot_ref": job["snapshot"], "selectors": selectors, "related": related_snapshot_refs(self.store, job)}
+                request = {"snapshot_ref": job["snapshot"], "selectors": selectors,
+                           "related": related_snapshot_refs(self.store, job),
+                           "stage_results": self.store.stage_results(job["tenant"], job["id"])}
+            request["checkpoint_sequence"] = int(job.get("checkpoint_sequence") or 0)
+            if self.role == "collector":
+                request["checkpoint_refs"] = [row["reference"] for row in
+                    self.store.checkpoint_collections(job["tenant"], job["id"])]
             request.update(tenant_id=job["tenant"], scan_id=job["id"], deadline=job["deadline"], artifact_config={"mode": "file", "root": str(self.artifacts.root)} if isinstance(self.artifacts, FileArtifacts) else {"mode": "s3", "bucket": self.artifacts.bucket, "kms_key": self.artifacts.kms_key})
             request["ai_context"] = {"state_dir": str(self.settings.state_dir), "identity_dir": str(self.settings.identity_dir)}
             request["timeline"] = self.store.public_job(job)["timeline"]
             context = multiprocessing.get_context("spawn")
-            parent, child = context.Pipe(duplex=False)
+            parent, child = context.Pipe(duplex=True)
             process = context.Process(target=_process, args=(self.role, request, child), daemon=True)
             process.start()
             child.close()
@@ -320,6 +479,17 @@ class Worker:
                         if isinstance(result, tuple) and len(result) == 2 and result[0] == "__progress__":
                             from peaso.worker_progress import record_progress
                             record_progress(self.store, job, result[1], LOGGER)
+                            result = None
+                            continue
+                        if isinstance(result, tuple) and len(result) == 2 and result[0] == "__checkpoint__":
+                            event = result[1]
+                            accepted = self.store.record_checkpoint(job["tenant"], job["id"], job["owner"],
+                                event["sequence"], event["snapshot_ref"], kind=event.get("kind"),
+                                scope=event.get("scope"), report_ref=event.get("report_ref"),
+                                stage=event.get("stage", "collector"))
+                            parent.send(("__checkpoint_ack__", event["sequence"], bool(accepted)))
+                            if not accepted:
+                                return True
                             result = None
                             continue
                     except EOFError:
@@ -391,13 +561,14 @@ def main():
     parser.add_argument("role", choices=("collector", "analyzer"))
     parser.add_argument("--once", action="store_true")
     parser.add_argument("--ai-smoke", action="store_true", help="Run the isolated live AI deployment acceptance check")
+    parser.add_argument("--progressive", action="store_true", help="Watch one scan's completed sections while collection continues")
     parser.add_argument("--tenant-id")
     parser.add_argument("--scan-id")
     args = parser.parse_args()
     if bool(args.tenant_id) != bool(args.scan_id):
         parser.error("--tenant-id and --scan-id must be supplied together")
     if args.ai_smoke:
-        if args.role != "analyzer" or args.once or args.tenant_id or args.scan_id:
+        if args.role != "analyzer" or args.once or args.tenant_id or args.scan_id or args.progressive:
             parser.error("--ai-smoke requires the analyzer role without scan selectors")
         from .ai.smoke import main as ai_smoke
         ai_smoke()
@@ -412,6 +583,13 @@ def main():
     worker = Worker(args.role)
     for sig in (signal.SIGTERM, signal.SIGINT):
         signal.signal(sig, lambda *_: worker.stopping.set())
+    if args.progressive:
+        if args.role != "analyzer" or not args.tenant_id or not args.scan_id:
+            parser.error("--progressive requires analyzer role and one tenant/scan selector")
+        from .progressive_analyzer import run_progressive
+        if run_progressive(worker, args.tenant_id, args.scan_id) != "completed":
+            raise SystemExit(1)
+        return
     if args.once:
         worker.run_once(args.tenant_id, args.scan_id)
     else:

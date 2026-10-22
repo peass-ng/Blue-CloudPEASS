@@ -165,16 +165,26 @@ export function App() {
   const connectors = useApi<{ items: Connector[] }>("/connectors", demo);
   const scans = useApi<{ items: Scan[] }>("/scans", demo, true, true);
   const available = items(scans.data);
+  const hasResult = (scan: Scan) => scan.status === "completed" || scan.result_available === true;
   const names = scanNames(available, items(connectors.data));
   const scanId =
-    (available.some((scan) => scan.id === selected) ? selected : "") || available.find((s) => s.status === "completed")?.id || "";
+    (available.some((scan) => scan.id === selected && hasResult(scan)) ? selected : "") || available.find(hasResult)?.id || "";
   const current = available.find((s) => s.id === scanId);
+  const partialResult = !!current && current.status !== "completed" && hasResult(current);
   const report = useApi<Report>(
     `/scans/${encodeURIComponent(scanId)}/summary?aggregation=check`,
     demo,
-    !!scanId && current?.status === "completed",
+    !!scanId && !!current && hasResult(current),
+    partialResult,
   );
-  const insightCounts = useInsightCounts(scanId, demo, !!scanId && current?.status === "completed", aiAvailable, report.data);
+  const insightCounts = useInsightCounts(scanId, demo, !!scanId && !!current && hasResult(current), aiAvailable, report.data);
+  const partialSequence = report.data?.publication?.state === "partial" ? `${report.data.publication.sequence ?? ""}:${JSON.stringify(report.data.publication.ai_stages || {})}` : undefined;
+  useEffect(() => {
+    if (!scanId || partialSequence === undefined) return;
+    void client.invalidateQueries({ predicate: (query) => query.queryKey[0] === (demo ? "demo" : "live") &&
+      query.queryKey.some((part) => typeof part === "string" &&
+        (part === scanId || part.includes(`/scans/${scanId}/`))) });
+  }, [client, demo, scanId, partialSequence]);
   const pageInfo = pages.find((p) => p.label === page) || pages[0];
   function navigate(p: string) {
     p = normalizePage(p);
@@ -345,11 +355,11 @@ export function App() {
                 >
                   <option value="">
                     {available.length
-                      ? "Choose a completed scan"
-                      : "No completed scans"}
+                      ? "Choose an assessment with results"
+                      : "No assessments with results"}
                   </option>
                   {available
-                    .filter((s) => s.status === "completed")
+                    .filter(hasResult)
                     .map((s) => (
                       <option key={s.id} value={s.id}>
                         {names.get(s.id)}
@@ -385,6 +395,23 @@ export function App() {
                   ? "Illustrative native demo snapshot; no live cloud evidence."
                   : "This assessment analyzed an imported snapshot. Collection provenance and coverage are recorded in the report."}
               </span>
+            </div>
+          )}
+          {!demo && partialResult && (
+            <div className="demo-banner" role="status">
+              <ShieldCheck size={17} />
+              <strong>{["failed", "timed_out", "cancelled", "queue_exhausted"].includes(current?.status || "") ? "Saved partial results" : "Assessment in progress"}</strong>
+              <span>Completed evidence and findings are available. Coverage is still incomplete.</span>
+            </div>
+          )}
+          {!demo && report.data?.publication?.sections && partialResult && (
+            <div className="scan-section-batches" aria-label="Scan section progress">
+              {Object.entries(report.data.publication.sections).filter(([, batch]) => batch.status !== "not_selected").map(([section, batch]) => (
+                <span key={section} className={`scan-section-batch ${batch.status}`}>
+                  {{ hardening: "Checks", exposure: "Exposure", least_privilege: "IAM", network: "Network", privesc: "Privilege escalation", leaks: "Leaks", images: "Image CVEs" }[section] || section}
+                  <strong>{batch.status === "complete" ? "Saved" : "Running"}</strong>
+                </span>
+              ))}
             </div>
           )}
           {unauthorized && !demo && page !== "Settings" && (

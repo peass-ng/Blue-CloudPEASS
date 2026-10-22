@@ -1937,6 +1937,7 @@ def collect(connector, requirements=None):
     if "_ecr_latest_scan_requested" in options and type(options["_ecr_latest_scan_requested"]) is not bool:
         raise ValueError("internal ECR scan fact selection must be boolean")
     progress_callback = options.get("_progress_callback")
+    collection_callback = options.get("_collection_callback")
     progress_total = None
     emit_progress(progress_callback, phase="discovering", provider="aws", scope="", completed=0, total=None, resources=0, dynamic_total=True)
     selected_accounts, regions = _selection(connector)
@@ -2129,6 +2130,8 @@ def collect(connector, requirements=None):
         if error:
             envelope["error"] = error
         collections.append(envelope)
+        from peaso.collection_events import emit_collection
+        emit_collection(collection_callback, envelope)
         emit_progress(progress_callback, phase="collecting", provider="aws", scope=scope, completed=len(collections),
             total=progress_total, resources=total_items, dynamic_total=progress_total is None)
 
@@ -2675,30 +2678,28 @@ def collect(connector, requirements=None):
                             else:
                                 future = pool.submit(regional_job, session, identity, region, kind)
                             regional_jobs.append((kind, identity, region, session, future))
-            for kind, identity, region, job_session, future in jobs:
+            from peaso.collection_events import completed_reads
+            ordered_regional_jobs = [row for region_offset in range(0, len(regions), region_workers)
+                for _, identity in scope_batch
+                for region in regions[region_offset:region_offset + region_workers]
+                for row in regional_jobs if row[1] is identity and row[2] == region]
+            # A slow content read must not hide already completed IAM/network
+            # evidence. Explicit cross-inventory caps retain deterministic order.
+            for kind, identity, region, job_session, future in completed_reads(
+                    jobs + ordered_regional_jobs, preserve_order=requests.max_items is not None):
                 try:
                     read = future.result()
                     if not isinstance(read, ReadResult):
                         raise ReadFailure("malformed", "malformed_extension_result")
-                    if kind in ENRICHERS and kind not in SPECS and kind not in FETCHERS and read.items:
+                    if kind in GLOBAL_TYPES and kind in ENRICHERS and kind not in SPECS and kind not in FETCHERS and read.items:
                         read.items = ENRICHERS[kind](requests, job_session, region, read.items)
                 except Exception as exc:
                     failure = _failure(exc)
                     read = ReadResult([], failure.status, {"code": failure.code})
-                # Account-global inventories are read once and scoped <account>/global, never to a region.
-                append(kind, f"{identity['Account']}/{GLOBAL_SCOPE}", SPECS[kind][0] if kind in SPECS else "sts" if kind == "aws_account" else "s3" if kind == "bucket" else "organizations" if kind in {"organization_account", "organization_parent", "scp_policy"} else "s3control" if kind == "s3_account_public_access_block" else "iam", read, identity["Account"])
-            for region_offset in range(0, len(regions), region_workers):
-                for session, identity in scope_batch:
-                    for region in regions[region_offset:region_offset + region_workers]:
-                        for kind, job_identity, job_region, job_session, future in regional_jobs:
-                            if job_identity is not identity or job_region != region:
-                                continue
-                            try:
-                                read = future.result()
-                            except Exception as exc:
-                                failure = _failure(exc)
-                                read = ReadResult([], failure.status, {"code": failure.code})
-                            append(kind, f"{identity['Account']}/{region}", SPECS[kind][0], read, identity["Account"], region)
+                if kind in GLOBAL_TYPES:
+                    append(kind, f"{identity['Account']}/{GLOBAL_SCOPE}", SPECS[kind][0] if kind in SPECS else "sts" if kind == "aws_account" else "s3" if kind == "bucket" else "organizations" if kind in {"organization_account", "organization_parent", "scp_policy"} else "s3control" if kind == "s3_account_public_access_block" else "iam", read, identity["Account"])
+                else:
+                    append(kind, f"{identity['Account']}/{region}", SPECS[kind][0], read, identity["Account"], region)
             for session, identity in scope_batch:
                 if derive_config_account:
                     from .aws_config_account_native import derive as derive_config_account_proof

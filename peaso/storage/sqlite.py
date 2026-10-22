@@ -107,6 +107,8 @@ class SQLiteStore:
             CREATE TABLE IF NOT EXISTS connectors (id TEXT PRIMARY KEY, tenant TEXT NOT NULL, data TEXT NOT NULL, auth TEXT NOT NULL);
             CREATE INDEX IF NOT EXISTS connectors_tenant ON connectors(tenant);
             CREATE TABLE IF NOT EXISTS jobs (id TEXT PRIMARY KEY, tenant TEXT NOT NULL, connector_id TEXT NOT NULL, data TEXT NOT NULL, connector TEXT NOT NULL, status TEXT NOT NULL, created REAL NOT NULL, deadline REAL NOT NULL, owner TEXT, lease REAL, snapshot TEXT, report TEXT, error TEXT, idem TEXT, digest TEXT);
+            CREATE TABLE IF NOT EXISTS scan_checkpoint_collections (tenant TEXT NOT NULL, scan_id TEXT NOT NULL, kind TEXT NOT NULL, scope TEXT NOT NULL, sequence INTEGER NOT NULL, reference TEXT NOT NULL, PRIMARY KEY(tenant,scan_id,kind,scope));
+            CREATE TABLE IF NOT EXISTS scan_stage_results (tenant TEXT NOT NULL, scan_id TEXT NOT NULL, stage TEXT NOT NULL, data_revision INTEGER NOT NULL, status TEXT NOT NULL, owner TEXT, lease REAL, result_ref TEXT, PRIMARY KEY(tenant,scan_id,stage));
             CREATE UNIQUE INDEX IF NOT EXISTS jobs_idem ON jobs(tenant,idem) WHERE idem IS NOT NULL;
             CREATE INDEX IF NOT EXISTS jobs_tenant ON jobs(tenant,created);
             CREATE INDEX IF NOT EXISTS jobs_queue ON jobs(status,lease);
@@ -128,7 +130,9 @@ class SQLiteStore:
             columns = {row["name"] for row in db.execute("PRAGMA table_info(jobs)")}
             for name, definition in (("history", "TEXT NOT NULL DEFAULT '[]'"), ("error_code", "TEXT"), ("error_stage", "TEXT"),
                                      ("admitted_at", "REAL"), ("execution_timeout", "REAL NOT NULL DEFAULT 900"),
-                                     ("progress_details", "TEXT")):
+                                     ("progress_details", "TEXT"), ("checkpoint_sequence", "INTEGER NOT NULL DEFAULT 0"),
+                                     ("partial_snapshot", "TEXT"), ("partial_report", "TEXT"),
+                                     ("partial_report_sequence", "INTEGER NOT NULL DEFAULT 0")):
                 if name not in columns:
                     db.execute(f"ALTER TABLE jobs ADD COLUMN {name} {definition}")
             if "execution_timeout" not in columns:
@@ -372,7 +376,7 @@ class SQLiteStore:
         events = value.get("history", [])
         events = json.loads(events) if isinstance(events, str) else events
         error, reasons = public_failure(row["error"])
-        result = dict(json.loads(row["data"]), id=row["id"], status=row["status"], created_at=utc(row["created"]), deadline_at=utc(row["deadline"]), admitted_at=utc(value["admitted_at"]) if value.get("admitted_at") is not None else None, error=error, error_code=value.get("error_code"), error_stage=value.get("error_stage"), timeline=events, updated_at=events[-1]["at"] if events else utc(row["created"]), input_mode=json.loads(row["connector"])["data"].get("input_mode", "live"), runtime=runtime_estimate(events))
+        result = dict(json.loads(row["data"]), id=row["id"], status=row["status"], created_at=utc(row["created"]), deadline_at=utc(row["deadline"]), admitted_at=utc(value["admitted_at"]) if value.get("admitted_at") is not None else None, error=error, error_code=value.get("error_code"), error_stage=value.get("error_stage"), timeline=events, updated_at=events[-1]["at"] if events else utc(row["created"]), input_mode=json.loads(row["connector"])["data"].get("input_mode", "live"), runtime=runtime_estimate(events), result_available=bool(value.get("report") or value.get("partial_report")))
         if reasons:
             result["failure_reasons"] = reasons
         if value.get("progress_details"):
@@ -394,6 +398,105 @@ class SQLiteStore:
             if cursor.rowcount != 1:
                 raise StoreError(409, "Completed scan report changed")
 
+    def record_checkpoint(self, tenant, ident, owner, sequence, reference, *, kind=None, scope=None,
+                          report_ref=None, stage="collector", now=None):
+        """Lease-fenced CAS for one public envelope or one partial report manifest."""
+        from .artifacts import job_prefix
+        now = time.time() if now is None else now
+        if (type(sequence) is not int or sequence < 1 or not isinstance(reference, str)
+                or not reference.startswith(job_prefix(tenant, ident))
+                or report_ref is not None and (not isinstance(report_ref, str) or not report_ref.startswith(job_prefix(tenant, ident)))):
+            raise ValueError("Invalid checkpoint reference or sequence")
+        if stage not in {"collector", "analyzer_native"}:
+            raise ValueError("Invalid checkpoint stage")
+        if report_ref is None and (not isinstance(kind, str) or not isinstance(scope, str) or stage != "collector"):
+            raise ValueError("Collection checkpoint needs native type and scope")
+        with self.transaction() as db:
+            row = db.execute("SELECT status,owner,lease,deadline,checkpoint_sequence,partial_report_sequence FROM jobs WHERE tenant=? AND id=?",
+                             (tenant, ident)).fetchone()
+            expected_status = "analyzing" if stage == "analyzer_native" else "collecting"
+            if (not row or row["status"] != expected_status or row["owner"] != owner
+                    or row["lease"] is None or row["lease"] <= now or row["deadline"] <= now):
+                return False
+            current = row["checkpoint_sequence"] or 0
+            published = row["partial_report_sequence"] or 0
+            if report_ref is None:
+                if sequence <= current:
+                    return False
+                db.execute("INSERT INTO scan_checkpoint_collections(tenant,scan_id,kind,scope,sequence,reference) VALUES(?,?,?,?,?,?) ON CONFLICT(tenant,scan_id,kind,scope) DO UPDATE SET sequence=excluded.sequence,reference=excluded.reference WHERE excluded.sequence>scan_checkpoint_collections.sequence",
+                           (tenant, ident, kind, scope, sequence, reference))
+                db.execute("UPDATE jobs SET checkpoint_sequence=? WHERE tenant=? AND id=?", (sequence, tenant, ident))
+            else:
+                if sequence <= published or (sequence <= current if stage == "analyzer_native" else sequence > current):
+                    return False
+                if stage == "analyzer_native":
+                    db.execute("UPDATE jobs SET partial_snapshot=?,partial_report=?,partial_report_sequence=?,checkpoint_sequence=? WHERE tenant=? AND id=?",
+                               (reference, report_ref, sequence, sequence, tenant, ident))
+                else:
+                    db.execute("UPDATE jobs SET partial_snapshot=?,partial_report=?,partial_report_sequence=? WHERE tenant=? AND id=?",
+                               (reference, report_ref, sequence, tenant, ident))
+            return True
+
+    def checkpoint_collections(self, tenant, ident):
+        self.job(tenant, ident)
+        with self.connect() as db:
+            return [dict(row) for row in db.execute("SELECT kind,scope,sequence,reference FROM scan_checkpoint_collections WHERE tenant=? AND scan_id=? ORDER BY sequence", (tenant, ident))]
+
+    @staticmethod
+    def _stage_args(stage, data_revision, owner=None):
+        if (not isinstance(stage, str) or not re.fullmatch(r"[a-z][a-z0-9_]{0,47}", stage)
+                or type(data_revision) is not int or data_revision < 0
+                or owner is not None and (not isinstance(owner, str) or not re.fullmatch(r"[a-f0-9]{32}", owner))):
+            raise ValueError("Invalid progressive stage")
+
+    def claim_stage(self, tenant, ident, stage, data_revision, owner, lease_seconds, now=None):
+        """Claim one AI/section revision without touching the collector lease."""
+        self._stage_args(stage, data_revision, owner)
+        if lease_seconds <= 0:
+            raise ValueError("Invalid progressive lease")
+        now = time.time() if now is None else now
+        with self.transaction() as db:
+            job = db.execute("SELECT status,deadline,owner FROM jobs WHERE tenant=? AND id=?", (tenant, ident)).fetchone()
+            if (not job or job["status"] not in {"collecting", "collected", "analyzing"}
+                    or job["deadline"] <= now or job["owner"] == owner):
+                return False
+            row = db.execute("SELECT data_revision,status,lease FROM scan_stage_results WHERE tenant=? AND scan_id=? AND stage=?",
+                             (tenant, ident, stage)).fetchone()
+            if row and (row["data_revision"] > data_revision or
+                        row["data_revision"] == data_revision and (row["status"] == "completed" or (row["lease"] or 0) > now)):
+                return False
+            db.execute("INSERT INTO scan_stage_results(tenant,scan_id,stage,data_revision,status,owner,lease,result_ref) VALUES(?,?,?,?,'running',?,?,NULL) ON CONFLICT(tenant,scan_id,stage) DO UPDATE SET data_revision=excluded.data_revision,status='running',owner=excluded.owner,lease=excluded.lease,result_ref=NULL",
+                       (tenant, ident, stage, data_revision, owner, now + lease_seconds))
+            return True
+
+    def heartbeat_stage(self, tenant, ident, stage, data_revision, owner, lease_seconds, now=None):
+        self._stage_args(stage, data_revision, owner)
+        if lease_seconds <= 0:
+            raise ValueError("Invalid progressive lease")
+        now = time.time() if now is None else now
+        with self.transaction() as db:
+            return db.execute("UPDATE scan_stage_results SET lease=? WHERE tenant=? AND scan_id=? AND stage=? AND data_revision=? AND status='running' AND owner=? AND lease>? AND EXISTS (SELECT 1 FROM jobs WHERE tenant=? AND id=? AND status IN ('collecting','collected','analyzing') AND deadline>?)",
+                              (now + lease_seconds, tenant, ident, stage, data_revision, owner, now,
+                               tenant, ident, now)).rowcount == 1
+
+    def finish_stage(self, tenant, ident, stage, data_revision, owner, result_ref, now=None):
+        from .artifacts import job_prefix
+        self._stage_args(stage, data_revision, owner)
+        if not isinstance(result_ref, str) or not result_ref.startswith(job_prefix(tenant, ident)):
+            raise ValueError("Invalid progressive result reference")
+        now = time.time() if now is None else now
+        with self.transaction() as db:
+            return db.execute("UPDATE scan_stage_results SET status='completed',owner=NULL,lease=NULL,result_ref=? WHERE tenant=? AND scan_id=? AND stage=? AND data_revision=? AND status='running' AND owner=? AND lease>? AND EXISTS (SELECT 1 FROM jobs WHERE tenant=? AND id=? AND status IN ('collecting','collected','analyzing') AND deadline>?)",
+                              (result_ref, tenant, ident, stage, data_revision, owner, now,
+                               tenant, ident, now)).rowcount == 1
+
+    def stage_results(self, tenant, ident):
+        self.job(tenant, ident)
+        with self.connect() as db:
+            return {row["stage"]: {"data_revision": row["data_revision"], "result_ref": row["result_ref"]}
+                    for row in db.execute("SELECT stage,data_revision,result_ref FROM scan_stage_results WHERE tenant=? AND scan_id=? AND status='completed'",
+                                          (tenant, ident))}
+
     def jobs(self, tenant, transform=None):
         with self.connect() as db:
             return [(transform or self.public_job)(row) for row in db.execute("SELECT * FROM jobs WHERE tenant=? ORDER BY created DESC", (tenant,))]
@@ -413,6 +516,8 @@ class SQLiteStore:
             if row["status"] not in TERMINAL and row["deadline"] > time.time():
                 raise StoreError(409, "Cancel the scan or wait for it to finish before deleting it")
             db.execute("DELETE FROM jobs WHERE tenant=? AND id=?", (tenant, ident))
+            db.execute("DELETE FROM scan_checkpoint_collections WHERE tenant=? AND scan_id=?", (tenant, ident))
+            db.execute("DELETE FROM scan_stage_results WHERE tenant=? AND scan_id=?", (tenant, ident))
 
     def usage(self, tenant, now=None):
         with self.connect() as db:

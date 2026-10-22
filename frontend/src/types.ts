@@ -174,6 +174,7 @@ export type Report = {
   findings: Finding[];
   coverage: unknown;
   stats: Record<string, unknown>;
+  publication?: { state: "partial" | "final"; phase?: string; sequence?: number; ai_stages?: Record<string, number>; completed_collections?: number; sections?: Record<string, { status: "complete" | "running" | "not_selected"; data_revision: number }> };
   graphs: { network: Graph; iam: Graph; privesc?: PrivescGraph };
 };
 export type Scan = {
@@ -184,6 +185,7 @@ export type Scan = {
   connector_name?: string;
   connector_id: string;
   status: string;
+  result_available?: boolean;
   created_at: string;
   categories: string[];
   error?: string;

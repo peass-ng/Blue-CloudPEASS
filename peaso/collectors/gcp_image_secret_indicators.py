@@ -178,7 +178,10 @@ class Reader:
 
 class Deadline:
     """The reused scanner has two fixed <=15s adapters; reserve their full bound."""
-    def __init__(self, reader): self.reader = reader
+    def __init__(self, reader):
+        self.reader = reader
+        self.progress_provider = 'gcp'
+        self.progress_callback = getattr(reader.transport, 'progress_callback', None)
     def check_deadline(self):
         self.reader.check()
         if self.reader.end - time.monotonic() < 31:
