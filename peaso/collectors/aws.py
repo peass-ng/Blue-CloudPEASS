@@ -1590,6 +1590,11 @@ def _gameliftstreams_shell_sessions(requests, session, region, account, partitio
             complete = False
             errors.append({"operation": "ListStreamGroups", "code": "malformed_group_arn"})
             continue
+        group_status = group.get("Status")
+        if not isinstance(group_status, str) or not group_status:
+            complete = False
+            errors.append({"operation": "ListStreamGroups", "code": "missing_group_status"})
+            group_status = ""
         for status in _GAMELIFT_SHELL_STATES:
             read = requests.pages(session, "gameliftstreams", region, "list_stream_sessions", "Items",
                                   Identifier=arn, Status=status)
@@ -1616,7 +1621,7 @@ def _gameliftstreams_shell_sessions(requests, session, region, account, partitio
                     errors.append({"operation": "ListStreamSessions", "code": "malformed_session_role"})
                     continue
                 row = {"Arn": session_arn, "Status": status, "RoleArn": role or "",
-                       "StreamGroupArn": arn}
+                       "StreamGroupArn": arn, "StreamGroupStatus": group_status}
                 if session_arn in seen and seen[session_arn] != row:
                     complete = False
                     conflicting.add(session_arn)

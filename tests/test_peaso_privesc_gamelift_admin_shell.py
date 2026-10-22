@@ -53,7 +53,7 @@ def test_collector_keeps_exact_live_session_without_user_data():
         def pages(self, _session, service, region, operation, key, **kwargs):
             calls.append((service, region, operation, key, kwargs))
             if operation == "list_stream_groups":
-                return ReadResult([{"Arn": GROUP}])
+                return ReadResult([{"Arn": GROUP, "Status": "ACTIVE"}])
             if kwargs["Status"] == "ACTIVE":
                 return ReadResult([{"Arn": SESSION, "Status": "ACTIVE", "RoleArn": TARGET,
                                     "UserId": "private-user"}])
@@ -62,7 +62,7 @@ def test_collector_keeps_exact_live_session_without_user_data():
     read = collector_function()(Requests(), object(), REGION, ACCOUNT, "aws")
     assert read.status == "collected"
     assert read.items == [{"Arn": SESSION, "Status": "ACTIVE", "RoleArn": TARGET,
-                           "StreamGroupArn": GROUP}]
+                           "StreamGroupArn": GROUP, "StreamGroupStatus": "ACTIVE"}]
     assert len(calls) == 5
 
 
@@ -70,7 +70,7 @@ def test_collector_rejects_conflicting_session_metadata_and_marks_partial():
     class Requests:
         def pages(self, _session, _service, _region, operation, _key, **kwargs):
             if operation == "list_stream_groups":
-                return ReadResult([{"Arn": GROUP}])
+                return ReadResult([{"Arn": GROUP, "Status": "ACTIVE"}])
             if kwargs["Status"] in ("ACTIVE", "CONNECTED"):
                 return ReadResult([{"Arn": SESSION, "Status": kwargs["Status"], "RoleArn": TARGET}])
             return ReadResult([], "empty")
@@ -83,7 +83,7 @@ def test_collector_keeps_denied_session_list_unknown():
     class Requests:
         def pages(self, _session, _service, _region, operation, _key, **kwargs):
             if operation == "list_stream_groups":
-                return ReadResult([{"Arn": GROUP}])
+                return ReadResult([{"Arn": GROUP, "Status": "ACTIVE"}])
             if kwargs["Status"] == "ACTIVE":
                 return ReadResult([], "access_denied", {"code": "AccessDeniedException"})
             return ReadResult([], "empty")
@@ -92,9 +92,24 @@ def test_collector_keeps_denied_session_list_unknown():
     assert read.status == "partial" and read.items == []
 
 
+def test_collector_marks_missing_group_status_partial():
+    class Requests:
+        def pages(self, _session, _service, _region, operation, _key, **kwargs):
+            if operation == "list_stream_groups":
+                return ReadResult([{"Arn": GROUP}])
+            if kwargs["Status"] == "ACTIVE":
+                return ReadResult([{"Arn": SESSION, "Status": "ACTIVE", "RoleArn": TARGET}])
+            return ReadResult([], "empty")
+
+    read = collector_function()(Requests(), object(), REGION, ACCOUNT, "aws")
+    assert read.status == "partial"
+    assert read.items[0]["StreamGroupStatus"] == ""
+
+
 def route(*, grant=GROUP, status="ACTIVE", group=GROUP, session=SESSION, role_name="GameLiftStreams-target",
-          inventory_status="collected"):
-    row = {"Arn": session, "Status": status, "RoleArn": role_arn(role_name), "StreamGroupArn": group}
+          group_status="ACTIVE", inventory_status="collected"):
+    row = {"Arn": session, "Status": status, "RoleArn": role_arn(role_name),
+           "StreamGroupArn": group, "StreamGroupStatus": group_status}
     snap = aws_snap([user("alice", allow("gameliftstreams:CreateStreamSessionAdminShell", resource=grant))],
                     [role("GameLiftStreams-target", "gameliftstreams.amazonaws.com")],
                     [col("gameliftstreams_stream_session", [row] if inventory_status == "collected" else [],
@@ -108,7 +123,8 @@ def test_catalog_route_accepts_a_grant_scoped_to_the_exact_stream_group(monkeypa
     exposure = types.ModuleType("peaso.principal_exposure")
     exposure.annotate_privesc = lambda *args: None
     monkeypatch.setitem(sys.modules, exposure.__name__, exposure)
-    row = {"Arn": SESSION, "Status": "ACTIVE", "RoleArn": TARGET, "StreamGroupArn": GROUP}
+    row = {"Arn": SESSION, "Status": "ACTIVE", "RoleArn": TARGET,
+           "StreamGroupArn": GROUP, "StreamGroupStatus": "ACTIVE"}
     for grant, expected in ((GROUP, {TARGET: "conditional"}), (OTHER_GROUP, {})):
         snap = aws_snap([user("alice", allow("gameliftstreams:CreateStreamSessionAdminShell", resource=grant))],
                         [role("GameLiftStreams-target", "gameliftstreams.amazonaws.com")],
@@ -122,6 +138,7 @@ def test_exact_live_session_and_scoped_grant_reach_its_recorded_role():
 
 @pytest.mark.parametrize("change", (
     {"grant": OTHER_GROUP}, {"status": "TERMINATED"}, {"group": OTHER_GROUP},
+    {"group_status": "ERROR"}, {"group_status": "ACTIVE_WITH_ERRORS"}, {"group_status": None},
     {"session": SESSION.replace("sg-123", "sg-other")}, {"role_name": "GameLiftStreams-other"},
 ))
 def test_wrong_group_session_state_or_role_cannot_reach_target(change):
@@ -149,6 +166,14 @@ def test_passrole_without_controlled_application_is_unresolved(monkeypatch):
 def test_current_and_previous_catalog_bindings_keep_their_exact_meanings():
     current, status = versioned_catalog.lookup_entries([TECHNIQUE], versioned_catalog.current_binding())
     assert status == "exact_strict_privesc" and set(current) == {TECHNIQUE}
+    assert "ACTIVE" in current[TECHNIQUE]["conditions"][0]["description"]
+    group_previous = {"schema": versioned_catalog.BINDING_SCHEMA,
+                      "manifest_sha256": versioned_catalog.GAMELIFT_GROUP_682_PREVIOUS_MANIFEST,
+                      "effective_tree_sha256": versioned_catalog.GAMELIFT_GROUP_682_PREVIOUS_TREE,
+                      "source_revision": versioned_catalog.V4_REVISION}
+    earlier, status = versioned_catalog.lookup_entries([TECHNIQUE], group_previous)
+    assert status == "exact_previous_current" and set(earlier) == {TECHNIQUE}
+    assert "ACTIVE" not in earlier[TECHNIQUE]["conditions"][0]["description"]
     previous = {"schema": versioned_catalog.BINDING_SCHEMA,
                 "manifest_sha256": versioned_catalog.GAMELIFT_CURRENT_MANIFEST,
                 "effective_tree_sha256": versioned_catalog.GAMELIFT_CURRENT_TREE,

@@ -7116,6 +7116,7 @@ class AwsModel(Model):
             group_prefix = f"arn:{partition}:gameliftstreams:{region}:{source.scope}:streamgroup/"
             session_prefix = f"arn:{partition}:gameliftstreams:{region}:{source.scope}:streamsession/"
             if (session.get("Status") not in ("ACTIVE", "CONNECTED", "PENDING_CLIENT_RECONNECTION", "RECONNECTING")
+                    or session.get("StreamGroupStatus") != "ACTIVE"
                     or not isinstance(group, str) or not group.startswith(group_prefix)
                     or not isinstance(session_arn, str) or not session_arn.startswith(
                         session_prefix + group[len(group_prefix):] + "/")):
