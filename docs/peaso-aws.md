@@ -55,6 +55,8 @@ terraform -chdir=infra/aws init -backend=false
 terraform -chdir=infra/aws validate
 ```
 
+Selected code and image content can exceed the default 30-minute collector stage. Set `scan_runtime_limits = { workflow_seconds = 3600, stage_seconds = 3600, lease_seconds = 3900 }` in the private Terraform variables for these scans. Collection and analysis still share the same one-hour whole-workflow deadline; a longer stage does not extend it. Stage durations must stay within the workflow duration, and the owned lease must last at least 300 seconds longer. The default stage remains 1800 seconds.
+
 Build outputs, raw state, binary plans, private overrides and deployment variables remain ignored/private. Never remove the current production bundle or image while cleaning discarded plans.
 
 ## Customer permissions
