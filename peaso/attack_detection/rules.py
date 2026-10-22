@@ -148,6 +148,7 @@ from .aws_secretsmanager_replica_chain_next import normalize_aws_secretsmanager_
 from .aws_prefix_list_backdoor_next import normalize_aws_prefix_list_backdoor, correlate_aws_prefix_list_sg_reference
 from .aws_address_reassignment_next import normalize_aws_address_reassignment, correlate_aws_address_reassignment
 from .aws_ebs_multiattach import correlate_aws_ebs_multiattach
+from .aws_mq_broker_chain import correlate_aws_mq_broker_chain
 from .aws_redshift_password_reset import normalize_aws_redshift_password_reset
 from .aws_redshift_serverless_namespace import normalize_aws_redshift_serverless_namespace
 from .aws_redshift_serverless_workgroup import normalize_aws_redshift_serverless_workgroup
@@ -904,6 +905,7 @@ def detect_aws_events(
     prefix_list_records: list[Mapping[str, Any]] = []
     address_reassignment_records: list[Mapping[str, Any]] = []
     ebs_multiattach_records: list[Mapping[str, Any]] = []
+    mq_broker_chain_records: list[Mapping[str, Any]] = []
     lambda_privesc_records: list[Mapping[str, Any]] = []
     ssm_command_records: list[Mapping[str, Any]] = []
     ssm_automation_window_records: list[Mapping[str, Any]] = []
@@ -1033,6 +1035,9 @@ def detect_aws_events(
                 vpc_network_records.append(record)
             if record.get("eventSource") == "ec2.amazonaws.com" and record.get("eventName") in {"CreateInstanceConnectEndpoint", "AuthorizeSecurityGroupIngress"}:
                 eic_endpoint_records.append(record)
+            if (record.get("eventSource") == "amazonmq.amazonaws.com"
+                    and record.get("eventName") in {"UpdateConfiguration", "UpdateBroker", "CreateUser", "UpdateUser"}):
+                mq_broker_chain_records.append(record)
             if ((record.get("eventSource") == "iam.amazonaws.com" and record.get("eventName") == "PutRolePolicy")
                     or (record.get("eventSource") == "sqs.amazonaws.com" and record.get("eventName") == "TagQueue")):
                 sqs_tag_records.append(record)
@@ -1132,6 +1137,7 @@ def detect_aws_events(
     correlated += correlate_aws_prefix_list_sg_reference(prefix_list_records)
     correlated += correlate_aws_address_reassignment(address_reassignment_records)
     correlated += correlate_aws_ebs_multiattach(ebs_multiattach_records)
+    correlated += correlate_aws_mq_broker_chain(mq_broker_chain_records)
     correlated += correlate_aws_lambda_privesc(lambda_privesc_records)
     correlated += correlate_aws_ssm_command_output_read(ssm_command_records)
     correlated += correlate_aws_ssm_document_window(ssm_automation_window_records)
