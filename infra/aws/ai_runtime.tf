@@ -1,5 +1,22 @@
 # Agent tasks deliberately have NO task_role_arn. Execution-role credentials
 # are used by ECS to pull the image, never injected into either container.
+resource "aws_ecs_cluster" "ai" { name = "${local.name}-ai" }
+resource "aws_cloudwatch_log_group" "ai_tasks" {
+  name              = "/ecs/${local.name}-ai"
+  retention_in_days = 7
+}
+resource "aws_iam_role" "ai_execution" {
+  name               = "${local.name}-ai-task-execution"
+  assume_role_policy = local.task_trust
+}
+resource "aws_iam_role_policy" "ai_execution" {
+  role = aws_iam_role.ai_execution.id
+  policy = jsonencode({ Version = "2012-10-17", Statement = [
+    { Effect = "Allow", Action = ["ecr:GetAuthorizationToken"], Resource = "*" },
+    { Effect = "Allow", Action = ["ecr:BatchGetImage", "ecr:GetDownloadUrlForLayer", "ecr:BatchCheckLayerAvailability"], Resource = aws_ecr_repository.worker.arn },
+    { Effect = "Allow", Action = ["logs:CreateLogStream", "logs:PutLogEvents"], Resource = "${aws_cloudwatch_log_group.ai_tasks.arn}:*" }
+  ] })
+}
 resource "aws_s3_bucket" "ai_transport" {
   bucket = "${local.name}-ai-transport-${local.account_id}"
 }
@@ -40,7 +57,7 @@ resource "aws_ecs_task_definition" "ai" {
   network_mode             = "awsvpc"
   cpu                      = "512"
   memory                   = "2048"
-  execution_role_arn       = aws_iam_role.execution.arn
+  execution_role_arn       = aws_iam_role.ai_execution.arn
   runtime_platform {
     operating_system_family = "LINUX"
     cpu_architecture        = "X86_64"
@@ -60,7 +77,7 @@ resource "aws_ecs_task_definition" "ai" {
     logConfiguration = {
       logDriver = "awslogs"
       options = {
-        awslogs-group         = aws_cloudwatch_log_group.tasks.name
+        awslogs-group         = aws_cloudwatch_log_group.ai_tasks.name
         awslogs-region        = var.region
         awslogs-stream-prefix = "ai-${name}"
       }
@@ -68,6 +85,7 @@ resource "aws_ecs_task_definition" "ai" {
   }])
   volume { name = "agent-scratch" }
   volume { name = "relay-scratch" }
+  depends_on = [aws_iam_role_policy.ai_execution]
 }
 resource "aws_iam_role_policy" "ai_dispatch" {
   role = aws_iam_role.analyzer.id
@@ -76,11 +94,11 @@ resource "aws_iam_role_policy" "ai_dispatch" {
     { Effect = "Allow", Action = ["ecs:DescribeTaskDefinition"], Resource = "*",
     Condition = { StringEquals = { "aws:RequestedRegion" = var.region } } },
     { Effect = "Allow", Action = ["ecs:RunTask"], Resource = aws_ecs_task_definition.ai.arn,
-    Condition = { ArnEquals = { "ecs:cluster" = aws_ecs_cluster.cspm.arn } } },
+    Condition = { ArnEquals = { "ecs:cluster" = aws_ecs_cluster.ai.arn } } },
     { Effect   = "Allow", Action = ["ecs:DescribeTasks", "ecs:StopTask"],
-      Resource = "arn:aws:ecs:${var.region}:${local.account_id}:task/${aws_ecs_cluster.cspm.name}/*",
-    Condition = { ArnEquals = { "ecs:cluster" = aws_ecs_cluster.cspm.arn } } },
-    { Effect = "Allow", Action = ["iam:PassRole"], Resource = aws_iam_role.execution.arn,
+      Resource = "arn:aws:ecs:${var.region}:${local.account_id}:task/${aws_ecs_cluster.ai.name}/*",
+    Condition = { ArnEquals = { "ecs:cluster" = aws_ecs_cluster.ai.arn } } },
+    { Effect = "Allow", Action = ["iam:PassRole"], Resource = aws_iam_role.ai_execution.arn,
     Condition = { StringEquals = { "iam:PassedToService" = "ecs-tasks.amazonaws.com" } } },
     { Effect = "Allow", Action = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"],
     Resource = "${aws_s3_bucket.ai_transport.arn}/invocations/*" }
@@ -89,7 +107,7 @@ resource "aws_iam_role_policy" "ai_dispatch" {
 locals {
   ai_runtime_env = {
     PEASO_AI_RUNTIME                 = "fargate"
-    PEASO_AI_FARGATE_CLUSTER         = aws_ecs_cluster.cspm.arn
+    PEASO_AI_FARGATE_CLUSTER         = aws_ecs_cluster.ai.arn
     PEASO_AI_FARGATE_TASK_DEFINITION = aws_ecs_task_definition.ai.arn
     PEASO_AI_FARGATE_SUBNETS         = aws_subnet.ai.id
     PEASO_AI_FARGATE_SECURITY_GROUPS = aws_security_group.ai.id
