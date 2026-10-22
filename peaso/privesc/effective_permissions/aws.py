@@ -6877,6 +6877,60 @@ class AwsModel(Model):
             return ("conditional", "deadline_queue_role_credentials")
         return ("unknown", "deadline_queue_role_path_incomplete") if uncertain else None
 
+    def _deadline_passrole_queue_role_vend(self, source, role):
+        """Bind a queue update, passed role, and credential request to one queue."""
+        if source.scope != role.scope or source.id == role.id:
+            return None
+        passed = self.check(source, {"action": "iam:PassRole", "request_context": {
+            "iam:PassedToService": "deadline.amazonaws.com"}}, role.id)
+        if passed is None:
+            return None
+        create_allows, _ = self._statements(source, "deadline:createqueue")
+        update_allows, _ = self._statements(source, "deadline:updatequeue")
+        if not (create_allows or update_allows):
+            return None
+        uncertain = bool(source.incomplete or role.incomplete or passed.confidence != "derived")
+        statuses = inventory_status(self.snapshot, "deadline_queue")
+        if not statuses:
+            return ("unknown", "deadline_queue_inventory_not_recorded")
+        uncertain |= any(status not in ("collected", "empty") for status in statuses.values())
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        for scope, queue in items(self.snapshot, "deadline_queue"):
+            if scope.split("/", 1)[0] != source.scope or not isinstance(queue, dict):
+                continue
+            region = scope.split("/", 1)[1] if "/" in scope else ""
+            farm_id, queue_id = queue.get("farmId"), queue.get("queueId")
+            if (queue.get("collection_status") != "collected" or
+                    not re.fullmatch(r"[a-z0-9-]+", region) or
+                    not isinstance(farm_id, str) or not re.fullmatch(r"farm-[0-9a-f]{32}", farm_id) or
+                    not isinstance(queue_id, str) or not re.fullmatch(r"queue-[0-9a-f]{32}", queue_id) or
+                    queue.get("id") != farm_id + "/" + queue_id):
+                uncertain = True
+                continue
+            if queue.get("roleArn") == role.id:
+                continue  # Existing-role vending is covered by the separate route.
+            farm_arn = f"arn:{partition}:deadline:{region}:{source.scope}:farm/{farm_id}"
+            queue_arn = f"{farm_arn}/queue/{queue_id}"
+            trust = self._deadline_role_trust(role.id, farm_arn)
+            if trust is False:
+                continue
+            if trust is None:
+                uncertain = True
+                continue
+            update = self.check(source, {"action": "deadline:UpdateQueue"}, queue_arn)
+            vend = self.check(source, {"action": "deadline:AssumeQueueRoleForUser"}, queue_arn)
+            if update is None or vend is None:
+                continue
+            if (update.confidence == vend.confidence == passed.confidence == "derived" and
+                    not source.incomplete and not role.incomplete):
+                return ("conditional", "deadline_exact_queue_update_and_role_vend")
+            uncertain = True
+        # CreateQueue receives a service-generated queue ID. Without a binding
+        # to that ID, even broad grants cannot establish a concrete role edge.
+        if create_allows:
+            uncertain = True
+        return ("unknown", "deadline_queue_creation_or_role_update_not_verified") if uncertain else None
+
     def _deadline_existing_worker_role_vend(self, source, role):
         if source.scope != role.scope or source.id == role.id:
             return None
@@ -12599,6 +12653,11 @@ class AwsModel(Model):
                 return None
             return {tid: verdict for tid, role in candidates.items()
                     if (verdict := self._deadline_existing_queue_role_vend(source, role))}
+        if pid == "deadline_passrole_queue_role_vend":
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._deadline_passrole_queue_role_vend(source, role))}
         if pid == "deadline_existing_worker_role_vend":
             if source is None:
                 return None
