@@ -9313,7 +9313,9 @@ class AwsModel(Model):
             incomplete = (not service_status or not ecr_status or
                           any(status not in ("collected", "empty") for status in (*service_status.values(), *ecr_status.values())))
             partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
-            token = self._check_action(source, "ecr:GetAuthorizationToken", "*")
+            # GetAuthorizationToken has no resource type; probing "*" would
+            # also match a policy scoped only to a repository ARN.
+            token = self._check_action(source, "ecr:GetAuthorizationToken", "peaso-global-ecr-auth-operation")
             push_actions = ("ecr:BatchCheckLayerAvailability", "ecr:InitiateLayerUpload",
                             "ecr:UploadLayerPart", "ecr:CompleteLayerUpload", "ecr:PutImage")
             out = {}

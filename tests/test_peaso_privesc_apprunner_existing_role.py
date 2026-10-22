@@ -114,6 +114,18 @@ def test_mutable_ecr_tag_autodeployment_joins_exact_role_and_push_permissions():
     assert edges(_ecr_snapshot(omit_action="ecr:PutImage")) == {}
 
 
+def test_ecr_authorization_token_requires_global_resource_grant():
+    from peaso.privesc.effective_permissions.aws import AwsModel
+
+    scoped = _ecr_snapshot()
+    user = next(c for c in scoped["collections"] if c["type"] == "iam_user")["items"][0]
+    user["UserPolicyList"][0]["PolicyDocument"]["Statement"][0]["Resource"] = REPOSITORY
+    model = AwsModel(scoped)
+    verdicts = model.precondition("apprunner_mutable_ecr_autodeploy_instance_role",
+                                  {ROLE: model.principals[ROLE]}, model.principals[USER])
+    assert ROLE not in verdicts or verdicts[ROLE][0] != "conditional"
+
+
 def test_app_runner_projection_keeps_only_image_identity_and_auto_deployment_flag():
     from peaso.collectors.aws_network_catalog import MetadataClient, detail_enricher
 
