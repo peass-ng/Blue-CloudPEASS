@@ -403,16 +403,6 @@ export function App() {
               <strong>{["failed", "timed_out", "cancelled", "queue_exhausted"].includes(current?.status || "") ? "Saved partial results" : "Assessment in progress"}</strong>
             </div>
           )}
-          {!demo && report.data?.publication?.sections && partialResult && (
-            <div className="scan-section-batches" aria-label="Scan section progress">
-              {Object.entries(report.data.publication.sections).filter(([, batch]) => batch.status !== "not_selected").map(([section, batch]) => (
-                <span key={section} className={`scan-section-batch ${batch.status}`}>
-                  {{ hardening: "Checks", exposure: "Exposure", least_privilege: "IAM", network: "Network", privesc: "Privilege escalation", leaks: "Leaks", images: "Image CVEs" }[section] || section}
-                  <strong>{batch.status === "complete" ? "Saved" : "Running"}</strong>
-                </span>
-              ))}
-            </div>
-          )}
           {unauthorized && !demo && page !== "Settings" && (
             <div className="auth-banner" role="alert">
               <Shield size={18} />
