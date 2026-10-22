@@ -1763,7 +1763,9 @@ IAM_RUNTIME_EXACT_ADDITION = (
 # 804ee202. The complete file digests bind the runtime contract after those
 # changes while the earlier pins above remain available for historical review.
 CURRENT_IAM_RUNTIME_SHA256 = "a20b4d6d6fa5698cb55ab0fc0bed420859fe12163373c9358955a97a377285bc"
-CURRENT_WORKFLOW_RUNTIME_SHA256 = "caed9a12c8d11c12e14d87cb74d1fdef83567648287c1d654f926114cd227d64"
+PREVIOUS_WORKFLOW_RUNTIME_SHA256 = "caed9a12c8d11c12e14d87cb74d1fdef83567648287c1d654f926114cd227d64"
+CURRENT_WORKFLOW_RUNTIME_SHA256 = "ecfaa71f9c9668d02e59571efa7a7b9e5daf6af1da9a22501a23611cf9e565a3"
+CURRENT_AI_RUNTIME_SHA256 = "0948bda88c41ea79fd25dc9c2faa656b7d71c9d29012024156017921122834a6"
 ALLOWED_RESOURCES = set("""
 aws_cloudwatch_log_group.api aws_cloudwatch_log_group.scheduler aws_apigatewayv2_stage.api
 aws_budgets_budget.cspm aws_route53_record.cspm aws_ecs_task_definition.tasks
@@ -2506,7 +2508,9 @@ def deployment_expectations(data, plan):
         if current_digest == historical_digest:
             continue
         if (name == "iam.tf" and current_digest == CURRENT_IAM_RUNTIME_SHA256
-                or name == "workflow.tf" and current_digest == CURRENT_WORKFLOW_RUNTIME_SHA256):
+                    or name == "workflow.tf" and current_digest in {
+                        PREVIOUS_WORKFLOW_RUNTIME_SHA256, CURRENT_WORKFLOW_RUNTIME_SHA256}
+                    or name == "ai_runtime.tf" and current_digest == CURRENT_AI_RUNTIME_SHA256):
             continue
         if name == "variables.tf" and current_digest == RUNTIME_LIMITS_CURRENT_SHA256:
             restored = (INFRA / name).read_bytes()
