@@ -7815,6 +7815,10 @@ class AwsModel(Model):
             global_resource = "peaso-global-appsync-operation"
             actions = ("CreateGraphqlApi", "StartSchemaCreation", "CreateDataSource",
                        "CreateResolver", "CreateApiKey")
+            if any(not any(not statement.notresource and "*" in statement.resources
+                           for statement in self._statements(source, f"appsync:{action.lower()}")[0])
+                   for action in actions):
+                return {}
             grants = [self.check(source, {"action": f"appsync:{action}"}, global_resource)
                       for action in actions]
             if any(grant is None for grant in grants):

@@ -43,6 +43,7 @@ def test_missing_setup_action_or_wrong_role_context_does_not_reach_role():
     assert _edges(_snapshot(passed_to="lambda.amazonaws.com")) == {}
     assert _edges(_snapshot(trust="lambda.amazonaws.com")) == {}
     assert _edges(_snapshot(api_resource=f"arn:aws:appsync:us-east-1:{ACCOUNT}:apis/existing")) == {}
+    assert _edges(_snapshot(api_resource="peaso-global-appsync-operation")) == {}
 
 
 def test_new_appsync_route_keeps_prior_catalog_binding_exact():
