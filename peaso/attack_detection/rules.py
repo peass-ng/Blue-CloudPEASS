@@ -245,6 +245,7 @@ from .aws_rds_restore_next import normalize_aws_rds_restore_controls, correlate_
 from .aws_rds_parameters_next import normalize_aws_rds_parameters, correlate_aws_rds_sql_log_capture_path
 from .aws_rds_replica_next import normalize_aws_rds_public_replica, correlate_aws_rds_public_replica_controls
 from .aws_rds_secret_read_next import normalize_aws_rds_managed_secret_read, correlate_aws_rds_proxy_auth_secret_read
+from .aws_pcs_slurm_secret_next import normalize_aws_pcs_slurm_secret_read
 from .aws_rds_pending_signals_next import normalize_aws_rds_pending_signals
 from .aws_service_credentials_next import normalize_aws_service_credentials
 from .aws_cloudformation_controls_next import normalize_aws_cloudformation_controls
@@ -635,6 +636,7 @@ def detect_aws_events(
         rds_parameters = normalize_aws_rds_parameters(record)
         rds_public_replica = normalize_aws_rds_public_replica(record)
         rds_managed_secret_read = normalize_aws_rds_managed_secret_read(record)
+        pcs_slurm_secret_read = normalize_aws_pcs_slurm_secret_read(record)
         rds_pending_signals = normalize_aws_rds_pending_signals(record)
         redshift_password_reset = normalize_aws_redshift_password_reset(record)
         redshift_serverless_namespace = normalize_aws_redshift_serverless_namespace(record)
@@ -863,6 +865,7 @@ def detect_aws_events(
                 + ([rds_parameters] if rds_parameters is not None else [])
                 + ([rds_public_replica] if rds_public_replica is not None else [])
                 + ([rds_managed_secret_read] if rds_managed_secret_read is not None else [])
+                + ([pcs_slurm_secret_read] if pcs_slurm_secret_read is not None else [])
                 + ([rds_pending_signals] if rds_pending_signals is not None else [])
                 + ([redshift_password_reset] if redshift_password_reset is not None else [])
                 + ([redshift_serverless_namespace] if redshift_serverless_namespace is not None else [])
