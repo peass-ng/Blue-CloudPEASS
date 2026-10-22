@@ -7338,6 +7338,140 @@ class AwsModel(Model):
             return None
         return ("conditional", "autoscaling_created_input_instance_role_effect")
 
+    def _spot_fleet_instance_role_effect(self, source, role):
+        """Separate the fleet service role from a launched instance's IAM role."""
+        technique = "aws-ec2-passrole-requestspotfleet"
+        if source.scope != role.scope or source.id == role.id:
+            return None
+        instance_pass = self.check(source, {"action": "iam:PassRole", "request_context": {
+            "iam:PassedToService": "ec2.amazonaws.com"}}, role.id)
+        if instance_pass is None:
+            return None
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        if len(records) != 1:
+            return ("unknown", "spot_fleet_role_execution_evidence_missing_or_conflicting")
+        scope, proof = records[0]
+        if (inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"
+                or source.incomplete or role.incomplete):
+            return ("unknown", "spot_fleet_role_execution_evidence_incomplete")
+        region = scope.split("/", 1)[1] if "/" in scope else ""
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        ec2_prefix = f"arn:{partition}:ec2:{region}:{source.scope}:"
+        request_arn = proof.get("SpotFleetRequestArn")
+        instance_arn = proof.get("InstanceArn")
+        profile_arn = proof.get("InstanceProfileArn")
+        fleet_role_arn = proof.get("FleetRoleArn")
+        fleet_service = proof.get("FleetPassRoleService")
+        image_arn = proof.get("ImageArn")
+        subnet_arn = proof.get("SubnetArn")
+        group_arn = proof.get("SecurityGroupArn")
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("TechniqueId") != technique or proof.get("SourceArn") != source.id or
+                proof.get("TargetKind") != "aws_role" or proof.get("TargetId") != role.id or
+                scope != f"{source.scope}/{region}" or not re.fullmatch(r"[a-z0-9-]+", region) or
+                not isinstance(request_arn, str) or re.fullmatch(
+                    re.escape(ec2_prefix) + r"spot-fleet-request/sfr-[A-Za-z0-9-]+", request_arn) is None or
+                not isinstance(instance_arn, str) or re.fullmatch(
+                    re.escape(ec2_prefix) + r"instance/i-[0-9a-f]+", instance_arn) is None or
+                not isinstance(profile_arn, str) or re.fullmatch(
+                    rf"arn:{re.escape(partition)}:iam::{re.escape(source.scope)}:instance-profile/.+",
+                    profile_arn) is None or
+                not isinstance(fleet_role_arn, str) or re.fullmatch(
+                    rf"arn:{re.escape(partition)}:iam::{re.escape(source.scope)}:role/.+",
+                    fleet_role_arn) is None or
+                fleet_role_arn == role.id or
+                not isinstance(image_arn, str) or re.fullmatch(
+                    rf"arn:{re.escape(partition)}:ec2:{re.escape(region)}::image/ami-[0-9a-f]+",
+                    image_arn) is None or
+                not isinstance(subnet_arn, str) or re.fullmatch(
+                    re.escape(ec2_prefix) + r"subnet/subnet-[0-9a-f]+", subnet_arn) is None or
+                not isinstance(group_arn, str) or re.fullmatch(
+                    re.escape(ec2_prefix) + r"security-group/sg-[0-9a-f]+", group_arn) is None or
+                fleet_service not in ("ec2.amazonaws.com", "spotfleet.amazonaws.com") or
+                proof.get("SpotFleetRequestSucceeded") is not True or
+                proof.get("FleetRoleTrustAccepted") is not True or
+                proof.get("FleetRolePolicyReady") is not True or
+                proof.get("InstanceLaunchedSucceeded") is not True or
+                proof.get("FleetOwnsInstance") is not True or
+                proof.get("InstanceProfileApplied") is not True or
+                proof.get("UserDataControlledBySource") is not True or
+                proof.get("UserDataExecuted") is not True or
+                proof.get("UserDataUsedRoleCredentials") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                type(proof.get("TagsRequested")) is not bool or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "spot_fleet_launch_or_role_effect_not_verified")
+        roles = [row for row_scope, row in items(self.snapshot, "iam_role")
+                 if row_scope.split("/", 1)[0] == source.scope]
+        targets = [row for row in roles if row.get("Arn") == role.id]
+        fleets = [row for row in roles if row.get("Arn") == fleet_role_arn]
+        if (len(targets) != 1 or len(fleets) != 1 or
+                not isinstance(proof.get("TargetRoleId"), str) or not proof["TargetRoleId"] or
+                targets[0].get("RoleId") != proof["TargetRoleId"] or
+                proof.get("InstanceRoleId") != proof["TargetRoleId"] or
+                not isinstance(proof.get("FleetRoleId"), str) or not proof["FleetRoleId"] or
+                fleets[0].get("RoleId") != proof["FleetRoleId"] or
+                profile_arn not in [entry.get("Arn") for entry in targets[0].get("InstanceProfileList", ())
+                                    if isinstance(entry, dict)] or
+                fleet_role_arn not in self.principals):
+            return ("unknown", "spot_fleet_role_or_profile_identity_not_verified")
+        trust = self._service_trust_for_source_arn(
+            fleet_role_arn, "spotfleet.amazonaws.com", request_arn)
+        if trust is False:
+            return ("unknown", "spot_fleet_service_role_trust_denied")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "spot_fleet_role_execution_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "spot_fleet_role_execution_evidence_time_missing")
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        if (not isinstance(action, str) or re.fullmatch(
+                r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource):
+            return ("unknown", "spot_fleet_role_action_not_verified")
+        request_resources = proof.get("RequestSpotFleetAuthorizationResources")
+        run_resources = proof.get("RunInstancesAuthorizationResources")
+        for values, complete, required in (
+                (request_resources, proof.get("RequestSpotFleetAuthorizationResourcesComplete"),
+                 (request_arn, image_arn, subnet_arn, group_arn)),
+                (run_resources, proof.get("RunInstancesAuthorizationResourcesComplete"),
+                 (instance_arn, image_arn, subnet_arn, group_arn))):
+            if (complete is not True or not isinstance(values, list) or not values or
+                    any(not isinstance(item, str) or "*" in item or "?" in item for item in values) or
+                    len(set(values)) != len(values) or any(item not in values for item in required)):
+                return ("unknown", "spot_fleet_authorization_resource_set_not_verified")
+        region_context = {"aws:RequestedRegion": region}
+        grants = [instance_pass,
+            self.check(source, {"action": "iam:PassRole", "request_context": {
+                "iam:PassedToService": fleet_service}}, fleet_role_arn),
+            self.check(role, {"action": action}, resource)]
+        grants.extend(self.check(source, {"action": "ec2:RequestSpotFleet",
+                                          "request_context": region_context}, item)
+                      for item in request_resources)
+        grants.extend(self.check(source, {"action": "ec2:RunInstances",
+                                          "request_context": region_context}, item)
+                      for item in run_resources)
+        if proof["TagsRequested"]:
+            tag_resources = proof.get("TaggingResources")
+            if (proof.get("TaggingResourcesComplete") is not True or
+                    not isinstance(tag_resources, list) or not tag_resources or
+                    any(not isinstance(item, str) or "*" in item or "?" in item for item in tag_resources)):
+                return ("unknown", "spot_fleet_tagging_resources_not_verified")
+            grants.extend(self.check(source, {"action": "ec2:CreateTags",
+                                              "request_context": {**region_context, "ec2:CreateAction": "RequestSpotFleet"}}, item)
+                          for item in tag_resources)
+        if any(grant is None or grant.confidence != "derived" for grant in grants):
+            return ("unknown", "spot_fleet_scoped_permissions_not_verified")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "spot_fleet_exact_instance_role_effect")
+
     def _appstream_new_resource_arns(self, source, region, kind, actions):
         """Concrete unused-name candidates from the actions' resource scopes in one Region."""
         partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
@@ -10052,6 +10186,11 @@ class AwsModel(Model):
                        if conditional else ("unknown", "flink_application_names_or_authorization_unresolved")
                        if unresolved or not scopes or source.incomplete else False)
             return {tid: verdict for tid, node in candidates.items() if node.scope == source.scope and verdict is not False}
+        if pid == "ec2_spot_fleet_instance_role_effect_reviewed":
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._spot_fleet_instance_role_effect(source, role))}
         if pid == "ec2_spot_fleet_roles_ready":
             if source is None:
                 return None
