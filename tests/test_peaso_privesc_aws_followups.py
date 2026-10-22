@@ -2505,9 +2505,35 @@ def test_redshift_matches_serverless_only_trust():
 def test_lambda_dynamodb_stream_variant_needs_table_and_item_write():
     tid = "aws-lambda-passrole-createfunction-dynamodb-stream-trigger"
     base = ("iam:PassRole", "lambda:CreateFunction", "lambda:CreateEventSourceMapping", "dynamodb:CreateTable")
-    roles = [role("fn", "lambda.amazonaws.com"), role("ec2", "ec2.amazonaws.com")]
-    assert set(reached(real(aws_snap([user("alice", allow(*base, "dynamodb:PutItem"))], roles), tid), ALICE)) == {role_arn("fn")}
-    assert edges(real(aws_snap([user("alice", allow(*base))], roles), tid), ALICE) == []
+    read = ("dynamodb:DescribeStream", "dynamodb:GetShardIterator", "dynamodb:GetRecords",
+            "dynamodb:ListStreams")
+    roles = [role("fn", "lambda.amazonaws.com", allow(*read)), role("ec2", "ec2.amazonaws.com")]
+    inventory = [col("lambda_function", [], "empty"), col("dynamodb_table", [], "empty")]
+    assert reached(real(aws_snap([user("alice", allow(*base, "dynamodb:PutItem"))], roles,
+                                 inventory), tid), ALICE) == {role_arn("fn"): "conditional"}
+    assert edges(real(aws_snap([user("alice", allow(*base))], roles, inventory), tid), ALICE) == []
+    assert edges(real(aws_snap([user("alice", allow(*base, "dynamodb:PutItem"))],
+                               [role("fn", "lambda.amazonaws.com")], inventory), tid), ALICE) == []
+    no_list = role("fn", "lambda.amazonaws.com", allow(*read[:-1]))
+    assert role_arn("fn") not in reached(real(aws_snap(
+        [user("alice", allow(*base, "dynamodb:PutItem"))], [no_list], inventory), tid), ALICE)
+    assert role_arn("fn") not in reached(real(aws_snap(
+        [user("alice", allow(*base, "dynamodb:PutItem"))], roles), tid), ALICE)
+    table_a = f"arn:aws:dynamodb:{REGION}:{ACCOUNT}:table/alpha"
+    table_b = f"arn:aws:dynamodb:{REGION}:{ACCOUNT}:table/beta"
+    function = f"arn:aws:lambda:{REGION}:{ACCOUNT}:function:alpha"
+    disjoint = user("alice", allow("iam:PassRole", resource=role_arn("fn")),
+                    allow("lambda:CreateFunction", resource=function),
+                    allow("lambda:CreateEventSourceMapping"),
+                    allow("dynamodb:CreateTable", resource=table_a),
+                    allow("dynamodb:PutItem", resource=table_b))
+    assert edges(real(aws_snap([disjoint], roles, inventory), tid), ALICE) == []
+    wrong_mapping = user("alice", allow("iam:PassRole", resource=role_arn("fn")),
+                         allow("lambda:CreateFunction", resource=function),
+                         {"Effect": "Allow", "Action": "lambda:CreateEventSourceMapping", "Resource": "*",
+                          "Condition": {"ArnEquals": {"lambda:FunctionArn": function.replace("alpha", "beta")}}},
+                         allow("dynamodb:CreateTable", "dynamodb:PutItem", resource=table_a))
+    assert edges(real(aws_snap([wrong_mapping], roles, inventory), tid), ALICE) == []
 
 
 def test_lambda_new_function_url_requires_both_invoke_actions_on_one_function():

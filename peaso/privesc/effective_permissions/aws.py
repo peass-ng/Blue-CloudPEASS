@@ -5518,6 +5518,111 @@ class AwsModel(Model):
                     return ("conditional", "maintenance_window_scheduled_execution")
         return ("unknown", "ssm_maintenance_window_or_task_not_verified") if unknown else None
 
+    def _lambda_new_dynamodb_stream_route(self, source, role):
+        """Join one new table/stream, function, mapping and readable role."""
+        if source.incomplete or role.incomplete:
+            return ("unknown", "lambda_dynamodb_source_or_role_incomplete")
+        partition = source.id.split(":", 2)[1]
+        regions = sorted({scope.split("/", 1)[1] for scope in self.snapshot.get("scopes", ())
+                          if isinstance(scope, str) and scope.startswith(source.scope + "/")
+                          and re.fullmatch(r"[a-z]{2}(?:-gov)?-[a-z]+-\d", scope.split("/", 1)[1])})
+        if not regions:
+            return ("unknown", "lambda_dynamodb_region_not_collected")
+        table_status = inventory_status(self.snapshot, "dynamodb_table")
+        function_status = inventory_status(self.snapshot, "lambda_function")
+        existing_tables = {(scope, (row.get("Table") or {}).get("TableName") or row.get("TableName"))
+                           for scope, row in items(self.snapshot, "dynamodb_table") if isinstance(row, dict)}
+        existing_functions = {(scope, row.get("FunctionName") or
+                               (row.get("FunctionArn") or "").rsplit(":", 1)[-1])
+                              for scope, row in items(self.snapshot, "lambda_function") if isinstance(row, dict)}
+
+        def new_names(action, prefix, existing, valid):
+            allows, _ = self._statements(source, action)
+            names = []
+            for statement in allows:
+                for pattern in (["*"] if statement.notresource else statement.resources):
+                    pattern = pattern.replace(f":*:{source.scope}:", f":{region}:{source.scope}:")
+                    if pattern == "*":
+                        name_pattern = "peasoprivesc*"
+                    elif pattern.startswith(prefix):
+                        name_pattern = pattern[len(prefix):]
+                    else:
+                        continue
+                    if not any(char in name_pattern for char in "*?"):
+                        candidates = [name_pattern]
+                    else:
+                        candidates = [name_pattern.replace("*", f"audit{n}").replace("?", "x")
+                                      for n in range(min(len(existing) + 2, 50))]
+                    names.extend(name for name in candidates if valid.fullmatch(name) and
+                                 (scope, name) not in existing)
+            return tuple(dict.fromkeys(names))[:50]
+
+        unknown = False
+        for region in regions:
+            scope = f"{source.scope}/{region}"
+            if (table_status.get(scope) not in ("collected", "empty") or
+                    function_status.get(scope) not in ("collected", "empty")):
+                unknown = True
+                continue
+            table_prefix = f"arn:{partition}:dynamodb:{region}:{source.scope}:table/"
+            function_prefix = f"arn:{partition}:lambda:{region}:{source.scope}:function:"
+            tables = new_names("dynamodb:createtable", table_prefix, existing_tables,
+                               re.compile(r"[A-Za-z0-9_.-]{3,255}"))
+            functions = new_names("lambda:createfunction", function_prefix, existing_functions,
+                                  re.compile(r"[A-Za-z0-9_-]{1,64}"))
+            if not tables or not functions:
+                if (self._statements(source, "dynamodb:createtable")[0] and
+                        self._statements(source, "lambda:createfunction")[0]):
+                    unknown = True
+            for table_name in tables:
+                table_arn = table_prefix + table_name
+                stream_arn = table_arn + "/stream/__peaso_generated_stream_version__"
+                table_create = self.check(source, {"action": "dynamodb:CreateTable",
+                                                   "request_context": {"aws:RequestedRegion": region}}, table_arn)
+                item_write = self.check(source, {"action": "dynamodb:PutItem",
+                                                 "request_context": {"aws:RequestedRegion": region}}, table_arn)
+                stream_reads = [self.check(role, {"action": action,
+                                                  "request_context": {"aws:RequestedRegion": region}}, stream_arn)
+                                for action in ("dynamodb:DescribeStream", "dynamodb:GetShardIterator",
+                                               "dynamodb:GetRecords")]
+                list_streams = self.check(role, {"action": "dynamodb:ListStreams",
+                                                 "request_context": {"aws:RequestedRegion": region}},
+                                          "__peaso_resource_less_action__")
+                if table_create is None or item_write is None:
+                    continue
+                if any(g is None for g in stream_reads):
+                    # A role may name a subset of future stream versions; the
+                    # generated version is not known until CreateTable returns.
+                    if any(self._statements(role, action.lower())[0] for action in (
+                            "dynamodb:DescribeStream", "dynamodb:GetShardIterator", "dynamodb:GetRecords")):
+                        unknown = True
+                    continue
+                if list_streams is None:
+                    unknown = True  # Some direct API paths may not need enumeration.
+                    continue
+                for function_name in functions:
+                    function_arn = function_prefix + function_name
+                    trust = self._service_trust_for_source_arn(role.id, "lambda.amazonaws.com", function_arn)
+                    if trust is False:
+                        continue
+                    function_create = self.check(source, {"action": "lambda:CreateFunction",
+                                                          "request_context": {"aws:RequestedRegion": region}}, function_arn)
+                    pass_role = self.check(source, {"action": "iam:PassRole", "request_context": {
+                        "iam:PassedToService": "lambda.amazonaws.com",
+                        "iam:AssociatedResourceArn": function_arn}}, role.id)
+                    mapping = self.check(source, {"action": "lambda:CreateEventSourceMapping",
+                                                  "request_context": {"lambda:FunctionArn": function_arn,
+                                                                      "aws:RequestedRegion": region}},
+                                         "__peaso_resource_less_action__")
+                    grants = (table_create, item_write, *stream_reads, list_streams,
+                              function_create, pass_role, mapping)
+                    if any(g is None for g in grants):
+                        continue
+                    if trust is True and all(g.confidence == "derived" for g in grants):
+                        return ("conditional", "lambda_new_dynamodb_stream_function_and_role_joined")
+                    unknown = True
+        return ("unknown", "lambda_dynamodb_stream_or_function_not_verified") if unknown else None
+
     def _lambda_microvm_shell_route(self, source, target):
         """Require Lambda session tagging and one runnable image covered by both actions."""
         if source.incomplete:
@@ -14132,6 +14237,11 @@ class AwsModel(Model):
                 return None
             return {tid: verdict for tid, role in candidates.items()
                     if (verdict := self._deadline_new_worker_role_vend(source, role))}
+        if pid == "lambda_new_dynamodb_stream_function_and_role":
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._lambda_new_dynamodb_stream_route(source, role))}
         if pid == "lambda_microvm_shell_runnable_image_and_role":
             if source is None:
                 return None
