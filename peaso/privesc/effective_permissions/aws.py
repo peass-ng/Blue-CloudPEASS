@@ -6352,12 +6352,61 @@ class AwsModel(Model):
                           for action in ("s3:putobject", "s3:getobject")]
                 access.append(self._check_action(source, "s3:listbucket", bucket_arn))
                 if all(g is not None and g.confidence == "derived" for g in access):
-                    return ("conditional", "m2_available_environment_and_new_application_bound")
+                    return self._m2_verified_role_effect(source, role, arn, parts[3])
                 unknown = True
         if any(scope.split("/", 1)[0] == source.scope and status not in ("collected", "empty")
                for scope, status in statuses.items()):
             unknown = True
         return ("unknown", "m2_environment_deployment_or_artifact_not_verified") if unknown else None
+
+    def _m2_verified_role_effect(self, source, role, environment_arn, region):
+        """Require a fresh, exact application execution and a role-only effect."""
+        technique = "aws-m2-passrole-createapplication-deploy"
+        records = self.bounded_evidence_records.get((technique, source.id, "aws_role", role.id), ())
+        scope = f"{source.scope}/{region}"
+        if len(records) != 1 or records[0][0] != scope or (
+                inventory_status(self.snapshot, "aws_privesc_challenge_evidence").get(scope) != "collected"):
+            return ("unknown", "m2_application_execution_evidence_missing_or_conflicting")
+        proof = records[0][1]
+        rows = [row for row_scope, row in items(self.snapshot, "iam_role")
+                if row_scope.split("/", 1)[0] == source.scope and row.get("Arn") == role.id]
+        role_id = rows[0].get("RoleId") if len(rows) == 1 else None
+        app = proof.get("ApplicationArn")
+        action, resource = proof.get("RoleAction"), proof.get("RoleActionResource")
+        partition = source.id.split(":", 2)[1]
+        pattern = rf"arn:{re.escape(partition)}:m2:{re.escape(region)}:{source.scope}:app/[A-Za-z0-9]+"
+        if (proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("EnvironmentArn") != environment_arn or
+                not isinstance(app, str) or re.fullmatch(pattern, app) is None or
+                not isinstance(role_id, str) or not role_id or proof.get("TargetRoleId") != role_id or
+                proof.get("ApplicationRoleArn") != role.id or
+                proof.get("DefinitionAndArtifactsControlledBySource") is not True or
+                proof.get("DefinitionAndArtifactsAcceptedForEngine") is not True or
+                proof.get("DeploymentSucceeded") is not True or
+                proof.get("ApplicationStarted") is not True or
+                proof.get("RoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"].strip()):
+            return ("unknown", "m2_application_or_role_effect_not_verified")
+        try:
+            observed = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (observed.tzinfo is None or witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (observed - witnessed).total_seconds() <= 900 or
+                    not observed < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return ("unknown", "m2_application_evidence_stale")
+        except (KeyError, TypeError, ValueError):
+            return ("unknown", "m2_application_evidence_time_missing")
+        allowed = self.check(role, {"action": action}, resource)
+        if allowed is None or allowed.confidence != "derived":
+            return ("unknown", "m2_role_action_not_authorized")
+        if self.check(source, {"action": action}, resource) is not None:
+            return None
+        return ("conditional", "m2_application_exact_role_effect_verified")
 
     def _ssm_incident_response_route(self, source, execution_role):
         """Bind a creatable Automation document and one usable incident response plan."""
