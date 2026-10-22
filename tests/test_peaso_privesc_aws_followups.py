@@ -757,6 +757,43 @@ def test_stepfunctions_teststate_needs_a_supported_role_task_witness():
                        wrong_service["Arn"], technique)
 
 
+def test_stepfunctions_teststate_accepts_only_reviewed_unmocked_role_effect():
+    technique = "aws-stepfunctions-teststate-passrole"
+    object_arn = "arn:aws:s3:::example-private-bucket/evidence.txt"
+    target = role("execution", "states.amazonaws.com", allow("s3:PutObject", resource=object_arn))
+    target["RoleId"] = "AROAEXECUTION123456789"
+    passed = allow("iam:PassRole", resource=target["Arn"])
+    passed["Condition"] = {"StringEquals": {"iam:PassedToService": "states.amazonaws.com"}}
+    proof = {"TechniqueId": technique, "SourceArn": ALICE, "TargetKind": "aws_role",
+             "TargetId": target["Arn"], "TargetScope": SCOPE, "TargetRoleId": target["RoleId"],
+             "Status": "verified", "VerifiedPreconditions": True, "UnmockedTask": True,
+             "TestStateSucceeded": True, "TaskOutcomeUsefulToSource": True,
+             "TaskAction": "s3:PutObject", "TaskResource": object_arn,
+             "EvidenceRef": "reviewed-teststate-call",
+             "EvidenceObservedAt": "2026-10-21T11:59:00+00:00",
+             "EvidenceExpiresAt": "2026-10-21T12:05:00+00:00"}
+
+    def result(evidence=proof, *, extra_caller=()):
+        caller = user("alice", passed, allow("states:TestState"), *extra_caller)
+        proofs = evidence if isinstance(evidence, list) else ([evidence] if evidence else [])
+        snap = aws_snap([caller], [target], [col("aws_privesc_challenge_evidence", proofs)])
+        snap["created_at"] = "2026-10-21T12:00:00+00:00"
+        return real(snap, technique, include_unknown=True)
+
+    assert target["Arn"] in reached(result(), ALICE, technique)
+    assert target["Arn"] not in reached(result(None), ALICE, technique)
+    assert_unresolved(result(None), ALICE, technique)
+    assert target["Arn"] not in reached(result([proof, dict(proof)]), ALICE, technique)
+    for changed in ({"UnmockedTask": False}, {"TestStateSucceeded": False},
+                    {"TaskOutcomeUsefulToSource": False}, {"TargetRoleId": "AROANOTHER"},
+                    {"TaskAction": "s3:DeleteObject"}, {"TargetScope": f"{ACCOUNT}/eu-west-1"},
+                    {"SourceArn": f"arn:aws:iam::{ACCOUNT}:user/other"},
+                    {"EvidenceObservedAt": "2026-10-21T11:40:00+00:00"}):
+        assert target["Arn"] not in reached(result(dict(proof, **changed)), ALICE, technique)
+    assert target["Arn"] not in reached(result(extra_caller=[allow("s3:PutObject", resource=object_arn)]),
+                                        ALICE, technique)
+
+
 def test_config_automatic_remediation_requires_service_context_and_runtime_witness():
     technique = "aws-config-passrole-automatic-remediation"
     target = role("automation", "ssm.amazonaws.com", allow("iam:AttachUserPolicy"))
