@@ -14,6 +14,8 @@ REVIEW = Path(__file__).with_name("technique-status.tsv")
 OUTPUT = Path(__file__).with_name("verification-status.tsv")
 DRIFT_OUTPUT = Path(__file__).with_name("static-parity-source-drift.tsv")
 PROOF_REVIEW = Path(__file__).with_name("proof-route-status.tsv")
+CASE_REVIEW = Path(__file__).with_name("route-case-coverage.tsv")
+SUITE_RESULT = Path(__file__).with_name("final-suite-result.json")
 
 # Each name is a catalog precondition whose evaluator reads
 # aws_privesc_challenge_evidence before accepting the role effect.
@@ -133,6 +135,18 @@ def main():
     with PROOF_REVIEW.open(newline="") as stream:
         proof_rows = {row["id"]: row for row in csv.DictReader(stream, delimiter="\t")}
     assert len(proof_rows) == 58
+    with CASE_REVIEW.open(newline="") as stream:
+        cases = list(csv.DictReader(stream, delimiter="\t"))
+    case_rows = {row["id"]: row for row in cases}
+    assert len(cases) == len(case_rows) == len(catalog)
+    assert set(case_rows) == set(catalog)
+    suite_state = "pending_final_suite"
+    if SUITE_RESULT.is_file():
+        suite = json.loads(SUITE_RESULT.read_text())
+        assert suite["shards_total"] == 19 and suite["shards_completed"] == 19
+        assert suite["state"] in {"executed_with_failures_global", "passed_global"}
+        assert (suite["failed"] > 0) == (suite["state"] == "executed_with_failures_global")
+        suite_state = suite["state"]
     test_texts = {str(path.relative_to(ROOT)): path.read_text(errors="replace")
                   for path in sorted((ROOT / "tests").glob("test_*.py"))}
     manifest = json.loads((ROOT / "peaso/server/evidence_static_source_manifest.json").read_text())
@@ -159,11 +173,18 @@ def main():
         reviewed_proof = proof_rows.get(row["id"])
         assert bool(matching) == bool(reviewed_proof), row["id"]
         proof_mode = reviewed_proof["current_evaluator_disposition"] if reviewed_proof else "none"
+        case = case_rows[row["id"]]
         test_refs = sorted(set(re.findall(r"tests/[\w.-]+\.py", row["review_evidence"])))
         assert all((ROOT / path).is_file() for path in test_refs), row["id"]
         literal_refs = sorted(path for path, text in test_texts.items() if row["id"] in text)
         located_refs = sorted(set(test_refs) | set(literal_refs))
-        pending = ["Audit exact positive and negative cases for this technique; run the frozen final suite"]
+        pending = []
+        if case["case_gap"]:
+            pending.append(case["case_gap"])
+        if suite_state == "pending_final_suite":
+            pending.append("Complete all 19 final-suite shards")
+        elif suite_state == "executed_with_failures_global":
+            pending.append("Resolve final-suite failures before end-to-end sign-off")
         if proof_mode == "external_proof_required_for_conditional":
             pending.insert(0, "Verify trusted live-effect evidence import and absent-evidence UNKNOWN behavior")
         elif proof_mode == "native_conditional_or_external_proof":
@@ -184,7 +205,7 @@ def main():
             "focused_helper_result": "passed_normal_pytest" if row["id"] in FOCUSED_HELPER_TESTS else "not_run_in_current_audit",
             "isolated_graph_test": ISOLATED_GRAPH_TESTS.get(row["id"], ""),
             "isolated_graph_result": "passed_normal_pytest" if row["id"] in ISOLATED_GRAPH_TESTS else "not_run_in_current_audit",
-            "end_to_end_suite": "pending_final_suite_after_source_freeze",
+            "end_to_end_suite": suite_state,
             "work_done": row["review_evidence"],
             "remaining_work": "; ".join(pending),
         })
@@ -202,7 +223,7 @@ def main():
         writer.writeheader()
         writer.writerows(drift)
     print(f"{len(records)} entries; 58 external proof routes; all with a located test file; "
-          f"{len(drift)} presentation source pins pending; final suite pending")
+          f"{len(drift)} presentation source pins pending; final suite {suite_state}")
 
 
 if __name__ == "__main__":
