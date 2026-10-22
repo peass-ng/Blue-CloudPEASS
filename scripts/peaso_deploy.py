@@ -13,6 +13,10 @@ import subprocess
 import sys
 import time
 import zipfile
+
+# Direct script execution must use this checkout, including its build helpers.
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 from peaso import deployment
 
 try:
@@ -28,7 +32,6 @@ try:
 except ModuleNotFoundError:
     from scripts import peaso_deploy_artifact_update as artifact_update
 
-ROOT = Path(__file__).resolve().parents[1]
 INFRA = ROOT / "infra" / "aws"
 BUILD = INFRA / "build"
 TF = os.environ.get("PEASO_TERRAFORM", "terraform")
