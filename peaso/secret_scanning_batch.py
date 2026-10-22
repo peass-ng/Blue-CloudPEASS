@@ -47,13 +47,14 @@ def _prepare_trufflehog_batch(items, timeout):
     from . import secret_scanning as scanning
 
     items = list(dict.fromkeys(items))
-    total = sum(len(payload) for payload, _ in items)
+    payloads = list(dict.fromkeys(payload for payload, _ in items))
+    total = sum(map(len, payloads))
     if not _volatile_shm_available(total):
         return None
     with tempfile.TemporaryDirectory(prefix='peaso-scan-', dir='/dev/shm') as directory:
         os.chmod(directory, 0o700)
         paths = {}
-        for index, (payload, original_path) in enumerate(items):
+        for index, payload in enumerate(payloads):
             filename = os.path.join(directory, str(index))
             fd = os.open(filename, os.O_CREAT | os.O_EXCL | os.O_WRONLY | os.O_NOFOLLOW, 0o600)
             try:
@@ -65,13 +66,13 @@ def _prepare_trufflehog_batch(items, timeout):
                 except OSError:
                     pass
                 raise
-            paths[filename] = (payload, original_path)
+            paths[filename] = payload
         output = scanning._run([scanning._trufflehog(), 'filesystem', '--json',
                                 '--no-verification', '--no-update', '--log-level=-1',
                                 '--concurrency=1', '--force-skip-archives',
                                 '--no-verification-cache', '--fail-on-scan-errors',
                                 *paths], b'', timeout)
-        grouped = {item: [] for item in items}
+        grouped = {payload: [] for payload in payloads}
         for line in output.splitlines():
             row = json.loads(line)
             if not isinstance(row, dict):
@@ -82,7 +83,10 @@ def _prepare_trufflehog_batch(items, timeout):
             if not isinstance(row.get('Raw'), str) or not row['Raw'] or row.get('Verified') is not False:
                 raise ValueError('invalid offline detector result')
             grouped[paths[source]].append(line)
-        return {item: b'\n'.join(lines) for item, lines in grouped.items()}
+        encoded = {payload: b'\n'.join(lines) for payload, lines in grouped.items()}
+        # Detection consumes exact bytes; native paths and private source
+        # attribution are still reconstructed by each original caller.
+        return {item: encoded[item[0]] for item in items}
 
 
 @contextmanager
