@@ -58,7 +58,7 @@ src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-efs-privesc/READM
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-eks-privesc/README.md	19	1	1	pending	-
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-elastic-beanstalk-privesc/README.md	17	1	1	pending	-
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-elasticache-privesc/README.md	4	0	1	pending	-
-src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-emr-privesc/README.md	16	1	1	pending	-
+src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-emr-privesc/README.md	16	1	1	triaged	Existing-cluster AddJobFlowSteps now joins the collected cluster instance profile to its exact IAM role. Other EMR privilege-escalation sections still need individual review.
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-emr-serverless-privesc/README.md	17	1	1	pending	-
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-entity-resolution-privesc/README.md	4	0	0	triaged	The page points to a bounded workflow-role data export; verify the linked operation has no general role credential or code execution path.
 src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-eventbridge-pipe-stored-role-privesc/README.md	4	0	1	pending	-

@@ -3841,6 +3841,62 @@ class AwsModel(Model):
             return None
         return next((value for value in exact if hashlib.sha256(value.encode()).hexdigest() == digest), False)
 
+    def _emr_existing_cluster_step_instance_role(self, source, role):
+        """Bind a command step to the role of one active cluster's instance profile."""
+        statuses = {scope: status for scope, status in inventory_status(self.snapshot, "emr_cluster").items()
+                    if scope.startswith(source.scope + "/")}
+        if not statuses:
+            return ("unknown", "emr_cluster_inventory_not_collected")
+        uncertain = any(status not in ("collected", "empty") for status in statuses.values())
+        profiles = role.attrs.get("instance_profiles")
+        if profiles is None:
+            return ("unknown", "emr_instance_profile_role_attachment_not_collected")
+        if not profiles:
+            return None
+        partition = source.id.split(":", 2)[1] if source.id.startswith("arn:") else "aws"
+        for scope, row in items(self.snapshot, "emr_cluster"):
+            if statuses.get(scope) != "collected":
+                continue
+            detail = row.get("Cluster") if isinstance(row, dict) else None
+            if not isinstance(detail, dict) or detail.get("collection_status") != "collected":
+                uncertain = True
+                continue
+            cluster = detail.get("Cluster")
+            if not isinstance(cluster, dict):
+                uncertain = True
+                continue
+            cluster_id = cluster.get("Id") or row.get("Id")
+            if not isinstance(cluster_id, str) or not re.fullmatch(r"j-[A-Za-z0-9]+", cluster_id):
+                uncertain = True
+                continue
+            region = scope.split("/", 1)[1]
+            arn = f"arn:{partition}:elasticmapreduce:{region}:{source.scope}:cluster/{cluster_id}"
+            if cluster.get("ClusterArn", row.get("ClusterArn", arn)) != arn:
+                uncertain = True
+                continue
+            status = cluster.get("Status")
+            state = status.get("State") if isinstance(status, dict) else None
+            if state not in ("RUNNING", "WAITING"):
+                if state is None:
+                    uncertain = True
+                continue
+            attributes = cluster.get("Ec2InstanceAttributes")
+            profile = attributes.get("IamInstanceProfile") if isinstance(attributes, dict) else None
+            if not isinstance(profile, str) or not profile:
+                uncertain = True
+                continue
+            if not any(isinstance(p, str) and p.startswith(f"arn:{partition}:iam::{source.scope}:instance-profile/")
+                       and p.rsplit("/", 1)[-1] == profile.rsplit("/", 1)[-1] for p in profiles):
+                continue
+            grant = self._check_action(source, "elasticmapreduce:addjobflowsteps", arn)
+            if grant is None:
+                continue
+            if grant.confidence != "derived":
+                uncertain = True
+                continue
+            return ("conditional", "emr_existing_cluster_step_instance_role")
+        return ("unknown", "emr_existing_cluster_step_role_not_verified") if uncertain else None
+
     def _emr_cluster_session_route(self, source, role):
         """Check the real cluster ARN and requested runtime role together."""
         hosts = [host for norm in self.trust_names.get(role.id, ()) for host in self._roles_by_norm(norm)
@@ -8829,6 +8885,11 @@ class AwsModel(Model):
                 return None
             return {rid: verdict for rid, role in candidates.items()
                     if (verdict := self._emr_cluster_session_route(source, role)) is not None}
+        if pid == "emr_existing_cluster_step_instance_role":
+            if source is None:
+                return None
+            return {rid: verdict for rid, role in candidates.items()
+                    if (verdict := self._emr_existing_cluster_step_instance_role(source, role)) is not None}
         if pid == "emr_serverless_job_route":
             if source is None:
                 return None
