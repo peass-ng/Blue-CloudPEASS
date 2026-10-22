@@ -584,7 +584,7 @@ def test_zip_central_directory_member_bound_before_zipfile_allocation(monkeypatc
 def test_compressed_image_layers_global_expansion_limit_partial_unknown(monkeypatch):
     requests, session, item, ops, calls, downloads, payloads = sdk(monkeypatch, 'ecr_repository', False)
     # Each blob is individually under 64 MiB but the image aggregate is smaller here.
-    monkeypatch.setattr(p, 'EXPANDED_LIMIT', 10240)
+    monkeypatch.setattr(p, 'ECR_EXPANDED_LIMIT', 10240)
     result = p.ENRICHERS['ecr_repository'](requests, session, REGION, [item])[0]
     assert c.image_layers(result, index('ecr_repository', result))[0] == 'UNKNOWN'
     assert result['PackageContentSource']['PackageSecretIndicators']['NativeResponseComplete'] is False

@@ -6,6 +6,7 @@ is executed or extracted into the host filesystem.
 """
 from peaso.secret_evidence import source_context, reuse_image_layer
 import base64
+from contextlib import nullcontext
 from copy import deepcopy
 import hashlib
 import io
@@ -43,6 +44,8 @@ SCAN_OVERLAP = 4096
 REFERENCE_LIMIT = 5000
 OUTPUT_LIMIT = 4 * 1024 * 1024
 MEMBER_LIMIT = 5000
+BATCH_ITEMS = 32
+BATCH_BYTES = 64 * 1024 * 1024
 MANIFEST_LIMIT = 1024 * 1024
 OCI = 'application/vnd.oci.image.manifest.v1+json'
 DOCKER = 'application/vnd.docker.distribution.manifest.v2+json'
@@ -189,6 +192,16 @@ def _scan(raw, name, requests):
     return refs
 
 
+_DEFAULT_SCAN = _scan
+
+
+def _prepared_batch(items):
+    """Keep the old per-content path when the batch adapter is unavailable."""
+    from peaso import secret_scanning
+    prepare = getattr(secret_scanning, 'prepared_content_batch', None)
+    return prepare(items, timeout=60) if prepare is not None else nullcontext()
+
+
 class PartialArchive(ValueError):
     """Carries safe observations only; caught before the projection boundary."""
     def __init__(self, refs, expanded, members):
@@ -220,7 +233,16 @@ def scan_zip(raw, requests):
             names.add(name)
             total += member.file_size
             if total > EXPANDED_LIMIT or member.file_size > max(1024, member.compress_size * 200): raise ValueError('ZIP expansion bound')
-        actual = 0
+        actual, pending, pending_bytes = 0, [], 0
+        def flush():
+            nonlocal pending, pending_bytes
+            if not pending: return
+            items, pending, pending_bytes = pending, [], 0
+            requests.check_deadline()
+            with _prepared_batch(items):
+                for payload, name in items:
+                    refs.extend(_scan(payload, name, requests))
+                    if len(refs) > MEMBER_LIMIT: raise ValueError('too many observations')
         try:
             for member in members:
                 if member.is_dir(): continue
@@ -234,10 +256,22 @@ def scan_zip(raw, requests):
                         if actual > EXPANDED_LIMIT: raise ValueError('ZIP actual expansion bound')
                         payload.extend(chunk)
                     if len(payload) != member.file_size: raise ValueError('truncated ZIP member')
-                    refs.extend(_scan(payload, _path(member.filename), requests))
-                    if len(refs) > MEMBER_LIMIT: raise ValueError('too many observations')
+                    if _scan is _DEFAULT_SCAN:
+                        payload = bytes(payload)
+                        if pending and (len(pending) == BATCH_ITEMS or pending_bytes + len(payload) > BATCH_BYTES):
+                            flush()
+                        pending.append((payload, _path(member.filename)))
+                        pending_bytes += len(payload)
+                    else:
+                        refs.extend(_scan(payload, _path(member.filename), requests))
+                        if len(refs) > MEMBER_LIMIT: raise ValueError('too many observations')
+            flush()
         except Exception as exc:
             if isinstance(exc, PartialArchive): refs.extend(exc.refs)
+            if pending:
+                try: flush()
+                except PartialArchive as partial: refs.extend(partial.refs)
+                except Exception: pass
             if refs: raise PartialArchive(refs, actual, len(members)) from None
             raise
     return refs, actual, len(members)
@@ -339,7 +373,7 @@ def _ecr_arguments(arguments):
     return account, repo
 
 
-def _scan_reader(reader, size, name, requests, remaining):
+def _scan_reader(reader, size, name, requests, remaining, enqueue=None):
     """Scan a regular file in overlapping, bounded windows through private capture."""
     if not isinstance(name, str) or len(name) > 256 or size > FILE_LIMIT or remaining[0] < size:
         return [], False
@@ -353,15 +387,19 @@ def _scan_reader(reader, size, name, requests, remaining):
         remaining[0] -= len(chunk)
         if b'\0' in chunk:
             return refs, False
-        try:
-            found = _scan(overlap + chunk, name, requests)
-            if len(refs) + len(found) > REFERENCE_LIMIT:
+        payload = overlap + chunk
+        if enqueue is not None:
+            if not enqueue(payload, name): return refs, False
+        else:
+            try:
+                found = _scan(payload, name, requests)
+                if len(refs) + len(found) > REFERENCE_LIMIT:
+                    return refs, False
+                refs.extend(found)
+            except PartialArchive as partial:
+                refs.extend(partial.refs)
                 return refs, False
-            refs.extend(found)
-        except PartialArchive as partial:
-            refs.extend(partial.refs)
-            return refs, False
-        overlap = (overlap + chunk)[-SCAN_OVERLAP:]
+        overlap = payload[-SCAN_OVERLAP:]
     return refs, True
 
 
@@ -508,6 +546,43 @@ def _image(response, arguments, requests, session, region):
                 return
             refs.append(projected)
             output_bytes[0] += size
+    pending, pending_bytes, failed_files, file_counts = [], 0, set(), {}
+    def flush_pending():
+        nonlocal pending, pending_bytes, complete
+        if not pending: return
+        windows, pending, pending_bytes = pending, [], 0
+        requests.check_deadline()
+        with _prepared_batch([(payload, name) for payload, name, _, _ in windows]):
+            for payload, name, ld, file_key in windows:
+                if file_key in failed_files: continue
+                requests.check_deadline()
+                with source_context(resource_id=identity, scope=account + '/' + region,
+                                    image_digest=digest, layer=ld,
+                                    check_ids={'aws.review.ecr_repository.package_content_secret_indicators'}):
+                    try:
+                        found = _scan(payload, name, requests)
+                    except PartialArchive as partial:
+                        add_refs(partial.refs, ld)
+                        failed_files.add(file_key)
+                        complete = False
+                        continue
+                count = file_counts.get(file_key, 0) + len(found)
+                if count > REFERENCE_LIMIT:
+                    failed_files.add(file_key)
+                    complete = False
+                    continue
+                file_counts[file_key] = count
+                add_refs(found, ld)
+    def enqueue_window(payload, name, ld, file_key):
+        nonlocal pending_bytes
+        if file_key in failed_files: return False
+        if pending and (len(pending) == BATCH_ITEMS or pending_bytes + len(payload) > BATCH_BYTES):
+            flush_pending()
+            if file_key in failed_files: return False
+        pending.append((payload, name, ld, file_key))
+        pending_bytes += len(payload)
+        if len(pending) == BATCH_ITEMS: flush_pending()
+        return file_key not in failed_files
     with tempfile.TemporaryDirectory(prefix='peaso-ecr-secret-') as directory:
         root = Path(directory)
         try:
@@ -555,10 +630,12 @@ def _image(response, arguments, requests, session, region):
             def observe(name, reader, size, layer_index):
                 nonlocal complete
                 ld = descriptors[layer_index + 1][0]
+                file_key = object()
                 with source_context(resource_id=identity, scope=account + '/' + region,
                                     image_digest=digest, layer=ld,
                                     check_ids={'aws.review.ecr_repository.package_content_secret_indicators'}):
-                    found, covered = _scan_reader(reader, size, name, requests, remaining)
+                    found, covered = _scan_reader(reader, size, name, requests, remaining,
+                        enqueue=lambda payload, path: enqueue_window(payload, path, ld, file_key))
                 add_refs(found, ld)
                 if not covered: complete = False
             suffix = 'amazonaws.com.cn' if _partition(region) == 'aws-cn' else 'amazonaws.com'
@@ -568,6 +645,7 @@ def _image(response, arguments, requests, session, region):
             result = visit_files(image_identity, raw.encode(), config_raw, paths[1:],
                                  lambda *args: None, check=requests.check_deadline,
                                  partial_callback=observe)
+            flush_pending()
             if result['expanded_bytes'] > ECR_EXPANDED_LIMIT: complete = False
             if result.get('links_skipped', 0) or result.get('partial', False): complete = False
         except PartialArchive as partial:
@@ -576,6 +654,8 @@ def _image(response, arguments, requests, session, region):
         except Exception:
             complete = False
         finally:
+            try: flush_pending()
+            except Exception: complete = False
             if hasattr(state, 'active'): del state.active
     requests.check_deadline()
     for ld, _ in descriptors[1:]:

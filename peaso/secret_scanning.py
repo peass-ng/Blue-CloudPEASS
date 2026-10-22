@@ -20,6 +20,7 @@ import signal
 import subprocess
 import threading
 import time
+from .secret_scanning_batch import prepared_content_batch, prepared_output as _prepared_trufflehog_output
 
 KINGFISHER_VERSION = '1.4.0'
 TRUFFLEHOG_VERSION = '3.92.5'
@@ -159,9 +160,11 @@ def _complete_match_values(primary, full, *, rule):
 
 
 def _scan_trufflehog(payload, path, timeout):
-    output = _run([_trufflehog(), 'stdin', '--json', '--no-verification', '--no-update',
-                   '--log-level=-1', '--concurrency=1', '--force-skip-archives',
-                   '--no-verification-cache', '--fail-on-scan-errors'], payload, timeout)
+    output = _prepared_trufflehog_output(payload, path)
+    if output is None:
+        output = _run([_trufflehog(), 'stdin', '--json', '--no-verification', '--no-update',
+                       '--log-level=-1', '--concurrency=1', '--force-skip-archives',
+                       '--no-verification-cache', '--fail-on-scan-errors'], payload, timeout)
     result, full_matches = _DetectorMatches(), []
     for line in output.splitlines():
         row = json.loads(line)
