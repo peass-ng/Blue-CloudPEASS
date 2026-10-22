@@ -7493,6 +7493,71 @@ class AwsModel(Model):
                 if uncertain else None)
 
     def precondition(self, pid, candidates, source):
+        if pid == "devicefarm_existing_project_new_web_test_role":
+            if source is None:
+                return None
+            project_status = {scope: status for scope, status in inventory_status(
+                self.snapshot, "devicefarm_project").items() if scope.startswith(source.scope + "/")}
+            pool_status = {scope: status for scope, status in inventory_status(
+                self.snapshot, "devicefarm_device_pool").items() if scope.startswith(source.scope + "/")}
+            if not project_status or not pool_status:
+                return {tid: ("unknown", "devicefarm_project_or_pool_inventory_not_collected")
+                        for tid in candidates}
+            uncertain_inventory = any(status not in ("collected", "empty") for status in
+                                      (*project_status.values(), *pool_status.values()))
+            projects = {(scope, row.get("arn")) for scope, row in items(self.snapshot, "devicefarm_project")
+                        if scope in project_status and project_status[scope] in ("collected", "partial")
+                        and isinstance(row.get("arn"), str)}
+            pools = [(scope, row) for scope, row in items(self.snapshot, "devicefarm_device_pool")
+                     if scope in pool_status and pool_status[scope] in ("collected", "partial")]
+
+            def generated_uploads_covered(project_arn, region):
+                prefix = project_arn.replace(":project:", ":upload:") + "/"
+                allows, denies = self._statements(source, "devicefarm:schedulerun")
+                if denies:
+                    return False
+                broad = any(not statement.notresource and not statement.variables and any(
+                    pattern == "*" or (pattern.endswith("*") and prefix.startswith(pattern[:-1]))
+                    for pattern in statement.resources) for statement in allows)
+                if not broad:
+                    return False
+                context = {"aws:RequestedRegion": region}
+                return all((grant := self.cached_check(source, {"action": "devicefarm:ScheduleRun",
+                            "request_context": context}, prefix + digit * 36)) is not None and
+                           grant.confidence == "derived" for digit in ("0", "f"))
+
+            out = {}
+            for tid, role in candidates.items():
+                uncertain = uncertain_inventory or source.incomplete or role.incomplete
+                for scope, pool in pools:
+                    project_arn = pool.get("ProjectArn")
+                    pool_arn = pool.get("arn")
+                    if (scope, project_arn) not in projects or not isinstance(pool_arn, str):
+                        uncertain = True
+                        continue
+                    if pool.get("CompatibleWebNodeDevices") is None:
+                        uncertain = True
+                        continue
+                    if not isinstance(pool.get("CompatibleWebNodeDevices"), int) or pool["CompatibleWebNodeDevices"] < 1:
+                        continue
+                    region = scope.split("/", 1)[1]
+                    context = {"aws:RequestedRegion": region}
+                    grants = [self.cached_check(source, {"action": action, "request_context": context}, arn)
+                              for action, arn in (("devicefarm:CreateUpload", project_arn),
+                                                  ("devicefarm:ScheduleRun", project_arn),
+                                                  ("devicefarm:ScheduleRun", pool_arn))]
+                    grants.append(self.cached_check(source, {"action": "iam:PassRole",
+                        "request_context": {**context, "iam:PassedToService": "devicefarm.amazonaws.com"}}, tid))
+                    if any(grant is None for grant in grants):
+                        continue
+                    if (all(grant.confidence == "derived" for grant in grants) and
+                            generated_uploads_covered(project_arn, region)):
+                        out[tid] = ("conditional", "devicefarm_web_test_in_existing_compatible_project")
+                        break
+                    uncertain = True
+                if tid not in out and uncertain:
+                    out[tid] = ("unknown", "devicefarm_project_pool_or_upload_permission_incomplete")
+            return out
         if pid == "gamelift_new_controlled_build_fleet_role":
             if source is None:
                 return None

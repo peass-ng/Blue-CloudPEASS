@@ -620,6 +620,7 @@ VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(IOT_ROLE_ALIAS_METADATA_REFERENC
 # Device Farm upload and device-pool names are needed to bind a custom test
 # specification to an existing project and run. Upload URLs are discarded.
 DEVICEFARM_TEST_METADATA_REFERENCES = {
+    "devicefarm:GetDevicePoolCompatibility": "https://docs.aws.amazon.com/devicefarm/latest/APIReference/API_GetDevicePoolCompatibility.html",
     "devicefarm:ListUploads": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_devicefarm.html",
     "devicefarm:ListDevicePools": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_devicefarm.html",
 }

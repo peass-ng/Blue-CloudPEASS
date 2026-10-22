@@ -89,7 +89,7 @@ READ_ACTIONS = {
     ("amplify", "list_backend_environments"),
     ("quicksight", "describe_account_subscription"),
     ("gamelift", "describe_fleet_attributes"), ("gamelift", "list_compute"),
-    ("devicefarm", "list_projects"),
+    ("devicefarm", "list_projects"), ("devicefarm", "get_device_pool_compatibility"),
     ("sso-admin", "list_instances"), ("sso-admin", "list_permission_sets"),
     ("sso-admin", "list_accounts_for_provisioned_permission_set"), ("identitystore", "list_groups"),
 }
@@ -144,11 +144,33 @@ def _devicefarm_project_children(kind):
                 failure = failure or _cause(children)
             for child in children.items:
                 arn = child.get("arn") if isinstance(child, dict) else None
-                if (not isinstance(arn, str) or not arn.startswith(project_arn.replace(":project:",
-                        ":upload:" if kind == "devicefarm_upload" else ":devicepool:") + "/")):
+                if kind == "devicefarm_upload":
+                    valid_arn = isinstance(arn, str) and arn.startswith(
+                        project_arn.replace(":project:", ":upload:") + "/")
+                else:
+                    pool_prefix = f"arn:{_partition(region)}:devicefarm:{region}:"
+                    valid_arn = isinstance(arn, str) and any(
+                        arn.startswith(pool_prefix + owner + ":devicepool:") and
+                        re.fullmatch(r"[A-Za-z0-9-]+", arn[len(pool_prefix + owner + ":devicepool:"):])
+                        for owner in (account, ""))
+                if not valid_arn:
                     failure = failure or ("malformed", {"code": "malformed_devicefarm_child"})
                     continue
-                rows.append({**_pick(child, fields), "ProjectArn": project_arn, "id": arn})
+                row = {**_pick(child, fields), "ProjectArn": project_arn, "id": arn}
+                if kind == "devicefarm_device_pool":
+                    compatibility = requests.detail(session, "devicefarm", region,
+                        "get_device_pool_compatibility", devicePoolArn=arn,
+                        projectArn=project_arn, testType="APPIUM_WEB_NODE")
+                    status = compatibility.get("collection_status")
+                    if status != "collected":
+                        failure = failure or (status or "unknown", {"code": "devicefarm_pool_compatibility_unavailable"})
+                    elif not isinstance(compatibility.get("compatibleDevices"), list):
+                        failure = failure or ("malformed", {"code": "malformed_devicefarm_pool_compatibility"})
+                    else:
+                        row["CompatibleWebNodeDevices"] = sum(
+                            device.get("compatible") is True for device in compatibility["compatibleDevices"]
+                            if isinstance(device, dict))
+                rows.append(row)
         return _finish(rows, failure)
     return fetch
 

@@ -9,7 +9,8 @@ ACCOUNT = "111111111111"
 REGION = "us-west-2"
 PROJECT = f"arn:aws:devicefarm:{REGION}:{ACCOUNT}:project:project-id"
 UPLOAD = f"arn:aws:devicefarm:{REGION}:{ACCOUNT}:upload:project-id/upload-id"
-POOL = f"arn:aws:devicefarm:{REGION}:{ACCOUNT}:devicepool:project-id/pool-id"
+POOL = f"arn:aws:devicefarm:{REGION}:{ACCOUNT}:devicepool:pool-id"
+CURATED_POOL = f"arn:aws:devicefarm:{REGION}::devicepool:curated-pool-id"
 
 
 class Read:
@@ -18,8 +19,9 @@ class Read:
 
 
 class Requests:
-    def __init__(self, child_operation, child_key, child):
+    def __init__(self, child_operation, child_key, child, compatibility=None):
         self.child_operation, self.child_key, self.child = child_operation, child_key, child
+        self.compatibility = compatibility
 
     def pages(self, session, service, region, operation, key, **kwargs):
         assert service == "devicefarm" and region == REGION
@@ -29,6 +31,11 @@ class Requests:
         assert operation == self.child_operation and key == self.child_key
         assert kwargs == {"arn": PROJECT}
         return self.child
+
+    def detail(self, session, service, region, operation, **kwargs):
+        assert (service, region, operation) == ("devicefarm", REGION, "get_device_pool_compatibility")
+        assert kwargs == {"devicePoolArn": POOL, "projectArn": PROJECT, "testType": "APPIUM_WEB_NODE"}
+        return self.compatibility
 
 
 def test_upload_inventory_keeps_binding_without_signed_url(monkeypatch):
@@ -46,9 +53,35 @@ def test_device_pool_inventory_keeps_exact_project(monkeypatch):
     monkeypatch.setattr(aws_facts_ext, "_aws", lambda: SimpleNamespace(ReadResult=Read))
     child = Read([{"arn": POOL, "type": "PRIVATE", "maxDevices": 2, "rules": [{"value": "private"}]}], "collected")
     read = aws_facts_ext.FETCHERS["devicefarm_device_pool"](
-        Requests("list_device_pools", "devicePools", child), None, REGION, ACCOUNT)
+        Requests("list_device_pools", "devicePools", child,
+                 {"collection_status": "collected", "compatibleDevices": [
+                     {"compatible": True, "device": {"url": "private"}}, {"compatible": False}]}),
+        None, REGION, ACCOUNT)
     assert read.status == "collected"
-    assert read.items == [{"arn": POOL, "type": "PRIVATE", "maxDevices": 2, "ProjectArn": PROJECT, "id": POOL}]
+    assert read.items == [{"arn": POOL, "type": "PRIVATE", "maxDevices": 2,
+                           "ProjectArn": PROJECT, "id": POOL, "CompatibleWebNodeDevices": 1}]
+    assert "private" not in str(read.items)
+
+
+def test_denied_compatibility_keeps_pool_read_partial(monkeypatch):
+    monkeypatch.setattr(aws_facts_ext, "_aws", lambda: SimpleNamespace(ReadResult=Read))
+    read = aws_facts_ext.FETCHERS["devicefarm_device_pool"](
+        Requests("list_device_pools", "devicePools", Read([{"arn": POOL}], "collected"),
+                 {"collection_status": "access_denied"}), None, REGION, ACCOUNT)
+    assert read.status == "partial" and read.items[0]["arn"] == POOL
+    assert "CompatibleWebNodeDevices" not in read.items[0]
+
+
+def test_curated_pool_arn_is_retained(monkeypatch):
+    monkeypatch.setattr(aws_facts_ext, "_aws", lambda: SimpleNamespace(ReadResult=Read))
+    class CuratedRequests(Requests):
+        def detail(self, session, service, region, operation, **kwargs):
+            assert kwargs["devicePoolArn"] == CURATED_POOL
+            return {"collection_status": "collected", "compatibleDevices": [{"compatible": True}]}
+    read = aws_facts_ext.FETCHERS["devicefarm_device_pool"](
+        CuratedRequests("list_device_pools", "devicePools", Read([{"arn": CURATED_POOL}], "collected")),
+        None, REGION, ACCOUNT)
+    assert read.status == "collected" and read.items[0]["ProjectArn"] == PROJECT
 
 
 def test_wrong_project_child_and_denied_reads_are_not_complete(monkeypatch):

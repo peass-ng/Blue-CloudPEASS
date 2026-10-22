@@ -21,7 +21,12 @@ V4_EFFECTIVE_TREE = "413792ea4aec86e48c352ffab2c0bea9e82795bc234251342737ec0276b
 LEGACY_DELTA = Path(__file__).resolve().parent / "catalog_versions/legacy-0b3633-delta.json"
 BOUNDED_MANIFEST = "734401b202895e00ac1b6cb0f1534f77cde4d8e2ba912ca0ee974b1b8ec5035c"
 BOUNDED_TREE = "1a54bad4102d18f89c78f45c915964554a62f994c1bffa693844cac5e119cca8"
-CURRENT_MANIFEST = 'd7605097dbcd5220cad0aecd2bbf4b2b08b839a442fed67644ba9161782556fd'
+CURRENT_MANIFEST = 'd9aabeaf2ad628290897d7bdd71a3f340c64285fd16c05bba78e419d80b67c1f'
+DEVICEFARM_690_PREVIOUS_MANIFEST = 'd7605097dbcd5220cad0aecd2bbf4b2b08b839a442fed67644ba9161782556fd'
+DEVICEFARM_690_PREVIOUS_TREE = 'a5b712f658ccaed3b962839c3e7e634652db05f5f297def720002f3e65a72ea7'
+DEVICEFARM_690_PREVIOUS_ARCHIVE_SHA256 = '7c0c2fdc3890e3c1c460e4084fe175bfe80f8aeec408096a7ffa89a2e1531d3a'
+DEVICEFARM_690_PREVIOUS_MANIFEST_PATH = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-690-devicefarm-source-manifest.json'
+DEVICEFARM_690_PREVIOUS_ARCHIVE = Path(__file__).resolve().parent / 'catalog_versions/prior-bulk-690-devicefarm-catalog.tar.gz'
 IOT_EXISTING_689_PREVIOUS_MANIFEST = 'e8f57144d46d8135eb9f474e143f418263d00d2f38f1cc4a9b4130a42577e85f'
 IOT_EXISTING_689_PREVIOUS_TREE = '642f2ed5b4dd647f616650e8ea182f2b666b56239843d5561ad8475e32296ed8'
 IOT_EXISTING_689_PREVIOUS_ARCHIVE_SHA256 = '33a68002171d9530e7cef98c1dac0c2be6f7404ae66906579655efef81bcc7f6'
@@ -246,7 +251,7 @@ PRIOR_CURRENT_MANIFEST = "eb459bc440cdad814f3acde244a36fa7f546119a351d5ce720ef0c
 PRIOR_DISCLOSURE_MANIFEST = "91ffe7389d02568cdcdf74a6b08dafa5f665ea07c0c528988127ffc4d2a86c45"
 PRIOR_DISCLOSURE_TREE = "5091464bedcb10bb87301695ca733276dc67b865e544c408ccf72a5408176f0f"
 PRIOR_DISCLOSURE_HISTORY = Path(__file__).resolve().parent / "catalog_versions/disclosure-v7-manifest.json"
-CURRENT_TREE = 'a5b712f658ccaed3b962839c3e7e634652db05f5f297def720002f3e65a72ea7'
+CURRENT_TREE = '41a2882ae0c929b50fc12407a7caefd76ed21644950a1a8131a79da8420bb3db'
 PRIOR_CURRENT_TREE = "99207e6469fc5e5b3daf21324e6860599b116ffcf7d30600643bd229b0f11494"
 CURRENT_ENTRY_COUNT = 690
 CURRENT_EXCLUDED_COUNT = 3723
@@ -332,6 +337,15 @@ def _verified_gamelift_shared_688_previous():
         GAMELIFT_SHARED_688_PREVIOUS_MANIFEST_PATH, GAMELIFT_SHARED_688_PREVIOUS_ARCHIVE,
         GAMELIFT_SHARED_688_PREVIOUS_MANIFEST, GAMELIFT_SHARED_688_PREVIOUS_ARCHIVE_SHA256,
         GAMELIFT_SHARED_688_PREVIOUS_TREE, 688, 3723)
+
+
+@lru_cache(maxsize=1)
+def _verified_devicefarm_690_previous():
+    """Keep the exact catalog before the Device Farm route was narrowed."""
+    return _verified_archived_current(
+        DEVICEFARM_690_PREVIOUS_MANIFEST_PATH, DEVICEFARM_690_PREVIOUS_ARCHIVE,
+        DEVICEFARM_690_PREVIOUS_MANIFEST, DEVICEFARM_690_PREVIOUS_ARCHIVE_SHA256,
+        DEVICEFARM_690_PREVIOUS_TREE, 690, 3723)
 
 
 @lru_cache(maxsize=1)
@@ -735,6 +749,10 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
           binding.get("effective_tree_sha256") == CURRENT_TREE and
           binding.get("source_revision") == V4_REVISION):
         version, status = "current", "exact_strict_privesc"
+    elif (binding.get("manifest_sha256") == DEVICEFARM_690_PREVIOUS_MANIFEST and
+          binding.get("effective_tree_sha256") == DEVICEFARM_690_PREVIOUS_TREE and
+          binding.get("source_revision") == V4_REVISION):
+        version, status = "devicefarm_690_previous", "exact_previous_current"
     elif (binding.get("manifest_sha256") == IOT_EXISTING_689_PREVIOUS_MANIFEST and
           binding.get("effective_tree_sha256") == IOT_EXISTING_689_PREVIOUS_TREE and
           binding.get("source_revision") == V4_REVISION):
@@ -908,6 +926,9 @@ def lookup_entries(technique_ids, binding=None, *, tenant_id=None, catalog_dir=N
         if version == "current":
             current = _verified_current(str(catalog_dir), str(manifest_path))
             return {ident: current[ident] for ident in ids if ident in current}, status
+        if version == "devicefarm_690_previous":
+            previous = _verified_devicefarm_690_previous()
+            return {ident: previous[ident] for ident in ids if ident in previous}, status
         if version == "iot_existing_689_previous":
             previous = _verified_iot_existing_689_previous()
             return {ident: previous[ident] for ident in ids if ident in previous}, status
