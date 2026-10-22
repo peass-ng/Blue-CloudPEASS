@@ -5518,6 +5518,94 @@ class AwsModel(Model):
                     return ("conditional", "maintenance_window_scheduled_execution")
         return ("unknown", "ssm_maintenance_window_or_task_not_verified") if unknown else None
 
+    def _lambda_existing_sqs_mapping_route(self, source, role):
+        """Join a new function to one writable, readable existing SQS queue."""
+        if source.incomplete or role.incomplete:
+            return ("unknown", "lambda_sqs_source_or_role_incomplete")
+        partition = source.id.split(":", 2)[1]
+        function_status = inventory_status(self.snapshot, "lambda_function")
+        queue_status = inventory_status(self.snapshot, "sqs_queue")
+        existing_functions = {(scope, row.get("FunctionName") or
+                               (row.get("FunctionArn") or "").rsplit(":", 1)[-1])
+                              for scope, row in items(self.snapshot, "lambda_function") if isinstance(row, dict)}
+        queues = [(scope, row) for scope, row in items(self.snapshot, "sqs_queue")
+                  if isinstance(row, dict) and isinstance(scope, str) and
+                  scope.startswith(source.scope + "/")]
+        # This catalog path also permits non-SQS poll sources; their complete
+        # source and role joins are not established by the SQS inventory.
+        unknown = True
+        for scope, queue in queues:
+            account, _, region = scope.partition("/")
+            if (account != source.scope or not region or
+                    queue_status.get(scope) != "collected" or
+                    function_status.get(scope) not in ("collected", "empty")):
+                unknown = True
+                continue
+            details = queue.get("Attributes") or {}
+            attributes = details.get("Attributes") or {}
+            arn = attributes.get("QueueArn")
+            if (details.get("collection_status") != "collected" or
+                    not isinstance(arn, str) or
+                    not arn.startswith(f"arn:{partition}:sqs:{region}:{account}:")):
+                unknown = True
+                continue
+            try:
+                visibility = int(attributes.get("VisibilityTimeout"))
+            except (TypeError, ValueError):
+                unknown = True
+                continue
+            if visibility < 1:
+                continue
+            if attributes.get("KmsMasterKeyId"):
+                unknown = True  # Key policy and producer/decryption grants need a separate join.
+                continue
+            send = self.check(source, {"action": "sqs:SendMessage",
+                                       "request_context": {"aws:RequestedRegion": region}}, arn)
+            reads = [self.check(role, {"action": action,
+                                       "request_context": {"aws:RequestedRegion": region}}, arn)
+                     for action in ("sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes")]
+            if send is None or any(grant is None for grant in reads):
+                continue
+            prefix = f"arn:{partition}:lambda:{region}:{account}:function:"
+            allows, _ = self._statements(source, "lambda:createfunction")
+            names = []
+            for statement in allows:
+                for pattern in (["*"] if statement.notresource else statement.resources):
+                    pattern = pattern.replace(f":*:{account}:", f":{region}:{account}:")
+                    name_pattern = ("peasoprivesc*" if pattern == "*" else
+                                    pattern[len(prefix):] if pattern.startswith(prefix) else None)
+                    if name_pattern is None:
+                        continue
+                    possible = ([name_pattern] if not any(c in name_pattern for c in "*?") else
+                                [name_pattern.replace("*", f"audit{n}").replace("?", "x")
+                                 for n in range(min(len(existing_functions) + 2, 50))])
+                    names.extend(name for name in possible if
+                                 re.fullmatch(r"[A-Za-z0-9_-]{1,64}", name) and
+                                 (scope, name) not in existing_functions)
+            if not names and allows:
+                unknown = True
+            for name in tuple(dict.fromkeys(names))[:50]:
+                function_arn = prefix + name
+                trust = self._service_trust_for_source_arn(role.id, "lambda.amazonaws.com", function_arn)
+                if trust is False:
+                    continue
+                create = self.check(source, {"action": "lambda:CreateFunction",
+                                             "request_context": {"aws:RequestedRegion": region}}, function_arn)
+                pass_role = self.check(source, {"action": "iam:PassRole", "request_context": {
+                    "iam:PassedToService": "lambda.amazonaws.com",
+                    "iam:AssociatedResourceArn": function_arn}}, role.id)
+                mapping = self.check(source, {"action": "lambda:CreateEventSourceMapping",
+                                              "request_context": {"lambda:FunctionArn": function_arn,
+                                                                  "aws:RequestedRegion": region}},
+                                     "__peaso_resource_less_action__")
+                grants = (send, *reads, create, pass_role, mapping)
+                if any(grant is None for grant in grants):
+                    continue
+                if trust is True and all(grant.confidence == "derived" for grant in grants):
+                    return ("conditional", "lambda_existing_sqs_queue_function_and_role_joined")
+                unknown = True
+        return ("unknown", "lambda_event_source_or_role_permissions_not_verified") if unknown else None
+
     def _lambda_new_dynamodb_stream_route(self, source, role):
         """Join one new table/stream, function, mapping and readable role."""
         if source.incomplete or role.incomplete:
@@ -14237,6 +14325,11 @@ class AwsModel(Model):
                 return None
             return {tid: verdict for tid, role in candidates.items()
                     if (verdict := self._deadline_new_worker_role_vend(source, role))}
+        if pid == "lambda_existing_sqs_queue_function_and_role":
+            if source is None:
+                return None
+            return {tid: verdict for tid, role in candidates.items()
+                    if (verdict := self._lambda_existing_sqs_mapping_route(source, role))}
         if pid == "lambda_new_dynamodb_stream_function_and_role":
             if source is None:
                 return None
