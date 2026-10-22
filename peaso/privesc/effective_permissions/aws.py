@@ -4712,6 +4712,76 @@ class AwsModel(Model):
         already = self.check(source, {"action": action}, resource)
         return permitted is not None and permitted.confidence == "derived" and already is None
 
+    def _agentcore_harness_role_effect(self, source, role, scope):
+        """Require a READY harness and a successful command in its active session."""
+        try:
+            now = datetime.fromisoformat(str(self.snapshot["created_at"]).replace("Z", "+00:00"))
+            if now.tzinfo is None:
+                return False
+        except (KeyError, TypeError, ValueError):
+            return False
+        role_rows = [row for role_scope, row in items(self.snapshot, "iam_role")
+                     if role_scope.split("/")[0] == role.scope and row.get("Arn") == role.id]
+        role_id = role_rows[0].get("RoleId") if len(role_rows) == 1 else None
+        if not isinstance(role_id, str) or not role_id:
+            return False
+        harness_status = inventory_status(self.snapshot, "agentcore_harness")
+        proof_status = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
+        if harness_status.get(scope) != "collected" or proof_status.get(scope) != "collected":
+            return False
+        collections = [c for c in self.snapshot.get("collections", ())
+                       if c.get("type") == "aws_privesc_challenge_evidence" and c.get("scope") == scope]
+        if len(collections) != 1 or collections[0].get("status") != "collected":
+            return False
+        technique = (self.current_entry or {}).get("id")
+        proofs = [row for proof_scope, row in items(self.snapshot, "aws_privesc_challenge_evidence")
+                  if proof_scope == scope and row.get("TechniqueId") == technique and
+                  row.get("SourceArn") == source.id and row.get("TargetKind") == "aws_role" and
+                  row.get("TargetId") == role.id]
+        if len(proofs) != 1:
+            return False
+        proof = proofs[0]
+        harness_arn = proof.get("HarnessArn")
+        prefix = (f"arn:{role.id.split(':', 2)[1]}:bedrock-agentcore:"
+                  f"{scope.split('/', 1)[1]}:{role.scope}:harness/")
+        if not isinstance(harness_arn, str) or not harness_arn.startswith(prefix):
+            return False
+        rows = [row for row_scope, row in items(self.snapshot, "agentcore_harness")
+                if row_scope == scope and row.get("arn") == harness_arn]
+        if len(rows) != 1:
+            return False
+        harness = rows[0]
+        version = harness.get("harnessVersion")
+        action, resource = proof.get("RoleAction"), proof.get("RoleResource")
+        if (harness.get("status") != "READY" or harness.get("executionRoleArn") != role.id or
+                not isinstance(version, str) or not re.fullmatch(r"[1-9][0-9]{0,4}", version) or
+                proof.get("Status") != "verified" or proof.get("VerifiedPreconditions") is not True or
+                proof.get("TargetRoleId") != role_id or proof.get("TargetScope") != scope or
+                proof.get("HarnessVersion") != version or
+                proof.get("ManagedImageReady") is not True or
+                proof.get("ActiveSessionConfirmed") is not True or
+                proof.get("CommandSucceeded") is not True or
+                proof.get("CommandRoleActionSucceeded") is not True or
+                proof.get("EffectUsefulToSource") is not True or
+                not isinstance(proof.get("SessionId"), str) or not proof["SessionId"] or
+                not isinstance(action, str) or
+                re.fullmatch(r"[a-z0-9-]+:[A-Za-z][A-Za-z0-9]*", action) is None or
+                not isinstance(resource, str) or not resource or
+                not isinstance(proof.get("EvidenceRef"), str) or not proof["EvidenceRef"]):
+            return False
+        try:
+            witnessed = datetime.fromisoformat(str(proof["EvidenceObservedAt"]).replace("Z", "+00:00"))
+            expires = datetime.fromisoformat(str(proof["EvidenceExpiresAt"]).replace("Z", "+00:00"))
+            if (witnessed.tzinfo is None or expires.tzinfo is None or
+                    not 0 <= (now - witnessed).total_seconds() <= 900 or
+                    not now < expires or not 0 < (expires - witnessed).total_seconds() <= 900):
+                return False
+        except (KeyError, TypeError, ValueError):
+            return False
+        permitted = self.check(role, {"action": action}, resource)
+        already = self.check(source, {"action": action}, resource)
+        return permitted is not None and permitted.confidence == "derived" and already is None
+
     def _emr_serverless_job_route(self, source, role):
         """Join an actual application, role request, and one shared S3 script object."""
         statuses = inventory_status(self.snapshot, "emr_serverless_application")
@@ -9369,8 +9439,10 @@ class AwsModel(Model):
                         grants.append(self.check(source, {"action": "bedrock-agentcore:GetMemory",
                             "request_context": context}, memory))
                         if all(grant is not None and grant.confidence == "derived" for grant in grants):
-                            out[tid] = ("conditional", "agentcore_harness_generated_scope_and_command_session_pending")
-                            break
+                            if self._agentcore_harness_role_effect(source, role, scope):
+                                out[tid] = ("conditional", "agentcore_harness_generated_scope_and_command_session_pending")
+                                break
+                            unresolved = True
                         unresolved |= any(grant is not None and grant.confidence != "derived" for grant in grants)
                     if tid in out:
                         break

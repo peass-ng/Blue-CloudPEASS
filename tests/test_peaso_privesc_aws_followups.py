@@ -3057,15 +3057,14 @@ def test_agentcore_new_harness_requires_composite_actions_on_one_generated_scope
     def scan(who, *, unknown=False, harnesses=None, status="empty"):
         extra = [] if harnesses is None else [col("agentcore_harness", harnesses, status)]
         return real(aws_snap([who], [target], extra=extra), tid, include_unknown=unknown)
-    assert reached(scan(principal()), ALICE, tid) == {role_arn("core"): "conditional"}
+    assert reached(scan(principal()), ALICE, tid) == {}
     assert edges(scan(principal(create=allow("bedrock-agentcore:CreateHarness",
                                               "bedrock-agentcore:CreateAgentRuntime"))), ALICE) == []
     assert_unresolved(scan(principal(memory="arn:aws:bedrock-agentcore:us-east-1:111111111111:memory/specific"),
                            unknown=True), ALICE, tid)
     scoped = "arn:aws:bedrock-agentcore:us-east-1:111111111111:harness/alpha-*"
     assert_unresolved(scan(principal(invokes=scoped, command=scoped), unknown=True), ALICE, tid)
-    assert reached(scan(principal(invokes=scoped, command=scoped), harnesses=[]), ALICE, tid) == {
-        role_arn("core"): "conditional"}
+    assert reached(scan(principal(invokes=scoped, command=scoped), harnesses=[]), ALICE, tid) == {}
     occupied = {"arn": scoped[:-1] + "1234567890", "harnessId": "alpha-1234567890",
                 "harnessName": "alpha", "status": "READY", "executionRoleArn": role_arn("core")}
     assert edges(scan(principal(invokes=scoped, command=scoped), harnesses=[occupied], status="collected"), ALICE) == []
@@ -3083,6 +3082,64 @@ def test_agentcore_new_harness_requires_composite_actions_on_one_generated_scope
                          allow("bedrock-agentcore:InvokeHarness", "bedrock-agentcore:InvokeAgentRuntime",
                                "bedrock-agentcore:InvokeAgentRuntimeCommand"))
     assert edges(scan(wrong_service), ALICE) == []
+
+
+def test_agentcore_harness_requires_reviewed_command_effect():
+    technique = "aws-bedrock-agentcore-createharness-passrole"
+    harness_arn = f"arn:aws:bedrock-agentcore:{REGION}:{ACCOUNT}:harness/previous-0123456789"
+    object_arn = "arn:aws:s3:::private-bucket/evidence.txt"
+    target = role("core", "bedrock-agentcore.amazonaws.com",
+                  allow("s3:PutObject", resource=object_arn))
+    target["RoleId"] = "AROAHARNESS123456789"
+    passed = allow("iam:PassRole", resource=target["Arn"])
+    passed["Condition"] = {"StringEquals": {
+        "iam:PassedToService": "bedrock-agentcore.amazonaws.com"}}
+    harness = {"arn": harness_arn, "harnessId": "previous-0123456789",
+               "harnessName": "previous", "harnessVersion": "1",
+               "executionRoleArn": target["Arn"], "status": "READY"}
+    proof = {"TechniqueId": technique, "SourceArn": ALICE, "TargetKind": "aws_role",
+             "TargetId": target["Arn"], "TargetRoleId": target["RoleId"],
+             "TargetScope": SCOPE, "HarnessArn": harness_arn, "HarnessVersion": "1",
+             "Status": "verified", "VerifiedPreconditions": True,
+             "ManagedImageReady": True, "ActiveSessionConfirmed": True,
+             "CommandSucceeded": True, "CommandRoleActionSucceeded": True,
+             "EffectUsefulToSource": True, "SessionId": "session-123",
+             "RoleAction": "s3:PutObject", "RoleResource": object_arn,
+             "EvidenceRef": "reviewed-harness-command",
+             "EvidenceObservedAt": "2026-10-21T11:59:00+00:00",
+             "EvidenceExpiresAt": "2026-10-21T12:05:00+00:00"}
+
+    def result(evidence=proof, *, harness_row=harness, extra_caller=()):
+        caller = user("alice", passed,
+                      allow("bedrock-agentcore:CreateHarness", "bedrock-agentcore:CreateAgentRuntime",
+                            "bedrock-agentcore:CreateMemory"),
+                      allow("bedrock-agentcore:InvokeHarness",
+                            "bedrock-agentcore:InvokeAgentRuntime",
+                            "bedrock-agentcore:InvokeAgentRuntimeCommand",
+                            "bedrock-agentcore:GetMemory"), *extra_caller)
+        proofs = evidence if isinstance(evidence, list) else ([evidence] if evidence else [])
+        snap = aws_snap([caller], [target], [col("agentcore_harness", [harness_row]),
+            col("aws_privesc_challenge_evidence", proofs)])
+        snap["created_at"] = "2026-10-21T12:00:00+00:00"
+        return real(snap, technique, include_unknown=True)
+
+    assert target["Arn"] in reached(result(), ALICE, technique)
+    assert target["Arn"] not in reached(result(None), ALICE, technique)
+    assert_unresolved(result(None), ALICE, technique)
+    assert target["Arn"] not in reached(result([proof, dict(proof)]), ALICE, technique)
+    for changed in ({"TargetRoleId": "AROADIFFERENT"}, {"HarnessVersion": "2"},
+                    {"ManagedImageReady": False}, {"ActiveSessionConfirmed": False},
+                    {"CommandSucceeded": False}, {"CommandRoleActionSucceeded": False},
+                    {"EffectUsefulToSource": False}, {"RoleAction": "s3:DeleteObject"},
+                    {"SourceArn": f"arn:aws:iam::{ACCOUNT}:user/other"},
+                    {"EvidenceObservedAt": "2026-10-21T11:40:00+00:00"}):
+        assert target["Arn"] not in reached(result(dict(proof, **changed)), ALICE, technique)
+    assert target["Arn"] not in reached(result(proof, harness_row=dict(harness, status="CREATE_FAILED")),
+                                        ALICE, technique)
+    assert target["Arn"] not in reached(result(proof, harness_row=dict(harness,
+        executionRoleArn=role_arn("other"))), ALICE, technique)
+    assert target["Arn"] not in reached(result(proof,
+        extra_caller=[allow("s3:PutObject", resource=object_arn)]), ALICE, technique)
 
 
 def test_sagemaker_job_scopes_and_passrole_service_remain_unresolved_without_execution():
