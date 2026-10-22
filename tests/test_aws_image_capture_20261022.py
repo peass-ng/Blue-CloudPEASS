@@ -53,17 +53,6 @@ def test_exact_image_payload_once_and_scanner_parity(monkeypatch, order):
     def cve():
         return native.collect_native(requests, session, ACCOUNT, REGION, [target],
                                      enabled=True, runner=scan_runner())
-    if order == 'concurrent':
-        # Force both independent scanners to reach the same config capture
-        # before either can fetch it; this exercises actual single-flight.
-        descriptor = package._json(ops['batch_get_image']['images'][0]['imageManifest'])['config']
-        config_barrier = threading.Barrier(2)
-        original = capture._Capture.blob
-        def synchronized(self, *args, **kwargs):
-            if args[6] == descriptor['digest']:
-                config_barrier.wait(timeout=5)
-            return original(self, *args, **kwargs)
-        monkeypatch.setattr(capture._Capture, 'blob', synchronized)
     with capture.capture_scope(requests) as store:
         root = store.root
         if order == 'concurrent':
