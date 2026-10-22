@@ -208,6 +208,7 @@ SELECTOR_KEYS = {
         "Exact externally verified technique/source/target evidence from aws_privesc_challenge_evidence. "
         "Missing or incomplete evidence is unresolved; a different source or target never matches."),
     "aws_s3_policy_self_grant": (("aws",), "bool_true", "Reviewed exact S3 bucket-policy self-grant for the caller and a bounded object prefix."),
+    "aws_sqs_policy_self_grant": (("aws",), "bool_true", "Same-account IAM user can grant itself ReceiveMessage on an exact unencrypted queue through SetQueueAttributes."),
     "aws_s3_access_grants_self_grant": (("aws",), "bool_true", "Reviewed exact S3 Access Grants session with new READ permission on a bounded prefix."),
     "aws_secretsmanager_policy_self_grant": (("aws",), "bool_true", "Reviewed GetSecretValue self-grant for the exact IAM user and secret."),
     "aws_efs_policy_self_grant": (("aws",), "bool_true", "Reviewed ClientMount self-grant for the exact EFS file system."),
@@ -792,6 +793,7 @@ FACTS_NEEDED = {
     "source_boundary_policy_version_contents": "stored versions of the source permissions boundary policy",
     "source_boundary_replacement_authorization": "the replacement boundary policy and request conditions on changing the source boundary",
     "aws_s3_policy_self_grant": "unique collected aws_s3_policy_self_grant_evidence with exact source, bucket, prefix, policy principal/resource and observed before/after GetObject authorization",
+    "aws_sqs_policy_self_grant": "the exact queue ARN, a same-account IAM user's SetQueueAttributes grant, absent prior ReceiveMessage and no applicable deny, boundary or customer-managed KMS key",
     "aws_s3_access_grants_self_grant": "unique collected aws_s3_access_grants_self_grant_evidence with exact source, location role, grant, target prefix, scoped session and observed before/after GetObject authorization",
     "aws_secretsmanager_policy_self_grant": "unique reviewed exact-source, exact-secret policy grant with observed before/after GetSecretValue and KMS authorization",
     "aws_efs_policy_self_grant": "unique reviewed exact-source, exact-file-system policy grant with observed before/after ClientMount authorization",
@@ -1964,7 +1966,7 @@ def validate_entry(entry, *, expected_provider=None, hacktricks_root=None):
         if "service_plane" in selector and kind != "aws_service_plane_admin":
             errors.append(f"{where}: selector service_plane is only valid with target kind aws_service_plane_admin")
         aws_authority_selectors = (
-            "aws_challenge_fact", "aws_s3_policy_self_grant", "aws_s3_access_grants_self_grant",
+            "aws_challenge_fact", "aws_s3_policy_self_grant", "aws_sqs_policy_self_grant", "aws_s3_access_grants_self_grant",
             "aws_secretsmanager_policy_self_grant", "aws_efs_policy_self_grant",
             "aws_cases_tag_self_grant", "aws_sitewise_portal_self_grant")
         selected_authority = [key for key in aws_authority_selectors if selector.get(key)]

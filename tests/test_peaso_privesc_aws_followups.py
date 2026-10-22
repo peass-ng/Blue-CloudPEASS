@@ -1445,6 +1445,49 @@ def test_synthetics_canary_inventory_binds_exact_execution_role():
     assert incomplete.host_status[(ACCOUNT, "synthetics_canary")] == "partial"
 
 
+def test_sqs_queue_policy_self_grant_requires_new_effective_receive_permission():
+    from pathlib import Path
+    import yaml
+    from peaso.privesc.effective_permissions.aws import AwsModel
+    from peaso.privesc.evaluator import Evaluator
+
+    catalog_file = Path(__file__).resolve().parents[1] / "peaso/privesc/catalog/aws/sqs.yaml"
+    entry = yaml.safe_load(catalog_file.read_text())[0]
+    queue_arn = f"arn:aws:sqs:{REGION}:{ACCOUNT}:sensitive"
+    queue_url = f"https://sqs.{REGION}.amazonaws.com/{ACCOUNT}/sensitive"
+
+    def evaluate(*, grants=(), encryption="", queue_policy=None, details="collected", writer_resource=None,
+                 queue_location=queue_url):
+        attrs = {"QueueArn": queue_arn, "KmsMasterKeyId": encryption}
+        if queue_policy is not None:
+            attrs["Policy"] = queue_policy
+        queue = {"QueueUrl": queue_location, "Attributes": {"collection_status": details,
+                 "Attributes": attrs}}
+        caller = user("alice", allow("sqs:SetQueueAttributes", resource=writer_resource or queue_arn), *grants)
+        snap = aws_snap([caller], [], [col("sqs_queue", [queue])])
+        return [reach.targets for reach in Evaluator(AwsModel(snap), [entry],
+                 include_unknown=False).run() if reach.source.id == ALICE]
+
+    gained = evaluate()
+    assert len(gained) == 1
+    assert any("sqs-policy:" in target and grant.confidence == "conditional"
+               for target, grant in gained[0].items())
+    assert evaluate(grants=[allow("sqs:ReceiveMessage", resource=queue_arn)]) == []
+    assert evaluate(grants=[{"Effect": "Deny", "Action": "sqs:ReceiveMessage", "Resource": queue_arn}]) == []
+    assert evaluate(writer_resource=f"arn:aws:sqs:{REGION}:{ACCOUNT}:other") == []
+    assert evaluate(queue_location=f"https://sqs.{REGION}.amazonaws.com/{ACCOUNT}/other") == []
+    deny_policy = policy({"Effect": "Deny", "Principal": {"AWS": ALICE},
+                          "Action": "sqs:ReceiveMessage", "Resource": queue_arn})
+    assert evaluate(queue_policy=deny_policy) == []
+    existing_allow = policy({"Effect": "Allow", "Principal": {"AWS": ALICE},
+                             "Action": "sqs:ReceiveMessage", "Resource": queue_arn})
+    assert evaluate(queue_policy=existing_allow) == []
+    assert evaluate(encryption=None) == []
+    assert evaluate(encryption="alias/aws/sqs") == []
+    assert evaluate(encryption=f"arn:aws:kms:{REGION}:{ACCOUNT}:key/12345678-1234-1234-1234-123456789012") == []
+    assert evaluate(details="access_denied") == []
+
+
 def test_agentcore_created_interpreter_needs_grants_covering_its_generated_id():
     tid = "aws-bedrock-agentcore-createcodeinterpreter-passrole"
     prefix = f"arn:aws:bedrock-agentcore:{REGION}:{ACCOUNT}:code-interpreter-custom/"

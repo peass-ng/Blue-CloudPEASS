@@ -2678,8 +2678,17 @@ class AwsModel(Model):
                 and fact.get("TargetAccount") == account
                 and isinstance(action, str) and action.lower() in actions)
 
+    def _sqs_self_grants(self):
+        cached = self.__dict__.get("_sqs_self_grant_cache")
+        if cached is None:
+            from .aws_sqs_self_grant import load
+            cached = self.__dict__["_sqs_self_grant_cache"] = load(self)
+        return cached
+
     def targets_for(self, kind, selector):
         selector = selector or {}
+        if kind == "aws_verified_authority" and selector.get("aws_sqs_policy_self_grant"):
+            return list(self._sqs_self_grants()[0].values())
         if kind == "aws_verified_authority" and any(key in self.scoped_grants and selector.get(key)
                                                  for key in self.scoped_grants):
             key = next(key for key in self.scoped_grants if selector.get(key))
@@ -2770,6 +2779,9 @@ class AwsModel(Model):
         return cache[key]
 
     def unknown_target_scopes(self, kind):
+        if (self.current_selector or {}).get("aws_sqs_policy_self_grant"):
+            return {scope.split("/")[0]: status for scope, status in
+                    unavailable(inventory_status(self.snapshot, "sqs_queue")).items()}
         if (self.current_selector or {}).get("aws_s3_policy_self_grant") or (self.current_selector or {}).get("aws_s3_access_grants_self_grant") or any(
                 (self.current_selector or {}).get(key) for key in self.scoped_grants):
             return {}
@@ -3025,6 +3037,13 @@ class AwsModel(Model):
                     for target_id in candidates
                     if (record := self.s3_self_grant_records.get(target_id))
                     and record["SourceArn"] == source.id}
+        if key == "aws_sqs_policy_self_grant":
+            if source is None:
+                return None
+            records = self._sqs_self_grants()[1]
+            return {target_id: ("conditional", "sqs_same_account_queue_policy_self_grant")
+                    for target_id in candidates
+                    if (record := records.get(target_id)) and record["SourceArn"] == source.id}
         if key == "aws_challenge_fact":
             statuses = inventory_status(self.snapshot, "aws_privesc_challenge_evidence")
             if value not in _EXACT_USER_CREDENTIAL_ACTIONS and (
